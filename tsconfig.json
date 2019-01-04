@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "module": "ESNext",
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "target": "es2017",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*"]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ]
+}
