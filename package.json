@@ -19,15 +19,24 @@
   },
   "homepage": "https://github.com/RvanderLaan/VisualLibrary#readme",
   "devDependencies": {
+    "@types/react": "^16.7.18",
+    "@types/react-dom": "^16.0.11",
+    "@types/react-sidebar": "^3.0.0",
     "css-loader": "^2.1.0",
     "electron": "^4.0.0",
     "file-loader": "^3.0.1",
     "html-webpack-plugin": "^3.2.0",
+    "prettier": "^1.15.3",
     "style-loader": "^0.23.1",
     "ts-loader": "^5.3.2",
     "tslint": "^5.12.0",
     "typescript": "^3.2.2",
     "webpack": "^4.28.3",
     "webpack-cli": "^3.2.0"
+  },
+  "dependencies": {
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "react-sidebar": "^3.0.2"
   }
 }

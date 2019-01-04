@@ -1,4 +1,12 @@
 body {
   background: #444444;
   color: white;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+.sidebar {
+  background: #666666;
+  padding: 1em;
+}
+.content {
+  padding: 1em;
 }

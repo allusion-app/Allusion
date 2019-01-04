@@ -10,7 +10,8 @@
     "no-conditional-assignment": true,
     "no-consecutive-blank-lines": false,
     "quotemark": [true, "single"],
-    "no-console": [true, "warning"]
+    "no-console": [true, "warning"],
+    "object-literal-sort-keys": false,
   },
   "jsRules": {
     "max-line-length": {
