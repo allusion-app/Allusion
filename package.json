@@ -2,10 +2,12 @@
   "name": "visuallibrary",
   "version": "1.0.0",
   "description": "A tool to manage your visual library",
+  "main": "main.bundle.js",
   "scripts": {
     "development": "rimraf dist && webpack --watch --config ./webpack.dev.js --progress --colors",
-    "production": "rimraf dist && webpack --config ./webpack.prod.js --progress --colors",
+    "production": "rimraf dist && webpack --config ./webpack.prod.js --progress --colors && ncp ./package.json dist/package.json",
     "start": "electron ./dist/main.bundle.js",
+    "package": "rimraf release && npm run production && electron-packager ./dist VisualLibrary --out=./release --asar",
     "lint": "tslint -c tslint.json -p tsconfig.json"
   },
   "repository": {
@@ -21,8 +23,11 @@
   "devDependencies": {
     "css-loader": "^2.1.0",
     "electron": "^4.0.0",
+    "electron-packager": "^13.0.1",
     "file-loader": "^3.0.1",
     "html-webpack-plugin": "^3.2.0",
+    "ncp": "^2.0.0",
+    "prettier": "^1.15.3",
     "style-loader": "^0.23.1",
     "ts-loader": "^5.3.2",
     "tslint": "^5.12.0",

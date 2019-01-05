@@ -4,5 +4,8 @@ node_modules/
 # Build directory
 dist/
 
+# Release directory
+release/
+
 # IDEs
 .idea/
