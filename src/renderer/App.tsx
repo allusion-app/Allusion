@@ -57,7 +57,7 @@ class App extends React.Component<IAppProps, IAppState> {
   public state: Readonly<IAppState> = {
     isSidebarOpen: false,
     isSidebarDocked: false,
-    tags: [], // some pre-added tags as demo
+    tags: [],
     selectedTags: [],
     files: [],
   };
@@ -109,7 +109,7 @@ class App extends React.Component<IAppProps, IAppState> {
       properties: ['openDirectory', 'multiSelections'],
     });
 
-    if (dirs.length === 0) {
+    if (!dirs) {
       return;
     }
     dirs.forEach(async (dir) => {
@@ -132,12 +132,15 @@ class App extends React.Component<IAppProps, IAppState> {
         )),
       );
 
+      // TODO: Update state through an Action, else it is not undoable
       this.setState(({ files }) => ({ files: [...files, ...imgFiles] }));
     });
   }
 
   public render() {
     const { isSidebarOpen, isSidebarDocked, tags, files } = this.state;
+
+    console.log(this.state); // Print the state for debugging at every rerender
 
     // Show a list of all tags in the sidebar
     const sidebarContent = (

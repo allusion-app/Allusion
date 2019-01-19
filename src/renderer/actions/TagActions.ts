@@ -1,6 +1,7 @@
 import { IAppState } from "../App";
 import { ID } from "../classes/ID";
 import { ITag, Tag } from "../classes/Tag";
+import { ITagProps } from "../components/TagList";
 import DBRepository from "../repositories/DBRepository";
 import IAction from "./Action";
 
@@ -25,7 +26,11 @@ export class AddTag extends TagAction {
   public async execute<T extends keyof IAppState>({ tags }: Readonly<IAppState>): Promise<Pick<IAppState, T>> {
     const addedTag = await this.tagRepository.create(new Tag(this.tagToAdd));
     this.addedTagId = addedTag.id;
-    return { tags: [...tags, addedTag] } as Pick<IAppState, T>;
+    const addedTagProps: ITagProps = {
+      tag: addedTag,
+      count:  0,
+    };
+    return { tags: [...tags, addedTagProps] } as Pick<IAppState, T>;
   }
 
   public async unExecute<T extends keyof IAppState>({ tags }: Readonly<IAppState>): Promise<Pick<IAppState, T>> {
