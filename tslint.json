@@ -9,9 +9,12 @@
     "no-bitwise": true,
     "no-conditional-assignment": true,
     "no-consecutive-blank-lines": false,
-    "quotemark": [true, "single"],
+    "quotemark": [false, "single"],
     "no-console": [true, "warning"],
     "object-literal-sort-keys": false,
+    "max-classes-per-file": false,
+    "no-empty-interface": false,
+    "indent": [true, "spaces", 2]
   },
   "jsRules": {
     "max-line-length": {

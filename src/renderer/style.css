@@ -10,3 +10,13 @@ body {
 .content {
   padding: 1em;
 }
+.thumbnail {
+  --thumbnail-size: 16em;
+  transition: all 0.2 ease;
+  object-fit: cover;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
+}
+.thumbnail:hover {
+  object-fit: contain;
+}

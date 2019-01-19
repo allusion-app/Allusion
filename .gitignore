@@ -6,3 +6,5 @@ dist/
 
 # IDEs
 .idea/
+
+release/
