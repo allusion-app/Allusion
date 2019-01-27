@@ -23,7 +23,6 @@ export const dbInit = async (collections: IDBCollectionConfig[]) => {
 
 /**
  * A class that manages data retrieval and updating with a database.
- * For more simple [key, value] peristant storage, check out KeyValStore.ts
  * Old blogpost on how to use tags in IDB:
  * https://www.raymondcamden.com/2012/08/10/Searching-for-array-elements-in-IndexedDB
  */

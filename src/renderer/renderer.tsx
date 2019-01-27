@@ -9,8 +9,16 @@ import ReactDOM from 'react-dom';
 // in the HTML file
 import './style.css';
 
-// Import the main App component
-import App from './App';
+import backend from './backend/Backend';
+import App from './frontend/App';
+
+// Keep a reference of the App so that it can be notified when the backend has been initialized
+const appRef = React.createRef<App>();
+
+// Initialize the backend for the App, that serves as an API to the front-end
+backend.init().then(async () => {
+  await appRef.current.init();
+});
 
 // Render our react components in the div with id 'app' in the html file
-ReactDOM.render(<App />, document.getElementById('app'));
+ReactDOM.render(<App ref={appRef} />, document.getElementById('app'));
