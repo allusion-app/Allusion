@@ -1,5 +1,5 @@
 import { DB, ObjectStore, openDb, UpgradeDB } from "idb";
-import { ID, IIdentifiable } from "../classes/ID";
+import { ID, IIdentifiable } from "../entities/ID";
 
 export const dbName = "VisLib";
 
@@ -59,14 +59,13 @@ export default class BaseRepository<T extends IIdentifiable> {
       .index(property)
       .count(query);
   }
-  public create = async (item: Pick<T, Exclude<keyof T, 'id'>>): Promise<T> => {
+  public create = async (item: T): Promise<T> => {
     const db = await openDb(dbName);
     const key = await db.transaction(this.collectionName, 'readwrite')
       .objectStore<T, ID>(this.collectionName)
       .add(item as T);
     const resItem = item as T;
     resItem.id = key as ID;
-    console.log('Added', resItem);
     return resItem;
   }
   public remove = async (key: ID): Promise<void> => {

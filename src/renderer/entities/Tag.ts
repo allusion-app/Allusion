@@ -13,15 +13,10 @@ export class Tag implements ITag {
     public description?: string;
     public dateAdded: Date;
 
-    constructor(name: string, description?: string) {
+    constructor(id: ID, name: string, description?: string) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.dateAdded = new Date();
     }
-}
-
-export interface ITagCategory extends IIdentifiable {
-    name: string;
-    subCategories: ITagCategory[];
-    tags: ITag[];
 }

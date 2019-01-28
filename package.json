@@ -37,8 +37,10 @@
   "dependencies": {
     "fs-extra": "^7.0.1",
     "idb": "^3.0.2",
+    "mobx": "^5.9.0",
     "mobx-react": "^5.4.3",
     "react": "^16.7.0",
-    "react-dom": "^16.7.0"
+    "react-dom": "^16.7.0",
+    "uuid": "^3.3.2"
   }
 }

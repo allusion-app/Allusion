@@ -1,32 +1,26 @@
+import { inject, observer } from 'mobx-react';
 import React from 'react';
-import { ITag } from "../classes/Tag";
-
-export interface ITagProps {
-  tag: ITag;
-  count: number;
-  isSelected?: boolean;
-}
+import RootStore from '../stores/RootStore';
+import TagStore from '../stores/TagStore';
 
 export interface ITagListProps {
-  tags: ITagProps[];
-  onClickTag?: (tag: ITag) => void;
-  onAddTag?: (tag: string) => void;
-  onDragOnTag?: (tag: ITag, e: any) => void;
-  onRemoveTag?: (tag: ITag) => void;
+  rootStore?: RootStore;
 }
 
-const TagList = ({ tags, onClickTag, onRemoveTag }: ITagListProps) => (
+const TagList = ({ rootStore: { tagStore } }: ITagListProps) => (
   <div>
     {
-      tags.map(({ tag, count, isSelected }, tagIndex) => (
+      tagStore.tagList.map((tag, tagIndex) => (
         <div key={`tag-${tagIndex}`}>
-          <span onClick={() => onClickTag(tag)}>{tag.name}</span>
-          <button onClick={() => onRemoveTag(tag)}>x</button>
-          <span>({count})</span>
+          <span onClick={() => console.log(tag)}>{tag.name}</span>
+          <button onClick={() => tagStore.removeTag(tag)}>x</button>
         </div>
       ))
     }
+    <button onClick={() => tagStore.addTag(`random tag here ${Math.random()}`)}>
+      Add tag
+    </button>
   </div>
 );
 
-export default TagList;
+export default inject('rootStore')(observer(TagList));

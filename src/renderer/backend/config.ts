@@ -1,4 +1,3 @@
-
 export const dbConfig = [
   {
     name: 'files',
