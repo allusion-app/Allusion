@@ -5,8 +5,8 @@ import React, { useState } from 'react';
 
 import TagListItem from './TagListItem';
 
+import { ClientTag } from "../../entities/Tag";
 import { withRootstore } from '../contexts/StoreContext';
-import DomainTag from '../domain-objects/Tag';
 import RootStore from '../stores/RootStore';
 
 export interface ITagListProps {
@@ -17,7 +17,7 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
 
   const [newTag, setNewTag] = useState('');
 
-  const handleRename = (tag: DomainTag, name: string) => {
+  const handleRename = (tag: ClientTag, name: string) => {
     tag.name = name;
   };
 

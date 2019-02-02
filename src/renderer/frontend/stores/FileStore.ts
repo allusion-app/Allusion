@@ -1,16 +1,15 @@
 import { action, observable } from 'mobx';
 
 import Backend from '../../backend/Backend';
-import { IFile } from '../../entities/File';
-import { ITag } from '../../entities/Tag';
-import File from '../domain-objects/File';
+import { ClientFile, IFile } from '../../entities/File';
+import { ClientTag, ITag } from '../../entities/Tag';
 import RootStore from "./RootStore";
 
 class FileStore {
   backend: Backend;
   rootStore: RootStore;
 
-  @observable fileList: File[] = [];
+  @observable fileList: ClientFile[] = [];
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -31,7 +30,7 @@ class FileStore {
     const file = this.fileList.find((f) => backendFile.id === f.id);
     // In case a file was added to the server from another client or session
     if (!file) {
-      this.fileList.push(new File(this).updateFromBackend(backendFile));
+      this.fileList.push(new ClientFile(this).updateFromBackend(backendFile));
     } else {
       // Else, update the existing tag
       file.updateFromBackend(backendFile);
@@ -40,9 +39,10 @@ class FileStore {
 
   @action
   addFile(filePath: string) {
-    const file = new File(this, filePath);
-    this.fileList.push(file);
-    this.backend.createFile(file.id, file.path);
+    const file = new ClientFile(this, filePath);
+    this.backend.createFile(file.id, file.path)
+      .then(() => this.fileList.push(file))
+      .catch((err) => console.error('Could not add file:', err));
   }
 
   @action

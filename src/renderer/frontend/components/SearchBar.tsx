@@ -3,11 +3,11 @@ import React from "react";
 import { Button, MenuItem } from "@blueprintjs/core";
 import { ItemRenderer, MultiSelect } from "@blueprintjs/select";
 
-import Tag from "../domain-objects/Tag";
+import { ClientTag } from "../../entities/Tag";
 
-const TagMultiSelect = MultiSelect.ofType<Tag>();
+const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 
-const SearchTagItem: ItemRenderer<Tag> = (tag, { modifiers, handleClick }) => {
+const SearchTagItem: ItemRenderer<ClientTag> = (tag, { modifiers, handleClick }) => {
   if (!modifiers.matchesPredicate) {
     return null;
   }
@@ -25,11 +25,11 @@ const SearchTagItem: ItemRenderer<Tag> = (tag, { modifiers, handleClick }) => {
 };
 
 interface ISearchBarProps {
-  onTagSelect: (tag: Tag) => void;
+  onTagSelect: (tag: ClientTag) => void;
   onTagDeselect: (index: number) => void;
   onClearSelection: () => void;
-  selectedTags: Tag[];
-  allTags: Tag[];
+  selectedTags: ClientTag[];
+  allTags: ClientTag[];
 }
 const SearchBar = ({
   onTagSelect,

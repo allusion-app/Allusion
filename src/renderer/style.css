@@ -10,6 +10,7 @@ html {
 body {
   background: #444444;
   display: flex;
+  justify-content: space-between;
   flex-direction: row;
   margin: 0px;
   width: 100%;
@@ -38,8 +39,16 @@ body {
   flex-shrink: 0;
   overflow-x: hidden;
   height: 100%;
+
+  position: sticky;
+  top: 0;
   
   background: #333333;
+}
+
+.sidebar h4 {
+  padding: 4px;
+  margin: 0;
 }
 
 .gallery {
@@ -50,7 +59,3 @@ body {
   padding: 8px;
 }
 
-.sidebar h4 {
-  padding: 4px;
-  margin: 0;
-}

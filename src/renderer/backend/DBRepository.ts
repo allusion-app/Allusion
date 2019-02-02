@@ -13,14 +13,14 @@ export interface IDBCollectionConfig {
  * It initializes the object stores
  */
 export const dbInit = async (collections: IDBCollectionConfig[]) => {
-  await openDb(dbName, 1, upgradeDB => {
+  await openDb(dbName, 1, (upgradeDB) => {
     collections.forEach(({ name, indices }) => {
       const objectStore = upgradeDB.createObjectStore(name, {
         keyPath: 'id',
         autoIncrement: true,
       });
       indices.forEach(({ name: idxName, path, opts }) =>
-        objectStore.createIndex(idxName, path, opts)
+        objectStore.createIndex(idxName, path, opts),
       );
     });
   });
@@ -44,7 +44,7 @@ export default class BaseRepository<T extends IIdentifiable> {
       .transaction(this.collectionName)
       .objectStore<T, ID>(this.collectionName)
       .get(id);
-  };
+  }
 
   public getAll = async (count?: number): Promise<T[]> => {
     const db = await openDb(dbName);
@@ -52,12 +52,12 @@ export default class BaseRepository<T extends IIdentifiable> {
       .transaction(this.collectionName)
       .objectStore<T, ID>(this.collectionName)
       .getAll(undefined, count);
-  };
+  }
 
   public find = async (
     property: string,
     query: any,
-    count?: number
+    count?: number,
   ): Promise<T[]> => {
     const db = await openDb(dbName);
     return await db
@@ -65,7 +65,7 @@ export default class BaseRepository<T extends IIdentifiable> {
       .objectStore<T, ID>(this.collectionName)
       .index(property)
       .getAll(query, count);
-  };
+  }
 
   public count = async (property: string, query: any): Promise<number> => {
     const db = await openDb(dbName);
@@ -74,7 +74,7 @@ export default class BaseRepository<T extends IIdentifiable> {
       .objectStore<T, ID>(this.collectionName)
       .index(property)
       .count(query);
-  };
+  }
 
   public create = async (item: T): Promise<T> => {
     const db = await openDb(dbName);
@@ -85,7 +85,7 @@ export default class BaseRepository<T extends IIdentifiable> {
     const resItem = item as T;
     resItem.id = key as ID;
     return resItem;
-  };
+  }
 
   public remove = async (key: ID): Promise<void> => {
     const db = await openDb(dbName);
@@ -93,8 +93,8 @@ export default class BaseRepository<T extends IIdentifiable> {
       .transaction(this.collectionName, 'readwrite')
       .objectStore<T, ID>(this.collectionName)
       .delete(key);
-  };
-  
+  }
+
   public update = async (item: T): Promise<T> => {
     const db = await openDb(dbName);
     await db
@@ -102,5 +102,5 @@ export default class BaseRepository<T extends IIdentifiable> {
       .objectStore<T, ID>(this.collectionName)
       .put(item);
     return item;
-  };
+  }
 }

@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { observer } from 'mobx-react-lite';
-import File from '../domain-objects/File';
+import { ClientFile } from '../../entities/File';
 
 interface IGalleryProps {
-  files: File[];
+  files: ClientFile[];
 }
 
 const Gallery = ({

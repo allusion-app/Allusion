@@ -1,6 +1,6 @@
-import { File, IFile } from '../entities/File';
+import { DbFile, IFile } from '../entities/File';
 import { ID } from '../entities/ID';
-import { ITag, Tag } from '../entities/Tag';
+import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig } from './config';
 import DBRepository, { dbInit } from './DBRepository';
 
@@ -36,12 +36,12 @@ export default class Backend {
 
   async createTag(id: ID, name: string, description?: string) {
     console.log('Backend: Creating tag...', id, name, description);
-    return await this.tagRepository.create(new Tag(id, name, description));
+    return await this.tagRepository.create(new DbTag(id, name, description));
   }
 
   async createFile(id: ID, path: string, tags?: ID[]) {
     console.log('Backend: Creating file...', id, path);
-    return await this.fileRepository.create(new File(id, path, tags));
+    return await this.fileRepository.create(new DbFile(id, path, tags));
   }
 
   async saveTag(tag: ITag): Promise<ITag> {

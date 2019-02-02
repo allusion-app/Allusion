@@ -18,9 +18,10 @@ import RootStore from "./RootStore";
  *  - State of a wizard
  *  - State of a global overlay
  */
-class UiState {
+class UiStore {
   rootStore: RootStore;
 
+  @observable theme: 'LIGHT' | 'DARK' = 'DARK';
   @observable isSidebarOpen: boolean = true;
 
   constructor(rootStore: RootStore) {
@@ -28,4 +29,4 @@ class UiState {
   }
 }
 
-export default UiState;
+export default UiStore;

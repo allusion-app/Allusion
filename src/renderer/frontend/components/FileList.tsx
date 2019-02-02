@@ -52,6 +52,7 @@ const FileList = ({ rootStore: { fileStore } }: IFileListProps) => {
       </Button>
 
       <br />
+      <br />
 
       <Gallery
         files={fileStore.fileList}
