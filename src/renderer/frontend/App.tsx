@@ -21,6 +21,8 @@ const App = () => (
       <InputGroup type="search" leftIcon="search" placeholder="Search">
       </InputGroup>
 
+      <br/>
+
       <FileList />
     </div>
   </div>

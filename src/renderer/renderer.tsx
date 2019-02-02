@@ -18,8 +18,8 @@ import RootStore from './frontend/stores/RootStore';
 const backend = new Backend();
 const rootStore = new RootStore(backend);
 backend.init().then(async () => {
-  await rootStore.init();
   console.log('Backend has been initialized!');
+  await rootStore.init();
 });
 
 // Render our react components in the div with id 'app' in the html file

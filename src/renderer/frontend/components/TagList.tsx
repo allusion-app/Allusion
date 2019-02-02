@@ -1,10 +1,13 @@
+import { Button, ControlGroup, InputGroup, Tag } from "@blueprintjs/core";
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
-import { withRootstore } from '../contexts/StoreContext';
-import RootStore from '../stores/RootStore';
 
-import { Button, ButtonGroup, ControlGroup, InputGroup, Tag } from "@blueprintjs/core";
+
 import TagListItem from './TagListItem';
+
+import { withRootstore } from '../contexts/StoreContext';
+import DomainTag from '../domain-objects/Tag';
+import RootStore from '../stores/RootStore';
 
 export interface ITagListProps {
   rootStore?: RootStore;
@@ -14,6 +17,10 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
 
   const [newTag, setNewTag] = useState('');
 
+  const handleRename = (tag: DomainTag, name: string) => {
+    tag.name = name;
+  };
+
   return (
     <>
       {
@@ -22,7 +29,7 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
             <TagListItem
               name={tag.name}
               onRemove={() => tagStore.removeTag(tag)}
-              onRename={(name) => console.log(`renamed ${tag.name} to ${name}`)}
+              onRename={(name) => handleRename(tag, name)}
             />
           </div>
         ))

@@ -26,7 +26,7 @@ class RootStore {
 
   async init() {
     this.tagStore.init();
-    // this.fileStore.init();
+    this.fileStore.init();
   }
 }
 

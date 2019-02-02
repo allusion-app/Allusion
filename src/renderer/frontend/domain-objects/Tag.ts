@@ -1,7 +1,7 @@
-import { IReactionDisposer, observable, reaction } from "mobx";
-import { generateId, ID } from "../../entities/ID";
-import { ITag } from "../../entities/Tag";
-import TagStore from "../stores/TagStore";
+import { IReactionDisposer, observable, reaction } from 'mobx';
+import { generateId, ID } from '../../entities/ID';
+import { ITag } from '../../entities/Tag';
+import TagStore from '../stores/TagStore';
 
 export default class Tag {
   store: TagStore;
@@ -16,9 +16,8 @@ export default class Tag {
 
   constructor(store: TagStore, name?: string, id = generateId()) {
     this.store = store;
-
-    this.name = name;
     this.id = id;
+    this.name = name;
 
     this.saveHandler = reaction(
       // observe all changes to observable fields
@@ -37,7 +36,12 @@ export default class Tag {
   }
 
   toBackendTag(): ITag {
-    return { id: this.id, name: this.name, description: this.description, dateAdded: this.added };
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      dateAdded: this.added,
+    };
   }
 
   updateFromBackend(backendTag: ITag): Tag {

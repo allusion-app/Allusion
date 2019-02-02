@@ -1,9 +1,8 @@
-
-import { IFile } from '../entities/File';
+import { File, IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { ITag, Tag } from '../entities/Tag';
 import { dbConfig } from './config';
-import DBRepository, { dbInit } from "./DBRepository";
+import DBRepository, { dbInit } from './DBRepository';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -19,8 +18,8 @@ export default class Backend {
     // Initialize database tables
     await dbInit(dbConfig);
 
-    this.fileRepository = new DBRepository("files");
-    this.tagRepository = new DBRepository("tags");
+    this.fileRepository = new DBRepository('files');
+    this.tagRepository = new DBRepository('tags');
 
     // Here we could start indexing, or checking for changed files
   }
@@ -29,14 +28,32 @@ export default class Backend {
     console.log('Backend: Fetching tags...');
     return await this.tagRepository.getAll();
   }
+
+  async fetchFiles(): Promise<IFile[]> {
+    console.log('Backend: Fetching files...');
+    return await this.fileRepository.getAll();
+  }
+
   async createTag(id: ID, name: string, description?: string) {
     console.log('Backend: Creating tag...', id, name, description);
     return await this.tagRepository.create(new Tag(id, name, description));
   }
+
+  async createFile(id: ID, path: string, tags?: ID[]) {
+    console.log('Backend: Creating file...', id, path);
+    return await this.fileRepository.create(new File(id, path, tags));
+  }
+
   async saveTag(tag: ITag): Promise<ITag> {
     console.log('Backend: Saving tag...', tag);
     return await this.tagRepository.update(tag);
   }
+
+  async saveFile(file: IFile): Promise<IFile> {
+    console.log('Backend: Saving file...', file);
+    return await this.fileRepository.update(file);
+  }
+
   async removeTag(tag: ITag) {
     console.log('Removing tag...', tag);
     await this.tagRepository.remove(tag.id);

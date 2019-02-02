@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { observer } from 'mobx-react-lite';
 import File from '../domain-objects/File';
 
 interface IGalleryProps {
@@ -11,12 +12,17 @@ const Gallery = ({
 }: IGalleryProps) => {
 
   return (
-    <>
+    <div>
       {
-        files.map((file) => <img src={file.path} className="thumbnail" />)
+        files.map((file) => (
+          <img
+            key={`file-${file.id}`}
+            src={file.path} className="thumbnail"
+          />
+        ))
       }
-    </>
+    </div>
   );
 };
 
-export default Gallery;
+export default observer(Gallery);

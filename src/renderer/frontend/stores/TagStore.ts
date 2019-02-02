@@ -1,4 +1,3 @@
-
 import { action, observable } from 'mobx';
 import Backend from '../../backend/Backend';
 import { ITag } from '../../entities/Tag';
@@ -9,10 +8,10 @@ import RootStore from './RootStore';
  * Based on https://mobx.js.org/best/store.html
  */
 class TagStore {
+  backend: Backend;
   rootStore: RootStore;
 
   @observable tagList: Tag[] = [];
-  backend: Backend;
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -24,10 +23,9 @@ class TagStore {
   }
 
   loadTags() {
-    this.backend.fetchTags()
-      .then((fetchedTags) => {
-        fetchedTags.forEach((tag) => this.updateFromBackend(tag));
-      });
+    this.backend.fetchTags().then((fetchedTags) => {
+      fetchedTags.forEach((tag) => this.updateFromBackend(tag));
+    });
   }
 
   updateFromBackend(backendTag: ITag) {
@@ -35,7 +33,8 @@ class TagStore {
     // In case a tag was added to the server from another client or session
     if (!tag) {
       this.tagList.push(new Tag(this).updateFromBackend(backendTag));
-    } else { // Else, update the existing tag
+    } else {
+      // Else, update the existing tag
       tag.updateFromBackend(backendTag);
     }
   }
@@ -53,6 +52,20 @@ class TagStore {
     tag.dispose();
     this.backend.removeTag(tag.toBackendTag());
   }
+
+  // @action
+  // editTag(tag: Tag, name: string) {
+  //   const index = this.tagList.indexOf(tag);
+  //   tag.name = name;
+  //   this.tagList[index] = tag;
+  //   // Is this necessary or can I remove this line?
+
+  // The advantage of domain objects is that you can modify the object,
+  // and the observable fields are updated automatically in the backend.
+  // So we only need actions for adding/deleting them
+
+  //   this.backend.saveTag(tag.toBackendTag());
+  // }
 }
 
 export default TagStore;

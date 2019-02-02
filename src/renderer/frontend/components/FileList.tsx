@@ -1,19 +1,27 @@
-import { Button } from '@blueprintjs/core';
-import Electron from 'electron';
+import { remote } from 'electron';
 import fse from 'fs-extra';
+import path from 'path';
 import React from 'react';
+
+import { observer } from 'mobx-react-lite';
+
+import { Button } from '@blueprintjs/core';
+
 import { withRootstore } from '../contexts/StoreContext';
+import FileStore from '../stores/FileStore';
 import RootStore from '../stores/RootStore';
+
 import Gallery from './Gallery';
 
 export interface IFileListProps {
   rootStore: RootStore;
 }
 
-const chooseDirectory = async () => {
-  const dirs = Electron.remote.dialog.showOpenDialog({
+const chooseDirectory = async (fileStore: FileStore) => {
+  const dirs = remote.dialog.showOpenDialog({
     properties: ['openDirectory', 'multiSelections'],
   });
+
 
   if (!dirs) {
     return;
@@ -24,31 +32,32 @@ const chooseDirectory = async () => {
     const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
 
     const filenames = await fse.readdir(dir);
-    const imgFileNames = filenames.filter((f) => imgExtensions.some((ext) => f.toLowerCase().endsWith(ext)));
+    const imgFileNames = filenames.filter((f) =>
+      imgExtensions.some((ext) => f.toLowerCase().endsWith(ext)),
+    );
 
-    console.log(imgFileNames);
-    // Todo: Update FileStore
+    imgFileNames.forEach(async (filename) => {
+      const joinedPath = path.join(dir, filename);
+      console.log(joinedPath);
+      fileStore.addFile(joinedPath);
+    });
   });
 };
 
-const FileList = ({ rootStore: { fileStore } }: IFileListProps) => (
-  <div>
-    {
-      fileStore.fileList.map((file, fileIndex) => (
-        <div key={`file-${fileIndex}`}>
-          <img src={file.path} />
-        </div>
-      ))
-    }
+const FileList = ({ rootStore: { fileStore } }: IFileListProps) => {
+  return (
+    <div>
+      <Button onClick={() => chooseDirectory(fileStore)} icon="folder-open">
+        Add images to your Visual Library
+      </Button>
 
-    <Button onClick={chooseDirectory} icon="folder-open">
-      Add images to your Visual Library
-    </Button>
+      <br />
 
-    <Gallery
-      files={fileStore.fileList}
-    />
-  </div>
-);
+      <Gallery
+        files={fileStore.fileList}
+      />
+    </div>
+  );
+};
 
-export default withRootstore(FileList);
+export default withRootstore(observer(FileList));
