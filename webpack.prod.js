@@ -51,7 +51,7 @@ let mainConfig = {
 
 let rendererConfig = {
     mode: 'production',
-    entry: './src/renderer/renderer.ts',
+    entry: './src/renderer/renderer.tsx',
     target: 'electron-renderer',
     output: {
         filename: 'renderer.bundle.js',
