@@ -1,11 +1,13 @@
+import { Button } from '@blueprintjs/core';
 import Electron from 'electron';
 import fse from 'fs-extra';
-import { inject, observer } from 'mobx-react';
 import React from 'react';
+import { withRootstore } from '../contexts/StoreContext';
 import RootStore from '../stores/RootStore';
+import Gallery from './Gallery';
 
 export interface IFileListProps {
-  rootStore?: RootStore;
+  rootStore: RootStore;
 }
 
 const chooseDirectory = async () => {
@@ -39,10 +41,14 @@ const FileList = ({ rootStore: { fileStore } }: IFileListProps) => (
       ))
     }
 
-    <button onClick={chooseDirectory}>
+    <Button onClick={chooseDirectory} icon="folder-open">
       Add images to your Visual Library
-    </button>
+    </Button>
+
+    <Gallery
+      files={fileStore.fileList}
+    />
   </div>
 );
 
-export default inject('rootStore')(observer(FileList));
+export default withRootstore(FileList);

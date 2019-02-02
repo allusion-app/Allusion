@@ -35,12 +35,15 @@
     "webpack-cli": "^3.2.0"
   },
   "dependencies": {
+    "@blueprintjs/core": "^3.12.0",
+    "@blueprintjs/select": "^3.6.0",
     "fs-extra": "^7.0.1",
     "idb": "^3.0.2",
     "mobx": "^5.9.0",
-    "mobx-react": "^5.4.3",
-    "react": "^16.7.0",
-    "react-dom": "^16.7.0",
+    "mobx-react-lite": "^0.3.6",
+    "react": "^16.8.0-alpha.1",
+    "react-dom": "^16.8.0-alpha.1",
+    "styled-components": "^4.1.3",
     "uuid": "^3.3.2"
   }
 }

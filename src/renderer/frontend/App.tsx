@@ -1,36 +1,29 @@
-import Electron from 'electron';
-import { inject } from 'mobx-react';
-import path from 'path';
+import { Breadcrumbs, IBreadcrumbProps, InputGroup } from '@blueprintjs/core';
 import React from "react";
 import FileList from './components/FileList';
-import TagList from './components/TagList';
-import RootStore from './stores/RootStore';
+import Sidebar from './components/Sidebar';
 
-// The props that we expect to be passed into the component
-export interface IAppProps {
-  rootStore?: RootStore;
-}
+const breadcrumbs: IBreadcrumbProps[] = [
+  { icon: 'symbol-square' },
+  { icon: "folder-close", text: "Cars" },
+  { icon: "folder-close", text: "Yellow" },
+  { icon: "document", text: "New" },
+];
 
-// The state that is stored in this component
-export interface IAppState { }
+const App = () => (
+  <div className="bp3-dark column">
+    <Sidebar />
+    <div className="gallery">
+      <Breadcrumbs
+        items={breadcrumbs}
+      />
 
-@inject('rootStore')
-class App extends React.Component<IAppProps, IAppState> {
-  public state: Readonly<IAppState> = {};
+      <InputGroup type="search" leftIcon="search" placeholder="Search">
+      </InputGroup>
 
-  init() {
-    // Start fetching data once the backend has been loaded
-    this.props.rootStore.tagStore.init();
-  }
-
-  public render() {
-    return (
-      <>
-        <TagList />
-        <FileList />
-      </>
-    );
-  }
-}
+      <FileList />
+    </div>
+  </div>
+);
 
 export default App;

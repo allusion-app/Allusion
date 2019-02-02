@@ -1,15 +1,15 @@
 
 import { action, observable } from 'mobx';
 import Backend from '../../backend/Backend';
-import { IFile } from '../../entities/File';
 import { ITag } from '../../entities/Tag';
+import File from '../domain-objects/File';
 import RootStore from "./RootStore";
 
 class FileStore {
   backend: Backend;
   rootStore: RootStore;
 
-  @observable fileList: IFile[] = [];
+  @observable fileList: File[] = [];
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;

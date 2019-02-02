@@ -1,26 +1,54 @@
-import { inject, observer } from 'mobx-react';
-import React from 'react';
+import { observer } from 'mobx-react-lite';
+import React, { useState } from 'react';
+import { withRootstore } from '../contexts/StoreContext';
 import RootStore from '../stores/RootStore';
-import TagStore from '../stores/TagStore';
+
+import { Button, ButtonGroup, ControlGroup, InputGroup, Tag } from "@blueprintjs/core";
+import TagListItem from './TagListItem';
 
 export interface ITagListProps {
   rootStore?: RootStore;
 }
 
-const TagList = ({ rootStore: { tagStore } }: ITagListProps) => (
-  <div>
-    {
-      tagStore.tagList.map((tag, tagIndex) => (
-        <div key={`tag-${tagIndex}`}>
-          <span onClick={() => console.log(tag)}>{tag.name}</span>
-          <button onClick={() => tagStore.removeTag(tag)}>x</button>
-        </div>
-      ))
-    }
-    <button onClick={() => tagStore.addTag(`random tag here ${Math.random()}`)}>
-      Add tag
-    </button>
-  </div>
-);
+const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
 
-export default inject('rootStore')(observer(TagList));
+  const [newTag, setNewTag] = useState('');
+
+  return (
+    <>
+      {
+        tagStore.tagList.map((tag, tagIndex) => (
+          <div key={`tag-${tag.id}`} className="listItem">
+            <TagListItem
+              name={tag.name}
+              onRemove={() => tagStore.removeTag(tag)}
+              onRename={(name) => console.log(`renamed ${tag.name} to ${name}`)}
+            />
+          </div>
+        ))
+      }
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          tagStore.addTag(newTag); setNewTag('');
+        }}
+      >
+        <ControlGroup
+          fill={true}
+          vertical={false}
+          onAbort={() => setNewTag('')}
+        >
+          <InputGroup
+            placeholder="New tag"
+            onChange={(e) => setNewTag(e.target.value)}
+            value={newTag}
+          />
+          <Button icon="add" type="submit" />
+        </ControlGroup>
+      </form>
+    </>
+  );
+};
+
+export default withRootstore(observer(TagList));

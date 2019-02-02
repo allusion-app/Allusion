@@ -23,6 +23,11 @@ class RootStore {
     this.tagStore = new TagStore(backend, this);
     this.fileStore = new FileStore(backend, this);
   }
+
+  async init() {
+    this.tagStore.init();
+    // this.fileStore.init();
+  }
 }
 
 export default RootStore;
