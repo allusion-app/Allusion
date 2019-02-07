@@ -11,7 +11,7 @@ export interface IFile extends IIdentifiable {
 }
 
 /* A File as it is represented in the Database */
-export class DbFile implements IFile, ISerializable<IFile> {
+export class DbFile implements IFile {
   public id: ID;
   public path: string;
   public tags: ID[];
@@ -23,15 +23,6 @@ export class DbFile implements IFile, ISerializable<IFile> {
     this.tags = tags;
     this.dateAdded = new Date();
   }
-
-  serialize(): IFile {
-    return {
-      id: this.id,
-      path: this.path,
-      tags: this.tags,
-      dateAdded: this.dateAdded,
-    } as IFile;
-  }
 }
 
 /**
@@ -39,7 +30,7 @@ export class DbFile implements IFile, ISerializable<IFile> {
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientFile implements IFile, ISerializable<IFile> {
+export class ClientFile implements IFile, ISerializable<DbFile> {
   store: FileStore;
   saveHandler: IReactionDisposer;
   autoSave = true;
@@ -68,13 +59,13 @@ export class ClientFile implements IFile, ISerializable<IFile> {
     );
   }
 
-  serialize(): IFile {
+  serialize(): DbFile {
     return {
       id: this.id,
       path: this.path,
       tags: this.tags,
       dateAdded: this.dateAdded,
-    } as IFile;
+    };
   }
 
   /**
