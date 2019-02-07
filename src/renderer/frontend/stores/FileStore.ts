@@ -1,9 +1,10 @@
 import { action, observable } from 'mobx';
 
+import fs from 'fs-extra';
 import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import { ClientTag, ITag } from '../../entities/Tag';
-import RootStore from "./RootStore";
+import RootStore from './RootStore';
 
 class FileStore {
   backend: Backend;
@@ -22,7 +23,20 @@ class FileStore {
 
   loadFiles() {
     this.backend.fetchFiles().then((fetchedFiles) => {
-      fetchedFiles.forEach((file) => this.updateFromBackend(file));
+      fetchedFiles.forEach((file) => this.checkFiles(file));
+    });
+  }
+
+  // Removes files with invalid file path.
+  // In the future the user should have the option to input the new path if the file was only moved or renamed.
+  checkFiles(backendFile: IFile) {
+    fs.access(backendFile.path, fs.constants.F_OK, (err) => {
+      if (err) {
+        console.log(`${backendFile.path} 'does not exist'`);
+        this.backend.removeFile(backendFile);
+      } else {
+        this.updateFromBackend(backendFile);
+      }
     });
   }
 
@@ -32,7 +46,7 @@ class FileStore {
     if (!file) {
       this.fileList.push(new ClientFile(this).updateFromBackend(backendFile));
     } else {
-      // Else, update the existing tag
+      // Else, update the existing file
       file.updateFromBackend(backendFile);
     }
   }
@@ -40,9 +54,17 @@ class FileStore {
   @action
   addFile(filePath: string) {
     const file = new ClientFile(this, filePath);
-    this.backend.createFile(file.id, file.path)
+    this.backend
+      .createFile(file.id, file.path)
       .then(() => this.fileList.push(file))
       .catch((err) => console.error('Could not add file:', err));
+  }
+
+  @action
+  removeFile(file: ClientFile) {
+    this.fileList.splice(this.fileList.indexOf(file), 1);
+    file.dispose();
+    this.backend.removeFile(file);
   }
 
   @action
