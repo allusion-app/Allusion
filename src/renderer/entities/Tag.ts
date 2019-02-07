@@ -1,6 +1,6 @@
 import { IReactionDisposer, observable, reaction } from "mobx";
 import TagStore from "../frontend/stores/TagStore";
-import { generateId, ID, IIdentifiable } from "./ID";
+import { generateId, ID, IIdentifiable, ISerializable } from "./ID";
 
 /* Generic properties of a Tag in our application */
 export interface ITag extends IIdentifiable {
@@ -11,7 +11,7 @@ export interface ITag extends IIdentifiable {
 }
 
 /* A Tag as it is represented in the Database */
-export class DbTag implements ITag {
+export class DbTag implements ITag, ISerializable<ITag> {
   public id: ID;
   public name: string;
   public description?: string;
@@ -23,6 +23,15 @@ export class DbTag implements ITag {
     this.description = description;
     this.dateAdded = new Date();
   }
+
+  serialize(): ITag {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      dateAdded: this.dateAdded,
+    } as ITag;
+  }
 }
 
 /**
@@ -30,7 +39,7 @@ export class DbTag implements ITag {
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientTag implements ITag {
+export class ClientTag implements ITag, ISerializable<ITag> {
   store: TagStore;
   saveHandler: IReactionDisposer;
   autoSave = true;
@@ -58,6 +67,15 @@ export class ClientTag implements ITag {
         }
       },
     );
+  }
+
+  serialize(): ITag {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      dateAdded: this.dateAdded,
+    } as ITag;
   }
 
   delete() {

@@ -1,5 +1,5 @@
 import { DbFile, IFile } from '../entities/File';
-import { ID } from '../entities/ID';
+import { ID, ISerializable } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig } from './config';
 import DBRepository, { dbInit } from './DBRepository';
@@ -44,18 +44,23 @@ export default class Backend {
     return await this.fileRepository.create(new DbFile(id, path, tags));
   }
 
-  async saveTag(tag: ITag): Promise<ITag> {
+  async saveTag(tag: ISerializable<ITag>): Promise<ITag> {
     console.log('Backend: Saving tag...', tag);
-    return await this.tagRepository.update(tag);
+    return await this.tagRepository.update(tag.serialize());
   }
 
-  async saveFile(file: IFile): Promise<IFile> {
+  async saveFile(file: ISerializable<IFile>): Promise<IFile> {
     console.log('Backend: Saving file...', file);
-    return await this.fileRepository.update(file);
+    return await this.fileRepository.update(file.serialize());
   }
 
   async removeTag(tag: ITag) {
     console.log('Removing tag...', tag);
-    await this.tagRepository.remove(tag.id);
+    await this.tagRepository.remove(tag);
+  }
+
+  async removeFile(file: IFile) {
+    console.log('Removing file...', file);
+    await this.fileRepository.remove(file);
   }
 }

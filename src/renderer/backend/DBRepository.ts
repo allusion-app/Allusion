@@ -87,12 +87,12 @@ export default class BaseRepository<T extends IIdentifiable> {
     return resItem;
   }
 
-  public remove = async (key: ID): Promise<void> => {
+  public remove = async (item: T): Promise<void> => {
     const db = await openDb(dbName);
     return await db
       .transaction(this.collectionName, 'readwrite')
       .objectStore<T, ID>(this.collectionName)
-      .delete(key);
+      .delete(item.id);
   }
 
   public update = async (item: T): Promise<T> => {

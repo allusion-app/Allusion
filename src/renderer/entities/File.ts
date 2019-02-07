@@ -1,6 +1,6 @@
 import { IReactionDisposer, observable, reaction } from 'mobx';
 import FileStore from '../frontend/stores/FileStore';
-import { generateId, ID, IIdentifiable } from './ID';
+import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 
 /* Generic properties of a File in our application (usually an image) */
 export interface IFile extends IIdentifiable {
@@ -11,7 +11,7 @@ export interface IFile extends IIdentifiable {
 }
 
 /* A File as it is represented in the Database */
-export class DbFile implements IFile {
+export class DbFile implements IFile, ISerializable<IFile> {
   public id: ID;
   public path: string;
   public tags: ID[];
@@ -23,6 +23,15 @@ export class DbFile implements IFile {
     this.tags = tags;
     this.dateAdded = new Date();
   }
+
+  serialize(): IFile {
+    return {
+      id: this.id,
+      path: this.path,
+      tags: this.tags,
+      dateAdded: this.dateAdded,
+    } as IFile;
+  }
 }
 
 /**
@@ -30,7 +39,7 @@ export class DbFile implements IFile {
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientFile implements IFile {
+export class ClientFile implements IFile, ISerializable<IFile> {
   store: FileStore;
   saveHandler: IReactionDisposer;
   autoSave = true;
@@ -57,6 +66,15 @@ export class ClientFile implements IFile {
         }
       },
     );
+  }
+
+  serialize(): IFile {
+    return {
+      id: this.id,
+      path: this.path,
+      tags: this.tags,
+      dateAdded: this.dateAdded,
+    } as IFile;
   }
 
   /**
