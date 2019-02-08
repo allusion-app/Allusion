@@ -1,6 +1,7 @@
-import { IReactionDisposer, observable, reaction } from 'mobx';
+import { IReactionDisposer, observable, reaction, computed, toJS, action } from 'mobx';
 import FileStore from '../frontend/stores/FileStore';
 import { generateId, ID, IIdentifiable, ISerializable } from './ID';
+import { ClientTag } from './Tag';
 
 /* Generic properties of a File in our application (usually an image) */
 export interface IFile extends IIdentifiable {
@@ -20,7 +21,7 @@ export class DbFile implements IFile {
   constructor(id: ID, path: string, tags?: ID[]) {
     this.id = id;
     this.path = path;
-    this.tags = tags;
+    this.tags = tags || [];
     this.dateAdded = new Date();
   }
 }
@@ -38,7 +39,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   id: ID;
   dateAdded: Date;
   @observable path: string;
-  @observable tags: ID[];
+  readonly tags = observable<ID>([]);
 
   constructor(store: FileStore, path?: string, id = generateId()) {
     this.store = store;
@@ -52,7 +53,9 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       // Then update the entity in the database
       (file) => {
         if (this.autoSave) {
-          this.store.backend.saveFile(file);
+          // Remove reactive properties, since observable props are not accepeted in the backend
+          const jsFile = toJS<IFile>(file);
+          this.store.backend.saveFile(jsFile);
         }
       },
     );
@@ -62,9 +65,20 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
     return {
       id: this.id,
       path: this.path,
-      tags: this.tags,
+      tags: this.tags.toJS(), // removes observable properties from observable array
       dateAdded: this.dateAdded,
     };
+  }
+
+  /** Get actual tag objects based on the IDs retrieved from the backend */
+  @computed get clientTags(): ClientTag[] {
+    return this.tags.map((id) => this.store.rootStore.tagStore.tagList.find((t) => t.id === id));
+  }
+
+  @action addTag(tag: ID) {
+    if (!this.tags.includes(tag)) {
+      this.tags.push(tag);
+    }
   }
 
   /**
@@ -77,7 +91,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
     this.id = backendFile.id;
     this.path = backendFile.path;
-    this.tags = backendFile.tags;
+    this.tags.push(...backendFile.tags);
     this.dateAdded = backendFile.dateAdded;
 
     this.autoSave = true;

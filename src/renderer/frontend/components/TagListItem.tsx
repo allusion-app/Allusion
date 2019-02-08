@@ -1,12 +1,38 @@
-import { Button, ControlGroup, InputGroup, Tag } from '@blueprintjs/core';
 import React, { useRef, useState } from 'react';
+
+import {
+  DragSource,
+  ConnectDragSource,
+  DragSourceConnector,
+  DragSourceMonitor,
+} from 'react-dnd';
+import { Button, ControlGroup, InputGroup, Tag } from '@blueprintjs/core';
+import { ID } from '../../entities/ID';
+
+interface IStaticTagListItemProps {
+  name: string;
+  onSelect: () => void;
+}
+/** Can be used for "non-existing" tags, e.g. 'Untagged', 'Recently added'. Cannot be removed */
+export const StaticTagListItem = ({ name, onSelect }: IStaticTagListItemProps) => (
+  <Tag
+    onClick={onSelect}
+    large
+    minimal
+    fill
+    interactive
+    active
+  >
+    {name}
+  </Tag>
+);
+
 
 interface IUnmodifiableTagListItemProps {
   name: string;
   onRemove: () => void;
   onClick: () => void;
 }
-
 const UnmodifiableTagListItem = ({ name, onClick, onRemove }: IUnmodifiableTagListItemProps) => (
   <Tag
     onClick={onClick}
@@ -58,26 +84,56 @@ const ModifiableTagListItem = ({ initialName, onRename, onAbort }: IModifiableTa
 
 interface ITagListItemProps {
   name: string;
+  id: ID;
   onRemove: () => void;
   onRename: (name: string) => void;
 }
-
-const TagListItem = ({ name, onRemove, onRename }: ITagListItemProps) => {
+interface ITagListItemCollectedProps {
+  connectDragSource: ConnectDragSource;
+  isDragging: boolean;
+}
+/** The main tag-list-item that can be renamed, removed and dragged */
+const TagListItem = ({
+  name, onRemove, onRename, connectDragSource, isDragging,
+}: ITagListItemProps & ITagListItemCollectedProps) => {
   const [isEditing, setEditing] = useState(false);
 
-  return isEditing ? (
-      <ModifiableTagListItem
-        initialName={name}
-        onRename={(newName) => { setEditing(false); onRename(newName); }}
-        onAbort={() => setEditing(false)}
-      />
-    ) : (
-      <UnmodifiableTagListItem
-        name={name}
-        onClick={() => setEditing(true)}
-        onRemove={onRemove}
-      />
+  return connectDragSource(
+    <div>
+      {
+        isEditing ? (
+          <ModifiableTagListItem
+            initialName={name}
+            onRename={(newName) => { setEditing(false); onRename(newName); }}
+            onAbort={() => setEditing(false)}
+          />
+        ) : (
+          <UnmodifiableTagListItem
+            name={name}
+            onClick={() => setEditing(true)}
+            onRemove={onRemove}
+          />
+        )
+      }
+    </div>,
   );
 };
 
-export default TagListItem;
+const boxSource = {
+  beginDrag(props: ITagListItemProps) {
+    return {
+      name: props.name,
+      id: props.id,
+    };
+  },
+};
+
+/** Make the taglistitem draggable */
+export default DragSource<ITagListItemProps, ITagListItemCollectedProps>(
+  'tag',
+  boxSource,
+  (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
+    connectDragSource: connect.dragSource(),
+    isDragging: monitor.isDragging(),
+  }),
+)(TagListItem);
