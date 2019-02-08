@@ -7,6 +7,14 @@ html {
   height: 100%;
 }
 
+/* Prevent dragging all HTML elements for more native feel */
+ *, *::after, *::before {
+	-webkit-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-app-region: no-drag;
+	cursor: default;
+}
+
 body {
   background: #444444;
   display: flex;
@@ -17,6 +25,14 @@ body {
   height: 100%;
 }
 
+.app {
+  --sidebar-width: 16em;
+}
+
+.main {
+  margin-left: var(--sidebar-width);
+}
+
 .column {
   display: flex;
   flow-direction: column; 
@@ -24,23 +40,37 @@ body {
 }
 
 .thumbnail {
-  --thumbnail-size: 16em;
-  transition: all 0.2 ease;
-  object-fit: cover;
+  --thumbnail-size: 24em;
   width: var(--thumbnail-size);
   height: var(--thumbnail-size);
+  display: inline-block;
 }
-.thumbnail:hover {
-  object-fit: contain;
+.thumbnail img {
+  transition: all 0.2 ease;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
+  object-fit: cover;
+  cursor: pointer;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+.thumbnail.selected {
+  background: cyan;
+}
+.thumbnail.selected img {
+  /* object-fit: contain; */
+  width: calc(var(--thumbnail-size) * 0.9);
+  height: calc(var(--thumbnail-size) * 0.9);
 }
 
 .sidebar {
-  width: 150px;
+  width: var(--sidebar-width);
   flex-shrink: 0;
   overflow-x: hidden;
   height: 100%;
 
-  position: sticky;
+  position: fixed;
   top: 0;
   
   background: #333333;

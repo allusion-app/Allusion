@@ -25,7 +25,7 @@ interface IRootStoreProp {
  */
 export const withRootstore = <P extends IRootStoreProp>(
   WrappedComponent: React.ComponentType<IRootStoreProp>,
-): React.SFC<Pick<P, Exclude<keyof P, keyof IRootStoreProp>>> => (
+): React.ComponentType<Pick<P, Exclude<keyof P, keyof IRootStoreProp>>> => (
   props: Pick<P, Exclude<keyof P, keyof IRootStoreProp>>,
 ) => {
   const rootStore = useContext(StoreContext);

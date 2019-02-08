@@ -54,9 +54,7 @@ const FileList = ({ rootStore: { fileStore } }: IFileListProps) => {
       <br />
       <br />
 
-      <Gallery
-        files={fileStore.fileList}
-      />
+      <Gallery />
     </div>
   );
 };

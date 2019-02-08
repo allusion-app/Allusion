@@ -1,23 +1,34 @@
 import React from 'react';
 
 import { observer } from 'mobx-react-lite';
-import { ClientFile } from '../../entities/File';
+
+import { withRootstore } from '../contexts/StoreContext';
+import RootStore from '../stores/RootStore';
+import GalleryItem from './GalleryItem';
 
 interface IGalleryProps {
-  files: ClientFile[];
+  rootStore: RootStore;
 }
 
 const Gallery = ({
-  files,
+  rootStore: {
+    uiStore,
+    fileStore: {
+      fileList,
+    },
+  },
 }: IGalleryProps) => {
 
   return (
     <div>
       {
-        files.map((file) => (
-          <img
+        fileList.map((file) => (
+          <GalleryItem
             key={`file-${file.id}`}
-            src={file.path} className="thumbnail"
+            file={file}
+            isSelected={uiStore.fileSelection.includes(file.id)}
+            onSelect={(f) => uiStore.selectFile(f)}
+            onDeselect={(f) => uiStore.deselectFile(f)}
           />
         ))
       }
@@ -25,4 +36,4 @@ const Gallery = ({
   );
 };
 
-export default observer(Gallery);
+export default withRootstore(observer(Gallery));
