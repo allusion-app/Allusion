@@ -44,14 +44,14 @@ export default class Backend {
     return await this.fileRepository.create(new DbFile(id, path, tags));
   }
 
-  async saveTag(tag: ISerializable<ITag>): Promise<ITag> {
+  async saveTag(tag: ITag): Promise<ITag> {
     console.log('Backend: Saving tag...', tag);
-    return await this.tagRepository.update(tag.serialize());
+    return await this.tagRepository.update(tag);
   }
 
-  async saveFile(file: ISerializable<IFile>): Promise<IFile> {
+  async saveFile(file: IFile): Promise<IFile> {
     console.log('Backend: Saving file...', file);
-    return await this.fileRepository.update(file.serialize());
+    return await this.fileRepository.update(file);
   }
 
   async removeTag(tag: ITag) {

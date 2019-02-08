@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, IObservableArray, observable } from 'mobx';
 import Backend from '../../backend/Backend';
 import { ClientTag, ITag } from '../../entities/Tag';
 import RootStore from './RootStore';
@@ -10,7 +10,7 @@ class TagStore {
   backend: Backend;
   rootStore: RootStore;
 
-  @observable tagList: ClientTag[] = [];
+  tagList: IObservableArray<ClientTag> = observable<ClientTag>([]);
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
