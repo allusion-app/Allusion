@@ -1,6 +1,6 @@
 import { IReactionDisposer, observable, reaction } from "mobx";
 import TagStore from "../frontend/stores/TagStore";
-import { generateId, ID, IIdentifiable } from "./ID";
+import { generateId, ID, IIdentifiable, ISerializable } from "./ID";
 
 /* Generic properties of a Tag in our application */
 export interface ITag extends IIdentifiable {
@@ -30,7 +30,7 @@ export class DbTag implements ITag {
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientTag implements ITag {
+export class ClientTag implements ITag, ISerializable<DbTag> {
   store: TagStore;
   saveHandler: IReactionDisposer;
   autoSave = true;
@@ -48,9 +48,8 @@ export class ClientTag implements ITag {
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
-      // No need to convert it into a different format for the backend,
-      // as it extends the same interface which is used in the backend
-      () => this,
+      // We need to explicitly define which values this reaction should react to
+      () => this.serialize(),
       // Then update the entity in the database
       (tag) => {
         if (this.autoSave) {
@@ -58,6 +57,15 @@ export class ClientTag implements ITag {
         }
       },
     );
+  }
+
+  serialize(): ITag {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      dateAdded: this.dateAdded,
+    };
   }
 
   delete() {

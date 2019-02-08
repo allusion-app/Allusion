@@ -6,6 +6,10 @@ export interface IIdentifiable {
   id: ID;
 }
 
+export interface ISerializable<S extends IIdentifiable> {
+  serialize(): S;
+}
+
 export function generateId(): ID {
   return uuid();
 }

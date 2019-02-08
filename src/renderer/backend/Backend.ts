@@ -1,5 +1,5 @@
 import { DbFile, IFile } from '../entities/File';
-import { ID } from '../entities/ID';
+import { ID, ISerializable } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig } from './config';
 import DBRepository, { dbInit } from './DBRepository';
@@ -56,6 +56,11 @@ export default class Backend {
 
   async removeTag(tag: ITag) {
     console.log('Removing tag...', tag);
-    await this.tagRepository.remove(tag.id);
+    await this.tagRepository.remove(tag);
+  }
+
+  async removeFile(file: IFile) {
+    console.log('Removing file...', file);
+    await this.fileRepository.remove(file);
   }
 }

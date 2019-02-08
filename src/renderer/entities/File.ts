@@ -1,6 +1,6 @@
 import { IReactionDisposer, observable, reaction } from 'mobx';
 import FileStore from '../frontend/stores/FileStore';
-import { generateId, ID, IIdentifiable } from './ID';
+import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 
 /* Generic properties of a File in our application (usually an image) */
 export interface IFile extends IIdentifiable {
@@ -30,7 +30,7 @@ export class DbFile implements IFile {
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientFile implements IFile {
+export class ClientFile implements IFile, ISerializable<DbFile> {
   store: FileStore;
   saveHandler: IReactionDisposer;
   autoSave = true;
@@ -47,9 +47,8 @@ export class ClientFile implements IFile {
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
-      // No need to convert it into a different format for the backend,
-      // as it extends the same interface which is used in the backend
-      () => this,
+      // We need to explicitly define which values this reaction should react to
+      () => this.serialize(),
       // Then update the entity in the database
       (file) => {
         if (this.autoSave) {
@@ -57,6 +56,15 @@ export class ClientFile implements IFile {
         }
       },
     );
+  }
+
+  serialize(): IFile {
+    return {
+      id: this.id,
+      path: this.path,
+      tags: this.tags,
+      dateAdded: this.dateAdded,
+    };
   }
 
   /**
