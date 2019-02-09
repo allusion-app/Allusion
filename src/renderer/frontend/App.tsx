@@ -21,9 +21,9 @@ const App = ({
   // Breadcrumbs placeholder
   const breadcrumbs: IBreadcrumbProps[] = [
     { icon: 'symbol-square' },
-    { icon: "folder-close", text: "Cars" },
-    { icon: "folder-close", text: "Yellow" },
-    { icon: "document", text: "New" },
+    { icon: 'folder-close', text: 'Cars' },
+    { icon: 'folder-close', text: 'Yellow' },
+    { icon: 'document', text: 'New' },
   ];
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
