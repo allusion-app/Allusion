@@ -1,7 +1,7 @@
-import Backend from "../../backend/Backend";
-import FileStore from "./FileStore";
-import TagStore from "./TagStore";
-import UiStore from "./UiStore";
+import Backend from '../../backend/Backend';
+import FileStore from './FileStore';
+import TagStore from './TagStore';
+import UiStore from './UiStore';
 
 /**
  * From: https://mobx.js.org/best/store.html

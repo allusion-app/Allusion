@@ -1,9 +1,9 @@
-import { action, observable } from "mobx";
+import { action, observable } from 'mobx';
 
-import { ClientFile } from "../../entities/File";
-import { ID } from "../../entities/ID";
-import { ClientTag } from "../../entities/Tag";
-import RootStore from "./RootStore";
+import { ClientFile } from '../../entities/File';
+import { ID } from '../../entities/ID';
+import { ClientTag } from '../../entities/Tag';
+import RootStore from './RootStore';
 
 /**
  * From: https://mobx.js.org/best/store.html

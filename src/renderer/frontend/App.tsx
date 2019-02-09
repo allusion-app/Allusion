@@ -1,6 +1,6 @@
 import { Breadcrumbs, IBreadcrumbProps, InputGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import React from "react";
+import React from 'react';
 import { DragDropContextProvider } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
