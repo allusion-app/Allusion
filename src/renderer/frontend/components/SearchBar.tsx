@@ -39,7 +39,7 @@ const SearchBar = ({
   allTags,
 }: ISearchBarProps) => {
 
-  const handleDelect = (_: string, index: number) => onTagDeselect(index);
+  const handleDeselect = (_: string, index: number) => onTagDeselect(index);
 
   const clearButton = selectedTags.length > 0 ? (
     <Button icon="cross" minimal={true} onClick={onClearSelection} />
@@ -56,7 +56,7 @@ const SearchBar = ({
         onItemSelect={onTagSelect}
         popoverProps={{ minimal: true }}
         tagRenderer={(tag) => tag.name}
-        tagInputProps={{ tagProps: { minimal: true }, onRemove: handleDelect, rightElement: clearButton }}
+        tagInputProps={{ tagProps: { minimal: true }, onRemove: handleDeselect, rightElement: clearButton }}
       />
     </>
   );
