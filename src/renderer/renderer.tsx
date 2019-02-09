@@ -7,7 +7,7 @@ import ReactDOM from 'react-dom';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
-import './style.css';
+import './style.scss';
 
 import Backend from './backend/Backend';
 import App from './frontend/App';

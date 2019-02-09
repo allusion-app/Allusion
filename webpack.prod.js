@@ -79,6 +79,7 @@ let rendererConfig = {
                 use: [
                     'style-loader',
                     'css-loader?sourceMap',
+                    'sass-loader?sourceMap',
                 ],
             },
             {

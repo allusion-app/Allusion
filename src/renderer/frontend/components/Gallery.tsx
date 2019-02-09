@@ -21,8 +21,6 @@ const Gallery = ({
   },
 }: IGalleryProps) => {
 
-  const addTagToFile = (file: ClientFile, tag: ID) => { file.addTag(tag); };
-
   return (
     <div>
       {
@@ -31,9 +29,10 @@ const Gallery = ({
             key={`file-${file.id}`}
             file={file}
             isSelected={uiStore.fileSelection.includes(file.id)}
+            onRemoveTag={(t) => file.removeTag(t.id)}
             onSelect={(f) => uiStore.selectFile(f)}
             onDeselect={(f) => uiStore.deselectFile(f)}
-            onDrop={(item) => addTagToFile(file, item.id)}
+            onDrop={(item) => file.addTag(item.id)}
           />
         ))
       }

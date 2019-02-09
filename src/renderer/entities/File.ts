@@ -80,6 +80,11 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       this.tags.push(tag);
     }
   }
+  @action removeTag(tag: ID) {
+    if (this.tags.includes(tag)) {
+      this.tags.remove(tag);
+    }
+  }
 
   /**
    * Used for updating this Entity if changes are made to the backend outside of this session of the application.

@@ -2,6 +2,7 @@
 // Webpack is used to bundle our source code, in order to optimize which
 // scripts are loaded and all required files to run the application are
 // neatly put into the build directory.
+// Based on https://taraksharma.com/setting-up-electron-typescript-react-webpack/
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
@@ -79,6 +80,7 @@ let rendererConfig = {
                 use: [
                     'style-loader',
                     'css-loader?sourceMap',
+                    'sass-loader?sourceMap',
                 ],
             },
             {

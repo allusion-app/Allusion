@@ -3,6 +3,12 @@
 @import "~@blueprintjs/core/lib/css/blueprint.css";
 @import "~@blueprintjs/icons/lib/css/blueprint-icons.css";
 
+/**
+ * Sass variables, for color parameters etc.
+ * Reference: https://blueprintjs.com/docs/#core/variables.color-aliases
+ */
+@import "~@blueprintjs/core/lib/scss/variables";
+
 html {
   height: 100%;
 }
@@ -37,13 +43,15 @@ body {
 }
 
 .thumbnail {
+  transition: all 0.1s ease-in-out;
   --thumbnail-size: 24em;
   width: var(--thumbnail-size);
   height: var(--thumbnail-size);
   display: inline-block;
+  position: relative;
 }
 .thumbnail img {
-  transition: all 0.2 ease;
+  transition: all 0.1s ease-in-out;
   width: var(--thumbnail-size);
   height: var(--thumbnail-size);
   object-fit: cover;
@@ -51,21 +59,35 @@ body {
   margin-left: auto;
   margin-right: auto;
   display: block;
+  transform-origin: center;
+  transform: scale(1);
 }
 .thumbnail.selected {
-  background: cyan;
+  background: $pt-intent-primary;
 }
 .thumbnail.selected img {
-  /* object-fit: contain; */
-  width: calc(var(--thumbnail-size) * 0.9);
-  height: calc(var(--thumbnail-size) * 0.9);
+  transform: scale(0.9);
 }
 .thumbnail.droppable {
-  background: purple;
+  background: $pt-intent-success;
 }
-.thumbnail.droppable img {
-  width: calc(var(--thumbnail-size) * 0.95);
-  height: calc(var(--thumbnail-size) * 0.95);
+.thumbnail.undroppable {
+  background: $pt-intent-warning;
+}
+.thumbnail.droppable img{
+  transform: scale(0.95);
+}
+.thumbnailTags {
+  transition: height 0.1s ease-in-out;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: auto;
+  padding: 0.5em;
+  position: absolute;
+  bottom: 0;
+}
+.thumbnailTags > * {
+  margin: 0.5em;
 }
 
 .sidebar {
