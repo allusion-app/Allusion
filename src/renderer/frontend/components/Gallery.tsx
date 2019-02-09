@@ -6,7 +6,7 @@ import { withRootstore } from '../contexts/StoreContext';
 import RootStore from '../stores/RootStore';
 import GalleryItem from './GalleryItem';
 import { ClientFile } from '../../entities/File';
-import { ID } from '../../entities/ID';
+import { ClientTag } from '../../entities/Tag';
 
 interface IGalleryProps {
   rootStore: RootStore;
@@ -29,10 +29,10 @@ const Gallery = ({
             key={`file-${file.id}`}
             file={file}
             isSelected={uiStore.fileSelection.includes(file.id)}
-            onRemoveTag={(t) => file.removeTag(t.id)}
-            onSelect={(f) => uiStore.selectFile(f)}
-            onDeselect={(f) => uiStore.deselectFile(f)}
-            onDrop={(item) => file.addTag(item.id)}
+            onRemoveTag={(tag: ClientTag) => file.removeTag(tag.id)}
+            onSelect={(f: ClientFile) => uiStore.selectFile(f)}
+            onDeselect={(f: ClientFile) => uiStore.deselectFile(f)}
+            onDrop={(tag: ClientTag) => file.addTag(tag.id)}
           />
         ))
       }

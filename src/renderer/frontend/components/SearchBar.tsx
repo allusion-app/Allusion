@@ -1,9 +1,9 @@
-import React from "react";
+import React from 'react';
 
-import { Button, MenuItem } from "@blueprintjs/core";
-import { ItemRenderer, MultiSelect } from "@blueprintjs/select";
+import { Button, MenuItem } from '@blueprintjs/core';
+import { ItemRenderer, MultiSelect } from '@blueprintjs/select';
 
-import { ClientTag } from "../../entities/Tag";
+import { ClientTag } from '../../entities/Tag';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 

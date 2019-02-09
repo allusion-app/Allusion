@@ -1,5 +1,5 @@
 import { DbFile, IFile } from '../entities/File';
-import { ID, ISerializable } from '../entities/ID';
+import { ID } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig } from './config';
 import DBRepository, { dbInit } from './DBRepository';

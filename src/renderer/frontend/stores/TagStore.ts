@@ -51,20 +51,6 @@ class TagStore {
     tag.dispose();
     this.backend.removeTag(tag);
   }
-
-  // @action
-  // editTag(tag: Tag, name: string) {
-  //   const index = this.tagList.indexOf(tag);
-  //   tag.name = name;
-  //   this.tagList[index] = tag;
-  //   // Is this necessary or can I remove this line?
-
-  // The advantage of domain objects is that you can modify the object,
-  // and the observable fields are updated automatically in the backend.
-  // So we only need actions for adding/deleting them
-
-  //   this.backend.saveTag(tag.toBackendTag());
-  // }
 }
 
 export default TagStore;

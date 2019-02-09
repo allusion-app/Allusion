@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 
-let mainWindow: Electron.BrowserWindow;
+let mainWindow: BrowserWindow;
 
 function createWindow() {
   // Create the browser window.

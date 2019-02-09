@@ -1,4 +1,4 @@
-import { DB, ObjectStore, openDb, UpgradeDB } from 'idb';
+import { openDb } from 'idb';
 import { ID, IIdentifiable } from '../entities/ID';
 
 export const dbName = 'VisLib';
