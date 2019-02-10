@@ -9,13 +9,14 @@
     "no-bitwise": true,
     "no-conditional-assignment": true,
     "no-consecutive-blank-lines": false,
-    "quotemark": [false, "single"],
+    "quotemark": [true, "single", "jsx-double"],
     "no-console": [true, "warning"],
     "object-literal-sort-keys": false,
     "max-classes-per-file": false,
     "no-empty-interface": false,
     "indent": [true, "spaces", 2],
-    "member-access": [false, "warning"]
+    "member-access": [false, "warning"],
+    "ordered-imports": [false, "warning"]
   },
   "jsRules": {
     "max-line-length": {

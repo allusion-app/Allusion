@@ -1,6 +1,6 @@
-import { IReactionDisposer, observable, reaction } from "mobx";
-import TagStore from "../frontend/stores/TagStore";
-import { generateId, ID, IIdentifiable, ISerializable } from "./ID";
+import { IReactionDisposer, observable, reaction } from 'mobx';
+import TagStore from '../frontend/stores/TagStore';
+import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 
 /* Generic properties of a Tag in our application */
 export interface ITag extends IIdentifiable {

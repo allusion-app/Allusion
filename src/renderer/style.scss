@@ -1,0 +1,117 @@
+/* using node-style package resolution in a CSS file:  */
+@import "~normalize.css";
+@import "~@blueprintjs/core/lib/css/blueprint.css";
+@import "~@blueprintjs/icons/lib/css/blueprint-icons.css";
+
+/**
+ * Sass variables, for color parameters etc.
+ * Reference: https://blueprintjs.com/docs/#core/variables.color-aliases
+ */
+@import "~@blueprintjs/core/lib/scss/variables";
+
+html {
+  height: 100%;
+}
+
+/* Prevent text selection in all HTML elements for more native feel */
+ *, *::after, *::before {
+  -webkit-user-select: none;
+}
+
+body {
+  background: #444444;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  margin: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+.app {
+  --sidebar-width: 16em;
+}
+
+.main {
+  margin-left: var(--sidebar-width);
+}
+
+.column {
+  display: flex;
+  flex-direction: column; 
+  height: 100%;
+}
+
+.thumbnail {
+  transition: all 0.1s ease-in-out;
+  --thumbnail-size: 24em;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
+  display: inline-block;
+  position: relative;
+}
+.thumbnail img {
+  transition: all 0.1s ease-in-out;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
+  object-fit: cover;
+  cursor: pointer;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  transform-origin: center;
+  transform: scale(1);
+}
+.thumbnail.selected {
+  background: $pt-intent-primary;
+}
+.thumbnail.selected img {
+  transform: scale(0.9);
+}
+.thumbnail.droppable {
+  background: $pt-intent-success;
+}
+.thumbnail.undroppable {
+  background: $pt-intent-warning;
+}
+.thumbnail.droppable img{
+  transform: scale(0.95);
+}
+.thumbnailTags {
+  transition: height 0.1s ease-in-out;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: auto;
+  padding: 0.5em;
+  position: absolute;
+  bottom: 0;
+}
+.thumbnailTags > * {
+  margin: 0.5em;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  overflow-x: hidden;
+  height: 100%;
+
+  position: fixed;
+  top: 0;
+  
+  background: #333333;
+}
+
+.sidebar h4 {
+  padding: 4px;
+  margin: 0;
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+}
+

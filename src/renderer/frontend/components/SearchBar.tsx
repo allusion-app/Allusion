@@ -1,9 +1,9 @@
-import React from "react";
+import React from 'react';
 
-import { Button, MenuItem } from "@blueprintjs/core";
-import { ItemRenderer, MultiSelect } from "@blueprintjs/select";
+import { Button, MenuItem } from '@blueprintjs/core';
+import { ItemRenderer, MultiSelect } from '@blueprintjs/select';
 
-import { ClientTag } from "../../entities/Tag";
+import { ClientTag } from '../../entities/Tag';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 
@@ -39,7 +39,7 @@ const SearchBar = ({
   allTags,
 }: ISearchBarProps) => {
 
-  const handleDelect = (_: string, index: number) => onTagDeselect(index);
+  const handleDeselect = (_: string, index: number) => onTagDeselect(index);
 
   const clearButton = selectedTags.length > 0 ? (
     <Button icon="cross" minimal={true} onClick={onClearSelection} />
@@ -56,7 +56,7 @@ const SearchBar = ({
         onItemSelect={onTagSelect}
         popoverProps={{ minimal: true }}
         tagRenderer={(tag) => tag.name}
-        tagInputProps={{ tagProps: { minimal: true }, onRemove: handleDelect, rightElement: clearButton }}
+        tagInputProps={{ tagProps: { minimal: true }, onRemove: handleDeselect, rightElement: clearButton }}
       />
     </>
   );

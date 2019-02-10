@@ -1,11 +1,11 @@
-import { Button, ControlGroup, InputGroup, Tag } from "@blueprintjs/core";
+import { Button, ControlGroup, InputGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
 
 
-import TagListItem from './TagListItem';
+import TagListItem, { StaticTagListItem } from './TagListItem';
 
-import { ClientTag } from "../../entities/Tag";
+import { ClientTag } from '../../entities/Tag';
 import { withRootstore } from '../contexts/StoreContext';
 import RootStore from '../stores/RootStore';
 
@@ -23,11 +23,17 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
 
   return (
     <>
+      <StaticTagListItem
+        name="All images"
+        onSelect={() => { console.log('All images'); }}
+      />
+
       {
-        tagStore.tagList.map((tag, tagIndex) => (
+        tagStore.tagList.map((tag) => (
           <div key={`tag-${tag.id}`} className="listItem">
             <TagListItem
               name={tag.name}
+              id={tag.id}
               onRemove={() => tagStore.removeTag(tag)}
               onRename={(name) => handleRename(tag, name)}
             />

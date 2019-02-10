@@ -10,7 +10,7 @@ class FileStore {
   backend: Backend;
   rootStore: RootStore;
 
-  @observable fileList: ClientFile[] = [];
+  readonly fileList = observable<ClientFile>([]);
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
