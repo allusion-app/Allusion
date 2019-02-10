@@ -2,8 +2,10 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-import React, { useContext } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
+
+import HTML5Backend from 'react-dnd-html5-backend';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -13,6 +15,7 @@ import Backend from './backend/Backend';
 import App from './frontend/App';
 import StoreContext from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
+import { DragDropContextProvider } from 'react-dnd';
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
@@ -25,8 +28,10 @@ backend.init().then(async () => {
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application
 ReactDOM.render(
-  <StoreContext.Provider value={rootStore}>
-    <App />
-  </StoreContext.Provider>,
+  <DragDropContextProvider backend={HTML5Backend}>
+    <StoreContext.Provider value={rootStore}>
+      <App />
+    </StoreContext.Provider>
+  </DragDropContextProvider>,
   document.getElementById('app'),
 );
