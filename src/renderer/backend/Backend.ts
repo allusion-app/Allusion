@@ -56,6 +56,13 @@ export default class Backend {
 
   async removeTag(tag: ITag) {
     console.log('Removing tag...', tag);
+    // Get all files with this tag
+    const filesWithTag = await this.fileRepository.find('tags', tag.id);
+    // Remove tag from files
+    filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
+    // Update files in db
+    await Promise.all(filesWithTag.map((file) => this.fileRepository.update(file)));
+    // Remove tag from db
     await this.tagRepository.remove(tag);
   }
 
