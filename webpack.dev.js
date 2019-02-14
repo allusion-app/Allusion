@@ -53,6 +53,7 @@ let mainConfig = {
 let rendererConfig = {
     mode: 'development',
     entry: './src/renderer/renderer.tsx',
+    devtool: 'inline-source-map',
     target: 'electron-renderer',
     output: {
         filename: 'renderer.bundle.js',
