@@ -5,6 +5,7 @@ import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import { ClientTag, ITag } from '../../entities/Tag';
 import RootStore from './RootStore';
+import { ID } from '../../entities/ID';
 
 class FileStore {
   backend: Backend;
@@ -61,10 +62,24 @@ class FileStore {
   }
 
   @action
-  removeFile(file: ClientFile) {
+ removeFile(file: ClientFile): Promise<void> {
     this.fileList.splice(this.fileList.indexOf(file), 1);
     file.dispose();
-    this.backend.removeFile(file);
+    return this.backend.removeFile(file);
+  }
+
+  @action
+  async removeFilesById(ids: ID[]) {
+    return Promise.all(
+      ids.map(async (id) => {
+        const file = this.fileList.find((f) => f.id === id);
+        if (file) {
+          await this.removeFile(file);
+        } else {
+          console.log('Could not find file to remove', file);
+        }
+      }),
+    );
   }
 
   @action
