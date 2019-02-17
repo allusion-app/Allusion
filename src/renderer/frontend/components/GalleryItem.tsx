@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { DropTarget, ConnectDropTarget, DropTargetMonitor } from 'react-dnd';
 
 import { ClientFile } from '../../entities/File';
-import { Tag } from '@blueprintjs/core';
+import { Tag, Icon } from '@blueprintjs/core';
 import { ClientTag } from '../../entities/Tag';
 
 interface IGalleryItemTagProps {
@@ -30,6 +30,7 @@ interface IGalleryItemProps {
   isSelected: boolean;
   onRemoveTag: (tag: ClientTag) => void;
   onSelect: (file: ClientFile) => void;
+  onOpen: (file: ClientFile) => void;
   onDeselect: (file: ClientFile) => void;
   onDrop: (item: any) => void;
 }
@@ -43,6 +44,7 @@ const GalleryItem = ({
   isSelected,
   onRemoveTag,
   onSelect,
+  onOpen,
   onDeselect,
   canDrop,
   isOver,
@@ -61,7 +63,7 @@ const GalleryItem = ({
       <img
         key={`file-${file.id}`}
         src={file.path}
-        onClick={() => isSelected ? onDeselect(file) : onSelect(file)}
+        onClick={() => onOpen(file)}
       />
       <span className="thumbnailTags">
         {file.clientTags.map((tag) => (
@@ -72,6 +74,12 @@ const GalleryItem = ({
           />
         ))}
       </span>
+      <div
+        className={`thumbnailSelector ${isSelected ? 'selected' : ''}`}
+        onClick={() => isSelected ? onDeselect(file) : onSelect(file)}
+      >
+        <Icon icon={isSelected ? 'selection' : 'circle'} />
+      </div>
     </div>,
   );
 };

@@ -89,6 +89,21 @@ body {
 .thumbnailTags > * {
   margin: 0.5em;
 }
+.thumbnailSelector {
+  opacity: 0.5;
+  border-radius: 100%;
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 0.5em;
+  position: absolute;
+  top: 0;
+}
+.thumbnailSelector.selected {
+  opacity: 1;
+}
+.thumbnailSelector:hover {
+  opacity: 1;
+}
 
 .sidebar {
   width: var(--sidebar-width);
@@ -115,3 +130,27 @@ body {
   padding: 8px;
 }
 
+.fileSelectionHeader {
+  display: flex;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  width: calc(100% - var(--sidebar-width) - 2em);
+  padding: 1em;
+  margin: 0.5em;
+  z-index: 10;
+  background: #555555;
+  box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);
+}
+.fileSelectionHeader .icon {
+  cursor: pointer;
+  padding: 0.5em;
+  margin: -0.5em;
+}
+.fileSelectionHeader .icon:hover {
+  background: #888888;
+  border-radius: 100%;
+}
+.popoverContent {
+  padding: 0.5em;
+}

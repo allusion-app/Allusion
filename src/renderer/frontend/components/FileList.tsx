@@ -4,7 +4,6 @@ import path from 'path';
 import React from 'react';
 
 import { observer } from 'mobx-react-lite';
-
 import { Button } from '@blueprintjs/core';
 
 import { withRootstore } from '../contexts/StoreContext';
@@ -12,6 +11,7 @@ import FileStore from '../stores/FileStore';
 import RootStore from '../stores/RootStore';
 
 import Gallery from './Gallery';
+import FileSelectionHeader from './FileSelectionHeader';
 
 export interface IFileListProps {
   rootStore: RootStore;
@@ -44,9 +44,21 @@ const chooseDirectory = async (fileStore: FileStore) => {
   });
 };
 
-const FileList = ({ rootStore: { fileStore } }: IFileListProps) => {
+const FileList = ({ rootStore: { uiStore, fileStore } }: IFileListProps) => {
+  const removeSelectedFiles = async () => {
+    await fileStore.removeFilesById(uiStore.fileSelection);
+    uiStore.fileSelection.clear();
+  };
   return (
     <div>
+      { uiStore.fileSelection.length > 0 && (
+        <FileSelectionHeader
+          numSelectedFiles={uiStore.fileSelection.length}
+          onCancel={() => uiStore.fileSelection.clear()}
+          onRemove={removeSelectedFiles}
+        />
+      )}
+
       <Button onClick={() => chooseDirectory(fileStore)} icon="folder-open">
         Add images to your Visual Library
       </Button>
