@@ -47,7 +47,15 @@ class TagStore {
 
   @action
   removeTag(tag: ClientTag) {
+    // Remove tag from state
     this.tagList.splice(this.tagList.indexOf(tag), 1);
+
+    // Remove tag from files
+    this.rootStore.fileStore.fileList
+      .filter((f) => f.tags.includes(tag.id))
+      .forEach((f) => f.removeTag(tag.id));
+
+    // Remove tag from DB
     tag.dispose();
     this.backend.removeTag(tag);
   }
