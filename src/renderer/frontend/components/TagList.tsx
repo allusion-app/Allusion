@@ -1,9 +1,8 @@
 import { Button, ControlGroup, InputGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
-
-import TagListItem, { StaticTagListItem } from './TagListItem';
+import TagListItem, { StaticTagListItem, ModifiableTagListItem } from './TagListItem';
 
 import { ClientTag } from '../../entities/Tag';
 import { withRootstore } from '../contexts/StoreContext';
@@ -20,6 +19,10 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
   const handleRename = (tag: ClientTag, name: string) => {
     tag.name = name;
   };
+
+  const [isNewTagInputFocused, setFocus] = useState(false);
+
+  const isValidInput = newTag.trim() !== '';
 
   return (
     <>
@@ -41,25 +44,15 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
         ))
       }
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          tagStore.addTag(newTag); setNewTag('');
-        }}
-      >
-        <ControlGroup
-          fill={true}
-          vertical={false}
-          onAbort={() => setNewTag('')}
-        >
-          <InputGroup
-            placeholder="New tag"
-            onChange={(e) => setNewTag(e.target.value)}
-            value={newTag}
-          />
-          <Button icon="add" type="submit" />
-        </ControlGroup>
-      </form>
+      {/* New tag input field */}
+      <ModifiableTagListItem
+        placeholder="New tag"
+        icon="add"
+        initialName={''}
+        onRename={(name) => tagStore.addTag(name)}
+        resetOnSubmit
+        autoFocus={false}
+      />
     </>
   );
 };

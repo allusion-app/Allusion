@@ -6,7 +6,7 @@ import {
   DragSourceConnector,
   DragSourceMonitor,
 } from 'react-dnd';
-import { Button, ControlGroup, InputGroup, Tag } from '@blueprintjs/core';
+import { Button, ControlGroup, InputGroup, Tag, IconName } from '@blueprintjs/core';
 import { ID } from '../../entities/ID';
 
 interface IStaticTagListItemProps {
@@ -49,18 +49,37 @@ const UnmodifiableTagListItem = ({ name, onClick, onRemove }: IUnmodifiableTagLi
 interface IModifiableTagListItemProps {
   initialName: string;
   onRename: (name: string) => void;
-  onAbort: () => void;
+  onAbort?: () => void;
+  autoFocus?: boolean;
+  icon?: IconName;
+  placeholder?: string;
+  resetOnSubmit?: boolean;
 }
 
-const ModifiableTagListItem = ({ initialName, onRename, onAbort }: IModifiableTagListItemProps) => {
+export const ModifiableTagListItem = ({
+  initialName,
+  onRename,
+  onAbort = () => null, // no-op function by default
+  autoFocus = true,
+  icon = 'confirm',
+  placeholder = 'Rename tag',
+  resetOnSubmit = false,
+}: IModifiableTagListItemProps) => {
   const [newName, setNewName] = useState(initialName);
-  const inputEl = useRef<InputGroup>(null);
+  const [isFocused, setFocused] = useState(false);
+
+  const isValidInput = newName.trim() !== '';
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        onRename(newName);
+        if (isValidInput) {
+          onRename(newName);
+          if (resetOnSubmit) {
+            setNewName(initialName);
+          }
+        }
       }}
     >
       <ControlGroup
@@ -69,14 +88,16 @@ const ModifiableTagListItem = ({ initialName, onRename, onAbort }: IModifiableTa
         onAbort={onAbort}
       >
         <InputGroup
-          placeholder="Rename tag"
+          placeholder={placeholder}
           onChange={(e) => setNewName(e.target.value)}
           value={newName}
-          onBlur={onAbort}
-          ref={inputEl}
-          autoFocus={true}
+          autoFocus={autoFocus}
+          onBlur={() => { setFocused(false); onAbort(); }}
+          onFocus={() => setFocused(true)}
+          // Only show red outline when input field is in focus and text is invalid
+          className={isFocused && !isValidInput ? 'bp3-intent-danger' : ''}
         />
-        <Button icon="confirm" type="submit" />
+        <Button icon={icon} type="submit" />
       </ControlGroup>
     </form>
   );
