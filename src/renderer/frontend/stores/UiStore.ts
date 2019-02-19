@@ -32,9 +32,11 @@ class UiStore {
   @observable isSidebarOpen: boolean = true;
 
   // Selections
-  // Observable arrays recommened like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
+  // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
   readonly fileSelection = observable<ID>([]);
   readonly tagSelection = observable<ID>([]);
+
+  @observable openedFile: ID = undefined;
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -46,7 +48,8 @@ class UiStore {
   @action selectTag(tag: ClientTag) { this.tagSelection.push(tag.id); }
   @action deselectTag(tag: ClientTag) { this.tagSelection.remove(tag.id); }
 
-
+  @action openFile(file: ClientFile) { this.openedFile = file.id; }
+  @action closeFile() { this.openedFile = undefined; }
 }
 
 export default UiStore;

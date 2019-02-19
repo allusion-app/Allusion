@@ -31,7 +31,7 @@ const Gallery = ({
             isSelected={uiStore.fileSelection.includes(file.id)}
             onRemoveTag={(tag: ClientTag) => file.removeTag(tag.id)}
             onSelect={(f: ClientFile) => uiStore.selectFile(f)}
-            onOpen={(f) => console.log('Open file ', f)}
+            onOpen={(f) => uiStore.openFile(f)}
             onDeselect={(f: ClientFile) => uiStore.deselectFile(f)}
             onDrop={(tag: ClientTag) => file.addTag(tag.id)}
           />

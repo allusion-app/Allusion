@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import fse from 'fs-extra';
 import path from 'path';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { observer } from 'mobx-react-lite';
 import { Button } from '@blueprintjs/core';
@@ -49,6 +49,12 @@ const FileList = ({ rootStore: { uiStore, fileStore } }: IFileListProps) => {
     await fileStore.removeFilesById(uiStore.fileSelection);
     uiStore.fileSelection.clear();
   };
+
+  const openedFile = useMemo(
+    () => fileStore.fileList.find((f) => f.id === uiStore.openedFile),
+    [uiStore.openedFile],
+  );
+
   return (
     <div>
       { uiStore.fileSelection.length > 0 && (
@@ -58,6 +64,8 @@ const FileList = ({ rootStore: { uiStore, fileStore } }: IFileListProps) => {
           onRemove={removeSelectedFiles}
         />
       )}
+
+      {openedFile && <p>Opened file: {openedFile.id}</p>}
 
       <Button onClick={() => chooseDirectory(fileStore)} icon="folder-open">
         Add images to your Visual Library
