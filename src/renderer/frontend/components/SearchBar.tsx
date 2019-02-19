@@ -16,7 +16,7 @@ const SearchTagItem: ItemRenderer<ClientTag> = (tag, { modifiers, handleClick })
       active={modifiers.active}
       // icon={this.isFilmSelected(tag) ? "tick" : "blank"}
       key={tag.id}
-      label={tag.description.toString()}
+      label={tag.description ? tag.description.toString() : 'No Description'}
       onClick={handleClick}
       text={`${tag.name}`}
       shouldDismissPopover={false}
@@ -43,7 +43,7 @@ const SearchBar = ({
 
   const clearButton = selectedTags.length > 0 ? (
     <Button icon="cross" minimal={true} onClick={onClearSelection} />
-  ) : null;
+  ) : undefined;
 
   return (
     <>

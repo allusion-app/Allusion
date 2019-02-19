@@ -4,12 +4,9 @@ import React from 'react';
 
 import FileList from './components/FileList';
 import Sidebar from './components/Sidebar';
-import { withRootstore } from './contexts/StoreContext';
-import RootStore from './stores/RootStore';
+import { withRootstore, IRootStoreProp } from './contexts/StoreContext';
 
-interface IAppProps {
-  rootStore: RootStore;
-}
+interface IAppProps extends IRootStoreProp { }
 
 const App = ({
   rootStore: { uiStore },

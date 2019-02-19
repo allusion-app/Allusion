@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   DragSource,
@@ -115,7 +115,7 @@ interface ITagListItemCollectedProps {
 }
 /** The main tag-list-item that can be renamed, removed and dragged */
 const TagListItem = ({
-  name, onRemove, onRename, connectDragSource, isDragging,
+  name, onRemove, onRename, connectDragSource,
 }: ITagListItemProps & ITagListItemCollectedProps) => {
   const [isEditing, setEditing] = useState(false);
 

@@ -36,15 +36,17 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
   autoSave = true;
 
   id: ID;
-  dateAdded: Date;
-  @observable name: string;
-  @observable description: string;
+  dateAdded!: Date;
+  @observable name!: string;
+  @observable description: string | undefined;
   // icon, color, (fileCount?)
 
   constructor(store: TagStore, name?: string, id = generateId()) {
     this.store = store;
     this.id = id;
-    this.name = name;
+    if (name) {
+      this.name = name;
+    }
 
     // observe all changes to observable fields
     this.saveHandler = reaction(

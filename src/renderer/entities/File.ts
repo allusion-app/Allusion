@@ -37,14 +37,16 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   autoSave = true;
 
   id: ID;
-  dateAdded: Date;
-  @observable path: string;
+  dateAdded!: Date;
+  @observable path!: string;
   readonly tags = observable<ID>([]);
 
   constructor(store: FileStore, path?: string, id = generateId()) {
     this.store = store;
     this.id = id;
-    this.path = path;
+    if (path) {
+      this.path = path;
+    }
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -53,7 +55,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       // Then update the entity in the database
       (file) => {
         if (this.autoSave) {
-          // Remove reactive properties, since observable props are not accepeted in the backend
+          // Remove reactive properties, since observable props are not accepted in the backend
           const jsFile = toJS<IFile>(file);
           this.store.backend.saveFile(jsFile);
         }
@@ -72,7 +74,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get clientTags(): ClientTag[] {
-    return this.tags.map((id) => this.store.rootStore.tagStore.tagList.find((t) => t.id === id));
+    return this.tags.map((id) => this.store.rootStore.tagStore.tagList.find((t) => t.id === id)) as ClientTag[];
   }
 
   @action addTag(tag: ID) {

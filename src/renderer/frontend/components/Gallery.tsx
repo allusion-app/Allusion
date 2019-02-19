@@ -2,15 +2,12 @@ import React from 'react';
 
 import { observer } from 'mobx-react-lite';
 
-import { withRootstore } from '../contexts/StoreContext';
-import RootStore from '../stores/RootStore';
+import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
 import { ClientFile } from '../../entities/File';
 import { ClientTag } from '../../entities/Tag';
 
-interface IGalleryProps {
-  rootStore: RootStore;
-}
+interface IGalleryProps extends IRootStoreProp { }
 
 const Gallery = ({
   rootStore: {

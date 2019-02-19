@@ -6,16 +6,13 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button } from '@blueprintjs/core';
 
-import { withRootstore } from '../contexts/StoreContext';
+import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import FileStore from '../stores/FileStore';
-import RootStore from '../stores/RootStore';
 
 import Gallery from './Gallery';
 import FileSelectionHeader from './FileSelectionHeader';
 
-export interface IFileListProps {
-  rootStore: RootStore;
-}
+export interface IFileListProps extends IRootStoreProp { }
 
 const chooseDirectory = async (fileStore: FileStore) => {
   const dirs = remote.dialog.showOpenDialog({
@@ -51,7 +48,7 @@ const FileList = ({ rootStore: { uiStore, fileStore } }: IFileListProps) => {
   };
   return (
     <div>
-      { uiStore.fileSelection.length > 0 && (
+      {uiStore.fileSelection.length > 0 && (
         <FileSelectionHeader
           numSelectedFiles={uiStore.fileSelection.length}
           onCancel={() => uiStore.fileSelection.clear()}
