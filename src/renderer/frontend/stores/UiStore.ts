@@ -45,8 +45,6 @@ class UiStore {
 
   @action selectTag(tag: ClientTag) { this.tagSelection.push(tag.id); }
   @action deselectTag(tag: ClientTag) { this.tagSelection.remove(tag.id); }
-
-
 }
 
 export default UiStore;

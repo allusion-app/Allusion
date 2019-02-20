@@ -11,18 +11,19 @@ interface IGalleryItemTagProps {
   name: string;
   onRemove: () => void;
 }
+
 const GalleryItemTag = ({
   name,
   onRemove,
 }: IGalleryItemTagProps) => (
-  <Tag
-    onRemove={onRemove}
-    interactive
-    intent="primary"
-  >
-    {name}
-  </Tag>
-);
+    <Tag
+      onRemove={onRemove}
+      interactive
+      intent="primary"
+    >
+      {name}
+    </Tag>
+  );
 
 
 interface IGalleryItemProps {
@@ -34,11 +35,13 @@ interface IGalleryItemProps {
   onDeselect: (file: ClientFile) => void;
   onDrop: (item: any) => void;
 }
+
 interface IGalleryItemCollectedProps {
   canDrop: boolean;
   isOver: boolean;
   connectDropTarget: ConnectDropTarget;
 }
+
 const GalleryItem = ({
   file,
   isSelected,
@@ -50,7 +53,6 @@ const GalleryItem = ({
   isOver,
   connectDropTarget,
 }: IGalleryItemProps & IGalleryItemCollectedProps) => {
-
   const selectedStyle = isSelected ? 'selected' : '';
   const dropStyle = canDrop ? ' droppable' : ' undroppable';
 

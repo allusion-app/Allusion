@@ -38,14 +38,14 @@ const FileSelectionHeader = ({
               className={Classes.POPOVER_DISMISS}
               style={{ marginRight: 10 }}
             >
-                Cancel
+              Cancel
             </Button>
             <Button
               intent={Intent.DANGER}
               className={Classes.POPOVER_DISMISS}
               onClick={onRemove}
             >
-                Delete
+              Delete
             </Button>
           </div>
         </div>

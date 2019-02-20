@@ -15,7 +15,6 @@ export interface IRootStoreProp {
   rootStore: RootStore;
 }
 
-
 /**
  * A higher order component (HOC) for injecting the context in the props of the wrapped component
  * Usage:

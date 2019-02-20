@@ -11,6 +11,7 @@ const SearchTagItem: ItemRenderer<ClientTag> = (tag, { modifiers, handleClick })
   if (!modifiers.matchesPredicate) {
     return null;
   }
+
   return (
     <MenuItem
       active={modifiers.active}
@@ -31,6 +32,7 @@ interface ISearchBarProps {
   selectedTags: ClientTag[];
   allTags: ClientTag[];
 }
+
 const SearchBar = ({
   onTagSelect,
   onTagDeselect,
@@ -38,7 +40,6 @@ const SearchBar = ({
   selectedTags,
   allTags,
 }: ISearchBarProps) => {
-
   const handleDeselect = (_: string, index: number) => onTagDeselect(index);
 
   const clearButton = selectedTags.length > 0 ? (

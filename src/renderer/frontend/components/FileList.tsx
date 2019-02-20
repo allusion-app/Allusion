@@ -19,10 +19,10 @@ const chooseDirectory = async (fileStore: FileStore) => {
     properties: ['openDirectory', 'multiSelections'],
   });
 
-
   if (!dirs) {
     return;
   }
+
   dirs.forEach(async (dir) => {
     // Check if directory
     // const stats = await fse.lstat(dirs[0]);
@@ -48,6 +48,7 @@ const FileList = ({ rootStore: { uiStore, fileStore } }: IFileListProps) => {
     await fileStore.removeFilesById(uiStore.fileSelection);
     uiStore.fileSelection.clear();
   };
+
   return (
     <div>
       {uiStore.fileSelection.length > 0 && (

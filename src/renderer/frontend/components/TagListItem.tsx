@@ -13,6 +13,7 @@ interface IStaticTagListItemProps {
   name: string;
   onSelect: () => void;
 }
+
 /** Can be used for "non-existing" tags, e.g. 'Untagged', 'Recently added'. Cannot be removed */
 export const StaticTagListItem = ({ name, onSelect }: IStaticTagListItemProps) => (
   <Tag
@@ -27,12 +28,12 @@ export const StaticTagListItem = ({ name, onSelect }: IStaticTagListItemProps) =
   </Tag>
 );
 
-
 interface IUnmodifiableTagListItemProps {
   name: string;
   onRemove: () => void;
   onClick: () => void;
 }
+
 const UnmodifiableTagListItem = ({ name, onClick, onRemove }: IUnmodifiableTagListItemProps) => (
   <Tag
     onClick={onClick}
@@ -109,10 +110,12 @@ interface ITagListItemProps {
   onRemove: () => void;
   onRename: (name: string) => void;
 }
+
 interface ITagListItemCollectedProps {
   connectDragSource: ConnectDragSource;
   isDragging: boolean;
 }
+
 /** The main tag-list-item that can be renamed, removed and dragged */
 const TagListItem = ({
   name, onRemove, onRename, connectDragSource,
@@ -129,12 +132,12 @@ const TagListItem = ({
             onAbort={() => setEditing(false)}
           />
         ) : (
-          <UnmodifiableTagListItem
-            name={name}
-            onClick={() => setEditing(true)}
-            onRemove={onRemove}
-          />
-        )
+            <UnmodifiableTagListItem
+              name={name}
+              onClick={() => setEditing(true)}
+              onRemove={onRemove}
+            />
+          )
       }
     </div>,
   );

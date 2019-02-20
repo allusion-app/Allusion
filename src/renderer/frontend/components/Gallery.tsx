@@ -17,7 +17,6 @@ const Gallery = ({
     },
   },
 }: IGalleryProps) => {
-
   return (
     <div>
       {
