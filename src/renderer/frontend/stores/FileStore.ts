@@ -23,9 +23,10 @@ class FileStore {
   }
 
   loadFiles() {
-    this.backend.fetchFiles().then((fetchedFiles) => {
-      fetchedFiles.forEach((file) => this.checkFiles(file));
-    });
+    this.backend.fetchFiles()
+      .then((fetchedFiles) => {
+        fetchedFiles.forEach((file) => this.checkFiles(file));
+      });
   }
 
   // Removes files with invalid file path.

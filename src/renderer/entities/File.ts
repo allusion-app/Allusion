@@ -37,16 +37,15 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   autoSave = true;
 
   id: ID;
-  dateAdded!: Date;
-  @observable path!: string;
+  dateAdded: Date;
+  @observable path: string;
   readonly tags = observable<ID>([]);
 
   constructor(store: FileStore, path?: string, id = generateId()) {
     this.store = store;
     this.id = id;
-    if (path) {
-      this.path = path;
-    }
+    this.path = path ? path : '';
+    this.dateAdded = new Date();
 
     // observe all changes to observable fields
     this.saveHandler = reaction(

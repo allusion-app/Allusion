@@ -6,7 +6,7 @@ import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 export interface ITag extends IIdentifiable {
   id: ID;
   name: string;
-  description?: string;
+  description: string;
   dateAdded: Date;
 }
 
@@ -14,13 +14,13 @@ export interface ITag extends IIdentifiable {
 export class DbTag implements ITag {
   public id: ID;
   public name: string;
-  public description?: string;
+  public description: string;
   public dateAdded: Date;
 
   constructor(id: ID, name: string, description?: string) {
     this.id = id;
     this.name = name;
-    this.description = description;
+    this.description = description || 'No Description';
     this.dateAdded = new Date();
   }
 }
@@ -36,17 +36,17 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
   autoSave = true;
 
   id: ID;
-  dateAdded!: Date;
-  @observable name!: string;
-  @observable description: string | undefined;
+  dateAdded: Date;
+  @observable name: string;
+  @observable description: string;
   // icon, color, (fileCount?)
 
   constructor(store: TagStore, name?: string, id = generateId()) {
     this.store = store;
     this.id = id;
-    if (name) {
-      this.name = name;
-    }
+    this.name = name || '';
+    this.description = 'No Description';
+    this.dateAdded = new Date();
 
     // observe all changes to observable fields
     this.saveHandler = reaction(

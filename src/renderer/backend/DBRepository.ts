@@ -81,8 +81,8 @@ export default class BaseRepository<T extends IIdentifiable> {
     const key = await db
       .transaction(this.collectionName, 'readwrite')
       .objectStore<T, ID>(this.collectionName)
-      .add(item as T);
-    const resItem = item as T;
+      .add(item);
+    const resItem = item;
     resItem.id = key as ID;
     return resItem;
   }

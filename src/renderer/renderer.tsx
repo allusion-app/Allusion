@@ -20,10 +20,11 @@ import { DragDropContextProvider } from 'react-dnd';
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
 const rootStore = new RootStore(backend);
-backend.init().then(async () => {
-  console.log('Backend has been initialized!');
-  await rootStore.init();
-});
+backend.init()
+  .then(async () => {
+    console.log('Backend has been initialized!');
+    await rootStore.init();
+  });
 
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application

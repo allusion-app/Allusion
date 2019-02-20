@@ -22,9 +22,10 @@ class TagStore {
   }
 
   loadTags() {
-    this.backend.fetchTags().then((fetchedTags) => {
-      fetchedTags.forEach((tag) => this.updateFromBackend(tag));
-    });
+    this.backend.fetchTags()
+      .then((fetchedTags) => {
+        fetchedTags.forEach((tag) => this.updateFromBackend(tag));
+      });
   }
 
   updateFromBackend(backendTag: ITag) {

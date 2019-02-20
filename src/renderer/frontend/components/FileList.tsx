@@ -30,7 +30,9 @@ const chooseDirectory = async (fileStore: FileStore) => {
 
     const filenames = await fse.readdir(dir);
     const imgFileNames = filenames.filter((f) =>
-      imgExtensions.some((ext) => f.toLowerCase().endsWith(ext)),
+      imgExtensions.some((ext) =>
+        f.toLowerCase()
+          .endsWith(ext)),
     );
 
     imgFileNames.forEach(async (filename) => {
