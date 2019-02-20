@@ -1,4 +1,11 @@
-import { IReactionDisposer, observable, reaction, computed, toJS, action } from 'mobx';
+import {
+  IReactionDisposer,
+  observable,
+  reaction,
+  computed,
+  toJS,
+  action,
+} from 'mobx';
 import FileStore from '../frontend/stores/FileStore';
 import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag } from './Tag';

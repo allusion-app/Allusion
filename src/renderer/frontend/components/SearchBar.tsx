@@ -7,7 +7,10 @@ import { ClientTag } from '../../entities/Tag';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 
-const SearchTagItem: ItemRenderer<ClientTag> = (tag, { modifiers, handleClick }) => {
+const SearchTagItem: ItemRenderer<ClientTag> = (
+  tag,
+  { modifiers, handleClick },
+) => {
   if (!modifiers.matchesPredicate) {
     return null;
   }
@@ -42,9 +45,12 @@ const SearchBar = ({
 }: ISearchBarProps) => {
   const handleDeselect = (_: string, index: number) => onTagDeselect(index);
 
-  const clearButton = selectedTags.length > 0 ? (
-    <Button icon="cross" minimal={true} onClick={onClearSelection} />
-  ) : undefined;
+  const clearButton =
+    selectedTags.length > 0 ? (
+      <Button icon="cross" minimal={true} onClick={onClearSelection} />
+    ) : (
+      undefined
+    );
 
   return (
     <>
@@ -57,7 +63,11 @@ const SearchBar = ({
         onItemSelect={onTagSelect}
         popoverProps={{ minimal: true }}
         tagRenderer={(tag) => tag.name}
-        tagInputProps={{ tagProps: { minimal: true }, onRemove: handleDeselect, rightElement: clearButton }}
+        tagInputProps={{
+          tagProps: { minimal: true },
+          onRemove: handleDeselect,
+          rightElement: clearButton,
+        }}
       />
     </>
   );

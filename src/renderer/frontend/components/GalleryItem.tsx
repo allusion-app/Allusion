@@ -12,19 +12,11 @@ interface IGalleryItemTagProps {
   onRemove: () => void;
 }
 
-const GalleryItemTag = ({
-  name,
-  onRemove,
-}: IGalleryItemTagProps) => (
-    <Tag
-      onRemove={onRemove}
-      interactive
-      intent="primary"
-    >
-      {name}
-    </Tag>
-  );
-
+const GalleryItemTag = ({ name, onRemove }: IGalleryItemTagProps) => (
+  <Tag onRemove={onRemove} interactive intent="primary">
+    {name}
+  </Tag>
+);
 
 interface IGalleryItemProps {
   file: ClientFile;
@@ -59,9 +51,7 @@ const GalleryItem = ({
   const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
   return connectDropTarget(
-    <div
-      className={className}
-    >
+    <div className={className}>
       <img
         key={`file-${file.id}`}
         src={file.path}
@@ -78,8 +68,7 @@ const GalleryItem = ({
       </span>
       <div
         className={`thumbnailSelector ${isSelected ? 'selected' : ''}`}
-        onClick={() => isSelected ? onDeselect(file) : onSelect(file)}
-      >
+        onClick={() => (isSelected ? onDeselect(file) : onSelect(file))}>
         <Icon icon={isSelected ? 'selection' : 'circle'} />
       </div>
     </div>,

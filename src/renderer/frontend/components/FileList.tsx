@@ -12,7 +12,7 @@ import FileStore from '../stores/FileStore';
 import Gallery from './Gallery';
 import FileSelectionHeader from './FileSelectionHeader';
 
-export interface IFileListProps extends IRootStoreProp { }
+export interface IFileListProps extends IRootStoreProp {}
 
 const chooseDirectory = async (fileStore: FileStore) => {
   const dirs = remote.dialog.showOpenDialog({
