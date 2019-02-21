@@ -20,7 +20,7 @@ export class DbTag implements ITag {
   constructor(id: ID, name: string, description?: string) {
     this.id = id;
     this.name = name;
-    this.description = description || 'No Description';
+    this.description = description || '';
     this.dateAdded = new Date();
   }
 }
@@ -45,7 +45,7 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
     this.store = store;
     this.id = id;
     this.name = name || '';
-    this.description = 'No Description';
+    this.description = '';
     this.dateAdded = new Date();
 
     // observe all changes to observable fields

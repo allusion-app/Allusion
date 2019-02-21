@@ -38,7 +38,7 @@ export default class BaseRepository<T extends IIdentifiable> {
     this.collectionName = collectionName;
   }
 
-  public get = async (id: ID): Promise<T> => {
+  public async get(id: ID): Promise<T> {
     const db = await openDb(dbName);
     return await db
       .transaction(this.collectionName)
@@ -46,7 +46,7 @@ export default class BaseRepository<T extends IIdentifiable> {
       .get(id);
   }
 
-  public getAll = async (count?: number): Promise<T[]> => {
+  public async getAll(count?: number): Promise<T[]> {
     const db = await openDb(dbName);
     return await db
       .transaction(this.collectionName)
@@ -54,11 +54,11 @@ export default class BaseRepository<T extends IIdentifiable> {
       .getAll(undefined, count);
   }
 
-  public find = async (
+  public async find(
     property: string,
     query: any,
     count?: number,
-  ): Promise<T[]> => {
+  ): Promise<T[]> {
     const db = await openDb(dbName);
     return await db
       .transaction(this.collectionName)
@@ -67,7 +67,7 @@ export default class BaseRepository<T extends IIdentifiable> {
       .getAll(query, count);
   }
 
-  public count = async (property: string, query: any): Promise<number> => {
+  public async count(property: string, query: any): Promise<number> {
     const db = await openDb(dbName);
     return await db
       .transaction(this.collectionName)
@@ -76,7 +76,7 @@ export default class BaseRepository<T extends IIdentifiable> {
       .count(query);
   }
 
-  public create = async (item: T): Promise<T> => {
+  public async create(item: T): Promise<T> {
     const db = await openDb(dbName);
     const key = await db
       .transaction(this.collectionName, 'readwrite')
@@ -87,7 +87,7 @@ export default class BaseRepository<T extends IIdentifiable> {
     return resItem;
   }
 
-  public remove = async (item: T): Promise<void> => {
+  public async remove(item: T): Promise<void> {
     const db = await openDb(dbName);
     return await db
       .transaction(this.collectionName, 'readwrite')
@@ -95,7 +95,7 @@ export default class BaseRepository<T extends IIdentifiable> {
       .delete(item.id);
   }
 
-  public update = async (item: T): Promise<T> => {
+  public async update(item: T): Promise<T> {
     const db = await openDb(dbName);
     await db
       .transaction(this.collectionName, 'readwrite')
