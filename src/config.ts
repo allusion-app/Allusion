@@ -3,5 +3,5 @@
  * From https://github.com/electron/electron/issues/7714#issuecomment-255835799
  */
 export function isDev() {
-  return process.mainModule.filename.indexOf('app.asar') === -1;
+  return process.mainModule ? process.mainModule.filename.indexOf('app.asar') === -1 : false;
 }

@@ -40,13 +40,21 @@ class UiStore {
     this.rootStore = rootStore;
   }
 
-  @action selectFile(file: ClientFile) { this.fileSelection.push(file.id); }
-  @action deselectFile(file: ClientFile) { this.fileSelection.remove(file.id); }
+  @action selectFile(file: ClientFile) {
+    this.fileSelection.push(file.id);
+  }
 
-  @action selectTag(tag: ClientTag) { this.tagSelection.push(tag.id); }
-  @action deselectTag(tag: ClientTag) { this.tagSelection.remove(tag.id); }
+  @action deselectFile(file: ClientFile) {
+    this.fileSelection.remove(file.id);
+  }
 
+  @action selectTag(tag: ClientTag) {
+    this.tagSelection.push(tag.id);
+  }
 
+  @action deselectTag(tag: ClientTag) {
+    this.tagSelection.remove(tag.id);
+  }
 }
 
 export default UiStore;

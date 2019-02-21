@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   DragSource,
@@ -6,42 +6,42 @@ import {
   DragSourceConnector,
   DragSourceMonitor,
 } from 'react-dnd';
-import { Button, ControlGroup, InputGroup, Tag, IconName } from '@blueprintjs/core';
+import {
+  Button,
+  ControlGroup,
+  InputGroup,
+  Tag,
+  IconName,
+} from '@blueprintjs/core';
 import { ID } from '../../entities/ID';
 
 interface IStaticTagListItemProps {
   name: string;
   onSelect: () => void;
 }
+
 /** Can be used for "non-existing" tags, e.g. 'Untagged', 'Recently added'. Cannot be removed */
-export const StaticTagListItem = ({ name, onSelect }: IStaticTagListItemProps) => (
-  <Tag
-    onClick={onSelect}
-    large
-    minimal
-    fill
-    interactive
-    active
-  >
+export const StaticTagListItem = ({
+  name,
+  onSelect,
+}: IStaticTagListItemProps) => (
+  <Tag onClick={onSelect} large minimal fill interactive active>
     {name}
   </Tag>
 );
-
 
 interface IUnmodifiableTagListItemProps {
   name: string;
   onRemove: () => void;
   onClick: () => void;
 }
-const UnmodifiableTagListItem = ({ name, onClick, onRemove }: IUnmodifiableTagListItemProps) => (
-  <Tag
-    onClick={onClick}
-    large
-    minimal
-    fill
-    onRemove={onRemove}
-    interactive
-  >
+
+const UnmodifiableTagListItem = ({
+  name,
+  onClick,
+  onRemove,
+}: IUnmodifiableTagListItemProps) => (
+  <Tag onClick={onClick} large minimal fill onRemove={onRemove} interactive>
     {name}
   </Tag>
 );
@@ -80,19 +80,19 @@ export const ModifiableTagListItem = ({
             setNewName(initialName);
           }
         }
-      }}
-    >
-      <ControlGroup
-        fill={true}
-        vertical={false}
-        onAbort={onAbort}
-      >
+      }}>
+      <ControlGroup fill={true} vertical={false} onAbort={onAbort}>
         <InputGroup
           placeholder={placeholder}
-          onChange={(e) => setNewName(e.target.value)}
+          onChange={(e: React.FormEvent<HTMLElement>) =>
+            setNewName((e.target as HTMLInputElement).value)
+          }
           value={newName}
           autoFocus={autoFocus}
-          onBlur={() => { setFocused(false); onAbort(); }}
+          onBlur={() => {
+            setFocused(false);
+            onAbort();
+          }}
           onFocus={() => setFocused(true)}
           // Only show red outline when input field is in focus and text is invalid
           className={isFocused && !isValidInput ? 'bp3-intent-danger' : ''}
@@ -109,33 +109,39 @@ interface ITagListItemProps {
   onRemove: () => void;
   onRename: (name: string) => void;
 }
+
 interface ITagListItemCollectedProps {
   connectDragSource: ConnectDragSource;
   isDragging: boolean;
 }
+
 /** The main tag-list-item that can be renamed, removed and dragged */
 const TagListItem = ({
-  name, onRemove, onRename, connectDragSource, isDragging,
+  name,
+  onRemove,
+  onRename,
+  connectDragSource,
 }: ITagListItemProps & ITagListItemCollectedProps) => {
   const [isEditing, setEditing] = useState(false);
 
   return connectDragSource(
     <div>
-      {
-        isEditing ? (
-          <ModifiableTagListItem
-            initialName={name}
-            onRename={(newName) => { setEditing(false); onRename(newName); }}
-            onAbort={() => setEditing(false)}
-          />
-        ) : (
-          <UnmodifiableTagListItem
-            name={name}
-            onClick={() => setEditing(true)}
-            onRemove={onRemove}
-          />
-        )
-      }
+      {isEditing ? (
+        <ModifiableTagListItem
+          initialName={name}
+          onRename={(newName) => {
+            setEditing(false);
+            onRename(newName);
+          }}
+          onAbort={() => setEditing(false)}
+        />
+      ) : (
+        <UnmodifiableTagListItem
+          name={name}
+          onClick={() => setEditing(true)}
+          onRemove={onRemove}
+        />
+      )}
     </div>,
   );
 };

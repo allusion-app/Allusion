@@ -3,7 +3,7 @@ import { action, observable } from 'mobx';
 import fs from 'fs-extra';
 import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
-import { ClientTag, ITag } from '../../entities/Tag';
+import { ITag } from '../../entities/Tag';
 import RootStore from './RootStore';
 import { ID } from '../../entities/ID';
 
@@ -23,9 +23,12 @@ class FileStore {
   }
 
   loadFiles() {
-    this.backend.fetchFiles().then((fetchedFiles) => {
-      fetchedFiles.forEach((file) => this.checkFiles(file));
-    });
+    this.backend
+      .fetchFiles()
+      .then((fetchedFiles) => {
+        fetchedFiles.forEach((file) => this.checkFiles(file));
+      })
+      .catch((err) => console.log('Could not load files', err));
   }
 
   // Removes files with invalid file path.
@@ -62,13 +65,6 @@ class FileStore {
   }
 
   @action
- removeFile(file: ClientFile): Promise<void> {
-    this.fileList.splice(this.fileList.indexOf(file), 1);
-    file.dispose();
-    return this.backend.removeFile(file);
-  }
-
-  @action
   async removeFilesById(ids: ID[]) {
     return Promise.all(
       ids.map(async (id) => {
@@ -80,6 +76,12 @@ class FileStore {
         }
       }),
     );
+  }
+
+  removeFile(file: ClientFile): Promise<void> {
+    this.fileList.splice(this.fileList.indexOf(file), 1);
+    file.dispose();
+    return this.backend.removeFile(file);
   }
 
   @action

@@ -3,13 +3,13 @@
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
     "module": "ESNext",
-    "noImplicitAny": false,
-    "noImplicitThis": true,
     "sourceMap": true,
     "outDir": "dist",
     "target": "es2017",
     "moduleResolution": "node",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "noUnusedLocals": true,
+    "strict": true,
   },
   "include": [
     "src/**/*"

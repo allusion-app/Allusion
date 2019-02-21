@@ -4,17 +4,11 @@ import React from 'react';
 
 import FileList from './components/FileList';
 import Sidebar from './components/Sidebar';
-import { withRootstore } from './contexts/StoreContext';
-import RootStore from './stores/RootStore';
+import { withRootstore, IRootStoreProp } from './contexts/StoreContext';
 
-interface IAppProps {
-  rootStore: RootStore;
-}
+interface IAppProps extends IRootStoreProp {}
 
-const App = ({
-  rootStore: { uiStore },
-}: IAppProps) => {
-
+const App = ({ rootStore: { uiStore } }: IAppProps) => {
   // Breadcrumbs placeholder
   const breadcrumbs: IBreadcrumbProps[] = [
     { icon: 'symbol-square' },
@@ -31,9 +25,7 @@ const App = ({
 
       <div className="main">
         <div className="header">
-          <Breadcrumbs
-            items={breadcrumbs}
-          />
+          <Breadcrumbs items={breadcrumbs} />
 
           {/* This can be replaced with the custom SearchBar component later */}
           <InputGroup type="search" leftIcon="search" placeholder="Search" />

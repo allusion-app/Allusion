@@ -14,12 +14,14 @@ export default class Backend {
   private fileRepository: DBRepository<IFile>;
   private tagRepository: DBRepository<ITag>;
 
+  constructor() {
+    this.fileRepository = new DBRepository('files');
+    this.tagRepository = new DBRepository('tags');
+  }
+
   async init() {
     // Initialize database tables
     await dbInit(dbConfig);
-
-    this.fileRepository = new DBRepository('files');
-    this.tagRepository = new DBRepository('tags');
 
     // Here we could start indexing, or checking for changed files
   }
