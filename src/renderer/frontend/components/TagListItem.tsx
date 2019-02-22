@@ -33,15 +33,17 @@ export const StaticTagListItem = ({
 interface IUnmodifiableTagListItemProps {
   name: string;
   onRemove: () => void;
-  onClick: () => void;
+  onSelect: () => void;
+  onEdit: () => void;
 }
 
 const UnmodifiableTagListItem = ({
   name,
-  onClick,
+  onEdit,
+  onSelect,
   onRemove,
 }: IUnmodifiableTagListItemProps) => (
-  <Tag onClick={onClick} large minimal fill onRemove={onRemove} interactive>
+  <Tag onClick={onSelect} onDoubleClick={onEdit} large minimal fill onRemove={onRemove} interactive>
     {name}
   </Tag>
 );
@@ -108,6 +110,7 @@ interface ITagListItemProps {
   id: ID;
   onRemove: () => void;
   onRename: (name: string) => void;
+  onSelect: () => void;
 }
 
 interface ITagListItemCollectedProps {
@@ -120,6 +123,7 @@ const TagListItem = ({
   name,
   onRemove,
   onRename,
+  onSelect,
   connectDragSource,
 }: ITagListItemProps & ITagListItemCollectedProps) => {
   const [isEditing, setEditing] = useState(false);
@@ -138,7 +142,8 @@ const TagListItem = ({
       ) : (
         <UnmodifiableTagListItem
           name={name}
-          onClick={() => setEditing(true)}
+          onSelect={onSelect}
+          onEdit={() => setEditing(true)}
           onRemove={onRemove}
         />
       )}

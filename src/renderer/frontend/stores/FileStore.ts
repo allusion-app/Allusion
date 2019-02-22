@@ -3,7 +3,7 @@ import { action, observable } from 'mobx';
 import fs from 'fs-extra';
 import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
-import { ITag } from '../../entities/Tag';
+import { ITag, ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
 import { ID } from '../../entities/ID';
 
@@ -82,6 +82,36 @@ class FileStore {
     this.fileList.splice(this.fileList.indexOf(file), 1);
     file.dispose();
     return this.backend.removeFile(file);
+  }
+
+  @action
+  viewAllFiles() {
+    this.clearFileView();
+    // adds all files to fileList without checking for invalid files
+    this.backend
+      .fetchFiles()
+      .then((fetchedFiles) => {
+        fetchedFiles.forEach((file) => this.updateFromBackend(file));
+      })
+      .catch((err) => console.log('Could not load all files', err));
+  }
+
+  @action
+  viewFilesByTag(tag: ClientTag) {
+    this.clearFileView();
+    // adds all files that have this tag to fileList without checking for invalid files
+    this.backend
+      .findFilesByTag(tag)
+      .then((fetchedFiles) => {
+        fetchedFiles.forEach((file) => this.updateFromBackend(file));
+      })
+      .catch((err) => console.log('Could not fetch files by tag', err));
+  }
+
+  // Removes all items from fileList to avoid duplicates
+  clearFileView() {
+    const len = this.fileList.length;
+    this.fileList.splice(0, len);
   }
 
   @action
