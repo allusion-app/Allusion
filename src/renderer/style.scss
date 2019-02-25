@@ -68,6 +68,12 @@ body {
 .thumbnail.selected img {
   transform: scale(0.9);
 }
+.thumbnail.open img {
+  outline-color: red;
+  outline-width: 5px;
+  outline-offset: -5px;
+  outline-style: solid;
+}
 .thumbnail.droppable {
   background: $pt-intent-success;
 }
@@ -90,7 +96,8 @@ body {
   margin: 0.5em;
 }
 .thumbnailSelector {
-  opacity: 0.5;
+  transition: opacity 0.2s ease-in-out;
+  opacity: 0;
   border-radius: 100%;
   cursor: pointer;
   background-color: rgba(0, 0, 0, 0.5);
@@ -99,11 +106,18 @@ body {
   top: 0;
 }
 .thumbnailSelector.selected {
-  opacity: 1;
+  opacity: 1!important;
 }
 .thumbnailSelector:hover {
   opacity: 1;
 }
+.thumbnail:hover .thumbnailSelector {
+  opacity: 0.5;
+}
+.gallerySelectionMode .thumbnailSelector {
+  opacity: 0.5;
+}
+
 
 .sidebar {
   width: var(--sidebar-width);

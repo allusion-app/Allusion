@@ -28,10 +28,12 @@ const GalleryItemTag = ({
 interface IGalleryItemProps {
   file: ClientFile;
   isSelected: boolean;
+  isOpen: boolean;
+  selectionMode: boolean;
   onRemoveTag: (tag: ClientTag) => void;
-  onSelect: (file: ClientFile) => void;
+  onSelect: (file: ClientFile, e: React.MouseEvent) => void;
   onOpen: (file: ClientFile) => void;
-  onDeselect: (file: ClientFile) => void;
+  onDeselect: (file: ClientFile, e: React.MouseEvent) => void;
   onDrop: (item: any) => void;
 }
 interface IGalleryItemCollectedProps {
@@ -42,6 +44,8 @@ interface IGalleryItemCollectedProps {
 const GalleryItem = ({
   file,
   isSelected,
+  isOpen,
+  selectionMode,
   onRemoveTag,
   onSelect,
   onOpen,
@@ -54,7 +58,10 @@ const GalleryItem = ({
   const selectedStyle = isSelected ? 'selected' : '';
   const dropStyle = canDrop ? ' droppable' : ' undroppable';
 
-  const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
+  const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''} ${isOpen ? 'open' : ''}`;
+
+  // Switch between opening/selecting depending on whether the selection mode is enabled
+  const clickFunc = selectionMode ? (isSelected ? onDeselect : onSelect) : onOpen;
 
   return connectDropTarget(
     <div
@@ -63,7 +70,7 @@ const GalleryItem = ({
       <img
         key={`file-${file.id}`}
         src={file.path}
-        onClick={() => onOpen(file)}
+        onClick={(e) => clickFunc(file, e)}
       />
       <span className="thumbnailTags">
         {file.clientTags.map((tag) => (
@@ -76,7 +83,7 @@ const GalleryItem = ({
       </span>
       <div
         className={`thumbnailSelector ${isSelected ? 'selected' : ''}`}
-        onClick={() => isSelected ? onDeselect(file) : onSelect(file)}
+        onClick={(e) => isSelected ? onDeselect(file, e) : onSelect(file, e)}
       >
         <Icon icon={isSelected ? 'selection' : 'circle'} />
       </div>

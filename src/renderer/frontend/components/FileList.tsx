@@ -55,9 +55,11 @@ const FileList = ({ rootStore: { uiStore, fileStore } }: IFileListProps) => {
     [uiStore.openedFile],
   );
 
+  const selectionModeOn = uiStore.fileSelection.length > 0;
+
   return (
     <div>
-      { uiStore.fileSelection.length > 0 && (
+      { selectionModeOn && (
         <FileSelectionHeader
           numSelectedFiles={uiStore.fileSelection.length}
           onCancel={() => uiStore.fileSelection.clear()}
