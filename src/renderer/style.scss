@@ -154,3 +154,10 @@ body {
 .popoverContent {
   padding: 0.5em;
 }
+
+.contextMenuTarget {
+  outline-color: $pt-intent-primary;
+  outline-width: 2px;
+  outline-offset: -2px;
+  outline-style: solid;
+}

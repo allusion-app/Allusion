@@ -12,6 +12,9 @@ import {
   InputGroup,
   Tag,
   IconName,
+  ContextMenuTarget,
+  Menu,
+  MenuItem,
 } from '@blueprintjs/core';
 import { ID } from '../../entities/ID';
 
@@ -110,19 +113,25 @@ interface ITagListItemProps {
   onRename: (name: string) => void;
 }
 
+interface IEditingProps {
+  isEditing: boolean;
+  setEditing: (val: boolean) => void;
+}
+
 interface ITagListItemCollectedProps {
   connectDragSource: ConnectDragSource;
   isDragging: boolean;
 }
 
 /** The main tag-list-item that can be renamed, removed and dragged */
-const TagListItem = ({
+export const TagListItem = ({
   name,
   onRemove,
+  isEditing,
+  setEditing,
   onRename,
   connectDragSource,
-}: ITagListItemProps & ITagListItemCollectedProps) => {
-  const [isEditing, setEditing] = useState(false);
+}: ITagListItemProps & IEditingProps & ITagListItemCollectedProps) => {
 
   return connectDragSource(
     <div>
@@ -146,6 +155,55 @@ const TagListItem = ({
   );
 };
 
+/** Wrapper of TagListItem that adds a context menu */
+const TagListItemWithContextMenu = ContextMenuTarget(class WithContext extends React.PureComponent<
+  ITagListItemProps & ITagListItemCollectedProps,
+  { isEditing: boolean, isContextMenuOpen: boolean }
+> {
+  state = {
+    isEditing: false,
+    isContextMenuOpen: false,
+  };
+  render() {
+    return (
+      // Context menu doesn't appear for some reason without wrapping it with a div
+      <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
+        <TagListItem
+          {...this.props}
+          isEditing={this.state.isEditing}
+          setEditing={this.setEditing}
+        />
+      </div>
+    );
+  }
+  renderContextMenu() {
+    this.setState({ isContextMenuOpen: true });
+    return (
+      <Menu>
+          <MenuItem onClick={this.handleRename} text="Rename" icon="edit"/>
+          <MenuItem onClick={this.handleDelete} text="Delete" icon="trash" />
+          <MenuItem onClick={this.handleChangeColor} text="Change color" />
+      </Menu>
+    );
+  }
+  onContextMenuClose = () => {
+    this.setState({ isContextMenuOpen: false });
+  }
+  setEditing = (val: boolean) => {
+    this.setState({ isEditing: val });
+  }
+  handleRename = () => {
+    this.setEditing(true);
+  }
+  handleDelete = () => {
+    this.props.onRemove();
+  }
+  handleChangeColor = () => {
+    // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
+    console.log('Change color');
+  }
+});
+
 const boxSource = {
   beginDrag(props: ITagListItemProps) {
     return {
@@ -163,4 +221,4 @@ export default DragSource<ITagListItemProps, ITagListItemCollectedProps>(
     connectDragSource: connect.dragSource(),
     isDragging: monitor.isDragging(),
   }),
-)(TagListItem);
+)(TagListItemWithContextMenu);
