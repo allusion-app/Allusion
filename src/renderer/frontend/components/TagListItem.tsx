@@ -155,9 +155,25 @@ export const TagListItem = ({
   );
 };
 
-/** Wrapper of TagListItem that adds a context menu */
-const TagListItemWithContextMenu = ContextMenuTarget(class WithContext extends React.PureComponent<
-  ITagListItemProps & ITagListItemCollectedProps,
+/** This handles what the drag-and-drop target receives when dropping the element */
+const boxSource = {
+  beginDrag: (props: ITagListItemProps) => ({ name: props.name, id: props.id }),
+};
+
+/** Make the taglistitem draggable */
+const DraggableTagListItem = DragSource<ITagListItemProps & IEditingProps, ITagListItemCollectedProps>(
+  'tag',
+  boxSource,
+  (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
+    connectDragSource: connect.dragSource(),
+    isDragging: monitor.isDragging(),
+  }),
+)(TagListItem);
+
+/** Wrapper that adds a context menu (with right click) */
+@ContextMenuTarget
+class TagListItemWithContextMenu extends React.PureComponent<
+  ITagListItemProps,
   { isEditing: boolean, isContextMenuOpen: boolean }
 > {
   state = {
@@ -168,7 +184,7 @@ const TagListItemWithContextMenu = ContextMenuTarget(class WithContext extends R
     return (
       // Context menu doesn't appear for some reason without wrapping it with a div
       <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <TagListItem
+        <DraggableTagListItem
           {...this.props}
           isEditing={this.state.isEditing}
           setEditing={this.setEditing}
@@ -202,23 +218,6 @@ const TagListItemWithContextMenu = ContextMenuTarget(class WithContext extends R
     // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
     console.log('Change color');
   }
-});
+}
 
-const boxSource = {
-  beginDrag(props: ITagListItemProps) {
-    return {
-      name: props.name,
-      id: props.id,
-    };
-  },
-};
-
-/** Make the taglistitem draggable */
-export default DragSource<ITagListItemProps, ITagListItemCollectedProps>(
-  'tag',
-  boxSource,
-  (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
-    connectDragSource: connect.dragSource(),
-    isDragging: monitor.isDragging(),
-  }),
-)(TagListItemWithContextMenu);
+export default TagListItemWithContextMenu;
