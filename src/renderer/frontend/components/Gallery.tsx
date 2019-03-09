@@ -42,25 +42,30 @@ const Gallery = ({
         }
         uiStore.fileSelection.push(...fileList.slice(sliceStart, sliceEnd + 1).map((f) => f.id));
       }
-    } else {
-      // Normal selection: Add this file to the selection
+    } else if (e.ctrlKey || e.metaKey) {
+      // Ctrl/meta selection: Add this file to selection
       setInitialSelectionIndex(i);
+      uiStore.fileSelection.push(fileList[i].id);
+    } else {
+      // Normal selection: Only select this file
+      setInitialSelectionIndex(i);
+      uiStore.fileSelection.clear();
       uiStore.fileSelection.push(fileList[i].id);
     }
     setLastSelectionIndex(i);
-    console.log(lastSelectionIndex);
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
     // When an arrow key is pressed, select the item relative to the last selected item
-    console.log(e, lastSelectionIndex);
+    // Fixme: For some reason, the state is not updated here (lastSelectionIndex is always undefined)
+    // console.log(e, lastSelectionIndex);
     if (lastSelectionIndex === undefined) {
       return;
     }
-    if (e.key === 'ArrowLeft') {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       uiStore.fileSelection.clear();
       uiStore.selectFile(fileList[Math.max(0, lastSelectionIndex - 1)]);
-    } else if (e.key === 'ArrowRight') {
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       uiStore.fileSelection.clear();
       uiStore.selectFile(fileList[Math.min(fileList.length - 1, lastSelectionIndex + 1)]);
     }
