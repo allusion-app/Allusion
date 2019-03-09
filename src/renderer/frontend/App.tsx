@@ -1,4 +1,4 @@
-import { Breadcrumbs, IBreadcrumbProps, InputGroup } from '@blueprintjs/core';
+import { Breadcrumbs, IBreadcrumbProps, InputGroup, Button } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 
@@ -31,7 +31,7 @@ const App = ({
     <div className={`${themeClass} column`}>
       <Sidebar />
 
-      <div className="main">
+      <div className={`main ${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
         <div className="header">
           <Breadcrumbs
             items={breadcrumbs}
@@ -39,6 +39,8 @@ const App = ({
 
           {/* This can be replaced with the custom SearchBar component later */}
           <InputGroup type="search" leftIcon="search" placeholder="Search" />
+
+          <Button icon="info-sign" onClick={() => { uiStore.isInspectorOpen = !uiStore.isInspectorOpen; }} />
         </div>
 
         <br />

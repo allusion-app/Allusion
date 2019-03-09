@@ -34,8 +34,9 @@ body {
 }
 
 .main {
+  transition: margin 0.1s ease-out;
   margin-left: var(--sidebar-width);
-  margin-right: var(--inspector-width);
+  margin-right: 0;
 }
 
 .column {
@@ -172,7 +173,8 @@ body {
 }
 
 .inspector {
-  right: 0;
+  transition: right 0.1s ease-out;
+  right: calc(var(--inspector-width) * -1);
   width: var(--inspector-width);
   flex-shrink: 0;
   overflow-x: hidden;
@@ -180,6 +182,12 @@ body {
 
   position: fixed;
   top: 0;
+}
+.inspector.inspectorOpen {
+  right: 0;
+}
+.main.inspectorOpen {
+  margin-right: var(--inspector-width);
 }
 .inspectorSection {
   border-bottom: 3px solid #181818;
@@ -191,7 +199,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  float: left;
+  display: inline-block;
 }
 .fileInfoValue {
   width: 60%;
@@ -199,7 +207,22 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: right;
+  display: inline-block;
+}
+.fileInfoKeyMulti {
+  width: 100%;
+}
+.fileInfoValueMulti {
+  white-space: normal;
 }
 .center {
   text-align: center;
+}
+.inspector .bp3-tag {
+  margin-bottom: 5px;
+  margin-right: 5px;
+}
+.inspector img {
+  max-width: calc(var(--inspector-width) - 2em);
+  max-height: calc(var(--inspector-width) - 2em);
 }

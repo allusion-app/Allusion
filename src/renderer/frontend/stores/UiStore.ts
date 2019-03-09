@@ -30,7 +30,7 @@ class UiStore {
 
   // UI
   @observable isSidebarOpen: boolean = true;
-  @observable isFileInfoOpen: boolean = true;
+  @observable isInspectorOpen: boolean = true;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
