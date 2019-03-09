@@ -20,9 +20,11 @@ const Gallery = ({
     },
   },
 }: IGalleryProps) => {
-
-  // Todo: Maybe move to UiStore so that it can be reset when the fileList changes?
+  // Todo: Maybe move these to UiStore so that it can be reset when the fileList changes?
+  /** The first item that is selected in a multi-selection */
   const [initialSelectionIndex, setInitialSelectionIndex] = useState<number>(undefined);
+  /** The last item that is selected in a multi-selection */
+  const [lastSelectionIndex, setLastSelectionIndex] = useState<number>(undefined);
 
   const selectionModeOn = uiStore.fileSelection.length > 0;
 
@@ -31,6 +33,7 @@ const Gallery = ({
       // Shift selection: Select from the initial up to the current index
       if (initialSelectionIndex >= 0) {
         uiStore.fileSelection.clear();
+        // Make sure that sliceStart is the lowest index of the two and vice versa
         let sliceStart = initialSelectionIndex;
         let sliceEnd = i;
         if (i < initialSelectionIndex) {
@@ -40,20 +43,26 @@ const Gallery = ({
         uiStore.fileSelection.push(...fileList.slice(sliceStart, sliceEnd + 1).map((f) => f.id));
       }
     } else {
+      // Normal selection: Add this file to the selection
       setInitialSelectionIndex(i);
       uiStore.fileSelection.push(fileList[i].id);
     }
+    setLastSelectionIndex(i);
+    console.log(lastSelectionIndex);
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    const openedFileIndex = fileList.indexOf(fileList.find((f) => f.id === uiStore.openedFile));
-    if (openedFileIndex === -1) {
+    // When an arrow key is pressed, select the item relative to the last selected item
+    console.log(e, lastSelectionIndex);
+    if (lastSelectionIndex === undefined) {
       return;
     }
     if (e.key === 'ArrowLeft') {
-      uiStore.openFile(fileList[Math.max(0, openedFileIndex - 1)]);
+      uiStore.fileSelection.clear();
+      uiStore.selectFile(fileList[Math.max(0, lastSelectionIndex - 1)]);
     } else if (e.key === 'ArrowRight') {
-      uiStore.openFile(fileList[Math.min(fileList.length - 1, openedFileIndex + 1)]);
+      uiStore.fileSelection.clear();
+      uiStore.selectFile(fileList[Math.min(fileList.length - 1, lastSelectionIndex + 1)]);
     }
   };
 
@@ -72,13 +81,10 @@ const Gallery = ({
             key={`file-${file.id}`}
             file={file}
             isSelected={uiStore.fileSelection.includes(file.id)}
-            isOpen={uiStore.openedFile === file.id}
             onRemoveTag={(tag) => file.removeTag(tag.id)}
             onSelect={(f, e) => onSelect(fileIndex, e)}
-            onOpen={(f) => selectionModeOn ? uiStore.selectFile(f) : uiStore.openFile(f)}
             onDeselect={(f) => uiStore.deselectFile(f)}
             onDrop={(tag) => file.addTag(tag.id)}
-            selectionMode={selectionModeOn}
           />
         ))
       }

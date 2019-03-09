@@ -12,6 +12,7 @@ import RootStore from '../stores/RootStore';
 
 import Gallery from './Gallery';
 import FileSelectionHeader from './FileSelectionHeader';
+import FileInfo from './FileInfo';
 
 export interface IFileListProps {
   rootStore: RootStore;
@@ -50,11 +51,6 @@ const FileList = ({ rootStore: { uiStore, fileStore } }: IFileListProps) => {
     uiStore.fileSelection.clear();
   };
 
-  const openedFile = useMemo(
-    () => fileStore.fileList.find((f) => f.id === uiStore.openedFile),
-    [uiStore.openedFile],
-  );
-
   const selectionModeOn = uiStore.fileSelection.length > 0;
 
   return (
@@ -66,8 +62,6 @@ const FileList = ({ rootStore: { uiStore, fileStore } }: IFileListProps) => {
           onRemove={removeSelectedFiles}
         />
       )}
-
-      {openedFile && <p>Opened file: {openedFile.id}</p>}
 
       <Button onClick={() => chooseDirectory(fileStore)} icon="folder-open">
         Add images to your Visual Library

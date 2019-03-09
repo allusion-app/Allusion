@@ -28,11 +28,8 @@ const GalleryItemTag = ({
 interface IGalleryItemProps {
   file: ClientFile;
   isSelected: boolean;
-  isOpen: boolean;
-  selectionMode: boolean;
   onRemoveTag: (tag: ClientTag) => void;
   onSelect: (file: ClientFile, e: React.MouseEvent) => void;
-  onOpen: (file: ClientFile) => void;
   onDeselect: (file: ClientFile, e: React.MouseEvent) => void;
   onDrop: (item: any) => void;
 }
@@ -44,11 +41,8 @@ interface IGalleryItemCollectedProps {
 const GalleryItem = ({
   file,
   isSelected,
-  isOpen,
-  selectionMode,
   onRemoveTag,
   onSelect,
-  onOpen,
   onDeselect,
   canDrop,
   isOver,
@@ -58,10 +52,10 @@ const GalleryItem = ({
   const selectedStyle = isSelected ? 'selected' : '';
   const dropStyle = canDrop ? ' droppable' : ' undroppable';
 
-  const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''} ${isOpen ? 'open' : ''}`;
+  const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
   // Switch between opening/selecting depending on whether the selection mode is enabled
-  const clickFunc = selectionMode ? (isSelected ? onDeselect : onSelect) : onOpen;
+  const clickFunc = isSelected ? onDeselect : onSelect;
 
   return connectDropTarget(
     <div

@@ -6,13 +6,15 @@ import FileList from './components/FileList';
 import Sidebar from './components/Sidebar';
 import { withRootstore } from './contexts/StoreContext';
 import RootStore from './stores/RootStore';
+import FileInfo from './components/FileInfo';
+import Inspector from './components/Inspector';
 
 interface IAppProps {
   rootStore: RootStore;
 }
 
 const App = ({
-  rootStore: { uiStore },
+  rootStore: { uiStore, fileStore },
 }: IAppProps) => {
 
   // Breadcrumbs placeholder
@@ -44,7 +46,10 @@ const App = ({
         <div className="gallery">
           <FileList />
         </div>
+
       </div>
+
+      <Inspector />
     </div>
   );
 };

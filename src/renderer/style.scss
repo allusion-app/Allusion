@@ -30,10 +30,12 @@ body {
 
 .app {
   --sidebar-width: 16em;
+  --inspector-width: 24em;
 }
 
 .main {
   margin-left: var(--sidebar-width);
+  margin-right: var(--inspector-width);
 }
 
 .column {
@@ -149,7 +151,7 @@ body {
   justify-content: space-between;
   position: fixed;
   top: 0;
-  width: calc(100% - var(--sidebar-width) - 2em);
+  width: calc(100% - var(--sidebar-width) - var(--inspector-width) - 2em);
   padding: 1em;
   margin: 0.5em;
   z-index: 10;
@@ -167,4 +169,37 @@ body {
 }
 .popoverContent {
   padding: 0.5em;
+}
+
+.inspector {
+  right: 0;
+  width: var(--inspector-width);
+  flex-shrink: 0;
+  overflow-x: hidden;
+  height: 100%;
+
+  position: fixed;
+  top: 0;
+}
+.inspectorSection {
+  border-bottom: 3px solid #181818;
+  padding: 1em;
+}
+.fileInfoKey {
+  font-weight: bold;
+  width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  float: left;
+}
+.fileInfoValue {
+  width: 60%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+.center {
+  text-align: center;
 }
