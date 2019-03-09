@@ -20,36 +20,35 @@ const FileSelectionHeader = ({
         className="icon"
         onClick={onCancel}
       />
-      <span>{numSelectedFiles} image{numSelectedFiles > 1 ? 's' : ''} selected</span>
-
+      <span>
+        {numSelectedFiles} image{numSelectedFiles > 1 ? 's' : ''} selected
+      </span>
       <Popover position="bottom-left">
-        <Icon
-          icon="trash"
-          iconSize={Icon.SIZE_LARGE}
-          className="icon"
-        />
+        <Icon icon="trash" iconSize={Icon.SIZE_LARGE} className="icon" />
         <div className="popoverContent">
           <H5>Confirm deletion</H5>
           <p>Are you sure you want to remove these images from your library?</p>
           <p>Your files will not be deleted.</p>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 15 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginTop: 15,
+            }}>
             <Button
               className={Classes.POPOVER_DISMISS}
-              style={{ marginRight: 10 }}
-            >
-                Cancel
+              style={{ marginRight: 10 }}>
+              Cancel
             </Button>
             <Button
               intent={Intent.DANGER}
               className={Classes.POPOVER_DISMISS}
-              onClick={onRemove}
-            >
-                Delete
+              onClick={onRemove}>
+              Delete
             </Button>
           </div>
         </div>
-
       </Popover>
     </div>
   );

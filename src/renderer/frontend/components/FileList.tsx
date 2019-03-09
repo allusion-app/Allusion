@@ -1,32 +1,28 @@
 import { remote } from 'electron';
 import fse from 'fs-extra';
 import path from 'path';
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { observer } from 'mobx-react-lite';
 import { Button } from '@blueprintjs/core';
 
-import { withRootstore } from '../contexts/StoreContext';
+import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import FileStore from '../stores/FileStore';
-import RootStore from '../stores/RootStore';
 
 import Gallery from './Gallery';
 import FileSelectionHeader from './FileSelectionHeader';
-import FileInfo from './FileInfo';
 
-export interface IFileListProps {
-  rootStore: RootStore;
-}
+export interface IFileListProps extends IRootStoreProp {}
 
 const chooseDirectory = async (fileStore: FileStore) => {
   const dirs = remote.dialog.showOpenDialog({
     properties: ['openDirectory', 'multiSelections'],
   });
 
-
   if (!dirs) {
     return;
   }
+
   dirs.forEach(async (dir) => {
     // Check if directory
     // const stats = await fse.lstat(dirs[0]);
@@ -34,7 +30,9 @@ const chooseDirectory = async (fileStore: FileStore) => {
 
     const filenames = await fse.readdir(dir);
     const imgFileNames = filenames.filter((f) =>
-      imgExtensions.some((ext) => f.toLowerCase().endsWith(ext)),
+      imgExtensions.some((ext) =>
+        f.toLowerCase()
+          .endsWith(ext)),
     );
 
     imgFileNames.forEach(async (filename) => {

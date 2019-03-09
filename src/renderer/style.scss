@@ -53,6 +53,7 @@ body {
   display: inline-block;
   position: relative;
 }
+
 .thumbnail img {
   transition: all 0.1s ease-in-out;
   width: var(--thumbnail-size);
@@ -65,27 +66,34 @@ body {
   transform-origin: center;
   transform: scale(1);
 }
+
 .thumbnail.selected {
   background: $pt-intent-primary;
 }
+
 .thumbnail.selected img {
   transform: scale(0.9);
 }
+
 .thumbnail.open img {
   outline-color: red;
   outline-width: 5px;
   outline-offset: -5px;
   outline-style: solid;
 }
+
 .thumbnail.droppable {
   background: $pt-intent-success;
 }
+
 .thumbnail.undroppable {
   background: $pt-intent-warning;
 }
+
 .thumbnail.droppable img{
   transform: scale(0.95);
 }
+
 .thumbnailTags {
   transition: height 0.1s ease-in-out;
   background-color: rgba(0, 0, 0, 0.5);
@@ -95,9 +103,11 @@ body {
   position: absolute;
   bottom: 0;
 }
+
 .thumbnailTags > * {
   margin: 0.5em;
 }
+
 .thumbnailSelector {
   transition: opacity 0.2s ease-in-out;
   opacity: 0;
@@ -108,15 +118,19 @@ body {
   position: absolute;
   top: 0;
 }
+
 .thumbnailSelector.selected {
   opacity: 1!important;
 }
+
 .thumbnailSelector:hover {
   opacity: 1;
 }
+
 .thumbnail:hover .thumbnailSelector {
   opacity: 0.5;
 }
+
 .gallerySelectionMode .thumbnailSelector {
   opacity: 0.5;
 }
@@ -127,10 +141,8 @@ body {
   flex-shrink: 0;
   overflow-x: hidden;
   height: 100%;
-
   position: fixed;
   top: 0;
-  
   background: #333333;
 }
 
@@ -159,15 +171,18 @@ body {
   background: #555555;
   box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);
 }
+
 .fileSelectionHeader .icon {
   cursor: pointer;
   padding: 0.5em;
   margin: -0.5em;
 }
+
 .fileSelectionHeader .icon:hover {
   background: #888888;
   border-radius: 100%;
 }
+
 .popoverContent {
   padding: 0.5em;
 }
@@ -183,16 +198,20 @@ body {
   position: fixed;
   top: 0;
 }
+
 .inspector.inspectorOpen {
   right: 0;
 }
+
 .main.inspectorOpen {
   margin-right: var(--inspector-width);
 }
+
 .inspectorSection {
   border-bottom: 3px solid #181818;
   padding: 1em;
 }
+
 .fileInfoKey {
   font-weight: bold;
   width: 40%;
@@ -201,6 +220,7 @@ body {
   text-overflow: ellipsis;
   display: inline-block;
 }
+
 .fileInfoValue {
   width: 60%;
   white-space: nowrap;
@@ -209,19 +229,24 @@ body {
   text-align: right;
   display: inline-block;
 }
+
 .fileInfoKeyMulti {
   width: 100%;
 }
+
 .fileInfoValueMulti {
   white-space: normal;
 }
+
 .center {
   text-align: center;
 }
+
 .inspector .bp3-tag {
   margin-bottom: 5px;
   margin-right: 5px;
 }
+
 .inspector img {
   max-width: calc(var(--inspector-width) - 2em);
   max-height: calc(var(--inspector-width) - 2em);

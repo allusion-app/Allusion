@@ -8,7 +8,7 @@ import { withRootstore } from '../contexts/StoreContext';
 import FileInfo from './FileInfo';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-const getBytes = (bytes) => {
+const getBytes = (bytes: number) => {
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return !bytes && '0 Bytes' || (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sufixes[i];
 };
@@ -17,9 +17,9 @@ interface IInspectorProps {
   rootStore: RootStore;
 }
 
-const Inspector = ({ rootStore: { uiStore, fileStore } }: IInspectorProps) => {
+const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
 
-  const selectedFiles = uiStore.fileSelection.map((id) => fileStore.fileList.find((f) => f.id === id));
+  const selectedFiles = uiStore.clientFileSelection;
 
   let selectionPreview;
   let headerText;
@@ -30,7 +30,8 @@ const Inspector = ({ rootStore: { uiStore, fileStore } }: IInspectorProps) => {
     headerSubtext = ' ';
   } else if (selectedFiles.length === 1) {
     const singleFile = selectedFiles[0];
-    const ext = singleFile.path.substr(singleFile.path.lastIndexOf('.') + 1).toUpperCase();
+    const ext = singleFile.path.substr(singleFile.path.lastIndexOf('.') + 1)
+      .toUpperCase();
     selectionPreview = <img src={singleFile.path} />;
     headerText = path.basename(singleFile.path);
     headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.path).size)}`;
@@ -40,7 +41,8 @@ const Inspector = ({ rootStore: { uiStore, fileStore } }: IInspectorProps) => {
     selectedFiles.forEach((f) => size += fs.statSync(f.path).size);
 
     selectionPreview = <p>Carousel of selected images here?</p>;
-    headerText = selectedFiles.map((f) => path.basename(f.path)).join(', ');
+    headerText = selectedFiles.map((f) => path.basename(f.path))
+      .join(', ');
     headerSubtext = getBytes(size);
   }
 

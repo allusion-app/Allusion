@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import fs from 'fs';
-import path from 'path';
 
 import { ClientFile } from '../../entities/File';
 import { Tag } from '@blueprintjs/core';
@@ -63,7 +62,7 @@ const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
 
 const MultiFileInfo = observer(({ files }: IFileInfoProps) => {
   // Count how often tags are used
-  const allTags = [];
+  const allTags: ClientTag[] = [];
   files.forEach((f) => allTags.push(...f.clientTags));
   const countMap = new Map<ClientTag, number>();
   allTags.forEach((t) => countMap.set(t, (countMap.get(t) || 0) + 1));
@@ -91,7 +90,6 @@ const MultiFileInfo = observer(({ files }: IFileInfoProps) => {
     </>
   );
 });
-
 
 interface IFileInfoProps {
   files: ClientFile[];

@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, computed } from 'mobx';
 
 import { ClientFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
@@ -37,15 +37,33 @@ class UiStore {
   readonly fileSelection = observable<ID>([]);
   readonly tagSelection = observable<ID>([]);
 
+  @computed get clientFileSelection(): ClientFile[] {
+    return this.fileSelection.map((id) => this.rootStore.fileStore.fileList.find((f) => f.id === id)) as ClientFile[];
+  }
+
+  @computed get clientTagSelection(): ClientTag[] {
+    return this.tagSelection.map((id) => this.rootStore.tagStore.tagList.find((t) => t.id === id)) as ClientTag[];
+  }
+
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
   }
 
-  @action selectFile(file: ClientFile) { this.fileSelection.push(file.id); }
-  @action deselectFile(file: ClientFile) { this.fileSelection.remove(file.id); }
+  @action selectFile(file: ClientFile) {
+    this.fileSelection.push(file.id);
+  }
 
-  @action selectTag(tag: ClientTag) { this.tagSelection.push(tag.id); }
-  @action deselectTag(tag: ClientTag) { this.tagSelection.remove(tag.id); }
+  @action deselectFile(file: ClientFile) {
+    this.fileSelection.remove(file.id);
+  }
+
+  @action selectTag(tag: ClientTag) {
+    this.tagSelection.push(tag.id);
+  }
+
+  @action deselectTag(tag: ClientTag) {
+    this.tagSelection.remove(tag.id);
+  }
 }
 
 export default UiStore;

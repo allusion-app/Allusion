@@ -1,14 +1,11 @@
 {
   "extends": "tslint:recommended",
   "rules": {
-    "max-line-length": {
-      "options": [120]
-    },
+    "max-line-length": [true, {"limit": 120, "ignore-pattern": "/ | /\\*\\*.*\\*/" } ],
     "new-parens": true,
     "no-arg": true,
     "no-bitwise": true,
     "no-conditional-assignment": true,
-    "no-consecutive-blank-lines": false,
     "quotemark": [true, "single", "jsx-double"],
     "no-console": [true, "warning"],
     "object-literal-sort-keys": false,
@@ -16,7 +13,8 @@
     "no-empty-interface": false,
     "indent": [true, "spaces", 2],
     "member-access": [false, "warning"],
-    "ordered-imports": [false, "warning"]
+    "ordered-imports": [false, "warning"],
+    "newline-per-chained-call": true
   },
   "jsRules": {
     "max-line-length": {

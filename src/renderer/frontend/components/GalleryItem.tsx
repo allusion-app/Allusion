@@ -11,19 +11,12 @@ interface IGalleryItemTagProps {
   name: string;
   onRemove: () => void;
 }
-const GalleryItemTag = ({
-  name,
-  onRemove,
-}: IGalleryItemTagProps) => (
-  <Tag
-    onRemove={onRemove}
-    interactive
-    intent="primary"
-  >
+
+const GalleryItemTag = ({ name, onRemove }: IGalleryItemTagProps) => (
+  <Tag onRemove={onRemove} interactive intent="primary">
     {name}
   </Tag>
 );
-
 
 interface IGalleryItemProps {
   file: ClientFile;
@@ -33,11 +26,13 @@ interface IGalleryItemProps {
   onDeselect: (file: ClientFile, e: React.MouseEvent) => void;
   onDrop: (item: any) => void;
 }
+
 interface IGalleryItemCollectedProps {
   canDrop: boolean;
   isOver: boolean;
   connectDropTarget: ConnectDropTarget;
 }
+
 const GalleryItem = ({
   file,
   isSelected,
@@ -48,7 +43,6 @@ const GalleryItem = ({
   isOver,
   connectDropTarget,
 }: IGalleryItemProps & IGalleryItemCollectedProps) => {
-
   const selectedStyle = isSelected ? 'selected' : '';
   const dropStyle = canDrop ? ' droppable' : ' undroppable';
 
@@ -58,9 +52,7 @@ const GalleryItem = ({
   const clickFunc = isSelected ? onDeselect : onSelect;
 
   return connectDropTarget(
-    <div
-      className={className}
-    >
+    <div className={className}>
       <img
         key={`file-${file.id}`}
         src={file.path}

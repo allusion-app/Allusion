@@ -4,19 +4,12 @@ import React from 'react';
 
 import FileList from './components/FileList';
 import Sidebar from './components/Sidebar';
-import { withRootstore } from './contexts/StoreContext';
-import RootStore from './stores/RootStore';
-import FileInfo from './components/FileInfo';
+import { IRootStoreProp, withRootstore } from './contexts/StoreContext';
 import Inspector from './components/Inspector';
 
-interface IAppProps {
-  rootStore: RootStore;
-}
+interface IAppProps extends IRootStoreProp {}
 
-const App = ({
-  rootStore: { uiStore, fileStore },
-}: IAppProps) => {
-
+const App = ({ rootStore: { uiStore } }: IAppProps) => {
   // Breadcrumbs placeholder
   const breadcrumbs: IBreadcrumbProps[] = [
     { icon: 'symbol-square' },
@@ -33,9 +26,7 @@ const App = ({
 
       <div className={`main ${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
         <div className="header">
-          <Breadcrumbs
-            items={breadcrumbs}
-          />
+          <Breadcrumbs items={breadcrumbs} />
 
           {/* This can be replaced with the custom SearchBar component later */}
           <InputGroup type="search" leftIcon="search" placeholder="Search" />
@@ -48,7 +39,6 @@ const App = ({
         <div className="gallery">
           <FileList />
         </div>
-
       </div>
 
       <Inspector />

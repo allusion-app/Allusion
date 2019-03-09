@@ -7,16 +7,20 @@ import { ClientTag } from '../../entities/Tag';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 
-const SearchTagItem: ItemRenderer<ClientTag> = (tag, { modifiers, handleClick }) => {
+const SearchTagItem: ItemRenderer<ClientTag> = (
+  tag,
+  { modifiers, handleClick },
+) => {
   if (!modifiers.matchesPredicate) {
     return null;
   }
+
   return (
     <MenuItem
       active={modifiers.active}
       // icon={this.isFilmSelected(tag) ? "tick" : "blank"}
       key={tag.id}
-      label={tag.description.toString()}
+      label={tag.description ? tag.description.toString() : ''}
       onClick={handleClick}
       text={`${tag.name}`}
       shouldDismissPopover={false}
@@ -31,6 +35,7 @@ interface ISearchBarProps {
   selectedTags: ClientTag[];
   allTags: ClientTag[];
 }
+
 const SearchBar = ({
   onTagSelect,
   onTagDeselect,
@@ -38,12 +43,14 @@ const SearchBar = ({
   selectedTags,
   allTags,
 }: ISearchBarProps) => {
-
   const handleDeselect = (_: string, index: number) => onTagDeselect(index);
 
-  const clearButton = selectedTags.length > 0 ? (
-    <Button icon="cross" minimal={true} onClick={onClearSelection} />
-  ) : null;
+  const clearButton =
+    selectedTags.length > 0 ? (
+      <Button icon="cross" minimal={true} onClick={onClearSelection} />
+    ) : (
+      undefined
+    );
 
   return (
     <>
@@ -56,7 +63,11 @@ const SearchBar = ({
         onItemSelect={onTagSelect}
         popoverProps={{ minimal: true }}
         tagRenderer={(tag) => tag.name}
-        tagInputProps={{ tagProps: { minimal: true }, onRemove: handleDeselect, rightElement: clearButton }}
+        tagInputProps={{
+          tagProps: { minimal: true },
+          onRemove: handleDeselect,
+          rightElement: clearButton,
+        }}
       />
     </>
   );

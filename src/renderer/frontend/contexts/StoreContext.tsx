@@ -9,12 +9,11 @@ import RootStore from '../stores/RootStore';
  * Contexts can be used to store objects seperate from the DOM tree, and can be easily accessed
  * from any component on the DOM tree.
  */
-const StoreContext = React.createContext<RootStore>(null);
+const StoreContext = React.createContext<RootStore>({} as RootStore);
 
-interface IRootStoreProp {
+export interface IRootStoreProp {
   rootStore: RootStore;
 }
-
 
 /**
  * A higher order component (HOC) for injecting the context in the props of the wrapped component
