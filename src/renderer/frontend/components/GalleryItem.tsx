@@ -6,7 +6,13 @@ import { observer } from 'mobx-react-lite';
 import { DropTarget, ConnectDropTarget, DropTargetMonitor } from 'react-dnd';
 
 import { ClientFile } from '../../entities/File';
-import { Tag, Icon, ContextMenuTarget, Menu, MenuItem } from '@blueprintjs/core';
+import {
+  Tag,
+  Icon,
+  ContextMenuTarget,
+  Menu,
+  MenuItem,
+} from '@blueprintjs/core';
 import { ClientTag } from '../../entities/Tag';
 
 interface IGalleryItemTagProps {
@@ -84,15 +90,14 @@ const galleryItemTarget = {
 };
 
 /** Make gallery item available to drop a tag onto */
-const DroppableGalleryItem = DropTarget<IGalleryItemProps, IGalleryItemCollectedProps>(
-  'tag',
-  galleryItemTarget,
-  (connect, monitor) => ({
-    connectDropTarget: connect.dropTarget(),
-    isOver: monitor.isOver(),
-    canDrop: monitor.canDrop(),
-  }),
-)(observer(GalleryItem));
+const DroppableGalleryItem = DropTarget<
+  IGalleryItemProps,
+  IGalleryItemCollectedProps
+>('tag', galleryItemTarget, (connect, monitor) => ({
+  connectDropTarget: connect.dropTarget(),
+  isOver: monitor.isOver(),
+  canDrop: monitor.canDrop(),
+}))(observer(GalleryItem));
 
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
@@ -115,19 +120,35 @@ class TagListItemWithContextMenu extends React.PureComponent<
     this.setState({ isContextMenuOpen: true });
     return (
       <Menu>
-          <MenuItem onClick={this.handleOpen} text="Open" />
-          <MenuItem onClick={this.handleOpenWith} text="Open with" />
-          <MenuItem onClick={this.handleOpenFileExplorer} text="Reveal in File Browser" />
-          <MenuItem onClick={this.handleInspect} text="Inspect" />
+        <MenuItem onClick={this.handleOpen} text="Open" />
+        <MenuItem onClick={this.handleOpenWith} text="Open with" />
+        <MenuItem
+          onClick={this.handleOpenFileExplorer}
+          text="Reveal in File Browser"
+        />
+        <MenuItem onClick={this.handleInspect} text="Inspect" />
       </Menu>
     );
   }
-  handleOpen = () => { shell.openItem(this.props.file.path); };
+  onContextMenuClose = () => {
+    this.setState({ isContextMenuOpen: false });
+  }
+
+  handleOpen = () => {
+    shell.openItem(this.props.file.path);
+  }
   // Doesn't seem like "open with" is possible in electron :(
   // https://github.com/electron/electron/issues/4815
-  handleOpenWith = () => { shell.openExternal(this.props.file.path); };
-  handleOpenFileExplorer = () => { shell.showItemInFolder(this.props.file.path); };
-  handleInspect = () => { console.log('Inspect'); shell.beep(); };
+  handleOpenWith = () => {
+    shell.openExternal(this.props.file.path);
+  }
+  handleOpenFileExplorer = () => {
+    shell.showItemInFolder(this.props.file.path);
+  }
+  handleInspect = () => {
+    console.log('Inspect');
+    shell.beep();
+  }
 }
 
 export default TagListItemWithContextMenu;

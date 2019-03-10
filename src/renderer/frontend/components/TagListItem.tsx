@@ -132,7 +132,6 @@ export const TagListItem = ({
   onRename,
   connectDragSource,
 }: ITagListItemProps & IEditingProps & ITagListItemCollectedProps) => {
-
   return connectDragSource(
     <div>
       {isEditing ? (
@@ -161,7 +160,10 @@ const boxSource = {
 };
 
 /** Make the taglistitem draggable */
-const DraggableTagListItem = DragSource<ITagListItemProps & IEditingProps, ITagListItemCollectedProps>(
+const DraggableTagListItem = DragSource<
+  ITagListItemProps & IEditingProps,
+  ITagListItemCollectedProps
+>(
   'tag',
   boxSource,
   (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
@@ -174,7 +176,7 @@ const DraggableTagListItem = DragSource<ITagListItemProps & IEditingProps, ITagL
 @ContextMenuTarget
 class TagListItemWithContextMenu extends React.PureComponent<
   ITagListItemProps,
-  { isEditing: boolean, isContextMenuOpen: boolean }
+  { isEditing: boolean; isContextMenuOpen: boolean }
 > {
   state = {
     isEditing: false,
@@ -196,15 +198,16 @@ class TagListItemWithContextMenu extends React.PureComponent<
     this.setState({ isContextMenuOpen: true });
     return (
       <Menu>
-          <MenuItem onClick={this.handleRename} text="Rename" icon="edit"/>
-          <MenuItem onClick={this.handleDelete} text="Delete" icon="trash" />
-          <MenuItem onClick={this.handleChangeColor} text="Change color" />
+        <MenuItem onClick={this.handleRename} text="Rename" icon="edit" />
+        <MenuItem onClick={this.handleDelete} text="Delete" icon="trash" />
+        <MenuItem onClick={this.handleChangeColor} text="Change color" />
       </Menu>
     );
   }
   onContextMenuClose = () => {
     this.setState({ isContextMenuOpen: false });
   }
+
   setEditing = (val: boolean) => {
     this.setState({ isEditing: val });
   }
