@@ -11,16 +11,23 @@ import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 
 export interface ITagListProps extends IRootStoreProp {}
 
-const TagList = ({ rootStore: { tagStore, fileStore } }: ITagListProps) => {
+const TagList = ({
+  rootStore: { uiStore, tagStore, fileStore },
+}: ITagListProps) => {
   const handleRename = (tag: ClientTag, name: string) => {
     tag.name = name;
+  };
+
+  const handleSelection = (tag: ClientTag) => {
+    uiStore.selectTag(tag);
+    fileStore.fetchFilesByTagIDs(uiStore.tagSelection);
   };
 
   return (
     <>
       <StaticTagListItem
         name="All images"
-        onSelect={() => fileStore.viewAllFiles()}
+        onSelect={() => fileStore.fetchAllFiles()}
       />
 
       {tagStore.tagList.map((tag) => (
@@ -30,7 +37,7 @@ const TagList = ({ rootStore: { tagStore, fileStore } }: ITagListProps) => {
             id={tag.id}
             onRemove={() => tagStore.removeTag(tag)}
             onRename={(name) => handleRename(tag, name)}
-            onSelect={() => fileStore.viewFilesByTag(tag)}
+            onSelect={() => handleSelection(tag)}
           />
         </div>
       ))}

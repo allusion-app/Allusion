@@ -85,8 +85,8 @@ class FileStore {
   }
 
   @action
-  viewAllFiles() {
-    this.clearFileView();
+  fetchAllFiles() {
+    this.clearFileList();
     // adds all files to fileList without checking for invalid files
     this.backend
       .fetchFiles()
@@ -97,8 +97,8 @@ class FileStore {
   }
 
   @action
-  viewFilesByTag(tag: ClientTag) {
-    this.clearFileView();
+  fetchFilesByTag(tag: ClientTag) {
+    this.clearFileList();
     // adds all files that have this tag to fileList without checking for invalid files
     this.backend
       .findFilesByTag(tag)
@@ -108,15 +108,31 @@ class FileStore {
       .catch((err) => console.log('Could not fetch files by tag', err));
   }
 
-  // Removes all items from fileList to avoid duplicates
-  clearFileView() {
-    const len = this.fileList.length;
-    this.fileList.splice(0, len);
+  @action
+  fetchFilesByTagIDs(tags: ID[]) {
+    this.clearFileList();
+    // adds all files that have this tag to fileList without checking for invalid files
+    this.backend
+      .fetchFiles()
+      .then((fetchedFiles) => {
+        fetchedFiles.forEach((file) => {
+          if (tags.every((t) => file.tags.includes(t))) {
+            this.updateFromBackend(file);
+          }
+        });
+      })
+      .catch((err) => console.log('Could not fetch files by tags', err));
   }
 
   @action
   searchFiles(query: ITag | ITag[] | string) {
     // this.fileList = ...
+  }
+
+  // Removes all items from fileList to avoid duplicates
+  private clearFileList() {
+    const len = this.fileList.length;
+    this.fileList.splice(0, len);
   }
 }
 
