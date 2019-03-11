@@ -131,8 +131,7 @@ class FileStore {
 
   // Removes all items from fileList to avoid duplicates
   private clearFileList() {
-    const len = this.fileList.length;
-    this.fileList.splice(0, len);
+    this.fileList.clear();
   }
 }
 
