@@ -12,6 +12,9 @@ import {
   InputGroup,
   Tag,
   IconName,
+  ContextMenuTarget,
+  Menu,
+  MenuItem,
 } from '@blueprintjs/core';
 import { ID } from '../../entities/ID';
 
@@ -113,21 +116,26 @@ interface ITagListItemProps {
   onSelect: () => void;
 }
 
+interface IEditingProps {
+  isEditing: boolean;
+  setEditing: (val: boolean) => void;
+}
+
 interface ITagListItemCollectedProps {
   connectDragSource: ConnectDragSource;
   isDragging: boolean;
 }
 
 /** The main tag-list-item that can be renamed, removed and dragged */
-const TagListItem = ({
+export const TagListItem = ({
   name,
   onRemove,
+  isEditing,
+  setEditing,
   onRename,
   onSelect,
   connectDragSource,
-}: ITagListItemProps & ITagListItemCollectedProps) => {
-  const [isEditing, setEditing] = useState(false);
-
+}: ITagListItemProps & IEditingProps & ITagListItemCollectedProps) => {
   return connectDragSource(
     <div>
       {isEditing ? (
@@ -151,17 +159,16 @@ const TagListItem = ({
   );
 };
 
+/** This handles what the drag-and-drop target receives when dropping the element */
 const boxSource = {
-  beginDrag(props: ITagListItemProps) {
-    return {
-      name: props.name,
-      id: props.id,
-    };
-  },
+  beginDrag: (props: ITagListItemProps) => ({ name: props.name, id: props.id }),
 };
 
 /** Make the taglistitem draggable */
-export default DragSource<ITagListItemProps, ITagListItemCollectedProps>(
+const DraggableTagListItem = DragSource<
+  ITagListItemProps & IEditingProps,
+  ITagListItemCollectedProps
+>(
   'tag',
   boxSource,
   (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
@@ -169,3 +176,84 @@ export default DragSource<ITagListItemProps, ITagListItemCollectedProps>(
     isDragging: monitor.isDragging(),
   }),
 )(TagListItem);
+
+const TagListItemContextMenu = (
+  setEditing: (value: boolean) => void,
+  onRemove: () => void,
+) => {
+  const handleRename = () => {
+    setEditing(true);
+  };
+
+  const handleDelete = () => {
+    onRemove();
+  };
+
+  const handleChangeColor = () => {
+    // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
+    console.log('Change color');
+  };
+
+  return (
+    <Menu>
+      <MenuItem onClick={handleRename} text="Rename" icon="edit" />
+      <MenuItem onClick={handleDelete} text="Delete" icon="trash" />
+      <MenuItem onClick={handleChangeColor} text="Change color" />
+    </Menu>
+  );
+};
+
+/** Wrapper that adds a context menu (with right click) */
+@ContextMenuTarget
+class TagListItemWithContextMenu extends React.PureComponent<
+  ITagListItemProps,
+  { isEditing: boolean; isContextMenuOpen: boolean }
+> {
+  state = {
+    isEditing: false,
+    isContextMenuOpen: false,
+    _isMounted: false,
+  };
+
+  componentDidMount() {
+    this.state._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this.state._isMounted = false;
+  }
+
+  render() {
+    return (
+      // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
+      <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
+        <DraggableTagListItem
+          {...this.props}
+          isEditing={this.state.isEditing}
+          setEditing={this.setEditing}
+        />
+      </div>
+    );
+  }
+
+  renderContextMenu() {
+    this.updateState({ isContextMenuOpen: true });
+    return TagListItemContextMenu(this.setEditing, this.props.onRemove);
+  }
+
+  onContextMenuClose = () => {
+    this.updateState({ isContextMenuOpen: false });
+  }
+
+  setEditing = (val: boolean) => {
+    this.updateState({ isEditing: val });
+  }
+
+  private updateState = (updatableProp: any) => {
+    if (this.state._isMounted) {
+      this.setState(updatableProp);
+    }
+  }
+}
+
+export default TagListItemWithContextMenu;
