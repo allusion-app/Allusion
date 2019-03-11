@@ -104,12 +104,6 @@ const GalleryItemContextMenu = (filePath: string) => {
     shell.openItem(filePath);
   };
 
-  // Doesn't seem like "open with" is possible in electron :(
-  // https://github.com/electron/electron/issues/4815
-  const handleOpenWith = () => {
-    shell.openExternal(filePath);
-  };
-
   const handleOpenFileExplorer = () => {
     shell.showItemInFolder(filePath);
   };
@@ -122,7 +116,6 @@ const GalleryItemContextMenu = (filePath: string) => {
   return (
     <Menu>
       <MenuItem onClick={handleOpen} text="Open" />
-      <MenuItem onClick={handleOpenWith} text="Open with" />
       <MenuItem
         onClick={handleOpenFileExplorer}
         text="Reveal in File Browser"
