@@ -99,56 +99,81 @@ const DroppableGalleryItem = DropTarget<
   canDrop: monitor.canDrop(),
 }))(observer(GalleryItem));
 
+const GalleryItemContextMenu = (filePath: string) => {
+  const handleOpen = () => {
+    shell.openItem(filePath);
+  };
+
+  // Doesn't seem like "open with" is possible in electron :(
+  // https://github.com/electron/electron/issues/4815
+  const handleOpenWith = () => {
+    shell.openExternal(filePath);
+  };
+
+  const handleOpenFileExplorer = () => {
+    shell.showItemInFolder(filePath);
+  };
+
+  const handleInspect = () => {
+    console.log('Inspect');
+    shell.beep();
+  };
+
+  return (
+    <Menu>
+      <MenuItem onClick={handleOpen} text="Open" />
+      <MenuItem onClick={handleOpenWith} text="Open with" />
+      <MenuItem
+        onClick={handleOpenFileExplorer}
+        text="Reveal in File Browser"
+      />
+      <MenuItem onClick={handleInspect} text="Inspect" />
+    </Menu>
+  );
+};
+
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
-class TagListItemWithContextMenu extends React.PureComponent<
+class GalleryItemWithContextMenu extends React.PureComponent<
   IGalleryItemProps,
   { isContextMenuOpen: boolean }
 > {
   state = {
     isContextMenuOpen: false,
+    _isMounted: false,
   };
+
+  componentDidMount() {
+    this.state._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this.state._isMounted = false;
+  }
+
   render() {
     return (
-      // Context menu doesn't appear for some reason without wrapping it with a div
+      // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <span className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
         <DroppableGalleryItem {...this.props} />
       </span>
     );
   }
+
   renderContextMenu() {
-    this.setState({ isContextMenuOpen: true });
-    return (
-      <Menu>
-        <MenuItem onClick={this.handleOpen} text="Open" />
-        <MenuItem onClick={this.handleOpenWith} text="Open with" />
-        <MenuItem
-          onClick={this.handleOpenFileExplorer}
-          text="Reveal in File Browser"
-        />
-        <MenuItem onClick={this.handleInspect} text="Inspect" />
-      </Menu>
-    );
-  }
-  onContextMenuClose = () => {
-    this.setState({ isContextMenuOpen: false });
+    this.updateState({ isContextMenuOpen: true });
+    return GalleryItemContextMenu(this.props.file.path);
   }
 
-  handleOpen = () => {
-    shell.openItem(this.props.file.path);
+  onContextMenuClose = () => {
+    this.updateState({ isContextMenuOpen: false });
   }
-  // Doesn't seem like "open with" is possible in electron :(
-  // https://github.com/electron/electron/issues/4815
-  handleOpenWith = () => {
-    shell.openExternal(this.props.file.path);
-  }
-  handleOpenFileExplorer = () => {
-    shell.showItemInFolder(this.props.file.path);
-  }
-  handleInspect = () => {
-    console.log('Inspect');
-    shell.beep();
+
+  private updateState = (updatableProp: any) => {
+    if (this.state._isMounted) {
+      this.setState(updatableProp);
+    }
   }
 }
 
-export default TagListItemWithContextMenu;
+export default GalleryItemWithContextMenu;

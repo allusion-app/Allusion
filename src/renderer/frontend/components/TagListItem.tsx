@@ -172,6 +172,32 @@ const DraggableTagListItem = DragSource<
   }),
 )(TagListItem);
 
+const TagListItemContextMenu = (
+  setEditing: (value: boolean) => void,
+  onRemove: () => void,
+) => {
+  const handleRename = () => {
+    setEditing(true);
+  };
+
+  const handleDelete = () => {
+    onRemove();
+  };
+
+  const handleChangeColor = () => {
+    // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
+    console.log('Change color');
+  };
+
+  return (
+    <Menu>
+      <MenuItem onClick={handleRename} text="Rename" icon="edit" />
+      <MenuItem onClick={handleDelete} text="Delete" icon="trash" />
+      <MenuItem onClick={handleChangeColor} text="Change color" />
+    </Menu>
+  );
+};
+
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
 class TagListItemWithContextMenu extends React.PureComponent<
@@ -181,10 +207,20 @@ class TagListItemWithContextMenu extends React.PureComponent<
   state = {
     isEditing: false,
     isContextMenuOpen: false,
+    _isMounted: false,
   };
+
+  componentDidMount() {
+    this.state._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this.state._isMounted = false;
+  }
+
   render() {
     return (
-      // Context menu doesn't appear for some reason without wrapping it with a div
+      // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
         <DraggableTagListItem
           {...this.props}
@@ -194,32 +230,24 @@ class TagListItemWithContextMenu extends React.PureComponent<
       </div>
     );
   }
+
   renderContextMenu() {
-    this.setState({ isContextMenuOpen: true });
-    return (
-      <Menu>
-        <MenuItem onClick={this.handleRename} text="Rename" icon="edit" />
-        <MenuItem onClick={this.handleDelete} text="Delete" icon="trash" />
-        <MenuItem onClick={this.handleChangeColor} text="Change color" />
-      </Menu>
-    );
+    this.updateState({ isContextMenuOpen: true });
+    return TagListItemContextMenu(this.setEditing, this.props.onRemove);
   }
+
   onContextMenuClose = () => {
-    this.setState({ isContextMenuOpen: false });
+    this.updateState({ isContextMenuOpen: false });
   }
 
   setEditing = (val: boolean) => {
-    this.setState({ isEditing: val });
+    this.updateState({ isEditing: val });
   }
-  handleRename = () => {
-    this.setEditing(true);
-  }
-  handleDelete = () => {
-    this.props.onRemove();
-  }
-  handleChangeColor = () => {
-    // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
-    console.log('Change color');
+
+  private updateState = (updatableProp: any) => {
+    if (this.state._isMounted) {
+      this.setState(updatableProp);
+    }
   }
 }
 
