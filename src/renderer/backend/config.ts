@@ -1,4 +1,6 @@
-export const dbConfig = [
+import { IDBCollectionConfig } from './DBRepository';
+
+export const dbConfig: IDBCollectionConfig[] = [
   {
     name: 'files',
     indices: [
@@ -21,6 +23,10 @@ export const dbConfig = [
   },
   {
     name: 'tags',
+    indices: [],
+  },
+  {
+    name: 'tagCollections',
     indices: [],
   },
 ];

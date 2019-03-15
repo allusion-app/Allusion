@@ -3,6 +3,7 @@ import { ID } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig } from './config';
 import DBRepository, { dbInit } from './DBRepository';
+import { ITagCollection, DbTagCollection } from '../entities/TagCollection';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -13,10 +14,12 @@ import DBRepository, { dbInit } from './DBRepository';
 export default class Backend {
   private fileRepository: DBRepository<IFile>;
   private tagRepository: DBRepository<ITag>;
+  private tagCollectionRepository: DBRepository<ITagCollection>;
 
   constructor() {
     this.fileRepository = new DBRepository('files');
     this.tagRepository = new DBRepository('tags');
+    this.tagCollectionRepository = new DBRepository('tagCollections');
   }
 
   async init() {
@@ -31,6 +34,11 @@ export default class Backend {
     return await this.tagRepository.getAll();
   }
 
+  async fetchTagCollections(): Promise<ITagCollection[]> {
+    console.log('Backend: Fetching tags collections...');
+    return await this.tagCollectionRepository.getAll();
+  }
+
   async fetchFiles(): Promise<IFile[]> {
     console.log('Backend: Fetching files...');
     return await this.fileRepository.getAll();
@@ -39,6 +47,11 @@ export default class Backend {
   async createTag(id: ID, name: string, description?: string) {
     console.log('Backend: Creating tag...', id, name, description);
     return await this.tagRepository.create(new DbTag(id, name, description));
+  }
+
+  async createTagCollection(id: ID, name: string, description?: string) {
+    console.log('Backend: Creating tag collection...', id, name, description);
+    return await this.tagCollectionRepository.create(new DbTagCollection(id, name, description));
   }
 
   async createFile(id: ID, path: string, tags?: ID[]) {
@@ -51,6 +64,11 @@ export default class Backend {
     return await this.tagRepository.update(tag);
   }
 
+  async saveTagCollection(tagCollection: ITagCollection): Promise<ITagCollection> {
+    console.log('Backend: Saving tag collection...', tagCollection);
+    return await this.tagCollectionRepository.update(tagCollection);
+  }
+
   async saveFile(file: IFile): Promise<IFile> {
     console.log('Backend: Saving file...', file);
     return await this.fileRepository.update(file);
@@ -58,6 +76,7 @@ export default class Backend {
 
   async removeTag(tag: ITag) {
     console.log('Removing tag...', tag);
+    // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
     const filesWithTag = await this.fileRepository.find('tags', tag.id);
     // Remove tag from files
@@ -66,6 +85,21 @@ export default class Backend {
     await Promise.all(filesWithTag.map((file) => this.fileRepository.update(file)));
     // Remove tag from db
     await this.tagRepository.remove(tag);
+  }
+
+  async removeTagCollection(tagCollection: ITagCollection) {
+    console.log('Removing tag collection...', tagCollection);
+    // Get all sub collections
+    const subCollections = await Promise.all(tagCollection.subCollections.map(this.tagCollectionRepository.get));
+    // Remove subcollections
+    await Promise.all(subCollections.map(this.removeTagCollection));
+    // Get all tags
+    const tags = await Promise.all(tagCollection.tags.map(this.tagRepository.get));
+    // Remove tags properly
+    // Todo: Should we really delete all tags in this collection, or e.g. transfer them to a 'main' tag collection?
+    await Promise.all(tags.map(this.removeTag));
+    // Remove tag collection itself from db
+    await this.tagCollectionRepository.remove(tagCollection);
   }
 
   async removeFile(file: IFile) {
