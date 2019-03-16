@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>Folder-Open-icon-16x</title>
+  <g id="layout">
+    <g opacity="0.5">
+      <rect x="8" y="14" width="32" height="25" rx="1.79" ry="1.79" fill="#222221"/>
+      <path d="M20.78,11.53l-2.35-1.19a2.77,2.77,0,0,0-1.25-.3H10a2,2,0,0,0-2,2v3.8H21.87V13.32A2,2,0,0,0,20.78,11.53Z" fill="#222221"/>
+    </g>
+    <path d="M4.91,18H43.09L45,19.91,41.18,37.09,39.27,39H10.64L8.73,37.09,3,19.91Z" fill="#222221" fill-rule="evenodd"/>
+  </g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>Grid-view-icon-16x</title>
+  <g id="layout">
+    <g>
+      <path d="M3.5,33H14.31V44H3.5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M3.5,19H14.31V30H3.5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M3.5,5H14.31V16H3.5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M18.5,33H29.31V44H18.5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M18.5,19H29.31V30H18.5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M18.5,5H29.31V16H18.5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M33.5,33H44.31V44H33.5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M33.5,19H44.31V30H33.5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M33.5,5H44.31V16H33.5Z" fill="#222221" fill-rule="evenodd"/>
+    </g>
+  </g>
+</svg>

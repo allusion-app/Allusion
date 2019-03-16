@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>Folder-Close-icon-16x</title>
+  <g id="layout">
+    <rect x="4" y="14.83" width="40" height="24" rx="2" ry="2" fill="#222221"/>
+    <g opacity="0.5">
+      <path d="M42.32,10.83h-24v-.51a2,2,0,0,0-1.1-1.79L14.88,7.34A2.83,2.83,0,0,0,13.61,7H6.31a2,2,0,0,0-2,2v2.5a1.67,1.67,0,0,0-.31,1v3.93H44V12.51A1.68,1.68,0,0,0,42.32,10.83Z" fill="#222221"/>
+    </g>
+  </g>
+</svg>

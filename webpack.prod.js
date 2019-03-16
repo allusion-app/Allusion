@@ -32,11 +32,15 @@ let mainConfig = {
                 },
             },
             {
-                test: /\.(jpg|png|svg|ico|icns)$/,
+                test: /\.(jpg|png|ico|icns)$/,
                 loader: 'file-loader',
                 options: {
                     name: '[path][name].[ext]',
                 },
+            },
+            {
+                test: /\.svg$/,
+                loader: 'svg-inline-loader?classPrefix'
             },
             {
                 test: /\.(eot|ttf|woff|woff2)$/,

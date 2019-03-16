@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>Search-icon-16x</title>
+  <g id="layout">
+    <g>
+      <path d="M20,33A14,14,0,1,1,34,19,14,14,0,0,1,20,33Zm0-22a8,8,0,1,0,8,8A8,8,0,0,0,20,11Z" fill="#222221"/>
+      <path d="M30.39,24.55h7.74a0,0,0,0,1,0,0V40.73a2.2,2.2,0,0,1-2.2,2.2H32.59a2.2,2.2,0,0,1-2.2-2.2V24.55a0,0,0,0,1,0,0Z" transform="translate(-13.82 34.11) rotate(-45)" fill="#222221"/>
+    </g>
+  </g>
+</svg>

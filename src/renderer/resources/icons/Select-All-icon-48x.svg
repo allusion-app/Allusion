@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>Select-All-icon-16x</title>
+  <g id="layout">
+    <path d="M40,24A16,16,0,1,1,24,8,16,16,0,0,1,40,24Z" fill="none" stroke="#222221" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" fill-rule="evenodd"/>
+    <g>
+      <line x1="17.93" y1="23.53" x2="22.6" y2="28.67" fill="none" stroke="#222221" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+      <line x1="30.07" y1="19.33" x2="22.6" y2="28.67" fill="none" stroke="#222221" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>more-icon-16x</title>
+  <g id="layout">
+    <g>
+      <path d="M24,4.33a5,5,0,1,1-5,5A5,5,0,0,1,24,4.33Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M24,19a5,5,0,1,1-5,5A5,5,0,0,1,24,19Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M24,34a5,5,0,1,1-5,5A5,5,0,0,1,24,34Z" fill="#222221" fill-rule="evenodd"/>
+    </g>
+  </g>
+</svg>

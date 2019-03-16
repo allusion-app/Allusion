@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>List-view-icon-16x</title>
+  <g id="layout">
+    <path d="M14.61,6h30v4h-30Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M14.61,11h17v4h-17Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M14.61,20h30v4h-30Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M14.61,25h17v4h-17Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M14.61,34h30v4h-30Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M14.61,39h17v4h-17Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M2.61,34h9v9h-9Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M2.61,20h9v9h-9Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M2.61,6h9v9h-9Z" fill="#222221" fill-rule="evenodd"/>
+  </g>
+</svg>

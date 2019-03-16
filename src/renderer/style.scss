@@ -175,3 +175,8 @@ body {
   outline-offset: -2px;
   outline-style: solid;
 }
+
+.custom-icon * {
+  stroke: currentColor;
+  fill: currentColor;
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>Filter-up-icon-16x</title>
+  <g id="layout">
+    <path d="M12.84,22h23v5h-23Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M16.84,14h15v5h-15Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M20.84,6h7v5h-7Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M8.84,30h31v5h-31Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M4.84,38h39v5h-39Z" fill="#222221" fill-rule="evenodd"/>
+  </g>
+</svg>

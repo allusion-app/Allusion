@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <title>Name-down-icon-16x</title>
+  <g id="layout">
+    <g>
+      <text transform="translate(27.07 22.54)" font-size="20" stroke="#000" stroke-miterlimit="10" font-family="Helvetica-Bold, Helvetica" font-weight="700" letter-spacing="-0.04em">A</text>
+      <text transform="translate(8.81 22.54)" font-size="20" stroke="#000" stroke-miterlimit="10" font-family="Helvetica-Bold, Helvetica" font-weight="700">Z</text>
+    </g>
+    <path d="M23.27,40.59,15.95,28.88l1.46-1.46H30.59l1.46,1.46L24.73,40.59Z" fill="#222221" fill-rule="evenodd"/>
+  </g>
+</svg>
