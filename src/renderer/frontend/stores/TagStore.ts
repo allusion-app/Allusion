@@ -58,6 +58,10 @@ class TagStore {
       .filter((f) => f.tags.includes(tag.id))
       .forEach((f) => f.removeTag(tag.id));
 
+    // Remove tag from collections
+    this.rootStore.tagCollectionStore.tagCollectionList
+      .forEach((col) => col.tags.remove(tag.id));
+
     // Remove tag from DB
     tag.dispose();
     this.backend.removeTag(tag);

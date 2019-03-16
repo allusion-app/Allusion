@@ -29,7 +29,7 @@ export default class Backend {
     // Create a root 'Hierarchy' collection if it does not exist
     const colCount = await this.tagCollectionRepository.count('id');
     if (colCount === 0) {
-      this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
+      await this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
     }
 
     // Here we could start indexing, or checking for changed files
@@ -57,7 +57,7 @@ export default class Backend {
 
   async createTagCollection(id: ID, name: string, description?: string) {
     console.log('Backend: Creating tag collection...', id, name, description);
-    return await this.tagCollectionRepository.create(new DbTagCollection(id, name, description));
+    return this.tagCollectionRepository.create(new DbTagCollection(id, name, description));
   }
 
   async createFile(id: ID, path: string, tags?: ID[]) {

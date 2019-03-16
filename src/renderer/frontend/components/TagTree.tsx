@@ -16,10 +16,9 @@ interface IExpandState {
   [key: string]: boolean;
 }
 
-const hierarchyId = 'hierarchy';
 const systemTagsId = 'system-tags';
 
-/** Recursve function that sets the 'expand' state for each (sub) collection */
+/** Recursive function that sets the 'expand' state for each (sub) collection */
 const setExpandStateRecursively = (col: ClientTagCollection, val: boolean, expandState: IExpandState): IExpandState => {
   col.clientSubCollections.forEach((subCol) => {
     setExpandStateRecursively(subCol, val, expandState);
@@ -28,7 +27,7 @@ const setExpandStateRecursively = (col: ClientTagCollection, val: boolean, expan
   return expandState;
 };
 
-/** Recursive function that generates a tree of collections and tags */
+/** Recursive function that generates a tree ITreeNodes from TagCollections */
 const createTagCollectionTreeNode = (
   col: ClientTagCollection,
   expandState: IExpandState,
@@ -79,13 +78,9 @@ export interface ITagListProps extends IRootStoreProp {}
 const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps) => {
   // Keep track of folders that have been expanded. The two main folders are expanded by default.
   const [expandState, setExpandState] = useState<IExpandState>({
-    [hierarchyId]: true,
+    [ROOT_TAG_COLLECTION_ID]: true,
     [systemTagsId]: true,
   });
-
-  const handleTagClick = (node: ITreeNode) => {
-    console.log(node);
-  };
 
   const handleNodeCollapse = (node: ITreeNode) => {
     expandState[node.id] = false;
@@ -131,27 +126,9 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps)
     // <>
     <Tree
       contents={treeContents}
-      onNodeClick={handleTagClick}
       onNodeCollapse={handleNodeCollapse}
       onNodeExpand={handleNodeExpand}
     />
-      // <StaticTagListItem
-      //   name="All images"
-      //   onSelect={() => {
-      //     console.log('All images');
-      //   }}
-      // />
-
-      // {tagStore.tagList.map((tag) => (
-      //   <div key={`tag-${tag.id}`} className="listItem">
-      //     <TagListItem
-      //       name={tag.name}
-      //       id={tag.id}
-      //       onRemove={() => tagStore.removeTag(tag)}
-      //       onRename={(name) => handleRename(tag, name)}
-      //     />
-      //   </div>
-      // ))}
 
       // {/* New tag input field */}
       // <ModifiableTagListItem
