@@ -1,7 +1,9 @@
 import { IReactionDisposer, observable, reaction, computed } from 'mobx';
-import TagStore from '../frontend/stores/TagStore';
 import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag } from './Tag';
+import TagCollectionStore from '../frontend/stores/TagCollectionStore';
+
+export const ROOT_TAG_COLLECTION_ID = 'hierarchy';
 
 /* Generic properties of a Tag Collection in our application */
 export interface ITagCollection extends IIdentifiable {
@@ -33,12 +35,10 @@ export class DbTagCollection implements ITagCollection {
 }
 
 /**
- * A Tag as it is stored in the Client.
- * It is stored in a MobX store, which can observe changed made to it and subsequently
- * update the entity in the backend.
+ * A Tag collection as it is stored in the Client.
  */
 export class ClientTagCollection implements ITagCollection, ISerializable<DbTagCollection> {
-  store: TagStore;
+  store: TagCollectionStore;
   saveHandler: IReactionDisposer;
   autoSave = true;
 
@@ -49,7 +49,7 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
   readonly subCollections = observable<ID>([]);
   readonly tags = observable<ID>([]);
 
-  constructor(store: TagStore, name?: string, id = generateId()) {
+  constructor(store: TagCollectionStore, name?: string, id = generateId()) {
     this.store = store;
     this.id = id;
     this.name = name || '';
@@ -61,9 +61,9 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
       // We need to explicitly define which values this reaction should react to
       () => this.serialize(),
       // Then update the entity in the database
-      (tag) => {
+      (tagCol) => {
         if (this.autoSave) {
-          this.store.backend.saveTag(tag);
+          this.store.backend.saveTagCollection(tagCol);
         }
       },
     );
@@ -81,9 +81,10 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
   }
 
   /** Get actual tag collection objects based on the IDs retrieved from the backend */
-  @computed get clientSubCollections(): ClientTag[] {
+  @computed get clientSubCollections(): ClientTagCollection[] {
     return this.subCollections.map(
-      (id) => this.store.rootStore.tagStore.tagList.find((t) => t.id === id)) as ClientTag[];
+      (id) => this.store.rootStore.tagCollectionStore.tagCollectionList.find(
+        (t) => t.id === id)) as ClientTagCollection[];
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
@@ -92,15 +93,15 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
   }
 
   delete() {
-    this.store.backend.removeTag(this);
-    this.store.removeTag(this);
+    this.store.backend.removeTagCollection(this);
+    this.store.removeTagCollection(this);
   }
 
   /**
    * Used for updating this Entity if changes are made to the backend outside of this session of the application.
    * @param backendTagCollection The file received from the backend
    */
-  updateFromBackend(backendTagCollection: ITagCollection): ClientTag {
+  updateFromBackend(backendTagCollection: ITagCollection): ClientTagCollection {
     // make sure our changes aren't sent back to the backend
     this.autoSave = false;
 

@@ -45,7 +45,7 @@ class TagStore {
   addTag(tagName: string) {
     const tag = new ClientTag(this, tagName);
     this.tagList.push(tag);
-    this.backend.createTag(tag.id, tag.name, tag.description);
+    return this.backend.createTag(tag.id, tag.name, tag.description);
   }
 
   @action

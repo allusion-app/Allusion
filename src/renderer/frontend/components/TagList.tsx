@@ -6,9 +6,11 @@ import TagListItem, {
   // ModifiableTagListItem,
 } from './TagListItem';
 
-import { ClientTag } from '../../entities/Tag';
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import { Tree, ITreeNode } from '@blueprintjs/core';
+import TagCollectionListItem from './TagCollectionListItem';
+import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import TagCollectionStore from '../stores/TagCollectionStore';
 
 interface IExpandState {
   [key: string]: boolean;
@@ -17,18 +19,69 @@ interface IExpandState {
 const hierarchyId = 'hierarchy';
 const systemTagsId = 'system-tags';
 
+/** Recursve function that sets the 'expand' state for each (sub) collection */
+const setExpandStateRecursively = (col: ClientTagCollection, val: boolean, expandState: IExpandState): IExpandState => {
+  col.clientSubCollections.forEach((subCol) => {
+    setExpandStateRecursively(subCol, val, expandState);
+  });
+  expandState[col.id] = val;
+  return expandState;
+};
+
+/** Recursive function that generates a tree of collections and tags */
+const createTagCollectionTreeNode = (
+  col: ClientTagCollection,
+  expandState: IExpandState,
+  store: TagCollectionStore,
+  setExpandState: (state: IExpandState) => void,
+): ITreeNode => ({
+  id: col.id,
+  icon: 'folder-close',
+  label: (
+    <TagCollectionListItem
+      tagCollection={col}
+      onRemove={() => store.removeTagCollection(col)}
+      onAddTag={() => {
+        store.rootStore.tagStore.addTag('New tag')
+          .then((tag) => col.tags.push(tag.id));
+        }
+      }
+      onAddCollection={() => {
+        const newCol = store.addTagCollection('New collection', col);
+        expandState[newCol.id] = true; // immediately expand after adding
+      }}
+      onExpandAll={() => setExpandState(setExpandStateRecursively(col, true, expandState))}
+      onCollapseAll={() => setExpandState(setExpandStateRecursively(col, false, expandState))}
+    />
+  ),
+  hasCaret: true,
+  isExpanded: expandState[col.id],
+  childNodes: [
+    ...col.clientSubCollections.map(
+      (subCol) => createTagCollectionTreeNode(subCol, expandState, store, setExpandState)),
+    ...col.clientTags.map((tag): ITreeNode => ({
+      id: tag.id,
+      icon: 'tag',
+      label: (
+        <TagListItem
+          name={tag.name}
+          id={tag.id}
+          onRemove={() => store.rootStore.tagStore.removeTag(tag)}
+          onRename={(name) => { tag.name = name; }}
+        />
+      ),
+    })),
+  ],
+});
+
 export interface ITagListProps extends IRootStoreProp {}
 
-const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
+const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps) => {
   // Keep track of folders that have been expanded. The two main folders are expanded by default.
   const [expandState, setExpandState] = useState<IExpandState>({
     [hierarchyId]: true,
     [systemTagsId]: true,
   });
-
-  const handleRename = (tag: ClientTag, name: string) => {
-    tag.name = name;
-  };
 
   const handleTagClick = (node: ITreeNode) => {
     console.log(node);
@@ -44,17 +97,10 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
     setExpandState(expandState);
   };
 
-  const hierarchy: ITreeNode[] = tagStore.tagList.map((tag) => ({
-    id: tag.id,
-    label: (
-      <TagListItem
-        name={tag.name}
-        id={tag.id}
-        onRemove={() => tagStore.removeTag(tag)}
-        onRename={(name) => handleRename(tag, name)}
-      />
-    ),
-  }));
+  const root = tagCollectionStore.tagCollectionList.find((col) => col.id === ROOT_TAG_COLLECTION_ID);
+  const hierarchy: ITreeNode[] = root
+    ? [createTagCollectionTreeNode(root, expandState, tagCollectionStore, setExpandState)]
+    : [];
 
   const systemTags: ITreeNode[] = [
     {
@@ -70,14 +116,7 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
   ];
 
   const treeContents: ITreeNode[] = [
-    {
-      id: hierarchyId,
-      icon: 'folder-close',
-      label: 'Hierarchy',
-      hasCaret: true,
-      isExpanded: expandState[hierarchyId],
-      childNodes: hierarchy,
-    },
+    ...hierarchy,
     {
       id: systemTagsId,
       icon: 'folder-close',

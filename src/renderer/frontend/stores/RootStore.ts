@@ -2,6 +2,7 @@ import Backend from '../../backend/Backend';
 import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from './UiStore';
+import TagCollectionStore from './TagCollectionStore';
 
 /**
  * From: https://mobx.js.org/best/store.html
@@ -17,18 +18,21 @@ class RootStore {
   backend: Backend;
 
   public tagStore: TagStore;
+  public tagCollectionStore: TagCollectionStore;
   public fileStore: FileStore;
   public uiStore: UiStore;
 
   constructor(backend: Backend) {
     this.backend = backend;
     this.tagStore = new TagStore(backend, this);
+    this.tagCollectionStore = new TagCollectionStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.uiStore = new UiStore(this);
   }
 
   async init() {
     this.tagStore.init();
+    this.tagCollectionStore.init();
     this.fileStore.init();
   }
 }
