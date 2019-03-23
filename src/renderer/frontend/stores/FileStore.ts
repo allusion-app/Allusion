@@ -109,28 +109,37 @@ class FileStore {
   }
 
   @action
-  fetchFilesByTagIDs(tags: ID[]) {
+  async fetchFilesByTagIDs(tags: ID[]) {
     this.clearFileList();
-    // adds all files that have this tag to fileList without checking for invalid files
-    this.backend
-      .fetchFiles()
-      .then((fetchedFiles) => {
-        fetchedFiles.forEach((file) => {
-          if (tags.every((t) => file.tags.includes(t))) {
-            this.updateFromBackend(file);
-          }
-        });
-      })
-      .catch((err) => console.log('Could not fetch files by tags', err));
+    // Todo: Might be more efficient to not clear all items, only those that are not in newFiles
+
+    // Query the backend to send back only files with these tags
+    const newFiles = await this.backend.searchFiles(tags);
+    newFiles.forEach((f) => this.checkFiles(f));
   }
 
   @action
-  searchFiles(query: ITag | ITag[] | string) {
-    // this.fileList = ...
+  async searchFiles(query: ITag | ITag[]) {
+    const queryArray = Array.isArray(query) ? query : [query];
+    let newFiles: IFile[];
+    if (queryArray.length === 0) {
+      newFiles = await this.backend.fetchFiles();
+    } else {
+      newFiles = await this.backend.searchFiles(queryArray.map((t) => t.id));
+    }
+
+    // Remove old files
+    this.fileList.forEach((f) => f.dispose());
+    this.fileList.clear();
+
+    // Add new files
+    newFiles.forEach((f) => this.checkFiles(f));
   }
 
   // Removes all items from fileList to avoid duplicates
   private clearFileList() {
+    // Clean up observers of ClientFiles before removing them
+    this.fileList.forEach((f) => f.dispose());
     this.fileList.clear();
   }
 }

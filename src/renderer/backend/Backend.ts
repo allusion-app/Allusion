@@ -36,6 +36,11 @@ export default class Backend {
     return await this.fileRepository.getAll();
   }
 
+  async searchFiles(tags: ID[]): Promise<IFile[]> {
+    console.log('Backend: Searching files...', tags);
+    return await this.fileRepository.find('tags', tags);
+  }
+
   async createTag(id: ID, name: string, description?: string) {
     console.log('Backend: Creating tag...', id, name, description);
     return await this.tagRepository.create(new DbTag(id, name, description));
@@ -57,7 +62,7 @@ export default class Backend {
   }
 
   async findFilesBy(
-    property: string,
+    property: keyof IFile,
     query: any,
     count?: number,
   ): Promise<IFile[]> {
