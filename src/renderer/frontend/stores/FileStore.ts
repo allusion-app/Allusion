@@ -3,7 +3,7 @@ import { action, observable } from 'mobx';
 import fs from 'fs-extra';
 import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
-import { ITag, ClientTag } from '../../entities/Tag';
+import { ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
 import { ID } from '../../entities/ID';
 
@@ -110,29 +110,11 @@ class FileStore {
 
   @action
   async fetchFilesByTagIDs(tags: ID[]) {
+    // Query the backend to send back only files with these tags
+    const newFiles = await (tags.length === 0 ? this.backend.fetchFiles() : this.backend.searchFiles(tags));
+
     this.clearFileList();
     // Todo: Might be more efficient to not clear all items, only those that are not in newFiles
-
-    // Query the backend to send back only files with these tags
-    const newFiles = await this.backend.searchFiles(tags);
-    newFiles.forEach((f) => this.checkFiles(f));
-  }
-
-  @action
-  async searchFiles(query: ITag | ITag[]) {
-    const queryArray = Array.isArray(query) ? query : [query];
-    let newFiles: IFile[];
-    if (queryArray.length === 0) {
-      newFiles = await this.backend.fetchFiles();
-    } else {
-      newFiles = await this.backend.searchFiles(queryArray.map((t) => t.id));
-    }
-
-    // Remove old files
-    this.fileList.forEach((f) => f.dispose());
-    this.fileList.clear();
-
-    // Add new files
     newFiles.forEach((f) => this.checkFiles(f));
   }
 
