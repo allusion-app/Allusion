@@ -55,7 +55,7 @@ export default class BaseRepository<T extends IIdentifiable> {
   }
 
   public async find(
-    property: string,
+    property: keyof T,
     query: any,
     count?: number,
   ): Promise<T[]> {
@@ -63,7 +63,7 @@ export default class BaseRepository<T extends IIdentifiable> {
     return await db
       .transaction(this.collectionName)
       .objectStore<T, ID>(this.collectionName)
-      .index(property)
+      .index(property as string)
       .getAll(query, count);
   }
 
