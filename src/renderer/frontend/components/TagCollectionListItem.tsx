@@ -1,7 +1,7 @@
-import React from 'react';
-
 import { ClientTagCollection } from '../../entities/TagCollection';
 import { ContextMenuTarget, Menu, MenuItem } from '@blueprintjs/core';
+import { ModifiableTagListItem } from './TagListItem';
+import React from 'react';
 
 interface ITagCollectionListItemProps {
   tagCollection: ClientTagCollection;
@@ -13,7 +13,6 @@ interface ITagCollectionListItemProps {
 }
 
 const TagCollectionListItem = ({ tagCollection }: ITagCollectionListItemProps) => {
-
   return <>{tagCollection.name}</>;
 };
 
@@ -25,10 +24,8 @@ const TagCollectionListItemContextMenu = (
   onExpandAll: () => void,
   onCollapseAll: () => void,
 ) => {
-  const handleChangeColor = () => {
-    // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
-    console.log('Change color');
-  };
+  // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
+  const handleChangeColor = () => console.log('Change color');
   const onProperties = () => console.log('Show properties');
 
   return (
@@ -45,11 +42,17 @@ const TagCollectionListItemContextMenu = (
   );
 };
 
+interface ITagCollectionListItemWithContextMenuState {
+  isContextMenuOpen: boolean;
+  isEditing: boolean;
+  _isMounted: boolean;
+}
+
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
 class TagCollectionListItemWithContextMenu extends React.PureComponent<
   ITagCollectionListItemProps,
-  { isContextMenuOpen: boolean}
+  ITagCollectionListItemWithContextMenuState
 > {
   state = {
     isEditing: false,
@@ -65,12 +68,29 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
     this.state._isMounted = false;
   }
 
+  handleRename = (newName: string) => {
+    this.props.tagCollection.name = newName;
+    this.updateState({ isEditing: false });
+  }
+
+  handleRenameAbort = () => {
+    this.updateState({ isEditing: false });
+  }
+
   render() {
+    const { tagCollection } = this.props;
+    const { isEditing } = this.state;
     return (
       <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <TagCollectionListItem
-          {...this.props}
-        />
+        {
+          isEditing
+            ? <ModifiableTagListItem
+                initialName={tagCollection.name}
+                onRename={this.handleRename}
+                onAbort={this.handleRenameAbort}
+              />
+            : <TagCollectionListItem {...this.props} />
+        }
       </div>
     );
   }
@@ -95,7 +115,9 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
     this.updateState({ isEditing: val });
   }
 
-  private updateState = (updatableProp: any) => {
+  private updateState<K extends keyof ITagCollectionListItemWithContextMenuState>(
+    updatableProp: Pick<ITagCollectionListItemWithContextMenuState, K>,
+  ) {
     if (this.state._isMounted) {
       this.setState(updatableProp);
     }

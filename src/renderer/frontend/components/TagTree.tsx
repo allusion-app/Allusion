@@ -30,7 +30,7 @@ const setExpandStateRecursively = (col: ClientTagCollection, val: boolean, expan
 /** Recursive function that generates a tree ITreeNodes from TagCollections */
 const createTagCollectionTreeNode = (
   col: ClientTagCollection,
-  expandState: IExpandState,
+  expandState: Readonly<IExpandState>,
   store: TagCollectionStore,
   setExpandState: (state: IExpandState) => void,
 ): ITreeNode => ({
@@ -47,10 +47,11 @@ const createTagCollectionTreeNode = (
       }
       onAddCollection={() => {
         const newCol = store.addTagCollection('New collection', col);
-        expandState[newCol.id] = true; // immediately expand after adding
+        setExpandState({ ...expandState, [newCol.id]: true }); // immediately expand after adding
       }}
-      onExpandAll={() => setExpandState(setExpandStateRecursively(col, true, expandState))}
-      onCollapseAll={() => setExpandState(setExpandStateRecursively(col, false, expandState))}
+      // Destructure objects to make them into a new object, else the render won't trigger
+      onExpandAll={() => setExpandState({ ...setExpandStateRecursively(col, true, expandState) })}
+      onCollapseAll={() => setExpandState({ ...setExpandStateRecursively(col, false, expandState) })}
     />
   ),
   hasCaret: true,
@@ -83,16 +84,17 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps)
   });
 
   const handleNodeCollapse = (node: ITreeNode) => {
-    expandState[node.id] = false;
-    setExpandState(expandState);
+    setExpandState({ ...expandState, [node.id]: false });
   };
 
   const handleNodeExpand = (node: ITreeNode) => {
-    expandState[node.id] = true;
-    setExpandState(expandState);
+    setExpandState({ ...expandState, [node.id]: true });
   };
 
   const root = tagCollectionStore.tagCollectionList.find((col) => col.id === ROOT_TAG_COLLECTION_ID);
+  // Todo: Not sure what the impact is of generating the hierarchy in each render on performance.
+  // Usually the hierarchy is stored directly in the state, but we can't do that since it it managed by the TagCollectionStore.
+  // Or maybe we can, but then the ClientTagCollection needs to extends ITreeNode, which messes up the responsibility of the Store and the state required by the view...
   const hierarchy: ITreeNode[] = root
     ? [createTagCollectionTreeNode(root, expandState, tagCollectionStore, setExpandState)]
     : [];
