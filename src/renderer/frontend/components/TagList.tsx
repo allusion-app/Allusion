@@ -31,7 +31,10 @@ const TagList = ({
     <>
       <StaticTagListItem
         name="All images"
-        onSelect={() => fileStore.fetchAllFiles()}
+        onSelect={() => {
+          fileStore.fetchAllFiles();
+          uiStore.tagSelection.clear();
+        }}
       />
 
       {tagStore.tagList.map((tag) => (

@@ -61,24 +61,10 @@ export default class Backend {
     return await this.fileRepository.update(file);
   }
 
-  async findFilesBy(
-    property: keyof IFile,
-    query: any,
-    count?: number,
-  ): Promise<IFile[]> {
-    console.log(`Searching files by ${property}...`);
-    return await this.fileRepository.find(property, query, count);
-  }
-
-  async findFilesByTag(tag: ITag): Promise<IFile[]> {
-    console.log(`Searching files by tag ${tag.name}...`);
-    return await this.findFilesBy('tags', tag.id);
-  }
-
   async removeTag(tag: ITag) {
     console.log('Removing tag...', tag);
     // Get all files with this tag
-    const filesWithTag = await this.findFilesByTag(tag);
+    const filesWithTag = await this.fileRepository.find('tags', tag.id);
     // Remove tag from files
     filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
     // Update files in db
