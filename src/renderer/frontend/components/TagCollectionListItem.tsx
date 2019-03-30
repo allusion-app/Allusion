@@ -26,6 +26,7 @@ interface ITagCollectionListItemProps {
 interface IDropProps {
   connectDropTarget: ConnectDropTarget;
   isHovering: boolean;
+  canDrop: boolean;
 }
 
 interface IDragProps {
@@ -40,11 +41,15 @@ const TagCollectionListItem = ({
   connectDropTarget,
   connectDragSource,
   onExpand,
+  canDrop,
   hoverTimeToExpand = 400,
 }: ITagCollectionListItemProps & IDropProps & IDragProps) => {
   // When hovering over a collection for some time, automatically expand it
   const [expandTimeout, setExpandTimeout] = useState(0);
   useEffect(() => {
+    if (!canDrop) {
+      return;
+    }
     // Clear timer if isHovering changes
     if (expandTimeout) {
       clearTimeout(expandTimeout);
@@ -57,7 +62,7 @@ const TagCollectionListItem = ({
 
   // Style whether the element is being dragged or hovered over to drop on
   const className = `${
-    !isDragging && isHovering ? 'reorder-target' : ''
+    canDrop && !isDragging && isHovering ? 'reorder-target' : ''
     } ${isDragging ? 'reorder-source' : ''}`;
   return connectDropTarget(
     connectDragSource(<div className={className}>{tagCollection.name}</div>),
@@ -75,7 +80,14 @@ const tagCollectionDropTarget: DropTargetSpec<ITagCollectionListItemProps> = {
     if (type === COLLECTION_DRAG_TYPE) {
       // Dragging a collection over another collection is allowed if it's not itself
       const { id: overId } = props.tagCollection;
-      return draggedId !== overId;
+      if (draggedId === overId) {
+        return false;
+      }
+      // and it's not in its own children
+      const draggedCollection = props.tagCollection.store.tagCollectionList.find((c) => c.id === draggedId);
+      if (draggedCollection) {
+        return !draggedCollection.containsSubCollection(props.tagCollection);
+      }
     } else if (type === TAG_DRAG_TYPE) {
       // Dragging a tag over a collection is always allowed
       return true;
@@ -96,6 +108,7 @@ function collectDropTarget(connect: DropTargetConnector, monitor: DropTargetMoni
   return {
     connectDropTarget: connect.dropTarget(),
     isHovering: monitor.isOver(),
+    canDrop: monitor.canDrop(),
   };
 }
 
