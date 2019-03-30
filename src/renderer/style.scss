@@ -194,7 +194,6 @@ body {
   flex-shrink: 0;
   overflow-x: hidden;
   height: 100%;
-
   position: fixed;
   top: 0;
 }
@@ -248,8 +247,9 @@ body {
 }
 
 .inspector img {
-  max-width: calc(var(--inspector-width) - 2em);
+  width: 100%;
   max-height: calc(var(--inspector-width) - 2em);
+  object-fit: contain;
 }
 
 .contextMenuTarget {
