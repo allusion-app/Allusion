@@ -15,6 +15,7 @@ import {
   ContextMenuTarget,
   Menu,
   MenuItem,
+  Intent,
 } from '@blueprintjs/core';
 import { ID } from '../../entities/ID';
 
@@ -35,16 +36,29 @@ export const StaticTagListItem = ({
 
 interface IUnmodifiableTagListItemProps {
   name: string;
+  isSelected: boolean;
   onRemove: () => void;
-  onClick: () => void;
+  onSelect: () => void;
+  onEdit: () => void;
 }
 
 const UnmodifiableTagListItem = ({
   name,
-  onClick,
+  isSelected,
+  onEdit,
+  onSelect,
   onRemove,
 }: IUnmodifiableTagListItemProps) => (
-  <Tag onClick={onClick} large minimal fill onRemove={onRemove} interactive>
+  <Tag
+    onClick={onSelect}
+    onDoubleClick={onEdit}
+    large
+    minimal
+    fill
+    onRemove={onRemove}
+    interactive
+    intent={isSelected ? Intent.PRIMARY : Intent.NONE}
+  >
     {name}
   </Tag>
 );
@@ -109,6 +123,8 @@ export const ModifiableTagListItem = ({
 interface ITagListItemProps {
   name: string;
   id: ID;
+  isSelected: boolean;
+  onSelect: () => void;
   onRemove: () => void;
   onRename: (name: string) => void;
 }
@@ -126,10 +142,12 @@ interface ITagListItemCollectedProps {
 /** The main tag-list-item that can be renamed, removed and dragged */
 export const TagListItem = ({
   name,
+  isSelected,
   onRemove,
   isEditing,
   setEditing,
   onRename,
+  onSelect,
   connectDragSource,
 }: ITagListItemProps & IEditingProps & ITagListItemCollectedProps) => {
   return connectDragSource(
@@ -146,8 +164,10 @@ export const TagListItem = ({
       ) : (
         <UnmodifiableTagListItem
           name={name}
-          onClick={() => setEditing(true)}
+          onSelect={onSelect}
+          onEdit={() => setEditing(true)}
           onRemove={onRemove}
+          isSelected={isSelected}
         />
       )}
     </div>,

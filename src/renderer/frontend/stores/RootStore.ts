@@ -28,8 +28,10 @@ class RootStore {
   }
 
   async init() {
-    this.tagStore.init();
-    this.fileStore.init();
+    await Promise.all([
+      this.tagStore.init(),
+      this.fileStore.init(),
+    ]);
   }
 }
 

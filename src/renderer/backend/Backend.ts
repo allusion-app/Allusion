@@ -36,6 +36,11 @@ export default class Backend {
     return await this.fileRepository.getAll();
   }
 
+  async searchFiles(tags: ID[]): Promise<IFile[]> {
+    console.log('Backend: Searching files...', tags);
+    return await this.fileRepository.find('tags', tags);
+  }
+
   async createTag(id: ID, name: string, description?: string) {
     console.log('Backend: Creating tag...', id, name, description);
     return await this.tagRepository.create(new DbTag(id, name, description));
@@ -63,7 +68,9 @@ export default class Backend {
     // Remove tag from files
     filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
     // Update files in db
-    await Promise.all(filesWithTag.map((file) => this.fileRepository.update(file)));
+    await Promise.all(
+      filesWithTag.map((file) => this.fileRepository.update(file)),
+    );
     // Remove tag from db
     await this.tagRepository.remove(tag);
   }
