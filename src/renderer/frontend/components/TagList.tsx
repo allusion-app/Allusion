@@ -19,15 +19,22 @@ const TagList = ({
   };
 
   const handleSelection = (tag: ClientTag) => {
-    uiStore.selectTag(tag);
-    fileStore.fetchFilesByTagIDs(uiStore.tagSelection);
+    if (uiStore.tagSelection.includes(tag.id)) {
+      uiStore.deselectTag(tag);
+    } else {
+      uiStore.selectTag(tag);
+    }
+    fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
   };
 
   return (
     <>
       <StaticTagListItem
         name="All images"
-        onSelect={() => fileStore.fetchAllFiles()}
+        onSelect={() => {
+          fileStore.fetchAllFiles();
+          uiStore.tagSelection.clear();
+        }}
       />
 
       {tagStore.tagList.map((tag) => (
@@ -35,6 +42,7 @@ const TagList = ({
           <TagListItem
             name={tag.name}
             id={tag.id}
+            isSelected={uiStore.tagSelection.includes(tag.id)}
             onRemove={() => tagStore.removeTag(tag)}
             onRename={(name) => handleRename(tag, name)}
             onSelect={() => handleSelection(tag)}
