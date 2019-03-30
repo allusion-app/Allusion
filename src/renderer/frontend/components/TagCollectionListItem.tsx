@@ -1,21 +1,137 @@
 import { ClientTagCollection } from '../../entities/TagCollection';
 import { ContextMenuTarget, Menu, MenuItem } from '@blueprintjs/core';
-import { ModifiableTagListItem } from './TagListItem';
-import React from 'react';
+import { ModifiableTagListItem, TAG_DRAG_TYPE } from './TagListItem';
+import React, { useState, useEffect } from 'react';
+import {
+  DragSource, DragSourceConnector, DragSourceMonitor, ConnectDragSource,
+  DropTarget, DropTargetConnector, DropTargetMonitor, ConnectDropTarget, DropTargetSpec, DragSourceSpec,
+} from 'react-dnd';
+import { ID } from '../../entities/ID';
+
+export const COLLECTION_DRAG_TYPE = 'collection';
 
 interface ITagCollectionListItemProps {
   tagCollection: ClientTagCollection;
   onRemove?: (tagCollection: ClientTagCollection) => void;
   onAddTag: () => void;
   onAddCollection: () => void;
+  onExpand: () => void;
   onExpandAll: () => void;
   onCollapseAll: () => void;
+  onMoveTag: (movedTag: ID) => void;
+  onMoveCollection: (movedCollection: ID) => void;
+  hoverTimeToExpand?: number;
 }
 
-const TagCollectionListItem = ({ tagCollection }: ITagCollectionListItemProps) => {
-  return <>{tagCollection.name}</>;
+interface IDropProps {
+  connectDropTarget: ConnectDropTarget;
+  isHovering: boolean;
+}
+
+interface IDragProps {
+  connectDragSource: ConnectDragSource;
+  isDragging: boolean;
+}
+
+const TagCollectionListItem = ({
+  tagCollection,
+  isDragging,
+  isHovering,
+  connectDropTarget,
+  connectDragSource,
+  onExpand,
+  hoverTimeToExpand = 400,
+}: ITagCollectionListItemProps & IDropProps & IDragProps) => {
+  // When hovering over a collection for some time, automatically expand it
+  const [expandTimeout, setExpandTimeout] = useState(0);
+  useEffect(() => {
+    // Clear timer if isHovering changes
+    if (expandTimeout) {
+      clearTimeout(expandTimeout);
+    }
+    // Set a timeout to expand after some time if starting to hover
+    if (isHovering) {
+      setExpandTimeout(window.setTimeout(onExpand, hoverTimeToExpand));
+    }
+  }, [isHovering]);
+
+  // Style whether the element is being dragged or hovered over to drop on
+  const className = `${
+    !isDragging && isHovering ? 'reorder-target' : ''
+    } ${isDragging ? 'reorder-source' : ''}`;
+  return connectDropTarget(
+    connectDragSource(<div className={className}>{tagCollection.name}</div>),
+  );
 };
 
+// Drag & drop based on:
+// - https://react-dnd.github.io/react-dnd/examples/sortable/cancel-on-drop-outside
+// - https://gist.github.com/G710/6f85869b73ff08ce95ca93e31ed510f8
+///// Make it droppable ///////
+const tagCollectionDropTarget: DropTargetSpec<ITagCollectionListItemProps> = {
+  canDrop(props, monitor) {
+    const { id: draggedId } = monitor.getItem();
+    const type = monitor.getItemType();
+    if (type === COLLECTION_DRAG_TYPE) {
+      // Dragging a collection over another collection is allowed if it's not itself
+      const { id: overId } = props.tagCollection;
+      return draggedId !== overId;
+    } else if (type === TAG_DRAG_TYPE) {
+      // Dragging a tag over a collection is always allowed
+      return true;
+    }
+    return false;
+  },
+  drop(props, monitor) {
+    const type = monitor.getItemType();
+    if (type === COLLECTION_DRAG_TYPE) {
+      props.onMoveCollection(monitor.getItem().id);
+    } else if (type === TAG_DRAG_TYPE) {
+      props.onMoveTag(monitor.getItem().id);
+    }
+  },
+};
+
+function collectDropTarget(connect: DropTargetConnector, monitor: DropTargetMonitor) {
+  return {
+    connectDropTarget: connect.dropTarget(),
+    isHovering: monitor.isOver(),
+  };
+}
+
+///// Make it draggable ///////
+const tagCollectionDragSource: DragSourceSpec<ITagCollectionListItemProps, any> = {
+  beginDrag: (props: ITagCollectionListItemProps) => ({
+    id: props.tagCollection.id,
+  }),
+};
+
+function collectDragSource(connect: DragSourceConnector, monitor: DragSourceMonitor) {
+  return {
+    connectDragSource: connect.dragSource(),
+    isDragging: monitor.isDragging(),
+  };
+}
+
+const DraggableTagCollectionListItem = DropTarget<
+  ITagCollectionListItemProps,
+  IDropProps
+>(
+  [COLLECTION_DRAG_TYPE, TAG_DRAG_TYPE],
+  tagCollectionDropTarget,
+  collectDropTarget,
+)(
+  DragSource<
+    ITagCollectionListItemProps,
+    IDragProps
+  >(
+    COLLECTION_DRAG_TYPE,
+    tagCollectionDragSource,
+    collectDragSource,
+  )(TagCollectionListItem),
+);
+
+//// Add context menu /////
 const TagCollectionListItemContextMenu = (
   onNewTag: () => void,
   onNewCollection: () => void,
@@ -89,7 +205,7 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
                 onRename={this.handleRename}
                 onAbort={this.handleRenameAbort}
               />
-            : <TagCollectionListItem {...this.props} />
+            : <DraggableTagCollectionListItem {...this.props} />
         }
       </div>
     );

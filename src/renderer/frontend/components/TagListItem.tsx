@@ -18,6 +18,8 @@ import {
 } from '@blueprintjs/core';
 import { ID } from '../../entities/ID';
 
+export const TAG_DRAG_TYPE = 'tag';
+
 interface IStaticTagListItemProps {
   name: string;
   onSelect: () => void;
@@ -164,7 +166,7 @@ const DraggableTagListItem = DragSource<
   ITagListItemProps & IEditingProps,
   ITagListItemCollectedProps
 >(
-  'tag',
+  TAG_DRAG_TYPE,
   boxSource,
   (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
     connectDragSource: connect.dragSource(),

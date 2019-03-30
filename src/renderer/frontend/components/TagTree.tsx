@@ -49,9 +49,24 @@ const createTagCollectionTreeNode = (
         const newCol = store.addTagCollection('New collection', col);
         setExpandState({ ...expandState, [newCol.id]: true }); // immediately expand after adding
       }}
+      onExpand={() => setExpandState({ ...expandState, [col.id]: true })}
       // Destructure objects to make them into a new object, else the render won't trigger
       onExpandAll={() => setExpandState({ ...setExpandStateRecursively(col, true, expandState) })}
       onCollapseAll={() => setExpandState({ ...setExpandStateRecursively(col, false, expandState) })}
+      onMoveCollection={(id) => {
+        const movedCollectionParent = store.tagCollectionList.find((c) => c.subCollections.includes(id));
+        if (movedCollectionParent) {
+          movedCollectionParent.subCollections.remove(id);
+          col.subCollections.push(id);
+        }
+      }}
+      onMoveTag={(id) => {
+        const movedCollectionParent = store.tagCollectionList.find((c) => c.tags.includes(id));
+        if (movedCollectionParent) {
+          movedCollectionParent.tags.remove(id);
+          col.tags.push(id);
+        }
+      }}
     />
   ),
   hasCaret: true,
@@ -130,6 +145,10 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps)
       contents={treeContents}
       onNodeCollapse={handleNodeCollapse}
       onNodeExpand={handleNodeExpand}
+      // TODO: Context menu from here instead of in the TagCollectionListItem
+      // Then you can right-click anywhere instead of only on the label
+      // https://github.com/palantir/blueprint/issues/3187
+      // onNodeContextMenu={}
     />
 
       // {/* New tag input field */}

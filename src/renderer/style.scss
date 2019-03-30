@@ -175,3 +175,11 @@ body {
   outline-offset: -2px;
   outline-style: solid;
 }
+
+.bp3-tree-node .reorder-target {
+  border-top: 2px solid $pt-intent-primary;
+}
+
+.bp3-tree-node .reorder-source {
+  opacity: 0.2;
+}
