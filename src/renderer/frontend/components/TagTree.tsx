@@ -83,6 +83,17 @@ const createTagCollectionTreeNode = (
           id={tag.id}
           onRemove={() => store.rootStore.tagStore.removeTag(tag)}
           onRename={(name) => { tag.name = name; }}
+          onMoveTag={(movedTagId) => {
+            // Find original collection
+            const origCol = store.tagCollectionList.find((c) => c.tags.includes(movedTagId));
+            if (!origCol) { return console.error('Could not find original collection when moving tag', movedTagId); }
+            // Find where to insert the moved tag
+            const insertionIndex = col.tags.indexOf(tag.id);
+            // Remove from orig collection
+            origCol.tags.remove(movedTagId);
+            // Insert the moved tag to the position of the current tag where it was dropped
+            col.tags.splice(insertionIndex, 0, movedTagId);
+          }}
         />
       ),
     })),

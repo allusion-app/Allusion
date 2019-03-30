@@ -104,7 +104,7 @@ const tagCollectionDropTarget: DropTargetSpec<ITagCollectionListItemProps> = {
   },
 };
 
-function collectDropTarget(connect: DropTargetConnector, monitor: DropTargetMonitor) {
+function collectDropTarget(connect: DropTargetConnector, monitor: DropTargetMonitor): IDropProps {
   return {
     connectDropTarget: connect.dropTarget(),
     isHovering: monitor.isOver(),
@@ -119,7 +119,7 @@ const tagCollectionDragSource: DragSourceSpec<ITagCollectionListItemProps, any> 
   }),
 };
 
-function collectDragSource(connect: DragSourceConnector, monitor: DragSourceMonitor) {
+function collectDragSource(connect: DragSourceConnector, monitor: DragSourceMonitor): IDragProps {
   return {
     connectDragSource: connect.dragSource(),
     isDragging: monitor.isDragging(),

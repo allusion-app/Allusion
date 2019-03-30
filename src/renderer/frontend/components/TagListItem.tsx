@@ -5,6 +5,11 @@ import {
   ConnectDragSource,
   DragSourceConnector,
   DragSourceMonitor,
+  DropTarget,
+  DropTargetSpec,
+  ConnectDropTarget,
+  DropTargetConnector,
+  DropTargetMonitor,
 } from 'react-dnd';
 import {
   Button,
@@ -113,6 +118,7 @@ interface ITagListItemProps {
   id: ID;
   onRemove: () => void;
   onRename: (name: string) => void;
+  onMoveTag: (movedTag: ID) => void;
 }
 
 interface IEditingProps {
@@ -120,7 +126,12 @@ interface IEditingProps {
   setEditing: (val: boolean) => void;
 }
 
-interface ITagListItemCollectedProps {
+interface IDropProps {
+  connectDropTarget: ConnectDropTarget;
+  isHovering: boolean;
+}
+
+interface IDragProps {
   connectDragSource: ConnectDragSource;
   isDragging: boolean;
 }
@@ -133,46 +144,86 @@ export const TagListItem = ({
   setEditing,
   onRename,
   connectDragSource,
-}: ITagListItemProps & IEditingProps & ITagListItemCollectedProps) => {
-  return connectDragSource(
-    <div>
-      {isEditing ? (
-        <ModifiableTagListItem
-          initialName={name}
-          onRename={(newName) => {
-            setEditing(false);
-            onRename(newName);
-          }}
-          onAbort={() => setEditing(false)}
-        />
-      ) : (
-        <UnmodifiableTagListItem
-          name={name}
-          onClick={() => setEditing(true)}
-          onRemove={onRemove}
-        />
-      )}
-    </div>,
+  connectDropTarget,
+  isDragging,
+  isHovering,
+}: ITagListItemProps & IEditingProps & IDragProps & IDropProps) => {
+  // Style whether the element is being dragged or hovered over to drop on
+  const className = `${isHovering ? 'reorder-target' : ''
+    } ${isDragging ? 'reorder-source' : ''}`;
+  return connectDropTarget(
+    connectDragSource(
+      <div className={className}>
+        {isEditing ? (
+          <ModifiableTagListItem
+            initialName={name}
+            onRename={(newName) => {
+              setEditing(false);
+              onRename(newName);
+            }}
+            onAbort={() => setEditing(false)}
+          />
+        ) : (
+          <UnmodifiableTagListItem
+            name={name}
+            onClick={() => setEditing(true)}
+            onRemove={onRemove}
+          />
+        )}
+      </div>,
+    ),
   );
 };
 
-/** This handles what the drag-and-drop target receives when dropping the element */
-const boxSource = {
-  beginDrag: (props: ITagListItemProps) => ({ name: props.name, id: props.id }),
+/** This handles what to do when an element is being dropped over this element */
+const dropTarget: DropTargetSpec<ITagListItemProps> = {
+  canDrop(props, monitor) {
+    // You cannot drop a tag on itself
+    const { id: draggedId } = monitor.getItem();
+    return props.id !== draggedId;
+  },
+  drop(props, monitor) {
+    // Move the tag to the position where it is dropped (could be other collection as well)
+    const { id: draggedId } = monitor.getItem();
+    if (draggedId !== props.id) {
+      props.onMoveTag(draggedId);
+    }
+  },
+};
+const collectDropTarget = (connect: DropTargetConnector, monitor: DropTargetMonitor): IDropProps => {
+  return {
+    connectDropTarget: connect.dropTarget(),
+    isHovering: monitor.isOver(),
+  };
 };
 
+/** This handles what the drag-and-drop target receives when dropping the element */
+const dragSource = {
+  beginDrag: (props: ITagListItemProps) => ({ name: props.name, id: props.id }),
+};
+const collectDragSource = (connect: DragSourceConnector, monitor: DragSourceMonitor): IDragProps => ({
+  connectDragSource: connect.dragSource(),
+  isDragging: monitor.isDragging(),
+});
+
 /** Make the taglistitem draggable */
-const DraggableTagListItem = DragSource<
+const DraggableTagListItem = DropTarget<
   ITagListItemProps & IEditingProps,
-  ITagListItemCollectedProps
+  IDropProps
 >(
   TAG_DRAG_TYPE,
-  boxSource,
-  (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
-    connectDragSource: connect.dragSource(),
-    isDragging: monitor.isDragging(),
-  }),
-)(TagListItem);
+  dropTarget,
+  collectDropTarget,
+)(
+  DragSource<
+    ITagListItemProps & IEditingProps,
+    IDragProps
+  >(
+    TAG_DRAG_TYPE,
+    dragSource,
+    collectDragSource,
+  )(TagListItem),
+);
 
 const TagListItemContextMenu = (
   setEditing: (value: boolean) => void,
