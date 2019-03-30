@@ -1,10 +1,18 @@
 import React from 'react';
 
+import { shell } from 'electron';
+
 import { observer } from 'mobx-react-lite';
 import { DropTarget, ConnectDropTarget, DropTargetMonitor } from 'react-dnd';
 
 import { ClientFile } from '../../entities/File';
-import { Tag, Icon } from '@blueprintjs/core';
+import {
+  Tag,
+  Icon,
+  ContextMenuTarget,
+  Menu,
+  MenuItem,
+} from '@blueprintjs/core';
 import { ClientTag } from '../../entities/Tag';
 
 interface IGalleryItemTagProps {
@@ -84,12 +92,83 @@ const galleryItemTarget = {
 };
 
 /** Make gallery item available to drop a tag onto */
-export default DropTarget<IGalleryItemProps, IGalleryItemCollectedProps>(
-  'tag',
-  galleryItemTarget,
-  (connect, monitor) => ({
-    connectDropTarget: connect.dropTarget(),
-    isOver: monitor.isOver(),
-    canDrop: monitor.canDrop(),
-  }),
-)(observer(GalleryItem));
+const DroppableGalleryItem = DropTarget<
+  IGalleryItemProps,
+  IGalleryItemCollectedProps
+>('tag', galleryItemTarget, (connect, monitor) => ({
+  connectDropTarget: connect.dropTarget(),
+  isOver: monitor.isOver(),
+  canDrop: monitor.canDrop(),
+}))(observer(GalleryItem));
+
+const GalleryItemContextMenu = (filePath: string) => {
+  const handleOpen = () => {
+    shell.openItem(filePath);
+  };
+
+  const handleOpenFileExplorer = () => {
+    shell.showItemInFolder(filePath);
+  };
+
+  const handleInspect = () => {
+    console.log('Inspect');
+    shell.beep();
+  };
+
+  return (
+    <Menu>
+      <MenuItem onClick={handleOpen} text="Open" />
+      <MenuItem
+        onClick={handleOpenFileExplorer}
+        text="Reveal in File Browser"
+      />
+      <MenuItem onClick={handleInspect} text="Inspect" />
+    </Menu>
+  );
+};
+
+/** Wrapper that adds a context menu (with right click) */
+@ContextMenuTarget
+class GalleryItemWithContextMenu extends React.PureComponent<
+  IGalleryItemProps,
+  { isContextMenuOpen: boolean }
+> {
+  state = {
+    isContextMenuOpen: false,
+    _isMounted: false,
+  };
+
+  componentDidMount() {
+    this.state._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this.state._isMounted = false;
+  }
+
+  render() {
+    return (
+      // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
+      <span className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
+        <DroppableGalleryItem {...this.props} />
+      </span>
+    );
+  }
+
+  renderContextMenu() {
+    this.updateState({ isContextMenuOpen: true });
+    return GalleryItemContextMenu(this.props.file.path);
+  }
+
+  onContextMenuClose = () => {
+    this.updateState({ isContextMenuOpen: false });
+  }
+
+  private updateState = (updatableProp: any) => {
+    if (this.state._isMounted) {
+      this.setState(updatableProp);
+    }
+  }
+}
+
+export default GalleryItemWithContextMenu;
