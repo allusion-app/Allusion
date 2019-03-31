@@ -146,14 +146,17 @@ const DraggableTagCollectionListItem = DropTarget<
 );
 
 //// Add context menu /////
-const TagCollectionListItemContextMenu = (
-  onNewTag: () => void,
-  onNewCollection: () => void,
-  enableEditing: () => void,
-  onRemove: () => void,
-  onExpandAll: () => void,
-  onCollapseAll: () => void,
-) => {
+interface ITagCollectionContextMenu {
+  onNewTag: () => void;
+  onNewCollection: () => void;
+  enableEditing: () => void;
+  onExpandAll: () => void;
+  onCollapseAll: () => void;
+  onRemove?: () => void;
+}
+const TagCollectionListItemContextMenu = ({
+  onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
+ }: ITagCollectionContextMenu) => {
   // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
   const handleChangeColor = () => console.log('Change color');
   const onProperties = () => console.log('Show properties');
@@ -232,13 +235,17 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
-    return TagCollectionListItemContextMenu(
-      this.props.onAddTag,
-      this.props.onAddCollection,
-      () => this.setEditing(true),
-      () => this.props.onRemove && this.props.onRemove(this.props.tagCollection),
-      this.props.onExpandAll,
-      this.props.onCollapseAll,
+    const { tagCollection, onRemove } = this.props;
+    const handleRemove = onRemove ? () => onRemove && onRemove(tagCollection) : undefined;
+    return (
+      <TagCollectionListItemContextMenu
+        onNewTag={this.props.onAddTag}
+        onNewCollection={this.props.onAddCollection}
+        enableEditing={() => this.setEditing(true)}
+        onExpandAll={this.props.onExpandAll}
+        onCollapseAll={this.props.onCollapseAll}
+        onRemove={handleRemove}
+      />
     );
   }
 

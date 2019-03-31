@@ -17,17 +17,17 @@ class TagCollectionStore {
     this.rootStore = rootStore;
   }
 
-  init() {
-    this.loadTagCollections();
+  async init() {
+    return this.loadTagCollections();
   }
 
-  loadTagCollections() {
-    this.backend
-      .fetchTagCollections()
-      .then((fetchedTagCollections) => {
-        fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
-      })
-      .catch((err) => console.log('Could not load tag collections', err));
+  async loadTagCollections() {
+    try {
+    const fetchedTagCollections = await this.backend.fetchTagCollections();
+    fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
+    } catch (err) {
+      console.error('Could not load tag collections', err);
+    }
   }
 
   updateFromBackend(backendTagCol: ITagCollection) {

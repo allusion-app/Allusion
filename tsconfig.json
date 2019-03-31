@@ -6,7 +6,7 @@
     "sourceMap": true,
     "outDir": "dist",
     "target": "es5",
-    "lib": ["dom", "es2017"],
+    "lib": ["dom", "esnext"],
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "noUnusedLocals": true,

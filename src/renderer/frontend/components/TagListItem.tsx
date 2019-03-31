@@ -28,15 +28,13 @@ export const DEFAULT_TAG_NAME = 'New tag';
 
 interface IStaticTagListItemProps {
   name: string;
-  onSelect: () => void;
 }
 
 /** Can be used for "non-existing" tags, e.g. 'Untagged', 'Recently added'. Cannot be removed */
 export const StaticTagListItem = ({
   name,
-  onSelect,
 }: IStaticTagListItemProps) => (
-  <Tag onClick={onSelect} large minimal fill interactive active>
+  <Tag large minimal fill interactive active>
     {name}
   </Tag>
 );
@@ -44,15 +42,13 @@ export const StaticTagListItem = ({
 interface IUnmodifiableTagListItemProps {
   name: string;
   onRemove: () => void;
-  onClick: () => void;
+  onEdit: () => void;
 }
 
 const UnmodifiableTagListItem = ({
   name,
-  onClick,
-  onRemove,
 }: IUnmodifiableTagListItemProps) => (
-  <div onClick={onClick}>
+  <div>
     {name}
   </div>
 );
@@ -168,7 +164,7 @@ export const TagListItem = ({
         ) : (
           <UnmodifiableTagListItem
             name={name}
-            onClick={() => setEditing(true)}
+            onEdit={() => setEditing(true)}
             onRemove={onRemove}
           />
         )}

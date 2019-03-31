@@ -8,12 +8,14 @@ import { Tree, ITreeNode } from '@blueprintjs/core';
 import TagCollectionListItem from './TagCollectionListItem';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import TagCollectionStore from '../stores/TagCollectionStore';
+import { ClientTag } from '../../entities/Tag';
 
 interface IExpandState {
   [key: string]: boolean;
 }
 
-const systemTagsId = 'system-tags';
+const SYSTEM_TAGS_ID = 'system-tags';
+const ALL_TAGS_ID = 'all-tags';
 
 /** Recursive function that sets the 'expand' state for each (sub) collection */
 const setExpandStateRecursively = (col: ClientTagCollection, val: boolean, expandState: IExpandState): IExpandState => {
@@ -36,7 +38,8 @@ const createTagCollectionTreeNode = (
   label: (
     <TagCollectionListItem
       tagCollection={col}
-      onRemove={() => store.removeTagCollection(col)}
+      // Disable deleting the root hierarchy
+      onRemove={col.id === ROOT_TAG_COLLECTION_ID ? undefined : () => store.removeTagCollection(col)}
       onAddTag={() => {
         store.rootStore.tagStore.addTag(DEFAULT_TAG_NAME)
           .then((tag) => col.tags.push(tag.id));
@@ -74,6 +77,7 @@ const createTagCollectionTreeNode = (
     ...col.clientTags.map((tag): ITreeNode => ({
       id: tag.id,
       icon: 'tag',
+      isSelected: store.rootStore.uiStore.tagSelection.includes(tag.id),
       label: (
         <TagListItem
           name={tag.name}
@@ -100,11 +104,11 @@ const createTagCollectionTreeNode = (
 
 export interface ITagListProps extends IRootStoreProp {}
 
-const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps) => {
+const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore } }: ITagListProps) => {
   // Keep track of folders that have been expanded. The two main folders are expanded by default.
   const [expandState, setExpandState] = useState<IExpandState>({
     [ROOT_TAG_COLLECTION_ID]: true,
-    [systemTagsId]: true,
+    [SYSTEM_TAGS_ID]: true,
   });
 
   const handleNodeCollapse = (node: ITreeNode) => {
@@ -113,6 +117,27 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps)
 
   const handleNodeExpand = (node: ITreeNode) => {
     setExpandState({ ...expandState, [node.id]: true });
+  };
+
+  const handleSelection = (tag: ClientTag) => {
+    if (uiStore.tagSelection.includes(tag.id)) {
+      uiStore.deselectTag(tag);
+    } else {
+      uiStore.selectTag(tag);
+    }
+    fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
+  };
+
+  const handleNodeClick = ({ id }: ITreeNode) => {
+    if (id === ALL_TAGS_ID) {
+      uiStore.tagSelection.clear();
+      fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
+    } else {
+      const clickedTag = tagStore.tagList.find((t) => t.id === id);
+      if (clickedTag) {
+        handleSelection(clickedTag);
+      }
+    }
   };
 
   const root = tagCollectionStore.tagCollectionList.find((col) => col.id === ROOT_TAG_COLLECTION_ID);
@@ -124,13 +149,13 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps)
     : [];
 
   const systemTags: ITreeNode[] = [
+    // {
+    //   id: 'untagged',
+    //   label: 'Untagged',
+    //   icon: 'tag',
+    // },
     {
-      id: 'untagged',
-      label: 'Untagged',
-      icon: 'tag',
-    },
-    {
-      id: 'all-tags',
+      id: ALL_TAGS_ID,
       label: 'All tags',
       icon: 'tag',
     },
@@ -139,11 +164,11 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps)
   const treeContents: ITreeNode[] = [
     ...hierarchy,
     {
-      id: systemTagsId,
+      id: SYSTEM_TAGS_ID,
       icon: 'folder-close',
       label: 'System tags',
       hasCaret: true,
-      isExpanded: expandState[systemTagsId],
+      isExpanded: expandState[SYSTEM_TAGS_ID],
       childNodes: systemTags,
     },
   ];
@@ -154,6 +179,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore } }: ITagListProps)
       contents={treeContents}
       onNodeCollapse={handleNodeCollapse}
       onNodeExpand={handleNodeExpand}
+      onNodeClick={handleNodeClick}
       // TODO: Context menu from here instead of in the TagCollectionListItem
       // Then you can right-click anywhere instead of only on the label
       // https://github.com/palantir/blueprint/issues/3187
