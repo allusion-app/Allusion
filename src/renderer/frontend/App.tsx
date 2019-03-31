@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React from 'react';
 
 import FileList from './components/FileList';
-import Sidebar from './components/Sidebar';
+import Outliner from './components/Outliner';
 import { IRootStoreProp, withRootstore } from './contexts/StoreContext';
 import Inspector from './components/Inspector';
 
@@ -22,9 +22,9 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
 
   return (
     <div className={`${themeClass} column`}>
-      <Sidebar />
+      <Outliner />
 
-      <div className={`main ${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+      <main className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
         <div className="header">
           <Breadcrumbs items={breadcrumbs} />
 
@@ -39,7 +39,7 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
         <div className="gallery">
           <FileList />
         </div>
-      </div>
+      </main>
 
       <Inspector />
     </div>

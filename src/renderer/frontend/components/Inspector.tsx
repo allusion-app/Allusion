@@ -18,7 +18,6 @@ interface IInspectorProps {
 }
 
 const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
-
   const selectedFiles = uiStore.clientFileSelection;
 
   let selectionPreview;
@@ -47,21 +46,19 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
   }
 
   return (
-    <div className={`inspector ${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
-      <div className="inspectorSection">
-        {selectionPreview}
-      </div>
+    <aside className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+      <section>{selectionPreview}</section>
 
-      <div className="inspectorSection center bp3-text-overflow-ellipsis">
+      <section className="center">
         <b>{headerText}</b>
         <br />
         <small>{headerSubtext}</small>
-      </div>
+      </section>
 
-      <div className="inspectorSection">
+      <section>
         <FileInfo files={selectedFiles} />
-      </div>
-    </div>
+      </section>
+    </aside>
   );
 };
 

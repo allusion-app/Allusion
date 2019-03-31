@@ -29,19 +29,19 @@ body {
 }
 
 .app {
-  --sidebar-width: 16em;
+  --outliner-width: 16em;
   --inspector-width: 24em;
 }
 
-.main {
+main {
   transition: margin 0.1s ease-out;
-  margin-left: var(--sidebar-width);
+  margin-left: var(--outliner-width);
   margin-right: 0;
 }
 
 .column {
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   height: 100%;
 }
 
@@ -136,8 +136,8 @@ body {
 }
 
 
-.sidebar {
-  width: var(--sidebar-width);
+nav {
+  width: var(--outliner-width);
   flex-shrink: 0;
   overflow-x: hidden;
   height: 100%;
@@ -146,7 +146,7 @@ body {
   background: #333333;
 }
 
-.sidebar h4 {
+nav h4 {
   padding: 4px;
   margin: 0;
 }
@@ -164,7 +164,7 @@ body {
   justify-content: space-between;
   position: fixed;
   top: 0;
-  width: calc(100% - var(--sidebar-width) - var(--inspector-width) - 2em);
+  width: calc(100% - var(--outliner-width) - var(--inspector-width) - 2em);
   padding: 1em;
   margin: 0.5em;
   z-index: 10;
@@ -187,7 +187,7 @@ body {
   padding: 0.5em;
 }
 
-.inspector {
+aside {
   transition: right 0.1s ease-out;
   right: calc(var(--inspector-width) * -1);
   width: var(--inspector-width);
@@ -198,15 +198,15 @@ body {
   top: 0;
 }
 
-.inspector.inspectorOpen {
+aside.inspectorOpen {
   right: 0;
 }
 
-.main.inspectorOpen {
+main.inspectorOpen {
   margin-right: var(--inspector-width);
 }
 
-.inspectorSection {
+aside section {
   border-bottom: 3px solid #181818;
   padding: 1em;
 }
@@ -241,12 +241,12 @@ body {
   text-align: center;
 }
 
-.inspector .bp3-tag {
+aside .bp3-tag {
   margin-bottom: 5px;
   margin-right: 5px;
 }
 
-.inspector img {
+aside img {
   width: 100%;
   max-height: calc(var(--inspector-width) - 2em);
   object-fit: contain;
