@@ -97,6 +97,8 @@ class FileStore {
   private async removeFile(file: ClientFile): Promise<void> {
     file.dispose();
     this.fileList.remove(file);
+    // Deselect in case it was selected
+    this.rootStore.uiStore.deselectFile(file);
     return this.backend.removeFile(file);
   }
 
