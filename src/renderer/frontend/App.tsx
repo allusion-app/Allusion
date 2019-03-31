@@ -21,10 +21,10 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    <div className={`${themeClass} column`}>
+    <div className={`${themeClass} grid`}>
       <Outliner />
 
-      <main className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+      <main>
         <div className="header">
           <Breadcrumbs items={breadcrumbs} />
 

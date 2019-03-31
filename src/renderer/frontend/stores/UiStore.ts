@@ -29,7 +29,7 @@ class UiStore {
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
   // UI
-  @observable isSidebarOpen: boolean = true;
+  @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = true;
 
   // Selections

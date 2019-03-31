@@ -20,12 +20,10 @@ html {
 
 body {
   background: #444444;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
   margin: 0px;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .app {
@@ -34,15 +32,14 @@ body {
 }
 
 main {
-  transition: margin 0.1s ease-out;
-  margin-left: var(--outliner-width);
-  margin-right: 0;
+  grid-area: main;
+  overflow: auto;
+  height: 100vh;
 }
 
-.column {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+.grid {
+  display: grid;
+  grid-template-areas: "outliner main inspector";
 }
 
 .thumbnail {
@@ -135,15 +132,13 @@ main {
   opacity: 0.5;
 }
 
-
 nav {
-  width: var(--outliner-width);
-  flex-shrink: 0;
-  overflow-x: hidden;
-  height: 100%;
-  position: fixed;
-  top: 0;
+  grid-area: outliner;
   background: #333333;
+  overflow: auto;
+  flex-shrink: 0;
+  width: var(--outliner-width);
+  height: 100vh;
 }
 
 nav h4 {
@@ -152,8 +147,6 @@ nav h4 {
 }
 
 .gallery {
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
   padding: 8px;
@@ -188,27 +181,32 @@ nav h4 {
 }
 
 aside {
-  transition: right 0.1s ease-out;
-  right: calc(var(--inspector-width) * -1);
-  width: var(--inspector-width);
+  grid-area: inspector;
+  overflow-y: auto;
   flex-shrink: 0;
-  overflow-x: hidden;
-  height: 100%;
-  position: fixed;
-  top: 0;
+  width: 0;
+  height: 100vh;
+  transition: width 0.1s ease-out;
 }
 
 aside.inspectorOpen {
-  right: 0;
-}
-
-main.inspectorOpen {
-  margin-right: var(--inspector-width);
+  width: var(--inspector-width);
 }
 
 aside section {
   border-bottom: 3px solid #181818;
   padding: 1em;
+}
+
+aside .bp3-tag {
+  margin-bottom: 5px;
+  margin-right: 5px;
+}
+
+aside img {
+  width: 100%;
+  max-height: calc(var(--inspector-width) - 2em);
+  object-fit: contain;
 }
 
 .fileInfoKey {
@@ -241,20 +239,23 @@ aside section {
   text-align: center;
 }
 
-aside .bp3-tag {
-  margin-bottom: 5px;
-  margin-right: 5px;
-}
-
-aside img {
-  width: 100%;
-  max-height: calc(var(--inspector-width) - 2em);
-  object-fit: contain;
-}
-
 .contextMenuTarget {
   outline-color: $pt-intent-primary;
   outline-width: 2px;
   outline-offset: -2px;
   outline-style: solid;
+}
+
+// --outliner-width + --thumbnail-size
+@media (max-width: 40em) {
+  aside {
+    display: none;
+  }
+}
+
+// --outliner-width
+@media (max-width: 16em) {
+  nav {
+    display: none;
+  }
 }
