@@ -9,6 +9,7 @@ import {
 import { ID } from '../../entities/ID';
 
 export const COLLECTION_DRAG_TYPE = 'collection';
+export const DEFAULT_COLLECTION_NAME = 'New collection';
 
 interface ITagCollectionListItemProps {
   tagCollection: ClientTagCollection;
@@ -191,6 +192,11 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
 
   componentDidMount() {
     this.state._isMounted = true;
+    // Todo: Same as in TagListItem: hacky solution
+    const { tagCollection: { name, dateAdded } } = this.props;
+    if (name === DEFAULT_COLLECTION_NAME && (new Date().getTime() - dateAdded.getTime()) < 200) {
+      this.setState({ isEditing: true });
+    }
   }
 
   componentWillUnmount() {

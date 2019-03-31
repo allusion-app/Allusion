@@ -184,10 +184,10 @@ body {
 // Reduce default padding-left of Blueprint tree rows
 // Only divided `$tree-row-height` by 2, doesn't look very nice
 // Adjusted from @blueprintjs/core/src/components/tree_tree.scss
-$tree-row-height: $pt-grid-size * 3 !default;
-$tree-icon-spacing: ($tree-row-height - $pt-icon-size-standard) / 2 !default;
-@for $i from 0 through 20 {
-  .#{$ns}-tree-node-content-#{$i} {
-    padding-left: ($tree-row-height / 2 - $tree-icon-spacing) * $i;
-  }
-}
+// $tree-row-height: $pt-grid-size * 3 !default;
+// $tree-icon-spacing: ($tree-row-height - $pt-icon-size-standard) / 2 !default;
+// @for $i from 0 through 20 {
+//   .#{$ns}-tree-node-content-#{$i} {
+//     padding-left: ($tree-row-height / 2 - $tree-icon-spacing) * $i;
+//   }
+// }

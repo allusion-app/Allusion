@@ -24,6 +24,7 @@ import {
 import { ID } from '../../entities/ID';
 
 export const TAG_DRAG_TYPE = 'tag';
+export const DEFAULT_TAG_NAME = 'New tag';
 
 interface IStaticTagListItemProps {
   name: string;
@@ -103,7 +104,7 @@ export const ModifiableTagListItem = ({
             setFocused(false);
             onAbort();
           }}
-          onFocus={() => setFocused(true)}
+          onFocus={(e) => { setFocused(true); e.target.select(); }}
           // Only show red outline when input field is in focus and text is invalid
           className={isFocused && !isValidInput ? 'bp3-intent-danger' : ''}
         />
@@ -116,6 +117,7 @@ export const ModifiableTagListItem = ({
 interface ITagListItemProps {
   name: string;
   id: ID;
+  dateAdded: Date;
   onRemove: () => void;
   onRename: (name: string) => void;
   onMoveTag: (movedTag: ID) => void;
@@ -265,6 +267,11 @@ class TagListItemWithContextMenu extends React.PureComponent<
 
   componentDidMount() {
     this.state._isMounted = true;
+    // Todo: Fixme with something more competent
+    // Hacky way to automatically go into edit mode for newly added tags. But it works :D
+    if (this.props.name === DEFAULT_TAG_NAME && (new Date().getTime() - this.props.dateAdded.getTime()) < 200) {
+      this.setState({ isEditing: true });
+    }
   }
 
   componentWillUnmount() {

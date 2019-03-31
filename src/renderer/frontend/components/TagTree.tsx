@@ -1,10 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
 
-import TagListItem, {
-  // StaticTagListItem,
-  // ModifiableTagListItem,
-} from './TagListItem';
+import TagListItem, { DEFAULT_TAG_NAME } from './TagListItem';
 
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import { Tree, ITreeNode } from '@blueprintjs/core';
@@ -27,7 +24,7 @@ const setExpandStateRecursively = (col: ClientTagCollection, val: boolean, expan
   return expandState;
 };
 
-/** Recursive function that generates a tree ITreeNodes from TagCollections */
+/** Recursive function that generates a tree of ITreeNodes from TagCollections */
 const createTagCollectionTreeNode = (
   col: ClientTagCollection,
   expandState: Readonly<IExpandState>,
@@ -41,7 +38,7 @@ const createTagCollectionTreeNode = (
       tagCollection={col}
       onRemove={() => store.removeTagCollection(col)}
       onAddTag={() => {
-        store.rootStore.tagStore.addTag('New tag')
+        store.rootStore.tagStore.addTag(DEFAULT_TAG_NAME)
           .then((tag) => col.tags.push(tag.id));
         }
       }
@@ -81,6 +78,7 @@ const createTagCollectionTreeNode = (
         <TagListItem
           name={tag.name}
           id={tag.id}
+          dateAdded={tag.dateAdded}
           onRemove={() => store.rootStore.tagStore.removeTag(tag)}
           onRename={(name) => { tag.name = name; }}
           onMoveTag={(movedTagId) => {
