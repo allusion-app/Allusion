@@ -35,7 +35,7 @@ const createTagCollectionTreeNode = (
   setExpandState: (state: IExpandState) => void,
 ): ITreeNode => ({
   id: col.id,
-  icon: 'folder-close',
+  icon: expandState[col.id] ? 'folder-open' : 'folder-close',
   label: (
     <TagCollectionListItem
       tagCollection={col}

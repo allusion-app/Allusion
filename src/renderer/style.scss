@@ -1,13 +1,15 @@
+/** Overwriting default Blueprint variables */
+$pt-grid-size: 10px;
+
 /* using node-style package resolution in a CSS file:  */
 @import "~normalize.css";
-@import "~@blueprintjs/core/lib/css/blueprint.css";
-@import "~@blueprintjs/icons/lib/css/blueprint-icons.css";
+@import "~@blueprintjs/core/src/blueprint.scss";
 
 /**
- * Sass variables, for color parameters etc.
- * Reference: https://blueprintjs.com/docs/#core/variables.color-aliases
+ * Custom CSS
  */
-@import "~@blueprintjs/core/lib/scss/variables";
+$sidebar-width: 18em;
+$thumbnail-size: 16em;
 
 html {
   height: 100%;
@@ -28,12 +30,8 @@ body {
   height: 100%;
 }
 
-.app {
-  --sidebar-width: 16em;
-}
-
 .main {
-  margin-left: var(--sidebar-width);
+  margin-left: $sidebar-width;
 }
 
 .column {
@@ -44,17 +42,16 @@ body {
 
 .thumbnail {
   transition: all 0.1s ease-in-out;
-  --thumbnail-size: 24em;
-  width: var(--thumbnail-size);
-  height: var(--thumbnail-size);
+  width: $thumbnail-size;
+  height: $thumbnail-size;
   display: inline-block;
   position: relative;
 }
 
 .thumbnail img {
   transition: all 0.1s ease-in-out;
-  width: var(--thumbnail-size);
-  height: var(--thumbnail-size);
+  width: $thumbnail-size;
+  height: $thumbnail-size;
   object-fit: cover;
   cursor: pointer;
   margin-left: auto;
@@ -117,7 +114,7 @@ body {
 }
 
 .sidebar {
-  width: var(--sidebar-width);
+  width: $sidebar-width;
   flex-shrink: 0;
   overflow-x: hidden;
   height: 100%;
@@ -146,7 +143,7 @@ body {
   justify-content: space-between;
   position: fixed;
   top: 0;
-  width: calc(100% - var(--sidebar-width) - 2em);
+  width: calc(100% - $sidebar-width - 2em);
   padding: 1em;
   margin: 0.5em;
   z-index: 10;
@@ -182,4 +179,15 @@ body {
 
 .bp3-tree-node .reorder-source {
   opacity: 0.2;
+}
+
+// Reduce default padding-left of Blueprint tree rows
+// Only divided `$tree-row-height` by 2, doesn't look very nice
+// Adjusted from @blueprintjs/core/src/components/tree_tree.scss
+$tree-row-height: $pt-grid-size * 3 !default;
+$tree-icon-spacing: ($tree-row-height - $pt-icon-size-standard) / 2 !default;
+@for $i from 0 through 20 {
+  .#{$ns}-tree-node-content-#{$i} {
+    padding-left: ($tree-row-height / 2 - $tree-icon-spacing) * $i;
+  }
 }

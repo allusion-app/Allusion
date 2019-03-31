@@ -51,9 +51,9 @@ const UnmodifiableTagListItem = ({
   onClick,
   onRemove,
 }: IUnmodifiableTagListItemProps) => (
-  <Tag onClick={onClick} large minimal fill onRemove={onRemove} interactive>
+  <div onClick={onClick}>
     {name}
-  </Tag>
+  </div>
 );
 
 interface IModifiableTagListItemProps {
