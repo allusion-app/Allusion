@@ -8,7 +8,6 @@ import { DropTarget, ConnectDropTarget, DropTargetMonitor } from 'react-dnd';
 import { ClientFile } from '../../entities/File';
 import {
   Tag,
-  Icon,
   ContextMenuTarget,
   Menu,
   MenuItem,
@@ -75,12 +74,6 @@ const GalleryItem = ({
           />
         ))}
       </span>
-      <div
-        className={`thumbnailSelector ${isSelected ? 'selected' : ''}`}
-        onClick={(e) => isSelected ? onDeselect(file, e) : onSelect(file, e)}
-      >
-        <Icon icon={isSelected ? 'selection' : 'circle'} />
-      </div>
     </div>,
   );
 };

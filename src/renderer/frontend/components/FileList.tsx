@@ -52,7 +52,7 @@ const FileList = ({ rootStore: { uiStore, fileStore } }: IFileListProps) => {
   const selectionModeOn = uiStore.fileSelection.length > 0;
 
   return (
-    <div>
+    <div className="gallery">
       { selectionModeOn && (
         <FileSelectionHeader
           numSelectedFiles={uiStore.fileSelection.length}

@@ -105,33 +105,6 @@ main {
   margin: 0.5em;
 }
 
-.thumbnailSelector {
-  transition: opacity 0.2s ease-in-out;
-  opacity: 0;
-  border-radius: 100%;
-  cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 0.5em;
-  position: absolute;
-  top: 0;
-}
-
-.thumbnailSelector.selected {
-  opacity: 1!important;
-}
-
-.thumbnailSelector:hover {
-  opacity: 1;
-}
-
-.thumbnail:hover .thumbnailSelector {
-  opacity: 0.5;
-}
-
-.gallerySelectionMode .thumbnailSelector {
-  opacity: 0.5;
-}
-
 nav {
   grid-area: outliner;
   background: #333333;
@@ -182,7 +155,7 @@ nav h4 {
 
 aside {
   grid-area: inspector;
-  overflow-y: auto;
+  overflow: auto;
   flex-shrink: 0;
   width: 0;
   height: 100vh;
@@ -204,6 +177,8 @@ aside .bp3-tag {
 }
 
 aside img {
+  padding: 0.3em;
+  background-color: #333333;
   width: 100%;
   max-height: calc(var(--inspector-width) - 2em);
   object-fit: contain;
