@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import fs from 'fs';
 
 import { ClientFile } from '../../entities/File';
 import { Tag } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import { ClientTag } from '../../entities/Tag';
+import MultiTagSelector from './MultiTagSelector';
 
 const formatDate = (d: Date) =>
   `${d.getUTCFullYear()}-${d.getUTCMonth() +
@@ -50,11 +51,12 @@ const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
       <div>
         <div className="fileInfoKey fileInfoKeyMulti">Tags</div>
         <div>
-          {file.clientTags.map((t, i) => (
-            <Tag key={`tag-${i}`} onRemove={() => console.log('Remove tag')}>
-              {t.name}
-            </Tag>
-          ))}
+          <MultiTagSelector
+            selectedTags={file.clientTags}
+            onClearSelection={() => file.tags.clear()}
+            onTagDeselect={(index) => file.tags.splice(index, 1)}
+            onTagSelect={(tag) => file.tags.push(tag.id)}
+          />
         </div>
       </div>
       {error && (
@@ -77,6 +79,13 @@ const MultiFileInfo = observer(({ files }: IFileInfoProps) => {
   // tslint:disable-next-line: newline-per-chained-call
   const sortedTags = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
 
+  const handleClear = useCallback(() => files.forEach((f) => f.tags.clear()), [files]);
+  const handleSelect = useCallback((tag: ClientTag) => files.forEach((f) => f.tags.push(tag.id)), [files]);
+  const handleDeselect = useCallback((index: number) => {
+    const removedTag = sortedTags[index][0];
+    files.forEach((f) => f.tags.remove(removedTag.id));
+  }, [files]);
+
   return (
     <>
       <p>Selected {files.length} files</p>
@@ -88,6 +97,18 @@ const MultiFileInfo = observer(({ files }: IFileInfoProps) => {
               {tag.name} ({count})
             </Tag>
           ))}
+
+          <MultiTagSelector
+            selectedTags={sortedTags.map((pair) => pair[0])}
+            onClearSelection={handleClear}
+            onTagDeselect={handleDeselect}
+            onTagSelect={handleSelect}
+            tagLabel={(tag) => {
+              const match = sortedTags.find((pair) => pair[0] === tag);
+              return `${tag.name} (${match ? match[1] : '?'})`;
+            }
+            }
+          />
         </div>
       </div>
     </>
