@@ -65,7 +65,8 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
     return (
       <aside
         id={'inspector'}
-        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}
+      >
         <section className="filePreview" />
         <section className="fileOverview">
           <div className="inpectorHeading">{headerText}</div>

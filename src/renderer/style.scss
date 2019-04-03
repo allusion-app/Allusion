@@ -177,6 +177,11 @@ nav h4 {
   font-weight: bold;
 }
 
+// The fill option of the MultiTagSelect does not work atm. Workaround is to manually set width 
+#inspector .bp3-popover-target {
+  width: 100%;
+}
+
 .filePreview img {
   padding: 0.3em;
   background-color: #333333;

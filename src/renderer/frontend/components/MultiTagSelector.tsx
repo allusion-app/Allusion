@@ -11,12 +11,29 @@ const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 
 const NoResults = <MenuItem disabled={true} text="No results." />;
 
+const CREATED_TAG_ID = 'created-tag-id';
+
+export const renderCreateTagOption = (
+  query: string,
+  active: boolean,
+  handleClick: React.MouseEventHandler<HTMLElement>,
+) => (
+  <MenuItem
+    icon="add"
+    text={`Create "${query}"`}
+    active={active}
+    onClick={handleClick}
+    shouldDismissPopover={false}
+  />
+);
+
 interface IMultiTagSelectorProps {
   selectedTags: ClientTag[];
   tagLabel?: (tag: ClientTag) => string;
   onTagSelect: (tag: ClientTag) => void;
   onTagDeselect: (index: number) => void;
   onClearSelection: () => void;
+  onTagCreation?: (name: string) => ClientTag;
 }
 
 const MultiTagSelector = ({
@@ -25,15 +42,21 @@ const MultiTagSelector = ({
   onTagSelect,
   onTagDeselect,
   onClearSelection,
-
+  onTagCreation,
 }: IMultiTagSelectorProps) => {
   const { tagStore } = useContext(StoreContext);
 
   const handleSelect = useCallback(
-    (tag: ClientTag) => (selectedTags.includes(tag)
-      ? onTagDeselect(selectedTags.indexOf(tag))
-      : onTagSelect(tag)
-    ),
+    (tag: ClientTag) => {
+      // When a tag is created, it is selected. Here we detect whether we need to actually the ClientTag.
+      if (onTagCreation && tag.id === CREATED_TAG_ID) {
+        tag = onTagCreation(tag.name);
+      }
+
+      return selectedTags.includes(tag)
+        ? onTagDeselect(selectedTags.indexOf(tag))
+        : onTagSelect(tag);
+    },
     [selectedTags],
   );
 
@@ -49,11 +72,8 @@ const MultiTagSelector = ({
     [selectedTags],
   );
 
-  const SearchTagItem = useMemo(
-    (): ItemRenderer<ClientTag> => (
-      tag,
-      { modifiers, handleClick },
-    ) => {
+  const SearchTagItem = useCallback<ItemRenderer<ClientTag>>(
+    (tag, { modifiers, handleClick }) => {
       if (!modifiers.matchesPredicate) {
         return null;
       }
@@ -74,6 +94,15 @@ const MultiTagSelector = ({
 
   const TagLabel = (tag: ClientTag) => tagLabel ? tagLabel(tag) : tag.name;
 
+  // Only used for visualization in the selector, an actual ClientTag is created onSelect
+  const createNewTag = useCallback(
+    (name: string) => new ClientTag(tagStore, name, CREATED_TAG_ID),
+    [],
+  );
+
+  const maybeCreateNewItemFromQuery = onTagCreation ? createNewTag : undefined;
+  const maybeCreateNewItemRenderer = onTagCreation ? renderCreateTagOption : undefined;
+
   return (
     <>
       <TagMultiSelect
@@ -85,6 +114,8 @@ const MultiTagSelector = ({
         onItemSelect={handleSelect}
         popoverProps={{ minimal: true }}
         tagRenderer={TagLabel}
+        createNewItemFromQuery={maybeCreateNewItemFromQuery}
+        createNewItemRenderer={maybeCreateNewItemRenderer}
         tagInputProps={{
           tagProps: { minimal: true },
           onRemove: handleDeselect,
