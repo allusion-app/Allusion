@@ -9,7 +9,7 @@
     "start": "electron ./dist/main.bundle.js",
     "package": "rimraf release && npm run production && electron-packager ./dist VisualLibrary --out=./release --asar",
     "lint": "tslint -c tslint.json -p tsconfig.json",
-    "test": "yarn jest"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
