@@ -26,7 +26,7 @@ let mainConfig = {
             {
                 // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader' (except test files)
                 test: /\.(ts)$/,
-                exclude: [/node_modules/, 'src/**/*.test.ts'],
+                exclude: [/node_modules/, '/src/**/*.test.ts'],
                 use: {
                     loader: 'ts-loader',
                 },
