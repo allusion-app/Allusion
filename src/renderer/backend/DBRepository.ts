@@ -59,12 +59,35 @@ export default class BaseRepository<T extends IIdentifiable> {
     query: any,
     count?: number,
   ): Promise<T[]> {
+    // Todo: Search more efficiently
+    // https://stackoverflow.com/questions/14146671/multiple-keys-query-in-indexeddb-similar-to-or-in-sql
+    // https://stackoverflow.com/questions/30737219/indexeddb-search-multi-values-on-same-index
+
     const db = await openDb(dbName);
-    return await db
+    const findSingle = (q: any) => db
       .transaction(this.collectionName)
       .objectStore<T, ID>(this.collectionName)
       .index(property as string)
-      .getAll(query, count);
+      .getAll(q, count);
+
+    if (!Array.isArray(query)) {
+      return findSingle(query);
+    }
+    // If it's an array of queries, execute them individually
+    const queryResults = await Promise.all(query.map((q) => findSingle(q)));
+
+    // Combine the query results and remove duplicates
+    const uniqueResMap = new Map<ID, T>();
+    queryResults.flat()
+      .forEach((val) => {
+        if (!uniqueResMap.has(val.id)) {
+          uniqueResMap.set(val.id, val);
+        }
+      },
+    );
+
+    // Todo: Take into account the sorting order
+    return Array.from(uniqueResMap.values());
   }
 
   public async count(property: string, query: any): Promise<number> {

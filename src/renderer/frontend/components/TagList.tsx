@@ -11,9 +11,20 @@ import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 
 export interface ITagListProps extends IRootStoreProp {}
 
-const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
+const TagList = ({
+  rootStore: { uiStore, tagStore, fileStore },
+}: ITagListProps) => {
   const handleRename = (tag: ClientTag, name: string) => {
     tag.name = name;
+  };
+
+  const handleSelection = (tag: ClientTag) => {
+    if (uiStore.tagSelection.includes(tag.id)) {
+      uiStore.deselectTag(tag);
+    } else {
+      uiStore.selectTag(tag);
+    }
+    fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
   };
 
   return (
@@ -21,7 +32,8 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
       <StaticTagListItem
         name="All images"
         onSelect={() => {
-          console.log('All images');
+          fileStore.fetchAllFiles();
+          uiStore.tagSelection.clear();
         }}
       />
 
@@ -30,8 +42,10 @@ const TagList = ({ rootStore: { tagStore } }: ITagListProps) => {
           <TagListItem
             name={tag.name}
             id={tag.id}
+            isSelected={uiStore.tagSelection.includes(tag.id)}
             onRemove={() => tagStore.removeTag(tag)}
             onRename={(name) => handleRename(tag, name)}
+            onSelect={() => handleSelection(tag)}
           />
         </div>
       ))}
