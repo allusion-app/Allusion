@@ -2,7 +2,7 @@ import React, { useContext, useMemo, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { Button, MenuItem } from '@blueprintjs/core';
-import { ItemRenderer, MultiSelect } from '@blueprintjs/select';
+import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
@@ -13,7 +13,7 @@ const NoResults = <MenuItem disabled={true} text="No results." />;
 
 const CREATED_TAG_ID = 'created-tag-id';
 
-export const renderCreateTagOption = (
+const renderCreateTagOption = (
   query: string,
   active: boolean,
   handleClick: React.MouseEventHandler<HTMLElement>,
@@ -26,6 +26,17 @@ export const renderCreateTagOption = (
     shouldDismissPopover={false}
   />
 );
+
+const filterTag: ItemPredicate<ClientTag> = (query, tag, index, exactMatch) => {
+  const normalizedName = tag.name.toLowerCase();
+  const normalizedQuery = query.toLowerCase();
+
+  if (exactMatch) {
+      return normalizedName === normalizedQuery;
+  } else {
+      return normalizedName.indexOf(normalizedQuery) >= 0;
+  }
+};
 
 interface IMultiTagSelectorProps {
   selectedTags: ClientTag[];
@@ -60,7 +71,10 @@ const MultiTagSelector = ({
     [selectedTags],
   );
 
-  const handleDeselect = useCallback((_: string, index: number) => onTagDeselect(index), []);
+  const handleDeselect = useCallback(
+    (_: string, index: number) => onTagDeselect(index),
+    [onTagDeselect],
+  );
 
   // Todo: Might need a confirmation pop over
   const ClearButton = useMemo(() =>
@@ -108,7 +122,6 @@ const MultiTagSelector = ({
       <TagMultiSelect
         items={tagStore.tagList}
         selectedItems={selectedTags}
-        initialContent={undefined}
         itemRenderer={SearchTagItem}
         noResults={NoResults}
         onItemSelect={handleSelect}
@@ -116,6 +129,7 @@ const MultiTagSelector = ({
         tagRenderer={TagLabel}
         createNewItemFromQuery={maybeCreateNewItemFromQuery}
         createNewItemRenderer={maybeCreateNewItemRenderer}
+        itemPredicate={filterTag}
         tagInputProps={{
           tagProps: { minimal: true },
           onRemove: handleDeselect,

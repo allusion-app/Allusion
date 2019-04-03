@@ -46,6 +46,7 @@ class TagStore {
     const tag = new ClientTag(this, tagName);
     this.tagList.push(tag);
     this.backend.createTag(tag.id, tag.name, tag.description);
+    return tag;
   }
 
   @action
