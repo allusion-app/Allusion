@@ -20,29 +20,27 @@ html {
 
 body {
   background: #444444;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
   margin: 0px;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
-.app {
-  --sidebar-width: 16em;
+#app {
+  --outliner-width: 16em;
   --inspector-width: 24em;
 }
 
-.main {
-  transition: margin 0.1s ease-out;
-  margin-left: var(--sidebar-width);
-  margin-right: 0;
+main {
+  grid-area: main;
+  overflow: auto;
+  height: 100vh;
 }
 
-.column {
-  display: flex;
-  flex-direction: column; 
-  height: 100%;
+#layoutContainer {
+  display: grid;
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-areas: "outliner main inspector";
 }
 
 .thumbnail {
@@ -108,52 +106,21 @@ body {
   margin: 0.5em;
 }
 
-.thumbnailSelector {
-  transition: opacity 0.2s ease-in-out;
-  opacity: 0;
-  border-radius: 100%;
-  cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 0.5em;
-  position: absolute;
-  top: 0;
-}
-
-.thumbnailSelector.selected {
-  opacity: 1!important;
-}
-
-.thumbnailSelector:hover {
-  opacity: 1;
-}
-
-.thumbnail:hover .thumbnailSelector {
-  opacity: 0.5;
-}
-
-.gallerySelectionMode .thumbnailSelector {
-  opacity: 0.5;
-}
-
-
-.sidebar {
-  width: var(--sidebar-width);
-  flex-shrink: 0;
-  overflow-x: hidden;
-  height: 100%;
-  position: fixed;
-  top: 0;
+nav {
+  grid-area: outliner;
   background: #333333;
+  overflow: auto;
+  flex-shrink: 0;
+  width: var(--outliner-width);
+  height: 100vh;
 }
 
-.sidebar h4 {
+nav h4 {
   padding: 4px;
   margin: 0;
 }
 
 .gallery {
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
   padding: 8px;
@@ -164,7 +131,7 @@ body {
   justify-content: space-between;
   position: fixed;
   top: 0;
-  width: calc(100% - var(--sidebar-width) - var(--inspector-width) - 2em);
+  width: calc(100% - var(--outliner-width) - var(--inspector-width) - 2em);
   padding: 1em;
   margin: 0.5em;
   z-index: 10;
@@ -187,69 +154,60 @@ body {
   padding: 0.5em;
 }
 
-.inspector {
-  transition: right 0.1s ease-out;
-  right: calc(var(--inspector-width) * -1);
-  width: var(--inspector-width);
+#inspector {
+  grid-area: inspector;
+  overflow: auto;
   flex-shrink: 0;
-  overflow-x: hidden;
-  height: 100%;
-  position: fixed;
-  top: 0;
+  width: 0;
+  height: 100vh;
+  transition: width 0.1s ease-out;
 }
 
-.inspector.inspectorOpen {
-  right: 0;
+#inspector.inspectorOpen {
+  min-width: var(--inspector-width);
+  width: fit-content;
 }
 
-.main.inspectorOpen {
-  margin-right: var(--inspector-width);
-}
-
-.inspectorSection {
+#inspector section {
   border-bottom: 3px solid #181818;
   padding: 1em;
 }
 
-.fileInfoKey {
+.inpectorHeading {
   font-weight: bold;
-  width: 40%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: inline-block;
 }
 
-.fileInfoValue {
-  width: 60%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: right;
-  display: inline-block;
-}
-
-.fileInfoKeyMulti {
-  width: 100%;
-}
-
-.fileInfoValueMulti {
-  white-space: normal;
-}
-
-.center {
-  text-align: center;
-}
-
-.inspector .bp3-tag {
-  margin-bottom: 5px;
-  margin-right: 5px;
-}
-
-.inspector img {
+.filePreview img {
+  padding: 0.3em;
+  background-color: #333333;
   width: 100%;
   max-height: calc(var(--inspector-width) - 2em);
   object-fit: contain;
+}
+
+.fileOverview {
+  text-align: center;
+}
+
+.fileInfo {
+  display: grid;
+  grid-template-columns: min-content 1fr;
+  grid-column-gap: 1em;
+}
+
+.fileInfo div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileInfoValue {
+  text-align: right;
+}
+
+.fileTag .bp3-tag {
+  margin-bottom: 5px;
+  margin-right: 5px;
 }
 
 .contextMenuTarget {
@@ -257,4 +215,18 @@ body {
   outline-width: 2px;
   outline-offset: -2px;
   outline-style: solid;
+}
+
+// --outliner-width + --thumbnail-size
+@media (max-width: 40em) {
+  #inspector {
+    display: none;
+  }
+}
+
+// --outliner-width
+@media (max-width: 16em) {
+  nav {
+    display: none;
+  }
 }

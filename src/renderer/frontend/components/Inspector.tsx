@@ -6,6 +6,7 @@ import { observer } from 'mobx-react-lite';
 import RootStore from '../stores/RootStore';
 import { withRootstore } from '../contexts/StoreContext';
 import FileInfo from './FileInfo';
+import FileTag from './FileTag';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
@@ -18,16 +19,14 @@ interface IInspectorProps {
 }
 
 const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
-
   const selectedFiles = uiStore.clientFileSelection;
 
   let selectionPreview;
   let headerText;
   let headerSubtext;
+
   if (selectedFiles.length === 0) {
-    selectionPreview = '';
     headerText = 'No image selected';
-    headerSubtext = ' ';
   } else if (selectedFiles.length === 1) {
     const singleFile = selectedFiles[0];
     const ext = singleFile.path.substr(singleFile.path.lastIndexOf('.') + 1)
@@ -46,23 +45,34 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
     headerSubtext = getBytes(size);
   }
 
-  return (
-    <div className={`inspector ${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
-      <div className="inspectorSection">
-        {selectionPreview}
-      </div>
+  if (selectedFiles.length > 0) {
+    return (
+      <aside
+        id={'inspector'}
+        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+        <section className="filePreview">{selectionPreview}</section>
 
-      <div className="inspectorSection center bp3-text-overflow-ellipsis">
-        <b>{headerText}</b>
-        <br />
-        <small>{headerSubtext}</small>
-      </div>
+        <section className="fileOverview">
+          <div className="inpectorHeading">{headerText}</div>
+          <small>{headerSubtext}</small>
+        </section>
 
-      <div className="inspectorSection">
         <FileInfo files={selectedFiles} />
-      </div>
-    </div>
-  );
+        <FileTag files={selectedFiles} />
+      </aside>
+    );
+  } else {
+    return (
+      <aside
+        id={'inspector'}
+        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+        <section className="filePreview" />
+        <section className="fileOverview">
+          <div className="inpectorHeading">{headerText}</div>
+        </section>
+      </aside>
+    );
+  }
 };
 
 export default withRootstore(observer(Inspector));

@@ -1,11 +1,11 @@
 import React from 'react';
 import TagList from './TagList';
 
-const Sidebar = () => (
-  <div className="sidebar">
+const Outliner = () => (
+  <nav>
     <h4 className="bp3-heading">All tags</h4>
     <TagList />
-  </div>
+  </nav>
 );
 
-export default Sidebar;
+export default Outliner;
