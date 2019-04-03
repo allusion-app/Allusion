@@ -26,7 +26,7 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    <div className={`${themeClass} grid`}>
+    <div id={'layoutContainer'} className={`${themeClass}`}>
       <Outliner />
 
       <main>

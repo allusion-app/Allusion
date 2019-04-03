@@ -6,6 +6,7 @@ import { observer } from 'mobx-react-lite';
 import RootStore from '../stores/RootStore';
 import { withRootstore } from '../contexts/StoreContext';
 import FileInfo from './FileInfo';
+import FileTag from './FileTag';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
@@ -23,10 +24,9 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
   let selectionPreview;
   let headerText;
   let headerSubtext;
+
   if (selectedFiles.length === 0) {
-    selectionPreview = '';
     headerText = 'No image selected';
-    headerSubtext = ' ';
   } else if (selectedFiles.length === 1) {
     const singleFile = selectedFiles[0];
     const ext = singleFile.path.substr(singleFile.path.lastIndexOf('.') + 1)
@@ -45,21 +45,34 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
     headerSubtext = getBytes(size);
   }
 
-  return (
-    <aside className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
-      <section>{selectionPreview}</section>
+  if (selectedFiles.length > 0) {
+    return (
+      <aside
+        id={'inspector'}
+        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+        <section className="filePreview">{selectionPreview}</section>
 
-      <section className="center">
-        <b>{headerText}</b>
-        <br />
-        <small>{headerSubtext}</small>
-      </section>
+        <section className="fileOverview">
+          <div className="inpectorHeading">{headerText}</div>
+          <small>{headerSubtext}</small>
+        </section>
 
-      <section>
         <FileInfo files={selectedFiles} />
-      </section>
-    </aside>
-  );
+        <FileTag files={selectedFiles} />
+      </aside>
+    );
+  } else {
+    return (
+      <aside
+        id={'inspector'}
+        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+        <section className="filePreview" />
+        <section className="fileOverview">
+          <div className="inpectorHeading">{headerText}</div>
+        </section>
+      </aside>
+    );
+  }
 };
 
 export default withRootstore(observer(Inspector));
