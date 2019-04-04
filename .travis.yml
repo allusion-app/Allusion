@@ -18,7 +18,7 @@ script:
 - echo "Package app"
 - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
   yarn package --platform=linux --arch=all; fi
-- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yarn
+- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "windows" ]]; then yarn
   package --platform=win32 --arch=all; fi
 - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   yarn package --platform=darwin --arch=all; fi
@@ -26,6 +26,7 @@ script:
 os:
 - linux
 - osx
+- windows
 
 deploy:
   provider: releases
