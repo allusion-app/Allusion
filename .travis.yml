@@ -19,4 +19,3 @@ install:
 os:
   - linux
   - osx
-  - windows
