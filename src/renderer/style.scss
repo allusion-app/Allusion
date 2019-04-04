@@ -41,7 +41,9 @@ main {
 #layoutContainer {
   display: grid;
   grid-template-columns: min-content 1fr min-content;
-  grid-template-areas: "outliner main inspector";
+  grid-template-areas:
+    "outliner-toolbar main-toolbar inspector-toolbar"
+    "outliner main inspector";
 }
 
 .thumbnail {
@@ -112,8 +114,15 @@ nav {
   background: #333333;
   overflow: auto;
   flex-shrink: 0;
-  width: var(--outliner-width);
+  width: 0;
+  min-width: 0;
+  transition: min-width 0.1s ease-out;
   height: 100vh;
+}
+
+nav.outlinerOpen {
+  min-width: var(--outliner-width);
+  width: fit-content;
 }
 
 nav h4 {
@@ -160,8 +169,9 @@ nav h4 {
   overflow: auto;
   flex-shrink: 0;
   width: 0;
+  min-width: 0;
+  transition: min-width 0.1s ease-out;
   height: 100vh;
-  transition: width 0.1s ease-out;
 }
 
 #inspector.inspectorOpen {
@@ -221,6 +231,28 @@ nav h4 {
   outline-width: 2px;
   outline-offset: -2px;
   outline-style: solid;
+}
+
+.toolbar {
+  border-bottom: 2px solid $black;
+}
+
+#outliner-toolbar {
+  grid-area: outliner-toolbar;
+}
+
+#main-toolbar {
+  grid-area: main-toolbar;
+}
+
+#inspector-toolbar {
+  grid-area: inspector-toolbar;
+  // display: grid;
+  // justify-items: end;
+}
+
+#inspector-toolbar > * {
+  float: right; // I don't understand grids...
 }
 
 // --outliner-width + --thumbnail-size

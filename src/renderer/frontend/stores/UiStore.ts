@@ -31,6 +31,7 @@ class UiStore {
   // UI
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = true;
+  @observable isSettingsOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
