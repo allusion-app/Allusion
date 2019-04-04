@@ -12,14 +12,14 @@ install:
 - yarn
 
 script:
+- yarn test
 - yarn lint
-- echo "Package linux version"
+
+- echo "Package app"
 - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
   yarn package --platform=linux --arch=all; fi
-- echo "Package windows version"
-- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; yarn
+- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yarn
   package --platform=windows --arch=all; fi
-- echo "Package mac version"
 - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   yarn package --platform=darwin --arch=all; fi
 
