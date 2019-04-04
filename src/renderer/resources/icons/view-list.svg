@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>view-list</title>
+  <g id="layout">
+    <g>
+      <path d="M17,6H43v4H17Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M17,11H32v4H17Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M17,20H43v4H17Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M17,25H32v4H17Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M17,33H43v4H17Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M17,38H32v4H17Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M5,33h9v9H5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M5,20h9v9H5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M5,6h9v9H5Z" fill="#222221" fill-rule="evenodd"/>
+    </g>
+  </g>
+</svg>

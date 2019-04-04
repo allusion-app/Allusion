@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>view-filter-up</title>
+  <g id="layout">
+    <path d="M12.8,21h23v5h-23Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M16.8,13h15v5h-15Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M20.8,6h7v4h-7Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M8.8,29h31v5H8.8Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M4.8,37h39v5H4.8Z" fill="#222221" fill-rule="evenodd"/>
+  </g>
+</svg>

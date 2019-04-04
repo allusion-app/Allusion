@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>view-name-down</title>
+  <g id="layout">
+    <g>
+      <path d="M8.2,22.9,17,11.8H8.4V8.7H21.5v2.9L12.6,22.9h9v3H8.2Z" stroke="#000" stroke-miterlimit="10"/>
+      <path d="M30.5,22.7h4.1L40.7,40H36.8l-1.1-3.6H29.3L28.1,40H24.3Zm-.2,10.7h4.4l-2.2-6.8Z" stroke="#000" stroke-miterlimit="10"/>
+    </g>
+  </g>
+</svg>

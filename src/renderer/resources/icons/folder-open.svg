@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>folder-open</title>
+  <g id="layout">
+    <g opacity="0.5">
+      <rect x="9" y="11" width="30" height="25" rx="1.8" ry="1.8" fill="#222221"/>
+      <path d="M21.8,8.5,19.4,7.3A2.8,2.8,0,0,0,18.2,7H11A2,2,0,0,0,9,9v3.8H22.9V10.3A2,2,0,0,0,21.8,8.5Z" fill="#222221"/>
+    </g>
+    <path d="M5.9,20H42.1L44,21.9,40.2,39.1,38.3,41H11.6L9.7,39.1,4,21.9Z" fill="#222221" fill-rule="evenodd"/>
+  </g>
+</svg>

@@ -1,4 +1,4 @@
-import { Breadcrumbs, IBreadcrumbProps, InputGroup, Tag, Intent } from '@blueprintjs/core';
+import { Breadcrumbs, IBreadcrumbProps, InputGroup, Tag, Intent, H3 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 
@@ -38,17 +38,16 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
           <Tag icon="cross" large intent={Intent.DANGER}>Built-in icon</Tag>
 
           <br />
+          <H3>Custom icons</H3>
           {Object.values(Icons)
-            .map((icon, i) => (
+            .map((icon, i) =>
               <Tag
                 icon={icon}
                 large
                 intent={Object.values(Intent)[i % Object.values(Intent).length]}
                 key={`tag-${i}`}
-              >
-                Custom icon
-              </Tag>
-            ))}
+             />,
+            )}
         </div>
 
         <br />

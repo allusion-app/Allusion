@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-  <title>Location-icon-16x</title>
-  <g id="layout">
-    <path d="M3,34H45v9H3Z" fill="#222221" fill-rule="evenodd"/>
-    <path d="M3,20H45v9H3Z" fill="#222221" fill-rule="evenodd"/>
-    <path d="M3,6H45v9H3Z" fill="#222221" fill-rule="evenodd"/>
-  </g>
-</svg>

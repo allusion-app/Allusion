@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>locations</title>
+  <g id="layout">
+    <path d="M5,35H43v7H5Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M5,20H43v8H5Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M5,6H43v7H5Z" fill="#222221" fill-rule="evenodd"/>
+  </g>
+</svg>
