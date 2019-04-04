@@ -14,7 +14,6 @@
     "indent": [true, "spaces", 2],
     "member-access": [false, "warning"],
     "ordered-imports": [false, "warning"],
-    "newline-per-chained-call": true
   },
   "jsRules": {
     "max-line-length": {

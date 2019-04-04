@@ -15,9 +15,13 @@ const Gallery = ({
 }: IGalleryProps) => {
   // Todo: Maybe move these to UiStore so that it can be reset when the fileList changes?
   /** The first item that is selected in a multi-selection */
-  const [initialSelectionIndex, setInitialSelectionIndex] = useState<number | undefined>(undefined);
+  const [initialSelectionIndex, setInitialSelectionIndex] = useState<
+    number | undefined
+  >(undefined);
   /** The last item that is selected in a multi-selection */
-  const [lastSelectionIndex, setLastSelectionIndex] = useState<number | undefined>(undefined);
+  const [lastSelectionIndex, setLastSelectionIndex] = useState<
+    number | undefined
+  >(undefined);
 
   const selectionModeOn = uiStore.fileSelection.length > 0;
 
@@ -61,7 +65,9 @@ const Gallery = ({
       uiStore.selectFile(fileList[Math.max(0, lastSelectionIndex - 1)]);
     } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       uiStore.fileSelection.clear();
-      uiStore.selectFile(fileList[Math.min(fileList.length - 1, lastSelectionIndex + 1)]);
+      uiStore.selectFile(
+        fileList[Math.min(fileList.length - 1, lastSelectionIndex + 1)],
+      );
     }
   };
 
@@ -74,19 +80,17 @@ const Gallery = ({
 
   return (
     <div className={`${selectionModeOn ? 'gallerySelectionMode' : ''}`}>
-      {
-        fileList.map((file, fileIndex) => (
-          <GalleryItem
-            key={`file-${file.id}`}
-            file={file}
-            isSelected={uiStore.fileSelection.includes(file.id)}
-            onRemoveTag={(tag) => file.removeTag(tag.id)}
-            onSelect={(f, e) => onSelect(fileIndex, e)}
-            onDeselect={(f) => uiStore.deselectFile(f)}
-            onDrop={(tag) => file.addTag(tag.id)}
-          />
-        ))
-      }
+      {fileList.map((file, fileIndex) => (
+        <GalleryItem
+          key={`file-${file.id}`}
+          file={file}
+          isSelected={uiStore.fileSelection.includes(file.id)}
+          onRemoveTag={(tag) => file.removeTag(tag.id)}
+          onSelect={(f, e) => onSelect(fileIndex, e)}
+          onDeselect={(f) => uiStore.deselectFile(f)}
+          onDrop={(tag) => file.addTag(tag.id)}
+        />
+      ))}
     </div>
   );
 };

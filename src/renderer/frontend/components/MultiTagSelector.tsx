@@ -32,9 +32,9 @@ const filterTag: ItemPredicate<ClientTag> = (query, tag, index, exactMatch) => {
   const normalizedQuery = query.toLowerCase();
 
   if (exactMatch) {
-      return normalizedName === normalizedQuery;
+    return normalizedName === normalizedQuery;
   } else {
-      return normalizedName.indexOf(normalizedQuery) >= 0;
+    return normalizedName.indexOf(normalizedQuery) >= 0;
   }
 };
 
@@ -77,12 +77,13 @@ const MultiTagSelector = ({
   );
 
   // Todo: Might need a confirmation pop over
-  const ClearButton = useMemo(() =>
-    selectedTags.length > 0 ? (
-      <Button icon="cross" minimal={true} onClick={onClearSelection} />
-    ) : (
-      undefined
-    ),
+  const ClearButton = useMemo(
+    () =>
+      selectedTags.length > 0 ? (
+        <Button icon="cross" minimal={true} onClick={onClearSelection} />
+      ) : (
+        undefined
+      ),
     [selectedTags],
   );
 
@@ -106,7 +107,7 @@ const MultiTagSelector = ({
     [selectedTags],
   );
 
-  const TagLabel = (tag: ClientTag) => tagLabel ? tagLabel(tag) : tag.name;
+  const TagLabel = (tag: ClientTag) => (tagLabel ? tagLabel(tag) : tag.name);
 
   // Only used for visualization in the selector, an actual ClientTag is created onSelect
   const createNewTag = useCallback(
@@ -115,7 +116,9 @@ const MultiTagSelector = ({
   );
 
   const maybeCreateNewItemFromQuery = onTagCreation ? createNewTag : undefined;
-  const maybeCreateNewItemRenderer = onTagCreation ? renderCreateTagOption : undefined;
+  const maybeCreateNewItemRenderer = onTagCreation
+    ? renderCreateTagOption
+    : undefined;
 
   return (
     <>

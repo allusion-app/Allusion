@@ -12,20 +12,13 @@ interface IFileTagProps {
 const Single = observer(({ file }: { file: ClientFile }) => {
   const { tagStore } = useContext(StoreContext);
 
-  const handleClear = useCallback(
-    () => file.tags.clear(),
-    [file],
-  );
+  const handleClear = useCallback(() => file.tags.clear(), [file]);
 
-  const handleDeselect = useCallback(
-    (index) => file.tags.splice(index, 1),
-    [file],
-  );
+  const handleDeselect = useCallback((index) => file.tags.splice(index, 1), [
+    file,
+  ]);
 
-  const handleSelect = useCallback(
-    (tag) => file.tags.push(tag.id),
-    [file],
-  );
+  const handleSelect = useCallback((tag) => file.tags.push(tag.id), [file]);
 
   const handleCreate = useCallback(
     (name: string) => {
@@ -57,13 +50,11 @@ const Multi = observer(({ files }: IFileTagProps) => {
   combinedTags.forEach((t) => countMap.set(t, (countMap.get(t) || 0) + 1));
 
   // Sort based on count
-  // tslint:disable-next-line: newline-per-chained-call
   const sortedTags = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
 
-  const handleClear = useCallback(
-    () => files.forEach((f) => f.tags.clear()),
-    [files],
-  );
+  const handleClear = useCallback(() => files.forEach((f) => f.tags.clear()), [
+    files,
+  ]);
 
   const handleSelect = useCallback(
     (tag: ClientTag) => files.forEach((f) => f.tags.push(tag.id)),
