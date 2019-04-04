@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/RvanderLaan/VisualLibrary.svg?token=ZyyPRcvUrKna9We5wrbh&branch=master)](https://travis-ci.com/RvanderLaan/VisualLibrary)
+
 # Visual Library
 
 The project is currently set up with TypeScript, and is built with Webpack to bundle all files needed to run the application in the `/dist` directory.
