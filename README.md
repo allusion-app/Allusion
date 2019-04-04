@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/RvanderLaan/VisualLibrary.svg?token=ZyyPRcvUrKna9We5wrbh&branch=master)](https://travis-ci.com/RvanderLaan/VisualLibrary)
+
 # Visual Library
 
 The project is currently set up with TypeScript, and is built with Webpack to bundle all files needed to run the application in the `/dist` directory.
@@ -37,3 +39,11 @@ If you install it as an [extension in your IDE](https://marketplace.visualstudio
 | [MobX](https://mobx.js.org/getting-started.html)        | State management    | This is where the application state is managed. Entities fetched from the backend are stored here, actions are used to update them and they are observable so that the UI can update accordingly.   |
 | [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)   | Database            | IndexedDB is built-in to browsers so this was the easiest to configure. A downside is that is only works in the renderer process of Electron. A strong alternative would be SQLite3.                |
 | [BlueprintJS](https://blueprintjs.com/docs/) | UI toolkit          | This provides us with some useful UI components, the docs do a good job of showing what it has to offer. Once we settle on an original design, we probably have to create our own. An alternative could be MaterialUI or (React) Bootstrap. |
+
+## Testing
+Testing has been configured with [Jest](https://jestjs.io/). 
+The convention for unit test files is to add them to the same directory as the file you are testing as `[filename].test.ts`.
+A short introduction to Jest with Typescript and React can be found [here](https://github.com/basarat/typescript-book/blob/master/docs/testing/jest.md). The [official docs](https://jestjs.io/docs/en/getting-started) include a more in-depth guide.
+
+Tests can be run using `yarn test` or debugged in VSCode using the launch configs in `.vscode/launch.json`, which can run either all tests or just the test file that is open.
+Jest also offers some useful options, such as running `yarn test Backend` which will only run the test files with `Backend` in their filename.
