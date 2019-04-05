@@ -21,15 +21,7 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
 
       <main>
         <div className="header">
-          <Button
-            icon="info-sign"
-            onClick={() => {
-              uiStore.isInspectorOpen = !uiStore.isInspectorOpen;
-            }}
-          />
         </div>
-
-        <br />
 
         <FileList />
       </main>
