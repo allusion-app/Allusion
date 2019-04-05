@@ -1,6 +1,6 @@
 import { action, IObservableArray, observable } from 'mobx';
 import Backend from '../../backend/Backend';
-import { ClientTagCollection, ITagCollection } from '../../entities/TagCollection';
+import { ClientTagCollection, ITagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import RootStore from './RootStore';
 
 /**
@@ -15,6 +15,14 @@ class TagCollectionStore {
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
+  }
+
+  getRootCollection() {
+    const root = this.tagCollectionList.find((c) => c.id === ROOT_TAG_COLLECTION_ID);
+    if (!root) {
+      throw new Error('Root collection not found. This should not happen!');
+    }
+    return root;
   }
 
   async init() {

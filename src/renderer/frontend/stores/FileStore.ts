@@ -23,13 +23,15 @@ class FileStore {
 
   @action
   async addFile(filePath: string) {
-    try {
-      const file = new ClientFile(this, filePath);
-      await this.backend.createFile(file.id, file.path);
-      this.fileList.push(file);
-    } catch (e) {
-      console.error('Could not add file', e);
-    }
+    // The store should not catch the errors imo, it's the responsibility of who calls this function
+    // try {
+    const file = new ClientFile(this, filePath);
+    await this.backend.createFile(file.id, file.path);
+    this.fileList.push(file);
+    return file;
+    // } catch (e) {
+    //   console.error('Could not add file', e);
+    // }
   }
 
   @action
