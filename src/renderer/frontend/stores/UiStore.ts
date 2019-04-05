@@ -29,7 +29,7 @@ class UiStore {
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
   // UI
-  @observable isOutlinerOpen: boolean = true;
+  @observable outlinerPage: 'LOCATIONS' | 'TAGS' | 'SEARCH' = 'TAGS';
   @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
 

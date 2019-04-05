@@ -7,10 +7,9 @@ import StoreContext from '../contexts/StoreContext';
 const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
-  const handleToggleOutliner = useCallback(
-    () => { uiStore.isOutlinerOpen = !uiStore.isOutlinerOpen; },
-    [],
-  );
+  const handleOutlinerLocations = useCallback(() => { uiStore.outlinerPage = 'LOCATIONS'; }, []);
+  const handleOutlinerTags = useCallback(() => { uiStore.outlinerPage = 'TAGS'; }, []);
+  const handleOutlinerSearch = useCallback(() => { uiStore.outlinerPage = 'SEARCH'; }, []);
 
   const handleToggleInspector = useCallback(
     () => { uiStore.isInspectorOpen = !uiStore.isInspectorOpen; },
@@ -35,14 +34,16 @@ const Toolbar = () => {
     <MenuItem icon="calendar" text="Date" />
   </Menu>;
 
+  const olPage = uiStore.outlinerPage;
+
   return (
     <>
       <div className="toolbar" id="outliner-toolbar">
-        <Button
-          icon={uiStore.isOutlinerOpen ? 'menu-open' : 'menu-closed'}
-          onClick={handleToggleOutliner}
-        />
+        <Button icon="menu" onClick={handleOutlinerLocations} intent={olPage === 'LOCATIONS' ? 'primary' : 'none'} />
+        <Button icon="tag" onClick={handleOutlinerTags} intent={olPage === 'TAGS' ? 'primary' : 'none'} />
+        <Button icon="search" onClick={handleOutlinerSearch} intent={olPage === 'SEARCH' ? 'primary' : 'none'} />
       </div>
+
       <div className="toolbar" id="main-toolbar">
         <Button icon="folder-open">Library ({fileStore.fileList.length} items)</Button>
         <Button icon="circle" />
@@ -55,6 +56,7 @@ const Toolbar = () => {
         />
 
       </div>
+
       <div className="toolbar" id="inspector-toolbar">
         <Button
           icon="info-sign"
