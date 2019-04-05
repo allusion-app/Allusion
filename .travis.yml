@@ -9,10 +9,10 @@ addons:
   chrome: stable
 
 before_install:
-- if [[ "$TRAVIS_BRANCH" == "travis-ci" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew cask install xquartz; fi
+- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew cask install xquartz; fi
 
 install:
-- if [[ "$TRAVIS_BRANCH" == "travis-ci" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install wine; fi
+- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install wine; fi
 - yarn
 
 script:
@@ -21,12 +21,12 @@ script:
 
 - echo "Package app"
 # 64-bit builds for the time being
-- if [[ "$TRAVIS_BRANCH" == "travis-ci" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
   yarn package --platform=linux --arch=x64; fi
-- if [[ "$TRAVIS_BRANCH" == "travis-ci" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yarn
+- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yarn
   package --platform=win32 --arch=x64; fi
-- if [[ "$TRAVIS_BRANCH" == "travis-ci" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tar -zcf Allusion-windows-${TRAVIS_BUILD_NUMBER}.tar.gz release; fi
-- if [[ "$TRAVIS_BRANCH" == "travis-ci" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tar -zcf Allusion-windows-${TRAVIS_BUILD_NUMBER}.tar.gz release; fi
+- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   yarn package --platform=darwin --arch=x64; fi
 
 os:
@@ -44,7 +44,7 @@ deploy:
   file_glob: true
   file: "*.tar.gz"
   on:
-    branch: travis-ci
+    branch: master
 
 branches:
   except:
