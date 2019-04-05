@@ -36,6 +36,8 @@ class RootStore {
       this.tagCollectionStore.init(),
       this.fileStore.init(),
     ]);
+
+    this.uiStore.isInitialized = true;
   }
 }
 

@@ -1,4 +1,4 @@
-import { Breadcrumbs, IBreadcrumbProps, InputGroup } from '@blueprintjs/core';
+import { Breadcrumbs, IBreadcrumbProps, InputGroup, H1 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 
@@ -9,6 +9,10 @@ import { withRootstore, IRootStoreProp } from './contexts/StoreContext';
 interface IAppProps extends IRootStoreProp {}
 
 const App = ({ rootStore: { uiStore } }: IAppProps) => {
+  if (!uiStore.isInitialized) {
+    return <H1>Loading...</H1>;
+  }
+
   // Breadcrumbs placeholder
   const breadcrumbs: IBreadcrumbProps[] = [
     { icon: 'symbol-square' },

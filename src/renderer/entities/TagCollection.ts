@@ -92,6 +92,13 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     return this.tags.map((id) => this.store.rootStore.tagStore.tagList.find((t) => t.id === id)) as ClientTag[];
   }
 
+  @computed get isSelected(): boolean {
+    // Todo: Not sure how costly this is. Seems fine.
+    const uiStore = this.store.rootStore.uiStore;
+    return !this.tags.some((tag) => !uiStore.tagSelection.includes(tag))
+      && !this.clientSubCollections.some((col) => !col.isSelected);
+  }
+
   delete() {
     this.store.backend.removeTagCollection(this);
     this.store.removeTagCollection(this);

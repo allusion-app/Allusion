@@ -25,6 +25,8 @@ import RootStore from './RootStore';
 class UiStore {
   rootStore: RootStore;
 
+  @observable isInitialized = false;
+
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 

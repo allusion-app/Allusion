@@ -9,6 +9,7 @@ import TagCollectionListItem from './TagCollectionListItem';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import TagCollectionStore from '../stores/TagCollectionStore';
 import { ClientTag } from '../../entities/Tag';
+import { ID } from '../../entities/ID';
 
 interface IExpandState {
   [key: string]: boolean;
@@ -35,6 +36,7 @@ const createTagCollectionTreeNode = (
 ): ITreeNode => ({
   id: col.id,
   icon: expandState[col.id] ? 'folder-open' : 'folder-close',
+  isSelected: col.isSelected,
   label: (
     <TagCollectionListItem
       tagCollection={col}
@@ -137,10 +139,26 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       if (clickedTag) {
         handleSelection(clickedTag);
       }
+
+      const clickedCollection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
+      if (clickedCollection) {
+        // Get all tags recursively that are in this collection
+        const getRecursiveTags = (col: ClientTagCollection): ID[] =>
+          [...col.tags, ...col.clientSubCollections.flatMap(getRecursiveTags)];
+        const selectedTags = getRecursiveTags(clickedCollection);
+
+        // Add or remove all tags from the selection
+        if (clickedCollection.isSelected) {
+          selectedTags.forEach((tagId) => uiStore.tagSelection.remove(tagId));
+        } else {
+          selectedTags.forEach((tagId) => !uiStore.tagSelection.includes(tagId) && uiStore.tagSelection.push(tagId));
+        }
+        fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
+      }
     }
   };
 
-  const root = tagCollectionStore.tagCollectionList.find((col) => col.id === ROOT_TAG_COLLECTION_ID);
+  const root = tagCollectionStore.getRootCollection();
   // Todo: Not sure what the impact is of generating the hierarchy in each render on performance.
   // Usually the hierarchy is stored directly in the state, but we can't do that since it it managed by the TagCollectionStore.
   // Or maybe we can, but then the ClientTagCollection needs to extends ITreeNode, which messes up the responsibility of the Store and the state required by the view...
@@ -158,6 +176,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       id: ALL_TAGS_ID,
       label: 'All tags',
       icon: 'tag',
+      isSelected: uiStore.tagSelection.length === 0,
     },
   ];
 
