@@ -68,7 +68,7 @@ const Toolbar = () => {
   const olPage = uiStore.outlinerPage;
 
   return (
-    <>
+    <div id="toolbarContainer">
       <div className="toolbar" id="outliner-toolbar">
         <ButtonGroup>
           <Button icon="menu" onClick={handleOutlinerLocations} intent={olPage === 'LOCATIONS' ? 'primary' : 'none'} />
@@ -116,7 +116,7 @@ const Toolbar = () => {
         </Drawer>
 
       </div>
-    </>
+    </div>
   );
 };
 

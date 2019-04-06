@@ -41,9 +41,13 @@ main {
 #layoutContainer {
   display: grid;
   grid-template-columns: min-content 1fr min-content;
-  grid-template-areas:
-    "outliner-toolbar main-toolbar inspector-toolbar"
-    "outliner main inspector";
+  grid-template-areas: "outliner main inspector";
+}
+
+#toolbarContainer {
+  display: grid;
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-areas: "outliner-toolbar main-toolbar inspector-toolbar"
 }
 
 .thumbnail {
@@ -235,11 +239,12 @@ nav h4 {
 }
 
 .toolbar {
-  border-bottom: 2px solid $black;
+  border-bottom: 3px solid $black;
 }
 
 #outliner-toolbar {
   grid-area: outliner-toolbar;
+  width: var(--outliner-width);
 }
 
 #main-toolbar {
@@ -248,12 +253,11 @@ nav h4 {
 
 #inspector-toolbar {
   grid-area: inspector-toolbar;
-  // display: grid;
-  // justify-items: end;
+  width: var(--inspector-width);
 }
 
 #inspector-toolbar > * {
-  float: right; // I don't understand grids...
+  float: right;
 }
 
 // --outliner-width + --thumbnail-size
