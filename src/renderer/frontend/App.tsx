@@ -6,6 +6,7 @@ import Outliner from './components/Outliner';
 import { IRootStoreProp, withRootstore } from './contexts/StoreContext';
 import Inspector from './components/Inspector';
 import Toolbar from './components/Toolbar';
+import ErrorBoundary from './components/ErrorBoundary';
 
 interface IAppProps extends IRootStoreProp {}
 
@@ -14,18 +15,20 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
 
   return (
     <div id={'layoutContainer'} className={`${themeClass}`}>
-      <Toolbar />
+      <ErrorBoundary>
+        <Toolbar />
 
-      <Outliner />
+        <Outliner />
 
-      <main>
-        <div className="header">
-        </div>
+        <main>
+          <div className="header">
+          </div>
 
-        <FileList />
-      </main>
+          <FileList />
+        </main>
 
-      <Inspector />
+        <Inspector />
+      </ErrorBoundary>
     </div>
   );
 };

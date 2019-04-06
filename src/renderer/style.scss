@@ -269,3 +269,13 @@ nav h4 {
     display: none;
   }
 }
+
+.error-boundary {
+  grid-area: main;
+}
+
+.error-boundary .message {
+  text-align: left;
+  width: 800px;
+  max-width: 800px;
+}
