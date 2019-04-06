@@ -8,28 +8,26 @@ import Inspector from './components/Inspector';
 import Toolbar from './components/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 
-interface IAppProps extends IRootStoreProp {}
+interface IAppProps extends IRootStoreProp { }
 
 const App = ({ rootStore: { uiStore } }: IAppProps) => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    <div className={`${themeClass}`}>
+    <div id="layoutContainer" className={`${themeClass}`}>
       <ErrorBoundary>
         <Toolbar />
 
-        <div id={'layoutContainer'}>
-          <Outliner />
+        <Outliner />
 
-          <main>
-            <div className="header">
-            </div>
+        <main>
+          <div className="header">
+          </div>
 
-            <FileList />
-          </main>
+          <FileList />
+        </main>
 
-          <Inspector />
-        </div>
+        <Inspector />
       </ErrorBoundary>
     </div>
   );

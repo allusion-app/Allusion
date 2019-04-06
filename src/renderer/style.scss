@@ -35,19 +35,23 @@ body {
 main {
   grid-area: main;
   overflow: auto;
+  // TODO: properly calculate height based on toolbar height
   height: 100vh;
 }
 
 #layoutContainer {
   display: grid;
   grid-template-columns: min-content 1fr min-content;
-  grid-template-areas: "outliner main inspector";
+  grid-template-areas:
+    "toolbar toolbar toolbar"
+    "outliner main inspector";
 }
 
-#toolbarContainer {
-  display: grid;
-  grid-template-columns: min-content 1fr min-content;
-  grid-template-areas: "outliner-toolbar main-toolbar inspector-toolbar"
+#toolbar {
+  grid-area: toolbar;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 3px solid $black;
 }
 
 .thumbnail {
@@ -198,7 +202,7 @@ nav h4 {
   width: 100%;
 }
 
-.filePreview img {
+#filePreview img {
   padding: 0.3em;
   background-color: #333333;
   width: 100%;
@@ -206,17 +210,17 @@ nav h4 {
   object-fit: contain;
 }
 
-.fileOverview {
+#fileOverview {
   text-align: center;
 }
 
-.fileInfo {
+#fileInfo {
   display: grid;
   grid-template-columns: min-content 1fr;
   grid-column-gap: 1em;
 }
 
-.fileInfo div {
+#fileInfo div {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -226,7 +230,7 @@ nav h4 {
   text-align: right;
 }
 
-.fileTag .bp3-tag {
+#fileTag .bp3-tag {
   margin-bottom: 5px;
   margin-right: 5px;
 }
@@ -238,37 +242,19 @@ nav h4 {
   outline-style: solid;
 }
 
-.toolbar {
-  border-bottom: 3px solid $black;
-}
-
-#outliner-toolbar {
-  grid-area: outliner-toolbar;
-  width: var(--outliner-width);
-}
-
-#main-toolbar {
-  grid-area: main-toolbar;
-}
-
-#inspector-toolbar {
-  grid-area: inspector-toolbar;
-  width: var(--inspector-width);
-}
-
-#inspector-toolbar > * {
-  float: right;
-}
-
 // --outliner-width + --thumbnail-size
 @media (max-width: 40em) {
-  #inspector {
-    display: none;
+  #inspector.inspectorOpen {
+    min-width: 0;
   }
 }
 
 // --outliner-width
 @media (max-width: 16em) {
+  #inspector {
+    display: none;
+  }
+
   nav {
     display: none;
   }

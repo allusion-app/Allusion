@@ -68,16 +68,16 @@ const Toolbar = () => {
   const olPage = uiStore.outlinerPage;
 
   return (
-    <div id="toolbarContainer">
-      <div className="toolbar" id="outliner-toolbar">
+    <div id="toolbar">
+      <section id="outliner-toolbar">
         <ButtonGroup>
           <Button icon="menu" onClick={handleOutlinerLocations} intent={olPage === 'LOCATIONS' ? 'primary' : 'none'} />
           <Button icon="tag" onClick={handleOutlinerTags} intent={olPage === 'TAGS' ? 'primary' : 'none'} />
           <Button icon="search" onClick={handleOutlinerSearch} intent={olPage === 'SEARCH' ? 'primary' : 'none'} />
         </ButtonGroup>
-      </div>
+      </section>
 
-      <div className="toolbar" id="main-toolbar">
+      <section id="main-toolbar">
         <Button icon="folder-open">Library ({fileStore.fileList.length} items)</Button>
         <Button
           icon={isFileListSelected ? 'tick' : 'circle'}
@@ -93,9 +93,9 @@ const Toolbar = () => {
           target={<Button icon="sort-asc" />}
           content={sortMenu}
         />
-      </div>
+      </section>
 
-      <div className="toolbar" id="inspector-toolbar">
+      <section id="inspector-toolbar">
         <Button
           icon="info-sign"
           onClick={handleToggleInspector}
@@ -115,7 +115,7 @@ const Toolbar = () => {
           <Button disabled>Clear database</Button>
         </Drawer>
 
-      </div>
+      </section>
     </div>
   );
 };
