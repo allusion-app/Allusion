@@ -3,6 +3,13 @@ import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from './UiStore';
 
+// import { configure } from 'mobx';
+
+// This will throw exceptions whenver we try to modify the state directly without an action
+// Actions will batch state modifications -> better for performance
+// https://mobx.js.org/refguide/action.html
+// configure({ enforceActions: 'observed' });
+
 /**
  * From: https://mobx.js.org/best/store.html
  * An often asked question is how to combine multiple stores without using singletons.

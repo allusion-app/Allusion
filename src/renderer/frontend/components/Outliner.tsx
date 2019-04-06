@@ -2,8 +2,8 @@ import React, { useContext } from 'react';
 import TagList from './TagList';
 import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
-import MultiTagSelector from './MultiTagSelector';
-import { Tree } from '@blueprintjs/core';
+import LocationsTree from './LocationsTree';
+import SearchForm from './SearchForm';
 
 const Outliner = () => {
   const { uiStore } = useContext(StoreContext);
@@ -12,9 +12,7 @@ const Outliner = () => {
     <nav className={'outlinerOpen'}>
       {uiStore.outlinerPage === 'LOCATIONS' && (<>
         <h4 className="bp3-heading">Locations</h4>
-        <Tree
-          contents={[{ id: 'root', label: 'My Pictures', hasCaret: true }]}
-        />
+        <LocationsTree />
       </>)}
 
       {uiStore.outlinerPage === 'TAGS' && (<>
@@ -24,12 +22,7 @@ const Outliner = () => {
 
       {uiStore.outlinerPage === 'SEARCH' && (<>
         <h4 className="bp3-heading">Search</h4>
-        <MultiTagSelector
-          selectedTags={[]}
-          onTagSelect={() => console.log('select')}
-          onTagDeselect={() => console.log('deselect')}
-          onClearSelection={() => console.log('clear')}
-        />
+        <SearchForm />
       </>)}
     </nav>
   );

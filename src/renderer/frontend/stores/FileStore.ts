@@ -1,6 +1,7 @@
 import { action, observable } from 'mobx';
-
 import fs from 'fs-extra';
+import path from 'path';
+
 import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
@@ -71,6 +72,15 @@ class FileStore {
         console.log('Could not find files based on tag search', e);
       }
     }
+  }
+
+  @action
+  async loadLocation(dir: string) {
+    await this.clearFileList();
+    const filenames = await fs.readdir(dir);
+    const locFiles = filenames.filter((f) => f.endsWith('.jpg') || f.endsWith('.png'))
+      .map((f): IFile => ({ id: f, path: path.join(dir, f), tags: [], dateAdded: new Date() }));
+    this.updateFromBackend(locFiles);
   }
 
   private async loadFiles() {
