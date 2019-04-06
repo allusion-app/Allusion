@@ -2,8 +2,8 @@
   <title>view-name-down</title>
   <g id="layout">
     <g>
-      <path d="M8.2,22.9,17,11.8H8.4V8.7H21.5v2.9L12.6,22.9h9v3H8.2Z" stroke="#000" stroke-miterlimit="10"/>
-      <path d="M30.5,22.7h4.1L40.7,40H36.8l-1.1-3.6H29.3L28.1,40H24.3Zm-.2,10.7h4.4l-2.2-6.8Z" stroke="#000" stroke-miterlimit="10"/>
+      <path d="M29,23h4l7,17H36l-1.5-4h-7L26,40H22Zm-.5,10h5L31,27Z"/>
+      <path d="M8,22l9-11H8V8H22v2.8L13,22h9v3H8Z"/>
     </g>
   </g>
 </svg>
