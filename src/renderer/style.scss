@@ -30,17 +30,18 @@ body {
 #app {
   --outliner-width: 16em;
   --inspector-width: 24em;
+  --toolbar-height: 2.4rem;
 }
 
 main {
   grid-area: main;
   overflow: auto;
-  // TODO: properly calculate height based on toolbar height
-  height: 100vh;
+  height: calc(100vh - var(--toolbar-height));
 }
 
 #layoutContainer {
   display: grid;
+  grid-template-rows: var(--toolbar-height) 1fr;
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
     "toolbar toolbar toolbar"
@@ -51,6 +52,7 @@ main {
   grid-area: toolbar;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   border-bottom: 3px solid $black;
 }
 
