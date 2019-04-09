@@ -31,17 +31,17 @@ body {
   --outliner-width: 16em;
   --inspector-width: 24em;
   --toolbar-height: 2.4rem;
+  --content-area-height: calc(100vh - var(--toolbar-height));
 }
 
 main {
   grid-area: main;
   overflow: auto;
-  height: calc(100vh - var(--toolbar-height));
 }
 
 #layoutContainer {
   display: grid;
-  grid-template-rows: var(--toolbar-height) 1fr;
+  grid-template-rows: var(--toolbar-height) var(--content-area-height);
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
     "toolbar toolbar toolbar"
@@ -127,7 +127,6 @@ nav {
   width: 0;
   min-width: 0;
   transition: min-width 0.1s ease-out;
-  height: 100vh;
 }
 
 nav.outlinerOpen {
@@ -182,7 +181,6 @@ nav h4 {
   width: 0;
   min-width: 0;
   transition: min-width 0.1s ease-out;
-  height: 100vh;
 }
 
 #inspector.inspectorOpen {
@@ -190,7 +188,7 @@ nav h4 {
   width: fit-content;
 }
 
-#inspector section {
+#inspector > section {
   border-bottom: 3px solid #181818;
   padding: 1em;
 }
@@ -204,7 +202,7 @@ nav h4 {
   width: 100%;
 }
 
-#filePreview img {
+#filePreview > img {
   padding: 0.3em;
   background-color: #333333;
   width: 100%;
@@ -222,7 +220,7 @@ nav h4 {
   grid-column-gap: 1em;
 }
 
-#fileInfo div {
+#fileInfo > div {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
