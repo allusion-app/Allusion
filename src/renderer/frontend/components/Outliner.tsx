@@ -1,8 +1,10 @@
 import React, { useContext } from 'react';
-import TagList from './TagList';
-import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
-import LocationsTree from './LocationsTree';
+
+import StoreContext from '../contexts/StoreContext';
+
+import TagList from './TagList';
+import ImportForm from './ImportForm';
 import SearchForm from './SearchForm';
 
 const Outliner = () => {
@@ -10,9 +12,9 @@ const Outliner = () => {
 
   return (
     <nav className={'outlinerOpen'}>
-      {uiStore.outlinerPage === 'LOCATIONS' && (<>
-        <h4 className="bp3-heading">Locations</h4>
-        <LocationsTree />
+      {uiStore.outlinerPage === 'IMPORT' && (<>
+        <h4 className="bp3-heading">Import</h4>
+        <ImportForm />
       </>)}
 
       {uiStore.outlinerPage === 'TAGS' && (<>

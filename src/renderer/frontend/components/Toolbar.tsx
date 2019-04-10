@@ -8,7 +8,7 @@ const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
-  const handleOutlinerLocations = useCallback(() => { uiStore.outlinerPage = 'LOCATIONS'; }, []);
+  const handleOutlinerImport = useCallback(() => { uiStore.outlinerPage = 'IMPORT'; }, []);
   const handleOutlinerTags = useCallback(() => { uiStore.outlinerPage = 'TAGS'; }, []);
   const handleOutlinerSearch = useCallback(() => { uiStore.outlinerPage = 'SEARCH'; }, []);
 
@@ -70,15 +70,15 @@ const Toolbar = () => {
   return (
     <div id="toolbar">
       <section id="outliner-toolbar">
-        <ButtonGroup>
-          <Button icon="menu" onClick={handleOutlinerLocations} intent={olPage === 'LOCATIONS' ? 'primary' : 'none'} />
+        <ButtonGroup minimal>
+          <Button icon="add" onClick={handleOutlinerImport} intent={olPage === 'IMPORT' ? 'primary' : 'none'} />
           <Button icon="tag" onClick={handleOutlinerTags} intent={olPage === 'TAGS' ? 'primary' : 'none'} />
           <Button icon="search" onClick={handleOutlinerSearch} intent={olPage === 'SEARCH' ? 'primary' : 'none'} />
         </ButtonGroup>
       </section>
 
       <section id="main-toolbar">
-        <Button icon="folder-open">Library ({fileStore.fileList.length} items)</Button>
+        <Button icon="folder-open" minimal>Library ({fileStore.fileList.length} items)</Button>
         <Button
           icon={isFileListSelected ? 'tick' : 'circle'}
           onClick={handleToggleSelect}
@@ -96,25 +96,27 @@ const Toolbar = () => {
       </section>
 
       <section id="inspector-toolbar">
-        <Button
-          icon="info-sign"
-          onClick={handleToggleInspector}
-        />
-        <Button
-          icon="settings"
-          onClick={handleToggleSettings}
-        />
-        <Drawer
-          isOpen={uiStore.isSettingsOpen}
-          icon="settings"
-          onClose={handleToggleSettings}
-          title="Settings"
-        >
-          <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
+        <ButtonGroup minimal>
+          <Button
+            icon="info-sign"
+            onClick={handleToggleInspector}
+            intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
+          />
+          <Button
+            icon="settings"
+            onClick={handleToggleSettings}
+          />
+          <Drawer
+            isOpen={uiStore.isSettingsOpen}
+            icon="settings"
+            onClose={handleToggleSettings}
+            title="Settings"
+          >
+            <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
 
-          <Button disabled>Clear database</Button>
-        </Drawer>
-
+            <Button disabled>Clear database</Button>
+          </Drawer>
+        </ButtonGroup>
       </section>
     </div>
   );
