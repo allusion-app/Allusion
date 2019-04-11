@@ -21,9 +21,6 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
         <Outliner />
 
         <main>
-          <div className="header">
-          </div>
-
           <FileList />
         </main>
 

@@ -45,7 +45,7 @@ class ErrorBoundary extends React.Component<{}, IErrorBoundaryState> {
             description="You can try one of the following options or contact the maintainers"
             action={<ButtonGroup>
               <Button onClick={this.reloadApplication} icon="refresh" intent="primary">
-                  Reload
+                Reload
               </Button>
               <Button onClick={this.viewInspector} intent="warning" icon="error">
                 View in DevTools

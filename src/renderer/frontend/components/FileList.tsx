@@ -23,7 +23,7 @@ const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProp
     <div className="gallery">
 
       <div id="query-overview">
-        { uiStore.clientTagSelection.map((tag) => (
+        {uiStore.clientTagSelection.map((tag) => (
           <Tag
             key={tag.id}
             id={tag.id}

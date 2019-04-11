@@ -90,7 +90,7 @@ const Toolbar = () => {
       <MenuItem icon="label" text="Name" />
       <MenuItem icon="document" text="Type" />
       <MenuItem icon="numerical" text="Size" />
-      <MenuItem icon="calendar" text="Date" labelElement={<Icon icon="sort-desc" /> } active />
+      <MenuItem icon="calendar" text="Date" labelElement={<Icon icon="sort-desc" />} active />
     </Menu>,
     [],
   );

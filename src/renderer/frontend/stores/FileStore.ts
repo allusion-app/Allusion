@@ -35,16 +35,14 @@ class FileStore {
   @action
   async removeFilesById(ids: ID[]) {
     await Promise.all(
-      ids.map(
-        async (id) => {
-          const file = this.fileList.find((f) => f.id === id);
-          if (file) {
-            await this.removeFile(file);
-          } else {
-            console.log('Could not find file to remove', file);
-          }
-        },
-      ),
+      ids.map(async (id) => {
+        const file = this.fileList.find((f) => f.id === id);
+        if (file) {
+          await this.removeFile(file);
+        } else {
+          console.log('Could not find file to remove', file);
+        }
+      }),
     );
   }
 
@@ -79,18 +77,17 @@ class FileStore {
     // Removes files with invalid file path. Otherwise adds files to fileList.
     // In the future the user should have the option to input the new path if the file was only moved or renamed.
     await Promise.all(
-      fetchedFiles.map(
-        async (backendFile: IFile) => {
-          try {
-            await fs.access(backendFile.path, fs.constants.F_OK);
-            this.fileList.push(
-              new ClientFile(this).updateFromBackend(backendFile),
-            );
-          } catch (e) {
-            console.log(`${backendFile.path} 'does not exist'`);
-            this.backend.removeFile(backendFile);
-          }
-        }),
+      fetchedFiles.map(async (backendFile: IFile) => {
+        try {
+          await fs.access(backendFile.path, fs.constants.F_OK);
+          this.fileList.push(
+            new ClientFile(this).updateFromBackend(backendFile),
+          );
+        } catch (e) {
+          console.log(`${backendFile.path} 'does not exist'`);
+          this.backend.removeFile(backendFile);
+        }
+      }),
     );
   }
 
@@ -107,24 +104,24 @@ class FileStore {
     // watching files would be better to remove invalid files
     // files could also have moved, removing them may be undesired then
     const existenceChecker = await Promise.all(
-      backendFiles.map(
-        async (backendFile) => {
-          try {
-            await fs.access(backendFile.path, fs.constants.F_OK);
-            return true;
-          } catch (err) {
-            this.backend.removeFile(backendFile);
-            const clientFile = this.fileList.find((f) => backendFile.id === f.id);
-            if (clientFile) {
-              await this.removeFile(clientFile);
-            }
-            return false;
+      backendFiles.map(async (backendFile) => {
+        try {
+          await fs.access(backendFile.path, fs.constants.F_OK);
+          return true;
+        } catch (err) {
+          this.backend.removeFile(backendFile);
+          const clientFile = this.fileList.find((f) => backendFile.id === f.id);
+          if (clientFile) {
+            await this.removeFile(clientFile);
           }
-        },
-      ),
+          return false;
+        }
+      }),
     );
 
-    const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
+    const existingBackendFiles = backendFiles.filter(
+      (_, i) => existenceChecker[i],
+    );
 
     if (this.fileList.length === 0) {
       this.fileList.push(...this.filesFromBackend(existingBackendFiles));

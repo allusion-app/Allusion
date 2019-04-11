@@ -101,7 +101,7 @@ main {
   background: $pt-intent-warning;
 }
 
-.thumbnail.droppable img{
+.thumbnail.droppable img {
   transform: scale(0.95);
 }
 
@@ -176,7 +176,7 @@ nav h4 {
   font-weight: bold;
 }
 
-// The fill option of the MultiTagSelect does not work atm. Workaround is to manually set width 
+// The fill option of the MultiTagSelect does not work atm. Workaround is to manually set width
 #inspector .bp3-popover-target {
   width: 100%;
 }

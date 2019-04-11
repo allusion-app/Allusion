@@ -27,7 +27,7 @@ const SearchForm = () => {
       {/* Filenames */}
       <FormGroup label="Filename">
         <InputGroup placeholder="Include" />
-        <InputGroup placeholder="Exclude"/>
+        <InputGroup placeholder="Exclude" />
       </FormGroup>
 
       {/* Location */}
