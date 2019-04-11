@@ -60,10 +60,23 @@ class UiStore {
 
   @action selectTag(tag: ClientTag) {
     this.tagSelection.push(tag.id);
+    this.cleanFileSelection();
   }
 
   @action deselectTag(tag: ClientTag) {
     this.tagSelection.remove(tag.id);
+    this.cleanFileSelection();
+  }
+
+  /**
+   * Deselect files that are not tagged with any tag in the current tag selection
+   */
+  private cleanFileSelection() {
+    this.clientFileSelection.forEach((file) => {
+      if (!file.tags.some((t) => this.tagSelection.includes(t))) {
+        this.deselectFile(file);
+      }
+    });
   }
 }
 
