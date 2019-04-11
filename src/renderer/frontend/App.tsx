@@ -8,7 +8,7 @@ import Inspector from './components/Inspector';
 import Toolbar from './components/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 
-interface IAppProps extends IRootStoreProp { }
+interface IAppProps extends IRootStoreProp {}
 
 const App = ({ rootStore: { uiStore } }: IAppProps) => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
