@@ -1,8 +1,40 @@
 import React, { useContext, useCallback, useMemo } from 'react';
-import { Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon } from '@blueprintjs/core';
+import {
+  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5,
+} from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../contexts/StoreContext';
+
+const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
+  <Popover>
+    <Button icon="trash" disabled={disabled} />
+    <div className="popoverContent">
+      <H5>Confirm deletion</H5>
+      <p>Are you sure you want to remove these images from your library?</p>
+      <p>Your files will not be deleted.</p>
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginTop: 15,
+        }}>
+        <Button
+          className={Classes.POPOVER_DISMISS}
+          style={{ marginRight: 10 }}>
+          Cancel
+        </Button>
+        <Button
+          intent="danger"
+          className={Classes.POPOVER_DISMISS}
+          onClick={onRemove}>
+          Delete
+        </Button>
+      </div>
+    </div>
+  </Popover>
+);
 
 const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -24,6 +56,14 @@ const Toolbar = () => {
           .filter((f) => !uiStore.fileSelection.includes(f)),
       ),
     [isFileListSelected],
+  );
+
+  const handleRemoveSelectedFiles = useCallback(
+    async () => {
+      await fileStore.removeFilesById(uiStore.fileSelection);
+      uiStore.fileSelection.clear();
+    },
+    [],
   );
 
   // Inspector actions
@@ -65,6 +105,7 @@ const Toolbar = () => {
     [],
   );
 
+  const selectionModeOn = uiStore.fileSelection.length > 0;
   const olPage = uiStore.outlinerPage;
 
   return (
@@ -78,21 +119,39 @@ const Toolbar = () => {
       </section>
 
       <section id="main-toolbar">
-        <Button icon="folder-open" minimal>Library ({fileStore.fileList.length} items)</Button>
-        <Button
-          icon={isFileListSelected ? 'tick' : 'circle'}
-          onClick={handleToggleSelect}
-          intent={isFileListSelected ? 'primary' : 'none'}
-        />
-        <Button icon="tag" />
-        <Popover
-          target={<Button icon="layout-grid" />}
-          content={layoutMenu}
-        />
-        <Popover
-          target={<Button icon="sort-asc" />}
-          content={sortMenu}
-        />
+        <ButtonGroup minimal>
+          {/* Library info. Todo: Show entire library count instead of current fileList */}
+          <Button icon="folder-open" minimal>Library ({fileStore.fileList.length} items)</Button>
+
+          <Divider />
+
+          {/* Selection info and actions */}
+          <Button
+            icon={isFileListSelected ? 'tick' : 'circle'}
+            onClick={handleToggleSelect}
+            intent={isFileListSelected ? 'primary' : 'none'}
+          >
+            {uiStore.fileSelection.length} selected
+          </Button>
+          {/* Todo: Show popover for modifying tags of selection (same as inspector?) */}
+          <Button
+            icon="tag"
+            disabled={!selectionModeOn}
+          />
+          <RemoveFilesPopover onRemove={handleRemoveSelectedFiles} disabled={!selectionModeOn} />
+
+          <Divider />
+
+          {/* Gallery actions */}
+          <Popover
+            target={<Button icon="layout-grid" />}
+            content={layoutMenu}
+          />
+          <Popover
+            target={<Button icon="sort-asc" />}
+            content={sortMenu}
+          />
+        </ButtonGroup>
       </section>
 
       <section id="inspector-toolbar">

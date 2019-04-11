@@ -145,31 +145,6 @@ nav h4 {
   padding: 8px;
 }
 
-.fileSelectionHeader {
-  display: flex;
-  justify-content: space-between;
-  position: fixed;
-  top: 0;
-  width: calc(100% - var(--outliner-width) - var(--inspector-width) - 2em);
-  padding: 1em;
-  margin: 0.5em;
-  margin-top: 2em;
-  z-index: 10;
-  background: #555555;
-  box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);
-}
-
-.fileSelectionHeader .icon {
-  cursor: pointer;
-  padding: 0.5em;
-  margin: -0.5em;
-}
-
-.fileSelectionHeader .icon:hover {
-  background: #888888;
-  border-radius: 100%;
-}
-
 .popoverContent {
   padding: 0.5em;
 }

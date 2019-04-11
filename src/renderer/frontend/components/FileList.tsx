@@ -3,25 +3,11 @@ import { observer } from 'mobx-react-lite';
 
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import Gallery from './Gallery';
-import FileSelectionHeader from './FileSelectionHeader';
 import { Tag, ITagProps } from '@blueprintjs/core';
 
 export interface IFileListProps extends IRootStoreProp {}
 
 const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProps) => {
-
-  const handleClearFileSelection = useCallback(
-    () => uiStore.fileSelection.clear(),
-    [],
-  );
-
-  const removeSelectedFiles = useCallback(
-    async () => {
-      await fileStore.removeFilesById(uiStore.fileSelection);
-      uiStore.fileSelection.clear();
-    },
-    [],
-  );
 
   const handleDeselectTag = useCallback(
     (_, props: ITagProps) => {
@@ -33,17 +19,8 @@ const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProp
     [],
   );
 
-  const selectionModeOn = uiStore.fileSelection.length > 0;
-
   return (
     <div className="gallery">
-      { selectionModeOn && (
-        <FileSelectionHeader
-          numSelectedFiles={uiStore.fileSelection.length}
-          onCancel={handleClearFileSelection}
-          onRemove={removeSelectedFiles}
-        />
-      )}
 
       <div id="query-overview">
         { uiStore.clientTagSelection.map((tag) => (
