@@ -46,12 +46,16 @@ class TagStore {
     const tag = new ClientTag(this, tagName);
     this.tagList.push(tag);
     this.backend.createTag(tag.id, tag.name, tag.description);
+    return tag;
   }
 
   @action
   removeTag(tag: ClientTag) {
     // Remove tag from state
     this.tagList.splice(this.tagList.indexOf(tag), 1);
+
+    // Remove tag from selection
+    this.rootStore.uiStore.tagSelection.remove(tag.id);
 
     // Remove tag from files
     this.rootStore.fileStore.fileList
