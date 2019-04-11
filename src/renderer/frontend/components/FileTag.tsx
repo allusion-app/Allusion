@@ -100,7 +100,7 @@ const Multi = observer(({ files }: IFileTagProps) => {
 
 const FileTag = ({ files }: IFileTagProps) => {
   return (
-    <section className="fileTag">
+    <section id="fileTag">
       <div className="inpectorHeading">Tags</div>
       {files.length === 1 ? (
         <Single file={files[0]} />

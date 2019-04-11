@@ -29,8 +29,9 @@ class UiStore {
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
   // UI
-  @observable isOutlinerOpen: boolean = true;
+  @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
   @observable isInspectorOpen: boolean = true;
+  @observable isSettingsOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
@@ -59,10 +60,25 @@ class UiStore {
 
   @action selectTag(tag: ClientTag) {
     this.tagSelection.push(tag.id);
+    this.cleanFileSelection();
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
   @action deselectTag(tag: ClientTag) {
     this.tagSelection.remove(tag.id);
+    this.cleanFileSelection();
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+  }
+
+  /**
+   * Deselect files that are not tagged with any tag in the current tag selection
+   */
+  private cleanFileSelection() {
+    this.clientFileSelection.forEach((file) => {
+      if (!file.tags.some((t) => this.tagSelection.includes(t))) {
+        this.deselectFile(file);
+      }
+    });
   }
 }
 

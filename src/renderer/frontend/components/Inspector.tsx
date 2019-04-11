@@ -48,11 +48,11 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
   if (selectedFiles.length > 0) {
     return (
       <aside
-        id={'inspector'}
+        id="inspector"
         className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
-        <section className="filePreview">{selectionPreview}</section>
+        <section id="filePreview">{selectionPreview}</section>
 
-        <section className="fileOverview">
+        <section id="fileOverview">
           <div className="inpectorHeading">{headerText}</div>
           <small>{headerSubtext}</small>
         </section>
@@ -64,11 +64,10 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
   } else {
     return (
       <aside
-        id={'inspector'}
-        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}
-      >
-        <section className="filePreview" />
-        <section className="fileOverview">
+        id="inspector"
+        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+        <section id="filePreview" />
+        <section id="fileOverview">
           <div className="inpectorHeading">{headerText}</div>
         </section>
       </aside>

@@ -48,7 +48,7 @@ const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   );
 
   return (
-    <section className="fileInfo">
+    <section id="fileInfo">
       {fileInfoList.map(({ key, value }) => [
         <div key={`fileInfoKey-${key}`} className="inpectorHeading">
           {key}
