@@ -13,7 +13,7 @@
     "no-empty-interface": false,
     "indent": [true, "spaces", 2],
     "member-access": [false, "warning"],
-    "ordered-imports": [false, "warning"],
+    "ordered-imports": [false, "warning"]
   },
   "jsRules": {
     "max-line-length": {
