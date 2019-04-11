@@ -61,11 +61,13 @@ class UiStore {
   @action selectTag(tag: ClientTag) {
     this.tagSelection.push(tag.id);
     this.cleanFileSelection();
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
   @action deselectTag(tag: ClientTag) {
     this.tagSelection.remove(tag.id);
     this.cleanFileSelection();
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
   /**

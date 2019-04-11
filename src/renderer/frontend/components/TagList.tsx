@@ -24,7 +24,6 @@ const TagList = ({
     } else {
       uiStore.selectTag(tag);
     }
-    fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
   };
 
   return (
