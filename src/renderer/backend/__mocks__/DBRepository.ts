@@ -14,15 +14,16 @@ export default class InMemoryDbRepository<T extends IIdentifiable> {
   }
 
   async getAll(count?: number) {
-    return this.items
-      .slice(0, count);
+    return this.items.slice(0, count);
   }
 
   async find(property: keyof T, query: any, count?: number) {
     return this.items
-      .filter((obj) => Array.isArray(obj[property])
-        ? (obj[property] as any).includes(query)
-        : obj[property] === query)
+      .filter((obj) =>
+        Array.isArray(obj[property])
+          ? (obj[property] as any).includes(query)
+          : obj[property] === query,
+      )
       .slice(0, count);
   }
 
