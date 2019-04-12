@@ -105,7 +105,7 @@ const Toolbar = () => {
     [],
   );
 
-  const selectionModeOn = uiStore.fileSelection.length > 0;
+  const selectionModeOn = uiStore.fileSelection.length > 0 && fileStore.fileList.length > 0;
   const olPage = uiStore.outlinerPage;
 
   return (
