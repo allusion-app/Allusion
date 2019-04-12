@@ -1,10 +1,13 @@
-import { Breadcrumbs, IBreadcrumbProps, InputGroup, H1 } from '@blueprintjs/core';
+import { H1 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 
 import FileList from './components/FileList';
-import Sidebar from './components/Sidebar';
-import { withRootstore, IRootStoreProp } from './contexts/StoreContext';
+import Outliner from './components/Outliner';
+import { IRootStoreProp, withRootstore } from './contexts/StoreContext';
+import Inspector from './components/Inspector';
+import Toolbar from './components/Toolbar';
+import ErrorBoundary from './components/ErrorBoundary';
 
 interface IAppProps extends IRootStoreProp {}
 
@@ -13,34 +16,21 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
     return <H1>Loading...</H1>;
   }
 
-  // Breadcrumbs placeholder
-  const breadcrumbs: IBreadcrumbProps[] = [
-    { icon: 'symbol-square' },
-    { icon: 'folder-close', text: 'Cars' },
-    { icon: 'folder-close', text: 'Yellow' },
-    { icon: 'document', text: 'New' },
-  ];
-
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    <div className={`${themeClass} column`}>
-      <Sidebar />
+    <div id="layoutContainer" className={`${themeClass}`}>
+      <ErrorBoundary>
+        <Toolbar />
 
-      <div className="main">
-        <div className="header">
-          <Breadcrumbs items={breadcrumbs} />
+        <Outliner />
 
-          {/* This can be replaced with the custom SearchBar component later */}
-          <InputGroup type="search" leftIcon="search" placeholder="Search" />
-        </div>
-
-        <br />
-
-        <div className="gallery">
+        <main>
           <FileList />
-        </div>
-      </div>
+        </main>
+
+        <Inspector />
+      </ErrorBoundary>
     </div>
   );
 };

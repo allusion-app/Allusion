@@ -1,6 +1,10 @@
 import { action, IObservableArray, observable } from 'mobx';
 import Backend from '../../backend/Backend';
-import { ClientTagCollection, ITagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import {
+  ClientTagCollection,
+  ITagCollection,
+  ROOT_TAG_COLLECTION_ID,
+} from '../../entities/TagCollection';
 import RootStore from './RootStore';
 
 /**
@@ -31,8 +35,8 @@ class TagCollectionStore {
 
   async loadTagCollections() {
     try {
-    const fetchedTagCollections = await this.backend.fetchTagCollections();
-    fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
+      const fetchedTagCollections = await this.backend.fetchTagCollections();
+      fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
     } catch (err) {
       console.error('Could not load tag collections', err);
     }
@@ -42,7 +46,9 @@ class TagCollectionStore {
     const tagCol = this.tagCollectionList.find((t) => backendTagCol.id === t.id);
     // In case a tag collection was added to the server from another client or session
     if (!tagCol) {
-      this.tagCollectionList.push(new ClientTagCollection(this).updateFromBackend(backendTagCol));
+      this.tagCollectionList.push(
+        new ClientTagCollection(this).updateFromBackend(backendTagCol),
+      );
     } else {
       // Else, update the existing tag collection
       tagCol.updateFromBackend(backendTagCol);
@@ -53,8 +59,10 @@ class TagCollectionStore {
   addTagCollection(name: string, parent?: ClientTagCollection) {
     const newCol = new ClientTagCollection(this, name);
     this.tagCollectionList.push(newCol);
-    this.backend.createTagCollection(newCol.id, newCol.name, newCol.description)
-      .then((col) => parent && parent.subCollections.push(col.id));
+    this.backend
+      .createTagCollection(newCol.id, newCol.name, newCol.description)
+      .then((col) => parent && parent.subCollections.push(col.id))
+      .catch((err) => console.log('Could not create tag collection', err));
     return newCol;
   }
 
@@ -67,7 +75,9 @@ class TagCollectionStore {
     this.tagCollectionList.forEach((col) => col.subCollections.remove(tagCol.id));
 
     // Remove sub-collections of this collection from state
-    tagCol.clientSubCollections.forEach((subCol) => this.removeTagCollection(subCol));
+    tagCol.clientSubCollections.forEach((subCol) =>
+      this.removeTagCollection(subCol),
+    );
 
     // Remove tags in this collection
     tagCol.clientTags.forEach((tag) => this.rootStore.tagStore.removeTag(tag));

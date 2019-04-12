@@ -44,9 +44,9 @@ const createTagCollectionTreeNode = (
       onRemove={col.id === ROOT_TAG_COLLECTION_ID ? undefined : () => store.removeTagCollection(col)}
       onAddTag={() => {
         store.rootStore.tagStore.addTag(DEFAULT_TAG_NAME)
-          .then((tag) => col.tags.push(tag.id));
-        }
-      }
+          .then((tag) => col.tags.push(tag.id))
+          .catch((err) => console.log('Could not create tag', err));
+      }}
       onAddCollection={() => {
         const newCol = store.addTagCollection('New collection', col);
         setExpandState({ ...expandState, [newCol.id]: true }); // immediately expand after adding
@@ -104,7 +104,7 @@ const createTagCollectionTreeNode = (
   ],
 });
 
-export interface ITagListProps extends IRootStoreProp {}
+export interface ITagListProps extends IRootStoreProp { }
 
 const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore } }: ITagListProps) => {
   // Keep track of folders that have been expanded. The two main folders are expanded by default.
@@ -199,21 +199,21 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       onNodeCollapse={handleNodeCollapse}
       onNodeExpand={handleNodeExpand}
       onNodeClick={handleNodeClick}
-      // TODO: Context menu from here instead of in the TagCollectionListItem
-      // Then you can right-click anywhere instead of only on the label
-      // https://github.com/palantir/blueprint/issues/3187
-      // onNodeContextMenu={}
+    // TODO: Context menu from here instead of in the TagCollectionListItem
+    // Then you can right-click anywhere instead of only on the label
+    // https://github.com/palantir/blueprint/issues/3187
+    // onNodeContextMenu={}
     />
 
-      // {/* New tag input field */}
-      // <ModifiableTagListItem
-      //   placeholder="New tag"
-      //   icon="add"
-      //   initialName={''}
-      //   onRename={(name) => tagStore.addTag(name)}
-      //   resetOnSubmit
-      //   autoFocus={false}
-      // />
+    // {/* New tag input field */}
+    // <ModifiableTagListItem
+    //   placeholder="New tag"
+    //   icon="add"
+    //   initialName={''}
+    //   onRename={(name) => tagStore.addTag(name)}
+    //   resetOnSubmit
+    //   autoFocus={false}
+    // />
     // </>
   );
 };

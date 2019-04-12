@@ -8,7 +8,6 @@ import { DropTarget, ConnectDropTarget, DropTargetMonitor } from 'react-dnd';
 import { ClientFile } from '../../entities/File';
 import {
   Tag,
-  Icon,
   ContextMenuTarget,
   Menu,
   MenuItem,
@@ -30,9 +29,8 @@ interface IGalleryItemProps {
   file: ClientFile;
   isSelected: boolean;
   onRemoveTag: (tag: ClientTag) => void;
-  onSelect: (file: ClientFile) => void;
-  onOpen: (file: ClientFile) => void;
-  onDeselect: (file: ClientFile) => void;
+  onSelect: (file: ClientFile, e: React.MouseEvent) => void;
+  onDeselect: (file: ClientFile, e: React.MouseEvent) => void;
   onDrop: (item: any) => void;
 }
 
@@ -47,7 +45,6 @@ const GalleryItem = ({
   isSelected,
   onRemoveTag,
   onSelect,
-  onOpen,
   onDeselect,
   canDrop,
   isOver,
@@ -58,12 +55,15 @@ const GalleryItem = ({
 
   const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
+  // Switch between opening/selecting depending on whether the selection mode is enabled
+  const clickFunc = isSelected ? onDeselect : onSelect;
+
   return connectDropTarget(
     <div className={className}>
       <img
         key={`file-${file.id}`}
         src={file.path}
-        onClick={() => onOpen(file)}
+        onClick={(e) => clickFunc(file, e)}
       />
       <span className="thumbnailTags">
         {file.clientTags.map((tag) => (
@@ -74,11 +74,6 @@ const GalleryItem = ({
           />
         ))}
       </span>
-      <div
-        className={`thumbnailSelector ${isSelected ? 'selected' : ''}`}
-        onClick={() => (isSelected ? onDeselect(file) : onSelect(file))}>
-        <Icon icon={isSelected ? 'selection' : 'circle'} />
-      </div>
     </div>,
   );
 };

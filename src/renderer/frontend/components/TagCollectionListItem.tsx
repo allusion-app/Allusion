@@ -156,7 +156,7 @@ interface ITagCollectionContextMenu {
 }
 const TagCollectionListItemContextMenu = ({
   onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
- }: ITagCollectionContextMenu) => {
+}: ITagCollectionContextMenu) => {
   // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
   const handleChangeColor = () => console.log('Change color');
   const onProperties = () => console.log('Show properties');
@@ -223,10 +223,10 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
         {
           isEditing
             ? <ModifiableTagListItem
-                initialName={tagCollection.name}
-                onRename={this.handleRename}
-                onAbort={this.handleRenameAbort}
-              />
+              initialName={tagCollection.name}
+              onRename={this.handleRename}
+              onAbort={this.handleRenameAbort}
+            />
             : <DraggableTagCollectionListItem {...this.props} />
         }
       </div>

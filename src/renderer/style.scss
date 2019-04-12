@@ -4,6 +4,9 @@ $pt-grid-size: 10px;
 /* using node-style package resolution in a CSS file:  */
 @import "~normalize.css";
 @import "~@blueprintjs/core/src/blueprint.scss";
+@import "~@blueprintjs/core/lib/css/blueprint.css";
+@import "~@blueprintjs/icons/lib/css/blueprint-icons.css";
+@import "~@blueprintjs/select/lib/css/blueprint-select.css";
 
 /**
  * Custom CSS
@@ -22,22 +25,39 @@ html {
 
 body {
   background: #444444;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
   margin: 0px;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
-.main {
-  margin-left: $sidebar-width;
+#app {
+  --outliner-width: 16em;
+  --inspector-width: 24em;
+  --toolbar-height: 2.4rem;
+  --content-area-height: calc(100vh - var(--toolbar-height));
 }
 
-.column {
+main {
+  grid-area: main;
+  overflow: auto;
+}
+
+#layoutContainer {
+  display: grid;
+  grid-template-rows: var(--toolbar-height) var(--content-area-height);
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-areas:
+    "toolbar toolbar toolbar"
+    "outliner main inspector";
+}
+
+#toolbar {
+  grid-area: toolbar;
   display: flex;
-  flex-direction: column; 
-  height: 100%;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid $black;
 }
 
 .thumbnail {
@@ -69,6 +89,13 @@ body {
   transform: scale(0.9);
 }
 
+.thumbnail.open img {
+  outline-color: red;
+  outline-width: 5px;
+  outline-offset: -5px;
+  outline-style: solid;
+}
+
 .thumbnail.droppable {
   background: $pt-intent-success;
 }
@@ -77,7 +104,7 @@ body {
   background: $pt-intent-warning;
 }
 
-.thumbnail.droppable img{
+.thumbnail.droppable img {
   transform: scale(0.95);
 }
 
@@ -95,75 +122,99 @@ body {
   margin: 0.5em;
 }
 
-.thumbnailSelector {
-  opacity: 0.5;
-  border-radius: 100%;
-  cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 0.5em;
-  position: absolute;
-  top: 0;
-}
-
-.thumbnailSelector.selected {
-  opacity: 1;
-}
-
-.thumbnailSelector:hover {
-  opacity: 1;
-}
-
-.sidebar {
-  width: $sidebar-width;
-  flex-shrink: 0;
-  overflow-x: hidden;
-  height: 100%;
-
-  position: fixed;
-  top: 0;
-  
+nav {
+  grid-area: outliner;
   background: #333333;
+  overflow: auto;
+  flex-shrink: 0;
+  width: 0;
+  min-width: 0;
+  transition: min-width 0.1s ease-out;
 }
 
-.sidebar h4 {
+nav.outlinerOpen {
+  min-width: var(--outliner-width);
+  width: fit-content;
+}
+
+nav h4 {
   padding: 4px;
   margin: 0;
 }
 
 .gallery {
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
   padding: 8px;
 }
 
-.fileSelectionHeader {
-  display: flex;
-  justify-content: space-between;
-  position: fixed;
-  top: 0;
-  width: calc(100% - $sidebar-width - 2em);
-  padding: 1em;
-  margin: 0.5em;
-  z-index: 10;
-  background: #555555;
-  box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.75);
-}
-
-.fileSelectionHeader .icon {
-  cursor: pointer;
-  padding: 0.5em;
-  margin: -0.5em;
-}
-
-.fileSelectionHeader .icon:hover {
-  background: #888888;
-  border-radius: 100%;
-}
-
 .popoverContent {
   padding: 0.5em;
+}
+
+#query-overview .bp3-tag {
+  margin: 0 0 0.5em 0.5em;
+}
+
+#inspector {
+  grid-area: inspector;
+  overflow: auto;
+  flex-shrink: 0;
+  width: 0;
+  min-width: 0;
+  transition: min-width 0.1s ease-out;
+}
+
+#inspector.inspectorOpen {
+  min-width: var(--inspector-width);
+  width: fit-content;
+}
+
+#inspector > section {
+  border-bottom: 3px solid #181818;
+  padding: 1em;
+}
+
+.inpectorHeading {
+  font-weight: bold;
+}
+
+// The fill option of the MultiTagSelect does not work atm. Workaround is to manually set width
+#inspector .bp3-popover-target {
+  width: 100%;
+}
+
+#filePreview > img {
+  padding: 0.3em;
+  background-color: #333333;
+  width: 100%;
+  max-height: calc(var(--inspector-width) - 2em);
+  object-fit: contain;
+}
+
+#fileOverview {
+  text-align: center;
+}
+
+#fileInfo {
+  display: grid;
+  grid-template-columns: min-content 1fr;
+  grid-column-gap: 1em;
+}
+
+#fileInfo > div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileInfoValue {
+  text-align: right;
+}
+
+#fileTag .bp3-tag {
+  margin-bottom: 5px;
+  margin-right: 5px;
 }
 
 .contextMenuTarget {
@@ -191,3 +242,31 @@ body {
 //     padding-left: ($tree-row-height / 2 - $tree-icon-spacing) * $i;
 //   }
 // }
+
+// --outliner-width + --thumbnail-size
+@media (max-width: 40em) {
+  #inspector.inspectorOpen {
+    min-width: 0;
+  }
+}
+
+// --outliner-width
+@media (max-width: 16em) {
+  #inspector {
+    display: none;
+  }
+
+  nav {
+    display: none;
+  }
+}
+
+.error-boundary {
+  grid-area: main;
+}
+
+.error-boundary .message {
+  text-align: left;
+  width: 800px;
+  max-width: 800px;
+}

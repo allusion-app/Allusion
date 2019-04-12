@@ -1,6 +1,6 @@
 import { action, observable } from 'mobx';
-
 import fs from 'fs-extra';
+
 import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
@@ -23,30 +23,24 @@ class FileStore {
 
   @action
   async addFile(filePath: string) {
-    // The store should not catch the errors imo, it's the responsibility of who calls this function
-    // try {
+    // The function caller is responsible for handling errors.
     const file = new ClientFile(this, filePath);
     await this.backend.createFile(file.id, file.path);
     this.fileList.push(file);
     return file;
-    // } catch (e) {
-    //   console.error('Could not add file', e);
-    // }
   }
 
   @action
   async removeFilesById(ids: ID[]) {
     await Promise.all(
-      ids.map(
-        async (id) => {
-          const file = this.fileList.find((f) => f.id === id);
-          if (file) {
-            await this.removeFile(file);
-          } else {
-            console.log('Could not find file to remove', file);
-          }
-        },
-      ),
+      ids.map(async (id) => {
+        const file = this.fileList.find((f) => f.id === id);
+        if (file) {
+          await this.removeFile(file);
+        } else {
+          console.log('Could not find file to remove', file);
+        }
+      }),
     );
   }
 
@@ -81,24 +75,25 @@ class FileStore {
     // Removes files with invalid file path. Otherwise adds files to fileList.
     // In the future the user should have the option to input the new path if the file was only moved or renamed.
     await Promise.all(
-      fetchedFiles.map(
-        async (backendFile: IFile) => {
-          try {
-            await fs.access(backendFile.path, fs.constants.F_OK);
-            this.fileList.push(
-              new ClientFile(this).updateFromBackend(backendFile),
-            );
-          } catch (e) {
-            console.log(`${backendFile.path} 'does not exist'`);
-            this.backend.removeFile(backendFile);
-          }
-        }),
+      fetchedFiles.map(async (backendFile: IFile) => {
+        try {
+          await fs.access(backendFile.path, fs.constants.F_OK);
+          this.fileList.push(
+            new ClientFile(this).updateFromBackend(backendFile),
+          );
+        } catch (e) {
+          console.log(`${backendFile.path} 'does not exist'`);
+          this.backend.removeFile(backendFile);
+        }
+      }),
     );
   }
 
   private async removeFile(file: ClientFile): Promise<void> {
     file.dispose();
     this.fileList.remove(file);
+    // Deselect in case it was selected
+    this.rootStore.uiStore.deselectFile(file);
     return this.backend.removeFile(file);
   }
 
@@ -107,24 +102,24 @@ class FileStore {
     // watching files would be better to remove invalid files
     // files could also have moved, removing them may be undesired then
     const existenceChecker = await Promise.all(
-      backendFiles.map(
-        async (backendFile) => {
-          try {
-            await fs.access(backendFile.path, fs.constants.F_OK);
-            return true;
-          } catch (err) {
-            this.backend.removeFile(backendFile);
-            const clientFile = this.fileList.find((f) => backendFile.id === f.id);
-            if (clientFile) {
-              await this.removeFile(clientFile);
-            }
-            return false;
+      backendFiles.map(async (backendFile) => {
+        try {
+          await fs.access(backendFile.path, fs.constants.F_OK);
+          return true;
+        } catch (err) {
+          this.backend.removeFile(backendFile);
+          const clientFile = this.fileList.find((f) => backendFile.id === f.id);
+          if (clientFile) {
+            await this.removeFile(clientFile);
           }
-        },
-      ),
+          return false;
+        }
+      }),
     );
 
-    const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
+    const existingBackendFiles = backendFiles.filter(
+      (_, i) => existenceChecker[i],
+    );
 
     if (this.fileList.length === 0) {
       this.fileList.push(...this.filesFromBackend(existingBackendFiles));
