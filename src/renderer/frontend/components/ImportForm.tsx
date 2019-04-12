@@ -71,7 +71,7 @@ const importDirRecursive = async (
   // If there are any subdirectories, import those as well
   subDirs.forEach(async (folderName) => {
     const tagCollectionStore = tagStore.rootStore.tagCollectionStore;
-    const newCol = tagCollectionStore.addTagCollection(folderName, parent);
+    const newCol = await tagCollectionStore.addTagCollection(folderName, parent);
     importDirRecursive(fileStore, tagStore, path.join(dir, folderName), newCol);
   });
 };

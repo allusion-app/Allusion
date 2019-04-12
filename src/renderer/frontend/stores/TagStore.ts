@@ -42,10 +42,11 @@ class TagStore {
   }
 
   @action
-  addTag(tagName: string) {
+  async addTag(tagName: string) {
     const tag = new ClientTag(this, tagName);
     this.tagList.push(tag);
-    return this.backend.createTag(tag.id, tag.name, tag.description);
+    await this.backend.createTag(tag.id, tag.name, tag.description);
+    return tag;
   }
 
   @action
