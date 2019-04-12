@@ -105,7 +105,8 @@ const Toolbar = () => {
     [],
   );
 
-  const selectionModeOn = uiStore.fileSelection.length > 0 && fileStore.fileList.length > 0;
+  const numFiles = fileStore.fileList.length;
+  const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
   const olPage = uiStore.outlinerPage;
 
   return (
@@ -121,7 +122,7 @@ const Toolbar = () => {
       <section id="main-toolbar">
         <ButtonGroup minimal>
           {/* Library info. Todo: Show entire library count instead of current fileList */}
-          <Button icon="folder-open" minimal>Library ({fileStore.fileList.length} items)</Button>
+          <Button icon="document" minimal>{numFiles} item{`${numFiles === 1 ? '' : 's'}`}</Button>
 
           <Divider />
 
