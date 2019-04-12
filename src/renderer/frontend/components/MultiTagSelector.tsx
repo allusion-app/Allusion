@@ -44,7 +44,7 @@ interface IMultiTagSelectorProps {
   onTagSelect: (tag: ClientTag) => void;
   onTagDeselect: (tag: ClientTag, index: number) => void;
   onClearSelection: () => void;
-  onTagCreation?: (name: string) => ClientTag;
+  onTagCreation?: (name: string) => Promise<ClientTag>;
   placeholder?: string;
   disabled?: boolean;
 }
@@ -61,10 +61,10 @@ const MultiTagSelector = ({
   const { tagStore } = useContext(StoreContext);
 
   const handleSelect = useCallback(
-    (tag: ClientTag) => {
+    async (tag: ClientTag) => {
       // When a tag is created, it is selected. Here we detect whether we need to actually the ClientTag.
       if (onTagCreation && tag.id === CREATED_TAG_ID) {
-        tag = onTagCreation(tag.name);
+        tag = await onTagCreation(tag.name);
       }
 
       return selectedTags.includes(tag)

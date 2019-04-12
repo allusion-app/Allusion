@@ -56,13 +56,13 @@ class TagCollectionStore {
   }
 
   @action
-  addTagCollection(name: string, parent?: ClientTagCollection) {
+  async addTagCollection(name: string, parent?: ClientTagCollection) {
     const newCol = new ClientTagCollection(this, name);
     this.tagCollectionList.push(newCol);
-    this.backend
-      .createTagCollection(newCol.id, newCol.name, newCol.description)
-      .then((col) => parent && parent.subCollections.push(col.id))
-      .catch((err) => console.log('Could not create tag collection', err));
+    await this.backend.createTagCollection(newCol.id, newCol.name, newCol.description);
+    if (parent) {
+      parent.subCollections.push(newCol.id);
+    }
     return newCol;
   }
 

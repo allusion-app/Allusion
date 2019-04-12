@@ -47,8 +47,8 @@ const createTagCollectionTreeNode = (
           .then((tag) => col.tags.push(tag.id))
           .catch((err) => console.log('Could not create tag', err));
       }}
-      onAddCollection={() => {
-        const newCol = store.addTagCollection('New collection', col);
+      onAddCollection={async () => {
+        const newCol = await store.addTagCollection('New collection', col);
         setExpandState({ ...expandState, [newCol.id]: true }); // immediately expand after adding
       }}
       onExpand={() => setExpandState({ ...expandState, [col.id]: true })}

@@ -10,7 +10,7 @@ interface IFileTagProps {
 }
 
 const Single = observer(({ file }: { file: ClientFile }) => {
-  const { tagStore } = useContext(StoreContext);
+  const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
   const handleClear = useCallback(() => file.tags.clear(), [file]);
 
@@ -21,13 +21,11 @@ const Single = observer(({ file }: { file: ClientFile }) => {
   const handleSelect = useCallback((tag) => file.tags.push(tag.id), [file]);
 
   const handleCreate = useCallback(
-    (name: string) => {
-      const newTag = new ClientTag(tagStore);
-      tagStore.addTag(name)
-        .then((t) => newTag.updateFromBackend(t))
-        .catch((err) => console.log('Could not create tag', err));
-      // Todo: When merging with hierarchy, make sure to this tag to a collection
-      return newTag;
+    async (name: string) => {
+      const tag = await tagStore.addTag(name);
+      // Add new tags to the root hierarchy by default
+      tagCollectionStore.getRootCollection().tags.push(tag.id);
+      return tag;
     },
     [file],
   );
@@ -44,7 +42,7 @@ const Single = observer(({ file }: { file: ClientFile }) => {
 });
 
 const Multi = observer(({ files }: IFileTagProps) => {
-  const { tagStore } = useContext(StoreContext);
+  const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
   // Count how often tags are used
   const combinedTags: ClientTag[] = [];
@@ -78,11 +76,10 @@ const Multi = observer(({ files }: IFileTagProps) => {
   );
 
   const handleCreate = useCallback(
-    (name: string) => {
-      const newTag = new ClientTag(tagStore);
-      tagStore.addTag(name)
-        .then((t) => newTag.updateFromBackend(t))
-        .catch((err) => console.log('Could not create tag', err));
+    async (name: string) => {
+      const newTag = await tagStore.addTag(name);
+      // Add new tags to the root hierarchy by default
+      tagCollectionStore.getRootCollection().tags.push(newTag.id);
       files.forEach((file) => file.addTag(newTag.id));
       return newTag;
     },
@@ -108,8 +105,8 @@ const FileTag = ({ files }: IFileTagProps) => {
       {files.length === 1 ? (
         <Single file={files[0]} />
       ) : (
-          <Multi files={files} />
-        )}
+        <Multi files={files} />
+      )}
     </section>
   );
 };
