@@ -34,7 +34,6 @@ const chooseDirectory = async (fileStore: FileStore) => {
 
     imgFileNames.forEach(async (filename) => {
       const joinedPath = path.join(dir, filename);
-      console.log(joinedPath);
       fileStore.addFile(joinedPath);
     });
   });
@@ -61,19 +60,27 @@ const importDirRecursive = async (
   dir: string,
   parent: ClientTagCollection,
 ) => {
-  // Import files of this dir
-  await importDir(fileStore, dir, tagStore, parent, true);
-
   const filenames = await fse.readdir(dir);
   const filenamesStats = await Promise.all(filenames.map((f) => fse.lstat(path.join(dir, f))));
   const subDirs = filenames.filter((_, i) => filenamesStats[i].isDirectory());
 
-  // If there are any subdirectories, import those as well
-  subDirs.forEach(async (folderName) => {
+  if (subDirs.length === 0) {
+    // If a dir contains no subdirs, but does contain files, only create a Tag, not a Collection
+    await importDir(fileStore, dir, tagStore, parent, true);
+  } else {
+    // Else, create a collection
     const tagCollectionStore = tagStore.rootStore.tagCollectionStore;
-    const newCol = await tagCollectionStore.addTagCollection(folderName, parent);
-    importDirRecursive(fileStore, tagStore, path.join(dir, folderName), newCol);
-  });
+    const dirName = path.basename(dir);
+    const dirCol = await tagCollectionStore.addTagCollection(dirName, parent);
+
+    // Import the files in the folder
+    await importDir(fileStore, dir, tagStore, dirCol, true);
+
+    // Import all subdirs
+    subDirs.forEach(async (folderName) => {
+      importDirRecursive(fileStore, tagStore, path.join(dir, folderName), dirCol);
+    });
+  }
 };
 
 const importDir = async (
@@ -115,7 +122,7 @@ const importDir = async (
     // Add tag to collection
     parent.tags.push(tag.id);
     // Add tag to files
-    addedFiles.forEach((f) => f.tags.push(tag.id));
+    addedFiles.forEach((f) => f.addTag(tag.id));
   }
 };
 
