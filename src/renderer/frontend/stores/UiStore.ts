@@ -76,6 +76,11 @@ class UiStore {
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
+  @action clearTagSelection() {
+    this.tagSelection.clear();
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+  }
+
   /**
    * Deselect files that are not tagged with any tag in the current tag selection
    */

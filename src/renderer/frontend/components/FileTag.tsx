@@ -65,11 +65,8 @@ const Multi = observer(({ files }: IFileTagProps) => {
   );
 
   const handleDeselect = useCallback(
-    (index: number) => {
-      const removedTag = sortedTags[index][0];
-      files.forEach((f) => f.tags.remove(removedTag.id));
-    },
-    [files, sortedTags],
+    (tag: ClientTag) => files.forEach((f) => f.tags.remove(tag.id)),
+    [files],
   );
 
   const tagLabel = useCallback(

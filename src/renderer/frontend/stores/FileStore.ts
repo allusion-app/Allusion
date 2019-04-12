@@ -32,16 +32,16 @@ class FileStore {
 
   @action
   async removeFilesById(ids: ID[]) {
-    await Promise.all(
-      ids.map(async (id) => {
-        const file = this.fileList.find((f) => f.id === id);
-        if (file) {
-          await this.removeFile(file);
-        } else {
-          console.log('Could not find file to remove', file);
-        }
-      }),
-    );
+    const filesToRemove = ids.map((id) => this.fileList.find((f) => f.id === id));
+    // Intentionally done in sequence instead of parallel to avoid removing the wrong files
+    // Probably could be done in parallel, but the current removeFile removes the wrong files when called with Promise.all
+    for (const file of filesToRemove) {
+      if (file) {
+        await this.removeFile(file);
+      } else {
+        console.log('Could not find file to remove', file);
+      }
+    }
   }
 
   @action
@@ -90,10 +90,10 @@ class FileStore {
   }
 
   private async removeFile(file: ClientFile): Promise<void> {
-    file.dispose();
-    this.fileList.remove(file);
     // Deselect in case it was selected
     this.rootStore.uiStore.deselectFile(file);
+    file.dispose();
+    this.fileList.remove(file);
     return this.backend.removeFile(file);
   }
 

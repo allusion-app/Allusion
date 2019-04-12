@@ -95,7 +95,8 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
   @computed get isSelected(): boolean {
     // Todo: Not sure how costly this is. Seems fine.
     const uiStore = this.store.rootStore.uiStore;
-    return !this.tags.some((tag) => !uiStore.tagSelection.includes(tag))
+    return (this.tags.length > 0 || this.subCollections.length > 0)
+      && !this.tags.some((tag) => !uiStore.tagSelection.includes(tag))
       && !this.clientSubCollections.some((col) => !col.isSelected);
   }
 
