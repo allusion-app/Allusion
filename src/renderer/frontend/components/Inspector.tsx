@@ -49,7 +49,8 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
     return (
       <aside
         id="inspector"
-        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}
+      >
         <section id="filePreview">{selectionPreview}</section>
 
         <section id="fileOverview">
@@ -65,7 +66,8 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
     return (
       <aside
         id="inspector"
-        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}
+      >
         <section id="filePreview" />
         <section id="fileOverview">
           <div className="inpectorHeading">{headerText}</div>

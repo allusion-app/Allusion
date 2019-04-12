@@ -22,7 +22,10 @@ const Single = observer(({ file }: { file: ClientFile }) => {
 
   const handleCreate = useCallback(
     (name: string) => {
-      const newTag = tagStore.addTag(name);
+      const newTag = new ClientTag(tagStore);
+      tagStore.addTag(name)
+        .then((t) => newTag.updateFromBackend(t))
+        .catch((err) => console.log('Could not create tag', err));
       // Todo: When merging with hierarchy, make sure to this tag to a collection
       return newTag;
     },
@@ -62,11 +65,8 @@ const Multi = observer(({ files }: IFileTagProps) => {
   );
 
   const handleDeselect = useCallback(
-    (index: number) => {
-      const removedTag = sortedTags[index][0];
-      files.forEach((f) => f.tags.remove(removedTag.id));
-    },
-    [files, sortedTags],
+    (tag: ClientTag) => files.forEach((f) => f.tags.remove(tag.id)),
+    [files],
   );
 
   const tagLabel = useCallback(
@@ -79,7 +79,10 @@ const Multi = observer(({ files }: IFileTagProps) => {
 
   const handleCreate = useCallback(
     (name: string) => {
-      const newTag = tagStore.addTag(name);
+      const newTag = new ClientTag(tagStore);
+      tagStore.addTag(name)
+        .then((t) => newTag.updateFromBackend(t))
+        .catch((err) => console.log('Could not create tag', err));
       files.forEach((file) => file.addTag(newTag.id));
       return newTag;
     },
@@ -105,8 +108,8 @@ const FileTag = ({ files }: IFileTagProps) => {
       {files.length === 1 ? (
         <Single file={files[0]} />
       ) : (
-        <Multi files={files} />
-      )}
+          <Multi files={files} />
+        )}
     </section>
   );
 };

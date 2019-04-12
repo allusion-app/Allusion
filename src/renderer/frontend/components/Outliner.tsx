@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../contexts/StoreContext';
 
-import TagList from './TagList';
+import TagList from './TagTree';
 import ImportForm from './ImportForm';
 import SearchForm from './SearchForm';
 

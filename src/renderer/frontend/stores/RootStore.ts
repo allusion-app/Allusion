@@ -2,6 +2,7 @@ import Backend from '../../backend/Backend';
 import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from './UiStore';
+import TagCollectionStore from './TagCollectionStore';
 
 // import { configure } from 'mobx';
 
@@ -24,12 +25,14 @@ class RootStore {
   backend: Backend;
 
   public tagStore: TagStore;
+  public tagCollectionStore: TagCollectionStore;
   public fileStore: FileStore;
   public uiStore: UiStore;
 
   constructor(backend: Backend) {
     this.backend = backend;
     this.tagStore = new TagStore(backend, this);
+    this.tagCollectionStore = new TagCollectionStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.uiStore = new UiStore(this);
   }
@@ -37,8 +40,11 @@ class RootStore {
   async init() {
     await Promise.all([
       this.tagStore.init(),
+      this.tagCollectionStore.init(),
       this.fileStore.init(),
     ]);
+
+    this.uiStore.isInitialized = true;
   }
 }
 

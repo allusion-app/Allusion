@@ -25,6 +25,8 @@ import RootStore from './RootStore';
 class UiStore {
   rootStore: RootStore;
 
+  @observable isInitialized = false;
+
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
@@ -39,11 +41,15 @@ class UiStore {
   readonly tagSelection = observable<ID>([]);
 
   @computed get clientFileSelection(): ClientFile[] {
-    return this.fileSelection.map((id) => this.rootStore.fileStore.fileList.find((f) => f.id === id)) as ClientFile[];
+    return this.fileSelection.map((id) =>
+      this.rootStore.fileStore.fileList.find((f) => f.id === id),
+    ) as ClientFile[];
   }
 
   @computed get clientTagSelection(): ClientTag[] {
-    return this.tagSelection.map((id) => this.rootStore.tagStore.tagList.find((t) => t.id === id)) as ClientTag[];
+    return this.tagSelection.map((id) =>
+      this.rootStore.tagStore.tagList.find((t) => t.id === id),
+    ) as ClientTag[];
   }
 
   constructor(rootStore: RootStore) {
@@ -67,6 +73,11 @@ class UiStore {
   @action deselectTag(tag: ClientTag) {
     this.tagSelection.remove(tag.id);
     this.cleanFileSelection();
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+  }
+
+  @action clearTagSelection() {
+    this.tagSelection.clear();
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 

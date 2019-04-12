@@ -26,6 +26,10 @@ export default class InMemoryDbRepository<T extends IIdentifiable> {
       .slice(0, count);
   }
 
+  async count(property?: string, query?: any): Promise<number> {
+    return this.items.length;
+  }
+
   async create(item: T) {
     this.items.push(item);
     return item;

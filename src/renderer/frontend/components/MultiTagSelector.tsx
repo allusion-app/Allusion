@@ -42,9 +42,11 @@ interface IMultiTagSelectorProps {
   selectedTags: ClientTag[];
   tagLabel?: (tag: ClientTag) => string;
   onTagSelect: (tag: ClientTag) => void;
-  onTagDeselect: (index: number) => void;
+  onTagDeselect: (tag: ClientTag, index: number) => void;
   onClearSelection: () => void;
   onTagCreation?: (name: string) => ClientTag;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
 const MultiTagSelector = ({
@@ -54,6 +56,7 @@ const MultiTagSelector = ({
   onTagDeselect,
   onClearSelection,
   onTagCreation,
+  placeholder,
 }: IMultiTagSelectorProps) => {
   const { tagStore } = useContext(StoreContext);
 
@@ -65,14 +68,14 @@ const MultiTagSelector = ({
       }
 
       return selectedTags.includes(tag)
-        ? onTagDeselect(selectedTags.indexOf(tag))
+        ? onTagDeselect(tag, selectedTags.indexOf(tag))
         : onTagSelect(tag);
     },
     [selectedTags],
   );
 
   const handleDeselect = useCallback(
-    (_: string, index: number) => onTagDeselect(index),
+    (_: string, index: number) => onTagDeselect(selectedTags[index], index),
     [onTagDeselect],
   );
 
@@ -139,6 +142,7 @@ const MultiTagSelector = ({
           rightElement: ClearButton,
           fill: true,
         }}
+        placeholder={placeholder}
       />
     </>
   );

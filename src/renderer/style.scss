@@ -1,14 +1,18 @@
+/** Overwriting default Blueprint variables */
+$pt-grid-size: 10px;
+
 /* using node-style package resolution in a CSS file:  */
 @import "~normalize.css";
+@import "~@blueprintjs/core/src/blueprint.scss";
 @import "~@blueprintjs/core/lib/css/blueprint.css";
 @import "~@blueprintjs/icons/lib/css/blueprint-icons.css";
 @import "~@blueprintjs/select/lib/css/blueprint-select.css";
 
 /**
- * Sass variables, for color parameters etc.
- * Reference: https://blueprintjs.com/docs/#core/variables.color-aliases
+ * Custom CSS
  */
-@import "~@blueprintjs/core/lib/scss/variables";
+$sidebar-width: 18em;
+$thumbnail-size: 16em;
 
 html {
   height: 100%;
@@ -58,17 +62,16 @@ main {
 
 .thumbnail {
   transition: all 0.1s ease-in-out;
-  --thumbnail-size: 24em;
-  width: var(--thumbnail-size);
-  height: var(--thumbnail-size);
+  width: $thumbnail-size;
+  height: $thumbnail-size;
   display: inline-block;
   position: relative;
 }
 
 .thumbnail img {
   transition: all 0.1s ease-in-out;
-  width: var(--thumbnail-size);
-  height: var(--thumbnail-size);
+  width: $thumbnail-size;
+  height: $thumbnail-size;
   object-fit: cover;
   cursor: pointer;
   margin-left: auto;
@@ -180,6 +183,9 @@ nav h4 {
 #inspector .bp3-popover-target {
   width: 100%;
 }
+#search-form .bp3-popover-target {
+  width: 100%;
+}
 
 #filePreview > img {
   padding: 0.3em;
@@ -220,6 +226,25 @@ nav h4 {
   outline-offset: -2px;
   outline-style: solid;
 }
+
+.bp3-tree-node .reorder-target {
+  border-top: 2px solid $pt-intent-primary;
+}
+
+.bp3-tree-node .reorder-source {
+  opacity: 0.2;
+}
+
+// Reduce default padding-left of Blueprint tree rows
+// Only divided `$tree-row-height` by 2, doesn't look very nice
+// Adjusted from @blueprintjs/core/src/components/tree_tree.scss
+// $tree-row-height: $pt-grid-size * 3 !default;
+// $tree-icon-spacing: ($tree-row-height - $pt-icon-size-standard) / 2 !default;
+// @for $i from 0 through 20 {
+//   .#{$ns}-tree-node-content-#{$i} {
+//     padding-left: ($tree-row-height / 2 - $tree-icon-spacing) * $i;
+//   }
+// }
 
 // --outliner-width + --thumbnail-size
 @media (max-width: 40em) {
