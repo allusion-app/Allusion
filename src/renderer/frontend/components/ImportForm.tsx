@@ -12,11 +12,6 @@ import { ClientTagCollection } from '../../entities/TagCollection';
 import TagStore from '../stores/TagStore';
 import IconSet from './Icons';
 
-/** Checks if a file or directory starts with a dot */
-const isDotFile = (filePath: string): boolean => {
-  return path.basename(filePath).startsWith('.');
-};
-
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialog({
     filters: [{ name: 'Images', extensions: ['gif', 'png', 'jpg', 'jpeg'] }],
@@ -28,13 +23,13 @@ const chooseFiles = async (fileStore: FileStore) => {
   }
 
   files.forEach(async (filename) => {
-    if (!isDotFile(filename)) {
+    if (!filename.startsWith('.')) {
       fileStore.addFile(filename);
     }
   });
 };
 
-const chooseDirectory = async (fileStore: FileStore) => {
+const chooseDirectories = async (fileStore: FileStore) => {
   const dirs = remote.dialog.showOpenDialog({
     properties: ['openDirectory', 'multiSelections'],
   });
@@ -44,22 +39,7 @@ const chooseDirectory = async (fileStore: FileStore) => {
   }
 
   dirs.forEach(async (dir) => {
-    if (isDotFile(dir)) {
-      return;
-    }
-    // Check if directory
-    // const stats = await fse.lstat(dirs[0]);
-    const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
-
-    const filenames = await fse.readdir(dir);
-    const imgFileNames = filenames.filter((f) => {
-      const file = f.toLowerCase();
-      // skip dot files
-      if (file.startsWith('.')) {
-        return false;
-      }
-      return imgExtensions.some((ext) => file.endsWith(ext));
-    });
+    const imgFileNames = await findFiles(dir);
 
     imgFileNames.forEach(async (filename) => {
       const joinedPath = path.join(dir, filename);
@@ -74,7 +54,7 @@ const chooseFolderStructure = async (fileStore: FileStore) => {
     properties: ['openDirectory'],
   });
 
-  // multi-selection is disabled which is there can be at most 1 folder
+  // multi-selection is disabled which means there can be at most 1 folder
   if (!dirs || dirs.length === 0) {
     return;
   }
@@ -97,7 +77,7 @@ const importDirRecursive = async (
 
   if (subDirs.length === 0) {
     // If a dir contains no subdirs, but does contain files, only create a Tag, not a Collection
-    await importDir(fileStore, dir, tagStore, parent, true);
+    await importAndTagDir(fileStore, dir, tagStore, parent);
   } else {
     // Else, create a collection
     const tagCollectionStore = tagStore.rootStore.tagCollectionStore;
@@ -105,7 +85,7 @@ const importDirRecursive = async (
     const dirCol = await tagCollectionStore.addTagCollection(dirName, parent);
 
     // Import the files in the folder
-    await importDir(fileStore, dir, tagStore, dirCol, true);
+    await importAndTagDir(fileStore, dir, tagStore, dirCol);
 
     // Import all subdirs
     subDirs.forEach(async (folderName) => {
@@ -114,39 +94,16 @@ const importDirRecursive = async (
   }
 };
 
-const importDir = async (
+const importAndTagDir = async (
   fileStore: FileStore,
   dir: string,
   tagStore: TagStore,
-  parent?: ClientTagCollection,
-  addFolderTag = false,
+  parent: ClientTagCollection,
 ) => {
-  // Todo: Also skip hidden directories?
-  // Todo: Put a limit on the amount of recursive levels in case someone adds their entire disk?
-  // Skip 'dot' directories ('.ssh' etc.)
-  if (isDotFile(dir)) {
-    return;
-  }
-
-  const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
-
-  const filenames = await fse.readdir(dir);
-  const imgFileNames = filenames.filter((f) =>
-    // No 'dot' files (e.g. ".image.jpg" (looking at you, MAC))
-    !f.startsWith('.')
-    // Only add image files
-    && imgExtensions.some((ext) => f.toLowerCase().endsWith(ext)),
-  );
-
-  const addedFiles = await Promise.all(
-    imgFileNames.map((filename) => {
-      const joinedPath = path.join(dir, filename);
-      return fileStore.addFile(joinedPath);
-    }),
-  );
+  const addedFiles = await importDir(fileStore, dir);
 
   // Automatically add files in this folder to a tag with the name of the folder
-  if (addFolderTag && parent && addedFiles.length > 0) {
+  if (addedFiles.length > 0) {
     const folderName = path.basename(dir);
     // Create tag for this directory
     const tag = await tagStore.addTag(folderName);
@@ -155,6 +112,40 @@ const importDir = async (
     // Add tag to files
     addedFiles.forEach((f) => f.addTag(tag.id));
   }
+};
+
+const importDir = async (fileStore: FileStore, dir: string) => {
+  // Todo: Also skip hidden directories?
+  // Todo: Put a limit on the amount of recursive levels in case someone adds their entire disk?
+  // Skip 'dot' directories ('.ssh' etc.)
+  const imgFileNames = await findFiles(dir);
+
+  return await Promise.all(
+    imgFileNames.map((filename) => {
+      const joinedPath = path.join(dir, filename);
+      return fileStore.addFile(joinedPath);
+    }),
+  );
+};
+
+const findFiles = async (dir: string) => {
+  // ignore 'dot' directories
+  if (path.basename(dir).startsWith('.')) {
+    return [];
+  }
+
+  const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
+
+  const filenames = await fse.readdir(dir);
+  return filenames.filter((f) => {
+    // No 'dot' files (e.g. ".image.jpg" (looking at you, MAC))
+    const file = f.toLowerCase();
+    if (file.startsWith('.')) {
+      return false;
+    }
+    // Only add image files
+    return imgExtensions.some((ext) => file.endsWith(ext));
+  });
 };
 
 const importFolderTitle = 'Imports the images from a single folder without automatically tagging them';
@@ -173,7 +164,7 @@ const ImportForm = () => {
   );
 
   const handleChooseDirectory = useCallback(
-    () => chooseDirectory(fileStore),
+    () => chooseDirectories(fileStore),
     [],
   );
 
