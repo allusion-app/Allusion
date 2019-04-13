@@ -3,7 +3,9 @@ $pt-grid-size: 10px;
 
 /* using node-style package resolution in a CSS file:  */
 @import "~normalize.css";
+
 @import "~@blueprintjs/core/src/blueprint.scss";
+
 @import "~@blueprintjs/core/lib/css/blueprint.css";
 @import "~@blueprintjs/icons/lib/css/blueprint-icons.css";
 @import "~@blueprintjs/select/lib/css/blueprint-select.css";
@@ -24,7 +26,7 @@ html {
 }
 
 body {
-  background: #444444;
+  background: $dark-gray4;
   margin: 0px;
   width: 100%;
   height: 100%;
@@ -124,12 +126,12 @@ main {
 
 nav {
   grid-area: outliner;
-  background: #333333;
   overflow: auto;
   flex-shrink: 0;
   width: 0;
   min-width: 0;
   transition: min-width 0.1s ease-out;
+  background: $dark-gray3;
 }
 
 nav.outlinerOpen {
@@ -137,9 +139,16 @@ nav.outlinerOpen {
   width: fit-content;
 }
 
-nav h4 {
-  padding: 4px;
-  margin: 0;
+nav .bp3-tree {
+  background-color: $dark-gray2;
+}
+
+nav .bp3-heading {
+  margin: 0.5em;
+}
+
+#search-form {
+  margin: 0.5em;
 }
 
 .gallery {
@@ -279,4 +288,21 @@ nav h4 {
 .custom-icon * {
   stroke: currentColor;
   fill: currentColor;
+}
+
+// Custom scrollbar style
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track { /* Track */
+  background-color: $dark-gray3;
+}
+ 
+::-webkit-scrollbar-thumb { /* Handle */
+  background-color: $dark-gray5;
+}
+
+::-webkit-scrollbar-thumb:hover { /* Handle on hover */
+  background-color: $gray1; 
 }
