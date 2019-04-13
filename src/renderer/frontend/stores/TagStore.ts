@@ -42,10 +42,11 @@ class TagStore {
   }
 
   @action
-  addTag(tagName: string) {
+  async addTag(tagName: string) {
     const tag = new ClientTag(this, tagName);
     this.tagList.push(tag);
-    this.backend.createTag(tag.id, tag.name, tag.description);
+    await this.backend.createTag(tag.id, tag.name, tag.description);
+    return tag;
   }
 
   @action
@@ -53,10 +54,18 @@ class TagStore {
     // Remove tag from state
     this.tagList.splice(this.tagList.indexOf(tag), 1);
 
+    // Remove tag from selection
+    this.rootStore.uiStore.tagSelection.remove(tag.id);
+
     // Remove tag from files
     this.rootStore.fileStore.fileList
       .filter((f) => f.tags.includes(tag.id))
       .forEach((f) => f.removeTag(tag.id));
+
+    // Remove tag from collections
+    this.rootStore.tagCollectionStore.tagCollectionList.forEach((col) =>
+      col.tags.remove(tag.id),
+    );
 
     // Remove tag from DB
     tag.dispose();

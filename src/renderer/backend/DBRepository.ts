@@ -12,8 +12,8 @@ export interface IDBCollectionConfig {
  * A function that should be called before using the database.
  * It initializes the object stores
  */
-export const dbInit = async (collections: IDBCollectionConfig[]) => {
-  await openDb(dbName, 1, (upgradeDB) => {
+export const dbInit = (collections: IDBCollectionConfig[]) => {
+  return openDb(dbName, 1, (upgradeDB) => {
     collections.forEach(({ name, indices }) => {
       const objectStore = upgradeDB.createObjectStore(name, {
         keyPath: 'id',
@@ -40,7 +40,7 @@ export default class BaseRepository<T extends IIdentifiable> {
 
   public async get(id: ID): Promise<T> {
     const db = await openDb(dbName);
-    return await db
+    return db
       .transaction(this.collectionName)
       .objectStore<T, ID>(this.collectionName)
       .get(id);
@@ -48,31 +48,54 @@ export default class BaseRepository<T extends IIdentifiable> {
 
   public async getAll(count?: number): Promise<T[]> {
     const db = await openDb(dbName);
-    return await db
+    return db
       .transaction(this.collectionName)
       .objectStore<T, ID>(this.collectionName)
       .getAll(undefined, count);
   }
 
   public async find(
-    property: string,
+    property: keyof T,
     query: any,
     count?: number,
   ): Promise<T[]> {
+    // Todo: Search more efficiently
+    // https://stackoverflow.com/questions/14146671/multiple-keys-query-in-indexeddb-similar-to-or-in-sql
+    // https://stackoverflow.com/questions/30737219/indexeddb-search-multi-values-on-same-index
+
     const db = await openDb(dbName);
-    return await db
+    const findSingle = (q: any) => db
       .transaction(this.collectionName)
       .objectStore<T, ID>(this.collectionName)
-      .index(property)
-      .getAll(query, count);
+      .index(property as string)
+      .getAll(q, count);
+
+    if (!Array.isArray(query)) {
+      return findSingle(query);
+    }
+    // If it's an array of queries, execute them individually
+    const queryResults = await Promise.all(query.map((q) => findSingle(q)));
+
+    // Combine the query results and remove duplicates
+    const uniqueResMap = new Map<ID, T>();
+    queryResults.flat()
+      .forEach((val) => {
+        if (!uniqueResMap.has(val.id)) {
+          uniqueResMap.set(val.id, val);
+        }
+      },
+    );
+
+    // Todo: Take into account the sorting order
+    return Array.from(uniqueResMap.values());
   }
 
-  public async count(property: string, query: any): Promise<number> {
+  public async count(property?: string, query?: any): Promise<number> {
     const db = await openDb(dbName);
-    return await db
+    return db
       .transaction(this.collectionName)
       .objectStore<T, ID>(this.collectionName)
-      .index(property)
+      // .index(property)
       .count(query);
   }
 
@@ -89,7 +112,7 @@ export default class BaseRepository<T extends IIdentifiable> {
 
   public async remove(item: T): Promise<void> {
     const db = await openDb(dbName);
-    return await db
+    return db
       .transaction(this.collectionName, 'readwrite')
       .objectStore<T, ID>(this.collectionName)
       .delete(item.id);

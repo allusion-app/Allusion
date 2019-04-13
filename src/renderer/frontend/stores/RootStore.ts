@@ -2,6 +2,14 @@ import Backend from '../../backend/Backend';
 import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from './UiStore';
+import TagCollectionStore from './TagCollectionStore';
+
+// import { configure } from 'mobx';
+
+// This will throw exceptions whenver we try to modify the state directly without an action
+// Actions will batch state modifications -> better for performance
+// https://mobx.js.org/refguide/action.html
+// configure({ enforceActions: 'observed' });
 
 /**
  * From: https://mobx.js.org/best/store.html
@@ -17,19 +25,26 @@ class RootStore {
   backend: Backend;
 
   public tagStore: TagStore;
+  public tagCollectionStore: TagCollectionStore;
   public fileStore: FileStore;
   public uiStore: UiStore;
 
   constructor(backend: Backend) {
     this.backend = backend;
     this.tagStore = new TagStore(backend, this);
+    this.tagCollectionStore = new TagCollectionStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.uiStore = new UiStore(this);
   }
 
   async init() {
-    this.tagStore.init();
-    this.fileStore.init();
+    await Promise.all([
+      this.tagStore.init(),
+      this.tagCollectionStore.init(),
+      this.fileStore.init(),
+    ]);
+
+    this.uiStore.isInitialized = true;
   }
 }
 
