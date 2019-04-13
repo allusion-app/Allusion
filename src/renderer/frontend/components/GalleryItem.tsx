@@ -68,7 +68,7 @@ const GalleryItem = ({
       <span className="thumbnailTags">
         {file.clientTags.map((tag) => (
           <GalleryItemTag
-            key={`gal-tag-${tag.id}`}
+            key={`gal-tag-${file.id}-${tag.id}`}
             name={tag.name}
             onRemove={() => onRemoveTag(tag)}
           />

@@ -1,3 +1,4 @@
+import { remote } from 'electron';
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
   Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5,
@@ -121,6 +122,8 @@ const Toolbar = () => {
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
   const olPage = uiStore.outlinerPage;
 
+  const handleOpenDevtools = useCallback(() => remote.getCurrentWebContents().openDevTools(), []);
+
   return (
     <div id="toolbar">
       <section id="outliner-toolbar">
@@ -187,6 +190,10 @@ const Toolbar = () => {
             <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
 
             <Button disabled>Clear database</Button>
+
+            <Button onClick={handleOpenDevtools} intent="warning" icon="error">
+                Open DevTools
+            </Button>
           </Drawer>
         </ButtonGroup>
       </section>
