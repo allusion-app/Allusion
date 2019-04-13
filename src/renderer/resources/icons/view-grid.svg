@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <title>view-grid</title>
+  <g id="layout">
+    <path d="M5,6H15V16H5Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M5,32H15V42H5Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M5,19H15V29H5Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M33,6H43V16H33Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M33,32H43V42H33Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M33,19H43V29H33Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M19,6H29V16H19Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M19,32H29V42H19Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M19,19H29V29H19Z" fill="#222221" fill-rule="evenodd"/>
+  </g>
+</svg>

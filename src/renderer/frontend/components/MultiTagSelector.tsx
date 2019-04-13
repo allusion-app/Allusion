@@ -6,6 +6,7 @@ import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
+import IconSet from './Icons';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 
@@ -19,7 +20,7 @@ const renderCreateTagOption = (
   handleClick: React.MouseEventHandler<HTMLElement>,
 ) => (
   <MenuItem
-    icon="add"
+    icon={IconSet.ADD_TAG_FILL}
     text={`Create "${query}"`}
     active={active}
     onClick={handleClick}
@@ -76,14 +77,14 @@ const MultiTagSelector = ({
 
   const handleDeselect = useCallback(
     (_: string, index: number) => onTagDeselect(selectedTags[index], index),
-    [onTagDeselect],
+    [selectedTags],
   );
 
   // Todo: Might need a confirmation pop over
   const ClearButton = useMemo(
     () =>
       selectedTags.length > 0 ? (
-        <Button icon="cross" minimal={true} onClick={onClearSelection} />
+        <Button icon={IconSet.CLOSE} minimal={true} onClick={onClearSelection} />
       ) : (
         undefined
       ),

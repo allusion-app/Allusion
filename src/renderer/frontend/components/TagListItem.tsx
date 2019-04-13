@@ -22,6 +22,7 @@ import {
   MenuItem,
 } from '@blueprintjs/core';
 import { ID } from '../../entities/ID';
+import IconSet from './Icons';
 
 export const TAG_DRAG_TYPE = 'tag';
 export const DEFAULT_TAG_NAME = 'New tag';
@@ -242,9 +243,9 @@ const TagListItemContextMenu = (
 
   return (
     <Menu>
-      <MenuItem onClick={handleRename} text="Rename" icon="edit" />
-      <MenuItem onClick={handleDelete} text="Delete" icon="trash" />
-      <MenuItem onClick={handleChangeColor} text="Change color" />
+      <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
+      <MenuItem onClick={handleDelete} text="Delete" icon={IconSet.DELETE} />
+      <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
     </Menu>
   );
 };
