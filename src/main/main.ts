@@ -1,7 +1,10 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Tray } from 'electron';
+
+import Logo from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
 
 let mainWindow: BrowserWindow | null;
+let tray: Tray | null;
 
 function createWindow() {
   // Create the browser window.
@@ -11,6 +14,7 @@ function createWindow() {
     },
     height: 640,
     width: 960,
+    icon: Logo,
   });
 
   // and load the index.html of the app.
@@ -28,6 +32,10 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  // Application tray
+  tray = new Tray(Logo);
+  tray.setToolTip('Allusion - Your Visual Library');
 }
 
 // This method will be called when Electron has finished
