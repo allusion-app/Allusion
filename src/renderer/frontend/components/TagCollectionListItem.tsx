@@ -163,6 +163,7 @@ const TagCollectionListItemContextMenu = ({
   const handleChangeColor = () => console.log('Change color');
   const onProperties = () => console.log('Show properties');
 
+  // TODO: This is isn't being used atm, but it was intended for an alert dialog which we can finish later
   const [isRemoveAlertOpen, setRemoveAlertOpen] = useState(false);
   // const handleOpenRemoveAlert = useCallback(() => setRemoveAlertOpen(true), []);
   const handleCancelRemoveAlert = useCallback(() => setRemoveAlertOpen(false), []);

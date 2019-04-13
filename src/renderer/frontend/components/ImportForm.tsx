@@ -127,9 +127,9 @@ const importDir = async (
   }
 };
 
-const importFolderTitle = `Imports the images from a single folder without automatically tagging them`;
-// tslint:disable-next-line:max-line-length
-const importNestedTitle = `Imports an existing folder structure which generates tags and collections based on the names of the folders`;
+const importFolderTitle = 'Imports the images from a single folder without automatically tagging them';
+const importNestedTitle = 'Imports an existing folder structure which generates tags and collections \
+based on the names of the folders';
 
 const ImportForm = () => {
   // Todo: Add Location entity to DB, so we can have user-picked directories as well

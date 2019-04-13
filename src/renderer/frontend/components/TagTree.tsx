@@ -190,7 +190,8 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       },
       {
         id: 'untagged',
-        label: `Untagged (999)`,
+        // Todo: Replace with value queried from the backend
+        label: 'Untagged (999)',
         icon: IconSet.TAG_BLANCO,
         isSelected: false,
       },
