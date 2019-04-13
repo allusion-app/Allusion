@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
   <title>folder-close</title>
   <g id="layout">
-    <rect x="5" y="17" width="38" height="24" rx="2" ry="2" fill="#222221"/>
+    <rect x="5" y="17" width="38" height="24" rx="4" ry="4" fill="#222221"/>
     <g opacity="0.5">
-      <path d="M41,11H19.4v-.7a2,2,0,0,0-1.1-1.8L15.9,7.3A2.8,2.8,0,0,0,14.6,7H7.3a2,2,0,0,0-2,2v2.9A2,2,0,0,0,5,13v6H43V13A2,2,0,0,0,41,11Z" fill="#222221"/>
+      <path d="M39,11H19.1v-.7a2,2,0,0,0-1.1-1.8L15.6,7.3A2.8,2.8,0,0,0,14.3,7H7A2,2,0,0,0,5,9V19H43V15A4,4,0,0,0,39,11Z" fill="#222221"/>
     </g>
   </g>
 </svg>

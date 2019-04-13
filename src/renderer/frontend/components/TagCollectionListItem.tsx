@@ -1,12 +1,13 @@
 import { ClientTagCollection } from '../../entities/TagCollection';
-import { ContextMenuTarget, Menu, MenuItem } from '@blueprintjs/core';
+import { ContextMenuTarget, Menu, MenuItem, Divider, Alert } from '@blueprintjs/core';
 import { ModifiableTagListItem, TAG_DRAG_TYPE } from './TagListItem';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   DragSource, DragSourceConnector, DragSourceMonitor, ConnectDragSource,
   DropTarget, DropTargetConnector, DropTargetMonitor, ConnectDropTarget, DropTargetSpec, DragSourceSpec,
 } from 'react-dnd';
 import { ID } from '../../entities/ID';
+import IconSet from './Icons';
 
 export const COLLECTION_DRAG_TYPE = 'collection';
 export const DEFAULT_COLLECTION_NAME = 'New collection';
@@ -147,6 +148,7 @@ const DraggableTagCollectionListItem = DropTarget<
 
 //// Add context menu /////
 interface ITagCollectionContextMenu {
+  collection: ClientTagCollection;
   onNewTag: () => void;
   onNewCollection: () => void;
   enableEditing: () => void;
@@ -155,22 +157,52 @@ interface ITagCollectionContextMenu {
   onRemove?: () => void;
 }
 const TagCollectionListItemContextMenu = ({
-  onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
+  collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
 }: ITagCollectionContextMenu) => {
   // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
   const handleChangeColor = () => console.log('Change color');
   const onProperties = () => console.log('Show properties');
 
+  const [isRemoveAlertOpen, setRemoveAlertOpen] = useState(false);
+  // const handleOpenRemoveAlert = useCallback(() => setRemoveAlertOpen(true), []);
+  const handleCancelRemoveAlert = useCallback(() => setRemoveAlertOpen(false), []);
+  const handleConfirmRemoveAlert = useCallback(
+    () => {
+      setRemoveAlertOpen(false);
+      if (onRemove) {
+        onRemove();
+      }
+    },
+    [],
+  );
+
   return (
     <Menu>
-      <MenuItem onClick={onNewTag} text="New tag" icon="tag" />
-      <MenuItem onClick={onNewCollection} text="New collection" icon="folder-new" />
-      <MenuItem onClick={enableEditing} text="Rename" icon="edit" />
-      <MenuItem onClick={onRemove} text="Delete" icon="trash" disabled={!onRemove} />
-      <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" />
+      {/* Todo: Alert immediately disappears when rerendering due to ugly TagTree code. So, no alert for now... */}
+      <Alert
+        isOpen={isRemoveAlertOpen}
+        confirmButtonText="Remove"
+        onConfirm={handleConfirmRemoveAlert}
+        cancelButtonText="Cancel"
+        onCancel={handleCancelRemoveAlert}
+        icon={IconSet.DELETE}
+        intent="danger"
+      >
+        Are you sure you want to remove the collection <b>{collection.name}</b>?
+        This will also remove all of its tags and the collections it contains,
+        in addition to removing those tags from all files associated with those tags.
+      </Alert>
+
+      <MenuItem onClick={onNewTag} text="New tag" icon={IconSet.TAG_ADD} />
+      <MenuItem onClick={onNewCollection} text="New collection" icon={IconSet.COLLECTION_ADD} />
+      <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
+      <MenuItem onClick={handleConfirmRemoveAlert} text="Delete" icon={IconSet.DELETE} disabled={!onRemove} />
+      <Divider />
       <MenuItem onClick={onExpandAll} text="Expand all" icon="expand-all" />
       <MenuItem onClick={onCollapseAll} text="Collapse all" icon="collapse-all" />
-      <MenuItem onClick={onProperties} text="Properties" icon="properties" />
+      <Divider />
+      <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
+      <MenuItem onClick={onProperties} text="Properties" icon={IconSet.META_INFO} disabled />
     </Menu>
   );
 };
@@ -219,7 +251,7 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
     const { tagCollection } = this.props;
     const { isEditing } = this.state;
     return (
-      <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
+      <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''} key={tagCollection.id}>
         {
           isEditing
             ? <ModifiableTagListItem
@@ -235,18 +267,24 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
-    const { tagCollection, onRemove } = this.props;
-    const handleRemove = onRemove ? () => onRemove && onRemove(tagCollection) : undefined;
     return (
       <TagCollectionListItemContextMenu
+        collection={this.props.tagCollection}
         onNewTag={this.props.onAddTag}
         onNewCollection={this.props.onAddCollection}
         enableEditing={() => this.setEditing(true)}
         onExpandAll={this.props.onExpandAll}
         onCollapseAll={this.props.onCollapseAll}
-        onRemove={handleRemove}
+        onRemove={this.handleRemove}
       />
     );
+  }
+
+  handleRemove = () => {
+    const{ onRemove, tagCollection } = this.props;
+    if (onRemove) {
+      onRemove(tagCollection);
+    }
   }
 
   onContextMenuClose = () => {

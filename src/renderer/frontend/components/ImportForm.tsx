@@ -10,6 +10,7 @@ import { Button } from '@blueprintjs/core';
 import FileStore from '../stores/FileStore';
 import { ClientTagCollection } from '../../entities/TagCollection';
 import TagStore from '../stores/TagStore';
+import IconSet from './Icons';
 
 const chooseDirectory = async (fileStore: FileStore) => {
   const dirs = remote.dialog.showOpenDialog({
@@ -126,6 +127,10 @@ const importDir = async (
   }
 };
 
+const importFolderTitle = `Imports the images from a single folder without automatically tagging them`;
+// tslint:disable-next-line:max-line-length
+const importNestedTitle = `Imports an existing folder structure which generates tags and collections based on the names of the folders`;
+
 const ImportForm = () => {
   // Todo: Add Location entity to DB, so we can have user-picked directories as well
   // Todo: Also show sub-directories in tree
@@ -144,15 +149,15 @@ const ImportForm = () => {
 
   return (
     <>
-      <Button fill disabled icon="document-open">
+      <Button fill disabled icon={IconSet.MEDIA}>
         Import images
       </Button>
 
-      <Button fill onClick={handleChooseDirectory} icon="folder-shared">
+      <Button fill onClick={handleChooseDirectory} icon={IconSet.FOLDER_OPEN} title={importFolderTitle}>
         Import single directory
       </Button>
 
-      <Button fill onClick={handleChooseFolderStructure} icon="folder-open">
+      <Button fill onClick={handleChooseFolderStructure} icon={IconSet.FOLDER_OPEN} title={importNestedTitle}>
         Import nested directories
       </Button>
 

@@ -1,5 +1,5 @@
-import { observer } from 'mobx-react-lite';
-import React, { useState } from 'react';
+import { observer, useComputed } from 'mobx-react-lite';
+import React, { useState, useCallback, useMemo } from 'react';
 
 import TagListItem, { DEFAULT_TAG_NAME } from './TagListItem';
 
@@ -10,6 +10,7 @@ import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagC
 import TagCollectionStore from '../stores/TagCollectionStore';
 import { ClientTag } from '../../entities/Tag';
 import { ID } from '../../entities/ID';
+import IconSet from './Icons';
 
 interface IExpandState {
   [key: string]: boolean;
@@ -33,11 +34,9 @@ const createTagCollectionTreeNode = (
   expandState: Readonly<IExpandState>,
   store: TagCollectionStore,
   setExpandState: (state: IExpandState) => void,
-): ITreeNode => ({
-  id: col.id,
-  icon: expandState[col.id] ? 'folder-open' : 'folder-close',
-  isSelected: col.isSelected,
-  label: (
+): ITreeNode => {
+
+  const label = (
     <TagCollectionListItem
       tagCollection={col}
       // Disable deleting the root hierarchy
@@ -70,15 +69,14 @@ const createTagCollectionTreeNode = (
         }
       }}
     />
-  ),
-  hasCaret: true,
-  isExpanded: expandState[col.id],
-  childNodes: [
+  );
+
+  const childNodes = [
     ...col.clientSubCollections.map(
       (subCol) => createTagCollectionTreeNode(subCol, expandState, store, setExpandState)),
     ...col.clientTags.map((tag): ITreeNode => ({
       id: tag.id,
-      icon: 'tag',
+      icon: IconSet.TAG,
       isSelected: store.rootStore.uiStore.tagSelection.includes(tag.id),
       label: (
         <TagListItem
@@ -101,8 +99,18 @@ const createTagCollectionTreeNode = (
         />
       ),
     })),
-  ],
-});
+  ];
+
+  return {
+    id: col.id,
+    icon: expandState[col.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP,
+    isSelected: col.isSelected,
+    hasCaret: true,
+    isExpanded: expandState[col.id],
+    label,
+    childNodes,
+  };
+};
 
 export interface ITagListProps extends IRootStoreProp { }
 
@@ -113,84 +121,97 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     [SYSTEM_TAGS_ID]: true,
   });
 
-  const handleNodeCollapse = (node: ITreeNode) => {
-    setExpandState({ ...expandState, [node.id]: false });
-  };
+  const handleNodeCollapse = useCallback(
+    (node: ITreeNode) => setExpandState({ ...expandState, [node.id]: false }),
+    [expandState],
+  );
 
-  const handleNodeExpand = (node: ITreeNode) => {
-    setExpandState({ ...expandState, [node.id]: true });
-  };
+  const handleNodeExpand = useCallback(
+    (node: ITreeNode) => setExpandState({ ...expandState, [node.id]: true }),
+    [expandState],
+  );
 
-  const handleSelection = (tag: ClientTag) => {
-    if (uiStore.tagSelection.includes(tag.id)) {
-      uiStore.deselectTag(tag);
-    } else {
-      uiStore.selectTag(tag);
-    }
-    fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
-  };
+  const handleSelection = useCallback(
+    (tag: ClientTag) => uiStore.tagSelection.includes(tag.id)
+      ? uiStore.deselectTag(tag)
+      : uiStore.selectTag(tag),
+    [],
+  );
 
-  const handleNodeClick = ({ id }: ITreeNode) => {
-    if (id === ALL_TAGS_ID) {
-      uiStore.tagSelection.clear();
-      fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
-    } else {
-      const clickedTag = tagStore.tagList.find((t) => t.id === id);
-      if (clickedTag) {
-        handleSelection(clickedTag);
-      }
-
-      const clickedCollection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
-      if (clickedCollection) {
-        // Get all tags recursively that are in this collection
-        const getRecursiveTags = (col: ClientTagCollection): ID[] =>
-          [...col.tags, ...col.clientSubCollections.flatMap(getRecursiveTags)];
-        const selectedTags = getRecursiveTags(clickedCollection);
-
-        // Add or remove all tags from the selection
-        if (clickedCollection.isSelected) {
-          selectedTags.forEach((tagId) => uiStore.tagSelection.remove(tagId));
-        } else {
-          selectedTags.forEach((tagId) => !uiStore.tagSelection.includes(tagId) && uiStore.tagSelection.push(tagId));
-        }
+  const handleNodeClick = useCallback(
+    ({ id }: ITreeNode) => {
+      if (id === ALL_TAGS_ID) {
+        uiStore.tagSelection.clear();
         fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
+      } else {
+        const clickedTag = tagStore.tagList.find((t) => t.id === id);
+        if (clickedTag) {
+          handleSelection(clickedTag);
+        }
+
+        const clickedCollection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
+        if (clickedCollection) {
+          // Get all tags recursively that are in this collection
+          const getRecursiveTags = (col: ClientTagCollection): ID[] =>
+            [...col.tags, ...col.clientSubCollections.flatMap(getRecursiveTags)];
+          const selectedTags = getRecursiveTags(clickedCollection);
+
+          // Add or remove all tags from the selection
+          if (clickedCollection.isSelected) {
+            selectedTags.forEach((tagId) => uiStore.tagSelection.remove(tagId));
+          } else {
+            selectedTags.forEach((tagId) => !uiStore.tagSelection.includes(tagId) && uiStore.tagSelection.push(tagId));
+          }
+          fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
+        }
       }
-    }
-  };
+    },
+    [],
+  );
 
   const root = tagCollectionStore.getRootCollection();
   // Todo: Not sure what the impact is of generating the hierarchy in each render on performance.
   // Usually the hierarchy is stored directly in the state, but we can't do that since it it managed by the TagCollectionStore.
   // Or maybe we can, but then the ClientTagCollection needs to extends ITreeNode, which messes up the responsibility of the Store and the state required by the view...
-  const hierarchy: ITreeNode[] = root
-    ? [createTagCollectionTreeNode(root, expandState, tagCollectionStore, setExpandState)]
-    : [];
+  const hierarchy: ITreeNode[] = useComputed(
+    () => root
+      ? [createTagCollectionTreeNode(root, expandState, tagCollectionStore, setExpandState)]
+      : [],
+    [root, expandState],
+  );
 
-  const systemTags: ITreeNode[] = [
-    // {
-    //   id: 'untagged',
-    //   label: 'Untagged',
-    //   icon: 'tag',
-    // },
-    {
-      id: ALL_TAGS_ID,
-      label: 'All tags',
-      icon: 'tag',
-      isSelected: uiStore.tagSelection.length === 0,
-    },
-  ];
+  const systemTags: ITreeNode[] = useMemo(
+    () => [
+      {
+        id: ALL_TAGS_ID,
+        label: 'All tags',
+        icon: IconSet.TAG,
+        isSelected: uiStore.tagSelection.length === 0,
+      },
+      {
+        id: 'untagged',
+        label: `Untagged (999)`,
+        icon: IconSet.TAG_BLANCO,
+        isSelected: false,
+      },
+    ],
+    [uiStore.tagSelection.length],
+  );
 
-  const treeContents: ITreeNode[] = [
-    ...hierarchy,
-    {
-      id: SYSTEM_TAGS_ID,
-      icon: 'folder-close',
-      label: 'System tags',
-      hasCaret: true,
-      isExpanded: expandState[SYSTEM_TAGS_ID],
-      childNodes: systemTags,
-    },
-  ];
+  const treeContents: ITreeNode[] = useMemo(
+    () => [
+      ...hierarchy,
+      {
+        id: SYSTEM_TAGS_ID,
+        icon: IconSet.TAG_GROUP_OPEN,
+        label: 'System tags',
+        hasCaret: true,
+        isExpanded: expandState[SYSTEM_TAGS_ID],
+        childNodes: systemTags,
+      },
+    ],
+    [hierarchy],
+  );
 
   return (
     // <>
@@ -204,17 +225,6 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     // https://github.com/palantir/blueprint/issues/3187
     // onNodeContextMenu={}
     />
-
-    // {/* New tag input field */}
-    // <ModifiableTagListItem
-    //   placeholder="New tag"
-    //   icon="add"
-    //   initialName={''}
-    //   onRename={(name) => tagStore.addTag(name)}
-    //   resetOnSubmit
-    //   autoFocus={false}
-    // />
-    // </>
   );
 };
 

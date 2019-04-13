@@ -5,10 +5,11 @@ import {
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../contexts/StoreContext';
+import IconSet from './Icons';
 
 const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
   <Popover>
-    <Button icon="trash" disabled={disabled} />
+    <Button icon={IconSet.DELETE} disabled={disabled} />
     <div className="popoverContent">
       <H5>Confirm deletion</H5>
       <p>Are you sure you want to remove these images from your library?</p>
@@ -40,9 +41,9 @@ const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
-  const handleOutlinerImport = useCallback(() => { uiStore.outlinerPage = 'IMPORT'; }, []);
-  const handleOutlinerTags = useCallback(() => { uiStore.outlinerPage = 'TAGS'; }, []);
-  const handleOutlinerSearch = useCallback(() => { uiStore.outlinerPage = 'SEARCH'; }, []);
+  const handleOlImport = useCallback(() => { uiStore.outlinerPage = 'IMPORT'; }, []);
+  const handleOlTags = useCallback(() => { uiStore.outlinerPage = 'TAGS'; }, []);
+  const handleOlSearch = useCallback(() => { uiStore.outlinerPage = 'SEARCH'; }, []);
 
   // Content actions
   const isFileListSelected = uiStore.fileSelection.length === fileStore.fileList.length;
@@ -86,21 +87,21 @@ const Toolbar = () => {
   // Render variables
   const sortMenu = useMemo(() =>
     <Menu>
-      <MenuItem icon="tag" text="Tag" />
-      <MenuItem icon="label" text="Name" />
-      <MenuItem icon="document" text="Type" />
-      <MenuItem icon="numerical" text="Size" />
-      <MenuItem icon="calendar" text="Date" labelElement={<Icon icon="sort-desc" />} active />
+      <MenuItem icon={IconSet.TAG} text="Tag" />
+      <MenuItem icon={IconSet.VIEW_NAME_UP} text="Name" />
+      <MenuItem icon={IconSet.VIEW_FILE_TYPE} text="Type" />
+      <MenuItem icon={IconSet.VIEW_FILTER_DOWN} text="Size" />
+      <MenuItem icon={IconSet.VIEW_DATE} text="Date" labelElement={<Icon icon={IconSet.ARROW_UP} />} active />
     </Menu>,
     [],
   );
 
   const layoutMenu = useMemo(() =>
     <Menu>
-      <MenuItem icon="list-detail-view" text="List" />
-      <MenuItem icon="layout-grid" text="Grid" active />
-      <MenuItem icon="full-stacked-chart" text="Masonry" />
-      <MenuItem icon="play" text="Slide" />
+      <MenuItem icon={IconSet.VIEW_LIST} text="List" />
+      <MenuItem icon={IconSet.VIEW_GRID} text="Grid" active />
+      <MenuItem icon={IconSet.VIEW_MASON} text="Masonry" />
+      <MenuItem icon={IconSet.VIEW_PRESENT} text="Slide" />
     </Menu>,
     [],
   );
@@ -113,22 +114,22 @@ const Toolbar = () => {
     <div id="toolbar">
       <section id="outliner-toolbar">
         <ButtonGroup minimal>
-          <Button icon="add" onClick={handleOutlinerImport} intent={olPage === 'IMPORT' ? 'primary' : 'none'} />
-          <Button icon="tag" onClick={handleOutlinerTags} intent={olPage === 'TAGS' ? 'primary' : 'none'} />
-          <Button icon="search" onClick={handleOutlinerSearch} intent={olPage === 'SEARCH' ? 'primary' : 'none'} />
+          <Button icon={IconSet.ADD} onClick={handleOlImport} intent={olPage === 'IMPORT' ? 'primary' : 'none'} />
+          <Button icon={IconSet.TAG} onClick={handleOlTags} intent={olPage === 'TAGS' ? 'primary' : 'none'} />
+          <Button icon={IconSet.SEARCH} onClick={handleOlSearch} intent={olPage === 'SEARCH' ? 'primary' : 'none'} />
         </ButtonGroup>
       </section>
 
       <section id="main-toolbar">
         <ButtonGroup minimal>
           {/* Library info. Todo: Show entire library count instead of current fileList */}
-          <Button icon="document" minimal>{numFiles} item{`${numFiles === 1 ? '' : 's'}`}</Button>
+          <Button icon={IconSet.MEDIA} minimal>{numFiles} item{`${numFiles === 1 ? '' : 's'}`}</Button>
 
           <Divider />
 
           {/* Selection info and actions */}
           <Button
-            icon={isFileListSelected ? 'tick' : 'circle'}
+            icon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
             onClick={handleToggleSelect}
             intent={isFileListSelected ? 'primary' : 'none'}
           >
@@ -136,7 +137,7 @@ const Toolbar = () => {
           </Button>
           {/* Todo: Show popover for modifying tags of selection (same as inspector?) */}
           <Button
-            icon="tag"
+            icon={IconSet.TAG}
             disabled={!selectionModeOn}
           />
           <RemoveFilesPopover onRemove={handleRemoveSelectedFiles} disabled={!selectionModeOn} />
@@ -145,11 +146,11 @@ const Toolbar = () => {
 
           {/* Gallery actions */}
           <Popover
-            target={<Button icon="layout-grid" />}
+            target={<Button icon={IconSet.VIEW_GRID} />}
             content={layoutMenu}
           />
           <Popover
-            target={<Button icon="sort-asc" />}
+            target={<Button icon={IconSet.VIEW_NAME_UP} />}
             content={sortMenu}
           />
         </ButtonGroup>
@@ -158,17 +159,17 @@ const Toolbar = () => {
       <section id="inspector-toolbar">
         <ButtonGroup minimal>
           <Button
-            icon="info-sign"
+            icon={IconSet.INFO}
             onClick={handleToggleInspector}
             intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
           />
           <Button
-            icon="settings"
+            icon={IconSet.SETTINGS}
             onClick={handleToggleSettings}
           />
           <Drawer
             isOpen={uiStore.isSettingsOpen}
-            icon="settings"
+            icon={IconSet.SETTINGS}
             onClose={handleToggleSettings}
             title="Settings"
           >

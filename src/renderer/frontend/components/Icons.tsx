@@ -1,5 +1,6 @@
 import React from 'react';
 import SVG from 'react-inlinesvg';
+import { H3, IconName, Tag, Intent } from '@blueprintjs/core';
 
 import ADD_TAG_FILL from '../../resources/icons/add-tag-fill.svg';
 import ADD_TAG_OUTLINE from '../../resources/icons/add-tag-outline.svg';
@@ -10,6 +11,7 @@ import ARROW_RIGHT from '../../resources/icons/arrow-right.svg';
 import ARROW_UP from '../../resources/icons/arrow-up.svg';
 import CHECKMARK from '../../resources/icons/checkmark.svg';
 import CLOSE from '../../resources/icons/close.svg';
+import COLLECTION_ADD from '../../resources/icons/collection-add.svg';
 import DELETE from '../../resources/icons/delete.svg';
 import DESELECT_ALL_FILL from '../../resources/icons/deselect-all-fill.svg';
 import DESELECT_ALL_ROUND from '../../resources/icons/deselect-all-round.svg';
@@ -19,9 +21,12 @@ import FOLDER_OPEN from '../../resources/icons/folder-open.svg';
 import FORM_DROP from '../../resources/icons/form-drop.svg';
 import INFO from '../../resources/icons/info.svg';
 import LOCATIONS from '../../resources/icons/locations.svg';
+import MEDIA from '../../resources/icons/media.svg';
 import META_INFO from '../../resources/icons/meta-info.svg';
 import META_INFO_2 from '../../resources/icons/meta-info-2.svg';
 import MORE from '../../resources/icons/more.svg';
+import OPEN_EXTERNAL from '../../resources/icons/open-external.svg';
+import PREVIEW from '../../resources/icons/preview.svg';
 import SEARCH from '../../resources/icons/search.svg';
 import SEARCH2 from '../../resources/icons/search2.svg';
 import SELECT_ALL_CHECKED from '../../resources/icons/select-all-checked.svg';
@@ -29,6 +34,8 @@ import SELECT_ALL_ROUND from '../../resources/icons/select-all-round.svg';
 import SELECT_ALL_TRANS from '../../resources/icons/select-all-trans.svg';
 import SELECT_ALL from '../../resources/icons/select-all.svg';
 import SETTINGS from '../../resources/icons/settings.svg';
+import TAG_ADD from '../../resources/icons/tag-add.svg';
+import TAG_BLANCO from '../../resources/icons/tag-blanco.svg';
 import TAG_GROUP_OPEN from '../../resources/icons/tag-group-open.svg';
 import TAG_GROUP from '../../resources/icons/tag-group.svg';
 import TAG from '../../resources/icons/tag.svg';
@@ -44,17 +51,16 @@ import VIEW_NAME_UP from '../../resources/icons/view-name-up.svg';
 import VIEW_PRESENT from '../../resources/icons/view-present.svg';
 import WARNING_FILL from '../../resources/icons/warning-fill.svg';
 import WARNING from '../../resources/icons/warning.svg';
-import { H3, IconName, Tag, Intent } from '@blueprintjs/core';
 
 const toSvg = (src: any) => (
   <SVG
     src={src}
     className="bp3-icon custom-icon"
-    style={{ width: '16px', height: '16px' }}
+    style={{ width: '18px', height: '18px' }}
   />
 );
 
-const iconSet = {
+const IconSet = {
   ADD_TAG_FILL: toSvg(ADD_TAG_FILL),
   ADD_TAG_OUTLINE: toSvg(ADD_TAG_OUTLINE),
   ADD_TAG_TRANS: toSvg(ADD_TAG_TRANS),
@@ -64,6 +70,7 @@ const iconSet = {
   ARROW_UP: toSvg(ARROW_UP),
   CHECKMARK: toSvg(CHECKMARK),
   CLOSE: toSvg(CLOSE),
+  COLLECTION_ADD: toSvg(COLLECTION_ADD),
   DELETE: toSvg(DELETE),
   DESELECT_ALL_FILL: toSvg(DESELECT_ALL_FILL),
   DESELECT_ALL_ROUND: toSvg(DESELECT_ALL_ROUND),
@@ -73,9 +80,12 @@ const iconSet = {
   FORM_DROP: toSvg(FORM_DROP),
   INFO: toSvg(INFO),
   LOCATIONS: toSvg(LOCATIONS),
+  MEDIA: toSvg(MEDIA),
   META_INFO: toSvg(META_INFO),
   META_INFO_2: toSvg(META_INFO_2),
   MORE: toSvg(MORE),
+  OPEN_EXTERNAL: toSvg(OPEN_EXTERNAL),
+  PREVIEW: toSvg(PREVIEW),
   SEARCH: toSvg(SEARCH),
   SEARCH2: toSvg(SEARCH2),
   SELECT_ALL_CHECKED: toSvg(SELECT_ALL_CHECKED),
@@ -83,6 +93,8 @@ const iconSet = {
   SELECT_ALL_TRANS: toSvg(SELECT_ALL_TRANS),
   SELECT_ALL: toSvg(SELECT_ALL),
   SETTINGS: toSvg(SETTINGS),
+  TAG_ADD: toSvg(TAG_ADD),
+  TAG_BLANCO: toSvg(TAG_BLANCO),
   TAG_GROUP_OPEN: toSvg(TAG_GROUP_OPEN),
   TAG_GROUP: toSvg(TAG_GROUP),
   TAG: toSvg(TAG),
@@ -120,7 +132,7 @@ export const IconDemo = () => (
 
     <br />
     <H3>Custom icons</H3>
-    {Object.values(iconSet)
+    {Object.values(IconSet)
       .map((icon, i) =>
         <Tag
           icon={icon}
@@ -132,4 +144,4 @@ export const IconDemo = () => (
   </>
 );
 
-export default iconSet;
+export default IconSet;
