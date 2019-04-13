@@ -6,6 +6,8 @@ import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
+import FileTag from './FileTag';
+import { ClientFile } from '../../entities/File';
 
 const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
   <Popover>
@@ -33,6 +35,15 @@ const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disa
           Delete
         </Button>
       </div>
+    </div>
+  </Popover>
+);
+
+const TagFilesPopover = ({ disabled, files }: { disabled: boolean, files: ClientFile[] }) => (
+  <Popover>
+    <Button icon={IconSet.TAG} disabled={disabled} />
+    <div className="popoverContent">
+      <FileTag files={files} />
     </div>
   </Popover>
 );
@@ -136,8 +147,8 @@ const Toolbar = () => {
             {uiStore.fileSelection.length} selected
           </Button>
           {/* Todo: Show popover for modifying tags of selection (same as inspector?) */}
-          <Button
-            icon={IconSet.TAG}
+          <TagFilesPopover
+            files={uiStore.clientFileSelection}
             disabled={!selectionModeOn}
           />
           <RemoveFilesPopover onRemove={handleRemoveSelectedFiles} disabled={!selectionModeOn} />
