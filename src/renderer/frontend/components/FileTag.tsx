@@ -14,11 +14,9 @@ const Single = observer(({ file }: { file: ClientFile }) => {
 
   const handleClear = useCallback(() => file.tags.clear(), [file]);
 
-  const handleDeselect = useCallback((index) => file.tags.splice(index, 1), [
-    file,
-  ]);
+  const handleDeselect = useCallback((tag: ClientTag) => file.tags.remove(tag.id), [file]);
 
-  const handleSelect = useCallback((tag) => file.tags.push(tag.id), [file]);
+  const handleSelect = useCallback((tag: ClientTag) => file.tags.push(tag.id), [file]);
 
   const handleCreate = useCallback(
     async (name: string) => {
@@ -53,9 +51,10 @@ const Multi = observer(({ files }: IFileTagProps) => {
   // Sort based on count
   const sortedTags = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
 
-  const handleClear = useCallback(() => files.forEach((f) => f.tags.clear()), [
-    files,
-  ]);
+  const handleClear = useCallback(
+    () => files.forEach((f) => f.tags.clear()),
+    [files],
+  );
 
   const handleSelect = useCallback(
     (tag: ClientTag) => files.forEach((f) => f.tags.push(tag.id)),

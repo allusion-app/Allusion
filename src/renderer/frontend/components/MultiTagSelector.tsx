@@ -77,7 +77,7 @@ const MultiTagSelector = ({
 
   const handleDeselect = useCallback(
     (_: string, index: number) => onTagDeselect(selectedTags[index], index),
-    [onTagDeselect],
+    [selectedTags],
   );
 
   // Todo: Might need a confirmation pop over
