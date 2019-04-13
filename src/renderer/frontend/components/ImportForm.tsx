@@ -12,6 +12,28 @@ import { ClientTagCollection } from '../../entities/TagCollection';
 import TagStore from '../stores/TagStore';
 import IconSet from './Icons';
 
+/** Checks if a file or directory starts with a dot */
+const isDotFile = (filePath: string): boolean => {
+  return path.basename(filePath).startsWith('.');
+};
+
+const chooseFiles = async (fileStore: FileStore) => {
+  const files = remote.dialog.showOpenDialog({
+    filters: [{ name: 'Images', extensions: ['gif', 'png', 'jpg', 'jpeg'] }],
+    properties: ['openFile', 'multiSelections'],
+  });
+
+  if (!files) {
+    return;
+  }
+
+  files.forEach(async (filename) => {
+    if (!isDotFile(filename)) {
+      fileStore.addFile(filename);
+    }
+  });
+};
+
 const chooseDirectory = async (fileStore: FileStore) => {
   const dirs = remote.dialog.showOpenDialog({
     properties: ['openDirectory', 'multiSelections'],
@@ -22,16 +44,22 @@ const chooseDirectory = async (fileStore: FileStore) => {
   }
 
   dirs.forEach(async (dir) => {
+    if (isDotFile(dir)) {
+      return;
+    }
     // Check if directory
     // const stats = await fse.lstat(dirs[0]);
     const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
 
     const filenames = await fse.readdir(dir);
-    const imgFileNames = filenames.filter((f) =>
-      imgExtensions.some((ext) =>
-        f.toLowerCase()
-          .endsWith(ext)),
-    );
+    const imgFileNames = filenames.filter((f) => {
+      const file = f.toLowerCase();
+      // skip dot files
+      if (file.startsWith('.')) {
+        return false;
+      }
+      return imgExtensions.some((ext) => file.endsWith(ext));
+    });
 
     imgFileNames.forEach(async (filename) => {
       const joinedPath = path.join(dir, filename);
@@ -45,7 +73,9 @@ const chooseFolderStructure = async (fileStore: FileStore) => {
   const dirs = remote.dialog.showOpenDialog({
     properties: ['openDirectory'],
   });
-  if (!dirs || dirs.length !== 1) {
+
+  // multi-selection is disabled which is there can be at most 1 folder
+  if (!dirs || dirs.length === 0) {
     return;
   }
   // Add new collections to the root collection
@@ -94,7 +124,7 @@ const importDir = async (
   // Todo: Also skip hidden directories?
   // Todo: Put a limit on the amount of recursive levels in case someone adds their entire disk?
   // Skip 'dot' directories ('.ssh' etc.)
-  if (path.basename(dir).startsWith('.')) {
+  if (isDotFile(dir)) {
     return;
   }
 
@@ -137,6 +167,11 @@ const ImportForm = () => {
 
   const { fileStore } = useContext(StoreContext);
 
+  const handleChooseFiles = useCallback(
+    () => chooseFiles(fileStore),
+    [],
+  );
+
   const handleChooseDirectory = useCallback(
     () => chooseDirectory(fileStore),
     [],
@@ -149,7 +184,7 @@ const ImportForm = () => {
 
   return (
     <>
-      <Button fill disabled icon={IconSet.MEDIA}>
+      <Button fill onClick={handleChooseFiles} icon={IconSet.MEDIA}>
         Import images
       </Button>
 
