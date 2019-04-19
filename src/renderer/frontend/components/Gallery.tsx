@@ -53,29 +53,33 @@ const Gallery = ({
     setLastSelectionIndex(i);
   };
 
-  const onKeyDown = (e: KeyboardEvent) => {
-    // When an arrow key is pressed, select the item relative to the last selected item
-    // Fixme: For some reason, the state is not updated here (lastSelectionIndex is always undefined)
-    // console.log(e, lastSelectionIndex);
-    if (lastSelectionIndex === undefined) {
-      return;
-    }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      uiStore.fileSelection.clear();
-      uiStore.selectFile(fileList[Math.max(0, lastSelectionIndex - 1)]);
-    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      uiStore.fileSelection.clear();
-      uiStore.selectFile(
-        fileList[Math.min(fileList.length - 1, lastSelectionIndex + 1)],
-      );
-    }
-  };
-
   useEffect(() => {
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('keydown', onKeyDown);
+    // When an arrow key is pressed, select the item relative to the last selected item
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Use set function to get fresh value
+      setLastSelectionIndex((newLastSelectionIndex) => {
+        if (newLastSelectionIndex === undefined) { // no selection => do nothing
+          return undefined;
+        }
+        let indexMod = 0;
+        if (e.key === 'ArrowLeft') {
+          indexMod -= 1;
+        } else if (e.key === 'ArrowRight') {
+          indexMod += 1;
+        }
+        if (indexMod !== 0) {
+          uiStore.fileSelection.clear();
+          // Make sure the selection stays in bounds
+          newLastSelectionIndex = Math.max(0, Math.min(fileList.length - 1, newLastSelectionIndex + indexMod));
+          uiStore.selectFile(fileList[newLastSelectionIndex]);
+          // Todo: Would be nice to scroll automatically to selected image
+        }
+        return newLastSelectionIndex;
+      });
     };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
   return (
