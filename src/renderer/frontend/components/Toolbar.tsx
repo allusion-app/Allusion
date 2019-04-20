@@ -58,7 +58,8 @@ const Toolbar = () => {
   const handleOlSearch = useCallback(() => { uiStore.outlinerPage = 'SEARCH'; }, []);
 
   // Content actions
-  const isFileListSelected = uiStore.fileSelection.length === fileStore.fileList.length;
+  const isFileListSelected = uiStore.fileSelection.length > 0
+    && uiStore.fileSelection.length === fileStore.fileList.length;
   // If everything is selected, deselect all. Else, select all
   const handleToggleSelect = useCallback(
     () => (isFileListSelected)
@@ -192,7 +193,7 @@ const Toolbar = () => {
             <Button disabled>Clear database</Button>
 
             <Button onClick={handleOpenDevtools} intent="warning" icon="error">
-                Open DevTools
+              Open DevTools
             </Button>
           </Drawer>
         </ButtonGroup>
