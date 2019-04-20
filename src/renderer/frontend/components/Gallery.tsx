@@ -19,7 +19,7 @@ const Gallery = ({
     number | undefined
   >(undefined);
   /** The last item that is selected in a multi-selection */
-  const [lastSelectionIndex, setLastSelectionIndex] = useState<
+  const [, setLastSelectionIndex] = useState<
     number | undefined
   >(undefined);
 
