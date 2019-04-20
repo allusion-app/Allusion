@@ -1,20 +1,22 @@
-import { app, BrowserWindow, Tray } from 'electron';
+import { app, BrowserWindow } from 'electron';
 
-import Logo from '../renderer/resources/logo/favicon_512x512.png';
+import AppIcon from '../renderer/resources/logo/icon.ico';
 import { isDev } from '../config';
 
 let mainWindow: BrowserWindow | null;
-let tray: Tray | null;
 
 function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
+    titleBarStyle: 'hidden',
     webPreferences: {
       nodeIntegration: true,
     },
+    minWidth: 224,
+    minHeight: 224,
     height: 640,
     width: 960,
-    icon: Logo,
+    icon: `${__dirname}/${AppIcon}`,
   });
 
   // and load the index.html of the app.
@@ -32,10 +34,6 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
-
-  // Application tray
-  tray = new Tray(Logo);
-  tray.setToolTip('Allusion - Your Visual Library');
 }
 
 // This method will be called when Electron has finished

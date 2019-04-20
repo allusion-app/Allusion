@@ -1,13 +1,13 @@
 {
-  "name": "visuallibrary",
+  "name": "allusion",
   "version": "1.0.0",
-  "description": "A tool to manage your visual library",
+  "description": "A tool for managing your visual library",
   "main": "main.bundle.js",
   "scripts": {
     "development": "rimraf dist && webpack --watch --config ./webpack.dev.js --progress --colors",
     "production": "rimraf dist && webpack --config ./webpack.prod.js --progress --colors && ncp ./package.json dist/package.json",
     "start": "electron ./dist/main.bundle.js",
-    "package": "rimraf release && npm run production && electron-packager ./dist VisualLibrary --out=./release --asar",
+    "package": "rimraf release && npm run production && electron-packager ./dist Allusion --out=./release --asar",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "test": "jest"
   },
