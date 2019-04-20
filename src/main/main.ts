@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 
-import AppIcon from '../renderer/resources/logo/icon.ico';
+import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
 
 let mainWindow: BrowserWindow | null;
@@ -8,7 +8,8 @@ let mainWindow: BrowserWindow | null;
 function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    titleBarStyle: 'hidden',
+    // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
+    // titleBarStyle: 'hiddenInset',
     webPreferences: {
       nodeIntegration: true,
     },
