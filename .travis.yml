@@ -22,8 +22,7 @@ script:
   - echo "Package app"
   # 64-bit builds for the time being
   - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then yarn package --platform=linux --arch=x64; fi
-  - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]];
-  then yarn package --platform=win32 --arch=x64; fi
+  - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yarn package --platform=win32 --arch=x64; fi
   - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tar -zcf Allusion-windows_x64-${TRAVIS_BUILD_NUMBER}.tar.gz release; fi
   - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yarn package --platform=darwin --arch=x64; fi
 
