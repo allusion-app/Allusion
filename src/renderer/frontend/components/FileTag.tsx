@@ -79,7 +79,6 @@ const Multi = observer(({ files }: IFileTagProps) => {
       const newTag = await tagStore.addTag(name);
       // Add new tags to the root hierarchy by default
       tagCollectionStore.getRootCollection().tags.push(newTag.id);
-      files.forEach((file) => file.addTag(newTag.id));
       return newTag;
     },
     [files],
