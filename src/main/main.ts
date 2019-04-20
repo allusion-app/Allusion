@@ -18,6 +18,8 @@ function createWindow() {
     height: 640,
     width: 960,
     icon: `${__dirname}/${AppIcon}`,
+    // Should be same as body background: Only for split second before css is loaded
+    backgroundColor: '#30404d',
   });
 
   // and load the index.html of the app.
