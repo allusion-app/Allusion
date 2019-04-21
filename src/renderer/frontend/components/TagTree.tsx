@@ -158,11 +158,10 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
 
           // Add or remove all tags from the selection
           if (clickedCollection.isSelected) {
-            selectedTags.forEach((tagId) => uiStore.tagSelection.remove(tagId));
+            uiStore.deselectTags(selectedTags);
           } else {
-            selectedTags.forEach((tagId) => !uiStore.tagSelection.includes(tagId) && uiStore.tagSelection.push(tagId));
+            uiStore.selectTags(selectedTags.filter((tagId) => !uiStore.tagSelection.includes(tagId)));
           }
-          fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
         }
       }
     },

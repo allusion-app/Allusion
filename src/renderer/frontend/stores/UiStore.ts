@@ -70,8 +70,34 @@ class UiStore {
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
-  @action deselectTag(tag: ClientTag) {
-    this.tagSelection.remove(tag.id);
+  @action selectTags(tags: ClientTag[] | ID[]) {
+    if (tags.length === 0) {
+      return;
+    }
+    if (tags[0] instanceof ClientTag) {
+      this.tagSelection.push(...(tags as ClientTag[]).map((tag: ClientTag) => tag.id));
+    } else {
+      this.tagSelection.push(...(tags as ID[]));
+    }
+    this.cleanFileSelection();
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+  }
+
+  @action deselectTags(tags: ClientTag[] | ID[]) {
+    if (tags.length === 0) {
+      return;
+    }
+    if (tags[0] instanceof ClientTag) {
+      (tags as ClientTag[]).forEach((tag) => this.tagSelection.remove(tag.id));
+    } else {
+      (tags as ID[]).forEach((tag) => this.tagSelection.remove(tag));
+    }
+    this.cleanFileSelection();
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+  }
+
+  @action deselectTag(tag: ClientTag | ID) {
+    this.tagSelection.remove(tag instanceof ClientTag ? tag.id : tag);
     this.cleanFileSelection();
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }

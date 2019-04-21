@@ -29,8 +29,7 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
     headerText = 'No image selected';
   } else if (selectedFiles.length === 1) {
     const singleFile = selectedFiles[0];
-    const ext = singleFile.path.substr(singleFile.path.lastIndexOf('.') + 1)
-      .toUpperCase();
+    const ext = singleFile.path.substr(singleFile.path.lastIndexOf('.') + 1).toUpperCase();
     selectionPreview = <img src={singleFile.path} />;
     headerText = path.basename(singleFile.path);
     headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.path).size)}`;
@@ -39,9 +38,9 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
     let size = 0;
     selectedFiles.forEach((f) => size += fs.statSync(f.path).size);
 
+    // Todo: What to show when selecting multiple images?
     selectionPreview = <p>Carousel of selected images here?</p>;
-    headerText = selectedFiles.map((f) => path.basename(f.path))
-      .join(', ');
+    headerText = selectedFiles.map((f) => path.basename(f.path)).join(', ');
     headerSubtext = getBytes(size);
   }
 
