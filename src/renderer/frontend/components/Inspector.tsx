@@ -59,7 +59,7 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
         </section>
 
         <FileInfo files={selectedFiles} />
-        <FileTag files={selectedFiles} autoFocus={uiStore.isInspectorOpen} />
+        <FileTag files={selectedFiles} />
       </aside>
     );
   } else {

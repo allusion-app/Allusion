@@ -152,7 +152,7 @@ const MultiTagSelector = ({
         noResults={NoResults}
         onItemSelect={handleSelect}
         popoverProps={{ minimal: true }}
-        openOnKeyDown
+        openOnKeyDown={false}
         tagRenderer={TagLabel}
         createNewItemFromQuery={maybeCreateNewItemFromQuery}
         createNewItemRenderer={maybeCreateNewItemRenderer}

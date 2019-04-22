@@ -101,7 +101,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
   );
 });
 
-const FileTag = ({ files, autoFocus = true }: IFileTagProps) => {
+const FileTag = ({ files, autoFocus = false }: IFileTagProps) => {
   return (
     <section id="fileTag">
       <div className="inpectorHeading">Tags</div>
