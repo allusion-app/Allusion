@@ -9,7 +9,8 @@
     "start": "electron ./dist/main.bundle.js",
     "package": "rimraf release && npm run production && electron-packager ./dist Allusion --out=./release --asar",
     "lint": "tslint -c tslint.json -p tsconfig.json",
-    "test": "jest"
+    "test": "jest",
+    "package:mac": "rimraf release && npm run production && electron-packager ./dist Allusion --out=./release --asar --icon=./src/renderer/resources/logo/icon.icns"
   },
   "repository": {
     "type": "git",
@@ -48,7 +49,7 @@
     "tslint": "^5.12.0",
     "typescript": "^3.2.2",
     "webpack": "^4.28.3",
-    "webpack-cli": "^3.2.0"
+    "webpack-cli": "^3.3.1"
   },
   "dependencies": {
     "@blueprintjs/core": "^3.15.0",
@@ -61,6 +62,7 @@
     "react-dnd": "^7.3.2",
     "react-dnd-html5-backend": "^7.2.0",
     "react-dom": "^16.8.5",
+    "rimraf": "^2.6.3",
     "styled-components": "^4.1.3",
     "uuid": "^3.3.2"
   }

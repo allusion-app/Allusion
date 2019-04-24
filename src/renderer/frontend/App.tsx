@@ -9,7 +9,7 @@ import Toolbar from './components/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 
-const SPLASH_SCREEN_TIME = 500;
+const SPLASH_SCREEN_TIME = 1500;
 
 interface IAppProps extends IRootStoreProp {}
 

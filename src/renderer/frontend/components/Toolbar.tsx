@@ -11,10 +11,10 @@ import FileTag from './FileTag';
 import { ClientFile } from '../../entities/File';
 
 const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
-  <Popover>
+  <Popover minimal>
     <Button icon={IconSet.DELETE} disabled={disabled} />
     <div className="popoverContent">
-      <H5>Confirm deletion</H5>
+      <H5 className="inpectorHeading">Confirm deletion</H5>
       <p>Are you sure you want to remove these images from your library?</p>
       <p>Your files will not be deleted.</p>
 
@@ -41,7 +41,7 @@ const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disa
 );
 
 const TagFilesPopover = ({ disabled, files }: { disabled: boolean, files: ClientFile[] }) => (
-  <Popover>
+  <Popover minimal>
     <Button icon={IconSet.TAG} disabled={disabled} />
     <div className="popoverContent">
       <FileTag files={files} />
@@ -97,14 +97,35 @@ const Toolbar = () => {
     [],
   );
 
+  const reloadApplication = useCallback(
+    () => {
+      remote.getCurrentWindow().reload()
+    },
+    [],
+  );
+  const handleFullScreen = useCallback(
+    () => {
+      // (toggleFullScreen);
+      remote.getCurrentWindow().setFullScreen(uiStore.fullscreen)
+    },
+    [],
+  );
+  const toggleFullScreen = useCallback(
+    // () => { uiStore.fullscreen = (uiStore.fullscreen === false ? true : false); },
+    () => {
+      uiStore.fullscreen = !uiStore.fullscreen;
+      handleFullScreen();
+    },
+    [],
+  );
   // Render variables
   const sortMenu = useMemo(() =>
     <Menu>
       <MenuItem icon={IconSet.TAG} text="Tag" />
-      <MenuItem icon={IconSet.VIEW_NAME_UP} text="Name" />
-      <MenuItem icon={IconSet.VIEW_FILE_TYPE} text="Type" />
-      <MenuItem icon={IconSet.VIEW_FILTER_DOWN} text="Size" />
-      <MenuItem icon={IconSet.VIEW_DATE} text="Date" labelElement={<Icon icon={IconSet.ARROW_UP} />} active />
+      <MenuItem icon={IconSet.FILTER_NAME_UP} text="Name" />
+      <MenuItem icon={IconSet.FILTER_FILE_TYPE} text="Type" />
+      <MenuItem icon={IconSet.FILTER_FILTER_DOWN} text="Size" />
+      <MenuItem icon={IconSet.FILTER_DATE} text="Date" labelElement={<Icon icon={IconSet.ARROW_UP} />} active />
     </Menu>,
     [],
   );
@@ -136,11 +157,12 @@ const Toolbar = () => {
       </section>
 
       <section id="main-toolbar">
-        <ButtonGroup minimal>
-          {/* Library info. Todo: Show entire library count instead of current fileList */}
-          <Button icon={IconSet.MEDIA} minimal>{numFiles} item{`${numFiles === 1 ? '' : 's'}`}</Button>
+        {/* Library info. Todo: Show entire library count instead of current fileList */}
+        <Button icon={IconSet.MEDIA} minimal>{numFiles} item{`${numFiles === 1 ? '' : 's'}`}</Button>
 
-          <Divider />
+        <ButtonGroup minimal>
+
+          {/* <Divider /> */}
 
           {/* Selection info and actions */}
           <Button
@@ -157,15 +179,15 @@ const Toolbar = () => {
           />
           <RemoveFilesPopover onRemove={handleRemoveSelectedFiles} disabled={!selectionModeOn} />
 
-          <Divider />
+          {/* <Divider /> */}
 
           {/* Gallery actions */}
-          <Popover
+          <Popover minimal
             target={<Button icon={IconSet.VIEW_GRID} />}
             content={layoutMenu}
           />
-          <Popover
-            target={<Button icon={IconSet.VIEW_NAME_UP} />}
+          <Popover minimal
+            target={<Button icon={IconSet.FILTER} />}
             content={sortMenu}
           />
         </ButtonGroup>
@@ -187,8 +209,16 @@ const Toolbar = () => {
             icon={IconSet.SETTINGS}
             onClose={handleToggleSettings}
             title="Settings"
+            // id="settings"
           >
+            <Switch checked={uiStore.fullscreen} onChange={toggleFullScreen} label="Full screen" />
             <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
+
+            <Divider />
+
+            <Button onClick={reloadApplication} icon="refresh" intent="primary">
+              Reload
+            </Button>
 
             <Button disabled>Clear database</Button>
 

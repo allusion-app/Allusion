@@ -13,6 +13,7 @@ import {
   MenuItem,
 } from '@blueprintjs/core';
 import { ClientTag } from '../../entities/Tag';
+import IconSet from './Icons';
 
 interface IGalleryItemTagProps {
   name: string;
@@ -110,12 +111,9 @@ const GalleryItemContextMenu = (filePath: string) => {
 
   return (
     <Menu>
-      <MenuItem onClick={handleOpen} text="Open" />
-      <MenuItem
-        onClick={handleOpenFileExplorer}
-        text="Reveal in File Browser"
-      />
-      <MenuItem onClick={handleInspect} text="Inspect" />
+      <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL}/>
+      <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE}/>
+      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO}/>
     </Menu>
   );
 };

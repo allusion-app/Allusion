@@ -30,6 +30,9 @@ class UiStore {
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
+  // FullScreen
+  @observable fullscreen: boolean = false;
+
   // UI
   @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
   @observable isInspectorOpen: boolean = true;

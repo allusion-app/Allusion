@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
@@ -19,8 +19,36 @@ function createWindow() {
     width: 960,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
-    backgroundColor: '#30404d',
+    backgroundColor: '#222222', //'#30404d',
   });
+
+  // Mac App menu - used for styling so shortcuts work
+  if (process.platform === 'darwin') {
+    // Create our menu entries so that we can use MAC shortcuts
+    Menu.setApplicationMenu(Menu.buildFromTemplate([
+      {
+        label: 'Edit',
+        submenu: [
+          { role: 'undo' },
+          { role: 'redo' },
+          { type: 'separator' },
+          { role: 'cut' },
+          { role: 'copy' },
+          { role: 'paste' },
+          { role: 'pasteandmatchstyle' },
+          { role: 'delete' },
+          { role: 'selectall' },
+          { type: 'separator' },
+          { role: 'reload' },
+          { role: 'toggleFullScreen' },
+          { role: 'toggleDevTools' },
+          { type: 'separator' },
+          { role: 'quit' }
+        ]
+      }
+    ]));
+  }
+
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
