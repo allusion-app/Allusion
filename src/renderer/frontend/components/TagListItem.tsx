@@ -148,8 +148,7 @@ export const TagListItem = ({
   isHovering,
 }: ITagListItemProps & IEditingProps & IDragProps & IDropProps) => {
   // Style whether the element is being dragged or hovered over to drop on
-  const className = `${isHovering ? 'reorder-target' : ''
-    } ${isDragging ? 'reorder-source' : ''}`;
+  const className = `${isHovering ? 'reorder-target' : ''} ${isDragging ? 'reorder-source' : ''}`;
   return connectDropTarget(
     connectDragSource(
       <div className={className}>

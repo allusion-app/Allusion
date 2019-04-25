@@ -50,6 +50,7 @@ const TagCollectionListItem = ({
   const [expandTimeout, setExpandTimeout] = useState(0);
   useEffect(() => {
     if (!canDrop) {
+      clearTimeout(expandTimeout);
       return;
     }
     // Clear timer if isHovering changes
@@ -64,8 +65,7 @@ const TagCollectionListItem = ({
 
   // Style whether the element is being dragged or hovered over to drop on
   const className = `${
-    canDrop && !isDragging && isHovering ? 'reorder-target' : ''
-    } ${isDragging ? 'reorder-source' : ''}`;
+    canDrop && !isDragging && isHovering ? 'reorder-target' : ''} ${isDragging ? 'reorder-source' : ''}`;
   return connectDropTarget(
     connectDragSource(<div className={className}>{tagCollection.name}</div>),
   );

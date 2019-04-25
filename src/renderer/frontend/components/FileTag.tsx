@@ -52,17 +52,17 @@ const Multi = observer(({ files }: IFileTagProps) => {
   const sortedTags = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
 
   const handleClear = useCallback(
-    () => files.forEach((f) => f.tags.clear()),
+    () => files.forEach((f) => f.removeAllTags()),
     [files],
   );
 
   const handleSelect = useCallback(
-    (tag: ClientTag) => files.forEach((f) => f.tags.push(tag.id)),
+    (tag: ClientTag) => files.forEach((f) => f.addTag(tag.id)),
     [files],
   );
 
   const handleDeselect = useCallback(
-    (tag: ClientTag) => files.forEach((f) => f.tags.remove(tag.id)),
+    (tag: ClientTag) => files.forEach((f) => f.removeTag(tag.id)),
     [files],
   );
 

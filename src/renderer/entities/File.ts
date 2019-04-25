@@ -83,15 +83,18 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
     return this.tags.map((id) => this.store.rootStore.tagStore.tagList.find((t) => t.id === id)) as ClientTag[];
   }
 
-  @action addTag(tag: ID) {
+  @action.bound addTag(tag: ID) {
     if (!this.tags.includes(tag)) {
       this.tags.push(tag);
     }
   }
-  @action removeTag(tag: ID) {
+  @action.bound removeTag(tag: ID) {
     if (this.tags.includes(tag)) {
       this.tags.remove(tag);
     }
+  }
+  @action.bound removeAllTags() {
+    this.tags.clear();
   }
 
   /**
