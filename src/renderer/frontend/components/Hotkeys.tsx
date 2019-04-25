@@ -83,6 +83,20 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Delete the selected files"
           // onKeyDown={uiStore.}
         />
+
+        {/* Misc */}
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.reload}
+          label="Reload the application"
+          onKeyDown={uiStore.reload}
+        />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.openDevTools}
+          label="Toggle the developer tools"
+          onKeyDown={uiStore.toggleDevtools}
+        />
       </Hotkeys>
     );
   }

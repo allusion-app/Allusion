@@ -1,7 +1,6 @@
-import { remote } from 'electron';
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5, Card, Code,
+  Button, Popover, MenuItem, Menu, ButtonGroup, Icon, Divider, Classes, H5,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -86,23 +85,6 @@ const Toolbar = () => {
     [],
   );
 
-  // Inspector actions
-  const handleToggleInspector = useCallback(
-    () => { uiStore.isInspectorOpen = !uiStore.isInspectorOpen; },
-    [],
-  );
-
-  const handleToggleSettings = useCallback(
-    () => { uiStore.isSettingsOpen = !uiStore.isSettingsOpen; },
-    [],
-  );
-
-  // Settings actions
-  const toggleTheme = useCallback(
-    () => { uiStore.theme = (uiStore.theme === 'DARK' ? 'LIGHT' : 'DARK'); },
-    [],
-  );
-
   // Render variables
   const sortMenu = useMemo(() =>
     <Menu>
@@ -128,10 +110,6 @@ const Toolbar = () => {
   const numFiles = fileStore.fileList.length;
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
   const olPage = uiStore.outlinerPage;
-
-  const handleOpenDevtools = useCallback(() => remote.getCurrentWebContents().openDevTools(), []);
-
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
     <div id="toolbar">
@@ -184,42 +162,13 @@ const Toolbar = () => {
         <ButtonGroup minimal>
           <Button
             icon={IconSet.INFO}
-            onClick={handleToggleInspector}
+            onClick={uiStore.toggleInspector}
             intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
           />
           <Button
             icon={IconSet.SETTINGS}
-            onClick={handleToggleSettings}
+            onClick={uiStore.toggleSettings}
           />
-          <Drawer
-            isOpen={uiStore.isSettingsOpen}
-            icon={IconSet.SETTINGS}
-            onClose={handleToggleSettings}
-            title="Settings"
-            className={themeClass}
-          >
-            <div className={Classes.DRAWER_BODY}>
-              <div className={Classes.DIALOG_BODY}>
-                <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
-
-                <Button disabled fill>Clear database</Button>
-
-                <Button onClick={handleOpenDevtools} intent="warning" icon="error" fill>
-                  Open DevTools
-                </Button>
-
-                <br />
-
-                <Card elevation={2}>
-                  <H5>Tip: Hotkeys</H5>
-                  <p>
-                    Did you know this application has hotkeys?
-                    Press <Code>?</Code> (<Code>shift + /</Code>) to see them.
-                  </p>
-                </Card>
-              </div>
-            </div>
-          </Drawer>
         </ButtonGroup>
       </section>
     </div>

@@ -4,6 +4,7 @@ import { ClientFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
+import { remote } from 'electron';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -20,6 +21,10 @@ interface IHotkeyMap {
   deleteSelectedFiles: string;
   selectAllFiles: string;
   deselectAllFiles: string;
+
+  // Misc
+  reload: string;
+  openDevTools: string;
 }
 
 const defaultHotkeyMap: IHotkeyMap = {
@@ -32,6 +37,8 @@ const defaultHotkeyMap: IHotkeyMap = {
   deleteSelectedFiles: 'del',
   selectAllFiles: 'mod + a',
   deselectAllFiles: 'mod + d',
+  reload: 'f5',
+  openDevTools: 'f12',
 };
 
 /**
@@ -141,6 +148,12 @@ class UiStore {
   }
   @action.bound openToolbarTagSelector() { this.isToolbarTagSelectorOpen = this.fileSelection.length > 0; }
   @action.bound closeToolbarTagSelector() { this.isToolbarTagSelectorOpen = false; }
+
+  @action.bound toggleSettings() { this.isSettingsOpen = !this.isSettingsOpen; }
+  @action.bound toggleTheme() { this.theme = (this.theme === 'DARK' ? 'LIGHT' : 'DARK'); }
+
+  @action.bound toggleDevtools() { remote.getCurrentWebContents().toggleDevTools(); }
+  @action.bound reload() { remote.getCurrentWindow().reload(); }
 
   /////////////////// Helper methods ///////////////////
   /**
