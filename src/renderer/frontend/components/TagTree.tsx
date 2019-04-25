@@ -64,8 +64,20 @@ const createTagCollectionTreeNode = (
       onMoveTag={(id) => {
         const movedCollectionParent = store.tagCollectionList.find((c) => c.tags.includes(id));
         if (movedCollectionParent) {
-          movedCollectionParent.tags.remove(id);
-          col.tags.push(id);
+          // movedCollectionParent.removeTag(id);
+          // col.addTag(id);
+
+          // TODO: Dragging an unselected item should make that the only selected one
+          // Then, instead of moving only this tag, we can move all selected tags (or collections)
+
+          // Something like this.
+          store.rootStore.uiStore.tagSelection.forEach((t) => {
+            const tag = store.rootStore.tagStore.tagList.find((cTag) => cTag.id === t);
+            if (tag) {
+              tag.parent.removeTag(t);
+              col.addTag(t);
+            }
+          });
         }
       }}
     />

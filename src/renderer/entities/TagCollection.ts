@@ -1,4 +1,4 @@
-import { IReactionDisposer, observable, reaction, computed } from 'mobx';
+import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag, ITag } from './Tag';
 import TagCollectionStore from '../frontend/stores/TagCollectionStore';
@@ -98,6 +98,17 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     return (this.tags.length > 0 || this.subCollections.length > 0)
       && !this.tags.some((tag) => !uiStore.tagSelection.includes(tag))
       && !this.clientSubCollections.some((col) => !col.isSelected);
+  }
+
+  @action addTag(tag: ClientTag | ID) {
+    const id = (tag instanceof ClientTag) ? tag.id : tag;
+    if (!this.tags.includes(id)) {
+      this.tags.push(id);
+    }
+  }
+
+  @action removeTag(tag: ClientTag | ID) {
+    this.tags.remove((tag instanceof ClientTag) ? tag.id : tag);
   }
 
   delete() {

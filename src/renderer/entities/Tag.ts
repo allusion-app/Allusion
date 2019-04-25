@@ -1,6 +1,7 @@
-import { IReactionDisposer, observable, reaction } from 'mobx';
+import { IReactionDisposer, observable, reaction, computed } from 'mobx';
 import TagStore from '../frontend/stores/TagStore';
 import { generateId, ID, IIdentifiable, ISerializable } from './ID';
+import { ClientTagCollection } from './TagCollection';
 
 /* Generic properties of a Tag in our application */
 export interface ITag extends IIdentifiable {
@@ -40,6 +41,16 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
   @observable name: string;
   @observable description: string;
   // icon, color, (fileCount?)
+
+  /** Get actual tag objects based on the IDs retrieved from the backend */
+  @computed get parent(): ClientTagCollection {
+    const tagCollectionStore = this.store.rootStore.tagCollectionStore;
+    const parent = tagCollectionStore.tagCollectionList.find((col) => col.tags.includes(this.id));
+    if (!parent) {
+      console.warn('Tag does not have a parent', this);
+    }
+    return parent || tagCollectionStore.getRootCollection();
+  }
 
   constructor(store: TagStore, name?: string, id = generateId()) {
     this.store = store;
