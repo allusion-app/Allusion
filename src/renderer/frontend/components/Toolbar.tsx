@@ -233,7 +233,7 @@ const Toolbar = () => {
                   <H5>Tip: Hotkeys</H5>
                   <p>
                     Did you know this application has hotkeys?
-                    Press <Code>?</Code> (<Code>shift + /</Code>) to see them.
+                    Press shift + / (?) to see them.
                   </p>
                 </Callout>
               {/* </div> */}

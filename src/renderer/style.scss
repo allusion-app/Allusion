@@ -42,11 +42,13 @@ $blue5: #48aff0 !important;
 
 $yellow1: #f7ea3a !important;
 
-.bp3-dark .bp3-running-text code, .bp3-running-text .bp3-dark code, .bp3-dark .bp3-code {
-  /* box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.4); */
-  background: rgba(16, 22, 26, 0.3);
-  color: white;
-  box-shadow: none;
+.bp3-dark .bp3-running-text code,
+.bp3-running-text .bp3-dark code,
+.bp3-dark .bp3-code {
+  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 0 0 rgba(16, 22, 26, 0), 0 1px 1px rgba(16, 22, 26, 0.2);
+  color: #5c7080;
+  font-size: 0.8rem;
+  font-family: inherit;
 }
 
 // @import "~@blueprintjs/core/src/common/color-aliases";
@@ -235,7 +237,8 @@ nav .bp3-heading {
 .bp3-dark .bp3-heading {
   color: $dark-gray4;
 }
-.bp3-dark .bp3-callout .bp3-heading, .bp3-callout .custom-icon {
+.bp3-dark .bp3-callout .bp3-heading,
+.bp3-callout .custom-icon {
   color: $blue5;
 }
 
@@ -483,7 +486,7 @@ $pt-transition-duration: 100ms !default;
   margin-bottom: 1rem;
 }
 .bp3-drawer-body > * {
-  margin-bottom: .5rem;
+  margin-bottom: 0.5rem;
 }
 .bp3-drawer .custom-icon {
   color: $dark-gray4;
@@ -598,12 +601,12 @@ form .bp3-icon-confirm {
 }
 .bp3-button.bp3-disabled.bp3-fill {
   box-shadow: none !important;
-    background-color: transparent !important;
-    background-image: none;
-    color: rgba(191, 204, 214, 0.5);
-    border: 1px solid $dark-gray4;
-    opacity: .5;
-    color: $dark-gray4;
+  background-color: transparent !important;
+  background-image: none;
+  color: rgba(191, 204, 214, 0.5);
+  border: 1px solid $dark-gray4;
+  opacity: 0.5;
+  color: $dark-gray4;
 }
 .bp3-dark .bp3-disabled > p {
   color: $dark-gray5;
@@ -814,7 +817,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   width: 100%;
   padding: 10px 12px 9px;
   p {
-    color:$dark-gray4;
+    color: $dark-gray4;
   }
 }
 .bp3-dark .bp3-callout.bp3-intent-primary {
