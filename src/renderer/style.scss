@@ -42,6 +42,13 @@ $blue5: #48aff0 !important;
 
 $yellow1: #f7ea3a !important;
 
+.bp3-dark .bp3-running-text code, .bp3-running-text .bp3-dark code, .bp3-dark .bp3-code {
+  /* box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.4); */
+  background: rgba(16, 22, 26, 0.3);
+  color: white;
+  box-shadow: none;
+}
+
 // @import "~@blueprintjs/core/src/common/color-aliases";
 /**
  * Custom CSS
@@ -52,7 +59,7 @@ $thumbnail-size: calc((100vw - 16rem) / 6);
 html {
   height: 100%;
   // margin-top: 22px;
-    -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
 }
 // html .bp3-dark{
 //   background: $dark-gray2;
@@ -132,11 +139,11 @@ nav .bp3-light,
   // transition: all 0.1s ease-in-out;
   width: $thumbnail-size;
   height: $thumbnail-size;
-  display: inline-block;
+  display: inline-flex;
   position: relative;
   overflow: hidden;
   border-radius: 0.25rem;
-  margin: 0.25rem;
+  margin: 0.4rem;
 }
 
 .thumbnail img {
@@ -151,6 +158,7 @@ nav .bp3-light,
   display: block;
   transform-origin: center;
   transform: scale(1);
+  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .thumbnail.selected {
@@ -159,6 +167,7 @@ nav .bp3-light,
 
 .thumbnail.selected img {
   transform: scale(0.9);
+  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .thumbnail.open img {
@@ -224,7 +233,10 @@ nav .bp3-heading {
   margin: 0.5em 1rem;
 }
 .bp3-dark .bp3-heading {
-  color: $light-gray1;
+  color: $dark-gray4;
+}
+.bp3-dark .bp3-callout .bp3-heading, .bp3-callout .custom-icon {
+  color: $blue5;
 }
 
 #search-form {
@@ -320,6 +332,8 @@ nav .bp3-heading {
 
 .bp3-tree-node .reorder-target {
   border-bottom: 2px solid $blue1;
+  padding-bottom: 3px;
+  border-bottom: 2px solid transparent;
 }
 
 .bp3-tree-node .reorder-source,
@@ -462,9 +476,17 @@ $pt-transition-duration: 100ms !default;
   //   margin-bottom: 0.3rem;
   // }
 }
-.bp3-drawer-header {
+.bp3-drawer-header,
+.bp3-drawer-body,
+.bp3-divider {
   padding: 0 0 0.5rem 0;
   margin-bottom: 1rem;
+}
+.bp3-drawer-body > * {
+  margin-bottom: .5rem;
+}
+.bp3-drawer .custom-icon {
+  color: $dark-gray4;
 }
 // settings panel
 .bp3-drawer:not(.bp3-position-top):not(.bp3-position-bottom):not(.bp3-position-left):not(.bp3-position-right):not(.bp3-vertical) {
@@ -502,6 +524,9 @@ form,
 .bp3-control-group {
   outline: none;
   box-shadow: none;
+}
+.bp3-dark .bp3-control {
+  color: $dark-gray4;
 }
 // .bp3-dark .bp3-tag-input.bp3-active, .bp3-tag-input.bp3-dark.bp3-active
 .bp3-dark form &.#{$ns}-input {
@@ -571,7 +596,18 @@ form .bp3-icon-confirm {
 .bp3-drawer .bp3-button.bp3-intent-primary {
   background-color: $dark-gray4;
 }
-
+.bp3-button.bp3-disabled.bp3-fill {
+  box-shadow: none !important;
+    background-color: transparent !important;
+    background-image: none;
+    color: rgba(191, 204, 214, 0.5);
+    border: 1px solid $dark-gray4;
+    opacity: .5;
+    color: $dark-gray4;
+}
+.bp3-dark .bp3-disabled > p {
+  color: $dark-gray5;
+}
 .bp3-button::before,
 .bp3-button > *,
 // .bp3-tree-node-caret,
@@ -593,13 +629,23 @@ form .bp3-icon-confirm {
   background: transparent;
   color: #f5f8fa;
 }
+// Controls
 .bp3-control input:focus ~ .bp3-control-indicator {
   outline: none;
 }
 .bp3-control.bp3-switch input:checked ~ .bp3-control-indicator {
   background: $blue1;
 }
-
+.bp3-control.bp3-switch input ~ .bp3-control-indicator {
+  background: rgba(167, 182, 194, 0.5);
+}
+.bp3-dark .bp3-control.bp3-switch .bp3-control-indicator::before {
+  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.4) !important;
+  background: white;
+}
+.bp3-control.bp3-switch:hover input ~ .bp3-control-indicator {
+  background: rgba(115, 134, 148, 0.5);
+}
 // Menus
 .inpectorHeading,
 .bp3-heading {
@@ -671,10 +717,11 @@ form .bp3-icon-confirm {
 .bp3-portal #fileTag > * {
   padding: 0.25rem 0.5rem;
 }
-#inspector #fileTag > *, #inspector .inpectorHeading {
+#inspector #fileTag > *,
+#inspector .inpectorHeading {
   padding: 0.25rem 0rem;
-  font-size:14px;
-  line-height:1.2;
+  font-size: 14px;
+  line-height: 1.2;
 }
 
 .bp3-popover-content {
@@ -704,8 +751,8 @@ form .bp3-icon-confirm {
 .bp3-button.bp3-minimal:hover {
   border-bottom: 2px solid $blue1;
   border-radius: 0;
-  padding-bottom: 2px;
-  transition: padding-bottom 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-bottom: 4px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button.bp3-intent-primary {
   color: white;
@@ -757,6 +804,27 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   color: $blue1;
 }
 
+// Callout
+.bp3-callout {
+  line-height: 1.5;
+  font-size: 14px;
+  position: relative;
+  border-radius: 6px;
+  background-color: rgba(138, 155, 168, 0.15);
+  width: 100%;
+  padding: 10px 12px 9px;
+  p {
+    color:$dark-gray4;
+  }
+}
+.bp3-dark .bp3-callout.bp3-intent-primary {
+  background-color: $dark-gray4;
+}
+.bp3-dark .bp3-callout.bp3-intent-primary[class*="bp3-icon-"]::before,
+.bp3-dark .bp3-callout.bp3-intent-primary > .bp3-icon:first-child,
+.bp3-dark .bp3-callout.bp3-intent-primary .bp3-heading {
+  color: $blue5;
+}
 // Tags
 .bp3-tag {
   border-radius: 3px;
@@ -777,7 +845,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-dark .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]),
-.bp3-dark.bp3-tag.bp3-minimal:not([class*="bp3-intent-"])  {
+.bp3-dark.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
   color: $gray4;
 }
 // .bp3-dark .bp3-tree-node-content:hover {

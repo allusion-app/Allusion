@@ -8,6 +8,7 @@ import Inspector from './components/Inspector';
 import Toolbar from './components/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
+import GlobalHotkeys from './components/Hotkeys';
 
 const SPLASH_SCREEN_TIME = 1500;
 
@@ -30,15 +31,18 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
   return (
     <div id="layoutContainer" className={`${themeClass}`}>
       <ErrorBoundary>
-        <Toolbar />
+        <GlobalHotkeys>
+          <Toolbar />
 
-        <Outliner />
+          <Outliner />
 
-        <main>
-          <FileList />
-        </main>
+          <main>
+            <FileList />
+          </main>
 
-        <Inspector />
+          <Inspector />
+
+        </GlobalHotkeys>
       </ErrorBoundary>
     </div>
   );

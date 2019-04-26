@@ -9,6 +9,8 @@ function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
+    // Fixed it by adding a margin-top to the body and giving html background color so it blends in
+    // But new issue arissed in fullscreen than
     // titleBarStyle: 'hiddenInset',
     webPreferences: {
       nodeIntegration: true,
@@ -17,38 +19,44 @@ function createWindow() {
     minHeight: 224,
     height: 640,
     width: 960,
+    // fullscreen: true,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
-    backgroundColor: '#222222', //'#30404d',
+    backgroundColor: '#222222',
   });
 
   // Mac App menu - used for styling so shortcuts work
   if (process.platform === 'darwin') {
     // Create our menu entries so that we can use MAC shortcuts
-    Menu.setApplicationMenu(Menu.buildFromTemplate([
+    const template = [
       {
-        label: 'Edit',
-        submenu: [
+        label: 'File', submenu: [
+          { role: 'quit' },
+        ],
+      },
+      {
+        label: 'Edit', submenu: [
           { role: 'undo' },
           { role: 'redo' },
-          { type: 'separator' },
+          { role: 'separator' },
           { role: 'cut' },
           { role: 'copy' },
           { role: 'paste' },
           { role: 'pasteandmatchstyle' },
           { role: 'delete' },
           { role: 'selectall' },
-          { type: 'separator' },
+        ],
+      },
+      {
+        label: 'Help', submenu: [
           { role: 'reload' },
           { role: 'toggleFullScreen' },
           { role: 'toggleDevTools' },
-          { type: 'separator' },
-          { role: 'quit' }
-        ]
-      }
-    ]));
+        ],
+      },
+    ];
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   }
-
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);

@@ -111,9 +111,9 @@ const GalleryItemContextMenu = (filePath: string) => {
 
   return (
     <Menu>
-      <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL}/>
-      <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE}/>
-      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO}/>
+      <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
+      <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
+      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
     </Menu>
   );
 };
@@ -121,8 +121,8 @@ const GalleryItemContextMenu = (filePath: string) => {
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
 class GalleryItemWithContextMenu extends React.PureComponent<
-  IGalleryItemProps,
-  { isContextMenuOpen: boolean }
+IGalleryItemProps,
+{ isContextMenuOpen: boolean }
 > {
   state = {
     isContextMenuOpen: false,

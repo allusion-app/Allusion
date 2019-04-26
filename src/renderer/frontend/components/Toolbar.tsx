@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5,
+  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5, Code, Callout,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -9,9 +9,10 @@ import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import FileTag from './FileTag';
 import { ClientFile } from '../../entities/File';
+import UiStore from '../stores/UiStore';
 
 const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
-  <Popover minimal>
+  <Popover>
     <Button icon={IconSet.DELETE} disabled={disabled} />
     <div className="popoverContent">
       <H5 className="inpectorHeading">Confirm deletion</H5>
@@ -40,14 +41,19 @@ const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disa
   </Popover>
 );
 
-const TagFilesPopover = ({ disabled, files }: { disabled: boolean, files: ClientFile[] }) => (
-  <Popover minimal>
-    <Button icon={IconSet.TAG} disabled={disabled} />
+interface ITagFilesPopoverProps {
+  disabled: boolean;
+  files: ClientFile[];
+  uiStore: UiStore;
+}
+const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopoverProps) => (
+  <Popover minimal isOpen={uiStore.isToolbarTagSelectorOpen} onClose={uiStore.closeToolbarTagSelector}>
+    <Button icon={IconSet.TAG} disabled={disabled} onClick={uiStore.toggleToolbarTagSelector} />
     <div className="popoverContent">
-      <FileTag files={files} />
+      <FileTag files={files} autoFocus />
     </div>
   </Popover>
-);
+));
 
 const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -96,17 +102,10 @@ const Toolbar = () => {
     () => { uiStore.theme = (uiStore.theme === 'DARK' ? 'LIGHT' : 'DARK'); },
     [],
   );
-
-  const reloadApplication = useCallback(
-    () => {
-      remote.getCurrentWindow().reload()
-    },
-    [],
-  );
   const handleFullScreen = useCallback(
     () => {
       // (toggleFullScreen);
-      remote.getCurrentWindow().setFullScreen(uiStore.fullscreen)
+      remote.getCurrentWindow().setFullScreen(uiStore.fullscreen);
     },
     [],
   );
@@ -118,6 +117,7 @@ const Toolbar = () => {
     },
     [],
   );
+
   // Render variables
   const sortMenu = useMemo(() =>
     <Menu>
@@ -146,6 +146,8 @@ const Toolbar = () => {
 
   const handleOpenDevtools = useCallback(() => remote.getCurrentWebContents().openDevTools(), []);
 
+  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+
   return (
     <div id="toolbar">
       <section id="outliner-toolbar">
@@ -172,10 +174,11 @@ const Toolbar = () => {
           >
             {uiStore.fileSelection.length} selected
           </Button>
-          {/* Todo: Show popover for modifying tags of selection (same as inspector?) */}
+          {/* Show popover for modifying tags of selection (same as inspector) */}
           <TagFilesPopover
             files={uiStore.clientFileSelection}
             disabled={!selectionModeOn}
+            uiStore={uiStore}
           />
           <RemoveFilesPopover onRemove={handleRemoveSelectedFiles} disabled={!selectionModeOn} />
 
@@ -209,22 +212,32 @@ const Toolbar = () => {
             icon={IconSet.SETTINGS}
             onClose={handleToggleSettings}
             title="Settings"
-            // id="settings"
+            className={themeClass}
           >
-            <Switch checked={uiStore.fullscreen} onChange={toggleFullScreen} label="Full screen" />
-            <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
+            <div className={Classes.DRAWER_BODY}>
+              {/* <div className={Classes.DIALOG_BODY}> */}
+                <Switch checked={uiStore.fullscreen} onChange={toggleFullScreen} label="Full screen" />
+                <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
 
-            <Divider />
+                <Divider />
 
-            <Button onClick={reloadApplication} icon="refresh" intent="primary">
-              Reload
-            </Button>
+                <Button disabled fill>Clear database</Button>
 
-            <Button disabled>Clear database</Button>
+                <Button onClick={handleOpenDevtools} intent="warning" icon="error" fill>
+                  Open DevTools
+                </Button>
 
-            <Button onClick={handleOpenDevtools} intent="warning" icon="error">
-              Open DevTools
-            </Button>
+                <br />
+
+                <Callout icon={IconSet.INFO}>
+                  <H5>Tip: Hotkeys</H5>
+                  <p>
+                    Did you know this application has hotkeys?
+                    Press <Code>?</Code> (<Code>shift + /</Code>) to see them.
+                  </p>
+                </Callout>
+              {/* </div> */}
+            </div>
           </Drawer>
         </ButtonGroup>
       </section>

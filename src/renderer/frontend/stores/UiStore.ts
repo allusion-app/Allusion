@@ -5,6 +5,35 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
 
+interface IHotkeyMap {
+  // Outerliner actions
+  toggleOutliner: string;
+  openOutlinerImport: string;
+  openOutlinerTags: string;
+  openOutlinerSearch: string;
+
+  // Inspector actions
+  toggleInspector: string;
+
+  // Toolbar actions (these should only be active when the content area is focused)
+  openTagSelector: string;
+  deleteSelectedFiles: string;
+  selectAllFiles: string;
+  deselectAllFiles: string;
+}
+
+const defaultHotkeyMap: IHotkeyMap = {
+  toggleOutliner: '1',
+  toggleInspector: '2',
+  openOutlinerImport: 'shift + 1',
+  openOutlinerTags: 'shift + 2',
+  openOutlinerSearch: 'shift + 3',
+  openTagSelector: 't',
+  deleteSelectedFiles: 'del',
+  selectAllFiles: 'mod + a',
+  deselectAllFiles: 'mod + d',
+};
+
 /**
  * From: https://mobx.js.org/best/store.html
  * Things you will typically find in UI stores:
@@ -37,11 +66,14 @@ class UiStore {
   @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
   @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
+  @observable isToolbarTagSelectorOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
   readonly fileSelection = observable<ID>([]);
   readonly tagSelection = observable<ID>([]);
+
+  @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
   @computed get clientFileSelection(): ClientFile[] {
     return this.fileSelection.map((id) =>
@@ -59,12 +91,22 @@ class UiStore {
     this.rootStore = rootStore;
   }
 
+  /////////////////// Selection actions ///////////////////
   @action selectFile(file: ClientFile) {
     this.fileSelection.push(file.id);
   }
 
   @action deselectFile(file: ClientFile) {
     this.fileSelection.remove(file.id);
+  }
+
+  @action.bound selectAllFiles() {
+    this.fileSelection.clear();
+    this.fileSelection.push(...this.rootStore.fileStore.fileList.map((f) => f.id));
+  }
+
+  @action.bound deselectAllFiles() {
+    this.fileSelection.clear();
   }
 
   @action selectTag(tag: ClientTag) {
@@ -84,6 +126,26 @@ class UiStore {
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
+  /////////////////// UI Actions ///////////////////
+  @action.bound toggleOutliner() {
+    // todo: fix toggle outerliner
+    console.log('Todo: Toggle outliner!');
+    // this.outlinerPage = 'NONE';
+  }
+
+  @action.bound openOutlinerImport() { this.outlinerPage = 'IMPORT'; }
+  @action.bound openOutlinerTags() { this.outlinerPage = 'TAGS'; }
+  @action.bound openOutlinerSearch() { this.outlinerPage = 'SEARCH'; }
+
+  @action.bound toggleInspector() { this.isInspectorOpen = !this.isInspectorOpen; }
+
+  @action.bound toggleToolbarTagSelector() {
+    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
+  }
+  @action.bound openToolbarTagSelector() { this.isToolbarTagSelectorOpen = this.fileSelection.length > 0; }
+  @action.bound closeToolbarTagSelector() { this.isToolbarTagSelectorOpen = false; }
+
+  /////////////////// Helper methods ///////////////////
   /**
    * Deselect files that are not tagged with any tag in the current tag selection
    */
@@ -94,6 +156,7 @@ class UiStore {
       }
     });
   }
+
 }
 
 export default UiStore;
