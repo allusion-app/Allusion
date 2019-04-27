@@ -14,6 +14,7 @@ interface IHotkeyMap {
 
   // Inspector actions
   toggleInspector: string;
+  toggleSettings: string;
 
   // Toolbar actions (these should only be active when the content area is focused)
   openTagSelector: string;
@@ -29,6 +30,7 @@ const defaultHotkeyMap: IHotkeyMap = {
   openOutlinerTags: 'shift + 2',
   openOutlinerSearch: 'shift + 3',
   openTagSelector: 't',
+  toggleSettings: 's',
   deleteSelectedFiles: 'del',
   selectAllFiles: 'mod + a',
   deselectAllFiles: 'mod + d',
@@ -64,6 +66,7 @@ class UiStore {
 
   // UI
   @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
+  @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
@@ -127,17 +130,18 @@ class UiStore {
   }
 
   /////////////////// UI Actions ///////////////////
-  @action.bound toggleOutliner() {
-    // todo: fix toggle outerliner
-    console.log('Todo: Toggle outliner!');
-    // this.outlinerPage = 'NONE';
-  }
-
+  // @action.bound toggleOutliner() {
+  //   // todo: fix toggle outerliner
+  //   console.log('Todo: Toggle outliner!');
+  //   // this.outlinerPage = 'NONE';
+  // }
+  @action.bound toggleOutliner() { this.isOutlinerOpen = !this.isOutlinerOpen; }
   @action.bound openOutlinerImport() { this.outlinerPage = 'IMPORT'; }
   @action.bound openOutlinerTags() { this.outlinerPage = 'TAGS'; }
   @action.bound openOutlinerSearch() { this.outlinerPage = 'SEARCH'; }
 
   @action.bound toggleInspector() { this.isInspectorOpen = !this.isInspectorOpen; }
+  @action.bound toggleSettings() { this.isSettingsOpen = !this.isSettingsOpen; }
 
   @action.bound toggleToolbarTagSelector() {
     this.isToolbarTagSelectorOpen = this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;

@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5, Code, Callout,
+  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5, Callout,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -59,6 +59,10 @@ const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
+  const handleToggleOutliner = useCallback(
+    () => { uiStore.isOutlinerOpen = !uiStore.isOutlinerOpen; },
+    [],
+  );
   const handleOlImport = useCallback(() => { uiStore.outlinerPage = 'IMPORT'; }, []);
   const handleOlTags = useCallback(() => { uiStore.outlinerPage = 'TAGS'; }, []);
   const handleOlSearch = useCallback(() => { uiStore.outlinerPage = 'SEARCH'; }, []);
@@ -152,9 +156,9 @@ const Toolbar = () => {
     <div id="toolbar">
       <section id="outliner-toolbar">
         <ButtonGroup minimal>
-          <Button icon={IconSet.ADD} onClick={handleOlImport} intent={olPage === 'IMPORT' ? 'primary' : 'none'} />
-          <Button icon={IconSet.TAG} onClick={handleOlTags} intent={olPage === 'TAGS' ? 'primary' : 'none'} />
-          <Button icon={IconSet.SEARCH} onClick={handleOlSearch} intent={olPage === 'SEARCH' ? 'primary' : 'none'} />
+          <Button icon={IconSet.ADD} onClick={handleOlImport} onDoubleClick={handleToggleOutliner} intent={olPage === 'IMPORT' ? 'primary' : 'none'} />{/* // tslint:disable-next-line */}
+          <Button icon={IconSet.TAG} onClick={handleOlTags} onDoubleClick={handleToggleOutliner} intent={olPage === 'TAGS' ? 'primary' : 'none'} />{/* // tslint:disable-next-line */}
+          <Button icon={IconSet.SEARCH} onClick={handleOlSearch} onDoubleClick={handleToggleOutliner} intent={olPage === 'SEARCH' ? 'primary' : 'none'} />{/* // tslint:disable-next-line */}
         </ButtonGroup>
       </section>
 
@@ -168,7 +172,7 @@ const Toolbar = () => {
 
           {/* Selection info and actions */}
           <Button
-            icon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
+            rightIcon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
             onClick={handleToggleSelect}
             intent={isFileListSelected ? 'primary' : 'none'}
           >
@@ -194,6 +198,7 @@ const Toolbar = () => {
             content={sortMenu}
           />
         </ButtonGroup>
+        <div id="spacer" style={{ width: '100px'}}></div>
       </section>
 
       <section id="inspector-toolbar">
@@ -216,26 +221,26 @@ const Toolbar = () => {
           >
             <div className={Classes.DRAWER_BODY}>
               {/* <div className={Classes.DIALOG_BODY}> */}
-                <Switch checked={uiStore.fullscreen} onChange={toggleFullScreen} label="Full screen" />
-                <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
+              <Switch checked={uiStore.fullscreen} onChange={toggleFullScreen} label="Full screen" />
+              <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
 
-                <Divider />
+              <Divider />
 
-                <Button disabled fill>Clear database</Button>
+              <Button disabled fill>Clear database</Button>
 
-                <Button onClick={handleOpenDevtools} intent="warning" icon="error" fill>
-                  Open DevTools
+              <Button onClick={handleOpenDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
+                Open DevTools
                 </Button>
 
-                <br />
+              <br />
 
-                <Callout icon={IconSet.INFO}>
-                  <H5>Tip: Hotkeys</H5>
-                  <p>
-                    Did you know this application has hotkeys?
-                    Press <Code>shift + /</Code> to see them.
-                  </p>
-                </Callout>
+              <Callout icon={IconSet.INFO}>
+                <H5>Tip: Hotkeys</H5>
+                <p>
+                  Did you know there are hotkeys?<br/>
+                  Press <span className={Classes.KEY_COMBO}><span className={Classes.KEY + ' ' + Classes.MODIFIER_KEY}>shift</span>&nbsp;<span className={Classes.KEY}>/</span>&nbsp;to see them.</span>{/* // tslint:disable-next-line */}
+                </p>
+              </Callout>
               {/* </div> */}
             </div>
           </Drawer>

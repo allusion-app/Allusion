@@ -176,15 +176,15 @@ const ImportForm = () => {
   return (
     <>
       <Button fill onClick={handleChooseFiles} icon={IconSet.MEDIA}>
-        Import images
+        Add images
       </Button>
 
       <Button fill onClick={handleChooseDirectory} icon={IconSet.FOLDER_OPEN} title={importFolderTitle}>
-        Import single directory
+        Add single directory
       </Button>
 
       <Button fill onClick={handleChooseFolderStructure} icon={IconSet.FOLDER_OPEN} title={importNestedTitle}>
-        Import nested directories
+        Add nested directories
       </Button>
 
       {/* Todo: Show progress bar here */}

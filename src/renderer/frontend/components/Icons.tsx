@@ -10,6 +10,7 @@ import ARROW_DOWN from '../../resources/icons/arrow-down.svg';
 import ARROW_RIGHT from '../../resources/icons/arrow-right.svg';
 import ARROW_UP from '../../resources/icons/arrow-up.svg';
 import CHECKMARK from '../../resources/icons/checkmark.svg';
+import CHROME_DEVTOOLS from '../../resources/icons/chrome-devtools.svg';
 import CLOSE from '../../resources/icons/close.svg';
 import COLLECTION_ADD from '../../resources/icons/collection-add.svg';
 import DELETE from '../../resources/icons/delete.svg';
@@ -70,6 +71,7 @@ const IconSet = {
   ARROW_RIGHT: toSvg(ARROW_RIGHT),
   ARROW_UP: toSvg(ARROW_UP),
   CHECKMARK: toSvg(CHECKMARK),
+  CHROME_DEVTOOLS: toSvg(CHROME_DEVTOOLS),
   CLOSE: toSvg(CLOSE),
   COLLECTION_ADD: toSvg(COLLECTION_ADD),
   DELETE: toSvg(DELETE),

@@ -34,6 +34,7 @@ $white: #ffffff !default;
 
 // Core colors
 
+$blue0: #007acc !important;
 $blue1: #1d64c0 !important;
 $blue2: #007af5 !important;
 $blue3: #009de0 !important;
@@ -44,7 +45,7 @@ $yellow1: #f7ea3a !important;
 
 .bp3-dark .bp3-running-text code,
 .bp3-running-text .bp3-dark code,
-.bp3-dark .bp3-code {
+.bp3-dark .bp3-code, .bp3-dark .bp3-key {
   box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 0 0 rgba(16, 22, 26, 0), 0 1px 1px rgba(16, 22, 26, 0.2);
   color: #5c7080;
   font-size: 0.8rem;
@@ -57,7 +58,7 @@ $yellow1: #f7ea3a !important;
  * Custom CSS
  */
 $sidebar-width: 18em;
-$thumbnail-size: calc((100vw - 16rem) / 6);
+$thumbnail-size: calc(((100vw - 16rem)-18rem) / 6);
 
 html {
   height: 100%;
@@ -236,7 +237,7 @@ nav .bp3-heading {
   margin: 0.5em 1rem;
 }
 .bp3-dark .bp3-heading {
-  color: $dark-gray4;
+  color: $light-gray1;
 }
 .bp3-dark .bp3-callout .bp3-heading,
 .bp3-callout .custom-icon {
@@ -463,7 +464,7 @@ $pt-transition-duration: 100ms !default;
 #main-toolbar {
   display: flex;
   justify-content: space-between;
-  width: calc(100vw - 60vw);
+  width: calc(100vw - 34rem);
   left: 16rem !important;
   position: absolute;
 }
@@ -482,7 +483,7 @@ $pt-transition-duration: 100ms !default;
 }
 .bp3-drawer-header,
 .bp3-drawer-body,
-.bp3-divider {
+.bp3-drawer-body .bp3-divider {
   padding: 0 0 0.5rem 0;
   margin-bottom: 1rem;
 }
@@ -491,6 +492,9 @@ $pt-transition-duration: 100ms !default;
 }
 .bp3-drawer .custom-icon {
   color: $dark-gray4;
+}
+.bp3-drawer .bp3-intent-warning .custom-icon {
+  color:white !important;
 }
 // settings panel
 .bp3-drawer:not(.bp3-position-top):not(.bp3-position-bottom):not(.bp3-position-left):not(.bp3-position-right):not(.bp3-vertical) {
