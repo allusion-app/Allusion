@@ -53,9 +53,16 @@ const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
-  const handleOlImport = useCallback(() => { uiStore.outlinerPage = 'IMPORT'; }, []);
-  const handleOlTags = useCallback(() => { uiStore.outlinerPage = 'TAGS'; }, []);
-  const handleOlSearch = useCallback(() => { uiStore.outlinerPage = 'SEARCH'; }, []);
+  const handleChooseOutlinerPage = useCallback((page: typeof uiStore.outlinerPage) => {
+    if (uiStore.outlinerPage === page) {
+      uiStore.outlinerPage = 'NONE';
+    } else {
+      uiStore.outlinerPage = page;
+    }
+  }, []);
+  const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), []);
+  const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), []);
+  const handleOlSearch = useCallback(() => handleChooseOutlinerPage('SEARCH'), []);
 
   // Content actions
   const isFileListSelected = uiStore.fileSelection.length > 0

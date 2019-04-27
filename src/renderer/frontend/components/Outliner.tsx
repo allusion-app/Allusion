@@ -11,7 +11,7 @@ const Outliner = () => {
   const { uiStore } = useContext(StoreContext);
 
   return (
-    <nav className={'outlinerOpen'}>
+    <nav className={`${uiStore.outlinerPage === 'NONE' ? '' : 'outlinerOpen'}`}>
       {uiStore.outlinerPage === 'IMPORT' && (<>
         <h4 className="bp3-heading">Import</h4>
         <ImportForm />

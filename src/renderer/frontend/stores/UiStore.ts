@@ -31,7 +31,7 @@ class UiStore {
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
   // UI
-  @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
+  @observable outlinerPage: 'NONE' | 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
   @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
 
