@@ -75,9 +75,14 @@ class UiStore {
       return;
     }
     if (tags[0] instanceof ClientTag) {
-      this.tagSelection.push(...(tags as ClientTag[]).map((tag: ClientTag) => tag.id));
+      this.tagSelection.push(
+        ...(tags as ClientTag[])
+          .filter((t) => !this.tagSelection.includes(t.id))
+          .map((tag: ClientTag) => tag.id));
     } else {
-      this.tagSelection.push(...(tags as ID[]));
+      this.tagSelection.push(
+        ...(tags as ID[])
+          .filter((t) => !this.tagSelection.includes(t)));
     }
     this.cleanFileSelection();
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);

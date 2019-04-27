@@ -8,7 +8,6 @@ import { Tree, ITreeNode } from '@blueprintjs/core';
 import TagCollectionListItem from './TagCollectionListItem';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import TagCollectionStore from '../stores/TagCollectionStore';
-import { ClientTag } from '../../entities/Tag';
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
 
@@ -143,36 +142,47 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     [expandState],
   );
 
-  const handleSelection = useCallback(
-    (tag: ClientTag) => uiStore.tagSelection.includes(tag.id)
-      ? uiStore.deselectTag(tag)
-      : uiStore.selectTag(tag),
-    [],
-  );
-
   const handleNodeClick = useCallback(
-    ({ id }: ITreeNode) => {
+    ({ id }: ITreeNode, nodePath: number[], e: React.MouseEvent) => {
       if (id === ALL_TAGS_ID) {
+        // System tags
         uiStore.tagSelection.clear();
         fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
       } else {
+        // The tags selected in this event
+        const clickSelection: ID[] = [];
+        let isClickSelectionSelected = false;
+
+        // When clicking on a single tag...
         const clickedTag = tagStore.tagList.find((t) => t.id === id);
         if (clickedTag) {
-          handleSelection(clickedTag);
+          clickSelection.push(clickedTag.id);
+          isClickSelectionSelected = uiStore.tagSelection.includes(clickedTag.id);
         }
 
+        // When clicking on a collection
         const clickedCollection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
         if (clickedCollection) {
           // Get all tags recursively that are in this collection
           const getRecursiveTags = (col: ClientTagCollection): ID[] =>
             [...col.tags, ...col.clientSubCollections.flatMap(getRecursiveTags)];
-          const selectedTags = getRecursiveTags(clickedCollection);
+          clickSelection.push(...getRecursiveTags(clickedCollection));
 
-          // Add or remove all tags from the selection
-          if (clickedCollection.isSelected) {
-            uiStore.deselectTags(selectedTags);
-          } else {
-            uiStore.selectTags(selectedTags.filter((tagId) => !uiStore.tagSelection.includes(tagId)));
+          isClickSelectionSelected = clickedCollection.isSelected;
+        }
+
+        // Based on the event options, add or subtract the clickSelection from the global tag selection
+        if (e.ctrlKey || e.metaKey) {
+          isClickSelectionSelected ? uiStore.deselectTags(clickSelection) : uiStore.selectTags(clickSelection);
+        } else if (e.shiftKey) {
+          // Todo: Take into account last selection index (like in gallery)
+          // Requires some additional state
+        } else {
+          // Normal click: If it was the only one that was selected, deselect it
+          const isOnlySelected = isClickSelectionSelected && uiStore.tagSelection.length === clickSelection.length;
+          uiStore.clearTagSelection();
+          if (!isOnlySelected) {
+            uiStore.selectTags(clickSelection);
           }
         }
       }
