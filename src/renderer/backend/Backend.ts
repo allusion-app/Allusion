@@ -1,7 +1,7 @@
 import { DbFile, IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
-import { dbConfig } from './config';
+import { dbConfig, DB_NAME, DB_VERSION } from './config';
 import DBRepository, { dbInit } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 
@@ -17,17 +17,16 @@ export default class Backend {
   private tagCollectionRepository: DBRepository<ITagCollection>;
 
   constructor() {
-    this.fileRepository = new DBRepository('files');
-    this.tagRepository = new DBRepository('tags');
-    this.tagCollectionRepository = new DBRepository('tagCollections');
+    // Initialize database tables
+    const db = dbInit(dbConfig, DB_NAME);
+    this.fileRepository = new DBRepository('files', db);
+    this.tagRepository = new DBRepository('tags', db);
+    this.tagCollectionRepository = new DBRepository('tagCollections', db);
   }
 
   async init() {
-    // Initialize database tables
-    await dbInit(dbConfig);
-
     // Create a root 'Hierarchy' collection if it does not exist
-    const colCount = await this.tagCollectionRepository.count('id');
+    const colCount = await this.tagCollectionRepository.count();
     if (colCount === 0) {
       await this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
     }
@@ -37,22 +36,22 @@ export default class Backend {
 
   async fetchTags(): Promise<ITag[]> {
     console.log('Backend: Fetching tags...');
-    return await this.tagRepository.getAll();
+    return this.tagRepository.getAll({});
   }
 
   async fetchTagCollections(): Promise<ITagCollection[]> {
     console.log('Backend: Fetching tags collections...');
-    return await this.tagCollectionRepository.getAll();
+    return this.tagCollectionRepository.getAll({});
   }
 
-  async fetchFiles(): Promise<IFile[]> {
+  async fetchFiles(order: keyof IFile): Promise<IFile[]> {
     console.log('Backend: Fetching files...');
-    return await this.fileRepository.getAll();
+    return this.fileRepository.getAll({ order });
   }
 
   async searchFiles(tags: ID[]): Promise<IFile[]> {
     console.log('Backend: Searching files...', tags);
-    return await this.fileRepository.find('tags', tags);
+    return this.fileRepository.find({ queryField: 'tags', query: tags });
   }
 
   async createTag(id: ID, name: string, description?: string) {
@@ -89,13 +88,11 @@ export default class Backend {
     console.log('Removing tag...', tag);
     // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
-    const filesWithTag = await this.fileRepository.find('tags', tag.id);
+    const filesWithTag = await this.fileRepository.find({ queryField: 'tags', query: tag.id });
     // Remove tag from files
     filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
     // Update files in db
-    await Promise.all(
-      filesWithTag.map((file) => this.fileRepository.update(file)),
-    );
+    await this.fileRepository.updateMany(filesWithTag);
     // Remove tag from db
     await this.tagRepository.remove(tag);
   }
@@ -103,15 +100,15 @@ export default class Backend {
   async removeTagCollection(tagCollection: ITagCollection) {
     console.log('Removing tag collection...', tagCollection);
     // Get all sub collections
-    const subCollections = await Promise.all(tagCollection.subCollections.map(
-      (col) => this.tagCollectionRepository.get(col)));
+    const subCollections = await Promise.all(
+      tagCollection.subCollections.map((col) => this.tagCollectionRepository.get(col)));
     // Remove subcollections
-    await Promise.all(subCollections.map((col) => this.removeTagCollection(col)));
+    await Promise.all(subCollections.map((col) => col && this.removeTagCollection(col)));
     // Get all tags
     const tags = await Promise.all(tagCollection.tags.map((tag) => this.tagRepository.get(tag)));
     // Remove tags properly
     // Todo: Should we really delete all tags in this collection, or e.g. transfer them to a 'main' tag collection?
-    await Promise.all(tags.map((tag) => this.removeTag(tag)));
+    await Promise.all(tags.map((tag) => tag && this.removeTag(tag)));
     // Remove tag collection itself from db
     await this.tagCollectionRepository.remove(tagCollection);
   }
@@ -119,5 +116,10 @@ export default class Backend {
   async removeFile(file: IFile) {
     console.log('Removing file...', file);
     await this.fileRepository.remove(file);
+  }
+
+  async removeFiles(files: IFile[]) {
+    console.log('Removing files...', files);
+    await this.fileRepository.removeMany(files);
   }
 }
