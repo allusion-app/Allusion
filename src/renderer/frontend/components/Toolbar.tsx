@@ -238,7 +238,7 @@ const Toolbar = () => {
                 <H5>Tip: Hotkeys</H5>
                 <p>
                   Did you know there are hotkeys?<br/>
-                  Press <span className={Classes.KEY_COMBO}><span className={Classes.KEY + ' ' + Classes.MODIFIER_KEY}>shift</span>&nbsp;<span className={Classes.KEY}>/</span>&nbsp;to see them.</span>{/* // tslint:disable-next-line */}
+                  Press<span className={Classes.KEY_COMBO}><span className={Classes.KEY + ' ' + Classes.MODIFIER_KEY}>shift</span>&nbsp;<span className={Classes.KEY}>/</span>&nbsp;to see them.</span>{/* // tslint:disable-next-line */}
                 </p>
               </Callout>
               {/* </div> */}
