@@ -1,5 +1,9 @@
 import { IDBCollectionConfig } from './DBRepository';
 
+// This should be incremented every time the config changes before a release
+// The version is not used at the moment, but is useful in the future to properly upgrade the DB
+export const DB_VERSION = 1;
+
 export const dbConfig: IDBCollectionConfig[] = [
   {
     name: 'files',
@@ -18,6 +22,10 @@ export const dbConfig: IDBCollectionConfig[] = [
         opts: {
           unique: true,
         },
+      },
+      {
+        name: 'dateAdded',
+        path: 'dateAdded',
       },
     ],
   },

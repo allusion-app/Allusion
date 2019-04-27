@@ -1,5 +1,6 @@
 import { openDb } from 'idb';
 import { ID, IIdentifiable } from '../entities/ID';
+import { DB_VERSION } from './config';
 
 export const dbName = 'VisLib';
 
@@ -13,15 +14,19 @@ export interface IDBCollectionConfig {
  * It initializes the object stores
  */
 export const dbInit = (collections: IDBCollectionConfig[]) => {
-  return openDb(dbName, 1, (upgradeDB) => {
+  return openDb(dbName, DB_VERSION, (upgradeDB) => {
     collections.forEach(({ name, indices }) => {
-      const objectStore = upgradeDB.createObjectStore(name, {
-        keyPath: 'id',
-        autoIncrement: true,
+      // Only add stores and indicies if they don't exist yet
+      // Todo: A store might exist, but with different properties, so we should also check for those
+      const objectStore = upgradeDB.objectStoreNames.contains(name)
+        ? upgradeDB.transaction.objectStore(name)
+        : upgradeDB.createObjectStore(name, { keyPath: 'id', autoIncrement: true });
+
+      indices.forEach(({ name: idxName, path, opts }) => {
+        if (!objectStore.indexNames.contains(idxName)) {
+          objectStore.createIndex(idxName, path, opts);
+        }
       });
-      indices.forEach(({ name: idxName, path, opts }) =>
-        objectStore.createIndex(idxName, path, opts),
-      );
     });
   });
 };
@@ -58,6 +63,8 @@ export default class BaseRepository<T extends IIdentifiable> {
     property: keyof T,
     query: any,
     count?: number,
+    sortField?: keyof T,
+    descending?: boolean,
   ): Promise<T[]> {
     // Todo: Search more efficiently
     // https://stackoverflow.com/questions/14146671/multiple-keys-query-in-indexeddb-similar-to-or-in-sql
