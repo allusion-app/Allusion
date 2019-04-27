@@ -117,7 +117,6 @@ const GalleryItemContextMenu = (filePath: string) => {
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
       <MenuItem onClick={handleRemoveSelectedFiles} text="Delete" icon={IconSet.DELETE} />
     </Menu>
-    
   );
 };
 
