@@ -1,14 +1,14 @@
 import { remote } from 'electron';
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5,
+  Button, Popover, MenuItem, Menu, Icon, Classes, H5, ButtonGroup, Divider, Drawer, Switch,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import FileTag from './FileTag';
-import { ClientFile } from '../../entities/File';
+import { ClientFile, IFile } from '../../entities/File';
 
 const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
   <Popover>
@@ -48,6 +48,14 @@ const TagFilesPopover = ({ disabled, files }: { disabled: boolean, files: Client
     </div>
   </Popover>
 );
+
+const sortMenuData: Array<{ prop: keyof IFile, icon: JSX.Element, text: string }> = [
+  { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
+  { prop: 'name', icon: IconSet.VIEW_NAME_UP, text: 'Name' },
+  { prop: 'extension', icon: IconSet.VIEW_FILE_TYPE, text: 'File type' },
+  { prop: 'size', icon: IconSet.VIEW_FILTER_DOWN, text: 'File size' },
+  { prop: 'dateAdded', icon: IconSet.VIEW_DATE, text: 'Date added' },
+];
 
 const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -105,15 +113,29 @@ const Toolbar = () => {
   );
 
   // Render variables
-  const sortMenu = useMemo(() =>
-    <Menu>
-      <MenuItem icon={IconSet.TAG} text="Tag" />
-      <MenuItem icon={IconSet.VIEW_NAME_UP} text="Name" />
-      <MenuItem icon={IconSet.VIEW_FILE_TYPE} text="Type" />
-      <MenuItem icon={IconSet.VIEW_FILTER_DOWN} text="Size" />
-      <MenuItem icon={IconSet.VIEW_DATE} text="Date" labelElement={<Icon icon={IconSet.ARROW_UP} />} active />
-    </Menu>,
-    [],
+  const sortMenu = useMemo(
+    () => {
+      const orderIcon = (
+        <Icon icon={uiStore.fileOrderDescending ? IconSet.ARROW_DOWN : IconSet.ARROW_UP}/>
+      );
+      return (
+        <Menu>
+          {sortMenuData.map(({ prop, icon, text }) => (
+              <MenuItem
+                key={prop}
+                icon={icon}
+                text={text}
+                active={uiStore.fileOrder === prop}
+                labelElement={uiStore.fileOrder === prop && orderIcon}
+                onClick={() => uiStore.fileOrder === prop
+                  ? uiStore.setFileOrderDescending(!uiStore.fileOrderDescending)
+                  : uiStore.setFileOrder(prop)}
+              />
+            ))}
+        </Menu>
+      );
+    },
+    [uiStore.fileOrder, uiStore.fileOrderDescending],
   );
 
   const layoutMenu = useMemo(() =>

@@ -1,7 +1,7 @@
 import { DbFile, IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
-import { dbConfig, DB_NAME, DB_VERSION } from './config';
+import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 
@@ -44,14 +44,14 @@ export default class Backend {
     return this.tagCollectionRepository.getAll({});
   }
 
-  async fetchFiles(order: keyof IFile): Promise<IFile[]> {
+  async fetchFiles(order: keyof IFile, descending: boolean): Promise<IFile[]> {
     console.log('Backend: Fetching files...');
-    return this.fileRepository.getAll({ order });
+    return this.fileRepository.getAll({ order, descending });
   }
 
-  async searchFiles(tags: ID[]): Promise<IFile[]> {
+  async searchFiles(tags: ID[], order: keyof IFile, descending: boolean): Promise<IFile[]> {
     console.log('Backend: Searching files...', tags);
-    return this.fileRepository.find({ queryField: 'tags', query: tags });
+    return this.fileRepository.find({ queryField: 'tags', query: tags, order, descending });
   }
 
   async createTag(id: ID, name: string, description?: string) {
@@ -64,9 +64,9 @@ export default class Backend {
     return this.tagCollectionRepository.create(new DbTagCollection(id, name, description));
   }
 
-  async createFile(id: ID, path: string, tags?: ID[]) {
-    console.log('Backend: Creating file...', id, path);
-    return await this.fileRepository.create(new DbFile(id, path, tags));
+  async createFile(file: IFile) {
+    console.log('Backend: Creating file...', file);
+    return await this.fileRepository.create(new DbFile(file));
   }
 
   async saveTag(tag: ITag): Promise<ITag> {

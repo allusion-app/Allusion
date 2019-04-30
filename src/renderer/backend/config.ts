@@ -3,10 +3,6 @@ import { IDBVersioningConfig } from './DBRepository';
 // The name of the IndexedDB
 export const DB_NAME = 'Allusion';
 
-// This should be incremented every time the config changes before a release
-// The version is not used at the moment, but is useful in the future to properly upgrade the DB
-export const DB_VERSION = 1;
-
 // Schema based on https://dexie.org/docs/Version/Version.stores()#schema-syntax
 // Only for the indexes of the DB, not all fields
 // Versions help with upgrading DB to new configurations:

@@ -109,7 +109,7 @@ export default class BaseRepository<T extends IIdentifiable> {
   }
 
   public async update(item: T): Promise<T> {
-    await this.collection.update(item.id, item);
+    await this.collection.put(item);
     return item;
   }
 

@@ -3,6 +3,7 @@ jest.mock('./DBRepository');
 
 import Backend from './Backend';
 import { ITag } from '../entities/Tag';
+import { IFile } from '../entities/File';
 
 const backend = new Backend();
 
@@ -11,6 +12,16 @@ const mockTag: ITag = {
   name: 'tag1 name',
   dateAdded: new Date(),
   description: 'tag1 description',
+};
+
+const mockFile: IFile = {
+  path: 'c:/test file.jpg',
+  name: 'test file.jpg',
+  dateAdded: new Date(),
+  size: 42,
+  extension: 'jpg',
+  id: '1234',
+  tags: [mockTag.id],
 };
 
 describe('Backend', () => {
@@ -28,10 +39,10 @@ describe('Backend', () => {
 
     it('should remove the tag from all files with that tag when removing that tag', async () => {
       await backend.createTag(mockTag.id, mockTag.name, mockTag.description);
-      await backend.createFile('file1', 'file1 path', [mockTag.id]);
-      await backend.createFile('file2', 'file2 path', [mockTag.id]);
+      await backend.createFile({ ...mockFile, id: '1' });
+      await backend.createFile({ ...mockFile, id: '2' });
       await backend.removeTag(mockTag);
-      const dbFiles = await backend.fetchFiles();
+      const dbFiles = await backend.fetchFiles('id', true);
       expect(dbFiles).toHaveLength(2);
       expect(dbFiles[0].tags).toHaveLength(0);
       expect(dbFiles[1].tags).toHaveLength(0);

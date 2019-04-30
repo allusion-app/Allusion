@@ -1,6 +1,6 @@
 import { action, observable, computed } from 'mobx';
 
-import { ClientFile } from '../../entities/File';
+import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
@@ -35,6 +35,11 @@ class UiStore {
   @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
 
+  // Content
+  @observable fileOrder: keyof IFile = 'dateAdded';
+  @observable fileOrderDescending = true;
+  @observable fileLayout: 'LIST' | 'GRID' | 'MASONRY' | 'SLIDE' = 'GRID';
+
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
   readonly fileSelection = observable<ID>([]);
@@ -64,6 +69,10 @@ class UiStore {
     this.fileSelection.remove(file.id);
   }
 
+  @action clearFileSelection() {
+    this.fileSelection.clear();
+  }
+
   @action selectTag(tag: ClientTag) {
     this.tagSelection.push(tag.id);
     this.cleanFileSelection();
@@ -78,6 +87,16 @@ class UiStore {
 
   @action clearTagSelection() {
     this.tagSelection.clear();
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+  }
+
+  @action.bound setFileOrder(prop: keyof IFile) {
+    this.fileOrder = prop;
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+  }
+
+  @action.bound setFileOrderDescending(descending: boolean) {
+    this.fileOrderDescending = descending;
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
