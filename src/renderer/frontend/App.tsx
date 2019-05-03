@@ -10,7 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 
-const SPLASH_SCREEN_TIME = 1500;
+const SPLASH_SCREEN_TIME = 700;
 
 interface IAppProps extends IRootStoreProp {}
 

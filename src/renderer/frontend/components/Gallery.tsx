@@ -24,7 +24,6 @@ const Gallery = ({
   >(undefined);
 
   const selectionModeOn = uiStore.fileSelection.length > 0;
-
   const onSelect = (i: number, e: React.MouseEvent) => {
     if (e.shiftKey) {
       // Shift selection: Select from the initial up to the current index

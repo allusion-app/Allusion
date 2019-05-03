@@ -104,7 +104,8 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
 const FileTag = ({ files, autoFocus = false }: IFileTagProps) => {
   return (
     <section id="fileTag">
-      <div className="inpectorHeading">Tags</div>
+      <h4 className="bp3-heading inpectorHeading">Tags</h4>
+      <p>Quickly adds or deletes from the selection</p>
       {files.length === 1 ? (
         <Single file={files[0]} autoFocus={autoFocus} />
       ) : (
