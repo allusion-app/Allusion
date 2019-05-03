@@ -22,27 +22,29 @@ function createWindow() {
     // fullscreen: true,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
-    backgroundColor: '#222222',
+    backgroundColor: '#181818',
   });
 
-  // Mac App menu - used for styling so shortcuts work
-  if (process.platform === 'darwin') {
-    // Create our menu entries so that we can use MAC shortcuts
-    const template = [
+  // Create our menu entries so that we can use MAC shortcuts
+  const template = [
+    // Mac App menu - used for styling so shortcuts work
+    ...(process.platform === 'darwin' ? [
       {
         label: 'File', submenu: [
+          { role: 'about' },
+          { role: 'hide' },
+          { role: 'hideothers' },
+          { role: 'unhide' },
           { role: 'quit' },
         ],
-      },
+      }] : []),
       {
         label: 'Edit', submenu: [
           { role: 'undo' },
           { role: 'redo' },
-          { role: 'separator' },
           { role: 'cut' },
           { role: 'copy' },
           { role: 'paste' },
-          { role: 'pasteandmatchstyle' },
           { role: 'delete' },
           { role: 'selectall' },
         ],
@@ -52,11 +54,10 @@ function createWindow() {
           { role: 'reload' },
           { role: 'toggleFullScreen' },
           { role: 'toggleDevTools' },
-        ],
-      },
-    ];
-    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
-  }
+      ],
+    },
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);

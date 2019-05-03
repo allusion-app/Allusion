@@ -1,5 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <title>view-present</title>
   <g id="layout">
     <path d="M37,6H11a6,6,0,0,0-6,6V36a6,6,0,0,0,6,6H37a6,6,0,0,0,6-6V12A6,6,0,0,0,37,6ZM33.5,24.7,17.4,33l-1.9-1.2V15.2L17.4,14l16,8.3Z" fill="#222221"/>
   </g>

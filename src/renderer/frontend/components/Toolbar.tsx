@@ -1,7 +1,7 @@
 import { remote } from 'electron';
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5, Callout,
+  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H4, Callout,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -12,10 +12,10 @@ import { ClientFile } from '../../entities/File';
 import UiStore from '../stores/UiStore';
 
 const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
-  <Popover>
+  <Popover minimal>
     <Button icon={IconSet.DELETE} disabled={disabled} />
     <div className="popoverContent">
-      <H5 className="inpectorHeading">Confirm deletion</H5>
+      <H4 className="inpectorHeading">Confirm deletion</H4>
       <p>Are you sure you want to remove these images from your library?</p>
       <p>Your files will not be deleted.</p>
 
@@ -168,8 +168,6 @@ const Toolbar = () => {
 
         <ButtonGroup minimal>
 
-          {/* <Divider /> */}
-
           {/* Selection info and actions */}
           <Button
             rightIcon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
@@ -185,8 +183,6 @@ const Toolbar = () => {
             uiStore={uiStore}
           />
           <RemoveFilesPopover onRemove={handleRemoveSelectedFiles} disabled={!selectionModeOn} />
-
-          {/* <Divider /> */}
 
           {/* Gallery actions */}
           <Popover minimal
@@ -235,10 +231,10 @@ const Toolbar = () => {
               <br />
 
               <Callout icon={IconSet.INFO}>
-                <H5>Tip: Hotkeys</H5>
+                <H4>Tip: Hotkeys</H4>
                 <p>
                   Did you know there are hotkeys?<br/>
-                  Press<span className={Classes.KEY_COMBO}><span className={Classes.KEY + ' ' + Classes.MODIFIER_KEY}>shift</span>&nbsp;<span className={Classes.KEY}>/</span>&nbsp;to see them.</span>{/* // tslint:disable-next-line */}
+                  Press <span className={Classes.KEY_COMBO}><span className={Classes.KEY + ' ' + Classes.MODIFIER_KEY}>shift</span>&nbsp;<span className={Classes.KEY}>/</span>&nbsp;to see them.</span>{/* // tslint:disable-next-line */}
                 </p>
               </Callout>
               {/* </div> */}
