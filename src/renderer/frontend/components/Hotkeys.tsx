@@ -55,6 +55,7 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           combo={hotkeyMap.openOutlinerSearch}
           label="Opens the search tab in the outliner (left sidebar)"
           onKeyDown={uiStore.openOutlinerSearch}
+          preventDefault
         />
         <Hotkey
           global={true}
