@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Drawer, Classes, Switch, Button, Card, H5, Code } from '@blueprintjs/core';
+import { Drawer, Classes, Switch, Button, Callout, H4 } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
@@ -20,6 +20,7 @@ const Settings = () => {
     >
       <div className={Classes.DRAWER_BODY}>
         <div className={Classes.DIALOG_BODY}>
+          <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
           <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
 
           <Button disabled fill>Clear database</Button>
@@ -30,13 +31,13 @@ const Settings = () => {
 
           <br />
 
-          <Card elevation={2}>
-            <H5>Tip: Hotkeys</H5>
+          <Callout icon={IconSet.INFO}>
+            <H4>Tip: Hotkeys</H4>
             <p>
-              Did you know this application has hotkeys?
-              Press <Code>?</Code> (<Code>shift + /</Code>) to see them.
+              Did you know there are hotkeys?<br/>
+              Press <span className={Classes.KEY_COMBO}><span className={Classes.KEY + ' ' + Classes.MODIFIER_KEY}>shift</span>&nbsp;<span className={Classes.KEY}>/</span>&nbsp;to see them.</span>{/* // tslint:disable-next-line */}
             </p>
-          </Card>
+          </Callout>
         </div>
       </div>
     </Drawer>

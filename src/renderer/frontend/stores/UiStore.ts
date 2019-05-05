@@ -15,41 +15,6 @@ interface IHotkeyMap {
 
   // Inspector actions
   toggleInspector: string;
-
-  // Toolbar actions (these should only be active when the content area is focused)
-  openTagSelector: string;
-  deleteSelectedFiles: string;
-  selectAllFiles: string;
-  deselectAllFiles: string;
-
-  // Misc
-  reload: string;
-  openDevTools: string;
-}
-
-const defaultHotkeyMap: IHotkeyMap = {
-  toggleOutliner: '1',
-  toggleInspector: '2',
-  openOutlinerImport: 'shift + 1',
-  openOutlinerTags: 'shift + 2',
-  openOutlinerSearch: 'shift + 3',
-  openTagSelector: 't',
-  deleteSelectedFiles: 'del',
-  selectAllFiles: 'mod + a',
-  deselectAllFiles: 'mod + d',
-  reload: 'f5',
-  openDevTools: 'f12',
-};
-
-interface IHotkeyMap {
-  // Outerliner actions
-  toggleOutliner: string;
-  openOutlinerImport: string;
-  openOutlinerTags: string;
-  openOutlinerSearch: string;
-
-  // Inspector actions
-  toggleInspector: string;
   toggleSettings: string;
 
   // Toolbar actions (these should only be active when the content area is focused)
@@ -98,7 +63,7 @@ class UiStore {
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
   // FullScreen
-  @observable fullscreen: boolean = false;
+  @observable isFullScreen: boolean = false;
 
   // UI
   @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
@@ -176,7 +141,6 @@ class UiStore {
   @action.bound toggleSettings() { this.isSettingsOpen = !this.isSettingsOpen; }
   @action.bound toggleTheme() { this.theme = (this.theme === 'DARK' ? 'LIGHT' : 'DARK'); }
 
-
   @action.bound toggleToolbarTagSelector() {
     this.isToolbarTagSelectorOpen = this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
   }
@@ -185,6 +149,10 @@ class UiStore {
 
   @action.bound toggleDevtools() { remote.getCurrentWebContents().toggleDevTools(); }
   @action.bound reload() { remote.getCurrentWindow().reload(); }
+  @action.bound toggleFullScreen() {
+    this.isFullScreen = !this.isFullScreen;
+    remote.getCurrentWindow().setFullScreen(this.isFullScreen);
+  }
 
   /////////////////// Helper methods ///////////////////
   /**

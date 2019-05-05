@@ -36,7 +36,6 @@ import MORE from '../../resources/icons/more.svg';
 import OPEN_EXTERNAL from '../../resources/icons/open-external.svg';
 import PREVIEW from '../../resources/icons/preview.svg';
 import SEARCH from '../../resources/icons/search.svg';
-import SEARCH2 from '../../resources/icons/search2.svg';
 import SELECT_ALL_CHECKED from '../../resources/icons/select-all-checked.svg';
 import SELECT_ALL_ROUND from '../../resources/icons/select-all-round.svg';
 import SELECT_ALL_TRANS from '../../resources/icons/select-all-trans.svg';
@@ -97,7 +96,6 @@ const IconSet = {
   OPEN_EXTERNAL: toSvg(OPEN_EXTERNAL),
   PREVIEW: toSvg(PREVIEW),
   SEARCH: toSvg(SEARCH),
-  SEARCH2: toSvg(SEARCH2),
   SELECT_ALL_CHECKED: toSvg(SELECT_ALL_CHECKED),
   SELECT_ALL_ROUND: toSvg(SELECT_ALL_ROUND),
   SELECT_ALL_TRANS: toSvg(SELECT_ALL_TRANS),

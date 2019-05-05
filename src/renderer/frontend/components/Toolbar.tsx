@@ -1,6 +1,6 @@
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, ButtonGroup, Icon, Divider, Classes, H5, Switch, Classes, H4, Callout, Drawer,
+  Button, Popover, MenuItem, Menu, ButtonGroup, Icon, Classes, H4,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -89,38 +89,6 @@ const Toolbar = () => {
     [],
   );
 
-  // Inspector actions
-  const handleToggleInspector = useCallback(
-    () => { uiStore.isInspectorOpen = !uiStore.isInspectorOpen; },
-    [],
-  );
-
-  const handleToggleSettings = useCallback(
-    () => { uiStore.isSettingsOpen = !uiStore.isSettingsOpen; },
-    [],
-  );
-
-  // Settings actions
-  const toggleTheme = useCallback(
-    () => { uiStore.theme = (uiStore.theme === 'DARK' ? 'LIGHT' : 'DARK'); },
-    [],
-  );
-  const handleFullScreen = useCallback(
-    () => {
-      // (toggleFullScreen);
-      remote.getCurrentWindow().setFullScreen(uiStore.fullscreen);
-    },
-    [],
-  );
-  const toggleFullScreen = useCallback(
-    // () => { uiStore.fullscreen = (uiStore.fullscreen === false ? true : false); },
-    () => {
-      uiStore.fullscreen = !uiStore.fullscreen;
-      handleFullScreen();
-    },
-    [],
-  );
-
   // Render variables
   const sortMenu = useMemo(() =>
     <Menu>
@@ -147,9 +115,6 @@ const Toolbar = () => {
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
   const olPage = uiStore.outlinerPage;
 
-  const handleOpenDevtools = useCallback(() => remote.getCurrentWebContents().openDevTools(), []);
-
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
   return (
     <div id="toolbar">
       <section id="outliner-toolbar">
@@ -206,39 +171,6 @@ const Toolbar = () => {
             icon={IconSet.SETTINGS}
             onClick={uiStore.toggleSettings}
           />
-
-          <Drawer
-            isOpen={uiStore.isSettingsOpen}
-            icon={IconSet.SETTINGS}
-            onClose={handleToggleSettings}
-            title="Settings"
-            className={themeClass}
-          >
-            <div className={Classes.DRAWER_BODY}>
-              {/* <div className={Classes.DIALOG_BODY}> */}
-              <Switch checked={uiStore.fullscreen} onChange={toggleFullScreen} label="Full screen" />
-              <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
-
-              <Divider />
-
-              <Button disabled fill>Clear database</Button>
-
-              <Button onClick={handleOpenDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
-                Open DevTools
-                </Button>
-
-              <br />
-
-              <Callout icon={IconSet.INFO}>
-                <H4>Tip: Hotkeys</H4>
-                <p>
-                  Did you know there are hotkeys?<br/>
-                  Press <span className={Classes.KEY_COMBO}><span className={Classes.KEY + ' ' + Classes.MODIFIER_KEY}>shift</span>&nbsp;<span className={Classes.KEY}>/</span>&nbsp;to see them.</span>{/* // tslint:disable-next-line */}
-                </p>
-              </Callout>
-              {/* </div> */}
-            </div>
-          </Drawer>
         </ButtonGroup>
       </section>
     </div>
