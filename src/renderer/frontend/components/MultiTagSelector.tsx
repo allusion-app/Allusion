@@ -70,7 +70,7 @@ const MultiTagSelector = ({
 
   const handleSelect = useCallback(
     async (tag: ClientTag) => {
-      // When a tag is created, it is selected. Here we detect whether we need to actually the ClientTag.
+      // When a tag is created, it is selected. Here we detect whether we need to actually create the ClientTag.
       if (onTagCreation && tag.id === CREATED_TAG_ID) {
         tag = await onTagCreation(tag.name);
       }
@@ -166,6 +166,7 @@ const MultiTagSelector = ({
           disabled,
         }}
         placeholder={placeholder}
+        resetOnSelect
       />
     </>
   );

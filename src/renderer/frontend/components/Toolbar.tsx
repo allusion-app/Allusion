@@ -1,7 +1,6 @@
-import { remote } from 'electron';
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H4, Callout,
+  Button, Popover, MenuItem, Menu, ButtonGroup, Icon, Divider, Classes, H5, Switch, Classes, H4, Callout, Drawer,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -151,7 +150,6 @@ const Toolbar = () => {
   const handleOpenDevtools = useCallback(() => remote.getCurrentWebContents().openDevTools(), []);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-
   return (
     <div id="toolbar">
       <section id="outliner-toolbar">
@@ -201,13 +199,14 @@ const Toolbar = () => {
         <ButtonGroup minimal>
           <Button
             icon={IconSet.INFO}
-            onClick={handleToggleInspector}
+            onClick={uiStore.toggleInspector}
             intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
           />
           <Button
             icon={IconSet.SETTINGS}
-            onClick={handleToggleSettings}
+            onClick={uiStore.toggleSettings}
           />
+
           <Drawer
             isOpen={uiStore.isSettingsOpen}
             icon={IconSet.SETTINGS}
