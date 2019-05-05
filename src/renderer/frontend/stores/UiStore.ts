@@ -22,6 +22,10 @@ interface IHotkeyMap {
   deleteSelectedFiles: string;
   selectAllFiles: string;
   deselectAllFiles: string;
+  viewList: string;
+  viewGrid: string;
+  viewMason: string;
+  viewSlide: string;
 }
 
 const defaultHotkeyMap: IHotkeyMap = {
@@ -35,6 +39,10 @@ const defaultHotkeyMap: IHotkeyMap = {
   deleteSelectedFiles: 'del',
   selectAllFiles: 'mod + a',
   deselectAllFiles: 'mod + d',
+  viewList: 'alt + 1',
+  viewGrid: 'alt + 2',
+  viewMason: 'alt + 3',
+  viewSlide: 'alt + 4',
 };
 
 /**
@@ -71,6 +79,10 @@ class UiStore {
   @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
+
+  // VIEW
+  // UI
+  @observable viewMethod: 'list' | 'grid' | 'mason' | 'slide' = 'grid';
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
@@ -136,6 +148,12 @@ class UiStore {
   @action.bound openOutlinerImport() { this.outlinerPage = 'IMPORT'; }
   @action.bound openOutlinerTags() { this.outlinerPage = 'TAGS'; }
   @action.bound openOutlinerSearch() { this.outlinerPage = 'SEARCH'; }
+
+  // VIEW
+  @action.bound viewList() { this.viewMethod = 'list'; }
+  @action.bound viewGrid() { this.viewMethod = 'grid'; }
+  @action.bound viewMason() { this.viewMethod = 'mason'; }
+  @action.bound viewSlide() { this.viewMethod = 'slide'; }
 
   @action.bound toggleInspector() { this.isInspectorOpen = !this.isInspectorOpen; }
   @action.bound toggleSettings() { this.isSettingsOpen = !this.isSettingsOpen; }

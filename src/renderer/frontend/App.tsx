@@ -11,7 +11,7 @@ import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 
-const SPLASH_SCREEN_TIME = 1500;
+const SPLASH_SCREEN_TIME = 700;
 
 interface IAppProps extends IRootStoreProp {}
 

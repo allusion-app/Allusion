@@ -10,12 +10,24 @@ import FileTag from './FileTag';
 import { ClientFile } from '../../entities/File';
 import UiStore from '../stores/UiStore';
 
+// Tooltip info
+const addTooltip = 'Toggle Add panel';
+const tagTooltip = 'Toggle Tag panel';
+const searchTooltip = 'Toggle Search panel';
+const mediaTooltip = 'Number of files using selected tag(s)';
+const selectTooltip = 'Selects or deselcts all images';
+const tagfilesTooltip = 'Quick add or delete tags to selection';
+const deleteTooltip = 'Delete selection from library';
+const viewTooltip = 'Change view content panel';
+const filterTooltip = 'Filter view content panel';
+const fltTagTooltip = 'Filter images by first tag';
+
 const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
   <Popover minimal>
-    <Button icon={IconSet.DELETE} disabled={disabled} />
-    <div className="popoverContent">
-      <H4 className="inpectorHeading">Confirm deletion</H4>
-      <p>Are you sure you want to remove these images from your library?</p>
+    <Button icon={IconSet.DELETE} disabled={disabled} className={'tooltip'} data-right={deleteTooltip}/>
+    <div className="popoverContent" id="deleteFile">
+      <h4 className="bp3-heading inpectorHeading">Confirm deletion</h4>
+      <p>Remove these images from your library?</p>
       <p>Your files will not be deleted.</p>
 
       <div
@@ -47,7 +59,7 @@ interface ITagFilesPopoverProps {
 }
 const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopoverProps) => (
   <Popover minimal isOpen={uiStore.isToolbarTagSelectorOpen} onClose={uiStore.closeToolbarTagSelector}>
-    <Button icon={IconSet.TAG} disabled={disabled} onClick={uiStore.toggleToolbarTagSelector} />
+    <Button icon={IconSet.TAG} disabled={disabled} onClick={uiStore.toggleToolbarTagSelector} className={'tooltip'} data-right={tagfilesTooltip}/>{/* // tslint:disable-next-line */}
     <div className="popoverContent">
       <FileTag files={files} autoFocus />
     </div>
@@ -89,10 +101,16 @@ const Toolbar = () => {
     [],
   );
 
+  const viewList = useCallback(() => { uiStore.viewMethod = 'list'; }, []);
+  const viewGrid = useCallback(() => { uiStore.viewMethod = 'grid'; }, []);
+  const viewMason = useCallback(() => { uiStore.viewMethod = 'mason'; }, []);
+  const viewSlide = useCallback(() => { uiStore.viewMethod = 'slide'; }, []);
+
+
   // Render variables
   const sortMenu = useMemo(() =>
     <Menu>
-      <MenuItem icon={IconSet.TAG} text="Tag" />
+      <MenuItem icon={IconSet.TAG} text="Tag" className={'tooltip'} data-right={fltTagTooltip}/>{/* // tslint:disable-next-line */}
       <MenuItem icon={IconSet.FILTER_NAME_UP} text="Name" />
       <MenuItem icon={IconSet.FILTER_FILE_TYPE} text="Type" />
       <MenuItem icon={IconSet.FILTER_FILTER_DOWN} text="Size" />
@@ -101,12 +119,13 @@ const Toolbar = () => {
     [],
   );
 
+  const vwMethod = uiStore.viewMethod;
   const layoutMenu = useMemo(() =>
     <Menu>
-      <MenuItem icon={IconSet.VIEW_LIST} text="List" />
-      <MenuItem icon={IconSet.VIEW_GRID} text="Grid" active />
-      <MenuItem icon={IconSet.VIEW_MASON} text="Masonry" />
-      <MenuItem icon={IconSet.VIEW_PRESENT} text="Slide" />
+      <MenuItem onClick={viewList} icon={IconSet.VIEW_LIST} text="list" intent={vwMethod === 'list' ? 'primary' : 'none'}/>{/* // tslint:disable-next-line */}
+      <MenuItem onClick={viewGrid} icon={IconSet.VIEW_GRID} text="grid" active intent={vwMethod === 'grid' ? 'primary' : 'none'}/>{/* // tslint:disable-next-line */}
+      <MenuItem onClick={viewMason} icon={IconSet.VIEW_MASON} text="Masonry" intent={vwMethod === 'mason' ? 'primary' : 'none'}/>{/* // tslint:disable-next-line */}
+      <MenuItem onClick={viewSlide} icon={IconSet.VIEW_PRESENT} text="slide" intent={vwMethod === 'slide' ? 'primary' : 'none'}/>{/* // tslint:disable-next-line */}
     </Menu>,
     [],
   );
@@ -119,15 +138,15 @@ const Toolbar = () => {
     <div id="toolbar">
       <section id="outliner-toolbar">
         <ButtonGroup minimal>
-          <Button icon={IconSet.ADD} onClick={handleOlImport} onDoubleClick={handleToggleOutliner} intent={olPage === 'IMPORT' ? 'primary' : 'none'} />{/* // tslint:disable-next-line */}
-          <Button icon={IconSet.TAG} onClick={handleOlTags} onDoubleClick={handleToggleOutliner} intent={olPage === 'TAGS' ? 'primary' : 'none'} />{/* // tslint:disable-next-line */}
-          <Button icon={IconSet.SEARCH} onClick={handleOlSearch} onDoubleClick={handleToggleOutliner} intent={olPage === 'SEARCH' ? 'primary' : 'none'} />{/* // tslint:disable-next-line */}
+          <Button icon={IconSet.ADD} onClick={handleOlImport} onDoubleClick={handleToggleOutliner} intent={olPage === 'IMPORT' ? 'primary' : 'none'} className={'tooltip'} data-right={addTooltip}/>{/* // tslint:disable-next-line */}
+          <Button icon={IconSet.TAG} onClick={handleOlTags} onDoubleClick={handleToggleOutliner} intent={olPage === 'TAGS' ? 'primary' : 'none'} className={'tooltip'} data-right={tagTooltip}/>{/* // tslint:disable-next-line */}
+          <Button icon={IconSet.SEARCH} onClick={handleOlSearch} onDoubleClick={handleToggleOutliner} intent={olPage === 'SEARCH' ? 'primary' : 'none'} className={'tooltip'} data-right={searchTooltip}/>{/* // tslint:disable-next-line */}
         </ButtonGroup>
       </section>
 
       <section id="main-toolbar">
         {/* Library info. Todo: Show entire library count instead of current fileList */}
-        <Button icon={IconSet.MEDIA} minimal>{numFiles} item{`${numFiles === 1 ? '' : 's'}`}</Button>
+        <Button id="media" icon={IconSet.MEDIA} minimal className={'tooltip'} data-right={mediaTooltip}>{numFiles} item{`${numFiles === 1 ? '' : 's'}`}</Button>{/* // tslint:disable-next-line */}
 
         <ButtonGroup minimal>
 
@@ -136,6 +155,7 @@ const Toolbar = () => {
             rightIcon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
             onClick={handleToggleSelect}
             intent={isFileListSelected ? 'primary' : 'none'}
+            className={'tooltip'} data-right={selectTooltip}
           >
             {uiStore.fileSelection.length} selected
           </Button>
@@ -145,19 +165,22 @@ const Toolbar = () => {
             disabled={!selectionModeOn}
             uiStore={uiStore}
           />
-          <RemoveFilesPopover onRemove={handleRemoveSelectedFiles} disabled={!selectionModeOn} />
+          <RemoveFilesPopover
+            onRemove={handleRemoveSelectedFiles}
+            disabled={!selectionModeOn}
+          />
 
           {/* Gallery actions */}
           <Popover minimal
-            target={<Button icon={IconSet.VIEW_GRID} />}
+            target={<Button icon={IconSet.VIEW_GRID} className={'tooltip'} data-right={viewTooltip}/>}
             content={layoutMenu}
           />
           <Popover minimal
-            target={<Button icon={IconSet.FILTER} />}
+            target={<Button icon={IconSet.FILTER} className={'tooltip'} data-right={filterTooltip}/>}
             content={sortMenu}
           />
         </ButtonGroup>
-        <div id="spacer" style={{ width: '100px'}}></div>
+        <div id="spacer" style={{ width: '100px' }}></div>
       </section>
 
       <section id="inspector-toolbar">
@@ -166,11 +189,45 @@ const Toolbar = () => {
             icon={IconSet.INFO}
             onClick={uiStore.toggleInspector}
             intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
+            className={'tooltip'} data-left={'Toggle inspector'}
           />
           <Button
             icon={IconSet.SETTINGS}
-            onClick={uiStore.toggleSettings}
+            onClick={handleToggleSettings}
+            className={'tooltip'} data-left={'Toggle settings'}
           />
+          <Drawer
+            isOpen={uiStore.isSettingsOpen}
+            icon={IconSet.SETTINGS}
+            onClose={handleToggleSettings}
+            title="Settings"
+            className={themeClass}
+          >
+            <div className={Classes.DRAWER_BODY}>
+              {/* <div className={Classes.DIALOG_BODY}> */}
+              <Switch checked={uiStore.fullscreen} onChange={toggleFullScreen} label="Full screen" />
+              <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
+
+              <Divider />
+
+              <Button disabled fill>Clear database</Button>
+
+              <Button onClick={handleOpenDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
+                Open DevTools
+                </Button>
+
+              <br />
+
+              <Callout icon={IconSet.INFO}>
+                <H4 className={'bp3-heading inspectorHeading'}>Tip: Hotkeys</H4>
+                <p>
+                  Did you know there are hotkeys?<br />
+                  Press&nbsp;<span className={Classes.KEY_COMBO}><span className={Classes.KEY + ' ' + Classes.MODIFIER_KEY}>shift</span>&nbsp;<span className={Classes.KEY}>/</span>&nbsp;to see them.</span>{/* // tslint:disable-next-line */}
+                </p>
+              </Callout>
+              {/* </div> */}
+            </div>
+          </Drawer>
         </ButtonGroup>
       </section>
     </div>
