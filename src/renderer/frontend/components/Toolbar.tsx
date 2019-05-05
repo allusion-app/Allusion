@@ -23,7 +23,7 @@ const filterTooltip = 'Filter view content panel';
 const fltTagTooltip = 'Filter images by first tag';
 
 const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
-  <Popover minimal>
+  <Popover minimal disabled={disabled}>
     <Button icon={IconSet.DELETE} disabled={disabled} className="tooltip" data-right={deleteTooltip}/>
     <div className="popoverContent" id="deleteFile">
       <h4 className="bp3-heading inpectorHeading">Confirm deletion</h4>
