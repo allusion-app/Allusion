@@ -110,5 +110,4 @@ export default class BaseRepository<T extends IIdentifiable> {
     await this.collection.bulkPut(items); // note: this will also create them if they don't exist
     return items;
   }
-
 }
