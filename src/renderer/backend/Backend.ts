@@ -107,7 +107,6 @@ export default class Backend {
     // Get all tags
     const tags = await Promise.all(tagCollection.tags.map((tag) => this.tagRepository.get(tag)));
     // Remove tags properly
-    // Todo: Should we really delete all tags in this collection, or e.g. transfer them to a 'main' tag collection?
     await Promise.all(tags.map((tag) => tag && this.removeTag(tag)));
     // Remove tag collection itself from db
     await this.tagCollectionRepository.remove(tagCollection);

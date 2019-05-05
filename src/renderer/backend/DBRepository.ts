@@ -43,9 +43,6 @@ export interface IDbQueryRequest<T> extends IDbRequest<T> {
   query: any;
 }
 
-const DEFAULT_COUNT = Number.MAX_SAFE_INTEGER;
-const DEFAULT_ORDER = 'id';
-
 /**
  * A class that manages data retrieval and updating with a database.
  * Extends Dexie: https://dexie.org/docs/Tutorial/Consuming-dexie-as-a-module
@@ -75,15 +72,11 @@ export default class BaseRepository<T extends IIdentifiable> {
 
   public async find({ queryField, query, count, order, descending }: IDbQueryRequest<T>): Promise<T[]> {
     const where = this.collection.where(queryField as string);
-    let table;
     // Querying array props: https://dexie.org/docs/MultiEntry-Index
-    table = Array.isArray(query) ? where.anyOf(query) : where.equals(query);
-    if (descending) {
-      table = table.reverse();
-    }
-    return table
-      .limit(count || DEFAULT_COUNT)
-      .sortBy(order as string || DEFAULT_ORDER);
+    let table = Array.isArray(query) ? where.anyOf(...query).distinct() : where.equals(query);
+    table = descending ? table.reverse() : table;
+    table = count ? table.limit(count) : table;
+    return order ? table.sortBy(order as string) : table.toArray();
   }
 
   public async count(): Promise<number> {
