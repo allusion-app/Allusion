@@ -186,7 +186,7 @@ main {
 @media (max-width: 960px) {
   #main-toolbar {
     left: 25% !important;
-    width: 50%;
+    width: 50% !important;
     #spacer {
       display: none;
       visibility: hidden;
@@ -202,7 +202,7 @@ main {
 @media (max-width: 720px) {
   #main-toolbar {
     left: 20% !important;
-    width: 60%;
+    width: 60% !important;
     #spacer {
       display: none;
       visibility: hidden;
@@ -214,7 +214,7 @@ main {
     --toolbar-height: 4.8rem;
   }
   #toolbar {
-    align-items: flex-start;
+    align-items: flex-start !important;
     height: 4.8rem;
     #outliner-toolbar,
     #inspector-toolbar {
@@ -224,9 +224,9 @@ main {
   }
   #main-toolbar {
     left: 0 !important;
-    width: 100%;
-    top: 2.2rem;
-    padding: 0.25rem 0.5rem;
+    width: 100% !important;
+    top: 2.2rem !important;;
+    padding: 0.25rem 0.5rem !important;;
     #spacer {
       display: none;
       visibility: hidden;
