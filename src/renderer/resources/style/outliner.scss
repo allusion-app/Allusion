@@ -1,0 +1,84 @@
+///////////////////////////////// Outliner /////////////////////////////////
+nav .bp3-dark,
+.bp3-dark #toolbar,
+.bp3-dark #inspector,
+.bp3-dark nav,
+.bp3-dark #outliner {
+  background-color: $dark-gray2;
+}
+
+nav .bp3-light,
+.bp3-light #toolbar,
+.bp3-light #inspector,
+.bp3-light nav,
+.bp3-light #outliner {
+  background-color: $light-gray5 !important;
+}
+
+nav {
+  grid-area: outliner;
+  overflow: auto;
+  flex-shrink: 0;
+  width: 0;
+  min-width: 0;
+  transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bp3-dark nav {
+  background: $dark-gray2;
+}
+
+nav.outlinerOpen {
+  min-width: var(--outliner-width);
+  width: 16rem;
+}
+
+#search-form,
+#import {
+  margin: 0.5em 1rem;
+  outline: none;
+}
+
+nav .bp3-heading {
+  margin: 0.5em 1rem;
+}
+
+///////////////////////////////// Import /////////////////////////////////
+nav.outlinerOpen.IMPORT {
+  overflow: visible !important;
+}
+
+#import > button {
+  margin-bottom: 1rem;
+  color: $light-gray1;
+}
+
+#import .bp3-button.bp3-fill {
+  background: $dark-gray5;
+}
+
+///////////////////////////////// Tag hierarchy /////////////////////////////////
+nav .bp3-tree {
+  background-color: $dark-gray2;
+}
+
+.bp3-light nav .bp3-tree {
+  background-color: $light-gray2;
+}
+
+.bp3-tree-node .reorder-target {
+  border-bottom: 2px solid $blue1;
+  padding-bottom: 3px;
+  border-bottom: 2px solid transparent;
+}
+
+.bp3-tree-node .reorder-source,
+.bp3-tree-node .reorder-source > div {
+  opacity: 0.2;
+}
+
+
+///////////////////////////////// Search tab /////////////////////////////////
+#search-form .bp3-popover-target {
+  width: 100%;
+}
