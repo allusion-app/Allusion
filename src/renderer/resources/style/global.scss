@@ -12,10 +12,10 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-}
 
-body .bp3-light {
-  color: $light-gray1;
+  .bp3-light {
+    color: $light-gray1;
+  }
 }
 
 #app {
@@ -37,14 +37,13 @@ main {
   grid-template-areas:
     "toolbar toolbar toolbar"
     "outliner main inspector";
-}
 
-#layoutContainer.bp3-dark {
-  background: $dark-gray1;
-}
-
-#layoutContainer.bp3-light {
-  background: $light-gray5;
+  .bp3-dark {
+    background: $dark-gray1;
+  }
+  .bp3-light {
+    background: $light-gray5;
+  }
 }
 
 // Global component layout
@@ -100,9 +99,6 @@ main {
 .bp3-popover-content ::-webkit-scrollbar-thumb:hover {
   background-color: $light-gray1;
 }
-
-
-
 
 ///////////////////////////////// Custom Hover tooltip /////////////////////////////////
 [data-right],
@@ -170,10 +166,6 @@ main {
     width: 350px !important;
     height: 350px !important;
   }
-  // .thumbnail {
-  //   width: 350px !important;
-  //   height: 350px !important;
-  // }
 }
 @media (min-width: 1281px) {
   .grid.thumbnail,
@@ -182,10 +174,6 @@ main {
     width: 260px !important;
     height: 260px !important;
   }
-  // .thumbnail {
-  //   width: 260px !important;
-  //   height: 260px !important;
-  // }
 }
 @media (max-width: 1280px) {
   .grid.thumbnail,
@@ -194,10 +182,6 @@ main {
     width: 225px !important;
     height: 225px !important;
   }
-  // .thumbnail {
-  //   width: 225px !important;
-  //   height: 225px !important;
-  // }
 }
 @media (max-width: 960px) {
   #main-toolbar {
@@ -214,10 +198,6 @@ main {
     width: 150px !important;
     height: 150px !important;
   }
-  // .thumbnail {
-  //   width: 150px !important;
-  //   height: 150px !important;
-  // }
 }
 @media (max-width: 720px) {
   #main-toolbar {
@@ -280,12 +260,12 @@ main {
 // Error boundary (when app crashes)
 .error-boundary {
   grid-area: main;
-}
 
-.error-boundary .message {
-  text-align: left;
-  width: 800px;
-  max-width: 800px;
+  .message {
+    text-align: left;
+    width: 800px;
+    max-width: 800px;
+  }
 }
 
 // Change icon color (black/white) based on its intent (like Blueprint's built-in icons)

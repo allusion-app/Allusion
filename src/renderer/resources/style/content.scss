@@ -28,65 +28,66 @@
   overflow: hidden;
   border-radius: 0.25rem;
   margin: 0.4rem;
+
+  img {
+    // This is to demanding on processor
+    // transition: all 0.1s ease-in-out;
+    width: $thumbnail-size;
+    height: $thumbnail-size;
+    object-fit: cover;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    transform-origin: center;
+    // transform: scale(1);
+    // transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &.selected {
+    background: $blue1;
+
+    img {
+      transform: scale(0.9);
+      transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  &.open img {
+    outline-color: red;
+    outline-width: 5px;
+    outline-offset: -5px;
+    outline-style: solid;
+  }
+
+  &.droppable {
+    background: $yellow1;
+
+    img {
+      transform: scale(0.95);
+    }
+  }
+  
+  &.undroppable {
+    background: $pt-intent-warning;
+  }  
+
+  .thumbnailTags {
+    // This is to demanding on process
+    // transition: height 0.1s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.25);
+    width: 100%;
+    height: auto;
+    padding: 0.4em 0.4rem 0.15rem 0.4rem;
+    position: absolute;
+    bottom: 0;
+  
+    > * {
+      margin: 0.5em;
+    }
+  }
 }
 
-.thumbnail.selected {
-  background: $blue1;
-}
-
-.thumbnail.selected img {
-  transform: scale(0.9);
-  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.thumbnail.open img {
-  outline-color: red;
-  outline-width: 5px;
-  outline-offset: -5px;
-  outline-style: solid;
-}
-
-.thumbnail.droppable {
-  background: $yellow1;
-}
-
-.thumbnail.undroppable {
-  background: $pt-intent-warning;
-}
-
-.thumbnail.droppable img {
-  transform: scale(0.95);
-}
-
-.thumbnail img {
-  // This is to demanding on processor
-  // transition: all 0.1s ease-in-out;
-  width: $thumbnail-size;
-  height: $thumbnail-size;
-  object-fit: cover;
-  cursor: pointer;
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
-  transform-origin: center;
-  // transform: scale(1);
-  // transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.thumbnailTags {
-  // This is to demanding on process
-  // transition: height 0.1s ease-in-out;
-  background-color: rgba(0, 0, 0, 0.25);
-  width: 100%;
-  height: auto;
-  padding: 0.4em 0.4rem 0.15rem 0.4rem;
-  position: absolute;
-  bottom: 0;
-}
-
-.thumbnailTags > * {
-  margin: 0.5em;
-}
 
 /////////////////////// View methods //////////////////////////////////
 .list.thumbnail {
@@ -134,7 +135,7 @@
   span {
     display: none;
   }
-}
-.slide.thumbnail.selected img {
-  transform: translateX(-50%) translateY(-50%) scale(0.9);
+  &.selected img {
+    transform: translateX(-50%) translateY(-50%) scale(0.9);
+  }
 }

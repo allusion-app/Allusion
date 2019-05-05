@@ -12,23 +12,23 @@
   #media {
     pointer-events: none;
   }
-}
 
-#toolbar .custom-icon {
-  width: 1.2rem !important;
-  height: 1.2rem !important;
-}
-
-.spacer {
-  width: 8rem;
-  background: red;
-  height: 1rem;
-}
-
-#main-toolbar {
-  display: flex;
-  justify-content: space-between;
-  width: calc(100vw - 34rem);
-  left: 16rem;
-  position: absolute;
+  .custom-icon {
+    width: 1.2rem !important;
+    height: 1.2rem !important;
+  }
+  
+  .spacer {
+    width: 8rem;
+    background: red;
+    height: 1rem;
+  }
+  
+  #main-toolbar {
+    display: flex;
+    justify-content: space-between;
+    width: calc(100vw - 34rem);
+    left: 16rem;
+    position: absolute;
+  }
 }
