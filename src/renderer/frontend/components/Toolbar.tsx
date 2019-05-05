@@ -76,13 +76,17 @@ const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
-  const handleToggleOutliner = useCallback(
-    () => { uiStore.isOutlinerOpen = !uiStore.isOutlinerOpen; },
-    [],
-  );
-  const handleOlImport = useCallback(() => { uiStore.outlinerPage = 'IMPORT'; }, []);
-  const handleOlTags = useCallback(() => { uiStore.outlinerPage = 'TAGS'; }, []);
-  const handleOlSearch = useCallback(() => { uiStore.outlinerPage = 'SEARCH'; }, []);
+  const handleChooseOutlinerPage = useCallback((page: typeof uiStore.outlinerPage) => {
+    // If it's already open, close it
+    if (uiStore.outlinerPage === page) {
+      uiStore.isOutlinerOpen = false;
+    } else {
+      uiStore.outlinerPage = page;
+    }
+  }, []);
+  const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), []);
+  const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), []);
+  const handleOlSearch = useCallback(() => handleChooseOutlinerPage('SEARCH'), []);
 
   // Content actions
   const isFileListSelected = uiStore.fileSelection.length > 0
@@ -166,7 +170,6 @@ const Toolbar = () => {
           <Button
             icon={IconSet.ADD}
             onClick={handleOlImport}
-            onDoubleClick={handleToggleOutliner}
             intent={olPage === 'IMPORT' ? 'primary' : 'none'}
             className="tooltip"
             data-right={addTooltip}
@@ -174,14 +177,12 @@ const Toolbar = () => {
           <Button
             icon={IconSet.TAG}
             onClick={handleOlTags}
-            onDoubleClick={handleToggleOutliner}
             intent={olPage === 'TAGS' ? 'primary' : 'none'} className="tooltip"
             data-right={tagTooltip}
           />
           <Button
             icon={IconSet.SEARCH}
             onClick={handleOlSearch}
-            onDoubleClick={handleToggleOutliner}
             intent={olPage === 'SEARCH' ? 'primary' : 'none'} className="tooltip"
             data-right={searchTooltip}
           />

@@ -7,7 +7,7 @@
   min-width: 0;
   transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-  .inspectorOpen {
+  &.inspectorOpen {
     min-width: var(--inspector-width);
     width: 18rem;
   }
