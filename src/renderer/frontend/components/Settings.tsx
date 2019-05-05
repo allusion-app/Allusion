@@ -25,17 +25,28 @@ const Settings = () => {
 
           <Button disabled fill>Clear database</Button>
 
-          <Button onClick={uiStore.toggleDevtools} intent="warning" icon="error" fill>
+          <Button onClick={uiStore.toggleDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
             Toggle the developer tools
           </Button>
 
           <br />
 
           <Callout icon={IconSet.INFO}>
-            <H4>Tip: Hotkeys</H4>
+            <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
             <p>
-              Did you know there are hotkeys?<br/>
-              Press <span className={Classes.KEY_COMBO}><span className={Classes.KEY + ' ' + Classes.MODIFIER_KEY}>shift</span>&nbsp;<span className={Classes.KEY}>/</span>&nbsp;to see them.</span>{/* // tslint:disable-next-line */}
+              Did you know there are hotkeys?
+              <br/>
+              Press&nbsp;
+              <span className={Classes.KEY_COMBO}>
+                <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>
+                  shift
+                </span>
+                &nbsp;
+                <span className={Classes.KEY}>
+                  /
+                </span>
+                &nbsp;to see them.
+              </span>
             </p>
           </Callout>
         </div>

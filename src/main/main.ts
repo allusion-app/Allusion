@@ -50,7 +50,7 @@ function createWindow() {
         ],
       },
       {
-        label: 'Help', submenu: [
+        label: 'View', submenu: [
           { role: 'reload' },
           { role: 'toggleFullScreen' },
           { role: 'toggleDevTools' },
