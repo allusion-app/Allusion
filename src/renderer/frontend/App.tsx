@@ -11,7 +11,7 @@ import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 
-const SPLASH_SCREEN_TIME = 500;
+const SPLASH_SCREEN_TIME = 1500;
 
 interface IAppProps extends IRootStoreProp {}
 
@@ -44,7 +44,6 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
           <Inspector />
 
           <Settings />
-
         </GlobalHotkeys>
       </ErrorBoundary>
     </div>

@@ -11,19 +11,19 @@ const Outliner = () => {
   const { uiStore } = useContext(StoreContext);
 
   return (
-    <nav className={'outlinerOpen'}>
+    <nav className={`${uiStore.isOutlinerOpen ? 'outlinerOpen' : ''}`}>
       {uiStore.outlinerPage === 'IMPORT' && (<>
-        <h4 className="bp3-heading">Import</h4>
+        <H4 className="bp3-heading">Import</H4>
         <ImportForm />
       </>)}
 
       {uiStore.outlinerPage === 'TAGS' && (<>
-        <h4 className="bp3-heading">Tags</h4>
+        <H4 className="bp3-heading">Tags</H4>
         <TagList />
       </>)}
 
       {uiStore.outlinerPage === 'SEARCH' && (<>
-        <h4 className="bp3-heading">Search</h4>
+        <H4 className="bp3-heading">Search</H4>
         <SearchForm />
       </>)}
     </nav>

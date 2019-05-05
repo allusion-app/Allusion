@@ -56,6 +56,12 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Opens the search tab in the outliner (left sidebar)"
           onKeyDown={uiStore.openOutlinerSearch}
         />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.toggleSettings}
+          label="Opens the settings tab in right sidebar"
+          onKeyDown={uiStore.toggleSettings}
+        />
 
         {/* Toolbar actions */}
         <Hotkey
@@ -82,20 +88,6 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           combo={hotkeyMap.deleteSelectedFiles}
           label="Delete the selected files"
           // onKeyDown={uiStore.}
-        />
-
-        {/* Misc */}
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.reload}
-          label="Reload the application"
-          onKeyDown={uiStore.reload}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.openDevTools}
-          label="Toggle the developer tools"
-          onKeyDown={uiStore.toggleDevtools}
         />
       </Hotkeys>
     );

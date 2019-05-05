@@ -11,3 +11,8 @@ release/
 .idea/
 
 release/
+
+# OSX > NAS drive folder info, local folder info & icon
+._.DS_Store
+.DS_Store
+._*

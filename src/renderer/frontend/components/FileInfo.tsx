@@ -50,10 +50,10 @@ const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   return (
     <section id="fileInfo">
       {fileInfoList.map(({ key, value }) => [
-        <div key={`fileInfoKey-${key}`} className="inpectorHeading">
+        <small key={`fileInfoKey-${key}`} className="bp3-label">
           {key}
-        </div>,
-        <div key={`fileInfoValue-${key}`} className="fileInfoValue">
+        </small>,
+        <div key={`fileInfoValue-${key}`} className="fileInfoValue bp3-button-text">
           {value}
         </div>,
       ])}

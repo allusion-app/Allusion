@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <title>view-name-up</title>
   <g id="layout">
     <g>
       <path d="M27,37l9-11H27V23H41v2.8L32,37h9v3H27Z"/>
-      <path d="M13,8h4l7,17H20l-1.5-4h-7L10,25H6Zm-.5,10h5L15,12Z"/>
+      <path d="M13,8H4l7,17H20l-1.5-4h-7L10,25H6Zm-.5,10h5L15,12Z"/>
     </g>
   </g>
 </svg>
