@@ -9,6 +9,7 @@ import Toolbar from './components/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
+import Settings from './components/Settings';
 
 const SPLASH_SCREEN_TIME = 700;
 
@@ -42,6 +43,7 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
 
           <Inspector />
 
+          <Settings />
         </GlobalHotkeys>
       </ErrorBoundary>
     </div>

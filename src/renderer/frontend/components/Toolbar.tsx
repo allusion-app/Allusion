@@ -1,7 +1,6 @@
-import { remote } from 'electron';
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H4, Callout,
+  Button, Popover, MenuItem, Menu, ButtonGroup, Icon, Classes, H4,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -107,36 +106,6 @@ const Toolbar = () => {
   const viewMason = useCallback(() => { uiStore.viewMethod = 'mason'; }, []);
   const viewSlide = useCallback(() => { uiStore.viewMethod = 'slide'; }, []);
 
-  // Inspector actions
-  const handleToggleInspector = useCallback(
-    () => { uiStore.isInspectorOpen = !uiStore.isInspectorOpen; },
-    [],
-  );
-
-  const handleToggleSettings = useCallback(
-    () => { uiStore.isSettingsOpen = !uiStore.isSettingsOpen; },
-    [],
-  );
-
-  // Settings actions
-  const toggleTheme = useCallback(
-    () => { uiStore.theme = (uiStore.theme === 'DARK' ? 'LIGHT' : 'DARK'); },
-    [],
-  );
-  const handleFullScreen = useCallback(
-    () => {
-      // (toggleFullScreen);
-      remote.getCurrentWindow().setFullScreen(uiStore.fullscreen);
-    },
-    [],
-  );
-  const toggleFullScreen = useCallback(
-    () => {
-      uiStore.fullscreen = !uiStore.fullscreen;
-      handleFullScreen();
-    },
-    [],
-  );
 
   // Render variables
   const sortMenu = useMemo(() =>
@@ -164,10 +133,6 @@ const Toolbar = () => {
   const numFiles = fileStore.fileList.length;
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
   const olPage = uiStore.outlinerPage;
-
-  const handleOpenDevtools = useCallback(() => remote.getCurrentWebContents().openDevTools(), []);
-
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
     <div id="toolbar">
@@ -222,7 +187,7 @@ const Toolbar = () => {
         <ButtonGroup minimal>
           <Button
             icon={IconSet.INFO}
-            onClick={handleToggleInspector}
+            onClick={uiStore.toggleInspector}
             intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
             className={'tooltip'} data-left={'Toggle inspector'}
           />
