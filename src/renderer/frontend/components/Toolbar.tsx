@@ -1,7 +1,6 @@
-import { remote } from 'electron';
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Drawer, Switch, ButtonGroup, Icon, Divider, Classes, H5,
+  Button, Popover, MenuItem, Menu, ButtonGroup, Icon, Classes,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -9,13 +8,26 @@ import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import FileTag from './FileTag';
 import { ClientFile } from '../../entities/File';
+import UiStore from '../stores/UiStore';
+
+// Tooltip info
+const addTooltip = 'Toggle Add panel';
+const tagTooltip = 'Toggle Tag panel';
+const searchTooltip = 'Toggle Search panel';
+const mediaTooltip = 'Number of files using selected tag(s)';
+const selectTooltip = 'Selects or deselcts all images';
+const tagfilesTooltip = 'Quick add or delete tags to selection';
+const deleteTooltip = 'Delete selection from library';
+const viewTooltip = 'Change view content panel';
+const filterTooltip = 'Filter view content panel';
+const fltTagTooltip = 'Filter images by first tag';
 
 const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
-  <Popover>
-    <Button icon={IconSet.DELETE} disabled={disabled} />
-    <div className="popoverContent">
-      <H5>Confirm deletion</H5>
-      <p>Are you sure you want to remove these images from your library?</p>
+  <Popover minimal disabled={disabled}>
+    <Button icon={IconSet.DELETE} disabled={disabled} className="tooltip" data-right={deleteTooltip}/>
+    <div className="popoverContent" id="deleteFile">
+      <h4 className="bp3-heading inpectorHeading">Confirm deletion</h4>
+      <p>Remove these images from your library?</p>
       <p>Your files will not be deleted.</p>
 
       <div
@@ -40,22 +52,34 @@ const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disa
   </Popover>
 );
 
-const TagFilesPopover = ({ disabled, files }: { disabled: boolean, files: ClientFile[] }) => (
-  <Popover>
-    <Button icon={IconSet.TAG} disabled={disabled} />
+interface ITagFilesPopoverProps {
+  disabled: boolean;
+  files: ClientFile[];
+  uiStore: UiStore;
+}
+const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopoverProps) => (
+  <Popover minimal isOpen={uiStore.isToolbarTagSelectorOpen} onClose={uiStore.closeToolbarTagSelector}>
+    <Button
+      icon={IconSet.TAG}
+      disabled={disabled}
+      onClick={uiStore.toggleToolbarTagSelector}
+      className="tooltip"
+      data-right={tagfilesTooltip}
+    />
     <div className="popoverContent">
-      <FileTag files={files} />
+      <FileTag files={files} autoFocus />
     </div>
   </Popover>
-);
+));
 
 const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
   const handleChooseOutlinerPage = useCallback((page: typeof uiStore.outlinerPage) => {
+    // If it's already open, close it
     if (uiStore.outlinerPage === page) {
-      uiStore.outlinerPage = 'NONE';
+      uiStore.isOutlinerOpen = false;
     } else {
       uiStore.outlinerPage = page;
     }
@@ -87,41 +111,50 @@ const Toolbar = () => {
     [],
   );
 
-  // Inspector actions
-  const handleToggleInspector = useCallback(
-    () => { uiStore.isInspectorOpen = !uiStore.isInspectorOpen; },
-    [],
-  );
-
-  const handleToggleSettings = useCallback(
-    () => { uiStore.isSettingsOpen = !uiStore.isSettingsOpen; },
-    [],
-  );
-
-  // Settings actions
-  const toggleTheme = useCallback(
-    () => { uiStore.theme = (uiStore.theme === 'DARK' ? 'LIGHT' : 'DARK'); },
-    [],
-  );
+  const viewList = useCallback(() => { uiStore.viewMethod = 'list'; }, []);
+  const viewGrid = useCallback(() => { uiStore.viewMethod = 'grid'; }, []);
+  const viewMason = useCallback(() => { uiStore.viewMethod = 'mason'; }, []);
+  const viewSlide = useCallback(() => { uiStore.viewMethod = 'slide'; }, []);
 
   // Render variables
   const sortMenu = useMemo(() =>
     <Menu>
-      <MenuItem icon={IconSet.TAG} text="Tag" />
-      <MenuItem icon={IconSet.VIEW_NAME_UP} text="Name" />
-      <MenuItem icon={IconSet.VIEW_FILE_TYPE} text="Type" />
-      <MenuItem icon={IconSet.VIEW_FILTER_DOWN} text="Size" />
-      <MenuItem icon={IconSet.VIEW_DATE} text="Date" labelElement={<Icon icon={IconSet.ARROW_UP} />} active />
+      <MenuItem icon={IconSet.TAG} text="Tag" className="tooltip" data-right={fltTagTooltip}/>
+      <MenuItem icon={IconSet.FILTER_NAME_UP} text="Name" />
+      <MenuItem icon={IconSet.FILTER_FILE_TYPE} text="Type" />
+      <MenuItem icon={IconSet.FILTER_FILTER_DOWN} text="Size" />
+      <MenuItem icon={IconSet.FILTER_DATE} text="Date" labelElement={<Icon icon={IconSet.ARROW_UP} />} active />
     </Menu>,
     [],
   );
 
+  const vwMethod = uiStore.viewMethod;
   const layoutMenu = useMemo(() =>
     <Menu>
-      <MenuItem icon={IconSet.VIEW_LIST} text="List" />
-      <MenuItem icon={IconSet.VIEW_GRID} text="Grid" active />
-      <MenuItem icon={IconSet.VIEW_MASON} text="Masonry" />
-      <MenuItem icon={IconSet.VIEW_PRESENT} text="Slide" />
+      <MenuItem
+        onClick={viewList}
+        icon={IconSet.VIEW_LIST}
+        text="List"
+        intent={vwMethod === 'list' ? 'primary' : 'none'}
+      />
+      <MenuItem
+        onClick={viewGrid}
+        icon={IconSet.VIEW_GRID}
+        text="Grid"
+        active intent={vwMethod === 'grid' ? 'primary' : 'none'}
+      />
+      <MenuItem
+        onClick={viewMason}
+        icon={IconSet.VIEW_MASON}
+        text="Masonry"
+        intent={vwMethod === 'mason' ? 'primary' : 'none'}
+      />
+      <MenuItem
+        onClick={viewSlide}
+        icon={IconSet.VIEW_PRESENT}
+        text="Slide"
+        intent={vwMethod === 'slide' ? 'primary' : 'none'}
+      />
     </Menu>,
     [],
   );
@@ -130,79 +163,87 @@ const Toolbar = () => {
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
   const olPage = uiStore.outlinerPage;
 
-  const handleOpenDevtools = useCallback(() => remote.getCurrentWebContents().openDevTools(), []);
-
   return (
     <div id="toolbar">
       <section id="outliner-toolbar">
         <ButtonGroup minimal>
-          <Button icon={IconSet.ADD} onClick={handleOlImport} intent={olPage === 'IMPORT' ? 'primary' : 'none'} />
-          <Button icon={IconSet.TAG} onClick={handleOlTags} intent={olPage === 'TAGS' ? 'primary' : 'none'} />
-          <Button icon={IconSet.SEARCH} onClick={handleOlSearch} intent={olPage === 'SEARCH' ? 'primary' : 'none'} />
+          <Button
+            icon={IconSet.ADD}
+            onClick={handleOlImport}
+            intent={olPage === 'IMPORT' ? 'primary' : 'none'}
+            className="tooltip"
+            data-right={addTooltip}
+          />
+          <Button
+            icon={IconSet.TAG}
+            onClick={handleOlTags}
+            intent={olPage === 'TAGS' ? 'primary' : 'none'} className="tooltip"
+            data-right={tagTooltip}
+          />
+          <Button
+            icon={IconSet.SEARCH}
+            onClick={handleOlSearch}
+            intent={olPage === 'SEARCH' ? 'primary' : 'none'} className="tooltip"
+            data-right={searchTooltip}
+          />
         </ButtonGroup>
       </section>
 
       <section id="main-toolbar">
-        <ButtonGroup minimal>
-          {/* Library info. Todo: Show entire library count instead of current fileList */}
-          <Button icon={IconSet.MEDIA} minimal>{numFiles} item{`${numFiles === 1 ? '' : 's'}`}</Button>
+        {/* Library info. Todo: Show entire library count instead of current fileList */}
+        <Button id="media" icon={IconSet.MEDIA} minimal className="tooltip" data-right={mediaTooltip}>
+          {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
+        </Button>
 
-          <Divider />
+        <ButtonGroup minimal>
 
           {/* Selection info and actions */}
           <Button
-            icon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
+            rightIcon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
             onClick={handleToggleSelect}
             intent={isFileListSelected ? 'primary' : 'none'}
+            className="tooltip"
+            data-right={selectTooltip}
           >
             {uiStore.fileSelection.length} selected
           </Button>
-          {/* Todo: Show popover for modifying tags of selection (same as inspector?) */}
+          {/* Show popover for modifying tags of selection (same as inspector) */}
           <TagFilesPopover
             files={uiStore.clientFileSelection}
             disabled={!selectionModeOn}
+            uiStore={uiStore}
           />
-          <RemoveFilesPopover onRemove={handleRemoveSelectedFiles} disabled={!selectionModeOn} />
-
-          <Divider />
+          <RemoveFilesPopover
+            onRemove={handleRemoveSelectedFiles}
+            disabled={!selectionModeOn}
+          />
 
           {/* Gallery actions */}
-          <Popover
-            target={<Button icon={IconSet.VIEW_GRID} />}
+          <Popover minimal
+            target={<Button icon={IconSet.VIEW_GRID} className="tooltip" data-right={viewTooltip}/>}
             content={layoutMenu}
           />
-          <Popover
-            target={<Button icon={IconSet.VIEW_NAME_UP} />}
+          <Popover minimal
+            target={<Button icon={IconSet.FILTER} className="tooltip" data-right={filterTooltip}/>}
             content={sortMenu}
           />
         </ButtonGroup>
+        <div id="spacer" style={{ width: '100px' }}></div>
       </section>
 
       <section id="inspector-toolbar">
         <ButtonGroup minimal>
           <Button
             icon={IconSet.INFO}
-            onClick={handleToggleInspector}
+            onClick={uiStore.toggleInspector}
             intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
+            className="tooltip" data-left={'Toggle inspector'}
           />
           <Button
             icon={IconSet.SETTINGS}
-            onClick={handleToggleSettings}
+            onClick={uiStore.toggleSettings}
+            className="tooltip" data-left={'Toggle settings'}
           />
-          <Drawer
-            isOpen={uiStore.isSettingsOpen}
-            icon={IconSet.SETTINGS}
-            onClose={handleToggleSettings}
-            title="Settings"
-          >
-            <Switch checked={uiStore.theme === 'DARK'} onChange={toggleTheme} label="Dark theme" />
-
-            <Button disabled>Clear database</Button>
-
-            <Button onClick={handleOpenDevtools} intent="warning" icon="error">
-              Open DevTools
-            </Button>
-          </Drawer>
         </ButtonGroup>
       </section>
     </div>

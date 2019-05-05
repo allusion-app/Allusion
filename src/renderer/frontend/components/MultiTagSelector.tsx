@@ -1,7 +1,7 @@
-import React, { useContext, useMemo, useCallback } from 'react';
+import React, { useContext, useMemo, useCallback, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { Button, MenuItem } from '@blueprintjs/core';
+import { Button, MenuItem, TagInput } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
@@ -48,6 +48,10 @@ interface IMultiTagSelectorProps {
   onTagCreation?: (name: string) => Promise<ClientTag>;
   placeholder?: string;
   disabled?: boolean;
+  /** Focus on mount */
+  autoFocus?: boolean;
+  /** When this object changes, autoFocus is triggered (since this component does not remount often itself) */
+  refocusObject?: any;
 }
 
 const MultiTagSelector = ({
@@ -58,12 +62,15 @@ const MultiTagSelector = ({
   onClearSelection,
   onTagCreation,
   placeholder,
+  disabled,
+  autoFocus,
+  refocusObject,
 }: IMultiTagSelectorProps) => {
   const { tagStore } = useContext(StoreContext);
 
   const handleSelect = useCallback(
     async (tag: ClientTag) => {
-      // When a tag is created, it is selected. Here we detect whether we need to actually the ClientTag.
+      // When a tag is created, it is selected. Here we detect whether we need to actually create the ClientTag.
       if (onTagCreation && tag.id === CREATED_TAG_ID) {
         tag = await onTagCreation(tag.name);
       }
@@ -124,6 +131,18 @@ const MultiTagSelector = ({
     ? renderCreateTagOption
     : undefined;
 
+  const ref = useRef<TagInput>(null);
+
+  useEffect(() => {
+    if (autoFocus && ref.current) {
+      // @ts-ignore inputElement is actually private, but the autoFocus of the tagInputProps is not working, so...
+      const inputRef = ref.current.inputElement;
+      if (inputRef) {
+        inputRef.focus();
+      }
+    }
+  }, [refocusObject]);
+
   return (
     <>
       <TagMultiSelect
@@ -133,6 +152,7 @@ const MultiTagSelector = ({
         noResults={NoResults}
         onItemSelect={handleSelect}
         popoverProps={{ minimal: true }}
+        openOnKeyDown={false}
         tagRenderer={TagLabel}
         createNewItemFromQuery={maybeCreateNewItemFromQuery}
         createNewItemRenderer={maybeCreateNewItemRenderer}
@@ -142,8 +162,11 @@ const MultiTagSelector = ({
           onRemove: handleDeselect,
           rightElement: ClearButton,
           fill: true,
+          ref,
+          disabled,
         }}
         placeholder={placeholder}
+        resetOnSelect
       />
     </>
   );
