@@ -19,7 +19,6 @@ const Settings = () => {
       className={themeClass}
     >
       <div className={Classes.DRAWER_BODY}>
-        <div className={Classes.DIALOG_BODY}>
           <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
           <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
 
@@ -49,7 +48,6 @@ const Settings = () => {
               </span>
             </p>
           </Callout>
-        </div>
       </div>
     </Drawer>
   );

@@ -38,10 +38,10 @@ main {
     "toolbar toolbar toolbar"
     "outliner main inspector";
 
-  .bp3-dark {
+  &.bp3-dark {
     background: $dark-gray1;
   }
-  .bp3-light {
+  &.bp3-light {
     background: $light-gray5;
   }
 }

@@ -279,6 +279,9 @@ form .bp3-icon-confirm {
   font-size: 14px;
   line-height: 1.2;
   color: #919191 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bp3-popover-content {
@@ -406,6 +409,10 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   background: $blue1;
   color: $light-gray4;
 }
+.bp3-tag-input .bp3-tag.bp3-active {
+  outline: #007af5 solid 2px;
+  outline-offset: 1px;
+}
 .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
   background-color: $dark-gray5;
 }
@@ -451,7 +458,6 @@ $pt-transition-duration: 100ms !default;
 .#{$ns}-tree-node-caret {
   transition: transform ($pt-transition-duration * 1.5) $pt-transition-ease;
 }
-
 
 // settings panel
 .bp3-drawer {
