@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-
-import { observer } from 'mobx-react-lite';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ResizeSensor, IResizeEntry } from '@blueprintjs/core';
+import { FixedSizeGrid as Grid, GridItemKeySelector } from 'react-window';
+import { observer, Observer } from 'mobx-react-lite';
 
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
@@ -13,6 +14,25 @@ const Gallery = ({
     fileStore: { fileList },
   },
 }: IGalleryProps) => {
+  const [contentHeight, setContentHeight] = useState(1); // window.innerWidth
+  const [contentWidth, setContentWidth] = useState(1); // window.innerWidth
+  const handleResize = useCallback((entries: IResizeEntry[]) => {
+    setContentWidth(entries[0].contentRect.width);
+    setContentHeight(entries[0].contentRect.height);
+  }, []);
+
+  const colWidth = 260; // Should be same as CSS variable $thumbnail-size + padding
+  const numColumns = Math.floor(contentWidth / colWidth);
+  const numRows = Math.ceil(fileList.length / numColumns);
+
+  /** Generates a unique key for an element in the grid */
+  const handleItemKey: GridItemKeySelector = useCallback(
+    ({ columnIndex, rowIndex }) => {
+      const itemIndex = rowIndex * numColumns + columnIndex;
+      const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
+      return `${rowIndex}-${columnIndex}-${file ? file.id : ''}`;
+  }, []);
+
   // Todo: Maybe move these to UiStore so that it can be reset when the fileList changes?
   /** The first item that is selected in a multi-selection */
   const [initialSelectionIndex, setInitialSelectionIndex] = useState<
@@ -77,20 +97,55 @@ const Gallery = ({
     };
   }, []);
 
+  const Cell = useCallback(
+    ({ columnIndex, rowIndex, style }) => {
+      const itemIndex = rowIndex * numColumns + columnIndex;
+      const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
+      if (!file) {
+        return <div />;
+      }
+      return (
+        <div style={style}>
+          {/* Item {itemIndex} ({rowIndex},{columnIndex}) */}
+          {/* <img src={file.path} width={colWidth} height={colWidth} /> */}
+          {/* <img src={`https://placekitten.com/${colWidth}/${colWidth}`} width={colWidth} height={colWidth} /> */}
+          <Observer>
+            {() => (
+              <GalleryItem
+                key={`file-${file.id}`}
+                file={file}
+                isSelected={uiStore.fileSelection.includes(file.id)}
+                onRemoveTag={(tag) => file.removeTag(tag.id)}
+                onSelect={(f, e) => onSelect(itemIndex, e)}
+                onDeselect={(f) => uiStore.deselectFile(f)}
+                onDrop={(tag) => file.addTag(tag.id)}
+              />
+            )}
+          </Observer>
+        </div>
+      );
+    },
+    [numColumns],
+  );
+
   return (
-    <div className={`${selectionModeOn ? 'gallerySelectionMode' : ''}`}>
-      {fileList.map((file, fileIndex) => (
-        <GalleryItem
-          key={`file-${file.id}`}
-          file={file}
-          isSelected={uiStore.fileSelection.includes(file.id)}
-          onRemoveTag={(tag) => file.removeTag(tag.id)}
-          onSelect={(f, e) => onSelect(fileIndex, e)}
-          onDeselect={(f) => uiStore.deselectFile(f)}
-          onDrop={(tag) => file.addTag(tag.id)}
-        />
-      ))}
-    </div>
+    <ResizeSensor onResize={handleResize}>
+      <div className={`gallery-content ${selectionModeOn ? 'gallerySelectionMode' : ''}`}>
+          <Grid
+            columnCount={numColumns}
+            columnWidth={colWidth}
+            height={contentHeight}
+            rowCount={numRows}
+            rowHeight={colWidth}
+            width={contentWidth}
+            itemData={fileList}
+            itemKey={handleItemKey}
+            overscanRowsCount={2}
+          >
+            {Cell}
+          </Grid>
+      </div>
+    </ResizeSensor>
   );
 };
 

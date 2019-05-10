@@ -2,6 +2,7 @@
 .gallery {
   width: 100%;
   padding: 8px;
+  height: 100%;
 }
 
 #query-overview {
@@ -15,6 +16,10 @@
 
 #query-overview .bp3-tag {
   margin: 0 0 0.5em 0.5em;
+}
+
+.gallery-content {
+  height: 100%;
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
@@ -90,7 +95,7 @@
 
 
 /////////////////////// View methods //////////////////////////////////
-.list.thumbnail {
+.list .thumbnail {
   width: auto;
   height: 100%;
   display: -webkit-box;
@@ -106,7 +111,7 @@
     text-align: left !important;
   }
 }
-.grid.thumbnail {
+.grid .thumbnail {
   width: $thumbnail-size;
   height: $thumbnail-size;
   img {
@@ -119,7 +124,7 @@
     background: red !important;
   }
 }
-.slide.thumbnail {
+.slide .thumbnail {
   height: calc(100vh - 2.4rem) !important;
   width: 100% !important;
   margin: 0.4rem 0;
