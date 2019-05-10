@@ -78,11 +78,10 @@ const Toolbar = () => {
   // Outliner actions
   const handleChooseOutlinerPage = useCallback((page: typeof uiStore.outlinerPage) => {
     // If it's already open, close it
-    if (uiStore.outlinerPage === page) {
-      uiStore.isOutlinerOpen = false;
-    } else {
-      uiStore.outlinerPage = page;
-    }
+    uiStore.isOutlinerOpen = uiStore.isOutlinerOpen
+      ? uiStore.outlinerPage !== page
+      : uiStore.outlinerPage === page;
+    uiStore.outlinerPage = page;
   }, []);
   const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), []);
   const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), []);
