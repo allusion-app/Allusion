@@ -24,30 +24,31 @@
   #fileOverview {
     text-align: center;
   }
+}
 
-  #fileInfo {
-    display: grid;
-    grid-template-columns: min-content 1fr;
-    grid-column-gap: 1em;
+// File info
+#fileInfo {
+  display: grid;
+  grid-template-columns: min-content 1fr;
+  grid-column-gap: 1em;
 
-    > div {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+  > div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
+}
 
-  .fileInfoValue {
-    text-align: right;
-  }
+.fileInfoValue {
+  text-align: right;
+}
 
-  #filePreview > img {
-    padding: 0.3em;
-    background-color: #333333;
-    width: 100%;
-    max-height: calc(var(--inspector-width) - 2em);
-    object-fit: contain;
-  }
+#filePreview > img {
+  padding: 0.3em;
+  background-color: #333333;
+  width: 100%;
+  max-height: calc(var(--inspector-width) - 2em);
+  object-fit: contain;
 }
 
 // File tag (kind of global style)

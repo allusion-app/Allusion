@@ -1,8 +1,4 @@
-// Added to test fileInfo
-import React, { useContext, useEffect, useState, useMemo } from 'react';
-import StoreContext from '../contexts/StoreContext';
-import fs from 'fs';
-// import React from 'react';
+import React from 'react';
 import { shell } from 'electron';
 
 import { observer } from 'mobx-react-lite';
@@ -14,10 +10,12 @@ import {
   ContextMenuTarget,
   Menu,
   MenuItem,
+  H4,
 } from '@blueprintjs/core';
 import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import handleRemoveSelectedFiles from '../components/Toolbar';
+import { SingleFileInfo } from './FileInfo';
 
 interface IGalleryItemTagProps {
   name: string;
@@ -37,6 +35,9 @@ interface IGalleryItemProps {
   onSelect: (file: ClientFile, e: React.MouseEvent) => void;
   onDeselect: (file: ClientFile, e: React.MouseEvent) => void;
   onDrop: (item: any) => void;
+  showName?: boolean;
+  showTags?: boolean;
+  showInfo?: boolean;
 }
 
 interface IGalleryItemCollectedProps {
@@ -45,7 +46,7 @@ interface IGalleryItemCollectedProps {
   connectDropTarget: ConnectDropTarget;
 }
 
-const GalleryItem = ({
+export const GalleryItem = ({
   file,
   isSelected,
   onRemoveTag,
@@ -54,52 +55,14 @@ const GalleryItem = ({
   canDrop,
   isOver,
   connectDropTarget,
+  showName, showTags, showInfo,
 }: IGalleryItemProps & IGalleryItemCollectedProps) => {
   const selectedStyle = isSelected ? 'selected' : '';
   const dropStyle = canDrop ? ' droppable' : ' undroppable';
-  const { uiStore } = useContext(StoreContext);
-  const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''} ${uiStore.viewMethod}`;
+  const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
   // Switch between opening/selecting depending on whether the selection mode is enabled
   const clickFunc = isSelected ? onDeselect : onSelect;
-
-  // Added to test fileInfo //////
-  const formatDate = (d: Date) =>
-    `${d.getUTCFullYear()}-${d.getUTCMonth() +
-    1}-${d.getUTCDate()} ${d.getUTCHours()}:${d.getUTCMinutes()}`;
-
-  const [fileStats, setFileStats] = useState<fs.Stats | undefined>(undefined);
-  const [error, setError] = useState<Error | undefined>(undefined);
-
-  // Look up file info when file changes
-  useEffect(
-    () => {
-      fs.stat(file.path, (err, stats) =>
-        err ? setError(err) : setFileStats(stats),
-      );
-    },
-    [file],
-  );
-
-  const fileInfoList = useMemo(
-    () => [
-      { key: 'Filename', value: file.path },
-      {
-        key: 'Created',
-        value: fileStats ? formatDate(fileStats.birthtime) : '...',
-      },
-      { key: 'Modified', value: fileStats ? formatDate(fileStats.ctime) : '...' },
-      {
-        key: 'Last Opened',
-        value: fileStats ? formatDate(fileStats.atime) : '...',
-      },
-      { key: 'Dimensions', value: '?' },
-      { key: 'Resolution', value: '?' },
-      { key: 'Color Space', value: '?' },
-    ],
-    [file, fileStats],
-  );
-  //////////////////
 
   return connectDropTarget(
     <div className={className}>
@@ -108,31 +71,22 @@ const GalleryItem = ({
         src={file.path}
         onClick={(e) => clickFunc(file, e)}
       />
-      <span className="thumbnailTags">
-        {file.clientTags.map((tag) => (
-          <GalleryItemTag
-            key={`gal-tag-${file.id}-${tag.id}`}
-            name={tag.name}
-            onRemove={() => onRemoveTag(tag)}
-          />
-        ))}
-      </span>
-      {/* // Added to test fileInfo */}
-      <span>
-        {fileInfoList.map(({ key, value }) => [
-          <small key={`fileInfoKey-${key}`} className="bp3-label">
-            {key}
-          </small>,
-          <div key={`fileInfoValue-${key}`} className="fileInfoValue bp3-button-text">
-            {value}
-          </div>,
-        ])}
-        {error && (
-          <p>
-            Error: {error.name} <br /> {error.message}
-          </p>
-        )}
-      </span>
+
+      { showName && <H4>{file.name}</H4>}
+
+      {showInfo && <SingleFileInfo file={file} />}
+
+      { showTags && (
+        <span className="thumbnailTags">
+          {file.clientTags.map((tag) => (
+            <GalleryItemTag
+              key={`gal-tag-${file.id}-${tag.id}`}
+              name={tag.name}
+              onRemove={() => onRemoveTag(tag)}
+            />
+          ))}
+        </span>
+      )}
     </div>,
   );
 };

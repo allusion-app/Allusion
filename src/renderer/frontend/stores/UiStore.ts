@@ -62,6 +62,9 @@ const defaultHotkeyMap: IHotkeyMap = {
  *  - State of a wizard
  *  - State of a global overlay
  */
+
+export type ViewMethod = 'list' | 'grid' | 'mason' | 'slide';
+
 class UiStore {
   rootStore: RootStore;
 
@@ -82,7 +85,7 @@ class UiStore {
 
   // VIEW
   // UI
-  @observable viewMethod: 'list' | 'grid' | 'mason' | 'slide' = 'grid';
+  @observable viewMethod: ViewMethod = 'grid';
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270

@@ -12,7 +12,7 @@ interface IFileInfoProps {
   files: ClientFile[];
 }
 
-const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
+export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   const [fileStats, setFileStats] = useState<fs.Stats | undefined>(undefined);
   const [error, setError] = useState<Error | undefined>(undefined);
 
@@ -30,7 +30,7 @@ const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   // Or add the units: pixels vs DPI
   const fileInfoList = useMemo(
     () => [
-      { key: 'Filename', value: file.path },
+      { key: 'Filename', value: file.name },
       {
         key: 'Created',
         value: fileStats ? formatDate(fileStats.birthtime) : '...',

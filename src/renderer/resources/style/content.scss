@@ -119,10 +119,10 @@
     height: $thumbnail-size;
   }
   // display: flex;
-  span:nth-child(3) {
-    z-index: -1;
-    background: red !important;
-  }
+  // span:nth-child(3) {
+  //   z-index: -1;
+  //   background: red !important;
+  // }
 }
 .slide .thumbnail {
   height: calc(100vh - 2.4rem) !important;
