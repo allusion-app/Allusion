@@ -27,7 +27,7 @@ function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) 
     case 'list':
       return <ListGallery {...props}  />;
     case 'slide':
-      return <SlideGallery {...props}  />
+      return <SlideGallery {...props}  />;
     default:
       return null;
   }
@@ -230,8 +230,6 @@ const Gallery = ({
       window.removeEventListener('keydown', onKeyDown);
     };
   }, []);
-
-  
 
   return (
     <ResizeSensor onResize={handleResize}>
