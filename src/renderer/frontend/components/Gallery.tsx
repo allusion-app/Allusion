@@ -68,7 +68,7 @@ const GridGallery = observer(
                 onSelect={(f, e) => onSelect(itemIndex, e)}
                 onDeselect={(f) => uiStore.deselectFile(f)}
                 onDrop={(tag) => file.addTag(tag.id)}
-
+                showTags
               />
             )}
           </Observer>
@@ -145,11 +145,81 @@ const ListGallery = observer(
 });
 
 const MasonryGallery = observer(({ contentWidth, contentHeight, fileList, uiStore, onSelect }: IGalleryLayoutProps) => {
-  return null;
+  return <p>This view is currently not supported :(</p>;
 });
 
 const SlideGallery = observer(({ contentWidth, contentHeight, fileList, uiStore, onSelect }: IGalleryLayoutProps) => {
-  return null;
+  // Store which image is currently shown
+  // Todo: This could be stored in the UiStore so that the image can be kept in focus when switching between view methods
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const incrActiveImgIndex = useCallback(
+    () => setActiveImageIndex(Math.max(0, activeImageIndex - 1)),
+    [activeImageIndex]);
+  const decrActiveImgIndex = useCallback(
+    () => setActiveImageIndex(Math.min(activeImageIndex + 1, fileList.length - 1)),
+    [fileList.length, activeImageIndex]);
+
+  // Detect left/right arrow keys to scroll between images
+  const handleUserKeyPress = useCallback((event) => {
+    const { keyCode } = event;
+    if (keyCode === 37) {
+      incrActiveImgIndex()
+    } else if (keyCode === 39) {
+      decrActiveImgIndex();
+    }
+  }, [incrActiveImgIndex, decrActiveImgIndex]);
+
+  // Detect scroll wheel to scroll between images
+  const handleUserWheel = useCallback((event) => {
+    const { deltaY } = event;
+    event.preventDefault();
+    if (deltaY > 0) {
+      decrActiveImgIndex();
+    } else if (deltaY < 0) {
+      incrActiveImgIndex();
+    }
+  }, [incrActiveImgIndex, decrActiveImgIndex]);
+
+  // Set up event listeners
+  useEffect(() => {
+    window.addEventListener('keydown', handleUserKeyPress);
+    window.addEventListener('wheel', handleUserWheel);
+    return () => {
+      window.removeEventListener('keydown', handleUserKeyPress);
+      window.removeEventListener('wheel', handleUserWheel);
+    };
+  }, [handleUserKeyPress, handleUserWheel]);
+
+  // When the file list changes, reset active index
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [fileList.length]);
+
+  // Automatically select the active image, so it is shown in the inspector
+  useEffect(() => {
+    if (activeImageIndex < fileList.length) {
+      uiStore.deselectAllFiles();
+      uiStore.selectFile(fileList[activeImageIndex]);
+    }
+  }, [activeImageIndex]);
+
+  if (activeImageIndex >= fileList.length) {
+    return <p>No files available</p>;
+  }
+
+  const file = fileList[activeImageIndex];
+
+  return (
+    <GalleryItem
+      file={file}
+      isSelected={false /** Active image is always selected, no need to show it */}
+      onRemoveTag={(tag) => file.removeTag(tag.id)}
+      onSelect={(f, e) => onSelect(activeImageIndex, e)}
+      onDeselect={(f) => uiStore.deselectFile(f)}
+      onDrop={(tag) => file.addTag(tag.id)}
+    />
+  );
 });
 
 interface IGalleryProps extends IRootStoreProp {}
