@@ -164,7 +164,7 @@ const SlideGallery = observer(({ contentWidth, contentHeight, fileList, uiStore,
   const handleUserKeyPress = useCallback((event) => {
     const { keyCode } = event;
     if (keyCode === 37) {
-      incrActiveImgIndex()
+      incrActiveImgIndex();
     } else if (keyCode === 39) {
       decrActiveImgIndex();
     }
