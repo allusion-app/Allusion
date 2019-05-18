@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { shell } from 'electron';
 
 import { observer } from 'mobx-react-lite';
@@ -11,6 +11,8 @@ import {
   Menu,
   MenuItem,
   H4,
+  Classes,
+  H3,
 } from '@blueprintjs/core';
 import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
@@ -62,15 +64,36 @@ export const GalleryItem = ({
   const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
   // Switch between opening/selecting depending on whether the selection mode is enabled
-  const clickFunc = isSelected ? onDeselect : onSelect;
+  const clickFunc = useCallback(
+    (e: React.MouseEvent) => isSelected ? onDeselect(file, e) : onSelect(file, e),
+    [isSelected, file],
+  );
+
+  const [imageElem] = useState<HTMLImageElement>(new Image());
+  const [isImageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState();
+
+  useEffect(() => {
+    // Load the image manually when the component mounts
+    imageElem.src = file.path;
+    imageElem.onload = () => setImageLoaded(true);
+    imageElem.onerror = (e) => setImageError(e);
+    return () => {
+      // When this component unmounts, cancel further loading of the image in case it was not loaded yet
+      if (!isImageLoaded) {
+        imageElem.src = '';
+      }
+    };
+  }, []);
 
   return connectDropTarget(
     <div className={className}>
-      <img
-        key={`file-${file.id}`}
-        src={file.path}
-        onClick={(e) => clickFunc(file, e)}
-      />
+      <div onClick={clickFunc} className="img-wrapper">
+        {isImageLoaded ? <img src={file.path} /> // Show image when it has been loaded
+          : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
+            : <div className={Classes.SKELETON} /> // Else show a placeholder
+        }
+      </div>
 
       { showName && <H4>{file.name}</H4>}
 

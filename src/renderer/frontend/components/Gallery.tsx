@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ResizeSensor, IResizeEntry } from '@blueprintjs/core';
-import { FixedSizeGrid, GridItemKeySelector, FixedSizeList, ListItemKeySelector } from 'react-window';
+import {
+  FixedSizeGrid, GridItemKeySelector, FixedSizeList, ListItemKeySelector,
+  GridChildComponentProps, ListChildComponentProps,
+} from 'react-window';
 import { observer, Observer } from 'mobx-react-lite';
 
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
@@ -46,13 +49,14 @@ const GridGallery = observer(
       return `${rowIndex}-${columnIndex}-${file ? file.id : ''}`;
   }, []);
 
-  const Cell = useCallback(
-    ({ columnIndex, rowIndex, style }) => {
+  const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
+    ({ columnIndex, rowIndex, style, isScrolling }) => {
       const itemIndex = rowIndex * numColumns + columnIndex;
       const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
       if (!file) {
         return <div />;
       }
+      // if (isScrolling) return <div style={style}><p>Scrolling...</p></div>; // This prevent image from loading while scrolling
       return (
         <div style={style}>
           {/* Item {itemIndex} ({rowIndex},{columnIndex}) */}
@@ -89,6 +93,7 @@ const GridGallery = observer(
       itemKey={handleItemKey}
       overscanRowsCount={2}
       children={Cell}
+      useIsScrolling
     />
   );
 });
@@ -102,7 +107,7 @@ const ListGallery = observer(
       return `${index}-${file ? file.id : ''}`;
   }, []);
 
-  const Row = useCallback(
+  const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
     ({ index, style }) => {
       const file = index < fileList.length ? fileList[index] : null;
       if (!file) {
@@ -140,6 +145,7 @@ const ListGallery = observer(
       itemKey={handleItemKey}
       overscanCount={2}
       children={Row}
+      useIsScrolling
     />
   );
 });
