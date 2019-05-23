@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
@@ -26,17 +26,6 @@ function createWindow() {
     backgroundColor: '#181818',
     title: 'Allusion - Your Visual Library',
   });
-
-  const x: MenuItemConstructorOptions = {
-    label: 'File',
-    submenu: [
-      { role: 'about' },
-      { role: 'hide' },
-      { role: 'hideothers' },
-      { role: 'unhide' },
-      { role: 'quit' },
-    ],
-  };
 
   // Create our menu entries so that we can use MAC shortcuts
   const menuBar: Electron.MenuItemConstructorOptions[] = [];
