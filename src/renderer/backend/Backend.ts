@@ -50,6 +50,11 @@ export default class Backend {
     return await this.fileRepository.getAll();
   }
 
+  async fetchFilesByID(ids: ID[]): Promise<IFile[]> {
+    console.log('Backend: Fetching files by ID...');
+    return Promise.all(ids.map((id) => this.fileRepository.get(id)));
+  }
+
   async searchFiles(tags: ID[]): Promise<IFile[]> {
     console.log('Backend: Searching files...', tags);
     return await this.fileRepository.find('tags', tags);

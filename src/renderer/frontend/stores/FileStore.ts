@@ -17,8 +17,10 @@ class FileStore {
     this.rootStore = rootStore;
   }
 
-  async init() {
-    await this.loadFiles();
+  async init(autoLoadFiles: boolean) {
+    if (autoLoadFiles) {
+      await this.loadFiles();
+    }
   }
 
   @action
@@ -66,6 +68,16 @@ class FileStore {
       } catch (e) {
         console.log('Could not find files based on tag search', e);
       }
+    }
+  }
+
+  @action
+  async fetchFilesByIDs(files: ID[]) {
+    try {
+      const fetchedFiles = await this.backend.fetchFilesByID(files);
+      this.updateFromBackend(fetchedFiles);
+    } catch (e) {
+      console.log('Could not find files based on IDs', e);
     }
   }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import FileList from './components/FileList';
@@ -21,6 +21,13 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
   const [showSplash, setShowSplash] = useState(true);
   useEffect(() => {
     setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
+
+    // Prevent scrolling with Space, instead used to open preview window
+    window.addEventListener('keydown', (e) => {
+      if (e.keyCode === 32) {
+        e.preventDefault();
+      }
+    })
   }, []);
 
   if (!uiStore.isInitialized || showSplash) {

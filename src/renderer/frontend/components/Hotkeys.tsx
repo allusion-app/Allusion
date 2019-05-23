@@ -114,6 +114,13 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Sets view to slide mode"
           onKeyDown={uiStore.viewSlide}
         />
+
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.openPreviewWindow}
+          label="Opens a preview window for the selected files"
+          onKeyDown={uiStore.openPreviewWindow}
+        />
       </Hotkeys>
     );
   }

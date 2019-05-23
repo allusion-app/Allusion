@@ -4,7 +4,7 @@ import { ClientFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
-import { remote } from 'electron';
+import { remote, ipcRenderer } from 'electron';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -26,8 +26,12 @@ interface IHotkeyMap {
   viewGrid: string;
   viewMason: string;
   viewSlide: string;
+
+  // Other
+  openPreviewWindow: string;
 }
 
+// https://blueprintjs.com/docs/#core/components/hotkeys.dialog
 const defaultHotkeyMap: IHotkeyMap = {
   toggleOutliner: '1',
   toggleInspector: '2',
@@ -43,6 +47,7 @@ const defaultHotkeyMap: IHotkeyMap = {
   viewGrid: 'alt + 2',
   viewMason: 'alt + 3',
   viewSlide: 'alt + 4',
+  openPreviewWindow: 'space',
 };
 
 /**
@@ -82,6 +87,7 @@ class UiStore {
   @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
+  @observable isPreviewOpen: boolean = false;
 
   // VIEW
   // UI
@@ -151,6 +157,11 @@ class UiStore {
   @action.bound openOutlinerImport() { this.outlinerPage = 'IMPORT'; }
   @action.bound openOutlinerTags() { this.outlinerPage = 'TAGS'; }
   @action.bound openOutlinerSearch() { this.outlinerPage = 'SEARCH'; }
+
+  @action.bound openPreviewWindow() {
+    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
+    this.isPreviewOpen = true;
+  }
 
   // VIEW
   @action.bound viewList() { this.viewMethod = 'list'; }
