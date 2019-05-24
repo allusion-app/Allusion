@@ -43,6 +43,10 @@
 }
 
 // Input field
+::selection {
+  color: white;
+  background: $blue1;
+}
 .bp3-tag-input-values ::placeholder,
 .bp3-input-ghost ::placeholder {
   color: $light-gray5;
@@ -56,11 +60,13 @@
 }
 .bp3-dark .bp3-input,
 .bp3-light .bp3-input {
-  box-shadow: none;
+  // box-shadow: none;
+  // box-shadow: 0 0 0 1.5px $blue1;
   min-width: 100%;
   background: rgba(1, 1, 1, 0.1);
   color: #f5f8fa;
   margin-bottom: 0.15rem;
+  box-shadow: none;
 }
 .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
   background-color: $dark-gray5;
@@ -82,7 +88,16 @@ form,
   background-color: $dark-gray3;
 }
 form .bp3-button {
-  background-color: $blue1;
+  background-color: $light-gray1;
+  :hover {
+    background-color: $blue1;
+  }
+}
+form .bp3-button.bp3-minimal:hover {
+  border-bottom: none;
+  border-radius: 0;
+  padding-bottom: 0;
+  // transition: none;
 }
 form .bp3-icon-confirm {
   // background-color: $blue1;
@@ -91,11 +106,21 @@ form .bp3-icon-confirm {
   background-size: contain;
   background-color: white;
   color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  :hover {
+    background: none;
+    color: red !important;
+  }
 }
-
+form .bp3-icon {
+  color: white !important;
+}
 .bp3-dark .bp3-tag-input.bp3-active,
 .bp3-tag-input.bp3-dark.bp3-active {
-  box-shadow: none;
+  // box-shadow: none;
+  box-shadow: 0 0 0 1.5px $blue1;
   background-color: #13131357;
 }
 // Labels
@@ -210,10 +235,12 @@ form .bp3-icon-confirm {
 }
 .bp3-popover.bp3-dark,
 .bp3-popover.bp3-light {
-  -webkit-box-shadow: 0 30px 90px 0px rgb(24, 24, 24), 0px 0px 0px 0px #181818 !important;
   // box-shadow: 0 30px 90px -20px rgb(24, 24, 24), 0 0 30px #18181b !important;
-  box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
+  // box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
+  // box-shadow: 0 0 0 1px rgba(16,22,26,.2), 0 2px 4px rgba(16,22,26,.4), 0 8px 24px rgba(16,22,26,.4);
+  box-shadow: 0 4px 8px rgba(16, 22, 26, 0.4), 0 18px 46px 6px rgba(16, 22, 26, 0.4);
 }
+
 .bp3-popover,
 .bp3-popover .bp3-popover-content {
   border-radius: 10px;
@@ -279,13 +306,13 @@ form .bp3-icon-confirm {
   font-size: 14px;
   line-height: 1.2;
   color: #919191 !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .bp3-popover-content {
   min-width: 18rem;
+}
+li .bp3-menu-item {
+  max-width: 180px;
 }
 // Icons
 .bp3-dark .bp3-button:not([class*="-primary"]) .bp3-icon,
@@ -330,7 +357,8 @@ form .bp3-icon-confirm {
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button.bp3-intent-primary {
   color: white;
 }
-.bp3-dark .bp3-disabled {
+.bp3-dark .bp3-disabled,
+.bp3-dark .bp3-menu-item.bp3-disabled {
   color: $dark-gray5;
 }
 .bp3-light .bp3-disabled {
@@ -409,10 +437,12 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   background: $blue1;
   color: $light-gray4;
 }
+
 .bp3-tag-input .bp3-tag.bp3-active {
   outline: #007af5 solid 2px;
   outline-offset: 1px;
 }
+
 .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
   background-color: $dark-gray5;
 }

@@ -1,7 +1,8 @@
 ///////////////////////////////// Content area /////////////////////////////////
 .gallery {
   width: 100%;
-  padding: 8px;
+  padding: 4px 0 0 8px;
+  height: 100%;
 }
 
 #query-overview {
@@ -17,6 +18,10 @@
   margin: 0 0 0.5em 0.5em;
 }
 
+.gallery-content {
+  height: 100%;
+}
+
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
   // This is to demanding on processor
@@ -29,19 +34,35 @@
   border-radius: 0.25rem;
   margin: 0.4rem;
 
-  img {
-    // This is to demanding on processor
-    // transition: all 0.1s ease-in-out;
+  .h4 {
+    grid-area: title;
+  }
+
+  .img-wrapper {
+    grid-area: image;
+
     width: $thumbnail-size;
     height: $thumbnail-size;
-    object-fit: cover;
-    cursor: pointer;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-    transform-origin: center;
-    // transform: scale(1);
-    // transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    .bp3-skeleton {
+      width: 100%;
+      height: 100%;
+    }
+
+    img {
+      // This is to demanding on processor
+      // transition: all 0.1s ease-in-out;
+      width: $thumbnail-size;
+      height: $thumbnail-size;
+      object-fit: cover;
+      cursor: pointer;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+      transform-origin: center;
+      // transform: scale(1);
+      // transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
   }
 
   &.selected {
@@ -73,6 +94,8 @@
   }  
 
   .thumbnailTags {
+    grid-area: tags;
+
     // This is to demanding on process
     // transition: height 0.1s ease-in-out;
     background-color: rgba(0, 0, 0, 0.25);
@@ -86,17 +109,28 @@
       margin: 0.25em;
     }
   }
+
+  #fileInfo {
+    grid-area: info;
+  }
 }
 
 
 /////////////////////// View methods //////////////////////////////////
-.list.thumbnail {
+.list .thumbnail {
   width: auto;
   height: 100%;
-  display: -webkit-box;
   margin-left: 0.4rem;
   margin-right: 0.4rem;
-  // &,
+
+  display: grid;
+  grid-column-gap: 1em;
+  grid-template-columns: auto 1fr;
+  grid-template-rows:    auto 1fr;
+  grid-template-areas: "image title"
+                       "image info"
+                       "image tags";
+
   img {
     margin-left: 0;
     margin-right: 1rem;
@@ -105,8 +139,11 @@
   span > * {
     text-align: left !important;
   }
+  .thumbnailTags {
+    position: relative;
+  }
 }
-.grid.thumbnail {
+.grid .thumbnail {
   width: $thumbnail-size;
   height: $thumbnail-size;
   img {
@@ -119,17 +156,17 @@
   //   background: red !important;
   // }
 }
-.slide.thumbnail {
-  height: calc(100vh - 2.4rem) !important;
+.slide .thumbnail {
+  height: calc(100vh - 4rem) !important;
   width: 100% !important;
   margin: 0.4rem 0;
   img {
-    height: 100% !important;
-    width: 100% !important;
+    height: 95% !important;
+    width: 95% !important;
     transform: translateX(-50%) translateY(-50%);
     position: absolute;
     object-fit: contain;
-    top: 50%;
+    top: 49%;
     left: 50%;
   }
   span {

@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/local/bin/node /usr/local/Cellar/yarn/1.15.2/libexec/bin/yarn.js add react-collapsed
+  /usr/local/bin/node /usr/local/Cellar/yarn/1.15.2/libexec/bin/yarn.js add react-window
 
 PATH: 
   /Library/Frameworks/Python.framework/Versions/3.5/bin:/Library/Frameworks/Python.framework/Versions/3.6/bin:/Library/Frameworks/Python.framework/Versions/3.6/bin:/Library/Frameworks/Python.framework/Versions/3.4/bin:/Library/Frameworks/Python.framework/Versions/3.4/bin:/Library/Frameworks/Python.framework/Versions/3.4/bin:/Library/Frameworks/Python.framework/Versions/3.4/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/Library/Frameworks/Python.framework/Versions/3.5/bin:/Library/Frameworks/Python.framework/Versions/3.6/bin:/Library/Frameworks/Python.framework/Versions/3.4/bin
@@ -14,7 +14,7 @@ Platform:
   darwin x64
 
 Trace: 
-  Error: EACCES: permission denied, mkdir '/Users/romboutversluijs/Visuallibrary-master/node_modules/@babel/core/node_modules/semver'
+  Error: EACCES: permission denied, unlink '/Users/romboutversluijs/Visuallibrary-master/node_modules/@babel/core/node_modules/@babel/types/LICENSE'
 
 npm manifest: 
   {
@@ -47,6 +47,7 @@ npm manifest:
       "@types/react": "^16.8.8",
       "@types/react-dom": "^16.8.3",
       "@types/react-inlinesvg": "^0.8.0",
+      "@types/react-window": "^1.8.0",
       "@types/uuid": "^3.4.4",
       "css-loader": "^2.1.0",
       "electron": "^4.1.4",
@@ -72,20 +73,16 @@ npm manifest:
     },
     "dependencies": {
       "@blueprintjs/core": "^3.15.0",
-      "@blueprintjs/docs-theme": "^3.2.0",
       "@blueprintjs/select": "^3.8.0",
       "fs-extra": "^7.0.1",
       "idb": "^3.0.2",
       "mobx": "^5.9.0",
       "mobx-react-lite": "^1.1.1",
-      "react": "^16.8.6",
-      "react-bootstrap": "^1.0.0-beta.8",
-      "react-collapse": "^4.0.3",
-      "react-collapsed": "^2.0.0",
+      "react": "^16.8.5",
       "react-dnd": "^7.3.2",
       "react-dnd-html5-backend": "^7.2.0",
-      "react-dom": "^16.8.6",
-      "react-motion": "^0.5.2",
+      "react-dom": "^16.8.5",
+      "react-window": "^1.8.1",
       "rimraf": "^2.6.3",
       "styled-components": "^4.1.3",
       "uuid": "^3.3.2"
@@ -203,13 +200,6 @@ Lockfile:
     dependencies:
       regenerator-runtime "^0.12.0"
   
-  "@babel/runtime@^7.3.1":
-    version "7.4.4"
-    resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.4.4.tgz#dc2e34982eb236803aa27a07fea6857af1b9171d"
-    integrity sha512-w0+uT71b6Yi7i5SE0co4NioIpSYS6lLiXvCzWzGSKvpK5vdQtCbICHMj+gbAKAOtxiV6HsVh/MBdaF9EQ6faSg==
-    dependencies:
-      regenerator-runtime "^0.13.2"
-  
   "@babel/template@^7.0.0", "@babel/template@^7.1.0", "@babel/template@^7.4.0":
     version "7.4.0"
     resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.4.0.tgz#12474e9c077bae585c5d835a95c0b0b790c25c8b"
@@ -263,18 +253,6 @@ Lockfile:
       resize-observer-polyfill "^1.5.0"
       tslib "^1.9.0"
   
-  "@blueprintjs/docs-theme@^3.2.0":
-    version "3.2.0"
-    resolved "https://registry.yarnpkg.com/@blueprintjs/docs-theme/-/docs-theme-3.2.0.tgz#326254590c3747b1f42b368aaf002a073c3ad949"
-    integrity sha512-DwA5KhXHRrW3vTyNXpVOlFJNePWY0KzdgH7cwI19/F0+uJvErvvraqCb0+IU9G6+8JWUkwXBwOzEAWYjGflSEQ==
-    dependencies:
-      "@blueprintjs/core" "^3.15.0"
-      "@blueprintjs/select" "^3.8.0"
-      "@documentalist/client" "^2.0.1"
-      classnames "^2.2"
-      fuzzaldrin-plus "^0.6.0"
-      tslib "^1.9.3"
-  
   "@blueprintjs/icons@^3.8.0":
     version "3.8.0"
     resolved "https://registry.yarnpkg.com/@blueprintjs/icons/-/icons-3.8.0.tgz#7c77c67e4a241740f803f05e4f6e3ce43c6d6560"
@@ -296,11 +274,6 @@ Lockfile:
     dependencies:
       exec-sh "^0.3.2"
       minimist "^1.2.0"
-  
-  "@documentalist/client@^2.0.1":
-    version "2.0.1"
-    resolved "https://registry.yarnpkg.com/@documentalist/client/-/client-2.0.1.tgz#728a3aa884179ad0e83e9b53618a6ddcad448a16"
-    integrity sha512-Sqxxc/pn8yB7i1LdwOYHiO4NBmUYDsG+EVNvIEixKBMSN5KO+4E23KbJ1LDcMzX312wvF0wjFfoD22jrLjXS6g==
   
   "@emotion/is-prop-valid@^0.7.3":
     version "0.7.3"
@@ -524,6 +497,12 @@ Lockfile:
   "@types/react-inlinesvg@^0.8.0":
     version "0.8.0"
     resolved "https://registry.yarnpkg.com/@types/react-inlinesvg/-/react-inlinesvg-0.8.0.tgz#0347931da1b7744561ab6e96a7252a2a78b63f2e"
+    dependencies:
+      "@types/react" "*"
+  
+  "@types/react-window@^1.8.0":
+    version "1.8.0"
+    resolved "https://registry.yarnpkg.com/@types/react-window/-/react-window-1.8.0.tgz#0649a855fd20e0541f5bc0079b14ae5e1ba60b93"
     dependencies:
       "@types/react" "*"
   
@@ -2383,11 +2362,6 @@ Lockfile:
     version "1.1.1"
     resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
   
-  fuzzaldrin-plus@^0.6.0:
-    version "0.6.0"
-    resolved "https://registry.yarnpkg.com/fuzzaldrin-plus/-/fuzzaldrin-plus-0.6.0.tgz#832f6489fbe876769459599c914a670ec22947ee"
-    integrity sha1-gy9kifvodnaUWVmckUpnDsIpR+4=
-  
   galactus@^0.2.1:
     version "0.2.1"
     resolved "https://registry.yarnpkg.com/galactus/-/galactus-0.2.1.tgz#cbed2d20a40c1f5679a35908e2b9415733e78db9"
@@ -3736,6 +3710,10 @@ Lockfile:
       mimic-fn "^1.0.0"
       p-is-promise "^1.1.0"
   
+  "memoize-one@>=3.1.1 <6":
+    version "5.0.4"
+    resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-5.0.4.tgz#005928aced5c43d890a4dfab18ca908b0ec92cbc"
+  
   memoize-one@^4.0.0:
     version "4.1.0"
     resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-4.1.0.tgz#a2387c58c03fff27ca390c31b764a79addf3f906"
@@ -4687,13 +4665,6 @@ Lockfile:
     version "0.2.0"
     resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
   
-  raf@^3.4.0:
-    version "3.4.1"
-    resolved "https://registry.yarnpkg.com/raf/-/raf-3.4.1.tgz#0742e99a4a6552f445d73e3ee0328af0ff1ede39"
-    integrity sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA==
-    dependencies:
-      performance-now "^2.1.0"
-  
   randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5:
     version "2.0.6"
     resolved "https://registry.yarnpkg.com/randombytes/-/randombytes-2.0.6.tgz#d302c522948588848a8d300c932b44c24231da80"
@@ -4720,14 +4691,6 @@ Lockfile:
     version "1.1.1"
     resolved "https://registry.yarnpkg.com/rcedit/-/rcedit-1.1.1.tgz#79321893357e74f79546617d792c572b38d2f7f0"
   
-  react-collapsed@^2.0.0:
-    version "2.0.0"
-    resolved "https://registry.yarnpkg.com/react-collapsed/-/react-collapsed-2.0.0.tgz#79e18bf20a3c97b3b1e3db9aae44c5be178eb0ed"
-    integrity sha512-+M6Lc0fVbeFuoPG3hlsxYm4miUXHjs5YnlLc10UWt8rsAJf8vt2EqX/8eBS64NWxtDjbigekuJ1LFHYhBArBNA==
-    dependencies:
-      "@babel/runtime" "^7.3.1"
-      raf "^3.4.0"
-  
   react-dnd-html5-backend@^7.2.0:
     version "7.2.0"
     resolved "https://registry.yarnpkg.com/react-dnd-html5-backend/-/react-dnd-html5-backend-7.2.0.tgz#4cde55fb690020d98d7b6f3d4400c56b2ae82dfa"
@@ -4746,15 +4709,14 @@ Lockfile:
       recompose "^0.30.0"
       shallowequal "^1.1.0"
   
-  react-dom@^16.8.6:
-    version "16.8.6"
-    resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.8.6.tgz#71d6303f631e8b0097f56165ef608f051ff6e10f"
-    integrity sha512-1nL7PIq9LTL3fthPqwkvr2zY7phIPjYrT0jp4HjyEQrEROnw4dG41VVwi/wfoCneoleqrNX7iAD+pXebJZwrwA==
+  react-dom@^16.8.5:
+    version "16.8.5"
+    resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.8.5.tgz#b3e37d152b49e07faaa8de41fdf562be3463335e"
     dependencies:
       loose-envify "^1.1.0"
       object-assign "^4.1.1"
       prop-types "^15.6.2"
-      scheduler "^0.13.6"
+      scheduler "^0.13.5"
   
   react-inlinesvg@^0.8.4:
     version "0.8.4"
@@ -4799,15 +4761,21 @@ Lockfile:
       prop-types "^15.6.2"
       react-lifecycles-compat "^3.0.4"
   
-  react@^16.8.6:
-    version "16.8.6"
-    resolved "https://registry.yarnpkg.com/react/-/react-16.8.6.tgz#ad6c3a9614fd3a4e9ef51117f54d888da01f2bbe"
-    integrity sha512-pC0uMkhLaHm11ZSJULfOBqV4tIZkx87ZLvbbQYunNixAAvjnC+snJCg0XQXn9VIsttVsbZP/H/ewzgsd5fxKXw==
+  react-window@^1.8.1:
+    version "1.8.1"
+    resolved "https://registry.yarnpkg.com/react-window/-/react-window-1.8.1.tgz#12f1db71d91552ed2263790e57cc77d950803db1"
+    dependencies:
+      "@babel/runtime" "^7.0.0"
+      memoize-one ">=3.1.1 <6"
+  
+  react@^16.8.5:
+    version "16.8.5"
+    resolved "https://registry.yarnpkg.com/react/-/react-16.8.5.tgz#49be3b655489d74504ad994016407e8a0445de66"
     dependencies:
       loose-envify "^1.1.0"
       object-assign "^4.1.1"
       prop-types "^15.6.2"
-      scheduler "^0.13.6"
+      scheduler "^0.13.5"
   
   read-pkg-up@^1.0.1:
     version "1.0.1"
@@ -4930,11 +4898,6 @@ Lockfile:
   regenerator-runtime@^0.12.0:
     version "0.12.1"
     resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.12.1.tgz#fa1a71544764c036f8c49b13a08b2594c9f8a0de"
-  
-  regenerator-runtime@^0.13.2:
-    version "0.13.2"
-    resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.2.tgz#32e59c9a6fb9b1a4aff09b4930ca2d4477343447"
-    integrity sha512-S/TQAZJO+D3m9xeN1WTI8dLKBBiRgXBlTJvbWjCThHWZj9EvHK70Ff50/tYj2J/fvBY6JtFVwRuazHN2E7M9BA==
   
   regex-not@^1.0.0, regex-not@^1.0.2:
     version "1.0.2"
@@ -5088,7 +5051,6 @@ Lockfile:
   rimraf@2, rimraf@^2.2.8, rimraf@^2.5.4, rimraf@^2.6.1, rimraf@^2.6.2, rimraf@^2.6.3:
     version "2.6.3"
     resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.3.tgz#b2d104fe0d8fb27cf9e0a1cda8262dd3833c6cab"
-    integrity sha512-mwqeW5XsA2qAejG46gYdENaxXjx9onRNCfn7L0duuP4hCuTIi/QO7PDK07KJfp1d+izWPrzEJDcSqBa0OZQriA==
     dependencies:
       glob "^7.1.3"
   
@@ -5167,10 +5129,9 @@ Lockfile:
     version "1.2.4"
     resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   
-  scheduler@^0.13.6:
-    version "0.13.6"
-    resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.13.6.tgz#466a4ec332467b31a91b9bf74e5347072e4cd889"
-    integrity sha512-IWnObHt413ucAYKsD9J1QShUKkbKLQQHdxRyw73sw4FN26iWr3DY/H34xGPe4nmL1DwXyWmSWmMrA9TfQbE/XQ==
+  scheduler@^0.13.5:
+    version "0.13.5"
+    resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.13.5.tgz#b7226625167041298af3b98088a9dbbf6d7733a8"
     dependencies:
       loose-envify "^1.1.0"
       object-assign "^4.1.1"
@@ -5814,7 +5775,7 @@ Lockfile:
       micromatch "^3.1.4"
       semver "^5.0.1"
   
-  tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
+  tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0:
     version "1.9.3"
     resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.3.tgz#d7e4dd79245d85428c4d7e4822a79917954ca286"
   

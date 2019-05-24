@@ -128,35 +128,34 @@ const Toolbar = () => {
     [],
   );
 
-  const vwMethod = uiStore.viewMethod;
   const layoutMenu = useMemo(() =>
     <Menu>
       <MenuItem
         onClick={viewList}
         icon={IconSet.VIEW_LIST}
         text="List"
-        intent={vwMethod === 'list' ? 'primary' : 'none'}
+        active={uiStore.viewMethod === 'list'}
       />
       <MenuItem
         onClick={viewGrid}
         icon={IconSet.VIEW_GRID}
         text="Grid"
-        active intent={vwMethod === 'grid' ? 'primary' : 'none'}
+        active={uiStore.viewMethod === 'grid'}
       />
       <MenuItem
         onClick={viewMason}
         icon={IconSet.VIEW_MASON}
         text="Masonry"
-        intent={vwMethod === 'mason' ? 'primary' : 'none'}
+        active={uiStore.viewMethod === 'mason'}
       />
       <MenuItem
         onClick={viewSlide}
         icon={IconSet.VIEW_PRESENT}
         text="Slide"
-        intent={vwMethod === 'slide' ? 'primary' : 'none'}
+        active={uiStore.viewMethod === 'slide'}
       />
     </Menu>,
-    [],
+    [uiStore.viewMethod],
   );
 
   const numFiles = fileStore.fileList.length;

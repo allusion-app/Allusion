@@ -27,7 +27,7 @@ body {
 
 main {
   grid-area: main;
-  overflow: auto;
+  overflow: hidden; //temp fix for double scrollbar
 }
 
 #layoutContainer {
@@ -157,7 +157,25 @@ main {
   visibility: hidden;
 }
 
+///////////////////////////////// Theme Colours /////////////////////////////////
+ // Dark
+ .bp3-dark,
+ .bp3-dark #toolbar,
+ .bp3-dark #inspector,
+ .bp3-dark nav,
+ .bp3-dark #outliner {
+   background-color: $dark-gray2;
+ }
 
+ // Light
+ .bp3-light,
+ .bp3-light #toolbar,
+ .bp3-light #inspector,
+ .bp3-light nav,
+ .bp3-light #outliner {
+   background-color: $light-gray5 !important;
+ }
+ 
 ///////////////////////////////// Media Queries /////////////////////////////////
 @media (min-width: 1601px) {
   .grid.thumbnail,
@@ -246,13 +264,20 @@ main {
 }
 
 // --outliner-width
-@media (max-width: 16em) {
+@media (max-width: 20em) {
   #inspector {
     display: none;
   }
 
   nav {
     display: none;
+  }
+  #toolbar 
+    #media {
+    display: none;
+    }
+    .bp3-button-group {
+    width: 100%;
   }
 }
 

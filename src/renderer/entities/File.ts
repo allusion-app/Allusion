@@ -6,6 +6,8 @@ import {
   toJS,
   action,
 } from 'mobx';
+import Path from 'path';
+
 import FileStore from '../frontend/stores/FileStore';
 import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag } from './Tag';
@@ -76,6 +78,11 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       tags: this.tags.toJS(), // removes observable properties from observable array
       dateAdded: this.dateAdded,
     };
+  }
+
+  @computed get name(): string {
+    const base = Path.basename(this.path);
+    return base.substr(0, base.lastIndexOf('.'));
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
