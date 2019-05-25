@@ -44,9 +44,12 @@ class FileStore {
       .filter((f) => f !== undefined) as ClientFile[];
 
     try {
-      this.rootStore.uiStore.clearFileSelection();
+      filesToRemove.forEach((file) => {
+        file.dispose();
+        this.rootStore.uiStore.deselectFile(file);
+        this.fileList.remove(file);
+      });
       await this.backend.removeFiles(filesToRemove);
-      this.clearFileList();
     } catch (err) {
       console.error('Could not remove files', err);
     }

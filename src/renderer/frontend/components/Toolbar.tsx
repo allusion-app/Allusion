@@ -22,12 +22,28 @@ const viewTooltip = 'Change view content panel';
 const filterTooltip = 'Filter view content panel';
 // const fltTagTooltip = 'Filter images by first tag';
 
-const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
-  <Popover minimal disabled={disabled}>
-    <Button icon={IconSet.DELETE} disabled={disabled} className="tooltip" data-right={deleteTooltip} />
+interface IRemoveFilesPopoverProps {
+  disabled: boolean;
+  onRemove: () => void;
+  uiStore: UiStore;
+}
+const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => (
+  <Popover
+    minimal
+    canEscapeKeyClose={true}
+    isOpen={uiStore.isToolbarFileRemoverOpen}
+    onClose={uiStore.closeToolbarFileRemover}
+  >
+    <Button
+      icon={IconSet.DELETE}
+      disabled={disabled}
+      className="tooltip"
+      data-right={deleteTooltip}
+      onClick={uiStore.toggleToolbarFileRemover}
+    />
     <div className="popoverContent" id="deleteFile">
       <h4 className="bp3-heading inpectorHeading">Confirm deletion</h4>
-      <p>Remove these images from your library?</p>
+      <p>Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?</p>
       <p>Your files will not be deleted.</p>
 
       <div
@@ -38,19 +54,23 @@ const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disa
         }}>
         <Button
           className={Classes.POPOVER_DISMISS}
-          style={{ marginRight: 10 }}>
+          style={{ marginRight: 10 }}
+          onClick={uiStore.closeToolbarFileRemover}
+        >
           Cancel
         </Button>
         <Button
           intent="danger"
           className={Classes.POPOVER_DISMISS}
-          onClick={onRemove}>
+          onClick={onRemove}
+          autoFocus
+        >
           Delete
         </Button>
       </div>
     </div>
   </Popover>
-);
+));
 
 interface ITagFilesPopoverProps {
   disabled: boolean;
@@ -111,10 +131,7 @@ const Toolbar = () => {
   );
 
   const handleRemoveSelectedFiles = useCallback(
-    async () => {
-      await fileStore.removeFilesById(uiStore.fileSelection);
-      uiStore.fileSelection.clear();
-    },
+    () => fileStore.removeFilesById(uiStore.fileSelection),
     [],
   );
 
@@ -236,6 +253,7 @@ const Toolbar = () => {
           <RemoveFilesPopover
             onRemove={handleRemoveSelectedFiles}
             disabled={!selectionModeOn}
+            uiStore={uiStore}
           />
 
           {/* Gallery actions */}

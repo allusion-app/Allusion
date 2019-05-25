@@ -82,6 +82,7 @@ class UiStore {
   @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
+  @observable isToolbarFileRemoverOpen: boolean = false;
 
   // VIEW
   // UI
@@ -214,6 +215,17 @@ class UiStore {
   }
   @action.bound closeToolbarTagSelector() {
     this.isToolbarTagSelectorOpen = false;
+  }
+
+  @action.bound toggleToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen =
+      this.fileSelection.length > 0 && !this.isToolbarFileRemoverOpen;
+  }
+  @action.bound openToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = true;
+  }
+  @action.bound closeToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = false;
   }
 
   @action.bound toggleDevtools() {
