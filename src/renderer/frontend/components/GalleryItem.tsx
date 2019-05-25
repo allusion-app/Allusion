@@ -73,8 +73,8 @@ export const GalleryItem = ({
       // When this component unmounts, cancel further loading of the image in case it was not loaded yet
       if (!isImageLoaded) {
         imageElem.src = '';
-        imageElem.onload = () => {};
-        imageElem.onerror = () => {};
+        imageElem.onload = () => {}; // tslint:disable-line: no-empty
+        imageElem.onerror = () => {}; // tslint:disable-line: no-empty
       }
     };
   }, []);
