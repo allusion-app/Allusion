@@ -13,21 +13,22 @@ export default class InMemoryDbRepository<T extends IIdentifiable> {
     return this.items.find((obj) => obj.id === id) as T;
   }
 
-  async getAll(count?: number) {
+  async getAll({ count, order, descending }: any) {
     return this.items.slice(0, count);
   }
 
-  async find(property: keyof T, query: any, count?: number) {
+  async find({ queryField, query, count, order, descending }: any) {
     return this.items
-      .filter((obj) =>
-        Array.isArray(obj[property])
-          ? (obj[property] as any).includes(query)
-          : obj[property] === query,
+      .filter((obj: any) =>
+        queryField in obj
+        && Array.isArray(obj[queryField])
+          ? (obj[queryField] as any).includes(query)
+          : obj[queryField] === query,
       )
       .slice(0, count);
   }
 
-  async count(property?: string, query?: any): Promise<number> {
+  async count(): Promise<number> {
     return this.items.length;
   }
 
@@ -36,10 +37,23 @@ export default class InMemoryDbRepository<T extends IIdentifiable> {
     return item;
   }
 
+  async createMany(items: T[]) {
+    this.items.push(...items);
+    return items;
+  }
+
   async remove(item: T) {
     if (this.items.includes(item)) {
       this.items.splice(this.items.indexOf(item), 1);
     }
+  }
+
+  async removeMany(items: T[]) {
+    items.forEach((item) => {
+      if (this.items.includes(item)) {
+        this.items.splice(this.items.indexOf(item), 1);
+      }
+    });
   }
 
   async update(item: T) {
@@ -48,5 +62,14 @@ export default class InMemoryDbRepository<T extends IIdentifiable> {
       this.items[index] = item;
     }
     return item;
+  }
+  async updateMany(items: T[]) {
+    items.forEach((item) => {
+      const index = this.items.indexOf(item);
+      if (index !== -1) {
+        this.items[index] = item;
+      }
+    });
+    return items;
   }
 }

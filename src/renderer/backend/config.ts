@@ -1,32 +1,28 @@
-import { IDBCollectionConfig } from './DBRepository';
+import { IDBVersioningConfig } from './DBRepository';
 
-export const dbConfig: IDBCollectionConfig[] = [
+// The name of the IndexedDB
+export const DB_NAME = 'Allusion';
+
+// Schema based on https://dexie.org/docs/Version/Version.stores()#schema-syntax
+// Only for the indexes of the DB, not all fields
+// Versions help with upgrading DB to new configurations:
+// https://dexie.org/docs/Tutorial/Design#database-versioning
+export const dbConfig: IDBVersioningConfig[] = [
   {
-    name: 'files',
-    indices: [
+    version: 1,
+    collections: [
+      {
+        name: 'files',
+        schema: '++id, *tags, dateAdded, name, extension, size',
+      },
       {
         name: 'tags',
-        path: 'tags',
-        opts: {
-          unique: false,
-          multiEntry: true,
-        },
+        schema: '++id',
       },
       {
-        name: 'path',
-        path: 'path',
-        opts: {
-          unique: true,
-        },
+        name: 'tagCollections',
+        schema: '++id',
       },
     ],
-  },
-  {
-    name: 'tags',
-    indices: [],
-  },
-  {
-    name: 'tagCollections',
-    indices: [],
   },
 ];
