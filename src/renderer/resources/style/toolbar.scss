@@ -1,0 +1,34 @@
+///////////////////////////////// Outliner /////////////////////////////////
+#toolbar {
+  grid-area: toolbar;
+  width: 100vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0.5rem;
+  z-index: 1000;
+  border-bottom: 3px solid $dark-gray1;
+  // Turn of event for show media items
+  #media {
+    pointer-events: none;
+  }
+
+  .custom-icon {
+    width: 1.2rem !important;
+    height: 1.2rem !important;
+  }
+  
+  .spacer {
+    width: 8rem;
+    background: red;
+    height: 1rem;
+  }
+  
+  #main-toolbar {
+    display: flex;
+    justify-content: space-between;
+    width: calc(100vw - 34rem);
+    left: 16rem;
+    position: absolute;
+  }
+}

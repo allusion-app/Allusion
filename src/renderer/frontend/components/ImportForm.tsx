@@ -148,9 +148,11 @@ const findFiles = async (dir: string) => {
   });
 };
 
+// Tooltip info
+const importImageTitle = 'Imports a single image or a selection of images, no tagss are added';
 const importFolderTitle = 'Imports the images from a single folder without automatically tagging them';
 const importNestedTitle = 'Imports an existing folder structure which generates tags and collections \
-based on the names of the folders';
+// based on the names of the folders';
 
 const ImportForm = () => {
   // Todo: Add Location entity to DB, so we can have user-picked directories as well
@@ -174,21 +176,21 @@ const ImportForm = () => {
   );
 
   return (
-    <>
-      <Button fill onClick={handleChooseFiles} icon={IconSet.MEDIA}>
-        Import images
+    <div id="import">
+      <Button fill onClick={handleChooseFiles} icon={IconSet.MEDIA} className={'tooltip'} data-right={importImageTitle}>{/* // tslint:disable-next-line */}
+        Add images
       </Button>
 
-      <Button fill onClick={handleChooseDirectory} icon={IconSet.FOLDER_OPEN} title={importFolderTitle}>
-        Import single directory
+      <Button fill onClick={handleChooseDirectory} icon={IconSet.FOLDER_OPEN} className={'tooltip'} data-right={importFolderTitle}>{/* // tslint:disable-next-line */}
+        Add single directory
       </Button>
 
-      <Button fill onClick={handleChooseFolderStructure} icon={IconSet.FOLDER_OPEN} title={importNestedTitle}>
-        Import nested directories
+      <Button fill onClick={handleChooseFolderStructure} icon={IconSet.FOLDER_OPEN} className={'tooltip'} data-right={importNestedTitle}>{/* // tslint:disable-next-line */}
+        Add nested directories
       </Button>
 
       {/* Todo: Show progress bar here */}
-    </>
+    </div>
   );
 };
 

@@ -8,8 +8,10 @@ import Inspector from './components/Inspector';
 import Toolbar from './components/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
+import GlobalHotkeys from './components/Hotkeys';
+import Settings from './components/Settings';
 
-const SPLASH_SCREEN_TIME = 500;
+const SPLASH_SCREEN_TIME = 700;
 
 interface IAppProps extends IRootStoreProp {}
 
@@ -30,15 +32,19 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
   return (
     <div id="layoutContainer" className={`${themeClass}`}>
       <ErrorBoundary>
-        <Toolbar />
+        <GlobalHotkeys>
+          <Toolbar />
 
-        <Outliner />
+          <Outliner />
 
-        <main>
-          <FileList />
-        </main>
+          <main>
+            <FileList />
+          </main>
 
-        <Inspector />
+          <Inspector />
+
+          <Settings />
+        </GlobalHotkeys>
       </ErrorBoundary>
     </div>
   );

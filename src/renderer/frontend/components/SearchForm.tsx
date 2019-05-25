@@ -25,6 +25,7 @@ const SearchForm = () => {
           onTagDeselect={handleExcludeTag}
           onClearSelection={handleClearIncludedTags}
           placeholder="Include"
+          autoFocus
         />
         <MultiTagSelector
           selectedTags={[]}
