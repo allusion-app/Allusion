@@ -59,7 +59,7 @@
     "fs-extra": "^7.0.1",
     "mobx": "^5.9.0",
     "mobx-react-lite": "^1.1.1",
-    "react": "^16.8.5",
+    "react": "^16.8.6",
     "react-dnd": "^7.3.2",
     "react-dnd-html5-backend": "^7.2.0",
     "react-dom": "^16.8.5",

@@ -12,78 +12,75 @@ nav {
     width: 16rem;
   }
 
-  // Dark
-  .bp3-dark,
-  .bp3-dark #toolbar,
-  .bp3-dark #inspector,
-  .bp3-dark nav,
-  .bp3-dark #outliner {
-    background-color: $dark-gray2;
-  }
-
-  // Light
-  .bp3-light,
-  .bp3-light #toolbar,
-  .bp3-light #inspector,
-  .bp3-light nav,
-  .bp3-light #outliner {
-    background-color: $light-gray5 !important;
-  }
-
   .bp3-dark {
     background: $dark-gray2;
   }
-
-  .bp3-heading {
-    margin: 0.5em 1rem;
-  }
-
-  #search-form,
-  #import {
-    margin: 0.5em 1rem;
-    outline: none;
-  }
-
-  ///////////////////////////////// Import /////////////////////////////////
   &.outlinerOpen #import {
     overflow: visible !important;
   }
-
-  #import {
-    > button {
-      margin-bottom: 1rem;
-      color: $light-gray1;
-    }
-    .bp3-button.bp3-fill {
-      background: $dark-gray5;
-    }
+  .bp3-heading {
+    margin: 0.5em 1rem;
   }
+}
+#search-form,
+#import {
+  margin: 0.5em 1rem;
+  outline: none;
+}
 
-  ///////////////////////////////// Tag hierarchy /////////////////////////////////
-  .bp3-tree {
-    background-color: $dark-gray2;
+///////////////////////////////// Import /////////////////////////////////
 
-    .bp3-light {
-      background-color: $light-gray2;
-    }
-
-    // Reordering by dragging
-    .bp3-tree-node .reorder-target {
-      border-bottom: 2px solid $blue1;
-      padding-bottom: 3px;
-      border-bottom: 2px solid transparent;
-    }
-    
-    .bp3-tree-node .reorder-source,
-    .bp3-tree-node .reorder-source > div {
-      opacity: 0.2;
-    }
+#import {
+  > button {
+    margin-bottom: 1rem;
+    color: $light-gray1;
   }
+  .bp3-button.bp3-fill {
+    background: $dark-gray5;
+  }
+}
+///////////////////////////////// Tag hierarchy /////////////////////////////////
+nav .bp3-tree {
+  background-color: $dark-gray2;
+}
+.bp3-light {
+  background-color: $light-gray2;
+}
 
-  ///////////////////////////////// Search tab /////////////////////////////////
-  #search-form {
-    .bp3-popover-target {
-      width: 100%;
-    }
+// Reordering by dragging
+.bp3-tree-node .reorder-target {
+  border-bottom: 2px solid $blue1;
+  padding-bottom: 3px;
+  border-bottom: 2px solid transparent;
+}
+
+.bp3-tree-node .reorder-source,
+.bp3-tree-node .reorder-source > div {
+  opacity: 0.2;
+}
+.bp3-control-group {
+  padding: .25rem;
+}
+.bp3-input {
+  padding: 0 .25rem;
+}
+.bp3-input:focus {
+  box-shadow: 0 0 0 1.5px $blue1;
+  // box-shadow: none !important;
+}
+
+.tagLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bp3-tree .bp3-input {
+  height: 1.6rem;
+}
+
+///////////////////////////////// Search tab /////////////////////////////////
+#search-form {
+  .bp3-popover-target {
+    width: 100%;
   }
 }

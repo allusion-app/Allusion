@@ -11,6 +11,7 @@
   // Turn of event for show media items
   #media {
     pointer-events: none;
+    white-space: nowrap;
   }
 
   .custom-icon {

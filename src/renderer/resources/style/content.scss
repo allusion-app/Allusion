@@ -1,7 +1,7 @@
 ///////////////////////////////// Content area /////////////////////////////////
 .gallery {
   width: 100%;
-  padding: 8px;
+  padding: 4px 0 0 8px;
   height: 100%;
 }
 
@@ -106,7 +106,7 @@
     bottom: 0;
   
     > * {
-      margin: 0.5em;
+      margin: 0.25em;
     }
   }
 
@@ -157,16 +157,16 @@
   // }
 }
 .slide .thumbnail {
-  height: calc(100vh - 2.4rem) !important;
+  height: calc(100vh - 4rem) !important;
   width: 100% !important;
   margin: 0.4rem 0;
   img {
-    height: 100% !important;
-    width: 100% !important;
+    height: 95% !important;
+    width: 95% !important;
     transform: translateX(-50%) translateY(-50%);
     position: absolute;
     object-fit: contain;
-    top: 50%;
+    top: 49%;
     left: 50%;
   }
   span {

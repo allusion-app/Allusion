@@ -12,7 +12,7 @@ import {
   DropTargetMonitor,
 } from 'react-dnd';
 import {
-  Button,
+  // Button,
   ControlGroup,
   InputGroup,
   Tag,
@@ -49,7 +49,7 @@ interface IUnmodifiableTagListItemProps {
 const UnmodifiableTagListItem = ({
   name,
 }: IUnmodifiableTagListItemProps) => (
-  <div>
+  <div className={'tagLabel'}>
     {name}
   </div>
 );
@@ -105,7 +105,7 @@ export const ModifiableTagListItem = ({
           // Only show red outline when input field is in focus and text is invalid
           className={isFocused && !isValidInput ? 'bp3-intent-danger' : ''}
         />
-        <Button icon={icon} type="submit" />
+        {/* <Button icon={icon} type="submit"/> */}
       </ControlGroup>
     </form>
   );
