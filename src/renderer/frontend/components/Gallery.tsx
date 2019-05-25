@@ -39,7 +39,7 @@ function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) 
 const GridGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, onSelect }: IGalleryLayoutProps) => {
   const numColumns = Math.floor(contentWidth / cellSize);
-  const numRows = Math.ceil(fileList.length / numColumns);
+  const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
   /** Generates a unique key for an element in the grid */
   const handleItemKey: GridItemKeySelector = useCallback(

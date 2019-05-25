@@ -50,7 +50,9 @@ class TagStore {
   }
 
   @action
-  removeTag(tag: ClientTag) {
+  async removeTag(tag: ClientTag) {
+    tag.dispose();
+
     // Remove tag from state
     this.tagList.splice(this.tagList.indexOf(tag), 1);
 
@@ -68,8 +70,7 @@ class TagStore {
     );
 
     // Remove tag from DB
-    tag.dispose();
-    this.backend.removeTag(tag);
+    await this.backend.removeTag(tag);
   }
 }
 

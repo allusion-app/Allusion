@@ -1,6 +1,6 @@
 import { action, observable, computed } from 'mobx';
 
-import { ClientFile } from '../../entities/File';
+import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
@@ -87,6 +87,11 @@ class UiStore {
   // UI
   @observable viewMethod: ViewMethod = 'grid';
 
+  // Content
+  @observable fileOrder: keyof IFile = 'dateAdded';
+  @observable fileOrderDescending = true;
+  @observable fileLayout: 'LIST' | 'GRID' | 'MASONRY' | 'SLIDE' = 'GRID';
+
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
   readonly fileSelection = observable<ID>([]);
@@ -119,9 +124,15 @@ class UiStore {
     this.fileSelection.remove(file.id);
   }
 
+  @action clearFileSelection() {
+    this.fileSelection.clear();
+  }
+
   @action.bound selectAllFiles() {
     this.fileSelection.clear();
-    this.fileSelection.push(...this.rootStore.fileStore.fileList.map((f) => f.id));
+    this.fileSelection.push(
+      ...this.rootStore.fileStore.fileList.map((f) => f.id),
+    );
   }
 
   @action.bound deselectAllFiles() {
@@ -145,31 +156,72 @@ class UiStore {
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
-  /////////////////// UI Actions ///////////////////
-  @action.bound toggleOutliner() { this.isOutlinerOpen = !this.isOutlinerOpen; }
+  @action.bound setFileOrder(prop: keyof IFile) {
+    this.fileOrder = prop;
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+  }
 
-  @action.bound openOutlinerImport() { this.outlinerPage = 'IMPORT'; }
-  @action.bound openOutlinerTags() { this.outlinerPage = 'TAGS'; }
-  @action.bound openOutlinerSearch() { this.outlinerPage = 'SEARCH'; }
+  @action.bound setFileOrderDescending(descending: boolean) {
+    this.fileOrderDescending = descending;
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+  }
+
+  /////////////////// UI Actions ///////////////////
+  @action.bound toggleOutliner() {
+    this.isOutlinerOpen = !this.isOutlinerOpen;
+  }
+
+  @action.bound openOutlinerImport() {
+    this.outlinerPage = 'IMPORT';
+  }
+  @action.bound openOutlinerTags() {
+    this.outlinerPage = 'TAGS';
+  }
+  @action.bound openOutlinerSearch() {
+    this.outlinerPage = 'SEARCH';
+  }
 
   // VIEW
-  @action.bound viewList() { this.viewMethod = 'list'; }
-  @action.bound viewGrid() { this.viewMethod = 'grid'; }
-  @action.bound viewMason() { this.viewMethod = 'mason'; }
-  @action.bound viewSlide() { this.viewMethod = 'slide'; }
+  @action.bound viewList() {
+    this.viewMethod = 'list';
+  }
+  @action.bound viewGrid() {
+    this.viewMethod = 'grid';
+  }
+  @action.bound viewMason() {
+    this.viewMethod = 'mason';
+  }
+  @action.bound viewSlide() {
+    this.viewMethod = 'slide';
+  }
 
-  @action.bound toggleInspector() { this.isInspectorOpen = !this.isInspectorOpen; }
-  @action.bound toggleSettings() { this.isSettingsOpen = !this.isSettingsOpen; }
-  @action.bound toggleTheme() { this.theme = (this.theme === 'DARK' ? 'LIGHT' : 'DARK'); }
+  @action.bound toggleInspector() {
+    this.isInspectorOpen = !this.isInspectorOpen;
+  }
+  @action.bound toggleSettings() {
+    this.isSettingsOpen = !this.isSettingsOpen;
+  }
+  @action.bound toggleTheme() {
+    this.theme = this.theme === 'DARK' ? 'LIGHT' : 'DARK';
+  }
 
   @action.bound toggleToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
+    this.isToolbarTagSelectorOpen =
+      this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
   }
-  @action.bound openToolbarTagSelector() { this.isToolbarTagSelectorOpen = this.fileSelection.length > 0; }
-  @action.bound closeToolbarTagSelector() { this.isToolbarTagSelectorOpen = false; }
+  @action.bound openToolbarTagSelector() {
+    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0;
+  }
+  @action.bound closeToolbarTagSelector() {
+    this.isToolbarTagSelectorOpen = false;
+  }
 
-  @action.bound toggleDevtools() { remote.getCurrentWebContents().toggleDevTools(); }
-  @action.bound reload() { remote.getCurrentWindow().reload(); }
+  @action.bound toggleDevtools() {
+    remote.getCurrentWebContents().toggleDevTools();
+  }
+  @action.bound reload() {
+    remote.getCurrentWindow().reload();
+  }
   @action.bound toggleFullScreen() {
     this.isFullScreen = !this.isFullScreen;
     remote.getCurrentWindow().setFullScreen(this.isFullScreen);
@@ -186,7 +238,6 @@ class UiStore {
       }
     });
   }
-
 }
 
 export default UiStore;
