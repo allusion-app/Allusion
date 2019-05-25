@@ -6,6 +6,7 @@ import {
   toJS,
   action,
 } from 'mobx';
+import Path from 'path';
 import fse from 'fs-extra';
 import systemPath from 'path';
 
@@ -114,6 +115,11 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       name: this.name,
       extension: this.extension,
     };
+  }
+
+  @computed get filename(): string {
+    const base = Path.basename(this.path);
+    return base.substr(0, base.lastIndexOf('.'));
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */

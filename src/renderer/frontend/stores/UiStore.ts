@@ -62,6 +62,9 @@ const defaultHotkeyMap: IHotkeyMap = {
  *  - State of a wizard
  *  - State of a global overlay
  */
+
+export type ViewMethod = 'list' | 'grid' | 'mason' | 'slide';
+
 class UiStore {
   rootStore: RootStore;
 
@@ -82,7 +85,7 @@ class UiStore {
 
   // VIEW
   // UI
-  @observable viewMethod: 'list' | 'grid' | 'mason' | 'slide' = 'grid';
+  @observable viewMethod: ViewMethod = 'grid';
 
   // Content
   @observable fileOrder: keyof IFile = 'dateAdded';
