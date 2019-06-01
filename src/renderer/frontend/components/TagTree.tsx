@@ -79,6 +79,7 @@ const createTagCollectionTreeNode = (
           });
         }
       }}
+      onSelectionToQuery={store.rootStore.uiStore.tagSelectionToQuery}
     />
   );
 
@@ -107,6 +108,7 @@ const createTagCollectionTreeNode = (
             // Insert the moved tag to the position of the current tag where it was dropped
             col.tags.splice(insertionIndex, 0, movedTagId);
           }}
+          onSelectionToQuery={store.rootStore.uiStore.tagSelectionToQuery}
         />
       ),
     })),
@@ -180,9 +182,8 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
         } else {
           // Normal click: If it was the only one that was selected, deselect it
           const isOnlySelected = isClickSelectionSelected && uiStore.tagSelection.length === clickSelection.length;
-          uiStore.clearTagSelection();
           if (!isOnlySelected) {
-            uiStore.selectTags(clickSelection);
+            uiStore.selectTags(clickSelection, true);
           }
         }
       }

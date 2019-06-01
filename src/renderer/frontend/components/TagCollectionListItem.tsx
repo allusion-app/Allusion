@@ -23,6 +23,7 @@ interface ITagCollectionListItemProps {
   onMoveTag: (movedTag: ID) => void;
   onMoveCollection: (movedCollection: ID) => void;
   hoverTimeToExpand?: number;
+  onSelectionToQuery: () => void;
 }
 
 interface IDropProps {
@@ -155,9 +156,10 @@ interface ITagCollectionContextMenu {
   onExpandAll: () => void;
   onCollapseAll: () => void;
   onRemove?: () => void;
+  onSelectionToQuery: () => void;
 }
 const TagCollectionListItemContextMenu = ({
-  collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
+  collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove, onSelectionToQuery,
 }: ITagCollectionContextMenu) => {
   // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
   const handleChangeColor = () => console.log('Change color');
@@ -204,6 +206,8 @@ const TagCollectionListItemContextMenu = ({
       <Divider />
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
       <MenuItem onClick={onProperties} text="Properties" icon={IconSet.META_INFO} disabled />
+      <Divider />
+      <MenuItem onClick={onSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
     </Menu>
   );
 };
@@ -277,6 +281,7 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
         onExpandAll={this.props.onExpandAll}
         onCollapseAll={this.props.onCollapseAll}
         onRemove={this.handleRemove}
+        onSelectionToQuery={this.props.onSelectionToQuery}
       />
     );
   }

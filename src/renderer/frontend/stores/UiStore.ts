@@ -45,6 +45,24 @@ const defaultHotkeyMap: IHotkeyMap = {
   viewSlide: 'alt + 4',
 };
 
+type SearchQueryAction = 'include' | 'exclude';
+type SearchQueryOperator = 'and' | 'or';
+interface ISearchQuery {
+  action: SearchQueryAction;
+  /** Operator between previous query and this query */
+  operator: SearchQueryOperator;
+}
+
+export interface ITagSearchQuery extends ISearchQuery {
+  value: ID[];
+}
+// interface IFilenameSearchQuery extends ISearchQuery {
+//   value: string;
+// }
+// interface IFilenameSearchQuery extends ISearchQuery {
+//   value: string;
+// }
+
 /**
  * From: https://mobx.js.org/best/store.html
  * Things you will typically find in UI stores:
@@ -99,6 +117,11 @@ class UiStore {
   readonly fileSelection = observable<ID>([]);
   readonly tagSelection = observable<ID>([]);
 
+  // Query
+  readonly searchQueryList = observable<ISearchQuery>([
+    { action: 'include', operator: 'or', value: [] } as ITagSearchQuery, // todo: remove this later
+  ]);
+
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
   @computed get clientFileSelection(): ClientFile[] {
@@ -143,11 +166,12 @@ class UiStore {
 
   @action selectTag(tag: ClientTag) {
     this.tagSelection.push(tag.id);
-    this.cleanFileSelection();
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
-  @action selectTags(tags: ClientTag[] | ID[]) {
+  @action.bound selectTags(tags: ClientTag[] | ID[], clear?: boolean) {
+    if (clear) {
+      this.tagSelection.clear();
+    }
     if (tags.length === 0) {
       return;
     }
@@ -161,8 +185,6 @@ class UiStore {
         ...(tags as ID[])
           .filter((t) => !this.tagSelection.includes(t)));
     }
-    this.cleanFileSelection();
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
   @action deselectTags(tags: ClientTag[] | ID[]) {
@@ -174,29 +196,62 @@ class UiStore {
     } else {
       (tags as ID[]).forEach((tag) => this.tagSelection.remove(tag));
     }
-    this.cleanFileSelection();
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
   @action deselectTag(tag: ClientTag | ID) {
     this.tagSelection.remove(tag instanceof ClientTag ? tag.id : tag);
-    this.cleanFileSelection();
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
   @action clearTagSelection() {
     this.tagSelection.clear();
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
   }
 
   @action.bound setFileOrder(prop: keyof IFile) {
     this.fileOrder = prop;
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
   }
 
   @action.bound setFileOrderDescending(descending: boolean) {
     this.fileOrderDescending = descending;
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection);
+    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
+  }
+
+  /////////////////// Search Actions ///////////////////
+  @action.bound clearSearchQueryList() {
+    this.searchQueryList.clear();
+    // Todo: Refetch
+
+    this.cleanFileSelection();
+  }
+
+  @action.bound async addSearchQuery(query: ISearchQuery) {
+    this.searchQueryList.push(query);
+
+    // Todo: properly implement this later
+    await this.rootStore.fileStore.fetchFilesByTagIDs(
+      this.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
+    );
+
+    this.cleanFileSelection();
+  }
+
+  @action.bound async removeSearchQuery(query: ISearchQuery) {
+    this.searchQueryList.remove(query);
+
+    // Todo: properly implement this later
+    await this.rootStore.fileStore.fetchFilesByTagIDs(
+      this.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
+    );
+
+    this.cleanFileSelection();
+  }
+
+  @action.bound tagSelectionToQuery() {
+    this.addSearchQuery({
+      action: 'include',
+      operator: 'or',
+      value: this.tagSelection.toJS(),
+    } as ITagSearchQuery)
   }
 
   /////////////////// UI Actions ///////////////////
@@ -282,11 +337,11 @@ class UiStore {
    * Deselect files that are not tagged with any tag in the current tag selection
    */
   private cleanFileSelection() {
-    this.clientFileSelection.forEach((file) => {
+    for (const file of this.clientFileSelection) {
       if (!file.tags.some((t) => this.tagSelection.includes(t))) {
         this.deselectFile(file);
       }
-    });
+    }
   }
 }
 

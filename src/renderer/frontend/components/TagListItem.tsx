@@ -20,6 +20,7 @@ import {
   ContextMenuTarget,
   Menu,
   MenuItem,
+  Divider,
 } from '@blueprintjs/core';
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
@@ -118,6 +119,7 @@ interface ITagListItemProps {
   onRemove: () => void;
   onRename: (name: string) => void;
   onMoveTag: (movedTag: ID) => void;
+  onSelectionToQuery: () => void;
 }
 
 interface IEditingProps {
@@ -226,25 +228,25 @@ const DraggableTagListItem = DropTarget<
 const TagListItemContextMenu = (
   setEditing: (value: boolean) => void,
   onRemove: () => void,
+  onSelectionToQuery: () => void,
 ) => {
   const handleRename = () => {
     setEditing(true);
   };
 
-  const handleDelete = () => {
-    onRemove();
-  };
-
   const handleChangeColor = () => {
     // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
     console.log('Change color');
+    alert('Not implemented yet');
   };
 
   return (
     <Menu>
       <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={handleDelete} text="Delete" icon={IconSet.DELETE} />
+      <MenuItem onClick={onRemove} text="Delete" icon={IconSet.DELETE} />
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
+      <Divider />
+      <MenuItem onClick={onSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
     </Menu>
   );
 };
@@ -289,7 +291,7 @@ class TagListItemWithContextMenu extends React.PureComponent<
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
-    return TagListItemContextMenu(this.setEditing, this.props.onRemove);
+    return TagListItemContextMenu(this.setEditing, this.props.onRemove, this.props.onSelectionToQuery);
   }
 
   onContextMenuClose = () => {

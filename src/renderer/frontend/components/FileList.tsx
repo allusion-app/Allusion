@@ -5,6 +5,8 @@ import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import Gallery from './Gallery';
 import { Tag, ITagProps, Button } from '@blueprintjs/core';
 import IconSet from './Icons';
+import { ITagSearchQuery } from '../stores/UiStore';
+import { ClientTag } from '../../entities/Tag';
 
 export interface IFileListProps extends IRootStoreProp { }
 
@@ -21,24 +23,31 @@ const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProp
     },
     [],
   );
-  // Dirty show /hide
-  const hide = 'none';
-  const hideBtn = uiStore.clientTagSelection.length ? '' : hide;
+
   return (
     <div className="gallery">
 
       <div id="query-overview">
-        {uiStore.clientTagSelection.map((tag) => (
-          <Tag
-            key={tag.id}
-            id={tag.id}
-            intent="primary"
-            onRemove={handleDeselectTag}
-          >
-            {tag.name}
-          </Tag>),
+        {uiStore.searchQueryList
+          .flatMap((q) => (q as ITagSearchQuery).value)
+          .map((tagId) => (
+            <Tag
+              key={tagId}
+              id={tagId}
+              intent="primary"
+              onRemove={handleDeselectTag}
+            >
+              {(tagStore.tagList.find((t) => t.id === tagId) as ClientTag).name}
+            </Tag>),
+          )
+        }
+        {uiStore.clientTagSelection.length > 0 && (
+          <Button
+            icon={IconSet.CLOSE}
+            onClick={handleClearIncludedTags}
+            className="bp3-minimal"
+          />
         )}
-      <Button icon={IconSet.CLOSE} onClick={handleClearIncludedTags} className="bp3-minimal" style={{ display: hideBtn }} />{/* // tslint:disable-next-line */}
       </div>
       <Gallery />
     </div>

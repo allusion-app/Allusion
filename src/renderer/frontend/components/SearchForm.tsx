@@ -5,22 +5,26 @@ import MultiTagSelector from './MultiTagSelector';
 import { FormGroup, InputGroup, Button } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { ClientTag } from '../../entities/Tag';
+import { ITagSearchQuery } from '../stores/UiStore';
 
 const SearchForm = () => {
 
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
 
-  const handleIncludeTag = useCallback((tag: ClientTag) => uiStore.selectTag(tag), []);
-  const handleExcludeTag = useCallback((tag: ClientTag) => uiStore.deselectTag(tag), []);
-  const handleClearIncludedTags = useCallback(() => uiStore.clearTagSelection(), []);
+  // Todo: refactor later (when search has been properly implemented in backend)
+  const query = (uiStore.searchQueryList[0] as ITagSearchQuery);
+  const includedTags = query.value;
 
+  const handleIncludeTag = useCallback((tag: ClientTag) => includedTags.push(tag.id), []);
+  const handleExcludeTag = useCallback((tag: ClientTag) => includedTags.splice(tagStore.tagList.indexOf(tag), 1), []);
+  const handleClearIncludedTags = useCallback(() => includedTags.splice(0, includedTags.length), []);
   return (
     <div id="search-form">
       {/* Tags */}
       <FormGroup label="Tags" >
         {/* Todo: Also search through collections */}
         <MultiTagSelector
-          selectedTags={uiStore.clientTagSelection}
+          selectedTags={includedTags.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag)}
           onTagSelect={handleIncludeTag}
           onTagDeselect={handleExcludeTag}
           onClearSelection={handleClearIncludedTags}
