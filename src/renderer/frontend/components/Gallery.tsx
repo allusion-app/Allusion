@@ -44,6 +44,27 @@ const GridGallery = observer(
   const numColumns = Math.floor(contentWidth / cellSize);
   const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
+  const ref = useRef<FixedSizeGrid>(null);
+
+  const handleScrollTo = useCallback(
+    (i: number) => {
+      if (ref.current) {
+        ref.current.scrollToItem({
+          rowIndex: Math.floor(i / numColumns),
+          columnIndex: 0,
+        });
+      }
+    }, [numColumns, numRows],
+  );
+
+  // Scroll to a file when selecting it
+  const firstSelectedFile = uiStore.fileSelection.length === 0 ? null : uiStore.fileSelection[0];
+  useEffect(() => {
+    if (firstSelectedFile) {
+      handleScrollTo(uiStore.rootStore.fileStore.fileList.findIndex((f) => f.id === firstSelectedFile));
+    }
+  }, [firstSelectedFile, handleScrollTo]);
+
   // Store what the first item in view is in the UiStore
   const handleScroll = useCallback(
     ({ scrollTop }: GridOnScrollProps) => uiStore.setFirstIndexInView(numColumns * Math.round(scrollTop / cellSize)),
@@ -97,12 +118,29 @@ const GridGallery = observer(
       onScroll={handleScroll}
       key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
       initialScrollTop={(Math.round(uiStore.firstIndexInView / numColumns) * cellSize) || 0} // || 0 for initial load
+      ref={ref}
     />
   );
 });
 
 const ListGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+
+  const ref = useRef<FixedSizeList>(null);
+
+  const handleScrollTo = useCallback((i: number) => {
+    if (ref.current) {
+      ref.current.scrollToItem(i);
+    }
+  }, []);
+
+  // Scroll to a file when selecting it
+  const firstSelectedFile = uiStore.fileSelection.length === 0 ? null : uiStore.fileSelection[0];
+  useEffect(() => {
+    if (firstSelectedFile) {
+      handleScrollTo(uiStore.rootStore.fileStore.fileList.findIndex((f) => f.id === firstSelectedFile));
+    }
+  }, [firstSelectedFile, handleScrollTo]);
 
   // Store what the first item in view is in the UiStore
   const handleScroll = useCallback(
@@ -155,6 +193,7 @@ const ListGallery = observer(
       onScroll={handleScroll}
       key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
       initialScrollOffset={uiStore.firstIndexInView * cellSize}
+      ref={ref}
     />
   );
 });
