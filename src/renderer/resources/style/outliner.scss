@@ -6,6 +6,9 @@ nav {
   width: 0;
   min-width: 0;
   transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  display: flex;
+  flex-direction: column;
 
   &.outlinerOpen {
     min-width: var(--outliner-width);
@@ -76,6 +79,14 @@ nav .bp3-tree {
 }
 .bp3-tree .bp3-input {
   height: 1.6rem;
+}
+
+#system-tags {
+  margin-top: auto;
+
+  .bp3-button-text {
+    margin-right: auto;
+  }
 }
 
 ///////////////////////////////// Search tab /////////////////////////////////

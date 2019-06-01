@@ -128,16 +128,27 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   }
 
   @action.bound addTag(tag: ID) {
+    if (this.tags.length === 0) {
+      this.store.decrementNumUntaggedFiles();
+    }
+
     if (!this.tags.includes(tag)) {
       this.tags.push(tag);
     }
   }
   @action.bound removeTag(tag: ID) {
     if (this.tags.includes(tag)) {
+      if (this.tags.length === 1) {
+        this.store.incrementNumUntaggedFiles();
+      }
+
       this.tags.remove(tag);
     }
   }
   @action.bound removeAllTags() {
+    if (this.tags.length !== 0) {
+      this.store.incrementNumUntaggedFiles();
+    }
     this.tags.clear();
   }
 

@@ -158,10 +158,10 @@ form .bp3-icon {
   background-image: none !important;
   color: #ffffff;
 }
-.bp3-button.bp3-intent-warning,
-.bp3-button.bp3-intent-danger {
-  background-color: $blue1;
-}
+// .bp3-button.bp3-intent-warning,
+// .bp3-button.bp3-intent-danger {
+//   background-color: $blue1;
+// }
 .bp3-button-group.bp3-minimal .bp3-button.bp3-intent-primary {
   color: $blue1;
 }
@@ -315,7 +315,7 @@ li .bp3-menu-item {
   max-width: 180px;
 }
 // Icons
-.bp3-dark .bp3-button:not([class*="-primary"]) .bp3-icon,
+.bp3-dark .bp3-button:not([class*="-primary"]) .bp3-icon:not([class*="-primary"]),
 .bp3-dark .bp3-button:not([class*="bp3-intent-"]) .bp3-icon-standard,
 .bp3-dark .bp3-button:not([class*="bp3-intent-"]) .bp3-icon-large,
 .bp3-dark .bp3-tree .bp3-icon,
@@ -359,18 +359,18 @@ li .bp3-menu-item {
 }
 .bp3-dark .bp3-disabled,
 .bp3-dark .bp3-menu-item.bp3-disabled {
-  color: $dark-gray5;
+  // color: $dark-gray5;
 }
 .bp3-light .bp3-disabled {
-  color: $light-gray3;
+  // color: $light-gray3;
 }
 
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:disabled,
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:disabled:hover,
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button.bp3-disabled,
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button.bp3-disabled:hover {
-  color: white;
-}
+// .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:disabled,
+// .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:disabled:hover,
+// .bp3-dark .bp3-button-group.bp3-minimal .bp3-button.bp3-disabled,
+// .bp3-dark .bp3-button-group.bp3-minimal .bp3-button.bp3-disabled:hover {
+//   color: white;
+// }
 // Tree
 $pt-grid-size: 10px !default;
 $tree-row-height: $pt-grid-size * 3 !default;

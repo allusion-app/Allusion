@@ -106,6 +106,8 @@ class UiStore {
   @observable viewMethod: ViewMethod = 'grid';
   /** Index of the first item in the viewport */
   @observable firstIndexInView: number = 0;
+  /** The origin of the current files that are shown */
+  @observable viewContent: 'query' | 'all' | 'untagged' = 'all';
 
   // Content
   @observable fileOrder: keyof IFile = 'dateAdded';
@@ -117,10 +119,7 @@ class UiStore {
   readonly fileSelection = observable<ID>([]);
   readonly tagSelection = observable<ID>([]);
 
-  // Query
-  readonly searchQueryList = observable<ISearchQuery>([
-    { action: 'include', operator: 'or', value: [] } as ITagSearchQuery, // todo: remove this later
-  ]);
+  readonly searchQueryList = observable<ISearchQuery>([]);
 
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
@@ -226,23 +225,14 @@ class UiStore {
 
   @action.bound async addSearchQuery(query: ISearchQuery) {
     this.searchQueryList.push(query);
-
-    // Todo: properly implement this later
-    await this.rootStore.fileStore.fetchFilesByTagIDs(
-      this.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
-    );
-
+    await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
+    this.viewContent = 'query';
   }
 
   @action.bound async removeSearchQuery(query: ISearchQuery) {
     this.searchQueryList.remove(query);
-
-    // Todo: properly implement this later
-    await this.rootStore.fileStore.fetchFilesByTagIDs(
-      this.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
-    );
-
+    await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
   }
 
@@ -251,7 +241,7 @@ class UiStore {
       action: 'include',
       operator: 'or',
       value: this.tagSelection.toJS(),
-    } as ITagSearchQuery)
+    } as ITagSearchQuery);
   }
 
   /////////////////// UI Actions ///////////////////
@@ -281,6 +271,25 @@ class UiStore {
   }
   @action.bound viewSlide() {
     this.viewMethod = 'slide';
+  }
+
+  @action.bound viewContentAll() {
+    this.tagSelection.clear();
+    this.rootStore.fileStore.fetchAllFiles();
+    this.viewContent = 'all';
+    this.cleanFileSelection();
+  }
+  @action.bound viewContentUntagged() {
+    this.tagSelection.clear();
+    this.rootStore.fileStore.fetchUntaggedFiles();
+    this.viewContent = 'untagged';
+    this.cleanFileSelection();
+  }
+  @action.bound viewContentQuery() {
+    this.tagSelection.clear();
+    this.rootStore.fileStore.fetchFilesByQuery();
+    this.viewContent = 'query';
+    this.cleanFileSelection();
   }
 
   @action.bound setFirstIndexInView(index: number) {

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ResizeSensor, IResizeEntry } from '@blueprintjs/core';
+import {
+  ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup, IconName, MaybeElement,
+} from '@blueprintjs/core';
 import {
   FixedSizeGrid, GridItemKeySelector, FixedSizeList, ListItemKeySelector,
   GridChildComponentProps, ListChildComponentProps,
@@ -12,6 +14,7 @@ import GalleryItem from './GalleryItem';
 import UiStore, { ViewMethod } from '../stores/UiStore';
 import { ClientFile } from '../../entities/File';
 import { ClientTag } from '../../entities/Tag';
+import IconSet from './Icons';
 
 const cellSize = 260; // Should be same as CSS variable $thumbnail-size + padding
 
@@ -364,6 +367,41 @@ const Gallery = ({
   // Todo: Select by dragging a rectangle shape
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
   // Also take into account scrolling when dragging while selecting
+
+  if (fileList.length === 0) {
+    let icon: IconName | MaybeElement = 'search';
+    let title = 'No images found';
+    let description = 'Import some images to get started!';
+    let action = <Button onClick={uiStore.openOutlinerImport} text="Import" intent="primary" />;
+    if (uiStore.viewContent === 'query') {
+      description = 'Try searching for something else.';
+      action = (
+        <ButtonGroup>
+          <Button text="View all" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
+          <Button text="View untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentUntagged} />
+          <Button text="Change query" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
+        </ButtonGroup>
+      );
+    } else if (uiStore.viewContent === 'untagged') {
+      icon = <span>😄</span>;
+      description = 'All images have been tagged. Nice work!';
+      action = (
+        <ButtonGroup>
+          <Button text="View all" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
+          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} />
+        </ButtonGroup>
+      );
+    }
+
+    return (
+      <NonIdealState
+        icon={icon}
+        title={title}
+        description={description}
+        action={action}
+      />
+    )
+  }
 
   return (
     <ResizeSensor onResize={handleResize}>

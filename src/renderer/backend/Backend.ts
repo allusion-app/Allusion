@@ -121,4 +121,8 @@ export default class Backend {
     console.log('Removing files...', files);
     await this.fileRepository.removeMany(files);
   }
+
+  async getNumUntaggedFiles() {
+    return this.fileRepository.count({ queryField: 'tags', query: [] });
+  }
 }

@@ -119,16 +119,23 @@ const DroppableGalleryItem = DropTarget<
   canDrop: monitor.canDrop(),
 }))(observer(GalleryItem));
 
-const GalleryItemContextMenu = ({ filePath, rootStore }: { filePath: string } & IRootStoreProp) => {
+const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
-  const handleOpen = useCallback(() => shell.openItem(filePath), []);
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(filePath), []);
+  const handleOpen = useCallback(() => shell.openItem(file.path), []);
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.path), []);
+  const handleInspect = useCallback(() => {
+    uiStore.clearFileSelection();
+    uiStore.selectFile(file);
+    if (!uiStore.isInspectorOpen) {
+      uiStore.toggleInspector();
+    }
+  }, []);
 
   return (
     <Menu>
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
       <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
-      {/* <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} /> */}
+      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
       <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
     </Menu>
   );
@@ -168,7 +175,7 @@ IGalleryItemProps,
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
-    return <GalleryItemContextMenu filePath={this.props.file.path} rootStore={this.props.rootStore} />;
+    return <GalleryItemContextMenu file={this.props.file} rootStore={this.props.rootStore} />;
   }
 
   onContextMenuClose = () => {

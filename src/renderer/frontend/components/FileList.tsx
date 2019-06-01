@@ -11,9 +11,6 @@ import { ClientTag } from '../../entities/Tag';
 export interface IFileListProps extends IRootStoreProp { }
 
 const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProps) => {
-
-  const handleClearIncludedTags = useCallback(() => uiStore.clearTagSelection(), []);
-
   const handleDeselectTag = useCallback(
     (_, props: ITagProps) => {
       const clickedTag = tagStore.tagList.find((t) => t.id === props.id);
@@ -24,13 +21,16 @@ const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProp
     [],
   );
 
+  // Todo: Implement this properly later
+  const queriedTags = uiStore.searchQueryList
+    .flatMap((q) => (q as ITagSearchQuery).value);
+
   return (
     <div className="gallery">
 
       <div id="query-overview">
-        {uiStore.searchQueryList
-          .flatMap((q) => (q as ITagSearchQuery).value)
-          .map((tagId) => (
+        {
+          queriedTags.map((tagId) => (
             <Tag
               key={tagId}
               id={tagId}
@@ -38,13 +38,13 @@ const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProp
               onRemove={handleDeselectTag}
             >
               {(tagStore.tagList.find((t) => t.id === tagId) as ClientTag).name}
-            </Tag>),
-          )
+            </Tag>
+          ))
         }
-        {uiStore.clientTagSelection.length > 0 && (
+        {queriedTags.length > 0 && (
           <Button
             icon={IconSet.CLOSE}
-            onClick={handleClearIncludedTags}
+            onClick={uiStore.clearSearchQueryList}
             className="bp3-minimal"
           />
         )}

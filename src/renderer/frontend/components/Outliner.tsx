@@ -11,6 +11,7 @@ import SearchForm from './SearchForm';
 const Outliner = () => {
   const { uiStore } = useContext(StoreContext);
 
+  // Todo: Use https://blueprintjs.com/docs/#core/components/tabs
   return (
     <nav className={`${uiStore.isOutlinerOpen ? 'outlinerOpen' : ''}`}>
       {uiStore.outlinerPage === 'IMPORT' && (<>

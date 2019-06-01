@@ -4,7 +4,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import TagListItem, { DEFAULT_TAG_NAME } from './TagListItem';
 
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
-import { Tree, ITreeNode } from '@blueprintjs/core';
+import { Tree, ITreeNode, Button, Icon, ButtonGroup } from '@blueprintjs/core';
 import TagCollectionListItem from './TagCollectionListItem';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import TagCollectionStore from '../stores/TagCollectionStore';
@@ -14,9 +14,6 @@ import IconSet from './Icons';
 interface IExpandState {
   [key: string]: boolean;
 }
-
-const SYSTEM_TAGS_ID = 'system-tags';
-const ALL_TAGS_ID = 'all-tags';
 
 /** Recursive function that sets the 'expand' state for each (sub) collection */
 const setExpandStateRecursively = (col: ClientTagCollection, val: boolean, expandState: IExpandState): IExpandState => {
@@ -42,7 +39,7 @@ const createTagCollectionTreeNode = (
       onRemove={col.id === ROOT_TAG_COLLECTION_ID ? undefined : () => store.removeTagCollection(col)}
       onAddTag={() => {
         store.rootStore.tagStore.addTag(DEFAULT_TAG_NAME)
-          .then((tag) => col.tags.push(tag.id))
+          .then((tag) => col.addTag(tag.id))
           .catch((err) => console.log('Could not create tag', err));
       }}
       onAddCollection={async () => {
@@ -104,7 +101,7 @@ const createTagCollectionTreeNode = (
             // Find where to insert the moved tag
             const insertionIndex = col.tags.indexOf(tag.id);
             // Remove from orig collection
-            origCol.tags.remove(movedTagId);
+            origCol.removeTag(movedTagId);
             // Insert the moved tag to the position of the current tag where it was dropped
             col.tags.splice(insertionIndex, 0, movedTagId);
           }}
@@ -131,7 +128,6 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
   // Keep track of folders that have been expanded. The two main folders are expanded by default.
   const [expandState, setExpandState] = useState<IExpandState>({
     [ROOT_TAG_COLLECTION_ID]: true,
-    [SYSTEM_TAGS_ID]: true,
   });
 
   const handleNodeCollapse = useCallback(
@@ -146,45 +142,40 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
 
   const handleNodeClick = useCallback(
     ({ id }: ITreeNode, nodePath: number[], e: React.MouseEvent) => {
-      if (id === ALL_TAGS_ID) {
-        // System tags
-        uiStore.tagSelection.clear();
-        fileStore.fetchFilesByTagIDs(uiStore.tagSelection.toJS());
+      // The tags selected in this event
+      const clickSelection: ID[] = [];
+      let isClickSelectionSelected = false;
+
+      // When clicking on a single tag...
+      const clickedTag = tagStore.tagList.find((t) => t.id === id);
+      if (clickedTag) {
+        clickSelection.push(clickedTag.id);
+        isClickSelectionSelected = uiStore.tagSelection.includes(clickedTag.id);
+      }
+
+      // When clicking on a collection
+      const clickedCollection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
+      if (clickedCollection) {
+        // Get all tags recursively that are in this collection
+        const getRecursiveTags = (col: ClientTagCollection): ID[] =>
+          [...col.tags, ...col.clientSubCollections.flatMap(getRecursiveTags)];
+        clickSelection.push(...getRecursiveTags(clickedCollection));
+
+        isClickSelectionSelected = clickedCollection.isSelected;
+      }
+
+      // Based on the event options, add or subtract the clickSelection from the global tag selection
+      if (e.ctrlKey || e.metaKey) {
+        isClickSelectionSelected ? uiStore.deselectTags(clickSelection) : uiStore.selectTags(clickSelection);
+      } else if (e.shiftKey) {
+        // Todo: Take into account last selection index (like in gallery)
+        // Requires some additional state
       } else {
-        // The tags selected in this event
-        const clickSelection: ID[] = [];
-        let isClickSelectionSelected = false;
+        // Normal click: If it was the only one that was selected, deselect it
+        const isOnlySelected = isClickSelectionSelected && uiStore.tagSelection.length === clickSelection.length;
 
-        // When clicking on a single tag...
-        const clickedTag = tagStore.tagList.find((t) => t.id === id);
-        if (clickedTag) {
-          clickSelection.push(clickedTag.id);
-          isClickSelectionSelected = uiStore.tagSelection.includes(clickedTag.id);
-        }
-
-        // When clicking on a collection
-        const clickedCollection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
-        if (clickedCollection) {
-          // Get all tags recursively that are in this collection
-          const getRecursiveTags = (col: ClientTagCollection): ID[] =>
-            [...col.tags, ...col.clientSubCollections.flatMap(getRecursiveTags)];
-          clickSelection.push(...getRecursiveTags(clickedCollection));
-
-          isClickSelectionSelected = clickedCollection.isSelected;
-        }
-
-        // Based on the event options, add or subtract the clickSelection from the global tag selection
-        if (e.ctrlKey || e.metaKey) {
-          isClickSelectionSelected ? uiStore.deselectTags(clickSelection) : uiStore.selectTags(clickSelection);
-        } else if (e.shiftKey) {
-          // Todo: Take into account last selection index (like in gallery)
-          // Requires some additional state
-        } else {
-          // Normal click: If it was the only one that was selected, deselect it
-          const isOnlySelected = isClickSelectionSelected && uiStore.tagSelection.length === clickSelection.length;
-          if (!isOnlySelected) {
-            uiStore.selectTags(clickSelection, true);
-          }
+        if (!isOnlySelected) {
+          uiStore.selectTags(clickSelection, true);
         }
       }
     },
@@ -202,52 +193,60 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     [root, expandState],
   );
 
-  const systemTags: ITreeNode[] = useMemo(
-    () => [
-      {
-        id: ALL_TAGS_ID,
-        label: 'All tags',
-        icon: IconSet.TAG,
-        isSelected: uiStore.tagSelection.length === 0,
-      },
-      {
-        id: 'untagged',
-        // Todo: Replace with value queried from the backend
-        label: 'Untagged (999)',
-        icon: IconSet.TAG_BLANCO,
-        isSelected: false,
-      },
-    ],
-    [uiStore.tagSelection.length],
-  );
-
   const treeContents: ITreeNode[] = useMemo(
     () => [
       ...hierarchy,
-      {
-        id: SYSTEM_TAGS_ID,
-        icon: IconSet.TAG_GROUP_OPEN,
-        label: 'System tags',
-        hasCaret: true,
-        isExpanded: expandState[SYSTEM_TAGS_ID],
-        childNodes: systemTags,
-      },
     ],
     [hierarchy],
   );
 
   return (
-    // <>
-    <Tree
-      contents={treeContents}
-      onNodeCollapse={handleNodeCollapse}
-      onNodeExpand={handleNodeExpand}
-      onNodeClick={handleNodeClick}
-    // TODO: Context menu from here instead of in the TagCollectionListItem
-    // Then you can right-click anywhere instead of only on the label
-    // https://github.com/palantir/blueprint/issues/3187
-    // onNodeContextMenu={}
-    />
+    <>
+      <Tree
+        contents={treeContents}
+        onNodeCollapse={handleNodeCollapse}
+        onNodeExpand={handleNodeExpand}
+        onNodeClick={handleNodeClick}
+      // TODO: Context menu from here instead of in the TagCollectionListItem
+      // Then you can right-click anywhere instead of only on the label
+      // https://github.com/palantir/blueprint/issues/3187
+      // onNodeContextMenu={}
+      />
+
+      <div id="system-tags">
+        <ButtonGroup vertical minimal fill>
+          <Button
+            text="All images"
+            icon={IconSet.MEDIA}
+            rightIcon={uiStore.viewContent === 'all' ? <Icon intent="primary" icon="eye-open" /> : null}
+            onClick={uiStore.viewContentAll}
+            active={uiStore.viewContent === 'all'}
+          />
+          <Button
+            text="Searched images"
+            icon={IconSet.SEARCH}
+            rightIcon={uiStore.viewContent === 'query' ? <Icon intent="primary" icon="eye-open" /> : null}
+            onClick={uiStore.viewContentQuery}
+            active={uiStore.viewContent === 'query'}
+          />
+          <Button
+            text={`Untagged (${fileStore.numUntaggedFiles})`}
+            icon={IconSet.TAG_BLANCO}
+            rightIcon={
+              uiStore.viewContent === 'untagged'
+                ? <Icon icon="eye-open" />
+                : (fileStore.numUntaggedFiles > 0
+                  ? <Icon icon="issue" />
+                  : null
+                )
+            }
+            onClick={uiStore.viewContentUntagged}
+            active={uiStore.viewContent === 'untagged'}
+            intent={fileStore.numUntaggedFiles > 0 ? 'warning' : 'none'}
+          />
+        </ButtonGroup>
+      </div>
+    </>
   );
 };
 
