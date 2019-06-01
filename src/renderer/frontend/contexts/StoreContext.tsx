@@ -23,12 +23,12 @@ export interface IRootStoreProp {
  * Now myComponent is passed the rootStore as a prop.
  */
 export const withRootstore = <P extends IRootStoreProp>(
-  WrappedComponent: React.ComponentType<IRootStoreProp>,
-): React.ComponentType<Pick<P, Exclude<keyof P, keyof IRootStoreProp>>> => (
+  WrappedComponent: React.ComponentType<P>,
+) => (
   props: Pick<P, Exclude<keyof P, keyof IRootStoreProp>>,
 ) => {
   const rootStore = useContext(StoreContext);
-  return <WrappedComponent rootStore={rootStore} {...props} />;
+  return <WrappedComponent rootStore={rootStore} {...props as P} />;
 };
 
 export default StoreContext;

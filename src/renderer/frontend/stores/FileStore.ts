@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
-import { ID } from '../../entities/ID';
+import { ID, generateId } from '../../entities/ID';
 
 class FileStore {
   backend: Backend;
@@ -23,31 +23,43 @@ class FileStore {
 
   @action
   async addFile(filePath: string) {
+    const fileData: IFile = {
+      id: generateId(),
+      path: filePath,
+      dateAdded: new Date(),
+      tags: [],
+      ...await ClientFile.getMetaData(filePath),
+    };
+    const file = new ClientFile(this, fileData);
     // The function caller is responsible for handling errors.
-    const file = new ClientFile(this, filePath);
-    await this.backend.createFile(file.id, file.path);
+    await this.backend.createFile(fileData);
     this.fileList.push(file);
     return file;
   }
 
   @action
   async removeFilesById(ids: ID[]) {
-    const filesToRemove = ids.map((id) => this.fileList.find((f) => f.id === id));
-    // Intentionally done in sequence instead of parallel to avoid removing the wrong files
-    // Probably could be done in parallel, but the current removeFile removes the wrong files when called with Promise.all
-    for (const file of filesToRemove) {
-      if (file) {
-        await this.removeFile(file);
-      } else {
-        console.log('Could not find file to remove', file);
-      }
+    const filesToRemove = ids
+      .map((id) => this.fileList.find((f) => f.id === id))
+      .filter((f) => f !== undefined) as ClientFile[];
+
+    try {
+      filesToRemove.forEach((file) => {
+        file.dispose();
+        this.rootStore.uiStore.deselectFile(file);
+        this.fileList.remove(file);
+      });
+      await this.backend.removeFiles(filesToRemove);
+    } catch (err) {
+      console.error('Could not remove files', err);
     }
   }
 
   @action
   async fetchAllFiles() {
     try {
-      const fetchedFiles = await this.backend.fetchFiles();
+      const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
+      const fetchedFiles = await this.backend.fetchFiles(fileOrder, fileOrderDescending);
       this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
@@ -61,7 +73,8 @@ class FileStore {
       await this.fetchAllFiles();
     } else {
       try {
-        const fetchedFiles = await this.backend.searchFiles(tags);
+        const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
+        const fetchedFiles = await this.backend.searchFiles(tags, fileOrder, fileOrderDescending);
         this.updateFromBackend(fetchedFiles);
       } catch (e) {
         console.log('Could not find files based on tag search', e);
@@ -70,7 +83,8 @@ class FileStore {
   }
 
   private async loadFiles() {
-    const fetchedFiles = await this.backend.fetchFiles();
+    const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
+    const fetchedFiles = await this.backend.fetchFiles(fileOrder, fileOrderDescending);
 
     // Removes files with invalid file path. Otherwise adds files to fileList.
     // In the future the user should have the option to input the new path if the file was only moved or renamed.
@@ -78,9 +92,7 @@ class FileStore {
       fetchedFiles.map(async (backendFile: IFile) => {
         try {
           await fs.access(backendFile.path, fs.constants.F_OK);
-          this.fileList.push(
-            new ClientFile(this).updateFromBackend(backendFile),
-          );
+          this.fileList.push(new ClientFile(this, backendFile));
         } catch (e) {
           console.log(`${backendFile.path} 'does not exist'`);
           this.backend.removeFile(backendFile);
@@ -101,6 +113,10 @@ class FileStore {
     // removing manually invalid files
     // watching files would be better to remove invalid files
     // files could also have moved, removing them may be undesired then
+
+    // Todo: instead of removing invalid files, add them to an MissingFiles list and prompt to the user?
+    // (maybe fetch all files, not only the ones passed given as arguments here)
+
     const existenceChecker = await Promise.all(
       backendFiles.map(async (backendFile) => {
         try {
@@ -134,9 +150,7 @@ class FileStore {
   }
 
   private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
-    return backendFiles.map((file) =>
-      new ClientFile(this).updateFromBackend(file),
-    );
+    return backendFiles.map((file) => new ClientFile(this, file));
   }
 
   // Removes all items from fileList

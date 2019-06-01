@@ -7,9 +7,10 @@ import StoreContext from '../contexts/StoreContext';
 
 interface IFileTagProps {
   files: ClientFile[];
+  autoFocus?: boolean;
 }
 
-const Single = observer(({ file }: { file: ClientFile }) => {
+const Single = observer(({ file, autoFocus }: { file: ClientFile, autoFocus?: boolean }) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
   const handleClear = useCallback(() => file.tags.clear(), [file]);
@@ -35,11 +36,13 @@ const Single = observer(({ file }: { file: ClientFile }) => {
       onTagDeselect={handleDeselect}
       onTagSelect={handleSelect}
       onTagCreation={handleCreate}
+      autoFocus={autoFocus}
+      refocusObject={file}
     />
   );
 });
 
-const Multi = observer(({ files }: IFileTagProps) => {
+const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
   // Count how often tags are used
@@ -79,7 +82,6 @@ const Multi = observer(({ files }: IFileTagProps) => {
       const newTag = await tagStore.addTag(name);
       // Add new tags to the root hierarchy by default
       tagCollectionStore.getRootCollection().tags.push(newTag.id);
-      files.forEach((file) => file.addTag(newTag.id));
       return newTag;
     },
     [files],
@@ -93,18 +95,21 @@ const Multi = observer(({ files }: IFileTagProps) => {
       onTagSelect={handleSelect}
       tagLabel={tagLabel}
       onTagCreation={handleCreate}
+      autoFocus={autoFocus}
+      refocusObject={files.length}
     />
   );
 });
 
-const FileTag = ({ files }: IFileTagProps) => {
+const FileTag = ({ files, autoFocus = false }: IFileTagProps) => {
   return (
     <section id="fileTag">
-      <div className="inpectorHeading">Tags</div>
+      <h4 className="bp3-heading inpectorHeading">Tags</h4>
+      <p>Quickly adds or deletes from the selection</p>
       {files.length === 1 ? (
-        <Single file={files[0]} />
+        <Single file={files[0]} autoFocus={autoFocus} />
       ) : (
-        <Multi files={files} />
+        <Multi files={files} autoFocus={autoFocus} />
       )}
     </section>
   );

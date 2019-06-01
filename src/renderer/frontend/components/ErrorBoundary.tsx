@@ -24,13 +24,11 @@ class ErrorBoundary extends React.Component<{}, IErrorBoundaryState> {
   }
 
   viewInspector() {
-    remote.getCurrentWebContents()
-      .openDevTools();
+    remote.getCurrentWebContents().openDevTools();
   }
 
   reloadApplication() {
-    remote.getCurrentWindow()
-      .reload();
+    remote.getCurrentWindow().reload();
   }
 
   render() {

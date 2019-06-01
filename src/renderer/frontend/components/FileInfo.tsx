@@ -12,7 +12,7 @@ interface IFileInfoProps {
   files: ClientFile[];
 }
 
-const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
+export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   const [fileStats, setFileStats] = useState<fs.Stats | undefined>(undefined);
   const [error, setError] = useState<Error | undefined>(undefined);
 
@@ -30,7 +30,7 @@ const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   // Or add the units: pixels vs DPI
   const fileInfoList = useMemo(
     () => [
-      { key: 'Filename', value: file.path },
+      { key: 'Filename', value: file.name },
       {
         key: 'Created',
         value: fileStats ? formatDate(fileStats.birthtime) : '...',
@@ -50,10 +50,10 @@ const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   return (
     <section id="fileInfo">
       {fileInfoList.map(({ key, value }) => [
-        <div key={`fileInfoKey-${key}`} className="inpectorHeading">
+        <small key={`fileInfoKey-${key}`} className="bp3-label">
           {key}
-        </div>,
-        <div key={`fileInfoValue-${key}`} className="fileInfoValue">
+        </small>,
+        <div key={`fileInfoValue-${key}`} className="fileInfoValue bp3-button-text">
           {value}
         </div>,
       ])}

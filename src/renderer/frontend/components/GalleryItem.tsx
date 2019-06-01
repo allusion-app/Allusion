@@ -1,13 +1,14 @@
-import React, { useCallback } from 'react';
-
+import React, { useState, useEffect, useCallback } from 'react';
 import { shell } from 'electron';
-
-import { Tag, ContextMenuTarget, Menu, MenuItem } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import { DropTarget, ConnectDropTarget, DropTargetMonitor } from 'react-dnd';
+import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes, H3 } from '@blueprintjs/core';
 
 import { ClientFile } from '../../entities/File';
 import { ClientTag } from '../../entities/Tag';
+import IconSet from './Icons';
+import { SingleFileInfo } from './FileInfo';
+import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 
 interface IGalleryItemTagProps {
   tag: ClientTag;
@@ -23,14 +24,14 @@ const GalleryItemTag = ({ tag, onRemove }: IGalleryItemTagProps) => {
   );
 };
 
-interface IGalleryItemProps {
+interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;
   isSelected: boolean;
   onClick: (file: ClientFile, e: React.MouseEvent) => void;
-}
-
-interface IDroppableProps {
-  onDrop: (item: any) => void;
+  onDrop: (item: any, file: ClientFile) => void;
+  showName?: boolean;
+  showTags?: boolean;
+  showInfo?: boolean;
 }
 
 interface IGalleryItemCollectedProps {
@@ -39,51 +40,78 @@ interface IGalleryItemCollectedProps {
   connectDropTarget: ConnectDropTarget;
 }
 
-const GalleryItem = ({
+export const GalleryItem = ({
   file,
   isSelected,
   onClick,
   canDrop,
   isOver,
   connectDropTarget,
+  showName, showTags, showInfo,
 }: IGalleryItemProps & IGalleryItemCollectedProps) => {
   const selectedStyle = isSelected ? 'selected' : '';
   const dropStyle = canDrop ? ' droppable' : ' undroppable';
-
   const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
   const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
   const handleClickImg = useCallback((e) => onClick(file, e), []);
 
+  const [imageElem] = useState<HTMLImageElement>(new Image());
+  const [isImageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState();
+
+  useEffect(() => {
+    // Load the image manually when the component mounts
+    imageElem.src = file.path;
+    imageElem.onload = () => file && setImageLoaded(true);
+    imageElem.onerror = (e) => file && setImageError(e);
+    return () => {
+      // When this component unmounts, cancel further loading of the image in case it was not loaded yet
+      if (!isImageLoaded) {
+        imageElem.src = '';
+        imageElem.onload = () => {}; // tslint:disable-line: no-empty
+        imageElem.onerror = () => {}; // tslint:disable-line: no-empty
+      }
+    };
+  }, []);
+
   return connectDropTarget(
     <div className={className}>
-      <img
-        key={`file-${file.id}`}
-        src={file.path}
-        onClick={handleClickImg}
-      />
-      <span className="thumbnailTags">
-        {file.clientTags.map((tag) => (
-          <GalleryItemTag
-            key={`gal-tag-${file.id}-${tag.id}`}
-            tag={tag}
-            onRemove={handleRemoveTag}
-          />
-        ))}
-      </span>
+      <div onClick={handleClickImg} className="img-wrapper">
+        {isImageLoaded ? <img src={file.path} /> // Show image when it has been loaded
+          : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
+            : <div className={Classes.SKELETON} /> // Else show a placeholder
+        }
+      </div>
+
+      { showName && <H4>{file.name}</H4>}
+
+      {showInfo && <SingleFileInfo file={file} />}
+
+      { showTags && (
+        <span className="thumbnailTags">
+          {file.clientTags.map((tag) => (
+            <GalleryItemTag
+              key={`gal-tag-${file.id}-${tag.id}`}
+              onRemove={handleRemoveTag}
+              tag={tag}
+            />
+          ))}
+        </span>
+      )}
     </div>,
   );
 };
 
 const galleryItemTarget = {
-  drop(props: IDroppableProps, monitor: DropTargetMonitor) {
-    props.onDrop(monitor.getItem());
+  drop(props: IGalleryItemProps, monitor: DropTargetMonitor) {
+    props.onDrop(monitor.getItem(), props.file);
   },
 };
 
 /** Make gallery item available to drop a tag onto */
 const DroppableGalleryItem = DropTarget<
-  IGalleryItemProps & IDroppableProps,
+  IGalleryItemProps,
   IGalleryItemCollectedProps
 >('tag', galleryItemTarget, (connect, monitor) => ({
   connectDropTarget: connect.dropTarget(),
@@ -91,28 +119,17 @@ const DroppableGalleryItem = DropTarget<
   canDrop: monitor.canDrop(),
 }))(observer(GalleryItem));
 
-const GalleryItemContextMenu = (filePath: string) => {
-  const handleOpen = () => {
-    shell.openItem(filePath);
-  };
-
-  const handleOpenFileExplorer = () => {
-    shell.showItemInFolder(filePath);
-  };
-
-  const handleInspect = () => {
-    // Todo: Inspect
-    console.log('Inspect');
-  };
+const GalleryItemContextMenu = ({ filePath, rootStore }: { filePath: string } & IRootStoreProp) => {
+  const { uiStore } = rootStore;
+  const handleOpen = useCallback(() => shell.openItem(filePath), []);
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(filePath), []);
 
   return (
     <Menu>
-      <MenuItem onClick={handleOpen} text="Open" />
-      <MenuItem
-        onClick={handleOpenFileExplorer}
-        text="Reveal in File Browser"
-      />
-      <MenuItem onClick={handleInspect} text="Inspect" />
+      <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
+      <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
+      {/* <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} /> */}
+      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
     </Menu>
   );
 };
@@ -120,8 +137,8 @@ const GalleryItemContextMenu = (filePath: string) => {
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
 class GalleryItemWithContextMenu extends React.PureComponent<
-  IGalleryItemProps,
-  { isContextMenuOpen: boolean }
+IGalleryItemProps,
+{ isContextMenuOpen: boolean }
 > {
   state = {
     isContextMenuOpen: false,
@@ -151,7 +168,7 @@ class GalleryItemWithContextMenu extends React.PureComponent<
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
-    return GalleryItemContextMenu(this.props.file.path);
+    return <GalleryItemContextMenu filePath={this.props.file.path} rootStore={this.props.rootStore} />;
   }
 
   onContextMenuClose = () => {
@@ -165,4 +182,4 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   }
 }
 
-export default GalleryItemWithContextMenu;
+export default observer(withRootstore(GalleryItemWithContextMenu));

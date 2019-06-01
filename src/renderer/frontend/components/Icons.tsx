@@ -10,12 +10,20 @@ import ARROW_DOWN from '../../resources/icons/arrow-down.svg';
 import ARROW_RIGHT from '../../resources/icons/arrow-right.svg';
 import ARROW_UP from '../../resources/icons/arrow-up.svg';
 import CHECKMARK from '../../resources/icons/checkmark.svg';
+import CHROME_DEVTOOLS from '../../resources/icons/chrome-devtools.svg';
 import CLOSE from '../../resources/icons/close.svg';
 import COLLECTION_ADD from '../../resources/icons/collection-add.svg';
 import DELETE from '../../resources/icons/delete.svg';
 import DESELECT_ALL_FILL from '../../resources/icons/deselect-all-fill.svg';
 import DESELECT_ALL_ROUND from '../../resources/icons/deselect-all-round.svg';
 import EDIT from '../../resources/icons/edit.svg';
+import FILTER from '../../resources/icons/filter.svg';
+import FILTER_DATE from '../../resources/icons/filter-date.svg';
+import FILTER_FILE_TYPE from '../../resources/icons/filter-file-type.svg';
+import FILTER_FILTER_DOWN from '../../resources/icons/filter-filter-down.svg';
+import FILTER_FILTER_UP from '../../resources/icons/filter-filter-up.svg';
+import FILTER_NAME_DOWN from '../../resources/icons/filter-name-down.svg';
+import FILTER_NAME_UP from '../../resources/icons/filter-name-up.svg';
 import FOLDER_CLOSE from '../../resources/icons/folder-close.svg';
 import FOLDER_OPEN from '../../resources/icons/folder-open.svg';
 import FORM_DROP from '../../resources/icons/form-drop.svg';
@@ -28,7 +36,6 @@ import MORE from '../../resources/icons/more.svg';
 import OPEN_EXTERNAL from '../../resources/icons/open-external.svg';
 import PREVIEW from '../../resources/icons/preview.svg';
 import SEARCH from '../../resources/icons/search.svg';
-import SEARCH2 from '../../resources/icons/search2.svg';
 import SELECT_ALL_CHECKED from '../../resources/icons/select-all-checked.svg';
 import SELECT_ALL_ROUND from '../../resources/icons/select-all-round.svg';
 import SELECT_ALL_TRANS from '../../resources/icons/select-all-trans.svg';
@@ -39,15 +46,9 @@ import TAG_BLANCO from '../../resources/icons/tag-blanco.svg';
 import TAG_GROUP_OPEN from '../../resources/icons/tag-group-open.svg';
 import TAG_GROUP from '../../resources/icons/tag-group.svg';
 import TAG from '../../resources/icons/tag.svg';
-import VIEW_DATE from '../../resources/icons/view-date.svg';
-import VIEW_FILE_TYPE from '../../resources/icons/view-file-type.svg';
-import VIEW_FILTER_DOWN from '../../resources/icons/view-filter-down.svg';
-import VIEW_FILTER_UP from '../../resources/icons/view-filter-up.svg';
 import VIEW_GRID from '../../resources/icons/view-grid.svg';
 import VIEW_LIST from '../../resources/icons/view-list.svg';
 import VIEW_MASON from '../../resources/icons/view-mason.svg';
-import VIEW_NAME_DOWN from '../../resources/icons/view-name-down.svg';
-import VIEW_NAME_UP from '../../resources/icons/view-name-up.svg';
 import VIEW_PRESENT from '../../resources/icons/view-present.svg';
 import WARNING_FILL from '../../resources/icons/warning-fill.svg';
 import WARNING from '../../resources/icons/warning.svg';
@@ -69,12 +70,20 @@ const IconSet = {
   ARROW_RIGHT: toSvg(ARROW_RIGHT),
   ARROW_UP: toSvg(ARROW_UP),
   CHECKMARK: toSvg(CHECKMARK),
+  CHROME_DEVTOOLS: toSvg(CHROME_DEVTOOLS),
   CLOSE: toSvg(CLOSE),
   COLLECTION_ADD: toSvg(COLLECTION_ADD),
   DELETE: toSvg(DELETE),
   DESELECT_ALL_FILL: toSvg(DESELECT_ALL_FILL),
   DESELECT_ALL_ROUND: toSvg(DESELECT_ALL_ROUND),
   EDIT: toSvg(EDIT),
+  FILTER: toSvg(FILTER),
+  FILTER_DATE: toSvg(FILTER_DATE),
+  FILTER_FILE_TYPE: toSvg(FILTER_FILE_TYPE),
+  FILTER_FILTER_DOWN: toSvg(FILTER_FILTER_DOWN),
+  FILTER_FILTER_UP: toSvg(FILTER_FILTER_UP),
+  FILTER_NAME_DOWN: toSvg(FILTER_NAME_DOWN),
+  FILTER_NAME_UP: toSvg(FILTER_NAME_UP),
   FOLDER_CLOSE: toSvg(FOLDER_CLOSE),
   FOLDER_OPEN: toSvg(FOLDER_OPEN),
   FORM_DROP: toSvg(FORM_DROP),
@@ -87,7 +96,6 @@ const IconSet = {
   OPEN_EXTERNAL: toSvg(OPEN_EXTERNAL),
   PREVIEW: toSvg(PREVIEW),
   SEARCH: toSvg(SEARCH),
-  SEARCH2: toSvg(SEARCH2),
   SELECT_ALL_CHECKED: toSvg(SELECT_ALL_CHECKED),
   SELECT_ALL_ROUND: toSvg(SELECT_ALL_ROUND),
   SELECT_ALL_TRANS: toSvg(SELECT_ALL_TRANS),
@@ -98,15 +106,9 @@ const IconSet = {
   TAG_GROUP_OPEN: toSvg(TAG_GROUP_OPEN),
   TAG_GROUP: toSvg(TAG_GROUP),
   TAG: toSvg(TAG),
-  VIEW_DATE: toSvg(VIEW_DATE),
-  VIEW_FILE_TYPE: toSvg(VIEW_FILE_TYPE),
-  VIEW_FILTER_DOWN: toSvg(VIEW_FILTER_DOWN),
-  VIEW_FILTER_UP: toSvg(VIEW_FILTER_UP),
   VIEW_GRID: toSvg(VIEW_GRID),
   VIEW_LIST: toSvg(VIEW_LIST),
   VIEW_MASON: toSvg(VIEW_MASON),
-  VIEW_NAME_DOWN: toSvg(VIEW_NAME_DOWN),
-  VIEW_NAME_UP: toSvg(VIEW_NAME_UP),
   VIEW_PRESENT: toSvg(VIEW_PRESENT),
   WARNING_FILL: toSvg(WARNING_FILL),
   WARNING: toSvg(WARNING),

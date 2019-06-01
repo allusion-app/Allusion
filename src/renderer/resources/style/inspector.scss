@@ -1,0 +1,68 @@
+///////////////////////////////// Inspector /////////////////////////////////
+#inspector {
+  grid-area: inspector;
+  overflow: auto;
+  flex-shrink: 0;
+  width: 0;
+  min-width: 0;
+  transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.inspectorOpen {
+    min-width: var(--inspector-width);
+    width: 18rem;
+  }
+
+  > section {
+    border-bottom: 3px solid #181818;
+    padding: 1em;
+  }
+
+  .inpectorHeading {
+    font-weight: bold;
+  }
+    
+  #fileOverview {
+    text-align: center;
+  }
+}
+
+// File info
+#fileInfo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-column-gap: 1em;
+
+  > div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.fileInfoValue {
+  text-align: right;
+}
+
+#filePreview > img {
+  padding: 0.3em;
+  background-color: #333333;
+  width: 100%;
+  max-height: calc(var(--inspector-width) - 2em);
+  object-fit: contain;
+}
+
+// File tag (kind of global style)
+#fileTag .bp3-popover-target,
+#inspector .bp3-popover-target {
+  display: inline-block;
+  flex-grow: 1;
+}
+
+.bp3-popover-content #fileTag .bp3-popover-target:nth-child(1) {
+  background-color: $light-gray4;
+}
+
+#fileTag .bp3-tag {
+  margin-bottom: 5px;
+  margin-right: 5px;
+}
