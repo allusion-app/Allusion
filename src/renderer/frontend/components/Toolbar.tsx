@@ -1,13 +1,13 @@
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, ButtonGroup, Icon, Classes,
+  Button, Popover, MenuItem, Menu, Icon, Classes, ButtonGroup,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import FileTag from './FileTag';
-import { ClientFile } from '../../entities/File';
+import { ClientFile, IFile } from '../../entities/File';
 import UiStore from '../stores/UiStore';
 
 // Tooltip info
@@ -20,14 +20,30 @@ const tagfilesTooltip = 'Quick add or delete tags to selection';
 const deleteTooltip = 'Delete selection from library';
 const viewTooltip = 'Change view content panel';
 const filterTooltip = 'Filter view content panel';
-const fltTagTooltip = 'Filter images by first tag';
+// const fltTagTooltip = 'Filter images by first tag';
 
-const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disabled: boolean }) => (
-  <Popover minimal disabled={disabled}>
-    <Button icon={IconSet.DELETE} disabled={disabled} className="tooltip" data-right={deleteTooltip}/>
+interface IRemoveFilesPopoverProps {
+  disabled: boolean;
+  onRemove: () => void;
+  uiStore: UiStore;
+}
+const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => (
+  <Popover
+    minimal
+    canEscapeKeyClose={true}
+    isOpen={uiStore.isToolbarFileRemoverOpen}
+    onClose={uiStore.closeToolbarFileRemover}
+  >
+    <Button
+      icon={IconSet.DELETE}
+      disabled={disabled}
+      className="tooltip"
+      data-right={deleteTooltip}
+      onClick={uiStore.toggleToolbarFileRemover}
+    />
     <div className="popoverContent" id="deleteFile">
       <h4 className="bp3-heading inpectorHeading">Confirm deletion</h4>
-      <p>Remove these images from your library?</p>
+      <p>Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?</p>
       <p>Your files will not be deleted.</p>
 
       <div
@@ -38,19 +54,23 @@ const RemoveFilesPopover = ({ onRemove, disabled }: { onRemove: () => void, disa
         }}>
         <Button
           className={Classes.POPOVER_DISMISS}
-          style={{ marginRight: 10 }}>
+          style={{ marginRight: 10 }}
+          onClick={uiStore.closeToolbarFileRemover}
+        >
           Cancel
         </Button>
         <Button
           intent="danger"
           className={Classes.POPOVER_DISMISS}
-          onClick={onRemove}>
+          onClick={onRemove}
+          autoFocus
+        >
           Delete
         </Button>
       </div>
     </div>
   </Popover>
-);
+));
 
 interface ITagFilesPopoverProps {
   disabled: boolean;
@@ -72,17 +92,24 @@ const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopover
   </Popover>
 ));
 
+const sortMenuData: Array<{ prop: keyof IFile, icon: JSX.Element, text: string }> = [
+  { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
+  { prop: 'name', icon: IconSet.FILTER_NAME_UP, text: 'Name' },
+  { prop: 'extension', icon: IconSet.FILTER_FILE_TYPE, text: 'File type' },
+  { prop: 'size', icon: IconSet.FILTER_FILTER_DOWN, text: 'File size' },
+  { prop: 'dateAdded', icon: IconSet.FILTER_DATE, text: 'Date added' },
+];
+
 const Toolbar = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
   const handleChooseOutlinerPage = useCallback((page: typeof uiStore.outlinerPage) => {
     // If it's already open, close it
-    if (uiStore.outlinerPage === page) {
-      uiStore.isOutlinerOpen = false;
-    } else {
-      uiStore.outlinerPage = page;
-    }
+    uiStore.isOutlinerOpen = uiStore.isOutlinerOpen
+      ? uiStore.outlinerPage !== page
+      : uiStore.outlinerPage === page;
+    uiStore.outlinerPage = page;
   }, []);
   const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), []);
   const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), []);
@@ -104,10 +131,7 @@ const Toolbar = () => {
   );
 
   const handleRemoveSelectedFiles = useCallback(
-    async () => {
-      await fileStore.removeFilesById(uiStore.fileSelection);
-      uiStore.fileSelection.clear();
-    },
+    () => fileStore.removeFilesById(uiStore.fileSelection),
     [],
   );
 
@@ -117,15 +141,29 @@ const Toolbar = () => {
   const viewSlide = useCallback(() => { uiStore.viewMethod = 'slide'; }, []);
 
   // Render variables
-  const sortMenu = useMemo(() =>
-    <Menu>
-      <MenuItem icon={IconSet.TAG} text="Tag" className="tooltip" data-right={fltTagTooltip}/>
-      <MenuItem icon={IconSet.FILTER_NAME_UP} text="Name" />
-      <MenuItem icon={IconSet.FILTER_FILE_TYPE} text="Type" />
-      <MenuItem icon={IconSet.FILTER_FILTER_DOWN} text="Size" />
-      <MenuItem icon={IconSet.FILTER_DATE} text="Date" labelElement={<Icon icon={IconSet.ARROW_UP} />} active />
-    </Menu>,
-    [],
+  const sortMenu = useMemo(
+    () => {
+      const orderIcon = (
+        <Icon icon={uiStore.fileOrderDescending ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
+      );
+      return (
+        <Menu>
+          {sortMenuData.map(({ prop, icon, text }) => (
+            <MenuItem
+              key={prop}
+              icon={icon}
+              text={text}
+              active={uiStore.fileOrder === prop}
+              labelElement={uiStore.fileOrder === prop && orderIcon}
+              onClick={() => uiStore.fileOrder === prop
+                ? uiStore.setFileOrderDescending(!uiStore.fileOrderDescending)
+                : uiStore.setFileOrder(prop)}
+            />
+          ))}
+        </Menu>
+      );
+    },
+    [uiStore.fileOrder, uiStore.fileOrderDescending],
   );
 
   const layoutMenu = useMemo(() =>
@@ -215,15 +253,16 @@ const Toolbar = () => {
           <RemoveFilesPopover
             onRemove={handleRemoveSelectedFiles}
             disabled={!selectionModeOn}
+            uiStore={uiStore}
           />
 
           {/* Gallery actions */}
           <Popover minimal
-            target={<Button icon={IconSet.VIEW_GRID} className="tooltip" data-right={viewTooltip}/>}
+            target={<Button icon={IconSet.VIEW_GRID} className="tooltip" data-right={viewTooltip} />}
             content={layoutMenu}
           />
           <Popover minimal
-            target={<Button icon={IconSet.FILTER} className="tooltip" data-right={filterTooltip}/>}
+            target={<Button icon={IconSet.FILTER} className="tooltip" data-right={filterTooltip} />}
             content={sortMenu}
           />
         </ButtonGroup>

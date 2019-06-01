@@ -68,22 +68,22 @@ class TagCollectionStore {
 
   @action
   removeTagCollection(tagCol: ClientTagCollection) {
+    // Remove save handler
+    tagCol.dispose();
+
     // Remove collection from state
-    this.tagCollectionList.splice(this.tagCollectionList.indexOf(tagCol), 1);
+    this.tagCollectionList.remove(tagCol);
 
     // Remove collection from other collections (where it is a subcollection)
     this.tagCollectionList.forEach((col) => col.subCollections.remove(tagCol.id));
 
     // Remove sub-collections of this collection from state
-    tagCol.clientSubCollections.forEach((subCol) =>
-      this.removeTagCollection(subCol),
-    );
+    tagCol.clientSubCollections.forEach((subCol) => this.removeTagCollection(subCol));
 
     // Remove tags in this collection
     tagCol.clientTags.forEach((tag) => this.rootStore.tagStore.removeTag(tag));
 
     // Remove collection from DB
-    tagCol.dispose();
     this.backend.removeTagCollection(tagCol);
   }
 }

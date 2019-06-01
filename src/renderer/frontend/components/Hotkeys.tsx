@@ -88,7 +88,7 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           global={true}
           combo={hotkeyMap.deleteSelectedFiles}
           label="Delete the selected files"
-          // onKeyDown={uiStore.}
+          onKeyDown={uiStore.toggleToolbarFileRemover}
         />
         <Hotkey
           global={true}

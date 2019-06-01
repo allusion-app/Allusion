@@ -39,7 +39,7 @@ function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) 
 const GridGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, onSelect }: IGalleryLayoutProps) => {
   const numColumns = Math.floor(contentWidth / cellSize);
-  const numRows = Math.ceil(fileList.length / numColumns);
+  const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
   /** Generates a unique key for an element in the grid */
   const handleItemKey: GridItemKeySelector = useCallback(
@@ -58,14 +58,13 @@ const GridGallery = observer(
       }
       // if (isScrolling) return <div style={style}><p>Scrolling...</p></div>; // This prevent image from loading while scrolling
       return (
-        <div style={style}>
+        <div style={style} key={`file-${file.id}`}>
           {/* Item {itemIndex} ({rowIndex},{columnIndex}) */}
           {/* <img src={file.path} width={colWidth} height={colWidth} /> */}
           {/* <img src={`https://placekitten.com/${colWidth}/${colWidth}`} width={colWidth} height={colWidth} /> */}
           <Observer>
             {() => (
               <GalleryItem
-                key={`file-${file.id}`}
                 file={file}
                 isSelected={uiStore.fileSelection.includes(file.id)}
                 onRemoveTag={(tag) => file.removeTag(tag.id)}
@@ -94,6 +93,7 @@ const GridGallery = observer(
       overscanRowsCount={2}
       children={Cell}
       useIsScrolling
+      key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
     />
   );
 });
@@ -136,6 +136,7 @@ const ListGallery = observer(
     },
     [],
   );
+
   return (
     <FixedSizeList
       height={contentHeight}
@@ -146,6 +147,7 @@ const ListGallery = observer(
       overscanCount={2}
       children={Row}
       useIsScrolling
+      key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
     />
   );
 });

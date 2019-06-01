@@ -19,10 +19,9 @@ const Settings = () => {
       className={themeClass}
     >
       <div className={Classes.DRAWER_BODY}>
-        <div className={Classes.DIALOG_BODY}>
           <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
           <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
-
+          <div className="bp3-divider"></div>
           <Button disabled fill>Clear database</Button>
 
           <Button onClick={uiStore.toggleDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
@@ -49,7 +48,6 @@ const Settings = () => {
               </span>
             </p>
           </Callout>
-        </div>
       </div>
     </Drawer>
   );

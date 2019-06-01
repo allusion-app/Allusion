@@ -3,7 +3,7 @@ import React, { useContext, useEffect } from 'react';
 import StoreContext from '../contexts/StoreContext';
 import ErrorBoundary from './ErrorBoundary';
 import FileList from './FileList';
-import { ButtonGroup, Button, Switch } from '@blueprintjs/core';
+import { Button, Switch } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 const PreviewApp = () => {
@@ -15,7 +15,7 @@ const PreviewApp = () => {
   return (
     <div className={`${themeClass}`} style={{ height: '100%' }}>
       <ErrorBoundary>
-        <div id="toolbar" style={{ marginBottom: '-1em', height: 'auto' }}>
+        <div id="toolbar">
           <section id="outliner-toolbar">
             <Button
               icon="arrow-left"
