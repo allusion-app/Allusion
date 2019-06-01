@@ -3,6 +3,7 @@ import { ResizeSensor, IResizeEntry } from '@blueprintjs/core';
 import {
   FixedSizeGrid, GridItemKeySelector, FixedSizeList, ListItemKeySelector,
   GridChildComponentProps, ListChildComponentProps,
+  GridOnScrollProps, ListOnScrollProps,
 } from 'react-window';
 import { observer, Observer } from 'mobx-react-lite';
 
@@ -43,6 +44,11 @@ const GridGallery = observer(
   const numColumns = Math.floor(contentWidth / cellSize);
   const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
+  // Store what the first item in view is in the UiStore
+  const handleScroll = useCallback(
+    ({ scrollTop }: GridOnScrollProps) => uiStore.setFirstIndexInView(numColumns * Math.round(scrollTop / cellSize)),
+    [cellSize, numColumns]);
+
   /** Generates a unique key for an element in the grid */
   const handleItemKey: GridItemKeySelector = useCallback(
     ({ columnIndex, rowIndex }) => {
@@ -52,18 +58,14 @@ const GridGallery = observer(
   }, []);
 
   const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
-    ({ columnIndex, rowIndex, style, isScrolling }) => {
+    ({ columnIndex, rowIndex, style }) => {
       const itemIndex = rowIndex * numColumns + columnIndex;
       const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
       if (!file) {
         return <div />;
       }
-      // if (isScrolling) return <div style={style}><p>Scrolling...</p></div>; // This prevent image from loading while scrolling
       return (
         <div style={style} key={`file-${file.id}`}>
-          {/* Item {itemIndex} ({rowIndex},{columnIndex}) */}
-          {/* <img src={file.path} width={colWidth} height={colWidth} /> */}
-          {/* <img src={`https://placekitten.com/${colWidth}/${colWidth}`} width={colWidth} height={colWidth} /> */}
           <Observer>
             {() => (
               <GalleryItem
@@ -92,14 +94,21 @@ const GridGallery = observer(
       itemKey={handleItemKey}
       overscanRowsCount={2}
       children={Cell}
-      useIsScrolling
+      onScroll={handleScroll}
       key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
+      initialScrollTop={(Math.round(uiStore.firstIndexInView / numColumns) * cellSize) || 0} // || 0 for initial load
     />
   );
 });
 
 const ListGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+
+  // Store what the first item in view is in the UiStore
+  const handleScroll = useCallback(
+    ({ scrollOffset }: ListOnScrollProps) => uiStore.setFirstIndexInView(Math.round(scrollOffset / cellSize)),
+    [cellSize]);
+
   /** Generates a unique key for an element in the grid */
   const handleItemKey: ListItemKeySelector = useCallback(
     (index) => {
@@ -143,8 +152,9 @@ const ListGallery = observer(
       itemKey={handleItemKey}
       overscanCount={2}
       children={Row}
-      useIsScrolling
+      onScroll={handleScroll}
       key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
+      initialScrollOffset={uiStore.firstIndexInView * cellSize}
     />
   );
 });
@@ -153,38 +163,35 @@ const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
   return <p>This view is currently not supported :(</p>;
 });
 
-const SlideGallery = observer(({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
-  // Store which image is currently shown
-  // Todo: This could be stored in the UiStore so that the image can be kept in focus when switching between view methods
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
 
-  const incrActiveImgIndex = useCallback(
-    () => setActiveImageIndex(Math.max(0, activeImageIndex - 1)),
-    [activeImageIndex]);
-  const decrActiveImgIndex = useCallback(
-    () => setActiveImageIndex(Math.min(activeImageIndex + 1, fileList.length - 1)),
-    [fileList.length, activeImageIndex]);
+  const incrImgIndex = useCallback(
+    () => uiStore.setFirstIndexInView(Math.max(0, uiStore.firstIndexInView - 1)),
+    [uiStore.firstIndexInView]);
+  const decrImgIndex = useCallback(
+    () => uiStore.setFirstIndexInView(Math.min(uiStore.firstIndexInView + 1, fileList.length - 1)),
+    [fileList.length, uiStore.firstIndexInView]);
 
   // Detect left/right arrow keys to scroll between images
   const handleUserKeyPress = useCallback((event) => {
     const { keyCode } = event;
     if (keyCode === 37) {
-      incrActiveImgIndex();
+      incrImgIndex();
     } else if (keyCode === 39) {
-      decrActiveImgIndex();
+      decrImgIndex();
     }
-  }, [incrActiveImgIndex, decrActiveImgIndex]);
+  }, [incrImgIndex, decrImgIndex]);
 
   // Detect scroll wheel to scroll between images
   const handleUserWheel = useCallback((event) => {
     const { deltaY } = event;
     event.preventDefault();
     if (deltaY > 0) {
-      decrActiveImgIndex();
+      decrImgIndex();
     } else if (deltaY < 0) {
-      incrActiveImgIndex();
+      incrImgIndex();
     }
-  }, [incrActiveImgIndex, decrActiveImgIndex]);
+  }, [incrImgIndex, decrImgIndex]);
 
   // Set up event listeners
   useEffect(() => {
@@ -196,24 +203,19 @@ const SlideGallery = observer(({ contentWidth, contentHeight, fileList, uiStore,
     };
   }, [handleUserKeyPress, handleUserWheel]);
 
-  // When the file list changes, reset active index
-  useEffect(() => {
-    setActiveImageIndex(0);
-  }, [fileList.length]);
-
   // Automatically select the active image, so it is shown in the inspector
   useEffect(() => {
-    if (activeImageIndex < fileList.length) {
+    if (uiStore.firstIndexInView < fileList.length) {
       uiStore.deselectAllFiles();
-      uiStore.selectFile(fileList[activeImageIndex]);
+      uiStore.selectFile(fileList[uiStore.firstIndexInView]);
     }
-  }, [activeImageIndex]);
+  }, [uiStore.firstIndexInView]);
 
-  if (activeImageIndex >= fileList.length) {
+  if (uiStore.firstIndexInView >= fileList.length) {
     return <p>No files available</p>;
   }
 
-  const file = fileList[activeImageIndex];
+  const file = fileList[uiStore.firstIndexInView];
 
   return (
     <GalleryItem

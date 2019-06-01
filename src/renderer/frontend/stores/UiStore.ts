@@ -85,8 +85,9 @@ class UiStore {
   @observable isToolbarFileRemoverOpen: boolean = false;
 
   // VIEW
-  // UI
   @observable viewMethod: ViewMethod = 'grid';
+  /** Index of the first item in the viewport */
+  @observable firstIndexInView: number = 0;
 
   // Content
   @observable fileOrder: keyof IFile = 'dateAdded';
@@ -225,6 +226,12 @@ class UiStore {
   }
   @action.bound viewSlide() {
     this.viewMethod = 'slide';
+  }
+
+  @action.bound setFirstIndexInView(index: number) {
+    if (isFinite(index)) {
+      this.firstIndexInView = index;
+    }
   }
 
   @action.bound toggleInspector() {
