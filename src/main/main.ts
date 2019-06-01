@@ -41,7 +41,7 @@ function createWindow() {
         { role: 'unhide' },
         { role: 'quit' },
       ],
-    })
+    });
   }
   menuBar.push({
     label: 'Edit',
@@ -114,7 +114,8 @@ function createPreviewWindow() {
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
-    title: 'Allusion Preview',
+    title: 'Allusion Quick View',
+    alwaysOnTop: true,
   });
   previewWindow.setMenuBarVisibility(false);
   previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
@@ -135,7 +136,7 @@ ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
       if (previewWindow) {
         previewWindow.webContents.send('receivePreviewFiles', fileIds);
       }
-    })
+    });
   } else {
     previewWindow.webContents.send('receivePreviewFiles', fileIds);
   }

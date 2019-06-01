@@ -27,7 +27,7 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
       if (e.keyCode === 32) {
         e.preventDefault();
       }
-    })
+    });
   }, []);
 
   if (!uiStore.isInitialized || showSplash) {

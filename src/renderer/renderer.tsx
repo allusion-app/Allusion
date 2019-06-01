@@ -20,6 +20,8 @@ import RootStore from './frontend/stores/RootStore';
 import PreviewApp from './frontend/components/Preview';
 import { ID } from './entities/ID';
 
+export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
+
 const params = new URLSearchParams(window.location.search.slice(1));
 const isPreviewWindow = params.get('preview') === 'true';
 
@@ -37,6 +39,24 @@ backend
 if (isPreviewWindow) {
   ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[]) => {
     rootStore.fileStore.fetchFilesByIDs(fileIds);
+  });
+  // Close preview with space
+  window.addEventListener('keydown', (e) => (e.code === 'Space' || e.code === 'Escape') && window.close());
+  // Change window title to filename on load
+  rootStore.fileStore.fileList.observe(({ object: list }) => {
+    if (list.length > 0) {
+      const file = list[0];
+      document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
+    }
+  });
+  // Change window title to filename when changing the selected file
+  rootStore.uiStore.fileSelection.observe(({ object: list }) => {
+    if (list.length > 0) {
+      const file = rootStore.fileStore.fileList.find((f) => f.id === list[0]);
+      if (file) {
+        document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
+      }
+    }
   });
 } else {
   ipcRenderer.on('closedPreviewWindow', () => {
