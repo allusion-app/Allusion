@@ -372,7 +372,8 @@ const Gallery = ({
     let icon: IconName | MaybeElement = 'search';
     let title = 'No images found';
     let description = 'Import some images to get started!';
-    let action = <Button onClick={uiStore.openOutlinerImport} text="Import" intent="primary" />;
+    let action =
+      <Button onClick={uiStore.openOutlinerImport} text="Open import panel" intent="primary" icon={IconSet.ADD} />;
     if (uiStore.viewContent === 'query') {
       description = 'Try searching for something else.';
       action = (

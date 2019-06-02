@@ -38,6 +38,7 @@ class FileStore {
     // The function caller is responsible for handling errors.
     await this.backend.createFile(fileData);
     this.fileList.push(file);
+    this.numUntaggedFiles++;
     return file;
   }
 
@@ -52,6 +53,9 @@ class FileStore {
         file.dispose();
         this.rootStore.uiStore.deselectFile(file);
         this.fileList.remove(file);
+        if (file.tags.length === 0) {
+          this.numUntaggedFiles--;
+        }
       });
       await this.backend.removeFiles(filesToRemove);
     } catch (err) {
@@ -81,7 +85,7 @@ class FileStore {
     }
   }
 
-  @action
+  @action.bound
   async fetchFilesByQuery() {
     // Todo: properly implement this later
     await this.fetchFilesByTagIDs(

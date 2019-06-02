@@ -4,7 +4,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import TagListItem, { DEFAULT_TAG_NAME } from './TagListItem';
 
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
-import { Tree, ITreeNode, Button, Icon, ButtonGroup } from '@blueprintjs/core';
+import { Tree, ITreeNode, Button, Icon, ButtonGroup, TreeEventHandler } from '@blueprintjs/core';
 import TagCollectionListItem from './TagCollectionListItem';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import TagCollectionStore from '../stores/TagCollectionStore';
@@ -182,6 +182,28 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     [],
   );
 
+  const handleNodeContextMenu: TreeEventHandler = useCallback(({ id }, nodePath, e) => {
+    // When clicking on a single tag...
+    const clickedTag = tagStore.tagList.find((t) => t.id === id);
+    if (clickedTag) {
+      if (!uiStore.tagSelection.includes(clickedTag.id)) {
+        uiStore.selectTags([clickedTag.id], true);
+      }
+    }
+
+    // When clicking on a collection
+    const clickedCollection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
+    if (clickedCollection) {
+      // Get all tags recursively that are in this collection
+      const getRecursiveTags = (col: ClientTagCollection): ID[] =>
+        [...col.tags, ...col.clientSubCollections.flatMap(getRecursiveTags)];
+
+      if (!clickedCollection.isSelected) {
+        uiStore.selectTags(getRecursiveTags(clickedCollection), true);
+      }
+    }
+  }, []);
+
   const root = tagCollectionStore.getRootCollection();
   // Todo: Not sure what the impact is of generating the hierarchy in each render on performance.
   // Usually the hierarchy is stored directly in the state, but we can't do that since it it managed by the TagCollectionStore.
@@ -210,7 +232,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       // TODO: Context menu from here instead of in the TagCollectionListItem
       // Then you can right-click anywhere instead of only on the label
       // https://github.com/palantir/blueprint/issues/3187
-      // onNodeContextMenu={}
+        onNodeContextMenu={handleNodeContextMenu}
       />
 
       <div id="system-tags">
