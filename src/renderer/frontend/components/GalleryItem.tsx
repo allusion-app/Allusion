@@ -174,6 +174,12 @@ IGalleryItemProps,
   }
 
   renderContextMenu() {
+    const { file, rootStore: { uiStore } } = this.props;
+    // If the selection does not contain this item, replace the selection with this item
+    if (!uiStore.fileSelection.includes(file.id)) {
+      this.props.rootStore.uiStore.selectFile(file, true);
+    }
+
     this.updateState({ isContextMenuOpen: true });
     return <GalleryItemContextMenu file={this.props.file} rootStore={this.props.rootStore} />;
   }
