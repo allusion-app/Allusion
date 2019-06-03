@@ -23,7 +23,8 @@ interface ITagCollectionListItemProps {
   onMoveTag: (movedTag: ID) => void;
   onMoveCollection: (movedCollection: ID) => void;
   hoverTimeToExpand?: number;
-  onSelectionToQuery: () => void;
+  onAddSelectionToQuery: () => void;
+  onReplaceQuery: () => void;
 }
 
 interface IDropProps {
@@ -156,10 +157,12 @@ interface ITagCollectionContextMenu {
   onExpandAll: () => void;
   onCollapseAll: () => void;
   onRemove?: () => void;
-  onSelectionToQuery: () => void;
+  onAddSelectionToQuery: () => void;
+  onReplaceQuery: () => void;
 }
 const TagCollectionListItemContextMenu = ({
-  collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove, onSelectionToQuery,
+  collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
+  onAddSelectionToQuery, onReplaceQuery,
 }: ITagCollectionContextMenu) => {
   // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
   const handleChangeColor = () => console.log('Change color');
@@ -207,7 +210,8 @@ const TagCollectionListItemContextMenu = ({
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
       <MenuItem onClick={onProperties} text="Properties" icon={IconSet.META_INFO} disabled />
       <Divider />
-      <MenuItem onClick={onSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
+      <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
+      <MenuItem onClick={onReplaceQuery} text="Replace search query" icon="blank" />
     </Menu>
   );
 };
@@ -281,7 +285,8 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
         onExpandAll={this.props.onExpandAll}
         onCollapseAll={this.props.onCollapseAll}
         onRemove={this.handleRemove}
-        onSelectionToQuery={this.props.onSelectionToQuery}
+        onAddSelectionToQuery={this.props.onAddSelectionToQuery}
+        onReplaceQuery={this.props.onReplaceQuery}
       />
     );
   }

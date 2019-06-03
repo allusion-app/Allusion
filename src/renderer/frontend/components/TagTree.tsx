@@ -76,7 +76,8 @@ const createTagCollectionTreeNode = (
           });
         }
       }}
-      onSelectionToQuery={store.rootStore.uiStore.tagSelectionToQuery}
+      onAddSelectionToQuery={store.rootStore.uiStore.addTagSelectionToQuery}
+      onReplaceQuery={store.rootStore.uiStore.replaceQueryWithSelection}
     />
   );
 
@@ -105,7 +106,8 @@ const createTagCollectionTreeNode = (
             // Insert the moved tag to the position of the current tag where it was dropped
             col.tags.splice(insertionIndex, 0, movedTagId);
           }}
-          onSelectionToQuery={store.rootStore.uiStore.tagSelectionToQuery}
+          onAddSelectionToQuery={store.rootStore.uiStore.addTagSelectionToQuery}
+          onReplaceQuery={store.rootStore.uiStore.replaceQueryWithSelection}
         />
       ),
     })),

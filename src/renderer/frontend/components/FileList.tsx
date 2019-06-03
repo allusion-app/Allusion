@@ -22,8 +22,11 @@ const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProp
   );
 
   // Todo: Implement this properly later
-  const queriedTags = uiStore.searchQueryList
-    .flatMap((q) => (q as ITagSearchQuery).value);
+  const queriedTags = Array.from(
+    new Set(uiStore.searchQueryList
+      .flatMap((q) => (q as ITagSearchQuery).value)
+    ),
+  );
 
   return (
     <div className="gallery">

@@ -140,7 +140,10 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
-  @action selectFile(file: ClientFile) {
+  @action selectFile(file: ClientFile, clear?: boolean) {
+    if (clear) {
+      this.fileSelection.clear();
+    }
     this.fileSelection.push(file.id);
   }
 
@@ -236,12 +239,17 @@ class UiStore {
     this.cleanFileSelection();
   }
 
-  @action.bound tagSelectionToQuery() {
+  @action.bound addTagSelectionToQuery() {
     this.addSearchQuery({
       action: 'include',
       operator: 'or',
       value: this.tagSelection.toJS(),
     } as ITagSearchQuery);
+  }
+
+  @action.bound replaceQueryWithSelection() {
+    this.searchQueryList.clear();
+    this.addTagSelectionToQuery();
   }
 
   /////////////////// UI Actions ///////////////////

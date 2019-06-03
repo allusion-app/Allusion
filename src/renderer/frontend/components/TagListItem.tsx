@@ -119,7 +119,8 @@ interface ITagListItemProps {
   onRemove: () => void;
   onRename: (name: string) => void;
   onMoveTag: (movedTag: ID) => void;
-  onSelectionToQuery: () => void;
+  onAddSelectionToQuery: () => void;
+  onReplaceQuery: () => void;
 }
 
 interface IEditingProps {
@@ -228,7 +229,8 @@ const DraggableTagListItem = DropTarget<
 const TagListItemContextMenu = (
   setEditing: (value: boolean) => void,
   onRemove: () => void,
-  onSelectionToQuery: () => void,
+  onAddSelectionToQuery: () => void,
+  onReplaceQuery: () => void,
 ) => {
   const handleRename = () => {
     setEditing(true);
@@ -246,7 +248,8 @@ const TagListItemContextMenu = (
       <MenuItem onClick={onRemove} text="Delete" icon={IconSet.DELETE} />
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
       <Divider />
-      <MenuItem onClick={onSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
+      <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
+      <MenuItem onClick={onReplaceQuery} text="Replace search query" icon="blank" />
     </Menu>
   );
 };
@@ -291,7 +294,9 @@ class TagListItemWithContextMenu extends React.PureComponent<
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
-    return TagListItemContextMenu(this.setEditing, this.props.onRemove, this.props.onSelectionToQuery);
+    return TagListItemContextMenu(
+      this.setEditing, this.props.onRemove, this.props.onAddSelectionToQuery, this.props.onReplaceQuery,
+    );
   }
 
   onContextMenuClose = () => {
