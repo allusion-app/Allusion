@@ -15,6 +15,7 @@ import UiStore, { ViewMethod } from '../stores/UiStore';
 import { ClientFile } from '../../entities/File';
 import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
+import { throttle } from '../utils';
 
 const cellSize = 260; // Should be same as CSS variable $thumbnail-size + padding
 
@@ -356,12 +357,13 @@ const Gallery = ({
         uiStore.selectFile(fileList[newIndex]);
         initialSelectionIndex.current = newIndex;
         lastSelectionIndex.current = newIndex;
-        // Todo: Would be nice to scroll automatically to selected image
       }
     };
 
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    const throttledKeyDown = throttle(onKeyDown, 50);
+
+    window.addEventListener('keydown', throttledKeyDown);
+    return () => window.removeEventListener('keydown', throttledKeyDown);
   }, []);
 
   // Todo: Select by dragging a rectangle shape
