@@ -7,6 +7,7 @@ import RootStore from '../stores/RootStore';
 import { withRootstore } from '../contexts/StoreContext';
 import FileInfo from './FileInfo';
 import FileTag from './FileTag';
+import { shell } from 'electron';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
@@ -30,7 +31,13 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
   } else if (selectedFiles.length === 1) {
     const singleFile = selectedFiles[0];
     const ext = singleFile.path.substr(singleFile.path.lastIndexOf('.') + 1).toUpperCase();
-    selectionPreview = <img src={singleFile.path} />;
+    selectionPreview = (
+      <img
+        src={singleFile.path}
+        style={{ cursor: 'zoom-in' }}
+        onClick={() => shell.openItem(singleFile.path)}
+      />
+    );
     headerText = path.basename(singleFile.path);
     headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.path).size)}`;
   } else {
