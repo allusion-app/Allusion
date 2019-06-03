@@ -63,6 +63,12 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Opens the settings tab in right sidebar"
           onKeyDown={uiStore.toggleSettings}
         />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.replaceQuery}
+          label="Replaces the search query with the selected tags"
+          onKeyDown={uiStore.replaceQueryWithSelection}
+        />
 
         {/* Toolbar actions */}
         <Hotkey

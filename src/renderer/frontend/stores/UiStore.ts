@@ -12,6 +12,7 @@ interface IHotkeyMap {
   openOutlinerImport: string;
   openOutlinerTags: string;
   openOutlinerSearch: string;
+  replaceQuery: string;
 
   // Inspector actions
   toggleInspector: string;
@@ -34,6 +35,7 @@ const defaultHotkeyMap: IHotkeyMap = {
   openOutlinerImport: 'shift + 1',
   openOutlinerTags: 'shift + 2',
   openOutlinerSearch: 'shift + 3',
+  replaceQuery: 'r',
   openTagSelector: 't',
   toggleSettings: 's',
   deleteSelectedFiles: 'del',
@@ -166,7 +168,10 @@ class UiStore {
     this.fileSelection.clear();
   }
 
-  @action selectTag(tag: ClientTag) {
+  @action selectTag(tag: ClientTag, clear?: boolean) {
+    if (clear) {
+      this.tagSelection.clear();
+    }
     this.tagSelection.push(tag.id);
   }
 
