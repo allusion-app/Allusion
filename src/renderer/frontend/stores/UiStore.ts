@@ -224,11 +224,9 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
-  @action.bound clearSearchQueryList() {
+  @action.bound async clearSearchQueryList() {
     this.searchQueryList.clear();
-    // Todo: Refetch
-
-    this.cleanFileSelection();
+    await this.viewContentAll();
   }
 
   @action.bound async addSearchQuery(query: ISearchQuery) {

@@ -22,6 +22,7 @@ import {
   MenuItem,
   Divider,
 } from '@blueprintjs/core';
+
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
 
@@ -121,6 +122,8 @@ interface ITagListItemProps {
   onMoveTag: (movedTag: ID) => void;
   onAddSelectionToQuery: () => void;
   onReplaceQuery: () => void;
+  onSelect: (tagId: ID, clear?: boolean) => void;
+  isSelected: boolean;
 }
 
 interface IEditingProps {
@@ -200,7 +203,14 @@ const collectDropTarget = (connect: DropTargetConnector, monitor: DropTargetMoni
 
 /** This handles what the drag-and-drop target receives when dropping the element */
 const dragSource = {
-  beginDrag: (props: ITagListItemProps) => ({ name: props.name, id: props.id }),
+  beginDrag: (props: ITagListItemProps) => {
+    // If the item is not selected, make it the only selected item
+    if (!props.isSelected) {
+      props.onSelect(props.id, true);
+    }
+
+    return ({ name: props.name, id: props.id });
+  },
 };
 const collectDragSource = (connect: DragSourceConnector, monitor: DragSourceMonitor): IDragProps => ({
   connectDragSource: connect.dragSource(),

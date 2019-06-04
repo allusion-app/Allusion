@@ -31,6 +31,7 @@ const createTagCollectionTreeNode = (
   store: TagCollectionStore,
   setExpandState: (state: IExpandState) => void,
 ): ITreeNode => {
+  const { uiStore } = store.rootStore;
 
   const label = (
     <TagCollectionListItem
@@ -60,14 +61,14 @@ const createTagCollectionTreeNode = (
       onMoveTag={(id) => {
         const movedCollectionParent = store.tagCollectionList.find((c) => c.tags.includes(id));
         if (movedCollectionParent) {
-          // movedCollectionParent.removeTag(id);
-          // col.addTag(id);
 
-          // TODO: Dragging an unselected item should make that the only selected one
-          // Then, instead of moving only this tag, we can move all selected tags (or collections)
+          // instead of moving only this tag, we can move all selected tags (or collections)
+          // Done for dragging tag into collection.
+          // TODO: for dragging to other position
+          // TODO: for dragging collection(s)
+          // Todo: Disable select on rmb, only highlight it - keep the original selection (?)
 
-          // Something like this.
-          store.rootStore.uiStore.tagSelection.forEach((t) => {
+          uiStore.tagSelection.forEach((t) => {
             const tag = store.rootStore.tagStore.tagList.find((cTag) => cTag.id === t);
             if (tag) {
               tag.parent.removeTag(t);
@@ -87,7 +88,7 @@ const createTagCollectionTreeNode = (
     ...col.clientTags.map((tag): ITreeNode => ({
       id: tag.id,
       icon: IconSet.TAG,
-      isSelected: store.rootStore.uiStore.tagSelection.includes(tag.id),
+      isSelected: uiStore.tagSelection.includes(tag.id),
       label: (
         <TagListItem
           name={tag.name}
@@ -106,8 +107,10 @@ const createTagCollectionTreeNode = (
             // Insert the moved tag to the position of the current tag where it was dropped
             col.tags.splice(insertionIndex, 0, movedTagId);
           }}
-          onAddSelectionToQuery={store.rootStore.uiStore.addTagSelectionToQuery}
-          onReplaceQuery={store.rootStore.uiStore.replaceQueryWithSelection}
+          onAddSelectionToQuery={uiStore.addTagSelectionToQuery}
+          onReplaceQuery={uiStore.replaceQueryWithSelection}
+          isSelected={uiStore.tagSelection.includes(tag.id)}
+          onSelect={(_, clear) => uiStore.selectTag(tag, clear)}
         />
       ),
     })),
