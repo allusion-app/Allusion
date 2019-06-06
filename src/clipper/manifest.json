@@ -1,0 +1,21 @@
+{
+  "background": {
+    "persistent": false,
+    "scripts": ["background.js"]
+  },
+
+  "manifest_version": 2,
+  "name": "Allusion Clipper",
+  "version": "0.0.1",
+
+  "description": "Clipper for Allusion - Your Visual Library",
+  "icons": {
+    "32": "favicon_32x32.png"
+  },
+
+  "permissions": [
+    "contextMenus",
+    "http://localhost:5454/*",
+    "<all_urls>"
+  ]
+}

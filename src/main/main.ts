@@ -1,7 +1,10 @@
 import { app, BrowserWindow, Menu } from 'electron';
+import SysPath from 'path';
+import fse from 'fs-extra';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
+import { setupServer } from './clipServer';
 
 let mainWindow: BrowserWindow | null;
 
@@ -100,3 +103,28 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+// Todo: Only launch when user presses a button. Else it will show a popup on startup
+setupServer(
+  async (filename: string, tags: string[], imgBase64: string) => {
+    const downloadDir = SysPath.join(__dirname, '..', 'download');
+    const downloadPath = SysPath.join(downloadDir, filename); // todo: sanitize filename
+
+    console.log('writing to', downloadPath);
+
+    // Todo: Check not to overwrite existing files
+    try {
+      const rawData = imgBase64.substr(imgBase64.indexOf(',') + 1); // remove base64 header
+      await fse.mkdirs(downloadDir);
+      await fse.writeFile(downloadPath, rawData, 'base64');
+    } catch (e) {
+      console.error(e);
+    }
+
+    console.log('done');
+
+    // Todo: notify renderer
+    // Some foundation for communication was already made in the preview-window branch
+  },
+  async () => ['banana', 'apple'],
+);
