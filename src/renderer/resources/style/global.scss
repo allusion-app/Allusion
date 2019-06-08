@@ -286,6 +286,10 @@ main {
 .error-boundary {
   grid-area: main;
 
+  .bp3-non-ideal-state > * {
+    max-width: 500px;
+  }
+
   .message {
     text-align: left;
     width: 800px;
@@ -298,7 +302,6 @@ main {
   fill: currentColor;
 }
 
-.hidden {
-  opacity: 0;
-  height: 0px;
+.fillWidth {
+  width: 100%;
 }

@@ -32,6 +32,10 @@ export const dbInit = (configs: IDBVersioningConfig[], dbName: string) => {
   return db;
 };
 
+export const dbDelete = (dbName: string) => {
+  Dexie.delete(dbName);
+};
+
 export interface IDbRequest<T> {
   count?: number;
   order?: keyof T;
