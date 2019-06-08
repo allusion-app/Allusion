@@ -16,6 +16,7 @@ import App from './frontend/App';
 import StoreContext from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
 import { DragDropContextProvider } from 'react-dnd';
+import { ipcRenderer } from 'electron';
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
@@ -38,3 +39,7 @@ ReactDOM.render(
   </DragDropContextProvider>,
   document.getElementById('app'),
 );
+
+ipcRenderer.on('importExternalImage', (e: any, path: string, tags?: string[]) => {
+  rootStore.fileStore.addFile(path);
+});

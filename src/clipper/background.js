@@ -10,17 +10,39 @@ async function importImage(filename, url) {
   // Note: Google extensions don't work with promises, so we'll have to put up with callbacks
   const imgData = await imageAsBase64(url);
   
-  await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      filename,
-      url,
-      imgBase64: imgData,
-    }),
-  });
+  try {
+    await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filename,
+        url,
+        imgBase64: imgData,
+      }),
+    });
+
+    // Todo: Maybe no notification when it works as intended?
+    chrome.notifications.create(null, {
+      type: 'basic',
+      iconUrl: 'favicon_32x32.png',
+      title: 'Allusion Clipper',
+      message: 'Image imported successfully!'
+    });
+
+    // Todo: Show popup to add tags
+  } catch (e) {
+    console.error(e);
+
+    chrome.notifications.create(null, {
+      type: 'basic',
+      iconUrl: 'favicon_32x32.png',
+      title: 'Allusion Clipper',
+      message: 'Could not import image. Is Allusion running?',
+      buttons: [{ title: 'Retry' }],
+    });
+  }
 }
 
 function imageAsBase64(url) {
@@ -35,10 +57,15 @@ function imageAsBase64(url) {
   })
 }
 
+async function fetchTags() {
+  const tags = await fetch(`${apiUrl}/tags`);
+}
+
 ////////////////////////////////
-// Context menu /// ////////////
+// Context menu ////////////////
 ////////////////////////////////
 function setupContextMenus() {
+  // Todo: Disable context menu (or change text) when allusion is not open
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       title: 'Add to Allusion',
@@ -49,6 +76,7 @@ function setupContextMenus() {
   });
 }
 
+// Initialize
 chrome.runtime.onInstalled.addListener(() => {
   setupContextMenus();
 });
@@ -62,4 +90,8 @@ chrome.contextMenus.onClicked.addListener((props, tab) => {
   importImage(filename, srcUrl);
 
   // Otherwise: https://stackoverflow.com/questions/7703697/how-to-retrieve-the-element-where-a-contextmenu-has-been-executed
+});
+
+chrome.notifications.onButtonClicked((id, buttonIndex) => {
+  // Todo: retry importing image
 });
