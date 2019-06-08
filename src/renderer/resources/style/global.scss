@@ -297,3 +297,8 @@ main {
 .custom-icon * {
   fill: currentColor;
 }
+
+.hidden {
+  opacity: 0;
+  height: 0px;
+}

@@ -372,7 +372,7 @@ const Gallery = ({
 
   if (fileList.length === 0) {
     let icon: IconName | MaybeElement = 'search';
-    let title = 'No images found';
+    const title = 'No images found';
     let description = 'Import some images to get started!';
     let action =
       <Button onClick={uiStore.openOutlinerImport} text="Open import panel" intent="primary" icon={IconSet.ADD} />;
@@ -403,7 +403,7 @@ const Gallery = ({
         description={description}
         action={action}
       />
-    )
+    );
   }
 
   return (

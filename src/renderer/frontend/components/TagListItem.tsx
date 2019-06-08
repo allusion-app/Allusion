@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   DragSource,
@@ -10,6 +10,7 @@ import {
   ConnectDropTarget,
   DropTargetConnector,
   DropTargetMonitor,
+  ConnectDragPreview,
 } from 'react-dnd';
 import {
   // Button,
@@ -25,6 +26,7 @@ import {
 
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 
 export const TAG_DRAG_TYPE = 'tag';
 export const DEFAULT_TAG_NAME = 'New tag';
@@ -138,6 +140,7 @@ interface IDropProps {
 
 interface IDragProps {
   connectDragSource: ConnectDragSource;
+  connectDragPreview: ConnectDragPreview;
   isDragging: boolean;
 }
 
@@ -150,9 +153,13 @@ export const TagListItem = ({
   onRename,
   connectDragSource,
   connectDropTarget,
+  connectDragPreview,
   isDragging,
   isHovering,
 }: ITagListItemProps & IEditingProps & IDragProps & IDropProps) => {
+  // Hide preview, since a custom preview is created in DragLayer
+  useEffect(() => { connectDragPreview(getEmptyImage()); }, []);
+
   // Style whether the element is being dragged or hovered over to drop on
   const className = `${isHovering ? 'reorder-target' : ''} ${isDragging ? 'reorder-source' : ''}`;
   return connectDropTarget(
@@ -214,6 +221,7 @@ const dragSource = {
 };
 const collectDragSource = (connect: DragSourceConnector, monitor: DragSourceMonitor): IDragProps => ({
   connectDragSource: connect.dragSource(),
+  connectDragPreview: connect.dragPreview(),
   isDragging: monitor.isDragging(),
 });
 

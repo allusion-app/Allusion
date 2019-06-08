@@ -2,7 +2,7 @@ export function debounce<F extends (...args: any) => any>(func: F, wait: number 
   let timeoutID: number;
 
   if (!Number.isInteger(wait)) {
-    console.log(' Called debounce without a valid number' )
+    console.log(' Called debounce with an invalid number');
     wait = 300;
   }
 

@@ -46,7 +46,7 @@ const TagCollectionListItem = ({
   connectDragSource,
   onExpand,
   canDrop,
-  hoverTimeToExpand = 400,
+  hoverTimeToExpand = 1000,
 }: ITagCollectionListItemProps & IDropProps & IDragProps) => {
   // When hovering over a collection for some time, automatically expand it
   const [expandTimeout, setExpandTimeout] = useState(0);

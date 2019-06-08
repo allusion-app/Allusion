@@ -24,7 +24,7 @@ const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProp
   // Todo: Implement this properly later
   const queriedTags = Array.from(
     new Set(uiStore.searchQueryList
-      .flatMap((q) => (q as ITagSearchQuery).value)
+      .flatMap((q) => (q as ITagSearchQuery).value),
     ),
   );
 
