@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
+import DropOverlay from './components/DropOverlay';
 
 const SPLASH_SCREEN_TIME = 700;
 
@@ -30,23 +31,25 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    <div id="layoutContainer" className={`${themeClass}`}>
-      <ErrorBoundary>
-        <GlobalHotkeys>
-          <Toolbar />
+    <DropOverlay>
+      <div id="layoutContainer" className={`${themeClass}`}>
+        <ErrorBoundary>
+          <GlobalHotkeys>
+              <Toolbar />
 
-          <Outliner />
+              <Outliner />
 
-          <main>
-            <FileList />
-          </main>
+              <main>
+                <FileList />
+              </main>
 
-          <Inspector />
+              <Inspector />
 
-          <Settings />
-        </GlobalHotkeys>
-      </ErrorBoundary>
-    </div>
+              <Settings />
+          </GlobalHotkeys>
+        </ErrorBoundary>
+      </div>
+    </DropOverlay>
   );
 };
 

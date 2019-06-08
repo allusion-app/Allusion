@@ -297,3 +297,11 @@ main {
 .custom-icon * {
   fill: currentColor;
 }
+
+.drop-overlay-content {
+  top: 0;
+  left: calc(50vw - 200px);
+  margin: 10vh 0;
+  width: 400px;
+  position: absolute;
+}

@@ -12,9 +12,11 @@ import { ClientTagCollection } from '../../entities/TagCollection';
 import TagStore from '../stores/TagStore';
 import IconSet from './Icons';
 
+export const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
+
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialog({
-    filters: [{ name: 'Images', extensions: ['gif', 'png', 'jpg', 'jpeg'] }],
+    filters: [{ name: 'Images', extensions: imgExtensions }],
     properties: ['openFile', 'multiSelections'],
   });
 
@@ -134,7 +136,6 @@ const findFiles = async (dir: string) => {
     return [];
   }
 
-  const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
 
   const filenames = await fse.readdir(dir);
   return filenames.filter((f) => {
