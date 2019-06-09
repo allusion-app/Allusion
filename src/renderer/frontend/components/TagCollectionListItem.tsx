@@ -22,6 +22,8 @@ interface ITagCollectionListItemProps {
   onCollapseAll: () => void;
   onMoveTag: (movedTag: ID) => void;
   onMoveCollection: (movedCollection: ID) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
   hoverTimeToExpand?: number;
   onAddSelectionToQuery: () => void;
   onReplaceQuery: () => void;
@@ -159,15 +161,13 @@ interface ITagCollectionContextMenu {
   onRemove?: () => void;
   onAddSelectionToQuery: () => void;
   onReplaceQuery: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }
 const TagCollectionListItemContextMenu = ({
   collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
-  onAddSelectionToQuery, onReplaceQuery,
+  onAddSelectionToQuery, onReplaceQuery, onMoveUp, onMoveDown,
 }: ITagCollectionContextMenu) => {
-  // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
-  const handleChangeColor = () => console.log('Change color');
-  const onProperties = () => console.log('Show properties');
-
   // TODO: This is isn't being used atm, but it was intended for an alert dialog which we can finish later
   const [isRemoveAlertOpen, setRemoveAlertOpen] = useState(false);
   // const handleOpenRemoveAlert = useCallback(() => setRemoveAlertOpen(true), []);
@@ -207,8 +207,8 @@ const TagCollectionListItemContextMenu = ({
       <MenuItem onClick={onExpandAll} text="Expand all" icon="expand-all" />
       <MenuItem onClick={onCollapseAll} text="Collapse all" icon="collapse-all" />
       <Divider />
-      <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
-      <MenuItem onClick={onProperties} text="Properties" icon={IconSet.META_INFO} disabled />
+      <MenuItem onClick={onMoveUp} text="Move up" icon="arrow-up" />
+      <MenuItem onClick={onMoveDown} text="Move down" icon="arrow-down" />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
       <MenuItem onClick={onReplaceQuery} text="Replace search query" icon="blank" />
@@ -287,6 +287,8 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
         onRemove={this.handleRemove}
         onAddSelectionToQuery={this.props.onAddSelectionToQuery}
         onReplaceQuery={this.props.onReplaceQuery}
+        onMoveUp={this.props.onMoveUp}
+        onMoveDown={this.props.onMoveDown}
       />
     );
   }

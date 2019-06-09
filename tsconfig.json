@@ -15,5 +15,6 @@
   "include": [
     "src/**/*",
     "custom.d.ts",
+    "types/*.d.ts"
   ]
 }

@@ -58,6 +58,25 @@ const createTagCollectionTreeNode = (
           col.subCollections.push(id);
         }
       }}
+      onMoveUp={() => {
+        // Move collection one position up
+        const movedCollectionParent = store.tagCollectionList.find((c) => c.subCollections.includes(col.id));
+        if (movedCollectionParent) {
+          const oldIndex = movedCollectionParent.subCollections.indexOf(col.id);
+          movedCollectionParent.subCollections.remove(col.id);
+          movedCollectionParent.subCollections.splice(Math.max(0, oldIndex - 1), 0, col.id);
+        }
+      }}
+      onMoveDown={() => {
+        // Move collection one position down
+        const movedCollectionParent = store.tagCollectionList.find((c) => c.subCollections.includes(col.id));
+        if (movedCollectionParent) {
+          const oldIndex = movedCollectionParent.subCollections.indexOf(col.id);
+          movedCollectionParent.subCollections.remove(col.id);
+          movedCollectionParent.subCollections.splice(
+            Math.min(movedCollectionParent.subCollections.length, oldIndex + 1), 0, col.id);
+        }
+      }}
       onMoveTag={(id) => {
         const movedCollectionParent = store.tagCollectionList.find((c) => c.tags.includes(id));
         if (movedCollectionParent) {
