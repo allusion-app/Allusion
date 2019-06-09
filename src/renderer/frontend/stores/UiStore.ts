@@ -103,6 +103,7 @@ class UiStore {
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
+  @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
 
   // VIEW
   @observable viewMethod: ViewMethod = 'grid';
@@ -221,6 +222,26 @@ class UiStore {
   @action.bound setFileOrderDescending(descending: boolean) {
     this.fileOrderDescending = descending;
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
+  }
+
+  @action.bound async removeSelectedTagsAndCollections() {
+    const { tagStore, tagCollectionStore } = this.rootStore;
+    // Remove tag collections
+    const allCollectionIds = tagCollectionStore.tagCollectionList.map((c) => c.id);
+    for (const colId of allCollectionIds) {
+      const selectedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === colId);
+      if (selectedCol && selectedCol.isSelected) {
+        await tagCollectionStore.removeTagCollection(selectedCol);
+      }
+    }
+    // Remove left over tags (if any)
+    const selectedTagIds = this.tagSelection.toJS();
+    for (const tagId of selectedTagIds) {
+      const selectedTag = tagStore.tagList.find((t) => t.id === tagId);
+      if (selectedTag) {
+        await tagStore.removeTag(selectedTag);
+      }
+    }
   }
 
   /////////////////// Search Actions ///////////////////
@@ -342,6 +363,13 @@ class UiStore {
   }
   @action.bound closeToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = false;
+  }
+
+  @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
+    this.isOutlinerTagRemoverOpen = val || 'selected';
+  }
+  @action.bound closeOutlinerTagRemover() {
+    this.isOutlinerTagRemoverOpen = null;
   }
 
   @action.bound toggleDevtools() {

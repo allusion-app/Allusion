@@ -1,16 +1,18 @@
 import { observer, useComputed } from 'mobx-react-lite';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useContext } from 'react';
 
 import TagListItem, { DEFAULT_TAG_NAME, TAG_DRAG_TYPE } from './TagListItem';
 
-import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
-import { Tree, ITreeNode, Button, Icon, ButtonGroup, H4 } from '@blueprintjs/core';
+import StoreContext, { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
+import { Tree, ITreeNode, Button, Icon, ButtonGroup, H4, Alert, Classes, Tag } from '@blueprintjs/core';
 import TagCollectionListItem, { DEFAULT_COLLECTION_NAME, COLLECTION_DRAG_TYPE } from './TagCollectionListItem';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import { ClientTagCollection } from '../../entities/TagCollection';
 import TagCollectionStore from '../stores/TagCollectionStore';
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
 import { useDrop } from 'react-dnd/lib/cjs/hooks';
+import { ClientTag } from '../../entities/Tag';
+import RootStore from '../stores/RootStore';
 
 interface IExpandState {
   [key: string]: boolean;
@@ -37,8 +39,7 @@ const createTagCollectionTreeNode = (
   const label = (
     <TagCollectionListItem
       tagCollection={col}
-      // Disable deleting the root hierarchy
-      onRemove={col.id === ROOT_TAG_COLLECTION_ID ? undefined : () => store.removeTagCollection(col)}
+      onRemove={() => store.rootStore.uiStore.openOutlinerTagRemover(col.isSelected ? 'selected' : col.id)}
       onAddTag={() => {
         store.rootStore.tagStore.addTag(DEFAULT_TAG_NAME)
           .then((tag) => col.addTag(tag.id))
@@ -114,7 +115,7 @@ const createTagCollectionTreeNode = (
           name={tag.name}
           id={tag.id}
           dateAdded={tag.dateAdded}
-          onRemove={() => store.rootStore.tagStore.removeTag(tag)}
+          onRemove={() => store.rootStore.uiStore.openOutlinerTagRemover(tag.isSelected ? 'selected' : tag.id)}
           onRename={(name) => { tag.name = name; }}
           onMoveTag={(movedTagId) => {
             // Find original collection
@@ -146,6 +147,104 @@ const createTagCollectionTreeNode = (
     childNodes,
   };
 };
+
+const TagRemoverContent = ({ rootStore }: { rootStore: RootStore }) => {
+  const { uiStore, tagStore, tagCollectionStore } = rootStore;
+  const [removeType, setRemoveType] = useState<'tag' | 'collection'>();
+  const [tagsToRemove, setTagsToRemove] = useState<ClientTag[]>([]);
+  const [colToRemove, setColToRemove] = useState<ClientTagCollection>();
+
+  useEffect(() => {
+    // Check whether to remove selected tags or a specific tag or collection
+    if (uiStore.isOutlinerTagRemoverOpen === 'selected') {
+      setRemoveType('tag');
+      setTagsToRemove(uiStore.clientTagSelection);
+    } else if (uiStore.isOutlinerTagRemoverOpen) {
+      const id = uiStore.isOutlinerTagRemoverOpen;
+      const remTag = tagStore.tagList.find((t) => t.id === id);
+      if (remTag) {
+        setRemoveType('tag');
+        setTagsToRemove([remTag]);
+      } else {
+        const remCol = remTag ? undefined : tagCollectionStore.tagCollectionList.find((c) => c.id === id);
+        if (remCol) {
+          setRemoveType('collection');
+          setColToRemove(remCol);
+          setTagsToRemove(remCol.getTagsRecursively()
+            .map((tId) => tagStore.tagList.find((t) => t.id === tId) as ClientTag));
+        }
+      }
+    }
+  }, []);
+
+  const tagsToRemoveOverview = (
+    <div id="tag-remove-overview">
+      {tagsToRemove.map((tag) => (
+        <span key={tag.id}>
+          <Tag intent="primary">{tag.name}</Tag>
+          {' '}
+        </span>
+      ))}
+    </div>
+  );
+
+  if (removeType === 'tag') {
+    return (<>
+      <p>Are you sure you want to permanently delete {tagsToRemove.length > 0 ? 'these tags' : 'this tag'}?</p>
+      {tagsToRemoveOverview}
+    </>);
+  } else if (removeType === 'collection' && colToRemove) {
+    return (<>
+      <p>
+        Are you sure you want to permanently delete the collection '{colToRemove.name}'?
+        <br />
+        {tagsToRemove.length > 0 && 'It contains these tags:'}
+      </p>
+      {tagsToRemoveOverview}
+    </>);
+  }
+  return <span>...</span>;
+};
+
+const TagRemover = observer(() => {
+  const rootStore = useContext(StoreContext);
+  const { uiStore, tagStore, tagCollectionStore } = rootStore;
+
+  const handleConfirm = useCallback(async () => {
+    console.log(uiStore.isOutlinerTagRemoverOpen);
+    if (uiStore.isOutlinerTagRemoverOpen === 'selected') {
+      await uiStore.removeSelectedTagsAndCollections();
+    } else if (uiStore.isOutlinerTagRemoverOpen) {
+      const id = uiStore.isOutlinerTagRemoverOpen;
+      const remTag = tagStore.tagList.find((t) => t.id === id);
+      if (remTag) {
+        await tagStore.removeTag(remTag);
+      } else {
+        const remCol = remTag ? undefined : tagCollectionStore.tagCollectionList.find((c) => c.id === id);
+        if (remCol) {
+          await tagCollectionStore.removeTagCollection(remCol);
+        }
+      }
+    }
+    uiStore.closeOutlinerTagRemover();
+  }, [uiStore.isOutlinerTagRemoverOpen]);
+
+  return (
+    <Alert
+      isOpen={uiStore.isOutlinerTagRemoverOpen !== null}
+      cancelButtonText="Cancel"
+      confirmButtonText="Delete"
+      icon="trash"
+      intent="danger"
+      onCancel={uiStore.closeOutlinerTagRemover}
+      // Todo: remove selection only when rmb on selection
+      onConfirm={handleConfirm}
+      className={Classes.DARK}
+    >
+      <TagRemoverContent rootStore={rootStore} />
+    </Alert>
+  );
+});
 
 export interface ITagListProps extends IRootStoreProp { }
 
@@ -196,9 +295,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       const clickedCollection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
       if (clickedCollection) {
         // Get all tags recursively that are in this collection
-        const getRecursiveTags = (col: ClientTagCollection): ID[] =>
-          [...col.tags, ...col.clientSubCollections.flatMap(getRecursiveTags)];
-        clickSelection.push(...getRecursiveTags(clickedCollection));
+        clickSelection.push(...clickedCollection.getTagsRecursively());
 
         isClickSelectionSelected = clickedCollection.isSelected;
       }
@@ -261,11 +358,11 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
   }, []);
 
   // Allow dropping tags on header and background to move them to the root of the hierarchy
-  const [headerCollectedProps, headerDrop] = useDrop({
+  const [, headerDrop] = useDrop({
     accept: [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
     drop: ({ id }: any) => moveToRoot(id),
   });
-  const [footerCollectedProps, footerDrop] = useDrop({
+  const [, footerDrop] = useDrop({
     accept: [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
     drop: ({ id }: any) => moveToRoot(id, true),
   });
@@ -302,13 +399,6 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
             onClick={uiStore.viewContentAll}
             active={uiStore.viewContent === 'all'}
           />
-          {/* <Button
-            text="Searched images"
-            icon={IconSet.SEARCH}
-            rightIcon={uiStore.viewContent === 'query' ? <Icon intent="primary" icon="eye-open" /> : null}
-            onClick={uiStore.viewContentQuery}
-            active={uiStore.viewContent === 'query'}
-          /> */}
           <Button
             text={`Untagged (${fileStore.numUntaggedFiles})`}
             icon={IconSet.TAG_BLANCO}
@@ -326,6 +416,8 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
           />
         </ButtonGroup>
       </div>
+
+      <TagRemover />
     </>
   );
 };

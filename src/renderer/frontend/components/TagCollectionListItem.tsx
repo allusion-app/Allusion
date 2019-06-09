@@ -71,7 +71,11 @@ const TagCollectionListItem = ({
   const className = `${
     canDrop && !isDragging && isHovering ? 'reorder-target' : ''} ${isDragging ? 'reorder-source' : ''}`;
   return connectDropTarget(
-    connectDragSource(<div className={className}>{tagCollection.name}</div>),
+    connectDragSource(
+      <div className={className}>
+        {tagCollection.name}
+        {tagCollection.tags.length === 0 && tagCollection.subCollections.length === 0 && <i> (empty)</i>}
+      </div>),
   );
 };
 

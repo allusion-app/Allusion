@@ -13,7 +13,6 @@ import {
   ConnectDragPreview,
 } from 'react-dnd';
 import {
-  // Button,
   ControlGroup,
   InputGroup,
   Tag,

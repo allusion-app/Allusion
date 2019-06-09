@@ -9,6 +9,7 @@ import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import { SingleFileInfo } from './FileInfo';
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
+import { TAG_DRAG_TYPE } from './TagListItem';
 
 interface IGalleryItemTagProps {
   tag: ClientTag;
@@ -113,7 +114,7 @@ const galleryItemTarget = {
 const DroppableGalleryItem = DropTarget<
   IGalleryItemProps,
   IGalleryItemCollectedProps
->('tag', galleryItemTarget, (connect, monitor) => ({
+>(TAG_DRAG_TYPE, galleryItemTarget, (connect, monitor) => ({
   connectDropTarget: connect.dropTarget(),
   isOver: monitor.isOver(),
   canDrop: monitor.canDrop(),
@@ -152,6 +153,11 @@ IGalleryItemProps,
     _isMounted: false,
   };
 
+  constructor(props: IGalleryItemProps) {
+    super(props);
+    this.handleDrop = this.handleDrop.bind(this);
+  }
+
   componentDidMount() {
     this.state._isMounted = true;
   }
@@ -160,7 +166,8 @@ IGalleryItemProps,
     this.state._isMounted = false;
   }
 
-  handleDrop = (tag: ClientTag) => {
+  handleDrop(tag: ClientTag) {
+    console.log(tag);
     this.props.file.addTag(tag.id);
   }
 

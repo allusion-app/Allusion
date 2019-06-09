@@ -45,6 +45,8 @@ nav {
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
 #outliner-tags-header-wrapper {
   display: flex;
+  min-height: 39px;
+
   h4 {
     margin-right: auto;
   }
@@ -64,7 +66,7 @@ nav .bp3-tree {
 
 #tree-footer {
   margin-bottom: auto;
-  height: 16px;
+  min-height: 16px;
 }
 
 // Reordering by dragging
@@ -102,6 +104,12 @@ nav .bp3-tree {
   .bp3-button-text {
     margin-right: auto;
   }
+}
+
+#tag-remove-overview {
+  padding: 8px;
+  max-height: 100px;
+  overflow-y: auto;
 }
 
 ///////////////////////////////// Search tab /////////////////////////////////

@@ -111,6 +111,10 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     this.tags.remove((tag instanceof ClientTag) ? tag.id : tag);
   }
 
+  getTagsRecursively(): ID[] {
+    return [...this.tags, ...this.clientSubCollections.flatMap((c) => c.getTagsRecursively())];
+  }
+
   delete() {
     this.store.backend.removeTagCollection(this);
     this.store.removeTagCollection(this);
