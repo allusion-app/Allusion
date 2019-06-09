@@ -1,15 +1,16 @@
 import { observer, useComputed } from 'mobx-react-lite';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
-import TagListItem, { DEFAULT_TAG_NAME } from './TagListItem';
+import TagListItem, { DEFAULT_TAG_NAME, TAG_DRAG_TYPE } from './TagListItem';
 
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
-import { Tree, ITreeNode, Button, Icon, ButtonGroup } from '@blueprintjs/core';
-import TagCollectionListItem, { DEFAULT_COLLECTION_NAME } from './TagCollectionListItem';
+import { Tree, ITreeNode, Button, Icon, ButtonGroup, H4 } from '@blueprintjs/core';
+import TagCollectionListItem, { DEFAULT_COLLECTION_NAME, COLLECTION_DRAG_TYPE } from './TagCollectionListItem';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import TagCollectionStore from '../stores/TagCollectionStore';
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
+import { useDrop } from 'react-dnd/lib/cjs/hooks';
 
 interface IExpandState {
   [key: string]: boolean;
@@ -150,9 +151,23 @@ export interface ITagListProps extends IRootStoreProp { }
 
 const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore } }: ITagListProps) => {
   // Keep track of folders that have been expanded. The two main folders are expanded by default.
-  const [expandState, setExpandState] = useState<IExpandState>({
-    [ROOT_TAG_COLLECTION_ID]: true,
-  });
+  const [expandState, setExpandState] = useState<IExpandState>({});
+
+  // Auto expand collection if there is only one child of the root collection
+  useEffect(() => {
+    if (tagCollectionStore.getRootCollection().subCollections.length === 1) {
+      setExpandState({ [tagCollectionStore.getRootCollection().subCollections[0]]: true });
+    }
+  }, []);
+
+  const handleRootAddTag = useCallback(() => {
+    tagStore.addTag(DEFAULT_TAG_NAME)
+      .then((tag) => tagCollectionStore.getRootCollection().addTag(tag.id))
+      .catch((err) => console.log('Could not create tag', err));
+  }, []);
+  const handleAddRootCollection = useCallback(async () => {
+    await tagCollectionStore.addTagCollection(DEFAULT_COLLECTION_NAME, tagCollectionStore.getRootCollection());
+  }, []);
 
   const handleNodeCollapse = useCallback(
     (node: ITreeNode) => setExpandState({ ...expandState, [node.id]: false }),
@@ -206,31 +221,6 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     [],
   );
 
-  // This code will auto-select tags/collections when right clicking on them, but that is very annoying...
-  // However, usually the context menu is about the selection you make, not only the item you click on...
-
-  // const handleNodeContextMenu: TreeEventHandler = useCallback(({ id }, nodePath, e) => {
-  //   // When clicking on a single tag...
-  //   const clickedTag = tagStore.tagList.find((t) => t.id === id);
-  //   if (clickedTag) {
-  //     if (!uiStore.tagSelection.includes(clickedTag.id)) {
-  //       uiStore.selectTags([clickedTag.id], true);
-  //     }
-  //   }
-
-  //   // When clicking on a collection
-  //   const clickedCollection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
-  //   if (clickedCollection) {
-  //     // Get all tags recursively that are in this collection
-  //     const getRecursiveTags = (col: ClientTagCollection): ID[] =>
-  //       [...col.tags, ...col.clientSubCollections.flatMap(getRecursiveTags)];
-
-  //     if (!clickedCollection.isSelected) {
-  //       uiStore.selectTags(getRecursiveTags(clickedCollection), true);
-  //     }
-  //   }
-  // }, []);
-
   const root = tagCollectionStore.getRootCollection();
   // Todo: Not sure what the impact is of generating the hierarchy in each render on performance.
   // Usually the hierarchy is stored directly in the state, but we can't do that since it it managed by the TagCollectionStore.
@@ -242,12 +232,56 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     [root, expandState],
   );
 
+  // Moves a tag or collection to the root collection
+  const moveToRoot = useCallback((id: ID, bottom?: boolean) => {
+    // Check whether ID belongs to tag or collection
+    const collection = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
+    const tag = tagStore.tagList.find((t) => t.id === id);
+    if (collection) {
+      const parent = tagCollectionStore.tagCollectionList.find((c) => c.subCollections.includes(id));
+      if (parent) {
+        parent.subCollections.remove(id);
+        if (!bottom) {
+          tagCollectionStore.getRootCollection().subCollections.splice(0, 0, id);
+        } else {
+          tagCollectionStore.getRootCollection().subCollections.push(id);
+        }
+      }
+    } else if (tag) {
+      const parent = tagCollectionStore.tagCollectionList.find((c) => c.tags.includes(id));
+      if (parent) {
+        parent.tags.remove(id);
+        if (!bottom) {
+          tagCollectionStore.getRootCollection().tags.splice(0, 0, id);
+        } else {
+          tagCollectionStore.getRootCollection().tags.push(id);
+        }
+      }
+    }
+  }, []);
+
+  // Allow dropping tags on header and background to move them to the root of the hierarchy
+  const [headerCollectedProps, headerDrop] = useDrop({
+    accept: [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
+    drop: ({ id }: any) => moveToRoot(id),
+  });
+  const [footerCollectedProps, footerDrop] = useDrop({
+    accept: [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
+    drop: ({ id }: any) => moveToRoot(id, true),
+  });
+
   return (
     <>
+      <div id="outliner-tags-header-wrapper" ref={headerDrop}>
+        <H4 className="bp3-heading">Tags</H4>
+        <Button minimal icon={IconSet.TAG_ADD} onClick={handleRootAddTag}/>
+        <Button minimal icon={IconSet.COLLECTION_ADD} onClick={handleAddRootCollection} />
+      </div>
+
       <Tree
         contents={(hierarchy[0].childNodes && hierarchy[0].childNodes.length > 0)
           ? hierarchy[0].childNodes
-          : [{ label: <i>No tags or collections created yet</i>} as ITreeNode]}
+          : [{ label: <i>No tags or collections created yet</i>, id: 'placeholder' } as ITreeNode]}
         onNodeCollapse={handleNodeCollapse}
         onNodeExpand={handleNodeExpand}
         onNodeClick={handleNodeClick}
@@ -256,6 +290,8 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       // https://github.com/palantir/blueprint/issues/3187
         // onNodeContextMenu={handleNodeContextMenu}
       />
+
+      <div id="tree-footer" ref={footerDrop} />
 
       <div id="system-tags">
         <ButtonGroup vertical minimal fill>
@@ -266,13 +302,13 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
             onClick={uiStore.viewContentAll}
             active={uiStore.viewContent === 'all'}
           />
-          <Button
+          {/* <Button
             text="Searched images"
             icon={IconSet.SEARCH}
             rightIcon={uiStore.viewContent === 'query' ? <Icon intent="primary" icon="eye-open" /> : null}
             onClick={uiStore.viewContentQuery}
             active={uiStore.viewContent === 'query'}
-          />
+          /> */}
           <Button
             text={`Untagged (${fileStore.numUntaggedFiles})`}
             icon={IconSet.TAG_BLANCO}

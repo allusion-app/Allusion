@@ -263,7 +263,7 @@ const TagListItemContextMenu = (
   return (
     <Menu>
       <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={onRemove} text="Delete" icon={IconSet.DELETE} />
+      <MenuItem onClick={onRemove} text="Delete (999)" icon={IconSet.DELETE} />
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />

@@ -202,7 +202,7 @@ const TagCollectionListItemContextMenu = ({
       <MenuItem onClick={onNewTag} text="New tag" icon={IconSet.TAG_ADD} />
       <MenuItem onClick={onNewCollection} text="New collection" icon={IconSet.COLLECTION_ADD} />
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={handleConfirmRemoveAlert} text="Delete" icon={IconSet.DELETE} disabled={!onRemove} />
+      <MenuItem onClick={handleConfirmRemoveAlert} text="Delete (999)" icon={IconSet.DELETE} disabled={!onRemove} />
       <Divider />
       <MenuItem onClick={onExpandAll} text="Expand all" icon="expand-all" />
       <MenuItem onClick={onCollapseAll} text="Collapse all" icon="collapse-all" />

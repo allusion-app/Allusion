@@ -390,7 +390,7 @@ const Gallery = ({
     } else if (uiStore.viewContent === 'untagged') {
       icon = <span>😄</span>;
       description = 'All images have been tagged. Nice work!';
-      title = 'No untagged images'
+      title = 'No untagged images';
       action = (
         <ButtonGroup>
           <Button text="View all" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />

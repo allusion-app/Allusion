@@ -7,21 +7,9 @@ import StoreContext from '../contexts/StoreContext';
 import TagList from './TagTree';
 import ImportForm from './ImportForm';
 import SearchForm from './SearchForm';
-import IconSet from './Icons';
-import { DEFAULT_TAG_NAME } from './TagListItem';
-import { DEFAULT_COLLECTION_NAME } from './TagCollectionListItem';
 
 const Outliner = () => {
-  const { uiStore, tagStore, tagCollectionStore } = useContext(StoreContext);
-
-  const handleAddTag = useCallback(() => {
-    tagStore.addTag(DEFAULT_TAG_NAME)
-      .then((tag) => tagCollectionStore.getRootCollection().addTag(tag.id))
-      .catch((err) => console.log('Could not create tag', err));
-  }, []);
-  const handleAddCollection = useCallback(async () => {
-    await tagCollectionStore.addTagCollection(DEFAULT_COLLECTION_NAME, tagCollectionStore.getRootCollection());
-  }, []);
+  const { uiStore } = useContext(StoreContext);
 
   // Todo: Use https://blueprintjs.com/docs/#core/components/tabs
   return (
@@ -31,15 +19,7 @@ const Outliner = () => {
         <ImportForm />
       </>)}
 
-      {uiStore.outlinerPage === 'TAGS' && (<>
-        <div id="outliner-tags-header-wrapper">
-          <H4 className="bp3-heading">Tags</H4>
-          <Button minimal icon={IconSet.TAG_ADD} onClick={handleAddTag}/>
-          <Button minimal icon={IconSet.COLLECTION_ADD} onClick={handleAddCollection} />
-
-        </div>
-        <TagList />
-      </>)}
+      {uiStore.outlinerPage === 'TAGS' && (<TagList />)}
 
       {uiStore.outlinerPage === 'SEARCH' && (<>
         <H4 className="bp3-heading">Search</H4>

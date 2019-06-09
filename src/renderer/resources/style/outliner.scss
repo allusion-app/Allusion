@@ -52,9 +52,19 @@ nav {
 
 nav .bp3-tree {
   background-color: $dark-gray2;
+  overflow-y: auto;
+
+  .bp3-tree-root {
+    overflow: hidden;
+  }
 }
 .bp3-light {
   background-color: $light-gray2;
+}
+
+#tree-footer {
+  margin-bottom: auto;
+  height: 16px;
 }
 
 // Reordering by dragging
@@ -89,8 +99,6 @@ nav .bp3-tree {
 }
 
 #system-tags {
-  margin-top: auto;
-
   .bp3-button-text {
     margin-right: auto;
   }
