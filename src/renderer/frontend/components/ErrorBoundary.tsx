@@ -111,7 +111,7 @@ ${this.state.error}
               <Button onClick={this.viewInspector} intent="warning" icon="wrench">
                 View in DevTools
               </Button>
-              <ClearDbButton />
+              <ClearDbButton position="bottom" />
               <Button onClick={this.openIssueURL} icon="issue-new">
                 Create issue
               </Button>

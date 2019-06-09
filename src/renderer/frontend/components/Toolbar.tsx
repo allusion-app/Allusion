@@ -109,7 +109,13 @@ const Toolbar = () => {
     uiStore.isOutlinerOpen = uiStore.isOutlinerOpen
       ? uiStore.outlinerPage !== page
       : uiStore.outlinerPage === page;
-    uiStore.outlinerPage = page;
+    if (page === 'IMPORT') {
+      uiStore.openOutlinerImport();
+    } else if (page === 'TAGS') {
+      uiStore.openOutlinerTags();
+    } else if (page === 'SEARCH') {
+      uiStore.openOutlinerSearch();
+    }
   }, []);
   const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), []);
   const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), []);
