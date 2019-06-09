@@ -43,6 +43,13 @@ nav {
   }
 }
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
+#outliner-tags-header-wrapper {
+  display: flex;
+  h4 {
+    margin-right: auto;
+  }
+}
+
 nav .bp3-tree {
   background-color: $dark-gray2;
 }

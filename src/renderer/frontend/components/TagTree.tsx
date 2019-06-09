@@ -1,11 +1,11 @@
 import { observer, useComputed } from 'mobx-react-lite';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 
 import TagListItem, { DEFAULT_TAG_NAME } from './TagListItem';
 
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import { Tree, ITreeNode, Button, Icon, ButtonGroup } from '@blueprintjs/core';
-import TagCollectionListItem from './TagCollectionListItem';
+import TagCollectionListItem, { DEFAULT_COLLECTION_NAME } from './TagCollectionListItem';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import TagCollectionStore from '../stores/TagCollectionStore';
 import { ID } from '../../entities/ID';
@@ -44,7 +44,7 @@ const createTagCollectionTreeNode = (
           .catch((err) => console.log('Could not create tag', err));
       }}
       onAddCollection={async () => {
-        const newCol = await store.addTagCollection('New collection', col);
+        const newCol = await store.addTagCollection(DEFAULT_COLLECTION_NAME, col);
         setExpandState({ ...expandState, [newCol.id]: true }); // immediately expand after adding
       }}
       onExpand={() => setExpandState({ ...expandState, [col.id]: true })}
@@ -242,17 +242,12 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     [root, expandState],
   );
 
-  const treeContents: ITreeNode[] = useMemo(
-    () => [
-      ...hierarchy,
-    ],
-    [hierarchy],
-  );
-
   return (
     <>
       <Tree
-        contents={treeContents}
+        contents={(hierarchy[0].childNodes && hierarchy[0].childNodes.length > 0)
+          ? hierarchy[0].childNodes
+          : [{ label: <i>No tags or collections created yet</i>} as ITreeNode]}
         onNodeCollapse={handleNodeCollapse}
         onNodeExpand={handleNodeExpand}
         onNodeClick={handleNodeClick}
