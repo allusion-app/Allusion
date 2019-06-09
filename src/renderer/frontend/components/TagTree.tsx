@@ -288,7 +288,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       const clickedTag = tagStore.tagList.find((t) => t.id === id);
       if (clickedTag) {
         clickSelection.push(clickedTag.id);
-        isClickSelectionSelected = uiStore.tagSelection.includes(clickedTag.id);
+        isClickSelectionSelected = clickedTag.isSelected;
       }
 
       // When clicking on a collection
@@ -388,7 +388,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
         // onNodeContextMenu={handleNodeContextMenu}
       />
 
-      <div id="tree-footer" ref={footerDrop} />
+      <div id="tree-footer" ref={footerDrop} onClick={uiStore.clearTagSelection} />
 
       <div id="system-tags">
         <ButtonGroup vertical minimal fill>

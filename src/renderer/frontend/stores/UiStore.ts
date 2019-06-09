@@ -143,18 +143,18 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
-  @action selectFile(file: ClientFile, clear?: boolean) {
+  @action.bound selectFile(file: ClientFile, clear?: boolean) {
     if (clear) {
       this.fileSelection.clear();
     }
     this.fileSelection.push(file.id);
   }
 
-  @action deselectFile(file: ClientFile) {
+  @action.bound deselectFile(file: ClientFile) {
     this.fileSelection.remove(file.id);
   }
 
-  @action clearFileSelection() {
+  @action.bound clearFileSelection() {
     this.fileSelection.clear();
   }
 
@@ -169,7 +169,7 @@ class UiStore {
     this.fileSelection.clear();
   }
 
-  @action selectTag(tag: ClientTag, clear?: boolean) {
+  @action.bound selectTag(tag: ClientTag, clear?: boolean) {
     if (clear) {
       this.tagSelection.clear();
     }
@@ -195,7 +195,7 @@ class UiStore {
     }
   }
 
-  @action deselectTags(tags: ClientTag[] | ID[]) {
+  @action.bound deselectTags(tags: ClientTag[] | ID[]) {
     if (tags.length === 0) {
       return;
     }
@@ -206,11 +206,11 @@ class UiStore {
     }
   }
 
-  @action deselectTag(tag: ClientTag | ID) {
+  @action.bound deselectTag(tag: ClientTag | ID) {
     this.tagSelection.remove(tag instanceof ClientTag ? tag.id : tag);
   }
 
-  @action clearTagSelection() {
+  @action.bound clearTagSelection() {
     this.tagSelection.clear();
   }
 

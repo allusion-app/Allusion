@@ -4,10 +4,12 @@ import { ModifiableTagListItem, TAG_DRAG_TYPE } from './TagListItem';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   DragSource, DragSourceConnector, DragSourceMonitor, ConnectDragSource,
-  DropTarget, DropTargetConnector, DropTargetMonitor, ConnectDropTarget, DropTargetSpec, DragSourceSpec,
+  DropTarget, DropTargetConnector, DropTargetMonitor, ConnectDropTarget,
+  DropTargetSpec, DragSourceSpec, ConnectDragPreview,
 } from 'react-dnd';
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 
 export const COLLECTION_DRAG_TYPE = 'collection';
 export const DEFAULT_COLLECTION_NAME = 'New collection';
@@ -37,6 +39,7 @@ interface IDropProps {
 
 interface IDragProps {
   connectDragSource: ConnectDragSource;
+  connectDragPreview: ConnectDragPreview;
   isDragging: boolean;
 }
 
@@ -46,10 +49,14 @@ const TagCollectionListItem = ({
   isHovering,
   connectDropTarget,
   connectDragSource,
+  connectDragPreview,
   onExpand,
   canDrop,
   hoverTimeToExpand = 1000,
 }: ITagCollectionListItemProps & IDropProps & IDragProps) => {
+  // Hide preview, since a custom preview is created in DragLayer
+  useEffect(() => { connectDragPreview(getEmptyImage()); }, []);
+
   // When hovering over a collection for some time, automatically expand it
   const [expandTimeout, setExpandTimeout] = useState(0);
   useEffect(() => {
@@ -132,6 +139,7 @@ const tagCollectionDragSource: DragSourceSpec<ITagCollectionListItemProps, any> 
 function collectDragSource(connect: DragSourceConnector, monitor: DragSourceMonitor): IDragProps {
   return {
     connectDragSource: connect.dragSource(),
+    connectDragPreview: connect.dragPreview(),
     isDragging: monitor.isDragging(),
   };
 }
