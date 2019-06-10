@@ -5,6 +5,7 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
 import { remote } from 'electron';
+import { ClientTagCollection } from '../../entities/TagCollection';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -244,6 +245,116 @@ class UiStore {
     }
   }
 
+  @action.bound async moveTag(tag: ClientTag | ID, target: ClientTag | ClientTagCollection, insertAtStart?: boolean) {
+    if (!(tag instanceof ClientTag)) {
+      const clientTag = this.rootStore.tagStore.tagList.find((t) => t.id === tag);
+      if (clientTag) {
+        tag = clientTag;
+      } else {
+        throw new Error('Cannot find tag to move ' + tag);
+      }
+    }
+
+    tag.parent.tags.remove(tag.id);
+
+    if (target instanceof ClientTag) {
+      const targetCol = target.parent;
+      const insertionIndex = targetCol.tags.indexOf(target.id);
+      // Insert the moved tag to the position of the current tag where it was dropped
+      targetCol.tags.splice(insertionIndex, 0, tag.id);
+    } else {
+      if (insertAtStart) {
+        target.tags.splice(0, 0, tag.id);
+      } else {
+        target.tags.push(tag.id);
+      }
+    }
+  }
+
+  @action.bound async moveCollection(
+    col: ClientTagCollection | ID, target: ClientTagCollection,
+    insertAtStart?: boolean,
+  ) {
+    if (!(col instanceof ClientTagCollection)) {
+      const clientCol = this.rootStore.tagCollectionStore.tagCollectionList.find((c) => c.id === col);
+      if (clientCol) {
+        col = clientCol;
+      } else {
+        throw new Error('Cannot find collection to move ' + col);
+      }
+    }
+
+    col.parent.subCollections.remove(col.id);
+
+    if (insertAtStart) {
+      target.subCollections.splice(0, 0, col.id);
+    } else {
+      target.subCollections.push(col.id);
+    }
+  }
+
+  /**
+   * @param target Where to move the selection to
+   * @param insertAtStart Whether to insert at the start, or the end
+   */
+  @action.bound async moveSelectedTagsAndCollections(targetId: ID, insertAtStart?: boolean) {
+    const { tagStore, tagCollectionStore } = this.rootStore;
+
+    // Todo: support moving unselected tag/collection
+
+    const target = tagStore.tagList.find((tag) => tag.id === targetId)
+      || tagCollectionStore.tagCollectionList.find((col) => col.id === targetId);
+
+    if (!target) {
+      throw new Error('Invalid target to move to');
+    }
+
+    const targetCol = target instanceof ClientTag ? target.parent : target;
+
+    const selectedCols: ClientTagCollection[] = [];
+    // Move collections
+    const allCollectionIds = tagCollectionStore.tagCollectionList.map((c) => c.id);
+    for (const colId of allCollectionIds) {
+      const col = tagCollectionStore.tagCollectionList.find((c) => c.id === colId);
+      if (col && col.isSelected) {
+        selectedCols.push(col);
+        const parent = tagCollectionStore.tagCollectionList.find((c) => c.subCollections.includes(colId));
+        if (parent) {
+          parent.subCollections.remove(colId);
+          if (insertAtStart) {
+            targetCol.subCollections.splice(0, 0, colId);
+          } else {
+            targetCol.subCollections.push(colId);
+          }
+        }
+      }
+    }
+
+    // Move tags that are not in those collections
+    const selectedTagsNotInSelectedCols = this.tagSelection.filter(
+      (t) => !selectedCols.some((col) => col.getTagsRecursively().includes(t)));
+
+    selectedTagsNotInSelectedCols.forEach((tagId) => {
+      // Find original collection
+      const parent = tagCollectionStore.tagCollectionList.find((c) => c.tags.includes(tagId));
+      if (!parent) { return console.error('Could not find original collection when moving tag', tagId); }
+      // Remove from orig collection
+      parent.removeTag(tagId);
+      // Find where to insert the moved tag
+      if (target instanceof ClientTag) {
+        const insertionIndex = targetCol.tags.indexOf(target.id);
+        // Insert the moved tag to the position of the current tag where it was dropped
+        targetCol.tags.splice(insertionIndex, 0, tagId);
+      } else {
+        if (insertAtStart) {
+          targetCol.tags.splice(0, 0, tagId);
+        } else {
+          targetCol.tags.push(tagId);
+        }
+      }
+    });
+  }
+
   /////////////////// Search Actions ///////////////////
   @action.bound async clearSearchQueryList() {
     this.searchQueryList.clear();
@@ -263,17 +374,21 @@ class UiStore {
     this.cleanFileSelection();
   }
 
-  @action.bound addTagSelectionToQuery() {
+  @action.bound addTagsToQuery(ids: ID[]) {
     this.addSearchQuery({
       action: 'include',
       operator: 'or',
-      value: this.tagSelection.toJS(),
+      value: ids,
     } as ITagSearchQuery);
   }
 
-  @action.bound replaceQueryWithSelection() {
+  @action.bound replaceQuery(ids: ID[]) {
     this.searchQueryList.clear();
-    this.addTagSelectionToQuery();
+    this.addTagsToQuery(ids);
+  }
+
+  @action.bound replaceQueryWithSelection() {
+    this.replaceQuery(this.tagSelection.toJS());
   }
 
   /////////////////// UI Actions ///////////////////

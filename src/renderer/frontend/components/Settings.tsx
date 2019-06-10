@@ -27,7 +27,7 @@ const Settings = () => {
           <ClearDbButton fill position="bottom-left" />
 
           <Button onClick={uiStore.toggleDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
-            Toggle the developer tools
+            Toggle DevTools
           </Button>
 
           <br />

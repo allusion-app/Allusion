@@ -54,7 +54,7 @@ nav {
 
 nav .bp3-tree {
   background-color: $dark-gray2;
-  overflow-y: auto;
+  overflow: auto;
 
   .bp3-tree-root {
     overflow: hidden;

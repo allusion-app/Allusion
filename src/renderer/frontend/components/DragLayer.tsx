@@ -41,15 +41,24 @@ function renderItem(type: string, item: any, rootStore: RootStore) {
 
   if (type === TAG_DRAG_TYPE) {
     const isDraggingSelection = uiStore.tagSelection.includes(item.id);
-    const extraText = isDraggingSelection && uiStore.tagSelection.length > 1
-      ? ` (+${uiStore.tagSelection.length - 1})`
+    const selColCount = isDraggingSelection
+      ? tagCollectionStore.tagCollectionList.filter((c) => c.isSelected).length : 0;
+    const totalCount = selColCount + uiStore.tagSelection.length;
+    const extraText = isDraggingSelection && totalCount > 1
+      ? ` (+${totalCount - 1})`
       : '';
     return <Tag intent="primary" large>{item.name}{extraText}</Tag>;
   } else if (type === COLLECTION_DRAG_TYPE) {
     const draggedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === item.id) as ClientTagCollection;
     const tagsInCol = draggedCol.getTagsRecursively();
-    const selectedTagsNotInCol = uiStore.tagSelection.filter((t) => !tagsInCol.includes(t));
-    const extraText = selectedTagsNotInCol.length > 0 && ` (+${selectedTagsNotInCol.length})`;
+    const selectedTagsNotInCol = draggedCol.isSelected
+      ? uiStore.tagSelection.filter((t) => !tagsInCol.includes(t))
+      : [];
+    const selectedColsNotInCol =  draggedCol.isSelected
+      ? tagCollectionStore.tagCollectionList.filter((c) => c.isSelected && !draggedCol.containsSubCollection(c))
+      : [];
+    const totalCount = selectedColsNotInCol.length + selectedTagsNotInCol.length;
+    const extraText = totalCount > 1 && ` (+${totalCount - 1})`;
     return <Tag intent="primary" large>{draggedCol.name}{extraText}</Tag>;
   }
 }

@@ -1,15 +1,18 @@
-import { ClientTagCollection } from '../../entities/TagCollection';
 import { ContextMenuTarget, Menu, MenuItem, Divider, Alert } from '@blueprintjs/core';
-import { ModifiableTagListItem, TAG_DRAG_TYPE } from './TagListItem';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   DragSource, DragSourceConnector, DragSourceMonitor, ConnectDragSource,
   DropTarget, DropTargetConnector, DropTargetMonitor, ConnectDropTarget,
   DropTargetSpec, DragSourceSpec, ConnectDragPreview,
 } from 'react-dnd';
+
+import { ClientTagCollection } from '../../entities/TagCollection';
+import { ModifiableTagListItem, TAG_DRAG_TYPE, ITagDragItem } from './TagListItem';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
-import { getEmptyImage } from 'react-dnd-html5-backend';
+import UiStore from '../stores/UiStore';
+import StoreContext from '../contexts/StoreContext';
 
 export const COLLECTION_DRAG_TYPE = 'collection';
 export const DEFAULT_COLLECTION_NAME = 'New collection';
@@ -22,13 +25,14 @@ interface ITagCollectionListItemProps {
   onExpand: () => void;
   onExpandAll: () => void;
   onCollapseAll: () => void;
-  onMoveTag: (movedTag: ID) => void;
-  onMoveCollection: (movedCollection: ID) => void;
+  onMoveTag: (dropProps: ITagDragItem) => void;
+  onMoveCollection: (dropProps: ITagDragItem) => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   hoverTimeToExpand?: number;
   onAddSelectionToQuery: () => void;
   onReplaceQuery: () => void;
+  onSelect: (colId: ID, clear?: boolean) => void;
 }
 
 interface IDropProps {
@@ -81,7 +85,7 @@ const TagCollectionListItem = ({
     connectDragSource(
       <div className={className}>
         {tagCollection.name}
-        {tagCollection.tags.length === 0 && tagCollection.subCollections.length === 0 && <i> (empty)</i>}
+        {tagCollection.isEmpty && <i> (empty)</i>}
       </div>),
   );
 };
@@ -90,33 +94,40 @@ const TagCollectionListItem = ({
 // - https://react-dnd.github.io/react-dnd/examples/sortable/cancel-on-drop-outside
 // - https://gist.github.com/G710/6f85869b73ff08ce95ca93e31ed510f8
 ///// Make it droppable ///////
-const tagCollectionDropTarget: DropTargetSpec<ITagCollectionListItemProps> = {
+const tagCollectionDropTarget: DropTargetSpec<ITagCollectionListItemProps & { uiStore: UiStore}> = {
   canDrop(props, monitor) {
-    const { id: draggedId } = monitor.getItem();
+    const { id: draggedId, isSelected: draggedIsSelected }: ITagDragItem = monitor.getItem();
     const type = monitor.getItemType();
     if (type === COLLECTION_DRAG_TYPE) {
-      // Dragging a collection over another collection is allowed if it's not itself
-      const { id: overId } = props.tagCollection;
-      if (draggedId === overId) {
-        return false;
-      }
-      // and it's not in its own children
-      const draggedCollection = props.tagCollection.store.tagCollectionList.find((c) => c.id === draggedId);
-      if (draggedCollection) {
-        return !draggedCollection.containsSubCollection(props.tagCollection);
+      if (!draggedIsSelected) {
+
+        // Dragging a collection over another collection is allowed if it's not itself
+        const { id: overId } = props.tagCollection;
+        if (draggedId === overId) {
+          return false;
+        }
+        // and it's not in its own children
+        const draggedCollection = props.tagCollection.store.tagCollectionList.find((c) => c.id === draggedId);
+        if (draggedCollection) {
+          return !draggedCollection.containsSubCollection(props.tagCollection);
+        }
+      } else {
+        // Else, only allowed when this collection is not selected (else you drop something on itself)
+        return draggedIsSelected ? !props.tagCollection.isSelected : true;
       }
     } else if (type === TAG_DRAG_TYPE) {
-      // Dragging a tag over a collection is always allowed
-      return true;
+      // Dragging a tag over a collection is always allowed if it's not selected
+      // Else, only allowed when this collection is not selected (else you drop something on itself)
+      return draggedIsSelected ? !props.tagCollection.isSelected : true;
     }
     return false;
   },
   drop(props, monitor) {
     const type = monitor.getItemType();
     if (type === COLLECTION_DRAG_TYPE) {
-      props.onMoveCollection(monitor.getItem().id);
+      props.onMoveCollection(monitor.getItem());
     } else if (type === TAG_DRAG_TYPE) {
-      props.onMoveTag(monitor.getItem().id);
+      props.onMoveTag(monitor.getItem());
     }
   },
 };
@@ -131,9 +142,9 @@ function collectDropTarget(connect: DropTargetConnector, monitor: DropTargetMoni
 
 ///// Make it draggable ///////
 const tagCollectionDragSource: DragSourceSpec<ITagCollectionListItemProps, any> = {
-  beginDrag: (props: ITagCollectionListItemProps) => ({
-    id: props.tagCollection.id,
-  }),
+  beginDrag: (props: ITagCollectionListItemProps): ITagDragItem => {
+    return ({ id: props.tagCollection.id, name: props.tagCollection.name, isSelected: props.tagCollection.isSelected });
+  },
 };
 
 function collectDragSource(connect: DragSourceConnector, monitor: DragSourceMonitor): IDragProps {
@@ -145,7 +156,7 @@ function collectDragSource(connect: DragSourceConnector, monitor: DragSourceMoni
 }
 
 const DraggableTagCollectionListItem = DropTarget<
-  ITagCollectionListItemProps,
+  ITagCollectionListItemProps & { uiStore: UiStore },
   IDropProps
 >(
   [COLLECTION_DRAG_TYPE, TAG_DRAG_TYPE],
@@ -273,15 +284,19 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
     const { isEditing } = this.state;
     return (
       <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''} key={tagCollection.id}>
-        {
-          isEditing
-            ? <ModifiableTagListItem
-              initialName={tagCollection.name}
-              onRename={this.handleRename}
-              onAbort={this.handleRenameAbort}
-            />
-            : <DraggableTagCollectionListItem {...this.props} />
+        <StoreContext.Consumer>
+
+        { ({ uiStore }) => (
+            isEditing
+              ? <ModifiableTagListItem
+                initialName={tagCollection.name}
+                onRename={this.handleRename}
+                onAbort={this.handleRenameAbort}
+                />
+              : <DraggableTagCollectionListItem {...this.props} uiStore={uiStore} />
+          )
         }
+        </StoreContext.Consumer>
       </div>
     );
   }
