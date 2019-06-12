@@ -379,7 +379,7 @@ const Gallery = ({
       <Button onClick={uiStore.openOutlinerImport} text="Open import panel" intent="primary" icon={IconSet.ADD} />;
     if (uiStore.viewContent === 'query') {
       description = 'Try searching for something else.';
-      icon = 'search';
+      icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       title = 'No images found';
       action = (
         <ButtonGroup>

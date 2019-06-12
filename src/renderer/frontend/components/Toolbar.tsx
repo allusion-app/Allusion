@@ -26,13 +26,16 @@ interface IRemoveFilesPopoverProps {
   disabled: boolean;
   onRemove: () => void;
   uiStore: UiStore;
+  hasBackdrop: boolean;
 }
-const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => (
+const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore, hasBackdrop }: IRemoveFilesPopoverProps) => (
   <Popover
     minimal
     canEscapeKeyClose={true}
     isOpen={uiStore.isToolbarFileRemoverOpen}
     onClose={uiStore.closeToolbarFileRemover}
+    className={Classes.DARK}
+    hasBackdrop
   >
     <Button
       icon={IconSet.DELETE}
@@ -41,10 +44,10 @@ const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFil
       data-right={deleteTooltip}
       onClick={uiStore.toggleToolbarFileRemover}
     />
-    <div className="popoverContent" id="deleteFile">
-      <h4 className="bp3-heading inpectorHeading">Confirm deletion</h4>
-      <p>Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?</p>
-      <p>Your files will not be deleted.</p>
+    <div className="popoverContent bp3-dark" id="deleteFile">
+      <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
+      <p>Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?
+      <br />Your files will not be deleted.</p>
 
       <div
         style={{
@@ -260,6 +263,7 @@ const Toolbar = () => {
             onRemove={handleRemoveSelectedFiles}
             disabled={!selectionModeOn}
             uiStore={uiStore}
+            hasBackdrop={false}
           />
 
           {/* Gallery actions */}

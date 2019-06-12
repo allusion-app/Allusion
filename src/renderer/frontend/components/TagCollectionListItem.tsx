@@ -85,7 +85,7 @@ const TagCollectionListItem = ({
     connectDragSource(
       <div className={className}>
         {tagCollection.name}
-        {tagCollection.isEmpty && <i> (empty)</i>}
+        {tagCollection.isEmpty && <i> 0</i>}
       </div>),
   );
 };

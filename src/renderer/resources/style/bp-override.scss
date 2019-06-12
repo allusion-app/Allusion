@@ -261,11 +261,16 @@ button:has(.bp3-intent-danger) {
 .bp3-popover .bp3-popover-content {
   border-radius: 10px;
 }
+.bp3-dark .bp3-popover-content {
+  background-color: $dark-gray2;
+  color: $light-gray1;
+}
 .bp3-dark .bp3-menu,
 .bp3-menu,
 .bp3-popover.bp3-dark .bp3-popover-content,
 .bp3-dark .bp3-popover .bp3-popover-content,
-.bp3-popover-content .fileTag {
+.bp3-popover-content .fileTag,
+.bp3-popover-content {
   margin: 0;
   border-radius: 5px;
   background: $light-gray5;
@@ -279,7 +284,12 @@ button:has(.bp3-intent-danger) {
   //   color: $dark-gray4;
   //   padding-bottom: 1rem;
   // }
+  .bp3-dark {
+    background-color: $dark-gray2;
+    color: $light-gray1;
+  }
 }
+
 .bp3-dark .bp3-divider {
   border-color: $light-gray2;
 }
@@ -361,7 +371,7 @@ li .bp3-menu-item {
   background: transparent;
   color: white !important;
 }
-.bp3-dark #toolbar .bp3-button-group.bp3-minimal .bp3-button:hover{
+.bp3-dark #toolbar .bp3-button-group.bp3-minimal .bp3-button:hover {
   background: transparent !important;
 }
 

@@ -81,6 +81,9 @@ main {
 ::-webkit-scrollbar-track {
   background-color: $dark-gray3;
 }
+.bp3-popover-backdrop {
+  background: rgba(16, 22, 26, 0.7);
+}
 .bp3-popover-content,
 .bp3-drawer,
 .bp3-overlay {
@@ -319,7 +322,7 @@ main {
 .custom-icon-64 > * {
   height: 4rem !important;
   width: 4rem !important;
-
+}
 .fillWidth {
   width: 100%;
 }

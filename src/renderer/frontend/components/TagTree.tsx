@@ -70,8 +70,8 @@ const createTagCollectionTreeNode = (
           movedCollectionParent.subCollections.remove(col.id);
           movedCollectionParent.subCollections.splice(
             Math.min(movedCollectionParent.subCollections.length, oldIndex + 1), 0, col.id);
-          }
-        }}
+        }
+      }}
       onMoveCollection={({ id, isSelected }) => isSelected
         ? uiStore.moveSelectedTagsAndCollections(col.id)
         : uiStore.moveCollection(id, col)}
@@ -165,11 +165,13 @@ const TagRemoverContent = ({ rootStore }: { rootStore: RootStore }) => {
 
   if (removeType === 'tag') {
     return (<>
+      <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
       <p>Are you sure you want to permanently delete {tagsToRemove.length > 0 ? 'these tags' : 'this tag'}?</p>
       {tagsToRemoveOverview}
     </>);
   } else if (removeType === 'collection' && colToRemove) {
     return (<>
+      <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
       <p>
         Are you sure you want to permanently delete the collection '{colToRemove.name}'?
         <br />
@@ -208,9 +210,11 @@ const TagRemover = observer(() => {
       isOpen={uiStore.isOutlinerTagRemoverOpen !== null}
       cancelButtonText="Cancel"
       confirmButtonText="Delete"
-      icon="trash"
+      icon={IconSet.DELETE}
       intent="danger"
       onCancel={uiStore.closeOutlinerTagRemover}
+      canEscapeKeyCancel={true}
+      canOutsideClickCancel={true}
       // Todo: remove selection only when rmb on selection
       onConfirm={handleConfirm}
       className={Classes.DARK}
@@ -332,7 +336,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     <>
       <div id="outliner-tags-header-wrapper" ref={headerDrop}>
         <H4 className="bp3-heading">Tags</H4>
-        <Button minimal icon={IconSet.TAG_ADD} onClick={handleRootAddTag}/>
+        <Button minimal icon={IconSet.TAG_ADD} onClick={handleRootAddTag} />
         <Button minimal icon={IconSet.COLLECTION_ADD} onClick={handleAddRootCollection} />
       </div>
 
@@ -346,7 +350,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       // TODO: Context menu from here instead of in the TagCollectionListItem
       // Then you can right-click anywhere instead of only on the label
       // https://github.com/palantir/blueprint/issues/3187
-        // onNodeContextMenu={handleNodeContextMenu}
+      // onNodeContextMenu={handleNodeContextMenu}
       />
 
       {/* Used for dragging collection to root of hierarchy and flor deselecting tag selection */}
