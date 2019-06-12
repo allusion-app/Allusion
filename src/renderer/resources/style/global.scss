@@ -23,6 +23,7 @@ body {
   --inspector-width: 24em;
   --toolbar-height: 2.4rem;
   --content-area-height: calc(100vh - var(--toolbar-height));
+  height: 100%;
 }
 
 main {
@@ -80,16 +81,24 @@ main {
 ::-webkit-scrollbar-track {
   background-color: $dark-gray3;
 }
-.bp3-popover-content ::-webkit-scrollbar-track {
-  background-color: $light-gray4;
+.bp3-popover-content,
+.bp3-drawer,
+.bp3-overlay {
+  ::-webkit-scrollbar-track {
+    background-color: $light-gray4;
+  }
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
   background-color: $dark-gray5;
 }
-.bp3-popover-content ::-webkit-scrollbar-thumb {
-  background-color: $light-gray2;
+.bp3-popover-content,
+.bp3-drawer,
+.bp3-overlay {
+  ::-webkit-scrollbar-thumb {
+    background-color: $light-gray2;
+  }
 }
 
 /* Handle on hover */
@@ -158,24 +167,24 @@ main {
 }
 
 ///////////////////////////////// Theme Colours /////////////////////////////////
- // Dark
- .bp3-dark,
- .bp3-dark #toolbar,
- .bp3-dark #inspector,
- .bp3-dark nav,
- .bp3-dark #outliner {
-   background-color: $dark-gray2;
- }
+// Dark
+.bp3-dark,
+.bp3-dark #toolbar,
+.bp3-dark #inspector,
+.bp3-dark nav,
+.bp3-dark #outliner {
+  background-color: $dark-gray2;
+}
 
- // Light
- .bp3-light,
- .bp3-light #toolbar,
- .bp3-light #inspector,
- .bp3-light nav,
- .bp3-light #outliner {
-   background-color: $light-gray5 !important;
- }
- 
+// Light
+.bp3-light,
+.bp3-light #toolbar,
+.bp3-light #inspector,
+.bp3-light nav,
+.bp3-light #outliner {
+  background-color: $light-gray5 !important;
+}
+
 ///////////////////////////////// Media Queries /////////////////////////////////
 @media (min-width: 1601px) {
   .grid.thumbnail,
@@ -243,8 +252,8 @@ main {
   #main-toolbar {
     left: 0 !important;
     width: 100% !important;
-    top: 2.2rem !important;;
-    padding: 0.25rem 0.5rem !important;;
+    top: 2.2rem !important;
+    padding: 0.25rem 0.5rem !important;
     #spacer {
       display: none;
       visibility: hidden;
@@ -272,11 +281,10 @@ main {
   nav {
     display: none;
   }
-  #toolbar 
-    #media {
+  #toolbar #media {
     display: none;
-    }
-    .bp3-button-group {
+  }
+  .bp3-button-group {
     width: 100%;
   }
 }
@@ -297,8 +305,14 @@ main {
 .custom-icon * {
   fill: currentColor;
 }
-
-.hidden {
-  opacity: 0;
-  height: 0px;
+.bp3-icon-eye {
+  cursor: none;
+}
+.custom-icon-128 > * {
+  height: 8rem !important;
+  width: 8rem !important;
+}
+.custom-icon-64 > * {
+  height: 4rem !important;
+  width: 4rem !important;
 }

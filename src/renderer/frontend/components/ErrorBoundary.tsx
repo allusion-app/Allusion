@@ -1,6 +1,7 @@
 import React from 'react';
 import { remote } from 'electron';
 import { Button, NonIdealState, ButtonGroup, EditableText } from '@blueprintjs/core';
+import IconSet from './Icons';
 
 interface IErrorBoundaryState {
   hasError: boolean;
@@ -38,7 +39,7 @@ class ErrorBoundary extends React.Component<{}, IErrorBoundaryState> {
       return (
         <div className="error-boundary">
           <NonIdealState
-            icon={<span>😞</span>}
+            icon = {<span className="bp3-icon custom-icon custom-icon-64">{IconSet.DB_ERROR}</span>}
             title="Something went wrong."
             description="You can try one of the following options or contact the maintainers"
             action={<ButtonGroup>

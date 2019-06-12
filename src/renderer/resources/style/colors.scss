@@ -13,12 +13,17 @@ $gray3: #8a9ba8 !important;
 $gray4: #a7b6c2 !important;
 $gray5: #bfccd6 !important;
 
-$light-gray1: #919191;
-$light-gray2: #d8e1e8 !important;
+$light-gray1: #919191; //#919191
+$light-gray2: #adadad !important;
 $light-gray3: #e1e8ed !important;
 $light-gray4: #ebf1f5 !important;
 $light-gray5: #f7f9fa !important; //#f5f8fa !default;
 $white: #ffffff !default;
+
+$light-gray0-trans: #505050e1 !default;
+$light-gray1-trans: #3e3e3eb8 !default;
+$light-gray2-trans: #5e5d5dc2 !default;
+$light-gray3-trans: #7c7c7cc2 !default;
 
 // Core colors
 
@@ -29,4 +34,8 @@ $blue3: #009de0 !important;
 $blue4: #2b95d6 !important;
 $blue5: #48aff0 !important;
 
-$yellow1: #f7ea3a !important;
+$blue-trans1: #007af555 !important;
+$blue-trans2: #007af512 !important;
+$blue-trans3: #007af50d !important;
+
+$yellow1: #f7ea3a !important;  

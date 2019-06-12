@@ -6,9 +6,6 @@ nav {
   width: 0;
   min-width: 0;
   transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  display: flex;
-  flex-direction: column;
 
   &.outlinerOpen {
     min-width: var(--outliner-width);
@@ -33,14 +30,20 @@ nav {
 
 ///////////////////////////////// Import /////////////////////////////////
 
-#import {
-  > button {
-    margin-bottom: 1rem;
-    color: $light-gray1;
+#import, #search-form, .gallery { // .error-boundary
+  > button, .button.bp3-fill, button.bp3-button.bp3-fill, .bp3-non-ideal-state button.bp3-button {
+    color: $light-gray2;
   }
-  .bp3-button.bp3-fill {
-    background: $dark-gray5;
+  > button, .button.bp3-fill, .bp3-non-ideal-state button.bp3-button {
+    margin-bottom: .5rem;
   }
+  button.bp3-fill, .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary) {
+    background: $light-gray1-trans;
+    color: $light-gray2;
+  }
+  button.bp3-intent-primary {
+    background:$light-gray0-trans;
+}
 }
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
 nav .bp3-tree {
@@ -79,14 +82,6 @@ nav .bp3-tree {
 }
 .bp3-tree .bp3-input {
   height: 1.6rem;
-}
-
-#system-tags {
-  margin-top: auto;
-
-  .bp3-button-text {
-    margin-right: auto;
-  }
 }
 
 ///////////////////////////////// Search tab /////////////////////////////////

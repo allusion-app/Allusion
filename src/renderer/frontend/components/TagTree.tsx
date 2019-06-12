@@ -251,13 +251,15 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
             rightIcon={uiStore.viewContent === 'all' ? <Icon intent="primary" icon="eye-open" /> : null}
             onClick={uiStore.viewContentAll}
             active={uiStore.viewContent === 'all'}
+            fill
           />
           <Button
-            text="Searched images"
+            text="Search results"
             icon={IconSet.SEARCH}
             rightIcon={uiStore.viewContent === 'query' ? <Icon intent="primary" icon="eye-open" /> : null}
             onClick={uiStore.viewContentQuery}
             active={uiStore.viewContent === 'query'}
+            fill
           />
           <Button
             text={`Untagged (${fileStore.numUntaggedFiles})`}
@@ -266,13 +268,15 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
               uiStore.viewContent === 'untagged'
                 ? <Icon icon="eye-open" />
                 : (fileStore.numUntaggedFiles > 0
-                  ? <Icon icon="issue" />
+                  ? <Icon icon={IconSet.WARNING} />
                   : null
                 )
             }
             onClick={uiStore.viewContentUntagged}
             active={uiStore.viewContent === 'untagged'}
-            intent={fileStore.numUntaggedFiles > 0 ? 'warning' : 'none'}
+            // Doesnt fit the design, an icon i enough
+            intent={fileStore.numUntaggedFiles > 0 ? 'none' : 'none'}
+            fill
           />
         </ButtonGroup>
       </div>

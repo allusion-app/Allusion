@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup, IconName, MaybeElement,
+  ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup, // IconName, MaybeElement,
 } from '@blueprintjs/core';
 import {
   FixedSizeGrid, GridItemKeySelector, FixedSizeList, ListItemKeySelector,
@@ -371,7 +371,8 @@ const Gallery = ({
   // Also take into account scrolling when dragging while selecting
 
   if (fileList.length === 0) {
-    let icon: IconName | MaybeElement = 'search';
+    // let icon: IconName | MaybeElement = 'search';
+    let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.SEARCH}</span>;
     const title = 'No images found';
     let description = 'Import some images to get started!';
     let action =
@@ -380,17 +381,17 @@ const Gallery = ({
       description = 'Try searching for something else.';
       action = (
         <ButtonGroup>
-          <Button text="View all" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
-          <Button text="View untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentUntagged} />
-          <Button text="Change query" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
+          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
+          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentUntagged} />
+          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
         </ButtonGroup>
       );
     } else if (uiStore.viewContent === 'untagged') {
-      icon = <span>😄</span>;
+      icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       description = 'All images have been tagged. Nice work!';
       action = (
         <ButtonGroup>
-          <Button text="View all" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
+          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} />
         </ButtonGroup>
       );

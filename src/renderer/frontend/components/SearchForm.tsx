@@ -77,21 +77,25 @@ const SearchForm = () => {
         </FormGroup>
         */}
 
-      <ButtonGroup fill>
-        <Button icon={IconSet.ADD} onClick={addSearchQuery} />
-        <Button
-          // intent="warning"
-          onClick={uiStore.clearSearchQueryList}
-          disabled={uiStore.searchQueryList.length === 0}
-          text="Reset"
-          rightIcon="refresh"
-        />
+        <Button icon={IconSet.ADD} onClick={addSearchQuery} fill text="Query"/>
+        <ButtonGroup vertical fill>
         <Button
           intent="primary"
           onClick={uiStore.viewContentQuery}
           disabled={uiStore.searchQueryList.length === 0}
           text="Search"
-          rightIcon={IconSet.SEARCH}
+          icon={IconSet.SEARCH}
+          fill
+          // className="bp3-fill"
+        />
+        <Button
+          // intent="warning"
+          onClick={uiStore.clearSearchQueryList}
+          disabled={uiStore.searchQueryList.length === 0}
+          text="Reset"
+          icon={IconSet.CLOSE}
+          // className="bp3-fill"
+          fill
         />
       </ButtonGroup>
     </div>

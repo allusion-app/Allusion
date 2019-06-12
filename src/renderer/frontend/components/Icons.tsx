@@ -13,6 +13,7 @@ import CHECKMARK from '../../resources/icons/checkmark.svg';
 import CHROME_DEVTOOLS from '../../resources/icons/chrome-devtools.svg';
 import CLOSE from '../../resources/icons/close.svg';
 import COLLECTION_ADD from '../../resources/icons/collection-add.svg';
+import DB_ERROR from '../../resources/icons/db-error.svg';
 import DELETE from '../../resources/icons/delete.svg';
 import DESELECT_ALL_FILL from '../../resources/icons/deselect-all-fill.svg';
 import DESELECT_ALL_ROUND from '../../resources/icons/deselect-all-round.svg';
@@ -73,6 +74,7 @@ const IconSet = {
   CHROME_DEVTOOLS: toSvg(CHROME_DEVTOOLS),
   CLOSE: toSvg(CLOSE),
   COLLECTION_ADD: toSvg(COLLECTION_ADD),
+  DB_ERROR: toSvg(DB_ERROR),
   DELETE: toSvg(DELETE),
   DESELECT_ALL_FILL: toSvg(DESELECT_ALL_FILL),
   DESELECT_ALL_ROUND: toSvg(DESELECT_ALL_ROUND),
