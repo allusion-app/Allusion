@@ -13,7 +13,6 @@ import {
   ConnectDragPreview,
 } from 'react-dnd';
 import {
-  // Button,
   ControlGroup,
   InputGroup,
   Tag,
@@ -27,6 +26,8 @@ import {
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
 import { getEmptyImage } from 'react-dnd-html5-backend';
+import UiStore from '../stores/UiStore';
+import StoreContext from '../contexts/StoreContext';
 
 export const TAG_DRAG_TYPE = 'tag';
 export const DEFAULT_TAG_NAME = 'New tag';
@@ -121,7 +122,7 @@ interface ITagListItemProps {
   dateAdded: Date;
   onRemove: () => void;
   onRename: (name: string) => void;
-  onMoveTag: (movedTag: ID) => void;
+  onMoveTag: (dropProps: ITagDragItem) => void;
   onAddSelectionToQuery: () => void;
   onReplaceQuery: () => void;
   onSelect: (tagId: ID, clear?: boolean) => void;
@@ -187,17 +188,23 @@ export const TagListItem = ({
 };
 
 /** This handles what to do when an element is being dropped over this element */
-const dropTarget: DropTargetSpec<ITagListItemProps> = {
+const dropTarget: DropTargetSpec<ITagListItemProps & { uiStore: UiStore }> = {
   canDrop(props, monitor) {
+    const { id: draggedId, isSelected }: ITagDragItem = monitor.getItem() as ITagDragItem;
+
+    // If a dragged item is selected, make sure nothing in the selection is dropped into itself
+    if (isSelected) {
+      return props.uiStore.tagSelection.find((selTagId) => selTagId === props.id) === undefined;
+    }
+
     // You cannot drop a tag on itself
-    const { id: draggedId } = monitor.getItem();
     return props.id !== draggedId;
   },
   drop(props, monitor) {
     // Move the tag to the position where it is dropped (could be other collection as well)
-    const { id: draggedId } = monitor.getItem();
+    const { id: draggedId } = monitor.getItem() as ITagDragItem;
     if (draggedId !== props.id) {
-      props.onMoveTag(draggedId);
+      props.onMoveTag(monitor.getItem());
     }
   },
 };
@@ -208,15 +215,15 @@ const collectDropTarget = (connect: DropTargetConnector, monitor: DropTargetMoni
   };
 };
 
+export interface ITagDragItem {
+  name: string;
+  id: string;
+  isSelected: boolean;
+}
 /** This handles what the drag-and-drop target receives when dropping the element */
 const dragSource = {
-  beginDrag: (props: ITagListItemProps) => {
-    // If the item is not selected, make it the only selected item
-    if (!props.isSelected) {
-      props.onSelect(props.id, true);
-    }
-
-    return ({ name: props.name, id: props.id });
+  beginDrag: (props: ITagListItemProps): ITagDragItem => {
+    return ({ name: props.name, id: props.id, isSelected: props.isSelected });
   },
 };
 const collectDragSource = (connect: DragSourceConnector, monitor: DragSourceMonitor): IDragProps => ({
@@ -227,7 +234,7 @@ const collectDragSource = (connect: DragSourceConnector, monitor: DragSourceMoni
 
 /** Make the taglistitem draggable */
 const DraggableTagListItem = DropTarget<
-  ITagListItemProps & IEditingProps,
+  ITagListItemProps & IEditingProps & { uiStore: UiStore },
   IDropProps
 >(
   TAG_DRAG_TYPE,
@@ -263,7 +270,7 @@ const TagListItemContextMenu = (
   return (
     <Menu>
       <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={onRemove} text="Delete" icon={IconSet.DELETE} />
+      <MenuItem onClick={onRemove} text="Delete (999)" icon={IconSet.DELETE} />
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
@@ -301,11 +308,16 @@ class TagListItemWithContextMenu extends React.PureComponent<
     return (
       // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <DraggableTagListItem
-          {...this.props}
-          isEditing={this.state.isEditing}
-          setEditing={this.setEditing}
-        />
+        <StoreContext.Consumer>
+          {({ uiStore }) => (
+            <DraggableTagListItem
+              {...this.props}
+              isEditing={this.state.isEditing}
+              setEditing={this.setEditing}
+              uiStore={uiStore}
+            />
+          )}
+        </StoreContext.Consumer>
       </div>
     );
   }

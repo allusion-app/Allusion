@@ -294,6 +294,10 @@ main {
 .error-boundary {
   grid-area: main;
 
+  .bp3-non-ideal-state > * {
+    max-width: 500px;
+  }
+
   .message {
     text-align: left;
     width: 800px;
@@ -315,4 +319,7 @@ main {
 .custom-icon-64 > * {
   height: 4rem !important;
   width: 4rem !important;
+
+.fillWidth {
+  width: 100%;
 }

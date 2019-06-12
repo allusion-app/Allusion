@@ -371,14 +371,16 @@ const Gallery = ({
   // Also take into account scrolling when dragging while selecting
 
   if (fileList.length === 0) {
-    // let icon: IconName | MaybeElement = 'search';
-    let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.SEARCH}</span>;
-    const title = 'No images found';
+    // let icon: IconName | MaybeElement = 'media';
+    let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
+    let title = 'No images imported';
     let description = 'Import some images to get started!';
     let action =
       <Button onClick={uiStore.openOutlinerImport} text="Open import panel" intent="primary" icon={IconSet.ADD} />;
     if (uiStore.viewContent === 'query') {
       description = 'Try searching for something else.';
+      icon = 'search';
+      title = 'No images found';
       action = (
         <ButtonGroup>
           <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
@@ -389,6 +391,7 @@ const Gallery = ({
     } else if (uiStore.viewContent === 'untagged') {
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       description = 'All images have been tagged. Nice work!';
+      title = 'No untagged images';
       action = (
         <ButtonGroup>
           <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />

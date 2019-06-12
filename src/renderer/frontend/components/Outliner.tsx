@@ -19,10 +19,7 @@ const Outliner = () => {
         <ImportForm />
       </>)}
 
-      {uiStore.outlinerPage === 'TAGS' && (<>
-        <H4 className="bp3-heading">Tags</H4>
-        <TagList />
-      </>)}
+      {uiStore.outlinerPage === 'TAGS' && (<TagList />)}
 
       {uiStore.outlinerPage === 'SEARCH' && (<>
         <H4 className="bp3-heading">Search</H4>

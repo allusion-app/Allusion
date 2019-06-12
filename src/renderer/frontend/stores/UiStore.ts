@@ -5,6 +5,7 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
 import { remote } from 'electron';
+import { ClientTagCollection } from '../../entities/TagCollection';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -103,6 +104,7 @@ class UiStore {
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
+  @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
 
   // VIEW
   @observable viewMethod: ViewMethod = 'grid';
@@ -142,18 +144,18 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
-  @action selectFile(file: ClientFile, clear?: boolean) {
+  @action.bound selectFile(file: ClientFile, clear?: boolean) {
     if (clear) {
       this.fileSelection.clear();
     }
     this.fileSelection.push(file.id);
   }
 
-  @action deselectFile(file: ClientFile) {
+  @action.bound deselectFile(file: ClientFile) {
     this.fileSelection.remove(file.id);
   }
 
-  @action clearFileSelection() {
+  @action.bound clearFileSelection() {
     this.fileSelection.clear();
   }
 
@@ -168,7 +170,7 @@ class UiStore {
     this.fileSelection.clear();
   }
 
-  @action selectTag(tag: ClientTag, clear?: boolean) {
+  @action.bound selectTag(tag: ClientTag, clear?: boolean) {
     if (clear) {
       this.tagSelection.clear();
     }
@@ -194,7 +196,7 @@ class UiStore {
     }
   }
 
-  @action deselectTags(tags: ClientTag[] | ID[]) {
+  @action.bound deselectTags(tags: ClientTag[] | ID[]) {
     if (tags.length === 0) {
       return;
     }
@@ -205,11 +207,11 @@ class UiStore {
     }
   }
 
-  @action deselectTag(tag: ClientTag | ID) {
+  @action.bound deselectTag(tag: ClientTag | ID) {
     this.tagSelection.remove(tag instanceof ClientTag ? tag.id : tag);
   }
 
-  @action clearTagSelection() {
+  @action.bound clearTagSelection() {
     this.tagSelection.clear();
   }
 
@@ -221,6 +223,136 @@ class UiStore {
   @action.bound setFileOrderDescending(descending: boolean) {
     this.fileOrderDescending = descending;
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
+  }
+
+  @action.bound async removeSelectedTagsAndCollections() {
+    const { tagStore, tagCollectionStore } = this.rootStore;
+    // Remove tag collections
+    const allCollectionIds = tagCollectionStore.tagCollectionList.map((c) => c.id);
+    for (const colId of allCollectionIds) {
+      const selectedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === colId);
+      if (selectedCol && selectedCol.isSelected) {
+        await tagCollectionStore.removeTagCollection(selectedCol);
+      }
+    }
+    // Remove left over tags (if any)
+    const selectedTagIds = this.tagSelection.toJS();
+    for (const tagId of selectedTagIds) {
+      const selectedTag = tagStore.tagList.find((t) => t.id === tagId);
+      if (selectedTag) {
+        await tagStore.removeTag(selectedTag);
+      }
+    }
+  }
+
+  @action.bound async moveTag(tag: ClientTag | ID, target: ClientTag | ClientTagCollection, insertAtStart?: boolean) {
+    if (!(tag instanceof ClientTag)) {
+      const clientTag = this.rootStore.tagStore.tagList.find((t) => t.id === tag);
+      if (clientTag) {
+        tag = clientTag;
+      } else {
+        throw new Error('Cannot find tag to move ' + tag);
+      }
+    }
+
+    tag.parent.tags.remove(tag.id);
+
+    if (target instanceof ClientTag) {
+      const targetCol = target.parent;
+      const insertionIndex = targetCol.tags.indexOf(target.id);
+      // Insert the moved tag to the position of the current tag where it was dropped
+      targetCol.tags.splice(insertionIndex, 0, tag.id);
+    } else {
+      if (insertAtStart) {
+        target.tags.splice(0, 0, tag.id);
+      } else {
+        target.tags.push(tag.id);
+      }
+    }
+  }
+
+  @action.bound async moveCollection(
+    col: ClientTagCollection | ID, target: ClientTagCollection,
+    insertAtStart?: boolean,
+  ) {
+    if (!(col instanceof ClientTagCollection)) {
+      const clientCol = this.rootStore.tagCollectionStore.tagCollectionList.find((c) => c.id === col);
+      if (clientCol) {
+        col = clientCol;
+      } else {
+        throw new Error('Cannot find collection to move ' + col);
+      }
+    }
+
+    col.parent.subCollections.remove(col.id);
+
+    if (insertAtStart) {
+      target.subCollections.splice(0, 0, col.id);
+    } else {
+      target.subCollections.push(col.id);
+    }
+  }
+
+  /**
+   * @param target Where to move the selection to
+   * @param insertAtStart Whether to insert at the start, or the end
+   */
+  @action.bound async moveSelectedTagsAndCollections(targetId: ID, insertAtStart?: boolean) {
+    const { tagStore, tagCollectionStore } = this.rootStore;
+
+    // Todo: support moving unselected tag/collection
+
+    const target = tagStore.tagList.find((tag) => tag.id === targetId)
+      || tagCollectionStore.tagCollectionList.find((col) => col.id === targetId);
+
+    if (!target) {
+      throw new Error('Invalid target to move to');
+    }
+
+    const targetCol = target instanceof ClientTag ? target.parent : target;
+
+    const selectedCols: ClientTagCollection[] = [];
+    // Move collections
+    const allCollectionIds = tagCollectionStore.tagCollectionList.map((c) => c.id);
+    for (const colId of allCollectionIds) {
+      const col = tagCollectionStore.tagCollectionList.find((c) => c.id === colId);
+      if (col && col.isSelected) {
+        selectedCols.push(col);
+        const parent = tagCollectionStore.tagCollectionList.find((c) => c.subCollections.includes(colId));
+        if (parent) {
+          parent.subCollections.remove(colId);
+          if (insertAtStart) {
+            targetCol.subCollections.splice(0, 0, colId);
+          } else {
+            targetCol.subCollections.push(colId);
+          }
+        }
+      }
+    }
+
+    // Move tags that are not in those collections
+    const selectedTagsNotInSelectedCols = this.tagSelection.filter(
+      (t) => !selectedCols.some((col) => col.getTagsRecursively().includes(t)));
+
+    selectedTagsNotInSelectedCols.forEach((tagId) => {
+      // Find original collection
+      const parent = tagCollectionStore.tagCollectionList.find((c) => c.tags.includes(tagId));
+      if (!parent) { return console.error('Could not find original collection when moving tag', tagId); }
+      // Remove from orig collection
+      parent.removeTag(tagId);
+      // Find where to insert the moved tag
+      if (target instanceof ClientTag) {
+        const insertionIndex = targetCol.tags.indexOf(target.id);
+        // Insert the moved tag to the position of the current tag where it was dropped
+        targetCol.tags.splice(insertionIndex, 0, tagId);
+      } else {
+        if (insertAtStart) {
+          targetCol.tags.splice(0, 0, tagId);
+        } else {
+          targetCol.tags.push(tagId);
+        }
+      }
+    });
   }
 
   /////////////////// Search Actions ///////////////////
@@ -242,17 +374,21 @@ class UiStore {
     this.cleanFileSelection();
   }
 
-  @action.bound addTagSelectionToQuery() {
+  @action.bound addTagsToQuery(ids: ID[]) {
     this.addSearchQuery({
       action: 'include',
       operator: 'or',
-      value: this.tagSelection.toJS(),
+      value: ids,
     } as ITagSearchQuery);
   }
 
-  @action.bound replaceQueryWithSelection() {
+  @action.bound replaceQuery(ids: ID[]) {
     this.searchQueryList.clear();
-    this.addTagSelectionToQuery();
+    this.addTagsToQuery(ids);
+  }
+
+  @action.bound replaceQueryWithSelection() {
+    this.replaceQuery(this.tagSelection.toJS());
   }
 
   /////////////////// UI Actions ///////////////////
@@ -262,12 +398,15 @@ class UiStore {
 
   @action.bound openOutlinerImport() {
     this.outlinerPage = 'IMPORT';
+    this.viewContentUntagged();
   }
   @action.bound openOutlinerTags() {
     this.outlinerPage = 'TAGS';
+    this.viewContentAll();
   }
   @action.bound openOutlinerSearch() {
     this.outlinerPage = 'SEARCH';
+    this.viewContentQuery();
   }
 
   // VIEW
@@ -339,6 +478,13 @@ class UiStore {
   }
   @action.bound closeToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = false;
+  }
+
+  @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
+    this.isOutlinerTagRemoverOpen = val || 'selected';
+  }
+  @action.bound closeOutlinerTagRemover() {
+    this.isOutlinerTagRemoverOpen = null;
   }
 
   @action.bound toggleDevtools() {
