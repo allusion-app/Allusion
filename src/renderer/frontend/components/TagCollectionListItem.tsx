@@ -234,7 +234,7 @@ const TagCollectionListItemContextMenu = ({
       <MenuItem onClick={onMoveDown} text="Move down" icon="arrow-down" />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
-      <MenuItem onClick={onReplaceQuery} text="Replace search query" icon="blank" />
+      <MenuItem onClick={onReplaceQuery} text="Replace search query" icon={IconSet.REPLACE} />
     </Menu>
   );
 };
