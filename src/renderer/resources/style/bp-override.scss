@@ -216,7 +216,7 @@ button:has(.bp3-intent-danger) {
   color: $dark-gray4;
 }
 
-.bp3-dark .bp3-disabled>p {
+.bp3-dark .bp3-disabled > p {
   color: $dark-gray5;
 }
 
@@ -246,15 +246,15 @@ button:has(.bp3-intent-danger) {
 }
 
 // Controls
-.bp3-control input:focus~.bp3-control-indicator {
+.bp3-control input:focus ~ .bp3-control-indicator {
   outline: none;
 }
 
-.bp3-control.bp3-switch input:checked~.bp3-control-indicator {
+.bp3-control.bp3-switch input:checked ~ .bp3-control-indicator {
   background: $blue1;
 }
 
-.bp3-control.bp3-switch input~.bp3-control-indicator {
+.bp3-control.bp3-switch input ~ .bp3-control-indicator {
   background: rgba(167, 182, 194, 0.5);
 }
 
@@ -263,13 +263,12 @@ button:has(.bp3-intent-danger) {
   background: white;
 }
 
-.bp3-control.bp3-switch:hover input~.bp3-control-indicator {
+.bp3-control.bp3-switch:hover input ~ .bp3-control-indicator {
   background: rgba(115, 134, 148, 0.5);
 }
 
 // Menus
 .bp3-dark {
-
   #fileTag .bp3-heading.inpectorHeading,
   .bp3-drawer-header .bp3-heading {
     line-height: 19px;
@@ -348,13 +347,13 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-dark .bp3-menu-item::before,
-.bp3-dark .bp3-menu-item>.bp3-icon {
+.bp3-dark .bp3-menu-item > .bp3-icon {
   color: $dark-gray4;
 }
 
 .bp3-dark .bp3-menu-item.bp3-intent-primary.bp3-active,
-.bp3-dark .bp3-menu-item.bp3-intent-primary.bp3-active>#tick,
-.bp3-dark .bp3-menu-item.bp3-intent-primary.bp3-active>.bp3-icon,
+.bp3-dark .bp3-menu-item.bp3-intent-primary.bp3-active > #tick,
+.bp3-dark .bp3-menu-item.bp3-intent-primary.bp3-active > .bp3-icon,
 .bp3-dark .bp3-menu-item.bp3-intent-primary.bp3-active .custom-icon,
 .bp3-active .bp3-icon-eye-open {
   background: transparent;
@@ -366,9 +365,9 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-dark .bp3-menu-item:hover,
-.bp3-dark .bp3-menu-item:hover>.custom-icon,
-.bp3-dark .bp3-submenu .bp3-popover-target.bp3-popover-open>.bp3-menu-item,
-.bp3-submenu .bp3-dark .bp3-popover-target.bp3-popover-open>.bp3-menu-item {
+.bp3-dark .bp3-menu-item:hover > .custom-icon,
+.bp3-dark .bp3-submenu .bp3-popover-target.bp3-popover-open > .bp3-menu-item,
+.bp3-submenu .bp3-dark .bp3-popover-target.bp3-popover-open > .bp3-menu-item {
   background-color: transparent;
   color: $blue1;
 }
@@ -379,11 +378,11 @@ button:has(.bp3-intent-danger) {
 
 .bp3-menu-item,
 .bp3-portal #fileTag:only-child,
-.bp3-portal #deleteFile:only-child>* {
+.bp3-portal #deleteFile:only-child > * {
   padding: 0.25rem 0.25rem;
 }
 
-#inspector #fileTag>*,
+#inspector #fileTag > *,
 #inspector .inpectorHeading {
   word-break: break-word;
   padding: 0.25rem 0rem;
@@ -416,9 +415,9 @@ li .bp3-menu-item {
   color: white;
 }
 
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover,
-.bp3-button:hover>.custom-icon,
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]) .bp3-icon:hover {
+.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
+.bp3-button:hover > .custom-icon,
+.bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
   background: transparent;
   color: white !important;
 }
@@ -433,7 +432,7 @@ li .bp3-menu-item {
   background: transparent;
 }
 
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover,
+.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
 .bp3-button.bp3-minimal:hover,
 .bp3-dark .bp3-button.bp3-minimal:hover {
   border-bottom: 2px solid $blue1;
@@ -499,7 +498,8 @@ li .bp3-menu-item {
 }
 
 .bp3-dark .bp3-disabled:not([class*="bp3-intent-"]),
-.bp3-dark .bp3-menu-item.bp3-disabled {
+.bp3-dark .bp3-menu-item.bp3-disabled,
+.bp3-dark button.bp3-disabled:hover .custom-icon {
   color: $dark-gray5;
 }
 
@@ -544,10 +544,10 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 // Tree Selected
-.bp3-dark .bp3-tree-node.bp3-tree-node-selected>.bp3-tree-node-content,
-.bp3-light .bp3-tree-node.bp3-tree-node-selected>.bp3-tree-node-content,
-.tree-node.bp3-tree-node-selected>.bp3-tree-node-content .bp3-icon,
-.bp3-tree-node.bp3-tree-node-selected>.bp3-tree-node-content .bp3-icon {
+.bp3-dark .bp3-tree-node.bp3-tree-node-selected > .bp3-tree-node-content,
+.bp3-light .bp3-tree-node.bp3-tree-node-selected > .bp3-tree-node-content,
+.tree-node.bp3-tree-node-selected > .bp3-tree-node-content .bp3-icon,
+.bp3-tree-node.bp3-tree-node-selected > .bp3-tree-node-content .bp3-icon {
   background-color: transparent;
   color: $blue1;
 }
@@ -572,7 +572,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-dark .bp3-callout.bp3-intent-primary[class*="bp3-icon-"]::before,
-.bp3-dark .bp3-callout.bp3-intent-primary>.bp3-icon:first-child,
+.bp3-dark .bp3-callout.bp3-intent-primary > .bp3-icon:first-child,
 .bp3-dark .bp3-callout.bp3-intent-primary .bp3-heading {
   color: $blue5;
 }
@@ -586,7 +586,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-tag.bp3-intent-primary,
-.bp3-tag.bp3-intent-primary button>* {
+.bp3-tag.bp3-intent-primary button > * {
   background: $blue1;
   color: $light-gray4;
 }
@@ -625,7 +625,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-dark .bp3-tree-node-content:hover,
-.bp3-dark .bp3-tree-node-content:hover>.custom-icon {
+.bp3-dark .bp3-tree-node-content:hover > .custom-icon {
   color: white;
 }
 
@@ -675,8 +675,8 @@ $pt-transition-duration: 100ms !default;
   margin-bottom: 1rem;
 }
 
-.bp3-drawer-body>*,
-#search-form:not(.bp3-button-group)>button {
+.bp3-drawer-body > *,
+#search-form:not(.bp3-button-group) > button {
   margin-bottom: 0.5rem;
 }
 
@@ -696,7 +696,7 @@ $pt-transition-duration: 100ms !default;
 // Search panel
 #search-form,
 .gallery {
-  .bp3-button-group.bp3-vertical> {
+  .bp3-button-group.bp3-vertical > {
     .bp3-button:not(:first-child) {
       border-radius: 0 0 6px 6px !important;
     }
