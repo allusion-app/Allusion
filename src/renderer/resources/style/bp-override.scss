@@ -152,6 +152,9 @@ form .bp3-icon {
 }
 
 // Buttons
+.bp3-button.bp3-fill {
+  width: 100% !important;
+}
 button:has(.bp3-intent-primary) {
   background: $blue1;
 }
