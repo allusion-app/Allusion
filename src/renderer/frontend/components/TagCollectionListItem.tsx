@@ -85,7 +85,7 @@ const TagCollectionListItem = ({
     connectDragSource(
       <div className={className}>
         {tagCollection.name}
-        {tagCollection.isEmpty && <i> 0</i>}
+        {tagCollection.isEmpty && <i style={{color : '#007af5 !important'}}> 0</i>}
       </div>),
   );
 };

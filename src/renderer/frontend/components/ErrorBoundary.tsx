@@ -13,7 +13,7 @@ export const ClearDbButton = (props: IButtonProps & { position?: Position }) => 
 
   return (
     <Popover position={props.position} targetClassName={props.fill ? 'fillWidth' : ''}>
-      <Button {...props} intent="danger" icon="database">
+      <Button {...props} intent="danger" icon="database" style={{width : 'max-content'}}>
         Clear database
       </Button>
       <div style={{ padding: '8px', maxWidth: '400px' }}>
@@ -106,14 +106,14 @@ ${this.state.error}
             title="Something went wrong."
             description="You can try one of the following options or contact the maintainers"
             action={<ButtonGroup>
-              <Button onClick={this.reloadApplication} icon="refresh" intent="primary">
+              <Button onClick={this.reloadApplication} intent="primary" icon={IconSet.RELOAD}>
                 Reload
               </Button>
-              <Button onClick={this.viewInspector} intent="warning" icon="wrench">
+              <Button onClick={this.viewInspector} intent="warning" icon={IconSet.CHROME_DEVTOOLS}>
                 View in DevTools
               </Button>
               <ClearDbButton position="bottom" />
-              <Button onClick={this.openIssueURL} icon="issue-new">
+              <Button onClick={this.openIssueURL} icon={IconSet.GITHUB}>
                 Create issue
               </Button>
             </ButtonGroup>}

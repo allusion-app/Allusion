@@ -185,7 +185,7 @@ const ImportForm = () => {
         Add single directory
       </Button>
 
-      <Button fill onClick={handleChooseFolderStructure} icon={IconSet.FOLDER_OPEN} className={'tooltip'} data-right={importNestedTitle}>{/* // tslint:disable-next-line */}
+      <Button fill onClick={handleChooseFolderStructure} icon={IconSet.FOLDER_STRUCTURE} className={'tooltip'} data-right={importNestedTitle}>{/* // tslint:disable-next-line */}
         Add nested directories
       </Button>
 

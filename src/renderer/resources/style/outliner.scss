@@ -7,44 +7,87 @@ nav {
   min-width: 0;
   transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
+  // Putt 2 buttons at bottom
+  // display: flex;
+  // flex-direction: column;
+
   &.outlinerOpen {
     min-width: var(--outliner-width);
     width: 16rem;
+
+    button.bp3-button.bp3-minimal {
+      opacity: 0;
+      transition: .2s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
   }
 
   .bp3-dark {
     background: $dark-gray2;
   }
+
   &.outlinerOpen #import {
     overflow: visible !important;
   }
+
   .bp3-heading {
     margin: 0.5em 1rem;
   }
+
+  .bp3-divider {
+    margin: 1rem;
+    opacity: .25;
+  }
 }
+
 #search-form,
 #import {
   margin: 0.5em 1rem;
   outline: none;
 }
 
+// .outlinerOpen button.bp3-button.bp3-minimal {
+//   opacity: 0;
+//   transition: .2s cubic-bezier(0.4, 0.0, 0.2, 1);
+// }
+
 ///////////////////////////////// Import /////////////////////////////////
 
-#import, #search-form, .gallery { // .error-boundary
-  > button, .button.bp3-fill, button.bp3-button.bp3-fill, .bp3-non-ideal-state button.bp3-button {
+#import,
+#search-form,
+.gallery,
+.error-boundary {
+
+  // .error-boundary
+  >button,
+  .button.bp3-fill,
+  button.bp3-button.bp3-fill,
+  .bp3-non-ideal-state button.bp3-button {
     color: $light-gray2;
   }
-  > button, .button.bp3-fill, .bp3-non-ideal-state button.bp3-button {
+
+  >button,
+  .button.bp3-fill,
+  .bp3-non-ideal-state button.bp3-button {
     margin-bottom: .5rem;
   }
-  button.bp3-fill, .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary) {
+
+  button.bp3-fill,
+  // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]) {
     background: $light-gray1-trans;
     color: $light-gray2;
   }
+  .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]),
+  .bp3-icon > svg:not([fill]) {
+    color: $light-gray3;
+  } 
+
   button.bp3-intent-primary {
-    background:$light-gray0-trans;
+    background: $light-gray0-trans;
+  }
 }
-}
+
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
 #outliner-tags-header-wrapper {
   display: flex;
@@ -53,7 +96,12 @@ nav {
   h4 {
     margin-right: auto;
   }
+
+  &:hover:not(last-child)>* {
+    opacity: 1;
+  }
 }
+
 
 nav .bp3-tree {
   background-color: $dark-gray2;
@@ -63,6 +111,7 @@ nav .bp3-tree {
     overflow: hidden;
   }
 }
+
 .bp3-light {
   background-color: $light-gray2;
 }
@@ -80,15 +129,18 @@ nav .bp3-tree {
 }
 
 .bp3-tree-node .reorder-source,
-.bp3-tree-node .reorder-source > div {
+.bp3-tree-node .reorder-source>div {
   opacity: 0.2;
 }
+
 .bp3-control-group {
   padding: .25rem;
 }
+
 .bp3-input {
   padding: 0 .25rem;
 }
+
 .bp3-input:focus {
   box-shadow: 0 0 0 1.5px $blue1;
   // box-shadow: none !important;
@@ -99,6 +151,7 @@ nav .bp3-tree {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .bp3-tree .bp3-input {
   height: 1.6rem;
 }

@@ -274,7 +274,7 @@ const TagListItemContextMenu = (
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
-      <MenuItem onClick={onReplaceQuery} text="Replace search query" icon="blank" />
+      <MenuItem onClick={onReplaceQuery} text="Replace search query" icon={IconSet.REPLACE} />
     </Menu>
   );
 };

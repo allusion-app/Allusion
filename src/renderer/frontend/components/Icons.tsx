@@ -27,7 +27,9 @@ import FILTER_NAME_DOWN from '../../resources/icons/filter-name-down.svg';
 import FILTER_NAME_UP from '../../resources/icons/filter-name-up.svg';
 import FOLDER_CLOSE from '../../resources/icons/folder-close.svg';
 import FOLDER_OPEN from '../../resources/icons/folder-open.svg';
+import FOLDER_STRUCTURE from '../../resources/icons/folder-structure.svg';
 import FORM_DROP from '../../resources/icons/form-drop.svg';
+import GITHUB from '../../resources/icons/GITHUB.svg';
 import INFO from '../../resources/icons/info.svg';
 import LOCATIONS from '../../resources/icons/locations.svg';
 import MEDIA from '../../resources/icons/media.svg';
@@ -36,6 +38,8 @@ import META_INFO_2 from '../../resources/icons/meta-info-2.svg';
 import MORE from '../../resources/icons/more.svg';
 import OPEN_EXTERNAL from '../../resources/icons/open-external.svg';
 import PREVIEW from '../../resources/icons/preview.svg';
+import RELOAD from '../../resources/icons/reload.svg';
+import REPLACE from '../../resources/icons/replace.svg';
 import SEARCH from '../../resources/icons/search.svg';
 import SELECT_ALL_CHECKED from '../../resources/icons/select-all-checked.svg';
 import SELECT_ALL_ROUND from '../../resources/icons/select-all-round.svg';
@@ -88,7 +92,9 @@ const IconSet = {
   FILTER_NAME_UP: toSvg(FILTER_NAME_UP),
   FOLDER_CLOSE: toSvg(FOLDER_CLOSE),
   FOLDER_OPEN: toSvg(FOLDER_OPEN),
+  FOLDER_STRUCTURE: toSvg(FOLDER_STRUCTURE),
   FORM_DROP: toSvg(FORM_DROP),
+  GITHUB: toSvg(GITHUB),
   INFO: toSvg(INFO),
   LOCATIONS: toSvg(LOCATIONS),
   MEDIA: toSvg(MEDIA),
@@ -97,6 +103,8 @@ const IconSet = {
   MORE: toSvg(MORE),
   OPEN_EXTERNAL: toSvg(OPEN_EXTERNAL),
   PREVIEW: toSvg(PREVIEW),
+  RELOAD: toSvg(RELOAD),
+  REPLACE: toSvg(REPLACE),
   SEARCH: toSvg(SEARCH),
   SELECT_ALL_CHECKED: toSvg(SELECT_ALL_CHECKED),
   SELECT_ALL_ROUND: toSvg(SELECT_ALL_ROUND),

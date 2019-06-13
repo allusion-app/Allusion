@@ -356,6 +356,8 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       {/* Used for dragging collection to root of hierarchy and flor deselecting tag selection */}
       <div id="tree-footer" ref={footerDrop} onClick={uiStore.clearTagSelection} />
 
+      <div className="bp3-divider"></div>
+
       <div id="system-tags">
         <ButtonGroup vertical minimal fill>
           <Button
@@ -373,7 +375,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
               uiStore.viewContent === 'untagged'
                 ? <Icon icon="eye-open" />
                 : (fileStore.numUntaggedFiles > 0
-                  ? <Icon icon={IconSet.WARNING} />
+                  ? <i style={{color : '#007af5 !important'}}><Icon icon={IconSet.WARNING} /></i>
                   : null
                 )
             }
