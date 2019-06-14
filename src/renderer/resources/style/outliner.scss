@@ -1,7 +1,7 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 nav {
   grid-area: outliner;
-  overflow: auto;
+  overflow: -webkit-paged-y;
   flex-shrink: 0;
   width: 0;
   min-width: 0;
@@ -32,13 +32,7 @@ nav {
   .bp3-heading {
     margin: 0.5em 1rem;
   }
-
-  .bp3-divider {
-    margin: 1rem;
-    opacity: .25;
-  }
 }
-
 #search-form,
 #import {
   margin: 0.5em 1rem;
@@ -96,12 +90,13 @@ nav {
   h4 {
     margin-right: auto;
   }
+}
 
-  &:hover:not(last-child)>* {
+#outliner {
+  &:hover #outliner-tags-header-wrapper:not(last-child)>* {
     opacity: 1;
   }
 }
-
 
 nav .bp3-tree {
   background-color: $dark-gray2;

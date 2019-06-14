@@ -82,7 +82,7 @@ main {
   background-color: $dark-gray3;
 }
 .bp3-popover-backdrop {
-  background: rgba(16, 22, 26, 0.7);
+  background: rgba(16, 22, 26, 0.0); //Set 2 zero for now
 }
 .bp3-popover-content,
 .bp3-drawer,

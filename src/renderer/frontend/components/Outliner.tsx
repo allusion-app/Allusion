@@ -13,7 +13,7 @@ const Outliner = () => {
 
   // Todo: Use https://blueprintjs.com/docs/#core/components/tabs
   return (
-    <nav className={`${uiStore.isOutlinerOpen ? 'outlinerOpen' : ''}`}>
+    <nav id="outliner" className={`${uiStore.isOutlinerOpen ? 'outlinerOpen' : ''}`}>
       {uiStore.outlinerPage === 'IMPORT' && (<>
         <H4 className="bp3-heading">Import</H4>
         <ImportForm />

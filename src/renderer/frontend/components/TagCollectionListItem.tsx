@@ -227,11 +227,10 @@ const TagCollectionListItemContextMenu = ({
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
       <MenuItem onClick={handleConfirmRemoveAlert} text="Delete (999)" icon={IconSet.DELETE} disabled={!onRemove} />
       <Divider />
-      <MenuItem onClick={onExpandAll} text="Expand all" icon="expand-all" />
-      <MenuItem onClick={onCollapseAll} text="Collapse all" icon="collapse-all" />
-      <Divider />
-      <MenuItem onClick={onMoveUp} text="Move up" icon="arrow-up" />
-      <MenuItem onClick={onMoveDown} text="Move down" icon="arrow-down" />
+      <MenuItem onClick={onExpandAll} text="Expand" icon={IconSet.ARROW_EXPAND} />
+      <MenuItem onClick={onCollapseAll} text="Collapse" icon={IconSet.ARROW_COLLAPS} />
+      <MenuItem onClick={onMoveUp} text="Move up" icon={IconSet.MOVE_UP} />
+      <MenuItem onClick={onMoveDown} text="Move down" icon={IconSet.MOVE_DOWN} />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
       <MenuItem onClick={onReplaceQuery} text="Replace search query" icon={IconSet.REPLACE} />

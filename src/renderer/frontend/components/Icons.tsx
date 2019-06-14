@@ -9,6 +9,8 @@ import ADD from '../../resources/icons/add.svg';
 import ARROW_DOWN from '../../resources/icons/arrow-down.svg';
 import ARROW_RIGHT from '../../resources/icons/arrow-right.svg';
 import ARROW_UP from '../../resources/icons/arrow-up.svg';
+import ARROW_COLLAPS from '../../resources/icons/arrow-collaps.svg';
+import ARROW_EXPAND from '../../resources/icons/arrow-expand.svg';
 import CHECKMARK from '../../resources/icons/checkmark.svg';
 import CHROME_DEVTOOLS from '../../resources/icons/chrome-devtools.svg';
 import CLOSE from '../../resources/icons/close.svg';
@@ -36,6 +38,8 @@ import MEDIA from '../../resources/icons/media.svg';
 import META_INFO from '../../resources/icons/meta-info.svg';
 import META_INFO_2 from '../../resources/icons/meta-info-2.svg';
 import MORE from '../../resources/icons/more.svg';
+import MOVE_DOWN from '../../resources/icons/move-down.svg';
+import MOVE_UP from '../../resources/icons/move-up.svg';
 import OPEN_EXTERNAL from '../../resources/icons/open-external.svg';
 import PREVIEW from '../../resources/icons/preview.svg';
 import RELOAD from '../../resources/icons/reload.svg';
@@ -74,6 +78,8 @@ const IconSet = {
   ARROW_DOWN: toSvg(ARROW_DOWN),
   ARROW_RIGHT: toSvg(ARROW_RIGHT),
   ARROW_UP: toSvg(ARROW_UP),
+  ARROW_COLLAPS: toSvg(ARROW_COLLAPS),
+  ARROW_EXPAND: toSvg(ARROW_EXPAND),
   CHECKMARK: toSvg(CHECKMARK),
   CHROME_DEVTOOLS: toSvg(CHROME_DEVTOOLS),
   CLOSE: toSvg(CLOSE),
@@ -101,6 +107,8 @@ const IconSet = {
   META_INFO: toSvg(META_INFO),
   META_INFO_2: toSvg(META_INFO_2),
   MORE: toSvg(MORE),
+  MOVE_DOWN: toSvg(MOVE_DOWN),
+  MOVE_UP: toSvg(MOVE_UP),
   OPEN_EXTERNAL: toSvg(OPEN_EXTERNAL),
   PREVIEW: toSvg(PREVIEW),
   RELOAD: toSvg(RELOAD),

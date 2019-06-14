@@ -26,16 +26,16 @@ interface IRemoveFilesPopoverProps {
   disabled: boolean;
   onRemove: () => void;
   uiStore: UiStore;
-  hasBackdrop: boolean;
+  // hasBackdrop: boolean;
 }
-const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore, hasBackdrop }: IRemoveFilesPopoverProps) => (
+const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore /*hasBackdrop*/ }: IRemoveFilesPopoverProps) => (
   <Popover
     minimal
     canEscapeKeyClose={true}
     isOpen={uiStore.isToolbarFileRemoverOpen}
     onClose={uiStore.closeToolbarFileRemover}
     className={Classes.DARK}
-    hasBackdrop
+    // hasBackdrop  >> APPLIES TO ALL POPOVERS, NEEDS BETTER METHOD
   >
     <Button
       icon={IconSet.DELETE}
@@ -263,7 +263,7 @@ const Toolbar = () => {
             onRemove={handleRemoveSelectedFiles}
             disabled={!selectionModeOn}
             uiStore={uiStore}
-            hasBackdrop={false}
+            // hasBackdrop={false}
           />
 
           {/* Gallery actions */}

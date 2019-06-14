@@ -14,6 +14,10 @@ import { useDrop } from 'react-dnd/lib/cjs/hooks';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from '../stores/RootStore';
 
+// Tooltip info
+const addTagTT = 'New Tag';
+const addTagColCTT = 'New Tag Collection';
+
 interface IExpandState {
   [key: string]: boolean;
 }
@@ -336,8 +340,16 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     <>
       <div id="outliner-tags-header-wrapper" ref={headerDrop}>
         <H4 className="bp3-heading">Tags</H4>
-        <Button minimal icon={IconSet.TAG_ADD} onClick={handleRootAddTag} />
-        <Button minimal icon={IconSet.COLLECTION_ADD} onClick={handleAddRootCollection} />
+        <Button
+          minimal icon={IconSet.TAG_ADD}
+          onClick={handleRootAddTag}
+          className="tooltip"
+          data-right={addTagTT} />
+        <Button
+          minimal icon={IconSet.COLLECTION_ADD}
+          onClick={handleAddRootCollection}
+          className="tooltip"
+          data-right={addTagColCTT} />
       </div>
 
       <Tree
