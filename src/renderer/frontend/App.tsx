@@ -16,7 +16,8 @@ const SPLASH_SCREEN_TIME = 700;
 
 interface IAppProps extends IRootStoreProp {}
 
-const App = ({ rootStore: { uiStore } }: IAppProps) => {
+const App = ({ rootStore }: IAppProps) => {
+  const { uiStore } = rootStore;
 
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
@@ -39,7 +40,7 @@ const App = ({ rootStore: { uiStore } }: IAppProps) => {
           <Outliner />
 
           <main>
-            <FileList />
+            <FileList rootStore={rootStore} />
           </main>
 
           <Inspector />

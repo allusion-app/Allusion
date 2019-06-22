@@ -21,9 +21,9 @@ interface IHotkeyMap {
 
   // Toolbar actions (these should only be active when the content area is focused)
   openTagSelector: string;
-  deleteSelectedFiles: string;
-  selectAllFiles: string;
-  deselectAllFiles: string;
+  deleteSelection: string;
+  selectAll: string;
+  deselectAll: string;
   viewList: string;
   viewGrid: string;
   viewMason: string;
@@ -39,9 +39,9 @@ const defaultHotkeyMap: IHotkeyMap = {
   replaceQuery: 'r',
   openTagSelector: 't',
   toggleSettings: 's',
-  deleteSelectedFiles: 'del',
-  selectAllFiles: 'mod + a',
-  deselectAllFiles: 'mod + d',
+  deleteSelection: 'del',
+  selectAll: 'mod + a',
+  deselectAll: 'mod + d',
   viewList: 'alt + 1',
   viewGrid: 'alt + 2',
   viewMason: 'alt + 3',
@@ -229,7 +229,9 @@ class UiStore {
     const { tagStore, tagCollectionStore } = this.rootStore;
     const ctx = this.getTagContextItems();
     for (const col of ctx.collections) {
-      await tagCollectionStore.removeTagCollection(col);
+      if (col.id !== ROOT_TAG_COLLECTION_ID) {
+        await tagCollectionStore.removeTagCollection(col);
+      }
     }
     for (const tag of ctx.tags) {
       await tagStore.removeTag(tag);

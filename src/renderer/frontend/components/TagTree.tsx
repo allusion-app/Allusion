@@ -1,16 +1,17 @@
 import { observer, useComputed } from 'mobx-react-lite';
 import React, { useState, useCallback, useEffect, useContext, useRef } from 'react';
+import {
+  Tree, ITreeNode, Button, Icon, ButtonGroup, H4, Alert, Classes, Tag, Hotkey, Hotkeys, HotkeysTarget,
+} from '@blueprintjs/core';
+import { useDrop } from 'react-dnd/lib/cjs/hooks';
 
 import TagListItem, { DEFAULT_TAG_NAME, TAG_DRAG_TYPE, ITagDragItem } from './TagListItem';
-
-import StoreContext, { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
-import { Tree, ITreeNode, Button, Icon, ButtonGroup, H4, Alert, Classes, Tag } from '@blueprintjs/core';
+import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
 import TagCollectionListItem, { DEFAULT_COLLECTION_NAME, COLLECTION_DRAG_TYPE } from './TagCollectionListItem';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import TagCollectionStore from '../stores/TagCollectionStore';
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
-import { useDrop } from 'react-dnd/lib/cjs/hooks';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from '../stores/RootStore';
 
@@ -229,9 +230,11 @@ const TagRemover = observer(() => {
   );
 });
 
-export interface ITagListProps extends IRootStoreProp { }
+export interface ITagListProps { }
 
-const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore } }: ITagListProps) => {
+const TagList = ({
+  rootStore: { tagStore, tagCollectionStore, uiStore, fileStore,
+}}: ITagListProps & IRootStoreProp) => {
   /** The first item that is selected in a multi-selection */
   const initialSelectionIndex = useRef<number | undefined>(undefined);
   /** The last item that is selected in a multi-selection */
@@ -376,12 +379,14 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
           minimal icon={IconSet.TAG_ADD}
           onClick={handleRootAddTag}
           className="tooltip"
-          data-right={addTagTT} />
+          data-right={addTagTT}
+        />
         <Button
           minimal icon={IconSet.COLLECTION_ADD}
           onClick={handleAddRootCollection}
           className="tooltip"
-          data-right={addTagColCTT} />
+          data-right={addTagColCTT}
+        />
       </div>
 
       <Tree
@@ -435,4 +440,50 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
   );
 };
 
-export default withRootstore(observer(TagList));
+const ObservingTagList = observer(TagList);
+
+@HotkeysTarget
+class TagListWithHotkeys extends React.PureComponent<ITagListProps & IRootStoreProp, {}> {
+  render() {
+    return <div tabIndex={0}><ObservingTagList {...this.props} /></div>;
+  }
+  selectAllTags = () => {
+    this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());
+  }
+  openTagRemover = () => {
+    this.props.rootStore.uiStore.openOutlinerTagRemover();
+  }
+  renderHotkeys() {
+    const { uiStore } = this.props.rootStore;
+    const { hotkeyMap } = uiStore;
+    return (
+      <Hotkeys>
+        <Hotkey
+          combo={hotkeyMap.selectAll}
+          label="Select all tags in the outliner"
+          onKeyDown={this.selectAllTags}
+          group="Outliner"
+        />
+        <Hotkey
+          combo={hotkeyMap.deselectAll}
+          label="Deselect all tags in the outliner"
+          onKeyDown={uiStore.clearTagSelection}
+          group="Outliner"
+        />
+        <Hotkey
+          combo={hotkeyMap.deleteSelection}
+          label="Delete the selected tags and collections"
+          onKeyDown={this.openTagRemover}
+          group="Outliner"
+        />
+      </Hotkeys>
+    );
+  }
+}
+
+const HotkeysWrapper = observer((props: ITagListProps) => {
+  const rootStore = React.useContext(StoreContext);
+  return <TagListWithHotkeys {...props} rootStore={rootStore} />;
+});
+
+export default HotkeysWrapper;

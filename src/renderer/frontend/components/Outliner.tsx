@@ -9,7 +9,8 @@ import ImportForm from './ImportForm';
 import SearchForm from './SearchForm';
 
 const Outliner = () => {
-  const { uiStore } = useContext(StoreContext);
+  const rootStore = useContext(StoreContext);
+  const { uiStore } = rootStore;
 
   // Todo: Use https://blueprintjs.com/docs/#core/components/tabs
   return (
