@@ -1,5 +1,5 @@
 import { observer, useComputed } from 'mobx-react-lite';
-import React, { useState, useCallback, useEffect, useContext } from 'react';
+import React, { useState, useCallback, useEffect, useContext, useRef } from 'react';
 
 import TagListItem, { DEFAULT_TAG_NAME, TAG_DRAG_TYPE, ITagDragItem } from './TagListItem';
 
@@ -225,6 +225,10 @@ const TagRemover = observer(() => {
 export interface ITagListProps extends IRootStoreProp { }
 
 const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore } }: ITagListProps) => {
+  /** The first item that is selected in a multi-selection */
+  const initialSelectionIndex = useRef<number | undefined>(undefined);
+  /** The last item that is selected in a multi-selection */
+  const lastSelectionIndex = useRef<number | undefined>(undefined);
   // Keep track of folders that have been expanded. The two main folders are expanded by default.
   const [expandState, setExpandState] = useState<IExpandState>({});
 
@@ -257,6 +261,17 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     [expandState],
   );
 
+  const root = tagCollectionStore.getRootCollection();
+  // Todo: Not sure what the impact is of generating the hierarchy in each render on performance.
+  // Usually the hierarchy is stored directly in the state, but we can't do that since it it managed by the TagCollectionStore.
+  // Or maybe we can, but then the ClientTagCollection needs to extends ITreeNode, which messes up the responsibility of the Store and the state required by the view...
+  const hierarchy: ITreeNode[] = useComputed(
+    () => root
+      ? [createTagCollectionTreeNode(root, expandState, tagCollectionStore, setExpandState)]
+      : [],
+    [root, expandState],
+  );
+
   const handleNodeClick = useCallback(
     ({ id }: ITreeNode, nodePath: number[], e: React.MouseEvent) => {
       // The tags selected in this event
@@ -279,15 +294,41 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
         isClickSelectionSelected = clickedCollection.isSelected;
       }
 
+      function flattenHierarchy(node: ITreeNode): ITreeNode[] {
+        return node.childNodes
+          ? [node, ...node.childNodes.flatMap(flattenHierarchy)]
+          : [node];
+      }
+
+      const flatHierarchy = flattenHierarchy(hierarchy[0]);
+      const i = flatHierarchy.findIndex((item) => item.id === id);
+
       // Based on the event options, add or subtract the clickSelection from the global tag selection
-      if (e.ctrlKey || e.metaKey) {
-        isClickSelectionSelected ? uiStore.deselectTags(clickSelection) : uiStore.selectTags(clickSelection);
-      } else if (e.shiftKey) {
-        // Todo: Take into account last selection index (like in gallery)
-        // Requires some additional state
+      if (e.shiftKey) {
+        // Shift selection: Select from the initial up to the current index
+        if (initialSelectionIndex.current !== undefined) {
+          // Make sure that sliceStart is the lowest index of the two and vice versa
+          let sliceStart = initialSelectionIndex.current;
+          let sliceEnd = i;
+          if (i < initialSelectionIndex.current) {
+            sliceStart = i;
+            sliceEnd = initialSelectionIndex.current;
+          }
+          const idsToSelect = flatHierarchy.slice(sliceStart, sliceEnd + 1)
+            .filter((item) => !item.hasCaret) // only collections have a caret
+            .map((item) => item.id);
+          uiStore.selectTags(idsToSelect as ID[], true);
+        }
+      } else if (e.ctrlKey || e.metaKey) {
+        initialSelectionIndex.current = i;
+        isClickSelectionSelected
+          ? uiStore.deselectTags(clickSelection)
+          : uiStore.selectTags(clickSelection);
       } else {
         // Normal click: If it was the only one that was selected, deselect it
         const isOnlySelected = isClickSelectionSelected && uiStore.tagSelection.length === clickSelection.length;
+
+        initialSelectionIndex.current = i;
 
         if (!isOnlySelected) {
           uiStore.selectTags(clickSelection, true);
@@ -295,19 +336,9 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
           uiStore.deselectTags(clickSelection);
         }
       }
+      lastSelectionIndex.current = i;
     },
-    [],
-  );
-
-  const root = tagCollectionStore.getRootCollection();
-  // Todo: Not sure what the impact is of generating the hierarchy in each render on performance.
-  // Usually the hierarchy is stored directly in the state, but we can't do that since it it managed by the TagCollectionStore.
-  // Or maybe we can, but then the ClientTagCollection needs to extends ITreeNode, which messes up the responsibility of the Store and the state required by the view...
-  const hierarchy: ITreeNode[] = useComputed(
-    () => root
-      ? [createTagCollectionTreeNode(root, expandState, tagCollectionStore, setExpandState)]
-      : [],
-    [root, expandState],
+    [hierarchy],
   );
 
   const handleRootDrop = useCallback(({ id, isSelected }: ITagDragItem, mon, insertAtStart?: boolean) => {

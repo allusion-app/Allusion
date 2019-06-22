@@ -23,7 +23,6 @@ import {
   Divider,
 } from '@blueprintjs/core';
 
-
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
 import { getEmptyImage } from 'react-dnd-html5-backend';
