@@ -13,7 +13,6 @@ import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
 import UiStore, { ViewMethod } from '../stores/UiStore';
 import { ClientFile } from '../../entities/File';
-import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import { throttle } from '../utils';
 
@@ -296,7 +295,15 @@ const Gallery = ({
   const handleBackgroundClick = useCallback(() => uiStore.fileSelection.clear(), []);
 
   const handleDrop = useCallback(
-    (item: any, file: ClientFile) => (item instanceof ClientTag) && file.addTag(item.id), []);
+    (item: any, file: ClientFile) => {
+      // Add all tags in the context to the targeted file
+      const ctx = uiStore.getTagContextItems(item.id);
+      const allContextTags = [
+        ...ctx.tags.map((t) => t.id),
+        ...ctx.collections.flatMap((col) => col.getTagsRecursively()),
+      ];
+      allContextTags.forEach(file.addTag);
+    }, []);
 
   // Todo: Move selection logic to a custom hook
   const handleItemClick = useCallback(

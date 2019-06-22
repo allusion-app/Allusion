@@ -167,7 +167,6 @@ IGalleryItemProps,
 
   constructor(props: IGalleryItemProps) {
     super(props);
-    this.handleDrop = this.handleDrop.bind(this);
   }
 
   componentDidMount() {
@@ -178,17 +177,11 @@ IGalleryItemProps,
     this.state._isMounted = false;
   }
 
-  handleDrop(item: any, file: ClientFile) {
-    if (item.id) {
-      file.addTag(item.id);
-    }
-  }
-
   render() {
     return (
       // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <span className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <DroppableGalleryItem {...this.props} onDrop={this.handleDrop} />
+        <DroppableGalleryItem {...this.props} onDrop={this.props.onDrop} />
       </span>
     );
   }
