@@ -219,9 +219,8 @@ const TagRemover = observer(() => {
       icon={IconSet.DELETE}
       intent="danger"
       onCancel={uiStore.closeOutlinerTagRemover}
-      canEscapeKeyCancel={true}
-      canOutsideClickCancel={true}
-      // Todo: remove selection only when rmb on selection
+      canEscapeKeyCancel
+      canOutsideClickCancel
       onConfirm={handleConfirm}
       className={Classes.DARK}
     >
@@ -420,14 +419,12 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
               uiStore.viewContent === 'untagged'
                 ? <Icon icon="eye-open" />
                 : (fileStore.numUntaggedFiles > 0
-                  ? <i style={{color : '#007af5 !important'}}><Icon icon={IconSet.WARNING} /></i>
+                  ? <Icon icon={IconSet.WARNING} />
                   : null
                 )
             }
             onClick={uiStore.viewContentUntagged}
             active={uiStore.viewContent === 'untagged'}
-            // Doesnt fit the design, an icon i enough
-            intent={fileStore.numUntaggedFiles > 0 ? 'none' : 'none'}
             fill
           />
         </ButtonGroup>

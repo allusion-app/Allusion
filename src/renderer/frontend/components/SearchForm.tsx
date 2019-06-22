@@ -86,7 +86,6 @@ const SearchForm = () => {
           text="Search"
           icon={IconSet.SEARCH}
           fill
-          // className="bp3-fill"
         />
         <Button
           // intent="warning"
@@ -94,7 +93,6 @@ const SearchForm = () => {
           disabled={uiStore.searchQueryList.length === 0}
           text="Reset"
           icon={IconSet.CLOSE}
-          // className="bp3-fill"
           fill
         />
       </ButtonGroup>

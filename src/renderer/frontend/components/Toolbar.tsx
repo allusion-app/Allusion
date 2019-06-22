@@ -1,6 +1,6 @@
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Icon, Classes, ButtonGroup,
+  Button, Popover, MenuItem, Menu, Icon, Classes, ButtonGroup, Alert,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -26,53 +26,29 @@ interface IRemoveFilesPopoverProps {
   disabled: boolean;
   onRemove: () => void;
   uiStore: UiStore;
-  // hasBackdrop: boolean;
 }
-const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore /*hasBackdrop*/ }: IRemoveFilesPopoverProps) => (
-  <Popover
-    minimal
-    canEscapeKeyClose={true}
+const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => (
+  <Alert
     isOpen={uiStore.isToolbarFileRemoverOpen}
-    onClose={uiStore.closeToolbarFileRemover}
+    cancelButtonText="Cancel"
+    confirmButtonText="Delete"
+    icon={IconSet.DELETE}
+    intent="danger"
+    onCancel={uiStore.closeToolbarFileRemover}
+    onConfirm={onRemove}
+    canEscapeKeyCancel
+    canOutsideClickCancel
     className={Classes.DARK}
-    // hasBackdrop  >> APPLIES TO ALL POPOVERS, NEEDS BETTER METHOD
   >
-    <Button
-      icon={IconSet.DELETE}
-      disabled={disabled}
-      className="tooltip"
-      data-right={deleteTooltip}
-      onClick={uiStore.toggleToolbarFileRemover}
-    />
     <div className="popoverContent bp3-dark" id="deleteFile">
       <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
-      <p>Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?
-      <br />Your files will not be deleted.</p>
-
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          marginTop: 15,
-        }}>
-        <Button
-          className={Classes.POPOVER_DISMISS}
-          style={{ marginRight: 10 }}
-          onClick={uiStore.closeToolbarFileRemover}
-        >
-          Cancel
-        </Button>
-        <Button
-          intent="danger"
-          className={Classes.POPOVER_DISMISS}
-          onClick={onRemove}
-          autoFocus
-        >
-          Delete
-        </Button>
-      </div>
+      <p>
+        Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?
+        <br />
+        Your files will not be deleted.
+      </p>
     </div>
-  </Popover>
+  </Alert>
 ));
 
 interface ITagFilesPopoverProps {

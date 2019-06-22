@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup, // IconName, MaybeElement,
+  ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup,
 } from '@blueprintjs/core';
 import {
   FixedSizeGrid, GridItemKeySelector, FixedSizeList, ListItemKeySelector,
@@ -378,7 +378,6 @@ const Gallery = ({
   // Also take into account scrolling when dragging while selecting
 
   if (fileList.length === 0) {
-    // let icon: IconName | MaybeElement = 'media';
     let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
     let title = 'No images imported';
     let description = 'Import some images to get started!';
@@ -391,7 +390,7 @@ const Gallery = ({
       action = (
         <ButtonGroup>
           <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
-          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentUntagged} />
+          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentAll} />
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
         </ButtonGroup>
       );
