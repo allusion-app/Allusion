@@ -5,7 +5,7 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from './RootStore';
 import { remote } from 'electron';
-import { ClientTagCollection } from '../../entities/TagCollection';
+import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -294,13 +294,77 @@ class UiStore {
   }
 
   /**
+   * Returns the tags and tag collections that are in the context of an action,
+   * e.g. all selected items when choosing to delete an item that is selected,
+   * or only a single item when moving a single tag that is not selected.
+   * @returns The collections and tags in the context. Tags belonging to collections in the context are not included,
+   * but can be easily found by getting the tags from each collection.
+   */
+  @action.bound getTagContextItems(activeItemId?: ID) {
+    const { tagStore, tagCollectionStore } = this.rootStore;
+
+    // If no id was given, the context is the tag selection. Else, it might be a single tag/collection
+    let isContextTheSelection = activeItemId === undefined;
+
+    const contextTags: ClientTag[] = [];
+    const contextCols: ClientTagCollection[] = [];
+
+    // If an id is given, check whether it belongs to a tag or collection
+    if (activeItemId) {
+      const selectedTag = tagStore.tagList.find((t) => t.id === activeItemId);
+      if (selectedTag) {
+        if (selectedTag.isSelected) {
+          isContextTheSelection = true;
+        } else {
+          contextTags.push(selectedTag);
+        }
+      } else {
+        const selectedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === activeItemId);
+        if (selectedCol) {
+          if (selectedCol.isSelected) {
+            isContextTheSelection = true;
+          } else {
+            contextCols.push(selectedCol);
+          }
+        }
+      }
+    }
+
+    // If no id is given or when the selected tag or collection is selected, the context is the whole selection
+    if (isContextTheSelection) {
+      const selectedCols = tagCollectionStore.tagCollectionList.filter((c) => c.isSelected);
+
+      // root collection may not be present in the context
+      const rootColIndex = selectedCols.findIndex((col) => col.id === ROOT_TAG_COLLECTION_ID);
+      if (rootColIndex >= 0) {
+        selectedCols.splice(rootColIndex, 1);
+      }
+
+      // Only include selected collections of which their parent is not selected
+      const selectedColsNotInSelectedCols = selectedCols.filter(
+        (col) => !selectedCols.some(
+          (parent) => parent.subCollections.includes(col.id)));
+      contextCols.push(...selectedColsNotInSelectedCols);
+
+      // Only include the selected tags that are not in a selected collection
+      const selectedTagsNotInSelectedCols = this.clientTagSelection
+        .filter((t) => !selectedCols.some(
+          (col) => col.tags.includes(t.id)));
+      contextTags.push(...selectedTagsNotInSelectedCols);
+    }
+
+    return {
+      tags: contextTags,
+      collections: contextCols,
+    };
+  }
+
+  /**
    * @param target Where to move the selection to
    * @param insertAtStart Whether to insert at the start, or the end
    */
   @action.bound async moveSelectedTagsAndCollections(targetId: ID, insertAtStart?: boolean) {
     const { tagStore, tagCollectionStore } = this.rootStore;
-
-    // Todo: support moving unselected tag/collection
 
     const target = tagStore.tagList.find((tag) => tag.id === targetId)
       || tagCollectionStore.tagCollectionList.find((col) => col.id === targetId);

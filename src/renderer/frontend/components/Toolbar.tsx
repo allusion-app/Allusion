@@ -93,7 +93,7 @@ const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopover
 ));
 
 const sortMenuData: Array<{ prop: keyof IFile, icon: JSX.Element, text: string }> = [
-  { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
+  // { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
   { prop: 'name', icon: IconSet.FILTER_NAME_UP, text: 'Name' },
   { prop: 'extension', icon: IconSet.FILTER_FILE_TYPE, text: 'File type' },
   { prop: 'size', icon: IconSet.FILTER_FILTER_DOWN, text: 'File size' },

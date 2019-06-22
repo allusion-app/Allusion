@@ -220,12 +220,14 @@ export interface ITagDragItem {
   id: string;
   isSelected: boolean;
 }
+
 /** This handles what the drag-and-drop target receives when dropping the element */
 const dragSource = {
   beginDrag: (props: ITagListItemProps): ITagDragItem => {
     return ({ name: props.name, id: props.id, isSelected: props.isSelected });
   },
 };
+
 const collectDragSource = (connect: DragSourceConnector, monitor: DragSourceMonitor): IDragProps => ({
   connectDragSource: connect.dragSource(),
   connectDragPreview: connect.dragPreview(),
@@ -256,6 +258,7 @@ const TagListItemContextMenu = (
   onRemove: () => void,
   onAddSelectionToQuery: () => void,
   onReplaceQuery: () => void,
+  numItemsToDelete: number,
 ) => {
   const handleRename = () => {
     setEditing(true);
@@ -270,7 +273,7 @@ const TagListItemContextMenu = (
   return (
     <Menu>
       <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={onRemove} text="Delete (999)" icon={IconSet.DELETE} />
+      <MenuItem onClick={onRemove} text={`Delete (${numItemsToDelete})`} icon={IconSet.DELETE} />
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
@@ -325,7 +328,7 @@ class TagListItemWithContextMenu extends React.PureComponent<
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
     return TagListItemContextMenu(
-      this.setEditing, this.props.onRemove, this.props.onAddSelectionToQuery, this.props.onReplaceQuery,
+      this.setEditing, this.props.onRemove, this.props.onAddSelectionToQuery, this.props.onReplaceQuery, 1,
     );
   }
 

@@ -1,5 +1,5 @@
-import { ContextMenuTarget, Menu, MenuItem, Divider, Alert } from '@blueprintjs/core';
-import React, { useState, useEffect, useCallback } from 'react';
+import { ContextMenuTarget, Menu, MenuItem, Divider } from '@blueprintjs/core';
+import React, { useState, useEffect } from 'react';
 import {
   DragSource, DragSourceConnector, DragSourceMonitor, ConnectDragSource,
   DropTarget, DropTargetConnector, DropTargetMonitor, ConnectDropTarget,
@@ -186,46 +186,18 @@ interface ITagCollectionContextMenu {
   onReplaceQuery: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  numItemsToDelete: number;
 }
 const TagCollectionListItemContextMenu = ({
   collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
-  onAddSelectionToQuery, onReplaceQuery, onMoveUp, onMoveDown,
+  onAddSelectionToQuery, onReplaceQuery, onMoveUp, onMoveDown, numItemsToDelete,
 }: ITagCollectionContextMenu) => {
-  // TODO: This is isn't being used atm, but it was intended for an alert dialog which we can finish later
-  const [isRemoveAlertOpen, setRemoveAlertOpen] = useState(false);
-  // const handleOpenRemoveAlert = useCallback(() => setRemoveAlertOpen(true), []);
-  const handleCancelRemoveAlert = useCallback(() => setRemoveAlertOpen(false), []);
-  const handleConfirmRemoveAlert = useCallback(
-    () => {
-      setRemoveAlertOpen(false);
-      if (onRemove) {
-        onRemove();
-      }
-    },
-    [],
-  );
-
   return (
     <Menu>
-      {/* Todo: Alert immediately disappears when rerendering due to ugly TagTree code. So, no alert for now... */}
-      <Alert
-        isOpen={isRemoveAlertOpen}
-        confirmButtonText="Remove"
-        onConfirm={handleConfirmRemoveAlert}
-        cancelButtonText="Cancel"
-        onCancel={handleCancelRemoveAlert}
-        icon={IconSet.DELETE}
-        intent="danger"
-      >
-        Are you sure you want to remove the collection <b>{collection.name}</b>?
-        This will also remove all of its tags and the collections it contains,
-        in addition to removing those tags from all files associated with those tags.
-      </Alert>
-
       <MenuItem onClick={onNewTag} text="New tag" icon={IconSet.TAG_ADD} />
       <MenuItem onClick={onNewCollection} text="New collection" icon={IconSet.COLLECTION_ADD} />
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={handleConfirmRemoveAlert} text="Delete (999)" icon={IconSet.DELETE} disabled={!onRemove} />
+      <MenuItem onClick={onRemove} text={`Delete (${numItemsToDelete})`} icon={IconSet.DELETE} disabled={!onRemove} />
       <Divider />
       <MenuItem onClick={onExpandAll} text="Expand all" icon="expand-all" />
       <MenuItem onClick={onCollapseAll} text="Collapse all" icon="collapse-all" />
@@ -303,6 +275,7 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
+    const numItemsToDelete = 1;
     return (
       <TagCollectionListItemContextMenu
         collection={this.props.tagCollection}
@@ -316,6 +289,7 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
         onReplaceQuery={this.props.onReplaceQuery}
         onMoveUp={this.props.onMoveUp}
         onMoveDown={this.props.onMoveDown}
+        numItemsToDelete={numItemsToDelete}
       />
     );
   }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { DropTarget, ConnectDropTarget, DropTargetMonitor } from 'react-dnd';
+import { DropTarget, ConnectDropTarget, DropTargetMonitor, DropTargetSpec, DropTargetConnector } from 'react-dnd';
 import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes, H3 } from '@blueprintjs/core';
 
 import { ClientFile } from '../../entities/File';
@@ -41,7 +41,7 @@ interface IGalleryItemCollectedProps {
   connectDropTarget: ConnectDropTarget;
 }
 
-export const GalleryItem = ({
+export const GalleryItem = observer(({
   file,
   isSelected,
   onClick,
@@ -102,23 +102,35 @@ export const GalleryItem = ({
       )}
     </div>,
   );
-};
+});
 
-const galleryItemTarget = {
-  drop(props: IGalleryItemProps, monitor: DropTargetMonitor) {
+const galleryItemTarget: DropTargetSpec<IGalleryItemProps> = {
+  canDrop(props, monitor) {
+    // Todo: Only allow to drop when tag has not already been added
+    return true;
+  },
+  drop(props, monitor) {
     props.onDrop(monitor.getItem(), props.file);
   },
+};
+
+const collectDropTarget = (connect: DropTargetConnector, monitor: DropTargetMonitor): IGalleryItemCollectedProps => {
+  return {
+    connectDropTarget: connect.dropTarget(),
+    isOver: monitor.isOver(),
+    canDrop: monitor.canDrop(),
+  };
 };
 
 /** Make gallery item available to drop a tag onto */
 const DroppableGalleryItem = DropTarget<
   IGalleryItemProps,
   IGalleryItemCollectedProps
->(TAG_DRAG_TYPE, galleryItemTarget, (connect, monitor) => ({
-  connectDropTarget: connect.dropTarget(),
-  isOver: monitor.isOver(),
-  canDrop: monitor.canDrop(),
-}))(observer(GalleryItem));
+>(
+  TAG_DRAG_TYPE,
+  galleryItemTarget,
+  collectDropTarget,
+)(GalleryItem);
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
@@ -166,16 +178,17 @@ IGalleryItemProps,
     this.state._isMounted = false;
   }
 
-  handleDrop(tag: ClientTag) {
-    console.log(tag);
-    this.props.file.addTag(tag.id);
+  handleDrop(item: any, file: ClientFile) {
+    if (item.id) {
+      file.addTag(item.id);
+    }
   }
 
   render() {
     return (
       // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <span className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <DroppableGalleryItem onDrop={this.handleDrop} {...this.props} />
+        <DroppableGalleryItem {...this.props} onDrop={this.handleDrop} />
       </span>
     );
   }

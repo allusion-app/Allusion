@@ -141,7 +141,7 @@ const TagRemoverContent = ({ rootStore }: { rootStore: RootStore }) => {
         setRemoveType('tag');
         setTagsToRemove([remTag]);
       } else {
-        const remCol = remTag ? undefined : tagCollectionStore.tagCollectionList.find((c) => c.id === id);
+        const remCol = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
         if (remCol) {
           setRemoveType('collection');
           setColToRemove(remCol);

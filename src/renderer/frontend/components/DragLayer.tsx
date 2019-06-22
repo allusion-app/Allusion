@@ -9,7 +9,8 @@ import { COLLECTION_DRAG_TYPE } from './TagCollectionListItem';
 import StoreContext from '../contexts/StoreContext';
 import RootStore from '../stores/RootStore';
 import { observer } from 'mobx-react-lite';
-import { ClientTagCollection } from '../../entities/TagCollection';
+import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import { ClientTag } from '../../entities/Tag';
 
 const layerStyles: any = {
   position: 'fixed',
@@ -37,30 +38,37 @@ function getItemStyles(currentOffset: { x: number, y: number }) {
 }
 
 function renderItem(type: string, item: any, rootStore: RootStore) {
-  const { uiStore, tagCollectionStore } = rootStore;
+  const { uiStore, tagStore, tagCollectionStore } = rootStore;
+
+  // Find out which items are in the context, based on what is selected
+  const ctx = uiStore.getTagContextItems(item.id);
+
+  let isDraggingSelection = false;
+  let numTagMod = 0;
+  let numColMod = 0;
 
   if (type === TAG_DRAG_TYPE) {
-    const isDraggingSelection = uiStore.tagSelection.includes(item.id);
-    const selColCount = isDraggingSelection
-      ? tagCollectionStore.tagCollectionList.filter((c) => c.isSelected).length : 0;
-    const totalCount = selColCount + uiStore.tagSelection.length;
-    const extraText = isDraggingSelection && totalCount > 1
-      ? ` (+${totalCount - 1})`
-      : '';
-    return <Tag intent="primary" large>{item.name}{extraText}</Tag>;
+    const draggedTag = tagStore.tagList.find((t) => t.id === item.id) as ClientTag;
+    isDraggingSelection = draggedTag.isSelected;
+    // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
+    numTagMod -= (draggedTag.parent.id !== ROOT_TAG_COLLECTION_ID && draggedTag.parent.isSelected ? 0 : 1);
   } else if (type === COLLECTION_DRAG_TYPE) {
     const draggedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === item.id) as ClientTagCollection;
-    const tagsInCol = draggedCol.getTagsRecursively();
-    const selectedTagsNotInCol = draggedCol.isSelected
-      ? uiStore.tagSelection.filter((t) => !tagsInCol.includes(t))
-      : [];
-    const selectedColsNotInCol =  draggedCol.isSelected
-      ? tagCollectionStore.tagCollectionList.filter((c) => c.isSelected && !draggedCol.containsSubCollection(c))
-      : [];
-    const totalCount = selectedColsNotInCol.length + selectedTagsNotInCol.length;
-    const extraText = totalCount > 1 && ` (+${totalCount - 1})`;
-    return <Tag intent="primary" large>{draggedCol.name}{extraText}</Tag>;
+    isDraggingSelection = draggedCol.isSelected;
+    // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
+    numColMod -= (draggedCol.parent.id !== ROOT_TAG_COLLECTION_ID && draggedCol.parent.isSelected ? 0 : 1);
   }
+  const extraNumTags = ctx.tags.length + numTagMod;
+  const extraTagsText = extraNumTags
+    ? `+${extraNumTags} tag${extraNumTags === 1 ? '' : 's'}`
+    : '';
+  const extraNumCols = ctx.collections.length + numColMod;
+  const extraColsText = extraNumCols
+    ? `${extraTagsText && ', '}+${extraNumCols} collection${extraNumCols === 1 ? '' : 's'}`
+    : '';
+
+  const extraText = isDraggingSelection && (extraTagsText || extraColsText) && ` (${extraTagsText}${extraColsText})`;
+  return <Tag intent="primary" large>{item.name}{extraText}</Tag>;
 }
 
 function CustomDragLayer({ item, itemType, isDragging, currentOffset }: any) {
