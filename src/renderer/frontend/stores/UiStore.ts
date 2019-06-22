@@ -227,21 +227,12 @@ class UiStore {
 
   @action.bound async removeSelectedTagsAndCollections() {
     const { tagStore, tagCollectionStore } = this.rootStore;
-    // Remove tag collections
-    const allCollectionIds = tagCollectionStore.tagCollectionList.map((c) => c.id);
-    for (const colId of allCollectionIds) {
-      const selectedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === colId);
-      if (selectedCol && selectedCol.isSelected) {
-        await tagCollectionStore.removeTagCollection(selectedCol);
-      }
+    const ctx = this.getTagContextItems();
+    for (const col of ctx.collections) {
+      await tagCollectionStore.removeTagCollection(col);
     }
-    // Remove left over tags (if any)
-    const selectedTagIds = this.tagSelection.toJS();
-    for (const tagId of selectedTagIds) {
-      const selectedTag = tagStore.tagList.find((t) => t.id === tagId);
-      if (selectedTag) {
-        await tagStore.removeTag(selectedTag);
-      }
+    for (const tag of ctx.tags) {
+      await tagStore.removeTag(tag);
     }
   }
 
@@ -375,48 +366,36 @@ class UiStore {
 
     const targetCol = target instanceof ClientTag ? target.parent : target;
 
-    const selectedCols: ClientTagCollection[] = [];
+    // Find all tags + collections in the current context (all selected items)
+    const ctx = this.getTagContextItems();
+
     // Move collections
-    const allCollectionIds = tagCollectionStore.tagCollectionList.map((c) => c.id);
-    for (const colId of allCollectionIds) {
-      const col = tagCollectionStore.tagCollectionList.find((c) => c.id === colId);
-      if (col && col.isSelected) {
-        selectedCols.push(col);
-        const parent = tagCollectionStore.tagCollectionList.find((c) => c.subCollections.includes(colId));
-        if (parent) {
-          parent.subCollections.remove(colId);
-          if (insertAtStart) {
-            targetCol.subCollections.splice(0, 0, colId);
-          } else {
-            targetCol.subCollections.push(colId);
-          }
-        }
+    for (const col of ctx.collections) {
+      const parent = col.parent;
+      parent.subCollections.remove(col.id);
+      if (insertAtStart) {
+        targetCol.subCollections.splice(0, 0, col.id);
+      } else {
+        targetCol.subCollections.push(col.id);
       }
     }
 
-    // Move tags that are not in those collections
-    const selectedTagsNotInSelectedCols = this.tagSelection.filter(
-      (t) => !selectedCols.some((col) => col.getTagsRecursively().includes(t)));
-
-    selectedTagsNotInSelectedCols.forEach((tagId) => {
-      // Find original collection
-      const parent = tagCollectionStore.tagCollectionList.find((c) => c.tags.includes(tagId));
-      if (!parent) { return console.error('Could not find original collection when moving tag', tagId); }
-      // Remove from orig collection
-      parent.removeTag(tagId);
+    for (const tag of ctx.tags) {
+      const parent = tag.parent;
+      parent.removeTag(tag.id);
       // Find where to insert the moved tag
       if (target instanceof ClientTag) {
         const insertionIndex = targetCol.tags.indexOf(target.id);
         // Insert the moved tag to the position of the current tag where it was dropped
-        targetCol.tags.splice(insertionIndex, 0, tagId);
+        targetCol.tags.splice(insertionIndex, 0, tag.id);
       } else {
         if (insertAtStart) {
-          targetCol.tags.splice(0, 0, tagId);
+          targetCol.tags.splice(0, 0, tag.id);
         } else {
-          targetCol.tags.push(tagId);
+          targetCol.tags.push(tag.id);
         }
       }
-    });
+    }
   }
 
   /////////////////// Search Actions ///////////////////

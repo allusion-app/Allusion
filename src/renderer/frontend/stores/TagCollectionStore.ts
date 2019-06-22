@@ -78,7 +78,7 @@ class TagCollectionStore {
     this.tagCollectionList.forEach((col) => col.subCollections.remove(tagCol.id));
 
     // Remove sub-collections of this collection from state
-    tagCol.clientSubCollections.forEach((subCol) => this.removeTagCollection(subCol));
+    await Promise.all(tagCol.clientSubCollections.map((subCol) => this.removeTagCollection(subCol)));
 
     // Remove tags in this collection
     await Promise.all(tagCol.clientTags.map((tag) => this.rootStore.tagStore.removeTag(tag)));
