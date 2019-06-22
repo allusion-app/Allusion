@@ -23,11 +23,13 @@ import {
   Divider,
 } from '@blueprintjs/core';
 
+
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import UiStore from '../stores/UiStore';
-import StoreContext from '../contexts/StoreContext';
+import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
+import { formatTagCountText } from '../utils';
 
 export const TAG_DRAG_TYPE = 'tag';
 export const DEFAULT_TAG_NAME = 'New tag';
@@ -253,12 +255,22 @@ const DraggableTagListItem = DropTarget<
   )(TagListItem),
 );
 
-const TagListItemContextMenu = (
-  setEditing: (value: boolean) => void,
-  onRemove: () => void,
-  onAddSelectionToQuery: () => void,
-  onReplaceQuery: () => void,
-  numItemsToDelete: number,
+interface ITagListItemContextMenuProps {
+  setEditing: (value: boolean) => void;
+  onRemove: () => void;
+  onAddSelectionToQuery: () => void;
+  onReplaceQuery: () => void;
+  numTagsToDelete: number;
+  numColsToDelete: number;
+}
+const TagListItemContextMenu = ({
+  setEditing,
+  onRemove,
+  onAddSelectionToQuery,
+  onReplaceQuery,
+  numTagsToDelete,
+  numColsToDelete,
+}: ITagListItemContextMenuProps,
 ) => {
   const handleRename = () => {
     setEditing(true);
@@ -270,10 +282,13 @@ const TagListItemContextMenu = (
     alert('Not implemented yet');
   };
 
+  let deleteText = formatTagCountText(numTagsToDelete, numColsToDelete);
+  deleteText = deleteText && ` (${deleteText})`;
+
   return (
     <Menu>
       <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={onRemove} text={`Delete (${numItemsToDelete})`} icon={IconSet.DELETE} />
+      <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} />
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
@@ -285,7 +300,7 @@ const TagListItemContextMenu = (
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
 class TagListItemWithContextMenu extends React.PureComponent<
-  ITagListItemProps,
+  ITagListItemProps & IRootStoreProp,
   { isEditing: boolean; isContextMenuOpen: boolean }
 > {
   state = {
@@ -327,8 +342,14 @@ class TagListItemWithContextMenu extends React.PureComponent<
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
-    return TagListItemContextMenu(
-      this.setEditing, this.props.onRemove, this.props.onAddSelectionToQuery, this.props.onReplaceQuery, 1,
+    const ctx = this.props.rootStore.uiStore.getTagContextItems(this.props.id);
+    return (
+      <TagListItemContextMenu
+        {...this.props}
+        setEditing={this.setEditing}
+        numColsToDelete={ctx.collections.length}
+        numTagsToDelete={Math.max(0, ctx.tags.length - 1)}
+      />
     );
   }
 

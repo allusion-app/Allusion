@@ -12,12 +12,13 @@ import { getEmptyImage } from 'react-dnd-html5-backend';
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
 import UiStore from '../stores/UiStore';
-import StoreContext from '../contexts/StoreContext';
+import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
+import { formatTagCountText } from '../utils';
 
 export const COLLECTION_DRAG_TYPE = 'collection';
 export const DEFAULT_COLLECTION_NAME = 'New collection';
 
-interface ITagCollectionListItemProps {
+interface ITagCollectionListItemProps extends IRootStoreProp {
   tagCollection: ClientTagCollection;
   onRemove?: (tagCollection: ClientTagCollection) => void;
   onAddTag: () => void;
@@ -159,7 +160,7 @@ const DraggableTagCollectionListItem = DropTarget<
   ITagCollectionListItemProps & { uiStore: UiStore },
   IDropProps
 >(
-  [COLLECTION_DRAG_TYPE, TAG_DRAG_TYPE],
+  [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
   tagCollectionDropTarget,
   collectDropTarget,
 )(
@@ -186,18 +187,21 @@ interface ITagCollectionContextMenu {
   onReplaceQuery: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
-  numItemsToDelete: number;
+  numTagsToDelete: number;
+  numColsToDelete: number;
 }
 const TagCollectionListItemContextMenu = ({
   collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
-  onAddSelectionToQuery, onReplaceQuery, onMoveUp, onMoveDown, numItemsToDelete,
+  onAddSelectionToQuery, onReplaceQuery, onMoveUp, onMoveDown, numTagsToDelete, numColsToDelete,
 }: ITagCollectionContextMenu) => {
+  let deleteText = formatTagCountText(numTagsToDelete, numColsToDelete);
+  deleteText = deleteText && ` (${deleteText})`;
   return (
     <Menu>
       <MenuItem onClick={onNewTag} text="New tag" icon={IconSet.TAG_ADD} />
       <MenuItem onClick={onNewCollection} text="New collection" icon={IconSet.COLLECTION_ADD} />
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={onRemove} text={`Delete (${numItemsToDelete})`} icon={IconSet.DELETE} disabled={!onRemove} />
+      <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} disabled={!onRemove} />
       <Divider />
       <MenuItem onClick={onExpandAll} text="Expand all" icon="expand-all" />
       <MenuItem onClick={onCollapseAll} text="Collapse all" icon="collapse-all" />
@@ -275,7 +279,7 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
-    const numItemsToDelete = 1;
+    const ctx = this.props.rootStore.uiStore.getTagContextItems(this.props.tagCollection.id);
     return (
       <TagCollectionListItemContextMenu
         collection={this.props.tagCollection}
@@ -289,7 +293,8 @@ class TagCollectionListItemWithContextMenu extends React.PureComponent<
         onReplaceQuery={this.props.onReplaceQuery}
         onMoveUp={this.props.onMoveUp}
         onMoveDown={this.props.onMoveDown}
-        numItemsToDelete={numItemsToDelete}
+        numColsToDelete={Math.max(0, ctx.collections.length - 1)}
+        numTagsToDelete={ctx.tags.length}
       />
     );
   }

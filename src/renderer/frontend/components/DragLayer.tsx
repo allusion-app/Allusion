@@ -11,6 +11,7 @@ import RootStore from '../stores/RootStore';
 import { observer } from 'mobx-react-lite';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import { ClientTag } from '../../entities/Tag';
+import { formatTagCountText } from '../utils';
 
 const layerStyles: any = {
   position: 'fixed',
@@ -58,16 +59,9 @@ function renderItem(type: string, item: any, rootStore: RootStore) {
     // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
     numColMod -= (draggedCol.parent.id !== ROOT_TAG_COLLECTION_ID && draggedCol.parent.isSelected ? 0 : 1);
   }
-  const extraNumTags = ctx.tags.length + numTagMod;
-  const extraTagsText = extraNumTags
-    ? `+${extraNumTags} tag${extraNumTags === 1 ? '' : 's'}`
-    : '';
-  const extraNumCols = ctx.collections.length + numColMod;
-  const extraColsText = extraNumCols
-    ? `${extraTagsText && ', '}+${extraNumCols} collection${extraNumCols === 1 ? '' : 's'}`
-    : '';
+  const formattedText = formatTagCountText(ctx.tags.length + numTagMod, ctx.collections.length + numColMod);
 
-  const extraText = isDraggingSelection && (extraTagsText || extraColsText) && ` (${extraTagsText}${extraColsText})`;
+  const extraText = isDraggingSelection && (formattedText) && ` (${formattedText})`;
   return <Tag intent="primary" large>{item.name}{extraText}</Tag>;
 }
 

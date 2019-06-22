@@ -83,6 +83,7 @@ const createTagCollectionTreeNode = (
       onReplaceQuery={() => store.rootStore.uiStore.replaceQuery(
         col.isSelected ? uiStore.tagSelection.toJS() : col.getTagsRecursively())}
       onSelect={(_, clear) => uiStore.selectTags(col.getTagsRecursively(), clear)}
+      rootStore={store.rootStore}
     />
   );
 
@@ -107,6 +108,7 @@ const createTagCollectionTreeNode = (
           onReplaceQuery={() => uiStore.replaceQuery(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])}
           isSelected={uiStore.tagSelection.includes(tag.id)}
           onSelect={(_, clear) => uiStore.selectTag(tag, clear)}
+          rootStore={store.rootStore}
         />
       ),
     })),
