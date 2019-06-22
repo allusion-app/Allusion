@@ -14,6 +14,10 @@ import { useDrop } from 'react-dnd/lib/cjs/hooks';
 import { ClientTag } from '../../entities/Tag';
 import RootStore from '../stores/RootStore';
 
+// Tooltip info
+const addTagTT = 'New Tag';
+const addTagColCTT = 'New Tag Collection';
+
 interface IExpandState {
   [key: string]: boolean;
 }
@@ -70,8 +74,8 @@ const createTagCollectionTreeNode = (
           movedCollectionParent.subCollections.remove(col.id);
           movedCollectionParent.subCollections.splice(
             Math.min(movedCollectionParent.subCollections.length, oldIndex + 1), 0, col.id);
-          }
-        }}
+        }
+      }}
       onMoveCollection={({ id, isSelected }) => isSelected
         ? uiStore.moveSelectedTagsAndCollections(col.id)
         : uiStore.moveCollection(id, col)}
@@ -167,11 +171,13 @@ const TagRemoverContent = ({ rootStore }: { rootStore: RootStore }) => {
 
   if (removeType === 'tag') {
     return (<>
+      <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
       <p>Are you sure you want to permanently delete {tagsToRemove.length > 0 ? 'these tags' : 'this tag'}?</p>
       {tagsToRemoveOverview}
     </>);
   } else if (removeType === 'collection' && colToRemove) {
     return (<>
+      <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
       <p>
         Are you sure you want to permanently delete the collection '{colToRemove.name}'?
         <br />
@@ -210,9 +216,11 @@ const TagRemover = observer(() => {
       isOpen={uiStore.isOutlinerTagRemoverOpen !== null}
       cancelButtonText="Cancel"
       confirmButtonText="Delete"
-      icon="trash"
+      icon={IconSet.DELETE}
       intent="danger"
       onCancel={uiStore.closeOutlinerTagRemover}
+      canEscapeKeyCancel={true}
+      canOutsideClickCancel={true}
       // Todo: remove selection only when rmb on selection
       onConfirm={handleConfirm}
       className={Classes.DARK}
@@ -365,8 +373,16 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
     <>
       <div id="outliner-tags-header-wrapper" ref={headerDrop}>
         <H4 className="bp3-heading">Tags</H4>
-        <Button minimal icon={IconSet.TAG_ADD} onClick={handleRootAddTag}/>
-        <Button minimal icon={IconSet.COLLECTION_ADD} onClick={handleAddRootCollection} />
+        <Button
+          minimal icon={IconSet.TAG_ADD}
+          onClick={handleRootAddTag}
+          className="tooltip"
+          data-right={addTagTT} />
+        <Button
+          minimal icon={IconSet.COLLECTION_ADD}
+          onClick={handleAddRootCollection}
+          className="tooltip"
+          data-right={addTagColCTT} />
       </div>
 
       <Tree
@@ -379,11 +395,13 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
       // TODO: Context menu from here instead of in the TagCollectionListItem
       // Then you can right-click anywhere instead of only on the label
       // https://github.com/palantir/blueprint/issues/3187
-        // onNodeContextMenu={handleNodeContextMenu}
+      // onNodeContextMenu={handleNodeContextMenu}
       />
 
       {/* Used for dragging collection to root of hierarchy and flor deselecting tag selection */}
       <div id="tree-footer" ref={footerDrop} onClick={uiStore.clearTagSelection} />
+
+      <div className="bp3-divider"></div>
 
       <div id="system-tags">
         <ButtonGroup vertical minimal fill>
@@ -393,6 +411,7 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
             rightIcon={uiStore.viewContent === 'all' ? <Icon intent="primary" icon="eye-open" /> : null}
             onClick={uiStore.viewContentAll}
             active={uiStore.viewContent === 'all'}
+            fill
           />
           <Button
             text={`Untagged (${fileStore.numUntaggedFiles})`}
@@ -401,13 +420,15 @@ const TagList = ({ rootStore: { tagStore, tagCollectionStore, uiStore, fileStore
               uiStore.viewContent === 'untagged'
                 ? <Icon icon="eye-open" />
                 : (fileStore.numUntaggedFiles > 0
-                  ? <Icon icon="issue" />
+                  ? <i style={{color : '#007af5 !important'}}><Icon icon={IconSet.WARNING} /></i>
                   : null
                 )
             }
             onClick={uiStore.viewContentUntagged}
             active={uiStore.viewContent === 'untagged'}
-            intent={fileStore.numUntaggedFiles > 0 ? 'warning' : 'none'}
+            // Doesnt fit the design, an icon i enough
+            intent={fileStore.numUntaggedFiles > 0 ? 'none' : 'none'}
+            fill
           />
         </ButtonGroup>
       </div>
