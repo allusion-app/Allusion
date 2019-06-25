@@ -115,7 +115,8 @@ function createPreviewWindow() {
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
     title: 'Allusion Quick View',
-    alwaysOnTop: true,
+    // Not usefull on OSX
+    // alwaysOnTop: true, 
   });
   previewWindow.setMenuBarVisibility(false);
   previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);

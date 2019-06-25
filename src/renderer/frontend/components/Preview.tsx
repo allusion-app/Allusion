@@ -5,6 +5,7 @@ import ErrorBoundary from './ErrorBoundary';
 import FileList from './FileList';
 import { Button, Switch } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
+import IconSet from './Icons';
 
 const PreviewApp = () => {
   const { uiStore } = useContext(StoreContext);
@@ -15,21 +16,21 @@ const PreviewApp = () => {
   return (
     <div className={`${themeClass}`} style={{ height: '100%' }}>
       <ErrorBoundary>
-        <div id="toolbar">
-          <section id="outliner-toolbar">
+        <div id="toolbar" style={{height: '2.4rem'}}>
+          <section id="preview-toolbar">
             <Button
-              icon="arrow-left"
+              icon={IconSet.ARROW_LEFT}
               // Todo: Fixme
               onClick={() => console.log('This will work in the selection-improvements branch')}
               minimal
-              disabled
+              // disabled
             />
             <Button
-              icon="arrow-right"
+              icon={IconSet.ARROW_RIGHT}
               // Todo: Fixme
               onClick={() => console.log('This will work in the selection-improvements branch')}
               minimal
-              disabled
+              // disabled
             />
             <Switch
               label="Overview"
