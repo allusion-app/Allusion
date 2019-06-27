@@ -327,6 +327,16 @@ const TagList = ({
           const idsToSelect = flatHierarchy.slice(sliceStart, sliceEnd + 1)
             .filter((item) => !item.hasCaret) // only collections have a caret
             .map((item) => item.id);
+          // If the first/last item that was selected was a collection, also add that the tags of that collection
+          [sliceStart, sliceEnd].map((index) => {
+            if (flatHierarchy[index].hasCaret) {
+              const selCol = tagCollectionStore.tagCollectionList.find((col) => col.id === flatHierarchy[index].id);
+              if (selCol) {
+                selCol.getTagsRecursively().forEach(
+                  (tagId) => idsToSelect.indexOf(tagId) === -1 && idsToSelect.push(tagId));
+              }
+            }
+          });
           uiStore.selectTags(idsToSelect as ID[], true);
         }
       } else if (e.ctrlKey || e.metaKey) {

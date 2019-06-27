@@ -62,7 +62,10 @@ function createWindow() {
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
-  // Open the DevTools.
+  // then maximize the window
+  mainWindow.maximize();
+
+  // Open the DevTools if in dev mode.
   if (isDev()) {
     mainWindow.webContents.openDevTools();
   }
