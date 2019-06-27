@@ -66,7 +66,7 @@ class TagStore {
 
     // Remove tag from collections
     this.rootStore.tagCollectionStore.tagCollectionList.forEach((col) =>
-      col.tags.remove(tag.id),
+      col.removeTag(tag.id),
     );
 
     // Remove tag from DB

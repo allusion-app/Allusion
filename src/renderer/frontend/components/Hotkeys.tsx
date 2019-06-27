@@ -63,6 +63,12 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Opens the settings tab in right sidebar"
           onKeyDown={uiStore.toggleSettings}
         />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.replaceQuery}
+          label="Replaces the search query with the selected tags"
+          onKeyDown={uiStore.replaceQueryWithSelection}
+        />
 
         {/* Toolbar actions */}
         <Hotkey
@@ -71,24 +77,6 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Opens the tag selector (toolbar)"
           onKeyDown={uiStore.toggleToolbarTagSelector}
           preventDefault
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.selectAllFiles}
-          label="Select all files in the content area"
-          onKeyDown={uiStore.selectAllFiles}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.deselectAllFiles}
-          label="Deselect all files in the content area"
-          onKeyDown={uiStore.deselectAllFiles}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.deleteSelectedFiles}
-          label="Delete the selected files"
-          onKeyDown={uiStore.toggleToolbarFileRemover}
         />
         <Hotkey
           global={true}

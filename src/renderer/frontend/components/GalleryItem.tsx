@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { DropTarget, ConnectDropTarget, DropTargetMonitor } from 'react-dnd';
+import { DropTarget, ConnectDropTarget, DropTargetMonitor, DropTargetSpec, DropTargetConnector } from 'react-dnd';
 import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes, H3 } from '@blueprintjs/core';
 
 import { ClientFile } from '../../entities/File';
@@ -9,25 +9,27 @@ import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import { SingleFileInfo } from './FileInfo';
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
+import { TAG_DRAG_TYPE } from './TagListItem';
 
 interface IGalleryItemTagProps {
-  name: string;
-  onRemove: () => void;
+  tag: ClientTag;
+  onRemove: (tag: ClientTag) => void;
 }
 
-const GalleryItemTag = ({ name, onRemove }: IGalleryItemTagProps) => (
-  <Tag onRemove={onRemove} interactive intent="primary">
-    {name}
-  </Tag>
-);
+const GalleryItemTag = ({ tag, onRemove }: IGalleryItemTagProps) => {
+  const handleRemove = useCallback(() => onRemove(tag), []);
+  return (
+    <Tag onRemove={handleRemove} interactive intent="primary">
+      {tag.name}
+    </Tag>
+  );
+};
 
 interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;
   isSelected: boolean;
-  onRemoveTag: (tag: ClientTag) => void;
-  onSelect: (file: ClientFile, e: React.MouseEvent) => void;
-  onDeselect: (file: ClientFile, e: React.MouseEvent) => void;
-  onDrop: (item: any) => void;
+  onClick: (file: ClientFile, e: React.MouseEvent) => void;
+  onDrop: (item: any, file: ClientFile) => void;
   showName?: boolean;
   showTags?: boolean;
   showInfo?: boolean;
@@ -39,12 +41,10 @@ interface IGalleryItemCollectedProps {
   connectDropTarget: ConnectDropTarget;
 }
 
-export const GalleryItem = ({
+export const GalleryItem = observer(({
   file,
   isSelected,
-  onRemoveTag,
-  onSelect,
-  onDeselect,
+  onClick,
   canDrop,
   isOver,
   connectDropTarget,
@@ -54,11 +54,8 @@ export const GalleryItem = ({
   const dropStyle = canDrop ? ' droppable' : ' undroppable';
   const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
-  // Switch between opening/selecting depending on whether the selection mode is enabled
-  const clickFunc = useCallback(
-    (e: React.MouseEvent) => isSelected ? onDeselect(file, e) : onSelect(file, e),
-    [isSelected, file],
-  );
+  const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
+  const handleClickImg = useCallback((e) => onClick(file, e), []);
 
   const [imageElem] = useState<HTMLImageElement>(new Image());
   const [isImageLoaded, setImageLoaded] = useState(false);
@@ -81,7 +78,7 @@ export const GalleryItem = ({
 
   return connectDropTarget(
     <div className={className}>
-      <div onClick={clickFunc} className="img-wrapper">
+      <div onClick={handleClickImg} className="img-wrapper">
         {isImageLoaded ? <img src={file.path} /> // Show image when it has been loaded
           : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
             : <div className={Classes.SKELETON} /> // Else show a placeholder
@@ -97,44 +94,61 @@ export const GalleryItem = ({
           {file.clientTags.map((tag) => (
             <GalleryItemTag
               key={`gal-tag-${file.id}-${tag.id}`}
-              name={tag.name}
-              onRemove={() => onRemoveTag(tag)}
+              onRemove={handleRemoveTag}
+              tag={tag}
             />
           ))}
         </span>
       )}
     </div>,
   );
+});
+
+const galleryItemTarget: DropTargetSpec<IGalleryItemProps> = {
+  canDrop(props, monitor) {
+    // Todo: Only allow to drop when tag has not already been added
+    return true;
+  },
+  drop(props, monitor) {
+    props.onDrop(monitor.getItem(), props.file);
+  },
 };
 
-const galleryItemTarget = {
-  drop(props: IGalleryItemProps, monitor: DropTargetMonitor) {
-    props.onDrop(monitor.getItem());
-  },
+const collectDropTarget = (connect: DropTargetConnector, monitor: DropTargetMonitor): IGalleryItemCollectedProps => {
+  return {
+    connectDropTarget: connect.dropTarget(),
+    isOver: monitor.isOver(),
+    canDrop: monitor.canDrop(),
+  };
 };
 
 /** Make gallery item available to drop a tag onto */
 const DroppableGalleryItem = DropTarget<
   IGalleryItemProps,
   IGalleryItemCollectedProps
->('tag', galleryItemTarget, (connect, monitor) => ({
-  connectDropTarget: connect.dropTarget(),
-  isOver: monitor.isOver(),
-  canDrop: monitor.canDrop(),
-}))(observer(GalleryItem));
+>(
+  TAG_DRAG_TYPE,
+  galleryItemTarget,
+  collectDropTarget,
+)(GalleryItem);
 
-const GalleryItemContextMenu = ({ filePath, rootStore }: { filePath: string } & IRootStoreProp) => {
+const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
-
-  const handleOpen = useCallback(() => shell.openItem(filePath), []);
-
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(filePath), []);
+  const handleOpen = useCallback(() => shell.openItem(file.path), []);
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.path), []);
+  const handleInspect = useCallback(() => {
+    uiStore.clearFileSelection();
+    uiStore.selectFile(file);
+    if (!uiStore.isInspectorOpen) {
+      uiStore.toggleInspector();
+    }
+  }, []);
 
   return (
     <Menu>
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
       <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
-      {/* <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} /> */}
+      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
       <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
     </Menu>
   );
@@ -151,6 +165,10 @@ IGalleryItemProps,
     _isMounted: false,
   };
 
+  constructor(props: IGalleryItemProps) {
+    super(props);
+  }
+
   componentDidMount() {
     this.state._isMounted = true;
   }
@@ -163,14 +181,20 @@ IGalleryItemProps,
     return (
       // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <span className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <DroppableGalleryItem {...this.props} />
+        <DroppableGalleryItem {...this.props} onDrop={this.props.onDrop} />
       </span>
     );
   }
 
   renderContextMenu() {
+    const { file, rootStore: { uiStore } } = this.props;
+    // If the selection does not contain this item, replace the selection with this item
+    if (!uiStore.fileSelection.includes(file.id)) {
+      this.props.rootStore.uiStore.selectFile(file, true);
+    }
+
     this.updateState({ isContextMenuOpen: true });
-    return <GalleryItemContextMenu filePath={this.props.file.path} rootStore={this.props.rootStore} />;
+    return <GalleryItemContextMenu file={this.props.file} rootStore={this.props.rootStore} />;
   }
 
   onContextMenuClose = () => {

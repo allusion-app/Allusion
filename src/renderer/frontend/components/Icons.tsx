@@ -9,10 +9,13 @@ import ADD from '../../resources/icons/add.svg';
 import ARROW_DOWN from '../../resources/icons/arrow-down.svg';
 import ARROW_RIGHT from '../../resources/icons/arrow-right.svg';
 import ARROW_UP from '../../resources/icons/arrow-up.svg';
+import ARROW_COLLAPS from '../../resources/icons/arrow-collaps.svg';
+import ARROW_EXPAND from '../../resources/icons/arrow-expand.svg';
 import CHECKMARK from '../../resources/icons/checkmark.svg';
 import CHROME_DEVTOOLS from '../../resources/icons/chrome-devtools.svg';
 import CLOSE from '../../resources/icons/close.svg';
 import COLLECTION_ADD from '../../resources/icons/collection-add.svg';
+import DB_ERROR from '../../resources/icons/db-error.svg';
 import DELETE from '../../resources/icons/delete.svg';
 import DESELECT_ALL_FILL from '../../resources/icons/deselect-all-fill.svg';
 import DESELECT_ALL_ROUND from '../../resources/icons/deselect-all-round.svg';
@@ -26,15 +29,21 @@ import FILTER_NAME_DOWN from '../../resources/icons/filter-name-down.svg';
 import FILTER_NAME_UP from '../../resources/icons/filter-name-up.svg';
 import FOLDER_CLOSE from '../../resources/icons/folder-close.svg';
 import FOLDER_OPEN from '../../resources/icons/folder-open.svg';
+import FOLDER_STRUCTURE from '../../resources/icons/folder-structure.svg';
 import FORM_DROP from '../../resources/icons/form-drop.svg';
+import GITHUB from '../../resources/icons/github.svg';
 import INFO from '../../resources/icons/info.svg';
 import LOCATIONS from '../../resources/icons/locations.svg';
 import MEDIA from '../../resources/icons/media.svg';
 import META_INFO from '../../resources/icons/meta-info.svg';
 import META_INFO_2 from '../../resources/icons/meta-info-2.svg';
 import MORE from '../../resources/icons/more.svg';
+import MOVE_DOWN from '../../resources/icons/move-down.svg';
+import MOVE_UP from '../../resources/icons/move-up.svg';
 import OPEN_EXTERNAL from '../../resources/icons/open-external.svg';
 import PREVIEW from '../../resources/icons/preview.svg';
+import RELOAD from '../../resources/icons/reload.svg';
+import REPLACE from '../../resources/icons/replace.svg';
 import SEARCH from '../../resources/icons/search.svg';
 import SELECT_ALL_CHECKED from '../../resources/icons/select-all-checked.svg';
 import SELECT_ALL_ROUND from '../../resources/icons/select-all-round.svg';
@@ -69,10 +78,13 @@ const IconSet = {
   ARROW_DOWN: toSvg(ARROW_DOWN),
   ARROW_RIGHT: toSvg(ARROW_RIGHT),
   ARROW_UP: toSvg(ARROW_UP),
+  ARROW_COLLAPS: toSvg(ARROW_COLLAPS),
+  ARROW_EXPAND: toSvg(ARROW_EXPAND),
   CHECKMARK: toSvg(CHECKMARK),
   CHROME_DEVTOOLS: toSvg(CHROME_DEVTOOLS),
   CLOSE: toSvg(CLOSE),
   COLLECTION_ADD: toSvg(COLLECTION_ADD),
+  DB_ERROR: toSvg(DB_ERROR),
   DELETE: toSvg(DELETE),
   DESELECT_ALL_FILL: toSvg(DESELECT_ALL_FILL),
   DESELECT_ALL_ROUND: toSvg(DESELECT_ALL_ROUND),
@@ -86,15 +98,21 @@ const IconSet = {
   FILTER_NAME_UP: toSvg(FILTER_NAME_UP),
   FOLDER_CLOSE: toSvg(FOLDER_CLOSE),
   FOLDER_OPEN: toSvg(FOLDER_OPEN),
+  FOLDER_STRUCTURE: toSvg(FOLDER_STRUCTURE),
   FORM_DROP: toSvg(FORM_DROP),
+  GITHUB: toSvg(GITHUB),
   INFO: toSvg(INFO),
   LOCATIONS: toSvg(LOCATIONS),
   MEDIA: toSvg(MEDIA),
   META_INFO: toSvg(META_INFO),
   META_INFO_2: toSvg(META_INFO_2),
   MORE: toSvg(MORE),
+  MOVE_DOWN: toSvg(MOVE_DOWN),
+  MOVE_UP: toSvg(MOVE_UP),
   OPEN_EXTERNAL: toSvg(OPEN_EXTERNAL),
   PREVIEW: toSvg(PREVIEW),
+  RELOAD: toSvg(RELOAD),
+  REPLACE: toSvg(REPLACE),
   SEARCH: toSvg(SEARCH),
   SELECT_ALL_CHECKED: toSvg(SELECT_ALL_CHECKED),
   SELECT_ALL_ROUND: toSvg(SELECT_ALL_ROUND),

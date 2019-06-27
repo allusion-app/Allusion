@@ -15,6 +15,7 @@ interface IFileInfoProps {
 export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   const [fileStats, setFileStats] = useState<fs.Stats | undefined>(undefined);
   const [error, setError] = useState<Error | undefined>(undefined);
+  const [resolution, setResolution] = useState<string>('...');
 
   // Look up file info when file changes
   useEffect(
@@ -22,6 +23,18 @@ export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
       fs.stat(file.path, (err, stats) =>
         err ? setError(err) : setFileStats(stats),
       );
+      const img = new Image();
+      img.src = file.path;
+      img.onload = () => {
+        setResolution(`${img.width}x${img.height}`);
+      };
+
+      return () => {
+        if (resolution === '...') {
+          img.src = '';
+          img.onload = () => {}; // tslint:disable-line: no-empty
+        }
+      };
     },
     [file],
   );
@@ -40,9 +53,9 @@ export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
         key: 'Last Opened',
         value: fileStats ? formatDate(fileStats.atime) : '...',
       },
-      { key: 'Dimensions', value: '?' },
-      { key: 'Resolution', value: '?' },
-      { key: 'Color Space', value: '?' },
+      { key: 'Dimensions', value: resolution },
+      // { key: 'Resolution', value: '?' },
+      // { key: 'Color Space', value: '?' },
     ],
     [file, fileStats],
   );

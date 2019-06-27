@@ -5,3 +5,5 @@
 export function isDev() {
   return process.mainModule ? process.mainModule.filename.indexOf('app.asar') === -1 : false;
 }
+
+export const githubUrl = 'https://github.com/RvanderLaan/VisualLibrary';
