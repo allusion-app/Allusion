@@ -4,6 +4,7 @@ import { Drawer, Classes, Switch, Button, Callout, H4 } from '@blueprintjs/core'
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
+import { ClearDbButton } from './ErrorBoundary';
 
 const Settings = () => {
   const { uiStore } = useContext(StoreContext);
@@ -22,10 +23,11 @@ const Settings = () => {
           <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
           <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
           <div className="bp3-divider"></div>
-          <Button disabled fill>Clear database</Button>
+
+          <ClearDbButton fill position="bottom-left" />
 
           <Button onClick={uiStore.toggleDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
-            Toggle the developer tools
+            Toggle DevTools
           </Button>
 
           <br />

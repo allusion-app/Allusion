@@ -1,4 +1,4 @@
-import { IReactionDisposer, observable, reaction, computed } from 'mobx';
+import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag, ITag } from './Tag';
 import TagCollectionStore from '../frontend/stores/TagCollectionStore';
@@ -80,6 +80,15 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     };
   }
 
+  /** Get actual tag objects based on the IDs retrieved from the backend */
+  @computed get parent(): ClientTagCollection {
+    const parent = this.store.tagCollectionList.find((col) => col.subCollections.includes(this.id));
+    if (!parent) {
+      console.warn('Collection does not have a parent', this);
+    }
+    return parent || this.store.getRootCollection();
+  }
+
   /** Get actual tag collection objects based on the IDs retrieved from the backend */
   @computed get clientSubCollections(): ClientTagCollection[] {
     return this.subCollections.map(
@@ -92,12 +101,38 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     return this.tags.map((id) => this.store.rootStore.tagStore.tagList.find((t) => t.id === id)) as ClientTag[];
   }
 
+  @computed get isEmpty(): boolean {
+    return this.tags.length === 0 && !this.clientSubCollections.some((subCol) => !subCol.isEmpty);
+  }
+
   @computed get isSelected(): boolean {
-    // Todo: Not sure how costly this is. Seems fine.
     const uiStore = this.store.rootStore.uiStore;
-    return (this.tags.length > 0 || this.subCollections.length > 0)
+
+    // If this collection is empty, act like it's selected when its parent is selected
+    if (this.id !== ROOT_TAG_COLLECTION_ID && this.isEmpty) {
+      return this.parent.isSelected;
+    }
+    // Else check through children recursively
+    // Todo: Not sure how costly this is. Seems fine.
+    const nonEmptySubCollections = this.clientSubCollections.filter((subCol) => !subCol.isEmpty);
+    return (this.tags.length > 0 || nonEmptySubCollections.length > 0)
       && !this.tags.some((tag) => !uiStore.tagSelection.includes(tag))
-      && !this.clientSubCollections.some((col) => !col.isSelected);
+      && !nonEmptySubCollections.some((col) => !col.isSelected);
+  }
+
+  @action addTag(tag: ClientTag | ID) {
+    const id = (tag instanceof ClientTag) ? tag.id : tag;
+    if (!this.tags.includes(id)) {
+      this.tags.push(id);
+    }
+  }
+
+  @action removeTag(tag: ClientTag | ID) {
+    this.tags.remove((tag instanceof ClientTag) ? tag.id : tag);
+  }
+
+  getTagsRecursively(): ID[] {
+    return [...this.tags, ...this.clientSubCollections.flatMap((c) => c.getTagsRecursively())];
   }
 
   delete() {

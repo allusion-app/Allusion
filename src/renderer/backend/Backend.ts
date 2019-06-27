@@ -2,7 +2,7 @@ import { DbFile, IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
-import DBRepository, { dbInit } from './DBRepository';
+import DBRepository, { dbInit, dbDelete } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 
 /**
@@ -120,5 +120,15 @@ export default class Backend {
   async removeFiles(files: IFile[]) {
     console.log('Removing files...', files);
     await this.fileRepository.removeMany(files);
+  }
+
+  async getNumUntaggedFiles() {
+    console.log('Get number of untagged files...');
+    return this.fileRepository.count({ queryField: 'tags', query: [] });
+  }
+
+  async clearDatabase() {
+    console.log('Clearing database...');
+    return dbDelete(DB_NAME);
   }
 }

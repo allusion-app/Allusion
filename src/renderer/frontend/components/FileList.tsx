@@ -1,17 +1,16 @@
 import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
+import { Tag, ITagProps, Button, Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 
-import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
+import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
 import Gallery from './Gallery';
-import { Tag, ITagProps, Button } from '@blueprintjs/core';
 import IconSet from './Icons';
+import { ITagSearchQuery } from '../stores/UiStore';
+import { ClientTag } from '../../entities/Tag';
 
-export interface IFileListProps extends IRootStoreProp { }
+export interface IFileListProps { }
 
-const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProps) => {
-
-  const handleClearIncludedTags = useCallback(() => uiStore.clearTagSelection(), []);
-
+const FileList = ({ rootStore: { uiStore, tagStore } }: IFileListProps & IRootStoreProp) => {
   const handleDeselectTag = useCallback(
     (_, props: ITagProps) => {
       const clickedTag = tagStore.tagList.find((t) => t.id === props.id);
@@ -21,28 +20,78 @@ const FileList = ({ rootStore: { uiStore, fileStore, tagStore } }: IFileListProp
     },
     [],
   );
-  // Dirty show /hide
-  const hide = 'none';
-  const hideBtn = uiStore.clientTagSelection.length ? '' : hide;
-  return (
-    <div className="gallery">
 
+  // Todo: Implement this properly later
+  const queriedTags = Array.from(
+    new Set(uiStore.searchQueryList
+      .flatMap((q) => (q as ITagSearchQuery).value),
+    ),
+  );
+
+  return (
+    <>
       <div id="query-overview">
-        {uiStore.clientTagSelection.map((tag) => (
-          <Tag
-            key={tag.id}
-            id={tag.id}
-            intent="primary"
-            onRemove={handleDeselectTag}
-          >
-            {tag.name}
-          </Tag>),
+        {
+          queriedTags.map((tagId) => (
+            <Tag
+              key={tagId}
+              id={tagId}
+              intent="primary"
+              onRemove={handleDeselectTag}
+            >
+              {(tagStore.tagList.find((t) => t.id === tagId) as ClientTag).name}
+            </Tag>
+          ))
+        }
+        {queriedTags.length > 0 && (
+          <Button
+            icon={IconSet.CLOSE}
+            onClick={uiStore.clearSearchQueryList}
+            className="bp3-minimal"
+          />
         )}
-      <Button icon={IconSet.CLOSE} onClick={handleClearIncludedTags} className="bp3-minimal" style={{ display: hideBtn }} />{/* // tslint:disable-next-line */}
       </div>
       <Gallery />
-    </div>
+    </>
   );
 };
 
-export default withRootstore(observer(FileList));
+@HotkeysTarget
+class FileListWithHotkeys extends React.PureComponent<IFileListProps & IRootStoreProp, {}> {
+  render() {
+    return <div tabIndex={1} className="gallery"><FileList {...this.props} /></div>;
+  }
+  renderHotkeys() {
+    const { uiStore } = this.props.rootStore;
+    const { hotkeyMap } = uiStore;
+    return (
+      <Hotkeys>
+        <Hotkey
+          combo={hotkeyMap.selectAll}
+          label="Select all files in the content area"
+          onKeyDown={uiStore.selectAllFiles}
+          group="Gallery"
+        />
+        <Hotkey
+          combo={hotkeyMap.deselectAll}
+          label="Deselect all files in the content area"
+          onKeyDown={uiStore.deselectAllFiles}
+          group="Gallery"
+        />
+        <Hotkey
+          combo={hotkeyMap.deleteSelection}
+          label="Delete the selected files"
+          onKeyDown={uiStore.toggleToolbarFileRemover}
+          group="Gallery"
+        />
+      </Hotkeys>
+    );
+  }
+}
+
+const HotkeysWrapper = observer((props: IFileListProps & IRootStoreProp) => {
+  const rootStore = React.useContext(StoreContext);
+  return <FileListWithHotkeys {...props} rootStore={rootStore} />;
+});
+
+export default HotkeysWrapper;

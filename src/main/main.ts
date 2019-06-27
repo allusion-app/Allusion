@@ -6,6 +6,7 @@ import { isDev } from '../config';
 let mainWindow: BrowserWindow | null;
 
 function createWindow() {
+  const {width, height} = require('electron').screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   mainWindow = new BrowserWindow({
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
@@ -15,10 +16,9 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
     },
-    minWidth: 275,
-    minHeight: 275,
-    height: 640,
-    width: 960,
+    height,
+    width,
+
     // fullscreen: true,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
@@ -62,7 +62,10 @@ function createWindow() {
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
-  // Open the DevTools.
+  // then maximize the window
+  mainWindow.maximize();
+
+  // Open the DevTools if in dev mode.
   if (isDev()) {
     mainWindow.webContents.openDevTools();
   }

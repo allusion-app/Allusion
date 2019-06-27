@@ -5,12 +5,15 @@ import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
+import { ITagSearchQuery } from './UiStore';
 
 class FileStore {
   backend: Backend;
   rootStore: RootStore;
 
   readonly fileList = observable<ClientFile>([]);
+
+  @observable numUntaggedFiles = 0;
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -19,6 +22,7 @@ class FileStore {
 
   async init() {
     await this.loadFiles();
+    this.numUntaggedFiles = await this.backend.getNumUntaggedFiles();
   }
 
   @action
@@ -34,6 +38,7 @@ class FileStore {
     // The function caller is responsible for handling errors.
     await this.backend.createFile(fileData);
     this.fileList.push(file);
+    this.numUntaggedFiles++;
     return file;
   }
 
@@ -48,6 +53,9 @@ class FileStore {
         file.dispose();
         this.rootStore.uiStore.deselectFile(file);
         this.fileList.remove(file);
+        if (file.tags.length === 0) {
+          this.numUntaggedFiles--;
+        }
       });
       await this.backend.removeFiles(filesToRemove);
     } catch (err) {
@@ -67,20 +75,38 @@ class FileStore {
   }
 
   @action
-  async fetchFilesByTagIDs(tags: ID[]) {
-    // Query the backend to send back only files with these tags
-    if (tags.length === 0) {
-      await this.fetchAllFiles();
-    } else {
-      try {
-        const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
-        const fetchedFiles = await this.backend.searchFiles(tags, fileOrder, fileOrderDescending);
-        this.updateFromBackend(fetchedFiles);
-      } catch (e) {
-        console.log('Could not find files based on tag search', e);
-      }
+  async fetchUntaggedFiles() {
+    try {
+      const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
+      const fetchedFiles = await this.backend.searchFiles([], fileOrder, fileOrderDescending);
+      this.updateFromBackend(fetchedFiles);
+    } catch (err) {
+      console.error('Could not load all files', err);
     }
   }
+
+  @action.bound
+  async fetchFilesByQuery() {
+    // Todo: properly implement this later
+    await this.fetchFilesByTagIDs(
+      this.rootStore.uiStore.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
+    );
+  }
+
+  @action
+  async fetchFilesByTagIDs(tags: ID[]) {
+    // Query the backend to send back only files with these tags
+    try {
+      const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
+      const fetchedFiles = await this.backend.searchFiles(tags, fileOrder, fileOrderDescending);
+      this.updateFromBackend(fetchedFiles);
+    } catch (e) {
+      console.log('Could not find files based on tag search', e);
+    }
+  }
+
+  @action.bound incrementNumUntaggedFiles() { this.numUntaggedFiles++; }
+  @action.bound decrementNumUntaggedFiles() { this.numUntaggedFiles--; }
 
   private async loadFiles() {
     const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
