@@ -17,7 +17,7 @@ const searchTooltip = 'Toggle Search panel';
 const mediaTooltip = 'Number of files using selected tag(s)';
 const selectTooltip = 'Selects or deselects all images';
 const tagfilesTooltip = 'Quick add or delete tags to selection';
-// const deleteTooltip = 'Delete selection from library';
+const deleteTooltip = 'Delete selection from library';
 const viewTooltip = 'Change view content panel';
 const filterTooltip = 'Filter view content panel';
 // const fltTagTooltip = 'Filter images by first tag';
@@ -27,29 +27,44 @@ interface IRemoveFilesPopoverProps {
   onRemove: () => void;
   uiStore: UiStore;
 }
-const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => (
-  <Alert
-    isOpen={uiStore.isToolbarFileRemoverOpen}
-    cancelButtonText="Cancel"
-    confirmButtonText="Delete"
-    icon={IconSet.DELETE}
-    intent="danger"
-    onCancel={uiStore.closeToolbarFileRemover}
-    onConfirm={onRemove}
-    canEscapeKeyCancel
-    canOutsideClickCancel
-    className={Classes.DARK}
-  >
-    <div className="popoverContent bp3-dark" id="deleteFile">
-      <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
-      <p>
-        Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?
-        <br />
-        Your files will not be deleted.
-      </p>
-    </div>
-  </Alert>
-));
+const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
+  const handleConfirm = useCallback(() => {
+    onRemove();
+    uiStore.closeToolbarFileRemover();
+  }, []);
+  return (
+    <>
+      <Button
+        icon={IconSet.DELETE}
+        disabled={disabled}
+        onClick={uiStore.toggleToolbarFileRemover}
+        className="tooltip"
+        data-right={deleteTooltip}
+      />
+      <Alert
+        isOpen={uiStore.isToolbarFileRemoverOpen}
+        cancelButtonText="Cancel"
+        confirmButtonText="Delete"
+        icon={IconSet.DELETE}
+        intent="danger"
+        onCancel={uiStore.closeToolbarFileRemover}
+        onConfirm={handleConfirm}
+        canEscapeKeyCancel
+        canOutsideClickCancel
+        className={Classes.DARK}
+      >
+        <div className="popoverContent bp3-dark" id="deleteFile">
+          <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
+          <p>
+            Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?
+            <br />
+            Your files will not be deleted.
+          </p>
+        </div>
+      </Alert>
+    </>
+  );
+});
 
 interface ITagFilesPopoverProps {
   disabled: boolean;

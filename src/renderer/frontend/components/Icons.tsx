@@ -31,7 +31,7 @@ import FOLDER_CLOSE from '../../resources/icons/folder-close.svg';
 import FOLDER_OPEN from '../../resources/icons/folder-open.svg';
 import FOLDER_STRUCTURE from '../../resources/icons/folder-structure.svg';
 import FORM_DROP from '../../resources/icons/form-drop.svg';
-import GITHUB from '../../resources/icons/GITHUB.svg';
+import GITHUB from '../../resources/icons/github.svg';
 import INFO from '../../resources/icons/info.svg';
 import LOCATIONS from '../../resources/icons/locations.svg';
 import MEDIA from '../../resources/icons/media.svg';
