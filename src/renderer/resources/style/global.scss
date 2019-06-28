@@ -81,6 +81,9 @@ main {
 ::-webkit-scrollbar-track {
   background-color: $dark-gray3;
 }
+.bp3-popover-backdrop {
+  background: rgba(16, 22, 26, 0.0); //Set 2 zero for now
+}
 .bp3-popover-content,
 .bp3-drawer,
 .bp3-overlay {
@@ -294,6 +297,10 @@ main {
 .error-boundary {
   grid-area: main;
 
+  .bp3-non-ideal-state > * {
+    max-width: 500px;
+  }
+
   .message {
     text-align: left;
     width: 800px;
@@ -315,4 +322,7 @@ main {
 .custom-icon-64 > * {
   height: 4rem !important;
   width: 4rem !important;
+}
+.fillWidth {
+  width: 100%;
 }

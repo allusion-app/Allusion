@@ -36,6 +36,8 @@ class RootStore {
     this.tagCollectionStore = new TagCollectionStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.uiStore = new UiStore(this);
+
+    this.clearDatabase = this.clearDatabase.bind(this);
   }
 
   async init(autoLoadFiles: boolean) {
@@ -47,6 +49,11 @@ class RootStore {
 
     this.uiStore.isInitialized = true;
     ipcRenderer.send('initialized');
+  }
+
+  async clearDatabase() {
+    await this.backend.clearDatabase();
+    this.uiStore.reload();
   }
 }
 

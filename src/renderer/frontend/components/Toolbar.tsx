@@ -1,6 +1,6 @@
 import React, { useContext, useCallback, useMemo } from 'react';
 import {
-  Button, Popover, MenuItem, Menu, Icon, Classes, ButtonGroup,
+  Button, Popover, MenuItem, Menu, Icon, Classes, ButtonGroup, Alert,
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
@@ -15,7 +15,7 @@ const addTooltip = 'Toggle Add panel';
 const tagTooltip = 'Toggle Tag panel';
 const searchTooltip = 'Toggle Search panel';
 const mediaTooltip = 'Number of files using selected tag(s)';
-const selectTooltip = 'Selects or deselcts all images';
+const selectTooltip = 'Selects or deselects all images';
 const tagfilesTooltip = 'Quick add or delete tags to selection';
 const deleteTooltip = 'Delete selection from library';
 const viewTooltip = 'Change view content panel';
@@ -27,50 +27,44 @@ interface IRemoveFilesPopoverProps {
   onRemove: () => void;
   uiStore: UiStore;
 }
-const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => (
-  <Popover
-    minimal
-    canEscapeKeyClose={true}
-    isOpen={uiStore.isToolbarFileRemoverOpen}
-    onClose={uiStore.closeToolbarFileRemover}
-  >
-    <Button
-      icon={IconSet.DELETE}
-      disabled={disabled}
-      className="tooltip"
-      data-right={deleteTooltip}
-      onClick={uiStore.toggleToolbarFileRemover}
-    />
-    <div className="popoverContent" id="deleteFile">
-      <h4 className="bp3-heading inpectorHeading">Confirm deletion</h4>
-      <p>Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?</p>
-      <p>Your files will not be deleted.</p>
-
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          marginTop: 15,
-        }}>
-        <Button
-          className={Classes.POPOVER_DISMISS}
-          style={{ marginRight: 10 }}
-          onClick={uiStore.closeToolbarFileRemover}
-        >
-          Cancel
-        </Button>
-        <Button
-          intent="danger"
-          className={Classes.POPOVER_DISMISS}
-          onClick={onRemove}
-          autoFocus
-        >
-          Delete
-        </Button>
-      </div>
-    </div>
-  </Popover>
-));
+const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
+  const handleConfirm = useCallback(() => {
+    onRemove();
+    uiStore.closeToolbarFileRemover();
+  }, []);
+  return (
+    <>
+      <Button
+        icon={IconSet.DELETE}
+        disabled={disabled}
+        onClick={uiStore.toggleToolbarFileRemover}
+        className="tooltip"
+        data-right={deleteTooltip}
+      />
+      <Alert
+        isOpen={uiStore.isToolbarFileRemoverOpen}
+        cancelButtonText="Cancel"
+        confirmButtonText="Delete"
+        icon={IconSet.DELETE}
+        intent="danger"
+        onCancel={uiStore.closeToolbarFileRemover}
+        onConfirm={handleConfirm}
+        canEscapeKeyCancel
+        canOutsideClickCancel
+        className={Classes.DARK}
+      >
+        <div className="popoverContent bp3-dark" id="deleteFile">
+          <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
+          <p>
+            Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?
+            <br />
+            Your files will not be deleted.
+          </p>
+        </div>
+      </Alert>
+    </>
+  );
+});
 
 interface ITagFilesPopoverProps {
   disabled: boolean;
@@ -93,7 +87,7 @@ const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopover
 ));
 
 const sortMenuData: Array<{ prop: keyof IFile, icon: JSX.Element, text: string }> = [
-  { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
+  // { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
   { prop: 'name', icon: IconSet.FILTER_NAME_UP, text: 'Name' },
   { prop: 'extension', icon: IconSet.FILTER_FILE_TYPE, text: 'File type' },
   { prop: 'size', icon: IconSet.FILTER_FILTER_DOWN, text: 'File size' },
@@ -109,7 +103,13 @@ const Toolbar = () => {
     uiStore.isOutlinerOpen = uiStore.isOutlinerOpen
       ? uiStore.outlinerPage !== page
       : uiStore.outlinerPage === page;
-    uiStore.outlinerPage = page;
+    if (page === 'IMPORT') {
+      uiStore.openOutlinerImport();
+    } else if (page === 'TAGS') {
+      uiStore.openOutlinerTags();
+    } else if (page === 'SEARCH') {
+      uiStore.openOutlinerSearch();
+    }
   }, []);
   const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), []);
   const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), []);
@@ -254,6 +254,7 @@ const Toolbar = () => {
             onRemove={handleRemoveSelectedFiles}
             disabled={!selectionModeOn}
             uiStore={uiStore}
+            // hasBackdrop={false}
           />
 
           {/* Gallery actions */}

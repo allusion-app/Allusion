@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   DragSource,
@@ -10,9 +10,9 @@ import {
   ConnectDropTarget,
   DropTargetConnector,
   DropTargetMonitor,
+  ConnectDragPreview,
 } from 'react-dnd';
 import {
-  // Button,
   ControlGroup,
   InputGroup,
   Tag,
@@ -20,9 +20,15 @@ import {
   ContextMenuTarget,
   Menu,
   MenuItem,
+  Divider,
 } from '@blueprintjs/core';
+
 import { ID } from '../../entities/ID';
 import IconSet from './Icons';
+import { getEmptyImage } from 'react-dnd-html5-backend';
+import UiStore from '../stores/UiStore';
+import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
+import { formatTagCountText } from '../utils';
 
 export const TAG_DRAG_TYPE = 'tag';
 export const DEFAULT_TAG_NAME = 'New tag';
@@ -117,7 +123,11 @@ interface ITagListItemProps {
   dateAdded: Date;
   onRemove: () => void;
   onRename: (name: string) => void;
-  onMoveTag: (movedTag: ID) => void;
+  onMoveTag: (dropProps: ITagDragItem) => void;
+  onAddSelectionToQuery: () => void;
+  onReplaceQuery: () => void;
+  onSelect: (tagId: ID, clear?: boolean) => void;
+  isSelected: boolean;
 }
 
 interface IEditingProps {
@@ -132,6 +142,7 @@ interface IDropProps {
 
 interface IDragProps {
   connectDragSource: ConnectDragSource;
+  connectDragPreview: ConnectDragPreview;
   isDragging: boolean;
 }
 
@@ -144,12 +155,15 @@ export const TagListItem = ({
   onRename,
   connectDragSource,
   connectDropTarget,
+  connectDragPreview,
   isDragging,
   isHovering,
 }: ITagListItemProps & IEditingProps & IDragProps & IDropProps) => {
+  // Hide preview, since a custom preview is created in DragLayer
+  useEffect(() => { connectDragPreview(getEmptyImage()); }, []);
+
   // Style whether the element is being dragged or hovered over to drop on
-  const className = `${isHovering ? 'reorder-target' : ''
-    } ${isDragging ? 'reorder-source' : ''}`;
+  const className = `${isHovering ? 'reorder-target' : ''} ${isDragging ? 'reorder-source' : ''}`;
   return connectDropTarget(
     connectDragSource(
       <div className={className}>
@@ -175,17 +189,23 @@ export const TagListItem = ({
 };
 
 /** This handles what to do when an element is being dropped over this element */
-const dropTarget: DropTargetSpec<ITagListItemProps> = {
+const dropTarget: DropTargetSpec<ITagListItemProps & { uiStore: UiStore }> = {
   canDrop(props, monitor) {
+    const { id: draggedId, isSelected }: ITagDragItem = monitor.getItem() as ITagDragItem;
+
+    // If a dragged item is selected, make sure nothing in the selection is dropped into itself
+    if (isSelected) {
+      return props.uiStore.tagSelection.find((selTagId) => selTagId === props.id) === undefined;
+    }
+
     // You cannot drop a tag on itself
-    const { id: draggedId } = monitor.getItem();
     return props.id !== draggedId;
   },
   drop(props, monitor) {
     // Move the tag to the position where it is dropped (could be other collection as well)
-    const { id: draggedId } = monitor.getItem();
+    const { id: draggedId } = monitor.getItem() as ITagDragItem;
     if (draggedId !== props.id) {
-      props.onMoveTag(draggedId);
+      props.onMoveTag(monitor.getItem());
     }
   },
 };
@@ -196,18 +216,28 @@ const collectDropTarget = (connect: DropTargetConnector, monitor: DropTargetMoni
   };
 };
 
+export interface ITagDragItem {
+  name: string;
+  id: string;
+  isSelected: boolean;
+}
+
 /** This handles what the drag-and-drop target receives when dropping the element */
 const dragSource = {
-  beginDrag: (props: ITagListItemProps) => ({ name: props.name, id: props.id }),
+  beginDrag: (props: ITagListItemProps): ITagDragItem => {
+    return ({ name: props.name, id: props.id, isSelected: props.isSelected });
+  },
 };
+
 const collectDragSource = (connect: DragSourceConnector, monitor: DragSourceMonitor): IDragProps => ({
   connectDragSource: connect.dragSource(),
+  connectDragPreview: connect.dragPreview(),
   isDragging: monitor.isDragging(),
 });
 
 /** Make the taglistitem draggable */
 const DraggableTagListItem = DropTarget<
-  ITagListItemProps & IEditingProps,
+  ITagListItemProps & IEditingProps & { uiStore: UiStore },
   IDropProps
 >(
   TAG_DRAG_TYPE,
@@ -224,28 +254,44 @@ const DraggableTagListItem = DropTarget<
   )(TagListItem),
 );
 
-const TagListItemContextMenu = (
-  setEditing: (value: boolean) => void,
-  onRemove: () => void,
+interface ITagListItemContextMenuProps {
+  setEditing: (value: boolean) => void;
+  onRemove: () => void;
+  onAddSelectionToQuery: () => void;
+  onReplaceQuery: () => void;
+  numTagsToDelete: number;
+  numColsToDelete: number;
+}
+const TagListItemContextMenu = ({
+  setEditing,
+  onRemove,
+  onAddSelectionToQuery,
+  onReplaceQuery,
+  numTagsToDelete,
+  numColsToDelete,
+}: ITagListItemContextMenuProps,
 ) => {
   const handleRename = () => {
     setEditing(true);
   };
 
-  const handleDelete = () => {
-    onRemove();
-  };
-
   const handleChangeColor = () => {
     // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
     console.log('Change color');
+    alert('Not implemented yet');
   };
+
+  let deleteText = formatTagCountText(numTagsToDelete, numColsToDelete);
+  deleteText = deleteText && ` (${deleteText})`;
 
   return (
     <Menu>
       <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={handleDelete} text="Delete" icon={IconSet.DELETE} />
+      <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} />
       <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
+      <Divider />
+      <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
+      <MenuItem onClick={onReplaceQuery} text="Replace search query" icon={IconSet.REPLACE} />
     </Menu>
   );
 };
@@ -253,7 +299,7 @@ const TagListItemContextMenu = (
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
 class TagListItemWithContextMenu extends React.PureComponent<
-  ITagListItemProps,
+  ITagListItemProps & IRootStoreProp,
   { isEditing: boolean; isContextMenuOpen: boolean }
 > {
   state = {
@@ -279,18 +325,31 @@ class TagListItemWithContextMenu extends React.PureComponent<
     return (
       // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <DraggableTagListItem
-          {...this.props}
-          isEditing={this.state.isEditing}
-          setEditing={this.setEditing}
-        />
+        <StoreContext.Consumer>
+          {({ uiStore }) => (
+            <DraggableTagListItem
+              {...this.props}
+              isEditing={this.state.isEditing}
+              setEditing={this.setEditing}
+              uiStore={uiStore}
+            />
+          )}
+        </StoreContext.Consumer>
       </div>
     );
   }
 
   renderContextMenu() {
     this.updateState({ isContextMenuOpen: true });
-    return TagListItemContextMenu(this.setEditing, this.props.onRemove);
+    const ctx = this.props.rootStore.uiStore.getTagContextItems(this.props.id);
+    return (
+      <TagListItemContextMenu
+        {...this.props}
+        setEditing={this.setEditing}
+        numColsToDelete={ctx.collections.length}
+        numTagsToDelete={Math.max(0, ctx.tags.length - 1)}
+      />
+    );
   }
 
   onContextMenuClose = () => {

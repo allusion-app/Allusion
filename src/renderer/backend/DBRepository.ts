@@ -32,6 +32,10 @@ export const dbInit = (configs: IDBVersioningConfig[], dbName: string) => {
   return db;
 };
 
+export const dbDelete = (dbName: string) => {
+  Dexie.delete(dbName);
+};
+
 export interface IDbRequest<T> {
   count?: number;
   order?: keyof T;
@@ -73,14 +77,31 @@ export default class BaseRepository<T extends IIdentifiable> {
   public async find({ queryField, query, count, order, descending }: IDbQueryRequest<T>): Promise<T[]> {
     const where = this.collection.where(queryField as string);
     // Querying array props: https://dexie.org/docs/MultiEntry-Index
-    let table = Array.isArray(query) ? where.anyOf(...query).distinct() : where.equals(query);
+    let table = where.equals(query);
+    if (Array.isArray(query)) {
+      table = (query.length === 0)
+        ? this.collection.filter((val: any) => val[queryField as string].length === 0) // find where array is empty
+        : where.anyOf(...query).distinct();
+    }
     table = descending ? table.reverse() : table;
     table = count ? table.limit(count) : table;
     return order ? table.sortBy(order as string) : table.toArray();
   }
 
-  public async count(): Promise<number> {
-    return this.collection.count();
+  public async count(queryRequest?: IDbQueryRequest<T>): Promise<number> {
+    if (!queryRequest) {
+      return this.collection.count();
+    }
+    const { queryField, query } = queryRequest;
+    const where = this.collection.where(queryField as string);
+
+    let table = where.equals(query);
+    if (Array.isArray(query)) {
+      table = (query.length === 0)
+        ? this.collection.filter((val: any) => val[queryField as string].length === 0) // find where array is empty
+        : where.anyOf(...query).distinct();
+    }
+    return table.count();
   }
 
   public async create(item: T): Promise<T> {
