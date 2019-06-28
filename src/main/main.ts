@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, ipcMain } from 'electron';
+import { app, BrowserWindow, Menu, Tray } from 'electron';
 import SysPath from 'path';
 import fse from 'fs-extra';
 import os from 'os';
@@ -8,9 +8,12 @@ import { isDev } from '../config';
 import { setupServer } from './clipServer';
 
 let mainWindow: BrowserWindow | null;
+let tray: Tray | null;
+
+let runInBackground = true;
 
 function createWindow() {
-  const {width, height} = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  const { width, height } = require('electron').screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   mainWindow = new BrowserWindow({
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
@@ -81,6 +84,19 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  // System tray icon: For when the app can run in the background
+  // Useful for browser extension, so it will work even when the window is closed
+  if (!tray) {
+    tray = new Tray(`${__dirname}/${AppIcon}`);
+    const trayMenu = Menu.buildFromTemplate([
+      { label: 'Open', type: 'normal', click: () => mainWindow ? mainWindow.focus() : createWindow() },
+      { label: 'Exit', type: 'normal', click: app.quit },
+    ]);
+    tray.setContextMenu(trayMenu);
+    tray.setToolTip('Allusion - Your Visual Library');
+    tray.on('click', () => mainWindow ? mainWindow.focus() : createWindow());
+  }
 }
 
 // This method will be called when Electron has finished
@@ -90,10 +106,12 @@ app.on('ready', createWindow);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit();
+  if (!runInBackground) {
+    // On OS X it is common for applications and their menu bar
+    // to stay active until the user quits explicitly with Cmd + Q
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
   }
 });
 
@@ -138,5 +156,3 @@ async function getTags() {
 
 // Todo: Only launch server when user agrees. Else it will show a popup on startup requesting network access
 setupServer(importExternalImage, getTags);
-
-// Todo: Maybe an always-on option (in system tray) so that the extension still works when the window is closed.
