@@ -67,7 +67,7 @@ class TagCollectionStore {
   }
 
   @action
-  removeTagCollection(tagCol: ClientTagCollection) {
+  async removeTagCollection(tagCol: ClientTagCollection) {
     // Remove save handler
     tagCol.dispose();
 
@@ -78,13 +78,18 @@ class TagCollectionStore {
     this.tagCollectionList.forEach((col) => col.subCollections.remove(tagCol.id));
 
     // Remove sub-collections of this collection from state
-    tagCol.clientSubCollections.forEach((subCol) => this.removeTagCollection(subCol));
+    await Promise.all(tagCol.clientSubCollections.map((subCol) => this.removeTagCollection(subCol)));
 
     // Remove tags in this collection
-    tagCol.clientTags.forEach((tag) => this.rootStore.tagStore.removeTag(tag));
+    await Promise.all(tagCol.clientTags.map((tag) => this.rootStore.tagStore.removeTag(tag)));
 
     // Remove collection from DB
-    this.backend.removeTagCollection(tagCol);
+    await this.backend.removeTagCollection(tagCol);
+  }
+
+  /** Find and remove missing tags from files */
+  @action clean() {
+    // Todo: Clean-up methods for all stores
   }
 }
 

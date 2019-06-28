@@ -13,16 +13,19 @@
   }
 
   > section {
-    border-bottom: 3px solid #181818;
+    border-bottom: 2px solid #181818;
     padding: 1em;
   }
 
   .inpectorHeading {
     font-weight: bold;
   }
-    
+  #filePreview {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
   #fileOverview {
-    text-align: center;
+    text-align: left;
   }
 }
 
@@ -30,22 +33,28 @@
 #fileInfo {
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-column-gap: 1em;
+  grid-column-gap: 1rem;
+  grid-row-gap: 0.25rem;
+  height: fit-content;
 
   > div {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  small.bp3-label {
+    color: #919191;
+    opacity: 0.7;
+  }
 }
 
 .fileInfoValue {
-  text-align: right;
+  text-align: left;
 }
 
 #filePreview > img {
-  padding: 0.3em;
-  background-color: #333333;
+  // padding: 0.3em;
+  // background-color: #333333;
   width: 100%;
   max-height: calc(var(--inspector-width) - 2em);
   object-fit: contain;
