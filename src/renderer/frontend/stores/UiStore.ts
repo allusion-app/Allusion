@@ -1,10 +1,10 @@
 import { action, observable, computed } from 'mobx';
+import { remote, ipcRenderer } from 'electron';
 
+import RootStore from './RootStore';
 import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
-import RootStore from './RootStore';
-import { remote } from 'electron';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 
 interface IHotkeyMap {
@@ -28,8 +28,12 @@ interface IHotkeyMap {
   viewGrid: string;
   viewMason: string;
   viewSlide: string;
+
+  // Other
+  openPreviewWindow: string;
 }
 
+// https://blueprintjs.com/docs/#core/components/hotkeys.dialog
 const defaultHotkeyMap: IHotkeyMap = {
   toggleOutliner: '1',
   toggleInspector: '2',
@@ -46,6 +50,7 @@ const defaultHotkeyMap: IHotkeyMap = {
   viewGrid: 'alt + 2',
   viewMason: 'alt + 3',
   viewSlide: 'alt + 4',
+  openPreviewWindow: 'space',
 };
 
 type SearchQueryAction = 'include' | 'exclude';
@@ -103,6 +108,7 @@ class UiStore {
   @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
+  @observable isPreviewOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
   @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
 
@@ -452,6 +458,11 @@ class UiStore {
   @action.bound openOutlinerSearch() {
     this.outlinerPage = 'SEARCH';
     this.viewContentQuery();
+  }
+
+  @action.bound openPreviewWindow() {
+    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
+    this.isPreviewOpen = true;
   }
 
   // VIEW

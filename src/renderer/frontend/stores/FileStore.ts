@@ -20,9 +20,11 @@ class FileStore {
     this.rootStore = rootStore;
   }
 
-  async init() {
-    await this.loadFiles();
-    this.numUntaggedFiles = await this.backend.getNumUntaggedFiles();
+  async init(autoLoadFiles: boolean) {
+    if (autoLoadFiles) {
+      await this.loadFiles();
+      this.numUntaggedFiles = await this.backend.getNumUntaggedFiles();
+    }
   }
 
   @action
@@ -102,6 +104,16 @@ class FileStore {
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on tag search', e);
+    }
+  }
+
+  @action
+  async fetchFilesByIDs(files: ID[]) {
+    try {
+      const fetchedFiles = await this.backend.fetchFilesByID(files);
+      this.updateFromBackend(fetchedFiles);
+    } catch (e) {
+      console.log('Could not find files based on IDs', e);
     }
   }
 

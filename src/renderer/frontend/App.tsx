@@ -23,6 +23,13 @@ const App = ({ rootStore }: IAppProps) => {
   const [showSplash, setShowSplash] = useState(true);
   useEffect(() => {
     setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
+
+    // Prevent scrolling with Space, instead used to open preview window
+    window.addEventListener('keydown', (e) => {
+      if (e.keyCode === 32) {
+        e.preventDefault();
+      }
+    });
   }, []);
 
   if (!uiStore.isInitialized || showSplash) {
@@ -40,7 +47,7 @@ const App = ({ rootStore }: IAppProps) => {
           <Outliner />
 
           <main>
-            <FileList rootStore={rootStore} />
+            <FileList />
           </main>
 
           <Inspector />
