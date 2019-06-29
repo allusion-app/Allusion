@@ -46,13 +46,9 @@ function createWindow() {
   menuBar.push({
     label: 'Edit',
     submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
       { role: 'cut' },
       { role: 'copy' },
       { role: 'paste' },
-      { role: 'delete' },
-      { role: 'selectall' },
     ],
   });
   menuBar.push({
@@ -61,6 +57,9 @@ function createWindow() {
       { role: 'reload' },
       { role: 'togglefullscreen' },
       { role: 'toggledevtools' },
+      { role: 'zoomin' },
+      { role: 'zoomout' },
+      { role: 'resetzoom' },
     ],
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuBar));
