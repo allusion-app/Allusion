@@ -5,6 +5,7 @@ import ErrorBoundary from './ErrorBoundary';
 import FileList from './FileList';
 import { Button, Switch } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
+import IconSet from './Icons';
 
 const PreviewApp = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -23,16 +24,16 @@ const PreviewApp = () => {
   return (
     <div className={`${themeClass}`} style={{ height: '100%' }}>
       <ErrorBoundary>
-        <div id="toolbar">
-          <section id="outliner-toolbar">
+        <div id="toolbar" style={{height: '2.4rem'}}>
+          <section id="preview-toolbar">
             <Button
-              icon="arrow-left"
+              icon={IconSet.ARROW_LEFT}
               onClick={handleLeftButton}
               minimal
               disabled={uiStore.firstIndexInView === 0}
             />
             <Button
-              icon="arrow-right"
+              icon={IconSet.ARROW_RIGHT}
               onClick={handleRightButton}
               minimal
               disabled={uiStore.firstIndexInView === fileStore.fileList.length - 1}

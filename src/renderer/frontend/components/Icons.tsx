@@ -7,6 +7,7 @@ import ADD_TAG_OUTLINE from '../../resources/icons/add-tag-outline.svg';
 import ADD_TAG_TRANS from '../../resources/icons/add-tag-trans.svg';
 import ADD from '../../resources/icons/add.svg';
 import ARROW_DOWN from '../../resources/icons/arrow-down.svg';
+import ARROW_LEFT from '../../resources/icons/arrow-left.svg';
 import ARROW_RIGHT from '../../resources/icons/arrow-right.svg';
 import ARROW_UP from '../../resources/icons/arrow-up.svg';
 import ARROW_COLLAPS from '../../resources/icons/arrow-collaps.svg';
@@ -76,6 +77,7 @@ const IconSet = {
   ADD_TAG_TRANS: toSvg(ADD_TAG_TRANS),
   ADD: toSvg(ADD),
   ARROW_DOWN: toSvg(ARROW_DOWN),
+  ARROW_LEFT: toSvg(ARROW_LEFT),
   ARROW_RIGHT: toSvg(ARROW_RIGHT),
   ARROW_UP: toSvg(ARROW_UP),
   ARROW_COLLAPS: toSvg(ARROW_COLLAPS),

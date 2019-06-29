@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, screen } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
@@ -108,20 +108,19 @@ app.on('activate', () => {
 });
 
 function createPreviewWindow() {
+  const primDisplay = screen.getPrimaryDisplay();
   previewWindow = new BrowserWindow({
     webPreferences: {
       nodeIntegration: true,
     },
     minWidth: 224,
     minHeight: 224,
-    height: 640,
-    width: 960,
-    // fullscreen: true,
+    height: primDisplay.size.height * 2 / 3, // preview window is is sized relative to screen resolution by default
+    width: primDisplay.size.width * 2 / 3,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
     title: 'Allusion Quick View',
-    alwaysOnTop: true,
   });
   previewWindow.setMenuBarVisibility(false);
   previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);

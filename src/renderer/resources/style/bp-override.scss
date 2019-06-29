@@ -85,12 +85,10 @@ form,
   outline: none;
   box-shadow: none;
 }
-
 .bp3-dark {
   #preview-toolbar .bp3-control {
     color: $light-gray1 !important;
   }
-
   .bp3-control {
     color: $dark-gray4;
   }
@@ -706,7 +704,6 @@ $pt-transition-duration: 100ms !default;
     .bp3-button:not(:first-child) {
       border-radius: 0 0 6px 6px !important;
     }
-
     .bp3-button:not(:last-child) {
       border-radius: 6px 6px 0 0 !important;
     }
