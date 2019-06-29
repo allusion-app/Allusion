@@ -1,5 +1,7 @@
 const apiUrl = 'http://localhost:5454';
 
+let lastSubmittedItem = undefined;
+
 ///////////////////////////////////
 // Communication to Allusion app //
 ///////////////////////////////////
@@ -10,18 +12,23 @@ async function importImage(filename, url) {
   // Note: Google extensions don't work with promises, so we'll have to put up with callbacks here and there
   // Todo: url might already be base64
   const imgData = await imageAsBase64(url);
+
+  const item = {
+    filename,
+    url,
+    imgBase64: imgData,
+    tagNames: [],
+  };
+
+  lastSubmittedItem = item;
   
   try {
-    await fetch(apiUrl, {
+    await fetch(`${apiUrl}/import-image`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        filename,
-        url,
-        imgBase64: imgData,
-      }),
+      body: JSON.stringify(item),
     });
 
     // Todo: Maybe no notification when it works as intended?
@@ -82,6 +89,32 @@ chrome.runtime.onInstalled.addListener(() => {
   setupContextMenus();
 });
 
+// Communication with popup script
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === 'setTags' && lastSubmittedItem !== undefined) {
+    const tagNames = msg.tagNames;
+
+    lastSubmittedItem.tagNames = tagNames;
+    
+    fetch(`${apiUrl}/set-tags`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tagNames,
+        filename: lastSubmittedItem.filename,
+      }),
+    })
+    .then(() => sendResponse(true))
+    .catch(() => sendResponse(false));
+    return true;
+  } else if (msg.type === 'getLastSubmittedItem') {
+    sendResponse(lastSubmittedItem);
+    return true;
+  }
+});
+
 chrome.contextMenus.onClicked.addListener((props, tab) => {
   const srcUrl = props.srcUrl;
 
@@ -93,6 +126,7 @@ chrome.contextMenus.onClicked.addListener((props, tab) => {
   // Otherwise: https://stackoverflow.com/questions/7703697/how-to-retrieve-the-element-where-a-contextmenu-has-been-executed
 });
 
-chrome.notifications.onButtonClicked((id, buttonIndex) => {
-  // Todo: retry importing image
-});
+// chrome.notifications.onButtonClicked((id, buttonIndex) => {
+//   // Todo: retry importing image
+// });
+

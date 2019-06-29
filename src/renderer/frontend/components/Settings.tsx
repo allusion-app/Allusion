@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Drawer, Classes, Switch, Button, Callout, H4, FormGroup, Label } from '@blueprintjs/core';
+import { Drawer, Classes, Switch, Button, Callout, H4, FormGroup } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';

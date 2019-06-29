@@ -42,7 +42,42 @@ ReactDOM.render(
   document.getElementById('app'),
 );
 
-ipcRenderer.on('importExternalImage', (e: IpcMessageEvent, item: IImportItem) => {
+/**
+ * Adds tags to a file, given its name and the names of the tags
+ * @param filePath The path of the file
+ * @param tagNames The names of the tags
+ */
+async function addTagsToFile(filePath: string, tagNames: string[]) {
+  const clientFile = rootStore.fileStore.fileList.find((file) => file.path === filePath);
+  if (clientFile) {
+    const tagIds = await Promise.all(tagNames.map(async (tagName) => {
+      const clientTag = rootStore.tagStore.tagList.find((tag) => tag.name === tagName);
+      console.log(clientTag);
+      if (clientTag) {
+        return clientTag.id;
+      } else {
+        const newClientTag = await rootStore.tagStore.addTag(tagName);
+        rootStore.tagCollectionStore.getRootCollection().addTag(newClientTag);
+        return newClientTag.id;
+      }
+    }));
+    clientFile.tags.push(...tagIds);
+  } else {
+    console.error('Could not find image to set tags for', filePath);
+  }
+}
+
+ipcRenderer.on('importExternalImage', async (e: IpcMessageEvent, item: IImportItem) => {
   console.log('Importing image...', item);
-  rootStore.fileStore.addFile(item.filePath);
+  await rootStore.fileStore.addFile(item.filePath, item.dateAdded);
+  await addTagsToFile(item.filePath, item.tagNames);
+});
+
+ipcRenderer.on('addTagsToFile', async (e: IpcMessageEvent, item: IImportItem) => {
+  console.log('Adding tags to file...', item);
+  await addTagsToFile(item.filePath, item.tagNames);
+});
+
+ipcRenderer.on('getTags', async (e: IpcMessageEvent) => {
+  e.returnValue = await backend.fetchTags();
 });

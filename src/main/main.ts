@@ -3,6 +3,7 @@ import { app, BrowserWindow, Menu, Tray, ipcMain, IpcMessageEvent } from 'electr
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
+import { ITag } from '../renderer/entities/Tag';
 
 let mainWindow: BrowserWindow | null;
 let tray: Tray | null;
@@ -98,7 +99,7 @@ function createWindow() {
   }
 
   if (!clipServer) {
-    clipServer = new ClipServer(importExternalImage, getTags);
+    clipServer = new ClipServer(importExternalImage, addTagsToFile, getTags);
   }
   // Import images that were added while the window was closed
   ipcMain.once('initialized', async () => {
@@ -137,7 +138,6 @@ app.on('activate', () => {
 // Messaging ///////////////////////////////
 ////////////////////////////////////////////
 ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
-  console.log(path);
   if (clipServer) {
     clipServer.setDownloadPath(path);
   }
@@ -182,13 +182,21 @@ async function importExternalImage(item: IImportItem) {
   return false;
 }
 
-async function getTags(): Promise<string[]> {
-  // Todo: cache tags from frontend in case the window is closed
+async function addTagsToFile(item: IImportItem) {
+  if (mainWindow) {
+    mainWindow.webContents.send('addTagsToFile', item);
+    return true;
+  }
+  return false;
+}
+
+async function getTags(): Promise<ITag[]> {
   if (mainWindow) {
     mainWindow.webContents.send('getTags');
     return new Promise((resolve) => {
-      ipcMain.once('receiveTags', (tags: string[]) => resolve(tags));
+      ipcMain.once('receiveTags', (tags: ITag[]) => resolve(tags));
     });
   }
+  // Todo: cache tags from frontend in case the window is closed
   return [];
 }

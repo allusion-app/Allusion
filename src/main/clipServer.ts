@@ -5,6 +5,7 @@ import fse from 'fs-extra';
 
 import { SERVER_PORT } from '../config';
 import { app } from 'electron';
+import { ITag } from '../renderer/entities/Tag';
 
 // Contains a single preferences JSON object
 const preferencesFilePath = path.join(app.getPath('userData'), 'clipPreferences.json');
@@ -13,7 +14,7 @@ const importQueueFilePath = path.join(app.getPath('userData'), 'importQueue.txt'
 
 export interface IImportItem {
   filePath: string;
-  tags: string[];
+  tagNames: string[];
   dateAdded: Date;
 }
 
@@ -26,13 +27,16 @@ class ClipServer {
 
   private server: Server | null = null;
   private importImage: (item: IImportItem) => Promise<boolean>;
-  private requestTags: () => Promise<string[]>;
+  private addTagsToFile: (item: IImportItem) => Promise<boolean>;
+  private requestTags: () => Promise<ITag[]>;
 
   constructor(
     importImage: (item: IImportItem) => Promise<boolean>,
-    requestTags: () => Promise<string[]>,
+    addTagsToFile: (item: IImportItem) => Promise<boolean>,
+    requestTags: () => Promise<ITag[]>,
   ) {
     this.importImage = importImage;
+    this.addTagsToFile = addTagsToFile;
     this.requestTags = requestTags;
 
     if (fse.existsSync(preferencesFilePath)) {
@@ -88,32 +92,52 @@ class ClipServer {
     console.log('Running clip server...');
     this.server = http.createServer(async (req, res) => {
       if (req.method === 'POST') {
-        // A POST request will contain an image and some metadata
+        // Parse the content of the POST request
         let body = '';
         req.on('data', (chunk) => (body += chunk));
         req.on('end', async () => {
           try {
-            const { filename, url, imgBase64 } = JSON.parse(body);
-            console.log('Received file', url);
+            // Check what kind of message has been sent
+            if (req.url && req.url.endsWith('import-image')) {
+              const { filename, url, imgBase64 } = JSON.parse(body);
+              console.log('Received file', url);
 
-            // Todo: Check not to overwrite existing files - downloaded images can often have the same name (image.jpg, download.jpg, etc.)
-            // Todo: sanitize filename: Some symbols from URLs might not be supported on the filesystem (depends on OS)
-            const downloadPath = path.join(this.preferences.downloadPath, filename);
+              // Todo: Check not to overwrite existing files - downloaded images can often have the same name (image.jpg, download.jpg, etc.)
+              // Todo: sanitize filename: Some symbols from URLs might not be supported on the filesystem (depends on OS)
+              const downloadPath = path.join(this.preferences.downloadPath, filename);
 
-            await this.downloadImage(downloadPath, imgBase64);
+              await this.downloadImage(downloadPath, imgBase64);
 
-            const item: IImportItem = {
-              filePath: downloadPath,
-              tags: [],
-              dateAdded: new Date(),
-            };
+              const item: IImportItem = {
+                filePath: downloadPath,
+                tagNames: [],
+                dateAdded: new Date(),
+              };
 
-            const isImported = await this.importImage(item);
-            if (!isImported) {
-              await this.enqueue(item);
+              const isImported = await this.importImage(item);
+              if (!isImported) {
+                await this.enqueue(item);
+              }
+
+              res.end({ message: 'OK!' });
+            } else if (req.url && req.url.endsWith('/set-tags')) {
+              const { tagNames, filename } = JSON.parse(body);
+
+              // Todo: idem
+              const downloadPath = path.join(this.preferences.downloadPath, filename);
+
+              const item: IImportItem = {
+                filePath: downloadPath,
+                tagNames,
+                dateAdded: new Date(),
+              };
+
+              const isUpdated = await this.addTagsToFile(item);
+              if (!isUpdated) {
+                await this.replaceLastQueueItem(item);
+              }
+              res.end({ message: 'OK!' });
             }
-
-            res.end({ message: 'OK!' });
           } catch (e) {
             res.end(JSON.stringify(e));
           }
@@ -137,6 +161,17 @@ class ClipServer {
   // When the window is not open, add the request to a queue so that it can get imported when the window opens
   private async enqueue(item: IImportItem) {
     await fse.appendFile(importQueueFilePath, `${JSON.stringify(item)}\n`);
+  }
+
+  private async replaceLastQueueItem(item: IImportItem) {
+    const fileContent = await fse.readFile(importQueueFilePath, 'utf8');
+    let lines = fileContent.split('\n');
+    if (lines.length > 1) {
+      lines[lines.length - 1] = `${JSON.stringify(item)}`;
+    } else {
+      lines = [`${JSON.stringify(item)}`, ''];
+    }
+    await fse.writeFile(importQueueFilePath, lines.join('\n'));
   }
 
   private async downloadImage(downloadPath: string, imgBase64: string) {

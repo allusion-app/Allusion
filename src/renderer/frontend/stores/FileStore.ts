@@ -26,11 +26,11 @@ class FileStore {
   }
 
   @action
-  async addFile(filePath: string) {
+  async addFile(filePath: string, dateAdded?: Date) {
     const fileData: IFile = {
       id: generateId(),
       path: filePath,
-      dateAdded: new Date(),
+      dateAdded: dateAdded || new Date(),
       tags: [],
       ...await ClientFile.getMetaData(filePath),
     };
@@ -120,7 +120,7 @@ class FileStore {
           await fs.access(backendFile.path, fs.constants.F_OK);
           this.fileList.push(new ClientFile(this, backendFile));
         } catch (e) {
-          console.log(`${backendFile.path} 'does not exist'`);
+          console.warn(`${backendFile.path} 'does not exist'`);
           this.backend.removeFile(backendFile);
         }
       }),
