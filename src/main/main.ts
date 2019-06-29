@@ -109,6 +109,9 @@ app.on('activate', () => {
 
 function createPreviewWindow() {
   previewWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true,
+    },
     minWidth: 224,
     minHeight: 224,
     height: 640,
