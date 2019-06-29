@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, Tray, ipcMain, IpcMessageEvent } from 'electron';
+import { app, BrowserWindow, Menu, Tray, ipcMain, IpcMessageEvent, screen } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
@@ -6,8 +6,8 @@ import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';
 
 let mainWindow: BrowserWindow | null;
+let previewWindow: BrowserWindow | null;
 let tray: Tray | null;
-
 let clipServer: ClipServer | null;
 
 function createWindow() {
@@ -24,41 +24,46 @@ function createWindow() {
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
+    title: 'Allusion - Your Visual Library',
   });
 
   // Create our menu entries so that we can use MAC shortcuts
-  const template = [
-    // Mac App menu - used for styling so shortcuts work
-    ...(process.platform === 'darwin' ? [
-      {
-        label: 'File', submenu: [
-          { role: 'about' },
-          { role: 'hide' },
-          { role: 'hideothers' },
-          { role: 'unhide' },
-          { role: 'quit' },
-        ],
-      }] : []),
-      {
-        label: 'Edit', submenu: [
-          { role: 'undo' },
-          { role: 'redo' },
-          { role: 'cut' },
-          { role: 'copy' },
-          { role: 'paste' },
-          { role: 'delete' },
-          { role: 'selectall' },
-        ],
-      },
-      {
-        label: 'View', submenu: [
-          { role: 'reload' },
-          { role: 'toggleFullScreen' },
-          { role: 'toggleDevTools' },
+  const menuBar: Electron.MenuItemConstructorOptions[] = [];
+
+  // Mac App menu - used for styling so shortcuts work
+  if (process.platform === 'darwin') {
+    menuBar.push({
+      label: 'File',
+      submenu: [
+        { role: 'about' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide' },
+        { role: 'quit' },
       ],
-    },
-  ];
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+    });
+  }
+  menuBar.push({
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'delete' },
+      { role: 'selectall' },
+    ],
+  });
+  menuBar.push({
+    label: 'View',
+    submenu: [
+      { role: 'reload' },
+      { role: 'togglefullscreen' },
+      { role: 'toggledevtools' },
+    ],
+  });
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuBar));
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
@@ -196,3 +201,45 @@ async function getTags(): Promise<ITag[]> {
   // Todo: cache tags from frontend in case the window is closed
   return [];
 }
+function createPreviewWindow() {
+  const primDisplay = screen.getPrimaryDisplay();
+  previewWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true,
+    },
+    minWidth: 224,
+    minHeight: 224,
+    height: primDisplay.size.height * 2 / 3, // preview window is is sized relative to screen resolution by default
+    width: primDisplay.size.width * 2 / 3,
+    icon: `${__dirname}/${AppIcon}`,
+    // Should be same as body background: Only for split second before css is loaded
+    backgroundColor: '#181818',
+    title: 'Allusion Quick View',
+  });
+  previewWindow.setMenuBarVisibility(false);
+  previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
+  previewWindow.on('closed', () => {
+    previewWindow = null;
+    if (mainWindow) {
+      mainWindow.webContents.send('closedPreviewWindow');
+    }
+  });
+  return previewWindow;
+}
+
+ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
+  // Create preview window if needed, and send the files selected in the primary window
+  if (!previewWindow) {
+    previewWindow = createPreviewWindow();
+    ipcMain.once('initialized', () => {
+      if (previewWindow) {
+        previewWindow.webContents.send('receivePreviewFiles', fileIds);
+      }
+    });
+  } else {
+    previewWindow.webContents.send('receivePreviewFiles', fileIds);
+  }
+});
+
+// In this file you can include the rest of your app's specific main process
+// code. You can also put them in separate files and require them here.

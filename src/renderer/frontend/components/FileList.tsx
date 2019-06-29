@@ -89,7 +89,7 @@ class FileListWithHotkeys extends React.PureComponent<IFileListProps & IRootStor
   }
 }
 
-const HotkeysWrapper = observer((props: IFileListProps & IRootStoreProp) => {
+const HotkeysWrapper = observer((props: IFileListProps) => {
   const rootStore = React.useContext(StoreContext);
   return <FileListWithHotkeys {...props} rootStore={rootStore} />;
 });

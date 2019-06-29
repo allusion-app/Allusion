@@ -49,6 +49,12 @@ export default class Backend {
     return this.fileRepository.getAll({ order, descending });
   }
 
+  async fetchFilesByID(ids: ID[]): Promise<IFile[]> {
+    console.log('Backend: Fetching files by ID...');
+    const files = await Promise.all(ids.map((id) => this.fileRepository.get(id)));
+    return files.filter((f) => f !== undefined) as IFile[];
+  }
+
   async searchFiles(tags: ID[], order: keyof IFile, descending: boolean): Promise<IFile[]> {
     console.log('Backend: Searching files...', tags);
     return this.fileRepository.find({ queryField: 'tags', query: tags, order, descending });

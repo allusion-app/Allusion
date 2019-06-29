@@ -27,7 +27,7 @@ class ClipServer {
    */
   private static async createDownloadPath(directory: string, filename: string, noIncrement?: boolean) {
     // Sanitize (filter out weird symbols, emojis, etc.)
-    const sanitzedFilename = filename.replace(/[^a-zA-Z0-9-_\.]/g, '_');
+    const sanitzedFilename = filename.replace(/[^a-zA-Z0-9-_\.\(\)\- ]/g, '_');
     let filePath = path.join(directory, sanitzedFilename);
 
     const dotIndex = sanitzedFilename.lastIndexOf('.');
@@ -46,8 +46,12 @@ class ClipServer {
     }
 
     // This will return the newest file with the same filename, by not incrementing after the last exiting file
-    if (noIncrement && count > 0) {
-      filePath = addCountToFilename(count - 1);
+    if (noIncrement) {
+      if (count === 1) {
+        filePath = path.join(directory, sanitzedFilename);
+      } else {
+        filePath = addCountToFilename(count - 1);
+      }
     }
 
     return filePath;
