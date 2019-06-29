@@ -8,8 +8,6 @@ import { ITag } from '../renderer/entities/Tag';
 let mainWindow: BrowserWindow | null;
 let tray: Tray | null;
 
-let runInBackground = true;
-
 let clipServer: ClipServer | null;
 
 function createWindow() {
@@ -23,10 +21,6 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
     },
-    // height,
-    // width,
-
-    // fullscreen: true,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
@@ -118,7 +112,7 @@ app.on('ready', createWindow);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  if (!runInBackground) {
+  if (!(clipServer && clipServer.isRunInBackgroundEnabled())) {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -168,10 +162,12 @@ ipcMain.on('getDownloadPath', (event: IpcMessageEvent) => {
 });
 
 ipcMain.on('setRunningInBackground', (event: IpcMessageEvent, isEnabled: boolean) => {
-  runInBackground = isEnabled;
+  if (clipServer) {
+    clipServer.setRunInBackground(isEnabled);
+  }
 });
 ipcMain.on('isRunningInBackground', (event: IpcMessageEvent) => {
-  event.returnValue = runInBackground;
+  event.returnValue = clipServer && clipServer.isRunInBackgroundEnabled();
 });
 
 async function importExternalImage(item: IImportItem) {

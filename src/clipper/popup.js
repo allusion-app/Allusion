@@ -15,7 +15,7 @@ tagForm.onsubmit = async function(e) {
   submissionStatus.innerText = 'Loading...';
   chrome.runtime.sendMessage({ type: 'setTags', tagNames }, (success) => {
     // Confirm success to user
-    submissionStatus.innerText = 'Saved!';
+    submissionStatus.innerText = success ? 'Saved!' : 'Something went wrong...';
   });
 }
 

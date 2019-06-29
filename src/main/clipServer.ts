@@ -20,9 +20,43 @@ export interface IImportItem {
 
 /** A class that hosts the clip server that browser extensions can connect to */
 class ClipServer {
+
+  /**
+   * Sanitizes filename: Some symbols from URLs might not be supported on the filesystem (depends on OS)
+   * Check not to overwrite existing files - downloaded images can often have the same name (image.jpg, download.jpg)
+   */
+  private static async createDownloadPath(directory: string, filename: string, noIncrement?: boolean) {
+    // Sanitize (filter out weird symbols, emojis, etc.)
+    const sanitzedFilename = filename.replace(/[^a-zA-Z0-9-_\.]/g, '_');
+    let filePath = path.join(directory, sanitzedFilename);
+
+    const dotIndex = sanitzedFilename.lastIndexOf('.');
+    const baseFilename = sanitzedFilename.substr(0, dotIndex);
+    const ext = sanitzedFilename.substr(dotIndex + 1);
+
+    function addCountToFilename(num: number) {
+      return path.join(directory, `${baseFilename} ${num}.${ext}`);
+    }
+
+    // Check if already exists
+    let count = 0;
+    while (await fse.pathExists(filePath)) {
+      count++;
+      filePath = addCountToFilename(count);
+    }
+
+    // This will return the newest file with the same filename, by not incrementing after the last exiting file
+    if (noIncrement && count > 0) {
+      filePath = addCountToFilename(count - 1);
+    }
+
+    return filePath;
+  }
+
   private preferences = {
     isEnabled: false,
     downloadPath: path.join(os.homedir(), 'Allusion'),
+    runInBackground: false,
   };
 
   private server: Server | null = null;
@@ -75,6 +109,15 @@ class ClipServer {
     this.savePreferences();
   }
 
+  setRunInBackground(isEnabled: boolean) {
+    this.preferences.runInBackground = isEnabled;
+    this.savePreferences();
+  }
+
+  isRunInBackgroundEnabled() {
+    return this.preferences.runInBackground;
+  }
+
   async getImportQueue(): Promise<IImportItem[]> {
     if (!(await fse.pathExists(importQueueFilePath))) {
       return [];
@@ -99,12 +142,10 @@ class ClipServer {
           try {
             // Check what kind of message has been sent
             if (req.url && req.url.endsWith('import-image')) {
-              const { filename, url, imgBase64 } = JSON.parse(body);
-              console.log('Received file', url);
+              const { filename, imgBase64 } = JSON.parse(body);
+              console.log('Received file', filename);
 
-              // Todo: Check not to overwrite existing files - downloaded images can often have the same name (image.jpg, download.jpg, etc.)
-              // Todo: sanitize filename: Some symbols from URLs might not be supported on the filesystem (depends on OS)
-              const downloadPath = path.join(this.preferences.downloadPath, filename);
+              const downloadPath = await ClipServer.createDownloadPath(this.preferences.downloadPath, filename);
 
               await this.downloadImage(downloadPath, imgBase64);
 
@@ -123,8 +164,7 @@ class ClipServer {
             } else if (req.url && req.url.endsWith('/set-tags')) {
               const { tagNames, filename } = JSON.parse(body);
 
-              // Todo: idem
-              const downloadPath = path.join(this.preferences.downloadPath, filename);
+              const downloadPath = await ClipServer.createDownloadPath(this.preferences.downloadPath, filename, true);
 
               const item: IImportItem = {
                 filePath: downloadPath,
@@ -173,6 +213,16 @@ class ClipServer {
     }
     await fse.writeFile(importQueueFilePath, lines.join('\n'));
   }
+
+  // private async getLastQueueItem(): Promise<IImportItem | undefined> {
+  //   const fileContent = await fse.readFile(importQueueFilePath, 'utf8');
+  //   const lines = fileContent.split('\n');
+  //   if (lines.length > 1) {
+  //     return JSON.parse(lines[lines.length - 1]);
+  //   } else {
+  //     return undefined;
+  //   }
+  // }
 
   private async downloadImage(downloadPath: string, imgBase64: string) {
     const rawData = imgBase64.substr(imgBase64.indexOf(',') + 1); // remove base64 header

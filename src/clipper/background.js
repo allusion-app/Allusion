@@ -1,6 +1,7 @@
 const apiUrl = 'http://localhost:5454';
 
 let lastSubmittedItem = undefined;
+let tabTitle = undefined;
 
 ///////////////////////////////////
 // Communication to Allusion app //
@@ -11,12 +12,14 @@ async function importImage(filename, url) {
   
   // Note: Google extensions don't work with promises, so we'll have to put up with callbacks here and there
   // Todo: url might already be base64
-  const imgData = await imageAsBase64(url);
+  const { base64, blob } = await imageAsBase64(url);
+  const extension = blob.type.split('/')[1];
+  const filenameWithExtension = `${filename}.${extension}`;
 
   const item = {
-    filename,
+    filename: filenameWithExtension,
     url,
-    imgBase64: imgData,
+    imgBase64: base64,
     tagNames: [],
   };
 
@@ -38,8 +41,6 @@ async function importImage(filename, url) {
       title: 'Allusion Clipper',
       message: 'Image imported successfully!'
     });
-
-    // Todo: Show popup to add tags
   } catch (e) {
     console.error(e);
 
@@ -60,9 +61,9 @@ function imageAsBase64(url) {
     const reader = new FileReader;
   
     reader.onerror = reject;
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => resolve({ base64: reader.result, blob });
     reader.readAsDataURL(blob);
-  })
+  });
 }
 
 async function fetchTags() {
@@ -115,16 +116,29 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
-chrome.contextMenus.onClicked.addListener((props, tab) => {
+chrome.contextMenus.onClicked.addListener(async (props, tab) => {
   const srcUrl = props.srcUrl;
 
-  // Todo: doesn't work if no filename specified, will result in whole url
-  const filename = srcUrl.split('/').pop().split('#')[0].split('?')[0];
+  // Get the filename from the url
+  let filename = srcUrl.split('/').pop().split('#')[0].split('?')[0];
+
+  // If the url is purely data or there is no extension, use a fallback (tab title)
+  if (srcUrl.startsWith('data:image/') || filename.indexOf('.') === -1) {
+    filename =  await getCurrentTabName();
+  } else {
+    filename = filename.substr(0, filename.indexOf('.')); // strip extension
+  }
 
   importImage(filename, srcUrl);
 
   // Otherwise: https://stackoverflow.com/questions/7703697/how-to-retrieve-the-element-where-a-contextmenu-has-been-executed
 });
+
+async function getCurrentTabName() {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.getSelected(null, (tab) => tab ? resolve(tab.title) : reject());
+  });
+}
 
 // chrome.notifications.onButtonClicked((id, buttonIndex) => {
 //   // Todo: retry importing image
