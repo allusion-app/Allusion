@@ -16,7 +16,8 @@ import App from './frontend/App';
 import StoreContext from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
 import { DragDropContextProvider } from 'react-dnd';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, IpcMessageEvent } from 'electron';
+import { IImportItem } from '../main/clipServer';
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
@@ -26,6 +27,7 @@ backend
   .then(async () => {
     console.log('Backend has been initialized!');
     await rootStore.init();
+    ipcRenderer.send('initialized');
   })
   .catch((err) => console.log('Could not initialize backend!', err));
 
@@ -40,6 +42,7 @@ ReactDOM.render(
   document.getElementById('app'),
 );
 
-ipcRenderer.on('importExternalImage', (e: any, path: string, tags?: string[]) => {
-  rootStore.fileStore.addFile(path);
+ipcRenderer.on('importExternalImage', (e: IpcMessageEvent, item: IImportItem) => {
+  console.log('Importing image...', item);
+  rootStore.fileStore.addFile(item.filePath);
 });

@@ -1,19 +1,18 @@
-import { app, BrowserWindow, Menu, Tray } from 'electron';
-import SysPath from 'path';
-import fse from 'fs-extra';
-import os from 'os';
+import { app, BrowserWindow, Menu, Tray, ipcMain, IpcMessageEvent } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
-import { setupServer } from './clipServer';
+import ClipServer, { IImportItem } from './clipServer';
 
 let mainWindow: BrowserWindow | null;
 let tray: Tray | null;
 
 let runInBackground = true;
 
+let clipServer: ClipServer | null;
+
 function createWindow() {
-  const { width, height } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  // const { width, height } = require('electron').screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   mainWindow = new BrowserWindow({
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
@@ -23,8 +22,8 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
     },
-    height,
-    width,
+    // height,
+    // width,
 
     // fullscreen: true,
     icon: `${__dirname}/${AppIcon}`,
@@ -97,6 +96,18 @@ function createWindow() {
     tray.setToolTip('Allusion - Your Visual Library');
     tray.on('click', () => mainWindow ? mainWindow.focus() : createWindow());
   }
+
+  if (!clipServer) {
+    clipServer = new ClipServer(importExternalImage, getTags);
+  }
+  // Import images that were added while the window was closed
+  ipcMain.once('initialized', async () => {
+    if (clipServer) {
+      const importItems = await clipServer.getImportQueue();
+      await Promise.all(importItems.map(importExternalImage));
+      clipServer.clearImportQueue();
+    }
+  });
 }
 
 // This method will be called when Electron has finished
@@ -123,36 +134,61 @@ app.on('activate', () => {
   }
 });
 
-async function importExternalImage(filename: string, tags: string[], imgBase64: string) {
-  const downloadDir = SysPath.join(os.homedir(), 'Allusion'); // todo: configurable by user
-  const downloadPath = SysPath.join(downloadDir, filename); // todo: sanitize filename
-
-  console.log('writing to', downloadPath);
-
-  // Todo: Check not to overwrite existing files
-  try {
-    const rawData = imgBase64.substr(imgBase64.indexOf(',') + 1); // remove base64 header
-    await fse.mkdirs(downloadDir);
-    await fse.writeFile(downloadPath, rawData, 'base64');
-
-    if (mainWindow) {
-      mainWindow.webContents.send('importExternalImage', downloadPath);
-    }
-
-  } catch (e) {
-    console.error(e);
+// Messaging ///////////////////////////////
+////////////////////////////////////////////
+ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
+  console.log(path);
+  if (clipServer) {
+    clipServer.setDownloadPath(path);
   }
+});
 
-  console.log('done');
+ipcMain.on('setClipServerEnabled', (event: IpcMessageEvent, isEnabled: boolean) => {
+  if (clipServer) {
+    clipServer.setEnabled(isEnabled);
+  }
+});
+ipcMain.on('isClipServerRunning', (event: IpcMessageEvent) => {
+  if (clipServer) {
+    event.returnValue = clipServer.isEnabled();
+  } else {
+    event.returnValue = false;
+  }
+});
 
-  // Todo: notify renderer
-  // Some foundation for communication was already made in the preview-window branch
+ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
+  if (clipServer) {
+    clipServer.setDownloadPath(path);
+  }
+});
+ipcMain.on('getDownloadPath', (event: IpcMessageEvent) => {
+  if (clipServer) {
+    event.returnValue = clipServer.getDownloadPath();
+  }
+});
+
+ipcMain.on('setRunningInBackground', (event: IpcMessageEvent, isEnabled: boolean) => {
+  runInBackground = isEnabled;
+});
+ipcMain.on('isRunningInBackground', (event: IpcMessageEvent) => {
+  event.returnValue = runInBackground;
+});
+
+async function importExternalImage(item: IImportItem) {
+  if (mainWindow) {
+    mainWindow.webContents.send('importExternalImage', item);
+    return true;
+  }
+  return false;
 }
 
-async function getTags() {
-  // Todo: fetch tags from frontend
-  return ['banana', 'apple'];
+async function getTags(): Promise<string[]> {
+  // Todo: cache tags from frontend in case the window is closed
+  if (mainWindow) {
+    mainWindow.webContents.send('getTags');
+    return new Promise((resolve) => {
+      ipcMain.once('receiveTags', (tags: string[]) => resolve(tags));
+    });
+  }
+  return [];
 }
-
-// Todo: Only launch server when user agrees. Else it will show a popup on startup requesting network access
-setupServer(importExternalImage, getTags);

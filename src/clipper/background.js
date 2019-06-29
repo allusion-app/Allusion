@@ -7,7 +7,8 @@ async function importImage(filename, url) {
   // We could just send the URL, but in some cases you need permission to view an image (e.g. pixiv)
   // Therefore we send it base64 encoded
   
-  // Note: Google extensions don't work with promises, so we'll have to put up with callbacks
+  // Note: Google extensions don't work with promises, so we'll have to put up with callbacks here and there
+  // Todo: url might already be base64
   const imgData = await imageAsBase64(url);
   
   try {
