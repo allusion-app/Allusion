@@ -53,7 +53,7 @@ const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFil
         canOutsideClickCancel
         className={Classes.DARK}
       >
-        <div className="popoverContent bp3-dark" id="deleteFile">
+        <div className="bp3-dark" id="deleteFile"> {/*popoverContent*/}
           <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
           <p>
             Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?

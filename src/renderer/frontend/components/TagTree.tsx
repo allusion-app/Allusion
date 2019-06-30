@@ -392,7 +392,7 @@ const TagList = ({
           data-right={addTagTT}
         />
         <Button
-          minimal icon={IconSet.COLLECTION_ADD}
+          minimal icon={IconSet.TAG_ADD_COLLECTION}
           onClick={handleAddRootCollection}
           className="tooltip"
           data-right={addTagColCTT}

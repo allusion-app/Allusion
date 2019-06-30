@@ -202,7 +202,17 @@ const ListGallery = observer(
 });
 
 const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
-  return <p>This view is currently not supported :(</p>;
+  const Styles: any = {
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '65%',
+  };
+
+  return <div style={Styles}> <span className="custom-icon-64" style={{marginBottom: '1rem'}}>{IconSet.DB_ERROR}</span><p>This view is currently not supported</p></div>; {/* // tslint:disable-next-line */}
 });
 
 const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {

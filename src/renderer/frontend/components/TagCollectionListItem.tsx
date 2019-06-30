@@ -199,14 +199,14 @@ const TagCollectionListItemContextMenu = ({
   return (
     <Menu>
       <MenuItem onClick={onNewTag} text="New tag" icon={IconSet.TAG_ADD} />
-      <MenuItem onClick={onNewCollection} text="New collection" icon={IconSet.COLLECTION_ADD} />
+      <MenuItem onClick={onNewCollection} text="New collection" icon={IconSet.TAG_ADD_COLLECTION} />
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
       <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} disabled={!onRemove} />
       <Divider />
-      <MenuItem onClick={onExpandAll} text="Expand" icon={IconSet.ARROW_EXPAND} />
-      <MenuItem onClick={onCollapseAll} text="Collapse" icon={IconSet.ARROW_COLLAPS} />
-      <MenuItem onClick={onMoveUp} text="Move up" icon={IconSet.MOVE_UP} />
-      <MenuItem onClick={onMoveDown} text="Move down" icon={IconSet.MOVE_DOWN} />
+      <MenuItem onClick={onExpandAll} text="Expand" icon={IconSet.ITEM_EXPAND} />
+      <MenuItem onClick={onCollapseAll} text="Collapse" icon={IconSet.ITEM_COLLAPS} />
+      <MenuItem onClick={onMoveUp} text="Move up" icon={IconSet.ITEM_MOVE_UP} />
+      <MenuItem onClick={onMoveDown} text="Move down" icon={IconSet.ITEM_MOVE_DOWN} />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
       <MenuItem onClick={onReplaceQuery} text="Replace search query" icon={IconSet.REPLACE} />
