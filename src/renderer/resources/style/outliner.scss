@@ -1,7 +1,7 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 nav {
   grid-area: outliner;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
   flex-shrink: 0;
   width: 0;
