@@ -52,7 +52,8 @@
   background: $blue1;
 }
 .bp3-tag-input .bp3-button {
-  padding: 0;
+  padding: 0 !important;
+  border-bottom: 2px solid rgba(0, 0, 0, 0);
 }
 
 .bp3-tag-input-values ::placeholder,
@@ -146,7 +147,11 @@ form .bp3-icon {
   // box-shadow: none;
   box-shadow: 0 0 0 1.5px $blue1;
   background-color: #13131357;
+  .bp3-icon {
+    color: $light-gray3;
+  }
 }
+
 
 // Labels
 .bp3-dark label.bp3-label {
