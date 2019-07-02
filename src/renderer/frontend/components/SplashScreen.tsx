@@ -6,7 +6,7 @@ import PreloadIcon from '../../resources/icons/preload.svg';
 const SplashScreen = () => (
   // Using inline style since css file might not have been loaded
   <div
-    style={{ position: 'fixed', top: '25%', width: '100%', textAlign: 'center', color: '#f5f8fa' }}
+    style={{ position: 'relative', top: '25%', margin: '0 auto', width: '200p', textAlign: 'center', color: '#f5f8fa' }}
   >
     <svg style={{ width: 0 }}>
       <defs>
@@ -26,7 +26,7 @@ const SplashScreen = () => (
 
     <SVG src={PreloadIcon} style={{ fill: 'url(#yellow-blue)', width: '48px', height: '48px' }}/>
 
-    <p style={{ margin: '0', fontSize: '18px', webkitFontSmoothing: 'antialiased', fontWeight: 700, fontFamily: '-apple-system, \"BlinkMacSystemFont\", \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Open Sans\", \"Helvetica Neue\", \"Icons16\", sans-serif' }} className="preloader">Allusion</p>
+    <p style={{ margin: '0', fontSize: '18px', fontWeight: 700, fontFamily: '-apple-system, \"BlinkMacSystemFont\", \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Open Sans\", \"Helvetica Neue\", \"Icons16\", sans-serif' }} className="preloader">Allusion</p> {/* // tslint:disable-next-line */}
   </div>
 );
 
