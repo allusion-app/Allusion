@@ -23,6 +23,7 @@ body {
   --inspector-width: 24em;
   --toolbar-height: 2.4rem;
   --content-area-height: calc(100vh - var(--toolbar-height));
+  --thumbnail-size: 250px;
   height: 100%;
 }
 

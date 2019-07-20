@@ -22,12 +22,22 @@
   height: 100%;
 }
 
+.thumbnail-small {
+  --thumbnail-size: 150px;
+}
+.thumbnail-medium {
+  --thumbnail-size: 250px;
+}
+.thumbnail-large {
+  --thumbnail-size: 350px;
+}
+
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
   // This is to demanding on processor
   // transition: all 0.1s ease-in-out;
-  width: $thumbnail-size;
-  height: $thumbnail-size;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
   display: inline-flex;
   position: relative;
   overflow: hidden;
@@ -41,8 +51,8 @@
   .img-wrapper {
     grid-area: image;
 
-    width: $thumbnail-size;
-    height: $thumbnail-size;
+    width: var(--thumbnail-size);
+    height: var(--thumbnail-size);
 
     .bp3-skeleton {
       width: 100%;
@@ -52,8 +62,8 @@
     img {
       // This is to demanding on processor
       // transition: all 0.1s ease-in-out;
-      width: $thumbnail-size;
-      height: $thumbnail-size;
+      width: var(--thumbnail-size);
+      height: var(--thumbnail-size);
       object-fit: cover;
       cursor: pointer;
       margin-left: auto;
@@ -184,14 +194,14 @@
 }
 
 .grid .thumbnail {
-  width: $thumbnail-size;
-  height: $thumbnail-size;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
   &.selected {
     background: $blue1;
   }
   img {
-    width: $thumbnail-size;
-    height: $thumbnail-size;
+    width: var(--thumbnail-size);
+    height: var(--thumbnail-size);
     position: absolute;
     left: 0rem;
     top: 0rem;

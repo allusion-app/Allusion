@@ -118,6 +118,7 @@ class UiStore {
   @observable firstIndexInView: number = 0;
   /** The origin of the current files that are shown */
   @observable viewContent: 'query' | 'all' | 'untagged' = 'all';
+  @observable thumbnailSize: 'small' | 'medium' | 'large' = 'medium';
 
   // Content
   @observable fileOrder: keyof IFile = 'dateAdded';
