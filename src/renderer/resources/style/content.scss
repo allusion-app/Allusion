@@ -189,7 +189,7 @@
     margin-bottom: 0;
   }
 }
-.list div div > div:nth-child(2n + 0) {
+.list div div > .list-item-even {
   background-color: rgba(102, 102, 102, 0.1);
 }
 

@@ -177,7 +177,7 @@ const ListGallery = observer(
         return <div />;
       }
       return (
-        <div style={style}>
+        <div style={style} className={index % 2 ? 'list-item-even' : ''}>
           <Observer>
             {() => (
               <GalleryItem
