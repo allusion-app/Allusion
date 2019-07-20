@@ -2,7 +2,7 @@ import { DbFile, IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
-import DBRepository, { dbInit } from './DBRepository';
+import DBRepository, { dbInit, dbDelete } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 
 /**
@@ -47,6 +47,12 @@ export default class Backend {
   async fetchFiles(order: keyof IFile, descending: boolean): Promise<IFile[]> {
     console.log('Backend: Fetching files...');
     return this.fileRepository.getAll({ order, descending });
+  }
+
+  async fetchFilesByID(ids: ID[]): Promise<IFile[]> {
+    console.log('Backend: Fetching files by ID...');
+    const files = await Promise.all(ids.map((id) => this.fileRepository.get(id)));
+    return files.filter((f) => f !== undefined) as IFile[];
   }
 
   async searchFiles(tags: ID[], order: keyof IFile, descending: boolean): Promise<IFile[]> {
@@ -123,6 +129,12 @@ export default class Backend {
   }
 
   async getNumUntaggedFiles() {
+    console.log('Get number of untagged files...');
     return this.fileRepository.count({ queryField: 'tags', query: [] });
+  }
+
+  async clearDatabase() {
+    console.log('Clearing database...');
+    return dbDelete(DB_NAME);
   }
 }

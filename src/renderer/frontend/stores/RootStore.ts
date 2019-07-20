@@ -3,6 +3,7 @@ import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from './UiStore';
 import TagCollectionStore from './TagCollectionStore';
+import { ipcRenderer } from 'electron';
 
 // import { configure } from 'mobx';
 
@@ -35,16 +36,24 @@ class RootStore {
     this.tagCollectionStore = new TagCollectionStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.uiStore = new UiStore(this);
+
+    this.clearDatabase = this.clearDatabase.bind(this);
   }
 
-  async init() {
+  async init(autoLoadFiles: boolean) {
     await Promise.all([
       this.tagStore.init(),
       this.tagCollectionStore.init(),
-      this.fileStore.init(),
+      this.fileStore.init(autoLoadFiles),
     ]);
 
     this.uiStore.isInitialized = true;
+    ipcRenderer.send('initialized');
+  }
+
+  async clearDatabase() {
+    await this.backend.clearDatabase();
+    this.uiStore.reload();
   }
 }
 

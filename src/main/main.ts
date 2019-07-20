@@ -1,14 +1,17 @@
-import { app, BrowserWindow, Menu } from 'electron';
-import SysPath from 'path';
-import fse from 'fs-extra';
+import { app, BrowserWindow, Menu, Tray, ipcMain, IpcMessageEvent, screen } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
-import { setupServer } from './clipServer';
+import ClipServer, { IImportItem } from './clipServer';
+import { ITag } from '../renderer/entities/Tag';
 
 let mainWindow: BrowserWindow | null;
+let previewWindow: BrowserWindow | null;
+let tray: Tray | null;
+let clipServer: ClipServer | null;
 
 function createWindow() {
+  // const { width, height } = require('electron').screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   mainWindow = new BrowserWindow({
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
@@ -18,54 +21,57 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
     },
-    minWidth: 275,
-    minHeight: 275,
-    height: 640,
-    width: 960,
-    // fullscreen: true,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
+    title: 'Allusion - Your Visual Library',
   });
 
   // Create our menu entries so that we can use MAC shortcuts
-  const template = [
-    // Mac App menu - used for styling so shortcuts work
-    ...(process.platform === 'darwin' ? [
-      {
-        label: 'File', submenu: [
-          { role: 'about' },
-          { role: 'hide' },
-          { role: 'hideothers' },
-          { role: 'unhide' },
-          { role: 'quit' },
-        ],
-      }] : []),
-      {
-        label: 'Edit', submenu: [
-          { role: 'undo' },
-          { role: 'redo' },
-          { role: 'cut' },
-          { role: 'copy' },
-          { role: 'paste' },
-          { role: 'delete' },
-          { role: 'selectall' },
-        ],
-      },
-      {
-        label: 'View', submenu: [
-          { role: 'reload' },
-          { role: 'toggleFullScreen' },
-          { role: 'toggleDevTools' },
+  const menuBar: Electron.MenuItemConstructorOptions[] = [];
+
+  // Mac App menu - used for styling so shortcuts work
+  if (process.platform === 'darwin') {
+    menuBar.push({
+      label: 'File',
+      submenu: [
+        { role: 'about' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide' },
+        { role: 'quit' },
       ],
-    },
-  ];
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+    });
+  }
+  menuBar.push({
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'delete' },
+      { role: 'selectall' },
+    ],
+  });
+  menuBar.push({
+    label: 'View',
+    submenu: [
+      { role: 'reload' },
+      { role: 'togglefullscreen' },
+      { role: 'toggledevtools' },
+    ],
+  });
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuBar));
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
-  // Open the DevTools.
+  // then maximize the window
+  mainWindow.maximize();
+
+  // Open the DevTools if in dev mode.
   if (isDev()) {
     mainWindow.webContents.openDevTools();
   }
@@ -77,6 +83,31 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  // System tray icon: For when the app can run in the background
+  // Useful for browser extension, so it will work even when the window is closed
+  if (!tray) {
+    tray = new Tray(`${__dirname}/${AppIcon}`);
+    const trayMenu = Menu.buildFromTemplate([
+      { label: 'Open', type: 'normal', click: () => mainWindow ? mainWindow.focus() : createWindow() },
+      { label: 'Exit', type: 'normal', click: app.quit },
+    ]);
+    tray.setContextMenu(trayMenu);
+    tray.setToolTip('Allusion - Your Visual Library');
+    tray.on('click', () => mainWindow ? mainWindow.focus() : createWindow());
+  }
+
+  if (!clipServer) {
+    clipServer = new ClipServer(importExternalImage, addTagsToFile, getTags);
+  }
+  // Import images that were added while the window was closed
+  ipcMain.once('initialized', async () => {
+    if (clipServer) {
+      const importItems = await clipServer.getImportQueue();
+      await Promise.all(importItems.map(importExternalImage));
+      clipServer.clearImportQueue();
+    }
+  });
 }
 
 // This method will be called when Electron has finished
@@ -86,10 +117,12 @@ app.on('ready', createWindow);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit();
+  if (!(clipServer && clipServer.isRunInBackgroundEnabled())) {
+    // On OS X it is common for applications and their menu bar
+    // to stay active until the user quits explicitly with Cmd + Q
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
   }
 });
 
@@ -101,30 +134,112 @@ app.on('activate', () => {
   }
 });
 
+// Messaging ///////////////////////////////
+////////////////////////////////////////////
+ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
+  if (clipServer) {
+    clipServer.setDownloadPath(path);
+  }
+});
+
+ipcMain.on('setClipServerEnabled', (event: IpcMessageEvent, isEnabled: boolean) => {
+  if (clipServer) {
+    clipServer.setEnabled(isEnabled);
+  }
+});
+ipcMain.on('isClipServerRunning', (event: IpcMessageEvent) => {
+  if (clipServer) {
+    event.returnValue = clipServer.isEnabled();
+  } else {
+    event.returnValue = false;
+  }
+});
+
+ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
+  if (clipServer) {
+    clipServer.setDownloadPath(path);
+  }
+});
+ipcMain.on('getDownloadPath', (event: IpcMessageEvent) => {
+  if (clipServer) {
+    event.returnValue = clipServer.getDownloadPath();
+  }
+});
+
+ipcMain.on('setRunningInBackground', (event: IpcMessageEvent, isEnabled: boolean) => {
+  if (clipServer) {
+    clipServer.setRunInBackground(isEnabled);
+  }
+});
+ipcMain.on('isRunningInBackground', (event: IpcMessageEvent) => {
+  event.returnValue = clipServer && clipServer.isRunInBackgroundEnabled();
+});
+
+async function importExternalImage(item: IImportItem) {
+  if (mainWindow) {
+    mainWindow.webContents.send('importExternalImage', item);
+    return true;
+  }
+  return false;
+}
+
+async function addTagsToFile(item: IImportItem) {
+  if (mainWindow) {
+    mainWindow.webContents.send('addTagsToFile', item);
+    return true;
+  }
+  return false;
+}
+
+async function getTags(): Promise<ITag[]> {
+  if (mainWindow) {
+    mainWindow.webContents.send('getTags');
+    return new Promise((resolve) => {
+      ipcMain.once('receiveTags', (tags: ITag[]) => resolve(tags));
+    });
+  }
+  // Todo: cache tags from frontend in case the window is closed
+  return [];
+}
+function createPreviewWindow() {
+  const primDisplay = screen.getPrimaryDisplay();
+  previewWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true,
+    },
+    minWidth: 224,
+    minHeight: 224,
+    height: primDisplay.size.height * 2 / 3, // preview window is is sized relative to screen resolution by default
+    width: primDisplay.size.width * 2 / 3,
+    icon: `${__dirname}/${AppIcon}`,
+    // Should be same as body background: Only for split second before css is loaded
+    backgroundColor: '#181818',
+    title: 'Allusion Quick View',
+  });
+  previewWindow.setMenuBarVisibility(false);
+  previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
+  previewWindow.on('closed', () => {
+    previewWindow = null;
+    if (mainWindow) {
+      mainWindow.webContents.send('closedPreviewWindow');
+    }
+  });
+  return previewWindow;
+}
+
+ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
+  // Create preview window if needed, and send the files selected in the primary window
+  if (!previewWindow) {
+    previewWindow = createPreviewWindow();
+    ipcMain.once('initialized', () => {
+      if (previewWindow) {
+        previewWindow.webContents.send('receivePreviewFiles', fileIds);
+      }
+    });
+  } else {
+    previewWindow.webContents.send('receivePreviewFiles', fileIds);
+  }
+});
+
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
-
-// Todo: Only launch when user presses a button. Else it will show a popup on startup
-setupServer(
-  async (filename: string, tags: string[], imgBase64: string) => {
-    const downloadDir = SysPath.join(__dirname, '..', 'download');
-    const downloadPath = SysPath.join(downloadDir, filename); // todo: sanitize filename
-
-    console.log('writing to', downloadPath);
-
-    // Todo: Check not to overwrite existing files
-    try {
-      const rawData = imgBase64.substr(imgBase64.indexOf(',') + 1); // remove base64 header
-      await fse.mkdirs(downloadDir);
-      await fse.writeFile(downloadPath, rawData, 'base64');
-    } catch (e) {
-      console.error(e);
-    }
-
-    console.log('done');
-
-    // Todo: notify renderer
-    // Some foundation for communication was already made in the preview-window branch
-  },
-  async () => ['banana', 'apple'],
-);

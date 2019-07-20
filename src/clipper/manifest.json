@@ -3,6 +3,20 @@
     "persistent": false,
     "scripts": ["background.js"]
   },
+  
+  "browser_action": {
+    "default_title": "Allusion",
+    "default_popup": "popup.html"
+  },
+
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+A",
+        "mac": "Command+Shift+A"
+      }
+    }
+  },
 
   "manifest_version": 2,
   "name": "Allusion Clipper",
@@ -13,8 +27,11 @@
     "32": "favicon_32x32.png"
   },
 
+
   "permissions": [
     "contextMenus",
+    "notifications",
+    "tabs",
     "http://localhost:5454/*",
     "<all_urls>"
   ]

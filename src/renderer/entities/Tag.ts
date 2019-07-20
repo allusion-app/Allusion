@@ -52,6 +52,10 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
     return parent || tagCollectionStore.getRootCollection();
   }
 
+  @computed get isSelected(): boolean {
+    return this.store.rootStore.uiStore.tagSelection.includes(this.id);
+  }
+
   constructor(store: TagStore, name?: string, id = generateId()) {
     this.store = store;
     this.id = id;

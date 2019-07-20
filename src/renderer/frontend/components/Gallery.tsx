@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup, IconName, MaybeElement,
+  ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup,
 } from '@blueprintjs/core';
 import {
   FixedSizeGrid, GridItemKeySelector, FixedSizeList, ListItemKeySelector,
@@ -13,7 +13,6 @@ import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
 import UiStore, { ViewMethod } from '../stores/UiStore';
 import { ClientFile } from '../../entities/File';
-import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import { throttle } from '../utils';
 
@@ -296,7 +295,15 @@ const Gallery = ({
   const handleBackgroundClick = useCallback(() => uiStore.fileSelection.clear(), []);
 
   const handleDrop = useCallback(
-    (item: any, file: ClientFile) => (item instanceof ClientTag) && file.addTag(item.id), []);
+    (item: any, file: ClientFile) => {
+      // Add all tags in the context to the targeted file
+      const ctx = uiStore.getTagContextItems(item.id);
+      const allContextTags = [
+        ...ctx.tags.map((t) => t.id),
+        ...ctx.collections.flatMap((col) => col.getTagsRecursively()),
+      ];
+      allContextTags.forEach(file.addTag);
+    }, []);
 
   // Todo: Move selection logic to a custom hook
   const handleItemClick = useCallback(
@@ -371,27 +378,30 @@ const Gallery = ({
   // Also take into account scrolling when dragging while selecting
 
   if (fileList.length === 0) {
-    let icon: IconName | MaybeElement = 'search';
-    let title = 'No images found';
+    let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
+    let title = 'No images imported';
     let description = 'Import some images to get started!';
     let action =
       <Button onClick={uiStore.openOutlinerImport} text="Open import panel" intent="primary" icon={IconSet.ADD} />;
     if (uiStore.viewContent === 'query') {
       description = 'Try searching for something else.';
+      icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
+      title = 'No images found';
       action = (
         <ButtonGroup>
-          <Button text="View all" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
-          <Button text="View untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentUntagged} />
-          <Button text="Change query" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
+          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
+          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentAll} />
+          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
         </ButtonGroup>
       );
     } else if (uiStore.viewContent === 'untagged') {
-      icon = <span>😄</span>;
+      icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       description = 'All images have been tagged. Nice work!';
+      title = 'No untagged images';
       action = (
         <ButtonGroup>
-          <Button text="View all" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
-          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} />
+          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
+          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary"/>
         </ButtonGroup>
       );
     }
@@ -403,7 +413,7 @@ const Gallery = ({
         description={description}
         action={action}
       />
-    )
+    );
   }
 
   return (

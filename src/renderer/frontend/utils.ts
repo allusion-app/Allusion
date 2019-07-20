@@ -2,7 +2,7 @@ export function debounce<F extends (...args: any) => any>(func: F, wait: number 
   let timeoutID: number;
 
   if (!Number.isInteger(wait)) {
-    console.log(' Called debounce without a valid number' )
+    console.log(' Called debounce with an invalid number');
     wait = 300;
   }
 
@@ -30,4 +30,14 @@ export function throttle(fn: (...args: any) => any, wait: number = 300) {
           );
       }
   };
+}
+
+export function formatTagCountText(numTags: number, numCols: number) {
+  const extraTagsText = numTags
+    ? `+${numTags} tag${numTags === 1 ? '' : 's'}`
+    : '';
+  const extraColsText = numCols
+    ? `${extraTagsText && ', '}+${numCols} collection${numCols === 1 ? '' : 's'}`
+    : '';
+  return `${extraTagsText}${extraColsText}`;
 }

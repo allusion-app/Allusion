@@ -80,24 +80,6 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
         />
         <Hotkey
           global={true}
-          combo={hotkeyMap.selectAllFiles}
-          label="Select all files in the content area"
-          onKeyDown={uiStore.selectAllFiles}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.deselectAllFiles}
-          label="Deselect all files in the content area"
-          onKeyDown={uiStore.deselectAllFiles}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.deleteSelectedFiles}
-          label="Delete the selected files"
-          onKeyDown={uiStore.toggleToolbarFileRemover}
-        />
-        <Hotkey
-          global={true}
           combo={hotkeyMap.viewList}
           label="Sets view to list mode"
           onKeyDown={uiStore.viewList}
@@ -119,6 +101,13 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           combo={hotkeyMap.viewSlide}
           label="Sets view to slide mode"
           onKeyDown={uiStore.viewSlide}
+        />
+
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.openPreviewWindow}
+          label="Opens a preview window for the selected files"
+          onKeyDown={uiStore.openPreviewWindow}
         />
       </Hotkeys>
     );

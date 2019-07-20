@@ -7,7 +7,7 @@
   align-items: center;
   padding: 0 0.5rem;
   z-index: 1000;
-  border-bottom: 3px solid $dark-gray1;
+  border-bottom: 2px solid $dark-gray1;
   // Turn of event for show media items
   #media {
     pointer-events: none;
@@ -18,7 +18,7 @@
     width: 1.2rem !important;
     height: 1.2rem !important;
   }
-  
+
   .spacer {
     width: 8rem;
     background: red;
@@ -33,3 +33,10 @@
     position: absolute;
   }
 }
+
+// For frameless app
+// #preview-toolbar{
+//   margin-left: 4rem;
+//   margin-top: .25rem;
+// }
+
