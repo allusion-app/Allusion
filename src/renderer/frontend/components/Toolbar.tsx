@@ -197,7 +197,6 @@ const Toolbar = () => {
     [uiStore.viewMethod],
   );
 
-  
   const viewSmall = useCallback(() => { uiStore.thumbnailSize = 'small'; }, []);
   const viewMedium = useCallback(() => { uiStore.thumbnailSize = 'medium'; }, []);
   const viewLarge = useCallback(() => { uiStore.thumbnailSize = 'large'; }, []);
