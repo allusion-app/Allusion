@@ -4,6 +4,21 @@ import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 
 import { imgExtensions } from './ImportForm';
+import { ClientTag } from '../../entities/Tag';
+
+// Todo: Added this since sometimes getDropData doesn't work: getAsFile doesn't return a file
+// Shouldn't be necessary though...
+function hasDropData(e: React.DragEvent): boolean {
+  // tslint:disable-next-line: prefer-for-of
+  for (let i = 0; i < e.dataTransfer.items.length; i++) {
+    if (e.dataTransfer.items[i].kind === 'file') {
+      return true;
+    } else if (e.dataTransfer.items[i].kind === 'text' || e.dataTransfer.items[i].kind === 'string') {
+      return true;
+    }
+  }
+  return false;
+}
 
 function getDropData(e: React.DragEvent): Array<File | string> | null {
   const res = [];
@@ -11,6 +26,7 @@ function getDropData(e: React.DragEvent): Array<File | string> | null {
   for (let i = 0; i < e.dataTransfer.items.length; i++) {
     // If dropped items aren't files, reject them
     if (e.dataTransfer.items[i].kind === 'file') {
+      console.log(e.dataTransfer.items[i]);
       const file = e.dataTransfer.items[i].getAsFile() as File;
       // check if file is an image
       if (file && file.name
@@ -25,7 +41,31 @@ function getDropData(e: React.DragEvent): Array<File | string> | null {
       }
     }
   }
+  console.log(res);
   return res.length > 0 ? res : null;
+}
+
+interface IQuickTagProps {
+  tag: ClientTag;
+  onDropOnTag: (e: React.DragEvent, tag?: ClientTag) => void;
+}
+const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
+  const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [tag]);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const handleDragOver = useCallback(() => setIsDraggingOver(true), []);
+  const handleDragLeave = useCallback(() => setIsDraggingOver(false), []);
+
+  return (
+    <Tag
+      onDrop={handleDropOnTag}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      intent={isDraggingOver ? 'primary' : 'none'}
+      large
+    >
+      {tag.name}
+    </Tag>
+  );
 }
 
 /**
@@ -39,7 +79,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
 
   const handleDropStart = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    if (!isDropping && getDropData(e)) {
+    if (!isDropping && hasDropData(e)) {
       setIsDropping(true);
     }
   }, []);
@@ -51,26 +91,29 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent, tag?: ClientTag) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDropping(false);
 
     const data = getDropData(e);
     if (data) {
-     data.forEach((f) => {
-       if (f instanceof File) {
-         fileStore.addFile(f.path);
-       } else if (typeof f === 'string') {
-         // Todo: Download image from url
-       }
-     });
-   }
+      for (const dataItem of data) {
+        if (dataItem instanceof File) {
+          const file = await fileStore.addFile(dataItem.path);
+          if (tag) {
+            file.addTag(tag.id);
+          }
+        } else if (typeof dataItem === 'string') {
+          // Todo: Download image from url
+        }
+      }
+    }
   }, []);
 
   return (
     <div
       onDragOver={handleDropStart}
-      onDrop={handleDrop}
     >
       {children}
       <Overlay
@@ -80,17 +123,22 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
         <div
           onDragLeave={handleDragLeave}
           style={{ width: '100%', height: '100%' }}
+          onDrop={handleDrop}
         >
           <Card
             elevation={4}
             className="drop-overlay-content"
+            // todo: blue background when dropping over
           >
             <H5>Drop anywhere to import</H5>
             <p>Or drag onto a tag to immediately tag it</p>
 
             {/* TODO: Sort by frequenc, or alphabetically? */}
-            {/* Todo: Detect drop of tag */}
-            {tagStore.tagList.map((tag) => <Tag key={tag.id}>{tag.name}</Tag>)}
+            <div className="quick-tags">
+              {tagStore.tagList.map((tag) =>
+                <QuickTag tag={tag} onDropOnTag={handleDrop} key={tag.id} />,
+              )}
+            </div>
           </Card>
         </div>
       </Overlay>

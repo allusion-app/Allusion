@@ -2,13 +2,14 @@
 // https://react-dnd.github.io/react-dnd/docs/api/drag-layer
 
 import React, { useContext } from 'react';
-import { DragLayer, DragLayerMonitor } from 'react-dnd';
-import { TAG_DRAG_TYPE } from './TagListItem';
+import { DragLayer, DragLayerMonitor, XYCoord } from 'react-dnd';
 import { Tag } from '@blueprintjs/core';
+import { observer } from 'mobx-react-lite';
+
+import { TAG_DRAG_TYPE } from './TagListItem';
 import { COLLECTION_DRAG_TYPE } from './TagCollectionListItem';
 import StoreContext from '../contexts/StoreContext';
 import RootStore from '../stores/RootStore';
-import { observer } from 'mobx-react-lite';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import { ClientTag } from '../../entities/Tag';
 import { formatTagCountText } from '../utils';
@@ -23,7 +24,14 @@ const layerStyles: any = {
   height: '100%',
 };
 
-function getItemStyles(currentOffset: { x: number, y: number }) {
+interface IDragLayerItem {
+  item: any;
+  itemType: any;
+  currentOffset: XYCoord | null;
+  isDragging: boolean;
+}
+
+function getItemStyles(currentOffset: XYCoord) {
   if (!currentOffset) {
     return {
       display: 'none',
@@ -58,6 +66,8 @@ function renderItem(type: string, item: any, rootStore: RootStore) {
     isDraggingSelection = draggedCol.isSelected;
     // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
     numColMod -= (draggedCol.parent.id !== ROOT_TAG_COLLECTION_ID && draggedCol.parent.isSelected ? 0 : 1);
+  } else {
+    return null;
   }
   const formattedText = formatTagCountText(ctx.tags.length + numTagMod, ctx.collections.length + numColMod);
 
@@ -65,9 +75,11 @@ function renderItem(type: string, item: any, rootStore: RootStore) {
   return <Tag intent="primary" large>{item.name}{extraText}</Tag>;
 }
 
-function CustomDragLayer({ item, itemType, isDragging, currentOffset }: any) {
+function CustomDragLayer({ item, itemType, isDragging, currentOffset }: IDragLayerItem) {
   const rootStore = useContext(StoreContext);
-  if (!isDragging) {
+
+  if (!isDragging || currentOffset === null ||
+    !(itemType === TAG_DRAG_TYPE || itemType === COLLECTION_DRAG_TYPE)) {
     return null;
   }
 
@@ -78,7 +90,7 @@ function CustomDragLayer({ item, itemType, isDragging, currentOffset }: any) {
   );
 }
 
-function collect(monitor: DragLayerMonitor) {
+function collect(monitor: DragLayerMonitor): IDragLayerItem {
   return {
     item: monitor.getItem(),
     itemType: monitor.getItemType(),
