@@ -422,7 +422,7 @@ const TagList = ({
           <Button
             text="All images"
             icon={IconSet.MEDIA}
-            rightIcon={uiStore.viewContent === 'all' ? <Icon intent="primary" icon="eye-open" /> : null}
+            rightIcon={uiStore.viewContent === 'all' ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null}
             onClick={uiStore.viewContentAll}
             active={uiStore.viewContent === 'all'}
             fill
@@ -432,7 +432,7 @@ const TagList = ({
             icon={IconSet.TAG_BLANCO}
             rightIcon={
               uiStore.viewContent === 'untagged'
-                ? <Icon icon="eye-open" />
+                ? <Icon icon={IconSet.PREVIEW} />
                 : (fileStore.numUntaggedFiles > 0
                   ? <Icon icon={IconSet.WARNING} />
                   : null
