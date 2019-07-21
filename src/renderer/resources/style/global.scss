@@ -327,3 +327,34 @@ main {
 .fillWidth {
   width: 100%;
 }
+
+#imageViewer {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+
+  #fullImage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  
+    box-shadow: 0 0 128px black;
+  
+    background-color: rgba(1, 1, 1, 0.5);
+  
+    transition: width 0.1s ease-in-out, height 0.1s ease-in-out;
+  }
+  
+  .zoomIn {
+    cursor: zoom-in;
+  }
+  
+  .zoomOut {
+    cursor: zoom-out;
+  }
+}

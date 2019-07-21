@@ -11,6 +11,7 @@ import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 import DragLayer from './components/DragLayer';
+import ImageViewer from './components/ImageViewer';
 
 const SPLASH_SCREEN_TIME = 700;
 
@@ -49,6 +50,12 @@ const App = ({ rootStore }: IAppProps) => {
           <main>
             <FileList />
           </main>
+
+
+          {uiStore.imageViewerFile ? (
+            <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.imageViewerFile = null} />
+          ) : <></>}
+
 
           <Inspector />
 
