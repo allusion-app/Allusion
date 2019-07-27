@@ -16,10 +16,10 @@ import { ClientFile } from '../../entities/File';
 import IconSet from './Icons';
 import { throttle } from '../utils';
 
-// Should be same as CSS variable --thumbnail-size + padding
-const CELL_SIZE_SMALL = 160;
-const CELL_SIZE_MEDIUM = 260;
-const CELL_SIZE_LARGE = 360;
+// Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
+const CELL_SIZE_SMALL = 160 - 2;
+const CELL_SIZE_MEDIUM = 260 - 2;
+const CELL_SIZE_LARGE = 360 - 2;
 
 function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {
@@ -102,7 +102,7 @@ const GridGallery = observer(
         return <div />;
       }
       return (
-        <div style={style} key={`file-${file.id}`}>
+        <div style={style} key={`file-${file.id}`} className="galleryItem">
           <Observer>
             {() => (
               <GalleryItem
@@ -177,7 +177,7 @@ const ListGallery = observer(
         return <div />;
       }
       return (
-        <div style={style} className={index % 2 ? 'list-item-even' : ''}>
+        <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
           <Observer>
             {() => (
               <GalleryItem
