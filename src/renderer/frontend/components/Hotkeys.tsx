@@ -102,6 +102,12 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Sets view to slide mode"
           onKeyDown={uiStore.viewSlide}
         />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.quickSearch}
+          label="Toggle quick search"
+          onKeyDown={uiStore.toggleQuickSearch}
+        />
 
         <Hotkey
           global={true}

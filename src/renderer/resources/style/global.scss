@@ -170,22 +170,28 @@ main {
 }
 
 ///////////////////////////////// Theme Colours /////////////////////////////////
+// Todo: The nice thing about variables is that we can change them depending on the theme,
+// instead of switching colors around like this
 // Dark
-.bp3-dark,
-.bp3-dark #toolbar,
-.bp3-dark #inspector,
-.bp3-dark nav,
-.bp3-dark #outliner {
-  background-color: $dark-gray2;
+.bp3-dark {
+  #toolbar,
+  #inspector,
+  nav,
+  #outliner,
+  #quick-search {
+    background-color: $dark-gray2;
+  }
 }
 
+
 // Light
-.bp3-light,
-.bp3-light #toolbar,
-.bp3-light #inspector,
-.bp3-light nav,
-.bp3-light #outliner {
-  background-color: $light-gray5 !important;
+.bp3-light {
+  #toolbar,
+  #inspector,
+  nav,
+  #outliner {
+    background-color: $light-gray5 !important;
+  }
 }
 
 ///////////////////////////////// Media Queries /////////////////////////////////

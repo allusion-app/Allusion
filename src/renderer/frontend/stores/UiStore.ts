@@ -29,6 +29,7 @@ interface IHotkeyMap {
   viewGrid: string;
   viewMason: string;
   viewSlide: string;
+  quickSearch: string;
 
   // Other
   openPreviewWindow: string;
@@ -51,6 +52,7 @@ const defaultHotkeyMap: IHotkeyMap = {
   viewGrid: 'alt + 2',
   viewMason: 'alt + 3',
   viewSlide: 'alt + 4',
+  quickSearch: 'mod + f',
   openPreviewWindow: 'space',
 };
 
@@ -95,6 +97,7 @@ class UiStore {
   @observable isPreviewOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
   @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
+  @observable isQuickSearchOpen: boolean = false;
 
   // VIEW
   @observable viewMethod: ViewMethod = 'grid';
@@ -537,6 +540,9 @@ class UiStore {
   @action.bound toggleFullScreen() {
     this.isFullScreen = !this.isFullScreen;
     remote.getCurrentWindow().setFullScreen(this.isFullScreen);
+  }
+  @action.bound toggleQuickSearch() {
+    this.isQuickSearchOpen = !this.isQuickSearchOpen;
   }
 
   /////////////////// Helper methods ///////////////////
