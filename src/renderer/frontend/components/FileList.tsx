@@ -5,7 +5,6 @@ import { Tag, ITagProps, Button, Hotkey, Hotkeys, HotkeysTarget } from '@bluepri
 import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
 import Gallery from './Gallery';
 import IconSet from './Icons';
-import { ITagSearchQuery } from '../stores/UiStore';
 import { ClientTag } from '../../entities/Tag';
 
 export interface IFileListProps { }
@@ -23,9 +22,7 @@ const FileList = ({ rootStore: { uiStore, tagStore } }: IFileListProps & IRootSt
 
   // Todo: Implement this properly later
   const queriedTags = Array.from(
-    new Set(uiStore.searchQueryList
-      .flatMap((q) => (q as ITagSearchQuery).value),
-    ),
+    new Set(uiStore.searchCriteriaList.flatMap((q) => q.value.toString())),
   );
 
   return (

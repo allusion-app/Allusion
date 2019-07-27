@@ -5,7 +5,7 @@ import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { ITagSearchQuery } from './UiStore';
+import { SearchCriteria } from '../../entities/SearchCriteria';
 
 class FileStore {
   backend: Backend;
@@ -80,7 +80,8 @@ class FileStore {
   async fetchUntaggedFiles() {
     try {
       const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
-      const fetchedFiles = await this.backend.searchFiles([], fileOrder, fileOrderDescending);
+      const criteria: SearchCriteria<IFile> = { key: 'tags', value: [], operator: 'and', action: 'include' };
+      const fetchedFiles = await this.backend.searchFiles(criteria, fileOrder, fileOrderDescending);
       this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
@@ -90,9 +91,9 @@ class FileStore {
   @action.bound
   async fetchFilesByQuery() {
     // Todo: properly implement this later
-    await this.fetchFilesByTagIDs(
-      this.rootStore.uiStore.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
-    );
+    // await this.fetchFilesByTagIDs(
+    //   this.rootStore.uiStore.searchCriteriaList.flatMap((q) => (q as IIDSearchCriteria<IFile>).value),
+    // );
   }
 
   @action
@@ -100,7 +101,8 @@ class FileStore {
     // Query the backend to send back only files with these tags
     try {
       const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
-      const fetchedFiles = await this.backend.searchFiles(tags, fileOrder, fileOrderDescending);
+      const criteria: SearchCriteria<IFile> = { key: 'tags', value: tags, operator: 'and', action: 'include' };
+      const fetchedFiles = await this.backend.searchFiles(criteria, fileOrder, fileOrderDescending);
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on tag search', e);

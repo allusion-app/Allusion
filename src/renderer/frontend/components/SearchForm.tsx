@@ -5,15 +5,16 @@ import MultiTagSelector from './MultiTagSelector';
 import { FormGroup, Button, ButtonGroup } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { ClientTag } from '../../entities/Tag';
-import { ITagSearchQuery } from '../stores/UiStore';
 import IconSet from './Icons';
+import { IIDsSearchCriteria } from '../../entities/SearchCriteria';
+import { IFile } from '../../entities/File';
 
 const SearchForm = () => {
   const { uiStore, tagStore } = useContext(StoreContext);
 
-  const existingQueryFields = uiStore.searchQueryList.map((q, qIndex) => {
+  const existingQueryFields = uiStore.searchCriteriaList.map((q, qIndex) => {
     // Todo: fix this later
-    const includedTags = (q as ITagSearchQuery).value;
+    const includedTags = (q as IIDsSearchCriteria<IFile>).value;
 
     const handleIncludeTag = (tag: ClientTag) => includedTags.push(tag.id);
     const handleExcludeTag = (tag: ClientTag) => includedTags.splice(tagStore.tagList.indexOf(tag), 1);
@@ -33,7 +34,7 @@ const SearchForm = () => {
   });
 
   const addSearchQuery = useCallback(
-    () => uiStore.addSearchQuery({ action: 'include', operator: 'or', value: [] } as ITagSearchQuery),
+    () => uiStore.addSearchQuery({ key: 'tags', action: 'include', operator: 'or', value: [] }),
     []);
 
   return (
@@ -82,7 +83,7 @@ const SearchForm = () => {
         <Button
           intent="primary"
           onClick={uiStore.viewContentQuery}
-          disabled={uiStore.searchQueryList.length === 0}
+          disabled={uiStore.searchCriteriaList.length === 0}
           text="Search"
           icon={IconSet.SEARCH}
           fill
@@ -90,7 +91,7 @@ const SearchForm = () => {
         <Button
           // intent="warning"
           onClick={uiStore.clearSearchQueryList}
-          disabled={uiStore.searchQueryList.length === 0}
+          disabled={uiStore.searchCriteriaList.length === 0}
           text="Reset"
           icon={IconSet.CLOSE}
           fill

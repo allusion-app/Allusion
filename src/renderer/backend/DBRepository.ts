@@ -1,5 +1,6 @@
 import Dexie from 'dexie';
 import { ID, IIdentifiable } from '../entities/ID';
+import { SearchCriteria } from '../entities/SearchCriteria';
 
 export interface IDBCollectionConfig {
   name: string;
@@ -43,8 +44,7 @@ export interface IDbRequest<T> {
 }
 
 export interface IDbQueryRequest<T> extends IDbRequest<T> {
-  queryField: keyof T;
-  query: any;
+  criteria: SearchCriteria<T> | [SearchCriteria<T>];
 }
 
 /**
@@ -74,15 +74,9 @@ export default class BaseRepository<T extends IIdentifiable> {
     return (count ? col.limit(count) : col).toArray();
   }
 
-  public async find({ queryField, query, count, order, descending }: IDbQueryRequest<T>): Promise<T[]> {
-    const where = this.collection.where(queryField as string);
-    // Querying array props: https://dexie.org/docs/MultiEntry-Index
-    let table = where.equals(query);
-    if (Array.isArray(query)) {
-      table = (query.length === 0)
-        ? this.collection.filter((val: any) => val[queryField as string].length === 0) // find where array is empty
-        : where.anyOf(...query).distinct();
-    }
+  public async find(req: IDbQueryRequest<T>): Promise<T[]> {
+    const { count, order, descending } = req;
+    let table = await this._find(req);
     table = descending ? table.reverse() : table;
     table = count ? table.limit(count) : table;
     return order ? table.sortBy(order as string) : table.toArray();
@@ -92,15 +86,7 @@ export default class BaseRepository<T extends IIdentifiable> {
     if (!queryRequest) {
       return this.collection.count();
     }
-    const { queryField, query } = queryRequest;
-    const where = this.collection.where(queryField as string);
-
-    let table = where.equals(query);
-    if (Array.isArray(query)) {
-      table = (query.length === 0)
-        ? this.collection.filter((val: any) => val[queryField as string].length === 0) // find where array is empty
-        : where.anyOf(...query).distinct();
-    }
+    const table = await this._find(queryRequest);
     return table.count();
   }
 
@@ -130,5 +116,42 @@ export default class BaseRepository<T extends IIdentifiable> {
   public async updateMany(items: T[]): Promise<T[]> {
     await this.collection.bulkPut(items); // note: this will also create them if they don't exist
     return items;
+  }
+
+  private async _find({ criteria, count, order, descending }: IDbQueryRequest<T>)
+    : Promise<Dexie.Collection<T, string>> {
+
+    // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
+    // Separate first where from the rest
+    const [firstCrit, ...otherCrits] = Array.isArray(criteria) ? criteria : [criteria];
+
+    const where = this.collection.where(firstCrit.key as string);
+
+    // Querying array props: https://dexie.org/docs/MultiEntry-Index
+    let table = where.equals(firstCrit.value);
+    if (Array.isArray(firstCrit.value)) {
+      table = (firstCrit.value.length === 0)
+        ? this.collection.filter((val: any) => val[firstCrit.key as string].length === 0) // find where array is empty
+        : where.anyOf(...firstCrit.value).distinct();
+    } else {
+      // Todo: Deal with other search criteria types
+    }
+
+    for (const crit of otherCrits as Array<SearchCriteria<T>>) {
+      if ('equalitySign' in crit) {
+        if (crit.equalitySign === 'equal') {
+            // table = table.and((item) => item[crit.key] === crit.value);
+        } else if (crit.equalitySign === 'greater') {
+
+        } else if (crit.equalitySign === 'smaller') {
+
+        }
+      } else if ('exact' in crit) {
+
+      }
+      
+      // Todo: Deal with other search criteria types
+    }
+    return table;
   }
 }

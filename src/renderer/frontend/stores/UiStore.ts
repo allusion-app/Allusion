@@ -6,6 +6,7 @@ import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import { IIDsSearchCriteria, SearchCriteria } from '../../entities/SearchCriteria';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -53,24 +54,6 @@ const defaultHotkeyMap: IHotkeyMap = {
   openPreviewWindow: 'space',
 };
 
-type SearchQueryAction = 'include' | 'exclude';
-type SearchQueryOperator = 'and' | 'or';
-interface ISearchQuery {
-  action: SearchQueryAction;
-  /** Operator between previous query and this query */
-  operator: SearchQueryOperator;
-}
-
-export interface ITagSearchQuery extends ISearchQuery {
-  value: ID[];
-}
-// interface IFilenameSearchQuery extends ISearchQuery {
-//   value: string;
-// }
-// interface IFilenameSearchQuery extends ISearchQuery {
-//   value: string;
-// }
-
 /**
  * From: https://mobx.js.org/best/store.html
  * Things you will typically find in UI stores:
@@ -90,6 +73,7 @@ export interface ITagSearchQuery extends ISearchQuery {
  */
 
 export type ViewMethod = 'list' | 'grid' | 'mason' | 'slide';
+export type FileSearchCriteria = SearchCriteria<IFile>;
 
 class UiStore {
   rootStore: RootStore;
@@ -129,7 +113,7 @@ class UiStore {
   readonly fileSelection = observable<ID>([]);
   readonly tagSelection = observable<ID>([]);
 
-  readonly searchQueryList = observable<ISearchQuery>([]);
+  readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
@@ -408,33 +392,34 @@ class UiStore {
 
   /////////////////// Search Actions ///////////////////
   @action.bound async clearSearchQueryList() {
-    this.searchQueryList.clear();
+    this.searchCriteriaList.clear();
     await this.viewContentAll();
   }
 
-  @action.bound async addSearchQuery(query: ISearchQuery) {
-    this.searchQueryList.push(query);
+  @action.bound async addSearchQuery(query: Exclude<FileSearchCriteria, 'key'>) {
+    this.searchCriteriaList.push(query);
     await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
     this.viewContent = 'query';
   }
 
-  @action.bound async removeSearchQuery(query: ISearchQuery) {
-    this.searchQueryList.remove(query);
+  @action.bound async removeSearchQuery(query: FileSearchCriteria) {
+    this.searchCriteriaList.remove(query);
     await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
   }
 
   @action.bound addTagsToQuery(ids: ID[]) {
     this.addSearchQuery({
+      key: 'tags',
       action: 'include',
       operator: 'or',
       value: ids,
-    } as ITagSearchQuery);
+    } as IIDsSearchCriteria<IFile>);
   }
 
   @action.bound replaceQuery(ids: ID[]) {
-    this.searchQueryList.clear();
+    this.searchCriteriaList.clear();
     this.addTagsToQuery(ids);
   }
 

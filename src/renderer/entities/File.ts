@@ -14,6 +14,10 @@ import FileStore from '../frontend/stores/FileStore';
 import { ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag } from './Tag';
 
+
+export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'];
+export type IMG_EXTENSIONS_TYPE = 'gif' | 'png' | 'jpg' | 'jpg';
+
 /* Generic properties of a File in our application (usually an image) */
 export interface IFile extends IIdentifiable {
   id: ID;

@@ -4,6 +4,7 @@ import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
+import { SearchCriteria } from '../entities/SearchCriteria';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -55,9 +56,10 @@ export default class Backend {
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
-  async searchFiles(tags: ID[], order: keyof IFile, descending: boolean): Promise<IFile[]> {
-    console.log('Backend: Searching files...', tags);
-    return this.fileRepository.find({ queryField: 'tags', query: tags, order, descending });
+  async searchFiles(criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
+                    order: keyof IFile, descending: boolean): Promise<IFile[]> {
+    console.log('Backend: Searching files...', criteria);
+    return this.fileRepository.find({ criteria, order, descending });
   }
 
   async createTag(id: ID, name: string, description?: string) {
@@ -94,7 +96,8 @@ export default class Backend {
     console.log('Removing tag...', tag);
     // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
-    const filesWithTag = await this.fileRepository.find({ queryField: 'tags', query: tag.id });
+    const filesWithTag = await this.fileRepository
+      .find({ criteria: { key: 'tags', value: tag.id, operator: 'and', action: 'include' }});
     // Remove tag from files
     filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
     // Update files in db
@@ -130,7 +133,7 @@ export default class Backend {
 
   async getNumUntaggedFiles() {
     console.log('Get number of untagged files...');
-    return this.fileRepository.count({ queryField: 'tags', query: [] });
+    return this.fileRepository.count({ criteria: { key: 'tags', value: [], operator: 'and', action: 'include' } });
   }
 
   async clearDatabase() {
