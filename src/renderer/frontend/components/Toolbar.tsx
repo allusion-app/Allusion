@@ -204,19 +204,19 @@ const Toolbar = () => {
   <Menu>
     <MenuItem
       onClick={viewSmall}
-      icon={IconSet.VIEW_GRID}
+      icon={IconSet.THUMB_SM}
       text="Small"
       active={uiStore.thumbnailSize === 'small'}
     />
     <MenuItem
       onClick={viewMedium}
-      icon={IconSet.VIEW_GRID}
+      icon={IconSet.THUMB_MD}
       text="Medium"
       active={uiStore.thumbnailSize === 'medium'}
     />
     <MenuItem
       onClick={viewLarge}
-      icon={IconSet.VIEW_GRID}
+      icon={IconSet.THUMB_BG}
       text="Large"
       active={uiStore.thumbnailSize === 'large'}
     />

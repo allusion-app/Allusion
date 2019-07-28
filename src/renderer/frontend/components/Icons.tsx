@@ -56,6 +56,9 @@ import TAG_BLANCO from '../../resources/icons/tag-blanco.svg';
 import TAG_GROUP_OPEN from '../../resources/icons/tag-group-open.svg';
 import TAG_GROUP from '../../resources/icons/tag-group.svg';
 import TAG from '../../resources/icons/tag.svg';
+import THUMB_SM from '../../resources/icons/thumb-sm.svg';
+import THUMB_MD from '../../resources/icons/thumb-md.svg';
+import THUMB_BG from '../../resources/icons/thumb-bg.svg';
 import VIEW_GRID from '../../resources/icons/view-grid.svg';
 import VIEW_LIST from '../../resources/icons/view-list.svg';
 import VIEW_MASON from '../../resources/icons/view-mason.svg';
@@ -126,6 +129,9 @@ const IconSet = {
   TAG_GROUP_OPEN: toSvg(TAG_GROUP_OPEN),
   TAG_GROUP: toSvg(TAG_GROUP),
   TAG: toSvg(TAG),
+  THUMB_SM: toSvg(THUMB_SM),
+  THUMB_MD: toSvg(THUMB_MD),
+  THUMB_BG: toSvg(THUMB_BG),
   VIEW_GRID: toSvg(VIEW_GRID),
   VIEW_LIST: toSvg(VIEW_LIST),
   VIEW_MASON: toSvg(VIEW_MASON),
