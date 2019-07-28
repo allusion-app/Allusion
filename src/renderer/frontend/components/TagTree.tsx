@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect, useContext, useRef } from 'rea
 import {
   Tree, ITreeNode, Button, Icon, ButtonGroup, H4, Alert, Classes, Tag, Hotkey, Hotkeys, HotkeysTarget,
 } from '@blueprintjs/core';
-import { useDrop } from 'react-dnd/lib/cjs/hooks';
+import { useDrop } from 'react-dnd';
 
 import TagListItem, { DEFAULT_TAG_NAME, TAG_DRAG_TYPE, ITagDragItem } from './TagListItem';
 import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
@@ -234,7 +234,7 @@ export interface ITagListProps { }
 
 const TagList = ({
   rootStore: { tagStore, tagCollectionStore, uiStore, fileStore,
-}}: ITagListProps & IRootStoreProp) => {
+  } }: ITagListProps & IRootStoreProp) => {
   /** The first item that is selected in a multi-selection */
   const initialSelectionIndex = useRef<number | undefined>(undefined);
   /** The last item that is selected in a multi-selection */
@@ -374,11 +374,11 @@ const TagList = ({
   // Allow dropping tags on header and background to move them to the root of the hierarchy
   const [, headerDrop] = useDrop({
     accept: [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
-    drop: (item: ITagDragItem, mon) => handleRootDrop(item, mon, true),
+    drop: (_, monitor) => handleRootDrop(monitor.getItem(), monitor, true),
   });
   const [, footerDrop] = useDrop({
     accept: [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
-    drop: handleRootDrop,
+    drop: () => handleRootDrop,
   });
 
   return (

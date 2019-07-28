@@ -162,7 +162,8 @@ const MultiTagSelector = ({
           onRemove: handleDeselect,
           rightElement: ClearButton,
           fill: true,
-          ref,
+          // @ts-ignore inputElement is actually private, but the autoFocus of the tagInputProps is not working, so...
+          inputRef: ref.current ? ref.current.inputELement : null,
           disabled,
         }}
         placeholder={placeholder}
