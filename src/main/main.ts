@@ -7,7 +7,7 @@ let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
 
 function createWindow() {
-  const {width, height} = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   mainWindow = new BrowserWindow({
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
@@ -32,34 +32,48 @@ function createWindow() {
 
   // Mac App menu - used for styling so shortcuts work
   if (process.platform === 'darwin') {
-    menuBar.push({
-      label: 'File',
-      submenu: [
-        { role: 'about' },
-        { role: 'hide' },
-        { role: 'hideothers' },
-        { role: 'unhide' },
-        { role: 'quit' },
-      ],
-    });
+    menuBar.push({ role: 'appMenu' });
   }
+
   menuBar.push({
     label: 'Edit',
-    submenu: [
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-    ],
+    submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
   });
   menuBar.push({
     label: 'View',
     submenu: [
       { role: 'reload' },
-      { role: 'togglefullscreen' },
+      { role: 'forcereload' },
       { role: 'toggledevtools' },
-      { role: 'zoomin' },
-      { role: 'zoomout' },
-      { role: 'resetzoom' },
+      { type: 'separator' },
+      {
+        label: 'Actual Size',
+        accelerator: 'CommandOrControl+0',
+        click: (menuItem, browserWindow, event) => {
+          browserWindow.webContents.setZoomFactor(1);
+        },
+      },
+      {
+        label: 'Zoom In',
+        // TODO: Fix needed
+        accelerator: 'CommandOrControl+=',
+        click: (menuItem, browserWindow, event) => {
+          browserWindow.webContents.setZoomFactor(
+            browserWindow.webContents.getZoomFactor() + 0.1,
+          );
+        },
+      },
+      {
+        label: 'Zoom Out',
+        accelerator: 'CommandOrControl+-',
+        click: (menuItem, browserWindow, event) => {
+          browserWindow.webContents.setZoomFactor(
+            browserWindow.webContents.getZoomFactor() - 0.1,
+          );
+        },
+      },
+      { type: 'separator' },
+      { role: 'togglefullscreen' },
     ],
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuBar));
