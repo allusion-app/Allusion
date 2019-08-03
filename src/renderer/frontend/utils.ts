@@ -41,3 +41,17 @@ export function formatTagCountText(numTags: number, numCols: number) {
     : '';
   return `${extraTagsText}${extraColsText}`;
 }
+
+export function capitalize(value: string) {
+  if (!value) {
+    return '';
+  }
+  return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+}
+
+export const jsDateFormatter = {
+  // note that the native implementation of Date functions differs between browsers
+  formatDate: (date: Date) => date.toLocaleDateString(),
+  parseDate: (str: string) => new Date(str),
+  placeholder: 'M/D/YYYY',
+};

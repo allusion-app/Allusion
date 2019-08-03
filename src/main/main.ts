@@ -107,15 +107,21 @@ app.on('activate', () => {
 });
 
 function createPreviewWindow() {
-  const primDisplay = screen.getPrimaryDisplay();
+  // Get display where main window is located
+  let display = screen.getPrimaryDisplay();
+  if (mainWindow) {
+    const winBounds = mainWindow.getBounds();
+    display = screen.getDisplayNearestPoint({ x: winBounds.x, y: winBounds.y });
+  }
+
   previewWindow = new BrowserWindow({
     webPreferences: {
       nodeIntegration: true,
     },
     minWidth: 224,
     minHeight: 224,
-    height: primDisplay.size.height * 2 / 3, // preview window is is sized relative to screen resolution by default
-    width: primDisplay.size.width * 2 / 3,
+    height: display.size.height * 3 / 4, // preview window is is sized relative to screen resolution by default
+    width: display.size.width * 3 / 4,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',

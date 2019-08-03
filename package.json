@@ -48,12 +48,13 @@
     "ts-jest": "^24.0.2",
     "ts-loader": "^5.3.2",
     "tslint": "^5.12.0",
-    "typescript": "^3.2.2",
+    "typescript": "^3.5.3",
     "webpack": "^4.28.3",
     "webpack-cli": "^3.2.0"
   },
   "dependencies": {
     "@blueprintjs/core": "^3.15.0",
+    "@blueprintjs/datetime": "^3.9.2",
     "@blueprintjs/select": "^3.8.0",
     "dexie": "^2.0.4",
     "fs-extra": "^7.0.1",

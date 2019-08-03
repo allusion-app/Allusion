@@ -2,7 +2,10 @@ import { ID } from './ID';
 
 type SearchCriteriaAction = 'include' | 'exclude';
 type SearchCriteriaOperator = 'and' | 'or';
-type SearchCriteriaEqualitySign = 'greater' | 'smaller' | 'equal';
+
+// Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
+export const SearchCriteriaEqualitySign = ['equal', 'greater', 'smaller'];
+export type SearchCriteriaEqualitySignType = typeof SearchCriteriaEqualitySign[number];
 
 interface IBaseSearchCriteria<T> {
   key: keyof T;
@@ -27,24 +30,55 @@ export interface IStringSearchCriteria<T> extends IBaseSearchCriteria<T> {
 
 export interface INumberSearchCriteria<T> extends IBaseSearchCriteria<T> {
   value: number;
-  equalitySign: SearchCriteriaEqualitySign;
+  equalitySign: SearchCriteriaEqualitySignType;
 }
 
 export interface IDateSearchCriteria<T> extends IBaseSearchCriteria<T> {
   value: Date;
-  equalitySign: SearchCriteriaEqualitySign;
+  equalitySign: SearchCriteriaEqualitySignType;
 }
 
 // General search criteria for a database entity
 export type SearchCriteria<T> = IIDSearchCriteria<T> | IIDsSearchCriteria<T> | IStringSearchCriteria<T>
   | INumberSearchCriteria<T> | IDateSearchCriteria<T>;
 
-/**
- * Thoughts:
- * - Advanced search overlay:
- *  - Can't see content, so no real-time search
- * - Quick search
- *  - How to display? Omnibar? Sidebar? Like in chrome/vscode (widget in top right)?
- * - How to switch between what content you're viewing (All images vs untagged imagesvs searched images).
- *  - And how to make it clear what you're currently viewing?
- */
+function clearCriteria(crit: SearchCriteria<any>) {
+  for (const prop of Object.keys(crit)) {
+    if (prop !== 'key' && prop !== 'operator' && prop !== 'action') {
+      // @ts-ignore
+      delete crit[prop];
+    }
+  }
+  // @ts-ignore
+  crit.value = undefined;
+}
+
+export function initIDsCriteria<T>(crit: SearchCriteria<T>) {
+  clearCriteria(crit);
+  const res = crit as IIDsSearchCriteria<T>;
+  res.value = [];
+  return res;
+}
+
+export function initStringCriteria<T>(crit: SearchCriteria<T>) {
+  clearCriteria(crit);
+  const res = crit as IStringSearchCriteria<T>;
+  res.exact = false;
+  res.value = '';
+  return res;
+}
+
+export function initNumberCriteria<T>(crit: SearchCriteria<T>) {
+  clearCriteria(crit);
+  const res = crit as INumberSearchCriteria<T>;
+  res.equalitySign = 'equal';
+  return res;
+}
+
+export function initDateCriteria<T>(crit: SearchCriteria<T>) {
+  clearCriteria(crit);
+  const res = crit as IDateSearchCriteria<T>;
+  res.equalitySign = 'equal';
+  res.value = new Date();
+  return res;
+}
