@@ -26,7 +26,18 @@ const SplashScreen = () => (
 
     <SVG src={PreloadIcon} style={{ fill: 'url(#yellow-blue)', width: '48px', height: '48px' }}/>
 
-    <p style={{ margin: '0', fontSize: '18px', fontWeight: 700, fontFamily: '-apple-system, \"BlinkMacSystemFont\", \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Open Sans\", \"Helvetica Neue\", \"Icons16\", sans-serif' }} className="preloader">Allusion</p> {/* // tslint:disable-next-line */}
+    <p
+      style={{
+        margin: '0',
+        fontSize: '18px',
+        fontWeight: 700,
+        // tslint:disable-next-line
+        fontFamily: '-apple-system, \"BlinkMacSystemFont\", \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Open Sans\", \"Helvetica Neue\", \"Icons16\", sans-serif'
+      }}
+      className="preloader"
+    >
+      Allusion
+    </p>
   </div>
 );
 
