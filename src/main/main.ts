@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, screen } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
@@ -108,15 +108,16 @@ app.on('activate', () => {
 });
 
 function createPreviewWindow() {
-  const {width, height} =  require('electron').screen.getPrimaryDisplay().workAreaSize;
+  const { width, height } =  screen.getPrimaryDisplay().workAreaSize;
+
   previewWindow = new BrowserWindow({
     webPreferences: {
       nodeIntegration: true,
     },
     minWidth: 224,
     minHeight: 224,
-    width: Math.round(width * 2/3),
-    height: Math.round(height * 2/3),
+    width: Math.round(width * 2 / 3),
+    height: Math.round(height * 2 / 3),
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
