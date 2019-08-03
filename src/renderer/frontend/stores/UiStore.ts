@@ -117,6 +117,7 @@ class UiStore {
   readonly tagSelection = observable<ID>([]);
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
+  readonly quickSearchTags = observable<ID>([]);
 
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 

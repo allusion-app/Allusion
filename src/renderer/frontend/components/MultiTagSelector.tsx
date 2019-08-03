@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useCallback, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { Button, MenuItem, TagInput } from '@blueprintjs/core';
+import { Button, MenuItem, TagInput, Intent } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
@@ -52,6 +52,7 @@ interface IMultiTagSelectorProps {
   autoFocus?: boolean;
   /** When this object changes, autoFocus is triggered (since this component does not remount often itself) */
   refocusObject?: any;
+  tagIntent?: Intent;
 }
 
 const MultiTagSelector = ({
@@ -65,6 +66,7 @@ const MultiTagSelector = ({
   disabled,
   autoFocus,
   refocusObject,
+  tagIntent = 'none',
 }: IMultiTagSelectorProps) => {
   const { tagStore } = useContext(StoreContext);
 
@@ -158,7 +160,7 @@ const MultiTagSelector = ({
         createNewItemRenderer={maybeCreateNewItemRenderer}
         itemPredicate={filterTag}
         tagInputProps={{
-          tagProps: { minimal: true },
+          tagProps: { minimal: true, intent: tagIntent },
           onRemove: handleDeselect,
           rightElement: ClearButton,
           fill: true,

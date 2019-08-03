@@ -32,24 +32,6 @@
     left: 16rem;
     position: absolute;
   }
-
-  #quick-search {
-    top: var(--toolbar-height);
-    right: 0;
-
-    border-radius: 2px;
-
-    box-shadow: $pt-dark-elevation-shadow-2;
-
-    position: absolute;
-    width: 250px;
-    display: flex;
-    z-index: 1000;
-
-    .bp3-popover-wrapper {
-      width: 100%;
-    }
-  }
 }
 
 // For frameless app

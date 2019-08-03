@@ -1,60 +1,62 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Tag, ITagProps, Button, Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
+import { Button, Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 
 import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
 import Gallery from './Gallery';
-import IconSet from './Icons';
 import { ClientTag } from '../../entities/Tag';
+import MultiTagSelector from './MultiTagSelector';
 
-export interface IFileListProps { }
-
-const FileList = ({ rootStore: { uiStore, tagStore } }: IFileListProps & IRootStoreProp) => {
-  const handleDeselectTag = useCallback(
-    (_, props: ITagProps) => {
-      const clickedTag = tagStore.tagList.find((t) => t.id === props.id);
-      if (clickedTag) {
-        uiStore.deselectTag(clickedTag);
-      }
-    },
-    [],
-  );
+const QuickSearch = observer(() => {
+  const { uiStore, tagStore, fileStore } = useContext(StoreContext);
 
   // Todo: Implement this properly later
-  const queriedTags = Array.from(
-    new Set(uiStore.searchCriteriaList.flatMap((q) => q.value.toString())),
-  );
+  const queriedTags = useMemo(
+    () => uiStore.quickSearchTags.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),
+    [uiStore.quickSearchTags.length]);
+
+  const handleSelectTag = useCallback((tag: ClientTag) => {
+    uiStore.quickSearchTags.push(tag.id);
+    fileStore.fetchFilesByTagIDs(uiStore.quickSearchTags);
+  }, []);
+
+  const handleDeselectTag = useCallback((tag: ClientTag) => {
+    uiStore.quickSearchTags.remove(tag.id);
+    fileStore.fetchFilesByTagIDs(uiStore.quickSearchTags);
+  }, []);
+
+  const handleClearTags = useCallback(() => {
+    uiStore.isQuickSearchOpen = false;
+    uiStore.quickSearchTags.clear();
+    fileStore.fetchAllFiles();
+  }, []);
 
   return (
+    <div id="quick-search">
+      <Button icon="more" />
+      <MultiTagSelector
+        selectedTags={queriedTags}
+        onTagSelect={handleSelectTag}
+        onTagDeselect={handleDeselectTag}
+        onClearSelection={handleClearTags}
+        autoFocus
+        tagIntent="primary"
+      />
+    </div>
+  );
+});
+
+const FileList = observer(({ rootStore: { uiStore } }: IRootStoreProp) => {
+  return (
     <>
-      <div id="query-overview">
-        {
-          queriedTags.map((tagId) => (
-            <Tag
-              key={tagId}
-              id={tagId}
-              intent="primary"
-              onRemove={handleDeselectTag}
-            >
-              {(tagStore.tagList.find((t) => t.id === tagId) as ClientTag).name}
-            </Tag>
-          ))
-        }
-        {queriedTags.length > 0 && (
-          <Button
-            icon={IconSet.CLOSE}
-            onClick={uiStore.clearSearchQueryList}
-            className="bp3-minimal"
-          />
-        )}
-      </div>
+      { uiStore.isQuickSearchOpen && <QuickSearch /> }
       <Gallery />
     </>
   );
-};
+});
 
 @HotkeysTarget
-class FileListWithHotkeys extends React.PureComponent<IFileListProps & IRootStoreProp, {}> {
+class FileListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
     return <div tabIndex={1} className="gallery"><FileList {...this.props} /></div>;
   }
@@ -86,9 +88,9 @@ class FileListWithHotkeys extends React.PureComponent<IFileListProps & IRootStor
   }
 }
 
-const HotkeysWrapper = observer((props: IFileListProps) => {
+const HotkeysWrapper = observer(() => {
   const rootStore = React.useContext(StoreContext);
-  return <FileListWithHotkeys {...props} rootStore={rootStore} />;
+  return <FileListWithHotkeys rootStore={rootStore} />;
 });
 
 export default HotkeysWrapper;

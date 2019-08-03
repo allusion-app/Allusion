@@ -5,18 +5,36 @@
   height: 100%;
 }
 
-#query-overview {
+#quick-search {
   background: $dark-gray1;
   border-radius: 4px;
-  // padding: 0.25rem 0.25rem 0 0;
   position: sticky;
   top: 0rem;
   z-index: 999;
+  display: flex;
+
+  border-bottom: 2px solid $black;
+  box-shadow: $pt-dark-elevation-shadow-2;
+
+  > button {
+    width: 30px;
+    height: 30px;
+    margin: auto;
+    margin-top: 2px;
+  }
+
+  .bp3-popover-wrapper {
+    padding: 4px;
+    padding-top: 2px;
+    padding-bottom: 0px;
+  }
+
+  .bp3-popover-target,
+  .bp3-popover-wrapper {
+    width: 100%;
+  }
 }
 
-#query-overview .bp3-tag {
-  margin: 0 0 0.5em 0.5em;
-}
 
 .gallery-content {
   height: 100%;

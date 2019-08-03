@@ -9,7 +9,6 @@ import IconSet from './Icons';
 import FileTag from './FileTag';
 import { ClientFile, IFile } from '../../entities/File';
 import UiStore from '../stores/UiStore';
-import MultiTagSelector from './MultiTagSelector';
 
 // Tooltip info
 const addTooltip = 'Toggle Add panel';
@@ -269,21 +268,6 @@ const Toolbar = () => {
           />
         </ButtonGroup>
         <div id="spacer" style={{ width: '100px' }}></div>
-
-        {/* Quick search */}
-        {uiStore.isQuickSearchOpen && (
-          <div id="quick-search">
-            <MultiTagSelector
-              selectedTags={[]}
-              onTagSelect={() => undefined}
-              onClearSelection={() => undefined}
-              onTagDeselect={() => undefined}
-              autoFocus
-            />
-            <Button icon={IconSet.CLOSE} />
-            <Button icon="more" />
-          </div>
-        )}
       </section>
 
       <section id="inspector-toolbar">
