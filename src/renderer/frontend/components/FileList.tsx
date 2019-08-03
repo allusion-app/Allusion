@@ -33,7 +33,7 @@ const QuickSearch = observer(() => {
 
   return (
     <div id="quick-search">
-      <Button icon="more" />
+      <Button icon="more" onClick={uiStore.toggleAdvancedSearch} />
       <MultiTagSelector
         selectedTags={queriedTags}
         onTagSelect={handleSelectTag}

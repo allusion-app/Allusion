@@ -2,14 +2,31 @@ import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import MultiTagSelector from './MultiTagSelector';
-import { FormGroup, Button, ButtonGroup } from '@blueprintjs/core';
+import { FormGroup, Button, ButtonGroup, Dialog } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import { IIDsSearchCriteria } from '../../entities/SearchCriteria';
 import { IFile } from '../../entities/File';
 
-const SearchForm = () => {
+export const AdvancedSearchDialog = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+
+  return (
+    <Dialog
+      isOpen={uiStore.isAdvancedSearchOpen}
+      onClose={uiStore.toggleAdvancedSearch}
+      icon={IconSet.SEARCH}
+      title="Advanced Search"
+      className={themeClass}
+    >
+      <SearchForm />
+    </Dialog>
+  );
+});
+
+const SearchForm = observer(() => {
   const { uiStore, tagStore } = useContext(StoreContext);
 
   const existingQueryFields = uiStore.searchCriteriaList.map((q, qIndex) => {
@@ -99,6 +116,6 @@ const SearchForm = () => {
       </ButtonGroup>
     </div>
   );
-};
+});
 
-export default observer(SearchForm);
+export default SearchForm;

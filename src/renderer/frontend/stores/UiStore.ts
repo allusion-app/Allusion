@@ -30,6 +30,7 @@ interface IHotkeyMap {
   viewMason: string;
   viewSlide: string;
   quickSearch: string;
+  advancedSearch: string;
 
   // Other
   openPreviewWindow: string;
@@ -53,6 +54,7 @@ const defaultHotkeyMap: IHotkeyMap = {
   viewMason: 'alt + 3',
   viewSlide: 'alt + 4',
   quickSearch: 'mod + f',
+  advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
 };
 
@@ -98,6 +100,7 @@ class UiStore {
   @observable isToolbarFileRemoverOpen: boolean = false;
   @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
   @observable isQuickSearchOpen: boolean = false;
+  @observable isAdvancedSearchOpen: boolean = false;
 
   // VIEW
   @observable viewMethod: ViewMethod = 'grid';
@@ -544,6 +547,9 @@ class UiStore {
   }
   @action.bound toggleQuickSearch() {
     this.isQuickSearchOpen = !this.isQuickSearchOpen;
+  }
+  @action.bound toggleAdvancedSearch() {
+    this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
   }
 
   /////////////////// Helper methods ///////////////////

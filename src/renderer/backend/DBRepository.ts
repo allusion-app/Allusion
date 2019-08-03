@@ -149,7 +149,7 @@ export default class BaseRepository<T extends IIdentifiable> {
       } else if ('exact' in crit) {
 
       }
-      
+
       // Todo: Deal with other search criteria types
     }
     return table;
