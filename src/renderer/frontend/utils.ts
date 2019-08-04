@@ -50,8 +50,8 @@ export function capitalize(value: string) {
 }
 
 export const jsDateFormatter = {
-  // note that the native implementation of Date functions differs between browsers
-  formatDate: (date: Date) => date.toLocaleDateString(),
+  formatDate: (date: Date) =>
+    `${date.toLocaleDateString()} ${date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`,
   parseDate: (str: string) => new Date(str),
   placeholder: 'M/D/YYYY',
 };

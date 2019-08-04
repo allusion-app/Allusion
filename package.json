@@ -53,7 +53,7 @@
     "webpack-cli": "^3.2.0"
   },
   "dependencies": {
-    "@blueprintjs/core": "^3.15.0",
+    "@blueprintjs/core": "^3.18.0",
     "@blueprintjs/datetime": "^3.9.2",
     "@blueprintjs/select": "^3.8.0",
     "dexie": "^2.0.4",

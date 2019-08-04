@@ -225,9 +225,10 @@ const DateCriteriaItem = observer(({ criteria }: { criteria: IDateSearchCriteria
         value={criteria.value}
         onChange={handleChangeValue}
         timePrecision="minute"
-        showActionsBar
-        popoverProps={{ inheritDarkTheme: true, minimal: true }}
-        disabled={false}
+        popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
+        canClearSelection={false}
+        maxDate={new Date()}
+        timePickerProps={{ showArrowButtons: true, selectAllOnFocus: true }}
         {...jsDateFormatter}
       />
     </>
@@ -270,7 +271,7 @@ const SearchForm = observer(() => {
 
   return (
     <div id="search-form">
-      <FormGroup label="Query">
+      <FormGroup>
         {uiStore.searchCriteriaList.map((crit, i) => (
           <CriteriaItem criteria={crit} key={`crit-${i}-${crit.key}`} />
         ))}
