@@ -20,7 +20,8 @@
   font-family: inherit;
 }
 
-.bp3-dark .bp3-heading {
+.bp3-dark .bp3-heading,
+.bp3-dialog.bp3-dark {
   color: $light-gray1;
 }
 
@@ -49,6 +50,10 @@
 ::selection {
   color: white;
   background: $blue1;
+}
+.bp3-tag-input .bp3-button {
+  padding: 0 !important;
+  border-bottom: 2px solid rgba(0, 0, 0, 0);
 }
 
 .bp3-tag-input-values ::placeholder,
@@ -142,7 +147,11 @@ form .bp3-icon {
   // box-shadow: none;
   box-shadow: 0 0 0 1.5px $blue1;
   background-color: #13131357;
+  .bp3-icon {
+    color: $light-gray3;
+  }
 }
+
 
 // Labels
 .bp3-dark label.bp3-label {
@@ -166,7 +175,13 @@ button:has(.bp3-intent-danger) {
 .bp3-light .bp3-button .bp3-icon-large {
   color: $dark-gray4;
 }
-
+.bp3-alert-footer .bp3-button {
+  &:hover,
+  .bp3-intent-danger,
+  .bp3-intent-danger:hover {
+    color: $light-gray3;
+  }
+}
 .bp3-button {
   display: inline-flex;
   flex-direction: row;
@@ -294,6 +309,7 @@ button:has(.bp3-intent-danger) {
 .bp3-popover,
 .bp3-popover .bp3-popover-content {
   border-radius: 10px;
+  max-width: 400px;
 }
 
 .bp3-dark .bp3-popover-content {
@@ -425,9 +441,15 @@ li .bp3-menu-item {
   background: transparent;
   color: white !important;
 }
+// Close button setting
+.bp3-dark .bp3-button:not([class*="bp3-intent-"]):hover {
+  background: transparent;
+  color: initial;
+}
 
 .bp3-dark #toolbar .bp3-button-group.bp3-minimal .bp3-button:hover,
-.bp3-dark #outliner-tags-header-wrapper .bp3-button.bp3-minimal:hover {
+.bp3-dark #outliner-tags-header-wrapper .bp3-button.bp3-minimal:hover,
+.bp3-dark .bp3-button:not([class*="bp3-intent-"]):hover {
   background: transparent !important;
 }
 
@@ -441,7 +463,7 @@ li .bp3-menu-item {
 .bp3-dark .bp3-button.bp3-minimal:hover {
   border-bottom: 2px solid $blue1;
   border-radius: 0;
-  padding-bottom: 2px;
+  padding-bottom: 3px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
