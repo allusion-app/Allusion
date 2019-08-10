@@ -22,6 +22,7 @@ const layerStyles: React.CSSProperties = {
 };
 
 export const DragLayer = () => {
+  const { uiStore, tagStore, tagCollectionStore } = useContext(StoreContext);
   const { item, itemType, currentOffset, isDragging } = useDragLayer((monitor) => ({
     item: monitor.getItem(),
     itemType: monitor.getItemType(),
@@ -39,7 +40,6 @@ export const DragLayer = () => {
     return { transform, WebkitTransform: transform };
   };
 
-  const { uiStore, tagStore, tagCollectionStore } = useContext(StoreContext);
   const renderItem = () => {
     // Find out which items are in the context, based on what is selected
     const ctx = uiStore.getTagContextItems(item.id);
