@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useCallback, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { Button, MenuItem, TagInput, Intent } from '@blueprintjs/core';
+import { Button, MenuItem, Intent } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
@@ -133,17 +133,14 @@ const MultiTagSelector = ({
     ? renderCreateTagOption
     : undefined;
 
-  const ref = useRef<TagInput>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const setInputRef = useCallback((input: HTMLInputElement | null) => inputRef.current = input, [inputRef]);
 
   useEffect(() => {
-    if (autoFocus && ref.current) {
-      // @ts-ignore inputElement is actually private, but the autoFocus of the tagInputProps is not working, so...
-      const inputRef = ref.current.inputElement;
-      if (inputRef) {
-        inputRef.focus();
-      }
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
     }
-  }, [refocusObject]);
+  }, [refocusObject, autoFocus]);
 
   return (
     <>
@@ -164,8 +161,8 @@ const MultiTagSelector = ({
           onRemove: handleDeselect,
           rightElement: ClearButton,
           fill: true,
-          ref,
           disabled,
+          inputRef: setInputRef,
         }}
         placeholder={placeholder}
         resetOnSelect
