@@ -42,7 +42,7 @@ export const GalleryItem = observer(({
   onDrop,
   showName, showTags, showInfo,
 }: IGalleryItemProps) => {
-  const [{ isOver, canDrop }, gallerItemDrop] = useDrop({
+  const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
     accept: ItemType.Tag,
     drop: (_, monitor) => onDrop(monitor.getItem(), file),
     canDrop: () => true,
@@ -78,7 +78,7 @@ export const GalleryItem = observer(({
     };
   }, []);
 
-  return (<div ref={gallerItemDrop} className={className}>
+  return (<div ref={galleryItemDrop} className={className}>
     <div onClick={handleClickImg} className="img-wrapper">
       {isImageLoaded ? <img src={file.path} /> // Show image when it has been loaded
         : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded

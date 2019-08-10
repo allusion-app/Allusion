@@ -21,7 +21,7 @@ const layerStyles: React.CSSProperties = {
   height: '100%',
 };
 
-export const CustomDragLayer = () => {
+export const DragLayer = () => {
   const { item, itemType, currentOffset, isDragging } = useDragLayer((monitor) => ({
     item: monitor.getItem(),
     itemType: monitor.getItemType(),

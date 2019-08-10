@@ -130,7 +130,7 @@ const createTagCollectionTreeNode = (
 
 const TagRemoverContent = ({ rootStore }: { rootStore: RootStore }) => {
   const { uiStore, tagStore, tagCollectionStore } = rootStore;
-  const [removeType, setRemoveType] = useState<ItemType>();
+  const [removeType, setRemoveType] = useState<ItemType.Tag | ItemType.Collection>();
   const [tagsToRemove, setTagsToRemove] = useState<ClientTag[]>([]);
   const [colToRemove, setColToRemove] = useState<ClientTagCollection>();
 

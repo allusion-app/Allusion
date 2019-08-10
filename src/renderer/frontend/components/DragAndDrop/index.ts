@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { CustomDragLayer } from './DragLayer';
+import { DragLayer } from './DragLayer';
 
 const enum ItemType {
   Collection = 'collection',
@@ -12,5 +12,5 @@ interface ITagDragItem {
   isSelected: boolean;
 }
 
-export default (observer(CustomDragLayer));
+export default (observer(DragLayer));
 export { ItemType, ITagDragItem };
