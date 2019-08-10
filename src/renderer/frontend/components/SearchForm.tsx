@@ -235,8 +235,14 @@ const DateCriteriaItem = observer(({ criteria }: { criteria: IDateSearchCriteria
   );
 });
 
+interface ICriteriaItemProps {
+  criteria: SearchCriteria<IFile>;
+  onRemove: () => any;
+  onAdd: () => any;
+}
+
 // The main Criteria component, finds whatever input fields for the key should be rendered
-const CriteriaItem = observer(({ criteria }: { criteria: SearchCriteria<IFile> }) => {
+const CriteriaItem = observer(({ criteria, onRemove, onAdd }: ICriteriaItemProps) => {
   const critFields = useMemo(() => {
     if (criteria.key === 'name' || criteria.key === 'path') {
       return <StringCriteriaItem criteria={criteria as IStringSearchCriteria<IFile>} />;
@@ -253,9 +259,14 @@ const CriteriaItem = observer(({ criteria }: { criteria: SearchCriteria<IFile> }
   }, [criteria.key]);
 
   return (
-    <ControlGroup fill>
+    <ControlGroup fill className="criteria">
       <KeySelector criteria={criteria} />
       {critFields}
+
+      <ButtonGroup vertical className="add-remove">
+        <Button text="-" onClick={onRemove} />
+        <Button text="+" onClick={onAdd} />
+      </ButtonGroup>
     </ControlGroup>
   );
 });
@@ -267,13 +278,19 @@ const SearchForm = observer(() => {
     () => uiStore.addSearchQuery({ key: 'tags', action: 'include', operator: 'or', value: [] }),
     []);
 
+  const removeSearchQuery = useCallback((index: number) => uiStore.searchCriteriaList.splice(index, 1), []);
+
   // Todo: Also search through collections
 
   return (
     <div id="search-form">
       <FormGroup>
         {uiStore.searchCriteriaList.map((crit, i) => (
-          <CriteriaItem criteria={crit} key={`crit-${i}-${crit.key}`} />
+          <CriteriaItem
+            criteria={crit} key={`crit-${i}-${crit.key}`}
+            onAdd={addSearchQuery}
+            onRemove={removeSearchQuery.bind(null, i)}
+          />
         ))}
       </FormGroup>
 

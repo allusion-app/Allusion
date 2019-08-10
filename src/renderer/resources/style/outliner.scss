@@ -82,7 +82,7 @@ nav {
   }
   button.bp3-intent-primary {
     background:$light-gray0-trans;
-}
+  }
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
@@ -161,6 +161,23 @@ nav .bp3-tree {
   }
   #actions-bar {
     float: right;
+  }
+  .criteria {
+    .add-remove {
+      flex-grow: 0;
+      margin-left: 8px;
+      button {
+        min-width: 15px;
+        min-height: 15px;
+        width: 15px;
+        height: 15px;
+        line-height: 0;
+        padding: 5px;
+      }
+      button:hover * {
+        line-height: 0;
+      }
+    }
   }
 }
 
