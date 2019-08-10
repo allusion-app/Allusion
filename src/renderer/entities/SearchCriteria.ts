@@ -4,7 +4,7 @@ type SearchCriteriaAction = 'include' | 'exclude';
 type SearchCriteriaOperator = 'and' | 'or';
 
 // Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
-export const SearchCriteriaEqualitySign = ['equal', 'greater', 'smaller'];
+export const SearchCriteriaEqualitySign = ['smaller', 'greater', 'equal'];
 export type SearchCriteriaEqualitySignType = typeof SearchCriteriaEqualitySign[number];
 
 interface IBaseSearchCriteria<T> {
@@ -71,14 +71,14 @@ export function initStringCriteria<T>(crit: SearchCriteria<T>) {
 export function initNumberCriteria<T>(crit: SearchCriteria<T>) {
   clearCriteria(crit);
   const res = crit as INumberSearchCriteria<T>;
-  res.equalitySign = 'equal';
+  res.equalitySign = 'greater';
   return res;
 }
 
 export function initDateCriteria<T>(crit: SearchCriteria<T>) {
   clearCriteria(crit);
   const res = crit as IDateSearchCriteria<T>;
-  res.equalitySign = 'equal';
+  res.equalitySign = 'greater';
   res.value = new Date();
   return res;
 }

@@ -1,9 +1,8 @@
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Select, ItemRenderer } from '@blueprintjs/select';
 import { DateInput } from '@blueprintjs/datetime';
 import {
-  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, Checkbox, InputGroup, NumericInput, MenuItem,
+  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, Checkbox, InputGroup, NumericInput, HTMLSelect,
 } from '@blueprintjs/core';
 
 import MultiTagSelector from './MultiTagSelector';
@@ -21,7 +20,7 @@ import { capitalize, jsDateFormatter } from '../utils';
 interface IKeyLabel {
   [key: string]: string;
 }
-const KeyLabelMap: IKeyLabel = {
+export const KeyLabelMap: IKeyLabel = {
   name: 'File name',
   path: 'File path',
   extension: 'File type',
@@ -31,11 +30,6 @@ const KeyLabelMap: IKeyLabel = {
 };
 
 const CriteriaKeyOrder: Array<keyof IFile> = ['name', 'path', 'extension', 'size', 'tags', 'dateAdded'];
-
-const commonSelectProps = {
-  popoverProps: { minimal: true },
-  openOnKeyDown: false,
-};
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -56,8 +50,8 @@ export const AdvancedSearchDialog = observer(() => {
 });
 
 const KeySelector = observer(({ criteria }: { criteria: SearchCriteria<IFile> }) => {
-  const handlePickKey = useCallback((key: keyof IFile) => {
-    criteria.key = key;
+  const handlePickKey = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+    criteria.key = e.target.value as keyof IFile;
     if (criteria.key === 'name') {
       initStringCriteria(criteria);
     } else if (criteria.key === 'path') {
@@ -74,31 +68,12 @@ const KeySelector = observer(({ criteria }: { criteria: SearchCriteria<IFile> })
     }
   }, [criteria]);
 
-  const KeyItemRenderer = useCallback<ItemRenderer<keyof IFile>>(
-    (value, { modifiers, handleClick }) => {
-      return !modifiers.matchesPredicate ? null : (
-        <MenuItem
-          key={value}
-          text={KeyLabelMap[value]}
-          icon={value === criteria.key ? 'tick' : 'blank'}
-          active={modifiers.active}
-          onClick={handleClick}
-          shouldDismissPopover={false}
-        />
-      );
-    },
-    [criteria],
-  );
-
   return (
-    <Select
-      items={CriteriaKeyOrder}
-      itemRenderer={KeyItemRenderer}
-      onItemSelect={handlePickKey}
-      {...commonSelectProps}
-    >
-      <Button text={KeyLabelMap[criteria.key]} rightIcon="double-caret-vertical" />
-    </Select>
+    <HTMLSelect
+      onChange={handlePickKey}
+      options={CriteriaKeyOrder.map((key) => ({ value: key, label: KeyLabelMap[key] }))}
+      value={criteria.key}
+    />
   );
 });
 
@@ -122,50 +97,34 @@ const TagCriteriaItem = observer(({ criteria }: { criteria: IIDsSearchCriteria<I
       onTagSelect={handleSelectTag}
       onTagDeselect={handleDeselectTag}
       onClearSelection={handleClearTags}
+      placeholder="Untagged"
       autoFocus
     />
   );
 });
 
 const StringCriteriaItem = observer(({ criteria }: { criteria: IStringSearchCriteria<IFile> }) => {
-  const handleChangeExact = useCallback((e) => criteria.exact = e.target.value, [criteria]);
+  const handleChangeExact = useCallback(() => criteria.exact = !criteria.exact, [criteria]);
   const handleChangeValue = useCallback((e) => criteria.value = e.target.value, [criteria]);
+  const { exact, value } = criteria;
   return (
     <>
-      <Checkbox label="Exact" checked={criteria.exact} onChange={handleChangeExact} />
-      <InputGroup placeholder="Enter some text..." value={criteria.value} onChange={handleChangeValue} />
+      <Checkbox label="Exact" checked={exact} onChange={handleChangeExact} value={`${Boolean(exact)}`} />
+      <InputGroup placeholder="Enter some text..." value={value} onChange={handleChangeValue} autoFocus />
     </>
   );
 });
 
 const ExtensionCriteriaItem = observer(({ criteria }: { criteria: IStringSearchCriteria<IFile> }) => {
-  const handlePickValue = useCallback((value) => criteria.value = value, [criteria]);
-
-  const ExtItemRenderer = useCallback<ItemRenderer<string>>(
-    (value, { modifiers, handleClick }) => {
-      return !modifiers.matchesPredicate ? null : (
-        <MenuItem
-          key={value}
-          text={value.toUpperCase()}
-          icon={value === criteria.value ? 'tick' : 'blank'}
-          active={modifiers.active}
-          onClick={handleClick}
-          shouldDismissPopover={false}
-        />
-      );
-    },
-    [criteria],
-  );
+  const handlePickValue = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => criteria.value = e.target.value, [criteria]);
 
   return (
-    <Select
-      items={IMG_EXTENSIONS}
-      itemRenderer={ExtItemRenderer}
-      onItemSelect={handlePickValue}
-      {...commonSelectProps}
-    >
-      <Button text={criteria.value.toUpperCase()} rightIcon="double-caret-vertical" />
-    </Select>
+    <HTMLSelect
+      onChange={handlePickValue}
+      options={IMG_EXTENSIONS.map((ext) => ({ value: ext, label: ext.toUpperCase() }))}
+      value={criteria.value}
+    />
   );
 });
 
@@ -175,30 +134,13 @@ interface ISignSelectProps {
 }
 
 const SignSelect = ({ onSelect, sign }: ISignSelectProps) => {
-  const SignItemRenderer = useCallback<ItemRenderer<SearchCriteriaEqualitySignType>>(
-    (value, { modifiers, handleClick }) => {
-      return !modifiers.matchesPredicate ? null : (
-        <MenuItem
-          key={value.toUpperCase()}
-          text={capitalize(value)}
-          icon={value === sign ? 'tick' : 'blank'}
-          active={modifiers.active}
-          onClick={handleClick}
-          shouldDismissPopover={false}
-        />
-      );
-    },
-    [sign],
-  );
+  const handleSelect = useCallback((e: ChangeEvent<HTMLSelectElement>) => onSelect(e.target.value), [onSelect]);
   return (
-    <Select
-      items={SearchCriteriaEqualitySign}
-      itemRenderer={SignItemRenderer}
-      onItemSelect={onSelect}
-      {...commonSelectProps}
-    >
-      <Button text={capitalize(sign)} rightIcon="double-caret-vertical" />
-    </Select>
+    <HTMLSelect
+      onChange={handleSelect}
+      options={SearchCriteriaEqualitySign.map((value) => ({ value, label: capitalize(value) }))}
+      value={sign}
+    />
   );
 };
 
@@ -209,7 +151,7 @@ const NumberCriteriaItem = observer(({ criteria }: { criteria: INumberSearchCrit
   return (
     <>
       <SignSelect onSelect={handleChangeSign} sign={criteria.equalitySign} />
-      <NumericInput placeholder="Enter a number..." value={criteria.value} onChange={handleChangeValue} />
+      <NumericInput placeholder="Enter a number..." value={criteria.value} onChange={handleChangeValue} autoFocus />
     </>
   );
 });
@@ -280,6 +222,11 @@ const SearchForm = observer(() => {
 
   const removeSearchQuery = useCallback((index: number) => uiStore.searchCriteriaList.splice(index, 1), []);
 
+  const resetSearchCriteria = useCallback(() => {
+    uiStore.clearSearchQueryList();
+    addSearchQuery();
+  }, []);
+
   // Todo: Also search through collections
 
   return (
@@ -294,13 +241,12 @@ const SearchForm = observer(() => {
         ))}
       </FormGroup>
 
-      <Button icon={IconSet.ADD} onClick={addSearchQuery} fill text="Query"/>
+      {/* <Button icon={IconSet.ADD} onClick={addSearchQuery} fill text="Query"/> */}
 
       <ButtonGroup id="actions-bar">
 
         <Button
-          // intent="warning"
-          onClick={uiStore.clearSearchQueryList}
+          onClick={resetSearchCriteria}
           disabled={uiStore.searchCriteriaList.length === 0}
           text="Reset"
           icon={IconSet.CLOSE}

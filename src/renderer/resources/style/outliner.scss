@@ -163,6 +163,9 @@ nav .bp3-tree {
     float: right;
   }
   .criteria {
+    .bp3-control-group {
+      padding: 0px;
+    }
     .add-remove {
       flex-grow: 0;
       margin-left: 8px;

@@ -120,7 +120,6 @@ class UiStore {
   readonly tagSelection = observable<ID>([]);
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
-  readonly quickSearchTags = observable<ID>([]);
 
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
@@ -403,17 +402,18 @@ class UiStore {
     await this.viewContentAll();
   }
 
-  @action.bound async addSearchQuery(query: Exclude<FileSearchCriteria, 'key'>) {
-    this.searchCriteriaList.push(query);
+  @action.bound async searchByQuery() {
     await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
+  }
+
+  @action.bound async addSearchQuery(query: Exclude<FileSearchCriteria, 'key'>) {
+    this.searchCriteriaList.push(query);
     this.viewContent = 'query';
   }
 
   @action.bound async removeSearchQuery(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
-    await this.rootStore.fileStore.fetchFilesByQuery();
-    this.cleanFileSelection();
   }
 
   @action.bound addTagsToQuery(ids: ID[]) {
@@ -547,9 +547,19 @@ class UiStore {
   }
   @action.bound toggleQuickSearch() {
     this.isQuickSearchOpen = !this.isQuickSearchOpen;
+    if (this.isQuickSearchOpen) {
+      if (this.searchCriteriaList.length === 0) {
+        this.searchCriteriaList.push({ key: 'tags', value: [], action: 'include', operator: 'and' })
+      }
+    } else {
+      this.clearSearchQueryList();
+    }
   }
   @action.bound toggleAdvancedSearch() {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
+    if (this.isAdvancedSearchOpen && !this.isQuickSearchOpen) {
+      this.toggleQuickSearch();
+    }
   }
 
   /////////////////// Helper methods ///////////////////

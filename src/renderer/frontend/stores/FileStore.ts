@@ -90,10 +90,18 @@ class FileStore {
 
   @action.bound
   async fetchFilesByQuery() {
-    // Todo: properly implement this later
-    // await this.fetchFilesByTagIDs(
-    //   this.rootStore.uiStore.searchCriteriaList.flatMap((q) => (q as IIDSearchCriteria<IFile>).value),
-    // );
+    const criteria = this.rootStore.uiStore.searchCriteriaList.toJS();
+    if (criteria.length === 0) {
+      return;
+    }
+    const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
+    try {
+      const fetchedFiles = await this.backend.searchFiles(
+        criteria as [SearchCriteria<IFile>], fileOrder, fileOrderDescending);
+      this.updateFromBackend(fetchedFiles);
+    } catch (e) {
+      console.log('Could not find files based on criteria', e);
+    }
   }
 
   @action

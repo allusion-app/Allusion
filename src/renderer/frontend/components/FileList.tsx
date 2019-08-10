@@ -1,47 +1,97 @@
 import React, { useCallback, useContext, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Button, Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
+import { Button, Hotkey, Hotkeys, HotkeysTarget, TagInput } from '@blueprintjs/core';
 
 import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
 import Gallery from './Gallery';
 import { ClientTag } from '../../entities/Tag';
 import MultiTagSelector from './MultiTagSelector';
+import { KeyLabelMap } from './SearchForm';
+import { IIDsSearchCriteria } from '../../entities/SearchCriteria';
+import { IFile } from '../../entities/File';
 
-const QuickSearch = observer(() => {
+const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
 
-  // Todo: Implement this properly later
+  const tagCrit = uiStore.searchCriteriaList[0] as IIDsSearchCriteria<IFile>;
+
   const queriedTags = useMemo(
-    () => uiStore.quickSearchTags.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),
-    [uiStore.quickSearchTags.length]);
+    () => tagCrit.value.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),
+    [tagCrit.value.length]);
 
   const handleSelectTag = useCallback((tag: ClientTag) => {
-    uiStore.quickSearchTags.push(tag.id);
-    fileStore.fetchFilesByTagIDs(uiStore.quickSearchTags);
+    tagCrit.value.push(tag.id);
+    uiStore.searchByQuery();
   }, []);
 
   const handleDeselectTag = useCallback((tag: ClientTag) => {
-    uiStore.quickSearchTags.remove(tag.id);
-    fileStore.fetchFilesByTagIDs(uiStore.quickSearchTags);
+    const index = tagCrit.value.indexOf(tag.id);
+    if (index >= 0) {
+      tagCrit.value.splice(index, 1);
+      uiStore.searchByQuery();
+    }
   }, []);
 
   const handleClearTags = useCallback(() => {
-    uiStore.isQuickSearchOpen = false;
-    uiStore.quickSearchTags.clear();
+    uiStore.toggleQuickSearch();
     fileStore.fetchAllFiles();
   }, []);
 
   return (
+    <MultiTagSelector
+      selectedTags={queriedTags}
+      onTagSelect={handleSelectTag}
+      onTagDeselect={handleDeselectTag}
+      onClearSelection={handleClearTags}
+      autoFocus
+      tagIntent="primary"
+      // refocusObject={quickSearchFocusDate}
+    />
+  );
+});
+
+const CriteriaList = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+
+  const ClearButton = useMemo(() => <Button onClick={uiStore.clearSearchQueryList} icon="cross" />, []);
+  const handleRemove = useCallback((_: string, index: number) =>
+    uiStore.removeSearchQuery(uiStore.searchCriteriaList[index]), []);
+
+  const preventTyping = useCallback((e: React.KeyboardEvent<HTMLElement>, i?: number) => {
+    // If it's not an event on an existing Tag element, ignore it
+    if (i === undefined && !e.ctrlKey) {
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleTagClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.currentTarget.tagName === 'SPAN') {
+      uiStore.toggleAdvancedSearch();
+    }
+  }, []);
+
+  return (
+    <TagInput
+      values={uiStore.searchCriteriaList.map((crit, i) => `${i + 1}: ${KeyLabelMap[crit.key]}`)}
+      rightElement={ClearButton}
+      onRemove={handleRemove}
+      inputProps={{ disabled: true }}
+      onKeyDown={preventTyping}
+      tagProps={{ minimal: true, intent: 'primary', onClick: handleTagClick, interactive: true }}
+      fill
+    />
+  );
+});
+
+const SearchBar = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+
+  const showQuickSearch = uiStore.searchCriteriaList.length === 1 && uiStore.searchCriteriaList[0].key === 'tags';
+
+  return (
     <div id="quick-search">
       <Button icon="more" onClick={uiStore.toggleAdvancedSearch} />
-      <MultiTagSelector
-        selectedTags={queriedTags}
-        onTagSelect={handleSelectTag}
-        onTagDeselect={handleDeselectTag}
-        onClearSelection={handleClearTags}
-        autoFocus
-        tagIntent="primary"
-      />
+      {showQuickSearch ? <QuickSearchList /> : <CriteriaList /> }
     </div>
   );
 });
@@ -49,7 +99,7 @@ const QuickSearch = observer(() => {
 const FileList = observer(({ rootStore: { uiStore } }: IRootStoreProp) => {
   return (
     <>
-      { uiStore.isQuickSearchOpen && <QuickSearch /> }
+      { uiStore.isQuickSearchOpen && <SearchBar /> }
       <Gallery />
     </>
   );
