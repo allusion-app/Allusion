@@ -3,14 +3,13 @@
 
 import React, { useContext } from 'react';
 import { useDragLayer } from 'react-dnd';
-import { TAG_DRAG_TYPE } from './TagListItem';
 import { Tag } from '@blueprintjs/core';
-import { COLLECTION_DRAG_TYPE } from './TagCollectionListItem';
-import StoreContext from '../contexts/StoreContext';
-import { observer } from 'mobx-react-lite';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
-import { ClientTag } from '../../entities/Tag';
-import { formatTagCountText } from '../utils';
+import StoreContext from '../../contexts/StoreContext';
+
+import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../entities/TagCollection';
+import { ClientTag } from '../../../entities/Tag';
+import { formatTagCountText } from '../../utils';
+import { ItemType } from '.';
 
 const layerStyles: React.CSSProperties = {
   position: 'fixed',
@@ -22,8 +21,7 @@ const layerStyles: React.CSSProperties = {
   height: '100%',
 };
 
-const CustomDragLayer = () => {
-  const rootStore = useContext(StoreContext);
+export const CustomDragLayer = () => {
   const { item, itemType, currentOffset, isDragging } = useDragLayer((monitor) => ({
     item: monitor.getItem(),
     itemType: monitor.getItemType(),
@@ -31,28 +29,23 @@ const CustomDragLayer = () => {
     isDragging: monitor.isDragging(),
   }));
 
-  if (!isDragging || !currentOffset
-    || !(itemType === TAG_DRAG_TYPE || itemType === COLLECTION_DRAG_TYPE)) {
+  if (!isDragging || !currentOffset || !(itemType === ItemType.Tag || itemType === ItemType.Collection)) {
     return null;
   }
 
   const getItemStyles = () => {
     const { x, y } = currentOffset;
     const transform = `translate(${x}px, ${y}px)`;
-    return {
-      transform,
-      WebkitTransform: transform,
-    };
+    return { transform, WebkitTransform: transform };
   };
 
+  const { uiStore, tagStore, tagCollectionStore } = useContext(StoreContext);
   const renderItem = () => {
-    const { uiStore, tagStore, tagCollectionStore } = rootStore;
-
     // Find out which items are in the context, based on what is selected
     const ctx = uiStore.getTagContextItems(item.id);
 
     switch (itemType) {
-      case TAG_DRAG_TYPE: {
+      case ItemType.Tag: {
         const draggedTag = tagStore.tagList.find((t) => t.id === item.id) as ClientTag;
         // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
         const numTag = draggedTag.parent.id !== ROOT_TAG_COLLECTION_ID && draggedTag.parent.isSelected
@@ -63,7 +56,7 @@ const CustomDragLayer = () => {
         const extraText = draggedTag.isSelected && (formattedText) && ` (${formattedText})`;
         return <Tag intent="primary" large>{item.name}{extraText}</Tag>;
       }
-      case COLLECTION_DRAG_TYPE: {
+      case ItemType.Collection: {
         const draggedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === item.id) as ClientTagCollection;
         // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
         const numCollection = draggedCol.parent.id !== ROOT_TAG_COLLECTION_ID && draggedCol.parent.isSelected
@@ -75,7 +68,7 @@ const CustomDragLayer = () => {
         return <Tag intent="primary" large>{item.name}{extraText}</Tag>;
       }
       default:
-        break;
+        return null;
     }
   };
 
@@ -85,5 +78,3 @@ const CustomDragLayer = () => {
     </div>
   );
 };
-
-export default (observer(CustomDragLayer));

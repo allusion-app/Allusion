@@ -10,7 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
-import DragLayer from './components/DragLayer';
+import DragLayer from './components/DragAndDrop';
 
 const SPLASH_SCREEN_TIME = 700;
 

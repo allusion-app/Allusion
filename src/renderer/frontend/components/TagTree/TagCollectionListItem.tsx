@@ -2,17 +2,16 @@ import { ContextMenuTarget, Menu, MenuItem, Divider } from '@blueprintjs/core';
 import React, { useState, useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
-import { ClientTagCollection } from '../../entities/TagCollection';
-import { ModifiableTagListItem, TAG_DRAG_TYPE, ITagDragItem } from './TagListItem';
+import { ClientTagCollection } from '../../../entities/TagCollection';
+import { ModifiableTagListItem } from './TagListItem';
 import { getEmptyImage } from 'react-dnd-html5-backend';
-import { ID } from '../../entities/ID';
-import IconSet from './Icons';
-import UiStore from '../stores/UiStore';
-import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
-import { formatTagCountText } from '../utils';
-
-export const COLLECTION_DRAG_TYPE = 'collection';
-export const DEFAULT_COLLECTION_NAME = 'New collection';
+import { ID } from '../../../entities/ID';
+import IconSet from '../Icons';
+import UiStore from '../../stores/UiStore';
+import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
+import { formatTagCountText } from '../../utils';
+import { ItemType, ITagDragItem } from '../DragAndDrop';
+import { DEFAULT_COLLECTION_NAME } from '.';
 
 interface ITagCollectionListItemProps extends IRootStoreProp {
   tagCollection: ClientTagCollection;
@@ -40,9 +39,9 @@ const TagCollectionListItem = ({
   hoverTimeToExpand = 1000,
 }: ITagCollectionListItemProps & { uiStore: UiStore }) => {
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
-    item: { type: COLLECTION_DRAG_TYPE },
+    item: { type: ItemType.Collection },
     begin: () => ({
-      type: COLLECTION_DRAG_TYPE,
+      type: ItemType.Collection,
       id: tagCollection.id,
       name: tagCollection.name,
       isSelected: tagCollection.isSelected,
@@ -56,41 +55,39 @@ const TagCollectionListItem = ({
   // - https://react-dnd.github.io/react-dnd/examples/sortable/cancel-on-drop-outside
   // - https://gist.github.com/G710/6f85869b73ff08ce95ca93e31ed510f8
   const [{ isHovering, canDrop }, connectDropTarget] = useDrop({
-    accept: [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
+    accept: [ItemType.Tag, ItemType.Collection],
     drop: (_, monitor) => {
       const type = monitor.getItemType();
-      if (type === COLLECTION_DRAG_TYPE) {
+      if (type === ItemType.Collection) {
         onMoveCollection(monitor.getItem());
-      } else if (type === TAG_DRAG_TYPE) {
+      } else if (type === ItemType.Tag) {
         onMoveTag(monitor.getItem());
       }
     },
     canDrop: (_, monitor) => {
-      const { id: draggedId, isSelected: draggedIsSelected }: ITagDragItem = monitor.getItem();
-      const type = monitor.getItemType();
-      if (type === COLLECTION_DRAG_TYPE) {
-        if (!draggedIsSelected) {
-
+      switch (monitor.getItemType()) {
+        case ItemType.Collection:
+          const { isSelected, id }: ITagDragItem = monitor.getItem();
+          if (isSelected) {
+            return !tagCollection.isSelected;
+          }
           // Dragging a collection over another collection is allowed if it's not itself
-          const { id: overId } = tagCollection;
-          if (draggedId === overId) {
+          if (id === tagCollection.id) {
             return false;
           }
           // and it's not in its own children
-          const draggedCollection = tagCollection.store.tagCollectionList.find((c) => c.id === draggedId);
+          const draggedCollection = tagCollection.store.tagCollectionList.find((c) => c.id === id);
           if (draggedCollection) {
             return !draggedCollection.containsSubCollection(tagCollection);
           }
-        } else {
+          return false;
+        case ItemType.Tag:
+          // Dragging a tag over a collection is always allowed if it's not selected
           // Else, only allowed when this collection is not selected (else you drop something on itself)
-          return draggedIsSelected ? !tagCollection.isSelected : true;
-        }
-      } else if (type === TAG_DRAG_TYPE) {
-        // Dragging a tag over a collection is always allowed if it's not selected
-        // Else, only allowed when this collection is not selected (else you drop something on itself)
-        return draggedIsSelected ? !tagCollection.isSelected : true;
+          return monitor.getItem().isSelected ? !tagCollection.isSelected : true;
+        default:
+          return false;
       }
-      return false;
     },
     collect: (monitor) => ({
       isHovering: monitor.isOver(),
@@ -120,6 +117,7 @@ const TagCollectionListItem = ({
   // Style whether the element is being dragged or hovered over to drop on
   const className = `${
     canDrop && !isDragging && isHovering ? 'reorder-target' : ''} ${isDragging ? 'reorder-source' : ''}`;
+
   return connectDropTarget(
     connectDragSource(
       <div className={className}>
@@ -145,6 +143,7 @@ interface ITagCollectionContextMenu {
   numTagsToDelete: number;
   numColsToDelete: number;
 }
+
 const TagCollectionListItemContextMenu = ({
   collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
   onAddSelectionToQuery, onReplaceQuery, onMoveUp, onMoveDown, numTagsToDelete, numColsToDelete,

@@ -12,22 +12,17 @@ import {
   Divider,
 } from '@blueprintjs/core';
 
-import { ID } from '../../entities/ID';
-import IconSet from './Icons';
+import { ID } from '../../../entities/ID';
+import IconSet from '../Icons';
 import { getEmptyImage } from 'react-dnd-html5-backend';
-import UiStore from '../stores/UiStore';
-import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
-import { formatTagCountText } from '../utils';
-
-export const TAG_DRAG_TYPE = 'tag';
-export const DEFAULT_TAG_NAME = 'New tag';
-
-interface IStaticTagListItemProps {
-  name: string;
-}
+import UiStore from '../../stores/UiStore';
+import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
+import { formatTagCountText } from '../../utils';
+import { ItemType, ITagDragItem } from '../DragAndDrop';
+import { DEFAULT_TAG_NAME } from '.';
 
 /** Can be used for "non-existing" tags, e.g. 'Untagged', 'Recently added'. Cannot be removed */
-export const StaticTagListItem = ({ name }: IStaticTagListItemProps) => (
+export const StaticTagListItem = (name: string) => (
   <Tag large minimal fill interactive active>
     {name}
   </Tag>
@@ -136,37 +131,32 @@ export const TagListItem = ({
   uiStore,
 }: ITagListItemProps & IEditingProps) => {
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
-    item: { type: TAG_DRAG_TYPE },
-    begin: () => ({
-      type: TAG_DRAG_TYPE,
-      id,
-      name,
-      isSelected,
-    }),
+    item: { type: ItemType.Tag },
+    begin: () => ({ type: ItemType.Tag, id, name, isSelected }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
   });
 
   const [{ isHovering }, connectDropTarget] = useDrop({
-    accept: TAG_DRAG_TYPE,
+    accept: ItemType.Tag,
     drop: (_, monitor) => {
       // Move the tag to the position where it is dropped (could be other collection as well)
-      const { id: draggedId } = monitor.getItem();
-      if (draggedId !== id) {
-        onMoveTag(monitor.getItem());
+      const item = monitor.getItem();
+      if (item.id !== id) {
+        onMoveTag(item);
       }
     },
     canDrop: (_, monitor) => {
-      const { id: draggedId, isSelected: draggedSelection }: ITagDragItem = monitor.getItem();
+      const item = monitor.getItem();
 
       // If a dragged item is selected, make sure nothing in the selection is dropped into itself
-      if (draggedSelection) {
+      if (item.isSelected) {
         return uiStore.tagSelection.find((selTagId) => selTagId === id) === undefined;
       }
 
       // You cannot drop a tag on itself
-      return id !== draggedId;
+      return id !== item.id;
     },
     collect: (monitor) => ({
       isHovering: monitor.isOver(),
@@ -178,9 +168,7 @@ export const TagListItem = ({
   }, []);
 
   // Style whether the element is being dragged or hovered over to drop on
-  const className = `${isHovering ? 'reorder-target' : ''} ${
-    isDragging ? 'reorder-source' : ''
-    }`;
+  const className = `${isHovering ? 'reorder-target' : ''} ${isDragging ? 'reorder-source' : ''}`;
   return connectDropTarget(
     connectDragSource(
       <div className={className}>
@@ -205,12 +193,6 @@ export const TagListItem = ({
   );
 };
 
-export interface ITagDragItem {
-  name: string;
-  id: string;
-  isSelected: boolean;
-}
-
 interface ITagListItemContextMenuProps {
   setEditing: (value: boolean) => void;
   onRemove: () => void;
@@ -219,6 +201,7 @@ interface ITagListItemContextMenuProps {
   numTagsToDelete: number;
   numColsToDelete: number;
 }
+
 const TagListItemContextMenu = ({
   setEditing,
   onRemove,
@@ -243,28 +226,11 @@ const TagListItemContextMenu = ({
   return (
     <Menu>
       <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem
-        onClick={onRemove}
-        text={`Delete${deleteText}`}
-        icon={IconSet.DELETE}
-      />
-      <MenuItem
-        onClick={handleChangeColor}
-        text="Change color"
-        icon="circle"
-        disabled
-      />
+      <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} />
+      <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
       <Divider />
-      <MenuItem
-        onClick={onAddSelectionToQuery}
-        text="Add to search query"
-        icon={IconSet.SEARCH}
-      />
-      <MenuItem
-        onClick={onReplaceQuery}
-        text="Replace search query"
-        icon={IconSet.REPLACE}
-      />
+      <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
+      <MenuItem onClick={onReplaceQuery} text="Replace search query" icon={IconSet.REPLACE} />
     </Menu>
   );
 };

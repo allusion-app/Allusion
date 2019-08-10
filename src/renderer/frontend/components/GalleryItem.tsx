@@ -9,7 +9,7 @@ import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import { SingleFileInfo } from './FileInfo';
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
-import { TAG_DRAG_TYPE } from './TagListItem';
+import { ItemType } from './DragAndDrop';
 
 interface IGalleryItemTagProps {
   tag: ClientTag;
@@ -43,7 +43,7 @@ export const GalleryItem = observer(({
   showName, showTags, showInfo,
 }: IGalleryItemProps) => {
   const [{ isOver, canDrop }, gallerItemDrop] = useDrop({
-    accept: TAG_DRAG_TYPE,
+    accept: ItemType.Tag,
     drop: (_, monitor) => onDrop(monitor.getItem(), file),
     canDrop: () => true,
     collect: (monitor) => ({

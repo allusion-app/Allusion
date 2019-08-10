@@ -5,19 +5,17 @@ import {
 } from '@blueprintjs/core';
 import { useDrop } from 'react-dnd';
 
-import TagListItem, { DEFAULT_TAG_NAME, TAG_DRAG_TYPE, ITagDragItem } from './TagListItem';
-import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
-import TagCollectionListItem, { DEFAULT_COLLECTION_NAME, COLLECTION_DRAG_TYPE } from './TagCollectionListItem';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
-import TagCollectionStore from '../stores/TagCollectionStore';
-import { ID } from '../../entities/ID';
-import IconSet from './Icons';
-import { ClientTag } from '../../entities/Tag';
-import RootStore from '../stores/RootStore';
-
-// Tooltip info
-const addTagTT = 'New Tag';
-const addTagColCTT = 'New Tag Collection';
+import TagListItem from './TagListItem';
+import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
+import TagCollectionListItem from './TagCollectionListItem';
+import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../entities/TagCollection';
+import TagCollectionStore from '../../stores/TagCollectionStore';
+import { ID } from '../../../entities/ID';
+import IconSet from '../Icons';
+import { ClientTag } from '../../../entities/Tag';
+import RootStore from '../../stores/RootStore';
+import { ItemType, ITagDragItem } from '../DragAndDrop';
+import { DEFAULT_TAG_NAME, DEFAULT_COLLECTION_NAME } from '.';
 
 interface IExpandState {
   [key: string]: boolean;
@@ -41,6 +39,23 @@ const createTagCollectionTreeNode = (
 ): ITreeNode => {
   const { uiStore } = store.rootStore;
 
+  const movePosition = (computePosition: (oldPosition: number, collectionParent: ClientTagCollection) => number) => {
+    const movedCollectionParent = store.tagCollectionList.find((c) => c.subCollections.includes(col.id));
+    if (movedCollectionParent) {
+      const oldIndex = movedCollectionParent.subCollections.indexOf(col.id);
+      movedCollectionParent.subCollections.remove(col.id);
+      movedCollectionParent.subCollections.splice(computePosition(oldIndex, movedCollectionParent), 0, col.id);
+    }
+  };
+
+  const handleMoveTag = ({ id, isSelected }: ITagDragItem, target: ClientTag | ClientTagCollection) => {
+    if (isSelected) {
+      return uiStore.moveSelectedTagsAndCollections(target.id);
+    } else {
+      return uiStore.moveTag(id, target);
+    }
+  };
+
   const label = (
     <TagCollectionListItem
       tagCollection={col}
@@ -58,31 +73,16 @@ const createTagCollectionTreeNode = (
       // Destructure objects to make them into a new object, else the render won't trigger
       onExpandAll={() => setExpandState({ ...setExpandStateRecursively(col, true, expandState) })}
       onCollapseAll={() => setExpandState({ ...setExpandStateRecursively(col, false, expandState) })}
-      onMoveUp={() => {
-        // Move collection one position up
-        const movedCollectionParent = store.tagCollectionList.find((c) => c.subCollections.includes(col.id));
-        if (movedCollectionParent) {
-          const oldIndex = movedCollectionParent.subCollections.indexOf(col.id);
-          movedCollectionParent.subCollections.remove(col.id);
-          movedCollectionParent.subCollections.splice(Math.max(0, oldIndex - 1), 0, col.id);
-        }
-      }}
-      onMoveDown={() => {
-        // Move collection one position down
-        const movedCollectionParent = store.tagCollectionList.find((c) => c.subCollections.includes(col.id));
-        if (movedCollectionParent) {
-          const oldIndex = movedCollectionParent.subCollections.indexOf(col.id);
-          movedCollectionParent.subCollections.remove(col.id);
-          movedCollectionParent.subCollections.splice(
-            Math.min(movedCollectionParent.subCollections.length, oldIndex + 1), 0, col.id);
-        }
-      }}
+      // Move collection one position up
+      onMoveUp={() => movePosition((oldPosition) => Math.max(0, oldPosition - 1))}
+      // Move collection one position down
+      onMoveDown={() => movePosition(
+        (oldPosition, collectionParent) => Math.min(collectionParent.subCollections.length, oldPosition + 1),
+      )}
       onMoveCollection={({ id, isSelected }) => isSelected
         ? uiStore.moveSelectedTagsAndCollections(col.id)
         : uiStore.moveCollection(id, col)}
-      onMoveTag={({ id, isSelected }) => isSelected
-        ? uiStore.moveSelectedTagsAndCollections(col.id)
-        : uiStore.moveTag(id, col)}
+      onMoveTag={(draggedTag) => handleMoveTag(draggedTag, col)}
       onAddSelectionToQuery={() => uiStore.addTagsToQuery(
         col.isSelected ? uiStore.tagSelection.toJS() : col.getTagsRecursively())}
       onReplaceQuery={() => store.rootStore.uiStore.replaceQuery(
@@ -106,9 +106,7 @@ const createTagCollectionTreeNode = (
           dateAdded={tag.dateAdded}
           onRemove={() => store.rootStore.uiStore.openOutlinerTagRemover(tag.isSelected ? 'selected' : tag.id)}
           onRename={(name) => { tag.name = name; }}
-          onMoveTag={({ id, isSelected }) => isSelected
-            ? uiStore.moveSelectedTagsAndCollections(tag.id)
-            : uiStore.moveTag(id, tag)}
+          onMoveTag={(draggedTag) => handleMoveTag(draggedTag, tag)}
           onAddSelectionToQuery={() => uiStore.addTagsToQuery(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])}
           onReplaceQuery={() => uiStore.replaceQuery(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])}
           isSelected={uiStore.tagSelection.includes(tag.id)}
@@ -132,25 +130,25 @@ const createTagCollectionTreeNode = (
 
 const TagRemoverContent = ({ rootStore }: { rootStore: RootStore }) => {
   const { uiStore, tagStore, tagCollectionStore } = rootStore;
-  const [removeType, setRemoveType] = useState<'tag' | 'collection'>();
+  const [removeType, setRemoveType] = useState<ItemType>();
   const [tagsToRemove, setTagsToRemove] = useState<ClientTag[]>([]);
   const [colToRemove, setColToRemove] = useState<ClientTagCollection>();
 
   useEffect(() => {
     // Check whether to remove selected tags or a specific tag or collection
     if (uiStore.isOutlinerTagRemoverOpen === 'selected') {
-      setRemoveType('tag');
+      setRemoveType(ItemType.Tag);
       setTagsToRemove(uiStore.clientTagSelection);
     } else if (uiStore.isOutlinerTagRemoverOpen) {
       const id = uiStore.isOutlinerTagRemoverOpen;
       const remTag = tagStore.tagList.find((t) => t.id === id);
       if (remTag) {
-        setRemoveType('tag');
+        setRemoveType(ItemType.Tag);
         setTagsToRemove([remTag]);
       } else {
         const remCol = tagCollectionStore.tagCollectionList.find((c) => c.id === id);
         if (remCol) {
-          setRemoveType('collection');
+          setRemoveType(ItemType.Collection);
           setColToRemove(remCol);
           setTagsToRemove(remCol.getTagsRecursively()
             .map((tId) => tagStore.tagList.find((t) => t.id === tId) as ClientTag));
@@ -170,13 +168,13 @@ const TagRemoverContent = ({ rootStore }: { rootStore: RootStore }) => {
     </div>
   );
 
-  if (removeType === 'tag') {
+  if (removeType === ItemType.Tag) {
     return (<>
       <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
       <p>Are you sure you want to permanently delete {tagsToRemove.length > 0 ? 'these tags' : 'this tag'}?</p>
       {tagsToRemoveOverview}
     </>);
-  } else if (removeType === 'collection' && colToRemove) {
+  } else if (removeType === ItemType.Collection && colToRemove) {
     return (<>
       <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
       <p>
@@ -254,6 +252,7 @@ const TagList = ({
       .then((tag) => tagCollectionStore.getRootCollection().addTag(tag.id))
       .catch((err) => console.log('Could not create tag', err));
   }, []);
+
   const handleAddRootCollection = useCallback(async () => {
     const newCol = await tagCollectionStore.addTagCollection(
       DEFAULT_COLLECTION_NAME,
@@ -365,7 +364,7 @@ const TagList = ({
     if (isSelected) {
       uiStore.moveSelectedTagsAndCollections(ROOT_TAG_COLLECTION_ID, insertAtStart);
     } else {
-      (mon.getItemType() === TAG_DRAG_TYPE)
+      (mon.getItemType() === ItemType.Tag)
         ? uiStore.moveTag(id, tagCollectionStore.getRootCollection(), insertAtStart)
         : uiStore.moveCollection(id, tagCollectionStore.getRootCollection(), insertAtStart);
     }
@@ -373,11 +372,11 @@ const TagList = ({
 
   // Allow dropping tags on header and background to move them to the root of the hierarchy
   const [, headerDrop] = useDrop({
-    accept: [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
+    accept: [ItemType.Tag, ItemType.Collection],
     drop: (_, monitor) => handleRootDrop(monitor.getItem(), monitor, true),
   });
   const [, footerDrop] = useDrop({
-    accept: [TAG_DRAG_TYPE, COLLECTION_DRAG_TYPE],
+    accept: [ItemType.Tag, ItemType.Collection],
     drop: () => handleRootDrop,
   });
 
@@ -389,13 +388,13 @@ const TagList = ({
           minimal icon={IconSet.TAG_ADD}
           onClick={handleRootAddTag}
           className="tooltip"
-          data-right={addTagTT}
+          data-right={DEFAULT_TAG_NAME}
         />
         <Button
           minimal icon={IconSet.TAG_ADD_COLLECTION}
           onClick={handleAddRootCollection}
           className="tooltip"
-          data-right={addTagColCTT}
+          data-right={DEFAULT_COLLECTION_NAME}
         />
       </div>
 
@@ -491,9 +490,7 @@ class TagListWithHotkeys extends React.PureComponent<ITagListProps & IRootStoreP
   }
 }
 
-const HotkeysWrapper = observer((props: ITagListProps) => {
+export const HotkeysWrapper = observer((props: ITagListProps) => {
   const rootStore = React.useContext(StoreContext);
   return <TagListWithHotkeys {...props} rootStore={rootStore} />;
 });
-
-export default HotkeysWrapper;
