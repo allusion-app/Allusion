@@ -7,6 +7,7 @@ import {
   GridChildComponentProps, ListChildComponentProps,
   GridOnScrollProps, ListOnScrollProps,
 } from 'react-window';
+import { Masonry } from 'masonic';
 import { observer, Observer } from 'mobx-react-lite';
 
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
@@ -214,8 +215,32 @@ const ListGallery = observer(
   );
 });
 
-const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
-  return <p>This view is currently not supported :(</p>;
+// const FileMasonry = Masonry.ofType<ClientFile>();
+
+const MasonryGallery = observer(
+  ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+  return (
+    <div style={{ overflow: 'hidden auto', height: 'inherit' }}>
+      <Masonry
+        items={fileList}
+        itemKey={(item) => item ? item.id : 'unknown'}
+        columnWidth={getThumbnailSize(uiStore.thumbnailSize)}
+        itemHeightEstimate={440}
+        columnGutter={8}
+        overscanBy={2}
+        render={(props) => (
+          // <GalleryItem
+          //   file={props.data}
+          //   isSelected={uiStore.fileSelection.includes(props.data.id)}
+          //   onClick={handleClick}
+          //   onDrop={handleDrop}
+          // />
+          <img src={props.data.path} style={{ width: '100%' }} />
+        )}
+      />
+    </div>
+  );
+
 });
 
 const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {

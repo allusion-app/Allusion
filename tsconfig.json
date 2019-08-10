@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "*": ["types/*"] },
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
     "module": "ESNext",

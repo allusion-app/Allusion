@@ -57,6 +57,7 @@
     "@blueprintjs/select": "^3.8.0",
     "dexie": "^2.0.4",
     "fs-extra": "^7.0.1",
+    "masonic": "^1.0.23",
     "mobx": "^5.9.0",
     "mobx-react-lite": "^1.1.1",
     "react": "^16.8.6",
