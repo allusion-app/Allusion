@@ -4,7 +4,6 @@ import { useDrag, useDrop } from 'react-dnd';
 import {
   ControlGroup,
   InputGroup,
-  Tag,
   IconName,
   ContextMenuTarget,
   Menu,
@@ -20,13 +19,6 @@ import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
 import { formatTagCountText } from '../../utils';
 import { ItemType, ITagDragItem } from '../DragAndDrop';
 import { DEFAULT_TAG_NAME } from '.';
-
-/** Can be used for "non-existing" tags, e.g. 'Untagged', 'Recently added'. Cannot be removed */
-export const StaticTagListItem = (name: string) => (
-  <Tag large minimal fill interactive active>
-    {name}
-  </Tag>
-);
 
 interface IUnmodifiableTagListItemProps {
   name: string;
@@ -114,8 +106,6 @@ interface ITagListItemProps {
 interface IEditingProps {
   isEditing: boolean;
   setEditing: (val: boolean) => void;
-  // Workaround uiStore name not being found
-  uiStore: UiStore;
 }
 
 /** The main tag-list-item that can be renamed, removed and dragged */
@@ -129,7 +119,7 @@ export const TagListItem = ({
   isEditing,
   setEditing,
   uiStore,
-}: ITagListItemProps & IEditingProps) => {
+}: { uiStore: UiStore } & ITagListItemProps & IEditingProps) => {
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
     item: { type: ItemType.Tag },
     begin: () => ({ type: ItemType.Tag, id, name, isSelected }),
