@@ -76,7 +76,7 @@ const TagCollectionListItem = ({
             return false;
           }
           // and it's not in its own children
-          const draggedCollection = tagCollection.store.tagCollectionList.find((c) => c.id === id);
+          const draggedCollection = tagCollection.store.getTagCollection(id);
           if (draggedCollection) {
             return !draggedCollection.containsSubCollection(tagCollection);
           }

@@ -37,7 +37,7 @@ const FileList = ({ rootStore: { uiStore, tagStore } }: IFileListProps & IRootSt
               intent="primary"
               onRemove={handleDeselectTag}
             >
-              {(tagStore.tagList.find((t) => t.id === tagId) as ClientTag).name}
+              {(tagStore.getTag(tagId) as ClientTag).name}
             </Tag>
           ))
         }

@@ -46,7 +46,7 @@ export const DragLayer = () => {
 
     switch (itemType) {
       case ItemType.Tag: {
-        const draggedTag = tagStore.tagList.find((t) => t.id === item.id) as ClientTag;
+        const draggedTag = tagStore.getTag(item.id) as ClientTag;
         // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
         const numTag = draggedTag.parent.id !== ROOT_TAG_COLLECTION_ID && draggedTag.parent.isSelected
           ? ctx.tags.length
@@ -57,7 +57,7 @@ export const DragLayer = () => {
         return <Tag intent="primary" large>{item.name}{extraText}</Tag>;
       }
       case ItemType.Collection: {
-        const draggedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === item.id) as ClientTagCollection;
+        const draggedCol = tagCollectionStore.getTagCollection(item.id) as ClientTagCollection;
         // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
         const numCollection = draggedCol.parent.id !== ROOT_TAG_COLLECTION_ID && draggedCol.parent.isSelected
           ? ctx.collections.length
