@@ -254,25 +254,6 @@ class UiStore {
     }
     this.reorderCollection(collection, target);
   }
-  
-  private reorderTagList(tag: ClientTag, target: ClientTag | ClientTagCollection) {
-    tag.parent.tags.remove(tag.id);
-
-    if (target instanceof ClientTag) {
-      const targetTags = target.parent.tags;
-      // Insert the moved tag below the position of the current tag where it was dropped
-      const insertionIndex = targetTags.indexOf(target.id) + 1;
-      targetTags.splice(insertionIndex, 0, tag.id);
-    } else {
-      // Insert at start when dragging tag to collection
-      target.tags.unshift(tag.id);
-    }
-  }
-
-  private reorderCollection(col: ClientTagCollection, target: ClientTagCollection) {
-    col.parent.subCollections.remove(col.id);
-    target.subCollections.unshift(col.id);
-  }
 
   /**
    * Returns the tags and tag collections that are in the context of an action,
@@ -517,6 +498,25 @@ class UiStore {
         this.deselectFile(file);
       }
     }
+  }
+
+  private reorderTagList(tag: ClientTag, target: ClientTag | ClientTagCollection) {
+    tag.parent.tags.remove(tag.id);
+
+    if (target instanceof ClientTag) {
+      const targetTags = target.parent.tags;
+      // Insert the moved tag below the position of the current tag where it was dropped
+      const insertionIndex = targetTags.indexOf(target.id) + 1;
+      targetTags.splice(insertionIndex, 0, tag.id);
+    } else {
+      // Insert at start when dragging tag to collection
+      target.tags.unshift(tag.id);
+    }
+  }
+
+  private reorderCollection(col: ClientTagCollection, target: ClientTagCollection) {
+    col.parent.subCollections.remove(col.id);
+    target.subCollections.unshift(col.id);
   }
 }
 
