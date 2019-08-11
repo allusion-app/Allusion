@@ -239,7 +239,23 @@ class UiStore {
     }
   }
 
-  @action.bound async moveTag(tag: ClientTag, target: ClientTag | ClientTagCollection) {
+  @action.bound async moveTag(id: ID, target: ClientTag | ClientTagCollection) {
+    const tag = this.rootStore.tagStore.getTag(id);
+    if (!tag) {
+      throw new Error('Cannot find tag to move ' + id);
+    }
+    this.reorderTagList(tag, target);
+  }
+
+  @action.bound async moveCollection(id: ID, target: ClientTagCollection) {
+    const collection = this.rootStore.tagCollectionStore.getTagCollection(id);
+    if (!collection) {
+      throw new Error('Cannot find collection to move ' + id);
+    }
+    this.reorderCollection(collection, target);
+  }
+  
+  private reorderTagList(tag: ClientTag, target: ClientTag | ClientTagCollection) {
     tag.parent.tags.remove(tag.id);
 
     if (target instanceof ClientTag) {
@@ -253,7 +269,7 @@ class UiStore {
     }
   }
 
-  @action.bound async moveCollection(col: ClientTagCollection, target: ClientTagCollection) {
+  private reorderCollection(col: ClientTagCollection, target: ClientTagCollection) {
     col.parent.subCollections.remove(col.id);
     target.subCollections.unshift(col.id);
   }
@@ -327,11 +343,10 @@ class UiStore {
   /**
    * @param targetId Where to move the selection to
    */
-  @action.bound async moveSelectedTagItems(targetId: ID) {
+  @action.bound async moveSelectedTagItems(id: ID) {
     const { tagStore, tagCollectionStore } = this.rootStore;
 
-    const target = tagStore.getTag(targetId) || tagCollectionStore.getTagCollection(targetId);
-
+    const target = tagStore.getTag(id) || tagCollectionStore.getTagCollection(id);
     if (!target) {
       throw new Error('Invalid target to move to');
     }
@@ -341,9 +356,9 @@ class UiStore {
     // Find all tags + collections in the current context (all selected items)
     const ctx = this.getTagContextItems();
 
-    // Move collections
-    ctx.collections.forEach((col) => this.moveCollection(col, targetCol));
-    ctx.tags.forEach((tag) => this.moveTag(tag, targetCol));
+    // Move tags and collections
+    ctx.collections.forEach((col) => this.reorderCollection(col, targetCol));
+    ctx.tags.forEach((tag) => this.reorderTagList(tag, targetCol));
   }
 
   /////////////////// Search Actions ///////////////////

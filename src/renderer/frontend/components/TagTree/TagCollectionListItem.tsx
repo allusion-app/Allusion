@@ -65,18 +65,19 @@ const TagCollectionListItem = ({
       }
     },
     canDrop: (_, monitor) => {
+      const item: ITagDragItem = monitor.getItem();
+      if (item.isSelected) {
+        return !tagCollection.isSelected;
+      }
+
       switch (monitor.getItemType()) {
         case ItemType.Collection:
-          const { isSelected, id }: ITagDragItem = monitor.getItem();
-          if (isSelected) {
-            return !tagCollection.isSelected;
-          }
           // Dragging a collection over another collection is allowed if it's not itself
-          if (id === tagCollection.id) {
+          if (item.id === tagCollection.id) {
             return false;
           }
           // and it's not in its own children
-          const draggedCollection = tagCollection.store.getTagCollection(id);
+          const draggedCollection = tagCollection.store.getTagCollection(item.id);
           if (draggedCollection) {
             return !draggedCollection.containsSubCollection(tagCollection);
           }
@@ -84,7 +85,7 @@ const TagCollectionListItem = ({
         case ItemType.Tag:
           // Dragging a tag over a collection is always allowed if it's not selected
           // Else, only allowed when this collection is not selected (else you drop something on itself)
-          return monitor.getItem().isSelected ? !tagCollection.isSelected : true;
+          return true;
         default:
           return false;
       }

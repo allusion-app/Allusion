@@ -51,7 +51,7 @@ const createTagCollectionTreeNode = (
   store: TagCollectionStore,
   setExpandState: (state: IExpandState) => void,
 ): ITreeNode => {
-  const { uiStore, tagStore } = store.rootStore;
+  const { uiStore } = store.rootStore;
 
   const movePosition = (position: (index: number, parent: ClientTagCollection) => number) => {
     const movedCollectionParent = store.tagCollectionList.find((c) =>
@@ -63,27 +63,6 @@ const createTagCollectionTreeNode = (
       const newIndex = position(oldIndex, movedCollectionParent);
       movedCollectionParent.subCollections.splice(newIndex, 0, col.id);
     }
-  };
-
-  const handleMoveTag = (item: ITagDragItem, target: ClientTag | ClientTagCollection) => {
-    if (item.isSelected) {
-      return uiStore.moveSelectedTagItems(target.id);
-    }
-    const tag = tagStore.getTag(item.id);
-    if (!tag) {
-      throw new Error('Cannot find tag to move ' + item.id);
-    }
-    return uiStore.moveTag(tag, target);
-  };
-
-  const handleMoveCollection = (item: ITagDragItem) => {
-    const clientCol = store.getTagCollection(item.id);
-    if (!clientCol) {
-      throw new Error('Cannot find collection to move ' + clientCol);
-    }
-    return item.isSelected
-      ? uiStore.moveSelectedTagItems(col.id)
-      : uiStore.moveCollection(clientCol, col);
   };
 
   const label = (
@@ -114,8 +93,14 @@ const createTagCollectionTreeNode = (
       onMoveDown={() =>
         movePosition((pos, parent) => Math.min(parent.subCollections.length, pos + 1))
       }
-      onMoveCollection={(item) => handleMoveCollection(item)}
-      onMoveTag={(draggedTag) => handleMoveTag(draggedTag, col)}
+      onMoveCollection={(item) =>
+        item.isSelected
+          ? uiStore.moveSelectedTagItems(col.id)
+          : uiStore.moveCollection(item.id, col)
+      }
+      onMoveTag={(item) =>
+        item.isSelected ? uiStore.moveSelectedTagItems(col.id) : uiStore.moveTag(item.id, col)
+      }
       onAddSelectionToQuery={() =>
         uiStore.addTagsToQuery(
           col.isSelected ? uiStore.tagSelection.toJS() : col.getTagsRecursively(),
@@ -149,7 +134,9 @@ const createTagCollectionTreeNode = (
               store.rootStore.uiStore.openOutlinerTagRemover(tag.isSelected ? 'selected' : tag.id)
             }
             onRename={(name) => (tag.name = name)}
-            onMoveTag={(draggedTag) => handleMoveTag(draggedTag, tag)}
+            onMoveTag={(item) =>
+              item.isSelected ? uiStore.moveSelectedTagItems(col.id) : uiStore.moveTag(item.id, col)
+            }
             onAddSelectionToQuery={() =>
               uiStore.addTagsToQuery(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
             }
@@ -428,21 +415,13 @@ const TagList = ({
     if (item.isSelected) {
       return uiStore.moveSelectedTagItems(ROOT_TAG_COLLECTION_ID);
     }
-    // TODO: handle error better rather than crashing the application
+
     switch (monitor.getItemType()) {
       case ItemType.Tag:
-        const tag = tagStore.getTag(item.id);
-        if (!tag) {
-          throw new Error('Cannot find tag to move ' + item.id);
-        }
-        uiStore.moveTag(tag, tagCollectionStore.getRootCollection());
+        uiStore.moveTag(item.id, tagCollectionStore.getRootCollection());
         break;
       case ItemType.Collection:
-        const col = tagCollectionStore.getTagCollection(item.id);
-        if (!col) {
-          throw new Error('Cannot find collection to move ' + col);
-        }
-        uiStore.moveCollection(col, tagCollectionStore.getRootCollection());
+        uiStore.moveCollection(item.id, tagCollectionStore.getRootCollection());
         break;
       default:
         break;

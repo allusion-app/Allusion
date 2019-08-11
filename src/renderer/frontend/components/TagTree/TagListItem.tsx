@@ -119,7 +119,7 @@ export const TagListItem = ({
   isEditing,
   setEditing,
   uiStore,
-}: { uiStore: UiStore } & ITagListItemProps & IEditingProps) => {
+}: ITagListItemProps & IEditingProps & { uiStore: UiStore } ) => {
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
     item: { type: ItemType.Tag },
     begin: () => ({ type: ItemType.Tag, id, name, isSelected }),
