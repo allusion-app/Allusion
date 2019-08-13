@@ -26,7 +26,7 @@ const App = ({ rootStore }: IAppProps) => {
 
     // Prevent scrolling with Space, instead used to open preview window
     window.addEventListener('keydown', (e) => {
-      if (e.keyCode === 32) {
+      if (e.code === 'Space') {
         e.preventDefault();
       }
     });
