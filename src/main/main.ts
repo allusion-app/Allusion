@@ -49,31 +49,44 @@ function createWindow() {
       {
         label: 'Actual Size',
         accelerator: 'CommandOrControl+0',
-        click: (menuItem, browserWindow, event) => {
+        click: (_menuItem, browserWindow, _event) => {
           browserWindow.webContents.setZoomFactor(1);
         },
       },
       {
         label: 'Zoom In',
-        // TODO: Fix needed
+        // TODO: Fix by using custom solution...
         accelerator: 'CommandOrControl+=',
-        click: (menuItem, browserWindow, event) => {
-          browserWindow.webContents.setZoomFactor(
-            browserWindow.webContents.getZoomFactor() + 0.1,
-          );
+        click: (_menuItem, browserWindow, _event) => {
+          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() + 0.1);
         },
       },
       {
         label: 'Zoom Out',
         accelerator: 'CommandOrControl+-',
-        click: (menuItem, browserWindow, event) => {
-          browserWindow.webContents.setZoomFactor(
-            browserWindow.webContents.getZoomFactor() - 0.1,
-          );
+        click: (_menuItem, browserWindow, _event) => {
+          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() - 0.1);
         },
       },
       { type: 'separator' },
       { role: 'togglefullscreen' },
+    ],
+  });
+  menuBar.push({
+    label: 'Help',
+    submenu: [
+      {
+        label: 'Show Keyboard Shortcuts',
+        accelerator: 'CommandOrControl+K',
+        click: (_menuItem, browserWindow, _event) => {
+          browserWindow.webContents.sendInputEvent({
+            type: 'keyDown',
+            isTrusted: true,
+            // @ts-ignore
+            keyCode: '?',
+          });
+        },
+      },
     ],
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuBar));
@@ -121,7 +134,7 @@ app.on('activate', () => {
 });
 
 function createPreviewWindow() {
-  const { width, height } =  screen.getPrimaryDisplay().workAreaSize;
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
   previewWindow = new BrowserWindow({
     webPreferences: {
