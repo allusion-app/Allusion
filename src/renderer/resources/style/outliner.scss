@@ -33,7 +33,8 @@ nav {
     margin: 0.5em 1rem;
   }
 }
-#search-form,
+
+// #search-form,
 #import {
   margin: 0.5em 1rem;
   outline: none;
@@ -71,17 +72,19 @@ nav {
     background: $light-gray1-trans;
     color: $light-gray2;
   }
+
   .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]),
-  .bp3-icon > svg:not([fill]) {
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]) {
+    // .bp3-icon > svg:not([fill]) {
     color: $light-gray3;
-  } 
+  }
 
   button.bp3-intent-primary {
     background: $light-gray0-trans;
   }
+
   button.bp3-intent-primary {
-    background:$light-gray0-trans;
+    background: $light-gray0-trans;
   }
 }
 
@@ -137,9 +140,11 @@ nav .bp3-tree {
 
 .bp3-input {
   padding: 0 .25rem;
+  border-radius: 6px;
 }
 
-.bp3-input:focus {
+.bp3-input:focus,
+.bp3-input.bp3-active {
   box-shadow: 0 0 0 1.5px $blue1;
   // box-shadow: none !important;
 }
@@ -159,16 +164,20 @@ nav .bp3-tree {
   .bp3-popover-target {
     width: 100%;
   }
+
   #actions-bar {
     float: right;
   }
+
   .criteria {
     .bp3-control-group {
       padding: 0px;
     }
+
     .add-remove {
       flex-grow: 0;
       margin-left: 8px;
+
       button {
         min-width: 15px;
         min-height: 15px;
@@ -177,6 +186,7 @@ nav .bp3-tree {
         line-height: 0;
         padding: 5px;
       }
+
       button:hover * {
         line-height: 0;
       }

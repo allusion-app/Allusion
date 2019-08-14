@@ -12,7 +12,7 @@
     width: 18rem;
   }
 
-  > section {
+  >section {
     border-bottom: 2px solid #181818;
     padding: 1em;
   }
@@ -20,10 +20,12 @@
   .inpectorHeading {
     font-weight: bold;
   }
+
   #filePreview {
     border-bottom: 0;
     padding-bottom: 0;
   }
+
   #fileOverview {
     text-align: left;
   }
@@ -37,11 +39,12 @@
   grid-row-gap: 0.25rem;
   height: fit-content;
 
-  > div {
+  >div {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   small.bp3-label {
     color: #919191;
     opacity: 0.7;
@@ -52,7 +55,7 @@
   text-align: left;
 }
 
-#filePreview > img {
+#filePreview>img {
   // padding: 0.3em;
   // background-color: #333333;
   width: 100%;
@@ -67,7 +70,8 @@
   flex-grow: 1;
 }
 
-.bp3-popover-content #fileTag .bp3-popover-target:nth-child(1) {
+.bp3-popover-content #fileTag .bp3-popover-target:nth-child(1),
+.bp3-dialog .bp3-popover-target:nth-child(1) {
   background-color: $light-gray4;
 }
 

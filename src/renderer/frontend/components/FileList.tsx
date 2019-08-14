@@ -9,6 +9,7 @@ import MultiTagSelector from './MultiTagSelector';
 import { KeyLabelMap } from './SearchForm';
 import { IIDsSearchCriteria } from '../../entities/SearchCriteria';
 import { IFile } from '../../entities/File';
+import IconSet from './Icons';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
@@ -90,7 +91,7 @@ const SearchBar = observer(() => {
 
   return (
     <div id="quick-search">
-      <Button icon="more" onClick={uiStore.toggleAdvancedSearch} />
+      <Button icon={IconSet.SEARCH_EXTENDED} onClick={uiStore.toggleAdvancedSearch} />
       {showQuickSearch ? <QuickSearchList /> : <CriteriaList /> }
     </div>
   );

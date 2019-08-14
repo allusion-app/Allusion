@@ -39,9 +39,10 @@ export const AdvancedSearchDialog = observer(() => {
     <Dialog
       isOpen={uiStore.isAdvancedSearchOpen}
       onClose={uiStore.toggleAdvancedSearch}
-      icon={IconSet.SEARCH}
+      icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      className={themeClass}
+      // className={themeClass}
+      className={`${themeClass} light`}
       canOutsideClickClose={false}
     >
       <SearchForm />
