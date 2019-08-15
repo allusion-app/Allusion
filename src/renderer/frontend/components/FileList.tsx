@@ -91,7 +91,9 @@ const SearchBar = observer(() => {
 
   return (
     <div id="quick-search">
-      <Button icon={IconSet.SEARCH_EXTENDED} onClick={uiStore.toggleAdvancedSearch} />
+      <Button minimal
+        icon={IconSet.SEARCH_EXTENDED}
+        onClick={uiStore.toggleAdvancedSearch} />
       {showQuickSearch ? <QuickSearchList /> : <CriteriaList /> }
     </div>
   );

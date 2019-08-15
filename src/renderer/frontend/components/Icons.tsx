@@ -143,7 +143,7 @@ export const IconDemo = () => (
         'tick', 'cross', 'trash', 'delete', 'small-cross', 'edit', 'folder-close', 'folder-open',
         '', 'info-sign', 'menu', '', '', 'more', 'search', 'path-search',
         'tag', 'calendar',
-        'sort-alphabetical', 'sort-alphabetical-desc', 'play', 'warning-sign',
+        'sort-alphabetical', 'sort-alphabetical-desc', 'play', 'warning-sign', 'double-caret-vertical',
       ] as IconName[])
     .map((name, i) =>
       <Tag

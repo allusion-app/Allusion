@@ -16,13 +16,26 @@
   border-bottom: 2px solid $black;
   box-shadow: $pt-dark-elevation-shadow-2;
 
-  >button {
+  button.bp3-button {
     width: 30px;
     height: 30px;
     margin: auto;
     margin-top: 2px;
-    background: none;
+    background: none !important;
   }
+
+  .bp3-button-group {
+    .bp3-button {
+      border-radius: 6px;
+      // background: rgba(1, 1, 1, .1) !important;
+      background: none !important;
+    }
+
+    .bp3-intent-primary {
+      background: $blue1;
+    }
+  }
+
 
   .bp3-popover-wrapper {
     padding: 4px;

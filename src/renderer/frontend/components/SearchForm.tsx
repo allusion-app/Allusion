@@ -244,15 +244,8 @@ const SearchForm = observer(() => {
 
       {/* <Button icon={IconSet.ADD} onClick={addSearchQuery} fill text="Query"/> */}
 
-      <ButtonGroup id="actions-bar">
-
-        <Button
-          onClick={resetSearchCriteria}
-          disabled={uiStore.searchCriteriaList.length === 0}
-          text="Reset"
-          icon={IconSet.CLOSE}
-          fill
-        />
+      {/* <ButtonGroup id="actions-bar"> */}
+      <div id="actions-bar" className="bp3-alert-footer">
         <Button
           intent="primary"
           onClick={uiStore.viewContentQuery}
@@ -261,7 +254,15 @@ const SearchForm = observer(() => {
           icon={IconSet.SEARCH}
           fill
         />
-      </ButtonGroup>
+        <Button
+          onClick={resetSearchCriteria}
+          disabled={uiStore.searchCriteriaList.length === 0}
+          text="Reset"
+          icon={IconSet.CLOSE}
+          fill
+        />
+        {/* </ButtonGroup> */}
+      </div>
     </div>
   );
 });
