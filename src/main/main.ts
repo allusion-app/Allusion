@@ -49,7 +49,7 @@ function createWindow() {
       {
         label: 'Actual Size',
         accelerator: 'CommandOrControl+0',
-        click: (_menuItem, browserWindow, _event) => {
+        click: (_, browserWindow) => {
           browserWindow.webContents.setZoomFactor(1);
         },
       },
@@ -57,14 +57,14 @@ function createWindow() {
         label: 'Zoom In',
         // TODO: Fix by using custom solution...
         accelerator: 'CommandOrControl+=',
-        click: (_menuItem, browserWindow, _event) => {
+        click: (_, browserWindow) => {
           browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() + 0.1);
         },
       },
       {
         label: 'Zoom Out',
         accelerator: 'CommandOrControl+-',
-        click: (_menuItem, browserWindow, _event) => {
+        click: (_, browserWindow) => {
           browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() - 0.1);
         },
       },
@@ -78,7 +78,7 @@ function createWindow() {
       {
         label: 'Show Keyboard Shortcuts',
         accelerator: 'CommandOrControl+K',
-        click: (_menuItem, browserWindow, _event) => {
+        click: (_, browserWindow) => {
           browserWindow.webContents.sendInputEvent({
             type: 'keyDown',
             isTrusted: true,
