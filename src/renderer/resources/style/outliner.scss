@@ -97,12 +97,13 @@ nav {
 
     &.bp3-fill:not([class*="bp3-intent-primary"]) {
       border: 1.3px solid $light-gray5-trans !important;
-      color: $light-gray1 !important;
+      color: #495057;
       background: none;
     }
-
+    
     &:hover {
-      background-color: #282828 !important;
+      background-color: $dark-gray3;
+      color: $light-gray5;
     }
   }
   .add-remove {
@@ -112,8 +113,12 @@ nav {
         background: $light-gray5-trans;
         color: $light-gray1 !important;
       }
+      .custom-icon {
+        color: $dark-gray4;
+      }
       &:hover {
-        background-color: #282828 !important;
+        background-color: $light-gray6-trans !important;
+        color: $light-gray5;
       }
     }
   }
@@ -218,7 +223,8 @@ nav .bp3-tree {
         width: 15px;
         height: 15px;
         line-height: 0;
-        padding: 8px;
+        padding: 0;
+        font-size: 16px;
       }
 
       button:hover * {

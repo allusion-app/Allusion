@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
-  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, Checkbox, InputGroup, NumericInput, HTMLSelect,
+  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, Switch, InputGroup, NumericInput, HTMLSelect,
 } from '@blueprintjs/core';
 
 import MultiTagSelector from './MultiTagSelector';
@@ -110,7 +110,7 @@ const StringCriteriaItem = observer(({ criteria }: { criteria: IStringSearchCrit
   const { exact, value } = criteria;
   return (
     <>
-      <Checkbox label="Exact" checked={exact} onChange={handleChangeExact} value={`${Boolean(exact)}`} />
+      <Switch label="Exact" checked={exact} onChange={handleChangeExact} value={`${Boolean(exact)}`} />
       <InputGroup placeholder="Enter some text..." value={value} onChange={handleChangeValue} autoFocus />
     </>
   );
