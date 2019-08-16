@@ -1,4 +1,10 @@
 ///////////////////////////////// Global Blueprint overriddes /////////////////////////////////
+// Skeleton override
+.#{$ns}-skeleton {
+  border-color: #282828 !important;
+  border-radius: .25rem;
+  animation: none !important;
+}
 
 // Fonts color
 .bp3-dark {
@@ -94,7 +100,7 @@
 .bp3-light .bp3-input {
   // box-shadow: none;
   // box-shadow: 0 0 0 1.5px $blue1;
-  min-width: 100%;
+  // min-width: 100%;
   background: rgba(1, 1, 1, 0.1);
   color: $dark-gray4;
   // margin-bottom: 0.15rem;
