@@ -189,6 +189,7 @@ ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
     if (!previewWindow.isVisible()) {
       previewWindow.show();
     }
+    previewWindow.focus();
   }
 });
 

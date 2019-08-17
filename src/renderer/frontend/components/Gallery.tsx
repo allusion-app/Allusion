@@ -257,6 +257,11 @@ const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: I
 
   // Automatically select the active image, so it is shown in the inspector
   useEffect(() => {
+    // Go to the first selected image on load
+    if (uiStore.fileSelection.length > 0) {
+      uiStore.firstIndexInView = fileList.findIndex((f) => f.id === uiStore.fileSelection[0]);
+    }
+
     if (uiStore.firstIndexInView < fileList.length) {
       uiStore.deselectAllFiles();
       uiStore.selectFile(fileList[uiStore.firstIndexInView]);
