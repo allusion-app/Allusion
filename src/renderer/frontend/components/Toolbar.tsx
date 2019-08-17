@@ -166,10 +166,6 @@ const Toolbar = () => {
     [uiStore.fileOrder, uiStore.fileOrderDescending],
   );
 
-  const viewSmall = useCallback(() => { uiStore.thumbnailSize = 'small'; }, []);
-  const viewMedium = useCallback(() => { uiStore.thumbnailSize = 'medium'; }, []);
-  const viewLarge = useCallback(() => { uiStore.thumbnailSize = 'large'; }, []);
-
   const layoutMenu = useMemo(() =>
     <Menu>
       <MenuItem
@@ -183,27 +179,7 @@ const Toolbar = () => {
         icon={IconSet.VIEW_GRID}
         text="Grid"
         active={uiStore.viewMethod === 'grid'}
-        popoverProps={{ openOnTargetFocus: false }}
-      >
-         <MenuItem
-          onClick={viewSmall}
-          icon={IconSet.VIEW_GRID}
-          text="Small"
-          active={uiStore.thumbnailSize === 'small'}
-        />
-        <MenuItem
-          onClick={viewMedium}
-          icon={IconSet.VIEW_GRID}
-          text="Medium"
-          active={uiStore.thumbnailSize === 'medium'}
-        />
-        <MenuItem
-          onClick={viewLarge}
-          icon={IconSet.VIEW_GRID}
-          text="Large"
-          active={uiStore.thumbnailSize === 'large'}
-        />
-      </MenuItem>
+      />
       <MenuItem
         onClick={viewMason}
         icon={IconSet.VIEW_MASON}
