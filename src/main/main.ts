@@ -6,6 +6,11 @@ import { isDev } from '../config';
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
 
+function initialize() {
+  createWindow();
+  createPreviewWindow();
+}
+
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
@@ -117,7 +122,7 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', initialize);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -151,6 +156,7 @@ function createPreviewWindow() {
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
     title: 'Allusion Quick View',
+    show: false, // invis by default
   });
   previewWindow.setMenuBarVisibility(false);
   previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
@@ -162,7 +168,6 @@ function createPreviewWindow() {
       mainWindow.focus();
     }
     if (previewWindow) {
-      previewWindow.webContents.send('receivePreviewFiles', []);
       previewWindow.hide();
     }
   });
