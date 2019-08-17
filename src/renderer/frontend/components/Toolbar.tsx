@@ -20,7 +20,6 @@ const tagfilesTooltip = 'Quick add or delete tags to selection';
 const deleteTooltip = 'Delete selection from library';
 const viewTooltip = 'Change view content panel';
 const filterTooltip = 'Filter view content panel';
-const sizeTooltip = 'Change the size of thumbnails';
 // const fltTagTooltip = 'Filter images by first tag';
 
 interface IRemoveFilesPopoverProps {
@@ -167,6 +166,10 @@ const Toolbar = () => {
     [uiStore.fileOrder, uiStore.fileOrderDescending],
   );
 
+  const viewSmall = useCallback(() => { uiStore.thumbnailSize = 'small'; }, []);
+  const viewMedium = useCallback(() => { uiStore.thumbnailSize = 'medium'; }, []);
+  const viewLarge = useCallback(() => { uiStore.thumbnailSize = 'large'; }, []);
+
   const layoutMenu = useMemo(() =>
     <Menu>
       <MenuItem
@@ -180,7 +183,27 @@ const Toolbar = () => {
         icon={IconSet.VIEW_GRID}
         text="Grid"
         active={uiStore.viewMethod === 'grid'}
-      />
+        popoverProps={{ openOnTargetFocus: false }}
+      >
+         <MenuItem
+          onClick={viewSmall}
+          icon={IconSet.VIEW_GRID}
+          text="Small"
+          active={uiStore.thumbnailSize === 'small'}
+        />
+        <MenuItem
+          onClick={viewMedium}
+          icon={IconSet.VIEW_GRID}
+          text="Medium"
+          active={uiStore.thumbnailSize === 'medium'}
+        />
+        <MenuItem
+          onClick={viewLarge}
+          icon={IconSet.VIEW_GRID}
+          text="Large"
+          active={uiStore.thumbnailSize === 'large'}
+        />
+      </MenuItem>
       <MenuItem
         onClick={viewMason}
         icon={IconSet.VIEW_MASON}
@@ -194,35 +217,8 @@ const Toolbar = () => {
         active={uiStore.viewMethod === 'slide'}
       />
     </Menu>,
-    [uiStore.viewMethod],
+    [uiStore.viewMethod, uiStore.thumbnailSize],
   );
-
-  const viewSmall = useCallback(() => { uiStore.thumbnailSize = 'small'; }, []);
-  const viewMedium = useCallback(() => { uiStore.thumbnailSize = 'medium'; }, []);
-  const viewLarge = useCallback(() => { uiStore.thumbnailSize = 'large'; }, []);
-  const thumbnailSizeMenu = useMemo(() =>
-  <Menu>
-    <MenuItem
-      onClick={viewSmall}
-      icon={IconSet.VIEW_GRID}
-      text="Small"
-      active={uiStore.thumbnailSize === 'small'}
-    />
-    <MenuItem
-      onClick={viewMedium}
-      icon={IconSet.VIEW_GRID}
-      text="Medium"
-      active={uiStore.thumbnailSize === 'medium'}
-    />
-    <MenuItem
-      onClick={viewLarge}
-      icon={IconSet.VIEW_GRID}
-      text="Large"
-      active={uiStore.thumbnailSize === 'large'}
-    />
-  </Menu>,
-  [uiStore.thumbnailSize],
-);
 
   const numFiles = fileStore.fileList.length;
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
@@ -293,10 +289,6 @@ const Toolbar = () => {
           <Popover minimal
             target={<Button icon={IconSet.FILTER} className="tooltip" data-right={filterTooltip} />}
             content={sortMenu}
-          />
-          <Popover minimal
-            target={<Button icon={IconSet.WARNING} className="tooltip" data-right={sizeTooltip} />}
-            content={thumbnailSizeMenu}
           />
         </ButtonGroup>
         <div id="spacer" style={{ width: '100px' }}></div>
