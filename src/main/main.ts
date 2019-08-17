@@ -108,6 +108,9 @@ function createWindow() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null;
+    if (previewWindow) {
+      previewWindow.close();
+    }
   });
 }
 
@@ -151,10 +154,16 @@ function createPreviewWindow() {
   });
   previewWindow.setMenuBarVisibility(false);
   previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
-  previewWindow.on('closed', () => {
-    previewWindow = null;
+  previewWindow.on('close', (e) => {
+    // Prevent close, hide the window instead, for faster launch next time
     if (mainWindow) {
+      e.preventDefault();
       mainWindow.webContents.send('closedPreviewWindow');
+      mainWindow.focus();
+    }
+    if (previewWindow) {
+      previewWindow.webContents.send('receivePreviewFiles', []);
+      previewWindow.hide();
     }
   });
   return previewWindow;
@@ -171,6 +180,10 @@ ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
     });
   } else {
     previewWindow.webContents.send('receivePreviewFiles', fileIds);
+
+    if (!previewWindow.isVisible()) {
+      previewWindow.show();
+    }
   }
 });
 

@@ -38,6 +38,7 @@ backend
 
 if (isPreviewWindow) {
   ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[]) => {
+    rootStore.uiStore.firstIndexInView = 0;
     rootStore.fileStore.fetchFilesByIDs(fileIds);
   });
   // Close preview with space
