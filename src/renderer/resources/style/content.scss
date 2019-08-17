@@ -205,9 +205,10 @@
   &.droppable .thumbnailTags {
     display: block;
   }
-  .thumbnailTags {
-    display: none;
-  }
+  // An option :) would be nice for this
+  // .thumbnailTags {
+  //   display: none;
+  // }
   // display: flex;
   // span:nth-child(3) {
   //   z-index: -1;
