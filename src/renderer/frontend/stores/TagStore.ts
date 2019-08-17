@@ -2,6 +2,7 @@ import { action, IObservableArray, observable } from 'mobx';
 import Backend from '../../backend/Backend';
 import { ClientTag, ITag } from '../../entities/Tag';
 import RootStore from './RootStore';
+import { ID } from '../../entities/ID';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -31,7 +32,7 @@ class TagStore {
   }
 
   updateFromBackend(backendTag: ITag) {
-    const tag = this.tagList.find((t) => backendTag.id === t.id);
+    const tag = this.getTag(backendTag.id);
     // In case a tag was added to the server from another client or session
     if (!tag) {
       this.tagList.push(new ClientTag(this).updateFromBackend(backendTag));
@@ -39,6 +40,10 @@ class TagStore {
       // Else, update the existing tag
       tag.updateFromBackend(backendTag);
     }
+  }
+
+  getTag(tag: ID): ClientTag | undefined {
+    return this.tagList.find((t) => t.id === tag);
   }
 
   @action
@@ -65,9 +70,7 @@ class TagStore {
       .forEach((f) => f.removeTag(tag.id));
 
     // Remove tag from collections
-    this.rootStore.tagCollectionStore.tagCollectionList.forEach((col) =>
-      col.removeTag(tag.id),
-    );
+    this.rootStore.tagCollectionStore.tagCollectionList.forEach((col) => col.removeTag(tag.id));
 
     // Remove tag from DB
     await this.backend.removeTag(tag);
