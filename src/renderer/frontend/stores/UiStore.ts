@@ -463,6 +463,11 @@ class UiStore {
   @action.bound openPreviewWindow() {
     ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
     this.isPreviewOpen = true;
+
+    // remove focus from element so closing preview with spacebar does not trigger any ui elements
+    if (document.activeElement && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
   }
 
   // VIEW
