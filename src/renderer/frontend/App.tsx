@@ -51,11 +51,9 @@ const App = ({ rootStore }: IAppProps) => {
             <FileList />
           </main>
 
-
           {uiStore.imageViewerFile ? (
             <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.imageViewerFile = null} />
           ) : <></>}
-
 
           <Inspector />
 
