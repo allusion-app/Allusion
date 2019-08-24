@@ -51,7 +51,7 @@ const generateThumbnailData = async (filePath: string, thumbnailType: string): P
   // ctx2D.rotate(-angleInRadians);
   ctx2D.translate(-x, -y);
 
-  const thumbBlob = await canvas.convertToBlob({ type: `image/${thumbnailType}` });
+  const thumbBlob = await canvas.convertToBlob({ type: `image/${thumbnailType}`, quality: 0.75 });
   const reader = new FileReaderSync();
   const buffer = reader.readAsArrayBuffer(thumbBlob);
   return buffer;
