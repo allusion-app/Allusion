@@ -21,7 +21,6 @@ const enum Tooltip {
   Delete = 'Delete selection from library',
   View = 'Change view content panel',
   Filter = 'Filter view content panel',
-  Size = 'Change the size of thumbnails',
   // FilterTag = 'Filter images by first tag',
 }
 
@@ -197,35 +196,8 @@ const Toolbar = () => {
         active={uiStore.viewMethod === 'slide'}
       />
     </Menu>,
-    [uiStore.viewMethod],
+    [uiStore.viewMethod, uiStore.thumbnailSize],
   );
-
-  const viewSmall = useCallback(() => { uiStore.thumbnailSize = 'small'; }, []);
-  const viewMedium = useCallback(() => { uiStore.thumbnailSize = 'medium'; }, []);
-  const viewLarge = useCallback(() => { uiStore.thumbnailSize = 'large'; }, []);
-  const thumbnailSizeMenu = useMemo(() =>
-  <Menu>
-    <MenuItem
-      onClick={viewSmall}
-      icon={IconSet.THUMB_SM}
-      text="Small"
-      active={uiStore.thumbnailSize === 'small'}
-    />
-    <MenuItem
-      onClick={viewMedium}
-      icon={IconSet.THUMB_MD}
-      text="Medium"
-      active={uiStore.thumbnailSize === 'medium'}
-    />
-    <MenuItem
-      onClick={viewLarge}
-      icon={IconSet.THUMB_BG}
-      text="Large"
-      active={uiStore.thumbnailSize === 'large'}
-    />
-  </Menu>,
-  [uiStore.thumbnailSize],
-);
 
   const numFiles = fileStore.fileList.length;
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
@@ -296,10 +268,6 @@ const Toolbar = () => {
           <Popover minimal
             target={<Button icon={IconSet.FILTER} className="tooltip" data-right={Tooltip.Filter} />}
             content={sortMenu}
-          />
-          <Popover minimal
-            target={<Button icon={IconSet.WARNING} className="tooltip" data-right={Tooltip.Size} />}
-            content={thumbnailSizeMenu}
           />
         </ButtonGroup>
         <div id="spacer" style={{ width: '100px' }}></div>
