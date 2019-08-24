@@ -160,14 +160,18 @@ nav .bp3-tree {
 
 // Reordering by dragging
 .bp3-tree-node .reorder-target {
-  border-bottom: 2px solid $blue1;
-  padding-bottom: 3px;
-  border-bottom: 2px solid transparent;
+  color: $yellow1;
+  // border-bottom: 2px solid $blue1;
+  // padding-bottom: 3px;
+  // border-bottom: 2px solid transparent;
 }
 
-.bp3-tree-node .reorder-source,
-.bp3-tree-node .reorder-source > div {
-  opacity: 0.2;
+.bp3-tree-node .reorder-source {
+// .bp3-tree-node .reorder-source > div {
+  opacity: 0.4;
+  &.reorder-target {
+    opacity: 1 !important;
+  }
 }
 
 .bp3-control-group {
