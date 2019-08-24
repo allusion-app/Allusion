@@ -37,14 +37,14 @@ const Settings = () => {
       <div className={Classes.DRAWER_BODY}>
           <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
           <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
+
           <div className="bp3-divider"></div>
 
+          {/* Todo: Add support to toggle this */}
+          <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" />
           <FormGroup
             label="Thumbnail directory"
           >
-            {/* Todo: Add support to toggle this */}
-            <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" />
-
             <label
               className={`${Classes.FILL} ${Classes.FILE_INPUT} ${Classes.FILE_INPUT_HAS_SELECTION}`}
               htmlFor="importPathInput"
