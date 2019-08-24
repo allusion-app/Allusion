@@ -91,7 +91,7 @@ class FileStore {
   async fetchFilesByQuery() {
     // Todo: properly implement this later
     await this.fetchFilesByTagIDs(
-      this.rootStore.uiStore.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
+      this.rootStore.uiStore.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value)
     );
   }
 
@@ -117,8 +117,12 @@ class FileStore {
     }
   }
 
-  @action.bound incrementNumUntaggedFiles() { this.numUntaggedFiles++; }
-  @action.bound decrementNumUntaggedFiles() { this.numUntaggedFiles--; }
+  @action.bound incrementNumUntaggedFiles() {
+    this.numUntaggedFiles++;
+  }
+  @action.bound decrementNumUntaggedFiles() {
+    this.numUntaggedFiles--;
+  }
 
   private async loadFiles() {
     const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
@@ -135,7 +139,7 @@ class FileStore {
           console.log(`${backendFile.path} 'does not exist'`);
           this.backend.removeFile(backendFile);
         }
-      }),
+      })
     );
   }
 
@@ -168,12 +172,10 @@ class FileStore {
           }
           return false;
         }
-      }),
+      })
     );
 
-    const existingBackendFiles = backendFiles.filter(
-      (_, i) => existenceChecker[i],
-    );
+    const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
 
     if (this.fileList.length === 0) {
       this.fileList.push(...this.filesFromBackend(existingBackendFiles));
