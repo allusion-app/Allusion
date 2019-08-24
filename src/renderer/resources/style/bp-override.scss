@@ -2,7 +2,7 @@
 // Skeleton override
 .#{$ns}-skeleton {
   border-color: #282828 !important;
-  border-radius: .25rem;
+  border-radius: 0.25rem;
   animation: none !important;
 }
 
@@ -326,26 +326,38 @@ button:has(.bp3-intent-danger) {
 }
 
 // Controls
-.bp3-control input:focus ~ .bp3-control-indicator {
-  outline: none;
+.bp3-control {
+  input:focus ~ .bp3-control-indicator {
+    outline: none;
+  }
 }
 
-.bp3-control.bp3-switch input:checked ~ .bp3-control-indicator {
-  background: $blue1;
+.bp3-control {
+  &.bp3-switch {
+    input:checked ~ .bp3-control-indicator {
+      background: $blue1;
+    }
+    input ~ .bp3-control-indicator {
+      background: rgba(167, 182, 194, 0.5);
+    }
+    .bp3-control-indicator::before {
+      box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.4) !important;
+      background: white !important;
+    }
+    &:hover input ~ .bp3-control-indicator {
+      background: rgba(115, 134, 148, 0.5);
+    }
+  }
 }
 
-.bp3-control.bp3-switch input ~ .bp3-control-indicator {
-  background: rgba(167, 182, 194, 0.5);
-}
+// .bp3-dark .bp3-control.bp3-switch .bp3-control-indicator::before {
+//   box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.4) !important;
+//   background: white;
+// }
 
-.bp3-dark .bp3-control.bp3-switch .bp3-control-indicator::before {
-  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.4) !important;
-  background: white;
-}
-
-.bp3-control.bp3-switch:hover input ~ .bp3-control-indicator {
-  background: rgba(115, 134, 148, 0.5);
-}
+// .bp3-control.bp3-switch:hover input ~ .bp3-control-indicator {
+//   background: rgba(115, 134, 148, 0.5);
+// }
 
 // Menus
 .bp3-dark {
