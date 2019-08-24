@@ -149,11 +149,13 @@ const findFiles = async (dir: string) => {
   });
 };
 
-// Tooltip info
-const importImageTitle = 'Imports a single image or a selection of images, no tagss are added';
-const importFolderTitle = 'Imports the images from a single folder without automatically tagging them';
-const importNestedTitle = 'Imports an existing folder structure which generates tags and collections \
-// based on the names of the folders';
+// Tooltip info for imports
+const enum Tooltip {
+  ImportImage = 'Imports a single image or a selection of images, no tags are added',
+  ImportFolder = 'Imports the images from a single folder without automatically tagging them',
+  ImportFolderStructure = 'Imports an existing folder structure which generates tags and collections \
+based on the names of the folders',
+}
 
 const ImportForm = () => {
   // Todo: Add Location entity to DB, so we can have user-picked directories as well
@@ -161,15 +163,9 @@ const ImportForm = () => {
 
   const { fileStore } = useContext(StoreContext);
 
-  const handleChooseFiles = useCallback(
-    () => chooseFiles(fileStore),
-    [],
-  );
+  const handleChooseFiles = useCallback(() => chooseFiles(fileStore), []);
 
-  const handleChooseDirectory = useCallback(
-    () => chooseDirectories(fileStore),
-    [],
-  );
+  const handleChooseDirectory = useCallback(() => chooseDirectories(fileStore), []);
 
   const handleChooseFolderStructure = useCallback(
     () => chooseFolderStructure(fileStore),
@@ -178,15 +174,33 @@ const ImportForm = () => {
 
   return (
     <div id="import">
-      <Button fill onClick={handleChooseFiles} icon={IconSet.MEDIA} className={'tooltip'} data-right={importImageTitle}>{/* // tslint:disable-next-line */}
+      <Button
+        fill
+        onClick={handleChooseFiles}
+        icon={IconSet.MEDIA}
+        className={'tooltip'}
+        data-right={Tooltip.ImportImage}
+      >
         Add images
       </Button>
 
-      <Button fill onClick={handleChooseDirectory} icon={IconSet.FOLDER_OPEN} className={'tooltip'} data-right={importFolderTitle}>{/* // tslint:disable-next-line */}
+      <Button
+        fill
+        onClick={handleChooseDirectory}
+        icon={IconSet.FOLDER_OPEN}
+        className={'tooltip'}
+        data-right={Tooltip.ImportFolder}
+      >
         Add single directory
       </Button>
 
-      <Button fill onClick={handleChooseFolderStructure} icon={IconSet.FOLDER_STRUCTURE} className={'tooltip'} data-right={importNestedTitle}>{/* // tslint:disable-next-line */}
+      <Button
+        fill
+        onClick={handleChooseFolderStructure}
+        icon={IconSet.FOLDER_STRUCTURE}
+        className={'tooltip'}
+        data-right={Tooltip.ImportFolderStructure}
+      >
         Add nested directories
       </Button>
 

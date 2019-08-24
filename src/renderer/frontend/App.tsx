@@ -10,8 +10,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
+import DragLayer from './components/DragAndDrop';
 import DropOverlay from './components/DropOverlay';
-import DragLayer from './components/DragLayer';
 
 const SPLASH_SCREEN_TIME = 700;
 
@@ -27,7 +27,7 @@ const App = ({ rootStore }: IAppProps) => {
 
     // Prevent scrolling with Space, instead used to open preview window
     window.addEventListener('keydown', (e) => {
-      if (e.keyCode === 32) {
+      if (e.code === 'Space') {
         e.preventDefault();
       }
     });

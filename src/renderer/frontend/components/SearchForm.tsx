@@ -22,7 +22,7 @@ const SearchForm = () => {
     return (
       <MultiTagSelector
         key={`query-field-${qIndex}`}
-        selectedTags={includedTags.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag)}
+        selectedTags={includedTags.map((id) => tagStore.getTag(id) as ClientTag)}
         onTagSelect={handleIncludeTag}
         onTagDeselect={handleExcludeTag}
         onClearSelection={handleClearIncludedTags}

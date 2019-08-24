@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <g id="layout">
-    <g>
-      <path d="M27,37l9-11H27V23H41v2.8L32,37h9v3H27Z"/>
-      <path d="M13,8h4l7,17H20l-1.5-4h-7L10,25H6Zm-.5,10h5L15,12Z"/>
-    </g>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.6 11H15l-3.6 10.1h2.4l.7-2H18l.6 2h2.6zm-.3 6.1h-2.2l1.2-3.4zM10.8 4.8V2.9H3v2h4.9l-5 6.3v1.9h7.9v-2h-5l5-6.3z"/></svg>

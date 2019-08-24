@@ -6,6 +6,7 @@ import {
   ROOT_TAG_COLLECTION_ID,
 } from '../../entities/TagCollection';
 import RootStore from './RootStore';
+import { ID } from '../../entities/ID';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -22,7 +23,7 @@ class TagCollectionStore {
   }
 
   getRootCollection() {
-    const root = this.tagCollectionList.find((c) => c.id === ROOT_TAG_COLLECTION_ID);
+    const root = this.getTagCollection(ROOT_TAG_COLLECTION_ID);
     if (!root) {
       throw new Error('Root collection not found. This should not happen!');
     }
@@ -43,16 +44,18 @@ class TagCollectionStore {
   }
 
   updateFromBackend(backendTagCol: ITagCollection) {
-    const tagCol = this.tagCollectionList.find((t) => backendTagCol.id === t.id);
+    const tagCol = this.getTagCollection(backendTagCol.id);
     // In case a tag collection was added to the server from another client or session
     if (!tagCol) {
-      this.tagCollectionList.push(
-        new ClientTagCollection(this).updateFromBackend(backendTagCol),
-      );
+      this.tagCollectionList.push(new ClientTagCollection(this).updateFromBackend(backendTagCol));
     } else {
       // Else, update the existing tag collection
       tagCol.updateFromBackend(backendTagCol);
     }
+  }
+
+  getTagCollection(collection: ID): ClientTagCollection | undefined {
+    return this.tagCollectionList.find((col) => col.id === collection);
   }
 
   @action

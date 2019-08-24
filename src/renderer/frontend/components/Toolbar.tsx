@@ -11,22 +11,25 @@ import { ClientFile, IFile } from '../../entities/File';
 import UiStore from '../stores/UiStore';
 
 // Tooltip info
-const addTooltip = 'Toggle Add panel';
-const tagTooltip = 'Toggle Tag panel';
-const searchTooltip = 'Toggle Search panel';
-const mediaTooltip = 'Number of files using selected tag(s)';
-const selectTooltip = 'Selects or deselects all images';
-const tagfilesTooltip = 'Quick add or delete tags to selection';
-const deleteTooltip = 'Delete selection from library';
-const viewTooltip = 'Change view content panel';
-const filterTooltip = 'Filter view content panel';
-// const fltTagTooltip = 'Filter images by first tag';
+const enum Tooltip {
+  Add = 'Toggle Add panel',
+  Tag = 'Toggle Tag panel',
+  Search = 'Toggle Search panel',
+  Media = 'Number of files using selected tag(s)',
+  Select = 'Selects or deselects all images',
+  TagFiles = 'Quick add or delete tags to selection',
+  Delete = 'Delete selection from library',
+  View = 'Change view content panel',
+  Filter = 'Filter view content panel',
+  // FilterTag = 'Filter images by first tag',
+}
 
 interface IRemoveFilesPopoverProps {
   disabled: boolean;
   onRemove: () => void;
   uiStore: UiStore;
 }
+
 const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
   const handleConfirm = useCallback(() => {
     onRemove();
@@ -39,7 +42,7 @@ const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFil
         disabled={disabled}
         onClick={uiStore.toggleToolbarFileRemover}
         className="tooltip"
-        data-right={deleteTooltip}
+        data-right={Tooltip.Delete}
       />
       <Alert
         isOpen={uiStore.isToolbarFileRemoverOpen}
@@ -53,7 +56,7 @@ const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFil
         canOutsideClickCancel
         className={Classes.DARK}
       >
-        <div className="popoverContent bp3-dark" id="deleteFile">
+        <div className="bp3-dark" id="deleteFile"> {/*popoverContent*/}
           <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
           <p>
             Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''} from your library?
@@ -78,7 +81,7 @@ const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopover
       disabled={disabled}
       onClick={uiStore.toggleToolbarTagSelector}
       className="tooltip"
-      data-right={tagfilesTooltip}
+      data-right={Tooltip.TagFiles}
     />
     <div className="popoverContent">
       <FileTag files={files} autoFocus />
@@ -209,26 +212,26 @@ const Toolbar = () => {
             onClick={handleOlImport}
             intent={olPage === 'IMPORT' ? 'primary' : 'none'}
             className="tooltip"
-            data-right={addTooltip}
+            data-right={Tooltip.Add}
           />
           <Button
             icon={IconSet.TAG}
             onClick={handleOlTags}
             intent={olPage === 'TAGS' ? 'primary' : 'none'} className="tooltip"
-            data-right={tagTooltip}
+            data-right={Tooltip.Tag}
           />
           <Button
             icon={IconSet.SEARCH}
             onClick={handleOlSearch}
             intent={olPage === 'SEARCH' ? 'primary' : 'none'} className="tooltip"
-            data-right={searchTooltip}
+            data-right={Tooltip.Search}
           />
         </ButtonGroup>
       </section>
 
       <section id="main-toolbar">
         {/* Library info. Todo: Show entire library count instead of current fileList */}
-        <Button id="media" icon={IconSet.MEDIA} minimal className="tooltip" data-right={mediaTooltip}>
+        <Button id="media" icon={IconSet.MEDIA} minimal className="tooltip" data-right={Tooltip.Media}>
           {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
         </Button>
 
@@ -240,7 +243,7 @@ const Toolbar = () => {
             onClick={handleToggleSelect}
             intent={isFileListSelected ? 'primary' : 'none'}
             className="tooltip"
-            data-right={selectTooltip}
+            data-right={Tooltip.Select}
           >
             {uiStore.fileSelection.length} selected
           </Button>
@@ -254,16 +257,16 @@ const Toolbar = () => {
             onRemove={handleRemoveSelectedFiles}
             disabled={!selectionModeOn}
             uiStore={uiStore}
-            // hasBackdrop={false}
+          // hasBackdrop={false}
           />
 
           {/* Gallery actions */}
           <Popover minimal
-            target={<Button icon={IconSet.VIEW_GRID} className="tooltip" data-right={viewTooltip} />}
+            target={<Button icon={IconSet.VIEW_GRID} className="tooltip" data-right={Tooltip.View} />}
             content={layoutMenu}
           />
           <Popover minimal
-            target={<Button icon={IconSet.FILTER} className="tooltip" data-right={filterTooltip} />}
+            target={<Button icon={IconSet.FILTER} className="tooltip" data-right={Tooltip.Filter} />}
             content={sortMenu}
           />
         </ButtonGroup>
