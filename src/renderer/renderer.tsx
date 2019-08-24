@@ -38,10 +38,19 @@ backend
 
 if (isPreviewWindow) {
   ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[]) => {
+    rootStore.uiStore.firstIndexInView = 0;
     rootStore.fileStore.fetchFilesByIDs(fileIds);
   });
+
   // Close preview with space
-  window.addEventListener('keydown', (e) => (e.code === 'Space' || e.code === 'Escape') && window.close());
+  window.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.code === 'Space' || e.code === 'Escape') {
+      rootStore.uiStore.clearFileSelection();
+      rootStore.fileStore.clearFileList();
+      window.close();
+    }
+  });
+
   // Change window title to filename on load
   rootStore.fileStore.fileList.observe(({ object: list }) => {
     if (list.length > 0) {
@@ -49,6 +58,7 @@ if (isPreviewWindow) {
       document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
     }
   });
+
   // Change window title to filename when changing the selected file
   rootStore.uiStore.fileSelection.observe(({ object: list }) => {
     if (list.length > 0) {
