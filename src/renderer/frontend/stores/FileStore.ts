@@ -91,7 +91,7 @@ class FileStore {
   async fetchFilesByQuery() {
     // Todo: properly implement this later
     await this.fetchFilesByTagIDs(
-      this.rootStore.uiStore.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value)
+      this.rootStore.uiStore.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
     );
   }
 
@@ -139,7 +139,7 @@ class FileStore {
           console.log(`${backendFile.path} 'does not exist'`);
           this.backend.removeFile(backendFile);
         }
-      })
+      }),
     );
   }
 
@@ -172,7 +172,7 @@ class FileStore {
           }
           return false;
         }
-      })
+      }),
     );
 
     const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);

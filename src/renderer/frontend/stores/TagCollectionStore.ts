@@ -82,7 +82,7 @@ class TagCollectionStore {
 
     // Remove sub-collections of this collection from state
     await Promise.all(
-      tagCol.clientSubCollections.map((subCol) => this.removeTagCollection(subCol))
+      tagCol.clientSubCollections.map((subCol) => this.removeTagCollection(subCol)),
     );
 
     // Remove tags in this collection

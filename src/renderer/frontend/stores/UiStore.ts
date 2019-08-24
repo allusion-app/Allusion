@@ -155,7 +155,7 @@ class UiStore {
 
   @computed get clientFileSelection(): ClientFile[] {
     return this.fileSelection.map((id) =>
-      this.rootStore.fileStore.fileList.find((f) => f.id === id)
+      this.rootStore.fileStore.fileList.find((f) => f.id === id),
     ) as ClientFile[];
   }
 
@@ -173,7 +173,7 @@ class UiStore {
       try {
         const prefs = JSON.parse(prefsString);
         // @ts-ignore
-        Object.keys(prefs).forEach((key) => this[key] = prefs[key]);
+        Object.keys(prefs).forEach((key) => (this[key] = prefs[key]));
       } catch (e) {
         console.log('Cannot parse persistent preferences', e);
       }
@@ -231,7 +231,7 @@ class UiStore {
       this.tagSelection.push(
         ...(tags as ClientTag[])
           .filter((t) => !this.tagSelection.includes(t.id))
-          .map((tag: ClientTag) => tag.id)
+          .map((tag: ClientTag) => tag.id),
       );
     } else {
       this.tagSelection.push(...(tags as ID[]).filter((t) => !this.tagSelection.includes(t)));
@@ -345,13 +345,13 @@ class UiStore {
 
       // Only include selected collections of which their parent is not selected
       const selectedColsNotInSelectedCols = selectedCols.filter(
-        (col) => !selectedCols.some((parent) => parent.subCollections.includes(col.id))
+        (col) => !selectedCols.some((parent) => parent.subCollections.includes(col.id)),
       );
       contextCols.push(...selectedColsNotInSelectedCols);
 
       // Only include the selected tags that are not in a selected collection
       const selectedTagsNotInSelectedCols = this.clientTagSelection.filter(
-        (t) => !selectedCols.some((col) => col.tags.includes(t.id))
+        (t) => !selectedCols.some((col) => col.tags.includes(t.id)),
       );
       contextTags.push(...selectedTagsNotInSelectedCols);
     }
