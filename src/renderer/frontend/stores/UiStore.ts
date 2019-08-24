@@ -118,11 +118,13 @@ class UiStore {
   @observable firstIndexInView: number = 0;
   /** The origin of the current files that are shown */
   @observable viewContent: 'query' | 'all' | 'untagged' = 'all';
+  @observable thumbnailSize: 'small' | 'medium' | 'large' = 'medium';
 
   // Content
   @observable fileOrder: keyof IFile = 'dateAdded';
   @observable fileOrderDescending = true;
   @observable fileLayout: 'LIST' | 'GRID' | 'MASONRY' | 'SLIDE' = 'GRID';
+  @observable imageViewerFile: ClientFile | null = null;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
