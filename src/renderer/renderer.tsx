@@ -7,7 +7,7 @@ import ReactDOM from 'react-dom';
 import { ipcRenderer, remote } from 'electron';
 
 import HTML5Backend from 'react-dnd-html5-backend';
-import { DragDropContextProvider } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -75,10 +75,10 @@ if (isPreviewWindow) {
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application
 ReactDOM.render(
-  <DragDropContextProvider backend={HTML5Backend}>
+  <DndProvider backend={HTML5Backend}>
     <StoreContext.Provider value={rootStore}>
       {isPreviewWindow ? <PreviewApp /> : <App />}
     </StoreContext.Provider>
-  </DragDropContextProvider>,
+  </DndProvider>,
   document.getElementById('app'),
 );

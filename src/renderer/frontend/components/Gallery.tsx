@@ -16,7 +16,19 @@ import { ClientFile } from '../../entities/File';
 import IconSet from './Icons';
 import { throttle } from '../utils';
 
-const cellSize = 260; // Should be same as CSS variable $thumbnail-size + padding
+// Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
+const CELL_SIZE_SMALL = 160 - 2;
+const CELL_SIZE_MEDIUM = 260 - 2;
+const CELL_SIZE_LARGE = 360 - 2;
+
+function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
+  if (sizeType === 'small') {
+    return CELL_SIZE_SMALL;
+  } else if (sizeType === 'medium') {
+    return CELL_SIZE_MEDIUM;
+  }
+  return CELL_SIZE_LARGE;
+}
 
 interface IGalleryLayoutProps {
   contentWidth: number;
@@ -44,6 +56,7 @@ function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) 
 
 const GridGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+  const cellSize = getThumbnailSize(uiStore.thumbnailSize);
   const numColumns = Math.floor(contentWidth / cellSize);
   const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
@@ -89,7 +102,7 @@ const GridGallery = observer(
         return <div />;
       }
       return (
-        <div style={style} key={`file-${file.id}`}>
+        <div style={style} key={`file-${file.id}`} className="galleryItem">
           <Observer>
             {() => (
               <GalleryItem
@@ -116,7 +129,7 @@ const GridGallery = observer(
       width={contentWidth}
       itemData={fileList}
       itemKey={handleItemKey}
-      overscanRowsCount={2}
+      overscanRowCount={2}
       children={Cell}
       onScroll={handleScroll}
       key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
@@ -128,7 +141,7 @@ const GridGallery = observer(
 
 const ListGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
-
+  const cellSize = getThumbnailSize(uiStore.thumbnailSize);
   const ref = useRef<FixedSizeList>(null);
 
   const handleScrollTo = useCallback((i: number) => {
@@ -164,7 +177,7 @@ const ListGallery = observer(
         return <div />;
       }
       return (
-        <div style={style}>
+        <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
           <Observer>
             {() => (
               <GalleryItem
@@ -429,7 +442,8 @@ const Gallery = ({
   return (
     <ResizeSensor onResize={handleResize}>
       <div
-        className={`gallery-content ${uiStore.viewMethod} ${selectionModeOn ? 'gallerySelectionMode' : ''}`}
+        className={`gallery-content thumbnail-${uiStore.thumbnailSize} ${
+          uiStore.viewMethod} ${selectionModeOn ? 'gallerySelectionMode' : ''}`}
         onClick={handleBackgroundClick}
       >
         {getLayoutComponent(
