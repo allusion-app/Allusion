@@ -1,15 +1,30 @@
-import React, { useContext } from 'react';
+import React, { useContext, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Drawer, Classes, Switch, Button, Callout, H4 } from '@blueprintjs/core';
+import { Drawer, Classes, Switch, Button, Callout, H4, FormGroup } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { ClearDbButton } from './ErrorBoundary';
+import { remote } from 'electron';
 
 const Settings = () => {
   const { uiStore } = useContext(StoreContext);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+
+  const browseThumbnailDirectory = useCallback(() => {
+    const dirs = remote.dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      defaultPath: uiStore.thumbnailDirectory,
+    });
+
+    if (!dirs) {
+      return;
+    }
+    const dir = dirs[0];
+    uiStore.thumbnailDirectory = dir;
+    // Todo: Clear previous thumbnail directory?
+  }, [uiStore.thumbnailDirectory]);
 
   return (
     <Drawer
@@ -22,6 +37,29 @@ const Settings = () => {
       <div className={Classes.DRAWER_BODY}>
           <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
           <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
+          <div className="bp3-divider"></div>
+
+          <FormGroup
+            label="Thumbnail directory"
+          >
+            {/* Todo: Add support to toggle this */}
+            <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" />
+
+            <label
+              className={`${Classes.FILL} ${Classes.FILE_INPUT} ${Classes.FILE_INPUT_HAS_SELECTION}`}
+              htmlFor="importPathInput"
+            >
+              {/* Where to import images you drop on the app or import through the browser extension */}
+              <span
+                className={Classes.FILE_UPLOAD_INPUT}
+                id="importPathInput"
+                onClick={browseThumbnailDirectory}
+              >
+                {uiStore.thumbnailDirectory}
+              </span>
+            </label>
+          </FormGroup>
+
           <div className="bp3-divider"></div>
 
           <ClearDbButton fill position="bottom-left" />
