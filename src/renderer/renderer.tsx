@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
@@ -71,6 +71,14 @@ if (isPreviewWindow) {
 } else {
   ipcRenderer.on('closedPreviewWindow', () => {
     rootStore.uiStore.isPreviewOpen = false;
+  });
+
+  // Load persistent preferences
+  rootStore.uiStore.recoverPersistentPreferences();
+
+  // Before closing the main window, store preferences
+  remote.getCurrentWindow().on('close', () => {
+    rootStore.uiStore.storePersistentPreferences();
   });
 }
 

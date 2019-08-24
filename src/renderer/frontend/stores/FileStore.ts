@@ -117,8 +117,12 @@ class FileStore {
     }
   }
 
-  @action.bound incrementNumUntaggedFiles() { this.numUntaggedFiles++; }
-  @action.bound decrementNumUntaggedFiles() { this.numUntaggedFiles--; }
+  @action.bound incrementNumUntaggedFiles() {
+    this.numUntaggedFiles++;
+  }
+  @action.bound decrementNumUntaggedFiles() {
+    this.numUntaggedFiles--;
+  }
 
   // Removes all items from fileList
   clearFileList() {
@@ -178,9 +182,7 @@ class FileStore {
       }),
     );
 
-    const existingBackendFiles = backendFiles.filter(
-      (_, i) => existenceChecker[i],
-    );
+    const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
 
     if (this.fileList.length === 0) {
       this.fileList.push(...this.filesFromBackend(existingBackendFiles));

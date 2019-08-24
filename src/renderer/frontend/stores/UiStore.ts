@@ -89,6 +89,24 @@ export interface ITagSearchQuery extends ISearchQuery {
  *  - State of a global overlay
  */
 
+/** These fields are stored and recovered when the application opens up */
+const PersistentPreferenceFields: Array<keyof UiStore> = [
+  'theme',
+  'isFullScreen',
+  'outlinerPage',
+  'isOutlinerOpen',
+  'isInspectorOpen',
+  'viewMethod',
+  'viewContent',
+  'firstIndexInView',
+  'fileOrder',
+  'fileOrderDescending',
+  'fileLayout',
+  'thumbnailSize',
+];
+
+const PREFERENCES_STORAGE_KEY = 'preferences';
+
 export type ViewMethod = 'list' | 'grid' | 'mason' | 'slide';
 
 class UiStore {
@@ -105,7 +123,7 @@ class UiStore {
   // UI
   @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
   @observable isOutlinerOpen: boolean = true;
-  @observable isInspectorOpen: boolean = true;
+  @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
   @observable isPreviewOpen: boolean = false;
@@ -147,6 +165,27 @@ class UiStore {
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
+  }
+
+  recoverPersistentPreferences() {
+    const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
+    if (prefsString) {
+      try {
+        const prefs = JSON.parse(prefsString);
+        // @ts-ignore
+        Object.keys(prefs).forEach((key) => (this[key] = prefs[key]));
+      } catch (e) {
+        console.log('Cannot parse persistent preferences', e);
+      }
+    }
+  }
+
+  storePersistentPreferences() {
+    const prefs: any = {};
+    for (const field of PersistentPreferenceFields) {
+      prefs[field] = this[field];
+    }
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
   }
 
   /////////////////// Selection actions ///////////////////
