@@ -16,10 +16,10 @@ import { ClientFile } from '../../entities/File';
 import IconSet from './Icons';
 import { throttle } from '../utils';
 
-// Should be same as CSS variable --thumbnail-size + padding
-const CELL_SIZE_SMALL = 160;
-const CELL_SIZE_MEDIUM = 260;
-const CELL_SIZE_LARGE = 360;
+// Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
+const CELL_SIZE_SMALL = 160 - 2;
+const CELL_SIZE_MEDIUM = 260 - 2;
+const CELL_SIZE_LARGE = 360 - 2;
 
 function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {
@@ -102,7 +102,7 @@ const GridGallery = observer(
         return <div />;
       }
       return (
-        <div style={style} key={`file-${file.id}`}>
+        <div style={style} key={`file-${file.id}`} className="galleryItem">
           <Observer>
             {() => (
               <GalleryItem
@@ -129,7 +129,7 @@ const GridGallery = observer(
       width={contentWidth}
       itemData={fileList}
       itemKey={handleItemKey}
-      overscanRowsCount={2}
+      overscanRowCount={2}
       children={Cell}
       onScroll={handleScroll}
       key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
@@ -177,7 +177,7 @@ const ListGallery = observer(
         return <div />;
       }
       return (
-        <div style={style} className={index % 2 ? 'list-item-even' : ''}>
+        <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
           <Observer>
             {() => (
               <GalleryItem
@@ -215,7 +215,17 @@ const ListGallery = observer(
 });
 
 const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
-  return <p>This view is currently not supported :(</p>;
+  const Styles: any = {
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '65%',
+  };
+
+  return <div style={Styles}> <span className="custom-icon-64" style={{marginBottom: '1rem'}}>{IconSet.DB_ERROR}</span><p>This view is currently not supported</p></div>; {/* // tslint:disable-next-line */}
 });
 
 const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {

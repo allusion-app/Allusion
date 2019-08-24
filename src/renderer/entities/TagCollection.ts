@@ -91,14 +91,14 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
 
   /** Get actual tag collection objects based on the IDs retrieved from the backend */
   @computed get clientSubCollections(): ClientTagCollection[] {
-    return this.subCollections.map(
-      (id) => this.store.rootStore.tagCollectionStore.tagCollectionList.find(
-        (t) => t.id === id)) as ClientTagCollection[];
+    return this.subCollections.map((id) =>
+      this.store.rootStore.tagCollectionStore.getTagCollection(id),
+    ) as ClientTagCollection[];
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get clientTags(): ClientTag[] {
-    return this.tags.map((id) => this.store.rootStore.tagStore.tagList.find((t) => t.id === id)) as ClientTag[];
+    return this.tags.map((id) => this.store.rootStore.tagStore.getTag(id)) as ClientTag[];
   }
 
   @computed get isEmpty(): boolean {
@@ -115,20 +115,22 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     // Else check through children recursively
     // Todo: Not sure how costly this is. Seems fine.
     const nonEmptySubCollections = this.clientSubCollections.filter((subCol) => !subCol.isEmpty);
-    return (this.tags.length > 0 || nonEmptySubCollections.length > 0)
-      && !this.tags.some((tag) => !uiStore.tagSelection.includes(tag))
-      && !nonEmptySubCollections.some((col) => !col.isSelected);
+    return (
+      (this.tags.length > 0 || nonEmptySubCollections.length > 0) &&
+      !this.tags.some((tag) => !uiStore.tagSelection.includes(tag)) &&
+      !nonEmptySubCollections.some((col) => !col.isSelected)
+    );
   }
 
   @action addTag(tag: ClientTag | ID) {
-    const id = (tag instanceof ClientTag) ? tag.id : tag;
+    const id = tag instanceof ClientTag ? tag.id : tag;
     if (!this.tags.includes(id)) {
       this.tags.push(id);
     }
   }
 
   @action removeTag(tag: ClientTag | ID) {
-    this.tags.remove((tag instanceof ClientTag) ? tag.id : tag);
+    this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
   }
 
   getTagsRecursively(): ID[] {
@@ -144,15 +146,19 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
    * Recursively checks all subcollections whether it contains a specified collection
    */
   containsSubCollection(queryCol: ITagCollection): boolean {
-    return this.subCollections.some((subCol) => subCol.includes(queryCol.id))
-      || this.clientSubCollections.some((subCol) => subCol.containsSubCollection(queryCol));
+    return (
+      this.subCollections.some((subCol) => subCol.includes(queryCol.id)) ||
+      this.clientSubCollections.some((subCol) => subCol.containsSubCollection(queryCol))
+    );
   }
   /**
    * Recursively checks all subcollections whether it contains a specified collection
    */
   containsTag(queryTag: ITag): boolean {
-    return this.tags.includes(queryTag.id)
-      || this.clientSubCollections.some((subCol) => subCol.containsTag(queryTag));
+    return (
+      this.tags.includes(queryTag.id) ||
+      this.clientSubCollections.some((subCol) => subCol.containsTag(queryTag))
+    );
   }
 
   /**

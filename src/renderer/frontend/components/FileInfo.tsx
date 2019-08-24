@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import fs from 'fs';
 import { observer } from 'mobx-react-lite';
 
@@ -13,6 +13,7 @@ interface IFileInfoProps {
 }
 
 export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
+  const isMounted = useRef(false);
   const [fileStats, setFileStats] = useState<fs.Stats | undefined>(undefined);
   const [error, setError] = useState<Error | undefined>(undefined);
   const [resolution, setResolution] = useState<string>('...');
@@ -20,23 +21,25 @@ export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   // Look up file info when file changes
   useEffect(
     () => {
-      fs.stat(file.path, (err, stats) =>
-        err ? setError(err) : setFileStats(stats),
-      );
+      isMounted.current = true;
+      fs.stat(file.path, (err, stats) => {
+        if (isMounted.current) {
+          err ? setError(err) : setFileStats(stats);
+        }
+      });
       const img = new Image();
-      img.src = file.path;
-      img.onload = () => {
-        setResolution(`${img.width}x${img.height}`);
-      };
 
-      return () => {
-        if (resolution === '...') {
-          img.src = '';
-          img.onload = () => {}; // tslint:disable-line: no-empty
+      img.onload = () => {
+        if (isMounted.current) {
+          setResolution(`${img.width}x${img.height}`);
         }
       };
+      img.src = file.path;
+      return () => {
+        isMounted.current = false;
+      };
     },
-    [file],
+    [file.path],
   );
 
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
@@ -57,7 +60,7 @@ export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
       // { key: 'Resolution', value: '?' },
       // { key: 'Color Space', value: '?' },
     ],
-    [file, fileStats],
+    [file, fileStats, resolution],
   );
 
   return (
