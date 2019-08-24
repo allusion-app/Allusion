@@ -21,7 +21,7 @@ const enum Tooltip {
   Delete = 'Delete selection from library',
   View = 'Change view content panel',
   Filter = 'Filter view content panel',
-  Size = 'Change the size of thumbnails'
+  Size = 'Change the size of thumbnails',
   // FilterTag = 'Filter images by first tag',
 }
 
