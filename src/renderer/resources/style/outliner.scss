@@ -100,7 +100,7 @@ nav {
       color: #495057;
       background: none;
     }
-    
+
     &:hover {
       background-color: $dark-gray3;
       color: $light-gray5;
@@ -159,20 +159,32 @@ nav .bp3-tree {
 }
 
 // Reordering by dragging
-.bp3-tree-node .reorder-target {
-  color: $yellow1;
-  // border-bottom: 2px solid $blue1;
-  // padding-bottom: 3px;
-  // border-bottom: 2px solid transparent;
-}
 
-.bp3-tree-node .reorder-source {
-// .bp3-tree-node .reorder-source > div {
-  opacity: 0.4;
-  &.reorder-target {
-    opacity: 1 !important;
+.bp3-tree-node {
+  &-label {
+    min-height: 20px !important;
+  }
+  .reorder-target {
+    border-bottom: 2px solid $blue1;
+    // padding-top: 2px;
+    // padding-bottom: 0px;
+  }
+  .reorder-source {
+    // .bp3-tree-node .reorder-source > div {
+    opacity: 0.25;
+    &.reorder-target {
+      opacity: 1 !important;
+    }
   }
 }
+
+// .bp3-tree-node .reorder-source {
+// // .bp3-tree-node .reorder-source > div {
+//   opacity: 0.25;
+//   &.reorder-target {
+//     opacity: 1 !important;
+//   }
+// }
 
 .bp3-control-group {
   padding: 0.25rem 0;
