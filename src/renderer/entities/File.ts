@@ -78,6 +78,8 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   readonly name: string;
   readonly extension: string;
 
+  hasThumbnail: boolean;
+
   constructor(store: FileStore, fileProps: IFile) {
     this.store = store;
 
@@ -87,6 +89,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
     this.size = fileProps.size;
     this.name = fileProps.name;
     this.extension = fileProps.extension;
+    this.hasThumbnail = false;
 
     this.tags.push(...fileProps.tags);
 

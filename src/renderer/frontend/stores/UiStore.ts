@@ -1,3 +1,5 @@
+import path from 'path';
+import fse from 'fs-extra';
 import { action, observable, computed } from 'mobx';
 import { remote, ipcRenderer } from 'electron';
 
@@ -131,6 +133,9 @@ class UiStore {
 
   readonly searchQueryList = observable<ISearchQuery>([]);
 
+  @observable thumbnailDirectory: string = '';
+  @observable thumbnailType: string = 'webp';
+
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
   @computed get clientFileSelection(): ClientFile[] {
@@ -145,6 +150,9 @@ class UiStore {
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
+    this.thumbnailDirectory = path.join(remote.app.getPath('userData'), 'thumbnails');
+    fse.ensureDirSync(this.thumbnailDirectory);
+    // Todo: Store in preferences instead of setting this to a static directory, when the persistent prefs branch is merged
   }
 
   /////////////////// Selection actions ///////////////////

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
+import fse from 'fs-extra';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { useDrop } from 'react-dnd';
@@ -8,8 +9,10 @@ import { ClientFile } from '../../entities/File';
 import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import { SingleFileInfo } from './FileInfo';
-import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
+import StoreContext, { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import { ItemType } from './DragAndDrop';
+import WorkerContext, { IThumbnailMessage } from '../contexts/WorkerContext';
+import { getThumbnailPath } from '../utils';
 
 interface IGalleryItemTagProps {
   tag: ClientTag;
@@ -42,6 +45,9 @@ export const GalleryItem = observer(({
   onDrop,
   showName, showTags, showInfo,
 }: IGalleryItemProps) => {
+  const { uiStore } = useContext(StoreContext);
+  const { thumbnailWorker } = useContext(WorkerContext);
+
   const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
     accept: ItemType.Tag,
     drop: (_, monitor) => onDrop(monitor.getItem(), file),
@@ -63,24 +69,51 @@ export const GalleryItem = observer(({
   const [isImageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState();
 
+  const thumbnailPath = useMemo(
+    () => getThumbnailPath(file.path, uiStore.thumbnailDirectory, uiStore.thumbnailType),
+    [file]);
+
+  const imagePath = file.hasThumbnail ? thumbnailPath : file.path;
+
   useEffect(() => {
+    // Check whether thumbnail already exists, if not, generate it
+    // Todo: Not sure if this is the best location for generating thumbnails. Should be in a more obvious location
+    if (!file.hasThumbnail) {
+      fse.pathExists(thumbnailPath)
+        .then((thumbnailExists) => {
+          if (!thumbnailExists) {
+            const msg: IThumbnailMessage = {
+              filePath: file.path,
+              thumbnailDirectory: uiStore.thumbnailDirectory,
+              thumbnailType: uiStore.thumbnailType,
+            };
+            thumbnailWorker.postMessage(msg);
+            thumbnailWorker.onerror = console.log;
+            thumbnailWorker.onmessage = () => {
+              file.hasThumbnail = true;
+            };
+          } else {
+            file.hasThumbnail = true;
+          }
+        });
+    }
     // Load the image manually when the component mounts
-    imageElem.src = file.path;
+    imageElem.src = imagePath;
     imageElem.onload = () => file && setImageLoaded(true);
     imageElem.onerror = (e) => file && setImageError(e);
     return () => {
       // When this component unmounts, cancel further loading of the image in case it was not loaded yet
       if (!isImageLoaded) {
         imageElem.src = '';
-        imageElem.onload = () => { }; // tslint:disable-line: no-empty
-        imageElem.onerror = () => { }; // tslint:disable-line: no-empty
+        imageElem.onload = () => undefined;
+        imageElem.onerror = () => undefined;
       }
     };
   }, []);
 
   return (<div ref={galleryItemDrop} className={className}>
     <div onClick={handleClickImg} className="img-wrapper">
-      {isImageLoaded ? <img src={file.path} /> // Show image when it has been loaded
+      {isImageLoaded ? <img src={imagePath} /> // Show image when it has been loaded
         : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
           : <div className={Classes.SKELETON} /> // Else show a placeholder
       }
