@@ -12,7 +12,7 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-
+  font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
   .bp3-light {
     color: $light-gray1;
   }
@@ -25,6 +25,13 @@ body {
   --content-area-height: calc(100vh - var(--toolbar-height));
   --thumbnail-size: 250px;
   height: 100%;
+}
+
+.preloader {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 main {
@@ -52,8 +59,15 @@ main {
 .popoverContent {
   padding: 0.5em;
   max-width: 32em;
+  #tag .custom-icon {
+    margin-top: 0;
+    margin-right: 20px;
+    font-size: 40px;
+  }
+  #fileTag {
+    padding: 0.75rem !important;
+  }
 }
-
 .contextMenuTarget {
   outline-color: $pt-intent-primary;
   outline-width: 2px;
@@ -324,6 +338,11 @@ main {
 .custom-icon-64 > * {
   height: 4rem !important;
   width: 4rem !important;
+}
+.bp3-alert .custom-icon,
+.custom-icon-32 > * {
+  height: 2rem !important;
+  width: 2rem !important;
 }
 .fillWidth {
   width: 100%;

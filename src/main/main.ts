@@ -7,7 +7,7 @@ let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
 
 function createWindow() {
-  const {width, height} = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   mainWindow = new BrowserWindow({
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
@@ -32,34 +32,61 @@ function createWindow() {
 
   // Mac App menu - used for styling so shortcuts work
   if (process.platform === 'darwin') {
-    menuBar.push({
-      label: 'File',
-      submenu: [
-        { role: 'about' },
-        { role: 'hide' },
-        { role: 'hideothers' },
-        { role: 'unhide' },
-        { role: 'quit' },
-      ],
-    });
+    menuBar.push({ role: 'appMenu' });
   }
+
   menuBar.push({
     label: 'Edit',
-    submenu: [
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-    ],
+    submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
   });
   menuBar.push({
     label: 'View',
     submenu: [
       { role: 'reload' },
-      { role: 'togglefullscreen' },
+      { role: 'forcereload' },
       { role: 'toggledevtools' },
-      { role: 'zoomin' },
-      { role: 'zoomout' },
-      { role: 'resetzoom' },
+      { type: 'separator' },
+      {
+        label: 'Actual Size',
+        accelerator: 'CommandOrControl+0',
+        click: (_, browserWindow) => {
+          browserWindow.webContents.setZoomFactor(1);
+        },
+      },
+      {
+        label: 'Zoom In',
+        // TODO: Fix by using custom solution...
+        accelerator: 'CommandOrControl+=',
+        click: (_, browserWindow) => {
+          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() + 0.1);
+        },
+      },
+      {
+        label: 'Zoom Out',
+        accelerator: 'CommandOrControl+-',
+        click: (_, browserWindow) => {
+          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() - 0.1);
+        },
+      },
+      { type: 'separator' },
+      { role: 'togglefullscreen' },
+    ],
+  });
+  menuBar.push({
+    label: 'Help',
+    submenu: [
+      {
+        label: 'Show Keyboard Shortcuts',
+        accelerator: 'CommandOrControl+K',
+        click: (_, browserWindow) => {
+          browserWindow.webContents.sendInputEvent({
+            type: 'keyDown',
+            isTrusted: true,
+            // @ts-ignore
+            keyCode: '?',
+          });
+        },
+      },
     ],
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuBar));
@@ -107,15 +134,16 @@ app.on('activate', () => {
 });
 
 function createPreviewWindow() {
-  const primDisplay = screen.getPrimaryDisplay();
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
   previewWindow = new BrowserWindow({
     webPreferences: {
       nodeIntegration: true,
     },
     minWidth: 224,
     minHeight: 224,
-    height: primDisplay.size.height * 2 / 3, // preview window is is sized relative to screen resolution by default
-    width: primDisplay.size.width * 2 / 3,
+    width: Math.round(width * 2 / 3),
+    height: Math.round(height * 2 / 3),
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',

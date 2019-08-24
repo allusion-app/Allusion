@@ -142,9 +142,7 @@ class UiStore {
   }
 
   @computed get clientTagSelection(): ClientTag[] {
-    return this.tagSelection.map((id) =>
-      this.rootStore.tagStore.tagList.find((t) => t.id === id),
-    ) as ClientTag[];
+    return this.tagSelection.map((id) => this.rootStore.tagStore.getTag(id)) as ClientTag[];
   }
 
   constructor(rootStore: RootStore) {
@@ -169,9 +167,7 @@ class UiStore {
 
   @action.bound selectAllFiles() {
     this.fileSelection.clear();
-    this.fileSelection.push(
-      ...this.rootStore.fileStore.fileList.map((f) => f.id),
-    );
+    this.fileSelection.push(...this.rootStore.fileStore.fileList.map((f) => f.id));
   }
 
   @action.bound deselectAllFiles() {
@@ -196,11 +192,10 @@ class UiStore {
       this.tagSelection.push(
         ...(tags as ClientTag[])
           .filter((t) => !this.tagSelection.includes(t.id))
-          .map((tag: ClientTag) => tag.id));
+          .map((tag: ClientTag) => tag.id),
+      );
     } else {
-      this.tagSelection.push(
-        ...(tags as ID[])
-          .filter((t) => !this.tagSelection.includes(t)));
+      this.tagSelection.push(...(tags as ID[]).filter((t) => !this.tagSelection.includes(t)));
     }
   }
 
@@ -246,52 +241,20 @@ class UiStore {
     }
   }
 
-  @action.bound async moveTag(tag: ClientTag | ID, target: ClientTag | ClientTagCollection, insertAtStart?: boolean) {
-    if (!(tag instanceof ClientTag)) {
-      const clientTag = this.rootStore.tagStore.tagList.find((t) => t.id === tag);
-      if (clientTag) {
-        tag = clientTag;
-      } else {
-        throw new Error('Cannot find tag to move ' + tag);
-      }
+  @action.bound async moveTag(id: ID, target: ClientTag | ClientTagCollection) {
+    const tag = this.rootStore.tagStore.getTag(id);
+    if (!tag) {
+      throw new Error('Cannot find tag to move ' + id);
     }
-
-    tag.parent.tags.remove(tag.id);
-
-    if (target instanceof ClientTag) {
-      const targetCol = target.parent;
-      const insertionIndex = targetCol.tags.indexOf(target.id);
-      // Insert the moved tag to the position of the current tag where it was dropped
-      targetCol.tags.splice(insertionIndex, 0, tag.id);
-    } else {
-      if (insertAtStart) {
-        target.tags.splice(0, 0, tag.id);
-      } else {
-        target.tags.push(tag.id);
-      }
-    }
+    this.reorderTagList(tag, target);
   }
 
-  @action.bound async moveCollection(
-    col: ClientTagCollection | ID, target: ClientTagCollection,
-    insertAtStart?: boolean,
-  ) {
-    if (!(col instanceof ClientTagCollection)) {
-      const clientCol = this.rootStore.tagCollectionStore.tagCollectionList.find((c) => c.id === col);
-      if (clientCol) {
-        col = clientCol;
-      } else {
-        throw new Error('Cannot find collection to move ' + col);
-      }
+  @action.bound async moveCollection(id: ID, target: ClientTagCollection) {
+    const collection = this.rootStore.tagCollectionStore.getTagCollection(id);
+    if (!collection) {
+      throw new Error('Cannot find collection to move ' + id);
     }
-
-    col.parent.subCollections.remove(col.id);
-
-    if (insertAtStart) {
-      target.subCollections.splice(0, 0, col.id);
-    } else {
-      target.subCollections.push(col.id);
-    }
+    this.reorderCollection(collection, target);
   }
 
   /**
@@ -312,7 +275,7 @@ class UiStore {
 
     // If an id is given, check whether it belongs to a tag or collection
     if (activeItemId) {
-      const selectedTag = tagStore.tagList.find((t) => t.id === activeItemId);
+      const selectedTag = tagStore.getTag(activeItemId);
       if (selectedTag) {
         if (selectedTag.isSelected) {
           isContextTheSelection = true;
@@ -320,7 +283,7 @@ class UiStore {
           contextTags.push(selectedTag);
         }
       } else {
-        const selectedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === activeItemId);
+        const selectedCol = tagCollectionStore.getTagCollection(activeItemId);
         if (selectedCol) {
           if (selectedCol.isSelected) {
             isContextTheSelection = true;
@@ -343,14 +306,14 @@ class UiStore {
 
       // Only include selected collections of which their parent is not selected
       const selectedColsNotInSelectedCols = selectedCols.filter(
-        (col) => !selectedCols.some(
-          (parent) => parent.subCollections.includes(col.id)));
+        (col) => !selectedCols.some((parent) => parent.subCollections.includes(col.id)),
+      );
       contextCols.push(...selectedColsNotInSelectedCols);
 
       // Only include the selected tags that are not in a selected collection
-      const selectedTagsNotInSelectedCols = this.clientTagSelection
-        .filter((t) => !selectedCols.some(
-          (col) => col.tags.includes(t.id)));
+      const selectedTagsNotInSelectedCols = this.clientTagSelection.filter(
+        (t) => !selectedCols.some((col) => col.tags.includes(t.id)),
+      );
       contextTags.push(...selectedTagsNotInSelectedCols);
     }
 
@@ -361,15 +324,12 @@ class UiStore {
   }
 
   /**
-   * @param target Where to move the selection to
-   * @param insertAtStart Whether to insert at the start, or the end
+   * @param targetId Where to move the selection to
    */
-  @action.bound async moveSelectedTagsAndCollections(targetId: ID, insertAtStart?: boolean) {
+  @action.bound async moveSelectedTagItems(id: ID) {
     const { tagStore, tagCollectionStore } = this.rootStore;
 
-    const target = tagStore.tagList.find((tag) => tag.id === targetId)
-      || tagCollectionStore.tagCollectionList.find((col) => col.id === targetId);
-
+    const target = tagStore.getTag(id) || tagCollectionStore.getTagCollection(id);
     if (!target) {
       throw new Error('Invalid target to move to');
     }
@@ -379,33 +339,9 @@ class UiStore {
     // Find all tags + collections in the current context (all selected items)
     const ctx = this.getTagContextItems();
 
-    // Move collections
-    for (const col of ctx.collections) {
-      const parent = col.parent;
-      parent.subCollections.remove(col.id);
-      if (insertAtStart) {
-        targetCol.subCollections.splice(0, 0, col.id);
-      } else {
-        targetCol.subCollections.push(col.id);
-      }
-    }
-
-    for (const tag of ctx.tags) {
-      const parent = tag.parent;
-      parent.removeTag(tag.id);
-      // Find where to insert the moved tag
-      if (target instanceof ClientTag) {
-        const insertionIndex = targetCol.tags.indexOf(target.id);
-        // Insert the moved tag to the position of the current tag where it was dropped
-        targetCol.tags.splice(insertionIndex, 0, tag.id);
-      } else {
-        if (insertAtStart) {
-          targetCol.tags.splice(0, 0, tag.id);
-        } else {
-          targetCol.tags.push(tag.id);
-        }
-      }
-    }
+    // Move tags and collections
+    ctx.collections.forEach((col) => this.reorderCollection(col, targetCol));
+    ctx.tags.forEach((tag) => this.reorderTagList(tag, targetCol));
   }
 
   /////////////////// Search Actions ///////////////////
@@ -517,8 +453,7 @@ class UiStore {
   }
 
   @action.bound toggleToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen =
-      this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
+    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
   }
   @action.bound openToolbarTagSelector() {
     this.isToolbarTagSelectorOpen = this.fileSelection.length > 0;
@@ -528,8 +463,7 @@ class UiStore {
   }
 
   @action.bound toggleToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen =
-      this.fileSelection.length > 0 && !this.isToolbarFileRemoverOpen;
+    this.isToolbarFileRemoverOpen = this.fileSelection.length > 0 && !this.isToolbarFileRemoverOpen;
   }
   @action.bound openToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = true;
@@ -566,6 +500,25 @@ class UiStore {
         this.deselectFile(file);
       }
     }
+  }
+
+  private reorderTagList(tag: ClientTag, target: ClientTag | ClientTagCollection) {
+    tag.parent.tags.remove(tag.id);
+
+    if (target instanceof ClientTag) {
+      const targetTags = target.parent.tags;
+      // Insert the moved tag below the position of the current tag where it was dropped
+      const insertionIndex = targetTags.indexOf(target.id) + 1;
+      targetTags.splice(insertionIndex, 0, tag.id);
+    } else {
+      // Insert at start when dragging tag to collection
+      target.tags.unshift(tag.id);
+    }
+  }
+
+  private reorderCollection(col: ClientTagCollection, target: ClientTagCollection) {
+    col.parent.subCollections.remove(col.id);
+    target.subCollections.unshift(col.id);
   }
 }
 

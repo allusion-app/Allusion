@@ -129,7 +129,7 @@ const GridGallery = observer(
       width={contentWidth}
       itemData={fileList}
       itemKey={handleItemKey}
-      overscanRowsCount={2}
+      overscanRowCount={2}
       children={Cell}
       onScroll={handleScroll}
       key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
@@ -215,7 +215,17 @@ const ListGallery = observer(
 });
 
 const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
-  return <p>This view is currently not supported :(</p>;
+  const Styles: any = {
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '65%',
+  };
+
+  return <div style={Styles}> <span className="custom-icon-64" style={{marginBottom: '1rem'}}>{IconSet.DB_ERROR}</span><p>This view is currently not supported</p></div>; {/* // tslint:disable-next-line */}
 });
 
 const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {

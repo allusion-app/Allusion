@@ -10,12 +10,10 @@ import ARROW_DOWN from '../../resources/icons/arrow-down.svg';
 import ARROW_LEFT from '../../resources/icons/arrow-left.svg';
 import ARROW_RIGHT from '../../resources/icons/arrow-right.svg';
 import ARROW_UP from '../../resources/icons/arrow-up.svg';
-import ARROW_COLLAPS from '../../resources/icons/arrow-collaps.svg';
-import ARROW_EXPAND from '../../resources/icons/arrow-expand.svg';
 import CHECKMARK from '../../resources/icons/checkmark.svg';
 import CHROME_DEVTOOLS from '../../resources/icons/chrome-devtools.svg';
+import CLEAR_DATABASE from '../../resources/icons/clear-database.svg';
 import CLOSE from '../../resources/icons/close.svg';
-import COLLECTION_ADD from '../../resources/icons/collection-add.svg';
 import DB_ERROR from '../../resources/icons/db-error.svg';
 import DELETE from '../../resources/icons/delete.svg';
 import DESELECT_ALL_FILL from '../../resources/icons/deselect-all-fill.svg';
@@ -33,14 +31,16 @@ import FOLDER_OPEN from '../../resources/icons/folder-open.svg';
 import FOLDER_STRUCTURE from '../../resources/icons/folder-structure.svg';
 import FORM_DROP from '../../resources/icons/form-drop.svg';
 import GITHUB from '../../resources/icons/github.svg';
+import ITEM_COLLAPS from '../../resources/icons/item-collaps.svg';
+import ITEM_EXPAND from '../../resources/icons/item-expand.svg';
+import ITEM_MOVE_DOWN from '../../resources/icons/item-move-down.svg';
+import ITEM_MOVE_UP from '../../resources/icons/item-move-up.svg';
 import INFO from '../../resources/icons/info.svg';
 import LOCATIONS from '../../resources/icons/locations.svg';
 import MEDIA from '../../resources/icons/media.svg';
 import META_INFO from '../../resources/icons/meta-info.svg';
 import META_INFO_2 from '../../resources/icons/meta-info-2.svg';
 import MORE from '../../resources/icons/more.svg';
-import MOVE_DOWN from '../../resources/icons/move-down.svg';
-import MOVE_UP from '../../resources/icons/move-up.svg';
 import OPEN_EXTERNAL from '../../resources/icons/open-external.svg';
 import PREVIEW from '../../resources/icons/preview.svg';
 import RELOAD from '../../resources/icons/reload.svg';
@@ -52,6 +52,7 @@ import SELECT_ALL_TRANS from '../../resources/icons/select-all-trans.svg';
 import SELECT_ALL from '../../resources/icons/select-all.svg';
 import SETTINGS from '../../resources/icons/settings.svg';
 import TAG_ADD from '../../resources/icons/tag-add.svg';
+import TAG_ADD_COLLECTION from '../../resources/icons/tag-add-collection.svg';
 import TAG_BLANCO from '../../resources/icons/tag-blanco.svg';
 import TAG_GROUP_OPEN from '../../resources/icons/tag-group-open.svg';
 import TAG_GROUP from '../../resources/icons/tag-group.svg';
@@ -70,7 +71,7 @@ const toSvg = (src: any) => (
   <SVG
     src={src}
     className="bp3-icon custom-icon"
-    style={{ width: '18px', height: '18px' }}
+    style={{ width: '16px', height: '16px' }}
   />
 );
 
@@ -83,12 +84,10 @@ const IconSet = {
   ARROW_LEFT: toSvg(ARROW_LEFT),
   ARROW_RIGHT: toSvg(ARROW_RIGHT),
   ARROW_UP: toSvg(ARROW_UP),
-  ARROW_COLLAPS: toSvg(ARROW_COLLAPS),
-  ARROW_EXPAND: toSvg(ARROW_EXPAND),
   CHECKMARK: toSvg(CHECKMARK),
   CHROME_DEVTOOLS: toSvg(CHROME_DEVTOOLS),
+  CLEAR_DATABASE: toSvg(CLEAR_DATABASE),
   CLOSE: toSvg(CLOSE),
-  COLLECTION_ADD: toSvg(COLLECTION_ADD),
   DB_ERROR: toSvg(DB_ERROR),
   DELETE: toSvg(DELETE),
   DESELECT_ALL_FILL: toSvg(DESELECT_ALL_FILL),
@@ -106,14 +105,16 @@ const IconSet = {
   FOLDER_STRUCTURE: toSvg(FOLDER_STRUCTURE),
   FORM_DROP: toSvg(FORM_DROP),
   GITHUB: toSvg(GITHUB),
+  ITEM_COLLAPS: toSvg(ITEM_COLLAPS),
+  ITEM_EXPAND: toSvg(ITEM_EXPAND),
+  ITEM_MOVE_DOWN: toSvg(ITEM_MOVE_DOWN),
+  ITEM_MOVE_UP: toSvg(ITEM_MOVE_UP),
   INFO: toSvg(INFO),
   LOCATIONS: toSvg(LOCATIONS),
   MEDIA: toSvg(MEDIA),
   META_INFO: toSvg(META_INFO),
   META_INFO_2: toSvg(META_INFO_2),
   MORE: toSvg(MORE),
-  MOVE_DOWN: toSvg(MOVE_DOWN),
-  MOVE_UP: toSvg(MOVE_UP),
   OPEN_EXTERNAL: toSvg(OPEN_EXTERNAL),
   PREVIEW: toSvg(PREVIEW),
   RELOAD: toSvg(RELOAD),
@@ -125,6 +126,7 @@ const IconSet = {
   SELECT_ALL: toSvg(SELECT_ALL),
   SETTINGS: toSvg(SETTINGS),
   TAG_ADD: toSvg(TAG_ADD),
+  TAG_ADD_COLLECTION: toSvg(TAG_ADD_COLLECTION),
   TAG_BLANCO: toSvg(TAG_BLANCO),
   TAG_GROUP_OPEN: toSvg(TAG_GROUP_OPEN),
   TAG_GROUP: toSvg(TAG_GROUP),
@@ -144,7 +146,7 @@ export const IconDemo = () => (
   <>
     <H3>Built-in icons</H3>
     { (['plus', 'small-plus', '', '', 'chevron-down', 'chevron-right', 'chevron-up',
-        'tick', 'cross', 'trash', 'delete', 'small-cross', 'edit', 'folder-close', 'folder-open',
+        'tick', 'cross', 'trash', 'delete', /*'small-cross'*/, 'edit', 'folder-close', 'folder-open',
         '', 'info-sign', 'menu', '', '', 'more', 'search', 'path-search',
         'tag', 'calendar',
         'sort-alphabetical', 'sort-alphabetical-desc', 'play', 'warning-sign',
