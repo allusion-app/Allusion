@@ -32,7 +32,7 @@ class FileStore {
     const fileData: IFile = {
       id: generateId(),
       path: filePath,
-      dateAdded: dateAdded || new Date(),
+      dateAdded: dateAdded ? new Date(dateAdded) : new Date(),
       tags: [],
       ...await ClientFile.getMetaData(filePath),
     };

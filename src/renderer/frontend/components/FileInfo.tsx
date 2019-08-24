@@ -4,9 +4,11 @@ import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
 
+const padToTwo = (n: number) => `0${n}`.slice(-2);
+
 const formatDate = (d: Date) =>
   `${d.getUTCFullYear()}-${d.getUTCMonth() +
-    1}-${d.getUTCDate()} ${d.getUTCHours()}:${d.getUTCMinutes()}`;
+    1}-${d.getUTCDate()} ${padToTwo(d.getUTCHours())}:${padToTwo(d.getUTCMinutes())}`;
 
 interface IFileInfoProps {
   files: ClientFile[];
@@ -47,6 +49,10 @@ export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   const fileInfoList = useMemo(
     () => [
       { key: 'Filename', value: file.name },
+      {
+        key: 'Imported',
+        value: formatDate(file.dateAdded),
+      },
       {
         key: 'Created',
         value: fileStats ? formatDate(fileStats.birthtime) : '...',

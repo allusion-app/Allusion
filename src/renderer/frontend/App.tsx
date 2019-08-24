@@ -11,7 +11,7 @@ import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 import DragLayer from './components/DragAndDrop';
-import DropOverlay from './components/DropOverlay';
+import DropOverlay from './components/DragAndDrop/DropOverlay';
 
 const SPLASH_SCREEN_TIME = 700;
 

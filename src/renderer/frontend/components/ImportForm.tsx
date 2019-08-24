@@ -136,7 +136,6 @@ const findFiles = async (dir: string) => {
     return [];
   }
 
-
   const filenames = await fse.readdir(dir);
   return filenames.filter((f) => {
     // No 'dot' files (e.g. ".image.jpg" (looking at you, MAC))
