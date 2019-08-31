@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
+import React, { useContext, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Drawer, Classes, Switch, Button, Callout, H4 } from '@blueprintjs/core';
+import { Drawer, Classes, Switch, Button, Callout, H4, RadioGroup, Radio } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
@@ -11,6 +11,10 @@ const Settings = () => {
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
+  const viewSmall = useCallback(() => { uiStore.thumbnailSize = 'small'; }, []);
+  const viewMedium = useCallback(() => { uiStore.thumbnailSize = 'medium'; }, []);
+  const viewLarge = useCallback(() => { uiStore.thumbnailSize = 'large'; }, []);
+
   return (
     <Drawer
       isOpen={uiStore.isSettingsOpen}
@@ -20,36 +24,47 @@ const Settings = () => {
       className={themeClass}
     >
       <div className={Classes.DRAWER_BODY}>
-          <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
-          <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
-          <div className="bp3-divider"></div>
+        <RadioGroup
+          selectedValue={uiStore.thumbnailSize}
+          onChange={() => undefined}
+          label="Thumbnail size"
+          inline
+        >
+          <Radio label="Small" value="small" onClick={viewSmall} />
+          <Radio label="Medium" value="medium" onClick={viewMedium} />
+          <Radio label="Large" value="large" onClick={viewLarge} />
+        </RadioGroup>
 
-          <ClearDbButton fill position="bottom-left" />
+        <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
+        <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
+        <div className="bp3-divider"></div>
 
-          <Button onClick={uiStore.toggleDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
-            Toggle DevTools
-          </Button>
+        <ClearDbButton fill position="bottom-left" />
 
-          <br />
+        <Button onClick={uiStore.toggleDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
+          Toggle DevTools
+        </Button>
 
-          <Callout icon={IconSet.INFO}>
-            <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
-            <p>
-              Did you know there are hotkeys?
-              <br/>
-              Press&nbsp;
-              <span className={Classes.KEY_COMBO}>
-                <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>
-                  shift
-                </span>
-                &nbsp;
-                <span className={Classes.KEY}>
-                  /
-                </span>
-                &nbsp;to see them.
+        <br />
+
+        <Callout icon={IconSet.INFO}>
+          <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
+          <p>
+            Did you know there are hotkeys?
+            <br/>
+            Press&nbsp;
+            <span className={Classes.KEY_COMBO}>
+              <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>
+                shift
               </span>
-            </p>
-          </Callout>
+              &nbsp;
+              <span className={Classes.KEY}>
+                /
+              </span>
+              &nbsp;to see them.
+            </span>
+          </p>
+        </Callout>
       </div>
     </Drawer>
   );

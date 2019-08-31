@@ -1,7 +1,8 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 nav {
   grid-area: outliner;
-  overflow: -webkit-paged-y;
+  overflow-y: auto;
+  overflow-x: hidden;
   flex-shrink: 0;
   width: 0;
   min-width: 0;
@@ -17,7 +18,10 @@ nav {
 
     button.bp3-button.bp3-minimal {
       opacity: 0;
-      transition: .2s cubic-bezier(0.4, 0.0, 0.2, 1);
+      border-radius: 0;
+      margin-bottom: 1px;
+      border-bottom: 1px solid #ffffff00;
+      transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
   }
 
@@ -50,19 +54,18 @@ nav {
 #search-form,
 .gallery,
 .error-boundary {
-
   // .error-boundary
-  >button,
+  > button,
   .button.bp3-fill,
   button.bp3-button.bp3-fill,
   .bp3-non-ideal-state button.bp3-button {
     color: $light-gray2;
   }
 
-  >button,
+  > button,
   .button.bp3-fill,
   .bp3-non-ideal-state button.bp3-button {
-    margin-bottom: .5rem;
+    margin-bottom: 0.5rem;
   }
 
   button.bp3-fill,
@@ -75,13 +78,13 @@ nav {
   .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]),
   .bp3-icon > svg:not([fill]) {
     color: $light-gray3;
-  } 
+  }
 
   button.bp3-intent-primary {
     background: $light-gray0-trans;
   }
   button.bp3-intent-primary {
-    background:$light-gray0-trans;
+    background: $light-gray0-trans;
   }
 }
 
@@ -96,7 +99,7 @@ nav {
 }
 
 #outliner {
-  &:hover #outliner-tags-header-wrapper:not(last-child)>* {
+  &:hover #outliner-tags-header-wrapper:not(last-child) > * {
     opacity: 1;
   }
 }
@@ -127,16 +130,16 @@ nav .bp3-tree {
 }
 
 .bp3-tree-node .reorder-source,
-.bp3-tree-node .reorder-source>div {
+.bp3-tree-node .reorder-source > div {
   opacity: 0.2;
 }
 
 .bp3-control-group {
-  padding: .25rem;
+  padding: 0.25rem;
 }
 
 .bp3-input {
-  padding: 0 .25rem;
+  padding: 0 0.25rem;
 }
 
 .bp3-input:focus {
@@ -191,7 +194,7 @@ nav .bp3-tree {
 }
 
 #tag-remove-overview {
-  padding: 8px;
+  padding: 8px 0;
   max-height: 100px;
   overflow-y: auto;
 }

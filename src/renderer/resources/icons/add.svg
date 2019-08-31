@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <g id="layout">
-    <path d="M39,21H27V9a3,3,0,0,0-6,0V21H9a3,3,0,0,0,0,6H21V39a3,3,0,0,0,6,0V27H39a3,3,0,0,0,0-6Z" fill="#222221"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 10.5h-7.5V3a1.5 1.5 0 0 0-3 0v7.5H3a1.5 1.5 0 0 0 0 3h7.5V21a1.5 1.5 0 0 0 3 0v-7.5H21a1.5 1.5 0 0 0 0-3z" fill="#222221"/></svg>

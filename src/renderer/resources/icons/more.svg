@@ -1,9 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <g id="layout">
-    <g>
-      <path d="M24,6a4,4,0,1,1-4,4A4,4,0,0,1,24,6Z" fill="#222221" fill-rule="evenodd"/>
-      <path d="M24,20a4,4,0,1,1-4,4A4,4,0,0,1,24,20Z" fill="#222221" fill-rule="evenodd"/>
-      <path d="M24,34a4,4,0,1,1-4,4A4,4,0,0,1,24,34Z" fill="#222221" fill-rule="evenodd"/>
-    </g>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4a2 2 0 1 1-2 2 2 2 0 0 1 2-2zm0 6a2 2 0 1 1-2 2 2 2 0 0 1 2-2zm0 6a2 2 0 1 1-2 2 2 2 0 0 1 2-2z" fill="#222221" fill-rule="evenodd"/></svg>

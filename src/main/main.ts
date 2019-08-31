@@ -6,8 +6,13 @@ import { isDev } from '../config';
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
 
+function initialize() {
+  createWindow();
+  createPreviewWindow();
+}
+
 function createWindow() {
-  const {width, height} = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   mainWindow = new BrowserWindow({
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
@@ -32,34 +37,61 @@ function createWindow() {
 
   // Mac App menu - used for styling so shortcuts work
   if (process.platform === 'darwin') {
-    menuBar.push({
-      label: 'File',
-      submenu: [
-        { role: 'about' },
-        { role: 'hide' },
-        { role: 'hideothers' },
-        { role: 'unhide' },
-        { role: 'quit' },
-      ],
-    });
+    menuBar.push({ role: 'appMenu' });
   }
+
   menuBar.push({
     label: 'Edit',
-    submenu: [
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-    ],
+    submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
   });
   menuBar.push({
     label: 'View',
     submenu: [
       { role: 'reload' },
-      { role: 'togglefullscreen' },
+      { role: 'forcereload' },
       { role: 'toggledevtools' },
-      { role: 'zoomin' },
-      { role: 'zoomout' },
-      { role: 'resetzoom' },
+      { type: 'separator' },
+      {
+        label: 'Actual Size',
+        accelerator: 'CommandOrControl+0',
+        click: (_, browserWindow) => {
+          browserWindow.webContents.setZoomFactor(1);
+        },
+      },
+      {
+        label: 'Zoom In',
+        // TODO: Fix by using custom solution...
+        accelerator: 'CommandOrControl+=',
+        click: (_, browserWindow) => {
+          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() + 0.1);
+        },
+      },
+      {
+        label: 'Zoom Out',
+        accelerator: 'CommandOrControl+-',
+        click: (_, browserWindow) => {
+          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() - 0.1);
+        },
+      },
+      { type: 'separator' },
+      { role: 'togglefullscreen' },
+    ],
+  });
+  menuBar.push({
+    label: 'Help',
+    submenu: [
+      {
+        label: 'Show Keyboard Shortcuts',
+        accelerator: 'CommandOrControl+K',
+        click: (_, browserWindow) => {
+          browserWindow.webContents.sendInputEvent({
+            type: 'keyDown',
+            isTrusted: true,
+            // @ts-ignore
+            keyCode: '?',
+          });
+        },
+      },
     ],
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuBar));
@@ -81,13 +113,16 @@ function createWindow() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null;
+    if (previewWindow) {
+      previewWindow.close();
+    }
   });
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', initialize);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -126,13 +161,19 @@ function createPreviewWindow() {
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
     title: 'Allusion Quick View',
+    show: false, // invis by default
   });
   previewWindow.setMenuBarVisibility(false);
   previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
-  previewWindow.on('closed', () => {
-    previewWindow = null;
+  previewWindow.on('close', (e) => {
+    // Prevent close, hide the window instead, for faster launch next time
     if (mainWindow) {
+      e.preventDefault();
       mainWindow.webContents.send('closedPreviewWindow');
+      mainWindow.focus();
+    }
+    if (previewWindow) {
+      previewWindow.hide();
     }
   });
   return previewWindow;
@@ -149,6 +190,11 @@ ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
     });
   } else {
     previewWindow.webContents.send('receivePreviewFiles', fileIds);
+
+    if (!previewWindow.isVisible()) {
+      previewWindow.show();
+    }
+    previewWindow.focus();
   }
 });
 

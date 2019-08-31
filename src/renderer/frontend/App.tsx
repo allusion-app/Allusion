@@ -10,9 +10,9 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
-import DragLayer from './components/DragLayer';
 import { AdvancedSearchDialog } from './components/SearchForm';
-// import { Omnibar } from '@blueprintjs/select';
+import ImageViewer from './components/ImageViewer';
+import DragLayer from './components/DragAndDrop';
 
 const SPLASH_SCREEN_TIME = 700;
 
@@ -28,7 +28,7 @@ const App = ({ rootStore }: IAppProps) => {
 
     // Prevent scrolling with Space, instead used to open preview window
     window.addEventListener('keydown', (e) => {
-      if (e.keyCode === 32) {
+      if (e.code === 'Space') {
         e.preventDefault();
       }
     });
@@ -51,6 +51,10 @@ const App = ({ rootStore }: IAppProps) => {
           <main>
             <FileList />
           </main>
+
+          {uiStore.imageViewerFile ? (
+            <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.imageViewerFile = null} />
+          ) : <></>}
 
           <Inspector />
 

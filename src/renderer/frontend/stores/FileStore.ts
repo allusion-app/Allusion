@@ -128,8 +128,19 @@ class FileStore {
     }
   }
 
-  @action.bound incrementNumUntaggedFiles() { this.numUntaggedFiles++; }
-  @action.bound decrementNumUntaggedFiles() { this.numUntaggedFiles--; }
+  @action.bound incrementNumUntaggedFiles() {
+    this.numUntaggedFiles++;
+  }
+  @action.bound decrementNumUntaggedFiles() {
+    this.numUntaggedFiles--;
+  }
+
+  // Removes all items from fileList
+  clearFileList() {
+    // Clean up observers of ClientFiles before removing them
+    this.fileList.forEach((f) => f.dispose());
+    this.fileList.clear();
+  }
 
   private async loadFiles() {
     const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
@@ -182,9 +193,7 @@ class FileStore {
       }),
     );
 
-    const existingBackendFiles = backendFiles.filter(
-      (_, i) => existenceChecker[i],
-    );
+    const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
 
     if (this.fileList.length === 0) {
       this.fileList.push(...this.filesFromBackend(existingBackendFiles));
@@ -200,13 +209,6 @@ class FileStore {
 
   private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
     return backendFiles.map((file) => new ClientFile(this, file));
-  }
-
-  // Removes all items from fileList
-  private clearFileList() {
-    // Clean up observers of ClientFiles before removing them
-    this.fileList.forEach((f) => f.dispose());
-    this.fileList.clear();
   }
 
   private replaceFileList(backendFiles: ClientFile[]) {
