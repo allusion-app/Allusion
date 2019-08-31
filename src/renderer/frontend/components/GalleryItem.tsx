@@ -71,6 +71,8 @@ export const GalleryItem = observer(({
     () => getThumbnailPath(file.path, uiStore.thumbnailDirectory, uiStore.thumbnailType),
     [file]);
 
+  const imagePath = uiStore.viewMethod === 'slide' ? file.path : thumbnailPath;
+
   useEffect(() => {
     // First check whether a thumbnail exists, generate it if needed
     ensureThumbnail(file, uiStore.thumbnailDirectory, uiStore.thumbnailType);
@@ -95,7 +97,7 @@ export const GalleryItem = observer(({
 
   return (<div ref={galleryItemDrop} className={className}>
     <div onClick={handleClickImg} className="img-wrapper">
-      {isImageLoaded ? <img src={thumbnailPath} /> // Show image when it has been loaded
+      {isImageLoaded ? <img src={imagePath} /> // Show image when it has been loaded
         : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
           : <div className={Classes.SKELETON} /> // Else show a placeholder
       }
