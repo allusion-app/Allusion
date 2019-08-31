@@ -90,7 +90,8 @@ class FileStore {
 
   @action.bound
   async fetchFilesByQuery() {
-    const criteria = this.rootStore.uiStore.searchCriteriaList.toJS();
+    const criteria = this.rootStore.uiStore.searchCriteriaList.slice();
+    // console.log('banana', criteria, criteria.map((c) => JSON.stringify(c)));
     if (criteria.length === 0) {
       return;
     }
@@ -98,7 +99,6 @@ class FileStore {
     try {
       const fetchedFiles = await this.backend.searchFiles(
         criteria as [SearchCriteria<IFile>], fileOrder, fileOrderDescending);
-      console.log(criteria.map((c) => JSON.stringify(c)));
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on criteria', e);

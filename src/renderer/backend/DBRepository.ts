@@ -182,7 +182,6 @@ export default class BaseRepository<T extends IIdentifiable> {
       case 'date':
         const dateCrit = firstCrit as IDateSearchCriteria<T>;
         const dateEnd = new Date(dateCrit.value);
-        console.log(dateCrit.value, dateEnd);
         dateEnd.setHours(23, 59, 59);
         table =
          (dateCrit.operator === 'equals')              ? where.between(dateCrit.value, dateEnd) : // equal to this day, so between 0:00 and 23:59
@@ -195,26 +194,72 @@ export default class BaseRepository<T extends IIdentifiable> {
         break;
     }
 
-    // const matchAny = false; // todo: get as param
+    const matchAny = false; // todo: get as param
     // const matchFuncName = matchAny ? 'or' : 'and';
 
-    for (const crit of otherCrits as Array<SearchCriteria<T>>) {
-      switch (crit.valueType) {
-        case 'array':
-          const idsCrit = crit as IIDsSearchCriteria<T>;
-          const funcName = idsCrit.operator === 'contains' ? 'anyOf' : 'noneOf';
-          // this.collection.where('name').equals('test').and('name').above('test');
-          table = (idsCrit.value.length === 0)
-            ? this.collection.filter((val: any) => val[crit.key as string].length === 0) // find where array is empty
-            : where[funcName](idsCrit.value).distinct();
-          break;
-        case 'string':
-          // Todo: Finish
-          break;
-      }
+    // Whether the other criteria should be applied as AND /or/ OR
+    if (matchAny) {
+      // OR can be done in a similar manner to the first criteria. Needs some refactoring
+      // Maybe can also be done same way as AND
+    } else {
+      // AND must be done with a filter function over each entry
+      for (const crit of otherCrits as Array<SearchCriteria<T>>) {
+        switch (crit.valueType) {
+          case 'array':
+            const idsCrit = crit as IIDsSearchCriteria<T>;
+            if (firstCrit.operator === 'contains') {
+              table = (idsCrit.value.length === 0)
+                ? table.and((val: any) => val[crit.key as string].length === 0)
+                : table.and((val: any) => idsCrit.value.every((item) => val[crit.key as string].contains(item)));
+            } else { // not contains
+              table = (idsCrit.value.length === 0)
+                ? table.and((val: any) => val[crit.key as string].length !== 0)
+                : table.and((val: any) => !idsCrit.value.some((item) => val[crit.key as string].contains(item)));
+            }
+            break;
+          case 'string':
+            const { operator: op, key, value } = firstCrit as IStringSearchCriteria<T>;
+            console.log(op, value);
+            const valLow = value.toLowerCase();
+            table =
+              op === 'equals' ?   table.and((t: any) => (t[key] as string).toLowerCase() === valLow) :
+              op === 'notEqual' ? table.and((t: any) => (t[key] as string).toLowerCase() !== valLow) :
+              op === 'contains' ?    table.and((t: any) => (t[key] as string).toLowerCase().indexOf(valLow) !== -1) :
+              op === 'notContains' ? table.and((t: any) => (t[key] as string).toLowerCase().indexOf(valLow) === -1) :
+              op === 'startsWith' ? table.and((t: any) => (t[key] as string).toLowerCase().startsWith(valLow)) :
+              /*notStartsWith*/     table.and((t: any) => !(t[key] as string).toLowerCase().startsWith(valLow));
+            break;
+          case 'number':
+            const numberCrit = firstCrit as INumberSearchCriteria<T>;
+            const numOp = numberCrit.operator;
+            table =
+              numOp === 'equals' ? table.and((t: any) => (t[key] as number) === numberCrit.value) :
+              numOp === 'notEqual' ? table.and((t: any) => (t[key] as number) !== numberCrit.value) :
+              numOp === 'smallerThan' ? table.and((t: any) => (t[key] as number) < numberCrit.value) :
+              numOp === 'smallerThanOrEquals' ? table.and((t: any) => (t[key] as number) <= numberCrit.value) :
+              numOp === 'greaterThan' ? table.and((t: any) => (t[key] as number) > numberCrit.value) :
+              /* greaterThanOrEquals */ table.and((t: any) => (t[key] as number) >= numberCrit.value);
+            break;
+          case 'date':
+            const dateCrit = firstCrit as IDateSearchCriteria<T>;
+            const start = new Date(dateCrit.value);
+            const end = new Date(dateCrit.value);
+            end.setHours(23, 59, 59);
+            const dateOp = dateCrit.operator;
 
-      // Todo: Deal with other search criteria types
+            table =
+              dateOp === 'equals' ? table.and((t: any) => t[key] >= start || t[key] <= end) :
+              dateOp === 'notEqual' ? table.and((t: any) =>  t[key] < start || t[key] > end) :
+              dateOp === 'smallerThan' ? table.and((t: any) => t[key] < start) :
+              dateOp === 'smallerThanOrEquals' ? table.and((t: any) => t[key] <= end) :
+              dateOp === 'greaterThan' ? table.and((t: any) => t[key] > end) :
+              /* greaterThanOrEquals */ table.and((t: any) => t[key] >= start);
+
+            break;
+        }
+      }
     }
+
     return table;
   }
 }
