@@ -7,7 +7,6 @@ import RootStore from '../stores/RootStore';
 import { withRootstore } from '../contexts/StoreContext';
 import FileInfo from './FileInfo';
 import FileTag from './FileTag';
-import { shell } from 'electron';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
@@ -35,7 +34,7 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
       <img
         src={singleFile.path}
         style={{ cursor: 'zoom-in' }}
-        onClick={() => shell.openItem(singleFile.path)}
+        onClick={() => uiStore.imageViewerFile = singleFile}
       />
     );
     headerText = path.basename(singleFile.path);

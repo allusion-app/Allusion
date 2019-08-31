@@ -6,6 +6,11 @@ import { isDev } from '../config';
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
 
+function initialize() {
+  createWindow();
+  createPreviewWindow();
+}
+
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
@@ -109,13 +114,16 @@ function createWindow() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null;
+    if (previewWindow) {
+      previewWindow.close();
+    }
   });
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', initialize);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -149,13 +157,19 @@ function createPreviewWindow() {
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
     title: 'Allusion Quick View',
+    show: false, // invis by default
   });
   previewWindow.setMenuBarVisibility(false);
   previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
-  previewWindow.on('closed', () => {
-    previewWindow = null;
+  previewWindow.on('close', (e) => {
+    // Prevent close, hide the window instead, for faster launch next time
     if (mainWindow) {
+      e.preventDefault();
       mainWindow.webContents.send('closedPreviewWindow');
+      mainWindow.focus();
+    }
+    if (previewWindow) {
+      previewWindow.hide();
     }
   });
   return previewWindow;
@@ -172,6 +186,11 @@ ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
     });
   } else {
     previewWindow.webContents.send('receivePreviewFiles', fileIds);
+
+    if (!previewWindow.isVisible()) {
+      previewWindow.show();
+    }
+    previewWindow.focus();
   }
 });
 

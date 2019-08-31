@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
@@ -38,10 +38,19 @@ backend
 
 if (isPreviewWindow) {
   ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[]) => {
+    rootStore.uiStore.firstIndexInView = 0;
     rootStore.fileStore.fetchFilesByIDs(fileIds);
   });
+
   // Close preview with space
-  window.addEventListener('keydown', (e) => (e.code === 'Space' || e.code === 'Escape') && window.close());
+  window.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.code === 'Space' || e.code === 'Escape') {
+      rootStore.uiStore.clearFileSelection();
+      rootStore.fileStore.clearFileList();
+      window.close();
+    }
+  });
+
   // Change window title to filename on load
   rootStore.fileStore.fileList.observe(({ object: list }) => {
     if (list.length > 0) {
@@ -49,6 +58,7 @@ if (isPreviewWindow) {
       document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
     }
   });
+
   // Change window title to filename when changing the selected file
   rootStore.uiStore.fileSelection.observe(({ object: list }) => {
     if (list.length > 0) {
@@ -61,6 +71,14 @@ if (isPreviewWindow) {
 } else {
   ipcRenderer.on('closedPreviewWindow', () => {
     rootStore.uiStore.isPreviewOpen = false;
+  });
+
+  // Load persistent preferences
+  rootStore.uiStore.recoverPersistentPreferences();
+
+  // Before closing the main window, store preferences
+  remote.getCurrentWindow().on('close', () => {
+    rootStore.uiStore.storePersistentPreferences();
   });
 }
 

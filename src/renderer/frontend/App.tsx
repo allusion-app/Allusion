@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
+import ImageViewer from './components/ImageViewer';
 import DragLayer from './components/DragAndDrop';
 import { useWorkerListener } from './ThumbnailGeneration';
 
@@ -52,6 +53,10 @@ const App = ({ rootStore }: IAppProps) => {
           <main>
             <FileList />
           </main>
+
+          {uiStore.imageViewerFile ? (
+            <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.imageViewerFile = null} />
+          ) : <></>}
 
           <Inspector />
 
