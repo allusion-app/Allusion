@@ -100,7 +100,6 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'isInspectorOpen',
   'viewMethod',
   'viewContent',
-  'firstIndexInView',
   'fileOrder',
   'fileOrderDescending',
   'fileLayout',
