@@ -49,9 +49,22 @@ export function capitalize(value: string) {
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
 
+export function camelCaseToSpaced(value: string) {
+  if (!value) {
+    return '';
+  }
+  return value
+    // insert a space before all caps
+    .replace(/([A-Z])/g, ' $1')
+    // uppercase the first character
+    .replace(/^./, (str) => str.toUpperCase());
+}
+
+export const formatDateTime = (date: Date) =>
+  `${date.toLocaleDateString()} ${date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
+
 export const jsDateFormatter = {
-  formatDate: (date: Date) =>
-    `${date.toLocaleDateString()} ${date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`,
+  formatDate: (date: Date) => date.toLocaleDateString(),
   parseDate: (str: string) => new Date(str),
-  placeholder: 'M/D/YYYY',
+  placeholder: 'Choose a date...',
 };

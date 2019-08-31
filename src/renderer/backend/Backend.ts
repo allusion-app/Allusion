@@ -97,7 +97,7 @@ export default class Backend {
     // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
     const filesWithTag = await this.fileRepository
-      .find({ criteria: { key: 'tags', value: tag.id, operator: 'and', action: 'include' }});
+      .find({ criteria: { key: 'tags', value: tag.id, operator: 'contains', valueType: 'array' }});
     // Remove tag from files
     filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
     // Update files in db
@@ -133,7 +133,8 @@ export default class Backend {
 
   async getNumUntaggedFiles() {
     console.log('Get number of untagged files...');
-    return this.fileRepository.count({ criteria: { key: 'tags', value: [], operator: 'and', action: 'include' } });
+    return this.fileRepository.count(
+      { criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' } });
   }
 
   async clearDatabase() {

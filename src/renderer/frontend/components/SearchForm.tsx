@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
-  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, Checkbox, InputGroup, NumericInput, HTMLSelect,
+  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, InputGroup, NumericInput, HTMLSelect,
 } from '@blueprintjs/core';
 
 import MultiTagSelector from './MultiTagSelector';
@@ -10,12 +10,16 @@ import StoreContext from '../contexts/StoreContext';
 import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import {
-  IIDsSearchCriteria, SearchCriteria, SearchCriteriaEqualitySign, IStringSearchCriteria,
+  IIDsSearchCriteria, SearchCriteria, IStringSearchCriteria,
   INumberSearchCriteria, IDateSearchCriteria, initStringCriteria, initIDsCriteria, initNumberCriteria,
-  initDateCriteria, SearchCriteriaEqualitySignType,
+  initDateCriteria,
+  NumberOperatorType, NumberOperators,
+  BinaryOperatorType, BinaryOperators,
+  StringOperatorType, StringOperators,
+  ArrayOperatorType, ArrayOperators,
 } from '../../entities/SearchCriteria';
 import { IFile, IMG_EXTENSIONS } from '../../entities/File';
-import { capitalize, jsDateFormatter } from '../utils';
+import { jsDateFormatter, camelCaseToSpaced } from '../utils';
 
 interface IKeyLabel {
   [key: string]: string;
@@ -77,8 +81,28 @@ const KeySelector = observer(({ criteria }: { criteria: SearchCriteria<IFile> })
   );
 });
 
+interface IOperatorSelectProps {
+  onSelect: (sign: string) => void;
+  value: string;
+  options: readonly string[];
+}
+
+const OperatorSelect = ({ onSelect, value, options }: IOperatorSelectProps) => {
+  const handleSelect = useCallback((e: ChangeEvent<HTMLSelectElement>) => onSelect(e.target.value), [onSelect]);
+  return (
+    <HTMLSelect
+      onChange={handleSelect}
+      options={options.map((opt) => ({ value: opt, label: camelCaseToSpaced(opt) }))}
+      value={value}
+    />
+  );
+};
+
 const TagCriteriaItem = observer(({ criteria }: { criteria: IIDsSearchCriteria<IFile> }) => {
   const { tagStore } = useContext(StoreContext);
+
+  const setOperator = useCallback(
+    (operator: string) => criteria.operator = operator as ArrayOperatorType, [criteria]);
 
   const handleSelectTag = useCallback((t: ClientTag) => criteria.value.push(t.id), [criteria]);
 
@@ -92,85 +116,77 @@ const TagCriteriaItem = observer(({ criteria }: { criteria: IIDsSearchCriteria<I
     [criteria.value.length]);
 
   return (
-    <MultiTagSelector
-      selectedTags={criteriaTags}
-      onTagSelect={handleSelectTag}
-      onTagDeselect={handleDeselectTag}
-      onClearSelection={handleClearTags}
-      placeholder="Untagged"
-      autoFocus
-    />
+    <>
+      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={ArrayOperators} />
+      <MultiTagSelector
+        selectedTags={criteriaTags}
+        onTagSelect={handleSelectTag}
+        onTagDeselect={handleDeselectTag}
+        onClearSelection={handleClearTags}
+        placeholder="Untagged"
+        autoFocus
+      />
+    </>
   );
 });
 
 const StringCriteriaItem = observer(({ criteria }: { criteria: IStringSearchCriteria<IFile> }) => {
-  const handleChangeExact = useCallback(() => criteria.exact = !criteria.exact, [criteria]);
+  const setOperator = useCallback(
+    (operator: string) => criteria.operator = operator as StringOperatorType, [criteria]);
   const handleChangeValue = useCallback((e) => criteria.value = e.target.value, [criteria]);
-  const { exact, value } = criteria;
   return (
     <>
-      <Checkbox label="Exact" checked={exact} onChange={handleChangeExact} value={`${Boolean(exact)}`} />
-      <InputGroup placeholder="Enter some text..." value={value} onChange={handleChangeValue} autoFocus />
+      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={StringOperators} />
+      <InputGroup placeholder="Enter some text..." value={criteria.value} onChange={handleChangeValue} autoFocus />
     </>
   );
 });
 
 const ExtensionCriteriaItem = observer(({ criteria }: { criteria: IStringSearchCriteria<IFile> }) => {
+  const setOperator = useCallback(
+    (operator: string) => criteria.operator = operator as BinaryOperatorType, [criteria]);
   const handlePickValue = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => criteria.value = e.target.value, [criteria]);
 
   return (
-    <HTMLSelect
-      onChange={handlePickValue}
-      options={IMG_EXTENSIONS.map((ext) => ({ value: ext, label: ext.toUpperCase() }))}
-      value={criteria.value}
-    />
+    <>
+      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={BinaryOperators} />
+      <HTMLSelect
+        onChange={handlePickValue}
+        options={IMG_EXTENSIONS.map((ext) => ({ value: ext, label: ext.toUpperCase() }))}
+        value={criteria.value}
+      />
+    </>
   );
 });
 
-interface ISignSelectProps {
-  onSelect: (sign: SearchCriteriaEqualitySignType) => void;
-  sign: SearchCriteriaEqualitySignType;
-}
-
-const SignSelect = ({ onSelect, sign }: ISignSelectProps) => {
-  const handleSelect = useCallback((e: ChangeEvent<HTMLSelectElement>) => onSelect(e.target.value), [onSelect]);
-  return (
-    <HTMLSelect
-      onChange={handleSelect}
-      options={SearchCriteriaEqualitySign.map((value) => ({ value, label: capitalize(value) }))}
-      value={sign}
-    />
-  );
-};
-
 const NumberCriteriaItem = observer(({ criteria }: { criteria: INumberSearchCriteria<IFile> }) => {
-  const handleChangeSign = useCallback(
-    (sign: SearchCriteriaEqualitySignType) => criteria.equalitySign = sign, [criteria]);
+  const setOperator = useCallback(
+    (operator: string) => criteria.operator = operator as NumberOperatorType, [criteria]);
   const handleChangeValue = useCallback((e) => criteria.value = e.target.value, [criteria]);
   return (
     <>
-      <SignSelect onSelect={handleChangeSign} sign={criteria.equalitySign} />
+      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={NumberOperators} />
       <NumericInput placeholder="Enter a number..." value={criteria.value} onChange={handleChangeValue} autoFocus />
     </>
   );
 });
 
 const DateCriteriaItem = observer(({ criteria }: { criteria: IDateSearchCriteria<IFile> }) => {
-  const handleChangeSign = useCallback(
-    (sign: SearchCriteriaEqualitySignType) => criteria.equalitySign = sign, [criteria]);
+  const setOperator = useCallback(
+    (operator: string) => criteria.operator = operator as NumberOperatorType, [criteria]);
   const handleChangeValue = useCallback((date: Date) => criteria.value = date, [criteria]);
   return (
     <>
-      <SignSelect onSelect={handleChangeSign} sign={criteria.equalitySign} />
+      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={NumberOperators} />
       <DateInput
         value={criteria.value}
         onChange={handleChangeValue}
-        timePrecision="minute"
+        // timePrecision="minute"
         popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
         canClearSelection={false}
         maxDate={new Date()}
-        timePickerProps={{ showArrowButtons: true, selectAllOnFocus: true }}
+        // timePickerProps={{ showArrowButtons: true, selectAllOnFocus: true }}
         {...jsDateFormatter}
       />
     </>
@@ -185,6 +201,7 @@ interface ICriteriaItemProps {
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
 const CriteriaItem = observer(({ criteria, onRemove, onAdd }: ICriteriaItemProps) => {
+
   const critFields = useMemo(() => {
     if (criteria.key === 'name' || criteria.key === 'path') {
       return <StringCriteriaItem criteria={criteria as IStringSearchCriteria<IFile>} />;
@@ -217,7 +234,7 @@ const SearchForm = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   const addSearchQuery = useCallback(
-    () => uiStore.addSearchQuery({ key: 'tags', action: 'include', operator: 'or', value: [] }),
+    () => uiStore.addSearchQuery(initIDsCriteria({ key: 'tags', operator: 'contains', valueType: 'array', value: [] })),
     []);
 
   const removeSearchQuery = useCallback((index: number) => uiStore.searchCriteriaList.splice(index, 1), []);

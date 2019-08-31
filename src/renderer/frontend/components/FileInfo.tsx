@@ -3,10 +3,7 @@ import fs from 'fs';
 import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
-
-const formatDate = (d: Date) =>
-  `${d.getUTCFullYear()}-${d.getUTCMonth() +
-    1}-${d.getUTCDate()} ${d.getUTCHours()}:${d.getUTCMinutes()}`;
+import { formatDateTime } from '../utils';
 
 interface IFileInfoProps {
   files: ClientFile[];
@@ -48,13 +45,17 @@ export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
     () => [
       { key: 'Filename', value: file.name },
       {
-        key: 'Created',
-        value: fileStats ? formatDate(fileStats.birthtime) : '...',
+        key: 'Imported',
+        value: formatDateTime(file.dateAdded),
       },
-      { key: 'Modified', value: fileStats ? formatDate(fileStats.ctime) : '...' },
+      {
+        key: 'Created',
+        value: fileStats ? formatDateTime(fileStats.birthtime) : '...',
+      },
+      { key: 'Modified', value: fileStats ? formatDateTime(fileStats.ctime) : '...' },
       {
         key: 'Last Opened',
-        value: fileStats ? formatDate(fileStats.atime) : '...',
+        value: fileStats ? formatDateTime(fileStats.atime) : '...',
       },
       { key: 'Dimensions', value: resolution },
       // { key: 'Resolution', value: '?' },

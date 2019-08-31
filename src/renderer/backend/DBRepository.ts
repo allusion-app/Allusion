@@ -1,6 +1,9 @@
 import Dexie from 'dexie';
 import { ID, IIdentifiable } from '../entities/ID';
-import { SearchCriteria } from '../entities/SearchCriteria';
+import {
+  SearchCriteria, IIDsSearchCriteria, IStringSearchCriteria,
+  INumberSearchCriteria, IDateSearchCriteria,
+} from '../entities/SearchCriteria';
 
 export interface IDBCollectionConfig {
   name: string;
@@ -12,6 +15,18 @@ export interface IDBVersioningConfig {
   collections: IDBCollectionConfig[];
   upgrade?: (tx: Dexie.Transaction) => void;
 }
+
+// type DexieFuncType = 'equals' | 'notEqual' | 'below' | 'belowOrEqual' | 'above'
+//   | 'between' | 'equalsIgnoreCase' | 'startsWithIgnoreCase' | 'anyOf' | 'noneOf';
+
+// interface IOperatorDict {
+//   [key: string]: DexieFuncType;
+// }
+
+// const STRING_OPERATOR_DICT: IOperatorDict = {
+//   equals: 'equalsIgnoreCase',
+//   startsWithIgnoreCase: 'startsWithIgnoreCase',
+// };
 
 /**
  * A function that should be called before using the database.
@@ -122,32 +137,80 @@ export default class BaseRepository<T extends IIdentifiable> {
     : Promise<Dexie.Collection<T, string>> {
 
     // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
+    // Unfortunately doesn't work out of the box...
     // Separate first where from the rest
     const [firstCrit, ...otherCrits] = Array.isArray(criteria) ? criteria : [criteria];
 
     const where = this.collection.where(firstCrit.key as string);
 
-    // Querying array props: https://dexie.org/docs/MultiEntry-Index
+    // Now we have to map our criteria to something that Dexie understands
     let table = where.equals(firstCrit.value);
-    if (Array.isArray(firstCrit.value)) {
-      table = (firstCrit.value.length === 0)
-        ? this.collection.filter((val: any) => val[firstCrit.key as string].length === 0) // find where array is empty
-        : where.anyOf(...firstCrit.value).distinct();
-    } else {
-      // Todo: Deal with other search criteria types
+    switch (firstCrit.valueType) {
+      case 'array':
+        // Querying array props: https://dexie.org/docs/MultiEntry-Index
+        const idsCrit = firstCrit as IIDsSearchCriteria<T>;
+        // Check whether to search for empty arrays (e.g. no tags)
+        if (idsCrit.value.length === 0) {
+          table = firstCrit.operator === 'contains'
+            ? table.filter((val: any) => val[firstCrit.key as string].length === 0)
+            : table.filter((val: any) => val[firstCrit.key as string].length !== 0);
+        } else {
+          const idsFuncName = firstCrit.operator === 'contains' ? 'anyOf' : 'noneOf';
+          table = where[idsFuncName](idsCrit.value).distinct();
+        }
+        break;
+      case 'string':
+        const stringCrit = firstCrit as IStringSearchCriteria<T>;
+        const stringFuncName =
+          stringCrit.operator === 'equals' ?     'equalsIgnoreCase' :
+          stringCrit.operator === 'startsWith' ? 'startsWithIgnoreCase' :
+                                                 'notEqual';
+        // Todo: No support for notStartsWith, notEqualIgnoreCase, contains, notContains
+        table = where[stringFuncName](stringCrit.value);
+        break;
+      case 'number':
+        const numberCrit = firstCrit as INumberSearchCriteria<T>;
+        const numberFuncName =
+          numberCrit.operator === 'equals'              ? 'equals' :
+          numberCrit.operator === 'notEqual'            ? 'notEqual' :
+          numberCrit.operator === 'smallerThan'         ? 'below' :
+          numberCrit.operator === 'smallerThanOrEquals' ? 'belowOrEqual' :
+          numberCrit.operator === 'greaterThan'         ? 'above' :
+                                                          'aboveOrEqual';
+        table = where[numberFuncName](numberCrit.value);
+        break;
+      case 'date':
+        const dateCrit = firstCrit as IDateSearchCriteria<T>;
+        const dateEnd = new Date(dateCrit.value);
+        console.log(dateCrit.value, dateEnd);
+        dateEnd.setHours(23, 59, 59);
+        table =
+         (dateCrit.operator === 'equals')              ? where.between(dateCrit.value, dateEnd) : // equal to this day, so between 0:00 and 23:59
+         (dateCrit.operator === 'smallerThan')         ? where.below(dateCrit.value) :
+         (dateCrit.operator === 'smallerThanOrEquals') ? where.below(dateEnd) :
+         (dateCrit.operator === 'greaterThan')         ? where.above(dateEnd) :
+         (dateCrit.operator === 'greaterThanOrEquals') ? where.above(dateCrit.value) :
+                                                         where.notEqual(dateCrit.value);
+        // todo: notEqual doesn't work like this for dates, needs to be 'notBetween' but doesn't exist
+        break;
     }
 
+    // const matchAny = false; // todo: get as param
+    // const matchFuncName = matchAny ? 'or' : 'and';
+
     for (const crit of otherCrits as Array<SearchCriteria<T>>) {
-      if ('equalitySign' in crit) {
-        if (crit.equalitySign === 'equal') {
-            // table = table.and((item) => item[crit.key] === crit.value);
-        } else if (crit.equalitySign === 'greater') {
-
-        } else if (crit.equalitySign === 'smaller') {
-
-        }
-      } else if ('exact' in crit) {
-
+      switch (crit.valueType) {
+        case 'array':
+          const idsCrit = crit as IIDsSearchCriteria<T>;
+          const funcName = idsCrit.operator === 'contains' ? 'anyOf' : 'noneOf';
+          // this.collection.where('name').equals('test').and('name').above('test');
+          table = (idsCrit.value.length === 0)
+            ? this.collection.filter((val: any) => val[crit.key as string].length === 0) // find where array is empty
+            : where[funcName](idsCrit.value).distinct();
+          break;
+        case 'string':
+          // Todo: Finish
+          break;
       }
 
       // Todo: Deal with other search criteria types

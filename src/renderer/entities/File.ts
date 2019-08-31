@@ -86,7 +86,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
     this.id = fileProps.id;
     this.path = fileProps.path;
-    this.dateAdded = fileProps.dateAdded;
+    this.dateAdded = new Date(fileProps.dateAdded);
     this.size = fileProps.size;
     this.name = fileProps.name;
     this.extension = fileProps.extension;

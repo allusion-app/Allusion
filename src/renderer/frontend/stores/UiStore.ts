@@ -419,8 +419,8 @@ class UiStore {
   @action.bound addTagsToQuery(ids: ID[]) {
     this.addSearchQuery({
       key: 'tags',
-      action: 'include',
-      operator: 'or',
+      valueType: 'array',
+      operator: 'contains',
       value: ids,
     } as IIDsSearchCriteria<IFile>);
   }
@@ -432,6 +432,7 @@ class UiStore {
 
   @action.bound replaceQueryWithSelection() {
     this.replaceQuery(this.tagSelection.toJS());
+    this.searchByQuery();
   }
 
   /////////////////// UI Actions ///////////////////
@@ -549,7 +550,8 @@ class UiStore {
     this.isQuickSearchOpen = !this.isQuickSearchOpen;
     if (this.isQuickSearchOpen) {
       if (this.searchCriteriaList.length === 0) {
-        this.searchCriteriaList.push({ key: 'tags', value: [], action: 'include', operator: 'and' })
+        this.searchCriteriaList.push(
+          { key: 'tags', operator: 'contains', valueType: 'array', value: [] });
       }
     } else {
       this.clearSearchQueryList();
