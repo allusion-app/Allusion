@@ -16,6 +16,7 @@ interface IThumbnailMessage {
 
 interface IThumbnailMessageResponse {
   fileId: ID;
+  thumbnailPath: string;
 }
 
 // Todo: look into having multiple workers
@@ -24,9 +25,9 @@ interface IThumbnailMessageResponse {
 // e.g. an image can be resized while the previous one is still being written to disk
 const thumbnailWorker = new ThumbnailWorker({ type: 'module' });
 
-// Generates thumbnail if not yet exists. Will set file.hasThumbnail to true when it exists.
+// Generates thumbnail if not yet exists. Will set file.thumbnailPath when it exists.
 export async function ensureThumbnail(file: ClientFile, thumbnailDir: string, thumbnailType: string) {
-  if (!file.hasThumbnail) {
+  if (!file.thumbnailPath) {
     const thumbnailPath = getThumbnailPath(file.path, thumbnailDir, thumbnailType);
     const thumbnailExists = await fse.pathExists(thumbnailPath);
     if (!thumbnailExists) {
@@ -38,7 +39,7 @@ export async function ensureThumbnail(file: ClientFile, thumbnailDir: string, th
       };
       thumbnailWorker.postMessage(msg);
     } else {
-      file.hasThumbnail = true;
+      file.thumbnailPath = thumbnailPath;
     }
   }
 }
@@ -49,16 +50,21 @@ export const useWorkerListener = () => {
 
   useEffect(() => {
     thumbnailWorker.onmessage = (e: { data: IThumbnailMessageResponse }) => {
-      const { fileId } = e.data;
+      const { fileId, thumbnailPath } = e.data;
       const clientFile = fileStore.fileList.find((f) => f.id === fileId);
       if (clientFile) {
-        clientFile.hasThumbnail = true;
+        clientFile.thumbnailPath = thumbnailPath;
       }
     };
 
-    thumbnailWorker.onerror = (err: any) => {
+    thumbnailWorker.onerror = (err: { fileId: ID, error: Error }) => {
       console.log('Could not generate thumbnail', err);
-      // Todo: Load normal image as fallback?
+      const { fileId } = err;
+      const clientFile = fileStore.fileList.find((f) => f.id === fileId);
+      if (clientFile) {
+        // Load normal image as fallback
+        clientFile.thumbnailPath = clientFile.path;
+      }
     };
   }, []);
 };

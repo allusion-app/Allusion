@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { useDrop } from 'react-dnd';
@@ -10,7 +10,6 @@ import IconSet from './Icons';
 import { SingleFileInfo } from './FileInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import { ItemType } from './DragAndDrop';
-import { getThumbnailPath } from '../utils';
 import { ensureThumbnail } from '../ThumbnailGeneration';
 
 interface IGalleryItemTagProps {
@@ -67,11 +66,7 @@ export const GalleryItem = observer(({
   const [isImageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState();
 
-  const thumbnailPath = useMemo(
-    () => getThumbnailPath(file.path, uiStore.thumbnailDirectory, uiStore.thumbnailType),
-    [file]);
-
-  const imagePath = uiStore.viewMethod === 'slide' ? file.path : thumbnailPath;
+  const imagePath = uiStore.viewMethod === 'slide' ? file.path : file.thumbnailPath;
 
   useEffect(() => {
     // First check whether a thumbnail exists, generate it if needed
@@ -79,9 +74,9 @@ export const GalleryItem = observer(({
   }, []);
 
   useEffect(() => {
-    if (file.hasThumbnail) {
+    if (file.thumbnailPath) {
       // Load the image manually when the component mounts
-      imageElem.src = thumbnailPath;
+      imageElem.src = file.thumbnailPath;
       imageElem.onload = () => file && setImageLoaded(true);
       imageElem.onerror = (e) => file && setImageError(e);
       return () => {
@@ -93,7 +88,7 @@ export const GalleryItem = observer(({
         }
       };
     }
-  }, [file.hasThumbnail]);
+  }, [file.thumbnailPath]);
 
   return (<div ref={galleryItemDrop} className={className}>
     <div onClick={handleClickImg} className="img-wrapper">

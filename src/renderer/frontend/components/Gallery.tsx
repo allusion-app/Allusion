@@ -250,7 +250,6 @@ const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: I
   // Detect scroll wheel to scroll between images
   const handleUserWheel = useCallback((event) => {
     const { deltaY } = event;
-    event.preventDefault();
     if (deltaY > 0) {
       decrImgIndex();
     } else if (deltaY < 0) {
@@ -268,13 +267,15 @@ const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: I
     };
   }, [handleUserKeyPress, handleUserWheel]);
 
-  // Automatically select the active image, so it is shown in the inspector
+  // Go to the first selected image on load
   useEffect(() => {
-    // Go to the first selected image on load
     if (uiStore.fileSelection.length > 0) {
       uiStore.firstIndexInView = fileList.findIndex((f) => f.id === uiStore.fileSelection[0]);
     }
+  }, []);
 
+  // Automatically select the active image, so it is shown in the inspector
+  useEffect(() => {
     if (uiStore.firstIndexInView < fileList.length) {
       uiStore.deselectAllFiles();
       uiStore.selectFile(fileList[uiStore.firstIndexInView]);

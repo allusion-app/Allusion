@@ -7,8 +7,12 @@ const ctx: Worker = self as any;
 // Respond to message from parent thread
 ctx.addEventListener('message', async (event) => {
   const { filePath, thumbnailDirectory, thumbnailType, fileId } = event.data;
-  await generateAndStoreThumbnail(filePath, thumbnailDirectory, thumbnailType);
-  ctx.postMessage({ fileId });
+  try {
+    const thumbnailPath = await generateAndStoreThumbnail(filePath, thumbnailDirectory, thumbnailType);
+    ctx.postMessage({ fileId, thumbnailPath: thumbnailPath || filePath });
+  } catch (err) {
+    throw { fileId, error: err };
+  }
 });
 
 // Todo: Should be set in message
@@ -19,9 +23,14 @@ const generateThumbnailData = async (filePath: string, thumbnailType: string): P
   const inputBlob = await response.blob();
   const img = await createImageBitmap(inputBlob);
 
-  let width = maxSize;
-  let height = maxSize;
+  // If the image is smaller than `maxSize`, don't create a thumbnail
+  if (img.width < maxSize && img.height < maxSize) {
+    return null;
+  }
 
+  // Scale the image so that either width or height becomes `maxSize`
+  let width = img.width;
+  let height = img.height;
   if (img.width >= img.height) {
     width = maxSize;
     height = (maxSize * img.height) / img.width;
