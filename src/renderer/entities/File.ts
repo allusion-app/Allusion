@@ -78,6 +78,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   readonly name: string;
   readonly extension: string;
 
+  @observable
   hasThumbnail: boolean;
 
   constructor(store: FileStore, fileProps: IFile) {

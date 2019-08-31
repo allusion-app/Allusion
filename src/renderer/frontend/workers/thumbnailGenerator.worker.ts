@@ -6,9 +6,9 @@ const ctx: Worker = self as any;
 
 // Respond to message from parent thread
 ctx.addEventListener('message', async (event) => {
-  const { filePath, thumbnailDirectory, thumbnailType } = event.data;
-  const thumbnailFilePath = await generateAndStoreThumbnail(filePath, thumbnailDirectory, thumbnailType);
-  ctx.postMessage(thumbnailFilePath);
+  const { filePath, thumbnailDirectory, thumbnailType, fileId } = event.data;
+  await generateAndStoreThumbnail(filePath, thumbnailDirectory, thumbnailType);
+  ctx.postMessage({ fileId });
 });
 
 // Todo: Should be set in message
@@ -38,18 +38,20 @@ const generateThumbnailData = async (filePath: string, thumbnailType: string): P
     return null;
   }
 
-  const x = width / 2;
-  const y = height / 2;
-
   // Todo: Take into account rotation
 
-  ctx2D.translate(x, y);
+  // const x = width / 2;
+  // const y = height / 2;
+
+  // ctx2D.translate(x, y);
   // ctx2D.rotate(angleInRadians);
   // ctx2D.fillStyle = bgColor;
   // ctx2D.fillRect(-width / 2, -height / 2, width, height);
-  ctx2D.drawImage(img, -width / 2, -height / 2, width, height);
+  // ctx2D.drawImage(img, -width / 2, -height / 2, width, height);
   // ctx2D.rotate(-angleInRadians);
-  ctx2D.translate(-x, -y);
+  // ctx2D.translate(-x, -y);
+
+  ctx2D.drawImage(img, 0, 0, width, height);
 
   const thumbBlob = await canvas.convertToBlob({ type: `image/${thumbnailType}`, quality: 0.75 });
   const reader = new FileReaderSync();
