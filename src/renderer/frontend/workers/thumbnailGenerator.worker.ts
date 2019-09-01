@@ -16,7 +16,7 @@ ctx.addEventListener('message', async (event) => {
 });
 
 // Todo: Should be set in message
-const maxSize = 400;
+const maxSize = 700;
 
 const generateThumbnailData = async (filePath: string, thumbnailType: string): Promise<ArrayBuffer | null> => {
   const response = await fetch(filePath);

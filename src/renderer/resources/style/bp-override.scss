@@ -42,7 +42,8 @@
 
 .bp3-dark .bp3-tree-node-content:hover,
 .bp3-dark button:hover:not(.bp3-minimal):not(.bp3-tag-remove),
-.bp3-dark .bp3-button:hover:not(.bp3-dialog-close-button) {
+.bp3-dark .bp3-button:hover:not(.bp3-dialog-close-button),
+.bp3-file-upload-input:hover::after {
   background-color: $dark-gray3;
 }
 
@@ -70,7 +71,8 @@
 }
 
 .bp3-dark .bp3-input,
-.bp3-light .bp3-input {
+.bp3-light .bp3-input,
+.bp3-dark .bp3-file-upload-input {
   // box-shadow: none;
   // box-shadow: 0 0 0 1.5px $blue1;
   min-width: 100%;
@@ -151,7 +153,6 @@ form .bp3-icon {
     color: $light-gray3;
   }
 }
-
 
 // Labels
 .bp3-dark label.bp3-label {
@@ -259,15 +260,31 @@ button:has(.bp3-intent-danger) {
 }
 
 // Controls
-.bp3-control input:focus ~ .bp3-control-indicator {
-  outline: none;
+.bp3-control {
+  input:focus ~ .bp3-control-indicator,
+  input:checked ~ .bp3-control-indicator {
+    outline: none;
+    box-shadow: none;
+    background: $blue1;
+  }
 }
-
-.bp3-control.bp3-switch input:checked ~ .bp3-control-indicator {
-  background: $blue1;
+.bp3-dark .bp3-file-upload-input::after {
+  background-color: #3e3e3eb8;
+  box-shadow: none;
+  background-image: none;
+  color: #f5f8fa;
 }
+.bp3-control.bp3-switch:hover input ~ .bp3-control-indicator,
+.bp3-control.bp3-radio:hover .bp3-control-indicator {
+  background: rgba(16, 22, 26, 0.7);
+}
+// .bp3-control.bp3-switch input:checked ~ .bp3-control-indicator,
+// .bp3-control input:checked ~ .bp3-control-indicator {
+//   background: $blue1;
+// }
 
-.bp3-control.bp3-switch input ~ .bp3-control-indicator {
+.bp3-control.bp3-switch input ~ .bp3-control-indicator,
+.bp3-control.bp3-radio .bp3-control-indicator {
   background: rgba(167, 182, 194, 0.5);
 }
 
@@ -276,7 +293,8 @@ button:has(.bp3-intent-danger) {
   background: white;
 }
 
-.bp3-control.bp3-switch:hover input ~ .bp3-control-indicator {
+.bp3-control.bp3-switch:hover input ~ .bp3-control-indicator,
+.bp3-control.bp3-radio .bp3-control-indicator {
   background: rgba(115, 134, 148, 0.5);
 }
 
