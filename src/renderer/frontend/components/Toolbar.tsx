@@ -12,15 +12,17 @@ import UiStore from '../stores/UiStore';
 
 // Tooltip info
 const enum Tooltip {
-  Add = 'Toggle Add panel',
-  Tag = 'Toggle Tag panel',
-  Search = 'Toggle Search panel',
+  Add = 'Toggle Add Panel',
+  Tag = 'Toggle Tag Panel',
+  Search = 'Toggle Search Panel',
   Media = 'Number of files using selected tag(s)',
   Select = 'Selects or deselects all images',
   TagFiles = 'Quick add or delete tags to selection',
   Delete = 'Delete selection from library',
   View = 'Change view content panel',
   Filter = 'Filter view content panel',
+  Inspector = 'Toggle Inspector',
+  Settings = 'Toggle Settings'
   // FilterTag = 'Filter images by first tag',
 }
 
@@ -279,12 +281,12 @@ const Toolbar = () => {
             icon={IconSet.INFO}
             onClick={uiStore.toggleInspector}
             intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
-            className="tooltip" data-left={'Toggle inspector'}
+            className="tooltip" data-left={Tooltip.Inspector}
           />
           <Button
             icon={IconSet.SETTINGS}
             onClick={uiStore.toggleSettings}
-            className="tooltip" data-left={'Toggle settings'}
+            className="tooltip" data-left={Tooltip.Settings}
           />
         </ButtonGroup>
       </section>

@@ -1,0 +1,95 @@
+import React from 'react';
+
+import { Hotkey, Hotkeys, Button, Icon, ButtonGroup, HotkeysTarget } from '@blueprintjs/core';
+import { observer } from 'mobx-react-lite';
+import IconSet from '../../Icons';
+import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
+
+import { DragLayer, DragAndDropType } from './DragAndDrop';
+import TagTree from './TagTree';
+
+const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
+  const { uiStore, fileStore } = rootStore;
+
+  return (
+    <div tabIndex={0}>
+      <TagTree rootStore={rootStore} />
+
+      <div className="bp3-divider" />
+
+      <div id="system-tags">
+        <ButtonGroup vertical minimal fill>
+          <Button
+            text="All Images"
+            icon={IconSet.MEDIA}
+            rightIcon={
+              uiStore.viewContent === 'all' ? (
+                <Icon intent="primary" icon={IconSet.PREVIEW} />
+              ) : null
+            }
+            onClick={uiStore.viewContentAll}
+            active={uiStore.viewContent === 'all'}
+            fill
+          />
+          <Button
+            text={`Untagged (${fileStore.numUntaggedFiles})`}
+            icon={IconSet.TAG_BLANCO}
+            rightIcon={
+              uiStore.viewContent === 'untagged' ? (
+                <Icon icon={IconSet.PREVIEW} />
+              ) : fileStore.numUntaggedFiles > 0 ? (
+                <Icon icon={IconSet.WARNING} />
+              ) : null
+            }
+            onClick={uiStore.viewContentUntagged}
+            active={uiStore.viewContent === 'untagged'}
+            fill
+          />
+        </ButtonGroup>
+      </div>
+    </div>
+  );
+});
+
+@HotkeysTarget
+class TagListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
+  render() {
+    return <TagPanel rootStore={this.props.rootStore} />;
+  }
+  selectAllTags = () => {
+    this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());
+  }
+  openTagRemover = () => {
+    this.props.rootStore.uiStore.openOutlinerTagRemover();
+  }
+  renderHotkeys() {
+    const { uiStore } = this.props.rootStore;
+    const { hotkeyMap } = uiStore;
+    return (
+      <Hotkeys>
+        <Hotkey
+          combo={hotkeyMap.selectAll}
+          label="Select all tags in the outliner"
+          onKeyDown={this.selectAllTags}
+          group="Outliner"
+        />
+        <Hotkey
+          combo={hotkeyMap.deselectAll}
+          label="Deselect all tags in the outliner"
+          onKeyDown={uiStore.clearTagSelection}
+          group="Outliner"
+        />
+        <Hotkey
+          combo={hotkeyMap.deleteSelection}
+          label="Delete the selected tags and collections"
+          onKeyDown={this.openTagRemover}
+          group="Outliner"
+        />
+      </Hotkeys>
+    );
+  }
+}
+
+export { DragLayer, DragAndDropType };
+
+export default withRootstore(TagListWithHotkeys);

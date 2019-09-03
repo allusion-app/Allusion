@@ -1,12 +1,12 @@
 import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import MultiTagSelector from './MultiTagSelector';
+import MultiTagSelector from '../MultiTagSelector';
 import { FormGroup, Button, ButtonGroup } from '@blueprintjs/core';
-import StoreContext from '../contexts/StoreContext';
-import { ClientTag } from '../../entities/Tag';
-import { ITagSearchQuery } from '../stores/UiStore';
-import IconSet from './Icons';
+import StoreContext from '../../contexts/StoreContext';
+import { ClientTag } from '../../../entities/Tag';
+import { ITagSearchQuery } from '../../stores/UiStore';
+import IconSet from '../Icons';
 
 const SearchForm = () => {
   const { uiStore, tagStore } = useContext(StoreContext);

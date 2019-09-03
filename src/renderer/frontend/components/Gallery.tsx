@@ -417,7 +417,7 @@ const Gallery = ({
       title = 'No images found';
       action = (
         <ButtonGroup>
-          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
+          <Button text="All Images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
           <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentAll} />
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
         </ButtonGroup>
@@ -428,7 +428,7 @@ const Gallery = ({
       title = 'No untagged images';
       action = (
         <ButtonGroup>
-          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
+          <Button text="All Images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary"/>
         </ButtonGroup>
       );

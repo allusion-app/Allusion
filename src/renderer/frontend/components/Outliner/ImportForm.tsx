@@ -5,12 +5,12 @@ import { remote } from 'electron';
 import fse from 'fs-extra';
 import path from 'path';
 
-import StoreContext from '../contexts/StoreContext';
+import StoreContext from '../../contexts/StoreContext';
 import { Button } from '@blueprintjs/core';
-import FileStore from '../stores/FileStore';
-import { ClientTagCollection } from '../../entities/TagCollection';
-import TagStore from '../stores/TagStore';
-import IconSet from './Icons';
+import FileStore from '../../stores/FileStore';
+import { ClientTagCollection } from '../../../entities/TagCollection';
+import TagStore from '../../stores/TagStore';
+import IconSet from '../Icons';
 
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialog({
@@ -180,7 +180,7 @@ const ImportForm = () => {
         className={'tooltip'}
         data-right={Tooltip.ImportImage}
       >
-        Add images
+        Add Images
       </Button>
 
       <Button
@@ -190,7 +190,7 @@ const ImportForm = () => {
         className={'tooltip'}
         data-right={Tooltip.ImportFolder}
       >
-        Add single directory
+        Add Single Directory
       </Button>
 
       <Button
@@ -200,7 +200,7 @@ const ImportForm = () => {
         className={'tooltip'}
         data-right={Tooltip.ImportFolderStructure}
       >
-        Add nested directories
+        Add Nested Directories
       </Button>
 
       {/* Todo: Show progress bar here */}

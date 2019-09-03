@@ -2,11 +2,11 @@ import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { H4 } from '@blueprintjs/core';
 
-import StoreContext from '../contexts/StoreContext';
+import StoreContext from '../../contexts/StoreContext';
 
-import TagList from './TagTree';
 import ImportForm from './ImportForm';
 import SearchForm from './SearchForm';
+import TagPanel from './TagPanel';
 
 const Outliner = () => {
   const rootStore = useContext(StoreContext);
@@ -20,7 +20,7 @@ const Outliner = () => {
         <ImportForm />
       </>)}
 
-      {uiStore.outlinerPage === 'TAGS' && (<TagList />)}
+      {uiStore.outlinerPage === 'TAGS' && (<TagPanel />)}
 
       {uiStore.outlinerPage === 'SEARCH' && (<>
         <H4 className="bp3-heading">Search</H4>
