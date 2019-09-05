@@ -229,18 +229,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   const root = tagCollectionStore.getRootCollection();
 
   /** Only one node can be edited or added at a time. Newly added nodes will be in edit mode */
-  const [addNode, setAddNode] = useState<{ id: ID; kind: DragAndDropType } | undefined>(undefined);
   const [editNode, setEditNode] = useState<{ id: ID; kind: DragAndDropType } | undefined>(
     undefined,
-  );
-
-  useEffect(
-    () => {
-      if (addNode) {
-        setEditNode({ id: addNode.id, kind: addNode.kind });
-      }
-    },
-    [addNode],
   );
 
   /**
@@ -273,7 +263,6 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         setEditNode({ id, kind });
       } else {
         setEditNode(undefined);
-        setAddNode(undefined);
       }
     };
 
@@ -355,7 +344,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
                 .addTag(DEFAULT_TAG_NAME)
                 .then((tag) => {
                   col.addTag(tag.id);
-                  setAddNode({ id: tag.id, kind: DragAndDropType.Tag });
+                  setEditNode({ id: tag.id, kind: DragAndDropType.Tag });
                   setExpandState({ ...expandState, [col.id]: true });
                 })
                 .catch((err) => console.log('Could not create tag', err))
@@ -364,7 +353,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
               tagCollectionStore
                 .addTagCollection(DEFAULT_COLLECTION_NAME, col)
                 .then((collection) => {
-                  setAddNode({ id: collection.id, kind: DragAndDropType.Collection });
+                  setEditNode({ id: collection.id, kind: DragAndDropType.Collection });
                   setExpandState({ ...expandState, [col.id]: true });
                 })
                 .catch((err) => console.log('Could not create collection', err))
@@ -460,7 +449,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
       .addTag(DEFAULT_TAG_NAME)
       .then((tag) => {
         root.addTag(tag.id);
-        setAddNode({ id: tag.id, kind: DragAndDropType.Tag });
+        setEditNode({ id: tag.id, kind: DragAndDropType.Tag });
       })
       .catch((err) => console.log('Could not create tag', err));
   }, []);
@@ -468,7 +457,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   const handleAddRootCollection = useCallback(() => {
     tagCollectionStore
       .addTagCollection(DEFAULT_COLLECTION_NAME, root)
-      .then((col) => setAddNode({ id: col.id, kind: DragAndDropType.Collection }))
+      .then((col) => setEditNode({ id: col.id, kind: DragAndDropType.Collection }))
       .catch((err) => console.log('Could not create collection', err));
   }, []);
 
@@ -504,7 +493,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           ? [{ label: <i>No tags or collections created yet</i>, id: 'placeholder' }]
           : createTree(),
       ),
-    [root, expandState, addNode, editNode],
+    [root, expandState, editNode],
   );
 
   /** Allow dropping tags on header and background to move them to the root of the hierarchy */
