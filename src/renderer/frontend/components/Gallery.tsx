@@ -435,7 +435,7 @@ const Gallery = ({
       action = (
         <ButtonGroup>
           <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
-          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentAll} />
+          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentUntagged} />
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
         </ButtonGroup>
       );
