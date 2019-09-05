@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import fs from 'fs';
 import path from 'path';
 import { observer } from 'mobx-react-lite';
 
-import RootStore from '../stores/RootStore';
-import { withRootstore } from '../contexts/StoreContext';
+import StoreContext from '../contexts/StoreContext';
 import FileInfo from './FileInfo';
 import FileTag from './FileTag';
 
@@ -14,11 +13,8 @@ const getBytes = (bytes: number) => {
   return !bytes && '0 Bytes' || (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sufixes[i];
 };
 
-interface IInspectorProps {
-  rootStore: RootStore;
-}
-
-const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
+const Inspector = observer(() => {
+  const { uiStore } = useContext(StoreContext);
   const selectedFiles = uiStore.clientFileSelection;
 
   let selectionPreview;
@@ -80,6 +76,6 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
       </aside>
     );
   }
-};
+});
 
-export default withRootstore(observer(Inspector));
+export default Inspector;

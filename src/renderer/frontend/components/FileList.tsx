@@ -2,15 +2,13 @@ import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Tag, ITagProps, Button, Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 
-import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
+import { IRootStoreProp, withRootstore } from '../contexts/StoreContext';
 import Gallery from './Gallery';
 import IconSet from './Icons';
 import { ITagSearchQuery } from '../stores/UiStore';
 import { ClientTag } from '../../entities/Tag';
 
-export interface IFileListProps { }
-
-const FileList = ({ rootStore: { uiStore, tagStore } }: IFileListProps & IRootStoreProp) => {
+const FileList = ({ rootStore: { uiStore, tagStore } }:IRootStoreProp) => {
   const handleDeselectTag = useCallback(
     (_, props: ITagProps) => {
       const clickedTag = tagStore.tagList.find((t) => t.id === props.id);
@@ -55,7 +53,7 @@ const FileList = ({ rootStore: { uiStore, tagStore } }: IFileListProps & IRootSt
 };
 
 @HotkeysTarget
-class FileListWithHotkeys extends React.PureComponent<IFileListProps & IRootStoreProp, {}> {
+class FileListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
     return <div tabIndex={1} className="gallery"><FileList {...this.props} /></div>;
   }
@@ -87,9 +85,4 @@ class FileListWithHotkeys extends React.PureComponent<IFileListProps & IRootStor
   }
 }
 
-const HotkeysWrapper = observer((props: IFileListProps) => {
-  const rootStore = React.useContext(StoreContext);
-  return <FileListWithHotkeys {...props} rootStore={rootStore} />;
-});
-
-export default HotkeysWrapper;
+export default observer(withRootstore(FileListWithHotkeys));

@@ -7,7 +7,7 @@ import { Button, Switch } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import IconSet from './Icons';
 
-const PreviewApp = () => {
+const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
@@ -51,6 +51,6 @@ const PreviewApp = () => {
       </ErrorBoundary>
     </div>
   );
-};
+});
 
-export default observer(PreviewApp);
+export default PreviewApp;

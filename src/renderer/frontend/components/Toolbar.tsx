@@ -99,7 +99,7 @@ const sortMenuData: Array<{ prop: keyof IFile, icon: JSX.Element, text: string }
   { prop: 'dateAdded', icon: IconSet.FILTER_DATE, text: 'Date added' },
 ];
 
-const Toolbar = () => {
+const Toolbar = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
@@ -292,6 +292,6 @@ const Toolbar = () => {
       </section>
     </div>
   );
-};
+});
 
-export default observer(Toolbar);
+export default Toolbar;

@@ -1,5 +1,5 @@
 import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
-import * as React from 'react';
+import React, { useContext } from 'react';
 import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 
@@ -115,7 +115,7 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
 }
 
 const GlobalHotkeysWrapper = observer((props: IGlobalHotkeysProps) => {
-  const rootStore = React.useContext(StoreContext);
+  const rootStore = useContext(StoreContext);
   return <GlobalHotkeys {...props} rootStore={rootStore} />;
 });
 

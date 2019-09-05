@@ -6,7 +6,7 @@ import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { ClearDbButton } from './ErrorBoundary';
 
-const Settings = () => {
+const Settings = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
@@ -68,6 +68,6 @@ const Settings = () => {
       </div>
     </Drawer>
   );
-};
+});
 
-export default observer(Settings);
+export default Settings;

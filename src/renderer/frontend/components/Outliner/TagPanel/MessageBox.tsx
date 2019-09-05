@@ -72,7 +72,7 @@ const TagRemoverContent = ({ rootStore }: IRootStoreProp) => {
   return <span>...</span>;
 };
 
-const TagRemovalMessageBox = observer(({rootStore}: IRootStoreProp) => {
+export const TagRemoval = observer(({ rootStore }: IRootStoreProp) => {
   const { uiStore, tagStore, tagCollectionStore } = rootStore;
 
   const handleConfirm = useCallback(
@@ -113,5 +113,3 @@ const TagRemovalMessageBox = observer(({rootStore}: IRootStoreProp) => {
     </Alert>
   );
 });
-
-export { TagRemovalMessageBox as TagRemoval };

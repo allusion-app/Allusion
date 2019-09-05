@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import FileList from './components/FileList';
 import Outliner from './components/Outliner';
-import { IRootStoreProp, withRootstore } from './contexts/StoreContext';
+import StoreContext from './contexts/StoreContext';
 import Inspector from './components/Inspector';
 import Toolbar from './components/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -15,9 +15,8 @@ import { DragLayer } from './components/Outliner/TagPanel';
 
 const SPLASH_SCREEN_TIME = 700;
 
-interface IAppProps extends IRootStoreProp {}
-
-const App = ({ rootStore }: IAppProps) => {
+const App = observer(() => {
+  const rootStore = useContext(StoreContext);
   const { uiStore } = rootStore;
 
   // Show splash screen for some time or when app is not initialized
@@ -64,6 +63,6 @@ const App = ({ rootStore }: IAppProps) => {
       </ErrorBoundary>
     </div>
   );
-};
+});
 
-export default withRootstore(observer(App));
+export default App;

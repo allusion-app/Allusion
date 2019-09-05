@@ -35,74 +35,78 @@ interface IGalleryItemProps extends IRootStoreProp {
   showInfo?: boolean;
 }
 
-export const GalleryItem = observer(({
-  file,
-  isSelected,
-  onClick,
-  onDrop,
-  showName, showTags, showInfo,
-}: IGalleryItemProps) => {
-  const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
-    accept: DragAndDropType.Tag,
-    drop: (_, monitor) => onDrop(monitor.getItem(), file),
-    canDrop: () => true,
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  });
+export const GalleryItem = observer(
+  ({ file, isSelected, onClick, onDrop, showName, showTags, showInfo }: IGalleryItemProps) => {
+    const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
+      accept: DragAndDropType.Tag,
+      drop: (_, monitor) => onDrop(monitor.getItem(), file),
+      canDrop: () => true,
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+        canDrop: monitor.canDrop(),
+      }),
+    });
 
-  const selectedStyle = isSelected ? 'selected' : '';
-  const dropStyle = canDrop ? ' droppable' : ' undroppable';
-  const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
+    const selectedStyle = isSelected ? 'selected' : '';
+    const dropStyle = canDrop ? ' droppable' : ' undroppable';
+    const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
-  const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
-  const handleClickImg = useCallback((e) => onClick(file, e), []);
+    const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
+    const handleClickImg = useCallback((e) => onClick(file, e), []);
 
-  const [imageElem] = useState<HTMLImageElement>(new Image());
-  const [isImageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState();
+    const [imageElem] = useState<HTMLImageElement>(new Image());
+    const [isImageLoaded, setImageLoaded] = useState(false);
+    const [imageError, setImageError] = useState();
 
-  useEffect(() => {
-    // Load the image manually when the component mounts
-    imageElem.src = file.path;
-    imageElem.onload = () => file && setImageLoaded(true);
-    imageElem.onerror = (e) => file && setImageError(e);
-    return () => {
-      // When this component unmounts, cancel further loading of the image in case it was not loaded yet
-      if (!isImageLoaded) {
-        imageElem.src = '';
-        imageElem.onload = () => { }; // tslint:disable-line: no-empty
-        imageElem.onerror = () => { }; // tslint:disable-line: no-empty
-      }
-    };
-  }, []);
+    useEffect(() => {
+      // Load the image manually when the component mounts
+      imageElem.src = file.path;
+      imageElem.onload = () => file && setImageLoaded(true);
+      imageElem.onerror = (e) => file && setImageError(e);
+      return () => {
+        // When this component unmounts, cancel further loading of the image in case it was not loaded yet
+        if (!isImageLoaded) {
+          imageElem.src = '';
+          imageElem.onload = () => {}; // tslint:disable-line: no-empty
+          imageElem.onerror = () => {}; // tslint:disable-line: no-empty
+        }
+      };
+    }, []);
 
-  return (<div ref={galleryItemDrop} className={className}>
-    <div onClick={handleClickImg} className="img-wrapper">
-      {isImageLoaded ? <img src={file.path} /> // Show image when it has been loaded
-        : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
-          : <div className={Classes.SKELETON} /> // Else show a placeholder
-      }
-    </div>
+    return (
+      <div ref={galleryItemDrop} className={className}>
+        <div onClick={handleClickImg} className="img-wrapper">
+          {isImageLoaded ? (
+            <img src={file.path} /> // Show image when it has been loaded
+          ) : imageError ? (
+            <H3>
+              :( <br /> Could not load image
+            </H3> // Show an error it it could not be loaded
+          ) : (
+            <div className={Classes.SKELETON} />
+          ) // Else show a placeholder
+          }
+        </div>
 
-    {showName && <H4>{file.name}</H4>}
+        {showName && <H4>{file.name}</H4>}
 
-    {showInfo && <SingleFileInfo file={file} />}
+        {showInfo && <SingleFileInfo file={file} />}
 
-    {showTags && (
-      <span className="thumbnailTags">
-        {file.clientTags.map((tag) => (
-          <GalleryItemTag
-            key={`gal-tag-${file.id}-${tag.id}`}
-            onRemove={handleRemoveTag}
-            tag={tag}
-          />
-        ))}
-      </span>
-    )}
-  </div>);
-});
+        {showTags && (
+          <span className="thumbnailTags">
+            {file.clientTags.map((tag) => (
+              <GalleryItemTag
+                key={`gal-tag-${file.id}-${tag.id}`}
+                onRemove={handleRemoveTag}
+                tag={tag}
+              />
+            ))}
+          </span>
+        )}
+      </div>
+    );
+  },
+);
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
@@ -119,7 +123,11 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
   return (
     <Menu>
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
-      <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
+      <MenuItem
+        onClick={handleOpenFileExplorer}
+        text="Reveal in File Browser"
+        icon={IconSet.FOLDER_CLOSE}
+      />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
       <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
     </Menu>
@@ -129,8 +137,8 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
 class GalleryItemWithContextMenu extends React.PureComponent<
-IGalleryItemProps,
-{ isContextMenuOpen: boolean }
+  IGalleryItemProps,
+  { isContextMenuOpen: boolean }
 > {
   state = {
     isContextMenuOpen: false,
@@ -159,7 +167,10 @@ IGalleryItemProps,
   }
 
   renderContextMenu() {
-    const { file, rootStore: { uiStore } } = this.props;
+    const {
+      file,
+      rootStore: { uiStore },
+    } = this.props;
     // If the selection does not contain this item, replace the selection with this item
     if (!uiStore.fileSelection.includes(file.id)) {
       this.props.rootStore.uiStore.selectFile(file, true);
