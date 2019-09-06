@@ -18,7 +18,14 @@ import { formatTagCountText } from '../../../utils';
 import IconSet from '../../Icons';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { TreeBranch, TreeLeaf, INodeData, TreeList, IExpandState, IDragAndDropItem } from '../../TreeList';
+import {
+  TreeBranch,
+  TreeLeaf,
+  INodeData,
+  TreeList,
+  IExpandState,
+  IDragAndDropItem,
+} from '../../TreeList';
 import { ClientTag } from '../../../../entities/Tag';
 import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';
@@ -236,7 +243,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   /**
    * Keeps track of folders that have been expanded. If there is only one child in the hierarchy,
    *  auto expand this collection.
-   * */
+   */
   const [expandState, setExpandState] = useState<IExpandState>({});
 
   useEffect(() => {
@@ -248,17 +255,17 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   /**
    * Creates tag tree by mapping collections and tags of root collection to the appropriate
    * components and adds a context menu to each node.
-   * */
+   */
   const createTree = (): Array<ITreeNode<INodeData>> => {
     if (root.isEmpty) {
       return [{ label: <i>No tags or collections created yet</i>, id: 'placeholder' }];
     }
 
-    const isEditing = (id: ID, kind: DragAndDropType) => {
+    const isEditMode = (id: ID, kind: DragAndDropType) => {
       return editNode ? editNode.kind === kind && editNode.id === id : false;
     };
 
-    const setEditing = (id: ID, kind: DragAndDropType, editing: boolean) => {
+    const setEditMode = (id: ID, kind: DragAndDropType, editing: boolean) => {
       if (editing) {
         setEditNode({ id, kind });
       } else {
@@ -285,10 +292,14 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           onDropBranch={(item) => uiStore.moveCollection(item.id, col)}
           branch={DragAndDropType.Collection}
           onDropSelection={() => uiStore.moveSelectedTagItems(col.id)}
-          isEditing={isEditing(col.id, DragAndDropType.Collection)}
-          setEditing={(editing) => setEditing(col.id, DragAndDropType.Collection, editing)}
-          render={({ isEditing, setEditing }) => (
-            <TagCollectionItem col={col} isEditing={isEditing} setEditing={setEditing} />
+          isEditing={isEditMode(col.id, DragAndDropType.Collection)}
+          setEditing={(editing) => setEditMode(col.id, DragAndDropType.Collection, editing)}
+          render={(props) => (
+            <TagCollectionItem
+              col={col}
+              isEditing={props.isEditing}
+              setEditing={props.setEditing}
+            />
           )}
         />
       );
@@ -310,9 +321,10 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
               if (i < 0) {
                 return 0;
               } else if (i > movedCollectionParent.subCollections.length) {
-                movedCollectionParent.subCollections.length;
+                return movedCollectionParent.subCollections.length;
+              } else {
+                return i;
               }
-              return i;
             };
             const oldIndex = movedCollectionParent.subCollections.indexOf(col.id);
             movedCollectionParent.subCollections.remove(col.id);
@@ -321,19 +333,19 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           }
         };
 
-        const expandSubCollection = (col: ClientTagCollection): IExpandState => {
-          col.clientSubCollections.forEach((subCol) => {
+        const expandSubCollection = (c: ClientTagCollection): IExpandState => {
+          c.clientSubCollections.forEach((subCol) => {
             expandSubCollection(subCol);
           });
-          expandState[col.id] = true;
+          expandState[c.id] = true;
           return expandState;
         };
 
-        const collapseSubCollection = (col: ClientTagCollection): IExpandState => {
-          col.clientSubCollections.forEach((subCol) => {
+        const collapseSubCollection = (c: ClientTagCollection): IExpandState => {
+          c.clientSubCollections.forEach((subCol) => {
             collapseSubCollection(subCol);
           });
-          expandState[col.id] = false;
+          expandState[c.id] = false;
           return expandState;
         };
 
@@ -425,13 +437,13 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
                 name={tag.name}
                 leaf={DragAndDropType.Tag}
                 onDropLeaf={(item) => uiStore.moveTag(item.id, col)}
-                onDropHover={() => {}}
+                onDropHover={() => undefined}
                 onDropSelection={() => uiStore.moveSelectedTagItems(col.id)}
                 isSelected={tag.isSelected}
-                isEditing={isEditing(tag.id, DragAndDropType.Tag)}
-                setEditing={(editing) => setEditing(tag.id, DragAndDropType.Tag, editing)}
-                render={({ isEditing, setEditing }) => (
-                  <TagItem tag={tag} isEditing={isEditing} setEditing={setEditing} />
+                isEditing={isEditMode(tag.id, DragAndDropType.Tag)}
+                setEditing={(editing) => setEditMode(tag.id, DragAndDropType.Tag, editing)}
+                render={(props) => (
+                  <TagItem tag={tag} isEditing={props.isEditing} setEditing={props.setEditing} />
                 )}
               />
             ),

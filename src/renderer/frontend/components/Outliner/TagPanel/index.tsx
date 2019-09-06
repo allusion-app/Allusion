@@ -5,8 +5,13 @@ import { observer } from 'mobx-react-lite';
 import IconSet from '../../Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 
-import { DragLayer, DragAndDropType } from './DragAndDrop';
+import { DragLayer } from './DragAndDrop';
 import TagTree from './TagTree';
+
+export const enum DragAndDropType {
+  Collection = 'collection',
+  Tag = 'tag',
+}
 
 const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
   const { uiStore, fileStore } = rootStore;
@@ -90,6 +95,6 @@ class TagListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   }
 }
 
-export { DragLayer, DragAndDropType };
+export { DragLayer };
 
 export default withRootstore(TagListWithHotkeys);

@@ -7,11 +7,7 @@ import StoreContext from '../../../contexts/StoreContext';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../../entities/TagCollection';
 import { ClientTag } from '../../../../entities/Tag';
 import { formatTagCountText } from '../../../utils';
-
-export const enum DragAndDropType {
-  Collection = 'collection',
-  Tag = 'tag',
-}
+import { DragAndDropType } from '.';
 
 const layerStyles: React.CSSProperties = {
   position: 'fixed',

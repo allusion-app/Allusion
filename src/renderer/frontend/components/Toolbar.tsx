@@ -22,7 +22,7 @@ const enum Tooltip {
   View = 'Change view content panel',
   Filter = 'Filter view content panel',
   Inspector = 'Toggle Inspector',
-  Settings = 'Toggle Settings'
+  Settings = 'Toggle Settings',
   // FilterTag = 'Filter images by first tag',
 }
 

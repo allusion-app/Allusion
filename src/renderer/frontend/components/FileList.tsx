@@ -8,7 +8,7 @@ import IconSet from './Icons';
 import { ITagSearchQuery } from '../stores/UiStore';
 import { ClientTag } from '../../entities/Tag';
 
-const FileList = ({ rootStore: { uiStore, tagStore } }:IRootStoreProp) => {
+const FileList = ({ rootStore: { uiStore, tagStore }}: IRootStoreProp) => {
   const handleDeselectTag = useCallback(
     (_, props: ITagProps) => {
       const clickedTag = tagStore.tagList.find((t) => t.id === props.id);

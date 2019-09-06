@@ -56,7 +56,7 @@ export const TreeLeaf = (props: ITreeLeafProps) => {
 
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
     item: { type: leaf },
-    begin: () => ({ id, name, type: leaf, isSelected }) as IDragAndDropItem,
+    begin: () => ({ id, name, type: leaf, isSelected }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -130,7 +130,7 @@ export const TreeBranch = (props: ITreeBranchProps) => {
   } = props;
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
     item: { type: branch },
-    begin: () => ({ type: branch, id, name, isSelected }) as IDragAndDropItem,
+    begin: () => ({ type: branch, id, name, isSelected }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -289,11 +289,11 @@ export const TreeList = ({
         }
       }
 
-      const flattenHierarchy = (node: ITreeNode<INodeData>): Array<ITreeNode<INodeData>> => {
-        return node.childNodes ? [node, ...node.childNodes.flatMap(flattenHierarchy)] : [node];
+      const flattenHierarchy = (n: ITreeNode<INodeData>): Array<ITreeNode<INodeData>> => {
+        return n.childNodes ? [n, ...n.childNodes.flatMap(flattenHierarchy)] : [n];
       };
 
-      const flatHierarchy = nodes.flatMap((node) => flattenHierarchy(node));
+      const flatHierarchy = nodes.flatMap((n) => flattenHierarchy(n));
       const i = flatHierarchy.findIndex((item) => item.id === node.id);
 
       // Based on the event options, add or subtract the clickSelection from the global tag selection
