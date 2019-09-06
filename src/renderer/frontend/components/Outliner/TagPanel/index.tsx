@@ -57,7 +57,7 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
 });
 
 @HotkeysTarget
-class TagListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
+class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
     return <TagPanel rootStore={this.props.rootStore} />;
   }
@@ -97,4 +97,4 @@ class TagListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
 
 export { DragLayer };
 
-export default withRootstore(TagListWithHotkeys);
+export default withRootstore(TagPanelWithHotkeys);
