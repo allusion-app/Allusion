@@ -13,6 +13,7 @@ export interface ITagCollection extends IIdentifiable {
   dateAdded: Date;
   subCollections: ID[];
   tags: ID[];
+  color: string;
 }
 
 /* A Tag Collection as it is represented in the Database */
@@ -23,14 +24,16 @@ export class DbTagCollection implements ITagCollection {
   public dateAdded: Date;
   public subCollections: ID[];
   public tags: ID[];
+  public color: string;
 
-  constructor(id: ID, name: string, description?: string) {
+  constructor(id: ID, name: string, color?: string, description?: string) {
     this.id = id;
     this.name = name;
     this.description = description || '';
     this.dateAdded = new Date();
     this.subCollections = [];
     this.tags = [];
+    this.color = color || '';
   }
 }
 
@@ -80,6 +83,7 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
       dateAdded: this.dateAdded,
       subCollections: this.subCollections.toJS(),
       tags: this.tags.toJS(),
+      color: this.color,
     };
   }
 
@@ -185,6 +189,7 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     this.dateAdded = backendTagCollection.dateAdded;
     this.subCollections.push(...backendTagCollection.subCollections);
     this.tags.push(...backendTagCollection.tags);
+    this.color = backendTagCollection.color;
 
     this.autoSave = true;
 
