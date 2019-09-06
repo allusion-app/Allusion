@@ -40,6 +40,7 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
   dateAdded: Date;
   @observable name: string;
   @observable description: string;
+  @observable color: string;
   // icon, color, (fileCount?)
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
@@ -56,12 +57,17 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
     return this.store.rootStore.uiStore.tagSelection.includes(this.id);
   }
 
+  @computed get viewColor() {
+    return this.color || this.parent.viewColor;
+  }
+
   constructor(store: TagStore, name?: string, id = generateId()) {
     this.store = store;
     this.id = id;
     this.name = name || '';
     this.description = '';
     this.dateAdded = new Date();
+    this.color = '';
 
     // observe all changes to observable fields
     this.saveHandler = reaction(

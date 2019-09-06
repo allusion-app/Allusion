@@ -81,7 +81,7 @@
 }
 
 .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
-  background-color: $dark-gray5;
+  background-color: $blue1-unimportant;
 }
 
 form,
@@ -613,7 +613,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 .bp3-tag.bp3-intent-primary,
 .bp3-tag.bp3-intent-primary button > * {
-  background: $blue1;
+  background: $blue1-unimportant;
   color: $light-gray4;
 }
 
@@ -622,18 +622,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   outline-offset: 1px;
 }
 
-.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
-  background-color: $dark-gray5;
-}
-
 .bp3-portal #fileTag .bp3-tag.bp3-minimal:not([class*="inspectorOpen"]) {
-  background-color: $blue1;
-  color: $light-gray4;
-}
-
-.bp3-dark .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]),
-.bp3-dark.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
-  color: $gray4;
+  background-color: $blue1-unimportant;
 }
 
 // .bp3-dark .bp3-tree-node-content:hover {

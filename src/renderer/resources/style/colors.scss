@@ -34,6 +34,9 @@ $blue3: #009de0 !important;
 $blue4: #2b95d6 !important;
 $blue5: #48aff0 !important;
 
+// Not important, so that it can be overwritten by inline style
+$blue1-unimportant: #007af5;
+
 $blue-trans1: #007af555 !important;
 $blue-trans2: #007af512 !important;
 $blue-trans3: #007af50d !important;

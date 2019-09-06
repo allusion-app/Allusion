@@ -49,11 +49,14 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
   readonly subCollections = observable<ID>([]);
   readonly tags = observable<ID>([]);
 
+  @observable color: string;
+
   constructor(store: TagCollectionStore, name?: string, id = generateId()) {
     this.store = store;
     this.id = id;
     this.name = name || '';
     this.description = '';
+    this.color = '';
     this.dateAdded = new Date();
 
     // observe all changes to observable fields
@@ -78,6 +81,13 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
       subCollections: this.subCollections.toJS(),
       tags: this.tags.toJS(),
     };
+  }
+
+  @computed get viewColor(): string {
+    if (this.id === ROOT_TAG_COLLECTION_ID) {
+      return this.color;
+    }
+    return this.color || this.parent.viewColor;
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */

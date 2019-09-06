@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 
 import { ClientTagCollection } from '../../../entities/TagCollection';
-import { ModifiableTagListItem } from './TagListItem';
+import { ModifiableTagListItem, ColorPickerMenu } from './TagListItem';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import { ID } from '../../../entities/ID';
 import IconSet from '../Icons';
@@ -149,6 +149,8 @@ const TagCollectionListItemContextMenu = ({
   collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
   onAddSelectionToQuery, onReplaceQuery, onMoveUp, onMoveDown, numTagsToDelete, numColsToDelete,
 }: ITagCollectionContextMenu) => {
+  const handleSetColor = (col: string) => collection.color = col;
+
   let deleteText = formatTagCountText(numTagsToDelete, numColsToDelete);
   deleteText = deleteText && ` (${deleteText})`;
   return (
@@ -157,6 +159,7 @@ const TagCollectionListItemContextMenu = ({
       <MenuItem onClick={onNewCollection} text="New collection" icon={IconSet.TAG_ADD_COLLECTION} />
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
       <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} disabled={!onRemove} />
+      <ColorPickerMenu selectedColor={collection.color} onChange={handleSetColor} />
       <Divider />
       <MenuItem onClick={onExpandAll} text="Expand" icon={IconSet.ITEM_EXPAND} />
       <MenuItem onClick={onCollapseAll} text="Collapse" icon={IconSet.ITEM_COLLAPS} />

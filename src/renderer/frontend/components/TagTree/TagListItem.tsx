@@ -9,6 +9,7 @@ import {
   Menu,
   MenuItem,
   Divider,
+  Icon,
 } from '@blueprintjs/core';
 
 import { ID } from '../../../entities/ID';
@@ -19,16 +20,19 @@ import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
 import { formatTagCountText } from '../../utils';
 import { ItemType, ITagDragItem } from '../DragAndDrop';
 import { DEFAULT_TAG_NAME } from '.';
+import { ClientTag } from '../../../entities/Tag';
+import { observer } from 'mobx-react-lite';
 
 interface IUnmodifiableTagListItemProps {
+  tag: ClientTag;
   name: string;
   onRemove: () => void;
   onEdit: () => void;
 }
 
-const UnmodifiableTagListItem = ({ name }: IUnmodifiableTagListItemProps) => (
+const UnmodifiableTagListItem = observer(({ name, tag }: IUnmodifiableTagListItemProps) => (
   <div className={'tagLabel'}>{name}</div>
-);
+));
 
 interface IModifiableTagListItemProps {
   initialName: string;
@@ -91,6 +95,7 @@ export const ModifiableTagListItem = ({
 };
 
 interface ITagListItemProps {
+  tag: ClientTag;
   name: string;
   id: ID;
   dateAdded: Date;
@@ -110,6 +115,7 @@ interface IEditingProps {
 
 /** The main tag-list-item that can be renamed, removed and dragged */
 export const TagListItem = ({
+  tag,
   id,
   name,
   onRemove,
@@ -173,6 +179,7 @@ export const TagListItem = ({
           />
         ) : (
             <UnmodifiableTagListItem
+              tag={tag}
               name={name}
               onEdit={() => setEditing(true)}
               onRemove={onRemove}
@@ -183,6 +190,53 @@ export const TagListItem = ({
   );
 };
 
+interface IColorOptions {
+  label: string;
+  value: string;
+}
+
+export const defaultColorOptions: IColorOptions[] = [
+  { label: 'Standard', value: '' },
+  // { label: 'Red', value: '#A82A2A' },
+  // { label: 'Green', value: '#0A6640' },
+  // { label: 'Orange', value: '#A66321' },
+  { label: 'Vermillion', value: '#9E2B0E' },
+  { label: 'Rose', value: '#A82255' },
+  { label: 'Violet', value: '#5C255C' },
+  { label: 'Indigo', value: '#5642A6' },
+  { label: 'Cobalt', value: '#1F4B99' },
+  { label: 'Turquoise', value: '#008075' },
+  { label: 'Forest', value: '#1D7324' },
+  { label: 'Sepia', value: '#63411E' },
+];
+
+interface IColorPickerMenuProps {
+  selectedColor: string;
+  onChange: (color: string) => any;
+}
+export const ColorPickerMenu = ({ selectedColor, onChange }: IColorPickerMenuProps) => {
+  return (
+    <MenuItem
+      text="Change color"
+      icon={<Icon icon={selectedColor ? 'full-circle' : 'circle'} color={selectedColor} />}
+    >
+      {defaultColorOptions.map(({ label, value }) => (
+        <MenuItem
+          key={label}
+          text={label}
+          onClick={() => onChange(value)}
+          icon={
+            <Icon
+              icon={selectedColor === value ? 'tick-circle' : (value ? 'full-circle' : 'circle')}
+              color={value || '#007af5'}
+            />
+          }
+        />
+      ))}
+    </MenuItem>
+  );
+};
+
 interface ITagListItemContextMenuProps {
   setEditing: (value: boolean) => void;
   onRemove: () => void;
@@ -190,25 +244,23 @@ interface ITagListItemContextMenuProps {
   onReplaceQuery: () => void;
   numTagsToDelete: number;
   numColsToDelete: number;
+  tag: ClientTag;
 }
 
-const TagListItemContextMenu = ({
+export const TagListItemContextMenu = ({
   setEditing,
   onRemove,
   onAddSelectionToQuery,
   onReplaceQuery,
   numTagsToDelete,
   numColsToDelete,
+  tag,
 }: ITagListItemContextMenuProps) => {
   const handleRename = () => {
     setEditing(true);
   };
 
-  const handleChangeColor = () => {
-    // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
-    console.log('Change color');
-    alert('Not implemented yet');
-  };
+  const handleSetColor = (col: string) => tag.color = col;
 
   let deleteText = formatTagCountText(numTagsToDelete, numColsToDelete);
   deleteText = deleteText && ` (${deleteText})`;
@@ -217,7 +269,7 @@ const TagListItemContextMenu = ({
     <Menu>
       <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
       <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} />
-      <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
+      <ColorPickerMenu selectedColor={tag.color} onChange={handleSetColor}/>
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
       <MenuItem onClick={onReplaceQuery} text="Replace search query" icon={IconSet.REPLACE} />

@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useCallback, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { Button, MenuItem, TagInput } from '@blueprintjs/core';
+import { Button, MenuItem, TagInput, Icon, ITagProps } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
@@ -107,6 +107,9 @@ const MultiTagSelector = ({
         <MenuItem
           active={modifiers.active}
           icon={selectedTags.includes(tag) ? 'tick' : 'blank'}
+          labelElement={tag.viewColor
+            ? <Icon icon="full-circle" color={tag.viewColor} />
+            : undefined}
           key={tag.id}
           label={tag.description ? tag.description.toString() : ''}
           onClick={handleClick}
@@ -143,6 +146,12 @@ const MultiTagSelector = ({
     }
   }, [refocusObject]);
 
+  const getTagProps = (_: any, index: number): ITagProps => ({
+    minimal: true,
+    // Todo: Style doesn't update until focusing the tagInput
+    style: { backgroundColor: selectedTags[index].viewColor },
+  });
+
   return (
     <>
       <TagMultiSelect
@@ -158,7 +167,7 @@ const MultiTagSelector = ({
         createNewItemRenderer={maybeCreateNewItemRenderer}
         itemPredicate={filterTag}
         tagInputProps={{
-          tagProps: { minimal: true },
+          tagProps: getTagProps,
           onRemove: handleDeselect,
           rightElement: ClearButton,
           fill: true,

@@ -16,14 +16,14 @@ interface IGalleryItemTagProps {
   onRemove: (tag: ClientTag) => void;
 }
 
-const GalleryItemTag = ({ tag, onRemove }: IGalleryItemTagProps) => {
-  const handleRemove = useCallback(() => onRemove(tag), []);
+const GalleryItemTag = observer(({ tag }: IGalleryItemTagProps) => {
+  // const handleRemove = useCallback(() => onRemove(tag), []);
   return (
-    <Tag onRemove={handleRemove} interactive intent="primary">
-      {tag.name}
+    <Tag interactive intent="primary" style={{ backgroundColor: tag.viewColor }}>
+      <span>{tag.name}</span>
     </Tag>
   );
-};
+});
 
 interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;

@@ -328,6 +328,10 @@ main {
 .custom-icon * {
   fill: currentColor;
 }
+.custom-icon {
+  color: inherit!important;
+}
+
 .bp3-icon-eye {
   cursor: none;
 }
