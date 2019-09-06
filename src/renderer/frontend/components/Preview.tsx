@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useCallback } from 'react';
 
 import StoreContext from '../contexts/StoreContext';
 import ErrorBoundary from './ErrorBoundary';
-import FileList from './FileList';
+import ContentView from './ContentView';
 import { Button, Switch } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import IconSet from './Icons';
@@ -47,7 +47,7 @@ const PreviewApp = observer(() => {
           </section>
         </div>
 
-        <FileList />
+        <ContentView />
       </ErrorBoundary>
     </div>
   );

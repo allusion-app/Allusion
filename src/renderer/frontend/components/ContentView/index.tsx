@@ -2,22 +2,19 @@ import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Tag, ITagProps, Button, Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 
-import { IRootStoreProp, withRootstore } from '../contexts/StoreContext';
+import { IRootStoreProp, withRootstore } from '../../contexts/StoreContext';
 import Gallery from './Gallery';
-import IconSet from './Icons';
-import { ITagSearchQuery } from '../stores/UiStore';
-import { ClientTag } from '../../entities/Tag';
+import IconSet from '../Icons';
+import { ITagSearchQuery } from '../../stores/UiStore';
+import { ClientTag } from '../../../entities/Tag';
 
-const FileList = ({ rootStore: { uiStore, tagStore }}: IRootStoreProp) => {
-  const handleDeselectTag = useCallback(
-    (_, props: ITagProps) => {
-      const clickedTag = tagStore.tagList.find((t) => t.id === props.id);
-      if (clickedTag) {
-        uiStore.deselectTag(clickedTag);
-      }
-    },
-    [],
-  );
+const ContentView = observer(({ rootStore: { uiStore, tagStore } }: IRootStoreProp) => {
+  const handleDeselectTag = useCallback((_, props: ITagProps) => {
+    const clickedTag = tagStore.tagList.find((t) => t.id === props.id);
+    if (clickedTag) {
+      uiStore.deselectTag(clickedTag);
+    }
+  }, []);
 
   // Todo: Implement this properly later
   const queriedTags = Array.from(
@@ -25,37 +22,32 @@ const FileList = ({ rootStore: { uiStore, tagStore }}: IRootStoreProp) => {
   );
 
   return (
-    <>
-      <div id="query-overview">
-        {
-          queriedTags.map((tagId) => (
-            <Tag
-              key={tagId}
-              id={tagId}
-              intent="primary"
-              onRemove={handleDeselectTag}
-            >
+    <main>
+      <div tabIndex={1} className="gallery">
+        <div id="query-overview">
+          {queriedTags.map((tagId) => (
+            <Tag key={tagId} id={tagId} intent="primary" onRemove={handleDeselectTag}>
               {(tagStore.getTag(tagId) as ClientTag).name}
             </Tag>
-          ))
-        }
-        {queriedTags.length > 0 && (
-          <Button
-            icon={IconSet.CLOSE}
-            onClick={uiStore.clearSearchQueryList}
-            className="bp3-minimal"
-          />
-        )}
+          ))}
+          {queriedTags.length > 0 && (
+            <Button
+              icon={IconSet.CLOSE}
+              onClick={uiStore.clearSearchQueryList}
+              className="bp3-minimal"
+            />
+          )}
+        </div>
+        <Gallery />
       </div>
-      <Gallery />
-    </>
+    </main>
   );
-};
+});
 
 @HotkeysTarget
-class FileListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
+class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
-    return <div tabIndex={1} className="gallery"><FileList {...this.props} /></div>;
+    return <ContentView {...this.props} />;
   }
   renderHotkeys() {
     const { uiStore } = this.props.rootStore;
@@ -85,4 +77,4 @@ class FileListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   }
 }
 
-export default observer(withRootstore(FileListWithHotkeys));
+export default withRootstore(ContentViewWithHotkeys);

@@ -4,12 +4,12 @@ import { observer } from 'mobx-react-lite';
 import { useDrop } from 'react-dnd';
 import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes, H3 } from '@blueprintjs/core';
 
-import { ClientFile } from '../../entities/File';
-import { ClientTag } from '../../entities/Tag';
-import IconSet from './Icons';
-import { SingleFileInfo } from './FileInfo';
-import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
-import { DragAndDropType } from './Outliner/TagPanel';
+import { ClientFile } from '../../../entities/File';
+import { ClientTag } from '../../../entities/Tag';
+import IconSet from '../Icons';
+import { SingleFileInfo } from '../FileInfo';
+import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
+import { DragAndDropType } from '../Outliner/TagPanel';
 
 interface IGalleryItemTagProps {
   tag: ClientTag;

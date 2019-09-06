@@ -9,12 +9,12 @@ import {
 } from 'react-window';
 import { observer, Observer } from 'mobx-react-lite';
 
-import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
+import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
-import UiStore, { ViewMethod } from '../stores/UiStore';
-import { ClientFile } from '../../entities/File';
-import IconSet from './Icons';
-import { throttle } from '../utils';
+import UiStore, { ViewMethod } from '../../stores/UiStore';
+import { ClientFile } from '../../../entities/File';
+import IconSet from '../Icons';
+import { throttle } from '../../utils';
 
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
 const CELL_SIZE_SMALL = 160 - 2;

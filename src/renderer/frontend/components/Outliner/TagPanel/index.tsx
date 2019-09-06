@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import IconSet from '../../Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 
-import { DragLayer } from './DragAndDrop';
+import { DragLayer } from './DragLayer';
 import TagTree from './TagTree';
 
 export const enum DragAndDropType {

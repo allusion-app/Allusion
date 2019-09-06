@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import FileList from './components/FileList';
+import ContentView from './components/ContentView';
 import Outliner from './components/Outliner';
 import StoreContext from './contexts/StoreContext';
 import Inspector from './components/Inspector';
@@ -16,8 +16,7 @@ import { DragLayer } from './components/Outliner/TagPanel';
 const SPLASH_SCREEN_TIME = 700;
 
 const App = observer(() => {
-  const rootStore = useContext(StoreContext);
-  const { uiStore } = rootStore;
+  const { uiStore } = useContext(StoreContext);
 
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
@@ -46,9 +45,7 @@ const App = observer(() => {
 
           <Outliner />
 
-          <main>
-            <FileList />
-          </main>
+          <ContentView />
 
           {uiStore.imageViewerFile ? (
             <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.imageViewerFile = null} />

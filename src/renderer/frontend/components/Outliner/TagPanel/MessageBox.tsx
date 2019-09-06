@@ -7,8 +7,9 @@ import { DragAndDropType } from '.';
 import { ClientTag } from '../../../../entities/Tag';
 import { ClientTagCollection } from '../../../../entities/TagCollection';
 
-const TagRemoverContent = ({ rootStore }: IRootStoreProp) => {
-  const { uiStore, tagStore, tagCollectionStore } = rootStore;
+const TagRemoverContent = ({
+  rootStore: { uiStore, tagStore, tagCollectionStore },
+}: IRootStoreProp) => {
   const [removeType, setRemoveType] = useState<DragAndDropType.Tag | DragAndDropType.Collection>();
   const [tagsToRemove, setTagsToRemove] = useState<ClientTag[]>([]);
   const [colToRemove, setColToRemove] = useState<ClientTagCollection>();
