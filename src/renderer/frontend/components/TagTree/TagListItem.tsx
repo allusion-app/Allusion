@@ -232,7 +232,7 @@ export const ColorPickerMenu = ({ selectedColor, onChange }: IColorPickerMenuPro
       text="Change color"
       // icon={<Icon icon={selectedColor ? 'full-circle' : 'circle'} color={selectedColor} />}
       icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
-      style={{color : selectedColor}}
+      // style={{color : selectedColor}}
       // icon={IconSet.COLOR}
       // color={selectedColor}
       // style={{ color :  + '!important'}}
