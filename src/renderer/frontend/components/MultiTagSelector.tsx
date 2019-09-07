@@ -53,6 +53,8 @@ interface IMultiTagSelectorProps {
   /** When this object changes, autoFocus is triggered (since this component does not remount often itself) */
   refocusObject?: any;
   tagIntent?: Intent;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLElement>, index?: number | undefined) => void;
+  showClearButton?: boolean;
 }
 
 const MultiTagSelector = ({
@@ -67,6 +69,8 @@ const MultiTagSelector = ({
   autoFocus,
   refocusObject,
   tagIntent = 'none',
+  onKeyDown,
+  showClearButton = true,
 }: IMultiTagSelectorProps) => {
   const { tagStore } = useContext(StoreContext);
 
@@ -159,13 +163,14 @@ const MultiTagSelector = ({
         tagInputProps={{
           tagProps: { minimal: true, intent: tagIntent },
           onRemove: handleDeselect,
-          rightElement: ClearButton,
+          rightElement: showClearButton ? ClearButton : undefined,
           fill: true,
           disabled,
           inputRef: setInputRef,
+          onKeyDown,
         }}
         placeholder={placeholder}
-        resetOnSelect
+        // resetOnSelect
       />
     </>
   );

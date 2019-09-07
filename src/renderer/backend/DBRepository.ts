@@ -192,11 +192,11 @@ export default class BaseRepository<T extends IIdentifiable> {
       // Check whether to search for empty arrays (e.g. no tags)
       return (crit.value.length === 0)
         ? col.and((val: any) => val[crit.key as string].length === 0)
-        : col.and((val: any) => crit.value.every((item) => val[crit.key as string].contains(item)));
+        : col.and((val: any) => crit.value.every((item) => val[crit.key as string].indexOf(item) !== -1));
     } else { // not contains
       return (crit.value.length === 0)
         ? col.and((val: any) => val[crit.key as string].length !== 0)
-        : col.and((val: any) => !crit.value.some((item) => val[crit.key as string].contains(item)));
+        : col.and((val: any) => !crit.value.some((item) => val[crit.key as string].indexOf(item) !== -1));
     }
   }
 
@@ -288,25 +288,25 @@ export default class BaseRepository<T extends IIdentifiable> {
 
     const filterFunc = getFilterFunc(crit.operator);
     if (col) {
-      
       return col.and(filterFunc);
     }
     return this.collection.filter(filterFunc);
   }
 
   private _filterDateInitial(where: Dexie.WhereClause<T, string>, crit: IDateSearchCriteria<T>) {
-    crit.value.setHours(0, 0, 0);
+    const dateStart = new Date(crit.value);
+    dateStart.setHours(0, 0, 0);
     const dateEnd = new Date(crit.value);
     dateEnd.setHours(23, 59, 59);
 
     const col = ((operator: NumberOperatorType): Dexie.Collection<T, string> | undefined => {
       switch (operator) {
         // equal to this day, so between 0:00 and 23:59
-        case 'equals': return where.between(crit.value, dateEnd);
-        case 'smallerThan':         return where.below(crit.value);
+        case 'equals': return where.between(dateStart, dateEnd);
+        case 'smallerThan':         return where.below(dateStart);
         case 'smallerThanOrEquals': return where.below(dateEnd);
         case 'greaterThan':         return where.above(dateEnd);
-        case 'greaterThanOrEquals': return where.above(crit.value);
+        case 'greaterThanOrEquals': return where.above(dateStart);
         default:                    return undefined;
       }
     })(crit.operator);

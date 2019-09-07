@@ -13,7 +13,6 @@ interface IHotkeyMap {
   toggleOutliner: string;
   openOutlinerImport: string;
   openOutlinerTags: string;
-  openOutlinerSearch: string;
   replaceQuery: string;
 
   // Inspector actions
@@ -31,6 +30,7 @@ interface IHotkeyMap {
   viewSlide: string;
   quickSearch: string;
   advancedSearch: string;
+  closeSearch: string;
 
   // Other
   openPreviewWindow: string;
@@ -42,7 +42,6 @@ const defaultHotkeyMap: IHotkeyMap = {
   toggleInspector: '2',
   openOutlinerImport: 'shift + 1',
   openOutlinerTags: 'shift + 2',
-  openOutlinerSearch: 'shift + 3',
   replaceQuery: 'r',
   openTagSelector: 't',
   toggleSettings: 's',
@@ -56,6 +55,7 @@ const defaultHotkeyMap: IHotkeyMap = {
   quickSearch: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
+  closeSearch: 'escape',
 };
 
 /**
@@ -109,7 +109,7 @@ class UiStore {
   @observable isFullScreen: boolean = false;
 
   // UI
-  @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
+  @observable outlinerPage: 'IMPORT' | 'TAGS' = 'TAGS';
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
@@ -405,11 +405,13 @@ class UiStore {
   @action.bound replaceQuery(ids: ID[]) {
     this.searchCriteriaList.clear();
     this.addTagsToQuery(ids);
+    this.isQuickSearchOpen = true;
   }
 
   @action.bound replaceQueryWithSelection() {
     this.replaceQuery(this.tagSelection.toJS());
     this.searchByQuery();
+    this.isQuickSearchOpen = true;
   }
 
   /////////////////// UI Actions ///////////////////
@@ -424,10 +426,6 @@ class UiStore {
   @action.bound openOutlinerTags() {
     this.outlinerPage = 'TAGS';
     this.viewContentAll();
-  }
-  @action.bound openOutlinerSearch() {
-    this.outlinerPage = 'SEARCH';
-    this.viewContentQuery();
   }
 
   @action.bound openPreviewWindow() {
@@ -540,6 +538,16 @@ class UiStore {
   @action.bound toggleAdvancedSearch() {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
     if (this.isAdvancedSearchOpen && !this.isQuickSearchOpen) {
+      this.toggleQuickSearch();
+    }
+  }
+  @action.bound closeSearch() {
+    if (this.isQuickSearchOpen) {
+      this.toggleQuickSearch();
+    }
+  }
+  @action.bound openSearch() {
+    if (!this.isQuickSearchOpen) {
       this.toggleQuickSearch();
     }
   }

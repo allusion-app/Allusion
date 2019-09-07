@@ -110,13 +110,11 @@ const Toolbar = () => {
       uiStore.openOutlinerImport();
     } else if (page === 'TAGS') {
       uiStore.openOutlinerTags();
-    } else if (page === 'SEARCH') {
-      uiStore.openOutlinerSearch();
     }
   }, []);
   const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), []);
   const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), []);
-  const handleOlSearch = useCallback(() => handleChooseOutlinerPage('SEARCH'), []);
+  const handleOlSearch = uiStore.toggleQuickSearch;
 
   // Content actions
   const isFileListSelected = uiStore.fileSelection.length > 0
@@ -217,13 +215,15 @@ const Toolbar = () => {
           <Button
             icon={IconSet.TAG}
             onClick={handleOlTags}
-            intent={olPage === 'TAGS' ? 'primary' : 'none'} className="tooltip"
+            intent={olPage === 'TAGS' ? 'primary' : 'none'}
+            className="tooltip"
             data-right={Tooltip.Tag}
           />
           <Button
             icon={IconSet.SEARCH}
             onClick={handleOlSearch}
-            intent={olPage === 'SEARCH' ? 'primary' : 'none'} className="tooltip"
+            intent={uiStore.isQuickSearchOpen ? 'primary' : 'none'}
+            className="tooltip"
             data-right={Tooltip.Search}
           />
         </ButtonGroup>

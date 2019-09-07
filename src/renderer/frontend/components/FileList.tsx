@@ -9,6 +9,8 @@ import MultiTagSelector from './MultiTagSelector';
 import { KeyLabelMap } from './SearchForm';
 import { IArraySearchCriteria } from '../../entities/SearchCriteria';
 import { IFile } from '../../entities/File';
+import IconSet from './Icons';
+import { CSSTransition } from 'react-transition-group';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
@@ -37,6 +39,14 @@ const QuickSearchList = observer(() => {
     fileStore.fetchAllFiles();
   }, []);
 
+  const handleCloseSearch = useCallback((e: React.KeyboardEvent) => {
+    if (e.key.toLowerCase() === uiStore.hotkeyMap.closeSearch) {
+      e.preventDefault();
+      // Prevent react update on unmounted component while searchbar is closing
+      setTimeout(uiStore.closeSearch, 0);
+    }
+  }, []);
+
   return (
     <MultiTagSelector
       selectedTags={queriedTags}
@@ -46,6 +56,8 @@ const QuickSearchList = observer(() => {
       autoFocus
       tagIntent="primary"
       // refocusObject={quickSearchFocusDate}
+      onKeyDown={handleCloseSearch}
+      showClearButton={false}
     />
   );
 });
@@ -53,7 +65,7 @@ const QuickSearchList = observer(() => {
 const CriteriaList = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
-  const ClearButton = useMemo(() => <Button onClick={uiStore.clearSearchQueryList} icon="cross" />, []);
+  // const ClearButton = useMemo(() => <Button onClick={uiStore.clearSearchQueryList} icon="cross" />, []);
   const handleRemove = useCallback((_: string, index: number) =>
     uiStore.removeSearchQuery(uiStore.searchCriteriaList[index]), []);
 
@@ -65,21 +77,23 @@ const CriteriaList = observer(() => {
   }, []);
 
   const handleTagClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.currentTarget.tagName === 'SPAN') {
+    if ((e.target as HTMLElement).tagName === 'SPAN') {
       uiStore.toggleAdvancedSearch();
     }
   }, []);
 
   return (
-    <TagInput
-      values={uiStore.searchCriteriaList.map((crit, i) => `${i + 1}: ${KeyLabelMap[crit.key]}`)}
-      rightElement={ClearButton}
-      onRemove={handleRemove}
-      inputProps={{ disabled: true }}
-      onKeyDown={preventTyping}
-      tagProps={{ minimal: true, intent: 'primary', onClick: handleTagClick, interactive: true }}
-      fill
-    />
+    <div id="criteria-list">
+      <TagInput
+        values={uiStore.searchCriteriaList.map((crit, i) => `${i + 1}: ${KeyLabelMap[crit.key]}`)}
+        // rightElement={ClearButton}
+        onRemove={handleRemove}
+        inputProps={{ disabled: true }}
+        onKeyDown={preventTyping}
+        tagProps={{ minimal: true, intent: 'primary', onClick: handleTagClick, interactive: true }}
+        fill
+      />
+    </div>
   );
 });
 
@@ -89,17 +103,20 @@ const SearchBar = observer(() => {
   const showQuickSearch = uiStore.searchCriteriaList.length === 1 && uiStore.searchCriteriaList[0].key === 'tags';
 
   return (
-    <div id="quick-search">
-      <Button icon="more" onClick={uiStore.toggleAdvancedSearch} />
-      {showQuickSearch ? <QuickSearchList /> : <CriteriaList /> }
-    </div>
+    <CSSTransition in={uiStore.isQuickSearchOpen} classNames="quick-search" timeout={200} unmountOnExit>
+      <div className="quick-search">
+        <Button icon="more" onClick={uiStore.toggleAdvancedSearch} />
+        {showQuickSearch ? <QuickSearchList /> : <CriteriaList /> }
+        <Button icon={IconSet.CLOSE} onClick={uiStore.toggleQuickSearch} title="Close (Escape)" />
+      </div>
+    </CSSTransition>
   );
 });
 
 const FileList = observer(({ rootStore: { uiStore } }: IRootStoreProp) => {
   return (
     <>
-      { uiStore.isQuickSearchOpen && <SearchBar /> }
+      <SearchBar />
       <Gallery />
     </>
   );
@@ -131,6 +148,12 @@ class FileListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
           combo={hotkeyMap.deleteSelection}
           label="Delete the selected files"
           onKeyDown={uiStore.toggleToolbarFileRemover}
+          group="Gallery"
+        />
+        <Hotkey
+          combo={hotkeyMap.closeSearch}
+          label="Close search bar"
+          onKeyDown={uiStore.closeSearch}
           group="Gallery"
         />
       </Hotkeys>

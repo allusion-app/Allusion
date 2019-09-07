@@ -6,7 +6,6 @@ import StoreContext from '../contexts/StoreContext';
 
 import TagList from './TagTree';
 import ImportForm from './ImportForm';
-import SearchForm from './SearchForm';
 
 const Outliner = () => {
   const rootStore = useContext(StoreContext);
@@ -21,11 +20,6 @@ const Outliner = () => {
       </>)}
 
       {uiStore.outlinerPage === 'TAGS' && (<TagList />)}
-
-      {uiStore.outlinerPage === 'SEARCH' && (<>
-        <H4 className="bp3-heading">Search</H4>
-        <SearchForm />
-      </>)}
     </nav>
   );
 };
