@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, Hotkey, Hotkeys, HotkeysTarget, TagInput } from '@blueprintjs/core';
+import { CSSTransition } from 'react-transition-group';
 
 import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
 import Gallery from './Gallery';
@@ -10,7 +11,6 @@ import { KeyLabelMap } from './SearchForm';
 import { IArraySearchCriteria } from '../../entities/SearchCriteria';
 import { IFile } from '../../entities/File';
 import IconSet from './Icons';
-import { CSSTransition } from 'react-transition-group';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
@@ -105,7 +105,7 @@ const SearchBar = observer(() => {
   return (
     <CSSTransition in={uiStore.isQuickSearchOpen} classNames="quick-search" timeout={200} unmountOnExit>
       <div className="quick-search">
-        <Button icon="more" onClick={uiStore.toggleAdvancedSearch} />
+        <Button minimal icon={IconSet.SEARCH_EXTENDED} onClick={uiStore.toggleAdvancedSearch} />
         {showQuickSearch ? <QuickSearchList /> : <CriteriaList /> }
         <Button icon={IconSet.CLOSE} onClick={uiStore.toggleQuickSearch} title="Close (Escape)" />
       </div>

@@ -7,9 +7,10 @@
 
 .quick-search {
   background: $dark-gray1;
-  border-radius: 4px;
+  border-radius: 6px;
   position: sticky;
-  top: 0rem;
+  width: calc(100% - .75rem);
+  top: 0.2rem;
   z-index: 999;
   display: flex;
 
@@ -18,11 +19,24 @@
   border-bottom: 2px solid $black;
   box-shadow: $pt-dark-elevation-shadow-2;
 
-  > button {
+  button.bp3-button {
     width: 30px;
     height: 30px;
     margin: auto;
     margin-top: 2px;
+    background: none !important;
+  }
+
+  .bp3-button-group {
+    .bp3-button {
+      border-radius: 6px;
+      // background: rgba(1, 1, 1, .1) !important;
+      background: none !important;
+    }
+
+    .bp3-intent-primary {
+      background: $blue1;
+    }
   }
 
   .bp3-popover-wrapper, #criteria-list {
@@ -39,7 +53,6 @@
   .bp3-popover-wrapper {
     width: 100%;
   }
-
 }
 
 .quick-search-enter {
@@ -147,6 +160,7 @@
   &.droppable .img-wrapper {
     border: 1rem solid $yellow1;
     border-radius: 0.25rem;
+
     img {
       transform: scale(0.95);
     }
@@ -168,7 +182,7 @@
     position: absolute;
     bottom: 0;
 
-    > * {
+    >* {
       margin: 0.25em;
     }
   }
@@ -193,23 +207,29 @@
     "image title"
     "image info"
     "image tags";
+
   &.selected .img-wrapper {
     border: 1rem solid $blue1;
     border-radius: 0.25rem;
   }
+
   &.droppable .img-wrapper {
     border: 1rem solid $yellow1;
     border-radius: 0.25rem;
+
     img {
       transform: scale(0.9);
     }
   }
+
   &.selected {
     background: none !important;
   }
+
   &.selected img {
     transform: scale(0.9);
   }
+
   img {
     position: absolute;
     left: 0rem;
@@ -217,9 +237,11 @@
     margin-left: 0;
     border-radius: 0.25rem;
   }
-  span > * {
+
+  span>* {
     text-align: left !important;
   }
+
   .thumbnailTags {
     display: block;
     position: relative;
@@ -228,6 +250,7 @@
     margin-left: -0.2rem;
     align-self: start;
   }
+
   .bp3-heading {
     margin-top: 0.25rem;
     padding-top: 0.25rem;
@@ -236,7 +259,8 @@
     align-self: end;
   }
 }
-.list div div > .list-item-even {
+
+.list div div>div:nth-child(2n + 0) {
   background-color: rgba(102, 102, 102, 0.1);
   // padding: .3rem 0
 }
@@ -259,9 +283,11 @@
 .grid .thumbnail {
   width: var(--thumbnail-size);
   height: var(--thumbnail-size);
+
   &.selected {
     background: $blue1;
   }
+
   img {
     width: var(--thumbnail-size);
     height: var(--thumbnail-size);
@@ -271,26 +297,27 @@
     margin-left: 0;
     border-radius: 0.25rem;
   }
+
   &.droppable img {
     transform: scale(0.9);
   }
+
   &.droppable .thumbnailTags {
     display: block;
   }
-  // An option :) would be nice for this
-  // .thumbnailTags {
-  //   display: none;
-  // }
+  
   // display: flex;
   // span:nth-child(3) {
   //   z-index: -1;
   //   background: red !important;
   // }
 }
+
 .slide .thumbnail {
   height: calc(100vh - 4rem) !important;
   width: 100% !important;
   margin: 0.4rem 0;
+
   img {
     height: 95% !important;
     width: 95% !important;
@@ -300,12 +327,15 @@
     top: 49%;
     left: 50%;
   }
+
   span {
     display: none;
   }
+
   .thumbnailTags {
     display: none;
   }
+
   &.selected img {
     transform: translateX(-50%) translateY(-50%) scale(0.9);
   }

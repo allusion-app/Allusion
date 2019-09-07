@@ -46,6 +46,7 @@ import PREVIEW from '../../resources/icons/preview.svg';
 import RELOAD from '../../resources/icons/reload.svg';
 import REPLACE from '../../resources/icons/replace.svg';
 import SEARCH from '../../resources/icons/search.svg';
+import SEARCH_EXTENDED from '../../resources/icons/search-extended.svg';
 import SELECT_ALL_CHECKED from '../../resources/icons/select-all-checked.svg';
 import SELECT_ALL_ROUND from '../../resources/icons/select-all-round.svg';
 import SELECT_ALL_TRANS from '../../resources/icons/select-all-trans.svg';
@@ -120,6 +121,7 @@ const IconSet = {
   RELOAD: toSvg(RELOAD),
   REPLACE: toSvg(REPLACE),
   SEARCH: toSvg(SEARCH),
+  SEARCH_EXTENDED: toSvg(SEARCH_EXTENDED),
   SELECT_ALL_CHECKED: toSvg(SELECT_ALL_CHECKED),
   SELECT_ALL_ROUND: toSvg(SELECT_ALL_ROUND),
   SELECT_ALL_TRANS: toSvg(SELECT_ALL_TRANS),
@@ -149,7 +151,7 @@ export const IconDemo = () => (
         'tick', 'cross', 'trash', 'delete', /*'small-cross'*/, 'edit', 'folder-close', 'folder-open',
         '', 'info-sign', 'menu', '', '', 'more', 'search', 'path-search',
         'tag', 'calendar',
-        'sort-alphabetical', 'sort-alphabetical-desc', 'play', 'warning-sign',
+        'sort-alphabetical', 'sort-alphabetical-desc', 'play', 'warning-sign', 'double-caret-vertical',
       ] as IconName[])
     .map((name, i) =>
       <Tag

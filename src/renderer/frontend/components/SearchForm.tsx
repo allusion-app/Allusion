@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
-  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, InputGroup, NumericInput, HTMLSelect, RadioGroup, Radio,
+  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, InputGroup, NumericInput, HTMLSelect,
 } from '@blueprintjs/core';
 
 import MultiTagSelector from './MultiTagSelector';
@@ -43,9 +43,10 @@ export const AdvancedSearchDialog = observer(() => {
     <Dialog
       isOpen={uiStore.isAdvancedSearchOpen}
       onClose={uiStore.toggleAdvancedSearch}
-      icon={IconSet.SEARCH}
+      icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      className={themeClass}
+      // className={themeClass}
+      className={`${themeClass} light`}
       canOutsideClickClose={false}
     >
       <SearchForm />
@@ -267,12 +268,12 @@ const SearchForm = observer(() => {
       {/* <Button icon={IconSet.ADD} onClick={addSearchQuery} fill text="Query"/> */}
 
       <div>
-        <RadioGroup inline label="Match with" selectedValue="all" onChange={() => undefined}>
+        {/* <RadioGroup inline label="Match with" selectedValue="all" onChange={() => undefined}>
           <Radio label="All" value="all" />
           <Radio label="Any" value="any" />
-        </RadioGroup>
+        </RadioGroup> */}
 
-        <ButtonGroup id="actions-bar">
+        {/* <ButtonGroup id="actions-bar">
           <Button
             onClick={resetSearchCriteria}
             disabled={uiStore.searchCriteriaList.length === 0}
@@ -288,7 +289,25 @@ const SearchForm = observer(() => {
             icon={IconSet.SEARCH}
             fill
           />
-        </ButtonGroup>
+        </ButtonGroup> */}
+
+        <div id="actions-bar" className="bp3-alert-footer">
+          <Button
+            intent="primary"
+            onClick={uiStore.viewContentQuery}
+            disabled={uiStore.searchCriteriaList.length === 0}
+            text="Search"
+            icon={IconSet.SEARCH}
+            fill
+          />
+          <Button
+            onClick={resetSearchCriteria}
+            disabled={uiStore.searchCriteriaList.length === 0}
+            text="Reset"
+            icon={IconSet.CLOSE}
+            fill
+          />
+        </div>
       </div>
     </div>
   );
