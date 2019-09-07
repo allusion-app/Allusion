@@ -1,8 +1,8 @@
 import Dexie from 'dexie';
 import { ID, IIdentifiable } from '../entities/ID';
 import {
-  SearchCriteria, IIDsSearchCriteria, IStringSearchCriteria,
-  INumberSearchCriteria, IDateSearchCriteria,
+  SearchCriteria, IArraySearchCriteria, IStringSearchCriteria,
+  INumberSearchCriteria, IDateSearchCriteria, StringOperatorType, NumberOperatorType,
 } from '../entities/SearchCriteria';
 
 export interface IDBCollectionConfig {
@@ -15,18 +15,6 @@ export interface IDBVersioningConfig {
   collections: IDBCollectionConfig[];
   upgrade?: (tx: Dexie.Transaction) => void;
 }
-
-// type DexieFuncType = 'equals' | 'notEqual' | 'below' | 'belowOrEqual' | 'above'
-//   | 'between' | 'equalsIgnoreCase' | 'startsWithIgnoreCase' | 'anyOf' | 'noneOf';
-
-// interface IOperatorDict {
-//   [key: string]: DexieFuncType;
-// }
-
-// const STRING_OPERATOR_DICT: IOperatorDict = {
-//   equals: 'equalsIgnoreCase',
-//   startsWithIgnoreCase: 'startsWithIgnoreCase',
-// };
 
 /**
  * A function that should be called before using the database.
@@ -60,6 +48,7 @@ export interface IDbRequest<T> {
 
 export interface IDbQueryRequest<T> extends IDbRequest<T> {
   criteria: SearchCriteria<T> | [SearchCriteria<T>];
+  // matchAny: boolean;
 }
 
 /**
@@ -133,12 +122,13 @@ export default class BaseRepository<T extends IIdentifiable> {
     return items;
   }
 
-  private async _find({ criteria, count, order, descending }: IDbQueryRequest<T>)
+  private async _find({ criteria }: IDbQueryRequest<T>)
     : Promise<Dexie.Collection<T, string>> {
 
     // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
-    // Unfortunately doesn't work out of the box...
-    // Separate first where from the rest
+    // Unfortunately doesn't work out of the box.
+    // It's one of the things they are working on, looks much better: https://github.com/dfahlander/Dexie.js/issues/427
+    // But for now, separate first where from the rest...
     const [firstCrit, ...otherCrits] = Array.isArray(criteria) ? criteria : [criteria];
 
     const where = this.collection.where(firstCrit.key as string);
@@ -147,119 +137,212 @@ export default class BaseRepository<T extends IIdentifiable> {
     let table = where.equals(firstCrit.value);
     switch (firstCrit.valueType) {
       case 'array':
-        // Querying array props: https://dexie.org/docs/MultiEntry-Index
-        const idsCrit = firstCrit as IIDsSearchCriteria<T>;
-        // Check whether to search for empty arrays (e.g. no tags)
-        if (idsCrit.value.length === 0) {
-          table = firstCrit.operator === 'contains'
-            ? table.filter((val: any) => val[firstCrit.key as string].length === 0)
-            : table.filter((val: any) => val[firstCrit.key as string].length !== 0);
-        } else {
-          const idsFuncName = firstCrit.operator === 'contains' ? 'anyOf' : 'noneOf';
-          table = where[idsFuncName](idsCrit.value).distinct();
-        }
-        break;
+        table = this._filterArrayInitial(where, firstCrit as IArraySearchCriteria<T>); break;
       case 'string':
-        const stringCrit = firstCrit as IStringSearchCriteria<T>;
-        const stringFuncName =
-          stringCrit.operator === 'equals' ?     'equalsIgnoreCase' :
-          stringCrit.operator === 'startsWith' ? 'startsWithIgnoreCase' :
-                                                 'notEqual';
-        // Todo: No support for notStartsWith, notEqualIgnoreCase, contains, notContains
-        table = where[stringFuncName](stringCrit.value);
-        break;
+        table = this._filterStringInitial(where, firstCrit as IStringSearchCriteria<T>); break;
       case 'number':
-        const numberCrit = firstCrit as INumberSearchCriteria<T>;
-        const numberFuncName =
-          numberCrit.operator === 'equals'              ? 'equals' :
-          numberCrit.operator === 'notEqual'            ? 'notEqual' :
-          numberCrit.operator === 'smallerThan'         ? 'below' :
-          numberCrit.operator === 'smallerThanOrEquals' ? 'belowOrEqual' :
-          numberCrit.operator === 'greaterThan'         ? 'above' :
-                                                          'aboveOrEqual';
-        table = where[numberFuncName](numberCrit.value);
-        break;
+        table = this._filterNumberInitial(where, firstCrit as INumberSearchCriteria<T>); break;
       case 'date':
-        const dateCrit = firstCrit as IDateSearchCriteria<T>;
-        const dateEnd = new Date(dateCrit.value);
-        dateEnd.setHours(23, 59, 59);
-        table =
-         (dateCrit.operator === 'equals')              ? where.between(dateCrit.value, dateEnd) : // equal to this day, so between 0:00 and 23:59
-         (dateCrit.operator === 'smallerThan')         ? where.below(dateCrit.value) :
-         (dateCrit.operator === 'smallerThanOrEquals') ? where.below(dateEnd) :
-         (dateCrit.operator === 'greaterThan')         ? where.above(dateEnd) :
-         (dateCrit.operator === 'greaterThanOrEquals') ? where.above(dateCrit.value) :
-                                                         where.notEqual(dateCrit.value);
-        // todo: notEqual doesn't work like this for dates, needs to be 'notBetween' but doesn't exist
-        break;
+        table = this._filterDateInitial(where, firstCrit as IDateSearchCriteria<T>); break;
     }
 
-    const matchAny = false; // todo: get as param
     // const matchFuncName = matchAny ? 'or' : 'and';
 
-    // Whether the other criteria should be applied as AND /or/ OR
-    if (matchAny) {
-      // OR can be done in a similar manner to the first criteria. Needs some refactoring
-      // Maybe can also be done same way as AND
-    } else {
-      // AND must be done with a filter function over each entry
-      for (const crit of otherCrits as Array<SearchCriteria<T>>) {
-        switch (crit.valueType) {
-          case 'array':
-            const idsCrit = crit as IIDsSearchCriteria<T>;
-            if (firstCrit.operator === 'contains') {
-              table = (idsCrit.value.length === 0)
-                ? table.and((val: any) => val[crit.key as string].length === 0)
-                : table.and((val: any) => idsCrit.value.every((item) => val[crit.key as string].contains(item)));
-            } else { // not contains
-              table = (idsCrit.value.length === 0)
-                ? table.and((val: any) => val[crit.key as string].length !== 0)
-                : table.and((val: any) => !idsCrit.value.some((item) => val[crit.key as string].contains(item)));
-            }
-            break;
-          case 'string':
-            const { operator: op, key, value } = firstCrit as IStringSearchCriteria<T>;
-            console.log(op, value);
-            const valLow = value.toLowerCase();
-            table =
-              op === 'equals' ?   table.and((t: any) => (t[key] as string).toLowerCase() === valLow) :
-              op === 'notEqual' ? table.and((t: any) => (t[key] as string).toLowerCase() !== valLow) :
-              op === 'contains' ?    table.and((t: any) => (t[key] as string).toLowerCase().indexOf(valLow) !== -1) :
-              op === 'notContains' ? table.and((t: any) => (t[key] as string).toLowerCase().indexOf(valLow) === -1) :
-              op === 'startsWith' ? table.and((t: any) => (t[key] as string).toLowerCase().startsWith(valLow)) :
-              /*notStartsWith*/     table.and((t: any) => !(t[key] as string).toLowerCase().startsWith(valLow));
-            break;
-          case 'number':
-            const numberCrit = firstCrit as INumberSearchCriteria<T>;
-            const numOp = numberCrit.operator;
-            table =
-              numOp === 'equals' ? table.and((t: any) => (t[key] as number) === numberCrit.value) :
-              numOp === 'notEqual' ? table.and((t: any) => (t[key] as number) !== numberCrit.value) :
-              numOp === 'smallerThan' ? table.and((t: any) => (t[key] as number) < numberCrit.value) :
-              numOp === 'smallerThanOrEquals' ? table.and((t: any) => (t[key] as number) <= numberCrit.value) :
-              numOp === 'greaterThan' ? table.and((t: any) => (t[key] as number) > numberCrit.value) :
-              /* greaterThanOrEquals */ table.and((t: any) => (t[key] as number) >= numberCrit.value);
-            break;
-          case 'date':
-            const dateCrit = firstCrit as IDateSearchCriteria<T>;
-            const start = new Date(dateCrit.value);
-            const end = new Date(dateCrit.value);
-            end.setHours(23, 59, 59);
-            const dateOp = dateCrit.operator;
+    // Todo: OR can only be done in a like initial criteria, but that doesn't support all of our operators
+    // Other option is to do a filter and check all criteria within the callback
 
-            table =
-              dateOp === 'equals' ? table.and((t: any) => t[key] >= start || t[key] <= end) :
-              dateOp === 'notEqual' ? table.and((t: any) =>  t[key] < start || t[key] > end) :
-              dateOp === 'smallerThan' ? table.and((t: any) => t[key] < start) :
-              dateOp === 'smallerThanOrEquals' ? table.and((t: any) => t[key] <= end) :
-              dateOp === 'greaterThan' ? table.and((t: any) => t[key] > end) :
-              /* greaterThanOrEquals */ table.and((t: any) => t[key] >= start);
-
-            break;
-        }
+    // Filter for the rest of the queries
+    for (const crit of otherCrits as Array<SearchCriteria<T>>) {
+      switch (crit.valueType) {
+        case 'array':
+          table = this._filterArray(table, crit as IArraySearchCriteria<T>); break;
+        case 'string':
+          table = this._filterString(table, crit as IStringSearchCriteria<T>); break;
+        case 'number':
+          table = this._filterNumber(table, crit as INumberSearchCriteria<T>); break;
+        case 'date':
+          table = this._filterDate(table, crit as IDateSearchCriteria<T>); break;
       }
     }
 
     return table;
+  }
+
+  ///////////////////////////////
+  ////// FILTERING METHODS //////
+  ///////////////////////////////
+  // There are 'initial' and normal filter functions, since only the first criteria
+  // can use the IndexedDB search functionality, the others need to be performed as filters
+
+  private _filterArrayInitial(where: Dexie.WhereClause<T, string>, crit: IArraySearchCriteria<T>) {
+    // Querying array props: https://dexie.org/docs/MultiEntry-Index
+    // Check whether to search for empty arrays (e.g. no tags)
+    if (crit.value.length === 0) {
+      return crit.operator === 'contains'
+        ? this.collection.filter((val: any) => val[crit.key as string].length === 0)
+        : this.collection.filter((val: any) => val[crit.key as string].length !== 0);
+    } else { // not contains
+      const idsFuncName = crit.operator === 'contains' ? 'anyOf' : 'noneOf';
+      return where[idsFuncName](crit.value).distinct();
+    }
+  }
+
+  private _filterArray(col: Dexie.Collection<T, string>, crit: IArraySearchCriteria<T>) {
+    if (crit.operator === 'contains') {
+      // Check whether to search for empty arrays (e.g. no tags)
+      return (crit.value.length === 0)
+        ? col.and((val: any) => val[crit.key as string].length === 0)
+        : col.and((val: any) => crit.value.every((item) => val[crit.key as string].contains(item)));
+    } else { // not contains
+      return (crit.value.length === 0)
+        ? col.and((val: any) => val[crit.key as string].length !== 0)
+        : col.and((val: any) => !crit.value.some((item) => val[crit.key as string].contains(item)));
+    }
+  }
+
+  private _filterStringInitial(where: Dexie.WhereClause<T, string>, crit: IStringSearchCriteria<T>) {
+    type DbStringOperator = 'equalsIgnoreCase' | 'startsWithIgnoreCase';
+    const funcName = ((operator: StringOperatorType): DbStringOperator | undefined => {
+      switch (operator) {
+        case 'equals':     return 'equalsIgnoreCase';
+        case 'startsWith': return 'startsWithIgnoreCase';
+        default:           return undefined;
+      }
+    })(crit.operator);
+
+    if (!funcName) {
+      // Use normal string filter as fallback for functions not supported by the DB
+      return this._filterString(undefined, crit);
+    }
+    return where[funcName](crit.value);
+  }
+
+  private _filterString(col: Dexie.Collection<T, string> | undefined, crit: IStringSearchCriteria<T>) {
+    const { key, value } = crit as IStringSearchCriteria<T>;
+    const valLow = value.toLowerCase();
+
+    const getFilterFunc = (operator: StringOperatorType) => {
+      switch (operator) {
+        case 'equals':
+          return (t: any) => (t[key] as string).toLowerCase() === valLow;
+        case 'notEqual':
+          return (t: any) => (t[key] as string).toLowerCase() !== valLow;
+        case 'contains':
+          return (t: any) => (t[key] as string).toLowerCase().indexOf(valLow) !== -1;
+        case 'notContains':
+          return (t: any) => (t[key] as string).toLowerCase().indexOf(valLow) === -1;
+        case 'startsWith':
+          return (t: any) => (t[key] as string).toLowerCase().startsWith(valLow);
+        case 'notStartsWith':
+          return (t: any) => !(t[key] as string).toLowerCase().startsWith(valLow);
+        default:
+          console.log('String operator not allowed:', operator);
+          return () => false;
+      }
+    };
+
+    const filterFunc = getFilterFunc(crit.operator);
+    if (col) {
+      return col.and(filterFunc);
+    }
+    return this.collection.filter(filterFunc);
+  }
+
+  private _filterNumberInitial(where: Dexie.WhereClause<T, string>, crit: INumberSearchCriteria<T>) {
+    type DbNumberOperator = 'equals' | 'notEqual' | 'below' | 'belowOrEqual' | 'above' | 'aboveOrEqual';
+    const funcName = ((operator: NumberOperatorType): DbNumberOperator | undefined => {
+      switch (operator) {
+        case 'equals':              return 'equals';
+        case 'notEqual':            return 'notEqual';
+        case 'smallerThan':         return 'below';
+        case 'smallerThanOrEquals': return 'belowOrEqual';
+        case 'greaterThan':         return 'above';
+        case 'greaterThanOrEquals': return 'aboveOrEqual';
+        default:                    return undefined;
+      }
+    })(crit.operator);
+
+    if (!funcName) {
+      console.log('Number operator not allowed:', crit.operator);
+      return this.collection.filter(() => false);
+    }
+    return where[funcName](crit.value);
+  }
+
+  private _filterNumber(col: Dexie.Collection<T, string> | undefined, crit: INumberSearchCriteria<T>) {
+    const { key, value } = crit;
+
+    const getFilterFunc = (operator: NumberOperatorType) => {
+      switch (operator) {
+        case 'equals':              return (t: any) => t[key] === value;
+        case 'notEqual':            return (t: any) => t[key] !== value;
+        case 'smallerThan':         return (t: any) => t[key] < value;
+        case 'smallerThanOrEquals': return (t: any) => t[key] <= value;
+        case 'greaterThan':         return (t: any) => t[key] > value;
+        case 'greaterThanOrEquals': return (t: any) => t[key] >= value;
+        default:
+          console.log('Number operator not allowed:', crit.operator);
+          return () => false;
+      }
+    };
+
+    const filterFunc = getFilterFunc(crit.operator);
+    if (col) {
+      
+      return col.and(filterFunc);
+    }
+    return this.collection.filter(filterFunc);
+  }
+
+  private _filterDateInitial(where: Dexie.WhereClause<T, string>, crit: IDateSearchCriteria<T>) {
+    crit.value.setHours(0, 0, 0);
+    const dateEnd = new Date(crit.value);
+    dateEnd.setHours(23, 59, 59);
+
+    const col = ((operator: NumberOperatorType): Dexie.Collection<T, string> | undefined => {
+      switch (operator) {
+        // equal to this day, so between 0:00 and 23:59
+        case 'equals': return where.between(crit.value, dateEnd);
+        case 'smallerThan':         return where.below(crit.value);
+        case 'smallerThanOrEquals': return where.below(dateEnd);
+        case 'greaterThan':         return where.above(dateEnd);
+        case 'greaterThanOrEquals': return where.above(crit.value);
+        default:                    return undefined;
+      }
+    })(crit.operator);
+
+    if (!col) {
+      // Use fallback
+      return this._filterDate(undefined, crit);
+    }
+    return col;
+  }
+
+  private _filterDate(col: Dexie.Collection<T, string> | undefined, crit: IDateSearchCriteria<T>) {
+    const { key } = crit;
+    const start = new Date(crit.value);
+    start.setHours(0, 0, 0);
+    const end = new Date(crit.value);
+    end.setHours(23, 59, 59);
+
+    const getFilterFunc = (operator: NumberOperatorType) => {
+      switch (operator) {
+        case 'equals':              return (t: any) => t[key] >= start || t[key] <= end;
+        case 'notEqual':            return (t: any) => t[key] < start || t[key] > end;
+        case 'smallerThan':         return (t: any) => t[key] < start;
+        case 'smallerThanOrEquals': return (t: any) => t[key] <= end;
+        case 'greaterThan':         return (t: any) => t[key] > end;
+        case 'greaterThanOrEquals': return (t: any) => t[key] >= start;
+        default:
+          console.log('Date operator not allowed:', crit.operator);
+          return () => false;
+      }
+    };
+
+    const filterFunc = getFilterFunc(crit.operator);
+    if (col) {
+      return col.and(filterFunc);
+    }
+    return this.collection.filter(filterFunc);
   }
 }

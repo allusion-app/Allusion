@@ -7,13 +7,13 @@ import Gallery from './Gallery';
 import { ClientTag } from '../../entities/Tag';
 import MultiTagSelector from './MultiTagSelector';
 import { KeyLabelMap } from './SearchForm';
-import { IIDsSearchCriteria } from '../../entities/SearchCriteria';
+import { IArraySearchCriteria } from '../../entities/SearchCriteria';
 import { IFile } from '../../entities/File';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
 
-  const tagCrit = uiStore.searchCriteriaList[0] as IIDsSearchCriteria<IFile>;
+  const tagCrit = uiStore.searchCriteriaList[0] as IArraySearchCriteria<IFile>;
 
   const queriedTags = useMemo(
     () => tagCrit.value.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),

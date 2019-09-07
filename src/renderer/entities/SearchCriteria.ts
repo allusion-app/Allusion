@@ -33,7 +33,7 @@ interface IBaseSearchCriteria<T> {
   operator: NumberOperatorType | StringOperatorType | BinaryOperatorType | ArrayOperatorType;
 }
 
-export interface IIDsSearchCriteria<T> extends IBaseSearchCriteria<T> {
+export interface IArraySearchCriteria<T> extends IBaseSearchCriteria<T> {
   value: ID[];
   operator: ArrayOperatorType;
 }
@@ -54,7 +54,7 @@ export interface IDateSearchCriteria<T> extends IBaseSearchCriteria<T> {
 }
 
 // General search criteria for a database entity
-export type SearchCriteria<T> = IIDsSearchCriteria<T> | IStringSearchCriteria<T>
+export type SearchCriteria<T> = IArraySearchCriteria<T> | IStringSearchCriteria<T>
   | INumberSearchCriteria<T> | IDateSearchCriteria<T>;
 
 function clearCriteria(crit: SearchCriteria<any>) {
@@ -70,7 +70,7 @@ function clearCriteria(crit: SearchCriteria<any>) {
 
 export function initIDsCriteria<T>(crit: SearchCriteria<T>) {
   clearCriteria(crit);
-  const res = crit as IIDsSearchCriteria<T>;
+  const res = crit as IArraySearchCriteria<T>;
   res.value = [];
   res.valueType = 'array';
   res.operator = 'contains';

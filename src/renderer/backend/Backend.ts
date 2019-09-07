@@ -58,8 +58,10 @@ export default class Backend {
 
   async searchFiles(criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
                     order: keyof IFile, descending: boolean): Promise<IFile[]> {
-    console.log('Backend: Searching files...', criteria);
-    return this.fileRepository.find({ criteria, order, descending });
+    // Fixme: This shouldn't be necesary, but I keep getting Mobx proxy objects, even when calling .toJS()
+    const serializedCriteria = JSON.parse(JSON.stringify(criteria));
+    console.log('Backend: Searching files...', serializedCriteria);
+    return this.fileRepository.find({ criteria: serializedCriteria, order, descending });
   }
 
   async createTag(id: ID, name: string, description?: string) {

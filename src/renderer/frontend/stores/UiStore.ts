@@ -6,7 +6,7 @@ import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
-import { IIDsSearchCriteria, SearchCriteria } from '../../entities/SearchCriteria';
+import { IArraySearchCriteria, SearchCriteria } from '../../entities/SearchCriteria';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -399,7 +399,7 @@ class UiStore {
       valueType: 'array',
       operator: 'contains',
       value: ids,
-    } as IIDsSearchCriteria<IFile>);
+    } as IArraySearchCriteria<IFile>);
   }
 
   @action.bound replaceQuery(ids: ID[]) {

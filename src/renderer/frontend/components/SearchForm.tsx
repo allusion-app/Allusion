@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
-  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, InputGroup, NumericInput, HTMLSelect,
+  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, InputGroup, NumericInput, HTMLSelect, RadioGroup, Radio,
 } from '@blueprintjs/core';
 
 import MultiTagSelector from './MultiTagSelector';
@@ -10,7 +10,7 @@ import StoreContext from '../contexts/StoreContext';
 import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import {
-  IIDsSearchCriteria, SearchCriteria, IStringSearchCriteria,
+  IArraySearchCriteria, SearchCriteria, IStringSearchCriteria,
   INumberSearchCriteria, IDateSearchCriteria, initStringCriteria, initIDsCriteria, initNumberCriteria,
   initDateCriteria,
   NumberOperatorType, NumberOperators,
@@ -98,7 +98,7 @@ const OperatorSelect = ({ onSelect, value, options }: IOperatorSelectProps) => {
   );
 };
 
-const TagCriteriaItem = observer(({ criteria }: { criteria: IIDsSearchCriteria<IFile> }) => {
+const TagCriteriaItem = observer(({ criteria }: { criteria: IArraySearchCriteria<IFile> }) => {
   const { tagStore } = useContext(StoreContext);
 
   const setOperator = useCallback(
@@ -160,14 +160,20 @@ const ExtensionCriteriaItem = observer(({ criteria }: { criteria: IStringSearchC
   );
 });
 
+const bytesInMb = 1024 * 1024;
 const NumberCriteriaItem = observer(({ criteria }: { criteria: INumberSearchCriteria<IFile> }) => {
   const setOperator = useCallback(
     (operator: string) => criteria.operator = operator as NumberOperatorType, [criteria]);
-  const handleChangeValue = useCallback((e) => criteria.value = e.target.value, [criteria]);
+  const handleChangeValue = useCallback((val: number) => criteria.value = val * bytesInMb, [criteria]);
   return (
     <>
       <OperatorSelect onSelect={setOperator} value={criteria.operator} options={NumberOperators} />
-      <NumericInput placeholder="Enter a number..." value={criteria.value} onChange={handleChangeValue} autoFocus />
+      <NumericInput
+        placeholder="Enter a number..."
+        value={criteria.value / bytesInMb}
+        onValueChange={handleChangeValue}
+        autoFocus
+      />
     </>
   );
 });
@@ -206,7 +212,7 @@ const CriteriaItem = observer(({ criteria, onRemove, onAdd }: ICriteriaItemProps
     if (criteria.key === 'name' || criteria.key === 'path') {
       return <StringCriteriaItem criteria={criteria as IStringSearchCriteria<IFile>} />;
     } else if (criteria.key === 'tags') {
-      return <TagCriteriaItem criteria={criteria as IIDsSearchCriteria<IFile>} />;
+      return <TagCriteriaItem criteria={criteria as IArraySearchCriteria<IFile>} />;
     } else if (criteria.key === 'extension') {
       return <ExtensionCriteriaItem criteria={criteria as IStringSearchCriteria<IFile>} />;
     } else if (criteria.key === 'size') {
@@ -260,24 +266,30 @@ const SearchForm = observer(() => {
 
       {/* <Button icon={IconSet.ADD} onClick={addSearchQuery} fill text="Query"/> */}
 
-      <ButtonGroup id="actions-bar">
+      <div>
+        <RadioGroup inline label="Match with" selectedValue="all" onChange={() => undefined}>
+          <Radio label="All" value="all" />
+          <Radio label="Any" value="any" />
+        </RadioGroup>
 
-        <Button
-          onClick={resetSearchCriteria}
-          disabled={uiStore.searchCriteriaList.length === 0}
-          text="Reset"
-          icon={IconSet.CLOSE}
-          fill
-        />
-        <Button
-          intent="primary"
-          onClick={uiStore.viewContentQuery}
-          disabled={uiStore.searchCriteriaList.length === 0}
-          text="Search"
-          icon={IconSet.SEARCH}
-          fill
-        />
-      </ButtonGroup>
+        <ButtonGroup id="actions-bar">
+          <Button
+            onClick={resetSearchCriteria}
+            disabled={uiStore.searchCriteriaList.length === 0}
+            text="Reset"
+            icon={IconSet.CLOSE}
+            fill
+          />
+          <Button
+            intent="primary"
+            onClick={uiStore.viewContentQuery}
+            disabled={uiStore.searchCriteriaList.length === 0}
+            text="Search"
+            icon={IconSet.SEARCH}
+            fill
+          />
+        </ButtonGroup>
+      </div>
     </div>
   );
 });
