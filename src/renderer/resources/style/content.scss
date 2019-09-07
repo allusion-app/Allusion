@@ -194,7 +194,7 @@
   }
 }
 .list div div > .list-item-even {
-  background-color: rgba(102, 102, 102, 0.1);
+  background-color: rgba(102, 102, 102, 0.045);
   // padding: .3rem 0
 }
 // .list div div > .list-item-uneven {
@@ -203,6 +203,7 @@
 .thumbnail-small.list {
   .bp3-heading {
     font-size: 16px;
+    align-self: start;
   }
   #fileInfo {
     grid-row-gap: 0.02rem;
@@ -210,6 +211,7 @@
   }
   .thumbnailTags {
     padding-top: 0;
+    align-self: end;
   }
 }
 
