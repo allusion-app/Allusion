@@ -237,7 +237,8 @@ button:has(.bp3-intent-danger) {
 .bp3-button>*,
 // .bp3-tree-node-caret,
 .bp3-tree-node-caret>.custom-icon,
-.bp3-tree-node-content>span.custom-icon {
+.bp3-tree-node-content>span.custom-icon,
+.bp3-tree-node-content > span span.custom-icon {
   margin-right: 0.25rem;
 }
 
@@ -299,7 +300,9 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-popover.bp3-dark,
-.bp3-popover.bp3-light {
+.bp3-popover.bp3-light,
+.bp3-dark .bp3-submenu.bp3-popover > .bp3-popover-content,
+.bp3-submenu.bp3-popover.bp3-dark > .bp3-popover-content {
   // box-shadow: 0 30px 90px -20px rgb(24, 24, 24), 0 0 30px #18181b !important;
   // box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
   // box-shadow: 0 0 0 1px rgba(16,22,26,.2), 0 2px 4px rgba(16,22,26,.4), 0 8px 24px rgba(16,22,26,.4);
@@ -366,8 +369,8 @@ nav .bp3-divider {
   fill: $light-gray5;
 }
 
-.bp3-dark .bp3-menu-item::before,
-.bp3-dark .bp3-menu-item > .bp3-icon {
+.bp3-dark .bp3-menu-item::before {
+// .bp3-dark .bp3-menu-item > .bp3-icon {
   color: $dark-gray4;
 }
 

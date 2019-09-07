@@ -108,7 +108,7 @@ const MultiTagSelector = ({
           active={modifiers.active}
           icon={selectedTags.includes(tag) ? 'tick' : 'blank'}
           labelElement={tag.viewColor
-            ? <Icon icon="full-circle" color={tag.viewColor} />
+            ? <Icon icon={IconSet.COLOR} color={tag.viewColor} />
             : undefined}
           key={tag.id}
           label={tag.description ? tag.description.toString() : ''}

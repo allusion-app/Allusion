@@ -200,14 +200,26 @@ export const defaultColorOptions: IColorOptions[] = [
   // { label: 'Red', value: '#A82A2A' },
   // { label: 'Green', value: '#0A6640' },
   // { label: 'Orange', value: '#A66321' },
-  { label: 'Vermillion', value: '#9E2B0E' },
-  { label: 'Rose', value: '#A82255' },
-  { label: 'Violet', value: '#5C255C' },
+  // { label: 'Vermillion', value: '#9E2B0E' },
+  // { label: 'Rose', value: '#A82255' },
+  // { label: 'Violet', value: '#5C255C' },
+  // { label: 'Indigo', value: '#5642A6' },
+  // { label: 'Cobalt', value: '#1F4B99' },
+  // { label: 'Turquoise', value: '#008075' },
+  // { label: 'Forest', value: '#1D7324' },
+  // { label: 'Sepia', value: '#63411E' },
+  // Added more vivid colors, better in this UI
+  { label: 'Eminence', value: '#5f3292' },
   { label: 'Indigo', value: '#5642A6' },
-  { label: 'Cobalt', value: '#1F4B99' },
-  { label: 'Turquoise', value: '#008075' },
-  { label: 'Forest', value: '#1D7324' },
-  { label: 'Sepia', value: '#63411E' },
+  { label: 'Blue Ribbon', value: '#143ef1' },
+  { label: 'Azure Radiance', value: '#147df1' },
+  { label: 'Aquamarine', value: '#6cdfe3' },
+  { label: 'Aero Blue', value: '#bdfce4' },
+  { label: 'Golden Fizz', value: '#f7ea3a' },
+  { label: 'Goldenrod', value: '#fcd870' },
+  { label: 'Christineapprox', value: '#f36a0f' },
+  { label: 'Crimson', value: '#ec1335' },
+  { label: 'Razzmatazz', value: '#ec125f' },
 ];
 
 interface IColorPickerMenuProps {
@@ -218,7 +230,12 @@ export const ColorPickerMenu = ({ selectedColor, onChange }: IColorPickerMenuPro
   return (
     <MenuItem
       text="Change color"
-      icon={<Icon icon={selectedColor ? 'full-circle' : 'circle'} color={selectedColor} />}
+      // icon={<Icon icon={selectedColor ? 'full-circle' : 'circle'} color={selectedColor} />}
+      icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
+      style={{color : selectedColor}}
+      // icon={IconSet.COLOR}
+      // color={selectedColor}
+      // style={{ color :  + '!important'}}
     >
       {defaultColorOptions.map(({ label, value }) => (
         <MenuItem
