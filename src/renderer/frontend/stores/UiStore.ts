@@ -247,14 +247,24 @@ class UiStore {
     this.tagSelection.clear();
   }
 
+  @action.bound refetch() {
+    if (this.viewContent === 'all') {
+      this.rootStore.fileStore.fetchAllFiles();
+    } else if (this.viewContent === 'untagged') {
+      this.rootStore.fileStore.fetchUntaggedFiles();
+    } else if (this.viewContent === 'query') {
+      this.rootStore.fileStore.fetchFilesByQuery();
+    }
+  }
+
   @action.bound setFileOrder(prop: keyof IFile) {
     this.fileOrder = prop;
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
+    this.refetch();
   }
 
   @action.bound setFileOrderDescending(descending: boolean) {
     this.fileOrderDescending = descending;
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
+    this.refetch();
   }
 
   @action.bound async removeSelectedTagsAndCollections() {
@@ -382,6 +392,7 @@ class UiStore {
   @action.bound async searchByQuery() {
     await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
+    this.viewContent = 'query';
   }
 
   @action.bound async addSearchQuery(query: Exclude<FileSearchCriteria, 'key'>) {

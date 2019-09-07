@@ -105,9 +105,9 @@ const SearchBar = observer(() => {
   return (
     <CSSTransition in={uiStore.isQuickSearchOpen} classNames="quick-search" timeout={200} unmountOnExit>
       <div className="quick-search">
-        <Button minimal icon={IconSet.SEARCH_EXTENDED} onClick={uiStore.toggleAdvancedSearch} />
+        <Button minimal icon={IconSet.SEARCH_EXTENDED} onClick={uiStore.toggleAdvancedSearch} title="Advanced search" />
         {showQuickSearch ? <QuickSearchList /> : <CriteriaList /> }
-        <Button icon={IconSet.CLOSE} onClick={uiStore.toggleQuickSearch} title="Close (Escape)" />
+        <Button minimal icon={IconSet.CLOSE} onClick={uiStore.toggleQuickSearch} title="Close (Escape)" />
       </div>
     </CSSTransition>
   );

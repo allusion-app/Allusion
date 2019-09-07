@@ -91,7 +91,6 @@ class FileStore {
   @action.bound
   async fetchFilesByQuery() {
     const criteria = this.rootStore.uiStore.searchCriteriaList.slice();
-    // console.log('banana', criteria, criteria.map((c) => JSON.stringify(c)));
     if (criteria.length === 0) {
       return;
     }
