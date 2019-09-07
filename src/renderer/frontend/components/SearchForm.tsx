@@ -174,6 +174,7 @@ const NumberCriteriaItem = observer(({ criteria }: { criteria: INumberSearchCrit
         value={criteria.value / bytesInMb}
         onValueChange={handleChangeValue}
         autoFocus
+        buttonPosition="none"
       />
     </>
   );
