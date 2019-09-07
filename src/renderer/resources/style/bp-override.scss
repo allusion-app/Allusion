@@ -152,7 +152,6 @@ form .bp3-icon {
   }
 }
 
-
 // Labels
 .bp3-dark label.bp3-label {
   color: $light-gray1;
@@ -370,7 +369,7 @@ nav .bp3-divider {
 }
 
 .bp3-dark .bp3-menu-item::before {
-// .bp3-dark .bp3-menu-item > .bp3-icon {
+  // .bp3-dark .bp3-menu-item > .bp3-icon {
   color: $dark-gray4;
 }
 
@@ -618,6 +617,10 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 .bp3-tag.bp3-intent-primary button > * {
   background: $blue1-unimportant;
   color: $light-gray4;
+  &.bp3-interactive:hover {
+    opacity: .9;
+    transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
 .bp3-tag-input .bp3-tag.bp3-active {
