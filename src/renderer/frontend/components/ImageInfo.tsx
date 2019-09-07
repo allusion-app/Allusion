@@ -8,11 +8,7 @@ const formatDate = (d: Date) =>
   `${d.getUTCFullYear()}-${d.getUTCMonth() +
     1}-${d.getUTCDate()} ${d.getUTCHours()}:${d.getUTCMinutes()}`;
 
-interface IFileInfoProps {
-  files: ClientFile[];
-}
-
-export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
+const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   const isMounted = useRef(false);
   const [fileStats, setFileStats] = useState<fs.Stats | undefined>(undefined);
   const [error, setError] = useState<Error | undefined>(undefined);
@@ -83,20 +79,4 @@ export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   );
 });
 
-const MultiFileInfo = observer(({ files }: IFileInfoProps) => {
-  return (
-    <section>
-      <p>Selected {files.length} files</p>
-    </section>
-  );
-});
-
-const FileInfo = ({ files }: IFileInfoProps) => {
-  if (files.length === 1) {
-    return <SingleFileInfo file={files[0]} />;
-  } else {
-    return <MultiFileInfo files={files} />;
-  }
-};
-
-export default FileInfo;
+export default ImageInfo;

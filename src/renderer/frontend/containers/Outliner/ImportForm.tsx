@@ -10,7 +10,7 @@ import { Button } from '@blueprintjs/core';
 import FileStore from '../../stores/FileStore';
 import { ClientTagCollection } from '../../../entities/TagCollection';
 import TagStore from '../../stores/TagStore';
-import IconSet from '../Icons';
+import IconSet from '../../components/Icons';
 
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialog({
@@ -117,7 +117,6 @@ const importAndTagDir = async (
 const importDir = async (fileStore: FileStore, dir: string) => {
   // Todo: Also skip hidden directories?
   // Todo: Put a limit on the amount of recursive levels in case someone adds their entire disk?
-  // Skip 'dot' directories ('.ssh' etc.)
   const imgFileNames = await findFiles(dir);
 
   return await Promise.all(
@@ -156,7 +155,7 @@ const enum Tooltip {
 based on the names of the folders',
 }
 
-const ImportForm = () => {
+const ImportForm = observer(() => {
   // Todo: Add Location entity to DB, so we can have user-picked directories as well
   // Todo: Also show sub-directories in tree
 
@@ -206,6 +205,6 @@ const ImportForm = () => {
       {/* Todo: Show progress bar here */}
     </div>
   );
-};
+});
 
-export default observer(ImportForm);
+export default ImportForm;

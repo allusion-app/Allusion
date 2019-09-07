@@ -17,7 +17,7 @@ import Backend from './backend/Backend';
 import App from './frontend/App';
 import StoreContext from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
-import PreviewApp from './frontend/components/Preview';
+import PreviewApp from './frontend/Preview';
 import { ID } from './entities/ID';
 
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';

@@ -4,7 +4,7 @@ import { Tag, ITagProps, Button, Hotkey, Hotkeys, HotkeysTarget } from '@bluepri
 
 import { IRootStoreProp, withRootstore } from '../../contexts/StoreContext';
 import Gallery from './Gallery';
-import IconSet from '../Icons';
+import IconSet from '../../components/Icons';
 import { ITagSearchQuery } from '../../stores/UiStore';
 import { ClientTag } from '../../../entities/Tag';
 

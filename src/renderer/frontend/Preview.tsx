@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useCallback } from 'react';
 
-import StoreContext from '../contexts/StoreContext';
-import ErrorBoundary from './ErrorBoundary';
-import ContentView from './ContentView';
+import StoreContext from './contexts/StoreContext';
+import ErrorBoundary from './components/ErrorBoundary';
+import ContentView from './containers/ContentView';
 import { Button, Switch } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import IconSet from './Icons';
+import IconSet from './components/Icons';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);

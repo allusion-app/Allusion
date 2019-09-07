@@ -6,8 +6,8 @@ import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes, H3 } from '@bluepr
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
-import IconSet from '../Icons';
-import { SingleFileInfo } from '../FileInfo';
+import IconSet from '../../components/Icons';
+import ImageInfo from '../../components/ImageInfo';
 import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import { DragAndDropType } from '../Outliner/TagPanel';
 
@@ -90,7 +90,7 @@ export const GalleryItem = observer(
 
         {showName && <H4>{file.name}</H4>}
 
-        {showInfo && <SingleFileInfo file={file} />}
+        {showInfo && <ImageInfo file={file} />}
 
         {showTags && (
           <span className="thumbnailTags">

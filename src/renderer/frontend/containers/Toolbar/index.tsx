@@ -4,11 +4,11 @@ import {
 } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from '../contexts/StoreContext';
-import IconSet from './Icons';
-import FileTag from './FileTag';
-import { ClientFile, IFile } from '../../entities/File';
-import UiStore from '../stores/UiStore';
+import StoreContext from '../../contexts/StoreContext';
+import IconSet from '../../components/Icons';
+import FileTag from '../../components/FileTag';
+import { ClientFile, IFile } from '../../../entities/File';
+import UiStore from '../../stores/UiStore';
 
 // Tooltip info
 const enum Tooltip {

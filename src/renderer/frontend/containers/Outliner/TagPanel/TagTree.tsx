@@ -15,7 +15,7 @@ import {
 import { IRootStoreProp } from '../../../contexts/StoreContext';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../../entities/TagCollection';
 import { formatTagCountText } from '../../../utils';
-import IconSet from '../../Icons';
+import IconSet from '../../../components/Icons';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import {
@@ -25,7 +25,7 @@ import {
   TreeList,
   IExpandState,
   IDragAndDropItem,
-} from '../../TreeList';
+} from '../../../components/TreeList';
 import { ClientTag } from '../../../../entities/Tag';
 import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';

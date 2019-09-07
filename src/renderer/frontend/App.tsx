@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import ContentView from './components/ContentView';
-import Outliner from './components/Outliner';
+import ContentView from './containers/ContentView';
+import Outliner from './containers/Outliner';
 import StoreContext from './contexts/StoreContext';
-import Inspector from './components/Inspector';
-import Toolbar from './components/Toolbar';
+import Inspector from './containers/Inspector';
+import Toolbar from './containers/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 import ImageViewer from './components/ImageViewer';
-import { DragLayer } from './components/Outliner/TagPanel';
+import { DragLayer } from './containers/Outliner/TagPanel';
 
 const SPLASH_SCREEN_TIME = 700;
 

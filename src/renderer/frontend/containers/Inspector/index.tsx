@@ -3,15 +3,27 @@ import fs from 'fs';
 import path from 'path';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from '../contexts/StoreContext';
-import FileInfo from './FileInfo';
-import FileTag from './FileTag';
+import StoreContext from '../../contexts/StoreContext';
+import ImageInfo from '../../components/ImageInfo';
+import FileTag from '../../components/FileTag';
+import { ClientFile } from '../../../entities/File';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
+  if (bytes <= 0) {
+    return '0 Bytes';
+  }
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return !bytes && '0 Bytes' || (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sufixes[i];
+  return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sufixes[i];
 };
+
+const MultiFileInfo = observer(({ files }: {files: ClientFile[]}) => {
+  return (
+    <section>
+      <p>Selected {files.length} files</p>
+    </section>
+  );
+});
 
 const Inspector = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -30,7 +42,7 @@ const Inspector = observer(() => {
       <img
         src={singleFile.path}
         style={{ cursor: 'zoom-in' }}
-        onClick={() => uiStore.imageViewerFile = singleFile}
+        onClick={() => (uiStore.imageViewerFile = singleFile)}
       />
     );
     headerText = path.basename(singleFile.path);
@@ -38,7 +50,7 @@ const Inspector = observer(() => {
   } else {
     // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
     let size = 0;
-    selectedFiles.forEach((f) => size += fs.statSync(f.path).size);
+    selectedFiles.forEach((f) => (size += fs.statSync(f.path).size));
 
     // Todo: What to show when selecting multiple images?
     selectionPreview = <p>Carousel of selected images here?</p>;
@@ -48,10 +60,7 @@ const Inspector = observer(() => {
 
   if (selectedFiles.length > 0) {
     return (
-      <aside
-        id="inspector"
-        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}
-      >
+      <aside id="inspector" className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
         <section id="filePreview">{selectionPreview}</section>
 
         <section id="fileOverview">
@@ -59,16 +68,17 @@ const Inspector = observer(() => {
           <small>{headerSubtext}</small>
         </section>
 
-        <FileInfo files={selectedFiles} />
+        {selectedFiles.length === 1 ? (
+          <ImageInfo file={selectedFiles[0]} />
+        ) : (
+          <MultiFileInfo files={selectedFiles} />
+        )}
         <FileTag files={selectedFiles} />
       </aside>
     );
   } else {
     return (
-      <aside
-        id="inspector"
-        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}
-      >
+      <aside id="inspector" className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
         <section id="filePreview" />
         <section id="fileOverview">
           <div className="inpectorHeading">{headerText}</div>
