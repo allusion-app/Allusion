@@ -40,12 +40,15 @@
   background: transparent;
 }
 
-.bp3-dark .bp3-tree-node-content:hover,
-.bp3-dark button:hover:not(.bp3-minimal):not(.bp3-tag-remove),
-.bp3-dark .bp3-button:hover:not(.bp3-dialog-close-button) {
-  background-color: $dark-gray3;
+.bp3-dark {
+  .bp3-tree-node-content:hover,
+  button:hover:not(.bp3-minimal):not(.bp3-tag-remove),
+  .bp3-button:hover:not(.bp3-dialog-close-button),
+  .bp3-dialog .bp3-button:not([class*="bp3-intent-"]) {
+    // background-color: $dark-gray3;
+    background-color: $dark-gray5;
+  }
 }
-
 // Input field
 ::selection {
   color: white;
@@ -618,8 +621,10 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   background: $blue1-unimportant;
   color: $light-gray4;
   &.bp3-interactive:hover {
-    opacity: .9;
-    transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    // opacity: .85;
+    background: $dark-gray5;
+    // background: $blue1-unimportant;
+    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
