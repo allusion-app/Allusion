@@ -49,8 +49,7 @@ const Inspector = observer(() => {
     headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.path).size)}`;
   } else {
     // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
-    let size = 0;
-    selectedFiles.forEach((f) => (size += fs.statSync(f.path).size));
+    const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.path).size, 0);
 
     // Todo: What to show when selecting multiple images?
     selectionPreview = <p>Carousel of selected images here?</p>;

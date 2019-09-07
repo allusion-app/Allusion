@@ -306,19 +306,21 @@ export const TreeList = ({
           sliceStart = i;
           sliceEnd = initialSelectionIndex.current;
         }
-        const idsToSelect = flatHierarchy
-          .slice(sliceStart, sliceEnd + 1)
-          .filter((item) => !item.hasCaret) // only collections have a caret
-          .map((item) => item.id as ID);
+        const idsToSelect = new Set(
+          flatHierarchy
+            .slice(sliceStart, sliceEnd + 1)
+            .filter((item) => !item.hasCaret) // only collections have a caret
+            .map((item) => item.id as ID),
+        );
         // If the first/last item that was selected was a collection, also add that the tags of that collection
         [sliceStart, sliceEnd].map((index) => {
           if (flatHierarchy[index].hasCaret) {
-            getSubTreeLeaves(flatHierarchy[index].id as ID).forEach(
-              (tagId) => idsToSelect.indexOf(tagId) === -1 && idsToSelect.push(tagId),
+            getSubTreeLeaves(flatHierarchy[index].id as ID).forEach((tagId) =>
+              idsToSelect.add(tagId),
             );
           }
         });
-        onSelect(idsToSelect, true);
+        onSelect(Array.from(idsToSelect), true);
       } else if (e.ctrlKey || e.metaKey) {
         initialSelectionIndex.current = i;
         isClickSelectionSelected ? onDeselect(clickSelection) : onSelect(clickSelection);

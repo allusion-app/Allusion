@@ -285,7 +285,7 @@ class UiStore {
     if (!tag) {
       throw new Error('Cannot find tag to move ' + id);
     }
-    this.reorderTagList(tag, target);
+    this.insertTag(tag, target);
   }
 
   @action.bound async moveCollection(id: ID, target: ClientTagCollection) {
@@ -293,7 +293,7 @@ class UiStore {
     if (!collection) {
       throw new Error('Cannot find collection to move ' + id);
     }
-    this.reorderCollection(collection, target);
+    this.insertCollection(collection, target);
   }
 
   /**
@@ -379,8 +379,8 @@ class UiStore {
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.collections.forEach((col) => this.reorderCollection(col, targetCol));
-    ctx.tags.forEach((tag) => this.reorderTagList(tag, targetCol));
+    ctx.collections.forEach((col) => this.insertCollection(col, targetCol));
+    ctx.tags.forEach((tag) => this.insertTag(tag, targetCol));
   }
 
   /////////////////// Search Actions ///////////////////
@@ -546,7 +546,7 @@ class UiStore {
     }
   }
 
-  private reorderTagList(tag: ClientTag, target: ClientTag | ClientTagCollection) {
+  private insertTag(tag: ClientTag, target: ClientTag | ClientTagCollection) {
     tag.parent.tags.remove(tag.id);
 
     if (target instanceof ClientTag) {
@@ -560,7 +560,7 @@ class UiStore {
     }
   }
 
-  private reorderCollection(col: ClientTagCollection, target: ClientTagCollection) {
+  private insertCollection(col: ClientTagCollection, target: ClientTagCollection) {
     col.parent.subCollections.remove(col.id);
     target.subCollections.unshift(col.id);
   }
