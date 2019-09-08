@@ -62,7 +62,6 @@ export const GalleryItem = observer(({
   const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
   const handleClickImg = useCallback((e) => onClick(file, e), []);
 
-  const [imageElem] = useState<HTMLImageElement>(new Image());
   const [isImageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState();
 
@@ -70,29 +69,24 @@ export const GalleryItem = observer(({
 
   useEffect(() => {
     // First check whether a thumbnail exists, generate it if needed
-    ensureThumbnail(file, uiStore.thumbnailDirectory, uiStore.thumbnailType);
+    ensureThumbnail(file, uiStore.thumbnailDirectory);
   }, []);
 
   useEffect(() => {
     if (file.thumbnailPath) {
-      // Load the image manually when the component mounts
-      imageElem.src = file.thumbnailPath;
-      imageElem.onload = () => file && setImageLoaded(true);
-      imageElem.onerror = (e) => file && setImageError(e);
-      return () => {
-        // When this component unmounts, cancel further loading of the image in case it was not loaded yet
-        if (!isImageLoaded) {
-          imageElem.src = '';
-          imageElem.onload = () => undefined;
-          imageElem.onerror = () => undefined;
-        }
-      };
+      setImageLoaded(true);
     }
   }, [file.thumbnailPath]);
 
+  const handleImageError = useCallback((err: any) => {
+    console.log('Could not load image:', file.thumbnailPath, err);
+    setImageError(err);
+    setImageLoaded(false);
+  }, []);
+
   return (<div ref={galleryItemDrop} className={className}>
     <div onClick={handleClickImg} className="img-wrapper">
-      {isImageLoaded ? <img src={imagePath} /> // Show image when it has been loaded
+      {isImageLoaded ? <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
         : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
           : <div className={Classes.SKELETON} /> // Else show a placeholder
       }
