@@ -56,7 +56,7 @@ function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) 
 
 const GridGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
-  const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+  const cellSize = getThumbnailSize(uiStore.thumbnailViewSize);
   const numColumns = Math.floor(contentWidth / cellSize);
   const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
@@ -141,7 +141,7 @@ const GridGallery = observer(
 
 const ListGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
-  const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+  const cellSize = getThumbnailSize(uiStore.thumbnailViewSize);
   const ref = useRef<FixedSizeList>(null);
 
   const handleScrollTo = useCallback((i: number) => {
@@ -452,7 +452,7 @@ const Gallery = ({
   return (
     <ResizeSensor onResize={handleResize}>
       <div
-        className={`gallery-content thumbnail-${uiStore.thumbnailSize} ${
+        className={`gallery-content thumbnail-${uiStore.thumbnailViewSize} ${
           uiStore.viewMethod} ${selectionModeOn ? 'gallerySelectionMode' : ''}`}
         onClick={handleBackgroundClick}
       >

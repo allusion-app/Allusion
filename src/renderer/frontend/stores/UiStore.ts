@@ -103,7 +103,8 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'fileOrder',
   'fileOrderDescending',
   'fileLayout',
-  'thumbnailSize',
+  'thumbnailViewSize',
+  'thumbnailDirectory',
 ];
 
 const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -137,7 +138,7 @@ class UiStore {
   @observable firstIndexInView: number = 0;
   /** The origin of the current files that are shown */
   @observable viewContent: 'query' | 'all' | 'untagged' = 'all';
-  @observable thumbnailSize: 'small' | 'medium' | 'large' = 'medium';
+  @observable thumbnailViewSize: 'small' | 'medium' | 'large' = 'medium';
 
   // Content
   @observable fileOrder: keyof IFile = 'dateAdded';

@@ -70,11 +70,13 @@ export const GalleryItem = observer(({
   useEffect(() => {
     // First check whether a thumbnail exists, generate it if needed
     ensureThumbnail(file, uiStore.thumbnailDirectory);
-  }, []);
+  }, [uiStore.thumbnailDirectory]);
 
   useEffect(() => {
     if (file.thumbnailPath) {
       setImageLoaded(true);
+    } else {
+      setImageLoaded(false);
     }
   }, [file.thumbnailPath]);
 
