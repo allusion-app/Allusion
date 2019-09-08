@@ -1,4 +1,5 @@
 import path from 'path';
+import { thumbnailType } from '../../config';
 
 export function debounce<F extends (...args: any) => any>(func: F, wait: number = 300): F {
   let timeoutID: number;
@@ -44,7 +45,7 @@ export function formatTagCountText(numTags: number, numCols: number) {
   return `${extraTagsText}${extraColsText}`;
 }
 
-export const getThumbnailPath = (filePath: string, thumbnailDirectory: string, thumbnailType: string): string => {
+export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): string => {
   const baseFilename = path.basename(filePath, path.extname(filePath));
 
   // Hash is needed to avoid files with the same name to clash with each other, when they come from different paths

@@ -7,3 +7,6 @@ export function isDev() {
 }
 
 export const githubUrl = 'https://github.com/RvanderLaan/VisualLibrary';
+
+export const thumbnailType = 'webp';
+export const thumbnailMaxSize = 400;

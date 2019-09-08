@@ -6,6 +6,7 @@ import StoreContext from './contexts/StoreContext';
 import { ID } from '../entities/ID';
 import { ClientFile } from '../entities/File';
 import { getThumbnailPath } from './utils';
+import { thumbnailType } from '../../config';
 
 interface IThumbnailMessage {
   filePath: string;
@@ -26,9 +27,9 @@ interface IThumbnailMessageResponse {
 const thumbnailWorker = new ThumbnailWorker({ type: 'module' });
 
 // Generates thumbnail if not yet exists. Will set file.thumbnailPath when it exists.
-export async function ensureThumbnail(file: ClientFile, thumbnailDir: string, thumbnailType: string) {
+export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
   if (!file.thumbnailPath) {
-    const thumbnailPath = getThumbnailPath(file.path, thumbnailDir, thumbnailType);
+    const thumbnailPath = getThumbnailPath(file.path, thumbnailDir);
     const thumbnailExists = await fse.pathExists(thumbnailPath);
     if (!thumbnailExists) {
       const msg: IThumbnailMessage = {

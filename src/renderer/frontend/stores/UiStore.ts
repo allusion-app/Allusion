@@ -153,7 +153,6 @@ class UiStore {
   readonly searchQueryList = observable<ISearchQuery>([]);
 
   @observable thumbnailDirectory: string = '';
-  @observable thumbnailType: string = 'webp';
 
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
@@ -433,11 +432,15 @@ class UiStore {
 
   @action.bound openOutlinerImport() {
     this.outlinerPage = 'IMPORT';
-    this.viewContentUntagged();
+    if (this.viewContent !== 'untagged') {
+      this.viewContentUntagged();
+    }
   }
   @action.bound openOutlinerTags() {
     this.outlinerPage = 'TAGS';
-    this.viewContentAll();
+    if (this.viewContent !== 'all') {
+      this.viewContentAll();
+    }
   }
   @action.bound openOutlinerSearch() {
     this.outlinerPage = 'SEARCH';
