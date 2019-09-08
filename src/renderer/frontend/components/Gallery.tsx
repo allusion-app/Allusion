@@ -228,79 +228,92 @@ const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
   return <div style={Styles}> <span className="custom-icon-64" style={{marginBottom: '1rem'}}>{IconSet.DB_ERROR}</span><p>This view is currently not supported</p></div>; {/* // tslint:disable-next-line */}
 });
 
-const SlideGallery = observer(({ fileList, uiStore, handleDrop }: IGalleryLayoutProps) => {
+const SlideGallery = observer(
+  ({ fileList, uiStore, handleDrop }: IGalleryLayoutProps) => {
+    // Go to the first selected image on load
+    useEffect(() => {
+      if (uiStore.fileSelection.length > 0) {
+        uiStore.firstIndexInView = fileList.findIndex((f) => f.id === uiStore.fileSelection[0]);
+      }
+    }, []);
 
-  const incrImgIndex = useCallback(
-    () => uiStore.setFirstIndexInView(Math.max(0, uiStore.firstIndexInView - 1)),
-    [uiStore.firstIndexInView]);
-  const decrImgIndex = useCallback(
-    () => uiStore.setFirstIndexInView(Math.min(uiStore.firstIndexInView + 1, fileList.length - 1)),
-    [fileList.length, uiStore.firstIndexInView]);
+    // Automatically select the active image, so it is shown in the inspector
+    useEffect(() => {
+      if (uiStore.firstIndexInView < fileList.length) {
+        uiStore.deselectAllFiles();
+        uiStore.selectFile(fileList[uiStore.firstIndexInView]);
+      }
+    }, [uiStore.firstIndexInView]);
 
-  // Detect left/right arrow keys to scroll between images
-  const handleUserKeyPress = useCallback((event) => {
-    const { keyCode } = event;
-    if (keyCode === 37) {
-      incrImgIndex();
-    } else if (keyCode === 39) {
-      decrImgIndex();
+    const incrImgIndex = useCallback(
+      () => uiStore.setFirstIndexInView(Math.max(0, uiStore.firstIndexInView - 1)),
+      [uiStore.firstIndexInView],
+    );
+    const decrImgIndex = useCallback(
+      () =>
+        uiStore.setFirstIndexInView(Math.min(uiStore.firstIndexInView + 1, fileList.length - 1)),
+      [fileList.length, uiStore.firstIndexInView],
+    );
+
+    // Detect left/right arrow keys to scroll between images
+    const handleUserKeyPress = useCallback(
+      (event: KeyboardEvent) => {
+        if (event.code === 'ArrowLeft') {
+          incrImgIndex();
+        } else if (event.code === 'ArrowRight') {
+          decrImgIndex();
+        }
+      },
+      [incrImgIndex, decrImgIndex],
+    );
+
+    // Detect scroll wheel to scroll between images
+    const handleUserWheel = useCallback(
+      (event: WheelEvent) => {
+        event.preventDefault();
+
+        if (event.deltaY > 0) {
+          decrImgIndex();
+        } else if (event.deltaY < 0) {
+          incrImgIndex();
+        }
+      },
+      [incrImgIndex, decrImgIndex],
+    );
+
+    // Set up event listeners
+    useEffect(
+      () => {
+        window.addEventListener('keydown', handleUserKeyPress);
+        window.addEventListener('wheel', handleUserWheel, { passive: false });
+        return () => {
+          window.removeEventListener('keydown', handleUserKeyPress);
+          window.removeEventListener('wheel', handleUserWheel);
+        };
+      },
+      [handleUserKeyPress, handleUserWheel],
+    );
+
+    const ignoreClick = useCallback((_, e: React.MouseEvent) => {
+      e.stopPropagation();
+    }, []);
+
+    if (uiStore.firstIndexInView >= fileList.length) {
+      return <p>No files available</p>;
     }
-  }, [incrImgIndex, decrImgIndex]);
 
-  // Detect scroll wheel to scroll between images
-  const handleUserWheel = useCallback((event) => {
-    const { deltaY } = event;
-    if (deltaY > 0) {
-      decrImgIndex();
-    } else if (deltaY < 0) {
-      incrImgIndex();
-    }
-  }, [incrImgIndex, decrImgIndex]);
+    const file = fileList[uiStore.firstIndexInView];
 
-  // Set up event listeners
-  useEffect(() => {
-    window.addEventListener('keydown', handleUserKeyPress);
-    window.addEventListener('wheel', handleUserWheel);
-    return () => {
-      window.removeEventListener('keydown', handleUserKeyPress);
-      window.removeEventListener('wheel', handleUserWheel);
-    };
-  }, [handleUserKeyPress, handleUserWheel]);
-
-  // Go to the first selected image on load
-  useEffect(() => {
-    if (uiStore.fileSelection.length > 0) {
-      uiStore.firstIndexInView = fileList.findIndex((f) => f.id === uiStore.fileSelection[0]);
-    }
-  }, []);
-
-  // Automatically select the active image, so it is shown in the inspector
-  useEffect(() => {
-    if (uiStore.firstIndexInView < fileList.length) {
-      uiStore.deselectAllFiles();
-      uiStore.selectFile(fileList[uiStore.firstIndexInView]);
-    }
-  }, [uiStore.firstIndexInView]);
-
-  if (uiStore.firstIndexInView >= fileList.length) {
-    return <p>No files available</p>;
-  }
-
-  const file = fileList[uiStore.firstIndexInView];
-
-  const ignoreClick = useCallback((_, e: React.MouseEvent) => {
-    e.stopPropagation();
-  }, []);
-
-  return (
-    <GalleryItem
-      file={file}
-      isSelected={false /** Active image is always selected, no need to show it */}
-      onClick={ignoreClick}
-      onDrop={handleDrop}
-    />
-  );
-});
+    return (
+      <GalleryItem
+        file={file}
+        isSelected={false /** Active image is always selected, no need to show it */}
+        onClick={ignoreClick}
+        onDrop={handleDrop}
+      />
+    );
+  },
+);
 
 interface IGalleryProps extends IRootStoreProp {}
 
@@ -423,7 +436,7 @@ const Gallery = ({
       action = (
         <ButtonGroup>
           <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
-          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentAll} />
+          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentUntagged} />
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
         </ButtonGroup>
       );
