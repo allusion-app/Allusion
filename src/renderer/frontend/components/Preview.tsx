@@ -40,7 +40,7 @@ const PreviewApp = () => {
             />
             <Switch
               label="Overview"
-              onClick={() => uiStore.viewMethod = uiStore.viewMethod === 'slide' ? 'grid' : 'slide'}
+              onChange={() => uiStore.viewMethod = uiStore.viewMethod === 'slide' ? 'grid' : 'slide'}
               checked={uiStore.viewMethod !== 'slide'}
               style={{ margin: 'auto', marginLeft: '1em', display: 'inline' }}
             />
