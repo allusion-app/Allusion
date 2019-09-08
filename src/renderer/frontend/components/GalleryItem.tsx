@@ -60,7 +60,7 @@ export const GalleryItem = observer(({
   const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
   const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
-  const handleClickImg = useCallback((e) => onClick(file, e), []);
+  const handleClickImg = useCallback((e: React.MouseEvent) => onClick(file, e), [file]);
 
   const [isImageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState();

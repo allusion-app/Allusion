@@ -228,7 +228,7 @@ const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
   return <div style={Styles}> <span className="custom-icon-64" style={{marginBottom: '1rem'}}>{IconSet.DB_ERROR}</span><p>This view is currently not supported</p></div>; {/* // tslint:disable-next-line */}
 });
 
-const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+const SlideGallery = observer(({ fileList, uiStore, handleDrop }: IGalleryLayoutProps) => {
 
   const incrImgIndex = useCallback(
     () => uiStore.setFirstIndexInView(Math.max(0, uiStore.firstIndexInView - 1)),
@@ -288,11 +288,15 @@ const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: I
 
   const file = fileList[uiStore.firstIndexInView];
 
+  const ignoreClick = useCallback((_, e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
+
   return (
     <GalleryItem
       file={file}
       isSelected={false /** Active image is always selected, no need to show it */}
-      onClick={handleClick}
+      onClick={ignoreClick}
       onDrop={handleDrop}
     />
   );
