@@ -106,7 +106,7 @@ export const PREFERENCES_STORAGE_KEY = 'preferences';
 class UiStore {
   rootStore: RootStore;
   // View (Main Content)
-  public view: View;
+  public view: View = new View();
 
   @observable isInitialized = false;
 
@@ -137,7 +137,10 @@ class UiStore {
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
-    this.view = new View();
+  }
+
+  @action.bound init() {
+    this.isInitialized = true;
   }
 
   /////////////////// UI Actions ///////////////////
@@ -221,11 +224,7 @@ class UiStore {
   }
 
   @computed get clientTagSelection(): ClientTag[] {
-    return this.tagSelection.map((id) => this.rootStore.tagStore.getTag(id)) as ClientTag[];
-  }
-
-  @action.bound init() {
-    this.isInitialized = true;
+    return this.tagSelection.map((id) => this.rootStore.tagStore.get(id)) as ClientTag[];
   }
 
   @action.bound setImageViewer(file: ClientFile | null) {
@@ -342,20 +341,19 @@ class UiStore {
   }
 
   @action.bound async removeSelectedTagsAndCollections() {
-    const { tagStore, tagCollectionStore } = this.rootStore;
     const ctx = this.getTagContextItems();
     for (const col of ctx.collections) {
       if (col.id !== ROOT_TAG_COLLECTION_ID) {
-        await tagCollectionStore.removeTagCollection(col);
+        await col.delete();
       }
     }
     for (const tag of ctx.tags) {
-      await tagStore.removeTag(tag);
+      await tag.delete();
     }
   }
 
   @action.bound async moveTag(id: ID, target: ClientTag | ClientTagCollection) {
-    const tag = this.rootStore.tagStore.getTag(id);
+    const tag = this.rootStore.tagStore.get(id);
     if (!tag) {
       throw new Error('Cannot find tag to move ' + id);
     }
@@ -363,7 +361,7 @@ class UiStore {
   }
 
   @action.bound async moveCollection(id: ID, target: ClientTagCollection) {
-    const collection = this.rootStore.tagCollectionStore.getTagCollection(id);
+    const collection = this.rootStore.tagCollectionStore.get(id);
     if (!collection) {
       throw new Error('Cannot find collection to move ' + id);
     }
@@ -388,7 +386,7 @@ class UiStore {
 
     // If an id is given, check whether it belongs to a tag or collection
     if (activeItemId) {
-      const selectedTag = tagStore.getTag(activeItemId);
+      const selectedTag = tagStore.get(activeItemId);
       if (selectedTag) {
         if (selectedTag.isSelected) {
           isContextTheSelection = true;
@@ -396,7 +394,7 @@ class UiStore {
           contextTags.push(selectedTag);
         }
       } else {
-        const selectedCol = tagCollectionStore.getTagCollection(activeItemId);
+        const selectedCol = tagCollectionStore.get(activeItemId);
         if (selectedCol) {
           if (selectedCol.isSelected) {
             isContextTheSelection = true;
@@ -442,7 +440,7 @@ class UiStore {
   @action.bound async moveSelectedTagItems(id: ID) {
     const { tagStore, tagCollectionStore } = this.rootStore;
 
-    const target = tagStore.getTag(id) || tagCollectionStore.getTagCollection(id);
+    const target = tagStore.get(id) || tagCollectionStore.get(id);
     if (!target) {
       throw new Error('Invalid target to move to');
     }

@@ -50,7 +50,7 @@ export const DragLayer = observer(() => {
 
     switch (itemType) {
       case DragAndDropType.Collection: {
-        const draggedCol = tagCollectionStore.getTagCollection(item.id) as ClientTagCollection;
+        const draggedCol = tagCollectionStore.get(item.id) as ClientTagCollection;
         // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
         const numCollection =
           draggedCol.parent.id !== ROOT_TAG_COLLECTION_ID && draggedCol.parent.isSelected
@@ -67,7 +67,7 @@ export const DragLayer = observer(() => {
         );
       }
       case DragAndDropType.Tag: {
-        const draggedTag = tagStore.getTag(item.id) as ClientTag;
+        const draggedTag = tagStore.get(item.id) as ClientTag;
         // If the dragged parent is selected, the whole parent is essentially being dragged, so no -1
         const numTag =
           draggedTag.parent.id !== ROOT_TAG_COLLECTION_ID && draggedTag.parent.isSelected

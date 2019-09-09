@@ -44,7 +44,7 @@ const TagCollectionItem = ({ col, isEditing, setEditing }: ITagCollectionItemPro
     <TreeListItemEditor
       initialName={col.name}
       onRename={(name) => {
-        col.name = name;
+        col.rename(name);
         setEditing(false);
       }}
       onAbort={() => setEditing(false)}
@@ -68,7 +68,7 @@ const TagItem = ({ tag, isEditing, setEditing }: ITagItemProps) => {
     <TreeListItemEditor
       initialName={tag.name}
       onRename={(name) => {
-        tag.name = name;
+        tag.rename(name);
         setEditing(false);
       }}
       onAbort={() => setEditing(false)}
@@ -280,7 +280,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           name={col.name}
           isSelected={col.isSelected}
           isDescendant={(ancestor) => {
-            const draggedCollection = tagCollectionStore.getTagCollection(ancestor);
+            const draggedCollection = tagCollectionStore.get(ancestor);
             if (draggedCollection) {
               return draggedCollection.containsSubCollection(col);
             }
@@ -546,7 +546,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         expandState={expandState}
         setExpandState={setExpandState}
         getSubTreeLeaves={(branch) => {
-          const collection = tagCollectionStore.getTagCollection(branch);
+          const collection = tagCollectionStore.get(branch);
           if (collection) {
             return collection.getTagsRecursively();
           }

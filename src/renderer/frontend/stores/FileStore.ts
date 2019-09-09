@@ -6,21 +6,21 @@ import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
 import { ITagSearchQuery } from './UiStore';
+import { ClientTag } from '../../entities/Tag';
 
 class FileStore {
-  backend: Backend;
-  rootStore: RootStore;
-
   readonly fileList = observable<ClientFile>([]);
-
   @observable numUntaggedFiles = 0;
+
+  private backend: Backend;
+  private rootStore: RootStore;
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
   }
 
-  async init(autoLoadFiles: boolean) {
+  @action.bound async init(autoLoadFiles: boolean) {
     if (autoLoadFiles) {
       await this.loadFiles();
       this.numUntaggedFiles = await this.backend.getNumUntaggedFiles();
@@ -33,7 +33,7 @@ class FileStore {
       path: filePath,
       dateAdded: new Date(),
       tags: [],
-      ...await ClientFile.getMetaData(filePath),
+      ...(await ClientFile.getMetaData(filePath)),
     };
     const file = new ClientFile(this, fileData);
     // The function caller is responsible for handling errors.
@@ -127,6 +127,14 @@ class FileStore {
     this.fileList.clear();
   }
 
+  getTag(tag: ID): ClientTag | undefined {
+    return this.rootStore.tagStore.get(tag);
+  }
+
+  save(file: IFile) {
+    this.backend.saveFile(file);
+  }
+
   @action.bound private async loadFiles() {
     const { orderBy, fileOrder } = this.rootStore.uiStore.view;
     const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
@@ -144,14 +152,6 @@ class FileStore {
         }
       }),
     );
-  }
-
-  @action.bound private async removeFile(file: ClientFile): Promise<void> {
-    // Deselect in case it was selected
-    this.rootStore.uiStore.deselectFile(file);
-    file.dispose();
-    this.fileList.remove(file);
-    return this.backend.removeFile(file);
   }
 
   @action.bound private async updateFromBackend(backendFiles: IFile[]) {
@@ -202,6 +202,14 @@ class FileStore {
 
   @action.bound private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
     return backendFiles.map((file) => new ClientFile(this, file));
+  }
+
+  @action.bound private async removeFile(file: ClientFile): Promise<void> {
+    // Deselect in case it was selected
+    this.rootStore.uiStore.deselectFile(file);
+    file.dispose();
+    this.fileList.remove(file);
+    return this.backend.removeFile(file);
   }
 
   @action.bound private replaceFileList(backendFiles: ClientFile[]) {

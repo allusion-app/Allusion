@@ -1,4 +1,4 @@
-import { IReactionDisposer, observable, reaction, computed } from 'mobx';
+import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import TagStore from '../frontend/stores/TagStore';
 import { generateId, ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTagCollection } from './TagCollection';
@@ -42,20 +42,6 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
   @observable description: string;
   // icon, color, (fileCount?)
 
-  /** Get actual tag objects based on the IDs retrieved from the backend */
-  @computed get parent(): ClientTagCollection {
-    const tagCollectionStore = this.store.rootStore.tagCollectionStore;
-    const parent = tagCollectionStore.tagCollectionList.find((col) => col.tags.includes(this.id));
-    if (!parent) {
-      console.warn('Tag does not have a parent', this);
-    }
-    return parent || tagCollectionStore.getRootCollection();
-  }
-
-  @computed get isSelected(): boolean {
-    return this.store.rootStore.uiStore.tagSelection.includes(this.id);
-  }
-
   constructor(store: TagStore, name?: string, id = generateId()) {
     this.store = store;
     this.id = id;
@@ -70,7 +56,7 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
       // Then update the entity in the database
       (tag) => {
         if (this.autoSave) {
-          this.store.backend.saveTag(tag);
+          this.store.save(tag);
         }
       },
     );
@@ -85,9 +71,21 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
     };
   }
 
-  delete() {
-    this.store.backend.removeTag(this);
-    this.store.removeTag(this);
+  /** Get actual tag objects based on the IDs retrieved from the backend */
+  @computed get parent(): ClientTagCollection {
+    return this.store.getParent(this.id);
+  }
+
+  @computed get isSelected(): boolean {
+    return this.store.isSelected(this.id);
+  }
+
+  @action.bound rename(name: string) {
+    this.name = name;
+  }
+
+  async delete() {
+    return this.store.removeTag(this);
   }
 
   /**

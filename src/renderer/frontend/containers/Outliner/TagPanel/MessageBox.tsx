@@ -21,16 +21,16 @@ const TagRemoverContent = ({
       setTagsToRemove(uiStore.clientTagSelection);
     } else if (uiStore.isOutlinerTagRemoverOpen) {
       const id = uiStore.isOutlinerTagRemoverOpen;
-      const remTag = tagStore.getTag(id);
+      const remTag = tagStore.get(id);
       if (remTag) {
         setRemoveType(DragAndDropType.Tag);
         setTagsToRemove([remTag]);
       } else {
-        const remCol = tagCollectionStore.getTagCollection(id);
+        const remCol = tagCollectionStore.get(id);
         if (remCol) {
           setRemoveType(DragAndDropType.Collection);
           setColToRemove(remCol);
-          setTagsToRemove(remCol.getTagsRecursively().map((t) => tagStore.getTag(t) as ClientTag));
+          setTagsToRemove(remCol.getTagsRecursively().map((t) => tagStore.get(t) as ClientTag));
         }
       }
     }
@@ -82,13 +82,13 @@ export const TagRemoval = observer(({ rootStore }: IRootStoreProp) => {
         await uiStore.removeSelectedTagsAndCollections();
       } else if (uiStore.isOutlinerTagRemoverOpen) {
         const id = uiStore.isOutlinerTagRemoverOpen;
-        const remTag = tagStore.getTag(id);
+        const remTag = tagStore.get(id);
         if (remTag) {
-          await tagStore.removeTag(remTag);
+          await remTag.delete();
         } else {
-          const remCol = tagCollectionStore.getTagCollection(id);
+          const remCol = tagCollectionStore.get(id);
           if (remCol) {
-            await tagCollectionStore.removeTagCollection(remCol);
+            await remCol.delete();
           }
         }
       }

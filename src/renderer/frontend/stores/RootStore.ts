@@ -23,12 +23,12 @@ import { ipcRenderer } from 'electron';
  * 3. Makes complex unit tests easy as you just have to instantiate a root store.
  */
 class RootStore {
-  backend: Backend;
-
   public tagStore: TagStore;
   public tagCollectionStore: TagCollectionStore;
   public fileStore: FileStore;
   public uiStore: UiStore;
+
+  private backend: Backend;
 
   constructor(backend: Backend) {
     this.backend = backend;

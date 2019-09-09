@@ -11,6 +11,7 @@ import FileStore from '../../stores/FileStore';
 import { ClientTagCollection } from '../../../entities/TagCollection';
 import TagStore from '../../stores/TagStore';
 import IconSet from '../../components/Icons';
+import RootStore from '../../stores/RootStore';
 
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialog({
@@ -49,7 +50,7 @@ const chooseDirectories = async (fileStore: FileStore) => {
 };
 
 /** Opens a folder picker and adds all files and sub-directories to the library */
-const chooseFolderStructure = async (fileStore: FileStore) => {
+const chooseFolderStructure = async (rootStore: RootStore) => {
   const dirs = remote.dialog.showOpenDialog({
     properties: ['openDirectory'],
   });
@@ -59,15 +60,14 @@ const chooseFolderStructure = async (fileStore: FileStore) => {
     return;
   }
   // Add new collections to the root collection
-  const root = fileStore.rootStore.tagCollectionStore.getRootCollection();
+  const root = rootStore.tagCollectionStore.getRootCollection();
   // Initiate recursive call
-  await importDirRecursive(fileStore, fileStore.rootStore.tagStore, dirs[0], root);
+  await importDirRecursive(rootStore, dirs[0], root);
 };
 
 /** Recursively adds a directory and its files to the library */
 const importDirRecursive = async (
-  fileStore: FileStore,
-  tagStore: TagStore,
+  rootStore: RootStore,
   dir: string,
   parent: ClientTagCollection,
 ) => {
@@ -75,12 +75,12 @@ const importDirRecursive = async (
   const filenamesStats = await Promise.all(filenames.map((f) => fse.lstat(path.join(dir, f))));
   const subDirs = filenames.filter((_, i) => filenamesStats[i].isDirectory());
 
+  const { fileStore, tagStore, tagCollectionStore } = rootStore;
   if (subDirs.length === 0) {
     // If a dir contains no subdirs, but does contain files, only create a Tag, not a Collection
     await importAndTagDir(fileStore, dir, tagStore, parent);
   } else {
     // Else, create a collection
-    const tagCollectionStore = tagStore.rootStore.tagCollectionStore;
     const dirName = path.basename(dir);
     const dirCol = await tagCollectionStore.addTagCollection(dirName, parent);
 
@@ -89,7 +89,7 @@ const importDirRecursive = async (
 
     // Import all subdirs
     subDirs.forEach(async (folderName) => {
-      importDirRecursive(fileStore, tagStore, path.join(dir, folderName), dirCol);
+      importDirRecursive(rootStore, path.join(dir, folderName), dirCol);
     });
   }
 };
@@ -159,16 +159,11 @@ const ImportForm = observer(() => {
   // Todo: Add Location entity to DB, so we can have user-picked directories as well
   // Todo: Also show sub-directories in tree
 
-  const { fileStore } = useContext(StoreContext);
+  const rootStore = useContext(StoreContext);
 
-  const handleChooseFiles = useCallback(() => chooseFiles(fileStore), []);
-
-  const handleChooseDirectory = useCallback(() => chooseDirectories(fileStore), []);
-
-  const handleChooseFolderStructure = useCallback(
-    () => chooseFolderStructure(fileStore),
-    [],
-  );
+  const handleChooseFiles = useCallback(() => chooseFiles(rootStore.fileStore), []);
+  const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), []);
+  const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), []);
 
   return (
     <div id="import">

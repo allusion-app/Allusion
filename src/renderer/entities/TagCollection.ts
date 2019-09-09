@@ -63,7 +63,7 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
       // Then update the entity in the database
       (tagCol) => {
         if (this.autoSave) {
-          this.store.backend.saveTagCollection(tagCol);
+          this.store.save(tagCol);
         }
       },
     );
@@ -91,14 +91,12 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
 
   /** Get actual tag collection objects based on the IDs retrieved from the backend */
   @computed get clientSubCollections(): ClientTagCollection[] {
-    return this.subCollections.map((id) =>
-      this.store.rootStore.tagCollectionStore.getTagCollection(id),
-    ) as ClientTagCollection[];
+    return this.subCollections.map((id) => this.store.get(id)) as ClientTagCollection[];
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get clientTags(): ClientTag[] {
-    return this.tags.map((id) => this.store.rootStore.tagStore.getTag(id)) as ClientTag[];
+    return this.tags.map((id) => this.store.getTag(id)) as ClientTag[];
   }
 
   @computed get isEmpty(): boolean {
@@ -106,8 +104,6 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
   }
 
   @computed get isSelected(): boolean {
-    const uiStore = this.store.rootStore.uiStore;
-
     // If this collection is empty, act like it's selected when its parent is selected
     if (this.id !== ROOT_TAG_COLLECTION_ID && this.isEmpty) {
       return this.parent.isSelected;
@@ -117,7 +113,7 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     const nonEmptySubCollections = this.clientSubCollections.filter((subCol) => !subCol.isEmpty);
     return (
       (this.tags.length > 0 || nonEmptySubCollections.length > 0) &&
-      !this.tags.some((tag) => !uiStore.tagSelection.includes(tag)) &&
+      !this.tags.some((tag) => !this.store.isTagSelected(tag)) &&
       !nonEmptySubCollections.some((col) => !col.isSelected)
     );
   }
@@ -133,6 +129,10 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     this.subCollections.push(collection);
   }
 
+  @action.bound rename(name: string) {
+    this.name = name;
+  }
+
   @action removeTag(tag: ClientTag | ID) {
     this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
   }
@@ -141,8 +141,7 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     return [...this.tags, ...this.clientSubCollections.flatMap((c) => c.getTagsRecursively())];
   }
 
-  delete() {
-    this.store.backend.removeTagCollection(this);
+  async delete() {
     this.store.removeTagCollection(this);
   }
 

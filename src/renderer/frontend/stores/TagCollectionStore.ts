@@ -7,55 +7,24 @@ import {
 } from '../../entities/TagCollection';
 import RootStore from './RootStore';
 import { ID } from '../../entities/ID';
+import { ClientTag } from '../../entities/Tag';
 
 /**
  * Based on https://mobx.js.org/best/store.html
  */
 class TagCollectionStore {
-  backend: Backend;
-  rootStore: RootStore;
-
   tagCollectionList: IObservableArray<ClientTagCollection> = observable<ClientTagCollection>([]);
+
+  private backend: Backend;
+  private rootStore: RootStore;
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
   }
 
-  getRootCollection() {
-    const root = this.getTagCollection(ROOT_TAG_COLLECTION_ID);
-    if (!root) {
-      throw new Error('Root collection not found. This should not happen!');
-    }
-    return root;
-  }
-
-  async init() {
+  @action.bound async init() {
     return this.loadTagCollections();
-  }
-
-  @action.bound async loadTagCollections() {
-    try {
-      const fetchedTagCollections = await this.backend.fetchTagCollections();
-      fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
-    } catch (err) {
-      console.error('Could not load tag collections', err);
-    }
-  }
-
-  @action.bound updateFromBackend(backendTagCol: ITagCollection) {
-    const tagCol = this.getTagCollection(backendTagCol.id);
-    // In case a tag collection was added to the server from another client or session
-    if (!tagCol) {
-      this.tagCollectionList.push(new ClientTagCollection(this).updateFromBackend(backendTagCol));
-    } else {
-      // Else, update the existing tag collection
-      tagCol.updateFromBackend(backendTagCol);
-    }
-  }
-
-  getTagCollection(collection: ID): ClientTagCollection | undefined {
-    return this.tagCollectionList.find((col) => col.id === collection);
   }
 
   @action.bound async addTagCollection(name: string, parent?: ClientTagCollection) {
@@ -84,7 +53,7 @@ class TagCollectionStore {
     );
 
     // Remove tags in this collection
-    await Promise.all(tagCol.clientTags.map((tag) => this.rootStore.tagStore.removeTag(tag)));
+    await Promise.all(tagCol.clientTags.map((tag) => tag.delete()));
 
     // Remove collection from DB
     await this.backend.removeTagCollection(tagCol);
@@ -93,6 +62,50 @@ class TagCollectionStore {
   /** Find and remove missing tags from files */
   @action.bound clean() {
     // Todo: Clean-up methods for all stores
+  }
+
+  get(collection: ID): ClientTagCollection | undefined {
+    return this.tagCollectionList.find((col) => col.id === collection);
+  }
+
+  getRootCollection() {
+    const root = this.get(ROOT_TAG_COLLECTION_ID);
+    if (!root) {
+      throw new Error('Root collection not found. This should not happen!');
+    }
+    return root;
+  }
+
+  getTag(tag: ID): ClientTag | undefined {
+    return this.rootStore.tagStore.get(tag);
+  }
+
+  isTagSelected(tag: ID): boolean {
+    return this.rootStore.tagStore.isSelected(tag);
+  }
+
+  save(collection: ITagCollection) {
+    this.backend.saveTagCollection(collection);
+  }
+
+  @action.bound private async loadTagCollections() {
+    try {
+      const fetchedTagCollections = await this.backend.fetchTagCollections();
+      fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
+    } catch (err) {
+      console.error('Could not load tag collections', err);
+    }
+  }
+
+  @action.bound private updateFromBackend(backendTagCol: ITagCollection) {
+    const tagCol = this.get(backendTagCol.id);
+    // In case a tag collection was added to the server from another client or session
+    if (!tagCol) {
+      this.tagCollectionList.push(new ClientTagCollection(this).updateFromBackend(backendTagCol));
+    } else {
+      // Else, update the existing tag collection
+      tagCol.updateFromBackend(backendTagCol);
+    }
   }
 }
 

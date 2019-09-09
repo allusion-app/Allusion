@@ -27,7 +27,7 @@ const ContentView = observer(({ rootStore: { uiStore, tagStore } }: IRootStorePr
         <div id="query-overview">
           {queriedTags.map((tagId) => (
             <Tag key={tagId} id={tagId} intent="primary" onRemove={handleDeselectTag}>
-              {(tagStore.getTag(tagId) as ClientTag).name}
+              {(tagStore.get(tagId) as ClientTag).name}
             </Tag>
           ))}
           {queriedTags.length > 0 && (

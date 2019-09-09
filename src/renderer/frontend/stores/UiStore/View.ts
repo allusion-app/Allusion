@@ -22,8 +22,6 @@ class View {
   @observable orderBy: keyof IFile = 'dateAdded';
   @observable fileOrder = true;
 
-  constructor() {}
-
   /////////////////// UI Actions ///////////////////
   @action.bound smallThumbnail() {
     this.thumbnailSize = 'small';
