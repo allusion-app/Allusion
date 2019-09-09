@@ -7,10 +7,11 @@ import Gallery from './Gallery';
 import IconSet from '../../components/Icons';
 import { ITagSearchQuery } from '../../stores/UiStore';
 import { ClientTag } from '../../../entities/Tag';
+import { ID } from '../../../entities/ID';
 
 const ContentView = observer(({ rootStore: { uiStore, tagStore } }: IRootStoreProp) => {
   const handleDeselectTag = useCallback((_, props: ITagProps) => {
-    const clickedTag = tagStore.tagList.find((t) => t.id === props.id);
+    const clickedTag = tagStore.get(props.id as ID);
     if (clickedTag) {
       uiStore.deselectTag(clickedTag);
     }

@@ -16,13 +16,16 @@ const SearchForm = () => {
     const includedTags = (q as ITagSearchQuery).value;
 
     const handleIncludeTag = (tag: ClientTag) => includedTags.push(tag.id);
-    const handleExcludeTag = (tag: ClientTag) => includedTags.splice(tagStore.tagList.indexOf(tag), 1);
+    const handleExcludeTag = (tag: ClientTag) =>
+      includedTags.splice(tagStore.tagList.indexOf(tag), 1);
     const handleClearIncludedTags = () => includedTags.splice(0, includedTags.length);
 
     return (
       <MultiTagSelector
         key={`query-field-${qIndex}`}
-        selectedTags={includedTags.map((id) => tagStore.get(id) as ClientTag)}
+        selectedTags={
+          includedTags.map((id) => tagStore.get(id)).filter((t) => t !== undefined) as ClientTag[]
+        }
         onTagSelect={handleIncludeTag}
         onTagDeselect={handleExcludeTag}
         onClearSelection={handleClearIncludedTags}
@@ -33,14 +36,14 @@ const SearchForm = () => {
   });
 
   const addSearchQuery = useCallback(
-    () => uiStore.addSearchQuery({ action: 'include', operator: 'or', value: [] } as ITagSearchQuery),
-    []);
+    () =>
+      uiStore.addSearchQuery({ action: 'include', operator: 'or', value: [] } as ITagSearchQuery),
+    [],
+  );
 
   return (
     <div id="search-form">
-      <FormGroup label="Query">
-        {existingQueryFields}
-      </FormGroup>
+      <FormGroup label="Query">{existingQueryFields}</FormGroup>
 
       {/*
         <FormGroup label="Tags" >
@@ -77,8 +80,8 @@ const SearchForm = () => {
         </FormGroup>
         */}
 
-        <Button icon={IconSet.ADD} onClick={addSearchQuery} fill text="Query"/>
-        <ButtonGroup vertical fill>
+      <Button icon={IconSet.ADD} onClick={addSearchQuery} fill text="Query" />
+      <ButtonGroup vertical fill>
         <Button
           intent="primary"
           onClick={uiStore.viewContentQuery}

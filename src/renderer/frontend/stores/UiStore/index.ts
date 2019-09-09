@@ -218,13 +218,15 @@ class UiStore {
   }
 
   @computed get clientFileSelection(): ClientFile[] {
-    return this.fileSelection.map((id) =>
-      this.rootStore.fileStore.fileList.find((f) => f.id === id),
-    ) as ClientFile[];
+    return this.fileSelection
+      .map((id) => this.rootStore.fileStore.get(id))
+      .filter((f) => f !== undefined) as ClientFile[];
   }
 
   @computed get clientTagSelection(): ClientTag[] {
-    return this.tagSelection.map((id) => this.rootStore.tagStore.get(id)) as ClientTag[];
+    return this.tagSelection
+      .map((id) => this.rootStore.tagStore.get(id))
+      .filter((t) => t !== undefined) as ClientTag[];
   }
 
   @action.bound setImageViewer(file: ClientFile | null) {

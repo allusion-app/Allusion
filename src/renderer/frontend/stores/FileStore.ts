@@ -45,7 +45,7 @@ class FileStore {
 
   @action.bound async removeFilesById(ids: ID[]) {
     const filesToRemove = ids
-      .map((id) => this.fileList.find((f) => f.id === id))
+      .map((id) => this.get(id))
       .filter((f) => f !== undefined) as ClientFile[];
 
     try {
@@ -90,8 +90,7 @@ class FileStore {
     );
   }
 
-  @action
-  async fetchFilesByTagIDs(tags: ID[]) {
+  @action.bound async fetchFilesByTagIDs(tags: ID[]) {
     // Query the backend to send back only files with these tags
     try {
       const { orderBy, fileOrder } = this.rootStore.uiStore.view;
@@ -125,6 +124,10 @@ class FileStore {
     // Clean up observers of ClientFiles before removing them
     this.fileList.forEach((f) => f.dispose());
     this.fileList.clear();
+  }
+
+  get(id: ID): ClientFile | undefined {
+    return this.fileList.find((f) => f.id === id);
   }
 
   getTag(tag: ID): ClientTag | undefined {
@@ -169,7 +172,7 @@ class FileStore {
           return true;
         } catch (err) {
           this.backend.removeFile(backendFile);
-          const clientFile = this.fileList.find((f) => backendFile.id === f.id);
+          const clientFile = this.get(backendFile.id);
           if (clientFile) {
             await this.removeFile(clientFile);
           }

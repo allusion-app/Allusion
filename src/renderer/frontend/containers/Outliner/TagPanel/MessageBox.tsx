@@ -30,7 +30,10 @@ const TagRemoverContent = ({
         if (remCol) {
           setRemoveType(DragAndDropType.Collection);
           setColToRemove(remCol);
-          setTagsToRemove(remCol.getTagsRecursively().map((t) => tagStore.get(t) as ClientTag));
+          setTagsToRemove(remCol
+            .getTagsRecursively()
+            .map((t) => tagStore.get(t))
+            .filter((t) => t !== undefined) as ClientTag[]);
         }
       }
     }

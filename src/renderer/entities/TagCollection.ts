@@ -91,12 +91,16 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
 
   /** Get actual tag collection objects based on the IDs retrieved from the backend */
   @computed get clientSubCollections(): ClientTagCollection[] {
-    return this.subCollections.map((id) => this.store.get(id)) as ClientTagCollection[];
+    return this.subCollections
+      .map((id) => this.store.get(id))
+      .filter((c) => c !== undefined) as ClientTagCollection[];
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get clientTags(): ClientTag[] {
-    return this.tags.map((id) => this.store.getTag(id)) as ClientTag[];
+    return this.tags
+      .map((id) => this.store.getTag(id))
+      .filter((t) => t !== undefined) as ClientTag[];
   }
 
   @computed get isEmpty(): boolean {

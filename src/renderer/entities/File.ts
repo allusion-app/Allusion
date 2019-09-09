@@ -115,7 +115,9 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get clientTags(): ClientTag[] {
-    return this.tags.map((id) => this.store.getTag(id)) as ClientTag[];
+    return this.tags
+      .map((id) => this.store.getTag(id))
+      .filter((t) => t !== undefined) as ClientTag[];
   }
 
   @action.bound addTag(tag: ID) {
