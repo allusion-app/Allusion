@@ -108,7 +108,7 @@ const importAndTagDir = async (
     // Create tag for this directory
     const tag = await tagStore.addTag(folderName);
     // Add tag to collection
-    parent.tags.push(tag.id);
+    parent.addTag(tag.id);
     // Add tag to files
     addedFiles.forEach((f) => f.addTag(tag.id));
   }

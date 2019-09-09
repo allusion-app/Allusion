@@ -38,7 +38,7 @@ backend
 
 if (isPreviewWindow) {
   ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[]) => {
-    rootStore.uiStore.firstIndexInView = 0;
+    rootStore.uiStore.view.setFirstItem(0);
     rootStore.fileStore.fetchFilesByIDs(fileIds);
   });
 
@@ -70,7 +70,7 @@ if (isPreviewWindow) {
   });
 } else {
   ipcRenderer.on('closedPreviewWindow', () => {
-    rootStore.uiStore.isPreviewOpen = false;
+    rootStore.uiStore.closePreviewWindow();
   });
 
   // Load persistent preferences

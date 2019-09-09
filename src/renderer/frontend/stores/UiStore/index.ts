@@ -1,11 +1,14 @@
 import { action, observable, computed } from 'mobx';
 import { remote, ipcRenderer } from 'electron';
 
-import RootStore from './RootStore';
-import { ClientFile, IFile } from '../../entities/File';
-import { ID } from '../../entities/ID';
-import { ClientTag } from '../../entities/Tag';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import RootStore from '../RootStore';
+import { ClientFile, IFile } from '../../../entities/File';
+import { ID } from '../../../entities/ID';
+import { ClientTag } from '../../../entities/Tag';
+import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../entities/TagCollection';
+import View from './View';
+
+export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -96,21 +99,14 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'outlinerPage',
   'isOutlinerOpen',
   'isInspectorOpen',
-  'viewMethod',
-  'viewContent',
-  'firstIndexInView',
-  'fileOrder',
-  'fileOrderDescending',
-  'fileLayout',
-  'thumbnailSize',
 ];
 
-const PREFERENCES_STORAGE_KEY = 'preferences';
-
-export type ViewMethod = 'list' | 'grid' | 'mason' | 'slide';
+export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 class UiStore {
   rootStore: RootStore;
+  // View (Main Content)
+  public view: View;
 
   @observable isInitialized = false;
 
@@ -120,28 +116,14 @@ class UiStore {
   // FullScreen
   @observable isFullScreen: boolean = false;
 
-  // UI
   @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
-  @observable isPreviewOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
   @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
-
-  // VIEW
-  @observable viewMethod: ViewMethod = 'grid';
-  /** Index of the first item in the viewport */
-  @observable firstIndexInView: number = 0;
-  /** The origin of the current files that are shown */
-  @observable viewContent: 'query' | 'all' | 'untagged' = 'all';
-  @observable thumbnailSize: 'small' | 'medium' | 'large' = 'medium';
-
-  // Content
-  @observable fileOrder: keyof IFile = 'dateAdded';
-  @observable fileOrderDescending = true;
-  @observable fileLayout: 'LIST' | 'GRID' | 'MASONRY' | 'SLIDE' = 'GRID';
+  @observable isPreviewOpen: boolean = false;
   @observable imageViewerFile: ClientFile | null = null;
 
   // Selections
@@ -153,6 +135,85 @@ class UiStore {
 
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
+  constructor(rootStore: RootStore) {
+    this.rootStore = rootStore;
+    this.view = new View();
+  }
+
+  /////////////////// UI Actions ///////////////////
+  @action.bound toggleOutliner() {
+    this.isOutlinerOpen = !this.isOutlinerOpen;
+  }
+
+  @action.bound toggleInspector() {
+    this.isInspectorOpen = !this.isInspectorOpen;
+  }
+
+  @action.bound toggleSettings() {
+    this.isSettingsOpen = !this.isSettingsOpen;
+  }
+
+  @action.bound openOutlinerImport() {
+    this.outlinerPage = 'IMPORT';
+    this.viewContentUntagged();
+  }
+
+  @action.bound openOutlinerTags() {
+    this.outlinerPage = 'TAGS';
+    this.viewContentAll();
+  }
+
+  @action.bound openOutlinerSearch() {
+    this.outlinerPage = 'SEARCH';
+    this.viewContentQuery();
+  }
+
+  @action.bound toggleToolbarTagSelector() {
+    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
+  }
+
+  @action.bound openToolbarTagSelector() {
+    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0;
+  }
+
+  @action.bound closeToolbarTagSelector() {
+    this.isToolbarTagSelectorOpen = false;
+  }
+
+  @action.bound toggleToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = this.fileSelection.length > 0 && !this.isToolbarFileRemoverOpen;
+  }
+
+  @action.bound openToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = true;
+  }
+
+  @action.bound closeToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = false;
+  }
+
+  @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
+    this.isOutlinerTagRemoverOpen = val || 'selected';
+  }
+
+  @action.bound closeOutlinerTagRemover() {
+    this.isOutlinerTagRemoverOpen = null;
+  }
+
+  @action.bound closePreviewWindow() {
+    this.isPreviewOpen = false;
+  }
+
+  @action.bound openPreviewWindow() {
+    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
+    this.isPreviewOpen = true;
+
+    // remove focus from element so closing preview with spacebar does not trigger any ui elements
+    if (document.activeElement && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  }
+
   @computed get clientFileSelection(): ClientFile[] {
     return this.fileSelection.map((id) =>
       this.rootStore.fileStore.fileList.find((f) => f.id === id),
@@ -163,8 +224,12 @@ class UiStore {
     return this.tagSelection.map((id) => this.rootStore.tagStore.getTag(id)) as ClientTag[];
   }
 
-  constructor(rootStore: RootStore) {
-    this.rootStore = rootStore;
+  @action.bound init() {
+    this.isInitialized = true;
+  }
+
+  @action.bound setImageViewer(file: ClientFile | null) {
+    this.imageViewerFile = file;
   }
 
   recoverPersistentPreferences() {
@@ -178,6 +243,7 @@ class UiStore {
         console.log('Cannot parse persistent preferences', e);
       }
     }
+    this.view.recoverPersistentPreferences();
   }
 
   storePersistentPreferences() {
@@ -186,6 +252,7 @@ class UiStore {
       prefs[field] = this[field];
     }
     localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
+    this.view.storePersistentPreferences();
   }
 
   /////////////////// Selection actions ///////////////////
@@ -194,6 +261,13 @@ class UiStore {
       this.fileSelection.clear();
     }
     this.fileSelection.push(file.id);
+  }
+
+  @action.bound selectFiles(files: ID[], clear?: boolean) {
+    if (clear) {
+      this.fileSelection.clear();
+    }
+    this.fileSelection.push(...files);
   }
 
   @action.bound deselectFile(file: ClientFile) {
@@ -257,13 +331,13 @@ class UiStore {
     this.tagSelection.clear();
   }
 
-  @action.bound setFileOrder(prop: keyof IFile) {
-    this.fileOrder = prop;
+  @action.bound orderFilesBy(prop: keyof IFile) {
+    this.view.orderFilesBy(prop);
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
   }
 
-  @action.bound setFileOrderDescending(descending: boolean) {
-    this.fileOrderDescending = descending;
+  @action.bound toggleFileOrder() {
+    this.view.toggleFileOrder();
     this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
   }
 
@@ -386,14 +460,14 @@ class UiStore {
   /////////////////// Search Actions ///////////////////
   @action.bound async clearSearchQueryList() {
     this.searchQueryList.clear();
-    await this.viewContentAll();
+    this.viewContentAll();
   }
 
   @action.bound async addSearchQuery(query: ISearchQuery) {
     this.searchQueryList.push(query);
     await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
-    this.viewContent = 'query';
+    this.view.queryContent();
   }
 
   @action.bound async removeSearchQuery(query: ISearchQuery) {
@@ -419,108 +493,27 @@ class UiStore {
     this.replaceQuery(this.tagSelection.toJS());
   }
 
-  /////////////////// UI Actions ///////////////////
-  @action.bound toggleOutliner() {
-    this.isOutlinerOpen = !this.isOutlinerOpen;
-  }
-
-  @action.bound openOutlinerImport() {
-    this.outlinerPage = 'IMPORT';
-    this.viewContentUntagged();
-  }
-  @action.bound openOutlinerTags() {
-    this.outlinerPage = 'TAGS';
-    this.viewContentAll();
-  }
-  @action.bound openOutlinerSearch() {
-    this.outlinerPage = 'SEARCH';
-    this.viewContentQuery();
-  }
-
-  @action.bound openPreviewWindow() {
-    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
-    this.isPreviewOpen = true;
-
-    // remove focus from element so closing preview with spacebar does not trigger any ui elements
-    if (document.activeElement && document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-  }
-
-  // VIEW
-  @action.bound viewList() {
-    this.viewMethod = 'list';
-  }
-  @action.bound viewGrid() {
-    this.viewMethod = 'grid';
-  }
-  @action.bound viewMason() {
-    this.viewMethod = 'mason';
-  }
-  @action.bound viewSlide() {
-    this.viewMethod = 'slide';
-  }
-
   @action.bound viewContentAll() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchAllFiles();
-    this.viewContent = 'all';
+    this.view.allContent();
     this.cleanFileSelection();
   }
   @action.bound viewContentUntagged() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchUntaggedFiles();
-    this.viewContent = 'untagged';
+    this.view.untaggedContent();
     this.cleanFileSelection();
   }
   @action.bound viewContentQuery() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchFilesByQuery();
-    this.viewContent = 'query';
+    this.view.queryContent();
     this.cleanFileSelection();
   }
 
-  @action.bound setFirstIndexInView(index: number) {
-    if (isFinite(index)) {
-      this.firstIndexInView = index;
-    }
-  }
-
-  @action.bound toggleInspector() {
-    this.isInspectorOpen = !this.isInspectorOpen;
-  }
-  @action.bound toggleSettings() {
-    this.isSettingsOpen = !this.isSettingsOpen;
-  }
   @action.bound toggleTheme() {
     this.theme = this.theme === 'DARK' ? 'LIGHT' : 'DARK';
-  }
-
-  @action.bound toggleToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
-  }
-  @action.bound openToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0;
-  }
-  @action.bound closeToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = false;
-  }
-
-  @action.bound toggleToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = this.fileSelection.length > 0 && !this.isToolbarFileRemoverOpen;
-  }
-  @action.bound openToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = true;
-  }
-  @action.bound closeToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = false;
-  }
-
-  @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
-    this.isOutlinerTagRemoverOpen = val || 'selected';
-  }
-  @action.bound closeOutlinerTagRemover() {
-    this.isOutlinerTagRemoverOpen = null;
   }
 
   @action.bound toggleDevtools() {
@@ -538,7 +531,7 @@ class UiStore {
   /**
    * Deselect files that are not tagged with any tag in the current tag selection
    */
-  private cleanFileSelection() {
+  @action private cleanFileSelection() {
     for (const file of this.clientFileSelection) {
       if (!file.tags.some((t) => this.tagSelection.includes(t))) {
         this.deselectFile(file);
@@ -546,7 +539,7 @@ class UiStore {
     }
   }
 
-  private insertTag(tag: ClientTag, target: ClientTag | ClientTagCollection) {
+  @action private insertTag(tag: ClientTag, target: ClientTag | ClientTagCollection) {
     tag.parent.tags.remove(tag.id);
 
     if (target instanceof ClientTag) {
@@ -560,7 +553,7 @@ class UiStore {
     }
   }
 
-  private insertCollection(col: ClientTagCollection, target: ClientTagCollection) {
+  @action private insertCollection(col: ClientTagCollection, target: ClientTagCollection) {
     col.parent.subCollections.remove(col.id);
     target.subCollections.unshift(col.id);
   }

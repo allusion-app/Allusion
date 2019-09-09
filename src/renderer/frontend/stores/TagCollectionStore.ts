@@ -34,7 +34,7 @@ class TagCollectionStore {
     return this.loadTagCollections();
   }
 
-  async loadTagCollections() {
+  @action.bound async loadTagCollections() {
     try {
       const fetchedTagCollections = await this.backend.fetchTagCollections();
       fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
@@ -43,7 +43,7 @@ class TagCollectionStore {
     }
   }
 
-  updateFromBackend(backendTagCol: ITagCollection) {
+  @action.bound updateFromBackend(backendTagCol: ITagCollection) {
     const tagCol = this.getTagCollection(backendTagCol.id);
     // In case a tag collection was added to the server from another client or session
     if (!tagCol) {
@@ -58,19 +58,17 @@ class TagCollectionStore {
     return this.tagCollectionList.find((col) => col.id === collection);
   }
 
-  @action
-  async addTagCollection(name: string, parent?: ClientTagCollection) {
+  @action.bound async addTagCollection(name: string, parent?: ClientTagCollection) {
     const newCol = new ClientTagCollection(this, name);
     this.tagCollectionList.push(newCol);
     await this.backend.createTagCollection(newCol.id, newCol.name, newCol.description);
     if (parent) {
-      parent.subCollections.push(newCol.id);
+      parent.addCollection(newCol.id);
     }
     return newCol;
   }
 
-  @action
-  async removeTagCollection(tagCol: ClientTagCollection) {
+  @action.bound async removeTagCollection(tagCol: ClientTagCollection) {
     // Remove save handler
     tagCol.dispose();
 
@@ -93,7 +91,7 @@ class TagCollectionStore {
   }
 
   /** Find and remove missing tags from files */
-  @action clean() {
+  @action.bound clean() {
     // Todo: Clean-up methods for all stores
   }
 }

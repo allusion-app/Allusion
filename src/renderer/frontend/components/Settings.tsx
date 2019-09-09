@@ -11,9 +11,9 @@ const Settings = observer(() => {
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
-  const viewSmall = useCallback(() => { uiStore.thumbnailSize = 'small'; }, []);
-  const viewMedium = useCallback(() => { uiStore.thumbnailSize = 'medium'; }, []);
-  const viewLarge = useCallback(() => { uiStore.thumbnailSize = 'large'; }, []);
+  const viewSmall = useCallback(() => uiStore.view.smallThumbnail(), []);
+  const viewMedium = useCallback(() => uiStore.view.mediumThumbnail(), []);
+  const viewLarge = useCallback(() => uiStore.view.largeThumbnail(), []);
 
   return (
     <Drawer
@@ -25,7 +25,7 @@ const Settings = observer(() => {
     >
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup
-          selectedValue={uiStore.thumbnailSize}
+          selectedValue={uiStore.view.thumbnailSize}
           onChange={() => undefined}
           label="Thumbnail size"
           inline
@@ -35,13 +35,26 @@ const Settings = observer(() => {
           <Radio label="Large" value="large" onClick={viewLarge} />
         </RadioGroup>
 
-        <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
-        <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
-        <div className="bp3-divider"></div>
+        <Switch
+          checked={uiStore.isFullScreen}
+          onChange={uiStore.toggleFullScreen}
+          label="Full screen"
+        />
+        <Switch
+          checked={uiStore.theme === 'DARK'}
+          onChange={uiStore.toggleTheme}
+          label="Dark theme"
+        />
+        <div className="bp3-divider" />
 
         <ClearDbButton fill position="bottom-left" />
 
-        <Button onClick={uiStore.toggleDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
+        <Button
+          onClick={uiStore.toggleDevtools}
+          intent="warning"
+          icon={IconSet.CHROME_DEVTOOLS}
+          fill
+        >
           Toggle DevTools
         </Button>
 
@@ -51,16 +64,12 @@ const Settings = observer(() => {
           <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
           <p>
             Did you know there are hotkeys?
-            <br/>
+            <br />
             Press&nbsp;
             <span className={Classes.KEY_COMBO}>
-              <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>
-                shift
-              </span>
+              <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>shift</span>
               &nbsp;
-              <span className={Classes.KEY}>
-                /
-              </span>
+              <span className={Classes.KEY}>/</span>
               &nbsp;to see them.
             </span>
           </p>

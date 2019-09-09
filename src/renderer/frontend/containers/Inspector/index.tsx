@@ -42,7 +42,7 @@ const Inspector = observer(() => {
       <img
         src={singleFile.path}
         style={{ cursor: 'zoom-in' }}
-        onClick={() => (uiStore.imageViewerFile = singleFile)}
+        onClick={() => (uiStore.setImageViewer(singleFile))}
       />
     );
     headerText = path.basename(singleFile.path);

@@ -22,7 +22,7 @@ class TagStore {
     this.loadTags();
   }
 
-  loadTags() {
+  @action.bound loadTags() {
     this.backend
       .fetchTags()
       .then((fetchedTags) => {
@@ -31,7 +31,7 @@ class TagStore {
       .catch((err) => console.log('Could not load tags', err));
   }
 
-  updateFromBackend(backendTag: ITag) {
+  @action.bound updateFromBackend(backendTag: ITag) {
     const tag = this.getTag(backendTag.id);
     // In case a tag was added to the server from another client or session
     if (!tag) {
@@ -46,23 +46,21 @@ class TagStore {
     return this.tagList.find((t) => t.id === tag);
   }
 
-  @action
-  async addTag(tagName: string) {
+  @action.bound async addTag(tagName: string) {
     const tag = new ClientTag(this, tagName);
     this.tagList.push(tag);
     await this.backend.createTag(tag.id, tag.name, tag.description);
     return tag;
   }
 
-  @action
-  async removeTag(tag: ClientTag) {
+  @action.bound async removeTag(tag: ClientTag) {
     tag.dispose();
 
     // Remove tag from state
     this.tagList.splice(this.tagList.indexOf(tag), 1);
 
     // Remove tag from selection
-    this.rootStore.uiStore.tagSelection.remove(tag.id);
+    this.rootStore.uiStore.deselectTag(tag.id);
 
     // Remove tag from files
     this.rootStore.fileStore.fileList

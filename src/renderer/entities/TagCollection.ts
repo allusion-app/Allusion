@@ -129,6 +129,10 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     }
   }
 
+  @action.bound addCollection(collection: ID) {
+    this.subCollections.push(collection);
+  }
+
   @action removeTag(tag: ClientTag | ID) {
     this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
   }

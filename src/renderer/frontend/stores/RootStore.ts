@@ -46,8 +46,8 @@ class RootStore {
       this.tagCollectionStore.init(),
       this.fileStore.init(autoLoadFiles),
     ]);
-
-    this.uiStore.isInitialized = true;
+    // Upon loading data, initialize UI state.
+    this.uiStore.init();
     ipcRenderer.send('initialized');
   }
 

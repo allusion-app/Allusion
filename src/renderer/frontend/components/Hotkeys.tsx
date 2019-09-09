@@ -82,25 +82,25 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           global={true}
           combo={hotkeyMap.viewList}
           label="Sets view to list mode"
-          onKeyDown={uiStore.viewList}
+          onKeyDown={uiStore.view.list}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewGrid}
           label="Sets view to Grid mode"
-          onKeyDown={uiStore.viewGrid}
+          onKeyDown={uiStore.view.grid}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewMason}
           label="Sets view to mason mode"
-          onKeyDown={uiStore.viewMason}
+          onKeyDown={uiStore.view.masonry}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewSlide}
           label="Sets view to slide mode"
-          onKeyDown={uiStore.viewSlide}
+          onKeyDown={uiStore.view.slide}
         />
 
         <Hotkey

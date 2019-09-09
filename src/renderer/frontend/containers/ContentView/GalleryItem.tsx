@@ -129,7 +129,11 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
         icon={IconSet.FOLDER_CLOSE}
       />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+      <MenuItem
+        onClick={uiStore.openToolbarFileRemover}
+        text="Delete"
+        icon={IconSet.DELETE}
+      />
     </Menu>
   );
 };
