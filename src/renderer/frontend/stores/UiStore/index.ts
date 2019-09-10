@@ -239,21 +239,24 @@ class UiStore {
       try {
         const prefs = JSON.parse(prefsString);
         // @ts-ignore
-        Object.keys(prefs).forEach((key) => (this[key] = prefs[key]));
+        for (const field of PersistentPreferenceFields) {
+          // @ts-ignore
+          this[field] = prefs[field];
+        }
+        this.view.getPreferences(prefs);
       } catch (e) {
         console.log('Cannot parse persistent preferences', e);
       }
     }
-    this.view.recoverPersistentPreferences();
   }
 
   storePersistentPreferences() {
-    const prefs: any = {};
+    let prefs: any = {};
     for (const field of PersistentPreferenceFields) {
       prefs[field] = this[field];
     }
+    prefs = this.view.setPreferences(prefs);
     localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
-    this.view.storePersistentPreferences();
   }
 
   /////////////////// Selection actions ///////////////////

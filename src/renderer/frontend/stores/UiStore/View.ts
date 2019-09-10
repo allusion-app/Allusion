@@ -1,4 +1,4 @@
-import { PREFERENCES_STORAGE_KEY, ViewMethod } from '.';
+import { ViewMethod } from '.';
 import { observable, action, computed } from 'mobx';
 import { IFile } from '../../../entities/File';
 
@@ -94,25 +94,18 @@ class View {
   }
 
   /////////////////// Persistent Preferences ///////////////////
-  recoverPersistentPreferences() {
-    const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-    if (prefsString) {
-      try {
-        const prefs = JSON.parse(prefsString);
-        // @ts-ignore
-        Object.keys(prefs).forEach((key) => (this[key] = prefs[key]));
-      } catch (e) {
-        console.log('Cannot parse persistent preferences', e);
-      }
+  getPreferences(prefs: any) {
+    for (const field of PersistentPreferenceFields) {
+      // @ts-ignore
+      this[field] = prefs[field];
     }
   }
 
-  storePersistentPreferences() {
-    const prefs: any = {};
+  setPreferences(prefs: any): string {
     for (const field of PersistentPreferenceFields) {
       prefs[field] = this[field];
     }
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
+    return prefs;
   }
 }
 
