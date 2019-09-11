@@ -1,11 +1,11 @@
 import { action, observable, computed } from 'mobx';
 import { remote, ipcRenderer } from 'electron';
 
-import RootStore from '../RootStore';
-import { ClientFile, IFile } from '../../../entities/File';
-import { ID } from '../../../entities/ID';
-import { ClientTag } from '../../../entities/Tag';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../entities/TagCollection';
+import RootStore from '../stores/RootStore';
+import { ClientFile, IFile } from '../../entities/File';
+import { ID } from '../../entities/ID';
+import { ClientTag } from '../../entities/Tag';
+import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import View from './View';
 
 export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
@@ -158,17 +158,17 @@ class UiStore {
 
   @action.bound openOutlinerImport() {
     this.outlinerPage = 'IMPORT';
-    this.viewContentUntagged();
+    this.viewUntaggedContent();
   }
 
   @action.bound openOutlinerTags() {
     this.outlinerPage = 'TAGS';
-    this.viewContentAll();
+    this.viewAllContent();
   }
 
   @action.bound openOutlinerSearch() {
     this.outlinerPage = 'SEARCH';
-    this.viewContentQuery();
+    this.viewQueryContent();
   }
 
   @action.bound toggleToolbarTagSelector() {
@@ -463,14 +463,14 @@ class UiStore {
   /////////////////// Search Actions ///////////////////
   @action.bound async clearSearchQueryList() {
     this.searchQueryList.clear();
-    this.viewContentAll();
+    this.viewAllContent();
   }
 
   @action.bound async addSearchQuery(query: ISearchQuery) {
     this.searchQueryList.push(query);
     await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
-    this.view.queryContent();
+    this.view.setContentQuery();
   }
 
   @action.bound async removeSearchQuery(query: ISearchQuery) {
@@ -496,22 +496,22 @@ class UiStore {
     this.replaceQuery(this.tagSelection.toJS());
   }
 
-  @action.bound viewContentAll() {
+  @action.bound viewAllContent() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchAllFiles();
-    this.view.allContent();
+    this.view.setContentAll();
     this.cleanFileSelection();
   }
-  @action.bound viewContentUntagged() {
+  @action.bound viewUntaggedContent() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchUntaggedFiles();
-    this.view.untaggedContent();
+    this.view.setContentUntagged();
     this.cleanFileSelection();
   }
-  @action.bound viewContentQuery() {
+  @action.bound viewQueryContent() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchFilesByQuery();
-    this.view.queryContent();
+    this.view.setContentQuery();
     this.cleanFileSelection();
   }
 

@@ -5,7 +5,7 @@ import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { ITagSearchQuery } from './UiStore';
+import { ITagSearchQuery } from '../UiStore';
 import { ClientTag } from '../../entities/Tag';
 
 class FileStore {

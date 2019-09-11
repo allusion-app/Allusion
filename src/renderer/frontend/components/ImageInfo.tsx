@@ -4,9 +4,27 @@ import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
 
-const formatDate = (d: Date) =>
-  `${d.getUTCFullYear()}-${d.getUTCMonth() +
-    1}-${d.getUTCDate()} ${d.getUTCHours()}:${d.getUTCMinutes()}`;
+// const formatDate = (d: Date) =>
+//   `${d.getUTCFullYear()}-${d.getUTCMonth() +
+//     1}-${d.getUTCDate()} ${d.getUTCHours()}:${d.getUTCMinutes()}`;
+
+const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
+  timeZone: 'UTC',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+const formatDateTime = (d: Date) => {
+  return DateTimeFormat.formatToParts(d).map(({type, value}) => { 
+    if (type === 'literal' && value === ', ') {
+      return ' ';
+    } 
+    return value;
+  }).reduce((string, part) => string + part);
+};
 
 const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   const isMounted = useRef(false);
@@ -45,12 +63,12 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
       { key: 'Filename', value: file.name },
       {
         key: 'Created',
-        value: fileStats ? formatDate(fileStats.birthtime) : '...',
+        value: fileStats ? formatDateTime(fileStats.birthtime) : '...',
       },
-      { key: 'Modified', value: fileStats ? formatDate(fileStats.ctime) : '...' },
+      { key: 'Modified', value: fileStats ? formatDateTime(fileStats.ctime) : '...' },
       {
         key: 'Last Opened',
-        value: fileStats ? formatDate(fileStats.atime) : '...',
+        value: fileStats ? formatDateTime(fileStats.atime) : '...',
       },
       { key: 'Dimensions', value: resolution },
       // { key: 'Resolution', value: '?' },

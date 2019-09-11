@@ -1,4 +1,4 @@
-import React, { useContext, useCallback } from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Drawer, Classes, Switch, Button, Callout, H4, RadioGroup, Radio } from '@blueprintjs/core';
 
@@ -10,10 +10,6 @@ const Settings = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-
-  const viewSmall = useCallback(() => uiStore.view.smallThumbnail(), []);
-  const viewMedium = useCallback(() => uiStore.view.mediumThumbnail(), []);
-  const viewLarge = useCallback(() => uiStore.view.largeThumbnail(), []);
 
   return (
     <Drawer
@@ -30,9 +26,9 @@ const Settings = observer(() => {
           label="Thumbnail size"
           inline
         >
-          <Radio label="Small" value="small" onClick={viewSmall} />
-          <Radio label="Medium" value="medium" onClick={viewMedium} />
-          <Radio label="Large" value="large" onClick={viewLarge} />
+          <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
+          <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
+          <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
         </RadioGroup>
 
         <Switch

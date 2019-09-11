@@ -5,7 +5,7 @@ import MultiTagSelector from '../../components/MultiTagSelector';
 import { FormGroup, Button, ButtonGroup } from '@blueprintjs/core';
 import StoreContext from '../../contexts/StoreContext';
 import { ClientTag } from '../../../entities/Tag';
-import { ITagSearchQuery } from '../../stores/UiStore';
+import { ITagSearchQuery } from '../../UiStore';
 import IconSet from '../../components/Icons';
 
 const SearchForm = () => {
@@ -84,7 +84,7 @@ const SearchForm = () => {
       <ButtonGroup vertical fill>
         <Button
           intent="primary"
-          onClick={uiStore.viewContentQuery}
+          onClick={uiStore.viewQueryContent}
           disabled={uiStore.searchQueryList.length === 0}
           text="Search"
           icon={IconSet.SEARCH}

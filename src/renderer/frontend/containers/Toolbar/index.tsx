@@ -15,7 +15,7 @@ import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
 import FileTag from '../../components/FileTag';
 import { ClientFile, IFile } from '../../../entities/File';
-import UiStore from '../../stores/UiStore';
+import UiStore from '../../UiStore';
 
 // Tooltip info
 const enum Tooltip {
@@ -153,11 +153,6 @@ const Toolbar = observer(() => {
     [],
   );
 
-  const viewList = useCallback(() => uiStore.view.list(), []);
-  const viewGrid = useCallback(() => uiStore.view.grid(), []);
-  const viewMason = useCallback(() => uiStore.view.masonry(), []);
-  const viewSlide = useCallback(() => uiStore.view.slide(), []);
-
   // Render variables
   const sortMenu = useMemo(
     () => {
@@ -190,25 +185,25 @@ const Toolbar = observer(() => {
     () => (
       <Menu>
         <MenuItem
-          onClick={viewList}
+          onClick={uiStore.view.setMethodList}
           icon={IconSet.VIEW_LIST}
           text="List"
           active={uiStore.view.isList}
         />
         <MenuItem
-          onClick={viewGrid}
+          onClick={uiStore.view.setMethodGrid}
           icon={IconSet.VIEW_GRID}
           text="Grid"
           active={uiStore.view.isGrid}
         />
         <MenuItem
-          onClick={viewMason}
+          onClick={uiStore.view.setMethodMasonry}
           icon={IconSet.VIEW_MASON}
           text="Masonry"
           active={uiStore.view.isMasonry}
         />
         <MenuItem
-          onClick={viewSlide}
+          onClick={uiStore.view.setMethodSlide}
           icon={IconSet.VIEW_PRESENT}
           text="Slide"
           active={uiStore.view.isSlide}

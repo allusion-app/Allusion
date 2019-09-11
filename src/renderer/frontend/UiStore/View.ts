@@ -1,6 +1,6 @@
 import { ViewMethod } from '.';
 import { observable, action, computed } from 'mobx';
-import { IFile } from '../../../entities/File';
+import { IFile } from '../../entities/File';
 
 const PersistentPreferenceFields: Array<keyof View> = [
   'method',
@@ -23,15 +23,15 @@ class View {
   @observable fileOrder = true;
 
   /////////////////// UI Actions ///////////////////
-  @action.bound smallThumbnail() {
+  @action.bound setThumbnailSmall() {
     this.thumbnailSize = 'small';
   }
 
-  @action.bound mediumThumbnail() {
+  @action.bound setThumbnailMedium() {
     this.thumbnailSize = 'medium';
   }
 
-  @action.bound largeThumbnail() {
+  @action.bound setThumbnailLarge() {
     this.thumbnailSize = 'large';
   }
 
@@ -49,31 +49,31 @@ class View {
     }
   }
 
-  @action.bound queryContent() {
+  @action.bound setContentQuery() {
     this.content = 'query';
   }
 
-  @action.bound allContent() {
+  @action.bound setContentAll() {
     this.content = 'all';
   }
 
-  @action.bound untaggedContent() {
+  @action.bound setContentUntagged() {
     this.content = 'untagged';
   }
 
-  @action.bound list() {
+  @action.bound setMethodList() {
     this.method = 'list';
   }
 
-  @action.bound grid() {
+  @action.bound setMethodGrid() {
     this.method = 'grid';
   }
 
-  @action.bound masonry() {
+  @action.bound setMethodMasonry() {
     this.method = 'masonry';
   }
 
-  @action.bound slide() {
+  @action.bound setMethodSlide() {
     this.method = 'slide';
   }
 

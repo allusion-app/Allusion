@@ -11,7 +11,7 @@ import { observer, Observer } from 'mobx-react-lite';
 
 import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
-import UiStore, { ViewMethod } from '../../stores/UiStore';
+import UiStore, { ViewMethod } from '../../UiStore';
 import { ClientFile } from '../../../entities/File';
 import IconSet from '../../components/Icons';
 import { throttle } from '../../utils';
@@ -432,8 +432,8 @@ const Gallery = ({
       title = 'No images found';
       action = (
         <ButtonGroup>
-          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
-          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentUntagged} />
+          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
+          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewUntaggedContent} />
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
         </ButtonGroup>
       );
@@ -443,7 +443,7 @@ const Gallery = ({
       title = 'No untagged images';
       action = (
         <ButtonGroup>
-          <Button text="All Images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
+          <Button text="All Images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary"/>
         </ButtonGroup>
       );

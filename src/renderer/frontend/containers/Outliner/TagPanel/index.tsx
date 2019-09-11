@@ -32,7 +32,7 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
                 <Icon intent="primary" icon={IconSet.PREVIEW} />
               ) : null
             }
-            onClick={uiStore.viewContentAll}
+            onClick={uiStore.viewAllContent}
             active={uiStore.view.content === 'all'}
             fill
           />
@@ -46,7 +46,7 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
                 <Icon icon={IconSet.WARNING} />
               ) : null
             }
-            onClick={uiStore.viewContentUntagged}
+            onClick={uiStore.viewUntaggedContent}
             active={uiStore.view.content === 'untagged'}
             fill
           />

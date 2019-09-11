@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
-import { configure } from 'mobx';
 
 import ContentView from './containers/ContentView';
 import Outliner from './containers/Outliner';
@@ -13,8 +12,6 @@ import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 import ImageViewer from './components/ImageViewer';
 import { DragLayer } from './containers/Outliner/TagPanel';
-
-configure({ enforceActions: 'observed' });
 
 const SPLASH_SCREEN_TIME = 700;
 
