@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { useDrop } from 'react-dnd';
@@ -10,6 +10,7 @@ import IconSet from './Icons';
 import { SingleFileInfo } from './FileInfo';
 import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import { ItemType } from './DragAndDrop';
+import { getClassForBackground } from '../utils';
 
 interface IGalleryItemTagProps {
   tag: ClientTag;
@@ -17,10 +18,14 @@ interface IGalleryItemTagProps {
 }
 
 const GalleryItemTag = observer(({ tag }: IGalleryItemTagProps) => {
+  const colClass = useMemo(
+    () => tag.color ? getClassForBackground(tag.color) : 'color-white',
+    [tag.color],
+  );
   // const handleRemove = useCallback(() => onRemove(tag), []);
   return (
     <Tag intent="primary" style={{ backgroundColor: tag.viewColor }}>
-      <span>{tag.name}</span>
+      <span className={colClass}>{tag.name}</span>
     </Tag>
   );
 });
@@ -91,7 +96,7 @@ export const GalleryItem = observer(({
     {showInfo && <SingleFileInfo file={file} />}
 
     {showTags && (
-      <span className="thumbnailTags">
+      <span className="thumbnailTags" onClick={handleClickImg}>
         {file.clientTags.map((tag) => (
           <GalleryItemTag
             key={`gal-tag-${file.id}-${tag.id}`}

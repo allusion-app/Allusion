@@ -235,11 +235,17 @@
   }
   &.droppable .thumbnailTags {
     display: block;
+    overflow-y: hidden;
   }
-  // An option :) would be nice for this
-  // .thumbnailTags {
-  //   display: none;
-  // }
+  .thumbnailTags {
+    transition: 0.4s ease-in-out;
+    max-height: 2.8em;
+  }
+  &:hover .thumbnailTags {
+    max-height: var(--thumbnail-size);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
   // display: flex;
   // span:nth-child(3) {
   //   z-index: -1;
@@ -258,12 +264,6 @@
     object-fit: contain;
     top: 49%;
     left: 50%;
-  }
-  span {
-    display: none;
-  }
-  .thumbnailTags {
-    display: none;
   }
   &.selected img {
     transform: translateX(-50%) translateY(-50%) scale(0.9);

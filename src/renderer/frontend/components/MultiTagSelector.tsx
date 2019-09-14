@@ -7,6 +7,7 @@ import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
+import { getClassForBackground } from '../utils';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 
@@ -108,7 +109,11 @@ const MultiTagSelector = ({
           active={modifiers.active}
           icon={selectedTags.includes(tag) ? 'tick' : 'blank'}
           labelElement={tag.viewColor
-            ? <Icon icon={IconSet.COLOR} color={tag.viewColor} />
+            // Todo: Paint bucket icon feels a bit too intrusive
+            // ? <span style={{ color: tag.viewColor }}>
+            //     <Icon icon={IconSet.COLOR} />
+            //   </span>
+            ? <Icon icon="full-circle" color={tag.viewColor} />
             : undefined}
           key={tag.id}
           label={tag.description ? tag.description.toString() : ''}
@@ -121,7 +126,21 @@ const MultiTagSelector = ({
     [selectedTags],
   );
 
-  const TagLabel = (tag: ClientTag) => (tagLabel ? tagLabel(tag) : tag.name);
+  const TagLabel = (tag: ClientTag) => {
+    const colClass = useMemo(
+      () => tag.color ? getClassForBackground(tag.color) : 'color-white',
+      [tag.color],
+    );
+    const text = useMemo(
+      () => tagLabel ? tagLabel(tag) : tag.name,
+      [tagLabel, tag.name],
+    );
+    return (
+      <span className={colClass}>
+        {text}
+      </span>
+    );
+  }
 
   // Only used for visualization in the selector, an actual ClientTag is created onSelect
   const createNewTag = useCallback(
