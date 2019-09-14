@@ -49,7 +49,6 @@ nav {
 // }
 
 ///////////////////////////////// Import /////////////////////////////////
-
 #import,
 #search-form,
 .gallery,
@@ -86,6 +85,10 @@ nav {
   button.bp3-intent-primary {
     background: $light-gray0-trans;
   }
+}
+.bp3-overlay .bp3-button:not([class*="bp3-intent-"]):not(.bp3-dialog-close-button){
+  background: $light-gray1-trans;
+    color: $light-gray2;
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
