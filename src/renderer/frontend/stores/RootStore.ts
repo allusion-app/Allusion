@@ -4,6 +4,7 @@ import TagStore from './TagStore';
 import UiStore from './UiStore';
 import TagCollectionStore from './TagCollectionStore';
 import { ipcRenderer } from 'electron';
+import WatchedDirectoryStore from './WatchedDirectoryStore';
 
 // import { configure } from 'mobx';
 
@@ -28,6 +29,7 @@ class RootStore {
   public tagStore: TagStore;
   public tagCollectionStore: TagCollectionStore;
   public fileStore: FileStore;
+  public watchedDirectoryStore: WatchedDirectoryStore;
   public uiStore: UiStore;
 
   constructor(backend: Backend) {
@@ -35,9 +37,12 @@ class RootStore {
     this.tagStore = new TagStore(backend, this);
     this.tagCollectionStore = new TagCollectionStore(backend, this);
     this.fileStore = new FileStore(backend, this);
+    this.watchedDirectoryStore = new WatchedDirectoryStore(backend, this);
     this.uiStore = new UiStore(this);
 
     this.clearDatabase = this.clearDatabase.bind(this);
+
+    this.watchedDirectoryStore.addDirectory({ path: 'C:/Users/Remi/Downloads/VisLibDir', recursive: true });
   }
 
   async init(autoLoadFiles: boolean) {

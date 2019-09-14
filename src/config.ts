@@ -7,3 +7,5 @@ export function isDev() {
 }
 
 export const githubUrl = 'https://github.com/RvanderLaan/VisualLibrary';
+
+export const RECURSIVE_DIR_WATCH_DEPTH = 8;

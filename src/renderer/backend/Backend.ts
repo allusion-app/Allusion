@@ -4,6 +4,7 @@ import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
+import { IWatchedDirectory } from '../entities/WatchedDirectory';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -15,6 +16,7 @@ export default class Backend {
   private fileRepository: DBRepository<IFile>;
   private tagRepository: DBRepository<ITag>;
   private tagCollectionRepository: DBRepository<ITagCollection>;
+  private watchedDirectoryRepository: DBRepository<IWatchedDirectory>;
 
   constructor() {
     // Initialize database tables
@@ -22,6 +24,7 @@ export default class Backend {
     this.fileRepository = new DBRepository('files', db);
     this.tagRepository = new DBRepository('tags', db);
     this.tagCollectionRepository = new DBRepository('tagCollections', db);
+    this.watchedDirectoryRepository = new DBRepository('watchedDirectories', db);
   }
 
   async init() {
@@ -131,6 +134,39 @@ export default class Backend {
   async getNumUntaggedFiles() {
     console.log('Get number of untagged files...');
     return this.fileRepository.count({ queryField: 'tags', query: [] });
+  }
+
+  async getWatchedDirectories(order: keyof IWatchedDirectory, descending: boolean) {
+    console.log('Backend: Getting watched directories...');
+    return this.watchedDirectoryRepository.getAll({ order, descending });
+  }
+
+  async createWatchedDirectory(dir: IWatchedDirectory) {
+    console.log('Backend: Creating watched directory...');
+    return this.watchedDirectoryRepository.create(dir);
+  }
+
+  async saveWatchedDirectory(dir: IWatchedDirectory) {
+    console.log('Backend: Saving watched directory...', dir);
+    return await this.watchedDirectoryRepository.update(dir);
+  }
+
+  async removeWatchedDirectory(dir: IWatchedDirectory) {
+    console.log('Backend: Removing watched directory...');
+    return this.watchedDirectoryRepository.remove(dir);
+  }
+
+  // Creates many files at once, and checks for duplicates in the path they are in
+  async createFilesFromPath(path: string, files: IFile[]) {
+    console.log('Backend: Creating files...', path, files);
+    // Todo: Search for file paths that start with 'path'
+    // const query: IStringSearchCriteria = {
+
+    // }
+    // this.fileRepository.find({ })
+    const existingFilesInPath: IFile[] = [];
+    const newFiles = files.filter((file) => existingFilesInPath.some((f) => f.path === file.path));
+    return this.fileRepository.createMany(newFiles);
   }
 
   async clearDatabase() {

@@ -13,7 +13,7 @@ export const dbConfig: IDBVersioningConfig[] = [
     collections: [
       {
         name: 'files',
-        schema: '++id, *tags, dateAdded, name, extension, size',
+        schema: '++id, *tags, path, dateAdded, name, extension, size',
       },
       {
         name: 'tags',
@@ -22,6 +22,10 @@ export const dbConfig: IDBVersioningConfig[] = [
       {
         name: 'tagCollections',
         schema: '++id',
+      },
+      {
+        name: 'watchedDirectories',
+        schema: '++id, dateAdded',
       },
     ],
   },
