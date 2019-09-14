@@ -47,6 +47,13 @@ if (isPreviewWindow) {
     if (e.code === 'Space' || e.code === 'Escape') {
       rootStore.uiStore.clearFileSelection();
       rootStore.fileStore.clearFileList();
+      rootStore.uiStore.viewMethod = 'slide';
+
+      // remove focus from element so closing preview with spacebar does not trigger any ui elements
+      if (document.activeElement && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
       window.close();
     }
   });

@@ -73,15 +73,15 @@ export const GalleryItem = observer(({
   }, [uiStore.thumbnailDirectory]);
 
   useEffect(() => {
-    if (file.thumbnailPath) {
+    if (imagePath) {
       setImageLoaded(true);
     } else {
       setImageLoaded(false);
     }
-  }, [file.thumbnailPath]);
+  }, [imagePath]);
 
   const handleImageError = useCallback((err: any) => {
-    console.log('Could not load image:', file.thumbnailPath, err);
+    console.log('Could not load image:', imagePath, err);
     setImageError(err);
     setImageLoaded(false);
   }, []);
