@@ -141,25 +141,27 @@ interface ITagCollectionContextMenu {
   onReplaceQuery: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
-  numTagsToDelete: number;
-  numColsToDelete: number;
+  numTagsInContext: number;
+  numColsInContext: number;
+  onChangeColor: (col: ID, color: string) => void;
 }
 
 const TagCollectionListItemContextMenu = ({
   collection, onNewTag, onNewCollection, enableEditing, onExpandAll, onCollapseAll, onRemove,
-  onAddSelectionToQuery, onReplaceQuery, onMoveUp, onMoveDown, numTagsToDelete, numColsToDelete,
+  onAddSelectionToQuery, onReplaceQuery, onMoveUp, onMoveDown, numTagsInContext, numColsInContext,
+  onChangeColor,
 }: ITagCollectionContextMenu) => {
-  const handleSetColor = (col: string) => collection.color = col;
+  const handleSetColor = (col: string) => onChangeColor(collection.id, col);
 
-  let deleteText = formatTagCountText(numTagsToDelete, numColsToDelete);
-  deleteText = deleteText && ` (${deleteText})`;
+  let contextText = formatTagCountText(numTagsInContext, numColsInContext);
+  contextText = contextText && ` (${contextText})`;
   return (
     <Menu>
       <MenuItem onClick={onNewTag} text="New tag" icon={IconSet.TAG_ADD} />
       <MenuItem onClick={onNewCollection} text="New collection" icon={IconSet.TAG_ADD_COLLECTION} />
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} disabled={!onRemove} />
-      <ColorPickerMenu selectedColor={collection.color} onChange={handleSetColor} />
+      <MenuItem onClick={onRemove} text={`Delete${contextText}`} icon={IconSet.DELETE} disabled={!onRemove} />
+      <ColorPickerMenu selectedColor={collection.color} onChange={handleSetColor} contextText={contextText} />
       <Divider />
       <MenuItem onClick={onExpandAll} text="Expand" icon={IconSet.ITEM_EXPAND} />
       <MenuItem onClick={onCollapseAll} text="Collapse" icon={IconSet.ITEM_COLLAPS} />
@@ -250,10 +252,15 @@ ITagCollectionListItemWithContextMenuState
         onReplaceQuery={this.props.onReplaceQuery}
         onMoveUp={this.props.onMoveUp}
         onMoveDown={this.props.onMoveDown}
-        numColsToDelete={Math.max(0, ctx.collections.length - 1)}
-        numTagsToDelete={ctx.tags.length}
+        numColsInContext={Math.max(0, ctx.collections.length - 1)}
+        numTagsInContext={ctx.tags.length}
+        onChangeColor={this.onChangeColor}
       />
     );
+  }
+
+  onChangeColor = (id: ID, color: string) => {
+    this.props.rootStore.uiStore.colorSelectedTagsAndCollections(id, color);
   }
 
   handleRemove = () => {

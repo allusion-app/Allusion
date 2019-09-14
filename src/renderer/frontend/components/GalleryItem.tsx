@@ -19,7 +19,7 @@ interface IGalleryItemTagProps {
 const GalleryItemTag = observer(({ tag }: IGalleryItemTagProps) => {
   // const handleRemove = useCallback(() => onRemove(tag), []);
   return (
-    <Tag interactive intent="primary" style={{ backgroundColor: tag.viewColor }}>
+    <Tag intent="primary" style={{ backgroundColor: tag.viewColor }}>
       <span>{tag.name}</span>
     </Tag>
   );

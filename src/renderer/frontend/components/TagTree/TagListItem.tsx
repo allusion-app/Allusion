@@ -196,7 +196,7 @@ interface IColorOptions {
 }
 
 export const defaultColorOptions: IColorOptions[] = [
-  { label: 'Standard', value: '' },
+  { label: 'Default', value: '' },
   // { label: 'Red', value: '#A82A2A' },
   // { label: 'Green', value: '#0A6640' },
   // { label: 'Orange', value: '#A66321' },
@@ -225,17 +225,13 @@ export const defaultColorOptions: IColorOptions[] = [
 interface IColorPickerMenuProps {
   selectedColor: string;
   onChange: (color: string) => any;
+  contextText: string;
 }
-export const ColorPickerMenu = ({ selectedColor, onChange }: IColorPickerMenuProps) => {
+export const ColorPickerMenu = ({ selectedColor, onChange, contextText }: IColorPickerMenuProps) => {
   return (
     <MenuItem
-      text="Change color"
-      // icon={<Icon icon={selectedColor ? 'full-circle' : 'circle'} color={selectedColor} />}
+      text={`Color${contextText}`}
       icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
-      // style={{color : selectedColor}}
-      // icon={IconSet.COLOR}
-      // color={selectedColor}
-      // style={{ color :  + '!important'}}
     >
       {defaultColorOptions.map(({ label, value }) => (
         <MenuItem
@@ -259,8 +255,9 @@ interface ITagListItemContextMenuProps {
   onRemove: () => void;
   onAddSelectionToQuery: () => void;
   onReplaceQuery: () => void;
-  numTagsToDelete: number;
-  numColsToDelete: number;
+  numTagsInContext: number;
+  numColsInContext: number;
+  onChangeColor: (tag: ID, color: string) => void;
   tag: ClientTag;
 }
 
@@ -269,24 +266,25 @@ export const TagListItemContextMenu = ({
   onRemove,
   onAddSelectionToQuery,
   onReplaceQuery,
-  numTagsToDelete,
-  numColsToDelete,
+  numTagsInContext,
+  numColsInContext,
+  onChangeColor,
   tag,
 }: ITagListItemContextMenuProps) => {
   const handleRename = () => {
     setEditing(true);
   };
 
-  const handleSetColor = (col: string) => tag.color = col;
+  const handleSetColor = (col: string) => onChangeColor(tag.id, col);
 
-  let deleteText = formatTagCountText(numTagsToDelete, numColsToDelete);
-  deleteText = deleteText && ` (${deleteText})`;
+  let contextText = formatTagCountText(numTagsInContext, numColsInContext);
+  contextText = contextText && ` (${contextText})`;
 
   return (
     <Menu>
       <MenuItem onClick={handleRename} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} />
-      <ColorPickerMenu selectedColor={tag.color} onChange={handleSetColor}/>
+      <MenuItem onClick={onRemove} text={`Delete${contextText}`} icon={IconSet.DELETE} />
+      <ColorPickerMenu selectedColor={tag.color} onChange={handleSetColor} contextText={contextText} />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to search query" icon={IconSet.SEARCH} />
       <MenuItem onClick={onReplaceQuery} text="Replace search query" icon={IconSet.REPLACE} />
@@ -347,10 +345,15 @@ ITagListItemProps & IRootStoreProp,
       <TagListItemContextMenu
         {...this.props}
         setEditing={this.setEditing}
-        numColsToDelete={ctx.collections.length}
-        numTagsToDelete={Math.max(0, ctx.tags.length - 1)}
+        numColsInContext={ctx.collections.length}
+        numTagsInContext={Math.max(0, ctx.tags.length - 1)}
+        onChangeColor={this.onChangeColor}
       />
     );
+  }
+
+  onChangeColor = (id: ID, color: string) => {
+    this.props.rootStore.uiStore.colorSelectedTagsAndCollections(id, color);
   }
 
   onContextMenuClose = () => {
