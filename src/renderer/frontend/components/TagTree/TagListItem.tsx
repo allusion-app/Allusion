@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { useDrag, useDrop } from 'react-dnd';
 import {
@@ -11,6 +11,8 @@ import {
   Divider,
   Icon,
 } from '@blueprintjs/core';
+
+import { SketchPicker, ColorResult } from 'react-color';
 
 import { ID } from '../../../entities/ID';
 import IconSet from '../Icons';
@@ -227,7 +229,11 @@ interface IColorPickerMenuProps {
   onChange: (color: string) => any;
   contextText: string;
 }
-export const ColorPickerMenu = ({ selectedColor, onChange, contextText }: IColorPickerMenuProps) => {
+const defaultColor = '#007af5';
+export const ColorPickerMenu = observer(({ selectedColor, onChange, contextText }: IColorPickerMenuProps) => {
+  const handlePickCustomColor = useCallback((res: ColorResult) => {
+    onChange(res.hex);
+  }, [onChange]);
   return (
     <MenuItem
       text={`Color${contextText}`}
@@ -241,14 +247,23 @@ export const ColorPickerMenu = ({ selectedColor, onChange, contextText }: IColor
           icon={
             <Icon
               icon={selectedColor === value ? 'tick-circle' : (value ? 'full-circle' : 'circle')}
-              color={value || '#007af5'}
+              color={value || defaultColor}
             />
           }
         />
       ))}
+        <MenuItem
+          text="Custom"
+          icon={IconSet.COLOR}
+        >
+          <SketchPicker
+            color={selectedColor || defaultColor}
+            onChangeComplete={handlePickCustomColor}
+          />
+        </MenuItem>
     </MenuItem>
   );
-};
+});
 
 interface ITagListItemContextMenuProps {
   setEditing: (value: boolean) => void;
