@@ -246,6 +246,10 @@
     overflow-y: auto;
     overflow-x: hidden;
   }
+  &.droppable .thumbnailTags {
+    max-height: var(--thumbnail-size);
+    overflow: hidden; // can't scroll while dropping
+  }
   // display: flex;
   // span:nth-child(3) {
   //   z-index: -1;

@@ -95,5 +95,10 @@ export function hexToHSL(H: string) {
 
 export function getClassForBackground(backHex: string) {
   const hsl = hexToHSL(backHex);
-  return (hsl[2] >= 50) ? 'color-black' : 'color-white';
+  const [, sat, lum] = hsl;
+
+  return (
+    lum < 50
+    || (lum < 60 && sat > 75)
+  ) ? 'color-white' : 'color-black';
 }

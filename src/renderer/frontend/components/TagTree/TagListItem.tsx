@@ -235,7 +235,6 @@ export const ColorPickerMenu = observer(({ selectedColor, onChange, contextText 
     onChange(res.hex);
   }, [onChange]);
   return (
-    <>
     <MenuItem
       text={`Color${contextText}`}
       icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
@@ -260,25 +259,14 @@ export const ColorPickerMenu = observer(({ selectedColor, onChange, contextText 
         <SketchPicker
           color={selectedColor || defaultColor}
           onChangeComplete={handlePickCustomColor}
-          // presetColors={defaultColorOptions.map((opt) => opt.value)}
           disableAlpha
+          presetColors={defaultColorOptions
+            .filter((opt) => Boolean(opt.value))
+            .map((opt) => opt.value)}
         />
       </MenuItem>
     </MenuItem>
-    <MenuItem
-      text="Color (option 2)"
-      icon={IconSet.COLOR}
-    >
-      <SketchPicker
-        color={selectedColor || defaultColor}
-        onChangeComplete={handlePickCustomColor}
-        presetColors={defaultColorOptions
-          .filter((opt) => Boolean(opt.value))
-          .map((opt) => opt.value)}
-        disableAlpha
-      />
-    </MenuItem>
-    </>
+
   );
 });
 

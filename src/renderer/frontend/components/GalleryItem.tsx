@@ -19,10 +19,9 @@ interface IGalleryItemTagProps {
 
 const GalleryItemTag = observer(({ tag }: IGalleryItemTagProps) => {
   const colClass = useMemo(
-    () => tag.color ? getClassForBackground(tag.color) : 'color-white',
-    [tag.color],
+    () => tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white',
+    [tag.viewColor],
   );
-  // const handleRemove = useCallback(() => onRemove(tag), []);
   return (
     <Tag intent="primary" style={{ backgroundColor: tag.viewColor }}>
       <span className={colClass}>{tag.name}</span>

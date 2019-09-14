@@ -109,11 +109,7 @@ const MultiTagSelector = ({
           active={modifiers.active}
           icon={selectedTags.includes(tag) ? 'tick' : 'blank'}
           labelElement={tag.viewColor
-            // Todo: Paint bucket icon feels a bit too intrusive
-            // ? <span style={{ color: tag.viewColor }}>
-            //     <Icon icon={IconSet.COLOR} />
-            //   </span>
-            ? <Icon icon="full-circle" color={tag.viewColor} />
+            ? <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
             : undefined}
           key={tag.id}
           label={tag.description ? tag.description.toString() : ''}
@@ -127,20 +123,14 @@ const MultiTagSelector = ({
   );
 
   const TagLabel = (tag: ClientTag) => {
-    const colClass = useMemo(
-      () => tag.color ? getClassForBackground(tag.color) : 'color-white',
-      [tag.color],
-    );
-    const text = useMemo(
-      () => tagLabel ? tagLabel(tag) : tag.name,
-      [tagLabel, tag.name],
-    );
+    const colClass = tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white';
+    const text = tagLabel ? tagLabel(tag) : tag.name;
     return (
       <span className={colClass}>
         {text}
       </span>
     );
-  }
+  };
 
   // Only used for visualization in the selector, an actual ClientTag is created onSelect
   const createNewTag = useCallback(

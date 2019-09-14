@@ -385,8 +385,10 @@ main {
 
 .color-black {
   color: black;
+  transition: color 0.2s ease;
 }
 
 .color-white {
   color: white;
+  transition: color 0.2s ease;
 }
