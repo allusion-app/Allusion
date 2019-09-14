@@ -9,4 +9,7 @@ export function isDev() {
 export const githubUrl = 'https://github.com/RvanderLaan/VisualLibrary';
 
 export const thumbnailType = 'webp';
-export const thumbnailMaxSize = 400;
+
+// Use higher thumbnail resolution for HiDPI screens
+// A value of 1 indicates a classic 96 DPI (76 DPI on some platforms) display, while a value of 2 is expected for HiDPI/Retina displays.
+export const thumbnailMaxSize = window.devicePixelRatio >= 1.5 ? 600 : 400;
