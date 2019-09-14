@@ -424,6 +424,18 @@ li .bp3-menu-item {
   max-width: 180px;
 }
 
+// Color picker
+.sketch-picker {
+  width: 200px;
+  padding: 0.3rem 0.3rem 0;
+  box-sizing: initial;
+  background: transparent !important;
+  border-radius: none !important;
+  box-shadow: none !important;
+  .flexbox-fix {
+    padding: .3rem 0 0 .3rem;
+  }
+}
 // Icons
 .bp3-dark .bp3-icon:not(.bp3-icon-small-cross),
 .bp3-dark .bp3-button:not([class*="-primary"]) .bp3-icon,
