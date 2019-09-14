@@ -481,7 +481,7 @@ li .bp3-menu-item {
   border-bottom: 2px solid $blue1;
   border-radius: 0;
   padding-bottom: 3px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s $pt-transition-ease2;
 }
 
 #system-tags {
@@ -503,7 +503,7 @@ li .bp3-menu-item {
     padding-left: 8px;
     border-left: 2px solid $blue1;
     // padding-left: 2px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s $pt-transition-ease2;
   }
 
   .bp3-button:not(last-child):hover,
@@ -523,7 +523,7 @@ li .bp3-menu-item {
 
 .bp3-tag-input-values .bp3-button.bp3-minimal:hover:hover {
   padding-bottom: 2px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s $pt-transition-ease2;
 }
 
 .bp3-button:hover .bp3-button-text,
@@ -533,7 +533,7 @@ li .bp3-menu-item {
   line-height: 1.15;
   // padding-top: 2px; {
   // padding-top: 2px;
-  // transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  // transition: all 0.2s $pt-transition-ease2;
 }
 
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button.bp3-intent-primary {
@@ -636,7 +636,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
     // opacity: .85;
     background: $dark-gray5;
     // background: $blue1-unimportant;
-    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.1s $pt-transition-ease2;
   }
 }
 
@@ -658,7 +658,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
     background-color: #252525 !important;
     border-left: 2px solid $blue1;
     padding-left: (($tree-row-height - $tree-icon-spacing) * $i) - 2px !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s $pt-transition-ease2;
     color: white;
   }
 }
@@ -676,11 +676,6 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 .#{$ns}-tree-node-content-0 {
   padding-left: 4px !important;
 }
-
-// Styling to match Allusion Mockups
-$pt-transition-ease: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
-$pt-transition-ease-bounce: cubic-bezier(0.54, 1.12, 0.38, 1.11) !default;
-$pt-transition-duration: 100ms !default;
 
 .#{$ns}-tree-node-caret {
   transition: transform ($pt-transition-duration * 1.5) $pt-transition-ease;

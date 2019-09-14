@@ -6,7 +6,7 @@ nav {
   flex-shrink: 0;
   width: 0;
   min-width: 0;
-  transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: min-width 0.2s $pt-transition-ease2;
 
   // Putt 2 buttons at bottom
   // display: flex;
@@ -21,7 +21,7 @@ nav {
       border-radius: 0;
       margin-bottom: 1px;
       border-bottom: 1px solid #ffffff00;
-      transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: 0.2s $pt-transition-ease2;
     }
   }
 
