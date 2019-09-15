@@ -71,8 +71,8 @@ nav {
 
   button.bp3-fill,
   // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]) {
-    background: $light-gray1-trans !important;
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]) {
+    background: $light-gray1-trans;
     color: $light-gray2;
   }
 
@@ -109,6 +109,9 @@ nav {
       background-color: $dark-gray3;
       color: $light-gray5;
     }
+  }
+  .bp3-input button:hover {
+    background-color: transparent !important;
   }
   .add-remove {
     button {

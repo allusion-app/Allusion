@@ -49,7 +49,8 @@
 .bp3-dark .bp3-tree-node-content:hover,
 .bp3-dark button:hover:not(.bp3-minimal):not(.bp3-tag-remove),
 .bp3-dark .bp3-button:hover:not(.bp3-dialog-close-button) {
-  background-color: $dark-gray3;
+  // background-color: $dark-gray3;
+  background-color: $dark-gray5;
 }
 
 // Input field
@@ -197,7 +198,7 @@ form .bp3-icon {
   .bp3-tag-input.bp3-dark.bp3-active,
   .bp3-input:focus {
     // box-shadow: none;
-    box-shadow: 0 0 0 1.5px $blue1;
+    box-shadow: 0 0 0 1.1px $blue1;
     background-color: #13131335 !important;
     .bp3-input-ghost::placeholder {
       color: $light-gray4;
@@ -218,6 +219,13 @@ form .bp3-icon {
 
 button:has(.bp3-intent-primary) {
   background: $blue1;
+}
+
+.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
+:not(.bp3-input):not(.bp3-tag) > .bp3-button:hover > .custom-icon {
+// :not(.bp3-input):not(.bp3-tag) > .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled):not(.bp3-dialog-close-button) .bp3-icon:hover {
+  background: transparent;
+  color: white !important;
 }
 
 button:has(.bp3-intent-danger) {
@@ -527,6 +535,10 @@ li .bp3-menu-item {
   max-width: 180px;
 }
 
+.bp3-hotkey-column {
+  padding: 1rem;
+}
+
 // Icons
 .bp3-dark .bp3-icon:not(.bp3-icon-small-cross),
 .bp3-dark .bp3-button:not([class*="-primary"]) .bp3-icon,
@@ -543,9 +555,9 @@ li .bp3-menu-item {
   color: white;
 }
 
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
-.bp3-button:hover > .custom-icon,
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
+.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled) {
+// .bp3-button:hover > .custom-icon,
+// .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
   background: transparent;
   color: white !important;
 }
