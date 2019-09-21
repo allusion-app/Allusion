@@ -11,6 +11,7 @@ import {
   InputGroup,
   Button,
   H4,
+  Icon,
 } from '@blueprintjs/core';
 import { IRootStoreProp } from '../../../contexts/StoreContext';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../../entities/TagCollection';
@@ -29,6 +30,7 @@ import {
 import { ClientTag } from '../../../../entities/Tag';
 import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';
+import { SketchPicker, ColorResult } from 'react-color';
 
 const DEFAULT_TAG_NAME = 'New Tag';
 const DEFAULT_COLLECTION_NAME = 'New Collection';
@@ -140,6 +142,7 @@ const TreeListItemEditor = ({
 
 //// Add context menu /////
 interface ITagCollectionContextMenu {
+  collection: ClientTagCollection;
   onNewTag: () => void;
   onNewCollection: () => void;
   enableEditing: () => void;
@@ -150,11 +153,13 @@ interface ITagCollectionContextMenu {
   onReplaceQuery: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
-  numTagsToDelete: number;
-  numColsToDelete: number;
+  numTagsInContext: number;
+  numColsInContext: number;
+  onChangeColor: (col: ID, color: string) => void;
 }
 
 const TagCollectionContextMenu = ({
+  collection,
   onNewTag,
   onNewCollection,
   enableEditing,
@@ -165,11 +170,13 @@ const TagCollectionContextMenu = ({
   onReplaceQuery,
   onMoveUp,
   onMoveDown,
-  numTagsToDelete,
-  numColsToDelete,
+  numTagsInContext,
+  numColsInContext,
+  onChangeColor,
 }: ITagCollectionContextMenu) => {
-  let deleteText = formatTagCountText(numTagsToDelete, numColsToDelete);
-  deleteText = deleteText && ` (${deleteText})`;
+  let contextText = formatTagCountText(numTagsInContext, numColsInContext);
+  contextText = contextText && ` (${contextText})`;
+  const handleSetColor = (col: string) => onChangeColor(collection.id, col);
   return (
     <Menu>
       <MenuItem onClick={onNewTag} text="New Tag" icon={IconSet.TAG_ADD} />
@@ -177,10 +184,11 @@ const TagCollectionContextMenu = ({
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
       <MenuItem
         onClick={onRemove}
-        text={`Delete${deleteText}`}
+        text={`Delete${contextText}`}
         icon={IconSet.DELETE}
         disabled={!onRemove}
       />
+      <ColorPickerMenu selectedColor={collection.color} onChange={handleSetColor} contextText={contextText} />
       <Divider />
       <MenuItem onClick={onExpandAll} text="Expand" icon={IconSet.ITEM_EXPAND} />
       <MenuItem onClick={onCollapseAll} text="Collapse" icon={IconSet.ITEM_COLLAPS} />
@@ -194,42 +202,109 @@ const TagCollectionContextMenu = ({
 };
 
 interface ITagContextMenuProps {
+  tag: ClientTag;
   enableEditing: () => void;
   onRemove: () => void;
   onAddSelectionToQuery: () => void;
   onReplaceQuery: () => void;
-  numTagsToDelete: number;
-  numColsToDelete: number;
+  onChangeColor: (col: ID, color: string) => void;
+  numTagsInContext: number;
+  numColsInContext: number;
 }
 
 const TagContextMenu = ({
+  tag,
   enableEditing,
   onRemove,
   onAddSelectionToQuery,
   onReplaceQuery,
-  numTagsToDelete,
-  numColsToDelete,
+  onChangeColor,
+  numTagsInContext,
+  numColsInContext,
 }: ITagContextMenuProps) => {
-  const handleChangeColor = () => {
-    // Todo: Change color. Would be nice to have some presets and a custom option (hex code and/or color wheel)
-    console.log('Change color');
-    alert('Not implemented yet');
-  };
+  const handleSetColor = (col: string) => onChangeColor(tag.id, col);
 
-  let deleteText = formatTagCountText(numTagsToDelete, numColsToDelete);
-  deleteText = deleteText && ` (${deleteText})`;
+  let contextText = formatTagCountText(numTagsInContext, numColsInContext);
+  contextText = contextText && ` (${contextText})`;
 
   return (
     <Menu>
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={onRemove} text={`Delete${deleteText}`} icon={IconSet.DELETE} />
-      <MenuItem onClick={handleChangeColor} text="Change color" icon="circle" disabled />
+      <MenuItem onClick={onRemove} text={`Delete${contextText}`} icon={IconSet.DELETE} />
+      <ColorPickerMenu selectedColor={tag.color} onChange={handleSetColor} contextText={contextText} />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to Search Query" icon={IconSet.SEARCH} />
       <MenuItem onClick={onReplaceQuery} text="Replace Search Query" icon={IconSet.REPLACE} />
     </Menu>
   );
 };
+
+interface IColorOptions {
+  label: string;
+  value: string;
+}
+
+export const defaultColorOptions: IColorOptions[] = [
+  { label: 'Default', value: '' },
+  { label: 'Eminence', value: '#5f3292' },
+  { label: 'Indigo', value: '#5642A6' },
+  { label: 'Blue Ribbon', value: '#143ef1' },
+  { label: 'Azure Radiance', value: '#147df1' },
+  { label: 'Aquamarine', value: '#6cdfe3' },
+  { label: 'Aero Blue', value: '#bdfce4' },
+  { label: 'Golden Fizz', value: '#f7ea3a' },
+  { label: 'Goldenrod', value: '#fcd870' },
+  { label: 'Christineapprox', value: '#f36a0f' },
+  { label: 'Crimson', value: '#ec1335' },
+  { label: 'Razzmatazz', value: '#ec125f' },
+];
+
+interface IColorPickerMenuProps {
+  selectedColor: string;
+  onChange: (color: string) => any;
+  contextText: string;
+}
+
+export const ColorPickerMenu = observer(({ selectedColor, onChange, contextText }: IColorPickerMenuProps) => {
+  const defaultColor = '#007af5';
+  const handlePickCustomColor = useCallback((res: ColorResult) => {
+    onChange(res.hex);
+  }, [onChange]);
+  return (
+    <MenuItem
+      text={`Color${contextText}`}
+      icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
+    >
+      {defaultColorOptions.map(({ label, value }) => (
+        <MenuItem
+          key={label}
+          text={label}
+          onClick={() => onChange(value)}
+          icon={
+            <Icon
+              icon={selectedColor === value ? 'tick-circle' : (value ? 'full-circle' : 'circle')}
+              color={value || defaultColor}
+            />
+          }
+        />
+      ))}
+      <MenuItem
+        text="Custom"
+        icon={IconSet.COLOR}
+      >
+        <SketchPicker
+          color={selectedColor || defaultColor}
+          onChangeComplete={handlePickCustomColor}
+          disableAlpha
+          presetColors={defaultColorOptions
+            .filter((opt) => Boolean(opt.value))
+            .map((opt) => opt.value)}
+        />
+      </MenuItem>
+    </MenuItem>
+
+  );
+});
 
 const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   const { uiStore, tagCollectionStore, tagStore } = rootStore;
@@ -351,6 +426,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
 
         return (
           <TagCollectionContextMenu
+            collection={col}
             onNewTag={() =>
               tagStore
                 .addTag(DEFAULT_TAG_NAME)
@@ -386,8 +462,9 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
             }
             onMoveUp={() => movePosition((n) => n - 1)}
             onMoveDown={() => movePosition((n) => n + 1)}
-            numTagsToDelete={Math.max(0, contextItems.collections.length - 1)}
-            numColsToDelete={contextItems.tags.length}
+            numTagsInContext={Math.max(0, contextItems.collections.length - 1)}
+            numColsInContext={contextItems.tags.length}
+            onChangeColor={(_, color) => uiStore.colorSelectedTagsAndCollections(col.id, color)}
           />
         );
       };
@@ -415,6 +492,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
             const contextItems = uiStore.getTagContextItems(tag.id);
             return (
               <TagContextMenu
+                tag={tag}
                 enableEditing={() => setEditNode({ id: tag.id, kind: DragAndDropType.Tag })}
                 onRemove={() =>
                   uiStore.openOutlinerTagRemover(tag.isSelected ? 'selected' : tag.id)
@@ -425,8 +503,9 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
                 onReplaceQuery={() =>
                   uiStore.replaceQuery(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
                 }
-                numTagsToDelete={Math.max(0, contextItems.tags.length - 1)}
-                numColsToDelete={contextItems.collections.length}
+                numColsInContext={contextItems.collections.length}
+                numTagsInContext={Math.max(0, contextItems.tags.length - 1)}
+                onChangeColor={(_, color) => uiStore.colorSelectedTagsAndCollections(tag.id, color)}
               />
             );
           };

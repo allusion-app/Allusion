@@ -151,6 +151,10 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     this.name = name;
   }
 
+  @action setColor(color: string) {
+    this.color = color;
+  }
+
   @action removeTag(tag: ClientTag | ID) {
     this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
   }

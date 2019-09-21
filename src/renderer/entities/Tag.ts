@@ -95,6 +95,10 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
     this.name = name;
   }
 
+  @action setColor(color: string) {
+    this.color = color;
+  }
+
   async delete() {
     return this.store.removeTag(this);
   }

@@ -386,8 +386,8 @@ class UiStore {
 
   @action.bound async colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
     const ctx = this.getTagContextItems(activeElementId);
-    ctx.collections.forEach((col) => col.color = color);
-    ctx.tags.forEach((tag) => tag.color = color);
+    ctx.collections.forEach((col) => col.setColor(color));
+    ctx.tags.forEach((tag) => tag.setColor(color));
   }
 
   /**
