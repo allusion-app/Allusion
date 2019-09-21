@@ -36,7 +36,7 @@ const Settings = observer(() => {
 
     // Move thumbnail files
     await moveThumbnailDir(oldDir, newDir);
-    uiStore.thumbnailDirectory = newDir;
+    uiStore.setThumbnailDirectory(newDir);
 
     // Reset thumbnail paths for those that already have one
     fileStore.fileList.forEach((f) => {

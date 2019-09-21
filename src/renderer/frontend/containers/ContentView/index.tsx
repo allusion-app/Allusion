@@ -7,7 +7,7 @@ import StoreContext, { IRootStoreProp, withRootstore } from '../../contexts/Stor
 import Gallery from './Gallery';
 import IconSet from '../../components/Icons';
 import { ClientTag } from '../../../entities/Tag';
-import { IArraySearchCriteria } from '../../../entities/SearchCriteria';
+import { ClientArraySearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { KeyLabelMap } from '../Outliner/SearchForm';
@@ -15,23 +15,20 @@ import { KeyLabelMap } from '../Outliner/SearchForm';
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
 
-  const tagCrit = uiStore.searchCriteriaList[0] as IArraySearchCriteria<IFile>;
+  const tagCrit = uiStore.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>;
 
   const queriedTags = useMemo(
     () => tagCrit.value.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),
     [tagCrit.value.length]);
 
   const handleSelectTag = useCallback((tag: ClientTag) => {
-    tagCrit.value.push(tag.id);
+    tagCrit.addID(tag.id);
     uiStore.searchByQuery();
   }, []);
 
   const handleDeselectTag = useCallback((tag: ClientTag) => {
-    const index = tagCrit.value.indexOf(tag.id);
-    if (index >= 0) {
-      tagCrit.value.splice(index, 1);
-      uiStore.searchByQuery();
-    }
+    tagCrit.removeID(tag.id);
+    uiStore.searchByQuery();
   }, []);
 
   const handleClearTags = useCallback(() => {
@@ -65,9 +62,8 @@ const QuickSearchList = observer(() => {
 const CriteriaList = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
-  // const ClearButton = useMemo(() => <Button onClick={uiStore.clearSearchQueryList} icon="cross" />, []);
   const handleRemove = useCallback((_: string, index: number) =>
-    uiStore.removeSearchQuery(uiStore.searchCriteriaList[index]), []);
+    uiStore.removeSearchCriteria(uiStore.searchCriteriaList[index]), []);
 
   const preventTyping = useCallback((e: React.KeyboardEvent<HTMLElement>, i?: number) => {
     // If it's not an event on an existing Tag element, ignore it
@@ -115,10 +111,10 @@ const SearchBar = observer(() => {
 
 const ContentView = observer(({ rootStore: { uiStore } }: IRootStoreProp) => {
   return (
-    <>
+    <div className="gallery">
       <SearchBar />
       <Gallery />
-    </>
+    </div>
   );
 });
 
@@ -126,7 +122,7 @@ const ContentView = observer(({ rootStore: { uiStore } }: IRootStoreProp) => {
 class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
     return (
-      <main tabIndex={1} className="gallery">
+      <main tabIndex={1}>
         <ContentView {...this.props} />
       </main>
     );

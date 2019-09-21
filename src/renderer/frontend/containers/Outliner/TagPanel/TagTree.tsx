@@ -451,12 +451,12 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
             onCollapseAll={() => setExpandState({ ...collapseSubCollection(col) })}
             onRemove={() => uiStore.openOutlinerTagRemover(col.isSelected ? 'selected' : col.id)}
             onAddSelectionToQuery={() =>
-              uiStore.addTagsToQuery(
+              uiStore.addTagsToCriteria(
                 col.isSelected ? uiStore.tagSelection.toJS() : col.getTagsRecursively(),
               )
             }
             onReplaceQuery={() =>
-              uiStore.replaceQuery(
+              uiStore.replaceCriteriaWithTags(
                 col.isSelected ? uiStore.tagSelection.toJS() : col.getTagsRecursively(),
               )
             }
@@ -498,10 +498,10 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
                   uiStore.openOutlinerTagRemover(tag.isSelected ? 'selected' : tag.id)
                 }
                 onAddSelectionToQuery={() =>
-                  uiStore.addTagsToQuery(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
+                  uiStore.addTagsToCriteria(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
                 }
                 onReplaceQuery={() =>
-                  uiStore.replaceQuery(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
+                  uiStore.replaceCriteriaWithTags(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
                 }
                 numColsInContext={contextItems.collections.length}
                 numTagsInContext={Math.max(0, contextItems.tags.length - 1)}

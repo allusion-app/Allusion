@@ -9,10 +9,10 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import View from './View';
-import { IArraySearchCriteria, SearchCriteria } from '../../entities/SearchCriteria';
+import { IArraySearchCriteria, ClientBaseCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
 
 export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
-export type FileSearchCriteria = SearchCriteria<IFile>;
+export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 interface IHotkeyMap {
@@ -224,6 +224,10 @@ class UiStore {
 
   @action.bound setImageViewer(file: ClientFile | null) {
     this.imageViewerFile = file;
+  }
+
+  @action.bound setThumbnailDirectory(dir: string) {
+    this.thumbnailDirectory = dir;
   }
 
   @action.bound orderFilesBy(prop: keyof IFile) {
@@ -444,7 +448,7 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
-  @action.bound async clearSearchQueryList() {
+  @action.bound async clearSearchCriteriaList() {
     this.searchCriteriaList.clear();
     this.viewAllContent();
   }
@@ -455,21 +459,21 @@ class UiStore {
     this.view.setContentQuery();
   }
 
-  @action.bound async addSearchQuery(query: Exclude<FileSearchCriteria, 'key'>) {
+  @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
     this.searchCriteriaList.push(query);
     this.view.setContentQuery();
   }
 
-  @action.bound async removeSearchQuery(query: FileSearchCriteria) {
+  @action.bound async removeSearchCriteria(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
   }
 
-  @action.bound async removeSearchQueryByIndex(i: number) {
+  @action.bound async removeSearchCriteriaByIndex(i: number) {
     this.searchCriteriaList.splice(i, 1);
   }
 
-  @action.bound addTagsToQuery(ids: ID[]) {
-    this.addSearchQuery({
+  @action.bound addTagsToCriteria(ids: ID[]) {
+    this.addSearchCriteria({
       key: 'tags',
       valueType: 'array',
       operator: 'contains',
@@ -477,16 +481,23 @@ class UiStore {
     } as IArraySearchCriteria<IFile>);
   }
 
-  @action.bound replaceQuery(ids: ID[]) {
+  @action.bound replaceCriteriaWithTags(ids: ID[]) {
     this.searchCriteriaList.clear();
-    this.addTagsToQuery(ids);
+    this.addTagsToCriteria(ids);
     this.isQuickSearchOpen = true;
   }
 
-  @action.bound replaceQueryWithSelection() {
-    this.replaceQuery(this.tagSelection.toJS());
+  @action.bound replaceCriteriaWithTagSelection() {
+    this.replaceCriteriaWithTags(this.tagSelection.toJS());
     this.searchByQuery();
     this.isQuickSearchOpen = true;
+  }
+
+  @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
+    const index = this.searchCriteriaList.indexOf(oldCrit);
+    if (index !== -1) {
+      this.searchCriteriaList[index] = crit;
+    }
   }
 
   /////////////////// UI Actions ///////////////////
@@ -527,11 +538,10 @@ class UiStore {
     this.isQuickSearchOpen = !this.isQuickSearchOpen;
     if (this.isQuickSearchOpen) {
       if (this.searchCriteriaList.length === 0) {
-        this.searchCriteriaList.push(
-          { key: 'tags', operator: 'contains', valueType: 'array', value: [] });
+        this.searchCriteriaList.push(new ClientArraySearchCriteria('tags'));
       }
     } else {
-      this.clearSearchQueryList();
+      this.clearSearchCriteriaList();
     }
   }
   @action.bound toggleAdvancedSearch() {
@@ -570,7 +580,7 @@ class UiStore {
 
     // Set default thumbnail directory in case none was specified
     if (!this.thumbnailDirectory) {
-      this.thumbnailDirectory = path.join(remote.app.getPath('userData'), 'thumbnails');
+      this.setThumbnailDirectory(path.join(remote.app.getPath('userData'), 'thumbnails'));
       fse.ensureDirSync(this.thumbnailDirectory);
     }
   }

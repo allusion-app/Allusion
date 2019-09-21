@@ -222,14 +222,14 @@ const Toolbar = observer(() => {
           <Button
             icon={IconSet.ADD}
             onClick={handleOlImport}
-            intent={olPage === 'IMPORT' ? 'primary' : 'none'}
+            intent={olPage === 'IMPORT' && uiStore.isOutlinerOpen ? 'primary' : 'none'}
             className="tooltip"
             data-right={Tooltip.Add}
           />
           <Button
             icon={IconSet.TAG}
             onClick={handleOlTags}
-            intent={olPage === 'TAGS' ? 'primary' : 'none'}
+            intent={olPage === 'TAGS' && uiStore.isOutlinerOpen ? 'primary' : 'none'}
             className="tooltip"
             data-right={Tooltip.Tag}
           />

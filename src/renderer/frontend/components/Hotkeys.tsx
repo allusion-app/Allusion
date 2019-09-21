@@ -61,7 +61,7 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           global={true}
           combo={hotkeyMap.replaceQuery}
           label="Replaces the search query with the selected tags"
-          onKeyDown={uiStore.replaceQueryWithSelection}
+          onKeyDown={uiStore.replaceCriteriaWithTagSelection}
           preventDefault
         />
 
