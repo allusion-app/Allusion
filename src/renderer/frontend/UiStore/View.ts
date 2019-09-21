@@ -5,7 +5,6 @@ import { IFile } from '../../entities/File';
 const PersistentPreferenceFields: Array<keyof View> = [
   'method',
   'content',
-  'firstItem',
   'orderBy',
   'fileOrder',
   'thumbnailSize',
