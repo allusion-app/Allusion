@@ -9,7 +9,12 @@
 
   &.inspectorOpen {
     min-width: var(--inspector-width);
-    width: 18rem;
+    width: 24rem;
+  }
+
+  > * {
+    // Don't squash content of aside during parent transition
+    width: 24rem;
   }
 
   > section {

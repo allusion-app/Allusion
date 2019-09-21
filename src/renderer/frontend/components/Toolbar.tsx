@@ -196,7 +196,7 @@ const Toolbar = () => {
         active={uiStore.viewMethod === 'slide'}
       />
     </Menu>,
-    [uiStore.viewMethod, uiStore.thumbnailSize],
+    [uiStore.viewMethod],
   );
 
   const numFiles = fileStore.fileList.length;
