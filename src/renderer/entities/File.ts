@@ -7,6 +7,9 @@ import FileStore from '../frontend/stores/FileStore';
 import { ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag } from './Tag';
 
+export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'];
+export type IMG_EXTENSIONS_TYPE = 'gif' | 'png' | 'jpg' | 'jpg';
+
 /* Generic properties of a File in our application (usually an image) */
 export interface IFile extends IIdentifiable {
   id: ID;
@@ -78,7 +81,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
     this.id = fileProps.id;
     this.path = fileProps.path;
-    this.dateAdded = fileProps.dateAdded;
+    this.dateAdded = new Date(fileProps.dateAdded);
     this.size = fileProps.size;
     this.name = fileProps.name;
     this.extension = fileProps.extension;

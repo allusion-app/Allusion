@@ -126,13 +126,11 @@ const Toolbar = observer(() => {
       uiStore.openOutlinerImport();
     } else if (page === 'TAGS') {
       uiStore.openOutlinerTags();
-    } else if (page === 'SEARCH') {
-      uiStore.openOutlinerSearch();
     }
   }, []);
   const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), []);
   const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), []);
-  const handleOlSearch = useCallback(() => handleChooseOutlinerPage('SEARCH'), []);
+  const handleOlSearch = uiStore.toggleQuickSearch;
 
   // Content actions
   const isFileListSelected =
@@ -238,7 +236,7 @@ const Toolbar = observer(() => {
           <Button
             icon={IconSet.SEARCH}
             onClick={handleOlSearch}
-            intent={olPage === 'SEARCH' ? 'primary' : 'none'}
+            intent={uiStore.isQuickSearchOpen ? 'primary' : 'none'}
             className="tooltip"
             data-right={Tooltip.Search}
           />

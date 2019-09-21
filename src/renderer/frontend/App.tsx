@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
+import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
 import ImageViewer from './components/ImageViewer';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { DragLayer } from './containers/Outliner/TagPanel';
@@ -58,6 +59,8 @@ const App = observer(() => {
           <Inspector />
 
           <Settings />
+
+          <AdvancedSearchDialog />
 
           <DragLayer />
         </GlobalHotkeys>

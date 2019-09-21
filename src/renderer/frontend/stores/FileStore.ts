@@ -5,9 +5,9 @@ import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { ITagSearchQuery } from '../UiStore';
-import { ClientTag } from '../../entities/Tag';
+import { SearchCriteria } from '../../entities/SearchCriteria';
 import { getThumbnailPath } from '../utils';
+import { ClientTag } from '../../entities/Tag';
 
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
@@ -77,26 +77,37 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
-      const { orderBy, fileOrder } = this.rootStore.uiStore.view;
-      const fetchedFiles = await this.backend.searchFiles([], orderBy, fileOrder);
+      const { fileOrder, orderBy } = this.rootStore.uiStore.view;
+      const criteria: SearchCriteria<IFile> = { key: 'tags', value: [], operator: 'contains', valueType: 'array' };
+      const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
     }
   }
 
-  @action.bound async fetchFilesByQuery() {
-    // Todo: properly implement this later
-    await this.fetchFilesByTagIDs(
-      this.rootStore.uiStore.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
-    );
+  @action.bound
+  async fetchFilesByQuery() {
+    const criteria = this.rootStore.uiStore.searchCriteriaList.slice();
+    if (criteria.length === 0) {
+      return;
+    }
+    const { orderBy, fileOrder } = this.rootStore.uiStore.view;
+    try {
+      const fetchedFiles = await this.backend.searchFiles(
+        criteria as [SearchCriteria<IFile>], orderBy, fileOrder);
+      this.updateFromBackend(fetchedFiles);
+    } catch (e) {
+      console.log('Could not find files based on criteria', e);
+    }
   }
 
   @action.bound async fetchFilesByTagIDs(tags: ID[]) {
     // Query the backend to send back only files with these tags
     try {
       const { orderBy, fileOrder } = this.rootStore.uiStore.view;
-      const fetchedFiles = await this.backend.searchFiles(tags, orderBy, fileOrder);
+      const criteria: SearchCriteria<IFile> = { key: 'tags', value: tags, operator: 'contains', valueType: 'array' };
+      const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on tag search', e);

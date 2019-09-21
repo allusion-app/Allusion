@@ -5,7 +5,6 @@ import { H4 } from '@blueprintjs/core';
 import StoreContext from '../../contexts/StoreContext';
 
 import ImportForm from './ImportForm';
-import SearchForm from './SearchForm';
 import TagPanel from './TagPanel';
 
 const Outliner = () => {
@@ -21,11 +20,6 @@ const Outliner = () => {
       </>)}
 
       {uiStore.outlinerPage === 'TAGS' && (<TagPanel />)}
-
-      {uiStore.outlinerPage === 'SEARCH' && (<>
-        <H4 className="bp3-heading">Search</H4>
-        <SearchForm />
-      </>)}
     </nav>
   );
 };

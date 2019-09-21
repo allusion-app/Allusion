@@ -39,6 +39,9 @@ class View {
   }
 
   @action.bound toggleFileOrder() {
+    // Todo: it is a bit confusing that this same function exists in the main UiStore,
+    // but with different behavior.
+    // I'd move those functions to here and pass a reference to the UiStore in the constructur of View
     this.fileOrder = !this.fileOrder;
   }
 

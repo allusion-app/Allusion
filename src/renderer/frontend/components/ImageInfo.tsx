@@ -3,28 +3,7 @@ import fs from 'fs';
 import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
-
-// const formatDate = (d: Date) =>
-//   `${d.getUTCFullYear()}-${d.getUTCMonth() +
-//     1}-${d.getUTCDate()} ${d.getUTCHours()}:${d.getUTCMinutes()}`;
-
-const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
-  timeZone: 'UTC',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-});
-
-const formatDateTime = (d: Date) => {
-  return DateTimeFormat.formatToParts(d).map(({type, value}) => {
-    if (type === 'literal' && value === ', ') {
-      return ' ';
-    }
-    return value;
-  }).reduce((str, part) => str + part);
-};
+import { formatDateTime } from '../utils';
 
 const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   const isMounted = useRef(false);
@@ -61,6 +40,10 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   const fileInfoList = useMemo(
     () => [
       { key: 'Filename', value: file.name },
+      {
+        key: 'Imported',
+        value: formatDateTime(file.dateAdded),
+      },
       {
         key: 'Created',
         value: fileStats ? formatDateTime(fileStats.birthtime) : '...',

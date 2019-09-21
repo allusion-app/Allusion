@@ -9,15 +9,17 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import View from './View';
+import { IArraySearchCriteria, SearchCriteria } from '../../entities/SearchCriteria';
 
 export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
+export type FileSearchCriteria = SearchCriteria<IFile>;
+export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 interface IHotkeyMap {
   // Outerliner actions
   toggleOutliner: string;
   openOutlinerImport: string;
   openOutlinerTags: string;
-  openOutlinerSearch: string;
   replaceQuery: string;
 
   // Inspector actions
@@ -33,6 +35,9 @@ interface IHotkeyMap {
   viewGrid: string;
   viewMason: string;
   viewSlide: string;
+  quickSearch: string;
+  advancedSearch: string;
+  closeSearch: string;
 
   // Other
   openPreviewWindow: string;
@@ -44,7 +49,6 @@ const defaultHotkeyMap: IHotkeyMap = {
   toggleInspector: '2',
   openOutlinerImport: 'shift + 1',
   openOutlinerTags: 'shift + 2',
-  openOutlinerSearch: 'shift + 3',
   replaceQuery: 'r',
   openTagSelector: 't',
   toggleSettings: 's',
@@ -55,26 +59,11 @@ const defaultHotkeyMap: IHotkeyMap = {
   viewGrid: 'alt + 2',
   viewMason: 'alt + 3',
   viewSlide: 'alt + 4',
+  quickSearch: 'mod + f',
+  advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
+  closeSearch: 'escape',
 };
-
-type SearchQueryAction = 'include' | 'exclude';
-type SearchQueryOperator = 'and' | 'or';
-interface ISearchQuery {
-  action: SearchQueryAction;
-  /** Operator between previous query and this query */
-  operator: SearchQueryOperator;
-}
-
-export interface ITagSearchQuery extends ISearchQuery {
-  value: ID[];
-}
-// interface IFilenameSearchQuery extends ISearchQuery {
-//   value: string;
-// }
-// interface IFilenameSearchQuery extends ISearchQuery {
-//   value: string;
-// }
 
 /**
  * From: https://mobx.js.org/best/store.html
@@ -104,8 +93,6 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'thumbnailDirectory',
 ];
 
-export const PREFERENCES_STORAGE_KEY = 'preferences';
-
 class UiStore {
   rootStore: RootStore;
   // View (Main Content)
@@ -119,7 +106,8 @@ class UiStore {
   // FullScreen
   @observable isFullScreen: boolean = false;
 
-  @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
+  // UI
+  @observable outlinerPage: 'IMPORT' | 'TAGS' = 'TAGS';
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
@@ -127,6 +115,8 @@ class UiStore {
   @observable isToolbarFileRemoverOpen: boolean = false;
   @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
   @observable isPreviewOpen: boolean = false;
+  @observable isQuickSearchOpen: boolean = false;
+  @observable isAdvancedSearchOpen: boolean = false;
   @observable imageViewerFile: ClientFile | null = null;
 
   // Selections
@@ -134,7 +124,7 @@ class UiStore {
   readonly fileSelection = observable<ID>([]);
   readonly tagSelection = observable<ID>([]);
 
-  readonly searchQueryList = observable<ISearchQuery>([]);
+  readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
   @observable thumbnailDirectory: string = '';
 
@@ -153,27 +143,35 @@ class UiStore {
     this.isOutlinerOpen = !this.isOutlinerOpen;
   }
 
+  @action.bound openOutlinerImport() {
+    this.outlinerPage = 'IMPORT';
+    if (this.view.content !== 'untagged') {
+      this.viewUntaggedContent();
+    }
+  }
+  @action.bound openOutlinerTags() {
+    this.outlinerPage = 'TAGS';
+    if (this.view.content !== 'all') {
+      this.viewAllContent();
+    }
+  }
+
+  @action.bound openPreviewWindow() {
+    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
+    this.isPreviewOpen = true;
+
+    // remove focus from element so closing preview with spacebar does not trigger any ui elements
+    if (document.activeElement && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  }
+
   @action.bound toggleInspector() {
     this.isInspectorOpen = !this.isInspectorOpen;
   }
 
   @action.bound toggleSettings() {
     this.isSettingsOpen = !this.isSettingsOpen;
-  }
-
-  @action.bound openOutlinerImport() {
-    this.outlinerPage = 'IMPORT';
-    this.viewUntaggedContent();
-  }
-
-  @action.bound openOutlinerTags() {
-    this.outlinerPage = 'TAGS';
-    this.viewAllContent();
-  }
-
-  @action.bound openOutlinerSearch() {
-    this.outlinerPage = 'SEARCH';
-    this.viewQueryContent();
   }
 
   @action.bound toggleToolbarTagSelector() {
@@ -212,16 +210,6 @@ class UiStore {
     this.isPreviewOpen = false;
   }
 
-  @action.bound openPreviewWindow() {
-    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
-    this.isPreviewOpen = true;
-
-    // remove focus from element so closing preview with spacebar does not trigger any ui elements
-    if (document.activeElement && document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-  }
-
   @computed get clientFileSelection(): ClientFile[] {
     return this.fileSelection
       .map((id) => this.rootStore.fileStore.get(id))
@@ -238,36 +226,24 @@ class UiStore {
     this.imageViewerFile = file;
   }
 
-  recoverPersistentPreferences() {
-    const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-    if (prefsString) {
-      try {
-        const prefs = JSON.parse(prefsString);
-        // @ts-ignore
-        for (const field of PersistentPreferenceFields) {
-          // @ts-ignore
-          this[field] = prefs[field];
-        }
-        this.view.getPreferences(prefs);
-      } catch (e) {
-        console.log('Cannot parse persistent preferences', e);
-      }
-    }
-
-    // Set default thumbnail directory in case none was specified
-    if (!this.thumbnailDirectory) {
-      this.thumbnailDirectory = path.join(remote.app.getPath('userData'), 'thumbnails');
-      fse.ensureDirSync(this.thumbnailDirectory);
-    }
+  @action.bound orderFilesBy(prop: keyof IFile) {
+    this.view.orderFilesBy(prop);
+    this.refetch();
   }
 
-  storePersistentPreferences() {
-    let prefs: any = {};
-    for (const field of PersistentPreferenceFields) {
-      prefs[field] = this[field];
+  @action.bound toggleFileOrder() {
+    this.view.toggleFileOrder();
+    this.refetch();
+  }
+
+  @action.bound refetch() {
+    if (this.view.content === 'all') {
+      this.rootStore.fileStore.fetchAllFiles();
+    } else if (this.view.content === 'untagged') {
+      this.rootStore.fileStore.fetchUntaggedFiles();
+    } else if (this.view.content === 'query') {
+      this.rootStore.fileStore.fetchFilesByQuery();
     }
-    prefs = this.view.setPreferences(prefs);
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
   }
 
   /////////////////// Selection actions ///////////////////
@@ -344,16 +320,6 @@ class UiStore {
 
   @action.bound clearTagSelection() {
     this.tagSelection.clear();
-  }
-
-  @action.bound orderFilesBy(prop: keyof IFile) {
-    this.view.orderFilesBy(prop);
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
-  }
-
-  @action.bound toggleFileOrder() {
-    this.view.toggleFileOrder();
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
   }
 
   @action.bound async removeSelectedTagsAndCollections() {
@@ -479,40 +445,51 @@ class UiStore {
 
   /////////////////// Search Actions ///////////////////
   @action.bound async clearSearchQueryList() {
-    this.searchQueryList.clear();
+    this.searchCriteriaList.clear();
     this.viewAllContent();
   }
 
-  @action.bound async addSearchQuery(query: ISearchQuery) {
-    this.searchQueryList.push(query);
+  @action.bound async searchByQuery() {
     await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
     this.view.setContentQuery();
   }
 
-  @action.bound async removeSearchQuery(query: ISearchQuery) {
-    this.searchQueryList.remove(query);
-    await this.rootStore.fileStore.fetchFilesByQuery();
-    this.cleanFileSelection();
+  @action.bound async addSearchQuery(query: Exclude<FileSearchCriteria, 'key'>) {
+    this.searchCriteriaList.push(query);
+    this.view.setContentQuery();
+  }
+
+  @action.bound async removeSearchQuery(query: FileSearchCriteria) {
+    this.searchCriteriaList.remove(query);
+  }
+
+  @action.bound async removeSearchQueryByIndex(i: number) {
+    this.searchCriteriaList.splice(i, 1);
   }
 
   @action.bound addTagsToQuery(ids: ID[]) {
     this.addSearchQuery({
-      action: 'include',
-      operator: 'or',
+      key: 'tags',
+      valueType: 'array',
+      operator: 'contains',
       value: ids,
-    } as ITagSearchQuery);
+    } as IArraySearchCriteria<IFile>);
   }
 
   @action.bound replaceQuery(ids: ID[]) {
-    this.searchQueryList.clear();
+    this.searchCriteriaList.clear();
     this.addTagsToQuery(ids);
+    this.isQuickSearchOpen = true;
   }
 
   @action.bound replaceQueryWithSelection() {
     this.replaceQuery(this.tagSelection.toJS());
+    this.searchByQuery();
+    this.isQuickSearchOpen = true;
   }
 
+  /////////////////// UI Actions ///////////////////
   @action.bound viewAllContent() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchAllFiles();
@@ -545,6 +522,66 @@ class UiStore {
   @action.bound toggleFullScreen() {
     this.isFullScreen = !this.isFullScreen;
     remote.getCurrentWindow().setFullScreen(this.isFullScreen);
+  }
+  @action.bound toggleQuickSearch() {
+    this.isQuickSearchOpen = !this.isQuickSearchOpen;
+    if (this.isQuickSearchOpen) {
+      if (this.searchCriteriaList.length === 0) {
+        this.searchCriteriaList.push(
+          { key: 'tags', operator: 'contains', valueType: 'array', value: [] });
+      }
+    } else {
+      this.clearSearchQueryList();
+    }
+  }
+  @action.bound toggleAdvancedSearch() {
+    this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
+    if (this.isAdvancedSearchOpen && !this.isQuickSearchOpen) {
+      this.toggleQuickSearch();
+    }
+  }
+  @action.bound closeSearch() {
+    if (this.isQuickSearchOpen) {
+      this.toggleQuickSearch();
+    }
+  }
+  @action.bound openSearch() {
+    if (!this.isQuickSearchOpen) {
+      this.toggleQuickSearch();
+    }
+  }
+
+  // Storing preferences
+  recoverPersistentPreferences() {
+    const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
+    if (prefsString) {
+      try {
+        const prefs = JSON.parse(prefsString);
+        // @ts-ignore
+        for (const field of PersistentPreferenceFields) {
+          // @ts-ignore
+          this[field] = prefs[field];
+        }
+        this.view.getPreferences(prefs);
+      } catch (e) {
+        console.log('Cannot parse persistent preferences', e);
+      }
+    }
+
+    // Set default thumbnail directory in case none was specified
+    if (!this.thumbnailDirectory) {
+      this.thumbnailDirectory = path.join(remote.app.getPath('userData'), 'thumbnails');
+      fse.ensureDirSync(this.thumbnailDirectory);
+    }
+  }
+
+  storePersistentPreferences() {
+    let prefs: any = {};
+    for (const field of PersistentPreferenceFields) {
+      prefs[field] = this[field];
+    }
+    prefs = this.view.setPreferences(prefs);
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
   }
 
   /////////////////// Helper methods ///////////////////

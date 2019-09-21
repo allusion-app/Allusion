@@ -438,7 +438,7 @@ const Gallery = ({
         <ButtonGroup>
           <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
           <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewUntaggedContent} />
-          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
+          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openSearch} intent="primary" />
         </ButtonGroup>
       );
     } else if (uiStore.view.content === 'untagged') {
@@ -448,7 +448,7 @@ const Gallery = ({
       action = (
         <ButtonGroup>
           <Button text="All Images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
-          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary"/>
+          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openSearch} intent="primary"/>
         </ButtonGroup>
       );
     }
