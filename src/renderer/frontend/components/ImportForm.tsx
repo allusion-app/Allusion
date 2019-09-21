@@ -11,6 +11,7 @@ import FileStore from '../stores/FileStore';
 import { ClientTagCollection } from '../../entities/TagCollection';
 import TagStore from '../stores/TagStore';
 import IconSet from './Icons';
+import { IMG_EXTENSIONS } from '../../entities/File';
 
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialog({
@@ -134,8 +135,6 @@ const findFiles = async (dir: string) => {
     return [];
   }
 
-  const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
-
   const filenames = await fse.readdir(dir);
   return filenames.filter((f) => {
     // No 'dot' files (e.g. ".image.jpg" (looking at you, MAC))
@@ -144,7 +143,7 @@ const findFiles = async (dir: string) => {
       return false;
     }
     // Only add image files
-    return imgExtensions.some((ext) => file.endsWith(ext));
+    return IMG_EXTENSIONS.some((ext) => file.endsWith(ext));
   });
 };
 

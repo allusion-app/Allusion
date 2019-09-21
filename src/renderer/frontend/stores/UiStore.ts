@@ -8,13 +8,13 @@ import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import { IArraySearchCriteria, SearchCriteria } from '../../entities/SearchCriteria';
 
 interface IHotkeyMap {
   // Outerliner actions
   toggleOutliner: string;
   openOutlinerImport: string;
   openOutlinerTags: string;
-  openOutlinerSearch: string;
   replaceQuery: string;
 
   // Inspector actions
@@ -30,6 +30,9 @@ interface IHotkeyMap {
   viewGrid: string;
   viewMason: string;
   viewSlide: string;
+  quickSearch: string;
+  advancedSearch: string;
+  closeSearch: string;
 
   // Other
   openPreviewWindow: string;
@@ -41,7 +44,6 @@ const defaultHotkeyMap: IHotkeyMap = {
   toggleInspector: '2',
   openOutlinerImport: 'shift + 1',
   openOutlinerTags: 'shift + 2',
-  openOutlinerSearch: 'shift + 3',
   replaceQuery: 'r',
   openTagSelector: 't',
   toggleSettings: 's',
@@ -52,26 +54,11 @@ const defaultHotkeyMap: IHotkeyMap = {
   viewGrid: 'alt + 2',
   viewMason: 'alt + 3',
   viewSlide: 'alt + 4',
+  quickSearch: 'mod + f',
+  advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
+  closeSearch: 'escape',
 };
-
-type SearchQueryAction = 'include' | 'exclude';
-type SearchQueryOperator = 'and' | 'or';
-interface ISearchQuery {
-  action: SearchQueryAction;
-  /** Operator between previous query and this query */
-  operator: SearchQueryOperator;
-}
-
-export interface ITagSearchQuery extends ISearchQuery {
-  value: ID[];
-}
-// interface IFilenameSearchQuery extends ISearchQuery {
-//   value: string;
-// }
-// interface IFilenameSearchQuery extends ISearchQuery {
-//   value: string;
-// }
 
 /**
  * From: https://mobx.js.org/best/store.html
@@ -110,6 +97,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
 const PREFERENCES_STORAGE_KEY = 'preferences';
 
 export type ViewMethod = 'list' | 'grid' | 'mason' | 'slide';
+export type FileSearchCriteria = SearchCriteria<IFile>;
 
 class UiStore {
   rootStore: RootStore;
@@ -123,7 +111,7 @@ class UiStore {
   @observable isFullScreen: boolean = false;
 
   // UI
-  @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
+  @observable outlinerPage: 'IMPORT' | 'TAGS' = 'TAGS';
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
@@ -131,6 +119,8 @@ class UiStore {
   @observable isPreviewOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
   @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
+  @observable isQuickSearchOpen: boolean = false;
+  @observable isAdvancedSearchOpen: boolean = false;
 
   // VIEW
   @observable viewMethod: ViewMethod = 'grid';
@@ -151,7 +141,7 @@ class UiStore {
   readonly fileSelection = observable<ID>([]);
   readonly tagSelection = observable<ID>([]);
 
-  readonly searchQueryList = observable<ISearchQuery>([]);
+  readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
   @observable thumbnailDirectory: string = '';
 
@@ -264,14 +254,24 @@ class UiStore {
     this.tagSelection.clear();
   }
 
+  @action.bound refetch() {
+    if (this.viewContent === 'all') {
+      this.rootStore.fileStore.fetchAllFiles();
+    } else if (this.viewContent === 'untagged') {
+      this.rootStore.fileStore.fetchUntaggedFiles();
+    } else if (this.viewContent === 'query') {
+      this.rootStore.fileStore.fetchFilesByQuery();
+    }
+  }
+
   @action.bound setFileOrder(prop: keyof IFile) {
     this.fileOrder = prop;
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
+    this.refetch();
   }
 
   @action.bound setFileOrderDescending(descending: boolean) {
     this.fileOrderDescending = descending;
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
+    this.refetch();
   }
 
   @action.bound async removeSelectedTagsAndCollections() {
@@ -398,38 +398,44 @@ class UiStore {
 
   /////////////////// Search Actions ///////////////////
   @action.bound async clearSearchQueryList() {
-    this.searchQueryList.clear();
+    this.searchCriteriaList.clear();
     await this.viewContentAll();
   }
 
-  @action.bound async addSearchQuery(query: ISearchQuery) {
-    this.searchQueryList.push(query);
+  @action.bound async searchByQuery() {
     await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
     this.viewContent = 'query';
   }
 
-  @action.bound async removeSearchQuery(query: ISearchQuery) {
-    this.searchQueryList.remove(query);
-    await this.rootStore.fileStore.fetchFilesByQuery();
-    this.cleanFileSelection();
+  @action.bound async addSearchQuery(query: Exclude<FileSearchCriteria, 'key'>) {
+    this.searchCriteriaList.push(query);
+    this.viewContent = 'query';
+  }
+
+  @action.bound async removeSearchQuery(query: FileSearchCriteria) {
+    this.searchCriteriaList.remove(query);
   }
 
   @action.bound addTagsToQuery(ids: ID[]) {
     this.addSearchQuery({
-      action: 'include',
-      operator: 'or',
+      key: 'tags',
+      valueType: 'array',
+      operator: 'contains',
       value: ids,
-    } as ITagSearchQuery);
+    } as IArraySearchCriteria<IFile>);
   }
 
   @action.bound replaceQuery(ids: ID[]) {
-    this.searchQueryList.clear();
+    this.searchCriteriaList.clear();
     this.addTagsToQuery(ids);
+    this.isQuickSearchOpen = true;
   }
 
   @action.bound replaceQueryWithSelection() {
     this.replaceQuery(this.tagSelection.toJS());
+    this.searchByQuery();
+    this.isQuickSearchOpen = true;
   }
 
   /////////////////// UI Actions ///////////////////
@@ -448,10 +454,6 @@ class UiStore {
     if (this.viewContent !== 'all') {
       this.viewContentAll();
     }
-  }
-  @action.bound openOutlinerSearch() {
-    this.outlinerPage = 'SEARCH';
-    this.viewContentQuery();
   }
 
   @action.bound openPreviewWindow() {
@@ -549,6 +551,33 @@ class UiStore {
   @action.bound toggleFullScreen() {
     this.isFullScreen = !this.isFullScreen;
     remote.getCurrentWindow().setFullScreen(this.isFullScreen);
+  }
+  @action.bound toggleQuickSearch() {
+    this.isQuickSearchOpen = !this.isQuickSearchOpen;
+    if (this.isQuickSearchOpen) {
+      if (this.searchCriteriaList.length === 0) {
+        this.searchCriteriaList.push(
+          { key: 'tags', operator: 'contains', valueType: 'array', value: [] });
+      }
+    } else {
+      this.clearSearchQueryList();
+    }
+  }
+  @action.bound toggleAdvancedSearch() {
+    this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
+    if (this.isAdvancedSearchOpen && !this.isQuickSearchOpen) {
+      this.toggleQuickSearch();
+    }
+  }
+  @action.bound closeSearch() {
+    if (this.isQuickSearchOpen) {
+      this.toggleQuickSearch();
+    }
+  }
+  @action.bound openSearch() {
+    if (!this.isQuickSearchOpen) {
+      this.toggleQuickSearch();
+    }
   }
 
   /////////////////// Helper methods ///////////////////

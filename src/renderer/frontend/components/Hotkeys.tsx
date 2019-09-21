@@ -52,22 +52,17 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
         />
         <Hotkey
           global={true}
-          combo={hotkeyMap.openOutlinerSearch}
-          label="Opens the search tab in the outliner (left sidebar)"
-          onKeyDown={uiStore.openOutlinerSearch}
-          preventDefault
-        />
-        <Hotkey
-          global={true}
           combo={hotkeyMap.toggleSettings}
           label="Opens the settings tab in right sidebar"
           onKeyDown={uiStore.toggleSettings}
+          preventDefault
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.replaceQuery}
           label="Replaces the search query with the selected tags"
           onKeyDown={uiStore.replaceQueryWithSelection}
+          preventDefault
         />
 
         {/* Toolbar actions */}
@@ -101,6 +96,18 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           combo={hotkeyMap.viewSlide}
           label="Sets view to slide mode"
           onKeyDown={uiStore.viewSlide}
+        />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.quickSearch}
+          label="Toggle quick search"
+          onKeyDown={uiStore.toggleQuickSearch}
+        />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.advancedSearch}
+          label="Toggle advanced search"
+          onKeyDown={uiStore.toggleAdvancedSearch}
         />
 
         <Hotkey

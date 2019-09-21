@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
+import { AdvancedSearchDialog } from './components/SearchForm';
 import ImageViewer from './components/ImageViewer';
 import DragLayer from './components/DragAndDrop';
 import { useWorkerListener } from './ThumbnailGeneration';
@@ -61,6 +62,8 @@ const App = ({ rootStore }: IAppProps) => {
           <Inspector />
 
           <Settings />
+
+          <AdvancedSearchDialog />
 
           <DragLayer />
         </GlobalHotkeys>
