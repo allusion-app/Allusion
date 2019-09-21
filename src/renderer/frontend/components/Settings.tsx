@@ -41,7 +41,7 @@ const Settings = observer(() => {
     // Reset thumbnail paths for those that already have one
     fileStore.fileList.forEach((f) => {
       if (f.thumbnailPath) {
-        f.thumbnailPath = getThumbnailPath(f.path, newDir);
+        f.setThumbnailPath(getThumbnailPath(f.path, newDir));
       }
     });
   }, [uiStore.thumbnailDirectory]);

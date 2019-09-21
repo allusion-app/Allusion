@@ -124,6 +124,10 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       .filter((t) => t !== undefined) as ClientTag[];
   }
 
+  @action.bound setThumbnailPath(thumbnailPath: string) {
+    this.thumbnailPath = thumbnailPath;
+  }
+
   @action.bound addTag(tag: ID) {
     if (this.tags.length === 0) {
       this.store.decrementNumUntaggedFiles();
