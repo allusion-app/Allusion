@@ -303,6 +303,12 @@ class UiStore {
     this.reorderCollection(collection, target);
   }
 
+  @action.bound async colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
+    const ctx = this.getTagContextItems(activeElementId);
+    ctx.collections.forEach((col) => col.color = color);
+    ctx.tags.forEach((tag) => tag.color = color);
+  }
+
   /**
    * Returns the tags and tag collections that are in the context of an action,
    * e.g. all selected items when choosing to delete an item that is selected,

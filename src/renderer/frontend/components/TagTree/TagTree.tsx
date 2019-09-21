@@ -123,10 +123,11 @@ const createTagCollectionTreeNode = (
     ...col.clientTags.map(
       (tag): ITreeNode => ({
         id: tag.id,
-        icon: IconSet.TAG,
+        icon: <span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>,
         isSelected: uiStore.tagSelection.includes(tag.id),
         label: (
           <TagListItem
+            tag={tag}
             name={tag.name}
             id={tag.id}
             dateAdded={tag.dateAdded}
@@ -154,7 +155,11 @@ const createTagCollectionTreeNode = (
 
   return {
     id: col.id,
-    icon: expandState[col.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP,
+    icon: (
+      <span style={{ color: col.viewColor }}>
+        {expandState[col.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP}
+      </span>
+    ),
     isSelected: col.isSelected,
     hasCaret: true,
     isExpanded: expandState[col.id],

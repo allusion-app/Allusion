@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { useDrop } from 'react-dnd';
@@ -10,6 +10,7 @@ import IconSet from './Icons';
 import { SingleFileInfo } from './FileInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import { ItemType } from './DragAndDrop';
+import { getClassForBackground } from '../utils';
 import { ensureThumbnail } from '../ThumbnailGeneration';
 
 interface IGalleryItemTagProps {
@@ -17,14 +18,17 @@ interface IGalleryItemTagProps {
   onRemove: (tag: ClientTag) => void;
 }
 
-const GalleryItemTag = ({ tag, onRemove }: IGalleryItemTagProps) => {
-  const handleRemove = useCallback(() => onRemove(tag), []);
+const GalleryItemTag = observer(({ tag }: IGalleryItemTagProps) => {
+  const colClass = useMemo(
+    () => tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white',
+    [tag.viewColor],
+  );
   return (
-    <Tag onRemove={handleRemove} interactive intent="primary">
-      {tag.name}
+    <Tag intent="primary" style={{ backgroundColor: tag.viewColor }}>
+      <span className={colClass}>{tag.name}</span>
     </Tag>
   );
-};
+});
 
 interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;
@@ -99,7 +103,7 @@ export const GalleryItem = observer(({
     {showInfo && <SingleFileInfo file={file} />}
 
     {showTags && (
-      <span className="thumbnailTags">
+      <span className="thumbnailTags" onClick={handleClickImg}>
         {file.clientTags.map((tag) => (
           <GalleryItemTag
             key={`gal-tag-${file.id}-${tag.id}`}
