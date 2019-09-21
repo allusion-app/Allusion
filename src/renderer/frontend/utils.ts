@@ -1,3 +1,6 @@
+import path from 'path';
+import { thumbnailType } from '../../config';
+
 export function debounce<F extends (...args: any) => any>(func: F, wait: number = 300): F {
   let timeoutID: number;
 
@@ -41,3 +44,28 @@ export function formatTagCountText(numTags: number, numCols: number) {
     : '';
   return `${extraTagsText}${extraColsText}`;
 }
+
+export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): string => {
+  const baseFilename = path.basename(filePath, path.extname(filePath));
+
+  // Hash is needed to avoid files with the same name to clash with each other, when they come from different paths
+  const hash = hashString(filePath);
+
+  return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailType}`);
+};
+
+export const hashString = (s: string) => {
+  let hash = 0;
+  let chr = 0;
+  if (s.length === 0) {
+    return hash;
+  }
+  for (let i = 0; i < s.length; i++) {
+    chr = s.charCodeAt(i);
+    // tslint:disable-next-line: no-bitwise
+    hash = ((hash << 5) - hash) + chr;
+    // tslint:disable-next-line: no-bitwise
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};

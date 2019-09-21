@@ -25,6 +25,11 @@ nav {
     }
   }
 
+  > * {
+    // Don't squash content of nav during parent transition
+    width: 16rem;
+  }
+
   .bp3-dark {
     background: $dark-gray2;
   }
