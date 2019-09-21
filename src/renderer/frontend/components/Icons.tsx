@@ -14,6 +14,7 @@ import CHECKMARK from '../../resources/icons/checkmark.svg';
 import CHROME_DEVTOOLS from '../../resources/icons/chrome-devtools.svg';
 import CLEAR_DATABASE from '../../resources/icons/clear-database.svg';
 import CLOSE from '../../resources/icons/close.svg';
+import COLOR from '../../resources/icons/color.svg';
 import DB_ERROR from '../../resources/icons/db-error.svg';
 import DELETE from '../../resources/icons/delete.svg';
 import DESELECT_ALL_FILL from '../../resources/icons/deselect-all-fill.svg';
@@ -89,6 +90,7 @@ const IconSet = {
   CHROME_DEVTOOLS: toSvg(CHROME_DEVTOOLS),
   CLEAR_DATABASE: toSvg(CLEAR_DATABASE),
   CLOSE: toSvg(CLOSE),
+  COLOR: toSvg(COLOR),
   DB_ERROR: toSvg(DB_ERROR),
   DELETE: toSvg(DELETE),
   DESELECT_ALL_FILL: toSvg(DESELECT_ALL_FILL),

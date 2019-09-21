@@ -1,3 +1,5 @@
+import path from 'path';
+import fse from 'fs-extra';
 import { action, observable, computed } from 'mobx';
 import { remote, ipcRenderer } from 'electron';
 
@@ -85,11 +87,11 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'isInspectorOpen',
   'viewMethod',
   'viewContent',
-  'firstIndexInView',
   'fileOrder',
   'fileOrderDescending',
   'fileLayout',
-  'thumbnailSize',
+  'thumbnailViewSize',
+  'thumbnailDirectory',
 ];
 
 const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -126,7 +128,7 @@ class UiStore {
   @observable firstIndexInView: number = 0;
   /** The origin of the current files that are shown */
   @observable viewContent: 'query' | 'all' | 'untagged' = 'all';
-  @observable thumbnailSize: 'small' | 'medium' | 'large' = 'medium';
+  @observable thumbnailViewSize: 'small' | 'medium' | 'large' = 'medium';
 
   // Content
   @observable fileOrder: keyof IFile = 'dateAdded';
@@ -140,6 +142,8 @@ class UiStore {
   readonly tagSelection = observable<ID>([]);
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
+
+  @observable thumbnailDirectory: string = '';
 
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
@@ -155,6 +159,9 @@ class UiStore {
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
+    this.thumbnailDirectory = path.join(remote.app.getPath('userData'), 'thumbnails');
+    fse.ensureDirSync(this.thumbnailDirectory);
+    // Todo: Store in preferences instead of setting this to a static directory, when the persistent prefs branch is merged
   }
 
   recoverPersistentPreferences() {
@@ -296,6 +303,12 @@ class UiStore {
     this.reorderCollection(collection, target);
   }
 
+  @action.bound async colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
+    const ctx = this.getTagContextItems(activeElementId);
+    ctx.collections.forEach((col) => col.color = color);
+    ctx.tags.forEach((tag) => tag.color = color);
+  }
+
   /**
    * Returns the tags and tag collections that are in the context of an action,
    * e.g. all selected items when choosing to delete an item that is selected,
@@ -432,11 +445,15 @@ class UiStore {
 
   @action.bound openOutlinerImport() {
     this.outlinerPage = 'IMPORT';
-    this.viewContentUntagged();
+    if (this.viewContent !== 'untagged') {
+      this.viewContentUntagged();
+    }
   }
   @action.bound openOutlinerTags() {
     this.outlinerPage = 'TAGS';
-    this.viewContentAll();
+    if (this.viewContent !== 'all') {
+      this.viewContentAll();
+    }
   }
 
   @action.bound openPreviewWindow() {

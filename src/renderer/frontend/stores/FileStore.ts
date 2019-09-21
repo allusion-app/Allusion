@@ -6,6 +6,7 @@ import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
 import { SearchCriteria } from '../../entities/SearchCriteria';
+import { getThumbnailPath } from '../utils';
 
 class FileStore {
   backend: Backend;
@@ -59,6 +60,7 @@ class FileStore {
           this.numUntaggedFiles--;
         }
       });
+      await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
       await this.backend.removeFiles(filesToRemove);
     } catch (err) {
       console.error('Could not remove files', err);
@@ -165,7 +167,15 @@ class FileStore {
     this.rootStore.uiStore.deselectFile(file);
     file.dispose();
     this.fileList.remove(file);
+    await this.removeThumbnail(file);
     return this.backend.removeFile(file);
+  }
+
+  private async removeThumbnail(file: ClientFile) {
+    const thumbDir = getThumbnailPath(file.path, this.rootStore.uiStore.thumbnailDirectory);
+    if (await fs.pathExists(thumbDir)) {
+      await fs.remove(thumbDir);
+    }
   }
 
   private async updateFromBackend(backendFiles: IFile[]) {

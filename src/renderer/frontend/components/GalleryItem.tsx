@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { useDrop } from 'react-dnd';
@@ -8,22 +8,27 @@ import { ClientFile } from '../../entities/File';
 import { ClientTag } from '../../entities/Tag';
 import IconSet from './Icons';
 import { SingleFileInfo } from './FileInfo';
-import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
+import StoreContext, { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
 import { ItemType } from './DragAndDrop';
+import { getClassForBackground } from '../utils';
+import { ensureThumbnail } from '../ThumbnailGeneration';
 
 interface IGalleryItemTagProps {
   tag: ClientTag;
   onRemove: (tag: ClientTag) => void;
 }
 
-const GalleryItemTag = ({ tag, onRemove }: IGalleryItemTagProps) => {
-  const handleRemove = useCallback(() => onRemove(tag), []);
+const GalleryItemTag = observer(({ tag }: IGalleryItemTagProps) => {
+  const colClass = useMemo(
+    () => tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white',
+    [tag.viewColor],
+  );
   return (
-    <Tag onRemove={handleRemove} interactive intent="primary">
-      {tag.name}
+    <Tag intent="primary" style={{ backgroundColor: tag.viewColor }}>
+      <span className={colClass}>{tag.name}</span>
     </Tag>
   );
-};
+});
 
 interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;
@@ -42,6 +47,8 @@ export const GalleryItem = observer(({
   onDrop,
   showName, showTags, showInfo,
 }: IGalleryItemProps) => {
+  const { uiStore } = useContext(StoreContext);
+
   const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
     accept: ItemType.Tag,
     drop: (_, monitor) => onDrop(monitor.getItem(), file),
@@ -57,30 +64,35 @@ export const GalleryItem = observer(({
   const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
   const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
-  const handleClickImg = useCallback((e) => onClick(file, e), []);
+  const handleClickImg = useCallback((e: React.MouseEvent) => onClick(file, e), [file]);
 
-  const [imageElem] = useState<HTMLImageElement>(new Image());
   const [isImageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState();
 
+  const imagePath = uiStore.viewMethod === 'slide' ? file.path : file.thumbnailPath;
+
   useEffect(() => {
-    // Load the image manually when the component mounts
-    imageElem.src = file.path;
-    imageElem.onload = () => file && setImageLoaded(true);
-    imageElem.onerror = (e) => file && setImageError(e);
-    return () => {
-      // When this component unmounts, cancel further loading of the image in case it was not loaded yet
-      if (!isImageLoaded) {
-        imageElem.src = '';
-        imageElem.onload = () => { }; // tslint:disable-line: no-empty
-        imageElem.onerror = () => { }; // tslint:disable-line: no-empty
-      }
-    };
+    // First check whether a thumbnail exists, generate it if needed
+    ensureThumbnail(file, uiStore.thumbnailDirectory);
+  }, [uiStore.thumbnailDirectory]);
+
+  useEffect(() => {
+    if (imagePath) {
+      setImageLoaded(true);
+    } else {
+      setImageLoaded(false);
+    }
+  }, [imagePath]);
+
+  const handleImageError = useCallback((err: any) => {
+    console.log('Could not load image:', imagePath, err);
+    setImageError(err);
+    setImageLoaded(false);
   }, []);
 
   return (<div ref={galleryItemDrop} className={className}>
     <div onClick={handleClickImg} className="img-wrapper">
-      {isImageLoaded ? <img src={file.path} /> // Show image when it has been loaded
+      {isImageLoaded ? <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
         : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
           : <div className={Classes.SKELETON} /> // Else show a placeholder
       }
@@ -91,7 +103,7 @@ export const GalleryItem = observer(({
     {showInfo && <SingleFileInfo file={file} />}
 
     {showTags && (
-      <span className="thumbnailTags">
+      <span className="thumbnailTags" onClick={handleClickImg}>
         {file.clientTags.map((tag) => (
           <GalleryItemTag
             key={`gal-tag-${file.id}-${tag.id}`}

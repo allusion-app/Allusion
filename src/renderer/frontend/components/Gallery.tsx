@@ -56,7 +56,7 @@ function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) 
 
 const GridGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
-  const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+  const cellSize = getThumbnailSize(uiStore.thumbnailViewSize);
   const numColumns = Math.floor(contentWidth / cellSize);
   const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
@@ -141,7 +141,7 @@ const GridGallery = observer(
 
 const ListGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
-  const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+  const cellSize = getThumbnailSize(uiStore.thumbnailViewSize);
   const ref = useRef<FixedSizeList>(null);
 
   const handleScrollTo = useCallback((i: number) => {
@@ -229,24 +229,21 @@ const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
 });
 
 const SlideGallery = observer(
-  ({ fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+  ({ fileList, uiStore, handleDrop }: IGalleryLayoutProps) => {
+    // Go to the first selected image on load
     useEffect(() => {
-      // Go to the first selected image on load
       if (uiStore.fileSelection.length > 0) {
         uiStore.firstIndexInView = fileList.findIndex((f) => f.id === uiStore.fileSelection[0]);
       }
     }, []);
 
     // Automatically select the active image, so it is shown in the inspector
-    useEffect(
-      () => {
-        if (uiStore.firstIndexInView < fileList.length) {
-          uiStore.deselectAllFiles();
-          uiStore.selectFile(fileList[uiStore.firstIndexInView]);
-        }
-      },
-      [uiStore.firstIndexInView],
-    );
+    useEffect(() => {
+      if (uiStore.firstIndexInView < fileList.length) {
+        uiStore.deselectAllFiles();
+        uiStore.selectFile(fileList[uiStore.firstIndexInView]);
+      }
+    }, [uiStore.firstIndexInView]);
 
     const incrImgIndex = useCallback(
       () => uiStore.setFirstIndexInView(Math.max(0, uiStore.firstIndexInView - 1)),
@@ -297,6 +294,10 @@ const SlideGallery = observer(
       [handleUserKeyPress, handleUserWheel],
     );
 
+    const ignoreClick = useCallback((_, e: React.MouseEvent) => {
+      e.stopPropagation();
+    }, []);
+
     if (uiStore.firstIndexInView >= fileList.length) {
       return <p>No files available</p>;
     }
@@ -307,7 +308,7 @@ const SlideGallery = observer(
       <GalleryItem
         file={file}
         isSelected={false /** Active image is always selected, no need to show it */}
-        onClick={handleClick}
+        onClick={ignoreClick}
         onDrop={handleDrop}
       />
     );
@@ -464,7 +465,7 @@ const Gallery = ({
   return (
     <ResizeSensor onResize={handleResize}>
       <div
-        className={`gallery-content thumbnail-${uiStore.thumbnailSize} ${
+        className={`gallery-content thumbnail-${uiStore.thumbnailViewSize} ${
           uiStore.viewMethod} ${selectionModeOn ? 'gallerySelectionMode' : ''}`}
         onClick={handleBackgroundClick}
       >

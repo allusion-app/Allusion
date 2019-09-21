@@ -6,7 +6,7 @@ nav {
   flex-shrink: 0;
   width: 0;
   min-width: 0;
-  transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: min-width 0.2s $pt-transition-ease2;
 
   // Putt 2 buttons at bottom
   // display: flex;
@@ -21,8 +21,13 @@ nav {
       border-radius: 0;
       margin-bottom: 1px;
       border-bottom: 1px solid #ffffff00;
-      transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: 0.2s $pt-transition-ease2;
     }
+  }
+
+  > * {
+    // Don't squash content of nav during parent transition
+    width: 16rem;
   }
 
   .bp3-dark {
@@ -50,7 +55,6 @@ nav {
 // }
 
 ///////////////////////////////// Import /////////////////////////////////
-
 #import,
 // #search-form,
 .gallery,
@@ -129,6 +133,10 @@ nav {
       }
     }
   }
+}
+.bp3-overlay .bp3-button:not([class*="bp3-intent-"]):not(.bp3-dialog-close-button){
+  background: $light-gray1-trans;
+    color: $light-gray2;
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////

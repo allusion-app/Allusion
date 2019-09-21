@@ -34,9 +34,12 @@ $light-gray6-trans: #13131330 !default;
 $blue0: #007acc !important;
 $blue1: #007af5 !important;
 $blue2: #1d64c0 !important;
-$blue3: #009de0 !important;
-$blue4: #2b95d6 !important;
+$blue3: #3593f1 !important;
+$blue4: #4c9ef0 !important;
 $blue5: #48aff0 !important;
+
+// Not important, so that it can be overwritten by inline style
+$blue1-unimportant: #007af5;
 
 $blue-trans1: #007af555 !important;
 $blue-trans2: #007af512 !important;

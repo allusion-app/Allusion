@@ -21,6 +21,7 @@ function createWindow() {
     // titleBarStyle: 'hiddenInset',
     webPreferences: {
       nodeIntegration: true,
+      nodeIntegrationInWorker: true,
     },
     height,
     width,

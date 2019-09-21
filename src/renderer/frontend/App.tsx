@@ -13,6 +13,7 @@ import Settings from './components/Settings';
 import { AdvancedSearchDialog } from './components/SearchForm';
 import ImageViewer from './components/ImageViewer';
 import DragLayer from './components/DragAndDrop';
+import { useWorkerListener } from './ThumbnailGeneration';
 
 const SPLASH_SCREEN_TIME = 700;
 
@@ -20,6 +21,8 @@ interface IAppProps extends IRootStoreProp {}
 
 const App = ({ rootStore }: IAppProps) => {
   const { uiStore } = rootStore;
+  // Listen to responses of Web Workers
+  useWorkerListener();
 
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
