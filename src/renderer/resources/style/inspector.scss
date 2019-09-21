@@ -5,11 +5,16 @@
   flex-shrink: 0;
   width: 0;
   min-width: 0;
-  transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: min-width 0.2s $pt-transition-ease2;
 
   &.inspectorOpen {
     min-width: var(--inspector-width);
-    width: 18rem;
+    width: 24rem;
+  }
+
+  > * {
+    // Don't squash content of aside during parent transition
+    width: 24rem;
   }
 
   > section {

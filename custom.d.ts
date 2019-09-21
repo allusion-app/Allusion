@@ -11,3 +11,12 @@ declare module "*.ico" {
   const content: any;
   export default content;
 }
+
+// Web worker support
+declare module "worker-loader!*" {
+  class WebpackWorker extends Worker {
+    constructor();
+  }
+
+  export default WebpackWorker;
+}

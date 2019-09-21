@@ -9,6 +9,7 @@ export interface ITag extends IIdentifiable {
   name: string;
   description: string;
   dateAdded: Date;
+  color: string;
 }
 
 /* A Tag as it is represented in the Database */
@@ -17,12 +18,14 @@ export class DbTag implements ITag {
   public name: string;
   public description: string;
   public dateAdded: Date;
+  public color: string;
 
-  constructor(id: ID, name: string, description?: string) {
+  constructor(id: ID, name: string, color?: string, description?: string) {
     this.id = id;
     this.name = name;
     this.description = description || '';
     this.dateAdded = new Date();
+    this.color = color || '';
   }
 }
 
@@ -40,7 +43,22 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
   dateAdded: Date;
   @observable name: string;
   @observable description: string;
+  @observable color: string;
   // icon, color, (fileCount?)
+
+  /** Get actual tag objects based on the IDs retrieved from the backend */
+    /** Get actual tag objects based on the IDs retrieved from the backend */
+    @computed get parent(): ClientTagCollection {
+      return this.store.getParent(this.id);
+    }
+
+    @computed get isSelected(): boolean {
+      return this.store.isSelected(this.id);
+    }
+
+  @computed get viewColor() {
+    return this.color || this.parent.viewColor;
+  }
 
   constructor(store: TagStore, name?: string, id = generateId()) {
     this.store = store;
@@ -48,6 +66,7 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
     this.name = name || '';
     this.description = '';
     this.dateAdded = new Date();
+    this.color = '';
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -68,16 +87,8 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
       name: this.name,
       description: this.description,
       dateAdded: this.dateAdded,
+      color: this.color,
     };
-  }
-
-  /** Get actual tag objects based on the IDs retrieved from the backend */
-  @computed get parent(): ClientTagCollection {
-    return this.store.getParent(this.id);
-  }
-
-  @computed get isSelected(): boolean {
-    return this.store.isSelected(this.id);
   }
 
   @action.bound rename(name: string) {
@@ -100,6 +111,7 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
     this.name = backendTag.name;
     this.description = backendTag.description;
     this.dateAdded = backendTag.dateAdded;
+    this.color = backendTag.color;
 
     this.autoSave = true;
 

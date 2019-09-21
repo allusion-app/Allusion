@@ -1,3 +1,5 @@
+import path from 'path';
+import fse from 'fs-extra';
 import { action, observable, computed } from 'mobx';
 import { remote, ipcRenderer } from 'electron';
 
@@ -99,6 +101,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'outlinerPage',
   'isOutlinerOpen',
   'isInspectorOpen',
+  'thumbnailDirectory',
 ];
 
 export const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -132,6 +135,8 @@ class UiStore {
   readonly tagSelection = observable<ID>([]);
 
   readonly searchQueryList = observable<ISearchQuery>([]);
+
+  @observable thumbnailDirectory: string = '';
 
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
@@ -247,6 +252,12 @@ class UiStore {
       } catch (e) {
         console.log('Cannot parse persistent preferences', e);
       }
+    }
+
+    // Set default thumbnail directory in case none was specified
+    if (!this.thumbnailDirectory) {
+      this.thumbnailDirectory = path.join(remote.app.getPath('userData'), 'thumbnails');
+      fse.ensureDirSync(this.thumbnailDirectory);
     }
   }
 
@@ -371,6 +382,12 @@ class UiStore {
       throw new Error('Cannot find collection to move ' + id);
     }
     this.insertCollection(collection, target);
+  }
+
+  @action.bound async colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
+    const ctx = this.getTagContextItems(activeElementId);
+    ctx.collections.forEach((col) => col.color = color);
+    ctx.tags.forEach((tag) => tag.color = color);
   }
 
   /**

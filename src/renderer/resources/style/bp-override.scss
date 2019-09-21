@@ -40,12 +40,15 @@
   background: transparent;
 }
 
-.bp3-dark .bp3-tree-node-content:hover,
-.bp3-dark button:hover:not(.bp3-minimal):not(.bp3-tag-remove),
-.bp3-dark .bp3-button:hover:not(.bp3-dialog-close-button) {
-  background-color: $dark-gray3;
+.bp3-dark {
+  .bp3-tree-node-content:hover,
+  button:hover:not(.bp3-minimal):not(.bp3-tag-remove),
+  .bp3-button:hover:not(.bp3-dialog-close-button),
+  .bp3-dialog .bp3-button:not([class*="bp3-intent-"]) {
+    background-color: $dark-gray3;
+    // background-color: $dark-gray5;
+  }
 }
-
 // Input field
 ::selection {
   color: white;
@@ -81,7 +84,7 @@
 }
 
 .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
-  background-color: $dark-gray5;
+  background-color: $blue1-unimportant;
 }
 
 form,
@@ -151,7 +154,6 @@ form .bp3-icon {
     color: $light-gray3;
   }
 }
-
 
 // Labels
 .bp3-dark label.bp3-label {
@@ -237,7 +239,8 @@ button:has(.bp3-intent-danger) {
 .bp3-button>*,
 // .bp3-tree-node-caret,
 .bp3-tree-node-caret>.custom-icon,
-.bp3-tree-node-content>span.custom-icon {
+.bp3-tree-node-content>span.custom-icon,
+.bp3-tree-node-content > span span.custom-icon {
   margin-right: 0.25rem;
 }
 
@@ -299,7 +302,9 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-popover.bp3-dark,
-.bp3-popover.bp3-light {
+.bp3-popover.bp3-light,
+.bp3-dark .bp3-submenu.bp3-popover > .bp3-popover-content,
+.bp3-submenu.bp3-popover.bp3-dark > .bp3-popover-content {
   // box-shadow: 0 30px 90px -20px rgb(24, 24, 24), 0 0 30px #18181b !important;
   // box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
   // box-shadow: 0 0 0 1px rgba(16,22,26,.2), 0 2px 4px rgba(16,22,26,.4), 0 8px 24px rgba(16,22,26,.4);
@@ -366,8 +371,8 @@ nav .bp3-divider {
   fill: $light-gray5;
 }
 
-.bp3-dark .bp3-menu-item::before,
-.bp3-dark .bp3-menu-item > .bp3-icon {
+.bp3-dark .bp3-menu-item::before {
+  // .bp3-dark .bp3-menu-item > .bp3-icon {
   color: $dark-gray4;
 }
 
@@ -419,6 +424,18 @@ li .bp3-menu-item {
   max-width: 180px;
 }
 
+// Color picker
+.sketch-picker {
+  width: 200px;
+  padding: 0.3rem 0.3rem 0;
+  box-sizing: initial;
+  background: transparent !important;
+  border-radius: none !important;
+  box-shadow: none !important;
+  .flexbox-fix {
+    padding: .3rem 0 0 .3rem;
+  }
+}
 // Icons
 .bp3-dark .bp3-icon:not(.bp3-icon-small-cross),
 .bp3-dark .bp3-button:not([class*="-primary"]) .bp3-icon,
@@ -464,7 +481,7 @@ li .bp3-menu-item {
   border-bottom: 2px solid $blue1;
   border-radius: 0;
   padding-bottom: 3px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s $pt-transition-ease2;
 }
 
 #system-tags {
@@ -486,7 +503,7 @@ li .bp3-menu-item {
     padding-left: 8px;
     border-left: 2px solid $blue1;
     // padding-left: 2px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s $pt-transition-ease2;
   }
 
   .bp3-button:not(last-child):hover,
@@ -506,7 +523,7 @@ li .bp3-menu-item {
 
 .bp3-tag-input-values .bp3-button.bp3-minimal:hover:hover {
   padding-bottom: 2px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s $pt-transition-ease2;
 }
 
 .bp3-button:hover .bp3-button-text,
@@ -516,7 +533,7 @@ li .bp3-menu-item {
   line-height: 1.15;
   // padding-top: 2px; {
   // padding-top: 2px;
-  // transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  // transition: all 0.2s $pt-transition-ease2;
 }
 
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button.bp3-intent-primary {
@@ -613,8 +630,14 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 .bp3-tag.bp3-intent-primary,
 .bp3-tag.bp3-intent-primary button > * {
-  background: $blue1;
+  background: $blue1-unimportant;
   color: $light-gray4;
+  &.bp3-interactive:hover {
+    // opacity: .85;
+    background: $dark-gray5;
+    // background: $blue1-unimportant;
+    transition: all 0.1s $pt-transition-ease2;
+  }
 }
 
 .bp3-tag-input .bp3-tag.bp3-active {
@@ -622,18 +645,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   outline-offset: 1px;
 }
 
-.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
-  background-color: $dark-gray5;
-}
-
 .bp3-portal #fileTag .bp3-tag.bp3-minimal:not([class*="inspectorOpen"]) {
-  background-color: $blue1;
-  color: $light-gray4;
-}
-
-.bp3-dark .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]),
-.bp3-dark.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
-  color: $gray4;
+  background-color: $blue1-unimportant;
 }
 
 // .bp3-dark .bp3-tree-node-content:hover {
@@ -645,7 +658,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
     background-color: #252525 !important;
     border-left: 2px solid $blue1;
     padding-left: (($tree-row-height - $tree-icon-spacing) * $i) - 2px !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s $pt-transition-ease2;
     color: white;
   }
 }
@@ -663,11 +676,6 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 .#{$ns}-tree-node-content-0 {
   padding-left: 4px !important;
 }
-
-// Styling to match Allusion Mockups
-$pt-transition-ease: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
-$pt-transition-ease-bounce: cubic-bezier(0.54, 1.12, 0.38, 1.11) !default;
-$pt-transition-duration: 100ms !default;
 
 .#{$ns}-tree-node-caret {
   transition: transform ($pt-transition-duration * 1.5) $pt-transition-ease;

@@ -1,3 +1,9 @@
+// Styling to match Allusion Mockups
+$pt-transition-ease: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
+$pt-transition-ease2: cubic-bezier(0.4, 0, 0.2, 1) !default;
+$pt-transition-ease-bounce: cubic-bezier(0.54, 1.12, 0.38, 1.11) !default;
+$pt-transition-duration: 100ms !default;
+
 // Page layout
 html {
   height: 100%;
@@ -158,7 +164,7 @@ main {
 [data-right]:hover:after,
 [data-left]:hover:after {
   opacity: 1;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) 1s;
+  transition: all 0.2s $pt-transition-ease2;
   visibility: visible;
   position: absolute;
   z-index: 1000;
@@ -328,6 +334,10 @@ main {
 .custom-icon * {
   fill: currentColor;
 }
+.custom-icon {
+  color: inherit!important;
+}
+
 .bp3-icon-eye {
   cursor: none;
 }
@@ -377,4 +387,14 @@ main {
   .zoomOut {
     cursor: zoom-out;
   }
+}
+
+.color-black {
+  color: black;
+  transition: color 0.2s ease;
+}
+
+.color-white {
+  color: white;
+  transition: color 0.2s ease;
 }

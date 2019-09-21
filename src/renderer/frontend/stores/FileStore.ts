@@ -7,6 +7,7 @@ import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
 import { ITagSearchQuery } from '../UiStore';
 import { ClientTag } from '../../entities/Tag';
+import { getThumbnailPath } from '../utils';
 
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
@@ -57,6 +58,7 @@ class FileStore {
           this.numUntaggedFiles--;
         }
       });
+      await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
       await this.backend.removeFiles(filesToRemove);
     } catch (err) {
       console.error('Could not remove files', err);
@@ -212,7 +214,15 @@ class FileStore {
     this.rootStore.uiStore.deselectFile(file);
     file.dispose();
     this.fileList.remove(file);
+    await this.removeThumbnail(file);
     return this.backend.removeFile(file);
+  }
+
+  @action.bound private async removeThumbnail(file: ClientFile) {
+    const thumbDir = getThumbnailPath(file.path, this.rootStore.uiStore.thumbnailDirectory);
+    if (await fs.pathExists(thumbDir)) {
+      await fs.remove(thumbDir);
+    }
   }
 
   @action.bound private replaceFileList(backendFiles: ClientFile[]) {

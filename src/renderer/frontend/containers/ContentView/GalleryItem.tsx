@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { useDrop } from 'react-dnd';
@@ -8,22 +8,27 @@ import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
 import IconSet from '../../components/Icons';
 import ImageInfo from '../../components/ImageInfo';
-import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
+import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import { DragAndDropType } from '../Outliner/TagPanel';
+import { getClassForBackground } from '../../utils';
+import { ensureThumbnail } from '../../ThumbnailGeneration';
 
 interface IGalleryItemTagProps {
   tag: ClientTag;
   onRemove: (tag: ClientTag) => void;
 }
 
-const GalleryItemTag = ({ tag, onRemove }: IGalleryItemTagProps) => {
-  const handleRemove = useCallback(() => onRemove(tag), []);
+const GalleryItemTag = observer(({ tag }: IGalleryItemTagProps) => {
+  const colClass = useMemo(
+    () => tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white',
+    [tag.viewColor],
+  );
   return (
-    <Tag onRemove={handleRemove} interactive intent="primary">
-      {tag.name}
+    <Tag intent="primary" style={{ backgroundColor: tag.viewColor }}>
+      <span className={colClass}>{tag.name}</span>
     </Tag>
   );
-};
+});
 
 interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;
@@ -35,78 +40,83 @@ interface IGalleryItemProps extends IRootStoreProp {
   showInfo?: boolean;
 }
 
-export const GalleryItem = observer(
-  ({ file, isSelected, onClick, onDrop, showName, showTags, showInfo }: IGalleryItemProps) => {
-    const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
-      accept: DragAndDropType.Tag,
-      drop: (_, monitor) => onDrop(monitor.getItem(), file),
-      canDrop: () => true,
-      collect: (monitor) => ({
-        isOver: monitor.isOver(),
-        canDrop: monitor.canDrop(),
-      }),
-    });
+export const GalleryItem = observer(({
+  file,
+  isSelected,
+  onClick,
+  onDrop,
+  showName, showTags, showInfo,
+}: IGalleryItemProps) => {
+  const { uiStore } = useContext(StoreContext);
 
-    const selectedStyle = isSelected ? 'selected' : '';
-    const dropStyle = canDrop ? ' droppable' : ' undroppable';
-    const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
+  const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
+    accept: DragAndDropType.Tag,
+    drop: (_, monitor) => onDrop(monitor.getItem(), file),
+    canDrop: () => true,
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
 
-    const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
-    const handleClickImg = useCallback((e) => onClick(file, e), []);
+  const selectedStyle = isSelected ? 'selected' : '';
+  const dropStyle = canDrop ? ' droppable' : ' undroppable';
+  const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
-    const [imageElem] = useState<HTMLImageElement>(new Image());
-    const [isImageLoaded, setImageLoaded] = useState(false);
-    const [imageError, setImageError] = useState();
+  const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
+  const handleClickImg = useCallback((e) => onClick(file, e), []);
 
-    useEffect(() => {
-      // Load the image manually when the component mounts
-      imageElem.src = file.path;
-      imageElem.onload = () => file && setImageLoaded(true);
-      imageElem.onerror = (e) => file && setImageError(e);
-      return () => {
-        // When this component unmounts, cancel further loading of the image in case it was not loaded yet
-        if (!isImageLoaded) {
-          imageElem.src = '';
-          imageElem.onload = () => {}; // tslint:disable-line: no-empty
-          imageElem.onerror = () => {}; // tslint:disable-line: no-empty
+  const [isImageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState();
+
+  const imagePath = uiStore.view.method === 'slide' ? file.path : file.thumbnailPath;
+
+  useEffect(() => {
+    // First check whether a thumbnail exists, generate it if needed
+    ensureThumbnail(file, uiStore.thumbnailDirectory);
+  }, [uiStore.thumbnailDirectory]);
+
+  useEffect(() => {
+    if (imagePath) {
+      setImageLoaded(true);
+    } else {
+      setImageLoaded(false);
+    }
+  }, [imagePath]);
+
+  const handleImageError = useCallback((err: any) => {
+    console.log('Could not load image:', imagePath, err);
+    setImageError(err);
+    setImageLoaded(false);
+  }, []);
+
+  return (
+    <div ref={galleryItemDrop} className={className}>
+      <div onClick={handleClickImg} className="img-wrapper">
+        {isImageLoaded ? <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
+          : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
+            : <div className={Classes.SKELETON} /> // Else show a placeholder
         }
-      };
-    }, []);
-
-    return (
-      <div ref={galleryItemDrop} className={className}>
-        <div onClick={handleClickImg} className="img-wrapper">
-          {isImageLoaded ? (
-            <img src={file.path} /> // Show image when it has been loaded
-          ) : imageError ? (
-            <H3>
-              :( <br /> Could not load image
-            </H3> // Show an error it it could not be loaded
-          ) : (
-            <div className={Classes.SKELETON} />
-          ) // Else show a placeholder
-          }
-        </div>
-
-        {showName && <H4>{file.name}</H4>}
-
-        {showInfo && <ImageInfo file={file} />}
-
-        {showTags && (
-          <span className="thumbnailTags">
-            {file.clientTags.map((tag) => (
-              <GalleryItemTag
-                key={`gal-tag-${file.id}-${tag.id}`}
-                onRemove={handleRemoveTag}
-                tag={tag}
-              />
-            ))}
-          </span>
-        )}
       </div>
-    );
-  },
-);
+
+      {showName && <H4>{file.name}</H4>}
+
+      {showInfo && <ImageInfo file={file} />}
+
+      {showTags && (
+        <span className="thumbnailTags" onClick={handleClickImg}>
+          {file.clientTags.map((tag) => (
+            <GalleryItemTag
+              key={`gal-tag-${file.id}-${tag.id}`}
+              onRemove={handleRemoveTag}
+              tag={tag}
+            />
+          ))}
+        </span>
+      )}
+    </div>
+  );
+});
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
@@ -123,17 +133,9 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
   return (
     <Menu>
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
-      <MenuItem
-        onClick={handleOpenFileExplorer}
-        text="Reveal in File Browser"
-        icon={IconSet.FOLDER_CLOSE}
-      />
+      <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-      <MenuItem
-        onClick={uiStore.openToolbarFileRemover}
-        text="Delete"
-        icon={IconSet.DELETE}
-      />
+      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
     </Menu>
   );
 };

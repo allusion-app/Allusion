@@ -32,7 +32,7 @@
   --thumbnail-size: 350px;
 }
 .galleryItem {
-  padding: .3rem 0 0 0;
+  padding: 0.3rem 0 0 0;
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
@@ -73,9 +73,9 @@
       margin-right: auto;
       display: block;
       transform-origin: center;
-      transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: 0.2s $pt-transition-ease2;
       // transform: scale(1);
-      // transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      // transition: 0.2s $pt-transition-ease2;
     }
   }
 
@@ -84,7 +84,7 @@
 
     img {
       transform: scale(0.9);
-      // transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      // transition: 0.2s $pt-transition-ease2;
     }
   }
 
@@ -118,16 +118,17 @@
 
     // This is to demanding on process
     // transition: height 0.1s ease-in-out;
-    background-color: rgba(0, 0, 0, 0.25);
     width: 100%;
     height: auto;
     padding: 0.4em 0.4rem 0.15rem 0.4rem;
     position: absolute;
     bottom: 0;
-
     > * {
       margin: 0.25em;
     }
+  }
+  &:hover .thumbnailTags {
+    background-color: rgba(0, 0, 0, 0.25);
   }
 
   #fileInfo {
@@ -194,15 +195,16 @@
   }
 }
 .list div div > .list-item-even {
-  background-color: rgba(102, 102, 102, 0.1);
+  background-color: rgba(102, 102, 102, 0.045);
   // padding: .3rem 0
 }
 // .list div div > .list-item-uneven {
-  // padding: .3rem 0
+// padding: .3rem 0
 // }
 .thumbnail-small.list {
   .bp3-heading {
     font-size: 16px;
+    align-self: start;
   }
   #fileInfo {
     grid-row-gap: 0.02rem;
@@ -210,6 +212,7 @@
   }
   .thumbnailTags {
     padding-top: 0;
+    align-self: end;
   }
 }
 
@@ -233,11 +236,21 @@
   }
   &.droppable .thumbnailTags {
     display: block;
+    overflow-y: hidden;
   }
-  // An option :) would be nice for this
-  // .thumbnailTags {
-  //   display: none;
-  // }
+  .thumbnailTags {
+    transition: 0.25s $pt-transition-ease2;
+    max-height: 2.8em;
+  }
+  &:hover .thumbnailTags {
+    max-height: var(--thumbnail-size);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  &.droppable .thumbnailTags {
+    max-height: var(--thumbnail-size);
+    overflow: hidden; // can't scroll while dropping
+  }
   // display: flex;
   // span:nth-child(3) {
   //   z-index: -1;
@@ -256,12 +269,6 @@
     object-fit: contain;
     top: 49%;
     left: 50%;
-  }
-  span {
-    display: none;
-  }
-  .thumbnailTags {
-    display: none;
   }
   &.selected img {
     transform: translateX(-50%) translateY(-50%) scale(0.9);

@@ -26,7 +26,9 @@
   "devDependencies": {
     "@types/fs-extra": "^8.0.0",
     "@types/jest": "^24.0.17",
+    "@types/offscreencanvas": "^2019.6.0",
     "@types/react": "^16.9.1",
+    "@types/react-color": "^3.0.1",
     "@types/react-dom": "^16.8.5",
     "@types/react-inlinesvg": "^0.8.0",
     "@types/react-window": "^1.8.1",
@@ -51,7 +53,8 @@
     "tslint": "^5.18.0",
     "typescript": "^3.5.3",
     "webpack": "^4.28.3",
-    "webpack-cli": "^3.2.0"
+    "webpack-cli": "^3.2.0",
+    "worker-loader": "^2.0.0"
   },
   "dependencies": {
     "@blueprintjs/core": "^3.18.0",
@@ -61,6 +64,7 @@
     "mobx": "^5.13.0",
     "mobx-react-lite": "^1.4.1",
     "react": "^16.8.6",
+    "react-color": "^2.17.3",
     "react-dnd": "^9.3.4",
     "react-dnd-html5-backend": "^9.3.4",
     "react-dom": "^16.8.6",

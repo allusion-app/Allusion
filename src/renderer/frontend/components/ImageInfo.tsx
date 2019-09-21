@@ -18,12 +18,12 @@ const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
 });
 
 const formatDateTime = (d: Date) => {
-  return DateTimeFormat.formatToParts(d).map(({type, value}) => { 
+  return DateTimeFormat.formatToParts(d).map(({type, value}) => {
     if (type === 'literal' && value === ', ') {
       return ' ';
-    } 
+    }
     return value;
-  }).reduce((string, part) => string + part);
+  }).reduce((str, part) => str + part);
 };
 
 const ImageInfo = observer(({ file }: { file: ClientFile }) => {

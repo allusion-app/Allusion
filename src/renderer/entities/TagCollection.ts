@@ -13,6 +13,7 @@ export interface ITagCollection extends IIdentifiable {
   dateAdded: Date;
   subCollections: ID[];
   tags: ID[];
+  color: string;
 }
 
 /* A Tag Collection as it is represented in the Database */
@@ -23,14 +24,16 @@ export class DbTagCollection implements ITagCollection {
   public dateAdded: Date;
   public subCollections: ID[];
   public tags: ID[];
+  public color: string;
 
-  constructor(id: ID, name: string, description?: string) {
+  constructor(id: ID, name: string, color?: string, description?: string) {
     this.id = id;
     this.name = name;
     this.description = description || '';
     this.dateAdded = new Date();
     this.subCollections = [];
     this.tags = [];
+    this.color = color || '';
   }
 }
 
@@ -49,11 +52,14 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
   readonly subCollections = observable<ID>([]);
   readonly tags = observable<ID>([]);
 
+  @observable color: string;
+
   constructor(store: TagCollectionStore, name?: string, id = generateId()) {
     this.store = store;
     this.id = id;
     this.name = name || '';
     this.description = '';
+    this.color = '';
     this.dateAdded = new Date();
 
     // observe all changes to observable fields
@@ -77,7 +83,15 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
       dateAdded: this.dateAdded,
       subCollections: this.subCollections.toJS(),
       tags: this.tags.toJS(),
+      color: this.color,
     };
+  }
+
+  @computed get viewColor(): string {
+    if (this.id === ROOT_TAG_COLLECTION_ID) {
+      return this.color;
+    }
+    return this.color || this.parent.viewColor;
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
@@ -182,6 +196,7 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     this.dateAdded = backendTagCollection.dateAdded;
     this.subCollections.push(...backendTagCollection.subCollections);
     this.tags.push(...backendTagCollection.tags);
+    this.color = backendTagCollection.color;
 
     this.autoSave = true;
 

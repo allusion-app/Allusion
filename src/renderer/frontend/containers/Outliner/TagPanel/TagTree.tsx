@@ -394,7 +394,11 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
 
       return {
         id: col.id,
-        icon: expandState[col.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP,
+        icon: (
+          <span style={{ color: col.viewColor }}>
+            {expandState[col.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP}
+          </span>
+        ),
         isSelected: col.isSelected,
         hasCaret: true,
         isExpanded: expandState[col.id],
@@ -429,7 +433,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
 
           return {
             id: tag.id,
-            icon: IconSet.TAG,
+            icon: <span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>,
             isSelected: tag.isSelected,
             label: (
               <TreeLeaf

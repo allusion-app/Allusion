@@ -11,12 +11,16 @@ import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 import ImageViewer from './components/ImageViewer';
+import { useWorkerListener } from './ThumbnailGeneration';
 import { DragLayer } from './containers/Outliner/TagPanel';
 
 const SPLASH_SCREEN_TIME = 700;
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
+
+  // Listen to responses of Web Workers
+  useWorkerListener();
 
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);

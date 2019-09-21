@@ -229,9 +229,9 @@ const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
 });
 
 const SlideGallery = observer(
-  ({ fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+  ({ fileList, uiStore, handleDrop }: IGalleryLayoutProps) => {
+    // Go to the first selected image on load
     useEffect(() => {
-      // Go to the first selected image on load
       if (uiStore.fileSelection.length > 0) {
         uiStore.view.setFirstItem(fileList.findIndex((f) => f.id === uiStore.fileSelection[0]));
       }
@@ -297,6 +297,10 @@ const SlideGallery = observer(
       [handleUserKeyPress, handleUserWheel],
     );
 
+    const ignoreClick = useCallback((_, e: React.MouseEvent) => {
+      e.stopPropagation();
+    }, []);
+
     if (uiStore.view.firstItem >= fileList.length) {
       return <p>No files available</p>;
     }
@@ -307,7 +311,7 @@ const SlideGallery = observer(
       <GalleryItem
         file={file}
         isSelected={false /** Active image is always selected, no need to show it */}
-        onClick={handleClick}
+        onClick={ignoreClick}
         onDrop={handleDrop}
       />
     );
