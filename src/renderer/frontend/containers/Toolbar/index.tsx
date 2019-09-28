@@ -168,7 +168,7 @@ const Toolbar = observer(() => {
               labelElement={uiStore.view.orderBy === prop && orderIcon}
               onClick={() =>
                 uiStore.view.orderBy === prop
-                  ? uiStore.toggleFileOrder()
+                  ? uiStore.switchFileOrder()
                   : uiStore.orderFilesBy(prop)
               }
             />
