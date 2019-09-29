@@ -14,6 +14,7 @@ import CHECKMARK from '../../resources/icons/checkmark.svg';
 import CHROME_DEVTOOLS from '../../resources/icons/chrome-devtools.svg';
 import CLEAR_DATABASE from '../../resources/icons/clear-database.svg';
 import CLOSE from '../../resources/icons/close.svg';
+import COLOR from '../../resources/icons/color.svg';
 import DB_ERROR from '../../resources/icons/db-error.svg';
 import DELETE from '../../resources/icons/delete.svg';
 import DESELECT_ALL_FILL from '../../resources/icons/deselect-all-fill.svg';
@@ -46,6 +47,7 @@ import PREVIEW from '../../resources/icons/preview.svg';
 import RELOAD from '../../resources/icons/reload.svg';
 import REPLACE from '../../resources/icons/replace.svg';
 import SEARCH from '../../resources/icons/search.svg';
+import SEARCH_EXTENDED from '../../resources/icons/search-extended.svg';
 import SELECT_ALL_CHECKED from '../../resources/icons/select-all-checked.svg';
 import SELECT_ALL_ROUND from '../../resources/icons/select-all-round.svg';
 import SELECT_ALL_TRANS from '../../resources/icons/select-all-trans.svg';
@@ -57,6 +59,9 @@ import TAG_BLANCO from '../../resources/icons/tag-blanco.svg';
 import TAG_GROUP_OPEN from '../../resources/icons/tag-group-open.svg';
 import TAG_GROUP from '../../resources/icons/tag-group.svg';
 import TAG from '../../resources/icons/tag.svg';
+import THUMB_SM from '../../resources/icons/thumb-sm.svg';
+import THUMB_MD from '../../resources/icons/thumb-md.svg';
+import THUMB_BG from '../../resources/icons/thumb-bg.svg';
 import VIEW_GRID from '../../resources/icons/view-grid.svg';
 import VIEW_LIST from '../../resources/icons/view-list.svg';
 import VIEW_MASON from '../../resources/icons/view-mason.svg';
@@ -85,6 +90,7 @@ const IconSet = {
   CHROME_DEVTOOLS: toSvg(CHROME_DEVTOOLS),
   CLEAR_DATABASE: toSvg(CLEAR_DATABASE),
   CLOSE: toSvg(CLOSE),
+  COLOR: toSvg(COLOR),
   DB_ERROR: toSvg(DB_ERROR),
   DELETE: toSvg(DELETE),
   DESELECT_ALL_FILL: toSvg(DESELECT_ALL_FILL),
@@ -117,6 +123,7 @@ const IconSet = {
   RELOAD: toSvg(RELOAD),
   REPLACE: toSvg(REPLACE),
   SEARCH: toSvg(SEARCH),
+  SEARCH_EXTENDED: toSvg(SEARCH_EXTENDED),
   SELECT_ALL_CHECKED: toSvg(SELECT_ALL_CHECKED),
   SELECT_ALL_ROUND: toSvg(SELECT_ALL_ROUND),
   SELECT_ALL_TRANS: toSvg(SELECT_ALL_TRANS),
@@ -128,6 +135,9 @@ const IconSet = {
   TAG_GROUP_OPEN: toSvg(TAG_GROUP_OPEN),
   TAG_GROUP: toSvg(TAG_GROUP),
   TAG: toSvg(TAG),
+  THUMB_SM: toSvg(THUMB_SM),
+  THUMB_MD: toSvg(THUMB_MD),
+  THUMB_BG: toSvg(THUMB_BG),
   VIEW_GRID: toSvg(VIEW_GRID),
   VIEW_LIST: toSvg(VIEW_LIST),
   VIEW_MASON: toSvg(VIEW_MASON),
@@ -143,7 +153,7 @@ export const IconDemo = () => (
         'tick', 'cross', 'trash', 'delete', /*'small-cross'*/, 'edit', 'folder-close', 'folder-open',
         '', 'info-sign', 'menu', '', '', 'more', 'search', 'path-search',
         'tag', 'calendar',
-        'sort-alphabetical', 'sort-alphabetical-desc', 'play', 'warning-sign',
+        'sort-alphabetical', 'sort-alphabetical-desc', 'play', 'warning-sign', 'double-caret-vertical',
       ] as IconName[])
     .map((name, i) =>
       <Tag

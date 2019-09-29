@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useContext } from 'react';
 import { Card, Overlay, H5, Tag } from '@blueprintjs/core';
-import StoreContext from '../../contexts/StoreContext';
+import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 
-import { imgExtensions } from '../ImportForm';
-import { ClientTag } from '../../../entities/Tag';
-import { timeoutPromise } from '../../utils';
+import { imgExtensions } from '../containers/Outliner/ImportForm';
+import { ClientTag } from '../../entities/Tag';
+import { timeoutPromise } from '../utils';
 import { ipcRenderer, IpcMessageEvent } from 'electron';
-import { ClientFile } from '../../../entities/File';
+import { ClientFile } from '../../entities/File';
 
 /** Tests whether a URL points to an image */
 async function testImage(url: string, timeout: number = 2000): Promise<boolean> {

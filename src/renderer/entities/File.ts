@@ -1,11 +1,4 @@
-import {
-  IReactionDisposer,
-  observable,
-  reaction,
-  computed,
-  toJS,
-  action,
-} from 'mobx';
+import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import Path from 'path';
 import fse from 'fs-extra';
 import systemPath from 'path';
@@ -13,6 +6,9 @@ import systemPath from 'path';
 import FileStore from '../frontend/stores/FileStore';
 import { ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag } from './Tag';
+
+export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'];
+export type IMG_EXTENSIONS_TYPE = 'gif' | 'png' | 'jpg' | 'jpg';
 
 /* Generic properties of a File in our application (usually an image) */
 export interface IFile extends IIdentifiable {
@@ -55,7 +51,6 @@ export class DbFile implements IFile {
  * update the entity in the backend.
  */
 export class ClientFile implements IFile, ISerializable<DbFile> {
-
   /** Should be called when after constructing a file before sending it to the backend. */
   static async getMetaData(path: string) {
     const stats = await fse.stat(path);
@@ -78,6 +73,9 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   readonly name: string;
   readonly extension: string;
 
+  @observable
+  thumbnailPath: string;
+
   constructor(store: FileStore, fileProps: IFile) {
     this.store = store;
 
@@ -87,6 +85,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
     this.size = fileProps.size;
     this.name = fileProps.name;
     this.extension = fileProps.extension;
+    this.thumbnailPath = '';
 
     this.tags.push(...fileProps.tags);
 
@@ -98,8 +97,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       (file) => {
         if (this.autoSave) {
           // Remove reactive properties, since observable props are not accepted in the backend
-          const jsFile = toJS<IFile>(file);
-          this.store.backend.saveFile(jsFile);
+          this.store.save(file);
         }
       },
     );
@@ -124,7 +122,13 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get clientTags(): ClientTag[] {
-    return this.tags.map((id) => this.store.rootStore.tagStore.getTag(id)) as ClientTag[];
+    return this.tags
+      .map((id) => this.store.getTag(id))
+      .filter((t) => t !== undefined) as ClientTag[];
+  }
+
+  @action.bound setThumbnailPath(thumbnailPath: string) {
+    this.thumbnailPath = thumbnailPath;
   }
 
   @action.bound addTag(tag: ID) {
@@ -136,6 +140,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       this.tags.push(tag);
     }
   }
+
   @action.bound removeTag(tag: ID) {
     if (this.tags.includes(tag)) {
       if (this.tags.length === 1) {
@@ -145,6 +150,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       this.tags.remove(tag);
     }
   }
+
   @action.bound removeAllTags() {
     if (this.tags.length !== 0) {
       this.store.incrementNumUntaggedFiles();

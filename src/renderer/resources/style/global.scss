@@ -1,3 +1,9 @@
+// Styling to match Allusion Mockups
+$pt-transition-ease: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
+$pt-transition-ease2: cubic-bezier(0.4, 0, 0.2, 1) !default;
+$pt-transition-ease-bounce: cubic-bezier(0.54, 1.12, 0.38, 1.11) !default;
+$pt-transition-duration: 100ms !default;
+
 // Page layout
 html {
   height: 100%;
@@ -12,7 +18,8 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
   .bp3-light {
     color: $light-gray1;
   }
@@ -23,13 +30,15 @@ body {
   --inspector-width: 24em;
   --toolbar-height: 2.4rem;
   --content-area-height: calc(100vh - var(--toolbar-height));
+  --thumbnail-size: 250px;
   height: 100%;
 }
 
 .preloader {
   font-size: 18px;
   font-weight: 700;
-  font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue", "Icons16", sans-serif;
+  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -43,8 +52,8 @@ main {
   grid-template-rows: var(--toolbar-height) var(--content-area-height);
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
-    "toolbar toolbar toolbar"
-    "outliner main inspector";
+    'toolbar toolbar toolbar'
+    'outliner main inspector';
 
   &.bp3-dark {
     background: $dark-gray1;
@@ -84,6 +93,7 @@ main {
 // Disable default outline on focused elements (e.g. clicked buttons)
 :focus {
   outline: none !important;
+  // background: rgba(255, 255, 255, 0.05) !important;
 }
 
 // Custom scrollbar style
@@ -156,7 +166,7 @@ main {
 [data-right]:hover:after,
 [data-left]:hover:after {
   opacity: 1;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) 1s;
+  transition: all 0.2s $pt-transition-ease2;
   visibility: visible;
   position: absolute;
   z-index: 1000;
@@ -184,21 +194,27 @@ main {
 }
 
 ///////////////////////////////// Theme Colours /////////////////////////////////
+// Todo: The nice thing about variables is that we can change them depending on the theme,
+// instead of switching colors around like this
 // Dark
-.bp3-dark,
-.bp3-dark #toolbar,
-.bp3-dark #inspector,
-.bp3-dark nav,
-.bp3-dark #outliner {
+.bp3-dark {
+  #toolbar,
+  #inspector,
+  nav,
+  #outliner {
+    background-color: $dark-gray2;
+  }
   background-color: $dark-gray2;
 }
 
 // Light
-.bp3-light,
-.bp3-light #toolbar,
-.bp3-light #inspector,
-.bp3-light nav,
-.bp3-light #outliner {
+.bp3-light {
+  #toolbar,
+  #inspector,
+  nav,
+  #outliner {
+    background-color: $light-gray5 !important;
+  }
   background-color: $light-gray5 !important;
 }
 
@@ -339,6 +355,10 @@ main {
   }
 }
 
+.custom-icon {
+  color: inherit !important;
+}
+
 .bp3-icon-eye {
   cursor: none;
 }
@@ -357,4 +377,45 @@ main {
 }
 .fillWidth {
   width: 100%;
+}
+
+#imageViewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+
+  #fullImage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    box-shadow: 0 0 128px black;
+
+    background-color: rgba(1, 1, 1, 0.5);
+
+    transition: width 0.1s ease-in-out, height 0.1s ease-in-out;
+  }
+
+  .zoomIn {
+    cursor: zoom-in;
+  }
+
+  .zoomOut {
+    cursor: zoom-out;
+  }
+}
+
+.color-black {
+  color: black;
+  transition: color 0.2s ease;
+}
+
+.color-white {
+  color: white;
+  transition: color 0.2s ease;
 }
