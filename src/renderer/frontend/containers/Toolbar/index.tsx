@@ -155,7 +155,7 @@ const Toolbar = observer(() => {
   const sortMenu = useMemo(
     () => {
       const orderIcon = (
-        <Icon icon={uiStore.view.fileOrder ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
+        <Icon icon={uiStore.view.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
       );
       return (
         <Menu>
@@ -168,7 +168,7 @@ const Toolbar = observer(() => {
               labelElement={uiStore.view.orderBy === prop && orderIcon}
               onClick={() =>
                 uiStore.view.orderBy === prop
-                  ? uiStore.toggleFileOrder()
+                  ? uiStore.switchFileOrder()
                   : uiStore.orderFilesBy(prop)
               }
             />

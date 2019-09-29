@@ -1,6 +1,7 @@
 import { ViewMethod } from '.';
 import { observable, action, computed } from 'mobx';
 import { IFile } from '../../entities/File';
+import { FileOrder } from '../../backend/DBRepository';
 
 const PersistentPreferenceFields: Array<keyof View> = [
   'method',
@@ -19,7 +20,7 @@ class View {
   @observable thumbnailSize: 'small' | 'medium' | 'large' = 'medium';
 
   @observable orderBy: keyof IFile = 'dateAdded';
-  @observable fileOrder = true;
+  @observable fileOrder: FileOrder = 'DESC';
 
   /////////////////// UI Actions ///////////////////
   @action.bound setThumbnailSmall() {
@@ -38,11 +39,11 @@ class View {
     this.orderBy = prop;
   }
 
-  @action.bound toggleFileOrder() {
+  @action.bound switchFileOrder() {
     // Todo: it is a bit confusing that this same function exists in the main UiStore,
     // but with different behavior.
     // I'd move those functions to here and pass a reference to the UiStore in the constructur of View
-    this.fileOrder = !this.fileOrder;
+    this.fileOrder = this.fileOrder === 'DESC' ? 'ASC' : 'DESC';
   }
 
   @action.bound setFirstItem(index: number) {

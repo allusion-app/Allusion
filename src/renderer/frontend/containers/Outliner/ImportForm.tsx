@@ -14,9 +14,11 @@ import IconSet from '../../components/Icons';
 import RootStore from '../../stores/RootStore';
 import { IMG_EXTENSIONS } from '../../../entities/File';
 
+export const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
+
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialog({
-    filters: [{ name: 'Images', extensions: ['gif', 'png', 'jpg', 'jpeg'] }],
+    filters: [{ name: 'Images', extensions: imgExtensions }],
     properties: ['openFile', 'multiSelections'],
   });
 

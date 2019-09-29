@@ -235,8 +235,8 @@ class UiStore {
     this.refetch();
   }
 
-  @action.bound toggleFileOrder() {
-    this.view.toggleFileOrder();
+  @action.bound switchFileOrder() {
+    this.view.switchFileOrder();
     this.refetch();
   }
 

@@ -273,7 +273,7 @@ const SlideGallery = observer(
     // Detect scroll wheel to scroll between images
     const handleUserWheel = useCallback(
       (event: WheelEvent) => {
-        if (event.ctrlKey){
+        if (event.ctrlKey) {
           return;
         }
         event.preventDefault();
