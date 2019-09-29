@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup,
 } from '@blueprintjs/core';
@@ -15,6 +15,7 @@ import UiStore, { ViewMethod } from '../../UiStore';
 import { ClientFile } from '../../../entities/File';
 import IconSet from '../../components/Icons';
 import { throttle } from '../../utils';
+import { Rectangle } from 'electron';
 
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
 const CELL_SIZE_SMALL = 160 - 2;
@@ -31,8 +32,7 @@ function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
 }
 
 interface IGalleryLayoutProps {
-  contentWidth: number;
-  contentHeight: number;
+  contentRect: Rectangle;
   fileList: ClientFile[];
   uiStore: UiStore;
   handleClick: (file: ClientFile, e: React.MouseEvent) => void;
@@ -55,9 +55,9 @@ function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) 
 }
 
 const GridGallery = observer(
-  ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+  ({ contentRect, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
   const cellSize = getThumbnailSize(uiStore.view.thumbnailSize);
-  const numColumns = Math.floor(contentWidth / cellSize);
+  const numColumns = Math.floor(contentRect.width / cellSize);
   const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
   const ref = useRef<FixedSizeGrid>(null);
@@ -123,10 +123,10 @@ const GridGallery = observer(
     <FixedSizeGrid
       columnCount={numColumns}
       columnWidth={cellSize}
-      height={contentHeight}
+      height={contentRect.height}
       rowCount={numRows}
       rowHeight={cellSize}
-      width={contentWidth}
+      width={contentRect.width}
       itemData={fileList}
       itemKey={handleItemKey}
       overscanRowCount={2}
@@ -140,7 +140,7 @@ const GridGallery = observer(
 });
 
 const ListGallery = observer(
-  ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+  ({ contentRect, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
   const cellSize = getThumbnailSize(uiStore.view.thumbnailSize);
   const ref = useRef<FixedSizeList>(null);
 
@@ -199,8 +199,8 @@ const ListGallery = observer(
 
   return (
     <FixedSizeList
-      height={contentHeight}
-      width={contentWidth}
+      height={contentRect.height}
+      width={contentRect.width}
       itemSize={cellSize}
       itemCount={fileList.length}
       itemKey={handleItemKey}
@@ -229,7 +229,7 @@ const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
 });
 
 const SlideGallery = observer(
-  ({ fileList, uiStore, handleDrop }: IGalleryLayoutProps) => {
+  ({ fileList, uiStore, handleDrop, contentRect }: IGalleryLayoutProps) => {
     // Go to the first selected image on load
     useEffect(() => {
       if (uiStore.fileSelection.length > 0) {
@@ -273,6 +273,7 @@ const SlideGallery = observer(
     // Detect scroll wheel to scroll between images
     const handleUserWheel = useCallback(
       (event: WheelEvent) => {
+        if (event.ctrlKey) return;
         event.preventDefault();
 
         if (event.deltaY > 0) {
@@ -308,15 +309,163 @@ const SlideGallery = observer(
     const file = fileList[uiStore.view.firstItem];
 
     return (
-      <GalleryItem
-        file={file}
-        isSelected={false /** Active image is always selected, no need to show it */}
-        onClick={ignoreClick}
-        onDrop={handleDrop}
+      // <GalleryItem
+      //   file={file}
+      //   isSelected={false /** Active image is always selected, no need to show it */}
+      //   onClick={ignoreClick}
+      //   onDrop={handleDrop}
+      // />
+      <ZoomableSlideImage
+        src={file.path}
+        contentRect={contentRect}
       />
     );
   },
 );
+
+interface IZoomableImageProps {
+  src: string;
+  contentRect: Rectangle;
+}
+
+const ZoomableSlideImage = ({ src, contentRect }: IZoomableImageProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [dragStart, setDragStart] = useState([0, 0]); // Client coordinates where drag starts
+  const [baseOffset, setBaseOffset] = useState([0, 0]); // UV coordinates on image
+  const [deltaOffset, setDeltaOffset] = useState([0, 0]); // Change in translation from panning
+
+  const isZooming = zoomLevel !== 1;
+  const offset = [baseOffset[0] + deltaOffset[0], baseOffset[1] + deltaOffset[1]];
+
+  const MAX_PAN = 0.5;
+  const panToCursor = useCallback((e?: React.MouseEvent) => {
+    let dX = 0;
+    let dY = 0;
+    if (e) {
+      dX = ((e.clientX - dragStart[0]) / contentRect.width) / zoomLevel;
+      dY = ((e.clientY - dragStart[1]) / contentRect.height) / zoomLevel;
+
+      // Clamp offest: Ensure image can't be panned outside of the view
+      if (Math.abs(baseOffset[0] + dX) > MAX_PAN) {
+        dX = (MAX_PAN - Math.abs(baseOffset[0])) * Math.sign(baseOffset[0]);
+      }
+      if (Math.abs(baseOffset[1] + dY) > MAX_PAN) {
+        dY = (MAX_PAN - Math.abs(baseOffset[1])) * Math.sign(baseOffset[1]);
+      }
+    }
+    setDeltaOffset([dX, dY]);
+  }, [setDeltaOffset, zoomLevel, dragStart, contentRect]);
+
+  const stopZooming = useCallback(() => {
+    setZoomLevel(1);
+    setBaseOffset([0, 0]);
+    setDeltaOffset([0, 0]);
+    setIsDragging(false);
+  }, [setZoomLevel, setBaseOffset, setDeltaOffset, setIsDragging]);
+
+  const handleEscape = useCallback((e: React.KeyboardEvent) => {
+    if (e.keyCode === 27) {
+      stopZooming();
+    }
+  }, [stopZooming]);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    const MIN_ZOOM = 1;
+    const MAX_ZOOM = 8; // todo: should depend on image resolution
+    const ZOOM_SPEED = 0.1;
+    if (e.ctrlKey || e.buttons === 1) {
+      const newZoom = (
+        Math.min(MAX_ZOOM,
+          Math.max(MIN_ZOOM,
+            (1 - Math.sign(e.deltaY) * ZOOM_SPEED) * zoomLevel))
+      );
+      // reset offsets etc. when manually zooming out
+      if (newZoom === MIN_ZOOM) {
+        stopZooming();
+      }
+      setZoomLevel(newZoom);
+
+      // TODO: Zoom in direction of cursor
+      // let dX = -Math.sign(e.deltaY) *
+      //       ((contentRect.width / 2 - (e.clientX - contentRect.x)) / contentRect.width);
+      // let dY = -Math.sign(e.deltaY) *
+      //       ((contentRect.height / 2 - (e.clientY - contentRect.y)) / contentRect.height);
+    }
+    // Stop scroll event when zooming left click is still pressed
+    if (isZooming || e.buttons === 1) {
+      e.stopPropagation();
+    }
+  }, [zoomLevel, setZoomLevel, contentRect, isZooming, isDragging, baseOffset]);
+
+  // Stop zooming when a new image is loaded
+  useEffect(stopZooming, [src, stopZooming]);
+
+  // Zoom in with double click
+  const DBL_CLICK_ZOOM = 2;
+  const handleDbClick = useCallback(
+    () => isZooming ? stopZooming() : setZoomLevel(DBL_CLICK_ZOOM),
+    [isZooming, stopZooming, setZoomLevel]);
+
+  // Block native drag event when zooming
+  const handleDragStart = useCallback((e: React.DragEvent) => {
+    if (isZooming) {
+      e.preventDefault();
+      return false;
+    }
+    return true;
+  }, [isZooming]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isDragging) {
+      panToCursor(e);
+    }
+  }, [panToCursor, isDragging]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (isZooming) {
+      setIsDragging(true);
+      setDragStart([e.clientX, e.clientY]);
+    }
+  }, [isZooming, setIsDragging, setDragStart]);
+
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    if (isZooming) {
+      setBaseOffset(offset);
+      setIsDragging(false);
+      setDeltaOffset([0, 0]);
+    }
+  }, [isZooming, offset[0], offset[1]]);
+
+  return (
+    <div
+      id="zoomableSlideImage"
+      onDoubleClick={handleDbClick}
+      onDragStart={handleDragStart}
+      onMouseMove={handleMouseMove}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onKeyDown={handleEscape}
+      onWheel={handleWheel}
+      tabIndex={0}
+    >
+      <div
+        id="transformer"
+        style={{
+          transform: isZooming
+            ? `scale(${zoomLevel}) translate(${offset[0] * 100}%, ${offset[1] * 100}%)`
+            : '',
+        }}
+        className={isDragging ? '' : 'no-drag'}
+      >
+        <img
+          src={src}
+        />
+      </div>
+    </div>
+  );
+};
 
 interface IGalleryProps extends IRootStoreProp {}
 
@@ -326,11 +475,15 @@ const Gallery = ({
     fileStore: { fileList },
   },
 }: IGalleryProps) => {
-  const [contentHeight, setContentHeight] = useState(1); // window.innerWidth
-  const [contentWidth, setContentWidth] = useState(1); // window.innerWidth
+  const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
   const handleResize = useCallback((entries: IResizeEntry[]) => {
-    setContentWidth(entries[0].contentRect.width);
-    setContentHeight(entries[0].contentRect.height);
+    const { contentRect: rect, target } = entries[0];
+    setContentRect({
+      width: rect.width,
+      height: rect.height,
+      x: (target as HTMLDivElement).offsetLeft,
+      y: (target as HTMLDivElement).offsetTop,
+    });
   }, []);
 
   // Todo: Maybe move these to UiStore so that it can be reset when the fileList changes?
@@ -472,7 +625,7 @@ const Gallery = ({
       >
         {getLayoutComponent(
           uiStore.view.method,
-          { contentWidth, contentHeight, fileList, uiStore, handleClick: handleItemClick, handleDrop },
+          { contentRect, fileList, uiStore, handleClick: handleItemClick, handleDrop },
         )}
       </div>
     </ResizeSensor>

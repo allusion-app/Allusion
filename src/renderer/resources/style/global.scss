@@ -396,6 +396,39 @@ main {
   }
 }
 
+#zoomableSlideImage {
+  width: 100%;
+  height: 100%;
+
+  // display: inline-block;
+  // vertical-align: middle;
+
+  #transformer {
+    width: 100%;
+    height: 100%;
+
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  /* Centering y-axis */
+    align-items :center; /* Centering x-axis */
+
+    &.no-drag {
+      // No transform transition when dragging, also applies to zoom (scale)
+      transition: transform 0.1s ease-in-out;
+    }
+  }
+
+  img {
+    transition: width 0.1s ease-in-out, height 0.1s ease-in-out;
+    vertical-align: middle;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+}
+
 .color-black {
   color: black;
   transition: color 0.2s ease;
