@@ -40,10 +40,12 @@ export const dbDelete = (dbName: string) => {
   Dexie.delete(dbName);
 };
 
+export type FileOrder = 'ASC' | 'DESC';
+
 export interface IDbRequest<T> {
   count?: number;
   order?: keyof T;
-  descending?: boolean;
+  fileOrder?: FileOrder;
 }
 
 export interface IDbQueryRequest<T> extends IDbRequest<T> {
@@ -70,18 +72,18 @@ export default class BaseRepository<T extends IIdentifiable> {
     return this.collection.get(id);
   }
 
-  public async getAll({ count, order, descending }: IDbRequest<T>): Promise<T[]> {
+  public async getAll({ count, order, fileOrder }: IDbRequest<T>): Promise<T[]> {
     let col = order ? this.collection.orderBy(order as string) : this.collection;
-    if (descending) {
+    if (fileOrder === 'DESC') {
       col = col.reverse();
     }
     return (count ? col.limit(count) : col).toArray();
   }
 
   public async find(req: IDbQueryRequest<T>): Promise<T[]> {
-    const { count, order, descending } = req;
+    const { count, order, fileOrder } = req;
     let table = await this._find(req);
-    table = descending ? table.reverse() : table;
+    table = fileOrder === 'DESC' ? table.reverse() : table;
     table = count ? table.limit(count) : table;
     return order ? table.sortBy(order as string) : table.toArray();
   }

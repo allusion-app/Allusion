@@ -2,7 +2,7 @@ import { DbFile, IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
-import DBRepository, { dbInit, dbDelete } from './DBRepository';
+import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 import { SearchCriteria } from '../entities/SearchCriteria';
 
@@ -45,9 +45,9 @@ export default class Backend {
     return this.tagCollectionRepository.getAll({});
   }
 
-  async fetchFiles(order: keyof IFile, descending: boolean): Promise<IFile[]> {
+  async fetchFiles(order: keyof IFile, fileOrder: FileOrder): Promise<IFile[]> {
     console.log('Backend: Fetching files...');
-    return this.fileRepository.getAll({ order, descending });
+    return this.fileRepository.getAll({ order, fileOrder });
   }
 
   async fetchFilesByID(ids: ID[]): Promise<IFile[]> {
@@ -57,11 +57,11 @@ export default class Backend {
   }
 
   async searchFiles(criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
-                    order: keyof IFile, descending: boolean): Promise<IFile[]> {
+                    order: keyof IFile, fileOrder: FileOrder): Promise<IFile[]> {
     // Fixme: This shouldn't be necesary, but I keep getting Mobx proxy objects, even when calling .toJS()
     const serializedCriteria = JSON.parse(JSON.stringify(criteria));
     console.log('Backend: Searching files...', serializedCriteria);
-    return this.fileRepository.find({ criteria: serializedCriteria, order, descending });
+    return this.fileRepository.find({ criteria: serializedCriteria, order, fileOrder });
   }
 
   async createTag(id: ID, name: string, description?: string) {
