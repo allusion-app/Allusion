@@ -40,7 +40,7 @@ class FileStore {
     // The function caller is responsible for handling errors.
     await this.backend.createFile(fileData);
     this.add(file);
-    this.numUntaggedFiles++;
+    this.incrementNumUntaggedFiles();
     return file;
   }
 
@@ -55,7 +55,7 @@ class FileStore {
         this.rootStore.uiStore.deselectFile(file);
         this.fileList.remove(file);
         if (file.tags.length === 0) {
-          this.numUntaggedFiles--;
+          this.decrementNumUntaggedFiles();
         }
       });
       await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
@@ -129,6 +129,9 @@ class FileStore {
   }
 
   @action.bound decrementNumUntaggedFiles() {
+    if (this.numUntaggedFiles === 0) {
+      throw new Error('Invalid Database State: Cannot have less than 0 untagged files.');
+    }
     this.numUntaggedFiles--;
   }
 
