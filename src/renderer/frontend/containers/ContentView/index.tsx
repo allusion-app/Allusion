@@ -3,35 +3,32 @@ import { observer } from 'mobx-react-lite';
 import { Button, Hotkey, Hotkeys, HotkeysTarget, TagInput } from '@blueprintjs/core';
 import { CSSTransition } from 'react-transition-group';
 
-import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
+import StoreContext, { IRootStoreProp, withRootstore } from '../../contexts/StoreContext';
 import Gallery from './Gallery';
-import { ClientTag } from '../../entities/Tag';
-import MultiTagSelector from './MultiTagSelector';
-import { KeyLabelMap } from './SearchForm';
-import { IArraySearchCriteria } from '../../entities/SearchCriteria';
-import { IFile } from '../../entities/File';
-import IconSet from './Icons';
+import IconSet from '../../components/Icons';
+import { ClientTag } from '../../../entities/Tag';
+import { ClientArraySearchCriteria } from '../../../entities/SearchCriteria';
+import { IFile } from '../../../entities/File';
+import MultiTagSelector from '../../components/MultiTagSelector';
+import { KeyLabelMap } from '../Outliner/SearchForm';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
 
-  const tagCrit = uiStore.searchCriteriaList[0] as IArraySearchCriteria<IFile>;
+  const tagCrit = uiStore.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>;
 
   const queriedTags = useMemo(
     () => tagCrit.value.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),
     [tagCrit.value.length]);
 
   const handleSelectTag = useCallback((tag: ClientTag) => {
-    tagCrit.value.push(tag.id);
+    tagCrit.addID(tag.id);
     uiStore.searchByQuery();
   }, []);
 
   const handleDeselectTag = useCallback((tag: ClientTag) => {
-    const index = tagCrit.value.indexOf(tag.id);
-    if (index >= 0) {
-      tagCrit.value.splice(index, 1);
-      uiStore.searchByQuery();
-    }
+    tagCrit.removeID(tag.id);
+    uiStore.searchByQuery();
   }, []);
 
   const handleClearTags = useCallback(() => {
@@ -65,9 +62,8 @@ const QuickSearchList = observer(() => {
 const CriteriaList = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
-  // const ClearButton = useMemo(() => <Button onClick={uiStore.clearSearchQueryList} icon="cross" />, []);
   const handleRemove = useCallback((_: string, index: number) =>
-    uiStore.removeSearchQuery(uiStore.searchCriteriaList[index]), []);
+    uiStore.removeSearchCriteria(uiStore.searchCriteriaList[index]), []);
 
   const preventTyping = useCallback((e: React.KeyboardEvent<HTMLElement>, i?: number) => {
     // If it's not an event on an existing Tag element, ignore it
@@ -113,19 +109,23 @@ const SearchBar = observer(() => {
   );
 });
 
-const FileList = observer(({ rootStore: { uiStore } }: IRootStoreProp) => {
+const ContentView = observer(({ rootStore: { uiStore } }: IRootStoreProp) => {
   return (
-    <>
+    <div className="gallery">
       <SearchBar />
       <Gallery />
-    </>
+    </div>
   );
 });
 
 @HotkeysTarget
-class FileListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
+class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
-    return <div tabIndex={1} className="gallery"><FileList {...this.props} /></div>;
+    return (
+      <main tabIndex={1}>
+        <ContentView {...this.props} />
+      </main>
+    );
   }
   renderHotkeys() {
     const { uiStore } = this.props.rootStore;
@@ -161,9 +161,4 @@ class FileListWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   }
 }
 
-const HotkeysWrapper = observer(() => {
-  const rootStore = React.useContext(StoreContext);
-  return <FileListWithHotkeys rootStore={rootStore} />;
-});
-
-export default HotkeysWrapper;
+export default withRootstore(ContentViewWithHotkeys);

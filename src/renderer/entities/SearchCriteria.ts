@@ -1,4 +1,5 @@
 import { ID } from './ID';
+import { action, observable } from 'mobx';
 
 // type SearchCriteriaValueType = 'number' | 'string' |
 
@@ -30,7 +31,7 @@ export type ArrayOperatorType = typeof ArrayOperators[number];
 interface IBaseSearchCriteria<T> {
   key: keyof T;
   valueType: 'number' | 'date' | 'string' | 'array';
-  operator: NumberOperatorType | StringOperatorType | BinaryOperatorType | ArrayOperatorType;
+  readonly operator: NumberOperatorType | StringOperatorType | BinaryOperatorType | ArrayOperatorType;
 }
 
 export interface IArraySearchCriteria<T> extends IBaseSearchCriteria<T> {
@@ -57,50 +58,59 @@ export interface IDateSearchCriteria<T> extends IBaseSearchCriteria<T> {
 export type SearchCriteria<T> = IArraySearchCriteria<T> | IStringSearchCriteria<T>
   | INumberSearchCriteria<T> | IDateSearchCriteria<T>;
 
-function clearCriteria(crit: SearchCriteria<any>) {
-  for (const prop of Object.keys(crit)) {
-    if (prop !== 'key' && prop !== 'operator' && prop !== 'action') {
-      // @ts-ignore
-      delete crit[prop];
-    }
+export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
+  @observable public key: keyof T;
+  @observable public valueType: 'number' | 'date' | 'string' | 'array';
+  @observable public operator: NumberOperatorType | StringOperatorType | BinaryOperatorType | ArrayOperatorType;
+  constructor(
+    key: keyof T,
+    valueType: 'number' | 'date' | 'string' | 'array',
+    operator: NumberOperatorType | StringOperatorType | BinaryOperatorType | ArrayOperatorType,
+  ) {
+    this.key = key;
+    this.valueType = valueType;
+    this.operator = operator;
   }
-  // @ts-ignore
-  crit.value = undefined;
 }
 
-export function initIDsCriteria<T>(crit: SearchCriteria<T>) {
-  clearCriteria(crit);
-  const res = crit as IArraySearchCriteria<T>;
-  res.value = [];
-  res.valueType = 'array';
-  res.operator = 'contains';
-  return res;
+export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
+  readonly value = observable<ID>([]);
+  constructor(key: keyof T) {
+    super(key, 'array', 'contains');
+  }
+  @action.bound setOperator(op: ArrayOperatorType) { this.operator = op; }
+  @action.bound addID(id: ID) { this.value.push(id); }
+  @action.bound removeID(id: ID) { this.value.remove(id); }
+  @action.bound clearIDs() { this.value.splice(0, this.value.length); }
 }
 
-export function initStringCriteria<T>(crit: SearchCriteria<T>) {
-  clearCriteria(crit);
-  const res = crit as IStringSearchCriteria<T>;
-  res.value = '';
-  res.valueType = 'string';
-  res.operator = 'contains';
-  return res;
+export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
+  @observable public value: string;
+  constructor(key: keyof T) {
+    super(key, 'string', 'contains');
+    this.value = '';
+  }
+  @action.bound setOperator(op: StringOperatorType) { this.operator = op; }
+  @action.bound setValue(str: string) { this.value = str; }
 }
 
-export function initNumberCriteria<T>(crit: SearchCriteria<T>) {
-  clearCriteria(crit);
-  const res = crit as INumberSearchCriteria<T>;
-  res.value = 0;
-  res.operator = 'greaterThanOrEquals';
-  res.valueType = 'number';
-  return res;
+export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
+  @observable public value: number;
+  constructor(key: keyof T) {
+    super(key, 'number', 'greaterThanOrEquals');
+    this.value = 0;
+  }
+  @action.bound setOperator(op: NumberOperatorType) { this.operator = op; }
+  @action.bound setValue(num: number) { this.value = num; }
 }
 
-export function initDateCriteria<T>(crit: SearchCriteria<T>) {
-  clearCriteria(crit);
-  const res = crit as IDateSearchCriteria<T>;
-  res.operator = 'equals';
-  res.valueType = 'date';
-  res.value = new Date();
-  res.value.setHours(0, 0, 0, 0);
-  return res;
+export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
+  @observable public value: Date;
+  constructor(key: keyof T) {
+    super(key, 'date', 'equals');
+    this.value = new Date();
+    this.value.setHours(0, 0, 0, 0);
+  }
+  @action.bound setOperator(op: NumberOperatorType) { this.operator = op; }
+  @action.bound setValue(date: Date) { this.value = date; }
 }

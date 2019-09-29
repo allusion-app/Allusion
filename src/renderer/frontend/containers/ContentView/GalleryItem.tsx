@@ -4,14 +4,14 @@ import { observer } from 'mobx-react-lite';
 import { useDrop } from 'react-dnd';
 import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes, H3 } from '@blueprintjs/core';
 
-import { ClientFile } from '../../entities/File';
-import { ClientTag } from '../../entities/Tag';
-import IconSet from './Icons';
-import { SingleFileInfo } from './FileInfo';
-import StoreContext, { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
-import { ItemType } from './DragAndDrop';
-import { getClassForBackground } from '../utils';
-import { ensureThumbnail } from '../ThumbnailGeneration';
+import { ClientFile } from '../../../entities/File';
+import { ClientTag } from '../../../entities/Tag';
+import IconSet from '../../components/Icons';
+import ImageInfo from '../../components/ImageInfo';
+import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
+import { DragAndDropType } from '../Outliner/TagPanel';
+import { getClassForBackground } from '../../utils';
+import { ensureThumbnail } from '../../ThumbnailGeneration';
 
 interface IGalleryItemTagProps {
   tag: ClientTag;
@@ -50,7 +50,7 @@ export const GalleryItem = observer(({
   const { uiStore } = useContext(StoreContext);
 
   const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
-    accept: ItemType.Tag,
+    accept: DragAndDropType.Tag,
     drop: (_, monitor) => onDrop(monitor.getItem(), file),
     canDrop: () => true,
     collect: (monitor) => ({
@@ -64,12 +64,12 @@ export const GalleryItem = observer(({
   const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
   const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
-  const handleClickImg = useCallback((e: React.MouseEvent) => onClick(file, e), [file]);
+  const handleClickImg = useCallback((e) => onClick(file, e), []);
 
   const [isImageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState();
 
-  const imagePath = uiStore.viewMethod === 'slide' ? file.path : file.thumbnailPath;
+  const imagePath = uiStore.view.method === 'slide' ? file.path : file.thumbnailPath;
 
   useEffect(() => {
     // First check whether a thumbnail exists, generate it if needed
@@ -90,30 +90,32 @@ export const GalleryItem = observer(({
     setImageLoaded(false);
   }, []);
 
-  return (<div ref={galleryItemDrop} className={className}>
-    <div onClick={handleClickImg} className="img-wrapper">
-      {isImageLoaded ? <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
-        : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
-          : <div className={Classes.SKELETON} /> // Else show a placeholder
-      }
+  return (
+    <div ref={galleryItemDrop} className={className}>
+      <div onClick={handleClickImg} className="img-wrapper">
+        {isImageLoaded ? <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
+          : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
+            : <div className={Classes.SKELETON} /> // Else show a placeholder
+        }
+      </div>
+
+      {showName && <H4>{file.name}</H4>}
+
+      {showInfo && <ImageInfo file={file} />}
+
+      {showTags && (
+        <span className="thumbnailTags" onClick={handleClickImg}>
+          {file.clientTags.map((tag) => (
+            <GalleryItemTag
+              key={`gal-tag-${file.id}-${tag.id}`}
+              onRemove={handleRemoveTag}
+              tag={tag}
+            />
+          ))}
+        </span>
+      )}
     </div>
-
-    {showName && <H4>{file.name}</H4>}
-
-    {showInfo && <SingleFileInfo file={file} />}
-
-    {showTags && (
-      <span className="thumbnailTags" onClick={handleClickImg}>
-        {file.clientTags.map((tag) => (
-          <GalleryItemTag
-            key={`gal-tag-${file.id}-${tag.id}`}
-            onRemove={handleRemoveTag}
-            tag={tag}
-          />
-        ))}
-      </span>
-    )}
-  </div>);
+  );
 });
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
@@ -141,8 +143,8 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
 class GalleryItemWithContextMenu extends React.PureComponent<
-IGalleryItemProps,
-{ isContextMenuOpen: boolean }
+  IGalleryItemProps,
+  { isContextMenuOpen: boolean }
 > {
   state = {
     isContextMenuOpen: false,
@@ -171,7 +173,10 @@ IGalleryItemProps,
   }
 
   renderContextMenu() {
-    const { file, rootStore: { uiStore } } = this.props;
+    const {
+      file,
+      rootStore: { uiStore },
+    } = this.props;
     // If the selection does not contain this item, replace the selection with this item
     if (!uiStore.fileSelection.includes(file.id)) {
       this.props.rootStore.uiStore.selectFile(file, true);

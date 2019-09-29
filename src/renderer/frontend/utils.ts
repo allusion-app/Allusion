@@ -63,8 +63,26 @@ export function camelCaseToSpaced(value: string) {
     .replace(/^./, (str) => str.toUpperCase());
 }
 
-export const formatDateTime = (date: Date) =>
-  `${date.toLocaleDateString()} ${date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
+// export const formatDateTime = (date: Date) =>
+//   `${date.toLocaleDateString()} ${date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
+
+const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
+  timeZone: 'UTC',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+export const formatDateTime = (d: Date) => {
+  return DateTimeFormat.formatToParts(d).map(({type, value}) => {
+    if (type === 'literal' && value === ', ') {
+      return ' ';
+    }
+    return value;
+  }).reduce((str, part) => str + part);
+};
 
 export const jsDateFormatter = {
   formatDate: (date: Date) => date.toLocaleDateString(),

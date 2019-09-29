@@ -1,56 +1,61 @@
 import React, { useContext, useEffect, useCallback } from 'react';
 
-import StoreContext from '../contexts/StoreContext';
-import ErrorBoundary from './ErrorBoundary';
-import FileList from './FileList';
+import StoreContext from './contexts/StoreContext';
+import ErrorBoundary from './components/ErrorBoundary';
+import ContentView from './containers/ContentView';
 import { Button, Switch } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import IconSet from './Icons';
+import IconSet from './components/Icons';
 
-const PreviewApp = () => {
+const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
-  useEffect(uiStore.viewSlide, []);
+  useEffect(uiStore.view.setMethodSlide, []);
 
   const handleLeftButton = useCallback(
-    () => uiStore.setFirstIndexInView(Math.max(0, uiStore.firstIndexInView - 1)),
-    []);
+    () => uiStore.view.setFirstItem(Math.max(0, uiStore.view.firstItem - 1)),
+    [],
+  );
 
   const handleRightButton = useCallback(
-    () => uiStore.setFirstIndexInView(Math.min(uiStore.firstIndexInView + 1, fileStore.fileList.length - 1)),
-    [fileStore.fileList.length]);
+    () =>
+      uiStore.view.setFirstItem(
+        Math.min(uiStore.view.firstItem + 1, fileStore.fileList.length - 1),
+      ),
+    [fileStore.fileList.length],
+  );
 
   return (
     <div className={`${themeClass}`} style={{ height: '100%' }}>
       <ErrorBoundary>
-        <div id="toolbar" style={{height: '2.4rem'}}>
+        <div id="toolbar" style={{ height: '2.4rem' }}>
           <section id="preview-toolbar">
             <Button
               icon={IconSet.ARROW_LEFT}
               onClick={handleLeftButton}
               minimal
-              disabled={uiStore.firstIndexInView === 0}
+              disabled={uiStore.view.firstItem === 0}
             />
             <Button
               icon={IconSet.ARROW_RIGHT}
               onClick={handleRightButton}
               minimal
-              disabled={uiStore.firstIndexInView === fileStore.fileList.length - 1}
+              disabled={uiStore.view.firstItem === fileStore.fileList.length - 1}
             />
             <Switch
               label="Overview"
-              onChange={() => uiStore.viewMethod = uiStore.viewMethod === 'slide' ? 'grid' : 'slide'}
-              checked={uiStore.viewMethod !== 'slide'}
+              onChange={uiStore.view.isSlide ? uiStore.view.setMethodGrid : uiStore.view.setMethodSlide}
+              checked={!uiStore.view.isSlide}
               style={{ margin: 'auto', marginLeft: '1em', display: 'inline' }}
             />
           </section>
         </div>
 
-        <FileList />
+        <ContentView />
       </ErrorBoundary>
     </div>
   );
-};
+});
 
-export default observer(PreviewApp);
+export default PreviewApp;

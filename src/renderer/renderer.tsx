@@ -17,7 +17,7 @@ import Backend from './backend/Backend';
 import App from './frontend/App';
 import StoreContext from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
-import PreviewApp from './frontend/components/Preview';
+import PreviewApp from './frontend/Preview';
 import { ID } from './entities/ID';
 
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
@@ -38,7 +38,7 @@ backend
 
 if (isPreviewWindow) {
   ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[]) => {
-    rootStore.uiStore.firstIndexInView = 0;
+    rootStore.uiStore.view.setFirstItem(0);
     rootStore.fileStore.fetchFilesByIDs(fileIds);
   });
 
@@ -47,7 +47,7 @@ if (isPreviewWindow) {
     if (e.code === 'Space' || e.code === 'Escape') {
       rootStore.uiStore.clearFileSelection();
       rootStore.fileStore.clearFileList();
-      rootStore.uiStore.viewMethod = 'slide';
+      rootStore.uiStore.view.setMethodSlide();
 
       // remove focus from element so closing preview with spacebar does not trigger any ui elements
       if (document.activeElement && document.activeElement instanceof HTMLElement) {
@@ -69,7 +69,7 @@ if (isPreviewWindow) {
   // Change window title to filename when changing the selected file
   rootStore.uiStore.fileSelection.observe(({ object: list }) => {
     if (list.length > 0) {
-      const file = rootStore.fileStore.fileList.find((f) => f.id === list[0]);
+      const file = rootStore.fileStore.get(list[0]);
       if (file) {
         document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
       }
@@ -77,7 +77,7 @@ if (isPreviewWindow) {
   });
 } else {
   ipcRenderer.on('closedPreviewWindow', () => {
-    rootStore.uiStore.isPreviewOpen = false;
+    rootStore.uiStore.closePreviewWindow();
   });
 
   // Load persistent preferences

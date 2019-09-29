@@ -41,7 +41,7 @@ export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
       };
       thumbnailWorker.postMessage(msg);
     } else {
-      file.thumbnailPath = thumbnailPath;
+      file.setThumbnailPath(thumbnailPath);
     }
   }
 }
@@ -55,7 +55,7 @@ export const useWorkerListener = () => {
       const { fileId, thumbnailPath } = e.data;
       const clientFile = fileStore.fileList.find((f) => f.id === fileId);
       if (clientFile) {
-        clientFile.thumbnailPath = thumbnailPath;
+        clientFile.setThumbnailPath(thumbnailPath);
       }
     };
 
@@ -65,7 +65,7 @@ export const useWorkerListener = () => {
       const clientFile = fileStore.fileList.find((f) => f.id === fileId);
       if (clientFile) {
         // Load normal image as fallback
-        clientFile.thumbnailPath = clientFile.path;
+        clientFile.setThumbnailPath(clientFile.path);
       }
     };
   }, []);

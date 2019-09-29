@@ -10,7 +10,7 @@ import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath } from '../utils';
 
-const Settings = () => {
+const Settings = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
@@ -36,19 +36,15 @@ const Settings = () => {
 
     // Move thumbnail files
     await moveThumbnailDir(oldDir, newDir);
-    uiStore.thumbnailDirectory = newDir;
+    uiStore.setThumbnailDirectory(newDir);
 
     // Reset thumbnail paths for those that already have one
     fileStore.fileList.forEach((f) => {
       if (f.thumbnailPath) {
-        f.thumbnailPath = getThumbnailPath(f.path, newDir);
+        f.setThumbnailPath(getThumbnailPath(f.path, newDir));
       }
     });
   }, [uiStore.thumbnailDirectory]);
-
-  const viewSmall = useCallback(() => { uiStore.thumbnailViewSize = 'small'; }, []);
-  const viewMedium = useCallback(() => { uiStore.thumbnailViewSize = 'medium'; }, []);
-  const viewLarge = useCallback(() => { uiStore.thumbnailViewSize = 'large'; }, []);
 
   return (
     <Drawer
@@ -65,16 +61,27 @@ const Settings = () => {
         <div className="bp3-divider"></div>
 
         <RadioGroup
-          selectedValue={uiStore.thumbnailViewSize}
+          selectedValue={uiStore.view.thumbnailSize}
           onChange={() => undefined}
           label="Thumbnail size"
           inline
         >
-          <Radio label="Small" value="small" onClick={viewSmall} />
-          <Radio label="Medium" value="medium" onClick={viewMedium} />
-          <Radio label="Large" value="large" onClick={viewLarge} />
+          <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
+          <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
+          <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
         </RadioGroup>
 
+        <Switch
+          checked={uiStore.isFullScreen}
+          onChange={uiStore.toggleFullScreen}
+          label="Full screen"
+        />
+        <Switch
+          checked={uiStore.theme === 'DARK'}
+          onChange={uiStore.toggleTheme}
+          label="Dark theme"
+        />
+        <div className="bp3-divider" />
         {/* Todo: Add support to toggle this */}
         {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
         <FormGroup
@@ -100,7 +107,12 @@ const Settings = () => {
 
         <ClearDbButton fill position="bottom-left" />
 
-        <Button onClick={uiStore.toggleDevtools} intent="warning" icon={IconSet.CHROME_DEVTOOLS} fill>
+        <Button
+          onClick={uiStore.toggleDevtools}
+          intent="warning"
+          icon={IconSet.CHROME_DEVTOOLS}
+          fill
+        >
           Toggle DevTools
         </Button>
 
@@ -110,16 +122,12 @@ const Settings = () => {
           <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
           <p>
             Did you know there are hotkeys?
-            <br/>
+            <br />
             Press&nbsp;
             <span className={Classes.KEY_COMBO}>
-              <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>
-                Ctrl
-              </span>
+              <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>Ctrl</span>
               &nbsp;
-              <span className={Classes.KEY}>
-                K
-              </span>
+              <span className={Classes.KEY}>K</span>
               &nbsp;to see them.
             </span>
           </p>
@@ -127,6 +135,6 @@ const Settings = () => {
       </div>
     </Drawer>
   );
-};
+});
 
-export default observer(Settings);
+export default Settings;
