@@ -55,11 +55,6 @@ const Settings = observer(() => {
       className={themeClass}
     >
       <div className={Classes.DRAWER_BODY}>
-        <Switch checked={uiStore.isFullScreen} onChange={uiStore.toggleFullScreen} label="Full screen" />
-        <Switch checked={uiStore.theme === 'DARK'} onChange={uiStore.toggleTheme} label="Dark theme" />
-
-        <div className="bp3-divider"></div>
-
         <RadioGroup
           selectedValue={uiStore.view.thumbnailSize}
           onChange={() => undefined}
