@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/RvanderLaan/VisualLibrary#readme",
   "devDependencies": {
+    "@types/chrome": "^0.0.86",
     "@types/fs-extra": "^8.0.0",
     "@types/jest": "^24.0.17",
     "@types/offscreencanvas": "^2019.6.0",
