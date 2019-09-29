@@ -27,7 +27,7 @@ const PreviewApp = observer(() => {
   );
 
   return (
-    <div className={`${themeClass}`} style={{ height: '100%' }}>
+    <div id="layoutContainer" className={`${themeClass}`} style={{ height: '100%' }}>
       <ErrorBoundary>
         <div id="toolbar" style={{ height: '2.4rem' }}>
           <section id="preview-toolbar">

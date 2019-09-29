@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup,
 } from '@blueprintjs/core';
@@ -273,7 +273,9 @@ const SlideGallery = observer(
     // Detect scroll wheel to scroll between images
     const handleUserWheel = useCallback(
       (event: WheelEvent) => {
-        if (event.ctrlKey) return;
+        if (event.ctrlKey){
+          return;
+        }
         event.preventDefault();
 
         if (event.deltaY > 0) {
@@ -298,10 +300,6 @@ const SlideGallery = observer(
       [handleUserKeyPress, handleUserWheel],
     );
 
-    const ignoreClick = useCallback((_, e: React.MouseEvent) => {
-      e.stopPropagation();
-    }, []);
-
     if (uiStore.view.firstItem >= fileList.length) {
       return <p>No files available</p>;
     }
@@ -309,12 +307,6 @@ const SlideGallery = observer(
     const file = fileList[uiStore.view.firstItem];
 
     return (
-      // <GalleryItem
-      //   file={file}
-      //   isSelected={false /** Active image is always selected, no need to show it */}
-      //   onClick={ignoreClick}
-      //   onDrop={handleDrop}
-      // />
       <ZoomableSlideImage
         src={file.path}
         contentRect={contentRect}
@@ -329,30 +321,50 @@ interface IZoomableImageProps {
 }
 
 const ZoomableSlideImage = ({ src, contentRect }: IZoomableImageProps) => {
+  const imageEl = useRef<HTMLImageElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [dragStart, setDragStart] = useState([0, 0]); // Client coordinates where drag starts
-  const [baseOffset, setBaseOffset] = useState([0, 0]); // UV coordinates on image
-  const [deltaOffset, setDeltaOffset] = useState([0, 0]); // Change in translation from panning
+  const [baseOffset, setBaseOffset] = useState([0, 0]); // UV coordinates on image [0, 1]
+  const [deltaOffset, setDeltaOffset] = useState([0, 0]); // Change in translation from panning [0, 1]
 
   const isZooming = zoomLevel !== 1;
   const offset = [baseOffset[0] + deltaOffset[0], baseOffset[1] + deltaOffset[1]];
 
-  const clampOffset = useCallback((os: number[]) => {
+  const clampOffset = useCallback((offs: number[]) => {
     const MAX_PAN = 0.5;
-    let [dX, dY] = os;
-    // Clamp offset: Ensure image can't be panned outside of the view
-    const totalOffset = [baseOffset[0] + deltaOffset[0], baseOffset[1] + deltaOffset[1]];
-    const maxPanX = MAX_PAN - ((contentRect.width / 2) / zoomLevel) / contentRect.width;
-    if (Math.abs(totalOffset[0] + dX) > maxPanX) {
-      dX = (maxPanX - Math.abs(totalOffset[0])) * Math.sign(totalOffset[0]);
+    let [dX, dY] = offs;
+
+    // Find how to adjust the maximum pan extent for the image resolution in the container
+    const viewRatio = [1, 1];
+    if (imageEl.current) {
+      const aspect = (imageEl.current.naturalWidth / imageEl.current.naturalHeight) / (contentRect.width / contentRect.height);
+      if (aspect > 1) {
+        viewRatio[1] = 1 / aspect;
+      } else {
+        viewRatio[0] = aspect;
+      }
     }
-    const maxPanY = MAX_PAN - ((contentRect.height / 2) / zoomLevel) / contentRect.height;
-    if (Math.abs(totalOffset[1] + dY) > maxPanY) {
-      dY = (maxPanY - Math.abs(totalOffset[1])) * Math.sign(totalOffset[1]);
+
+    // Clamp offset: Ensure image can't be panned outside of the view
+    const maxPanX = MAX_PAN * viewRatio[0] - 1 / (2 * zoomLevel);
+    if (Math.abs(baseOffset[0] + dX) > maxPanX) {
+      dX = (maxPanX - Math.abs(baseOffset[0])) * Math.sign(baseOffset[0] + dX);
+    }
+    const maxPanY = MAX_PAN * viewRatio[1] - 1 / (2 * zoomLevel);
+    if (Math.abs(baseOffset[1] + dY) > maxPanY) {
+      dY = (maxPanY - Math.abs(baseOffset[1])) * Math.sign(baseOffset[1] + dY);
+    }
+
+    // Keep image centered until it goes beyond the border of the container
+    if (contentRect.width * viewRatio[0] * zoomLevel < contentRect.width) {
+      dX = 0;
+    }
+    if (contentRect.height * viewRatio[1] * zoomLevel < contentRect.height) {
+      dY = 0;
     }
     return [dX, dY];
-  }, [baseOffset, contentRect]);
+  }, [baseOffset, offset, contentRect]);
 
   const panToCursor = useCallback((e: React.MouseEvent) => {
     const newDeltaOffset = clampOffset([
@@ -376,30 +388,32 @@ const ZoomableSlideImage = ({ src, contentRect }: IZoomableImageProps) => {
   }, [stopZooming]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
-    const MIN_ZOOM = 1;
-    const MAX_ZOOM = 8; // todo: should depend on image resolution
     const ZOOM_SPEED = 0.1;
+    const MIN_ZOOM = 1;
+    let MAX_ZOOM = 8; // Max zoom should depend on image resolution
+    if (imageEl.current) {
+      MAX_ZOOM *= Math.max(
+        imageEl.current.naturalWidth / contentRect.width,
+        imageEl.current.naturalHeight / contentRect.height,
+      );
+    }
+
     if (e.ctrlKey || e.buttons === 1) {
       const newZoom = (
         Math.min(MAX_ZOOM,
           Math.max(MIN_ZOOM,
             (1 - Math.sign(e.deltaY) * ZOOM_SPEED) * zoomLevel))
       );
-
       setZoomLevel(newZoom);
 
       // Zoom in direction of cursor
       const dZoom = newZoom - zoomLevel;
       const zoomFact = dZoom / (newZoom * newZoom);
       const [dX, dY] = clampOffset([
-        ((contentRect.width / 2 - (e.clientX - contentRect.x)) / contentRect.width) * zoomFact,
-        ((contentRect.height / 2 - (e.clientY - contentRect.y)) / contentRect.height) * zoomFact,
+        (0.5 - (e.clientX - contentRect.x) / contentRect.width) * zoomFact,
+        (0.5 - (e.clientY - contentRect.y) / contentRect.height) * zoomFact,
       ]);
-
-      setBaseOffset([
-        baseOffset[0] + dX,
-        baseOffset[1] + dY,
-      ]);
+      setBaseOffset([baseOffset[0] + dX, baseOffset[1] + dY]);
 
       // reset offsets etc. when manually zooming out
       if (newZoom === MIN_ZOOM) {
@@ -451,9 +465,14 @@ const ZoomableSlideImage = ({ src, contentRect }: IZoomableImageProps) => {
     }
   }, [isZooming, offset[0], offset[1]]);
 
+  const ignoreClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
+
   return (
     <div
       id="zoomableSlideImage"
+      onClick={ignoreClick}
       onDoubleClick={handleDbClick}
       onDragStart={handleDragStart}
       onMouseMove={handleMouseMove}
@@ -465,6 +484,7 @@ const ZoomableSlideImage = ({ src, contentRect }: IZoomableImageProps) => {
       tabIndex={0}
     >
       <img
+        ref={imageEl}
         style={{
           transform: isZooming
             ? `scale(${zoomLevel}) translate(${offset[0] * 100}%, ${offset[1] * 100}%)`
