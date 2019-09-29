@@ -2,8 +2,9 @@ import { DbFile, IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
-import DBRepository, { dbInit, dbDelete } from './DBRepository';
+import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
+import { SearchCriteria } from '../entities/SearchCriteria';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -44,9 +45,9 @@ export default class Backend {
     return this.tagCollectionRepository.getAll({});
   }
 
-  async fetchFiles(order: keyof IFile, descending: boolean): Promise<IFile[]> {
+  async fetchFiles(order: keyof IFile, fileOrder: FileOrder): Promise<IFile[]> {
     console.log('Backend: Fetching files...');
-    return this.fileRepository.getAll({ order, descending });
+    return this.fileRepository.getAll({ order, fileOrder });
   }
 
   async fetchFilesByID(ids: ID[]): Promise<IFile[]> {
@@ -55,9 +56,12 @@ export default class Backend {
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
-  async searchFiles(tags: ID[], order: keyof IFile, descending: boolean): Promise<IFile[]> {
-    console.log('Backend: Searching files...', tags);
-    return this.fileRepository.find({ queryField: 'tags', query: tags, order, descending });
+  async searchFiles(criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
+                    order: keyof IFile, fileOrder: FileOrder): Promise<IFile[]> {
+    // Fixme: This shouldn't be necesary, but I keep getting Mobx proxy objects, even when calling .toJS()
+    const serializedCriteria = JSON.parse(JSON.stringify(criteria));
+    console.log('Backend: Searching files...', serializedCriteria);
+    return this.fileRepository.find({ criteria: serializedCriteria, order, fileOrder });
   }
 
   async createTag(id: ID, name: string, description?: string) {
@@ -94,7 +98,8 @@ export default class Backend {
     console.log('Removing tag...', tag);
     // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
-    const filesWithTag = await this.fileRepository.find({ queryField: 'tags', query: tag.id });
+    const filesWithTag = await this.fileRepository
+      .find({ criteria: { key: 'tags', value: tag.id, operator: 'contains', valueType: 'array' }});
     // Remove tag from files
     filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
     // Update files in db
@@ -130,7 +135,8 @@ export default class Backend {
 
   async getNumUntaggedFiles() {
     console.log('Get number of untagged files...');
-    return this.fileRepository.count({ queryField: 'tags', query: [] });
+    return this.fileRepository.count(
+      { criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' } });
   }
 
   async clearDatabase() {

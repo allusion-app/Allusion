@@ -1,23 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import FileList from './components/FileList';
-import Outliner from './components/Outliner';
-import { IRootStoreProp, withRootstore } from './contexts/StoreContext';
-import Inspector from './components/Inspector';
-import Toolbar from './components/Toolbar';
+import ContentView from './containers/ContentView';
+import Outliner from './containers/Outliner';
+import StoreContext from './contexts/StoreContext';
+import Inspector from './containers/Inspector';
+import Toolbar from './containers/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
-import DragLayer from './components/DragAndDrop';
+import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
+import ImageViewer from './components/ImageViewer';
+import { useWorkerListener } from './ThumbnailGeneration';
+import { DragLayer } from './containers/Outliner/TagPanel';
 
 const SPLASH_SCREEN_TIME = 700;
 
-interface IAppProps extends IRootStoreProp {}
+const App = observer(() => {
+  const { uiStore } = useContext(StoreContext);
 
-const App = ({ rootStore }: IAppProps) => {
-  const { uiStore } = rootStore;
+  // Listen to responses of Web Workers
+  useWorkerListener();
 
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
@@ -46,19 +50,23 @@ const App = ({ rootStore }: IAppProps) => {
 
           <Outliner />
 
-          <main>
-            <FileList />
-          </main>
+          <ContentView />
+
+          {uiStore.imageViewerFile ? (
+            <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.setImageViewer(null)} />
+          ) : <></>}
 
           <Inspector />
 
           <Settings />
+
+          <AdvancedSearchDialog />
 
           <DragLayer />
         </GlobalHotkeys>
       </ErrorBoundary>
     </div>
   );
-};
+});
 
-export default withRootstore(observer(App));
+export default App;

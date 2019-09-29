@@ -5,14 +5,19 @@
   flex-shrink: 0;
   width: 0;
   min-width: 0;
-  transition: min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: min-width 0.2s $pt-transition-ease2;
 
   &.inspectorOpen {
     min-width: var(--inspector-width);
-    width: 18rem;
+    width: 24rem;
   }
 
-  > section {
+  > * {
+    // Don't squash content of aside during parent transition
+    width: 24rem;
+  }
+
+  >section {
     border-bottom: 2px solid #181818;
     padding: 1em;
   }
@@ -20,10 +25,12 @@
   .inpectorHeading {
     font-weight: bold;
   }
+
   #filePreview {
     border-bottom: 0;
     padding-bottom: 0;
   }
+
   #fileOverview {
     text-align: left;
   }
@@ -32,16 +39,18 @@
 // File info
 #fileInfo {
   display: grid;
+  align-self: center;
   grid-template-columns: auto 1fr;
   grid-column-gap: 1rem;
   grid-row-gap: 0.25rem;
   height: fit-content;
 
-  > div {
+  >div {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   small.bp3-label {
     color: #919191;
     opacity: 0.7;
@@ -52,7 +61,7 @@
   text-align: left;
 }
 
-#filePreview > img {
+#filePreview>img {
   // padding: 0.3em;
   // background-color: #333333;
   width: 100%;
@@ -67,9 +76,10 @@
   flex-grow: 1;
 }
 
-.bp3-popover-content #fileTag .bp3-popover-target:nth-child(1) {
-  background-color: $light-gray4;
-}
+// .bp3-popover-content #fileTag .bp3-popover-target:nth-child(1),
+// .bp3-dialog .bp3-popover-target:nth-child(1) {
+//   background-color: $light-gray4;
+// }
 
 #fileTag .bp3-tag {
   margin-bottom: 5px;

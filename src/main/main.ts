@@ -10,6 +10,11 @@ let previewWindow: BrowserWindow | null;
 let tray: Tray | null;
 let clipServer: ClipServer | null;
 
+function initialize() {
+  createWindow();
+  createPreviewWindow();
+}
+
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
@@ -20,6 +25,7 @@ function createWindow() {
     // titleBarStyle: 'hiddenInset',
     webPreferences: {
       nodeIntegration: true,
+      nodeIntegrationInWorker: true,
     },
     width,
     height,
@@ -110,6 +116,9 @@ function createWindow() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null;
+    if (previewWindow) {
+      previewWindow.close();
+    }
   });
 
   // System tray icon: For when the app can run in the background
@@ -141,7 +150,7 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', initialize);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -230,7 +239,12 @@ async function getTags(): Promise<ITag[]> {
   return [];
 }
 function createPreviewWindow() {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  // Get display where main window is located
+  let display = screen.getPrimaryDisplay();
+  if (mainWindow) {
+    const winBounds = mainWindow.getBounds();
+    display = screen.getDisplayNearestPoint({ x: winBounds.x, y: winBounds.y });
+  }
 
   previewWindow = new BrowserWindow({
     webPreferences: {
@@ -238,19 +252,25 @@ function createPreviewWindow() {
     },
     minWidth: 224,
     minHeight: 224,
-    width: Math.round(width * 2 / 3),
-    height: Math.round(height * 2 / 3),
+    height: display.size.height * 3 / 4, // preview window is is sized relative to screen resolution by default
+    width: display.size.width * 3 / 4,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
     title: 'Allusion Quick View',
+    show: false, // invis by default
   });
   previewWindow.setMenuBarVisibility(false);
   previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
-  previewWindow.on('closed', () => {
-    previewWindow = null;
+  previewWindow.on('close', (e) => {
+    // Prevent close, hide the window instead, for faster launch next time
     if (mainWindow) {
+      e.preventDefault();
       mainWindow.webContents.send('closedPreviewWindow');
+      mainWindow.focus();
+    }
+    if (previewWindow) {
+      previewWindow.hide();
     }
   });
   return previewWindow;
@@ -267,6 +287,11 @@ ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
     });
   } else {
     previewWindow.webContents.send('receivePreviewFiles', fileIds);
+
+    if (!previewWindow.isVisible()) {
+      previewWindow.show();
+    }
+    previewWindow.focus();
   }
 });
 

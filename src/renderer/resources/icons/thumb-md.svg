@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <g>
+    <g>
+      <path d="M2,2H7V7H2Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M2,17H7v5H2Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M2,9.5H7v5H2Z" fill="#222221" fill-rule="evenodd"/>
+    </g>
+    <g>
+      <path d="M17,2h5V7H17Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M17,17h5v5H17Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M17,9.5h5v5H17Z" fill="#222221" fill-rule="evenodd"/>
+    </g>
+    <g>
+      <path d="M9.5,2h5V7h-5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M9.5,17h5v5h-5Z" fill="#222221" fill-rule="evenodd"/>
+      <path d="M9.5,9.5h5v5h-5Z" fill="#222221" fill-rule="evenodd"/>
+    </g>
+  </g>
+</svg>
