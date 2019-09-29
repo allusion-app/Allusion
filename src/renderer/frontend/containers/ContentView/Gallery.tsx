@@ -318,14 +318,12 @@ const SlideGallery = observer(
   },
 );
 
-interface IGalleryProps extends IRootStoreProp {}
-
 const Gallery = ({
   rootStore: {
     uiStore,
     fileStore: { fileList },
   },
-}: IGalleryProps) => {
+}: IRootStoreProp) => {
   const [contentHeight, setContentHeight] = useState(1); // window.innerWidth
   const [contentWidth, setContentWidth] = useState(1); // window.innerWidth
   const handleResize = useCallback((entries: IResizeEntry[]) => {

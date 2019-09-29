@@ -144,7 +144,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
 @ContextMenuTarget
 class GalleryItemWithContextMenu extends React.PureComponent<
   IGalleryItemProps,
-  { isContextMenuOpen: boolean }
+  { isContextMenuOpen: boolean, _isMounted: boolean }
 > {
   state = {
     isContextMenuOpen: false,
@@ -156,11 +156,11 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   }
 
   componentDidMount() {
-    this.state._isMounted = true;
+    this.setState({...this.state, _isMounted: true});
   }
 
   componentWillUnmount() {
-    this.state._isMounted = false;
+    this.setState({...this.state, _isMounted: false});
   }
 
   render() {
