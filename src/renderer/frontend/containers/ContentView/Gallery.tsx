@@ -338,23 +338,28 @@ const ZoomableSlideImage = ({ src, contentRect }: IZoomableImageProps) => {
   const isZooming = zoomLevel !== 1;
   const offset = [baseOffset[0] + deltaOffset[0], baseOffset[1] + deltaOffset[1]];
 
-  const MAX_PAN = 0.5;
-  const panToCursor = useCallback((e?: React.MouseEvent) => {
-    let dX = 0;
-    let dY = 0;
-    if (e) {
-      dX = ((e.clientX - dragStart[0]) / contentRect.width) / zoomLevel;
-      dY = ((e.clientY - dragStart[1]) / contentRect.height) / zoomLevel;
-
-      // Clamp offest: Ensure image can't be panned outside of the view
-      if (Math.abs(baseOffset[0] + dX) > MAX_PAN) {
-        dX = (MAX_PAN - Math.abs(baseOffset[0])) * Math.sign(baseOffset[0]);
-      }
-      if (Math.abs(baseOffset[1] + dY) > MAX_PAN) {
-        dY = (MAX_PAN - Math.abs(baseOffset[1])) * Math.sign(baseOffset[1]);
-      }
+  const clampOffset = useCallback((os: number[]) => {
+    const MAX_PAN = 0.5;
+    let [dX, dY] = os;
+    // Clamp offset: Ensure image can't be panned outside of the view
+    const totalOffset = [baseOffset[0] + deltaOffset[0], baseOffset[1] + deltaOffset[1]];
+    const maxPanX = MAX_PAN - ((contentRect.width / 2) / zoomLevel) / contentRect.width;
+    if (Math.abs(totalOffset[0] + dX) > maxPanX) {
+      dX = (maxPanX - Math.abs(totalOffset[0])) * Math.sign(totalOffset[0]);
     }
-    setDeltaOffset([dX, dY]);
+    const maxPanY = MAX_PAN - ((contentRect.height / 2) / zoomLevel) / contentRect.height;
+    if (Math.abs(totalOffset[1] + dY) > maxPanY) {
+      dY = (maxPanY - Math.abs(totalOffset[1])) * Math.sign(totalOffset[1]);
+    }
+    return [dX, dY];
+  }, [baseOffset, contentRect]);
+
+  const panToCursor = useCallback((e: React.MouseEvent) => {
+    const newDeltaOffset = clampOffset([
+      ((e.clientX - dragStart[0]) / contentRect.width) / zoomLevel,
+      ((e.clientY - dragStart[1]) / contentRect.height) / zoomLevel,
+    ]);
+    setDeltaOffset(newDeltaOffset);
   }, [setDeltaOffset, zoomLevel, dragStart, contentRect]);
 
   const stopZooming = useCallback(() => {
@@ -380,26 +385,35 @@ const ZoomableSlideImage = ({ src, contentRect }: IZoomableImageProps) => {
           Math.max(MIN_ZOOM,
             (1 - Math.sign(e.deltaY) * ZOOM_SPEED) * zoomLevel))
       );
+
+      setZoomLevel(newZoom);
+
+      // Zoom in direction of cursor
+      const dZoom = newZoom - zoomLevel;
+      const zoomFact = dZoom / (newZoom * newZoom);
+      const [dX, dY] = clampOffset([
+        ((contentRect.width / 2 - (e.clientX - contentRect.x)) / contentRect.width) * zoomFact,
+        ((contentRect.height / 2 - (e.clientY - contentRect.y)) / contentRect.height) * zoomFact,
+      ]);
+
+      setBaseOffset([
+        baseOffset[0] + dX,
+        baseOffset[1] + dY,
+      ]);
+
       // reset offsets etc. when manually zooming out
       if (newZoom === MIN_ZOOM) {
         stopZooming();
       }
-      setZoomLevel(newZoom);
-
-      // TODO: Zoom in direction of cursor
-      // let dX = -Math.sign(e.deltaY) *
-      //       ((contentRect.width / 2 - (e.clientX - contentRect.x)) / contentRect.width);
-      // let dY = -Math.sign(e.deltaY) *
-      //       ((contentRect.height / 2 - (e.clientY - contentRect.y)) / contentRect.height);
     }
     // Stop scroll event when zooming left click is still pressed
     if (isZooming || e.buttons === 1) {
       e.stopPropagation();
     }
-  }, [zoomLevel, setZoomLevel, contentRect, isZooming, isDragging, baseOffset]);
+  }, [zoomLevel, setZoomLevel, contentRect, isZooming, baseOffset]);
 
   // Stop zooming when a new image is loaded
-  useEffect(stopZooming, [src, stopZooming]);
+  useEffect(stopZooming, [src]);
 
   // Zoom in with double click
   const DBL_CLICK_ZOOM = 2;
@@ -429,7 +443,7 @@ const ZoomableSlideImage = ({ src, contentRect }: IZoomableImageProps) => {
     }
   }, [isZooming, setIsDragging, setDragStart]);
 
-  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+  const handleMouseUp = useCallback(() => {
     if (isZooming) {
       setBaseOffset(offset);
       setIsDragging(false);
@@ -450,19 +464,15 @@ const ZoomableSlideImage = ({ src, contentRect }: IZoomableImageProps) => {
       onWheel={handleWheel}
       tabIndex={0}
     >
-      <div
-        id="transformer"
+      <img
         style={{
           transform: isZooming
             ? `scale(${zoomLevel}) translate(${offset[0] * 100}%, ${offset[1] * 100}%)`
             : '',
         }}
         className={isDragging ? '' : 'no-drag'}
-      >
-        <img
-          src={src}
+        src={src}
         />
-      </div>
     </div>
   );
 };
