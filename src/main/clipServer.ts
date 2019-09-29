@@ -135,6 +135,29 @@ class ClipServer {
     fse.remove(importQueueFilePath);
   }
 
+  async storeImageWithoutImport(filename: string, imgBase64: string) {
+    const downloadPath = await ClipServer.createDownloadPath(this.preferences.downloadPath, filename);
+    await this.storeImage(downloadPath, imgBase64);
+    return downloadPath;
+  }
+
+  async storeAndImportImage(filename: string, imgBase64: string) {
+    const downloadPath = await ClipServer.createDownloadPath(this.preferences.downloadPath, filename);
+
+    await this.storeImage(downloadPath, imgBase64);
+
+    const item: IImportItem = {
+      filePath: downloadPath,
+      tagNames: [],
+      dateAdded: new Date(),
+    };
+
+    const isImported = await this.importImage(item);
+    if (!isImported) {
+      await this.enqueue(item);
+    }
+  }
+
   private startServer() {
     console.log('Running clip server...');
     this.server = http.createServer(async (req, res) => {
@@ -149,20 +172,7 @@ class ClipServer {
               const { filename, imgBase64 } = JSON.parse(body);
               console.log('Received file', filename);
 
-              const downloadPath = await ClipServer.createDownloadPath(this.preferences.downloadPath, filename);
-
-              await this.downloadImage(downloadPath, imgBase64);
-
-              const item: IImportItem = {
-                filePath: downloadPath,
-                tagNames: [],
-                dateAdded: new Date(),
-              };
-
-              const isImported = await this.importImage(item);
-              if (!isImported) {
-                await this.enqueue(item);
-              }
+              await this.storeAndImportImage(filename, imgBase64);
 
               res.end({ message: 'OK!' });
             } else if (req.url && req.url.endsWith('/set-tags')) {
@@ -196,6 +206,7 @@ class ClipServer {
   }
 
   private stopServer() {
+    console.log('Stopping clip server...');
     if (this.server) {
       this.server.close();
       this.server = null;
@@ -218,17 +229,7 @@ class ClipServer {
     await fse.writeFile(importQueueFilePath, lines.join('\n'));
   }
 
-  // private async getLastQueueItem(): Promise<IImportItem | undefined> {
-  //   const fileContent = await fse.readFile(importQueueFilePath, 'utf8');
-  //   const lines = fileContent.split('\n');
-  //   if (lines.length > 1) {
-  //     return JSON.parse(lines[lines.length - 1]);
-  //   } else {
-  //     return undefined;
-  //   }
-  // }
-
-  private async downloadImage(downloadPath: string, imgBase64: string) {
+  private async storeImage(downloadPath: string, imgBase64: string) {
     const rawData = imgBase64.substr(imgBase64.indexOf(',') + 1); // remove base64 header
     await fse.mkdirs(this.preferences.downloadPath);
     await fse.writeFile(downloadPath, rawData, 'base64');

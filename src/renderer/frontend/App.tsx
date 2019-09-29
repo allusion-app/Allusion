@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
+import DropOverlay from './components/DropOverlay';
 import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
 import ImageViewer from './components/ImageViewer';
 import { useWorkerListener } from './ThumbnailGeneration';
@@ -43,12 +44,14 @@ const App = observer(() => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    <div id="layoutContainer" className={`${themeClass}`}>
-      <ErrorBoundary>
-        <GlobalHotkeys>
-          <Toolbar />
+    // Overlay that shows up when dragging files/images over the application
+    <DropOverlay>
+      <div id="layoutContainer" className={`${themeClass}`}>
+        <ErrorBoundary>
+          <GlobalHotkeys>
+            <Toolbar />
 
-          <Outliner />
+            <Outliner />
 
           <ContentView />
 
@@ -56,16 +59,18 @@ const App = observer(() => {
             <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.setImageViewer(null)} />
           ) : <></>}
 
-          <Inspector />
+            <Inspector />
 
-          <Settings />
+            <Settings />
 
-          <AdvancedSearchDialog />
+            <AdvancedSearchDialog />
 
-          <DragLayer />
-        </GlobalHotkeys>
-      </ErrorBoundary>
-    </div>
+            {/* Overlay for showing custom drag previews */}
+            <DragLayer />
+          </GlobalHotkeys>
+        </ErrorBoundary>
+      </div>
+    </DropOverlay>
   );
 });
 

@@ -35,6 +35,13 @@ export function throttle(fn: (...args: any) => any, wait: number = 300) {
   };
 }
 
+export function timeoutPromise<T>(timeMS: number, promise: Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    promise.then(resolve, reject);
+    setTimeout(reject, timeMS);
+  });
+}
+
 export function formatTagCountText(numTags: number, numCols: number) {
   const extraTagsText = numTags
     ? `+${numTags} tag${numTags === 1 ? '' : 's'}`

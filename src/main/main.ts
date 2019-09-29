@@ -212,6 +212,13 @@ ipcMain.on('isRunningInBackground', (event: IpcMessageEvent) => {
   event.returnValue = clipServer && clipServer.isRunInBackgroundEnabled();
 });
 
+ipcMain.on('storeFile', async (event: IpcMessageEvent, filename: string, imgBase64: string) => {
+  if (clipServer) {
+    const downloadPath = await clipServer.storeImageWithoutImport(filename, imgBase64);
+    event.sender.send('storeFileReply', downloadPath);
+  }
+});
+
 async function importExternalImage(item: IImportItem) {
   if (mainWindow) {
     mainWindow.webContents.send('importExternalImage', item);
@@ -294,6 +301,3 @@ ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
     previewWindow.focus();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
