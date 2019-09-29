@@ -1,10 +1,14 @@
-import { app, BrowserWindow, ipcMain, Menu, screen } from 'electron';
+import { app, BrowserWindow, Menu, Tray, ipcMain, IpcMessageEvent, screen } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
+import ClipServer, { IImportItem } from './clipServer';
+import { ITag } from '../renderer/entities/Tag';
 
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
+let tray: Tray | null;
+let clipServer: ClipServer | null;
 
 function initialize() {
   createWindow();
@@ -21,11 +25,10 @@ function createWindow() {
     // titleBarStyle: 'hiddenInset',
     webPreferences: {
       nodeIntegration: true,
+      nodeIntegrationInWorker: true,
     },
-    height,
     width,
-
-    // fullscreen: true,
+    height,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
@@ -117,6 +120,31 @@ function createWindow() {
       previewWindow.close();
     }
   });
+
+  // System tray icon: For when the app can run in the background
+  // Useful for browser extension, so it will work even when the window is closed
+  if (!tray) {
+    tray = new Tray(`${__dirname}/${AppIcon}`);
+    const trayMenu = Menu.buildFromTemplate([
+      { label: 'Open', type: 'normal', click: () => mainWindow ? mainWindow.focus() : createWindow() },
+      { label: 'Exit', type: 'normal', click: app.quit },
+    ]);
+    tray.setContextMenu(trayMenu);
+    tray.setToolTip('Allusion - Your Visual Library');
+    tray.on('click', () => mainWindow ? mainWindow.focus() : createWindow());
+  }
+
+  if (!clipServer) {
+    clipServer = new ClipServer(importExternalImage, addTagsToFile, getTags);
+  }
+  // Import images that were added while the window was closed
+  ipcMain.once('initialized', async () => {
+    if (clipServer) {
+      const importItems = await clipServer.getImportQueue();
+      await Promise.all(importItems.map(importExternalImage));
+      clipServer.clearImportQueue();
+    }
+  });
 }
 
 // This method will be called when Electron has finished
@@ -126,10 +154,12 @@ app.on('ready', initialize);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit();
+  if (!(clipServer && clipServer.isRunInBackgroundEnabled())) {
+    // On OS X it is common for applications and their menu bar
+    // to stay active until the user quits explicitly with Cmd + Q
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
   }
 });
 
@@ -141,8 +171,87 @@ app.on('activate', () => {
   }
 });
 
+// Messaging ///////////////////////////////
+////////////////////////////////////////////
+ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
+  if (clipServer) {
+    clipServer.setDownloadPath(path);
+  }
+});
+
+ipcMain.on('setClipServerEnabled', (event: IpcMessageEvent, isEnabled: boolean) => {
+  if (clipServer) {
+    clipServer.setEnabled(isEnabled);
+  }
+});
+ipcMain.on('isClipServerRunning', (event: IpcMessageEvent) => {
+  if (clipServer) {
+    event.returnValue = clipServer.isEnabled();
+  } else {
+    event.returnValue = false;
+  }
+});
+
+ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
+  if (clipServer) {
+    clipServer.setDownloadPath(path);
+  }
+});
+ipcMain.on('getDownloadPath', (event: IpcMessageEvent) => {
+  if (clipServer) {
+    event.returnValue = clipServer.getDownloadPath();
+  }
+});
+
+ipcMain.on('setRunningInBackground', (event: IpcMessageEvent, isEnabled: boolean) => {
+  if (clipServer) {
+    clipServer.setRunInBackground(isEnabled);
+  }
+});
+ipcMain.on('isRunningInBackground', (event: IpcMessageEvent) => {
+  event.returnValue = clipServer && clipServer.isRunInBackgroundEnabled();
+});
+
+ipcMain.on('storeFile', async (event: IpcMessageEvent, filename: string, imgBase64: string) => {
+  if (clipServer) {
+    const downloadPath = await clipServer.storeImageWithoutImport(filename, imgBase64);
+    event.sender.send('storeFileReply', downloadPath);
+  }
+});
+
+async function importExternalImage(item: IImportItem) {
+  if (mainWindow) {
+    mainWindow.webContents.send('importExternalImage', item);
+    return true;
+  }
+  return false;
+}
+
+async function addTagsToFile(item: IImportItem) {
+  if (mainWindow) {
+    mainWindow.webContents.send('addTagsToFile', item);
+    return true;
+  }
+  return false;
+}
+
+async function getTags(): Promise<ITag[]> {
+  if (mainWindow) {
+    mainWindow.webContents.send('getTags');
+    return new Promise((resolve) => {
+      ipcMain.once('receiveTags', (tags: ITag[]) => resolve(tags));
+    });
+  }
+  // Todo: cache tags from frontend in case the window is closed
+  return [];
+}
 function createPreviewWindow() {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  // Get display where main window is located
+  let display = screen.getPrimaryDisplay();
+  if (mainWindow) {
+    const winBounds = mainWindow.getBounds();
+    display = screen.getDisplayNearestPoint({ x: winBounds.x, y: winBounds.y });
+  }
 
   previewWindow = new BrowserWindow({
     webPreferences: {
@@ -150,8 +259,8 @@ function createPreviewWindow() {
     },
     minWidth: 224,
     minHeight: 224,
-    width: Math.round(width * 2 / 3),
-    height: Math.round(height * 2 / 3),
+    height: display.size.height * 3 / 4, // preview window is is sized relative to screen resolution by default
+    width: display.size.width * 3 / 4,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#181818',
@@ -192,6 +301,3 @@ ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
     previewWindow.focus();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.

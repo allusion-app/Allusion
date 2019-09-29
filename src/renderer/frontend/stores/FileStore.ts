@@ -5,49 +5,48 @@ import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { ITagSearchQuery } from './UiStore';
+import { SearchCriteria } from '../../entities/SearchCriteria';
+import { getThumbnailPath } from '../utils';
+import { ClientTag } from '../../entities/Tag';
 
 class FileStore {
-  backend: Backend;
-  rootStore: RootStore;
-
   readonly fileList = observable<ClientFile>([]);
-
   @observable numUntaggedFiles = 0;
+
+  private backend: Backend;
+  private rootStore: RootStore;
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
   }
 
-  async init(autoLoadFiles: boolean) {
+  @action.bound async init(autoLoadFiles: boolean) {
     if (autoLoadFiles) {
       await this.loadFiles();
       this.numUntaggedFiles = await this.backend.getNumUntaggedFiles();
     }
   }
 
-  @action
-  async addFile(filePath: string) {
+  @action.bound async addFile(filePath: string, dateAdded?: Date) {
     const fileData: IFile = {
       id: generateId(),
       path: filePath,
-      dateAdded: new Date(),
+      dateAdded: dateAdded ? new Date(dateAdded) : new Date(),
       tags: [],
-      ...await ClientFile.getMetaData(filePath),
+      ...(await ClientFile.getMetaData(filePath)),
     };
     const file = new ClientFile(this, fileData);
     // The function caller is responsible for handling errors.
     await this.backend.createFile(fileData);
-    this.fileList.push(file);
-    this.numUntaggedFiles++;
+    this.add(file);
+    this.incrementNumUntaggedFiles();
     return file;
   }
 
-  @action
-  async removeFilesById(ids: ID[]) {
+  @action.bound async removeFilesById(ids: ID[]) {
     const filesToRemove = ids
-      .map((id) => this.fileList.find((f) => f.id === id))
+      .map((id) => this.get(id))
       .filter((f) => f !== undefined) as ClientFile[];
 
     try {
@@ -56,31 +55,31 @@ class FileStore {
         this.rootStore.uiStore.deselectFile(file);
         this.fileList.remove(file);
         if (file.tags.length === 0) {
-          this.numUntaggedFiles--;
+          this.decrementNumUntaggedFiles();
         }
       });
+      await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
       await this.backend.removeFiles(filesToRemove);
     } catch (err) {
       console.error('Could not remove files', err);
     }
   }
 
-  @action
-  async fetchAllFiles() {
+  @action.bound async fetchAllFiles() {
     try {
-      const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
-      const fetchedFiles = await this.backend.fetchFiles(fileOrder, fileOrderDescending);
+      const { orderBy, fileOrder } = this.rootStore.uiStore.view;
+      const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
     }
   }
 
-  @action
-  async fetchUntaggedFiles() {
+  @action.bound async fetchUntaggedFiles() {
     try {
-      const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
-      const fetchedFiles = await this.backend.searchFiles([], fileOrder, fileOrderDescending);
+      const { fileOrder, orderBy } = this.rootStore.uiStore.view;
+      const criteria: SearchCriteria<IFile> = { key: 'tags', value: [], operator: 'contains', valueType: 'array' };
+      const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
@@ -89,18 +88,26 @@ class FileStore {
 
   @action.bound
   async fetchFilesByQuery() {
-    // Todo: properly implement this later
-    await this.fetchFilesByTagIDs(
-      this.rootStore.uiStore.searchQueryList.flatMap((q) => (q as ITagSearchQuery).value),
-    );
+    const criteria = this.rootStore.uiStore.searchCriteriaList.slice();
+    if (criteria.length === 0) {
+      return;
+    }
+    const { orderBy, fileOrder } = this.rootStore.uiStore.view;
+    try {
+      const fetchedFiles = await this.backend.searchFiles(
+        criteria as [SearchCriteria<IFile>], orderBy, fileOrder);
+      this.updateFromBackend(fetchedFiles);
+    } catch (e) {
+      console.log('Could not find files based on criteria', e);
+    }
   }
 
-  @action
-  async fetchFilesByTagIDs(tags: ID[]) {
+  @action.bound async fetchFilesByTagIDs(tags: ID[]) {
     // Query the backend to send back only files with these tags
     try {
-      const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
-      const fetchedFiles = await this.backend.searchFiles(tags, fileOrder, fileOrderDescending);
+      const { orderBy, fileOrder } = this.rootStore.uiStore.view;
+      const criteria: SearchCriteria<IFile> = { key: 'tags', value: tags, operator: 'contains', valueType: 'array' };
+      const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on tag search', e);
@@ -120,20 +127,36 @@ class FileStore {
   @action.bound incrementNumUntaggedFiles() {
     this.numUntaggedFiles++;
   }
+
   @action.bound decrementNumUntaggedFiles() {
+    if (this.numUntaggedFiles === 0) {
+      throw new Error('Invalid Database State: Cannot have less than 0 untagged files.');
+    }
     this.numUntaggedFiles--;
   }
 
   // Removes all items from fileList
-  clearFileList() {
+  @action.bound clearFileList() {
     // Clean up observers of ClientFiles before removing them
     this.fileList.forEach((f) => f.dispose());
     this.fileList.clear();
   }
 
-  private async loadFiles() {
-    const { fileOrder, fileOrderDescending } = this.rootStore.uiStore;
-    const fetchedFiles = await this.backend.fetchFiles(fileOrder, fileOrderDescending);
+  get(id: ID): ClientFile | undefined {
+    return this.fileList.find((f) => f.id === id);
+  }
+
+  getTag(tag: ID): ClientTag | undefined {
+    return this.rootStore.tagStore.get(tag);
+  }
+
+  save(file: IFile) {
+    this.backend.saveFile(file);
+  }
+
+  @action.bound private async loadFiles() {
+    const { orderBy, fileOrder } = this.rootStore.uiStore.view;
+    const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
 
     // Removes files with invalid file path. Otherwise adds files to fileList.
     // In the future the user should have the option to input the new path if the file was only moved or renamed.
@@ -143,22 +166,14 @@ class FileStore {
           await fs.access(backendFile.path, fs.constants.F_OK);
           this.fileList.push(new ClientFile(this, backendFile));
         } catch (e) {
-          console.log(`${backendFile.path} 'does not exist'`);
+          console.warn(`${backendFile.path} 'does not exist'`);
           this.backend.removeFile(backendFile);
         }
       }),
     );
   }
 
-  private async removeFile(file: ClientFile): Promise<void> {
-    // Deselect in case it was selected
-    this.rootStore.uiStore.deselectFile(file);
-    file.dispose();
-    this.fileList.remove(file);
-    return this.backend.removeFile(file);
-  }
-
-  private async updateFromBackend(backendFiles: IFile[]) {
+  @action.bound private async updateFromBackend(backendFiles: IFile[]) {
     // removing manually invalid files
     // watching files would be better to remove invalid files
     // files could also have moved, removing them may be undesired then
@@ -173,7 +188,7 @@ class FileStore {
           return true;
         } catch (err) {
           this.backend.removeFile(backendFile);
-          const clientFile = this.fileList.find((f) => backendFile.id === f.id);
+          const clientFile = this.get(backendFile.id);
           if (clientFile) {
             await this.removeFile(clientFile);
           }
@@ -185,7 +200,7 @@ class FileStore {
     const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
 
     if (this.fileList.length === 0) {
-      this.fileList.push(...this.filesFromBackend(existingBackendFiles));
+      this.addFiles(this.filesFromBackend(existingBackendFiles));
       return;
     }
 
@@ -196,11 +211,35 @@ class FileStore {
     return this.replaceFileList(this.filesFromBackend(existingBackendFiles));
   }
 
-  private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
+  @action.bound private add(file: ClientFile) {
+    this.fileList.push(file);
+  }
+
+  @action.bound private addFiles(files: ClientFile[]) {
+    this.fileList.push(...files);
+  }
+
+  @action.bound private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
     return backendFiles.map((file) => new ClientFile(this, file));
   }
 
-  private replaceFileList(backendFiles: ClientFile[]) {
+  @action.bound private async removeFile(file: ClientFile): Promise<void> {
+    // Deselect in case it was selected
+    this.rootStore.uiStore.deselectFile(file);
+    file.dispose();
+    this.fileList.remove(file);
+    await this.removeThumbnail(file);
+    return this.backend.removeFile(file);
+  }
+
+  @action.bound private async removeThumbnail(file: ClientFile) {
+    const thumbDir = getThumbnailPath(file.path, this.rootStore.uiStore.thumbnailDirectory);
+    if (await fs.pathExists(thumbDir)) {
+      await fs.remove(thumbDir);
+    }
+  }
+
+  @action.bound private replaceFileList(backendFiles: ClientFile[]) {
     this.fileList.forEach((f) => f.dispose());
     this.fileList.replace(backendFiles);
   }

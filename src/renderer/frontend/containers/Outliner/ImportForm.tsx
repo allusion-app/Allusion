@@ -5,16 +5,20 @@ import { remote } from 'electron';
 import fse from 'fs-extra';
 import path from 'path';
 
-import StoreContext from '../contexts/StoreContext';
+import StoreContext from '../../contexts/StoreContext';
 import { Button } from '@blueprintjs/core';
-import FileStore from '../stores/FileStore';
-import { ClientTagCollection } from '../../entities/TagCollection';
-import TagStore from '../stores/TagStore';
-import IconSet from './Icons';
+import FileStore from '../../stores/FileStore';
+import { ClientTagCollection } from '../../../entities/TagCollection';
+import TagStore from '../../stores/TagStore';
+import IconSet from '../../components/Icons';
+import RootStore from '../../stores/RootStore';
+import { IMG_EXTENSIONS } from '../../../entities/File';
+
+export const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
 
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialog({
-    filters: [{ name: 'Images', extensions: ['gif', 'png', 'jpg', 'jpeg'] }],
+    filters: [{ name: 'Images', extensions: imgExtensions }],
     properties: ['openFile', 'multiSelections'],
   });
 
@@ -49,7 +53,7 @@ const chooseDirectories = async (fileStore: FileStore) => {
 };
 
 /** Opens a folder picker and adds all files and sub-directories to the library */
-const chooseFolderStructure = async (fileStore: FileStore) => {
+const chooseFolderStructure = async (rootStore: RootStore) => {
   const dirs = remote.dialog.showOpenDialog({
     properties: ['openDirectory'],
   });
@@ -59,15 +63,14 @@ const chooseFolderStructure = async (fileStore: FileStore) => {
     return;
   }
   // Add new collections to the root collection
-  const root = fileStore.rootStore.tagCollectionStore.getRootCollection();
+  const root = rootStore.tagCollectionStore.getRootCollection();
   // Initiate recursive call
-  await importDirRecursive(fileStore, fileStore.rootStore.tagStore, dirs[0], root);
+  await importDirRecursive(rootStore, dirs[0], root);
 };
 
 /** Recursively adds a directory and its files to the library */
 const importDirRecursive = async (
-  fileStore: FileStore,
-  tagStore: TagStore,
+  rootStore: RootStore,
   dir: string,
   parent: ClientTagCollection,
 ) => {
@@ -75,12 +78,12 @@ const importDirRecursive = async (
   const filenamesStats = await Promise.all(filenames.map((f) => fse.lstat(path.join(dir, f))));
   const subDirs = filenames.filter((_, i) => filenamesStats[i].isDirectory());
 
+  const { fileStore, tagStore, tagCollectionStore } = rootStore;
   if (subDirs.length === 0) {
     // If a dir contains no subdirs, but does contain files, only create a Tag, not a Collection
     await importAndTagDir(fileStore, dir, tagStore, parent);
   } else {
     // Else, create a collection
-    const tagCollectionStore = tagStore.rootStore.tagCollectionStore;
     const dirName = path.basename(dir);
     const dirCol = await tagCollectionStore.addTagCollection(dirName, parent);
 
@@ -89,7 +92,7 @@ const importDirRecursive = async (
 
     // Import all subdirs
     subDirs.forEach(async (folderName) => {
-      importDirRecursive(fileStore, tagStore, path.join(dir, folderName), dirCol);
+      importDirRecursive(rootStore, path.join(dir, folderName), dirCol);
     });
   }
 };
@@ -108,7 +111,7 @@ const importAndTagDir = async (
     // Create tag for this directory
     const tag = await tagStore.addTag(folderName);
     // Add tag to collection
-    parent.tags.push(tag.id);
+    parent.addTag(tag.id);
     // Add tag to files
     addedFiles.forEach((f) => f.addTag(tag.id));
   }
@@ -117,7 +120,6 @@ const importAndTagDir = async (
 const importDir = async (fileStore: FileStore, dir: string) => {
   // Todo: Also skip hidden directories?
   // Todo: Put a limit on the amount of recursive levels in case someone adds their entire disk?
-  // Skip 'dot' directories ('.ssh' etc.)
   const imgFileNames = await findFiles(dir);
 
   return await Promise.all(
@@ -134,8 +136,6 @@ const findFiles = async (dir: string) => {
     return [];
   }
 
-  const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
-
   const filenames = await fse.readdir(dir);
   return filenames.filter((f) => {
     // No 'dot' files (e.g. ".image.jpg" (looking at you, MAC))
@@ -144,7 +144,7 @@ const findFiles = async (dir: string) => {
       return false;
     }
     // Only add image files
-    return imgExtensions.some((ext) => file.endsWith(ext));
+    return IMG_EXTENSIONS.some((ext) => file.endsWith(ext));
   });
 };
 
@@ -156,20 +156,15 @@ const enum Tooltip {
 based on the names of the folders',
 }
 
-const ImportForm = () => {
+const ImportForm = observer(() => {
   // Todo: Add Location entity to DB, so we can have user-picked directories as well
   // Todo: Also show sub-directories in tree
 
-  const { fileStore } = useContext(StoreContext);
+  const rootStore = useContext(StoreContext);
 
-  const handleChooseFiles = useCallback(() => chooseFiles(fileStore), []);
-
-  const handleChooseDirectory = useCallback(() => chooseDirectories(fileStore), []);
-
-  const handleChooseFolderStructure = useCallback(
-    () => chooseFolderStructure(fileStore),
-    [],
-  );
+  const handleChooseFiles = useCallback(() => chooseFiles(rootStore.fileStore), []);
+  const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), []);
+  const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), []);
 
   return (
     <div id="import">
@@ -180,7 +175,7 @@ const ImportForm = () => {
         className={'tooltip'}
         data-right={Tooltip.ImportImage}
       >
-        Add images
+        Add Images
       </Button>
 
       <Button
@@ -190,7 +185,7 @@ const ImportForm = () => {
         className={'tooltip'}
         data-right={Tooltip.ImportFolder}
       >
-        Add single directory
+        Add Single Directory
       </Button>
 
       <Button
@@ -200,12 +195,12 @@ const ImportForm = () => {
         className={'tooltip'}
         data-right={Tooltip.ImportFolderStructure}
       >
-        Add nested directories
+        Add Nested Directories
       </Button>
 
       {/* Todo: Show progress bar here */}
     </div>
   );
-};
+});
 
-export default observer(ImportForm);
+export default ImportForm;

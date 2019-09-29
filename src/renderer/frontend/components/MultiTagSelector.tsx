@@ -1,12 +1,13 @@
 import React, { useContext, useMemo, useCallback, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { Button, MenuItem, TagInput } from '@blueprintjs/core';
+import { Button, MenuItem, Intent, Icon, ITagProps } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
+import { getClassForBackground } from '../utils';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 
@@ -52,6 +53,9 @@ interface IMultiTagSelectorProps {
   autoFocus?: boolean;
   /** When this object changes, autoFocus is triggered (since this component does not remount often itself) */
   refocusObject?: any;
+  tagIntent?: Intent;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLElement>, index?: number | undefined) => void;
+  showClearButton?: boolean;
 }
 
 const MultiTagSelector = ({
@@ -65,6 +69,9 @@ const MultiTagSelector = ({
   disabled,
   autoFocus,
   refocusObject,
+  tagIntent = 'none',
+  onKeyDown,
+  showClearButton = true,
 }: IMultiTagSelectorProps) => {
   const { tagStore } = useContext(StoreContext);
 
@@ -107,6 +114,9 @@ const MultiTagSelector = ({
         <MenuItem
           active={modifiers.active}
           icon={selectedTags.includes(tag) ? 'tick' : 'blank'}
+          labelElement={tag.viewColor
+            ? <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
+            : undefined}
           key={tag.id}
           label={tag.description ? tag.description.toString() : ''}
           onClick={handleClick}
@@ -118,7 +128,15 @@ const MultiTagSelector = ({
     [selectedTags],
   );
 
-  const TagLabel = (tag: ClientTag) => (tagLabel ? tagLabel(tag) : tag.name);
+  const TagLabel = (tag: ClientTag) => {
+    const colClass = tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white';
+    const text = tagLabel ? tagLabel(tag) : tag.name;
+    return (
+      <span className={colClass}>
+        {text}
+      </span>
+    );
+  };
 
   // Only used for visualization in the selector, an actual ClientTag is created onSelect
   const createNewTag = useCallback(
@@ -131,17 +149,20 @@ const MultiTagSelector = ({
     ? renderCreateTagOption
     : undefined;
 
-  const ref = useRef<TagInput>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const setInputRef = useCallback((input: HTMLInputElement | null) => inputRef.current = input, [inputRef]);
 
   useEffect(() => {
-    if (autoFocus && ref.current) {
-      // @ts-ignore inputElement is actually private, but the autoFocus of the tagInputProps is not working, so...
-      const inputRef = ref.current.inputElement;
-      if (inputRef) {
-        inputRef.focus();
-      }
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
     }
-  }, [refocusObject]);
+  }, [refocusObject, autoFocus]);
+
+  const getTagProps = (_: any, index: number): ITagProps => ({
+    minimal: true,
+    // Todo: Style doesn't update until focusing the tagInput
+    style: { backgroundColor: selectedTags[index].viewColor },
+  });
 
   return (
     <>
@@ -158,16 +179,16 @@ const MultiTagSelector = ({
         createNewItemRenderer={maybeCreateNewItemRenderer}
         itemPredicate={filterTag}
         tagInputProps={{
-          tagProps: { minimal: true },
+          tagProps: getTagProps,
           onRemove: handleDeselect,
-          rightElement: ClearButton,
+          rightElement: showClearButton ? ClearButton : undefined,
           fill: true,
-          // @ts-ignore inputElement is actually private, but the autoFocus of the tagInputProps is not working, so...
-          inputRef: ref.current ? ref.current.inputELement : null,
           disabled,
+          inputRef: setInputRef,
+          onKeyDown,
         }}
         placeholder={placeholder}
-        resetOnSelect
+        // resetOnSelect
       />
     </>
   );
