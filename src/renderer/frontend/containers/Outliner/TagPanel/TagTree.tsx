@@ -334,13 +334,13 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     if (tagCollectionStore.getRootCollection().subCollections.length === 1) {
       setExpandState({ [tagCollectionStore.getRootCollection().subCollections[0]]: true });
     }
-  }, []);
+  }, [tagCollectionStore]);
 
   /**
    * Creates tag tree by mapping collections and tags of root collection to the appropriate
    * components and adds a context menu to each node.
    */
-  const createTree = (): Array<ITreeNode<INodeData>> => {
+  const createTree = useCallback((): Array<ITreeNode<INodeData>> => {
     if (root.isEmpty) {
       return [{ label: <i>No tags or collections created yet</i>, id: 'placeholder' }];
     }
@@ -548,7 +548,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     };
 
     return [...root.clientSubCollections.map((c) => createCollection(c)), ...createTags(root)];
-  };
+  }, [editNode, expandState, root, tagCollectionStore, tagStore, uiStore]);
 
   const handleRootAddTag = useCallback(() => {
     tagStore
@@ -558,14 +558,14 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         setEditNode({ id: tag.id, kind: DragAndDropType.Tag });
       })
       .catch((err) => console.log('Could not create tag', err));
-  }, []);
+  }, [root, tagStore]);
 
   const handleAddRootCollection = useCallback(() => {
     tagCollectionStore
       .addTagCollection(DEFAULT_COLLECTION_NAME, root)
       .then((col) => setEditNode({ id: col.id, kind: DragAndDropType.Collection }))
       .catch((err) => console.log('Could not create collection', err));
-  }, []);
+  }, [root, tagCollectionStore]);
 
   const handleRootDrop = useCallback((monitor) => {
     const item: IDragAndDropItem = monitor.getItem();
@@ -583,7 +583,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
       default:
         break;
     }
-  }, []);
+  }, [root, uiStore]);
 
   const handleOnContextMenu = (node: ITreeNode<INodeData>): JSX.Element => {
     if (node.nodeData) {
@@ -599,7 +599,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           ? [{ label: <i>No tags or collections created yet</i>, id: 'placeholder' }]
           : createTree(),
       ),
-    [root, expandState, editNode],
+    [root.isEmpty, createTree],
   );
 
   /** Allow dropping tags on header and background to move them to the root of the hierarchy */

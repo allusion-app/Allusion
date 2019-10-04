@@ -162,9 +162,9 @@ const ImportForm = observer(() => {
 
   const rootStore = useContext(StoreContext);
 
-  const handleChooseFiles = useCallback(() => chooseFiles(rootStore.fileStore), []);
-  const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), []);
-  const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), []);
+  const handleChooseFiles = useCallback(() => chooseFiles(rootStore.fileStore), [rootStore.fileStore]);
+  const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), [rootStore.fileStore]);
+  const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), [rootStore]);
 
   return (
     <div id="import">

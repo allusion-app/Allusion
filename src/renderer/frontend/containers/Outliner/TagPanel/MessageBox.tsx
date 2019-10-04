@@ -37,7 +37,7 @@ const TagRemoverContent = ({
         }
       }
     }
-  }, []);
+  }, [tagCollectionStore, tagStore, uiStore.clientTagSelection, uiStore.isOutlinerTagRemoverOpen]);
 
   const tagsToRemoveOverview = (
     <div id="tag-remove-overview">
@@ -97,7 +97,7 @@ export const TagRemoval = observer(({ rootStore }: IRootStoreProp) => {
       }
       uiStore.closeOutlinerTagRemover();
     },
-    [uiStore.isOutlinerTagRemoverOpen],
+    [tagCollectionStore, tagStore, uiStore],
   );
 
   return (
