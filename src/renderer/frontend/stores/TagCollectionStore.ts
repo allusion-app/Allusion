@@ -64,6 +64,26 @@ class TagCollectionStore {
     // Todo: Clean-up methods for all stores
   }
 
+  @action.bound private async loadTagCollections() {
+    try {
+      const fetchedTagCollections = await this.backend.fetchTagCollections();
+      fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
+    } catch (err) {
+      console.error('Could not load tag collections', err);
+    }
+  }
+
+  @action.bound private updateFromBackend(backendTagCol: ITagCollection) {
+    const tagCol = this.get(backendTagCol.id);
+    // In case a tag collection was added to the server from another client or session
+    if (!tagCol) {
+      this.tagCollectionList.push(new ClientTagCollection(this).updateFromBackend(backendTagCol));
+    } else {
+      // Else, update the existing tag collection
+      tagCol.updateFromBackend(backendTagCol);
+    }
+  }
+
   get(collection: ID): ClientTagCollection | undefined {
     return this.tagCollectionList.find((col) => col.id === collection);
   }
@@ -86,26 +106,6 @@ class TagCollectionStore {
 
   save(collection: ITagCollection) {
     this.backend.saveTagCollection(collection);
-  }
-
-  @action.bound private async loadTagCollections() {
-    try {
-      const fetchedTagCollections = await this.backend.fetchTagCollections();
-      fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
-    } catch (err) {
-      console.error('Could not load tag collections', err);
-    }
-  }
-
-  @action.bound private updateFromBackend(backendTagCol: ITagCollection) {
-    const tagCol = this.get(backendTagCol.id);
-    // In case a tag collection was added to the server from another client or session
-    if (!tagCol) {
-      this.tagCollectionList.push(new ClientTagCollection(this).updateFromBackend(backendTagCol));
-    } else {
-      // Else, update the existing tag collection
-      tagCol.updateFromBackend(backendTagCol);
-    }
   }
 }
 

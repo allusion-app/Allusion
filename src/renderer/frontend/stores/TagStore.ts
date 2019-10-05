@@ -51,6 +51,26 @@ class TagStore {
     await this.backend.removeTag(tag);
   }
 
+  @action.bound private loadTags() {
+    this.backend
+      .fetchTags()
+      .then((fetchedTags) => {
+        fetchedTags.forEach((tag) => this.updateFromBackend(tag));
+      })
+      .catch((err) => console.log('Could not load tags', err));
+  }
+
+  @action.bound private updateFromBackend(backendTag: ITag) {
+    const tag = this.get(backendTag.id);
+    // In case a tag was added to the server from another client or session
+    if (!tag) {
+      this.tagList.push(new ClientTag(this).updateFromBackend(backendTag));
+    } else {
+      // Else, update the existing tag
+      tag.updateFromBackend(backendTag);
+    }
+  }
+
   get(tag: ID): ClientTag | undefined {
     return this.tagList.find((t) => t.id === tag);
   }
@@ -71,26 +91,6 @@ class TagStore {
 
   save(tag: ITag) {
     this.backend.saveTag(tag);
-  }
-
-  @action.bound private loadTags() {
-    this.backend
-      .fetchTags()
-      .then((fetchedTags) => {
-        fetchedTags.forEach((tag) => this.updateFromBackend(tag));
-      })
-      .catch((err) => console.log('Could not load tags', err));
-  }
-
-  @action.bound private updateFromBackend(backendTag: ITag) {
-    const tag = this.get(backendTag.id);
-    // In case a tag was added to the server from another client or session
-    if (!tag) {
-      this.tagList.push(new ClientTag(this).updateFromBackend(backendTag));
-    } else {
-      // Else, update the existing tag
-      tag.updateFromBackend(backendTag);
-    }
   }
 }
 

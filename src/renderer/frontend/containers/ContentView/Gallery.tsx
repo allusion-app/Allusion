@@ -241,8 +241,7 @@ const SlideGallery = observer(
     useEffect(
       () => {
         if (uiStore.view.firstItem < fileList.length) {
-          uiStore.deselectAllFiles();
-          uiStore.selectFile(fileList[uiStore.view.firstItem]);
+          uiStore.selectFile(fileList[uiStore.view.firstItem], true);
         }
       },
       [uiStore.view.firstItem],

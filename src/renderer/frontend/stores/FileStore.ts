@@ -78,7 +78,12 @@ class FileStore {
   @action.bound async fetchUntaggedFiles() {
     try {
       const { fileOrder, orderBy } = this.rootStore.uiStore.view;
-      const criteria: SearchCriteria<IFile> = { key: 'tags', value: [], operator: 'contains', valueType: 'array' };
+      const criteria: SearchCriteria<IFile> = {
+        key: 'tags',
+        value: [],
+        operator: 'contains',
+        valueType: 'array',
+      };
       const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (err) {
@@ -95,7 +100,10 @@ class FileStore {
     const { orderBy, fileOrder } = this.rootStore.uiStore.view;
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria as [SearchCriteria<IFile>], orderBy, fileOrder);
+        criteria as [SearchCriteria<IFile>],
+        orderBy,
+        fileOrder,
+      );
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on criteria', e);
@@ -106,7 +114,12 @@ class FileStore {
     // Query the backend to send back only files with these tags
     try {
       const { orderBy, fileOrder } = this.rootStore.uiStore.view;
-      const criteria: SearchCriteria<IFile> = { key: 'tags', value: tags, operator: 'contains', valueType: 'array' };
+      const criteria: SearchCriteria<IFile> = {
+        key: 'tags',
+        value: tags,
+        operator: 'contains',
+        valueType: 'array',
+      };
       const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
@@ -114,8 +127,7 @@ class FileStore {
     }
   }
 
-  @action
-  async fetchFilesByIDs(files: ID[]) {
+  @action.bound async fetchFilesByIDs(files: ID[]) {
     try {
       const fetchedFiles = await this.backend.fetchFilesByID(files);
       this.updateFromBackend(fetchedFiles);
@@ -140,18 +152,6 @@ class FileStore {
     // Clean up observers of ClientFiles before removing them
     this.fileList.forEach((f) => f.dispose());
     this.fileList.clear();
-  }
-
-  get(id: ID): ClientFile | undefined {
-    return this.fileList.find((f) => f.id === id);
-  }
-
-  getTag(tag: ID): ClientTag | undefined {
-    return this.rootStore.tagStore.get(tag);
-  }
-
-  save(file: IFile) {
-    this.backend.saveFile(file);
   }
 
   @action.bound private async loadFiles() {
@@ -242,6 +242,18 @@ class FileStore {
   @action.bound private replaceFileList(backendFiles: ClientFile[]) {
     this.fileList.forEach((f) => f.dispose());
     this.fileList.replace(backendFiles);
+  }
+
+  get(id: ID): ClientFile | undefined {
+    return this.fileList.find((f) => f.id === id);
+  }
+
+  getTag(tag: ID): ClientTag | undefined {
+    return this.rootStore.tagStore.get(tag);
+  }
+
+  save(file: IFile) {
+    this.backend.saveFile(file);
   }
 }
 

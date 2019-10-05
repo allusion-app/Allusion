@@ -141,7 +141,7 @@ class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
         <Hotkey
           combo={hotkeyMap.deselectAll}
           label="Deselect all files in the content area"
-          onKeyDown={uiStore.deselectAllFiles}
+          onKeyDown={uiStore.clearFileSelection}
           group="Gallery"
         />
         <Hotkey

@@ -253,14 +253,14 @@ class UiStore {
   /////////////////// Selection actions ///////////////////
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
     if (clear) {
-      this.fileSelection.clear();
+      this.clearFileSelection();
     }
     this.fileSelection.push(file.id);
   }
 
   @action.bound selectFiles(files: ID[], clear?: boolean) {
     if (clear) {
-      this.fileSelection.clear();
+      this.clearFileSelection();
     }
     this.fileSelection.push(...files);
   }
@@ -274,24 +274,20 @@ class UiStore {
   }
 
   @action.bound selectAllFiles() {
-    this.fileSelection.clear();
+    this.clearFileSelection();
     this.fileSelection.push(...this.rootStore.fileStore.fileList.map((f) => f.id));
-  }
-
-  @action.bound deselectAllFiles() {
-    this.fileSelection.clear();
   }
 
   @action.bound selectTag(tag: ClientTag, clear?: boolean) {
     if (clear) {
-      this.tagSelection.clear();
+      this.clearTagSelection();
     }
     this.tagSelection.push(tag.id);
   }
 
   @action.bound selectTags(tags: ClientTag[] | ID[], clear?: boolean) {
     if (clear) {
-      this.tagSelection.clear();
+      this.clearTagSelection();
     }
     if (tags.length === 0) {
       return;
