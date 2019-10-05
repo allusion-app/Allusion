@@ -39,8 +39,10 @@ backend
   .catch((err) => console.log('Could not initialize backend!', err));
 
 if (isPreviewWindow) {
-  ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[]) => {
+  ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[], thumbnailDir: string) => {
     rootStore.uiStore.view.setFirstItem(0);
+    rootStore.uiStore.thumbnailDirectory = thumbnailDir;
+    rootStore.uiStore.view.setMethodSlide();
     rootStore.fileStore.fetchFilesByIDs(fileIds);
   });
 

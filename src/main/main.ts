@@ -256,6 +256,7 @@ function createPreviewWindow() {
   previewWindow = new BrowserWindow({
     webPreferences: {
       nodeIntegration: true,
+      nodeIntegrationInWorker: true,
     },
     minWidth: 224,
     minHeight: 224,
@@ -283,17 +284,17 @@ function createPreviewWindow() {
   return previewWindow;
 }
 
-ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
+ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[], thumbnailDir: string) => {
   // Create preview window if needed, and send the files selected in the primary window
   if (!previewWindow) {
     previewWindow = createPreviewWindow();
     ipcMain.once('initialized', () => {
       if (previewWindow) {
-        previewWindow.webContents.send('receivePreviewFiles', fileIds);
+        previewWindow.webContents.send('receivePreviewFiles', fileIds, thumbnailDir);
       }
     });
   } else {
-    previewWindow.webContents.send('receivePreviewFiles', fileIds);
+    previewWindow.webContents.send('receivePreviewFiles', fileIds, thumbnailDir);
 
     if (!previewWindow.isVisible()) {
       previewWindow.show();

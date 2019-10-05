@@ -68,6 +68,8 @@ export const useWorkerListener = () => {
         clientFile.setThumbnailPath(clientFile.path);
       }
     };
+
+    return () => thumbnailWorker.terminate();
   }, []);
 };
 
