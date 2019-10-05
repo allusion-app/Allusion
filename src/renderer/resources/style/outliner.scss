@@ -59,12 +59,14 @@ nav {
 #import,
 // #search-form,
 .gallery,
-.error-boundary {
+.error-boundary,
+.inspectorOpen  {
   // .error-boundary
   > button,
   .button.bp3-fill,
   button.bp3-button.bp3-fill,
-  .bp3-non-ideal-state button.bp3-button {
+  .bp3-non-ideal-state button.bp3-button,
+  .bp3-button:not([class*="bp3-intent-"]) {
     color: $light-gray2;
   }
 
@@ -76,7 +78,7 @@ nav {
 
   button.bp3-fill,
   // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]) {
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(button) {
     background: $light-gray1-trans;
     color: $light-gray2;
   }
