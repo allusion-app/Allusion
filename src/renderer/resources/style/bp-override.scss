@@ -427,7 +427,8 @@ button:has(.bp3-intent-danger) {
 .bp3-popover.bp3-dark .bp3-popover-content,
 .bp3-dark .bp3-popover .bp3-popover-content,
 .bp3-popover-content .fileTag,
-.bp3-popover-content {
+.bp3-popover-content,
+.bp3-popover .bp3-popover-content {
   margin: 0;
   border-radius: 5px;
   background: $light-gray5;
@@ -507,7 +508,9 @@ nav .bp3-divider {
 .bp3-dark .bp3-menu-item:hover,
 .bp3-dark .bp3-menu-item:hover > .custom-icon,
 .bp3-dark .bp3-submenu .bp3-popover-target.bp3-popover-open > .bp3-menu-item,
-.bp3-submenu .bp3-dark .bp3-popover-target.bp3-popover-open > .bp3-menu-item {
+.bp3-submenu .bp3-dark .bp3-popover-target.bp3-popover-open > .bp3-menu-item,
+.bp3-menu-item:hover,
+.bp3-submenu .bp3-popover-target.bp3-popover-open > .bp3-menu-item {
   background-color: transparent;
   color: $blue1;
 }
