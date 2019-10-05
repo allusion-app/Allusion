@@ -41,8 +41,6 @@ class RootStore {
     this.uiStore = new UiStore(this);
 
     this.clearDatabase = this.clearDatabase.bind(this);
-
-    this.watchedDirectoryStore.addDirectory({ path: 'C:/Users/Remi/Downloads/VisLibDir', recursive: true });
   }
 
   async init(autoLoadFiles: boolean) {
@@ -50,6 +48,7 @@ class RootStore {
       this.tagStore.init(),
       this.tagCollectionStore.init(),
       this.fileStore.init(autoLoadFiles),
+      this.watchedDirectoryStore.init(true),
     ]);
     // Upon loading data, initialize UI state.
     this.uiStore.init();

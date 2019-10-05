@@ -6,7 +6,7 @@ import fse from 'fs-extra';
 import path from 'path';
 
 import StoreContext from '../../contexts/StoreContext';
-import { Button } from '@blueprintjs/core';
+import { Button, H2, H4 } from '@blueprintjs/core';
 import FileStore from '../../stores/FileStore';
 import { ClientTagCollection } from '../../../entities/TagCollection';
 import TagStore from '../../stores/TagStore';
@@ -166,6 +166,18 @@ const ImportForm = observer(() => {
   const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), []);
   const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), []);
 
+  const handleChooseWatchedDir = useCallback(async () => {
+    const dirs = remote.dialog.showOpenDialog({
+      properties: ['openDirectory'],
+    });
+
+    // multi-selection is disabled which means there can be at most 1 folder
+    if (!dirs || dirs.length === 0) {
+      return;
+    }
+    rootStore.watchedDirectoryStore.addDirectory({ path: dirs[0], recursive: true });
+  }, []);
+
   return (
     <div id="import">
       <Button
@@ -197,6 +209,21 @@ const ImportForm = observer(() => {
       >
         Add Nested Directories
       </Button>
+
+      <br />
+
+      <H4>Watched folders</H4>
+      <ul id="watched-folders">
+      {
+        rootStore.watchedDirectoryStore.directoryList.map((dir) => (
+          <li key={dir.path}>
+            <span className="ellipsis-left" title={dir.path}>{dir.path}</span>
+            <Button icon="trash" />
+          </li>
+        ))
+      }
+      </ul>
+      <Button onClick={handleChooseWatchedDir}>Add</Button>
 
       {/* Todo: Show progress bar here */}
     </div>

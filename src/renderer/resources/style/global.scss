@@ -419,3 +419,11 @@ main {
   color: white;
   transition: color 0.2s ease;
 }
+
+.ellipsis-left {
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
+}

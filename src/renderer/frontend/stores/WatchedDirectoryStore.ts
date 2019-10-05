@@ -17,12 +17,15 @@ class WatchedDirectoryStore {
     this.rootStore = rootStore;
   }
 
+  @action.bound
   async init(autoScan: boolean) {
     // Get dirs from backend
-    const dirs = await this.backend.getWatchedDirectories('dateAdded', true);
+    const dirs = await this.backend.getWatchedDirectories('dateAdded',  'DESC');
 
     const clientDirs = dirs.map((dir) =>
       new ClientWatchedDirectory(this, dir.id, dir.path, dir.recursive, dir.dateAdded, dir.tagToAdd));
+
+    this.directoryList.push(...clientDirs);
 
     const initialPathLists = await Promise.all(clientDirs.map((clientDir) => clientDir.init()));
 
@@ -42,23 +45,32 @@ class WatchedDirectoryStore {
       }),
     );
 
+    // Sync file changes with DB
     await Promise.all(
       initialFileLists.map(
         (initFiles, i) => this.backend.createFilesFromPath(clientDirs[i].path, initFiles)));
   }
 
-  @action
+  @action.bound
   async addDirectory(dirInput: Omit<IWatchedDirectory, 'id' | 'dateAdded'>, id = generateId(), dateAdded = new Date()) {
     const dirData: IWatchedDirectory = { ...dirInput, id, dateAdded };
     const clientDir = new ClientWatchedDirectory(
       this, id, dirData.path, dirData.recursive, dirData.dateAdded, dirData.tagToAdd);
+    this.directoryList.push(clientDir);
     // The function caller is responsible for handling errors.
     await this.backend.createWatchedDirectory(dirData);
-    this.directoryList.push(clientDir);
+
+    // Import files of dir
+    clientDir.init().then((filePaths) => {
+      for (const path of filePaths) {
+        this.rootStore.fileStore.addFile(path);
+      }
+    });
+
     return clientDir;
   }
 
-  @action
+  @action.bound
   async removeDirectory(id: ID) {
     const watchedDir = this.directoryList.find((dir) => dir.id === id);
     if (!watchedDir) {

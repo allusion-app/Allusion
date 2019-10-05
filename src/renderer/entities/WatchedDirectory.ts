@@ -48,7 +48,6 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
         }
       },
     );
-
   }
 
   async init() {

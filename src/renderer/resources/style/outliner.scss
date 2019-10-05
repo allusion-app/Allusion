@@ -47,6 +47,19 @@ nav {
 #import {
   margin: 0.5em 1rem;
   outline: none;
+
+  #watched-folders {
+    padding: 4px;
+
+    li {
+      list-style-type: none;
+
+      span {
+        width: 80%;
+        display: inline-block;
+      }
+    }
+  }
 }
 
 // .outlinerOpen button.bp3-button.bp3-minimal {
