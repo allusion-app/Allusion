@@ -157,7 +157,7 @@ class UiStore {
   }
 
   @action.bound openPreviewWindow() {
-    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
+    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS(), this.thumbnailDirectory);
     this.isPreviewOpen = true;
 
     // remove focus from element so closing preview with spacebar does not trigger any ui elements
