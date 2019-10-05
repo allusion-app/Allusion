@@ -224,7 +224,7 @@ button:has(.bp3-intent-primary) {
 
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
 :not(.bp3-input):not(.bp3-tag) > .bp3-button:hover > .custom-icon {
-// :not(.bp3-input):not(.bp3-tag) > .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled):not(.bp3-dialog-close-button) .bp3-icon:hover {
+  // :not(.bp3-input):not(.bp3-tag) > .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled):not(.bp3-dialog-close-button) .bp3-icon:hover {
   background: transparent;
   color: white !important;
 }
@@ -555,7 +555,7 @@ li .bp3-menu-item {
   border-radius: none !important;
   box-shadow: none !important;
   .flexbox-fix {
-    padding: .3rem 0 0 .3rem;
+    padding: 0.3rem 0 0 0.3rem;
   }
 }
 
@@ -576,8 +576,8 @@ li .bp3-menu-item {
 }
 
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled) {
-// .bp3-button:hover > .custom-icon,
-// .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
+  // .bp3-button:hover > .custom-icon,
+  // .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
   background: transparent;
   color: white !important;
 }
@@ -752,7 +752,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-tag.bp3-intent-primary,
-.bp3-tag.bp3-intent-primary button > * {
+.bp3-tag.bp3-intent-primary button > *:not([class*="-small-cross"]) {
   background: $blue1-unimportant;
   color: $light-gray4;
   &.bp3-interactive:hover {
@@ -769,9 +769,16 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 .bp3-dark .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]),
 .bp3-dark.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
+  // .bp3-dark .bp3-tag.bp3-minimal.bp3-intent-primary {
   color: $gray4;
 }
 
+.bp3-dark .bp3-tag.bp3-minimal.bp3-intent-primary {
+  background-color: #3e3e3e;
+}
+.inspectorOpen .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
+  background-color: $blue1-unimportant;
+}
 .bp3-tag-input .bp3-tag.bp3-active {
   outline: #007af5 solid 2px;
   outline-offset: 1px;
