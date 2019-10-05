@@ -6,6 +6,17 @@ export function isDev() {
   return process.mainModule ? process.mainModule.filename.indexOf('app.asar') === -1 : false;
 }
 
+// Randomly chosen, hopefully no conflicts with other apps/services
+export const SERVER_PORT = 5454;
+
 export const githubUrl = 'https://github.com/RvanderLaan/VisualLibrary';
 
 export const RECURSIVE_DIR_WATCH_DEPTH = 8;
+
+export const thumbnailType = 'webp';
+
+const isRenderer = process && process.type === 'renderer';
+
+// Use higher thumbnail resolution for HiDPI screens
+// A value of 1 indicates a classic 96 DPI (76 DPI on some platforms) display, while a value of 2 is expected for HiDPI/Retina displays.
+export const thumbnailMaxSize = isRenderer && window.devicePixelRatio >= 1.5 ? 600 : 400;

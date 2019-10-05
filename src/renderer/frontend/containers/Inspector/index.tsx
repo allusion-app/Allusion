@@ -1,24 +1,32 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import fs from 'fs';
 import path from 'path';
 import { observer } from 'mobx-react-lite';
 
-import RootStore from '../stores/RootStore';
-import { withRootstore } from '../contexts/StoreContext';
-import FileInfo from './FileInfo';
-import FileTag from './FileTag';
+import StoreContext from '../../contexts/StoreContext';
+import ImageInfo from '../../components/ImageInfo';
+import FileTag from '../../components/FileTag';
+import { ClientFile } from '../../../entities/File';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
+  if (bytes <= 0) {
+    return '0 Bytes';
+  }
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return !bytes && '0 Bytes' || (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sufixes[i];
+  return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sufixes[i];
 };
 
-interface IInspectorProps {
-  rootStore: RootStore;
-}
+const MultiFileInfo = observer(({ files }: {files: ClientFile[]}) => {
+  return (
+    <section>
+      <p>Selected {files.length} files</p>
+    </section>
+  );
+});
 
-const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
+const Inspector = observer(() => {
+  const { uiStore } = useContext(StoreContext);
   const selectedFiles = uiStore.clientFileSelection;
 
   let selectionPreview;
@@ -34,15 +42,14 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
       <img
         src={singleFile.path}
         style={{ cursor: 'zoom-in' }}
-        onClick={() => uiStore.imageViewerFile = singleFile}
+        onClick={() => (uiStore.setImageViewer(singleFile))}
       />
     );
     headerText = path.basename(singleFile.path);
     headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.path).size)}`;
   } else {
     // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
-    let size = 0;
-    selectedFiles.forEach((f) => size += fs.statSync(f.path).size);
+    const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.path).size, 0);
 
     // Todo: What to show when selecting multiple images?
     selectionPreview = <p>Carousel of selected images here?</p>;
@@ -52,10 +59,7 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
 
   if (selectedFiles.length > 0) {
     return (
-      <aside
-        id="inspector"
-        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}
-      >
+      <aside id="inspector" className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
         <section id="filePreview">{selectionPreview}</section>
 
         <section id="fileOverview">
@@ -63,16 +67,17 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
           <small>{headerSubtext}</small>
         </section>
 
-        <FileInfo files={selectedFiles} />
+        {selectedFiles.length === 1 ? (
+          <ImageInfo file={selectedFiles[0]} />
+        ) : (
+          <MultiFileInfo files={selectedFiles} />
+        )}
         <FileTag files={selectedFiles} />
       </aside>
     );
   } else {
     return (
-      <aside
-        id="inspector"
-        className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}
-      >
+      <aside id="inspector" className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
         <section id="filePreview" />
         <section id="fileOverview">
           <div className="inpectorHeading">{headerText}</div>
@@ -80,6 +85,6 @@ const Inspector = ({ rootStore: { uiStore } }: IInspectorProps) => {
       </aside>
     );
   }
-};
+});
 
-export default withRootstore(observer(Inspector));
+export default Inspector;

@@ -46,8 +46,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
   // Count how often tags are used
-  const combinedTags: ClientTag[] = [];
-  files.forEach((f) => combinedTags.push(...f.clientTags));
+  const combinedTags: ClientTag[] = files.flatMap((f) => f.clientTags);
   const countMap = new Map<ClientTag, number>();
   combinedTags.forEach((t) => countMap.set(t, (countMap.get(t) || 0) + 1));
 

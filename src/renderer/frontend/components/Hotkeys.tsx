@@ -1,5 +1,5 @@
 import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
-import * as React from 'react';
+import React, { useContext } from 'react';
 import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 
@@ -52,22 +52,17 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
         />
         <Hotkey
           global={true}
-          combo={hotkeyMap.openOutlinerSearch}
-          label="Opens the search tab in the outliner (left sidebar)"
-          onKeyDown={uiStore.openOutlinerSearch}
-          preventDefault
-        />
-        <Hotkey
-          global={true}
           combo={hotkeyMap.toggleSettings}
           label="Opens the settings tab in right sidebar"
           onKeyDown={uiStore.toggleSettings}
+          preventDefault
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.replaceQuery}
           label="Replaces the search query with the selected tags"
-          onKeyDown={uiStore.replaceQueryWithSelection}
+          onKeyDown={uiStore.replaceCriteriaWithTagSelection}
+          preventDefault
         />
 
         {/* Toolbar actions */}
@@ -82,25 +77,37 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           global={true}
           combo={hotkeyMap.viewList}
           label="Sets view to list mode"
-          onKeyDown={uiStore.viewList}
+          onKeyDown={uiStore.view.setMethodList}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewGrid}
           label="Sets view to Grid mode"
-          onKeyDown={uiStore.viewGrid}
+          onKeyDown={uiStore.view.setMethodGrid}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewMason}
           label="Sets view to mason mode"
-          onKeyDown={uiStore.viewMason}
+          onKeyDown={uiStore.view.setMethodMasonry}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewSlide}
           label="Sets view to slide mode"
-          onKeyDown={uiStore.viewSlide}
+          onKeyDown={uiStore.view.setMethodSlide}
+        />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.quickSearch}
+          label="Toggle quick search"
+          onKeyDown={uiStore.toggleQuickSearch}
+        />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.advancedSearch}
+          label="Toggle advanced search"
+          onKeyDown={uiStore.toggleAdvancedSearch}
         />
 
         <Hotkey
@@ -115,7 +122,7 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
 }
 
 const GlobalHotkeysWrapper = observer((props: IGlobalHotkeysProps) => {
-  const rootStore = React.useContext(StoreContext);
+  const rootStore = useContext(StoreContext);
   return <GlobalHotkeys {...props} rootStore={rootStore} />;
 });
 

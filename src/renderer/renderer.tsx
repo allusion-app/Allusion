@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer, remote, IpcMessageEvent } from 'electron';
 
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
@@ -17,7 +17,8 @@ import Backend from './backend/Backend';
 import App from './frontend/App';
 import StoreContext from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
-import PreviewApp from './frontend/components/Preview';
+import { IImportItem } from '../main/clipServer';
+import PreviewApp from './frontend/Preview';
 import { ID } from './entities/ID';
 
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
@@ -33,12 +34,15 @@ backend
   .then(async () => {
     console.log('Backend has been initialized!');
     await rootStore.init(!isPreviewWindow);
+    ipcRenderer.send('initialized');
   })
   .catch((err) => console.log('Could not initialize backend!', err));
 
 if (isPreviewWindow) {
-  ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[]) => {
-    rootStore.uiStore.firstIndexInView = 0;
+  ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[], thumbnailDir: string) => {
+    rootStore.uiStore.view.setFirstItem(0);
+    rootStore.uiStore.thumbnailDirectory = thumbnailDir;
+    rootStore.uiStore.view.setMethodSlide();
     rootStore.fileStore.fetchFilesByIDs(fileIds);
   });
 
@@ -47,6 +51,13 @@ if (isPreviewWindow) {
     if (e.code === 'Space' || e.code === 'Escape') {
       rootStore.uiStore.clearFileSelection();
       rootStore.fileStore.clearFileList();
+      rootStore.uiStore.view.setMethodSlide();
+
+      // remove focus from element so closing preview with spacebar does not trigger any ui elements
+      if (document.activeElement && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
       window.close();
     }
   });
@@ -62,7 +73,7 @@ if (isPreviewWindow) {
   // Change window title to filename when changing the selected file
   rootStore.uiStore.fileSelection.observe(({ object: list }) => {
     if (list.length > 0) {
-      const file = rootStore.fileStore.fileList.find((f) => f.id === list[0]);
+      const file = rootStore.fileStore.get(list[0]);
       if (file) {
         document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
       }
@@ -70,7 +81,7 @@ if (isPreviewWindow) {
   });
 } else {
   ipcRenderer.on('closedPreviewWindow', () => {
-    rootStore.uiStore.isPreviewOpen = false;
+    rootStore.uiStore.closePreviewWindow();
   });
 
   // Load persistent preferences
@@ -92,3 +103,43 @@ ReactDOM.render(
   </DndProvider>,
   document.getElementById('app'),
 );
+
+/**
+ * Adds tags to a file, given its name and the names of the tags
+ * @param filePath The path of the file
+ * @param tagNames The names of the tags
+ */
+async function addTagsToFile(filePath: string, tagNames: string[]) {
+  const clientFile = rootStore.fileStore.fileList.find((file) => file.path === filePath);
+  if (clientFile) {
+    const tagIds = await Promise.all(tagNames.map(async (tagName) => {
+      const clientTag = rootStore.tagStore.tagList.find((tag) => tag.name === tagName);
+      console.log(clientTag);
+      if (clientTag) {
+        return clientTag.id;
+      } else {
+        const newClientTag = await rootStore.tagStore.addTag(tagName);
+        rootStore.tagCollectionStore.getRootCollection().addTag(newClientTag);
+        return newClientTag.id;
+      }
+    }));
+    clientFile.tags.push(...tagIds);
+  } else {
+    console.error('Could not find image to set tags for', filePath);
+  }
+}
+
+ipcRenderer.on('importExternalImage', async (e: IpcMessageEvent, item: IImportItem) => {
+  console.log('Importing image...', item);
+  await rootStore.fileStore.addFile(item.filePath, item.dateAdded);
+  await addTagsToFile(item.filePath, item.tagNames);
+});
+
+ipcRenderer.on('addTagsToFile', async (e: IpcMessageEvent, item: IImportItem) => {
+  console.log('Adding tags to file...', item);
+  await addTagsToFile(item.filePath, item.tagNames);
+});
+
+ipcRenderer.on('getTags', async (e: IpcMessageEvent) => {
+  e.returnValue = await backend.fetchTags();
+});

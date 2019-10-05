@@ -3,16 +3,9 @@ import fs from 'fs';
 import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
+import { formatDateTime } from '../utils';
 
-const formatDate = (d: Date) =>
-  `${d.getUTCFullYear()}-${d.getUTCMonth() +
-    1}-${d.getUTCDate()} ${d.getUTCHours()}:${d.getUTCMinutes()}`;
-
-interface IFileInfoProps {
-  files: ClientFile[];
-}
-
-export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
+const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   const isMounted = useRef(false);
   const [fileStats, setFileStats] = useState<fs.Stats | undefined>(undefined);
   const [error, setError] = useState<Error | undefined>(undefined);
@@ -48,13 +41,17 @@ export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
     () => [
       { key: 'Filename', value: file.name },
       {
-        key: 'Created',
-        value: fileStats ? formatDate(fileStats.birthtime) : '...',
+        key: 'Imported',
+        value: formatDateTime(file.dateAdded),
       },
-      { key: 'Modified', value: fileStats ? formatDate(fileStats.ctime) : '...' },
+      {
+        key: 'Created',
+        value: fileStats ? formatDateTime(fileStats.birthtime) : '...',
+      },
+      { key: 'Modified', value: fileStats ? formatDateTime(fileStats.ctime) : '...' },
       {
         key: 'Last Opened',
-        value: fileStats ? formatDate(fileStats.atime) : '...',
+        value: fileStats ? formatDateTime(fileStats.atime) : '...',
       },
       { key: 'Dimensions', value: resolution },
       // { key: 'Resolution', value: '?' },
@@ -83,20 +80,4 @@ export const SingleFileInfo = observer(({ file }: { file: ClientFile }) => {
   );
 });
 
-const MultiFileInfo = observer(({ files }: IFileInfoProps) => {
-  return (
-    <section>
-      <p>Selected {files.length} files</p>
-    </section>
-  );
-});
-
-const FileInfo = ({ files }: IFileInfoProps) => {
-  if (files.length === 1) {
-    return <SingleFileInfo file={files[0]} />;
-  } else {
-    return <MultiFileInfo files={files} />;
-  }
-};
-
-export default FileInfo;
+export default ImageInfo;
