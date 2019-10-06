@@ -505,6 +505,13 @@ button:has(.bp3-intent-danger) {
   }
 }
 
+// .bp3-dark {
+.bp3-menu-item::before,
+.bp3-menu-item > .bp3-icon {
+  color: $dark-gray4;
+}
+// }
+
 .bp3-dialog {
   padding: 20px;
   width: 560px;
