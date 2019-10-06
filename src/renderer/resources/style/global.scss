@@ -346,12 +346,14 @@ main {
 .drop-overlay-content {
   top: 0;
   left: calc(50vw - 200px);
-  margin: 10vh 0;
+  margin: auto 0;
   width: 400px;
   position: absolute;
+  padding: 20px !important;
 
   .quick-tags {
     text-align: center;
+    margin-top: 20px !important;
   }
 }
 

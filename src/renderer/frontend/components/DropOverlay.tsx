@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useContext } from 'react';
-import { Card, Overlay, H5, Tag } from '@blueprintjs/core';
+import { Card, Overlay, H4, Tag } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 
@@ -53,7 +53,7 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
       const file = e.dataTransfer.files[i];
       // Check if file is an image
       if (file && file.name
-          && imgExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))) {
+        && imgExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))) {
         dropItems.add(file);
       }
     }
@@ -111,7 +111,8 @@ const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       intent={isDraggingOver ? 'primary' : 'none'}
-      large
+      minimal
+      className="tag-drag-drop"
     >
       {tag.name}
     </Tag>
@@ -199,10 +200,13 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
           <Card
             elevation={4}
             className="drop-overlay-content"
-            // todo: blue background when dropping over
+          // todo: blue background when dropping over
           >
-            <H5>Drop anywhere to import</H5>
-            <p>Or drag onto a tag to immediately tag it</p>
+            <H4 className="bp3-heading inpectorHeading">Drop import</H4>
+            <p>Drag onto a tag to immediately tag it or anywhere to import it untagged</p>
+
+            {/* <H4 className="bp3-heading inpectorHeading">Drop anywhere to import</H4>
+            <p>Or drag onto a tag to immediately tag it</p> */}
 
             {/* TODO: Sort by frequenc, or alphabetically? */}
             <div className="quick-tags">

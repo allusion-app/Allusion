@@ -812,6 +812,19 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   }
 }
 
+.drop-overlay-content {
+  .tag-drag-drop {
+    &.bp3-tag.bp3-minimal:not([class*="inspectorOpen"]) {
+      background: $blue1;
+      color: $light-gray4;
+
+      &.bp3-intent-primary {
+        background: $dark-gray3;
+      }
+    }
+  }
+}
+
 .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
   background-color: $dark-gray5-unimportant;
 }
