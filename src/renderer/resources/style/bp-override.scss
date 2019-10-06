@@ -209,7 +209,14 @@ form .bp3-icon {
     }
   }
 }
-
+.bp3-dark {
+  #inspector,
+  .gallery {
+    .bp3-tag-input.bp3-active {
+      background-color: #2828288e !important;
+    }
+  }
+}
 // Datepicker
 .bp3-datepicker {
   background: initial;
@@ -219,7 +226,8 @@ form .bp3-icon {
   // .DayPicker-Month {
   //   width: 100%;
   // }
-  .bp3-html-select select, .bp3-select select {
+  .bp3-html-select select,
+  .bp3-select select {
     color: $dark-gray4;
   }
   .bp3-html-select.bp3-minimal select:hover,

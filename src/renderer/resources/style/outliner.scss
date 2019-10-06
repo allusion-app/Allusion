@@ -60,7 +60,7 @@ nav {
 // #search-form,
 .gallery,
 .error-boundary,
-.inspectorOpen  {
+.inspectorOpen {
   // .error-boundary
   > button,
   .button.bp3-fill,
@@ -78,11 +78,14 @@ nav {
 
   button.bp3-fill,
   // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(button) {
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal) {
+  // .bp3-multi-select .bp3-minimal {
     background: $light-gray1-trans;
     color: $light-gray2;
   }
-
+  .bp3-input.bp3-minimal {
+    background: none !important;
+  }
   .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
   .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]) {
     // .bp3-icon > svg:not([fill]) {
@@ -137,9 +140,9 @@ nav {
     }
   }
 }
-.bp3-overlay .bp3-button:not([class*="bp3-intent-"]):not(.bp3-dialog-close-button){
+.bp3-overlay .bp3-button:not([class*="bp3-intent-"]):not(.bp3-dialog-close-button):not(.bp3-minimal) {
   background: $light-gray1-trans;
-    color: $light-gray2;
+  color: $light-gray2;
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
