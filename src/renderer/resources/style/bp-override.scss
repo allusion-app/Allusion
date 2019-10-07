@@ -221,7 +221,7 @@ form,
   overflow-y: auto;
 }
 
-.bp3-multi-select > *:nth-child(2) {
+#search-form .bp3-multi-select > *:nth-child(2) {
   position: absolute;
   right: 0 !important;
 }
