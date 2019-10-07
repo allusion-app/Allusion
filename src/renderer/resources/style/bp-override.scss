@@ -151,7 +151,7 @@ form,
 
 // Advanced search
 .bp3-dialog {
-  width: 520px !important;
+  width: 650px !important;
 }
 #search-form {
   .bp3-popover-target {
@@ -211,15 +211,17 @@ form,
 .bp3-control-group {
   .bp3-input {
     border-radius: 6px !important;
-    width: 200px !important;
+    width: 275px !important;
   }
-  > * {
+  > div,
+  > span {
     margin-right: 6px !important;
     border-radius: 6px !important;
+    max-width: 150px !important;
     width: 150px !important;
   }
   > *:nth-child(3) {
-    width: 250px !important;
+    max-width: 275px !important;
   }
   > *:last-child {
     width: 10px !important;
