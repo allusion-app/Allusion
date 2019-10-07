@@ -660,7 +660,8 @@ nav .bp3-divider {
 .bp3-dark .bp3-submenu .bp3-popover-target.bp3-popover-open > .bp3-menu-item,
 .bp3-submenu .bp3-dark .bp3-popover-target.bp3-popover-open > .bp3-menu-item,
 .bp3-menu-item:hover,
-.bp3-submenu .bp3-popover-target.bp3-popover-open > .bp3-menu-item {
+.bp3-submenu .bp3-popover-target.bp3-popover-open > .bp3-menu-item,
+.bp3-menu-item:hover .custom-icon {
   background-color: transparent;
   color: $blue1;
 }
