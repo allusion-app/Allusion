@@ -962,8 +962,16 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   color: $gray4;
 }
 
-.bp3-dark .bp3-tag.bp3-minimal.bp3-intent-primary {
-  background-color: #3e3e3e;
+.bp3-dark {
+  .bp3-tag.bp3-minimal.bp3-intent-primary {
+    background-color: #3e3e3e;
+  }
+  .bp3-tag.bp3-minimal.bp3-intent-primary.bp3-interactive{
+    &:active,
+    &:hover {
+      background-color: #e3e3e355 !important;
+    }
+  }
 }
 .inspectorOpen .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
   background-color: $blue1-unimportant;
