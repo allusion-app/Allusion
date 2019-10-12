@@ -23,6 +23,28 @@ class TagStore {
     this.loadTags();
   }
 
+  get(tag: ID): ClientTag | undefined {
+    return this.tagList.find((t) => t.id === tag);
+  }
+
+  getParent(child: ID): ClientTagCollection {
+    const parent = this.rootStore.tagCollectionStore.tagCollectionList.find((col) =>
+      col.tags.includes(child),
+    );
+    if (!parent) {
+      console.warn('Tag does not have a parent', this);
+    }
+    return parent || this.rootStore.tagCollectionStore.getRootCollection();
+  }
+
+  isSelected(tag: ID): boolean {
+    return this.rootStore.uiStore.tagSelection.includes(tag);
+  }
+
+  save(tag: ITag) {
+    this.backend.saveTag(tag);
+  }
+
   @action.bound async addTag(tagName: string) {
     const tag = new ClientTag(this, tagName);
     this.tagList.push(tag);
@@ -69,28 +91,6 @@ class TagStore {
       // Else, update the existing tag
       tag.updateFromBackend(backendTag);
     }
-  }
-
-  get(tag: ID): ClientTag | undefined {
-    return this.tagList.find((t) => t.id === tag);
-  }
-
-  getParent(child: ID): ClientTagCollection {
-    const parent = this.rootStore.tagCollectionStore.tagCollectionList.find((col) =>
-      col.tags.includes(child),
-    );
-    if (!parent) {
-      console.warn('Tag does not have a parent', this);
-    }
-    return parent || this.rootStore.tagCollectionStore.getRootCollection();
-  }
-
-  isSelected(tag: ID): boolean {
-    return this.rootStore.uiStore.tagSelection.includes(tag);
-  }
-
-  save(tag: ITag) {
-    this.backend.saveTag(tag);
   }
 }
 

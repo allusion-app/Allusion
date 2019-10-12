@@ -154,6 +154,18 @@ class FileStore {
     this.fileList.clear();
   }
 
+  get(id: ID): ClientFile | undefined {
+    return this.fileList.find((f) => f.id === id);
+  }
+
+  getTag(tag: ID): ClientTag | undefined {
+    return this.rootStore.tagStore.get(tag);
+  }
+
+  save(file: IFile) {
+    this.backend.saveFile(file);
+  }
+
   @action.bound private async loadFiles() {
     const { orderBy, fileOrder } = this.rootStore.uiStore.view;
     const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
@@ -242,18 +254,6 @@ class FileStore {
   @action.bound private replaceFileList(backendFiles: ClientFile[]) {
     this.fileList.forEach((f) => f.dispose());
     this.fileList.replace(backendFiles);
-  }
-
-  get(id: ID): ClientFile | undefined {
-    return this.fileList.find((f) => f.id === id);
-  }
-
-  getTag(tag: ID): ClientTag | undefined {
-    return this.rootStore.tagStore.get(tag);
-  }
-
-  save(file: IFile) {
-    this.backend.saveFile(file);
   }
 }
 
