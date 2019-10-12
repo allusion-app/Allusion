@@ -21,6 +21,18 @@ import { IImportItem } from '../main/clipServer';
 import PreviewApp from './frontend/Preview';
 import { ID } from './entities/ID';
 
+// Override some Popover props to get crisp context menu's when zoomed in or out. Related: https://github.com/palantir/blueprint/issues/394
+import { Popover } from '@blueprintjs/core';
+// @ts-ignore
+const basePopoverModifiers = Popover.prototype.getPopperModifiers;
+// @ts-ignore
+Popover.prototype.getPopperModifiers = function() {
+  const mods = basePopoverModifiers.bind(this)();
+  // Todo: Could detect if user is zoomed in or out when applying this, but won't matter much
+  mods.computeStyle = { ...mods.computeStyle, gpuAcceleration: false };
+  return mods;
+}
+
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
 const params = new URLSearchParams(window.location.search.slice(1));
