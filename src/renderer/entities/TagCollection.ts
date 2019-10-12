@@ -147,6 +147,16 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
   }
 
+  @action.bound insertCollection(collection: ClientTagCollection, at = 0) {
+    collection.parent.subCollections.remove(collection.id);
+    this.subCollections.splice(at, 0, collection.id);
+  }
+
+  @action.bound insertTag(tag: ClientTag, at = 0) {
+    tag.parent.tags.remove(tag.id);
+    this.tags.splice(at, 0, tag.id);
+  }
+
   /**
    * Used for updating this Entity if changes are made to the backend outside of this session of the application.
    * @param backendTagCollection The file received from the backend

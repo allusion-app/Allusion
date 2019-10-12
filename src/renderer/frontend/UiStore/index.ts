@@ -9,7 +9,11 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import View from './View';
-import { IArraySearchCriteria, ClientBaseCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
+import {
+  IArraySearchCriteria,
+  ClientBaseCriteria,
+  ClientArraySearchCriteria,
+} from '../../entities/SearchCriteria';
 
 export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
@@ -339,7 +343,15 @@ class UiStore {
     if (!tag) {
       throw new Error('Cannot find tag to move ' + id);
     }
-    this.insertTag(tag, target);
+
+    if (target instanceof ClientTag) {
+      // Insert the moved tag below the position of the current tag where it was dropped
+      const insertionIndex = target.parent.tags.indexOf(target.id) + 1;
+      target.parent.insertTag(tag, insertionIndex);
+    } else {
+      // Insert at start when dragging tag to collection
+      target.insertTag(tag);
+    }
   }
 
   @action.bound async moveCollection(id: ID, target: ClientTagCollection) {
@@ -347,7 +359,7 @@ class UiStore {
     if (!collection) {
       throw new Error('Cannot find collection to move ' + id);
     }
-    this.insertCollection(collection, target);
+    target.insertCollection(collection);
   }
 
   @action.bound async colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
@@ -439,8 +451,8 @@ class UiStore {
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.collections.forEach((col) => this.insertCollection(col, targetCol));
-    ctx.tags.forEach((tag) => this.insertTag(tag, targetCol));
+    ctx.collections.forEach((col) => targetCol.insertCollection(col));
+    ctx.tags.forEach((tag) => targetCol.insertTag(tag));
   }
 
   /////////////////// Search Actions ///////////////////
@@ -600,25 +612,6 @@ class UiStore {
         this.deselectFile(file);
       }
     }
-  }
-
-  @action private insertTag(tag: ClientTag, target: ClientTag | ClientTagCollection) {
-    tag.parent.tags.remove(tag.id);
-
-    if (target instanceof ClientTag) {
-      const targetTags = target.parent.tags;
-      // Insert the moved tag below the position of the current tag where it was dropped
-      const insertionIndex = targetTags.indexOf(target.id) + 1;
-      targetTags.splice(insertionIndex, 0, tag.id);
-    } else {
-      // Insert at start when dragging tag to collection
-      target.tags.unshift(tag.id);
-    }
-  }
-
-  @action private insertCollection(col: ClientTagCollection, target: ClientTagCollection) {
-    col.parent.subCollections.remove(col.id);
-    target.subCollections.unshift(col.id);
   }
 }
 
