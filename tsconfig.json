@@ -10,7 +10,7 @@
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "noUnusedLocals": true,
-    "strict": true,
+    "strict": true
   },
   "include": [
     "src/**/*",

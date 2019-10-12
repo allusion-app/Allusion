@@ -9,12 +9,12 @@ import {
 } from 'react-window';
 import { observer, Observer } from 'mobx-react-lite';
 
-import { withRootstore, IRootStoreProp } from '../contexts/StoreContext';
+import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
-import UiStore, { ViewMethod } from '../stores/UiStore';
-import { ClientFile } from '../../entities/File';
-import IconSet from './Icons';
-import { throttle } from '../utils';
+import UiStore, { ViewMethod } from '../../UiStore';
+import { ClientFile } from '../../../entities/File';
+import IconSet from '../../components/Icons';
+import { throttle } from '../../utils';
 
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
 const CELL_SIZE_SMALL = 160 - 2;
@@ -43,7 +43,7 @@ function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) 
   switch (viewMethod) {
     case 'grid':
       return <GridGallery {...props} />;
-    case 'mason':
+    case 'masonry':
       return <MasonryGallery {...props} />;
     case 'list':
       return <ListGallery {...props} />;
@@ -56,7 +56,7 @@ function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) 
 
 const GridGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
-  const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+  const cellSize = getThumbnailSize(uiStore.view.thumbnailSize);
   const numColumns = Math.floor(contentWidth / cellSize);
   const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
@@ -83,7 +83,7 @@ const GridGallery = observer(
 
   // Store what the first item in view is in the UiStore
   const handleScroll = useCallback(
-    ({ scrollTop }: GridOnScrollProps) => uiStore.setFirstIndexInView(numColumns * Math.round(scrollTop / cellSize)),
+    ({ scrollTop }: GridOnScrollProps) => uiStore.view.setFirstItem(numColumns * Math.round(scrollTop / cellSize)),
     [cellSize, numColumns]);
 
   /** Generates a unique key for an element in the grid */
@@ -133,7 +133,7 @@ const GridGallery = observer(
       children={Cell}
       onScroll={handleScroll}
       key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
-      initialScrollTop={(Math.round(uiStore.firstIndexInView / numColumns) * cellSize) || 0} // || 0 for initial load
+      initialScrollTop={(Math.round(uiStore.view.firstItem / numColumns) * cellSize) || 0} // || 0 for initial load
       ref={ref}
     />
   );
@@ -141,7 +141,7 @@ const GridGallery = observer(
 
 const ListGallery = observer(
   ({ contentWidth, contentHeight, fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
-  const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+  const cellSize = getThumbnailSize(uiStore.view.thumbnailSize);
   const ref = useRef<FixedSizeList>(null);
 
   const handleScrollTo = useCallback((i: number) => {
@@ -160,7 +160,7 @@ const ListGallery = observer(
 
   // Store what the first item in view is in the UiStore
   const handleScroll = useCallback(
-    ({ scrollOffset }: ListOnScrollProps) => uiStore.setFirstIndexInView(Math.round(scrollOffset / cellSize)),
+    ({ scrollOffset }: ListOnScrollProps) => uiStore.view.setFirstItem(Math.round(scrollOffset / cellSize)),
     [cellSize]);
 
   /** Generates a unique key for an element in the grid */
@@ -208,7 +208,7 @@ const ListGallery = observer(
       children={Row}
       onScroll={handleScroll}
       key={fileList.length > 0 ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}` : ''} // force rerender when file list changes
-      initialScrollOffset={uiStore.firstIndexInView * cellSize}
+      initialScrollOffset={uiStore.view.firstItem * cellSize}
       ref={ref}
     />
   );
@@ -228,75 +228,94 @@ const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
   return <div style={Styles}> <span className="custom-icon-64" style={{marginBottom: '1rem'}}>{IconSet.DB_ERROR}</span><p>This view is currently not supported</p></div>; {/* // tslint:disable-next-line */}
 });
 
-const SlideGallery = observer(({ fileList, uiStore, handleClick, handleDrop }: IGalleryLayoutProps) => {
+const SlideGallery = observer(
+  ({ fileList, uiStore, handleDrop }: IGalleryLayoutProps) => {
+    // Go to the first selected image on load
+    useEffect(() => {
+      if (uiStore.fileSelection.length > 0) {
+        uiStore.view.setFirstItem(fileList.findIndex((f) => f.id === uiStore.fileSelection[0]));
+      }
+    }, []);
 
-  const incrImgIndex = useCallback(
-    () => uiStore.setFirstIndexInView(Math.max(0, uiStore.firstIndexInView - 1)),
-    [uiStore.firstIndexInView]);
-  const decrImgIndex = useCallback(
-    () => uiStore.setFirstIndexInView(Math.min(uiStore.firstIndexInView + 1, fileList.length - 1)),
-    [fileList.length, uiStore.firstIndexInView]);
+    // Automatically select the active image, so it is shown in the inspector
+    useEffect(
+      () => {
+        if (uiStore.view.firstItem < fileList.length) {
+          uiStore.selectFile(fileList[uiStore.view.firstItem], true);
+        }
+      },
+      [uiStore.view.firstItem],
+    );
 
-  // Detect left/right arrow keys to scroll between images
-  const handleUserKeyPress = useCallback((event) => {
-    const { keyCode } = event;
-    if (keyCode === 37) {
-      incrImgIndex();
-    } else if (keyCode === 39) {
-      decrImgIndex();
+    const incrImgIndex = useCallback(
+      () => uiStore.view.setFirstItem(Math.max(0, uiStore.view.firstItem - 1)),
+      [uiStore.view.firstItem],
+    );
+    const decrImgIndex = useCallback(
+      () =>
+        uiStore.view.setFirstItem(Math.min(uiStore.view.firstItem + 1, fileList.length - 1)),
+      [fileList.length, uiStore.view.firstItem],
+    );
+
+    // Detect left/right arrow keys to scroll between images
+    const handleUserKeyPress = useCallback(
+      (event: KeyboardEvent) => {
+        if (event.code === 'ArrowLeft') {
+          incrImgIndex();
+        } else if (event.code === 'ArrowRight') {
+          decrImgIndex();
+        }
+      },
+      [incrImgIndex, decrImgIndex],
+    );
+
+    // Detect scroll wheel to scroll between images
+    const handleUserWheel = useCallback(
+      (event: WheelEvent) => {
+        event.preventDefault();
+
+        if (event.deltaY > 0) {
+          decrImgIndex();
+        } else if (event.deltaY < 0) {
+          incrImgIndex();
+        }
+      },
+      [incrImgIndex, decrImgIndex],
+    );
+
+    // Set up event listeners
+    useEffect(
+      () => {
+        window.addEventListener('keydown', handleUserKeyPress);
+        window.addEventListener('wheel', handleUserWheel, { passive: false });
+        return () => {
+          window.removeEventListener('keydown', handleUserKeyPress);
+          window.removeEventListener('wheel', handleUserWheel);
+        };
+      },
+      [handleUserKeyPress, handleUserWheel],
+    );
+
+    const ignoreClick = useCallback((_, e: React.MouseEvent) => {
+      e.stopPropagation();
+    }, []);
+
+    if (uiStore.view.firstItem >= fileList.length) {
+      return <p>No files available</p>;
     }
-  }, [incrImgIndex, decrImgIndex]);
 
-  // Detect scroll wheel to scroll between images
-  const handleUserWheel = useCallback((event) => {
-    const { deltaY } = event;
-    if (deltaY > 0) {
-      decrImgIndex();
-    } else if (deltaY < 0) {
-      incrImgIndex();
-    }
-  }, [incrImgIndex, decrImgIndex]);
+    const file = fileList[uiStore.view.firstItem];
 
-  // Set up event listeners
-  useEffect(() => {
-    window.addEventListener('keydown', handleUserKeyPress);
-    window.addEventListener('wheel', handleUserWheel);
-    return () => {
-      window.removeEventListener('keydown', handleUserKeyPress);
-      window.removeEventListener('wheel', handleUserWheel);
-    };
-  }, [handleUserKeyPress, handleUserWheel]);
-
-  // Go to the first selected image on load
-  useEffect(() => {
-    if (uiStore.fileSelection.length > 0) {
-      uiStore.firstIndexInView = fileList.findIndex((f) => f.id === uiStore.fileSelection[0]);
-    }
-  }, []);
-
-  // Automatically select the active image, so it is shown in the inspector
-  useEffect(() => {
-    if (uiStore.firstIndexInView < fileList.length) {
-      uiStore.deselectAllFiles();
-      uiStore.selectFile(fileList[uiStore.firstIndexInView]);
-    }
-  }, [uiStore.firstIndexInView]);
-
-  if (uiStore.firstIndexInView >= fileList.length) {
-    return <p>No files available</p>;
-  }
-
-  const file = fileList[uiStore.firstIndexInView];
-
-  return (
-    <GalleryItem
-      file={file}
-      isSelected={false /** Active image is always selected, no need to show it */}
-      onClick={handleClick}
-      onDrop={handleDrop}
-    />
-  );
-});
+    return (
+      <GalleryItem
+        file={file}
+        isSelected={false /** Active image is always selected, no need to show it */}
+        onClick={ignoreClick}
+        onDrop={handleDrop}
+      />
+    );
+  },
+);
 
 interface IGalleryProps extends IRootStoreProp {}
 
@@ -321,7 +340,7 @@ const Gallery = ({
 
   const selectionModeOn = uiStore.fileSelection.length > 0;
 
-  const handleBackgroundClick = useCallback(() => uiStore.fileSelection.clear(), []);
+  const handleBackgroundClick = useCallback(() => uiStore.clearFileSelection(), []);
 
   const handleDrop = useCallback(
     (item: any, file: ClientFile) => {
@@ -345,7 +364,7 @@ const Gallery = ({
       if (e.shiftKey) {
         // Shift selection: Select from the initial up to the current index
         if (initialSelectionIndex.current !== undefined) {
-          uiStore.fileSelection.clear();
+          uiStore.clearFileSelection();
           // Make sure that sliceStart is the lowest index of the two and vice versa
           let sliceStart = initialSelectionIndex.current;
           let sliceEnd = i;
@@ -353,9 +372,7 @@ const Gallery = ({
             sliceStart = i;
             sliceEnd = initialSelectionIndex.current;
           }
-          uiStore.fileSelection.push(
-            ...fileList.slice(sliceStart, sliceEnd + 1).map((f) => f.id),
-          );
+          uiStore.selectFiles(fileList.slice(sliceStart, sliceEnd + 1).map((f) => f.id));
         }
       } else if (e.ctrlKey || e.metaKey) {
         // Ctrl/meta selection: Add this file to selection
@@ -366,7 +383,7 @@ const Gallery = ({
         // If this is the only selected file, deselect when clicking on it
         const isOnlySelected = isSelected && uiStore.fileSelection.length === 1;
         initialSelectionIndex.current = i;
-        uiStore.fileSelection.clear();
+        uiStore.clearFileSelection();
         isOnlySelected ? uiStore.deselectFile(clickedFile) : uiStore.selectFile(clickedFile);
       }
       lastSelectionIndex.current = i;
@@ -387,7 +404,7 @@ const Gallery = ({
         indexMod += 1;
       }
       if (indexMod !== 0) {
-        uiStore.fileSelection.clear();
+        uiStore.clearFileSelection();
         // Make sure the selection stays in bounds
         const newIndex = Math.max(0, Math.min(fileList.length - 1, lastSelectionIndex.current + indexMod));
         uiStore.selectFile(fileList[newIndex]);
@@ -412,25 +429,25 @@ const Gallery = ({
     let description = 'Import some images to get started!';
     let action =
       <Button onClick={uiStore.openOutlinerImport} text="Open import panel" intent="primary" icon={IconSet.ADD} />;
-    if (uiStore.viewContent === 'query') {
+    if (uiStore.view.content === 'query') {
       description = 'Try searching for something else.';
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       title = 'No images found';
       action = (
         <ButtonGroup>
-          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
-          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewContentAll} />
-          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary" />
+          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
+          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewUntaggedContent} />
+          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openSearch} intent="primary" />
         </ButtonGroup>
       );
-    } else if (uiStore.viewContent === 'untagged') {
+    } else if (uiStore.view.content === 'untagged') {
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       description = 'All images have been tagged. Nice work!';
       title = 'No untagged images';
       action = (
         <ButtonGroup>
-          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewContentAll} />
-          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openOutlinerSearch} intent="primary"/>
+          <Button text="All Images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
+          <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openSearch} intent="primary"/>
         </ButtonGroup>
       );
     }
@@ -448,12 +465,12 @@ const Gallery = ({
   return (
     <ResizeSensor onResize={handleResize}>
       <div
-        className={`gallery-content thumbnail-${uiStore.thumbnailSize} ${
-          uiStore.viewMethod} ${selectionModeOn ? 'gallerySelectionMode' : ''}`}
+        className={`gallery-content thumbnail-${uiStore.view.thumbnailSize} ${
+          uiStore.view.method} ${selectionModeOn ? 'gallerySelectionMode' : ''}`}
         onClick={handleBackgroundClick}
       >
         {getLayoutComponent(
-          uiStore.viewMethod,
+          uiStore.view.method,
           { contentWidth, contentHeight, fileList, uiStore, handleClick: handleItemClick, handleDrop },
         )}
       </div>

@@ -1,11 +1,13 @@
 import { useContext, useEffect } from 'react';
 import fse from 'fs-extra';
+import path from 'path';
 
 import ThumbnailWorker from './workers/thumbnailGenerator.worker';
 import StoreContext from './contexts/StoreContext';
 import { ID } from '../entities/ID';
 import { ClientFile } from '../entities/File';
 import { getThumbnailPath } from './utils';
+import { thumbnailType } from '../../config';
 
 interface IThumbnailMessage {
   filePath: string;
@@ -26,9 +28,9 @@ interface IThumbnailMessageResponse {
 const thumbnailWorker = new ThumbnailWorker({ type: 'module' });
 
 // Generates thumbnail if not yet exists. Will set file.thumbnailPath when it exists.
-export async function ensureThumbnail(file: ClientFile, thumbnailDir: string, thumbnailType: string) {
+export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
   if (!file.thumbnailPath) {
-    const thumbnailPath = getThumbnailPath(file.path, thumbnailDir, thumbnailType);
+    const thumbnailPath = getThumbnailPath(file.path, thumbnailDir);
     const thumbnailExists = await fse.pathExists(thumbnailPath);
     if (!thumbnailExists) {
       const msg: IThumbnailMessage = {
@@ -39,7 +41,7 @@ export async function ensureThumbnail(file: ClientFile, thumbnailDir: string, th
       };
       thumbnailWorker.postMessage(msg);
     } else {
-      file.thumbnailPath = thumbnailPath;
+      file.setThumbnailPath(thumbnailPath);
     }
   }
 }
@@ -53,7 +55,7 @@ export const useWorkerListener = () => {
       const { fileId, thumbnailPath } = e.data;
       const clientFile = fileStore.fileList.find((f) => f.id === fileId);
       if (clientFile) {
-        clientFile.thumbnailPath = thumbnailPath;
+        clientFile.setThumbnailPath(thumbnailPath);
       }
     };
 
@@ -63,8 +65,27 @@ export const useWorkerListener = () => {
       const clientFile = fileStore.fileList.find((f) => f.id === fileId);
       if (clientFile) {
         // Load normal image as fallback
-        clientFile.thumbnailPath = clientFile.path;
+        clientFile.setThumbnailPath(clientFile.path);
       }
     };
+
+    return () => thumbnailWorker.terminate();
   }, []);
+};
+
+// Moves all thumbnail files from one directory to another
+export const moveThumbnailDir = async (sourceDir: string, targetDir: string) => {
+  await fse.pathExists(sourceDir);
+  await fse.pathExists(targetDir);
+
+  console.log('Moving thumbnails from ', sourceDir, ' to ', targetDir);
+
+  const files = await fse.readdir(sourceDir);
+  for (const file of files) {
+    if (file.endsWith(thumbnailType)) {
+      const oldPath = path.join(sourceDir, file);
+      const newPath = path.join(targetDir, file);
+      await fse.move(oldPath, newPath);
+    }
+  }
 };

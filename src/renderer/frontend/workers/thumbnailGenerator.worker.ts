@@ -1,42 +1,40 @@
 import fse from 'fs-extra';
 import { getThumbnailPath } from '../utils';
+import { thumbnailType, thumbnailMaxSize } from '../../../config';
 
 // The worker context
 const ctx: Worker = self as any;
 
 // Respond to message from parent thread
 ctx.addEventListener('message', async (event) => {
-  const { filePath, thumbnailDirectory, thumbnailType, fileId } = event.data;
+  const { filePath, thumbnailDirectory, fileId } = event.data;
   try {
-    const thumbnailPath = await generateAndStoreThumbnail(filePath, thumbnailDirectory, thumbnailType);
+    const thumbnailPath = await generateAndStoreThumbnail(filePath, thumbnailDirectory);
     ctx.postMessage({ fileId, thumbnailPath: thumbnailPath || filePath });
   } catch (err) {
     throw { fileId, error: err };
   }
 });
 
-// Todo: Should be set in message
-const maxSize = 700;
-
-const generateThumbnailData = async (filePath: string, thumbnailType: string): Promise<ArrayBuffer | null> => {
+const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | null> => {
   const response = await fetch(filePath);
   const inputBlob = await response.blob();
   const img = await createImageBitmap(inputBlob);
 
-  // If the image is smaller than `maxSize`, don't create a thumbnail
-  if (img.width < maxSize && img.height < maxSize) {
+  // If the image is smaller than `thumbnailMaxSize`, don't create a thumbnail
+  if (img.width < thumbnailMaxSize && img.height < thumbnailMaxSize) {
     return null;
   }
 
-  // Scale the image so that either width or height becomes `maxSize`
+  // Scale the image so that either width or height becomes `thumbnailMaxSize`
   let width = img.width;
   let height = img.height;
   if (img.width >= img.height) {
-    width = maxSize;
-    height = (maxSize * img.height) / img.width;
+    width = thumbnailMaxSize;
+    height = (thumbnailMaxSize * img.height) / img.width;
   } else {
-    height = maxSize;
-    width = (maxSize * img.width) / img.height;
+    height = thumbnailMaxSize;
+    width = (thumbnailMaxSize * img.width) / img.height;
   }
 
   const canvas = new OffscreenCanvas(width, height);
@@ -47,18 +45,7 @@ const generateThumbnailData = async (filePath: string, thumbnailType: string): P
     return null;
   }
 
-  // Todo: Take into account rotation
-
-  // const x = width / 2;
-  // const y = height / 2;
-
-  // ctx2D.translate(x, y);
-  // ctx2D.rotate(angleInRadians);
-  // ctx2D.fillStyle = bgColor;
-  // ctx2D.fillRect(-width / 2, -height / 2, width, height);
-  // ctx2D.drawImage(img, -width / 2, -height / 2, width, height);
-  // ctx2D.rotate(-angleInRadians);
-  // ctx2D.translate(-x, -y);
+  // Todo: Take into account rotation. Can be found with https://www.npmjs.com/package/node-exiftool
 
   ctx2D.drawImage(img, 0, 0, width, height);
 
@@ -68,10 +55,10 @@ const generateThumbnailData = async (filePath: string, thumbnailType: string): P
   return buffer;
 };
 
-const generateAndStoreThumbnail = async (filePath: string, thumbnailDirectory: string, thumbnailType: string) => {
-  const thumbnailData = await generateThumbnailData(filePath, thumbnailType);
+const generateAndStoreThumbnail = async (filePath: string, thumbnailDirectory: string) => {
+  const thumbnailData = await generateThumbnailData(filePath);
   if (thumbnailData) {
-    const thumbnailFilePath = getThumbnailPath(filePath, thumbnailDirectory, thumbnailType);
+    const thumbnailFilePath = getThumbnailPath(filePath, thumbnailDirectory);
 
     await fse.outputFile(thumbnailFilePath, Buffer.from(thumbnailData));
 
