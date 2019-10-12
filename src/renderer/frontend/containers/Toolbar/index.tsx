@@ -43,7 +43,7 @@ const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFil
   const handleConfirm = useCallback(() => {
     onRemove();
     uiStore.closeToolbarFileRemover();
-  }, []);
+  }, [onRemove, uiStore]);
   return (
     <>
       <Button
@@ -127,9 +127,9 @@ const Toolbar = observer(() => {
     } else if (page === 'TAGS') {
       uiStore.openOutlinerTags();
     }
-  }, []);
-  const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), []);
-  const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), []);
+  }, [uiStore]);
+  const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), [handleChooseOutlinerPage]);
+  const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), [handleChooseOutlinerPage]);
   const handleOlSearch = uiStore.toggleQuickSearch;
 
   // Content actions
@@ -143,12 +143,12 @@ const Toolbar = observer(() => {
         : uiStore.selectFiles(
             fileStore.fileList.map((f) => f.id).filter((f) => !uiStore.fileSelection.includes(f)),
           ),
-    [isFileListSelected],
+    [fileStore.fileList, isFileListSelected, uiStore],
   );
 
   const handleRemoveSelectedFiles = useCallback(
     () => fileStore.removeFilesById(uiStore.fileSelection),
-    [],
+    [fileStore, uiStore.fileSelection],
   );
 
   // Render variables
@@ -176,7 +176,7 @@ const Toolbar = observer(() => {
         </Menu>
       );
     },
-    [uiStore.view.orderBy, uiStore.view.fileOrder],
+    [uiStore],
   );
 
   const layoutMenu = useMemo(
@@ -208,7 +208,7 @@ const Toolbar = observer(() => {
         />
       </Menu>
     ),
-    [uiStore.view.method, uiStore.view.thumbnailSize],
+    [uiStore.view.isGrid, uiStore.view.isList, uiStore.view.isMasonry, uiStore.view.isSlide, uiStore.view.setMethodGrid, uiStore.view.setMethodList, uiStore.view.setMethodMasonry, uiStore.view.setMethodSlide],
   );
 
   const numFiles = fileStore.fileList.length;

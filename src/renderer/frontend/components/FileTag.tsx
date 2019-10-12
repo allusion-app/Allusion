@@ -26,7 +26,7 @@ const Single = observer(({ file, autoFocus }: { file: ClientFile, autoFocus?: bo
       tagCollectionStore.getRootCollection().addTag(tag.id);
       return tag;
     },
-    [file],
+    [tagCollectionStore, tagStore],
   );
 
   return (
@@ -83,7 +83,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
       tagCollectionStore.getRootCollection().addTag(newTag.id);
       return newTag;
     },
-    [files],
+    [tagCollectionStore, tagStore],
   );
 
   return (

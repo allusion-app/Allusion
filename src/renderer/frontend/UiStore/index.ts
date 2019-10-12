@@ -575,7 +575,6 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        // @ts-ignore
         for (const field of PersistentPreferenceFields) {
           // @ts-ignore
           this[field] = prefs[field];

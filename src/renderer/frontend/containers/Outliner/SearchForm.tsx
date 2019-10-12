@@ -70,7 +70,7 @@ const KeySelector = observer(({ criteria }: { criteria: FileSearchCriteria }) =>
     } else if (key === 'dateAdded') {
       uiStore.replaceCriteriaItem(criteria, new ClientDateSearchCriteria(key));
     }
-  }, [criteria]);
+  }, [criteria, uiStore]);
 
   return (
     <HTMLSelect
@@ -113,7 +113,7 @@ const TagCriteriaItem = observer(({ criteria }: { criteria: ClientArraySearchCri
 
   const criteriaTags = useMemo(
     () => criteria.value.map((id) => tagStore.tagList.find((tag) => tag.id === id) as ClientTag),
-    [criteria.value.length]);
+    [criteria.value, tagStore.tagList]);
 
   return (
     <>
@@ -222,7 +222,7 @@ const CriteriaItem = observer(({ criteria, onRemove, onAdd }: ICriteriaItemProps
       return <DateCriteriaItem criteria={criteria as ClientDateSearchCriteria<IFile>} />;
     }
     return <p>This should never happen.</p>;
-  }, [criteria.key]);
+  }, [criteria]);
 
   return (
     <ControlGroup fill className="criteria">
@@ -242,14 +242,14 @@ const SearchForm = observer(() => {
 
   const addSearchCriteria = useCallback(
     () => uiStore.addSearchCriteria(new ClientArraySearchCriteria('tags')),
-    []);
+    [uiStore]);
 
-  const removeSearchCriteria = useCallback((index: number) => uiStore.removeSearchCriteriaByIndex(index), []);
+  const removeSearchCriteria = useCallback((index: number) => uiStore.removeSearchCriteriaByIndex(index), [uiStore]);
 
   const resetSearchCriteria = useCallback(() => {
     uiStore.clearSearchCriteriaList();
     addSearchCriteria();
-  }, []);
+  }, [addSearchCriteria, uiStore]);
 
   // Todo: Also search through collections
 
