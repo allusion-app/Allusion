@@ -103,18 +103,6 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
     );
   }
 
-  serialize(): IFile {
-    return {
-      id: this.id,
-      path: this.path,
-      tags: this.tags.toJS(), // removes observable properties from observable array
-      dateAdded: this.dateAdded,
-      size: this.size,
-      name: this.name,
-      extension: this.extension,
-    };
-  }
-
   @computed get filename(): string {
     const base = Path.basename(this.path);
     return base.substr(0, base.lastIndexOf('.'));
@@ -156,6 +144,18 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       this.store.incrementNumUntaggedFiles();
     }
     this.tags.clear();
+  }
+
+  serialize(): IFile {
+    return {
+      id: this.id,
+      path: this.path,
+      tags: this.tags.toJS(), // removes observable properties from observable array
+      dateAdded: this.dateAdded,
+      size: this.size,
+      name: this.name,
+      extension: this.extension,
+    };
   }
 
   dispose() {

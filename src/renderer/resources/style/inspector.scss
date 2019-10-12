@@ -17,7 +17,7 @@
     width: 24rem;
   }
 
-  >section {
+  > section {
     border-bottom: 2px solid #181818;
     padding: 1em;
   }
@@ -45,7 +45,7 @@
   grid-row-gap: 0.25rem;
   height: fit-content;
 
-  >div {
+  > div {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -61,7 +61,7 @@
   text-align: left;
 }
 
-#filePreview>img {
+#filePreview > img {
   // padding: 0.3em;
   // background-color: #333333;
   width: 100%;
@@ -84,4 +84,9 @@
 #fileTag .bp3-tag {
   margin-bottom: 5px;
   margin-right: 5px;
+}
+
+.bp3-tag-remove:hover {
+  // transition: background-color 100ms cubic-bezier(0.4, 1, 0.75, 0.9);
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
