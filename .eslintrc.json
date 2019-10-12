@@ -22,10 +22,13 @@
     "@typescript-eslint/interface-name-prefix" : "off",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/ban-ts-ignore": "warn",
     "quotes": ["error", "single"],
     "jsx-quotes": ["error", "prefer-double"],
     "no-trailing-spaces": "error",
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn"
+    "react-hooks/exhaustive-deps": "warn",
+    "react/no-children-prop": "off",
+    "no-unused-vars": "error"
   }
 }
