@@ -95,6 +95,10 @@ main {
   outline: none !important;
   // background: rgba(255, 255, 255, 0.05) !important;
 }
+// Don't allow images to be dragged from within the app
+img {
+  -webkit-user-drag: none;
+}
 
 // Custom scrollbar style
 ::-webkit-scrollbar {
