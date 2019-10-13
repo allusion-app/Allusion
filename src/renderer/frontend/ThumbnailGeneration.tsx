@@ -68,7 +68,8 @@ export const useWorkerListener = () => {
         clientFile.setThumbnailPath(clientFile.path);
       }
     };
-  }, []);
+    return () => thumbnailWorker.terminate();
+  }, [fileStore.fileList]);
 };
 
 // Moves all thumbnail files from one directory to another

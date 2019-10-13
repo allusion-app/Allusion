@@ -37,7 +37,7 @@ const TagRemoverContent = ({
         }
       }
     }
-  }, []);
+  }, [tagCollectionStore, tagStore, uiStore.clientTagSelection, uiStore.isOutlinerTagRemoverOpen]);
 
   const tagsToRemoveOverview = (
     <div id="tag-remove-overview">
@@ -65,7 +65,7 @@ const TagRemoverContent = ({
       <>
         <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
         <p>
-          Are you sure you want to permanently delete the collection '{colToRemove.name}'?
+          Are you sure you want to permanently delete the collection {colToRemove.name}?
           <br />
           {tagsToRemove.length > 0 && 'It contains these tags:'}
         </p>
@@ -97,7 +97,7 @@ export const TagRemoval = observer(({ rootStore }: IRootStoreProp) => {
       }
       uiStore.closeOutlinerTagRemover();
     },
-    [uiStore.isOutlinerTagRemoverOpen],
+    [tagCollectionStore, tagStore, uiStore],
   );
 
   return (

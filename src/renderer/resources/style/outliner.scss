@@ -87,7 +87,7 @@ nav {
     background: none !important;
   }
   .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]) {
+  .bp3-button:not([class*='bp3-intent-warning']):not([class*='bp3-intent-danger']) {
     // .bp3-icon > svg:not([fill]) {
     color: $light-gray3;
   }
@@ -109,7 +109,7 @@ nav {
       box-shadow: none !important;
     }
 
-    &.bp3-fill:not([class*="bp3-intent-primary"]) {
+    &.bp3-fill:not([class*='bp3-intent-primary']) {
       border: 1.3px solid $light-gray5-trans !important;
       color: #495057;
       background: none;
@@ -125,8 +125,8 @@ nav {
   }
   .add-remove {
     button {
-      &.bp3-fill:not([class*="bp3-intent-primary"]),
-      &.bp3-button:not([class*="bp3-intent-primary"]) {
+      &.bp3-fill:not([class*='bp3-intent-primary']),
+      &.bp3-button:not([class*='bp3-intent-primary']) {
         background: $light-gray5-trans;
         color: $light-gray1 !important;
       }
@@ -140,7 +140,8 @@ nav {
     }
   }
 }
-.bp3-overlay .bp3-button:not([class*="bp3-intent-"]):not(.bp3-dialog-close-button):not(.bp3-minimal) {
+
+.bp3-overlay .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button) {
   background: $light-gray1-trans;
   color: $light-gray2;
 }

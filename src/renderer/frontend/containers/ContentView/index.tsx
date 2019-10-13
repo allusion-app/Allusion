@@ -19,22 +19,22 @@ const QuickSearchList = observer(() => {
 
   const queriedTags = useMemo(
     () => tagCrit.value.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),
-    [tagCrit.value.length]);
+    [tagCrit.value, tagStore.tagList]);
 
   const handleSelectTag = useCallback((tag: ClientTag) => {
     tagCrit.addID(tag.id);
     uiStore.searchByQuery();
-  }, []);
+  }, [tagCrit, uiStore]);
 
   const handleDeselectTag = useCallback((tag: ClientTag) => {
     tagCrit.removeID(tag.id);
     uiStore.searchByQuery();
-  }, []);
+  }, [tagCrit, uiStore]);
 
   const handleClearTags = useCallback(() => {
     uiStore.toggleQuickSearch();
     fileStore.fetchAllFiles();
-  }, []);
+  }, [fileStore, uiStore]);
 
   const handleCloseSearch = useCallback((e: React.KeyboardEvent) => {
     if (e.key.toLowerCase() === uiStore.hotkeyMap.closeSearch) {
@@ -42,7 +42,7 @@ const QuickSearchList = observer(() => {
       // Prevent react update on unmounted component while searchbar is closing
       setTimeout(uiStore.closeSearch, 0);
     }
-  }, []);
+  }, [uiStore.closeSearch, uiStore.hotkeyMap.closeSearch]);
 
   return (
     <MultiTagSelector
@@ -63,7 +63,7 @@ const CriteriaList = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   const handleRemove = useCallback((_: string, index: number) =>
-    uiStore.removeSearchCriteria(uiStore.searchCriteriaList[index]), []);
+    uiStore.removeSearchCriteria(uiStore.searchCriteriaList[index]), [uiStore]);
 
   const preventTyping = useCallback((e: React.KeyboardEvent<HTMLElement>, i?: number) => {
     // If it's not an event on an existing Tag element, ignore it
@@ -76,7 +76,7 @@ const CriteriaList = observer(() => {
     if ((e.target as HTMLElement).tagName === 'SPAN') {
       uiStore.toggleAdvancedSearch();
     }
-  }, []);
+  }, [uiStore]);
 
   return (
     <div id="criteria-list">
@@ -109,7 +109,7 @@ const SearchBar = observer(() => {
   );
 });
 
-const ContentView = observer(({ rootStore: { uiStore } }: IRootStoreProp) => {
+const ContentView = observer(() => {
   return (
     <div className="gallery">
       <SearchBar />
@@ -141,7 +141,7 @@ class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
         <Hotkey
           combo={hotkeyMap.deselectAll}
           label="Deselect all files in the content area"
-          onKeyDown={uiStore.deselectAllFiles}
+          onKeyDown={uiStore.clearFileSelection}
           group="Gallery"
         />
         <Hotkey

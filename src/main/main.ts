@@ -10,9 +10,31 @@ let previewWindow: BrowserWindow | null;
 let tray: Tray | null;
 let clipServer: ClipServer | null;
 
-function initialize() {
-  createWindow();
-  createPreviewWindow();
+const importExternalImage = async (item: IImportItem) => {
+  if (mainWindow) {
+    mainWindow.webContents.send('importExternalImage', item);
+    return true;
+  }
+  return false;
+}
+
+const addTagsToFile = async (item: IImportItem) => {
+  if (mainWindow) {
+    mainWindow.webContents.send('addTagsToFile', item);
+    return true;
+  }
+  return false;
+}
+
+const getTags = async (): Promise<ITag[]> => {
+  if (mainWindow) {
+    mainWindow.webContents.send('getTags');
+    return new Promise((resolve) => {
+      ipcMain.once('receiveTags', (tags: ITag[]) => resolve(tags));
+    });
+  }
+  // Todo: cache tags from frontend in case the window is closed
+  return [];
 }
 
 function createWindow() {
@@ -47,6 +69,7 @@ function createWindow() {
     label: 'Edit',
     submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
   });
+
   menuBar.push({
     label: 'View',
     submenu: [
@@ -80,6 +103,7 @@ function createWindow() {
       { role: 'togglefullscreen' },
     ],
   });
+
   menuBar.push({
     label: 'Help',
     submenu: [
@@ -90,13 +114,13 @@ function createWindow() {
           browserWindow.webContents.sendInputEvent({
             type: 'keyDown',
             isTrusted: true,
-            // @ts-ignore
             keyCode: '?',
-          });
+          } as any);
         },
       },
     ],
   });
+
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuBar));
 
   // and load the index.html of the app.
@@ -126,7 +150,11 @@ function createWindow() {
   if (!tray) {
     tray = new Tray(`${__dirname}/${AppIcon}`);
     const trayMenu = Menu.buildFromTemplate([
-      { label: 'Open', type: 'normal', click: () => mainWindow ? mainWindow.focus() : createWindow() },
+      {
+        label: 'Open',
+        type: 'normal',
+        click: () => (mainWindow ? mainWindow.focus() : createWindow()),
+      },
       { label: 'Exit', type: 'normal', click: app.quit },
     ]);
     tray.setContextMenu(trayMenu);
@@ -146,6 +174,50 @@ function createWindow() {
     }
   });
 }
+
+function createPreviewWindow() {
+  // Get display where main window is located
+  let display = screen.getPrimaryDisplay();
+  if (mainWindow) {
+    const winBounds = mainWindow.getBounds();
+    display = screen.getDisplayNearestPoint({ x: winBounds.x, y: winBounds.y });
+  }
+
+  previewWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true,
+      nodeIntegrationInWorker: true,
+    },
+    minWidth: 224,
+    minHeight: 224,
+    height: (display.size.height * 3) / 4, // preview window is is sized relative to screen resolution by default
+    width: (display.size.width * 3) / 4,
+    icon: `${__dirname}/${AppIcon}`,
+    // Should be same as body background: Only for split second before css is loaded
+    backgroundColor: '#181818',
+    title: 'Allusion Quick View',
+    show: false, // invis by default
+  });
+  previewWindow.setMenuBarVisibility(false);
+  previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
+  previewWindow.on('close', (e) => {
+    // Prevent close, hide the window instead, for faster launch next time
+    if (mainWindow) {
+      e.preventDefault();
+      mainWindow.webContents.send('closedPreviewWindow');
+      mainWindow.focus();
+    }
+    if (previewWindow) {
+      previewWindow.hide();
+    }
+  });
+  return previewWindow;
+}
+
+const initialize = () => {
+  createWindow();
+  createPreviewWindow();
+};
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -184,6 +256,7 @@ ipcMain.on('setClipServerEnabled', (event: IpcMessageEvent, isEnabled: boolean) 
     clipServer.setEnabled(isEnabled);
   }
 });
+
 ipcMain.on('isClipServerRunning', (event: IpcMessageEvent) => {
   if (clipServer) {
     event.returnValue = clipServer.isEnabled();
@@ -197,6 +270,7 @@ ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
     clipServer.setDownloadPath(path);
   }
 });
+
 ipcMain.on('getDownloadPath', (event: IpcMessageEvent) => {
   if (clipServer) {
     event.returnValue = clipServer.getDownloadPath();
@@ -208,6 +282,7 @@ ipcMain.on('setRunningInBackground', (event: IpcMessageEvent, isEnabled: boolean
     clipServer.setRunInBackground(isEnabled);
   }
 });
+
 ipcMain.on('isRunningInBackground', (event: IpcMessageEvent) => {
   event.returnValue = clipServer && clipServer.isRunInBackgroundEnabled();
 });
@@ -219,81 +294,17 @@ ipcMain.on('storeFile', async (event: IpcMessageEvent, filename: string, imgBase
   }
 });
 
-async function importExternalImage(item: IImportItem) {
-  if (mainWindow) {
-    mainWindow.webContents.send('importExternalImage', item);
-    return true;
-  }
-  return false;
-}
-
-async function addTagsToFile(item: IImportItem) {
-  if (mainWindow) {
-    mainWindow.webContents.send('addTagsToFile', item);
-    return true;
-  }
-  return false;
-}
-
-async function getTags(): Promise<ITag[]> {
-  if (mainWindow) {
-    mainWindow.webContents.send('getTags');
-    return new Promise((resolve) => {
-      ipcMain.once('receiveTags', (tags: ITag[]) => resolve(tags));
-    });
-  }
-  // Todo: cache tags from frontend in case the window is closed
-  return [];
-}
-function createPreviewWindow() {
-  // Get display where main window is located
-  let display = screen.getPrimaryDisplay();
-  if (mainWindow) {
-    const winBounds = mainWindow.getBounds();
-    display = screen.getDisplayNearestPoint({ x: winBounds.x, y: winBounds.y });
-  }
-
-  previewWindow = new BrowserWindow({
-    webPreferences: {
-      nodeIntegration: true,
-    },
-    minWidth: 224,
-    minHeight: 224,
-    height: display.size.height * 3 / 4, // preview window is is sized relative to screen resolution by default
-    width: display.size.width * 3 / 4,
-    icon: `${__dirname}/${AppIcon}`,
-    // Should be same as body background: Only for split second before css is loaded
-    backgroundColor: '#181818',
-    title: 'Allusion Quick View',
-    show: false, // invis by default
-  });
-  previewWindow.setMenuBarVisibility(false);
-  previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
-  previewWindow.on('close', (e) => {
-    // Prevent close, hide the window instead, for faster launch next time
-    if (mainWindow) {
-      e.preventDefault();
-      mainWindow.webContents.send('closedPreviewWindow');
-      mainWindow.focus();
-    }
-    if (previewWindow) {
-      previewWindow.hide();
-    }
-  });
-  return previewWindow;
-}
-
-ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[]) => {
+ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[], thumbnailDir: string) => {
   // Create preview window if needed, and send the files selected in the primary window
   if (!previewWindow) {
     previewWindow = createPreviewWindow();
     ipcMain.once('initialized', () => {
       if (previewWindow) {
-        previewWindow.webContents.send('receivePreviewFiles', fileIds);
+        previewWindow.webContents.send('receivePreviewFiles', fileIds, thumbnailDir);
       }
     });
   } else {
-    previewWindow.webContents.send('receivePreviewFiles', fileIds);
+    previewWindow.webContents.send('receivePreviewFiles', fileIds, thumbnailDir);
 
     if (!previewWindow.isVisible()) {
       previewWindow.show();

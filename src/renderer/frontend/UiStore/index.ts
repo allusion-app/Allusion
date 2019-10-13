@@ -9,7 +9,11 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import View from './View';
-import { IArraySearchCriteria, ClientBaseCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
+import {
+  IArraySearchCriteria,
+  ClientBaseCriteria,
+  ClientArraySearchCriteria,
+} from '../../entities/SearchCriteria';
 
 export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
@@ -157,7 +161,7 @@ class UiStore {
   }
 
   @action.bound openPreviewWindow() {
-    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
+    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS(), this.thumbnailDirectory);
     this.isPreviewOpen = true;
 
     // remove focus from element so closing preview with spacebar does not trigger any ui elements
@@ -253,14 +257,14 @@ class UiStore {
   /////////////////// Selection actions ///////////////////
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
     if (clear) {
-      this.fileSelection.clear();
+      this.clearFileSelection();
     }
     this.fileSelection.push(file.id);
   }
 
   @action.bound selectFiles(files: ID[], clear?: boolean) {
     if (clear) {
-      this.fileSelection.clear();
+      this.clearFileSelection();
     }
     this.fileSelection.push(...files);
   }
@@ -274,24 +278,20 @@ class UiStore {
   }
 
   @action.bound selectAllFiles() {
-    this.fileSelection.clear();
+    this.clearFileSelection();
     this.fileSelection.push(...this.rootStore.fileStore.fileList.map((f) => f.id));
-  }
-
-  @action.bound deselectAllFiles() {
-    this.fileSelection.clear();
   }
 
   @action.bound selectTag(tag: ClientTag, clear?: boolean) {
     if (clear) {
-      this.tagSelection.clear();
+      this.clearTagSelection();
     }
     this.tagSelection.push(tag.id);
   }
 
   @action.bound selectTags(tags: ClientTag[] | ID[], clear?: boolean) {
     if (clear) {
-      this.tagSelection.clear();
+      this.clearTagSelection();
     }
     if (tags.length === 0) {
       return;
@@ -343,7 +343,15 @@ class UiStore {
     if (!tag) {
       throw new Error('Cannot find tag to move ' + id);
     }
-    this.insertTag(tag, target);
+
+    if (target instanceof ClientTag) {
+      // Insert the moved tag below the position of the current tag where it was dropped
+      const insertionIndex = target.parent.tags.indexOf(target.id) + 1;
+      target.parent.insertTag(tag, insertionIndex);
+    } else {
+      // Insert at start when dragging tag to collection
+      target.insertTag(tag);
+    }
   }
 
   @action.bound async moveCollection(id: ID, target: ClientTagCollection) {
@@ -351,7 +359,7 @@ class UiStore {
     if (!collection) {
       throw new Error('Cannot find collection to move ' + id);
     }
-    this.insertCollection(collection, target);
+    target.insertCollection(collection);
   }
 
   @action.bound async colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
@@ -443,8 +451,8 @@ class UiStore {
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.collections.forEach((col) => this.insertCollection(col, targetCol));
-    ctx.tags.forEach((tag) => this.insertTag(tag, targetCol));
+    ctx.collections.forEach((col) => targetCol.insertCollection(col));
+    ctx.tags.forEach((tag) => targetCol.insertTag(tag));
   }
 
   /////////////////// Search Actions ///////////////////
@@ -567,7 +575,6 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        // @ts-ignore
         for (const field of PersistentPreferenceFields) {
           // @ts-ignore
           this[field] = prefs[field];
@@ -604,25 +611,6 @@ class UiStore {
         this.deselectFile(file);
       }
     }
-  }
-
-  @action private insertTag(tag: ClientTag, target: ClientTag | ClientTagCollection) {
-    tag.parent.tags.remove(tag.id);
-
-    if (target instanceof ClientTag) {
-      const targetTags = target.parent.tags;
-      // Insert the moved tag below the position of the current tag where it was dropped
-      const insertionIndex = targetTags.indexOf(target.id) + 1;
-      targetTags.splice(insertionIndex, 0, tag.id);
-    } else {
-      // Insert at start when dragging tag to collection
-      target.tags.unshift(tag.id);
-    }
-  }
-
-  @action private insertCollection(col: ClientTagCollection, target: ClientTagCollection) {
-    col.parent.subCollections.remove(col.id);
-    target.subCollections.unshift(col.id);
   }
 }
 

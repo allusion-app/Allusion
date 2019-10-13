@@ -100,7 +100,7 @@ interface IQuickTagProps {
   onDropOnTag: (e: React.DragEvent, tag?: ClientTag) => void;
 }
 const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
-  const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [tag]);
+  const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [onDropOnTag, tag]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const handleDragOver = useCallback(() => setIsDraggingOver(true), []);
   const handleDragLeave = useCallback(() => setIsDraggingOver(false), []);
@@ -133,7 +133,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     if (!isDropping) {
       setIsDropping(e.dataTransfer.files.length > 0 || e.dataTransfer.items.length > 0);
     }
-  }, []);
+  }, [isDropping]);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     // Only trigger if dragging outside itself or its children
@@ -181,7 +181,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     } finally {
       setIsDropping(false);
     }
-  }, []);
+  }, [fileStore]);
 
   return (
     <div

@@ -2,20 +2,6 @@ import fse from 'fs-extra';
 import { getThumbnailPath } from '../utils';
 import { thumbnailType, thumbnailMaxSize } from '../../../config';
 
-// The worker context
-const ctx: Worker = self as any;
-
-// Respond to message from parent thread
-ctx.addEventListener('message', async (event) => {
-  const { filePath, thumbnailDirectory, fileId } = event.data;
-  try {
-    const thumbnailPath = await generateAndStoreThumbnail(filePath, thumbnailDirectory);
-    ctx.postMessage({ fileId, thumbnailPath: thumbnailPath || filePath });
-  } catch (err) {
-    throw { fileId, error: err };
-  }
-});
-
 const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | null> => {
   const response = await fetch(filePath);
   const inputBlob = await response.blob();
@@ -66,6 +52,20 @@ const generateAndStoreThumbnail = async (filePath: string, thumbnailDirectory: s
   }
   return '';
 };
+
+// The worker context
+const ctx: Worker = self as any;
+
+// Respond to message from parent thread
+ctx.addEventListener('message', async (event) => {
+  const { filePath, thumbnailDirectory, fileId } = event.data;
+  try {
+    const thumbnailPath = await generateAndStoreThumbnail(filePath, thumbnailDirectory);
+    ctx.postMessage({ fileId, thumbnailPath: thumbnailPath || filePath });
+  } catch (err) {
+    throw { fileId, error: err };
+  }
+});
 
 // Make the file importable
 // https://stackoverflow.com/questions/50210416/webpack-worker-loader-fails-to-compile-typescript-worker
