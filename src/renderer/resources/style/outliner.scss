@@ -66,7 +66,7 @@ nav {
   .button.bp3-fill,
   button.bp3-button.bp3-fill,
   .bp3-non-ideal-state button.bp3-button,
-  .bp3-button:not([class*="bp3-intent-"]) {
+  .bp3-button:not([class*='bp3-intent-']) {
     color: $light-gray2;
   }
 
@@ -79,7 +79,7 @@ nav {
   button.bp3-fill,
   // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
   .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal) {
-  // .bp3-multi-select .bp3-minimal {
+    // .bp3-multi-select .bp3-minimal {
     background: $light-gray1-trans;
     color: $light-gray2;
   }
@@ -229,4 +229,3 @@ nav .bp3-tree {
 .bp3-tree .bp3-input {
   height: 1.6rem;
 }
-
