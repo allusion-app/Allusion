@@ -58,7 +58,7 @@ class ErrorBoundary extends React.Component<{}, IErrorBoundaryState> {
     this.openIssueURL = this.openIssueURL.bind(this);
   }
 
-  componentDidCatch(error: Error, info: any) {
+  componentDidCatch(error: Error) {
     // TODO: Send error to logging service
 
     // Map compiled error to source code

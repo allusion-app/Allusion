@@ -46,20 +46,6 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
   @observable color: string;
   // icon, color, (fileCount?)
 
-  /** Get actual tag objects based on the IDs retrieved from the backend */
-    /** Get actual tag objects based on the IDs retrieved from the backend */
-    @computed get parent(): ClientTagCollection {
-      return this.store.getParent(this.id);
-    }
-
-    @computed get isSelected(): boolean {
-      return this.store.isSelected(this.id);
-    }
-
-  @computed get viewColor() {
-    return this.color || this.parent.viewColor;
-  }
-
   constructor(store: TagStore, name?: string, id = generateId()) {
     this.store = store;
     this.id = id;
@@ -81,33 +67,32 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
     );
   }
 
-  serialize(): ITag {
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      dateAdded: this.dateAdded,
-      color: this.color,
-    };
+  /** Get actual tag objects based on the IDs retrieved from the backend */
+  @computed get parent(): ClientTagCollection {
+    return this.store.getParent(this.id);
+  }
+
+  @computed get isSelected(): boolean {
+    return this.store.isSelected(this.id);
+  }
+
+  @computed get viewColor() {
+    return this.color || this.parent.viewColor;
   }
 
   @action.bound rename(name: string) {
     this.name = name;
   }
 
-  @action setColor(color: string) {
+  @action.bound setColor(color: string) {
     this.color = color;
-  }
-
-  async delete() {
-    return this.store.removeTag(this);
   }
 
   /**
    * Used for updating this Entity if changes are made to the backend outside of this session of the application.
    * @param backendTag The file received from the backend
    */
-  updateFromBackend(backendTag: ITag): ClientTag {
+  @action.bound updateFromBackend(backendTag: ITag): ClientTag {
     // make sure our changes aren't sent back to the backend
     this.autoSave = false;
 
@@ -120,6 +105,20 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
     this.autoSave = true;
 
     return this;
+  }
+
+  serialize(): ITag {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      dateAdded: this.dateAdded,
+      color: this.color,
+    };
+  }
+
+  async delete() {
+    return this.store.removeTag(this);
   }
 
   dispose() {

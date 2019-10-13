@@ -69,7 +69,6 @@ const MultiTagSelector = ({
   disabled,
   autoFocus,
   refocusObject,
-  tagIntent = 'none',
   onKeyDown,
   showClearButton = true,
 }: IMultiTagSelectorProps) => {
@@ -86,12 +85,12 @@ const MultiTagSelector = ({
         ? onTagDeselect(tag, selectedTags.indexOf(tag))
         : onTagSelect(tag);
     },
-    [selectedTags],
+    [onTagCreation, onTagDeselect, onTagSelect, selectedTags],
   );
 
   const handleDeselect = useCallback(
     (_: string, index: number) => onTagDeselect(selectedTags[index], index),
-    [selectedTags],
+    [onTagDeselect, selectedTags],
   );
 
   // Todo: Might need a confirmation pop over
@@ -102,7 +101,7 @@ const MultiTagSelector = ({
       ) : (
         undefined
       ),
-    [selectedTags],
+    [onClearSelection, selectedTags.length],
   );
 
   const SearchTagItem = useCallback<ItemRenderer<ClientTag>>(
@@ -141,7 +140,7 @@ const MultiTagSelector = ({
   // Only used for visualization in the selector, an actual ClientTag is created onSelect
   const createNewTag = useCallback(
     (name: string) => new ClientTag(tagStore, name, CREATED_TAG_ID),
-    [],
+    [tagStore],
   );
 
   const maybeCreateNewItemFromQuery = onTagCreation ? createNewTag : undefined;

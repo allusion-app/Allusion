@@ -41,7 +41,7 @@ backend
 if (isPreviewWindow) {
   ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[], thumbnailDir: string) => {
     rootStore.uiStore.view.setFirstItem(0);
-    rootStore.uiStore.thumbnailDirectory = thumbnailDir;
+    rootStore.uiStore.setThumbnailDirectory(thumbnailDir);
     rootStore.uiStore.view.setMethodSlide();
     rootStore.fileStore.fetchFilesByIDs(fileIds);
   });
