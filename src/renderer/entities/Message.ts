@@ -3,26 +3,6 @@ import { IImportItem } from '../../main/clipServer';
 import { ITag } from './Tag';
 import { ipcRenderer, ipcMain, WebContents } from 'electron';
 
-// Static methods for type safe IPC messages between renderer and main process
-
-export class RendererMessenger {
-  static initialized = () => ipcRenderer.send(INITIALIZED);
-
-  static setDownloadPath = (msg: IDownloadPathMessage) => ipcRenderer.send(SET_DOWNLOAD_PATH, msg);
-  static setClipServerEnabled = (msg: IClipServerEnabledMessage) => ipcRenderer.send(SET_CLIP_SERVER_ENABLED, msg);
-  static setRunInBackground = (msg: IRunInBackgroundMessage) => ipcRenderer.send(SET_RUN_IN_BACKGROUND, msg);
-  // ...
-
-  // Todo: Add all messages in here, replace the ipcRenderer calls in other places
-}
-
-export class MainMessenger {
-  static onceInitialized = async () => new Promise((resolve) => ipcMain.once(INITIALIZED, resolve));
-
-  static sendPreviewFiles = (wc: WebContents, msg: IPreviewFilesMessage) => wc.send(RECEIEVE_PREVIEW_FILES, msg);
-  // ...
-}
-
 /////////////////// General ////////////////////
 export const INITIALIZED = 'INITIALIZED';
 
@@ -79,4 +59,27 @@ export const GET_DOWNLOAD_PATH = 'GET_DOWNLOAD_PATH';
 export const SET_DOWNLOAD_PATH = 'SET_DOWNLOAD_PATH';
 export interface IDownloadPathMessage {
   dir: string;
+}
+
+// Static methods for type safe IPC messages between renderer and main process
+
+export class RendererMessenger {
+  static initialized = () => ipcRenderer.send(INITIALIZED);
+
+  static setDownloadPath = (msg: IDownloadPathMessage) => ipcRenderer.send(SET_DOWNLOAD_PATH, msg);
+  static setClipServerEnabled = (msg: IClipServerEnabledMessage) =>
+    ipcRenderer.send(SET_CLIP_SERVER_ENABLED, msg);
+  static setRunInBackground = (msg: IRunInBackgroundMessage) =>
+    ipcRenderer.send(SET_RUN_IN_BACKGROUND, msg);
+  // ...
+
+  // Todo: Add all messages in here, replace the ipcRenderer calls in other places
+}
+
+export class MainMessenger {
+  static onceInitialized = async () => new Promise((resolve) => ipcMain.once(INITIALIZED, resolve));
+
+  static sendPreviewFiles = (wc: WebContents, msg: IPreviewFilesMessage) =>
+    wc.send(RECEIEVE_PREVIEW_FILES, msg);
+  // ...
 }
