@@ -53,6 +53,23 @@ class View {
     return this.content === 'query';
   }
 
+  /////////////////// Persistent Preferences ///////////////////
+  loadPreferences(prefs: any) {
+    this.setMethod(prefs.method);
+    this.setFirstItem(prefs.firstItem);
+    this.setContent(prefs.content);
+    this.setThumbnailSize(prefs.thumbnailSize);
+    this.orderFilesBy(prefs.orderBy);
+    this.setFileOrder(prefs.fileOrder);
+  }
+
+  savePreferences(prefs: any): string {
+    for (const field of PersistentPreferenceFields) {
+      prefs[field] = this[field];
+    }
+    return prefs;
+  }
+
   /////////////////// UI Actions ///////////////////
   @action.bound setThumbnailSmall() {
     this.setThumbnailSize('small');
@@ -111,36 +128,19 @@ class View {
     this.setMethod('slide');
   }
 
-  /////////////////// Persistent Preferences ///////////////////
-  loadPreferences(prefs: any) {
-    this.setMethod(prefs.method);
-    this.setFirstItem(prefs.firstItem);
-    this.setContent(prefs.content);
-    this.setThumbnailSize(prefs.thumbnailSize);
-    this.orderFilesBy(prefs.orderBy);
-    this.setFileOrder(prefs.fileOrder);
-  }
-
-  savePreferences(prefs: any): string {
-    for (const field of PersistentPreferenceFields) {
-      prefs[field] = this[field];
-    }
-    return prefs;
-  }
-
-  @action.bound private setMethod(method: ViewMethod = 'grid') {
+  @action private setMethod(method: ViewMethod = 'grid') {
     this.method = method;
   }
 
-  @action.bound private setContent(content: ViewContent = 'all') {
+  @action private setContent(content: ViewContent = 'all') {
     this.content = content;
   }
 
-  @action.bound private setThumbnailSize(size: ViewThumbnailSize = 'medium') {
+  @action private setThumbnailSize(size: ViewThumbnailSize = 'medium') {
     this.thumbnailSize = size;
   }
 
-  @action.bound private setFileOrder(order: FileOrder = 'DESC') {
+  @action private setFileOrder(order: FileOrder = 'DESC') {
     this.fileOrder = order;
   }
 }

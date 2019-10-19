@@ -143,17 +143,17 @@ class UiStore {
 
   /////////////////// UI Actions ///////////////////
   @action.bound toggleOutliner() {
-    this.isOutlinerOpen = !this.isOutlinerOpen;
+    this.setIsOutlinerOpen(!this.isOutlinerOpen);
   }
 
   @action.bound openOutlinerImport() {
-    this.outlinerPage = 'IMPORT';
+    this.setOutlinerPage('IMPORT');
     if (!this.view.showsUntaggedContent) {
       this.viewUntaggedContent();
     }
   }
   @action.bound openOutlinerTags() {
-    this.outlinerPage = 'TAGS';
+    this.setOutlinerPage('TAGS');
     if (!this.view.showsAllContent) {
       this.viewAllContent();
     }
@@ -170,7 +170,7 @@ class UiStore {
   }
 
   @action.bound toggleInspector() {
-    this.isInspectorOpen = !this.isInspectorOpen;
+    this.setIsInspectorOpen(!this.isInspectorOpen);
   }
 
   @action.bound toggleSettings() {
@@ -229,7 +229,7 @@ class UiStore {
     this.imageViewerFile = file;
   }
 
-  @action.bound setThumbnailDirectory(dir: string) {
+  @action.bound setThumbnailDirectory(dir: string = '') {
     this.thumbnailDirectory = dir;
   }
 
@@ -528,7 +528,7 @@ class UiStore {
   }
 
   @action.bound toggleTheme() {
-    this.theme = this.theme === 'DARK' ? 'LIGHT' : 'DARK';
+    this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
   }
 
   @action.bound toggleDevtools() {
@@ -538,7 +538,7 @@ class UiStore {
     remote.getCurrentWindow().reload();
   }
   @action.bound toggleFullScreen() {
-    this.isFullScreen = !this.isFullScreen;
+    this.setIsFullScreen(!this.isFullScreen);
     remote.getCurrentWindow().setFullScreen(this.isFullScreen);
   }
   @action.bound toggleQuickSearch() {
@@ -574,10 +574,12 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        for (const field of PersistentPreferenceFields) {
-          // @ts-ignore
-          this[field] = prefs[field];
-        }
+        this.setTheme(prefs.theme);
+        this.setIsFullScreen(prefs.isFullScreen);
+        this.setOutlinerPage(prefs.outlinerPage);
+        this.setIsOutlinerOpen(prefs.isOutlinerOpen);
+        this.setIsInspectorOpen(prefs.isInspectorOpen);
+        this.setThumbnailDirectory(prefs.thumbnailDirectory);
         this.view.loadPreferences(prefs);
       } catch (e) {
         console.log('Cannot parse persistent preferences', e);
@@ -610,6 +612,26 @@ class UiStore {
         this.deselectFile(file);
       }
     }
+  }
+
+  @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
+    this.theme = theme;
+  }
+
+  @action private setIsFullScreen(value: boolean = false) {
+    this.isFullScreen = value;
+  }
+
+  @action private setOutlinerPage(page: 'IMPORT' | 'TAGS' = 'TAGS') {
+    this.outlinerPage = page;
+  }
+
+  @action private setIsOutlinerOpen(value: boolean = true) {
+    this.isOutlinerOpen = value;
+  }
+
+  @action private setIsInspectorOpen(value: boolean = false) {
+    this.isInspectorOpen = value;
   }
 }
 
