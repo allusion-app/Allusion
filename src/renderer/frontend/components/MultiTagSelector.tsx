@@ -164,32 +164,29 @@ const MultiTagSelector = ({
   });
 
   return (
-    <>
-      <TagMultiSelect
-        items={tagStore.tagList}
-        selectedItems={selectedTags}
-        itemRenderer={SearchTagItem}
-        noResults={NoResults}
-        onItemSelect={handleSelect}
-        popoverProps={{ minimal: true }}
-        openOnKeyDown={false}
-        tagRenderer={TagLabel}
-        createNewItemFromQuery={maybeCreateNewItemFromQuery}
-        createNewItemRenderer={maybeCreateNewItemRenderer}
-        itemPredicate={filterTag}
-        tagInputProps={{
-          tagProps: getTagProps,
-          onRemove: handleDeselect,
-          rightElement: showClearButton ? ClearButton : undefined,
-          fill: true,
-          disabled,
-          inputRef: setInputRef,
-          onKeyDown,
-        }}
-        placeholder={placeholder}
-        // resetOnSelect
-      />
-    </>
+    <TagMultiSelect
+      items={tagStore.tagList}
+      selectedItems={selectedTags}
+      itemRenderer={SearchTagItem}
+      noResults={NoResults}
+      onItemSelect={handleSelect}
+      popoverProps={{ minimal: true }}
+      openOnKeyDown={false}
+      tagRenderer={TagLabel}
+      createNewItemFromQuery={maybeCreateNewItemFromQuery}
+      createNewItemRenderer={maybeCreateNewItemRenderer}
+      itemPredicate={filterTag}
+      tagInputProps={{
+        tagProps: getTagProps,
+        onRemove: handleDeselect,
+        rightElement: showClearButton ? ClearButton : undefined,
+        fill: true,
+        disabled,
+        inputRef: setInputRef,
+        onKeyDown,
+      }}
+      placeholder={placeholder}
+    />
   );
 };
 

@@ -16,7 +16,7 @@ const importExternalImage = async (item: IImportItem) => {
     return true;
   }
   return false;
-}
+};
 
 const addTagsToFile = async (item: IImportItem) => {
   if (mainWindow) {
@@ -24,7 +24,7 @@ const addTagsToFile = async (item: IImportItem) => {
     return true;
   }
   return false;
-}
+};
 
 const getTags = async (): Promise<ITag[]> => {
   if (mainWindow) {
@@ -35,7 +35,7 @@ const getTags = async (): Promise<ITag[]> => {
   }
   // Todo: cache tags from frontend in case the window is closed
   return [];
-}
+};
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
