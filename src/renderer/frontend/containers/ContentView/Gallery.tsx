@@ -427,7 +427,7 @@ const Gallery = ({
     let description = 'Import some images to get started!';
     let action =
       <Button onClick={uiStore.openOutlinerImport} text="Open import panel" intent="primary" icon={IconSet.ADD} />;
-    if (uiStore.view.content === 'query') {
+    if (uiStore.view.showsQueryContent) {
       description = 'Try searching for something else.';
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       title = 'No images found';
@@ -438,7 +438,7 @@ const Gallery = ({
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openSearch} intent="primary" />
         </ButtonGroup>
       );
-    } else if (uiStore.view.content === 'untagged') {
+    } else if (uiStore.view.showsUntaggedContent) {
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       description = 'All images have been tagged. Nice work!';
       title = 'No untagged images';

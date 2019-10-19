@@ -69,7 +69,7 @@ export const GalleryItem = observer(({
   const [isImageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState();
 
-  const imagePath = uiStore.view.method === 'slide' ? file.path : file.thumbnailPath;
+  const imagePath = uiStore.view.isSlide ? file.path : file.thumbnailPath;
 
   useEffect(() => {
     // First check whether a thumbnail exists, generate it if needed

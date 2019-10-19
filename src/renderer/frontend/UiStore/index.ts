@@ -8,14 +8,13 @@ import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
-import View from './View';
+import View, { ViewMethod, ViewContent, ViewThumbnailSize } from './View';
 import {
   IArraySearchCriteria,
   ClientBaseCriteria,
   ClientArraySearchCriteria,
 } from '../../entities/SearchCriteria';
 
-export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
@@ -149,13 +148,13 @@ class UiStore {
 
   @action.bound openOutlinerImport() {
     this.outlinerPage = 'IMPORT';
-    if (this.view.content !== 'untagged') {
+    if (!this.view.showsUntaggedContent) {
       this.viewUntaggedContent();
     }
   }
   @action.bound openOutlinerTags() {
     this.outlinerPage = 'TAGS';
-    if (this.view.content !== 'all') {
+    if (!this.view.showsAllContent) {
       this.viewAllContent();
     }
   }
@@ -245,11 +244,11 @@ class UiStore {
   }
 
   @action.bound refetch() {
-    if (this.view.content === 'all') {
+    if (this.view.showsAllContent) {
       this.rootStore.fileStore.fetchAllFiles();
-    } else if (this.view.content === 'untagged') {
+    } else if (this.view.showsUntaggedContent) {
       this.rootStore.fileStore.fetchUntaggedFiles();
-    } else if (this.view.content === 'query') {
+    } else if (this.view.showsQueryContent) {
       this.rootStore.fileStore.fetchFilesByQuery();
     }
   }
@@ -579,7 +578,7 @@ class UiStore {
           // @ts-ignore
           this[field] = prefs[field];
         }
-        this.view.getPreferences(prefs);
+        this.view.loadPreferences(prefs);
       } catch (e) {
         console.log('Cannot parse persistent preferences', e);
       }
@@ -597,7 +596,7 @@ class UiStore {
     for (const field of PersistentPreferenceFields) {
       prefs[field] = this[field];
     }
-    prefs = this.view.setPreferences(prefs);
+    prefs = this.view.savePreferences(prefs);
     localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
   }
 
@@ -615,3 +614,5 @@ class UiStore {
 }
 
 export default UiStore;
+
+export { ViewMethod, ViewContent, ViewThumbnailSize };
