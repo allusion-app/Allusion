@@ -102,7 +102,7 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
     this.value.remove(id);
   }
   @action.bound clearIDs() {
-    this.value.splice(0, this.value.length);
+    this.value.clear();
   }
 }
 

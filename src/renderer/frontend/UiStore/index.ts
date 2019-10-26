@@ -455,6 +455,10 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
+  @action.bound openQuickSearch() {
+    this.isQuickSearchOpen = true;
+  }
+
   @action.bound async clearSearchCriteriaList() {
     this.searchCriteriaList.clear();
     this.viewAllContent();
@@ -479,25 +483,31 @@ class UiStore {
     this.searchCriteriaList.splice(i, 1);
   }
 
-  @action.bound addTagsToCriteria(ids: ID[]) {
-    this.addSearchCriteria({
+  // TODO: make private function
+  createTagsSearchCriteria(tags: ID[]): IArraySearchCriteria<IFile> {
+    return {
       key: 'tags',
       valueType: 'array',
       operator: 'contains',
-      value: ids,
-    } as IArraySearchCriteria<IFile>);
+      value: tags,
+    } as IArraySearchCriteria<IFile>;
+  }
+
+  @action.bound addTagsToCriteria(ids: ID[]) {
+    this.addSearchCriteria(this.createTagsSearchCriteria(ids));
+    this.openQuickSearch();
   }
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
     this.searchCriteriaList.clear();
-    this.addTagsToCriteria(ids);
-    this.isQuickSearchOpen = true;
+    this.addSearchCriteria(this.createTagsSearchCriteria(ids));
+    this.openQuickSearch();
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceCriteriaWithTags(this.tagSelection.toJS());
     this.searchByQuery();
-    this.isQuickSearchOpen = true;
+    this.openQuickSearch();
   }
 
   @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
