@@ -204,10 +204,11 @@ interface ICriteriaItemProps {
   criteria: FileSearchCriteria;
   onRemove: () => any;
   onAdd: () => any;
+  removable: boolean;
 }
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
-const CriteriaItem = observer(({ criteria, onRemove, onAdd }: ICriteriaItemProps) => {
+const CriteriaItem = observer(({ criteria, onRemove, onAdd, removable }: ICriteriaItemProps) => {
 
   const critFields = useMemo(() => {
     if (criteria.key === 'name' || criteria.key === 'path') {
@@ -230,7 +231,7 @@ const CriteriaItem = observer(({ criteria, onRemove, onAdd }: ICriteriaItemProps
       {critFields}
 
       <ButtonGroup vertical className="add-remove">
-        <Button text="-" onClick={onRemove} />
+        <Button text="-" onClick={onRemove} disabled={!removable} />
         <Button text="+" onClick={onAdd} />
       </ButtonGroup>
     </ControlGroup>
@@ -262,6 +263,7 @@ const SearchForm = observer(() => {
             key={`crit-${i}-${crit.key}`}
             onAdd={addSearchCriteria}
             onRemove={removeSearchCriteria.bind(null, i)}
+            removable={uiStore.searchCriteriaList.length !== 1}
           />
         ))}
       </FormGroup>
