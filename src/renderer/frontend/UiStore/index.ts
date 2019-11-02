@@ -470,6 +470,12 @@ class UiStore {
   }
 
   @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+    // Remove empty array criteria if it already exists before adding the new one
+    if (this.searchCriteriaList.length === 1 && this.searchCriteriaList[0].valueType === 'array') {
+      if ((this.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>).value.length === 0) {
+        this.searchCriteriaList.clear();
+      }
+    }
     this.searchCriteriaList.push(query);
     this.view.setContentQuery();
   }
@@ -483,7 +489,7 @@ class UiStore {
   }
 
   @action.bound addTagsToCriteria(ids: ID[]) {
-    this.addSearchCriteria(new ClientArraySearchCriteria('tags', ids));
+    this.addSearchCriteria(new ClientArraySearchCriteria<IFile>('tags', ids));
     this.openQuickSearch();
   }
 
