@@ -113,7 +113,7 @@ const TagCriteriaItem = observer(({ criteria }: { criteria: ClientArraySearchCri
 
   const criteriaTags = useMemo(
     () => criteria.value.map((id) => tagStore.tagList.find((tag) => tag.id === id) as ClientTag),
-    [criteria.value, tagStore.tagList]);
+    [criteria.value.length, tagStore.tagList]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
