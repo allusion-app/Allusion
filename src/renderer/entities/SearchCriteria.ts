@@ -89,8 +89,11 @@ export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
 
 export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
   readonly value = observable<ID>([]);
-  constructor(key: keyof T) {
+  constructor(key: keyof T, ids?: ID[]) {
     super(key, 'array', 'contains');
+    if (ids) {
+      this.value.push(...ids);
+    }
   }
   @action.bound setOperator(op: ArrayOperatorType) {
     this.operator = op;

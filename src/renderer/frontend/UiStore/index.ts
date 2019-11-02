@@ -10,7 +10,6 @@ import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import View, { ViewMethod, ViewContent, ViewThumbnailSize } from './View';
 import {
-  IArraySearchCriteria,
   ClientBaseCriteria,
   ClientArraySearchCriteria,
 } from '../../entities/SearchCriteria';
@@ -483,25 +482,14 @@ class UiStore {
     this.searchCriteriaList.splice(i, 1);
   }
 
-  // TODO: make private function
-  createTagsSearchCriteria(tags: ID[]): IArraySearchCriteria<IFile> {
-    return {
-      key: 'tags',
-      valueType: 'array',
-      operator: 'contains',
-      value: tags,
-    } as IArraySearchCriteria<IFile>;
-  }
-
   @action.bound addTagsToCriteria(ids: ID[]) {
-    this.addSearchCriteria(this.createTagsSearchCriteria(ids));
+    this.addSearchCriteria(new ClientArraySearchCriteria('tags', ids));
     this.openQuickSearch();
   }
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
     this.searchCriteriaList.clear();
-    this.addSearchCriteria(this.createTagsSearchCriteria(ids));
-    this.openQuickSearch();
+    this.addTagsToCriteria(ids);
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
