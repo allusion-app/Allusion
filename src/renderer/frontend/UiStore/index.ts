@@ -523,6 +523,10 @@ class UiStore {
     this.rootStore.fileStore.fetchFilesByQuery();
     this.view.setContentQuery();
     this.cleanFileSelection();
+
+    if (this.isAdvancedSearchOpen) {
+      this.toggleAdvancedSearch();
+    }
   }
 
   @action.bound toggleTheme() {
