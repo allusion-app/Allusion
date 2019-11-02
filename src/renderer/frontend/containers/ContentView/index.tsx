@@ -19,7 +19,7 @@ const QuickSearchList = observer(() => {
 
   const queriedTags = useMemo(
     () => tagCrit.value.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),
-    [tagCrit.value, tagStore.tagList]);
+    [tagCrit.value.length, tagStore.tagList]);
 
   const handleSelectTag = useCallback((tag: ClientTag) => {
     tagCrit.addID(tag.id);
