@@ -13,11 +13,11 @@ export default class InMemoryDbRepository<T extends IIdentifiable> {
     return this.items.find((obj) => obj.id === id) as T;
   }
 
-  async getAll({ count, order, fileOrder }: any) {
+  async getAll({ count }: any) {
     return this.items.slice(0, count);
   }
 
-  async find({ queryField, query, count, order, fileOrder }: any) {
+  async find({ queryField, query, count }: any) {
     return this.items
       .filter((obj: any) =>
         queryField in obj

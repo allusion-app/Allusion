@@ -346,20 +346,27 @@ img {
 .custom-icon * {
   fill: currentColor;
 }
-
+.bp3-overlay-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .drop-overlay-content {
-  top: 0;
-  left: calc(50vw - 200px);
-  margin: 10vh 0;
+  // top: 0;
+  // left: calc(50vw - 200px);
+  margin: auto calc(50% - 200px);
+  // margin: 15vh 0;
   width: 400px;
-  position: absolute;
+  // position: absolute;
+  padding: 20px !important;
 
   .quick-tags {
     text-align: center;
+    margin-top: 20px !important;
   }
 }
 
-.custom-icon {
+.bp3-tree-node-content .custom-icon {
   color: inherit !important;
 }
 

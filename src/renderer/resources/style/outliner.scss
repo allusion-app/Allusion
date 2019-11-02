@@ -25,10 +25,11 @@ nav {
     }
   }
 
-  > * {
-    // Don't squash content of nav during parent transition
-    width: 16rem;
-  }
+  // > * {
+  //   // Don't squash content of nav during parent transition
+  //   // BReaks with buttons
+  //   // width: 16rem;
+  // }
 
   .bp3-dark {
     background: $dark-gray2;
@@ -58,12 +59,14 @@ nav {
 #import,
 // #search-form,
 .gallery,
-.error-boundary {
+.error-boundary,
+.inspectorOpen {
   // .error-boundary
   > button,
   .button.bp3-fill,
   button.bp3-button.bp3-fill,
-  .bp3-non-ideal-state button.bp3-button {
+  .bp3-non-ideal-state button.bp3-button,
+  .bp3-button:not([class*='bp3-intent-']) {
     color: $light-gray2;
   }
 
@@ -75,11 +78,14 @@ nav {
 
   button.bp3-fill,
   // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]) {
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal) {
+    // .bp3-multi-select .bp3-minimal {
     background: $light-gray1-trans;
     color: $light-gray2;
   }
-
+  .bp3-input.bp3-minimal {
+    background: none !important;
+  }
   .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
   .bp3-button:not([class*='bp3-intent-warning']):not([class*='bp3-intent-danger']) {
     // .bp3-icon > svg:not([fill]) {
@@ -134,6 +140,7 @@ nav {
     }
   }
 }
+
 .bp3-overlay .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button) {
   background: $light-gray1-trans;
   color: $light-gray2;
@@ -203,7 +210,7 @@ nav .bp3-tree {
 }
 
 .bp3-input {
-  padding: 0 0.25rem;
+  padding: 0 0.5rem;
   border-radius: 6px;
 }
 
@@ -221,60 +228,4 @@ nav .bp3-tree {
 
 .bp3-tree .bp3-input {
   height: 1.6rem;
-}
-
-///////////////////////////////// Search tab /////////////////////////////////
-#search-form {
-  .bp3-popover-target {
-    width: 100%;
-  }
-
-  #actions-bar {
-    float: right;
-  }
-
-  .criteria {
-    display: flex;
-    margin-bottom: 0.25rem;
-
-    .bp3-control-group {
-      padding: 0px;
-    }
-
-    .add-remove {
-      flex-grow: 0;
-      margin-left: 8px;
-
-      button {
-        min-width: 15px;
-        min-height: 15px;
-        width: 15px;
-        height: 15px;
-        line-height: 0;
-        padding: 0;
-        font-size: 16px;
-      }
-
-      button:hover * {
-        line-height: 0;
-      }
-    }
-  }
-  .bp3-popover-wrapper,
-  .bp3-tag-input-values,
-  input {
-    max-width: 200px;
-  }
-}
-
-#system-tags {
-  .bp3-button-text {
-    margin-right: auto;
-  }
-}
-
-#tag-remove-overview {
-  padding: 8px 0;
-  max-height: 100px;
-  overflow-y: auto;
 }

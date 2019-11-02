@@ -10,68 +10,61 @@ export function debounce<F extends (...args: any) => any>(func: F, wait: number 
   }
 
   // conversion through any necessary as it wont satisfy criteria otherwise
-  return function(this: any, ...args: any[]) {
+  return (function(this: any, ...args: any[]) {
     clearTimeout(timeoutID);
-    const context = this;
 
-    timeoutID = window.setTimeout(
-      () => func.apply(context, args),
-      wait);
-  } as any as F;
+    timeoutID = window.setTimeout(() => func.apply(this, args), wait);
+  } as any) as F;
 }
 
-export function throttle(fn: (...args: any) => any, wait: number = 300) {
+export const throttle = (fn: (...args: any) => any, wait: number = 300) => {
   let isCalled = false;
 
   return (...args: any[]) => {
-      if (!isCalled) {
-          fn(...args);
-          isCalled = true;
-          setTimeout(
-            () => { isCalled = false; },
-            wait,
-          );
-      }
+    if (!isCalled) {
+      fn(...args);
+      isCalled = true;
+      setTimeout(() => {
+        isCalled = false;
+      }, wait);
+    }
   };
 }
 
-export function timeoutPromise<T>(timeMS: number, promise: Promise<T>): Promise<T> {
+export const timeoutPromise = <T>(timeMS: number, promise: Promise<T>): Promise<T> => {
   return new Promise((resolve, reject) => {
     promise.then(resolve, reject);
     setTimeout(reject, timeMS);
   });
 }
 
-export function formatTagCountText(numTags: number, numCols: number) {
-  const extraTagsText = numTags
-    ? `+${numTags} tag${numTags === 1 ? '' : 's'}`
-    : '';
+export const formatTagCountText = (numTags: number, numCols: number) => {
+  const extraTagsText = numTags ? `+${numTags} tag${numTags === 1 ? '' : 's'}` : '';
   const extraColsText = numCols
     ? `${extraTagsText && ', '}+${numCols} collection${numCols === 1 ? '' : 's'}`
     : '';
   return `${extraTagsText}${extraColsText}`;
 }
 
-export function capitalize(value: string) {
+export const capitalize = (value: string) => {
   if (!value) {
     return '';
   }
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }
 
-export function camelCaseToSpaced(value: string) {
+export const camelCaseToSpaced = (value: string) => {
   if (!value) {
     return '';
   }
-  return value
-    // insert a space before all caps
-    .replace(/([A-Z])/g, ' $1')
-    // uppercase the first character
-    .replace(/^./, (str) => str.toUpperCase());
+  return (
+    value
+      // insert a space before all caps
+      .replace(/([A-Z])/g, ' $1')
+      // uppercase the first character
+      .replace(/^./, (str) => str.toUpperCase())
+  );
 }
-
-// export const formatDateTime = (date: Date) =>
-//   `${date.toLocaleDateString()} ${date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
 
 const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
   timeZone: 'UTC',
@@ -83,12 +76,14 @@ const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
 });
 
 export const formatDateTime = (d: Date) => {
-  return DateTimeFormat.formatToParts(d).map(({type, value}) => {
-    if (type === 'literal' && value === ', ') {
-      return ' ';
-    }
-    return value;
-  }).reduce((str, part) => str + part);
+  return DateTimeFormat.formatToParts(d)
+    .map(({ type, value }) => {
+      if (type === 'literal' && value === ', ') {
+        return ' ';
+      }
+      return value;
+    })
+    .reduce((str, part) => str + part);
 };
 
 export const jsDateFormatter = {
@@ -97,7 +92,7 @@ export const jsDateFormatter = {
   placeholder: 'Choose a date...',
 };
 
-export function hexToHSL(H: string) {
+export const hexToHSL = (H: string) => {
   // Convert hex to RGB first
   let r = 0;
   let g = 0;
@@ -148,24 +143,12 @@ export function hexToHSL(H: string) {
   return [h, s, l];
 }
 
-export function getClassForBackground(backHex: string) {
+export const getClassForBackground = (backHex: string) => {
   const hsl = hexToHSL(backHex);
   const [, sat, lum] = hsl;
 
-  return (
-    lum < 50
-    || (lum < 60 && sat > 75)
-  ) ? 'color-white' : 'color-black';
+  return lum < 50 || (lum < 60 && sat > 75) ? 'color-white' : 'color-black';
 }
-
-export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): string => {
-  const baseFilename = path.basename(filePath, path.extname(filePath));
-
-  // Hash is needed to avoid files with the same name to clash with each other, when they come from different paths
-  const hash = hashString(filePath);
-
-  return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailType}`);
-};
 
 export const hashString = (s: string) => {
   let hash = 0;
@@ -176,9 +159,18 @@ export const hashString = (s: string) => {
   for (let i = 0; i < s.length; i++) {
     chr = s.charCodeAt(i);
     // tslint:disable-next-line: no-bitwise
-    hash = ((hash << 5) - hash) + chr;
+    hash = (hash << 5) - hash + chr;
     // tslint:disable-next-line: no-bitwise
     hash |= 0; // Convert to 32bit integer
   }
   return hash;
+};
+
+export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): string => {
+  const baseFilename = path.basename(filePath, path.extname(filePath));
+
+  // Hash is needed to avoid files with the same name to clash with each other, when they come from different paths
+  const hash = hashString(filePath);
+
+  return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailType}`);
 };

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useContext } from 'react';
-import { Card, Overlay, H5, Tag } from '@blueprintjs/core';
+import { Card, Overlay, H4, Tag } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 
@@ -100,7 +100,7 @@ interface IQuickTagProps {
   onDropOnTag: (e: React.DragEvent, tag?: ClientTag) => void;
 }
 const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
-  const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [tag]);
+  const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [onDropOnTag, tag]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const handleDragOver = useCallback(() => setIsDraggingOver(true), []);
   const handleDragLeave = useCallback(() => setIsDraggingOver(false), []);
@@ -111,7 +111,8 @@ const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       intent={isDraggingOver ? 'primary' : 'none'}
-      large
+      minimal
+      className="tag-drag-drop"
     >
       {tag.name}
     </Tag>
@@ -129,7 +130,6 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
 
   const handleDropStart = useCallback(async (e: React.DragEvent) => {
     e.dataTransfer.dropEffect = 'copy';
-    
     let allowDrop = e.dataTransfer.types.some((t) => ALLOWED_DROP_TYPES.includes(t));
     if (e.dataTransfer.types.includes('Files')) {
       e.dataTransfer.dropEffect = 'link';
@@ -139,14 +139,14 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
         if (f && ALLOWED_FILE_DROP_TYPES.includes(f.type)) {
           allowDrop = true;
           break;
-        } 
+        }
       }
     }
     e.preventDefault();
     if (isDropping !== allowDrop) {
       setIsDropping(allowDrop);
     }
-  }, []);
+  }, [isDropping]);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     // Only trigger if dragging outside itself or its children
@@ -194,7 +194,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     } finally {
       setIsDropping(false);
     }
-  }, []);
+  }, [fileStore]);
 
   return (
     <div
@@ -213,10 +213,13 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
           <Card
             elevation={4}
             className="drop-overlay-content"
-            // todo: blue background when dropping over
+          // todo: blue background when dropping over
           >
-            <H5>Drop anywhere to import</H5>
-            <p>Or drag onto a tag to immediately tag it</p>
+            <H4 className="bp3-heading inpectorHeading">Drop import</H4>
+            <p>Drag onto a tag to immediately tag it or anywhere to import it untagged</p>
+
+            {/* <H4 className="bp3-heading inpectorHeading">Drop anywhere to import</H4>
+            <p>Or drag onto a tag to immediately tag it</p> */}
 
             {/* TODO: Sort by frequenc, or alphabetically? */}
             <div className="quick-tags">

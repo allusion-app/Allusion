@@ -63,18 +63,18 @@ export const GalleryItem = observer(({
   const dropStyle = canDrop ? ' droppable' : ' undroppable';
   const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
-  const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), []);
-  const handleClickImg = useCallback((e) => onClick(file, e), []);
+  const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), [file]);
+  const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
 
   const [isImageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState();
 
-  const imagePath = uiStore.view.method === 'slide' ? file.path : file.thumbnailPath;
+  const imagePath = uiStore.view.isSlide ? file.path : file.thumbnailPath;
 
   useEffect(() => {
     // First check whether a thumbnail exists, generate it if needed
     ensureThumbnail(file, uiStore.thumbnailDirectory);
-  }, [uiStore.thumbnailDirectory]);
+  }, [file, uiStore.thumbnailDirectory]);
 
   useEffect(() => {
     if (imagePath) {
@@ -88,7 +88,7 @@ export const GalleryItem = observer(({
     console.log('Could not load image:', imagePath, err);
     setImageError(err);
     setImageLoaded(false);
-  }, []);
+  }, [imagePath]);
 
   return (
     <div ref={galleryItemDrop} className={className}>
@@ -120,15 +120,15 @@ export const GalleryItem = observer(({
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
-  const handleOpen = useCallback(() => shell.openItem(file.path), []);
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.path), []);
+  const handleOpen = useCallback(() => shell.openItem(file.path), [file.path]);
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.path), [file.path]);
   const handleInspect = useCallback(() => {
     uiStore.clearFileSelection();
     uiStore.selectFile(file);
     if (!uiStore.isInspectorOpen) {
       uiStore.toggleInspector();
     }
-  }, []);
+  }, [file, uiStore]);
 
   return (
     <Menu>
@@ -144,7 +144,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
 @ContextMenuTarget
 class GalleryItemWithContextMenu extends React.PureComponent<
   IGalleryItemProps,
-  { isContextMenuOpen: boolean }
+  { isContextMenuOpen: boolean, _isMounted: boolean }
 > {
   state = {
     isContextMenuOpen: false,
@@ -156,11 +156,11 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   }
 
   componentDidMount() {
-    this.state._isMounted = true;
+    this.setState({...this.state, _isMounted: true});
   }
 
   componentWillUnmount() {
-    this.state._isMounted = false;
+    this.setState({...this.state, _isMounted: false});
   }
 
   render() {
