@@ -82,7 +82,7 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
 
     return new Promise<string[]>((resolve) => {
       watcher
-        .on('add', (path) => {
+        .on('add', (path: string) => {
           if (this.isReady) {
             console.log(`File ${path} has been added after initialization`);
             // Todo: Add to backend
@@ -90,8 +90,8 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
             initialFiles.push(path);
           }
         })
-        .on('change', (path) => console.log(`File ${path} has been changed`))
-        .on('unlink', (path) => console.log(`File ${path} has been removed`))
+        .on('change', (path: string) => console.log(`File ${path} has been changed`))
+        .on('unlink', (path: string) => console.log(`File ${path} has been removed`))
         .on('ready', () => {
           this.isReady = true;
           console.log('Ready: init files', initialFiles);

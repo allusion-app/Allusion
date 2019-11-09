@@ -30,7 +30,7 @@ export const dbConfig: IDBVersioningConfig[] = [
     collections: [
       {
         name: 'files',
-        schema: '++id, *tags, path, dateAdded, name, extension, size',
+        schema: '++id, *tags, path, dateAdded,name, extension, size, dateModified',
       },
       {
         name: 'tags',

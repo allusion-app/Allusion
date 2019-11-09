@@ -47,19 +47,6 @@ nav {
 #import {
   margin: 0.5em 1rem;
   outline: none;
-
-  #watched-folders {
-    padding: 4px;
-
-    li {
-      list-style-type: none;
-
-      span {
-        width: 80%;
-        display: inline-block;
-      }
-    }
-  }
 }
 
 // .outlinerOpen button.bp3-button.bp3-minimal {
@@ -153,17 +140,25 @@ nav {
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
-#outliner-tags-header-wrapper {
+.outliner-header-wrapper {
   display: flex;
   min-height: 39px;
+  background: transparent !important;
+  cursor: pointer;
 
   h4 {
+    margin-left: 4px;
     margin-right: auto;
+      // caret icon
+    > .bp3-icon {
+      margin-right: 8px;
+      margin-bottom: 2px;
+    }
   }
 }
 
 #outliner {
-  &:hover #outliner-tags-header-wrapper:not(last-child) > * {
+  > div:hover .outliner-header-wrapper:not(last-child) > * {
     opacity: 1;
   }
 }
@@ -290,4 +285,19 @@ nav .bp3-tree {
   padding: 8px 0;
   max-height: 100px;
   overflow-y: auto;
+}
+
+#watched-folders {
+  padding: 4px;
+  margin: 0px;
+  margin-left: 8px;
+
+  > li {
+    list-style-type: none;
+
+    > span {
+      width: calc(100% - 30px);
+      display: inline-block;
+    }
+  }
 }

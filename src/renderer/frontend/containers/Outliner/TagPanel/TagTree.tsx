@@ -604,8 +604,11 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
 
   return (
     <>
-      <div id="outliner-tags-header-wrapper" ref={headerDrop}>
-        <H4 className="bp3-heading">Tags</H4>
+      <div className="outliner-header-wrapper" ref={headerDrop}>
+        <H4 className="bp3-heading">
+          <Icon icon={'caret-down'} />
+          Tags
+        </H4>
         <Button
           minimal
           icon={IconSet.TAG_ADD}
