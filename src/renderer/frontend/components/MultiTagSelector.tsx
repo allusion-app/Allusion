@@ -186,6 +186,7 @@ const MultiTagSelector = ({
         onKeyDown,
       }}
       placeholder={placeholder}
+      resetOnSelect={true}
     />
   );
 };
