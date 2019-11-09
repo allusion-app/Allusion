@@ -9,6 +9,7 @@ addons:
   chrome: stable
 
 before_install:
+  - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; rvm install 2.6.0; fi
   - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew cask install xquartz; fi
 
 install:
