@@ -491,11 +491,13 @@ class UiStore {
   @action.bound addTagsToCriteria(ids: ID[]) {
     this.addSearchCriteria(new ClientArraySearchCriteria<IFile>('tags', ids));
     this.openQuickSearch();
+    this.searchByQuery();
   }
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
     this.searchCriteriaList.clear();
     this.addTagsToCriteria(ids);
+    this.searchByQuery();
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
