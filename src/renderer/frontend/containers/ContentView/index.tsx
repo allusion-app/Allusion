@@ -16,10 +16,11 @@ const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
 
   const tagCrit = uiStore.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>;
+  const tags = tagCrit.value.toJS();
 
   const queriedTags = useMemo(
-    () => tagCrit.value.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),
-    [tagCrit.value, tagStore.tagList]);
+    () => tags.map((id) => tagStore.tagList.find((t) => t.id === id)).filter((t) => t !== undefined) as ClientTag[],
+    [tags, tagStore.tagList]);
 
   const handleSelectTag = useCallback((tag: ClientTag) => {
     tagCrit.addID(tag.id);
@@ -43,6 +44,8 @@ const QuickSearchList = observer(() => {
       setTimeout(uiStore.closeSearch, 0);
     }
   }, [uiStore.closeSearch, uiStore.hotkeyMap.closeSearch]);
+
+  console.log(queriedTags);
 
   return (
     <MultiTagSelector

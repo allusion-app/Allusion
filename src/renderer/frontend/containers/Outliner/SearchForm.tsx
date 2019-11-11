@@ -111,9 +111,10 @@ const TagCriteriaItem = observer(({ criteria }: { criteria: ClientArraySearchCri
 
   const handleClearTags = useCallback(() => criteria.clearIDs(), [criteria]);
 
+  const tags = criteria.value.toJS();
   const criteriaTags = useMemo(
-    () => criteria.value.map((id) => tagStore.tagList.find((tag) => tag.id === id) as ClientTag),
-    [criteria.value.length, tagStore.tagList]); // eslint-disable-line react-hooks/exhaustive-deps
+    () => tags.map((id) => tagStore.tagList.find((tag) => tag.id === id) as ClientTag),
+    [tags, tagStore.tagList]);
 
   return (
     <>
