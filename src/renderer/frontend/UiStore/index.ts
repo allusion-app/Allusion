@@ -495,8 +495,9 @@ class UiStore {
   }
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
-    this.searchCriteriaList.clear();
-    this.addTagsToCriteria(ids);
+    this.searchCriteriaList.replace([new ClientArraySearchCriteria<IFile>('tags', ids)]);
+    this.view.setContentQuery();
+    this.openQuickSearch();
     this.searchByQuery();
   }
 
