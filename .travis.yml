@@ -22,31 +22,31 @@ matrix:
         - git config --local user.email 31522351+hummingly@users.noreply.github.com;
         - if [ "$TRAVIS_TAG" == "" ];
           then
-          echo "Adding tag..."
-          export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
-          git tag $TRAVIS_TAG;
+            export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
+            git tag $TRAVIS_TAG;
           fi
         - tar -zcf Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz release;
+        - echo "Release ${TRAVIS_TAG}..."
     - os: windows
       script:
         - yarn package --platform=win32 --arch=x64
       before_deploy:
         - if [ "$TRAVIS_TAG" == "" ];
           then
-          echo "Adding tag..."
-          export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
+            export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
           fi
         - 7z a -ttar -so -an release | 7z a -si Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz;
+        - echo "Release ${TRAVIS_TAG}..."
     - os: osx
       script:
         - yarn package:mac --platform=darwin --arch=x64
       before_deploy:
         - if [ "$TRAVIS_TAG" == "" ];
           then
-          echo "Adding tag..."
-          export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
+            export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
           fi
-        - 7z a -ttar -so -an release | 7z a -si Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz;
+        - tar -zcf Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz release;
+        - echo "Release ${TRAVIS_TAG}..."
 
 deploy:
   provider: releases
