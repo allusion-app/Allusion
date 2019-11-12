@@ -24,8 +24,9 @@ os:
   - windows
 
 before_deploy:
+  - echo tag
   # Create tag when no tag was added to the commit.
-  - if [ $TRAVIS_TAG IS NOT present ];
+  - if [ tag IS NOT present ];
     then
       git config --local user.name hummingly;
       git config --local user.email 31522351+hummingly@users.noreply.github.com;
