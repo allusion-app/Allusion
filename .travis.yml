@@ -2,14 +2,11 @@ language: node_js
 
 node_js: '10'
 
+env:
+  - YARN_GPG=no
+
 cache:
   yarn: true
-
-addons:
-  chrome: stable
-
-install:
-  - yarn
 
 script:
   - yarn test
@@ -17,9 +14,9 @@ script:
 
   - echo "Package app"
   # 64-bit builds for the time being
-  - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]]; then yarn package --platform=linux --arch=x64; fi
-  - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yarn package:mac --platform=darwin --arch=x64; fi
-  - if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_OS_NAME" == "windows" ]]; then yarn package --platform=win32 --arch=x64; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then yarn package --platform=linux --arch=x64; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then yarn package:mac --platform=darwin --arch=x64; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "windows" ]; then yarn package --platform=win32 --arch=x64; fi
 
 os:
   - linux
@@ -27,7 +24,12 @@ os:
   - windows
 
 before_deploy:
-  - tar -zcf Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz release
+  - if [ "$TRAVIS_OS_NAME" == "windows" ];
+    then
+      7z a -ttar -so -an ${TRAVIS_BUILD_DIR}/release | 7z a -si Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz;
+    else
+      tar -zcf Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz ${TRAVIS_BUILD_DIR}/release;
+    fi
 
 deploy:
   provider: releases
@@ -35,7 +37,7 @@ deploy:
     secure: HUdSp6H1WDhXVyEpII1IXWeqCoFVyMnMpkxTT6t2EeHXb2+gvxU6vIWoLcp8NnpA7W7Hu4nsJv8olii92IXMNQ4ZDwCAV8ymij3mqO1nbwB/+gLarji7UELEQmap9X1aZEAHhkjXMENWAPwauthr07bQIZuUbtL/e6urXxf8L8flAEL3J3UA2sqhu9ik8e11JaPR/orv3WC8Q8s3IE0GfMXZZKwC0zzMbllXy5m7HMuqgsD0Lz7pDWa64wG6MWBUmzwUPTNFVKA7xkJYwo7o73Y/hXIanxqfcg0paerzItOvhCfXtahcfwVae4jwCfK3/QKOsy9PKDsA3CI4vXqZRcuYbVFMihfplnHUHAInkFfDfFxaRH3TU34tYfDK/fJM3t7NhCV5mloNiT5EKzDnhFN6mGQUS2CY4cB+uaW/d33WHjJJzzbYZecWSa0/sYVSnrkisczb/oEBEI4GtNmtVL4ZFNYHE2MxBYE6KeEx6H6+NwxZduXwphFJunZQFylrK9C0w9RMVeZvmsKP69aAZ7O+6ZCeFyP1vTgp2NE2xPI5fZsqx/iKf3Ebxh77BYu6twWbeIMRlxBN+x5a2NBNa82UD2mxS7dTsHHlkR4fqZnUkny1XLpAfApsSMmUmjBdvcmc1Qe9rqO5rblajMz+zLuLR0d6gUV3RLLu0wFz+lw=
   skip_cleanup: true
   file_glob: true
-  file: '*.tar.gz'
+  file: 'Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz'
   on:
     branch: master
 
