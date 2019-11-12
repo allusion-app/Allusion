@@ -12,35 +12,41 @@ script:
   - yarn test
   - yarn lint
 
-  - echo "Package app..."
-  # 64-bit builds for the time being
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then yarn package --platform=linux --arch=x64; fi
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then yarn package:mac --platform=darwin --arch=x64; fi
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "windows" ]; then yarn package --platform=win32 --arch=x64; fi
-
-os:
-  - linux
-  - osx
-  - windows
-
-before_deploy:
-  # Create tag when no tag was added to the commit.
-  - if [ "$TRAVIS_TAG" == "" ];
-    then
-      echo "Adding tag..."
-      git config --local user.name hummingly;
-      git config --local user.email 31522351+hummingly@users.noreply.github.com;
-      export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
-      git tag $TRAVIS_TAG;
-    fi
-  - echo "Compress build artifacts..."
-  - if [ "$TRAVIS_OS_NAME" == "windows" ];
-    then
-      7z a -ttar -so -an release | 7z a -si Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz;
-    else
-      tar -zcf Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz release;
-    fi
-  - echo "Release ${TRAVIS_TAG}..."
+matrix:
+  include:
+    - os: linux
+      script:
+        - yarn package --platform=linux --arch=x64
+      before_deploy:
+        - git config --local user.name hummingly;
+        - git config --local user.email 31522351+hummingly@users.noreply.github.com;
+        - if [ "$TRAVIS_TAG" == "" ];
+          then
+          echo "Adding tag..."
+          export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
+          git tag $TRAVIS_TAG;
+          fi
+        - tar -zcf Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz release;
+    - os: windows
+      script:
+        - yarn package --platform=win32 --arch=x64
+      before_deploy:
+        - if [ "$TRAVIS_TAG" == "" ];
+          then
+          echo "Adding tag..."
+          export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
+          fi
+        - 7z a -ttar -so -an release | 7z a -si Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz;
+    - os: osx
+      script:
+        - yarn package:mac --platform=darwin --arch=x64
+      before_deploy:
+        - if [ "$TRAVIS_TAG" == "" ];
+          then
+          echo "Adding tag..."
+          export TRAVIS_TAG="Build-$(date +'%Y%m%d')-$(git log --format=%h -1)";
+          fi
+        - 7z a -ttar -so -an release | 7z a -si Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz;
 
 deploy:
   provider: releases
