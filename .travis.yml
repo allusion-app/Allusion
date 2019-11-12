@@ -24,10 +24,10 @@ os:
   - windows
 
 before_deploy:
-  - echo tag
   # Create tag when no tag was added to the commit.
-  - if [ tag IS NOT present ];
+  - if [ $TRAVIS_TAG == "" ];
     then
+      echo "Adding tag..."
       git config --local user.name hummingly;
       git config --local user.email 31522351+hummingly@users.noreply.github.com;
       export TRAVIS_TAG=${Build-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)};
