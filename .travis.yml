@@ -19,7 +19,7 @@ script:
   # 64-bit builds for the time being
   - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then yarn package --platform=linux --arch=x64; fi
   - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then yarn package:mac --platform=darwin --arch=x64; fi
-  - if [ "$TRAVIS_BRANCH" == "master" ]] && [ "$TRAVIS_OS_NAME" == "windows" ]; then yarn package --platform=win32 --arch=x64; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "windows" ]; then yarn package --platform=win32 --arch=x64; fi
 
 os:
   - linux
