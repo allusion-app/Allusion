@@ -2,11 +2,11 @@ language: node_js
 
 node_js: '10'
 
+env:
+  - YARN_GPG=no
+
 cache:
   yarn: true
-
-addons:
-  chrome: stable
 
 script:
   - yarn test
