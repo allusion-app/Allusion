@@ -14,9 +14,9 @@ script:
 
   - echo "Package app..."
   # 64-bit builds for the time being
-  - if [ $TRAVIS_BRANCH == "master" ] && [ $TRAVIS_OS_NAME == "linux" ]; then yarn package --platform=linux --arch=x64; fi
-  - if [ $TRAVIS_BRANCH == "master" ] && [ $TRAVIS_OS_NAME == "osx" ]; then yarn package:mac --platform=darwin --arch=x64; fi
-  - if [ $TRAVIS_BRANCH == "master" ] && [ $TRAVIS_OS_NAME == "windows" ]; then yarn package --platform=win32 --arch=x64; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then yarn package --platform=linux --arch=x64; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then yarn package:mac --platform=darwin --arch=x64; fi
+  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_OS_NAME" == "windows" ]; then yarn package --platform=win32 --arch=x64; fi
 
 os:
   - linux
@@ -25,7 +25,7 @@ os:
 
 before_deploy:
   # Create tag when no tag was added to the commit.
-  - if [ $TRAVIS_TAG == "" ];
+  - if [ "$TRAVIS_TAG" == "" ];
     then
       echo "Adding tag..."
       git config --local user.name hummingly;
@@ -34,7 +34,7 @@ before_deploy:
       git tag $TRAVIS_TAG;
     fi
   - echo "Compress build artifacts..."
-  - if [ $TRAVIS_OS_NAME == "windows" ];
+  - if [ "$TRAVIS_OS_NAME" == "windows" ];
     then
       7z a -ttar -so -an release | 7z a -si Allusion-${TRAVIS_OS_NAME}_x64-${TRAVIS_BUILD_NUMBER}.tar.gz;
     else
