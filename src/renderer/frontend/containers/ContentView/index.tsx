@@ -45,8 +45,6 @@ const QuickSearchList = observer(() => {
     }
   }, [uiStore.closeSearch, uiStore.hotkeyMap.closeSearch]);
 
-  console.log(queriedTags);
-
   return (
     <MultiTagSelector
       selectedTags={queriedTags}
@@ -75,11 +73,15 @@ const CriteriaList = observer(() => {
     }
   }, []);
 
+  // Open advanced search when clicking one of the criteria (but not their delete buttons)
   const handleTagClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).tagName === 'SPAN') {
       uiStore.toggleAdvancedSearch();
     }
   }, [uiStore]);
+
+  // Open advanced search when clicking the Input element (background)
+  const handleInputClick = useCallback(() => uiStore.toggleAdvancedSearch(), [uiStore]);
 
   return (
     <div id="criteria-list">
@@ -87,7 +89,7 @@ const CriteriaList = observer(() => {
         values={uiStore.searchCriteriaList.map((crit, i) => `${i + 1}: ${KeyLabelMap[crit.key]}`)}
         // rightElement={ClearButton}
         onRemove={handleRemove}
-        inputProps={{ disabled: true }}
+        inputProps={{ disabled: true, onMouseUp: handleInputClick }}
         onKeyDown={preventTyping}
         tagProps={{ minimal: true, intent: 'primary', onClick: handleTagClick, interactive: true }}
         fill
