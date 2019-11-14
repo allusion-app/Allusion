@@ -63,8 +63,10 @@ const QuickSearchList = observer(() => {
 const CriteriaList = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
-  const handleRemove = useCallback((_: string, index: number) =>
-    uiStore.removeSearchCriteria(uiStore.searchCriteriaList[index]), [uiStore]);
+  const handleRemove = useCallback((_: string, index: number) => {
+    uiStore.removeSearchCriteriaByIndex(index);
+    uiStore.searchByQuery();
+  }, [uiStore]);
 
   const preventTyping = useCallback((e: React.KeyboardEvent<HTMLElement>, i?: number) => {
     // If it's not an event on an existing Tag element, ignore it
