@@ -74,8 +74,10 @@ export const useWorkerListener = () => {
 
 // Moves all thumbnail files from one directory to another
 export const moveThumbnailDir = async (sourceDir: string, targetDir: string) => {
-  await fse.pathExists(sourceDir);
-  await fse.pathExists(targetDir);
+  if (!await fse.pathExists(sourceDir) || !await fse.pathExists(targetDir)) {
+    console.log('Source or target directory does not exist for moving thumbnails');
+    return;
+  }
 
   console.log('Moving thumbnails from ', sourceDir, ' to ', targetDir);
 

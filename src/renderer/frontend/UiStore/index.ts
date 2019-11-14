@@ -10,7 +10,6 @@ import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import View, { ViewMethod, ViewContent, ViewThumbnailSize } from './View';
 import {
-  IArraySearchCriteria,
   ClientBaseCriteria,
   ClientArraySearchCriteria,
 } from '../../entities/SearchCriteria';
@@ -455,6 +454,10 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
+  @action.bound openQuickSearch() {
+    this.isQuickSearchOpen = true;
+  }
+
   @action.bound async clearSearchCriteriaList() {
     this.searchCriteriaList.clear();
     this.viewAllContent();
@@ -467,6 +470,12 @@ class UiStore {
   }
 
   @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+    // Remove empty array criteria if it already exists before adding the new one
+    if (this.searchCriteriaList.length === 1 && this.searchCriteriaList[0].valueType === 'array') {
+      if ((this.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>).value.length === 0) {
+        this.searchCriteriaList.clear();
+      }
+    }
     this.searchCriteriaList.push(query);
     this.view.setContentQuery();
   }
@@ -480,24 +489,22 @@ class UiStore {
   }
 
   @action.bound addTagsToCriteria(ids: ID[]) {
-    this.addSearchCriteria({
-      key: 'tags',
-      valueType: 'array',
-      operator: 'contains',
-      value: ids,
-    } as IArraySearchCriteria<IFile>);
+    this.addSearchCriteria(new ClientArraySearchCriteria<IFile>('tags', ids));
+    this.openQuickSearch();
+    this.searchByQuery();
   }
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
-    this.searchCriteriaList.clear();
-    this.addTagsToCriteria(ids);
-    this.isQuickSearchOpen = true;
+    this.searchCriteriaList.replace([new ClientArraySearchCriteria<IFile>('tags', ids)]);
+    this.view.setContentQuery();
+    this.openQuickSearch();
+    this.searchByQuery();
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceCriteriaWithTags(this.tagSelection.toJS());
     this.searchByQuery();
-    this.isQuickSearchOpen = true;
+    this.openQuickSearch();
   }
 
   @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
@@ -525,6 +532,10 @@ class UiStore {
     this.rootStore.fileStore.fetchFilesByQuery();
     this.view.setContentQuery();
     this.cleanFileSelection();
+
+    if (this.isAdvancedSearchOpen) {
+      this.toggleAdvancedSearch();
+    }
   }
 
   @action.bound toggleTheme() {
