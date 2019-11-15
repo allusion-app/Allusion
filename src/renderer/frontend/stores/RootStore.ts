@@ -6,6 +6,7 @@ import TagCollectionStore from './TagCollectionStore';
 import { ipcRenderer } from 'electron';
 
 import { configure } from 'mobx';
+import CanvasStore from './CanvasStore';
 
 // This will throw exceptions whenver we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
@@ -26,6 +27,7 @@ class RootStore {
   public tagStore: TagStore;
   public tagCollectionStore: TagCollectionStore;
   public fileStore: FileStore;
+  public canvasStore: CanvasStore;
   public uiStore: UiStore;
 
   private backend: Backend;
@@ -35,6 +37,7 @@ class RootStore {
     this.tagStore = new TagStore(backend, this);
     this.tagCollectionStore = new TagCollectionStore(backend, this);
     this.fileStore = new FileStore(backend, this);
+    this.canvasStore = new CanvasStore(backend, this);
     this.uiStore = new UiStore(this);
 
     this.clearDatabase = this.clearDatabase.bind(this);
@@ -46,6 +49,7 @@ class RootStore {
       this.tagCollectionStore.init(),
       this.fileStore.init(autoLoadFiles),
     ]);
+    await this.canvasStore.init();
     // Upon loading data, initialize UI state.
     this.uiStore.init();
     ipcRenderer.send('initialized');

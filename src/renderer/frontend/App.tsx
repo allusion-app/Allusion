@@ -15,6 +15,7 @@ import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
 import ImageViewer from './components/ImageViewer';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { DragLayer } from './containers/Outliner/TagPanel';
+import Canvas from './Canvas';
 
 const SPLASH_SCREEN_TIME = 700;
 
@@ -53,11 +54,11 @@ const App = observer(() => {
 
             <Outliner />
 
-          <ContentView />
+            {uiStore.isCanvasOpen ? <Canvas /> : <ContentView />}
 
-          {uiStore.imageViewerFile ? (
-            <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.setImageViewer(null)} />
-          ) : <></>}
+            {uiStore.imageViewerFile ? (
+              <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.setImageViewer(null)} />
+            ) : <></>}
 
             <Inspector />
 

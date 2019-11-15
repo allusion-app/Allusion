@@ -119,7 +119,7 @@ export const GalleryItem = observer(({
 });
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
-  const { uiStore } = rootStore;
+  const { uiStore, canvasStore } = rootStore;
   const handleOpen = useCallback(() => shell.openItem(file.path), [file.path]);
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.path), [file.path]);
   const handleInspect = useCallback(() => {
@@ -130,11 +130,19 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
     }
   }, [file, uiStore]);
 
+  const handleAddToCanvas = useCallback(() => {
+    const contextItems = uiStore.fileSelection.includes(file.id)
+      ? uiStore.clientFileSelection
+      : [file];
+    canvasStore.addElements(contextItems);
+  }, [uiStore, canvasStore]);
+
   return (
     <Menu>
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
       <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
+      <MenuItem onClick={handleAddToCanvas} text="Add to canvas" icon="presentation" />
       <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
     </Menu>
   );

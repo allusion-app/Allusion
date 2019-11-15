@@ -240,6 +240,12 @@ const Toolbar = observer(() => {
             className="tooltip"
             data-right={Tooltip.Search}
           />
+          
+          <Button
+            icon="presentation"
+            onClick={uiStore.toggleCanvas}
+            intent={uiStore.isCanvasOpen ? 'primary' : 'none'}
+          />
         </ButtonGroup>
       </section>
 

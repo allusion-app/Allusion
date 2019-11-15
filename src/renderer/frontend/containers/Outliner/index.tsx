@@ -6,6 +6,7 @@ import StoreContext from '../../contexts/StoreContext';
 
 import ImportForm from './ImportForm';
 import TagPanel from './TagPanel';
+import { CanvasScenePanel } from '../../Canvas';
 
 const Outliner = () => {
   const rootStore = useContext(StoreContext);
@@ -20,6 +21,9 @@ const Outliner = () => {
       </>)}
 
       {uiStore.outlinerPage === 'TAGS' && (<TagPanel />)}
+
+      {uiStore.isCanvasOpen && (<CanvasScenePanel />)}
+
     </nav>
   );
 };

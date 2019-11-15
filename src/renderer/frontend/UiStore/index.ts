@@ -120,6 +120,7 @@ class UiStore {
   @observable isQuickSearchOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
   @observable imageViewerFile: ClientFile | null = null;
+  @observable isCanvasOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
@@ -210,6 +211,10 @@ class UiStore {
 
   @action.bound closePreviewWindow() {
     this.isPreviewOpen = false;
+  }
+
+  @action.bound toggleCanvas() {
+    this.isCanvasOpen = !this.isCanvasOpen;
   }
 
   @computed get clientFileSelection(): ClientFile[] {
