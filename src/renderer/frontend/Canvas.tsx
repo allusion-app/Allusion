@@ -176,11 +176,11 @@ const Canvas = () => {
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     console.log(e.key, e, e.keyCode)
-    if (e.key === 'delete' && selectedId) {
+    if (e.key === 'Delete' && selectedId) {
       setSelectedId(undefined);
       canvasStore.removeElement(canvasStore.elements.find((el) => el.imageId === selectedId)!);
     }
-  }, []);
+  }, [selectedId]);
 
   const handleContextMenu = useCallback((e: KonvaEventObject<MouseEvent>) => {
     const menu = <BackgroundContextMenu/>;
@@ -188,7 +188,11 @@ const Canvas = () => {
   }, []);
 
   return (
-    <div onKeyPress={handleKeyPress} tabIndex={2} ref={wrapperRef}>
+    <div
+      onKeyDown={handleKeyPress}
+      tabIndex={2}
+      ref={wrapperRef}
+    >
       <Stage
         width={window.innerWidth}
         height={window.innerHeight}
@@ -213,7 +217,7 @@ const Canvas = () => {
           ))}
 
           {/* Selection rect; shown when dragging on background */}
-          <Rect x={0} y={0} width={10} height={10} stroke="blue" strokeWidth={4} />
+          {/* <Rect x={0} y={0} width={10} height={10} stroke="blue" strokeWidth={4} /> */}
         </Layer>
       </Stage>
     </div>
