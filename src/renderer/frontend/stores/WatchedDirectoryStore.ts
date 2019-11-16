@@ -82,6 +82,9 @@ class WatchedDirectoryStore {
     // Search in backend for files that start with watchedDir.path
     // const filesToRemove = ...
 
+    // Remove locally
+    this.directoryList.remove(watchedDir);
+
     // Remove entity from DB through backend
     await this.backend.removeWatchedDirectory(watchedDir);
   }

@@ -4,6 +4,23 @@ import { Button, H4, Collapse, Icon } from '@blueprintjs/core';
 import { remote } from 'electron';
 import IconSet from '../../components/Icons';
 import Path from 'path';
+import { ClientWatchedDirectory } from '../../../entities/WatchedDirectory';
+import { observer } from 'mobx-react-lite';
+
+interface ILocationListItemProps {
+  dir: ClientWatchedDirectory;
+  onDelete: (id: string) => void;
+}
+
+const LocationListItem = ({ dir, onDelete }: ILocationListItemProps) => {
+  const handleDelete = useCallback(() => onDelete(dir.id), [dir.id]);
+  return (
+    <li>
+      <span className="ellipsis-left" title={dir.path}>{Path.basename(dir.path)}</span>
+      <Button icon="trash" onClick={handleDelete} />
+    </li>
+  );
+};
 
 const LocationsForm = () => {
 
@@ -45,10 +62,11 @@ const LocationsForm = () => {
         <ul id="watched-folders">
           {
             watchedDirectoryStore.directoryList.map((dir, i) => (
-              <li key={`${dir.path}-${i}`}>
-                <span className="ellipsis-left" title={dir.path}>{Path.basename(dir.path)}</span>
-                <Button icon="trash" />
-              </li>
+              <LocationListItem
+                key={`${dir.path}-${i}`}
+                dir={dir}
+                onDelete={watchedDirectoryStore.removeDirectory}
+              />
             ))
           }
         </ul>
@@ -57,4 +75,4 @@ const LocationsForm = () => {
   );
 };
 
-export default LocationsForm;
+export default observer(LocationsForm);
