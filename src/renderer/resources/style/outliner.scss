@@ -141,10 +141,11 @@ nav {
   }
 }
 
-.bp3-overlay .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button) {
+.bp3-overlay .bp3-button:not([class*="bp3-intent-"]):not(.bp3-dialog-close-button):not(.bp3-minimal) {
   background: $light-gray1-trans;
   color: $light-gray2;
 }
+
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
 #outliner-tags-header-wrapper {
