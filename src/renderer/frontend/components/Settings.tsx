@@ -10,6 +10,7 @@ import {
   RadioGroup,
   Radio,
   FormGroup,
+  KeyCombo,
 } from '@blueprintjs/core';
 import fse from 'fs-extra';
 
@@ -201,12 +202,8 @@ const Settings = observer(() => {
             Did you know there are hotkeys?
             <br />
             Press&nbsp;
-            <span className={Classes.KEY_COMBO}>
-              <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>Ctrl</span>
-              &nbsp;
-              <span className={Classes.KEY}>K</span>
-              &nbsp;to see them.
-            </span>
+            <KeyCombo combo="mod+k" />
+            &nbsp;to see them.
           </p>
         </Callout>
       </div>
