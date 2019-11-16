@@ -116,8 +116,9 @@ class CanvasStore {
 
   @action.bound async addElements(files: ClientFile[]) {
     this.elements.push(
-      ...files.map(
-        (file) => new ClientSceneElement(this, file.id, { x: 0, y: 0 }, 1, file)
+      ...files
+        .filter((file) => !this.elements.some((elem) => elem.imageId === file.id)) // no duplicates
+        .map((file) => new ClientSceneElement(this, file.id, { x: 0, y: 0 }, 1, file)
     ));
   }
 

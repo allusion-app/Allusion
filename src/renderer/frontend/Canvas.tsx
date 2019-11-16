@@ -2,7 +2,7 @@ import React, { useContext, useState, useCallback, useRef, useEffect } from 'rea
 import { observer } from 'mobx-react-lite';
 
 import Konva from 'konva';
-import { Stage, Layer, Image as KonvaImage, Transformer, Rect } from 'react-konva';
+import { Stage, Layer, Image as KonvaImage, Transformer } from 'react-konva';
 import { KonvaEventObject } from 'konva/types/Node';
 import useImage from 'use-image';
 
