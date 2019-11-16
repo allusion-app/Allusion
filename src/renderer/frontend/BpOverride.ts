@@ -11,4 +11,4 @@ Popover.prototype.getPopperModifiers = function() {
   // Todo: Could detect if user is zoomed in or out when applying this, but won't matter much
   mods.computeStyle = { ...mods.computeStyle, gpuAcceleration: false };
   return mods;
-}
+};
