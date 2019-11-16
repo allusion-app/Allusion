@@ -16,10 +16,11 @@ const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
 
   const tagCrit = uiStore.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>;
+  const tags = tagCrit.value.toJS();
 
   const queriedTags = useMemo(
-    () => tagCrit.value.map((id) => tagStore.tagList.find((t) => t.id === id) as ClientTag),
-    [tagCrit.value, tagStore.tagList]);
+    () => tags.map((id) => tagStore.tagList.find((t) => t.id === id)).filter((t) => t !== undefined) as ClientTag[],
+    [tags, tagStore.tagList]);
 
   const handleSelectTag = useCallback((tag: ClientTag) => {
     tagCrit.addID(tag.id);
@@ -62,8 +63,10 @@ const QuickSearchList = observer(() => {
 const CriteriaList = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
-  const handleRemove = useCallback((_: string, index: number) =>
-    uiStore.removeSearchCriteria(uiStore.searchCriteriaList[index]), [uiStore]);
+  const handleRemove = useCallback((_: string, index: number) => {
+    uiStore.removeSearchCriteriaByIndex(index);
+    uiStore.searchByQuery();
+  }, [uiStore]);
 
   const preventTyping = useCallback((e: React.KeyboardEvent<HTMLElement>, i?: number) => {
     // If it's not an event on an existing Tag element, ignore it
@@ -72,11 +75,15 @@ const CriteriaList = observer(() => {
     }
   }, []);
 
+  // Open advanced search when clicking one of the criteria (but not their delete buttons)
   const handleTagClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).tagName === 'SPAN') {
       uiStore.toggleAdvancedSearch();
     }
   }, [uiStore]);
+
+  // Open advanced search when clicking the Input element (background)
+  const handleInputClick = useCallback(() => uiStore.toggleAdvancedSearch(), [uiStore]);
 
   return (
     <div id="criteria-list">
@@ -84,7 +91,7 @@ const CriteriaList = observer(() => {
         values={uiStore.searchCriteriaList.map((crit, i) => `${i + 1}: ${KeyLabelMap[crit.key]}`)}
         // rightElement={ClearButton}
         onRemove={handleRemove}
-        inputProps={{ disabled: true }}
+        inputProps={{ disabled: true, onMouseUp: handleInputClick }}
         onKeyDown={preventTyping}
         tagProps={{ minimal: true, intent: 'primary', onClick: handleTagClick, interactive: true }}
         fill
