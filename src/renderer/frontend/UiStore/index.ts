@@ -159,6 +159,10 @@ class UiStore {
   }
 
   @action.bound openPreviewWindow() {
+    // Don't open when no files have been selected
+    if (this.fileSelection.length === 0) {
+      return;
+    }
     ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS(), this.thumbnailDirectory);
     this.isPreviewOpen = true;
 
