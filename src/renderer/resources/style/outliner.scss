@@ -298,6 +298,9 @@ nav .bp3-tree {
     > span {
       width: calc(100% - 30px);
       display: inline-block;
+      height: 30px;
+      display: flex;
+      align-items: center;
     }
   }
 }

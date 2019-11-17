@@ -3,7 +3,7 @@ import { IReactionDisposer, reaction } from 'mobx';
 import WatchedDirectoryStore from '../frontend/stores/WatchedDirectoryStore';
 import chokidar, { FSWatcher } from 'chokidar';
 import { RECURSIVE_DIR_WATCH_DEPTH } from '../../config';
-import { showToastDebounced } from '../frontend/App';
+import { AppToaster } from '../frontend/App';
 import { IMG_EXTENSIONS } from './File';
 
 export interface IWatchedDirectory extends IIdentifiable {
@@ -89,7 +89,7 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
             if (this.isReady) {
               console.log(`File ${path} has been added after initialization`);
 
-              showToastDebounced({
+              AppToaster.show({
                 message: 'New images have been detected.',
                 intent: 'primary',
                 action: {
@@ -97,10 +97,10 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
                   icon: 'refresh',
                   onClick: this.store.rootStore.uiStore.refetch,
                 },
-              });
+              }, 'refresh');
 
               // Add to backend
-              this.store.backend.createFilesFromPath(path, [await this.store.pathToIFile(path)])
+              this.store.backend.createFilesFromPath(path, [await this.store.pathToIFile(path)]);
             } else {
               initialFiles.push(path);
             }

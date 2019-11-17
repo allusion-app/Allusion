@@ -166,8 +166,6 @@ const ImportForm = observer(() => {
   const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), []);
   const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), []);
 
-
-
   return (
     <div id="import">
       <Button

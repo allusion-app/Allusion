@@ -420,6 +420,12 @@ main {
   transition: color 0.2s ease;
 }
 
+.ellipsis {
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .ellipsis-left {
   white-space: nowrap; 
   overflow: hidden;

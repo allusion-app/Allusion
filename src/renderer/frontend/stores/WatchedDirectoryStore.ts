@@ -34,7 +34,7 @@ class WatchedDirectoryStore {
         const dir = clientDirs[i];
         const tagsToAdd = dir.tagToAdd ? [dir.tagToAdd] : [];
         return Promise.all(
-          paths.map(async (path) => this.pathToIFile(path, tagsToAdd)
+          paths.map(async (path) => this.pathToIFile(path, tagsToAdd),
         ));
       }),
     );
