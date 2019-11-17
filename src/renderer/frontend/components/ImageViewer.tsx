@@ -43,7 +43,7 @@ const ImageViewer = ({ file, onClose }: IImageViewerProps) => {
         height: imageEl.current.naturalHeight,
       });
     }
-  }, [imageEl.current]);
+  }, []);
 
   const isZoomable = imageEl.current && checkIfZoomable(naturalDimensions);
   const viewDimensions = isZoomable ? getFitDimensions(naturalDimensions) : naturalDimensions;
@@ -66,7 +66,7 @@ const ImageViewer = ({ file, onClose }: IImageViewerProps) => {
     if (natHeight > clientHeight) { height -= (e.clientY / clientHeight - 0.5) * zoomOffsetHeight; }
 
     setTransform('translate(' + width + '%, ' + height + '%)');
-  }, [file, naturalDimensions, viewDimensions]);
+  }, [naturalDimensions]);
 
   const toggleZooming = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -76,7 +76,7 @@ const ImageViewer = ({ file, onClose }: IImageViewerProps) => {
     }
   };
 
-  const hideOnEscape = useCallback((e: KeyboardEvent) => e.keyCode === 27 && onClose(), []);
+  const hideOnEscape = useCallback((e: KeyboardEvent) => e.keyCode === 27 && onClose(), [onClose]);
 
   useEffect(() => {
     document.addEventListener('keydown', hideOnEscape);

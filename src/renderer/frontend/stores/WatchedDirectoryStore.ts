@@ -18,7 +18,7 @@ class WatchedDirectoryStore {
   }
 
   @action.bound
-  async init(autoScan: boolean) {
+  async init() {
     // Get dirs from backend
     const dirs = await this.backend.getWatchedDirectories('dateAdded',  'DESC');
 

@@ -188,7 +188,11 @@ const TagCollectionContextMenu = ({
         icon={IconSet.DELETE}
         disabled={!onRemove}
       />
-      <ColorPickerMenu selectedColor={collection.color} onChange={handleSetColor} contextText={contextText} />
+      <ColorPickerMenu
+        selectedColor={collection.color}
+        onChange={handleSetColor}
+        contextText={contextText}
+      />
       <Divider />
       <MenuItem onClick={onExpandAll} text="Expand" icon={IconSet.ITEM_EXPAND} />
       <MenuItem onClick={onCollapseAll} text="Collapse" icon={IconSet.ITEM_COLLAPS} />
@@ -231,7 +235,11 @@ const TagContextMenu = ({
     <Menu>
       <MenuItem onClick={enableEditing} text="Rename" icon={IconSet.EDIT} />
       <MenuItem onClick={onRemove} text={`Delete${contextText}`} icon={IconSet.DELETE} />
-      <ColorPickerMenu selectedColor={tag.color} onChange={handleSetColor} contextText={contextText} />
+      <ColorPickerMenu
+        selectedColor={tag.color}
+        onChange={handleSetColor}
+        contextText={contextText}
+      />
       <Divider />
       <MenuItem onClick={onAddSelectionToQuery} text="Add to Search Query" icon={IconSet.SEARCH} />
       <MenuItem onClick={onReplaceQuery} text="Replace Search Query" icon={IconSet.REPLACE} />
@@ -265,46 +273,47 @@ interface IColorPickerMenuProps {
   contextText: string;
 }
 
-export const ColorPickerMenu = observer(({ selectedColor, onChange, contextText }: IColorPickerMenuProps) => {
-  const defaultColor = '#007af5';
-  const handlePickCustomColor = useCallback((res: ColorResult) => {
-    onChange(res.hex);
-  }, [onChange]);
-  return (
-    <MenuItem
-      text={`Color${contextText}`}
-      icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
-    >
-      {defaultColorOptions.map(({ label, value }) => (
-        <MenuItem
-          key={label}
-          text={label}
-          onClick={() => onChange(value)}
-          icon={
-            <Icon
-              icon={selectedColor === value ? 'tick-circle' : (value ? 'full-circle' : 'circle')}
-              color={value || defaultColor}
-            />
-          }
-        />
-      ))}
+export const ColorPickerMenu = observer(
+  ({ selectedColor, onChange, contextText }: IColorPickerMenuProps) => {
+    const defaultColor = '#007af5';
+    const handlePickCustomColor = useCallback(
+      (res: ColorResult) => {
+        onChange(res.hex);
+      },
+      [onChange],
+    );
+    return (
       <MenuItem
-        text="Custom"
-        icon={IconSet.COLOR}
+        text={`Color${contextText}`}
+        icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
       >
-        <SketchPicker
-          color={selectedColor || defaultColor}
-          onChangeComplete={handlePickCustomColor}
-          disableAlpha
-          presetColors={defaultColorOptions
-            .filter((opt) => Boolean(opt.value))
-            .map((opt) => opt.value)}
-        />
+        {defaultColorOptions.map(({ label, value }) => (
+          <MenuItem
+            key={label}
+            text={label}
+            onClick={() => onChange(value)}
+            icon={
+              <Icon
+                icon={selectedColor === value ? 'tick-circle' : value ? 'full-circle' : 'circle'}
+                color={value || defaultColor}
+              />
+            }
+          />
+        ))}
+        <MenuItem text="Custom" icon={IconSet.COLOR}>
+          <SketchPicker
+            color={selectedColor || defaultColor}
+            onChangeComplete={handlePickCustomColor}
+            disableAlpha
+            presetColors={defaultColorOptions
+              .filter((opt) => Boolean(opt.value))
+              .map((opt) => opt.value)}
+          />
+        </MenuItem>
       </MenuItem>
-    </MenuItem>
-
-  );
-});
+    );
+  },
+);
 
 const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   const { uiStore, tagCollectionStore, tagStore } = rootStore;
@@ -325,13 +334,13 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     if (tagCollectionStore.getRootCollection().subCollections.length === 1) {
       setExpandState({ [tagCollectionStore.getRootCollection().subCollections[0]]: true });
     }
-  }, []);
+  }, [tagCollectionStore]);
 
   /**
    * Creates tag tree by mapping collections and tags of root collection to the appropriate
    * components and adds a context menu to each node.
    */
-  const createTree = (): Array<ITreeNode<INodeData>> => {
+  const createTree = useCallback((): Array<ITreeNode<INodeData>> => {
     if (root.isEmpty) {
       return [{ label: <i>No tags or collections created yet</i>, id: 'placeholder' }];
     }
@@ -346,6 +355,59 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
       } else {
         setEditNode(undefined);
       }
+    };
+
+    const createTags = (col: ClientTagCollection): Array<ITreeNode<INodeData>> => {
+      return col.clientTags.map(
+        (tag): ITreeNode<INodeData> => {
+          const ContextMenu = () => {
+            const contextItems = uiStore.getTagContextItems(tag.id);
+            return (
+              <TagContextMenu
+                tag={tag}
+                enableEditing={() => setEditNode({ id: tag.id, kind: DragAndDropType.Tag })}
+                onRemove={() =>
+                  uiStore.openOutlinerTagRemover(tag.isSelected ? 'selected' : tag.id)
+                }
+                onAddSelectionToQuery={() =>
+                  uiStore.addTagsToCriteria(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
+                }
+                onReplaceQuery={() =>
+                  uiStore.replaceCriteriaWithTags(
+                    tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id],
+                  )
+                }
+                numColsInContext={contextItems.collections.length}
+                numTagsInContext={Math.max(0, contextItems.tags.length - 1)}
+                onChangeColor={(_, color) => uiStore.colorSelectedTagsAndCollections(tag.id, color)}
+              />
+            );
+          };
+
+          return {
+            id: tag.id,
+            icon: <span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>,
+            isSelected: tag.isSelected,
+            label: (
+              <TreeLeaf
+                id={tag.id}
+                name={tag.name}
+                leaf={DragAndDropType.Tag}
+                onDropLeaf={(item) => uiStore.moveTag(item.id, col)}
+                onDropHover={() => undefined}
+                onDropSelection={() => uiStore.moveSelectedTagItems(col.id)}
+                isSelected={tag.isSelected}
+                isEditing={isEditMode(tag.id, DragAndDropType.Tag)}
+                setEditing={(editing) => setEditMode(tag.id, DragAndDropType.Tag, editing)}
+                render={(props) => (
+                  <TagItem tag={tag} isEditing={props.isEditing} setEditing={props.setEditing} />
+                )}
+              />
+            ),
+            nodeData: { type: DragAndDropType.Tag, contextMenu: <ContextMenu /> },
+          };
+        },
+      );
     };
 
     const createCollection = (col: ClientTagCollection): ITreeNode<INodeData> => {
@@ -485,59 +547,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
       };
     };
 
-    const createTags = (col: ClientTagCollection): Array<ITreeNode<INodeData>> => {
-      return col.clientTags.map(
-        (tag): ITreeNode<INodeData> => {
-          const ContextMenu = () => {
-            const contextItems = uiStore.getTagContextItems(tag.id);
-            return (
-              <TagContextMenu
-                tag={tag}
-                enableEditing={() => setEditNode({ id: tag.id, kind: DragAndDropType.Tag })}
-                onRemove={() =>
-                  uiStore.openOutlinerTagRemover(tag.isSelected ? 'selected' : tag.id)
-                }
-                onAddSelectionToQuery={() =>
-                  uiStore.addTagsToCriteria(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
-                }
-                onReplaceQuery={() =>
-                  uiStore.replaceCriteriaWithTags(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
-                }
-                numColsInContext={contextItems.collections.length}
-                numTagsInContext={Math.max(0, contextItems.tags.length - 1)}
-                onChangeColor={(_, color) => uiStore.colorSelectedTagsAndCollections(tag.id, color)}
-              />
-            );
-          };
-
-          return {
-            id: tag.id,
-            icon: <span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>,
-            isSelected: tag.isSelected,
-            label: (
-              <TreeLeaf
-                id={tag.id}
-                name={tag.name}
-                leaf={DragAndDropType.Tag}
-                onDropLeaf={(item) => uiStore.moveTag(item.id, col)}
-                onDropHover={() => undefined}
-                onDropSelection={() => uiStore.moveSelectedTagItems(col.id)}
-                isSelected={tag.isSelected}
-                isEditing={isEditMode(tag.id, DragAndDropType.Tag)}
-                setEditing={(editing) => setEditMode(tag.id, DragAndDropType.Tag, editing)}
-                render={(props) => (
-                  <TagItem tag={tag} isEditing={props.isEditing} setEditing={props.setEditing} />
-                )}
-              />
-            ),
-            nodeData: { type: DragAndDropType.Tag, contextMenu: <ContextMenu /> },
-          };
-        },
-      );
-    };
-
     return [...root.clientSubCollections.map((c) => createCollection(c)), ...createTags(root)];
-  };
+  }, [editNode, expandState, root, tagCollectionStore, tagStore, uiStore]);
 
   const handleRootAddTag = useCallback(() => {
     tagStore
@@ -547,14 +558,14 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         setEditNode({ id: tag.id, kind: DragAndDropType.Tag });
       })
       .catch((err) => console.log('Could not create tag', err));
-  }, []);
+  }, [root, tagStore]);
 
   const handleAddRootCollection = useCallback(() => {
     tagCollectionStore
       .addTagCollection(DEFAULT_COLLECTION_NAME, root)
       .then((col) => setEditNode({ id: col.id, kind: DragAndDropType.Collection }))
       .catch((err) => console.log('Could not create collection', err));
-  }, []);
+  }, [root, tagCollectionStore]);
 
   const handleRootDrop = useCallback((monitor) => {
     const item: IDragAndDropItem = monitor.getItem();
@@ -572,7 +583,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
       default:
         break;
     }
-  }, []);
+  }, [root, uiStore]);
 
   const handleOnContextMenu = (node: ITreeNode<INodeData>): JSX.Element => {
     if (node.nodeData) {
@@ -588,7 +599,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           ? [{ label: <i>No tags or collections created yet</i>, id: 'placeholder' }]
           : createTree(),
       ),
-    [root, expandState, editNode],
+    [root.isEmpty, createTree],
   );
 
   /** Allow dropping tags on header and background to move them to the root of the hierarchy */

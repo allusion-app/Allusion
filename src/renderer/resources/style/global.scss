@@ -95,6 +95,10 @@ main {
   outline: none !important;
   // background: rgba(255, 255, 255, 0.05) !important;
 }
+// Don't allow images to be dragged from within the app
+img {
+  -webkit-user-drag: none;
+}
 
 // Custom scrollbar style
 ::-webkit-scrollbar {
@@ -342,20 +346,27 @@ main {
 .custom-icon * {
   fill: currentColor;
 }
-
+.bp3-overlay-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .drop-overlay-content {
-  top: 0;
-  left: calc(50vw - 200px);
-  margin: 10vh 0;
+  // top: 0;
+  // left: calc(50vw - 200px);
+  margin: auto calc(50% - 200px);
+  // margin: 15vh 0;
   width: 400px;
-  position: absolute;
+  // position: absolute;
+  padding: 20px !important;
 
   .quick-tags {
     text-align: center;
+    margin-top: 20px !important;
   }
 }
 
-.custom-icon {
+.bp3-tree-node-content .custom-icon {
   color: inherit !important;
 }
 
@@ -385,24 +396,24 @@ main {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: #181818db;
   z-index: 1001;
+  cursor: url(../renderer/resources/icons/close_24x.png), auto;
 
   #fullImage {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-
-    box-shadow: 0 0 128px black;
-
+    box-shadow: 0 0 128px rgba(0, 0, 0, 0.5);
     background-color: rgba(1, 1, 1, 0.5);
-
     transition: width 0.1s ease-in-out, height 0.1s ease-in-out;
   }
 
   .zoomIn {
     cursor: zoom-in;
+    width: auto;
+    height: calc(100vh - 6rem);
   }
 
   .zoomOut {

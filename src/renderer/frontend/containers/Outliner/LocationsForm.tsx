@@ -48,7 +48,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
           <div className="bp3-dark" id="deleteFile">
             <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
             <p>
-              Remove "{Path.basename(dir.path)}" from your locations?
+              Remove {`"${Path.basename(dir.path)}"`} from your locations?
               <br />
               This will also remove its files from your library.
             </p>
@@ -93,9 +93,11 @@ const LocationsForm = () => {
       return;
     }
     watchedDirectoryStore.addDirectory({ path: dirs[0], recursive: true });
-  }, []);
+  }, [watchedDirectoryStore]);
 
-  const toggleLocations = useCallback(() => setCollapsed(!isCollapsed), [isCollapsed, setCollapsed]);
+  const toggleLocations = useCallback(
+    () => setCollapsed(!isCollapsed),
+    [isCollapsed, setCollapsed]);
 
   const addToSearch = useCallback((path: string) => {
     uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('path', path, 'contains'));
@@ -106,7 +108,7 @@ const LocationsForm = () => {
   const replaceSearch = useCallback((path: string) => {
     uiStore.clearSearchCriteriaList();
     addToSearch(path);
-  }, [uiStore]);
+  }, [uiStore, addToSearch]);
 
   return (
    <div>

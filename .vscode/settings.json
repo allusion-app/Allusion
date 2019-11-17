@@ -1,0 +1,6 @@
+{
+  "eslint.validate": [
+    "typescript",
+    "typescriptreact"
+  ]
+}

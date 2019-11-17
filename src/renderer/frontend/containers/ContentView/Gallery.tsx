@@ -70,7 +70,7 @@ const GridGallery = observer(
           columnIndex: 0,
         });
       }
-    }, [numColumns, numRows],
+    }, [numColumns],
   );
 
   // Scroll to a file when selecting it
@@ -79,12 +79,12 @@ const GridGallery = observer(
     if (firstSelectedFile) {
       handleScrollTo(uiStore.rootStore.fileStore.fileList.findIndex((f) => f.id === firstSelectedFile));
     }
-  }, [firstSelectedFile, handleScrollTo]);
+  }, [firstSelectedFile, handleScrollTo, uiStore.rootStore.fileStore.fileList]);
 
   // Store what the first item in view is in the UiStore
   const handleScroll = useCallback(
     ({ scrollTop }: GridOnScrollProps) => uiStore.view.setFirstItem(numColumns * Math.round(scrollTop / cellSize)),
-    [cellSize, numColumns]);
+    [cellSize, numColumns, uiStore.view]);
 
   /** Generates a unique key for an element in the grid */
   const handleItemKey: GridItemKeySelector = useCallback(
@@ -92,7 +92,7 @@ const GridGallery = observer(
       const itemIndex = rowIndex * numColumns + columnIndex;
       const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
       return `${rowIndex}-${columnIndex}-${file ? file.id : ''}`;
-  }, []);
+  }, [fileList, numColumns]);
 
   const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
     ({ columnIndex, rowIndex, style }) => {
@@ -117,7 +117,7 @@ const GridGallery = observer(
         </div>
       );
     },
-    [numColumns],
+    [fileList, handleClick, handleDrop, numColumns, uiStore.fileSelection],
   );
   return (
     <FixedSizeGrid
@@ -156,19 +156,19 @@ const ListGallery = observer(
     if (firstSelectedFile) {
       handleScrollTo(uiStore.rootStore.fileStore.fileList.findIndex((f) => f.id === firstSelectedFile));
     }
-  }, [firstSelectedFile, handleScrollTo]);
+  }, [firstSelectedFile, handleScrollTo, uiStore.rootStore.fileStore.fileList]);
 
   // Store what the first item in view is in the UiStore
   const handleScroll = useCallback(
     ({ scrollOffset }: ListOnScrollProps) => uiStore.view.setFirstItem(Math.round(scrollOffset / cellSize)),
-    [cellSize]);
+    [cellSize, uiStore.view]);
 
   /** Generates a unique key for an element in the grid */
   const handleItemKey: ListItemKeySelector = useCallback(
     (index) => {
       const file = index < fileList.length ? fileList[index] : null;
       return `${index}-${file ? file.id : ''}`;
-  }, []);
+  }, [fileList]);
 
   const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
     ({ index, style }) => {
@@ -194,7 +194,7 @@ const ListGallery = observer(
         </div>
       );
     },
-    [],
+    [fileList, handleClick, handleDrop, uiStore.fileSelection],
   );
 
   return (
@@ -235,27 +235,26 @@ const SlideGallery = observer(
       if (uiStore.fileSelection.length > 0) {
         uiStore.view.setFirstItem(fileList.findIndex((f) => f.id === uiStore.fileSelection[0]));
       }
-    }, []);
+    }, [fileList, uiStore.fileSelection, uiStore.view]);
 
     // Automatically select the active image, so it is shown in the inspector
     useEffect(
       () => {
         if (uiStore.view.firstItem < fileList.length) {
-          uiStore.deselectAllFiles();
-          uiStore.selectFile(fileList[uiStore.view.firstItem]);
+          uiStore.selectFile(fileList[uiStore.view.firstItem], true);
         }
       },
-      [uiStore.view.firstItem],
+      [fileList, uiStore, uiStore.view.firstItem],
     );
 
     const incrImgIndex = useCallback(
       () => uiStore.view.setFirstItem(Math.max(0, uiStore.view.firstItem - 1)),
-      [uiStore.view.firstItem],
+      [uiStore.view],
     );
     const decrImgIndex = useCallback(
       () =>
         uiStore.view.setFirstItem(Math.min(uiStore.view.firstItem + 1, fileList.length - 1)),
-      [fileList.length, uiStore.view.firstItem],
+      [fileList.length, uiStore.view],
     );
 
     // Detect left/right arrow keys to scroll between images
@@ -318,14 +317,12 @@ const SlideGallery = observer(
   },
 );
 
-interface IGalleryProps extends IRootStoreProp {}
-
 const Gallery = ({
   rootStore: {
     uiStore,
     fileStore: { fileList },
   },
-}: IGalleryProps) => {
+}: IRootStoreProp) => {
   const [contentHeight, setContentHeight] = useState(1); // window.innerWidth
   const [contentWidth, setContentWidth] = useState(1); // window.innerWidth
   const handleResize = useCallback((entries: IResizeEntry[]) => {
@@ -341,7 +338,7 @@ const Gallery = ({
 
   const selectionModeOn = uiStore.fileSelection.length > 0;
 
-  const handleBackgroundClick = useCallback(() => uiStore.clearFileSelection(), []);
+  const handleBackgroundClick = useCallback(() => uiStore.clearFileSelection(), [uiStore]);
 
   const handleDrop = useCallback(
     (item: any, file: ClientFile) => {
@@ -352,7 +349,7 @@ const Gallery = ({
         ...ctx.collections.flatMap((col) => col.getTagsRecursively()),
       ];
       allContextTags.forEach(file.addTag);
-    }, []);
+    }, [uiStore]);
 
   // Todo: Move selection logic to a custom hook
   const handleItemClick = useCallback(
@@ -389,7 +386,7 @@ const Gallery = ({
       }
       lastSelectionIndex.current = i;
     },
-    [],
+    [fileList, uiStore],
   );
 
   useEffect(() => {
@@ -418,7 +415,7 @@ const Gallery = ({
 
     window.addEventListener('keydown', throttledKeyDown);
     return () => window.removeEventListener('keydown', throttledKeyDown);
-  }, []);
+  }, [fileList, uiStore]);
 
   // Todo: Select by dragging a rectangle shape
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
@@ -430,7 +427,7 @@ const Gallery = ({
     let description = 'Import some images to get started!';
     let action =
       <Button onClick={uiStore.openOutlinerImport} text="Open import panel" intent="primary" icon={IconSet.ADD} />;
-    if (uiStore.view.content === 'query') {
+    if (uiStore.view.showsQueryContent) {
       description = 'Try searching for something else.';
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       title = 'No images found';
@@ -441,7 +438,7 @@ const Gallery = ({
           <Button text="Search" icon={IconSet.SEARCH} onClick={uiStore.openSearch} intent="primary" />
         </ButtonGroup>
       );
-    } else if (uiStore.view.content === 'untagged') {
+    } else if (uiStore.view.showsUntaggedContent) {
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       description = 'All images have been tagged. Nice work!';
       title = 'No untagged images';

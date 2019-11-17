@@ -33,6 +33,24 @@ const chooseFiles = async (fileStore: FileStore) => {
   });
 };
 
+const findFiles = async (dir: string) => {
+  // ignore 'dot' directories
+  if (path.basename(dir).startsWith('.')) {
+    return [];
+  }
+
+  const filenames = await fse.readdir(dir);
+  return filenames.filter((f) => {
+    // No 'dot' files (e.g. ".image.jpg" (looking at you, MAC))
+    const file = f.toLowerCase();
+    if (file.startsWith('.')) {
+      return false;
+    }
+    // Only add image files
+    return IMG_EXTENSIONS.some((ext) => file.endsWith(ext));
+  });
+};
+
 const chooseDirectories = async (fileStore: FileStore) => {
   const dirs = remote.dialog.showOpenDialog({
     properties: ['openDirectory', 'multiSelections'],
@@ -52,20 +70,37 @@ const chooseDirectories = async (fileStore: FileStore) => {
   });
 };
 
-/** Opens a folder picker and adds all files and sub-directories to the library */
-const chooseFolderStructure = async (rootStore: RootStore) => {
-  const dirs = remote.dialog.showOpenDialog({
-    properties: ['openDirectory'],
-  });
+const importDir = async (fileStore: FileStore, dir: string) => {
+  // Todo: Also skip hidden directories?
+  // Todo: Put a limit on the amount of recursive levels in case someone adds their entire disk?
+  const imgFileNames = await findFiles(dir);
 
-  // multi-selection is disabled which means there can be at most 1 folder
-  if (!dirs || dirs.length === 0) {
-    return;
+  return await Promise.all(
+    imgFileNames.map((filename) => {
+      const joinedPath = path.join(dir, filename);
+      return fileStore.addFile(joinedPath);
+    }),
+  );
+};
+
+const importAndTagDir = async (
+  fileStore: FileStore,
+  dir: string,
+  tagStore: TagStore,
+  parent: ClientTagCollection,
+) => {
+  const addedFiles = await importDir(fileStore, dir);
+
+  // Automatically add files in this folder to a tag with the name of the folder
+  if (addedFiles.length > 0) {
+    const folderName = path.basename(dir);
+    // Create tag for this directory
+    const tag = await tagStore.addTag(folderName);
+    // Add tag to collection
+    parent.addTag(tag.id);
+    // Add tag to files
+    addedFiles.forEach((f) => f.addTag(tag.id));
   }
-  // Add new collections to the root collection
-  const root = rootStore.tagCollectionStore.getRootCollection();
-  // Initiate recursive call
-  await importDirRecursive(rootStore, dirs[0], root);
 };
 
 /** Recursively adds a directory and its files to the library */
@@ -97,55 +132,20 @@ const importDirRecursive = async (
   }
 };
 
-const importAndTagDir = async (
-  fileStore: FileStore,
-  dir: string,
-  tagStore: TagStore,
-  parent: ClientTagCollection,
-) => {
-  const addedFiles = await importDir(fileStore, dir);
-
-  // Automatically add files in this folder to a tag with the name of the folder
-  if (addedFiles.length > 0) {
-    const folderName = path.basename(dir);
-    // Create tag for this directory
-    const tag = await tagStore.addTag(folderName);
-    // Add tag to collection
-    parent.addTag(tag.id);
-    // Add tag to files
-    addedFiles.forEach((f) => f.addTag(tag.id));
-  }
-};
-
-const importDir = async (fileStore: FileStore, dir: string) => {
-  // Todo: Also skip hidden directories?
-  // Todo: Put a limit on the amount of recursive levels in case someone adds their entire disk?
-  const imgFileNames = await findFiles(dir);
-
-  return await Promise.all(
-    imgFileNames.map((filename) => {
-      const joinedPath = path.join(dir, filename);
-      return fileStore.addFile(joinedPath);
-    }),
-  );
-};
-
-const findFiles = async (dir: string) => {
-  // ignore 'dot' directories
-  if (path.basename(dir).startsWith('.')) {
-    return [];
-  }
-
-  const filenames = await fse.readdir(dir);
-  return filenames.filter((f) => {
-    // No 'dot' files (e.g. ".image.jpg" (looking at you, MAC))
-    const file = f.toLowerCase();
-    if (file.startsWith('.')) {
-      return false;
-    }
-    // Only add image files
-    return IMG_EXTENSIONS.some((ext) => file.endsWith(ext));
+/** Opens a folder picker and adds all files and sub-directories to the library */
+const chooseFolderStructure = async (rootStore: RootStore) => {
+  const dirs = remote.dialog.showOpenDialog({
+    properties: ['openDirectory'],
   });
+
+  // multi-selection is disabled which means there can be at most 1 folder
+  if (!dirs || dirs.length === 0) {
+    return;
+  }
+  // Add new collections to the root collection
+  const root = rootStore.tagCollectionStore.getRootCollection();
+  // Initiate recursive call
+  await importDirRecursive(rootStore, dirs[0], root);
 };
 
 // Tooltip info for imports
@@ -162,9 +162,9 @@ const ImportForm = observer(() => {
 
   const rootStore = useContext(StoreContext);
 
-  const handleChooseFiles = useCallback(() => chooseFiles(rootStore.fileStore), []);
-  const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), []);
-  const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), []);
+  const handleChooseFiles = useCallback(() => chooseFiles(rootStore.fileStore), [rootStore.fileStore]);
+  const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), [rootStore.fileStore]);
+  const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), [rootStore]);
 
   return (
     <div id="import">
