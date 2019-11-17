@@ -123,7 +123,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
         return newClientTag.id;
       }
     }));
-    clientFile.tags.push(...tagIds);
+    tagIds.forEach((t) => clientFile.addTag(t));
   } else {
     console.error('Could not find image to set tags for', filePath);
   }
