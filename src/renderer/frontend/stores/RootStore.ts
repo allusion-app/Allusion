@@ -48,7 +48,7 @@ class RootStore {
       this.tagStore.init(),
       this.tagCollectionStore.init(),
       this.fileStore.init(autoLoadFiles),
-      this.watchedDirectoryStore.init(true),
+      this.watchedDirectoryStore.init(),
     ]);
     // Upon loading data, initialize UI state.
     this.uiStore.init();
