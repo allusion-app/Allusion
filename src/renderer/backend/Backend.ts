@@ -5,7 +5,7 @@ import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 import { IWatchedDirectory } from '../entities/WatchedDirectory';
-import { SearchCriteria } from '../entities/SearchCriteria';
+import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -165,13 +165,15 @@ export default class Backend {
   // Creates many files at once, and checks for duplicates in the path they are in
   async createFilesFromPath(path: string, files: IFile[]) {
     console.log('Backend: Creating files...', path, files);
-    // Todo: Search for file paths that start with 'path'
-    // const query: IStringSearchCriteria = {
-
-    // }
-    // this.fileRepository.find({ })
-    const existingFilesInPath: IFile[] = [];
-    const newFiles = files.filter((file) => existingFilesInPath.some((f) => f.path === file.path));
+    // Search for file paths that start with 'path', so those can be filtered out
+    const criteria: IStringSearchCriteria<IFile> = {
+      valueType: 'string',
+      operator: 'contains', // Fixme: should be startWith, but doesn't work for some reason :/ 'path' is not an index for 'files' collection?!
+      key: 'path',
+      value: path,
+    };
+    const existingFilesInPath: IFile[] = await this.fileRepository.find({ criteria });
+    const newFiles = files.filter((file) => !existingFilesInPath.some((f) => f.path === file.path));
     return this.fileRepository.createMany(newFiles);
   }
 

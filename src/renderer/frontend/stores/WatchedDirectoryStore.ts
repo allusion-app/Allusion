@@ -34,13 +34,7 @@ class WatchedDirectoryStore {
         const dir = clientDirs[i];
         const tagsToAdd = dir.tagToAdd ? [dir.tagToAdd] : [];
         return Promise.all(
-          paths.map(async (path): Promise<IFile> => ({
-            path,
-            id: generateId(),
-            tags: tagsToAdd,
-            dateAdded: new Date(),
-            ...await ClientFile.getMetaData(path),
-          }),
+          paths.map(async (path) => this.pathToIFile(path, tagsToAdd)
         ));
       }),
     );
@@ -49,6 +43,16 @@ class WatchedDirectoryStore {
     await Promise.all(
       initialFileLists.map(
         (initFiles, i) => this.backend.createFilesFromPath(clientDirs[i].path, initFiles)));
+  }
+
+  async pathToIFile(path: string, tagsToAdd?: ID[]) {
+    return ({
+      path,
+      id: generateId(),
+      tags: tagsToAdd || [],
+      dateAdded: new Date(),
+      ...await ClientFile.getMetaData(path),
+    });
   }
 
   @action.bound

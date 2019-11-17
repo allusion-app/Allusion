@@ -15,8 +15,17 @@ import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
 import ImageViewer from './components/ImageViewer';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { DragLayer } from './containers/Outliner/TagPanel';
+import { Toaster, Position } from '@blueprintjs/core';
+import { debounce } from './utils';
 
 const SPLASH_SCREEN_TIME = 700;
+
+export const AppToaster = Toaster.create({
+  position: Position.BOTTOM_RIGHT,
+  className: 'toaster',
+});
+
+export const showToastDebounced = debounce(AppToaster.show, 200).bind(AppToaster);
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
