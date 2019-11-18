@@ -23,7 +23,7 @@ class WatchedDirectoryStore {
     const dirs = await this.backend.getWatchedDirectories('dateAdded',  'DESC');
 
     const clientDirs = dirs.map((dir) =>
-      new ClientWatchedDirectory(this, dir.id, dir.path, dir.recursive, dir.dateAdded, dir.tagToAdd));
+      new ClientWatchedDirectory(this, dir.id, dir.path, dir.recursive, dir.dateAdded, dir.tagsToAdd));
 
     this.directoryList.push(...clientDirs);
 
@@ -32,9 +32,8 @@ class WatchedDirectoryStore {
     const initialFileLists = await Promise.all(
       initialPathLists.map(async (paths, i): Promise<IFile[]> => {
         const dir = clientDirs[i];
-        const tagsToAdd = dir.tagToAdd ? [dir.tagToAdd] : [];
         return Promise.all(
-          paths.map(async (path) => this.pathToIFile(path, tagsToAdd),
+          paths.map(async (path) => this.pathToIFile(path, dir.tagsToAdd),
         ));
       }),
     );
@@ -59,7 +58,7 @@ class WatchedDirectoryStore {
   async addDirectory(dirInput: Omit<IWatchedDirectory, 'id' | 'dateAdded'>, id = generateId(), dateAdded = new Date()) {
     const dirData: IWatchedDirectory = { ...dirInput, id, dateAdded };
     const clientDir = new ClientWatchedDirectory(
-      this, id, dirData.path, dirData.recursive, dirData.dateAdded, dirData.tagToAdd);
+      this, id, dirData.path, dirData.recursive, dirData.dateAdded, dirData.tagsToAdd);
     this.directoryList.push(clientDir);
     // The function caller is responsible for handling errors.
     await this.backend.createWatchedDirectory(dirData);

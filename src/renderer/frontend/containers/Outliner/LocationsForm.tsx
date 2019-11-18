@@ -1,14 +1,15 @@
 import React, { useContext, useCallback, useState } from 'react';
 import { remote } from 'electron';
 import Path from 'path';
-import { observer } from 'mobx-react-lite';
-import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert } from '@blueprintjs/core';
+import { observer, Observer } from 'mobx-react-lite';
+import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert, Dialog, Checkbox, Label } from '@blueprintjs/core';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
 import { ClientWatchedDirectory } from '../../../entities/WatchedDirectory';
 import { ClientStringSearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
+import MultiTagSelector from '../../components/MultiTagSelector';
 
 interface ILocationListItemProps {
   dir: ClientWatchedDirectory;
@@ -18,10 +19,22 @@ interface ILocationListItemProps {
 }
 
 @ContextMenuTarget
-class LocationListItem extends React.PureComponent<ILocationListItemProps, { isDeleteOpen: boolean }> {
+class LocationListItem extends React.PureComponent<ILocationListItemProps, { isDeleteOpen: boolean, isConfigOpen: boolean }> {
   state = {
     isDeleteOpen: false,
+    isConfigOpen: false,
   };
+  
+  // todo: need to take into account selection of multiple watched dir
+  openDeleteAlert = () => this.setState({ isDeleteOpen: true });
+  closeDeleteAlert = () => this.setState({ isDeleteOpen: false });
+  handleDeleteConfirm = () => this.props.onDelete(this.props.dir.id);
+
+  openConfigDialog = () => this.setState({ isConfigOpen: true });
+  closeConfigDialog = () => this.setState({ isConfigOpen: false });
+
+  handleAddToSearch = () => this.props.addToSearch(this.props.dir.path);
+  handleReplaceSearch = () => this.props.replaceSearch(this.props.dir.path);
 
   render() {
     const { dir } = this.props;
@@ -54,20 +67,47 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
             </p>
           </div>
         </Alert>
+
+        <Dialog
+          title={<span className="ellipsis" title={dir.path}>{Path.basename(dir.path)}</span>}
+          icon={IconSet.SETTINGS}
+          isOpen={this.state.isConfigOpen}
+          onClose={this.closeConfigDialog}
+        >
+          <div className={Classes.DIALOG_BODY}>
+            <Observer>
+              { () => 
+                <>
+                  <Checkbox label="Recursive" checked />
+                  <Checkbox label="Add folder name as tag" />
+                  <Label>
+                    Tags to add
+                    <MultiTagSelector
+                      selectedTags={dir.clientTagsToAdd}
+                      onTagSelect={dir.addTag}
+                      onTagDeselect={dir.removeTag}
+                      onClearSelection={console.log}
+                    />
+                  </Label>
+                </>
+              }
+            </Observer>
+          </div>
+
+          <div className={Classes.DIALOG_FOOTER}>
+            <div className={Classes.DIALOG_FOOTER_ACTIONS}>
+              <Button onClick={this.closeConfigDialog}>Close</Button>
+            </div>
+          </div>
+        </Dialog>
       </li>
     );
   }
 
-  openDeleteAlert = () => this.setState({ isDeleteOpen: true });
-  closeDeleteAlert = () => this.setState({ isDeleteOpen: false });
-  handleDeleteConfirm = () => this.props.onDelete(this.props.dir.id); // todo: need to take into account selection of multiple watched dir
-  handleAddToSearch = () => this.props.addToSearch(this.props.dir.path);
-  handleReplaceSearch = () => this.props.replaceSearch(this.props.dir.path);
-
   public renderContextMenu() {
     return (
       <Menu>
-        <MenuItem text="Configure" onClick={console.log} icon={IconSet.INFO} />
+        <MenuItem text="Configure" onClick={this.openConfigDialog} icon={IconSet.SETTINGS} />
         <MenuItem onClick={this.handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
         <MenuItem onClick={this.handleReplaceSearch} text="Replace Search Query" icon={IconSet.REPLACE} />
         <MenuItem text="Delete" onClick={this.openDeleteAlert} icon={IconSet.DELETE} />
@@ -92,7 +132,7 @@ const LocationsForm = () => {
     if (!dirs || dirs.length === 0) {
       return;
     }
-    watchedDirectoryStore.addDirectory({ path: dirs[0], recursive: true });
+    watchedDirectoryStore.addDirectory({ path: dirs[0], recursive: true, tagsToAdd: [] });
   }, [watchedDirectoryStore]);
 
   const toggleLocations = useCallback(

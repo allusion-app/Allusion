@@ -1,17 +1,19 @@
 import { ID, IIdentifiable, ISerializable } from './ID';
-import { IReactionDisposer, reaction } from 'mobx';
+import { IReactionDisposer, reaction, computed, observable, action } from 'mobx';
 import WatchedDirectoryStore from '../frontend/stores/WatchedDirectoryStore';
 import chokidar, { FSWatcher } from 'chokidar';
 import { RECURSIVE_DIR_WATCH_DEPTH } from '../../config';
 import { AppToaster } from '../frontend/App';
 import { IMG_EXTENSIONS } from './File';
+import { ClientTag } from './Tag';
 
 export interface IWatchedDirectory extends IIdentifiable {
   id: ID;
   path: string;
   recursive: boolean;
   dateAdded: Date;
-  tagToAdd?: ID;
+  tagsToAdd: ID[];
+  folderTag?: ID; // todo: needs to be recursive... tree of tags? Or just match by name?
 }
 
 export class DbWatchedDirectory implements IWatchedDirectory {
@@ -20,7 +22,8 @@ export class DbWatchedDirectory implements IWatchedDirectory {
     public path: string,
     public recursive: boolean,
     public dateAdded: Date,
-    public tagToAdd?: ID,
+    public tagsToAdd: ID[],
+    folderTag?: ID,
   ) { }
 }
 
@@ -31,13 +34,21 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
   // Whether the initial scan has been completed
   isReady = false;
 
+  readonly tagsToAdd = observable<ID>([]);
+
+  @computed get clientTagsToAdd() {
+    return this.tagsToAdd
+      .map((id) => this.store.rootStore.tagStore.get(id))
+      .filter((t) => t !== undefined) as ClientTag[];
+  }
+
   constructor(
     public store: WatchedDirectoryStore,
     public id: ID,
     public path: string,
     public recursive: boolean,
     public dateAdded: Date,
-    public tagToAdd?: ID,
+    tagsToAdd?: ID[],
   ) {
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -50,6 +61,9 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
         }
       },
     );
+    if (tagsToAdd) {
+      this.tagsToAdd.push(...tagsToAdd)
+    }
   }
 
   async init() {
@@ -62,9 +76,12 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
       path: this.path,
       recursive: this.recursive,
       dateAdded: this.dateAdded,
-      tagToAdd: this.tagToAdd,
+      tagsToAdd: this.tagsToAdd,
     };
   }
+
+  @action.bound addTag(tag: ClientTag) { this.tagsToAdd.push(tag.id); }
+  @action.bound removeTag(tag: ClientTag) { this.tagsToAdd.remove(tag.id); }
 
   private watchDirectory(inputPath: string, recursive: boolean): Promise<string[]> {
     // Watch for folder changes
