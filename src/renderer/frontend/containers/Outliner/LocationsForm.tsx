@@ -76,7 +76,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
         >
           <div className={Classes.DIALOG_BODY}>
             <Observer>
-              { () => 
+              { () =>
                 <>
                   <Checkbox label="Recursive" checked />
                   <Checkbox label="Add folder name as tag" />
