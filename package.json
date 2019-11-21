@@ -71,6 +71,7 @@
     "konva": "^4.0.17",
     "mobx": "^5.13.0",
     "mobx-react-lite": "^1.4.1",
+    "mobx-utils": "^5.5.2",
     "react": "^16.8.6",
     "react-color": "^2.17.3",
     "react-dnd": "^9.3.4",

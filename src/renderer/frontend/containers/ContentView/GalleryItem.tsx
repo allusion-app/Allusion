@@ -134,8 +134,8 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
     const contextItems = uiStore.fileSelection.includes(file.id)
       ? uiStore.clientFileSelection
       : [file];
-    canvasStore.addElements(contextItems);
-  }, [uiStore, canvasStore]);
+    canvasStore.selectedScene.addElements(contextItems);
+  }, [uiStore, canvasStore, file]);
 
   return (
     <Menu>

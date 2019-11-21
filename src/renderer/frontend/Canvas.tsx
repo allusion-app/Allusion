@@ -9,6 +9,29 @@ import useImage from 'use-image';
 import StoreContext from './contexts/StoreContext';
 import { ClientSceneElement } from './stores/CanvasStore';
 import { ContextMenu, Menu, MenuItem, MenuDivider, H4, Button } from '@blueprintjs/core';
+import { Vector2d } from 'konva/types/types';
+
+class KeyListener {
+  isCtrlDown: boolean = false;
+  isShiftDown: boolean = false;
+
+  constructor() {
+    window.addEventListener('keydown', this.onKeyDown.bind(this));
+    window.addEventListener('keyup', this.onKeyUp.bind(this));
+  }
+
+  onKeyDown(e: KeyboardEvent) {
+    this.isCtrlDown = e.ctrlKey;
+    this.isShiftDown = e.shiftKey;
+  }
+  onKeyUp(e: KeyboardEvent) {
+    this.isCtrlDown = e.ctrlKey;
+    this.isShiftDown = e.shiftKey;
+  }
+}
+
+const keyListener = new KeyListener();
+
 
 const BaseContextMenuItems = () => {
   // const { canvasStore } = useContext(StoreContext);
@@ -37,7 +60,10 @@ const ElementContextMenu = ({ element }: { element: ClientSceneElement }) => (
     <MenuItem onClick={console.log} text="Fit to view" />
     <MenuItem onClick={console.log} text="Crop" />
     <MenuItem onClick={console.log} text="Reveal in File Browser" />
-    <MenuItem onClick={() => element.store.removeElement(element)} text="Delete" />
+    <MenuItem onClick={() => element.store.selectedScene.removeElement(element)} text="Delete" />
+    <MenuDivider />
+    <MenuItem onClick={console.log} text="Bring to front" />
+    <MenuItem onClick={console.log} text="Send to back" />
     <MenuDivider />
     <BaseContextMenuItems />
   </Menu>
@@ -50,10 +76,12 @@ interface ICanvasImageProps {
   // onChange: (x: number, y: number, scale: number) => void;
 }
 
-const CanvasImage = ({ element, isSelected, onSelect }: ICanvasImageProps) => {
+const CanvasImage = observer(({ element, isSelected, onSelect }: ICanvasImageProps) => {
   const [image] = useImage(element.clientFile.path);
   const konvaImgRef = useRef<Konva.Image>(null);
   const trRef = useRef<Konva.Transformer>(null);
+
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (isSelected && trRef.current !== null && konvaImgRef.current !== null) {
@@ -74,6 +102,7 @@ const CanvasImage = ({ element, isSelected, onSelect }: ICanvasImageProps) => {
       e.target.stopDrag();
       e.target.getStage()!.startDrag(e);
     }
+    setDragStartPos(e.target.getAbsolutePosition());
   }, []);
 
   const handleClick = useCallback((e: KonvaEventObject<MouseEvent>) => {
@@ -88,6 +117,20 @@ const CanvasImage = ({ element, isSelected, onSelect }: ICanvasImageProps) => {
     ContextMenu.show(menu, { left: e.evt.clientX, top: e.evt.clientY });
     e.cancelBubble = true;
   }, []);
+
+  const handleDragBounds = useCallback(function (this: Konva.Image, pos: Vector2d) {
+    // Restrict drag when pressing shift
+    if (keyListener.isShiftDown) {
+      const deltaDragX = pos.x - dragStartPos.x;
+      const deltaDragY = pos.y - dragStartPos.y;
+      if (Math.abs(deltaDragX) > Math.abs(deltaDragY)) {
+        return { x: pos.x, y: dragStartPos.y };
+      } else {
+        return { x: dragStartPos.x, y: pos.y };
+      }
+    }
+    return pos;
+  }, [dragStartPos]);
 
   return (
     <>
@@ -106,6 +149,7 @@ const CanvasImage = ({ element, isSelected, onSelect }: ICanvasImageProps) => {
         id={element.imageId}
         key={element.imageId}
         ref={konvaImgRef}
+        dragBoundFunc={handleDragBounds}
         // crop={{ }}
       />
       {isSelected && (
@@ -118,7 +162,7 @@ const CanvasImage = ({ element, isSelected, onSelect }: ICanvasImageProps) => {
       )}
     </>
   );
-}
+});
 
 // TODO: Undo/redo: https://konvajs.org/docs/react/Undo-Redo.html
 const Canvas = () => {
@@ -175,10 +219,9 @@ const Canvas = () => {
   }, []);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    console.log(e.key, e, e.keyCode)
     if (e.key === 'Delete' && selectedId) {
       setSelectedId(undefined);
-      canvasStore.removeElement(canvasStore.elements.find((el) => el.imageId === selectedId)!);
+      canvasStore.selectedScene.removeElement(canvasStore.selectedScene.elements.find((el) => el.imageId === selectedId)!);
     }
   }, [selectedId]);
 
@@ -207,7 +250,7 @@ const Canvas = () => {
         draggable
       >
         <Layer ref={layerRef}>
-          {canvasStore.elements.map((el) => (
+          {canvasStore.selectedScene.elements.map((el) => (
             <CanvasImage
               key={el.imageId}
               element={el}
@@ -226,15 +269,21 @@ const Canvas = () => {
 
 export default observer(Canvas);
 
-export const CanvasScenePanel = () => {
+export const CanvasScenePanel = observer(() => {
   const { canvasStore } = useContext(StoreContext);
 
   return (
     <div>
       <H4>Canvas scenes</H4>
-      { canvasStore.scenes.map((scene) => {
-        <Button text={scene.name} />
-      }) }
+      <Button onClick={() => canvasStore.addScene()} icon="plus" />
+      <ul>
+      { canvasStore.scenes.map((scene) => (
+        <li onClick={() => canvasStore.selectScene(scene)} key={scene.id}>
+          {scene.name}
+          <Button icon="trash" onClick={() => canvasStore.removeScene(scene)} />
+        </li>
+      ))}
+      </ul>
     </div>
   )
-}
+});
