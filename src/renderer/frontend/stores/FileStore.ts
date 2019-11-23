@@ -78,7 +78,12 @@ class FileStore {
   @action.bound async fetchUntaggedFiles() {
     try {
       const { fileOrder, orderBy } = this.rootStore.uiStore.view;
-      const criteria: SearchCriteria<IFile> = { key: 'tags', value: [], operator: 'contains', valueType: 'array' };
+      const criteria: SearchCriteria<IFile> = {
+        key: 'tags',
+        value: [],
+        operator: 'contains',
+        valueType: 'array',
+      };
       const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (err) {
@@ -95,7 +100,10 @@ class FileStore {
     const { orderBy, fileOrder } = this.rootStore.uiStore.view;
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria as [SearchCriteria<IFile>], orderBy, fileOrder);
+        criteria as [SearchCriteria<IFile>],
+        orderBy,
+        fileOrder,
+      );
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on criteria', e);
@@ -106,7 +114,12 @@ class FileStore {
     // Query the backend to send back only files with these tags
     try {
       const { orderBy, fileOrder } = this.rootStore.uiStore.view;
-      const criteria: SearchCriteria<IFile> = { key: 'tags', value: tags, operator: 'contains', valueType: 'array' };
+      const criteria: SearchCriteria<IFile> = {
+        key: 'tags',
+        value: tags,
+        operator: 'contains',
+        valueType: 'array',
+      };
       const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
@@ -114,8 +127,7 @@ class FileStore {
     }
   }
 
-  @action
-  async fetchFilesByIDs(files: ID[]) {
+  @action.bound async fetchFilesByIDs(files: ID[]) {
     try {
       const fetchedFiles = await this.backend.fetchFilesByID(files);
       this.updateFromBackend(fetchedFiles);

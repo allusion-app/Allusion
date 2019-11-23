@@ -19,7 +19,8 @@
 .bp3-running-text .bp3-dark code,
 .bp3-dark .bp3-code,
 .bp3-dark .bp3-key {
-  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 0 0 rgba(16, 22, 26, 0), 0 1px 1px rgba(16, 22, 26, 0.2);
+  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 0 0 rgba(16, 22, 26, 0),
+    0 1px 1px rgba(16, 22, 26, 0.2);
   color: #5c7080;
   font-size: 0.8rem;
   background: white;
@@ -44,15 +45,25 @@
 // Hover Elements
 .bp3-dark .bp3-button.bp3-minimal:hover {
   background: transparent;
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .bp3-dark {
   .bp3-tree-node-content:hover,
   button:hover:not(.bp3-minimal):not(.bp3-tag-remove),
   .bp3-button:hover:not(.bp3-dialog-close-button),
-  .bp3-dialog .bp3-button:not([class*="bp3-intent-"]) {
+  .bp3-file-upload-input:hover::after {
     background-color: $dark-gray3;
-    // background-color: $dark-gray5;
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .bp3-file-upload-input:hover::after {
+    border: none;
+    box-shadow: none;
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    .bp3-dialog .bp3-button:not([class*='bp3-intent-']) {
+      background-color: $dark-gray3;
+      // background-color: $dark-gray5;
+    }
   }
 }
 // Input field
@@ -85,11 +96,15 @@
     color: #f5f8fa !important;
     background-color: $light-gray4;
   }
-  .bp3-input-ghost::placeholder {
+  .bp3-input-ghost::placeholder,
+  ::placeholder {
     color: $dark-gray3;
   }
 }
-
+.bp3-tag-input .bp3-input-ghost,
+#outliner input {
+  color: #919191 !important;
+}
 // #inspector {
 //   .bp3-input,
 //   .bp3-input-ghost,
@@ -106,7 +121,8 @@
 }
 
 .bp3-dark .bp3-input,
-.bp3-light .bp3-input {
+.bp3-light .bp3-input,
+.bp3-dark .bp3-file-upload-input {
   // box-shadow: none;
   // box-shadow: 0 0 0 1.5px $blue1;
   // min-width: 100%;
@@ -117,7 +133,7 @@
   border-radius: 6px;
 }
 
-.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
+.bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
   background-color: $blue1-unimportant;
 }
 
@@ -137,7 +153,17 @@ form,
     border-radius: 0 6px 6px 0;
   }
 }
-
+#outliner {
+  .bp3-control-group .bp3-input,
+  .bp3-input-group {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+}
+// #search-form input {
+//   width: 100% !important;
+//     min-width: 100% !important;
+// }
 .bp3-dark {
   #preview-toolbar .bp3-control {
     color: $light-gray1 !important;
@@ -147,6 +173,99 @@ form,
     color: $dark-gray4;
   }
 }
+
+// Advanced search
+.bp3-dialog {
+  width: 650px !important;
+}
+#search-form {
+  .bp3-popover-target {
+    width: 100%;
+  }
+
+  #actions-bar {
+    float: right;
+  }
+
+  .criteria {
+    display: flex;
+    margin-bottom: 0.25rem;
+
+    .bp3-control-group {
+      padding: 0px;
+    }
+
+    .add-remove {
+      flex-grow: 0;
+      margin-left: 8px;
+
+      button {
+        min-width: 15px;
+        min-height: 15px;
+        width: 15px;
+        height: 15px;
+        line-height: 0;
+        padding: 0;
+        font-size: 16px;
+      }
+
+      button:hover * {
+        line-height: 0;
+      }
+    }
+  }
+  .bp3-popover-wrapper,
+  .bp3-tag-input-values {
+    // input {
+    max-width: 200px;
+  }
+}
+
+#system-tags {
+  .bp3-button-text {
+    margin-right: auto;
+  }
+}
+
+#tag-remove-overview {
+  padding: 8px 0;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+#search-form .bp3-multi-select > *:nth-child(2) {
+  position: absolute;
+  right: 0 !important;
+}
+
+.bp3-control-group {
+  .bp3-input {
+    border-radius: 6px !important;
+    width: 275px !important;
+  }
+  > div,
+  > span {
+    margin-right: 6px !important;
+    border-radius: 6px !important;
+    max-width: 150px !important;
+    width: 150px !important;
+  }
+  > *:nth-child(3) {
+    max-width: 275px !important;
+  }
+  > *:last-child {
+    width: 10px !important;
+  }
+}
+// .bp3-control-group > *:nth-child(3) {
+//   width: 250px;
+// }
+// .bp3-control-group > *:last-child {
+//   width:10px;
+// }
+// .bp3-control-group > *:last-child {
+//   width:10px;
+// }
 
 .bp3-dark {
   .bp3-tag-input.bp3-active,
@@ -160,18 +279,24 @@ form,
 
 form .bp3-button {
   background-color: $light-gray1;
-
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   :hover {
     background-color: $blue1;
   }
+  &.bp3-minimal:hover {
+    border-bottom: none;
+    border-radius: 0;
+    padding-bottom: 0;
+    // transition: none;
+  }
 }
 
-form .bp3-button.bp3-minimal:hover {
-  border-bottom: none;
-  border-radius: 0;
-  padding-bottom: 0;
-  // transition: none;
-}
+// form .bp3-button.bp3-minimal:hover {
+//   border-bottom: none;
+//   border-radius: 0;
+//   padding-bottom: 0;
+//   // transition: none;
+// }
 
 form .bp3-icon-confirm {
   // background-color: $blue1;
@@ -183,7 +308,12 @@ form .bp3-icon-confirm {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
+  .bp3-minimal:hover {
+    border-bottom: none;
+    border-radius: 0;
+    padding-bottom: 0;
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
   :hover {
     background: none;
     color: red !important;
@@ -201,9 +331,69 @@ form .bp3-icon {
   .bp3-input:focus {
     // box-shadow: none;
     box-shadow: 0 0 0 1.1px $blue1;
-    background-color: #13131335 !important;
+    // background-color: #13131335 !important;
+    background-color: $light-gray4;
+    margin-left: 1px;
+    margin-right: 1px;
     .bp3-input-ghost::placeholder {
       color: $light-gray4;
+    }
+  }
+}
+.bp3-dark {
+  #inspector,
+  #outliner,
+  .gallery {
+    .bp3-tag-input.bp3-active,
+    input:not(.bp3-input-ghost),
+    .bp3-input-group {
+      background-color: #2828288e !important;
+    }
+  }
+}
+// Datepicker
+.bp3-datepicker {
+  background: initial;
+  width: 100%;
+  // .DayPicker-wrapper,
+  // .DayPicker-Months,
+  // .DayPicker-Month {
+  //   width: 100%;
+  // }
+  .bp3-html-select select,
+  .bp3-select select {
+    color: $dark-gray4;
+  }
+  .bp3-html-select.bp3-minimal select:hover,
+  .bp3-select.bp3-minimal select:hover {
+    box-shadow: none;
+    background: $light-gray4;
+    text-decoration: none;
+    color: #182026;
+  }
+  .DayPicker-Day.DayPicker-Day--selected {
+    border-radius: 4px;
+    background-color: $blue1;
+    color: $light-gray4;
+  }
+  .DayPicker-Day:hover,
+  .bp3-datepicker .DayPicker-Day:focus {
+    background: none;
+    color: $blue1;
+  }
+  .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button),
+  .DayPicker-NavButton--prev,
+  .DayPicker-NavButton--next,
+  .bp3-button.bp3-minimal {
+    background: none !important;
+    color: #adadad !important;
+    &:hover .bp3-icon,
+    &:hover {
+      background: none !important;
+      border: none !important;
+      border-bottom: none !important;
+      color: $blue1;
+      padding: 0px;
     }
   }
 }
@@ -224,7 +414,7 @@ button:has(.bp3-intent-primary) {
 
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
 :not(.bp3-input):not(.bp3-tag) > .bp3-button:hover > .custom-icon {
-// :not(.bp3-input):not(.bp3-tag) > .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled):not(.bp3-dialog-close-button) .bp3-icon:hover {
+  // :not(.bp3-input):not(.bp3-tag) > .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled):not(.bp3-dialog-close-button) .bp3-icon:hover {
   background: transparent;
   color: white !important;
 }
@@ -263,7 +453,7 @@ button:has(.bp3-intent-danger) {
 
 // .bp3-button.bp3-intent-primary,
 .bp3-button.bp3-intent-warning,
-.bp3-button:not([class*="bp3-intent-"]),
+.bp3-button:not([class*='bp3-intent-']),
 .bp3-button.bp3-intent-danger {
   box-shadow: none !important;
   background-image: none !important;
@@ -322,6 +512,43 @@ button:has(.bp3-intent-danger) {
   color: #f5f8fa;
 }
 
+// Controls
+.bp3-dark {
+  .bp3-control {
+    & input ~ .bp3-control-indicator,
+    &.bp3-radio .bp3-control-indicator {
+      background: rgba(16, 22, 26, 0.5);
+      box-shadow: none;
+    }
+    input:checked ~ .bp3-control-indicator,
+    &:hover input:checked ~ .bp3-control-indicator {
+      box-shadow: 0 0 1px #007af5, 0 0 0 rgba(0, 0, 0, 0);
+      border: none;
+      background: $blue1;
+    }
+    input:focus ~ .bp3-control-indicator {
+      outline: none;
+    }
+    &:hover .bp3-control-indicator {
+      background: rgba(16, 22, 26, 0.5);
+    }
+    &.bp3-switch:hover input ~ .bp3-control-indicator,
+    &.bp3-radio:hover .bp3-control-indicator {
+      background: rgba(16, 22, 26, 0.7);
+      border: none;
+      box-shadow: none;
+      // transition: background-color 100ms cubic-bezier(0.4, 1, 0.75, 0.9);
+      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+  .bp3-file-upload-input::after {
+    background-color: #3e3e3eb8;
+    box-shadow: none;
+    background-image: none;
+    color: #f5f8fa;
+    border: none !important;
+  }
+}
 // Dropdowns
 .bp3-dark .bp3-html-select select,
 .bp3-dark .bp3-select select {
@@ -336,7 +563,28 @@ button:has(.bp3-intent-danger) {
     color: $light-gray5 !important;
   }
 }
+// .bp3-control.bp3-switch input:checked ~ .bp3-control-indicator,
+// .bp3-control input:checked ~ .bp3-control-indicator {
+//   background: $blue1;
+// }
 
+// .bp3-dark {
+//   .bp3-control.bp3-switch input,
+//   .bp3-control.bp3-radio {
+//     &:hover:not(.bp3-radio) {
+//       background: rgba(16, 22, 26, 0.7);
+//     }
+//     & ~ .bp3-control-indicator,
+//     .bp3-control-indicator {
+//       border: none;
+//       box-shadow: none;
+//       background: rgba(167, 182, 194, 0.5);
+//       &:hover {
+//         background: rgba(16, 22, 26, 0.7);
+//       }
+//     }
+//   }
+// }
 .bp3-icon-double-caret-vertical {
   -webkit-mask-image: url(../renderer/resources/icons/arrow-down.svg);
   mask-image: url(../renderer/resources/icons/arrow-down.svg);
@@ -355,6 +603,10 @@ button:has(.bp3-intent-danger) {
   }
 }
 
+.bp3-control.bp3-switch:hover input ~ .bp3-control-indicator,
+.bp3-control.bp3-radio .bp3-control-indicator {
+  background: rgba(115, 134, 148, 0.5);
+}
 .bp3-control {
   &.bp3-switch {
     input:checked ~ .bp3-control-indicator {
@@ -427,7 +679,8 @@ button:has(.bp3-intent-danger) {
 .bp3-popover.bp3-dark .bp3-popover-content,
 .bp3-dark .bp3-popover .bp3-popover-content,
 .bp3-popover-content .fileTag,
-.bp3-popover-content {
+.bp3-popover-content,
+.bp3-popover .bp3-popover-content {
   margin: 0;
   border-radius: 5px;
   background: $light-gray5;
@@ -448,8 +701,16 @@ button:has(.bp3-intent-danger) {
   }
 }
 
+// .bp3-dark {
+.bp3-menu-item::before,
+.bp3-menu-item > .bp3-icon {
+  color: $dark-gray4;
+}
+// }
+
 .bp3-dialog {
   padding: 20px;
+  width: 560px;
 
   &.bp3-dark.light {
     background: $light-gray5;
@@ -507,7 +768,10 @@ nav .bp3-divider {
 .bp3-dark .bp3-menu-item:hover,
 .bp3-dark .bp3-menu-item:hover > .custom-icon,
 .bp3-dark .bp3-submenu .bp3-popover-target.bp3-popover-open > .bp3-menu-item,
-.bp3-submenu .bp3-dark .bp3-popover-target.bp3-popover-open > .bp3-menu-item {
+.bp3-submenu .bp3-dark .bp3-popover-target.bp3-popover-open > .bp3-menu-item,
+.bp3-menu-item:hover,
+.bp3-submenu .bp3-popover-target.bp3-popover-open > .bp3-menu-item,
+.bp3-menu-item:hover .custom-icon {
   background-color: transparent;
   color: $blue1;
 }
@@ -552,15 +816,15 @@ li .bp3-menu-item {
   border-radius: none !important;
   box-shadow: none !important;
   .flexbox-fix {
-    padding: .3rem 0 0 .3rem;
+    padding: 0.3rem 0 0 0.3rem;
   }
 }
 
 // Icons
 .bp3-dark .bp3-icon:not(.bp3-icon-small-cross),
-.bp3-dark .bp3-button:not([class*="-primary"]) .bp3-icon,
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]) .bp3-icon-standard,
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]) .bp3-icon-large,
+.bp3-dark .bp3-button:not([class*='-primary']) .bp3-icon,
+.bp3-dark .bp3-button:not([class*='bp3-intent-']) .bp3-icon-standard,
+.bp3-dark .bp3-button:not([class*='bp3-intent-']) .bp3-icon-large,
 .bp3-dark .bp3-tree .bp3-icon,
 .bp3-dark .bp3-tree .bp3-icon-standard,
 .bp3-dark .bp3-tree .bp3-icon-large {
@@ -573,24 +837,24 @@ li .bp3-menu-item {
 }
 
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled) {
-// .bp3-button:hover > .custom-icon,
-// .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
+  // .bp3-button:hover > .custom-icon,
+  // .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
   background: transparent;
   color: white !important;
 }
 // Close button setting
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]):hover {
+.bp3-dark .bp3-button:not([class*='bp3-intent-']):hover {
   background: transparent;
   color: initial;
 }
 
 .bp3-dark #toolbar .bp3-button-group.bp3-minimal .bp3-button:hover,
 .bp3-dark #outliner-tags-header-wrapper .bp3-button.bp3-minimal:hover,
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]):hover {
+.bp3-dark .bp3-button:not([class*='bp3-intent-']):hover {
   background: transparent !important;
 }
 
-.bp3-button:has([class*="bp3-active"]) .bp3-icon:hover {
+.bp3-button:has([class*='bp3-active']) .bp3-icon:hover {
   color: blue !important;
   background: transparent;
 }
@@ -660,7 +924,7 @@ li .bp3-menu-item {
   color: white;
 }
 
-.bp3-dark .bp3-disabled:not([class*="bp3-intent-"]),
+.bp3-dark .bp3-disabled:not([class*='bp3-intent-']),
 .bp3-dark .bp3-menu-item.bp3-disabled,
 .bp3-dark button.bp3-disabled:hover .custom-icon {
   color: $dark-gray5;
@@ -734,7 +998,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   background-color: $dark-gray4;
 }
 
-.bp3-dark .bp3-callout.bp3-intent-primary[class*="bp3-icon-"]::before,
+.bp3-dark .bp3-callout.bp3-intent-primary[class*='bp3-icon-']::before,
 .bp3-dark .bp3-callout.bp3-intent-primary > .bp3-icon:first-child,
 .bp3-dark .bp3-callout.bp3-intent-primary .bp3-heading {
   color: $blue5;
@@ -749,7 +1013,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-tag.bp3-intent-primary,
-.bp3-tag.bp3-intent-primary button > * {
+.bp3-tag.bp3-intent-primary button > *:not([class*='-small-cross']) {
   background: $blue1-unimportant;
   color: $light-gray4;
   &.bp3-interactive:hover {
@@ -760,21 +1024,48 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   }
 }
 
-.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
+.drop-overlay-content {
+  .tag-drag-drop {
+    &.bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
+      background: $blue1;
+      color: $light-gray4;
+
+      &.bp3-intent-primary {
+        background: $dark-gray3;
+      }
+    }
+  }
+}
+
+.bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
   background-color: $dark-gray5-unimportant;
 }
 
-.bp3-dark .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]),
-.bp3-dark.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
+.bp3-dark .bp3-tag.bp3-minimal:not([class*='bp3-intent-']),
+.bp3-dark.bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
   color: $gray4;
 }
 
+.bp3-dark {
+  .bp3-tag.bp3-minimal.bp3-intent-primary {
+    background-color: #3e3e3e;
+  }
+  .bp3-tag.bp3-minimal.bp3-intent-primary.bp3-interactive {
+    &:active,
+    &:hover {
+      background-color: #e3e3e355 !important;
+    }
+  }
+}
+.inspectorOpen .bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
+  background-color: $blue1-unimportant;
+}
 .bp3-tag-input .bp3-tag.bp3-active {
   outline: #007af5 solid 2px;
   outline-offset: 1px;
 }
 
-.bp3-portal #fileTag .bp3-tag.bp3-minimal:not([class*="inspectorOpen"]) {
+.bp3-portal #fileTag .bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
   background-color: $blue1-unimportant;
 }
 
@@ -785,8 +1076,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 .bp3-portal #fileTag,
 .bp3-dialog {
-  .bp3-tag.bp3-minimal:not([class*="inspectorOpen"]) {
-    background-color: $blue1;
+  .bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
+    background-color: $blue1-unimportant;
     color: $light-gray4;
   }
 }
@@ -826,13 +1117,11 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 // settings panel
 .bp3-drawer {
   overflow-y: auto;
-}
-
-.bp3-drawer {
   display: flex;
   flex-direction: column;
   margin: 0;
-  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 4px 8px rgba(16, 22, 26, 0.2), 0 18px 46px 6px rgba(16, 22, 26, 0.2);
+  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 4px 8px rgba(16, 22, 26, 0.2),
+    0 18px 46px 6px rgba(16, 22, 26, 0.2);
   background: $light-gray5;
   padding: 1rem;
   // button {
@@ -850,6 +1139,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 .bp3-dialog-header {
   padding: 0 0 0.5rem 0;
   margin-bottom: 1rem;
+  width: 100%;
 }
 
 .bp3-drawer-body > *,

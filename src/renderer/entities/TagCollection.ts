@@ -75,18 +75,6 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     );
   }
 
-  serialize(): ITagCollection {
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      dateAdded: this.dateAdded,
-      subCollections: this.subCollections.toJS(),
-      tags: this.tags.toJS(),
-      color: this.color,
-    };
-  }
-
   @computed get viewColor(): string {
     if (this.id === ROOT_TAG_COLLECTION_ID) {
       return this.color;
@@ -136,7 +124,7 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     );
   }
 
-  @action addTag(tag: ClientTag | ID) {
+  @action.bound addTag(tag: ClientTag | ID) {
     const id = tag instanceof ClientTag ? tag.id : tag;
     if (!this.tags.includes(id)) {
       this.tags.push(id);
@@ -159,6 +147,49 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
     this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
   }
 
+  @action.bound insertCollection(collection: ClientTagCollection, at = 0) {
+    collection.parent.subCollections.remove(collection.id);
+    this.subCollections.splice(at, 0, collection.id);
+  }
+
+  @action.bound insertTag(tag: ClientTag, at = 0) {
+    tag.parent.tags.remove(tag.id);
+    this.tags.splice(at, 0, tag.id);
+  }
+
+  /**
+   * Used for updating this Entity if changes are made to the backend outside of this session of the application.
+   * @param backendTagCollection The file received from the backend
+   */
+  @action.bound updateFromBackend(backendTagCollection: ITagCollection): ClientTagCollection {
+    // make sure our changes aren't sent back to the backend
+    this.autoSave = false;
+
+    this.id = backendTagCollection.id;
+    this.name = backendTagCollection.name;
+    this.description = backendTagCollection.description;
+    this.dateAdded = backendTagCollection.dateAdded;
+    this.subCollections.push(...backendTagCollection.subCollections);
+    this.tags.push(...backendTagCollection.tags);
+    this.color = backendTagCollection.color;
+
+    this.autoSave = true;
+
+    return this;
+  }
+
+  serialize(): ITagCollection {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      dateAdded: this.dateAdded,
+      subCollections: this.subCollections.toJS(),
+      tags: this.tags.toJS(),
+      color: this.color,
+    };
+  }
+
   getTagsRecursively(): ID[] {
     return [...this.tags, ...this.clientSubCollections.flatMap((c) => c.getTagsRecursively())];
   }
@@ -176,6 +207,7 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
       this.clientSubCollections.some((subCol) => subCol.containsSubCollection(queryCol))
     );
   }
+
   /**
    * Recursively checks all subcollections whether it contains a specified collection
    */
@@ -184,27 +216,6 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
       this.tags.includes(queryTag.id) ||
       this.clientSubCollections.some((subCol) => subCol.containsTag(queryTag))
     );
-  }
-
-  /**
-   * Used for updating this Entity if changes are made to the backend outside of this session of the application.
-   * @param backendTagCollection The file received from the backend
-   */
-  updateFromBackend(backendTagCollection: ITagCollection): ClientTagCollection {
-    // make sure our changes aren't sent back to the backend
-    this.autoSave = false;
-
-    this.id = backendTagCollection.id;
-    this.name = backendTagCollection.name;
-    this.description = backendTagCollection.description;
-    this.dateAdded = backendTagCollection.dateAdded;
-    this.subCollections.push(...backendTagCollection.subCollections);
-    this.tags.push(...backendTagCollection.tags);
-    this.color = backendTagCollection.color;
-
-    this.autoSave = true;
-
-    return this;
   }
 
   dispose() {

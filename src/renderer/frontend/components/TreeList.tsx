@@ -89,7 +89,7 @@ export const TreeLeaf = (props: ITreeLeafProps) => {
   // Hide preview, since a custom preview is created in DragLayer
   useEffect(() => {
     connectDragPreview(getEmptyImage());
-  }, []);
+  }, [connectDragPreview]);
 
   // Style whether the element is being dragged or hovered over to drop on
   const className = `${isHovering ? 'reorder-target' : ''} ${isDragging ? 'reorder-source' : ''}`;
@@ -186,7 +186,7 @@ export const TreeBranch = (props: ITreeBranchProps) => {
   // Hide preview, since a custom preview is created in DragLayer
   useEffect(() => {
     connectDragPreview(getEmptyImage());
-  }, []);
+  }, [connectDragPreview]);
 
   // When hovering over a collection for some time, automatically expand it
   const [expandTimeout, setExpandTimeout] = useState(0);
@@ -205,7 +205,7 @@ export const TreeBranch = (props: ITreeBranchProps) => {
         setExpandTimeout(window.setTimeout(onDropHover, hoverTimeToExpand));
       }
     },
-    [isHovering],
+    [canDrop, expandTimeout, isHovering, onDropHover],
   );
 
   // Style whether the element is being dragged or hovered over to drop on
@@ -338,17 +338,17 @@ export const TreeList = ({
       }
       lastSelectionIndex.current = i;
     },
-    [nodes],
+    [branch, getSubTreeLeaves, leaf, nodes, onDeselect, onSelect, selectionLength],
   );
 
   const handleNodeCollapse = useCallback(
     (node: ITreeNode<INodeData>) => setExpandState({ ...expandState, [node.id]: false }),
-    [expandState],
+    [expandState, setExpandState],
   );
 
   const handleNodeExpand = useCallback(
     (node: ITreeNode<INodeData>) => setExpandState({ ...expandState, [node.id]: true }),
-    [expandState],
+    [expandState, setExpandState],
   );
 
   const handleNodeContextMenu = (

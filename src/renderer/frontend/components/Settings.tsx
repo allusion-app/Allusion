@@ -99,7 +99,7 @@ const Settings = observer(() => {
         }
       });
     },
-    [uiStore.thumbnailDirectory],
+    [fileStore.fileList, uiStore],
   );
 
   return (

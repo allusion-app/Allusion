@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useContext } from 'react';
-import { Card, Overlay, H5, Tag } from '@blueprintjs/core';
+import { Card, Overlay, H4, Tag } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 
@@ -7,7 +7,10 @@ import { imgExtensions } from '../containers/Outliner/ImportForm';
 import { ClientTag } from '../../entities/Tag';
 import { timeoutPromise } from '../utils';
 import { ipcRenderer, IpcMessageEvent } from 'electron';
-import { ClientFile } from '../../entities/File';
+import { ClientFile, IMG_EXTENSIONS } from '../../entities/File';
+
+const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
+const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 
 /** Tests whether a URL points to an image */
 async function testImage(url: string, timeout: number = 2000): Promise<boolean> {
@@ -52,15 +55,14 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
     for (let i = 0; i < e.dataTransfer.files.length; i++) {
       const file = e.dataTransfer.files[i];
       // Check if file is an image
-      if (file && file.name
-          && imgExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))) {
+      if (file && ALLOWED_FILE_DROP_TYPES.includes(file.type)) {
         dropItems.add(file);
       }
     }
   }
 
-  const droppedHtml = e.dataTransfer.getData('text/html');
-  if (droppedHtml) {
+  if (e.dataTransfer.types.includes('text/html')) {
+    const droppedHtml = e.dataTransfer.getData('text/html');
     const container = document.createElement('html');
     container.innerHTML = droppedHtml;
     const imgs = container.getElementsByTagName('img');
@@ -68,10 +70,8 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
       const src = imgs[0].src;
       dropItems.add(src);
     }
-  }
-
-  const plainText = e.dataTransfer.getData('text/html');
-  if (plainText) {
+  } else if (e.dataTransfer.types.includes('text/plain')) {
+    const plainText = e.dataTransfer.getData('text/plain');
     // Check if text is an URL
     if (/^https?:\/\//i.test(plainText)) {
       dropItems.add(plainText);
@@ -100,7 +100,7 @@ interface IQuickTagProps {
   onDropOnTag: (e: React.DragEvent, tag?: ClientTag) => void;
 }
 const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
-  const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [tag]);
+  const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [onDropOnTag, tag]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const handleDragOver = useCallback(() => setIsDraggingOver(true), []);
   const handleDragLeave = useCallback(() => setIsDraggingOver(false), []);
@@ -111,7 +111,8 @@ const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       intent={isDraggingOver ? 'primary' : 'none'}
-      large
+      minimal
+      className="tag-drag-drop"
     >
       {tag.name}
     </Tag>
@@ -128,11 +129,24 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
   const [isDropping, setIsDropping] = useState<boolean>(false);
 
   const handleDropStart = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    if (!isDropping) {
-      setIsDropping(e.dataTransfer.files.length > 0 || e.dataTransfer.items.length > 0);
+    e.dataTransfer.dropEffect = 'copy';
+    let allowDrop = e.dataTransfer.types.some((t) => ALLOWED_DROP_TYPES.includes(t));
+    if (e.dataTransfer.types.includes('Files')) {
+      e.dataTransfer.dropEffect = 'link';
+      allowDrop = false;
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        const f = e.dataTransfer.items[i];
+        if (f && ALLOWED_FILE_DROP_TYPES.includes(f.type)) {
+          allowDrop = true;
+          break;
+        }
+      }
     }
-  }, []);
+    e.preventDefault();
+    if (isDropping !== allowDrop) {
+      setIsDropping(allowDrop);
+    }
+  }, [isDropping]);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     // Only trigger if dragging outside itself or its children
@@ -180,7 +194,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     } finally {
       setIsDropping(false);
     }
-  }, []);
+  }, [fileStore]);
 
   return (
     <div
@@ -199,10 +213,13 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
           <Card
             elevation={4}
             className="drop-overlay-content"
-            // todo: blue background when dropping over
+          // todo: blue background when dropping over
           >
-            <H5>Drop anywhere to import</H5>
-            <p>Or drag onto a tag to immediately tag it</p>
+            <H4 className="bp3-heading inpectorHeading">Drop import</H4>
+            <p>Drag onto a tag to immediately tag it or anywhere to import it untagged</p>
+
+            {/* <H4 className="bp3-heading inpectorHeading">Drop anywhere to import</H4>
+            <p>Or drag onto a tag to immediately tag it</p> */}
 
             {/* TODO: Sort by frequenc, or alphabetically? */}
             <div className="quick-tags">

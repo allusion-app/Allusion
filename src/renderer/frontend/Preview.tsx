@@ -15,7 +15,7 @@ const PreviewApp = observer(() => {
 
   const handleLeftButton = useCallback(
     () => uiStore.view.setFirstItem(Math.max(0, uiStore.view.firstItem - 1)),
-    [],
+    [uiStore.view],
   );
 
   const handleRightButton = useCallback(
@@ -23,7 +23,7 @@ const PreviewApp = observer(() => {
       uiStore.view.setFirstItem(
         Math.min(uiStore.view.firstItem + 1, fileStore.fileList.length - 1),
       ),
-    [fileStore.fileList.length],
+    [fileStore.fileList.length, uiStore.view],
   );
 
   return (
