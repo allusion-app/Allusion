@@ -181,8 +181,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
               : `${filename}.${extension}`;
 
             // Send base64 file to main process, get back filename where it is stored
-            RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
-            const reply = await RendererMessenger.onceStoreFileReply();
+            const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
 
             if (!rejected) {
               clearTimeout(timeout);

@@ -85,12 +85,12 @@ export class RendererMessenger {
   static setRunInBackground = (msg: IRunInBackgroundMessage) =>
     ipcRenderer.send(SET_RUN_IN_BACKGROUND, msg);
 
-  static storeFile = (msg: IStoreFileMessage) =>
+  static storeFile = (msg: IStoreFileMessage): Promise<IStoreFileReplyMessage> => {
     ipcRenderer.send(STORE_FILE, msg);
-  static onceStoreFileReply = () =>
-    new Promise<IStoreFileReplyMessage>((resolve) =>
+    return new Promise<IStoreFileReplyMessage>((resolve) =>
       ipcRenderer.once(STORE_FILE_REPLY, (_: IpcMessageEvent, msg: IStoreFileReplyMessage) =>
         resolve(msg)));
+  }
 
   static onImportExternalImage = (cb: (msg: IImportExternalImageMessage) => void) =>
     ipcRenderer.on(IMPORT_EXTERNAL_IMAGE, (_: IpcMessageEvent, msg: IImportExternalImageMessage) => cb(msg));
@@ -105,8 +105,6 @@ export class RendererMessenger {
 
   static onClosedPreviewWindow = (cb: () => void) =>
     ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
-
-  // Todo: Add all messages in here, replace the ipcRenderer calls in other places
 }
 
 export class MainMessenger {
