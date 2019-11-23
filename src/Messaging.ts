@@ -64,7 +64,6 @@ export interface IDownloadPathMessage {
 }
 
 // Static methods for type safe IPC messages between renderer and main process
-
 export class RendererMessenger {
   static initialized = () => ipcRenderer.send(INITIALIZED);
 
@@ -105,7 +104,7 @@ export class RendererMessenger {
     ipcRenderer.on(RECEIEVE_PREVIEW_FILES, (_: IpcMessageEvent, msg: IPreviewFilesMessage) => cb(msg));
 
   static onClosedPreviewWindow = (cb: () => void) =>
-    ipcRenderer.on(CLOSED_PREVIEW_WINDOW, () => cb());
+    ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
 
   // Todo: Add all messages in here, replace the ipcRenderer calls in other places
 }
@@ -134,7 +133,6 @@ export class MainMessenger {
   static onIsRunningInBackground = ((cb: () => boolean) =>
     ipcMain.on(IS_RUNNING_IN_BACKGROUND, (e: IpcMessageEvent) => e.returnValue = cb()));
 
-
   static sendPreviewFiles = (wc: WebContents, msg: IPreviewFilesMessage) =>
     wc.send(RECEIEVE_PREVIEW_FILES, msg);
 
@@ -143,7 +141,6 @@ export class MainMessenger {
 
   static sendAddTagsToFile = (wc: WebContents, msg: IAddTagsToFileMessage) =>
     wc.send(ADD_TAGS_TO_FILE, msg);
-
 
   static onSendPreviewFiles = (cb: (msg: IPreviewFilesMessage) => void) =>
     ipcMain.on(SEND_PREVIEW_FILES, (e: IpcMessageEvent, msg: IPreviewFilesMessage) => cb(msg));
@@ -156,5 +153,4 @@ export class MainMessenger {
       e.sender.send(STORE_FILE_REPLY, { downloadPath } as IStoreFileReplyMessage)
     });
   }
-
 }
