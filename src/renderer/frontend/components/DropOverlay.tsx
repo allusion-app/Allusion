@@ -6,8 +6,8 @@ import { observer } from 'mobx-react-lite';
 import { imgExtensions } from '../containers/Outliner/ImportForm';
 import { ClientTag } from '../../entities/Tag';
 import { timeoutPromise } from '../utils';
-import { ipcRenderer, IpcMessageEvent } from 'electron';
 import { ClientFile, IMG_EXTENSIONS } from '../../entities/File';
+import { RendererMessenger } from '../../../Messaging';
 
 const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
@@ -166,7 +166,11 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
           if (dataItem instanceof File) {
             resolve(fileStore.addFile(dataItem.path));
           } else if (typeof dataItem === 'string') {
-            const timeout = setTimeout(() => reject('Could not store dropped image in backend'), 5000);
+            let rejected = false;
+            const timeout = setTimeout(() => {
+              rejected = true;
+              reject('Could not store dropped image in backend');
+            }, 5000);
 
             // Get filename and data
             const { imgBase64, blob } = await imageAsBase64(dataItem);
@@ -177,11 +181,13 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
               : `${filename}.${extension}`;
 
             // Send base64 file to main process, get back filename where it is stored
-            ipcRenderer.send('storeFile', filenameWithExt, imgBase64);
-            ipcRenderer.once('storeFileReply', (_: IpcMessageEvent, downloadPath: string) => {
+            RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
+            const reply = await RendererMessenger.onceStoreFileReply();
+
+            if (!rejected) {
               clearTimeout(timeout);
-              resolve(fileStore.addFile(downloadPath));
-            });
+              resolve(fileStore.addFile(reply.downloadPath));
+            }
           }
         });
         // Add tag if needed

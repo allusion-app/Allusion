@@ -1,7 +1,7 @@
-import { ID } from './ID';
-import { IImportItem } from '../../main/clipServer';
-import { ITag } from './Tag';
-import { ipcRenderer, ipcMain, WebContents } from 'electron';
+import { ID } from './renderer/entities/ID';
+import { IImportItem } from './main/clipServer';
+import { ITag } from './renderer/entities/Tag';
+import { ipcRenderer, ipcMain, WebContents, IpcMessageEvent } from 'electron';
 
 /////////////////// General ////////////////////
 export const INITIALIZED = 'INITIALIZED';
@@ -35,6 +35,8 @@ export interface IAddTagsToFileMessage {
 }
 
 //////////////// Preview window ////////////////
+export const CLOSED_PREVIEW_WINDOW = 'CLOSED_PREVIEW_WINDOW';
+
 export const SEND_PREVIEW_FILES = 'SEND_PREVIEW_FILES_MESSAGE';
 export const RECEIEVE_PREVIEW_FILES = 'RECEIEVE_PREVIEW_FILES_MESSAGE';
 export interface IPreviewFilesMessage {
@@ -66,20 +68,50 @@ export interface IDownloadPathMessage {
 export class RendererMessenger {
   static initialized = () => ipcRenderer.send(INITIALIZED);
 
-  static setDownloadPath = (msg: IDownloadPathMessage) => ipcRenderer.send(SET_DOWNLOAD_PATH, msg);
+  static onGetTags = (cb: (e: IpcMessageEvent) => void) => ipcRenderer.on(GET_TAGS, cb);
+
+  static getDownloadPath = (): string => ipcRenderer.sendSync(GET_DOWNLOAD_PATH);
+  static getIsClipServerEnabled = (): boolean => ipcRenderer.sendSync(IS_CLIP_SERVER_RUNNING);
+  static getIsRunningInBackground = (): boolean => ipcRenderer.sendSync(IS_RUNNING_IN_BACKGROUND);
+
+  static setDownloadPath = (msg: IDownloadPathMessage) =>
+    ipcRenderer.send(SET_DOWNLOAD_PATH, msg);
   static setClipServerEnabled = (msg: IClipServerEnabledMessage) =>
     ipcRenderer.send(SET_CLIP_SERVER_ENABLED, msg);
   static setRunInBackground = (msg: IRunInBackgroundMessage) =>
     ipcRenderer.send(SET_RUN_IN_BACKGROUND, msg);
-  // ...
+
+  static storeFile = (msg: IStoreFileMessage) =>
+    ipcRenderer.send(STORE_FILE, msg);
+  static onceStoreFileReply = () =>
+    new Promise<IStoreFileReplyMessage>((resolve) =>
+      ipcRenderer.once(STORE_FILE_REPLY, (_: IpcMessageEvent, msg: IStoreFileReplyMessage) =>
+        resolve(msg)));
+
+  static onImportExternalImage = (cb: (msg: IImportExternalImageMessage) => void) =>
+    ipcRenderer.on(IMPORT_EXTERNAL_IMAGE, (_: IpcMessageEvent, msg: IImportExternalImageMessage) => cb(msg));
+
+  static onAddTagsToFile = (cb: (msg: IAddTagsToFileMessage) => void) =>
+    ipcRenderer.on(ADD_TAGS_TO_FILE, (_: IpcMessageEvent, msg: IAddTagsToFileMessage) => cb(msg));
+
+  static sendPreviewFiles = (msg: IPreviewFilesMessage) =>
+    ipcRenderer.send(SEND_PREVIEW_FILES, msg);
+  static onReceivePreviewFiles = (cb: (msg: IPreviewFilesMessage) => void) =>
+    ipcRenderer.on(RECEIEVE_PREVIEW_FILES, (_: IpcMessageEvent, msg: IPreviewFilesMessage) => cb(msg));
+
+  static onClosedPreviewWindow = (cb: () => void) =>
+    ipcRenderer.on(CLOSED_PREVIEW_WINDOW, () => cb());
 
   // Todo: Add all messages in here, replace the ipcRenderer calls in other places
 }
 
 export class MainMessenger {
-  static onceInitialized = async () => new Promise((resolve) => ipcMain.once(INITIALIZED, resolve));
+  static onceInitialized = async () =>
+    new Promise((resolve) => ipcMain.once(INITIALIZED, resolve));
 
   static sendPreviewFiles = (wc: WebContents, msg: IPreviewFilesMessage) =>
     wc.send(RECEIEVE_PREVIEW_FILES, msg);
-  // ...
+
+  // static
+
 }
