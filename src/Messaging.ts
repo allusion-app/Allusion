@@ -68,7 +68,12 @@ export interface IDownloadPathMessage {
 export class RendererMessenger {
   static initialized = () => ipcRenderer.send(INITIALIZED);
 
-  static onGetTags = (cb: (e: IpcMessageEvent) => void) => ipcRenderer.on(GET_TAGS, cb);
+  static onGetTags = (fetchTags: () => Promise<ITagsMessage>) => {
+    ipcRenderer.on(GET_TAGS, async () => {
+      const msg = await fetchTags();
+      ipcRenderer.send(RECEIVE_TAGS, msg);
+    });
+  }
 
   static getDownloadPath = (): string => ipcRenderer.sendSync(GET_DOWNLOAD_PATH);
   static getIsClipServerEnabled = (): boolean => ipcRenderer.sendSync(IS_CLIP_SERVER_RUNNING);
@@ -109,9 +114,47 @@ export class MainMessenger {
   static onceInitialized = async () =>
     new Promise((resolve) => ipcMain.once(INITIALIZED, resolve));
 
+  static getTags = async (wc: WebContents): Promise<ITagsMessage> => {
+    wc.send(GET_TAGS);
+    return new Promise((resolve) =>
+      ipcMain.once(RECEIVE_TAGS, (_: IpcMessageEvent, msg: ITagsMessage) => resolve(msg)));
+  };
+
+  static onSetDownloadPath = (cb: (msg: IDownloadPathMessage) => void) =>
+    ipcMain.on(SET_DOWNLOAD_PATH, (_: IpcMessageEvent, msg: IDownloadPathMessage) => cb(msg));
+  static onSetClipServerEnabled = (cb: (msg: IClipServerEnabledMessage) => void) =>
+    ipcMain.on(SET_CLIP_SERVER_ENABLED, (_: IpcMessageEvent, msg: IClipServerEnabledMessage) => cb(msg));
+  static onSetRunningInBackground = (cb: (msg: IRunInBackgroundMessage) => void) =>
+    ipcMain.on(SET_RUN_IN_BACKGROUND, (_: IpcMessageEvent, msg: IRunInBackgroundMessage) => cb(msg));
+
+  static onGetDownloadPath = ((cb: () => string) =>
+    ipcMain.on(GET_DOWNLOAD_PATH, (e: IpcMessageEvent) => e.returnValue = cb()));
+  static onIsClipServerRunning = ((cb: () => boolean) =>
+    ipcMain.on(IS_CLIP_SERVER_RUNNING, (e: IpcMessageEvent) => e.returnValue = cb()));
+  static onIsRunningInBackground = ((cb: () => boolean) =>
+    ipcMain.on(IS_RUNNING_IN_BACKGROUND, (e: IpcMessageEvent) => e.returnValue = cb()));
+
+
   static sendPreviewFiles = (wc: WebContents, msg: IPreviewFilesMessage) =>
     wc.send(RECEIEVE_PREVIEW_FILES, msg);
 
-  // static
+  static sendImportExternalImage = (wc: WebContents, msg: IImportExternalImageMessage) =>
+    wc.send(IMPORT_EXTERNAL_IMAGE, msg);
+
+  static sendAddTagsToFile = (wc: WebContents, msg: IAddTagsToFileMessage) =>
+    wc.send(ADD_TAGS_TO_FILE, msg);
+
+
+  static onSendPreviewFiles = (cb: (msg: IPreviewFilesMessage) => void) =>
+    ipcMain.on(SEND_PREVIEW_FILES, (e: IpcMessageEvent, msg: IPreviewFilesMessage) => cb(msg));
+  static sendClosedPreviewWindow = (wc: WebContents) =>
+    wc.send(CLOSED_PREVIEW_WINDOW);
+
+  static onStoreFile = (getDownloadPath: (msg: IStoreFileMessage) => Promise<string>) => {
+    ipcMain.on(STORE_FILE, async (e: IpcMessageEvent, msg: IStoreFileMessage) => {
+      const downloadPath = await getDownloadPath(msg);
+      e.sender.send(STORE_FILE_REPLY, { downloadPath } as IStoreFileReplyMessage)
+    });
+  }
 
 }

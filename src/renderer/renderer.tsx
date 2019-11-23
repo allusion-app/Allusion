@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { remote, IpcMessageEvent } from 'electron';
+import { remote } from 'electron';
 
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
@@ -142,6 +142,4 @@ RendererMessenger.onAddTagsToFile(async ({ item }) => {
   await addTagsToFile(item.filePath, item.tagNames);
 });
 
-RendererMessenger.onGetTags(async (e: IpcMessageEvent) => {
-  e.returnValue = await backend.fetchTags();
-});
+RendererMessenger.onGetTags(async () => ({ tags: await backend.fetchTags() }));
