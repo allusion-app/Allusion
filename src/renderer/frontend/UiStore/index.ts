@@ -8,14 +8,12 @@ import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
-import View from './View';
+import View, { ViewMethod, ViewContent, ViewThumbnailSize } from './View';
 import {
-  IArraySearchCriteria,
   ClientBaseCriteria,
   ClientArraySearchCriteria,
 } from '../../entities/SearchCriteria';
 
-export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
@@ -144,18 +142,18 @@ class UiStore {
 
   /////////////////// UI Actions ///////////////////
   @action.bound toggleOutliner() {
-    this.isOutlinerOpen = !this.isOutlinerOpen;
+    this.setIsOutlinerOpen(!this.isOutlinerOpen);
   }
 
   @action.bound openOutlinerImport() {
-    this.outlinerPage = 'IMPORT';
-    if (this.view.content !== 'untagged') {
+    this.setOutlinerPage('IMPORT');
+    if (!this.view.showsUntaggedContent) {
       this.viewUntaggedContent();
     }
   }
   @action.bound openOutlinerTags() {
-    this.outlinerPage = 'TAGS';
-    if (this.view.content !== 'all') {
+    this.setOutlinerPage('TAGS');
+    if (!this.view.showsAllContent) {
       this.viewAllContent();
     }
   }
@@ -171,7 +169,7 @@ class UiStore {
   }
 
   @action.bound toggleInspector() {
-    this.isInspectorOpen = !this.isInspectorOpen;
+    this.setIsInspectorOpen(!this.isInspectorOpen);
   }
 
   @action.bound toggleSettings() {
@@ -230,7 +228,7 @@ class UiStore {
     this.imageViewerFile = file;
   }
 
-  @action.bound setThumbnailDirectory(dir: string) {
+  @action.bound setThumbnailDirectory(dir: string = '') {
     this.thumbnailDirectory = dir;
   }
 
@@ -245,11 +243,11 @@ class UiStore {
   }
 
   @action.bound refetch() {
-    if (this.view.content === 'all') {
+    if (this.view.showsAllContent) {
       this.rootStore.fileStore.fetchAllFiles();
-    } else if (this.view.content === 'untagged') {
+    } else if (this.view.showsUntaggedContent) {
       this.rootStore.fileStore.fetchUntaggedFiles();
-    } else if (this.view.content === 'query') {
+    } else if (this.view.showsQueryContent) {
       this.rootStore.fileStore.fetchFilesByQuery();
     }
   }
@@ -456,6 +454,10 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
+  @action.bound openQuickSearch() {
+    this.isQuickSearchOpen = true;
+  }
+
   @action.bound async clearSearchCriteriaList() {
     this.searchCriteriaList.clear();
     this.viewAllContent();
@@ -468,6 +470,12 @@ class UiStore {
   }
 
   @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+    // Remove empty array criteria if it already exists before adding the new one
+    if (this.searchCriteriaList.length === 1 && this.searchCriteriaList[0].valueType === 'array') {
+      if ((this.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>).value.length === 0) {
+        this.searchCriteriaList.clear();
+      }
+    }
     this.searchCriteriaList.push(query);
     this.view.setContentQuery();
   }
@@ -481,24 +489,22 @@ class UiStore {
   }
 
   @action.bound addTagsToCriteria(ids: ID[]) {
-    this.addSearchCriteria({
-      key: 'tags',
-      valueType: 'array',
-      operator: 'contains',
-      value: ids,
-    } as IArraySearchCriteria<IFile>);
+    this.addSearchCriteria(new ClientArraySearchCriteria<IFile>('tags', ids));
+    this.openQuickSearch();
+    this.searchByQuery();
   }
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
-    this.searchCriteriaList.clear();
-    this.addTagsToCriteria(ids);
-    this.isQuickSearchOpen = true;
+    this.searchCriteriaList.replace([new ClientArraySearchCriteria<IFile>('tags', ids)]);
+    this.view.setContentQuery();
+    this.openQuickSearch();
+    this.searchByQuery();
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceCriteriaWithTags(this.tagSelection.toJS());
     this.searchByQuery();
-    this.isQuickSearchOpen = true;
+    this.openQuickSearch();
   }
 
   @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
@@ -526,10 +532,14 @@ class UiStore {
     this.rootStore.fileStore.fetchFilesByQuery();
     this.view.setContentQuery();
     this.cleanFileSelection();
+
+    if (this.isAdvancedSearchOpen) {
+      this.toggleAdvancedSearch();
+    }
   }
 
   @action.bound toggleTheme() {
-    this.theme = this.theme === 'DARK' ? 'LIGHT' : 'DARK';
+    this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
   }
 
   @action.bound toggleDevtools() {
@@ -539,7 +549,7 @@ class UiStore {
     remote.getCurrentWindow().reload();
   }
   @action.bound toggleFullScreen() {
-    this.isFullScreen = !this.isFullScreen;
+    this.setIsFullScreen(!this.isFullScreen);
     remote.getCurrentWindow().setFullScreen(this.isFullScreen);
   }
   @action.bound toggleQuickSearch() {
@@ -575,11 +585,13 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        for (const field of PersistentPreferenceFields) {
-          // @ts-ignore
-          this[field] = prefs[field];
-        }
-        this.view.getPreferences(prefs);
+        this.setTheme(prefs.theme);
+        this.setIsFullScreen(prefs.isFullScreen);
+        this.setOutlinerPage(prefs.outlinerPage);
+        this.setIsOutlinerOpen(prefs.isOutlinerOpen);
+        this.setIsInspectorOpen(prefs.isInspectorOpen);
+        this.setThumbnailDirectory(prefs.thumbnailDirectory);
+        this.view.loadPreferences(prefs);
       } catch (e) {
         console.log('Cannot parse persistent preferences', e);
       }
@@ -597,7 +609,7 @@ class UiStore {
     for (const field of PersistentPreferenceFields) {
       prefs[field] = this[field];
     }
-    prefs = this.view.setPreferences(prefs);
+    prefs = this.view.savePreferences(prefs);
     localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
   }
 
@@ -612,6 +624,28 @@ class UiStore {
       }
     }
   }
+
+  @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
+    this.theme = theme;
+  }
+
+  @action private setIsFullScreen(value: boolean = false) {
+    this.isFullScreen = value;
+  }
+
+  @action private setOutlinerPage(page: 'IMPORT' | 'TAGS' = 'TAGS') {
+    this.outlinerPage = page;
+  }
+
+  @action private setIsOutlinerOpen(value: boolean = true) {
+    this.isOutlinerOpen = value;
+  }
+
+  @action private setIsInspectorOpen(value: boolean = false) {
+    this.isInspectorOpen = value;
+  }
 }
 
 export default UiStore;
+
+export { ViewMethod, ViewContent, ViewThumbnailSize };

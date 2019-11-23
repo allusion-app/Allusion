@@ -111,9 +111,10 @@ const TagCriteriaItem = observer(({ criteria }: { criteria: ClientArraySearchCri
 
   const handleClearTags = useCallback(() => criteria.clearIDs(), [criteria]);
 
+  const tags = criteria.value.toJS();
   const criteriaTags = useMemo(
-    () => criteria.value.map((id) => tagStore.tagList.find((tag) => tag.id === id) as ClientTag),
-    [criteria.value, tagStore.tagList]);
+    () => tags.map((id) => tagStore.tagList.find((tag) => tag.id === id) as ClientTag),
+    [tags, tagStore.tagList]);
 
   return (
     <>
@@ -204,10 +205,11 @@ interface ICriteriaItemProps {
   criteria: FileSearchCriteria;
   onRemove: () => any;
   onAdd: () => any;
+  removable: boolean;
 }
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
-const CriteriaItem = observer(({ criteria, onRemove, onAdd }: ICriteriaItemProps) => {
+const CriteriaItem = observer(({ criteria, onRemove, onAdd, removable }: ICriteriaItemProps) => {
 
   const critFields = useMemo(() => {
     if (criteria.key === 'name' || criteria.key === 'path') {
@@ -230,7 +232,7 @@ const CriteriaItem = observer(({ criteria, onRemove, onAdd }: ICriteriaItemProps
       {critFields}
 
       <ButtonGroup vertical className="add-remove">
-        <Button text="-" onClick={onRemove} />
+        <Button text="-" onClick={onRemove} disabled={!removable} />
         <Button text="+" onClick={onAdd} />
       </ButtonGroup>
     </ControlGroup>
@@ -262,6 +264,7 @@ const SearchForm = observer(() => {
             key={`crit-${i}-${crit.key}`}
             onAdd={addSearchCriteria}
             onRemove={removeSearchCriteria.bind(null, i)}
+            removable={uiStore.searchCriteriaList.length !== 1}
           />
         ))}
       </FormGroup>

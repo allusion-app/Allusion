@@ -28,26 +28,26 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
             text="All Images"
             icon={IconSet.MEDIA}
             rightIcon={
-              uiStore.view.content === 'all' ? (
+              uiStore.view.showsAllContent ? (
                 <Icon intent="primary" icon={IconSet.PREVIEW} />
               ) : null
             }
             onClick={uiStore.viewAllContent}
-            active={uiStore.view.content === 'all'}
+            active={uiStore.view.showsAllContent}
             fill
           />
           <Button
             text={`Untagged (${fileStore.numUntaggedFiles})`}
             icon={IconSet.TAG_BLANCO}
             rightIcon={
-              uiStore.view.content === 'untagged' ? (
+              uiStore.view.showsUntaggedContent ? (
                 <Icon icon={IconSet.PREVIEW} />
               ) : fileStore.numUntaggedFiles > 0 ? (
                 <Icon icon={IconSet.WARNING} />
               ) : null
             }
             onClick={uiStore.viewUntaggedContent}
-            active={uiStore.view.content === 'untagged'}
+            active={uiStore.view.showsUntaggedContent}
             fill
           />
         </ButtonGroup>

@@ -3,6 +3,9 @@
   width: 100%;
   padding: 0 0 0 8px;
   height: 100%;
+
+  display: flex;
+  flex-flow: column;
 }
 
 .quick-search {
@@ -13,8 +16,6 @@
   top: 0.2rem;
   z-index: 999;
   display: flex;
-
-  overflow: hidden;
 
   border-bottom: 2px solid $black;
   box-shadow: $pt-dark-elevation-shadow-2;
@@ -75,7 +76,12 @@
 }
 
 .gallery-content {
-  height: 100%;
+  flex: 1;
+
+  > div {
+    // Fix for height cut-off when the quick search bar is open
+    position: absolute !important;
+  }
 }
 
 .thumbnail-small {
