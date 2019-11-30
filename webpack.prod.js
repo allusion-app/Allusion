@@ -107,6 +107,10 @@ let rendererConfig = {
                     name: '[path][name].[ext]',
                 },
             },
+            {
+                test: /\.node$/,
+                use: 'node-loader',
+            }
         ],
     },
     plugins: [

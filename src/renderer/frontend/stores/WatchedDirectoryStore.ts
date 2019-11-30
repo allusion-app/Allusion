@@ -33,7 +33,7 @@ class WatchedDirectoryStore {
       initialPathLists.map(async (paths, i): Promise<IFile[]> => {
         const dir = clientDirs[i];
         return Promise.all(
-          paths.map(async (path) => this.pathToIFile(path, dir.tagsToAdd),
+          paths.map(async (path) => this.pathToIFile(path, dir.tagsToAdd.toJS()),
         ));
       }),
     );
