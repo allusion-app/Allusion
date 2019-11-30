@@ -23,7 +23,7 @@ export class DbWatchedDirectory implements IWatchedDirectory {
     public recursive: boolean,
     public dateAdded: Date,
     public tagsToAdd: ID[],
-    folderTag?: ID,
+    // folderTag?: ID,
   ) { }
 }
 
@@ -62,7 +62,7 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
       },
     );
     if (tagsToAdd) {
-      this.tagsToAdd.push(...tagsToAdd)
+      this.addTags(tagsToAdd);
     }
   }
 
@@ -76,12 +76,14 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
       path: this.path,
       recursive: this.recursive,
       dateAdded: this.dateAdded,
-      tagsToAdd: this.tagsToAdd,
+      tagsToAdd: this.tagsToAdd.toJS(),
     };
   }
 
   @action.bound addTag(tag: ClientTag) { this.tagsToAdd.push(tag.id); }
   @action.bound removeTag(tag: ClientTag) { this.tagsToAdd.remove(tag.id); }
+
+  @action.bound private addTags(tags: ID[]) { this.tagsToAdd.push(...tags); }
 
   private watchDirectory(inputPath: string, recursive: boolean): Promise<string[]> {
     // Watch for folder changes
@@ -97,6 +99,7 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
 
     const watcher = this.watcher;
 
+    // Make a list of all files in this directory, which will be returned when all subdirs have been traversed
     const initialFiles: string[] = [];
 
     return new Promise<string[]>((resolve) => {
@@ -109,6 +112,7 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
               AppToaster.show({
                 message: 'New images have been detected.',
                 intent: 'primary',
+                timeout: 0,
                 action: {
                   text: 'Refresh',
                   icon: 'refresh',

@@ -1,5 +1,5 @@
-import React, { useContext, useCallback, useState } from 'react';
-import { remote } from 'electron';
+import React, { useContext, useCallback, useState, useEffect } from 'react';
+import { remote, ipcRenderer } from 'electron';
 import Path from 'path';
 import { observer, Observer } from 'mobx-react-lite';
 import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert, Dialog, Checkbox, Label } from '@blueprintjs/core';
@@ -24,7 +24,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
     isDeleteOpen: false,
     isConfigOpen: false,
   };
-  
+
   // todo: need to take into account selection of multiple watched dir
   openDeleteAlert = () => this.setState({ isDeleteOpen: true });
   closeDeleteAlert = () => this.setState({ isDeleteOpen: false });
@@ -69,7 +69,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
         </Alert>
 
         <Dialog
-          title={<span className="ellipsis" title={dir.path}>{Path.basename(dir.path)}</span>}
+          title={<span className="ellipsis" title={dir.path}>Location: {Path.basename(dir.path)}</span>}
           icon={IconSet.SETTINGS}
           isOpen={this.state.isConfigOpen}
           onClose={this.closeConfigDialog}
@@ -122,6 +122,12 @@ const LocationsForm = () => {
 
   const [isCollapsed, setCollapsed] = useState(false);
 
+  const [importPath, setImportPath] = useState('');
+
+  useEffect(() => {
+    setImportPath(ipcRenderer.sendSync('getDownloadPath'));
+  }, []);
+
   const handleChooseWatchedDir = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     const dirs = remote.dialog.showOpenDialog({
@@ -167,6 +173,14 @@ const LocationsForm = () => {
       </div>
       <Collapse isOpen={!isCollapsed}>
         <ul id="watched-folders">
+          <li>
+            <span>
+              {/* Todo: Link this to the actual import dir */}
+              <Icon icon="map-marker" />
+              &nbsp;
+              <span className="ellipsis" title={importPath}>Import location</span>
+            </span>
+          </li>
           {
             watchedDirectoryStore.directoryList.map((dir, i) => (
               <LocationListItem
