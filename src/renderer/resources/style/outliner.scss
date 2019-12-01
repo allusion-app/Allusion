@@ -192,7 +192,11 @@ nav .bp3-tree {
 // Reordering by dragging
 .bp3-tree-node {
   &-label {
-    min-height: 20px !important;
+    // min-height: 20px !important;
+    text-transform: lowercase;
+    &::first-letter {
+      text-transform: uppercase;
+    }
   }
   .reorder-target {
     border-bottom: 2px solid $blue1;
@@ -240,10 +244,10 @@ nav .bp3-tree {
 }
 
 #watched-folders {
-  padding: 4px;
-  margin: 0px;
-  margin-left: 8px;
-
+  div > span:first-child {
+  padding: 0.25rem 0.05rem;
+  margin-left: 0.5rem;
+  }
   > li {
     list-style-type: none;
 

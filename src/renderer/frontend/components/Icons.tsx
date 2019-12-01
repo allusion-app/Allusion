@@ -28,6 +28,7 @@ import FILTER_FILTER_UP from '../../resources/icons/filter-filter-up.svg';
 import FILTER_NAME_DOWN from '../../resources/icons/filter-name-down.svg';
 import FILTER_NAME_UP from '../../resources/icons/filter-name-up.svg';
 import FOLDER_CLOSE_ADD from '../../resources/icons/folder-close-add.svg';
+import FOLDER_CLOSE_IMPORT from '../../resources/icons/folder-close-import.svg';
 import FOLDER_CLOSE from '../../resources/icons/folder-close.svg';
 import FOLDER_OPEN from '../../resources/icons/folder-open.svg';
 import FOLDER_STRUCTURE from '../../resources/icons/folder-structure.svg';
@@ -105,6 +106,7 @@ const IconSet = {
   FILTER_NAME_DOWN: toSvg(FILTER_NAME_DOWN),
   FILTER_NAME_UP: toSvg(FILTER_NAME_UP),
   FOLDER_CLOSE_ADD: toSvg(FOLDER_CLOSE_ADD),
+  FOLDER_CLOSE_IMPORT: toSvg(FOLDER_CLOSE_IMPORT),
   FOLDER_CLOSE: toSvg(FOLDER_CLOSE),
   FOLDER_OPEN: toSvg(FOLDER_OPEN),
   FOLDER_STRUCTURE: toSvg(FOLDER_STRUCTURE),

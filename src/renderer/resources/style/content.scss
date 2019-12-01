@@ -108,7 +108,15 @@
   overflow: hidden;
   border-radius: 0.25rem;
   // margin: 0.4rem;
-
+  .image-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+  }
   .h4 {
     grid-area: title;
   }
@@ -211,9 +219,9 @@
   grid-template-columns: auto 1fr;
   // grid-template-rows:    auto 1fr;
   grid-template-areas:
-    'image title'
-    'image info'
-    'image tags';
+    "image title"
+    "image info"
+    "image tags";
 
   &.selected .img-wrapper {
     border: 1rem solid $blue1;

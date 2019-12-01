@@ -39,12 +39,16 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
   render() {
     const { dir } = this.props;
     return (
-      <li>
-        <span>
-          <Icon icon="map-marker" />
-          &nbsp;
-          <span className="ellipsis" title={dir.path}>{Path.basename(dir.path)}</span>
-        </span>
+      <li className="bp3-tree-node">
+        <div className="bp3-tree-node-content bp3-tree-node-content-0">
+
+          <span>&nbsp;</span>
+          {/* <Icon icon="map-marker" /> */}
+          <span className="custom-icon-14">
+            <Icon icon={IconSet.FOLDER_CLOSE} />
+          </span>
+          <span className="bp3-tree-node-label" title={dir.path}>{Path.basename(dir.path)}</span>
+        </div>
 
         <Alert
           isOpen={this.state.isDeleteOpen}
@@ -76,7 +80,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
         >
           <div className={Classes.DIALOG_BODY}>
             <Observer>
-              { () =>
+              {() =>
                 <>
                   <Checkbox label="Recursive" checked />
                   <Checkbox label="Add folder name as tag" />
@@ -157,7 +161,7 @@ const LocationsForm = () => {
   }, [uiStore, addToSearch]);
 
   return (
-   <div>
+    <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
         <H4 className="bp3-heading">
           <Icon icon={isCollapsed ? 'caret-right' : 'caret-down'} />
@@ -165,34 +169,39 @@ const LocationsForm = () => {
         </H4>
         <Button
           minimal
-          icon={IconSet.ADD}
+          icon={IconSet.FOLDER_CLOSE_ADD}
           onClick={handleChooseWatchedDir}
           className="tooltip"
-          // data-right={DEFAULT_TAG_NAME}
+        // data-right={DEFAULT_TAG_NAME}
         />
       </div>
       <Collapse isOpen={!isCollapsed}>
-        <ul id="watched-folders">
-          <li>
-            <span>
-              {/* Todo: Link this to the actual import dir */}
-              <Icon icon="map-marker" />
-              &nbsp;
-              <span className="ellipsis" title={importPath}>Import location</span>
-            </span>
-          </li>
-          {
-            watchedDirectoryStore.directoryList.map((dir, i) => (
-              <LocationListItem
-                key={`${dir.path}-${i}`}
-                dir={dir}
-                onDelete={watchedDirectoryStore.removeDirectory}
-                addToSearch={addToSearch}
-                replaceSearch={replaceSearch}
-              />
-            ))
-          }
-        </ul>
+        <div className="bp3-tree">
+          <ul className="bp3-tree-node-list bp3-tree-root" id="watched-folders">
+            <li className="bp3-tree-node">
+              <div className="bp3-tree-node-content bp3-tree-node-content-0">
+                {/* Todo: Link this to the actual import dir */}
+                {/* <Icon icon="map-marker" /> */}
+                <span>&nbsp;</span>
+                <span className="custom-icon-14">
+                  <Icon icon={IconSet.FOLDER_CLOSE_IMPORT} />
+                </span>
+                <span className="bp3-tree-node-label" title={importPath}>Import location</span>
+              </div>
+            </li>
+            {
+              watchedDirectoryStore.directoryList.map((dir, i) => (
+                <LocationListItem
+                  key={`${dir.path}-${i}`}
+                  dir={dir}
+                  onDelete={watchedDirectoryStore.removeDirectory}
+                  addToSearch={addToSearch}
+                  replaceSearch={replaceSearch}
+                />
+              ))
+            }
+          </ul>
+        </div>
       </Collapse>
     </div>
   );
