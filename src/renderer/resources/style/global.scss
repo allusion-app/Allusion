@@ -45,6 +45,7 @@ body {
 main {
   grid-area: main;
   overflow: hidden; //temp fix for double scrollbar
+  height: inherit;
 }
 
 #layoutContainer {
