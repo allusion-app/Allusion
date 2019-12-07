@@ -247,15 +247,17 @@ MainMessenger.onGetDownloadPath(() => clipServer!.getDownloadPath());
 MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
 MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
 
-MainMessenger.onSetDownloadPath(({ dir }) =>
-  clipServer!.setDownloadPath(dir));
+MainMessenger.onSetDownloadPath(({ dir }) => clipServer!.setDownloadPath(dir));
 MainMessenger.onSetClipServerEnabled(({ isClipServerRunning }) =>
-  clipServer!.setEnabled(isClipServerRunning));
+  clipServer!.setEnabled(isClipServerRunning),
+);
 MainMessenger.onSetRunningInBackground(({ isRunInBackground }) =>
-  clipServer!.setRunInBackground(isRunInBackground));
+  clipServer!.setRunInBackground(isRunInBackground),
+);
 
 MainMessenger.onStoreFile(({ filenameWithExt, imgBase64 }) =>
-  clipServer!.storeImageWithoutImport(filenameWithExt, imgBase64))
+  clipServer!.storeImageWithoutImport(filenameWithExt, imgBase64),
+);
 
 // Forward files from the main window to the preview window
 MainMessenger.onSendPreviewFiles(({ ids, thumbnailDirectory }) => {
