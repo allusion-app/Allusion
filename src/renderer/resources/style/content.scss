@@ -81,6 +81,9 @@
   > div {
     // Fix for height cut-off when the quick search bar is open
     position: absolute !important;
+
+    // No horizontal scrollbar
+    overflow-x: hidden !important;
   }
 }
 
@@ -129,7 +132,7 @@
       // transition: all 0.1s ease-in-out;
       width: var(--thumbnail-size);
       height: var(--thumbnail-size);
-      object-fit: cover;
+      // object-fit: cover;
       cursor: pointer;
       margin-left: auto;
       margin-right: auto;
@@ -164,7 +167,7 @@
   //   }
   // }
   &.droppable .img-wrapper {
-    border: 1rem solid $yellow1;
+    background: $yellow1;
     border-radius: 0.25rem;
 
     img {
@@ -216,12 +219,12 @@
     'image tags';
 
   &.selected .img-wrapper {
-    border: 1rem solid $blue1;
+    background: $blue1;
     border-radius: 0.25rem;
   }
 
   &.droppable .img-wrapper {
-    border: 1rem solid $yellow1;
+    background: $yellow1;
     border-radius: 0.25rem;
 
     img {
@@ -335,6 +338,13 @@
   // }
 }
 
+.thumb-square img {
+  object-fit: cover;
+}
+.thumb-letterbox img {
+  object-fit: contain;
+}
+
 .slide .thumbnail {
   height: calc(100vh - 4rem) !important;
   width: 100% !important;
@@ -345,7 +355,7 @@
     width: 95% !important;
     transform: translateX(-50%) translateY(-50%);
     position: absolute;
-    object-fit: contain;
+    // object-fit: contain;
     top: 49%;
     left: 50%;
   }

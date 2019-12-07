@@ -464,7 +464,9 @@ const Gallery = ({
     <ResizeSensor onResize={handleResize}>
       <div
         className={`gallery-content thumbnail-${uiStore.view.thumbnailSize} ${
-          uiStore.view.method} ${selectionModeOn ? 'gallerySelectionMode' : ''}`}
+          uiStore.view.method} ${selectionModeOn ? 'gallerySelectionMode' : ''} ${
+          uiStore.view.thumbnailShape === 'square' ? 'thumb-square' : 'thumb-letterbox'}`
+        }
         onClick={handleBackgroundClick}
       >
         {getLayoutComponent(

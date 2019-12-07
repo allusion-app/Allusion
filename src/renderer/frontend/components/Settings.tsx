@@ -123,6 +123,16 @@ const Settings = observer(() => {
           <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
         </RadioGroup>
 
+        <RadioGroup
+          selectedValue={uiStore.view.thumbnailShape}
+          onChange={() => undefined}
+          label="Thumbnail shape"
+          inline
+        >
+          <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
+          <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
+        </RadioGroup>
+
         <Switch
           checked={uiStore.isFullScreen}
           onChange={uiStore.toggleFullScreen}
