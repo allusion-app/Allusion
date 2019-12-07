@@ -176,7 +176,7 @@ const Toolbar = observer(() => {
         </Menu>
       );
     },
-    [uiStore.view.orderFilesBy, uiStore.view.orderBy], // eslint-disable-line
+    [uiStore.view.orderFilesBy, uiStore.view.orderBy, uiStore.view.fileOrder], // eslint-disable-line
   );
 
   const layoutMenu = useMemo(
