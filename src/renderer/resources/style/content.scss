@@ -338,13 +338,6 @@
   // }
 }
 
-.thumb-square img {
-  object-fit: cover;
-}
-.thumb-letterbox img {
-  object-fit: contain;
-}
-
 .slide .thumbnail {
   height: calc(100vh - 4rem) !important;
   width: 100% !important;
@@ -364,3 +357,12 @@
     transform: translateX(-50%) translateY(-50%) scale(0.9);
   }
 }
+
+.thumb-square:not(.slide) img {
+  object-fit: cover;
+}
+.thumb-letterbox:not(.slide) img {
+  object-fit: contain;
+}
+
+
