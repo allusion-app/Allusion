@@ -348,7 +348,7 @@
     width: 95% !important;
     transform: translateX(-50%) translateY(-50%);
     position: absolute;
-    // object-fit: contain;
+    object-fit: contain;
     top: 49%;
     left: 50%;
   }
@@ -364,5 +364,3 @@
 .thumb-letterbox:not(.slide) img {
   object-fit: contain;
 }
-
-
