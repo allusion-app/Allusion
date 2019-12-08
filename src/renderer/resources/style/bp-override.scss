@@ -454,10 +454,12 @@ button:has(.bp3-intent-danger) {
 // .bp3-button.bp3-intent-primary,
 .bp3-button.bp3-intent-warning,
 .bp3-button:not([class*='bp3-intent-']),
-.bp3-button.bp3-intent-danger {
+// .bp3-button.bp3-intent-danger,
+.bp3-button.bp3-minimal.bp3-active {
   box-shadow: none !important;
   background-image: none !important;
   color: #ffffff;
+  background: none;
 }
 
 // .bp3-button.bp3-intent-warning,
