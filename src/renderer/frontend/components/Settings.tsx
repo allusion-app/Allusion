@@ -12,14 +12,13 @@ import {
   FormGroup,
   KeyCombo,
 } from '@blueprintjs/core';
-import fse from 'fs-extra';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { ClearDbButton } from './ErrorBoundary';
 import { ipcRenderer, remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
-import { getThumbnailPath } from '../utils';
+import { getThumbnailPath, isDirEmpty } from '../utils';
 
 const Settings = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -81,8 +80,7 @@ const Settings = observer(() => {
       }
       const newDir = dirs[0];
 
-      const isEmpty = (await fse.readdir(newDir)).length === 0;
-      if (!isEmpty) {
+      if (!(await isDirEmpty(newDir))) {
         alert('Please choose an empty directory.');
         return;
       }

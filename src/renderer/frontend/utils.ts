@@ -1,4 +1,6 @@
 import path from 'path';
+import fse from 'fs-extra';
+
 import { thumbnailType } from '../../config';
 
 ////////////////////////
@@ -221,3 +223,9 @@ export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): 
 
   return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailType}`);
 };
+
+export const isDirEmpty = async (dir: string) => {
+  const dirContents = await fse.readdir(dir);
+  return dirContents.length === 0 ||
+         dirContents.length === 1 && dirContents[0] === '.DS_Store';
+}
