@@ -264,14 +264,16 @@ class UiStore {
     if (clear) {
       this.clearFileSelection();
     }
-    this.fileSelection.push(file.id);
+    if (!this.fileSelection.includes(file.id)) {
+      this.fileSelection.push(file.id);
+    }
   }
 
   @action.bound selectFiles(files: ID[], clear?: boolean) {
     if (clear) {
       this.clearFileSelection();
     }
-    this.fileSelection.push(...files);
+    this.fileSelection.push(...files.filter(((id) => !this.fileSelection.includes(id))));
   }
 
   @action.bound deselectFile(file: ClientFile) {
