@@ -99,7 +99,6 @@ const GridGallery = observer(
       if (index === undefined) {
         return;
       }
-      // Move up/down to next row.
       if (e.key === 'ArrowUp' && index >= numColumns) {
         index -= numColumns;
       } else if (e.key === 'ArrowDown' && index < fileList.length - 1 && index < fileList.length + numColumns - 1) {
