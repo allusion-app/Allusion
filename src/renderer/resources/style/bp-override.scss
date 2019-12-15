@@ -19,7 +19,8 @@
 .bp3-running-text .bp3-dark code,
 .bp3-dark .bp3-code,
 .bp3-dark .bp3-key {
-  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 0 0 rgba(16, 22, 26, 0), 0 1px 1px rgba(16, 22, 26, 0.2);
+  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 0 0 rgba(16, 22, 26, 0),
+    0 1px 1px rgba(16, 22, 26, 0.2);
   color: #5c7080;
   font-size: 0.8rem;
   background: white;
@@ -1125,7 +1126,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   display: flex;
   flex-direction: column;
   margin: 0;
-  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 4px 8px rgba(16, 22, 26, 0.2), 0 18px 46px 6px rgba(16, 22, 26, 0.2);
+  box-shadow: 0 0 0 1px rgba(16, 22, 26, 0.1), 0 4px 8px rgba(16, 22, 26, 0.2),
+    0 18px 46px 6px rgba(16, 22, 26, 0.2);
   background: $light-gray5;
   padding: 1rem;
   // button {
