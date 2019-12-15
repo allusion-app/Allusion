@@ -16,9 +16,10 @@ import {
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { ClearDbButton } from './ErrorBoundary';
-import { ipcRenderer, remote } from 'electron';
+import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
+import { RendererMessenger } from '../../../Messaging';
 
 const Settings = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -29,7 +30,7 @@ const Settings = observer(() => {
 
   const toggleClipServer = useCallback(
     () => {
-      ipcRenderer.send('setClipServerEnabled', !isClipServerRunning);
+      RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
       setClipServerRunning(!isClipServerRunning);
     },
     [setClipServerRunning, isClipServerRunning],
@@ -37,7 +38,7 @@ const Settings = observer(() => {
 
   const toggleRunInBackground = useCallback(
     () => {
-      ipcRenderer.send('setRunningInBackground', !isRunningInBackground);
+      RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
       setRunningInBackground(!isRunningInBackground);
     },
     [setRunningInBackground, isRunningInBackground],
@@ -55,15 +56,15 @@ const Settings = observer(() => {
 
       const dir = dirs[0];
       setImportPath(dir);
-      ipcRenderer.send('setDownloadPath', dir);
+      RendererMessenger.setDownloadPath({ dir });
     },
     [setImportPath],
   );
 
   useEffect(() => {
-    setClipServerRunning(ipcRenderer.sendSync('isClipServerRunning'));
-    setRunningInBackground(ipcRenderer.sendSync('isRunningInBackground'));
-    setImportPath(ipcRenderer.sendSync('getDownloadPath'));
+    setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
+    setRunningInBackground(RendererMessenger.getIsRunningInBackground());
+    setImportPath(RendererMessenger.getDownloadPath());
   }, []);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';

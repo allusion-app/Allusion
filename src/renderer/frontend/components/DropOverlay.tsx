@@ -6,8 +6,11 @@ import { observer } from 'mobx-react-lite';
 import { imgExtensions } from '../containers/Outliner/ImportForm';
 import { ClientTag } from '../../entities/Tag';
 import { timeoutPromise } from '../utils';
-import { ipcRenderer, IpcMessageEvent } from 'electron';
-import { ClientFile } from '../../entities/File';
+import { ClientFile, IMG_EXTENSIONS } from '../../entities/File';
+import { RendererMessenger } from '../../../Messaging';
+
+const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
+const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 
 /** Tests whether a URL points to an image */
 async function testImage(url: string, timeout: number = 2000): Promise<boolean> {
@@ -52,15 +55,14 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
     for (let i = 0; i < e.dataTransfer.files.length; i++) {
       const file = e.dataTransfer.files[i];
       // Check if file is an image
-      if (file && file.name
-        && imgExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))) {
+      if (file && ALLOWED_FILE_DROP_TYPES.includes(file.type)) {
         dropItems.add(file);
       }
     }
   }
 
-  const droppedHtml = e.dataTransfer.getData('text/html');
-  if (droppedHtml) {
+  if (e.dataTransfer.types.includes('text/html')) {
+    const droppedHtml = e.dataTransfer.getData('text/html');
     const container = document.createElement('html');
     container.innerHTML = droppedHtml;
     const imgs = container.getElementsByTagName('img');
@@ -68,10 +70,8 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
       const src = imgs[0].src;
       dropItems.add(src);
     }
-  }
-
-  const plainText = e.dataTransfer.getData('text/html');
-  if (plainText) {
+  } else if (e.dataTransfer.types.includes('text/plain')) {
+    const plainText = e.dataTransfer.getData('text/plain');
     // Check if text is an URL
     if (/^https?:\/\//i.test(plainText)) {
       dropItems.add(plainText);
@@ -129,9 +129,22 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
   const [isDropping, setIsDropping] = useState<boolean>(false);
 
   const handleDropStart = useCallback(async (e: React.DragEvent) => {
+    e.dataTransfer.dropEffect = 'copy';
+    let allowDrop = e.dataTransfer.types.some((t) => ALLOWED_DROP_TYPES.includes(t));
+    if (e.dataTransfer.types.includes('Files')) {
+      e.dataTransfer.dropEffect = 'link';
+      allowDrop = false;
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        const f = e.dataTransfer.items[i];
+        if (f && ALLOWED_FILE_DROP_TYPES.includes(f.type)) {
+          allowDrop = true;
+          break;
+        }
+      }
+    }
     e.preventDefault();
-    if (!isDropping) {
-      setIsDropping(e.dataTransfer.files.length > 0 || e.dataTransfer.items.length > 0);
+    if (isDropping !== allowDrop) {
+      setIsDropping(allowDrop);
     }
   }, [isDropping]);
 
@@ -153,7 +166,11 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
           if (dataItem instanceof File) {
             resolve(fileStore.addFile(dataItem.path));
           } else if (typeof dataItem === 'string') {
-            const timeout = setTimeout(() => reject('Could not store dropped image in backend'), 5000);
+            let rejected = false;
+            const timeout = setTimeout(() => {
+              rejected = true;
+              reject('Could not store dropped image in backend');
+            }, 5000);
 
             // Get filename and data
             const { imgBase64, blob } = await imageAsBase64(dataItem);
@@ -164,11 +181,12 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
               : `${filename}.${extension}`;
 
             // Send base64 file to main process, get back filename where it is stored
-            ipcRenderer.send('storeFile', filenameWithExt, imgBase64);
-            ipcRenderer.once('storeFileReply', (_: IpcMessageEvent, downloadPath: string) => {
+            const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
+
+            if (!rejected) {
               clearTimeout(timeout);
-              resolve(fileStore.addFile(downloadPath));
-            });
+              resolve(fileStore.addFile(reply.downloadPath));
+            }
           }
         });
         // Add tag if needed

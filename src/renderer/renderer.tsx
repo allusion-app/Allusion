@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ipcRenderer, remote, IpcMessageEvent } from 'electron';
+import { remote } from 'electron';
 
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
@@ -13,13 +13,15 @@ import { DndProvider } from 'react-dnd';
 // in the HTML file
 import './style.scss';
 
+// Custom Blueprint functionality overrides
+import './frontend/BpOverride';
+
 import Backend from './backend/Backend';
 import App from './frontend/App';
 import StoreContext from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
-import { IImportItem } from '../main/clipServer';
 import PreviewApp from './frontend/Preview';
-import { ID } from './entities/ID';
+import { RendererMessenger } from '../Messaging';
 
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
@@ -34,16 +36,16 @@ backend
   .then(async () => {
     console.log('Backend has been initialized!');
     await rootStore.init(!isPreviewWindow);
-    ipcRenderer.send('initialized');
+    RendererMessenger.initialized();
   })
   .catch((err) => console.log('Could not initialize backend!', err));
 
 if (isPreviewWindow) {
-  ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[], thumbnailDir: string) => {
+  RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory }) => {
     rootStore.uiStore.view.setFirstItem(0);
-    rootStore.uiStore.setThumbnailDirectory(thumbnailDir);
+    rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
     rootStore.uiStore.view.setMethodSlide();
-    rootStore.fileStore.fetchFilesByIDs(fileIds);
+    rootStore.fileStore.fetchFilesByIDs(ids);
   });
 
   // Close preview with space
@@ -80,7 +82,7 @@ if (isPreviewWindow) {
     }
   });
 } else {
-  ipcRenderer.on('closedPreviewWindow', () => {
+  RendererMessenger.onClosedPreviewWindow(() => {
     rootStore.uiStore.closePreviewWindow();
   });
 
@@ -129,17 +131,15 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   }
 }
 
-ipcRenderer.on('importExternalImage', async (e: IpcMessageEvent, item: IImportItem) => {
+RendererMessenger.onImportExternalImage(async ({ item }) => {
   console.log('Importing image...', item);
   await rootStore.fileStore.addFile(item.filePath, item.dateAdded);
   await addTagsToFile(item.filePath, item.tagNames);
 });
 
-ipcRenderer.on('addTagsToFile', async (e: IpcMessageEvent, item: IImportItem) => {
+RendererMessenger.onAddTagsToFile(async ({ item }) => {
   console.log('Adding tags to file...', item);
   await addTagsToFile(item.filePath, item.tagNames);
 });
 
-ipcRenderer.on('getTags', async (e: IpcMessageEvent) => {
-  e.returnValue = await backend.fetchTags();
-});
+RendererMessenger.onGetTags(async () => ({ tags: await backend.fetchTags() }));
