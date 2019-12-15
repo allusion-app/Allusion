@@ -59,7 +59,7 @@
     border: none;
     box-shadow: none;
     transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    .bp3-dialog .bp3-button:not([class*="bp3-intent-"]) {
+    .bp3-dialog .bp3-button:not([class*='bp3-intent-']) {
       background-color: $dark-gray3;
       // background-color: $dark-gray5;
     }
@@ -132,7 +132,7 @@
   border-radius: 6px;
 }
 
-.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
+.bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
   background-color: $blue1-unimportant;
 }
 
@@ -380,7 +380,7 @@ form .bp3-icon {
     background: none;
     color: $blue1;
   }
-  .bp3-button:not([class*="bp3-intent-"]):not(.bp3-dialog-close-button),
+  .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button),
   .DayPicker-NavButton--prev,
   .DayPicker-NavButton--next,
   .bp3-button.bp3-minimal {
@@ -453,7 +453,7 @@ button:has(.bp3-intent-danger) {
 // .bp3-button.bp3-intent-primary,
 .bp3-button {
   &.bp3-intent-warning,
-  &:not([class*="bp3-intent-"]),
+  &:not([class*='bp3-intent-']),
   &.bp3-intent-danger {
     box-shadow: none !important;
     background-image: none !important;
@@ -826,9 +826,9 @@ li .bp3-menu-item {
 
 // Icons
 .bp3-dark .bp3-icon:not(.bp3-icon-small-cross),
-.bp3-dark .bp3-button:not([class*="-primary"]) .bp3-icon,
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]) .bp3-icon-standard,
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]) .bp3-icon-large,
+.bp3-dark .bp3-button:not([class*='-primary']) .bp3-icon,
+.bp3-dark .bp3-button:not([class*='bp3-intent-']) .bp3-icon-standard,
+.bp3-dark .bp3-button:not([class*='bp3-intent-']) .bp3-icon-large,
 .bp3-dark .bp3-tree .bp3-icon,
 .bp3-dark .bp3-tree .bp3-icon-standard,
 .bp3-dark .bp3-tree .bp3-icon-large {
@@ -847,18 +847,18 @@ li .bp3-menu-item {
   color: white !important;
 }
 // Close button setting
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]):hover {
+.bp3-dark .bp3-button:not([class*='bp3-intent-']):hover {
   background: transparent;
   color: initial;
 }
 
 .bp3-dark #toolbar .bp3-button-group.bp3-minimal .bp3-button:hover,
 .bp3-dark #outliner-tags-header-wrapper .bp3-button.bp3-minimal:hover,
-.bp3-dark .bp3-button:not([class*="bp3-intent-"]):hover {
+.bp3-dark .bp3-button:not([class*='bp3-intent-']):hover {
   background: transparent !important;
 }
 
-.bp3-button:has([class*="bp3-active"]) .bp3-icon:hover {
+.bp3-button:has([class*='bp3-active']) .bp3-icon:hover {
   color: blue !important;
   background: transparent;
 }
@@ -928,7 +928,7 @@ li .bp3-menu-item {
   color: white;
 }
 
-.bp3-dark .bp3-disabled:not([class*="bp3-intent-"]),
+.bp3-dark .bp3-disabled:not([class*='bp3-intent-']),
 .bp3-dark .bp3-menu-item.bp3-disabled,
 .bp3-dark button.bp3-disabled:hover .custom-icon {
   color: $dark-gray5;
@@ -1002,7 +1002,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   background-color: $dark-gray4;
 }
 
-.bp3-dark .bp3-callout.bp3-intent-primary[class*="bp3-icon-"]::before,
+.bp3-dark .bp3-callout.bp3-intent-primary[class*='bp3-icon-']::before,
 .bp3-dark .bp3-callout.bp3-intent-primary > .bp3-icon:first-child,
 .bp3-dark .bp3-callout.bp3-intent-primary .bp3-heading {
   color: $blue5;
@@ -1017,7 +1017,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-tag.bp3-intent-primary,
-.bp3-tag.bp3-intent-primary button > *:not([class*="-small-cross"]) {
+.bp3-tag.bp3-intent-primary button > *:not([class*='-small-cross']) {
   background: $blue1-unimportant;
   color: $light-gray4;
   &.bp3-interactive:hover {
@@ -1030,7 +1030,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 .drop-overlay-content {
   .tag-drag-drop {
-    &.bp3-tag.bp3-minimal:not([class*="inspectorOpen"]) {
+    &.bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
       background: $blue1;
       color: $light-gray4;
 
@@ -1041,12 +1041,12 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   }
 }
 
-.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
+.bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
   background-color: $dark-gray5-unimportant;
 }
 
-.bp3-dark .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]),
-.bp3-dark.bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
+.bp3-dark .bp3-tag.bp3-minimal:not([class*='bp3-intent-']),
+.bp3-dark.bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
   color: $gray4;
 }
 
@@ -1061,7 +1061,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
     }
   }
 }
-.inspectorOpen .bp3-tag.bp3-minimal:not([class*="bp3-intent-"]) {
+.inspectorOpen .bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
   background-color: $blue1-unimportant;
 }
 .bp3-tag-input .bp3-tag.bp3-active {
@@ -1069,7 +1069,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   outline-offset: 1px;
 }
 
-.bp3-portal #fileTag .bp3-tag.bp3-minimal:not([class*="inspectorOpen"]) {
+.bp3-portal #fileTag .bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
   background-color: $blue1-unimportant;
 }
 
@@ -1081,7 +1081,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 .bp3-portal #fileTag,
 .bp3-dialog {
-  .bp3-tag.bp3-minimal:not([class*="inspectorOpen"]) {
+  .bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
     background-color: $blue1-unimportant;
     color: $light-gray4;
   }
