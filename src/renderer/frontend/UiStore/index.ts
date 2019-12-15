@@ -1,7 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 import { action, observable, computed } from 'mobx';
-import { remote, ipcRenderer } from 'electron';
+import { remote } from 'electron';
 
 import RootStore from '../stores/RootStore';
 import { ClientFile, IFile } from '../../entities/File';
@@ -13,6 +13,7 @@ import {
   ClientBaseCriteria,
   ClientArraySearchCriteria,
 } from '../../entities/SearchCriteria';
+import { RendererMessenger } from '../../../Messaging';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -159,7 +160,10 @@ class UiStore {
   }
 
   @action.bound openPreviewWindow() {
-    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS(), this.thumbnailDirectory);
+    RendererMessenger.sendPreviewFiles({
+      ids: this.fileSelection.toJS(),
+      thumbnailDirectory: this.thumbnailDirectory,
+    });
     this.isPreviewOpen = true;
 
     // remove focus from element so closing preview with spacebar does not trigger any ui elements
