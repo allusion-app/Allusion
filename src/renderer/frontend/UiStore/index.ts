@@ -9,10 +9,7 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import View, { ViewMethod, ViewContent, ViewThumbnailSize } from './View';
-import {
-  ClientBaseCriteria,
-  ClientArraySearchCriteria,
-} from '../../entities/SearchCriteria';
+import { ClientBaseCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
@@ -160,10 +157,16 @@ class UiStore {
   }
 
   @action.bound openPreviewWindow() {
+    // Don't open when no files have been selected
+    if (this.fileSelection.length === 0) {
+      return;
+    }
+
     RendererMessenger.sendPreviewFiles({
       ids: this.fileSelection.toJS(),
       thumbnailDirectory: this.thumbnailDirectory,
     });
+
     this.isPreviewOpen = true;
 
     // remove focus from element so closing preview with spacebar does not trigger any ui elements
@@ -261,14 +264,16 @@ class UiStore {
     if (clear) {
       this.clearFileSelection();
     }
-    this.fileSelection.push(file.id);
+    if (!this.fileSelection.includes(file.id)) {
+      this.fileSelection.push(file.id);
+    }
   }
 
   @action.bound selectFiles(files: ID[], clear?: boolean) {
     if (clear) {
       this.clearFileSelection();
     }
-    this.fileSelection.push(...files);
+    this.fileSelection.push(...files.filter(((id) => !this.fileSelection.includes(id))));
   }
 
   @action.bound deselectFile(file: ClientFile) {

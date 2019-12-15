@@ -10,15 +10,15 @@ import {
   RadioGroup,
   Radio,
   FormGroup,
+  KeyCombo,
 } from '@blueprintjs/core';
-import fse from 'fs-extra';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { ClearDbButton } from './ErrorBoundary';
 import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
-import { getThumbnailPath } from '../utils';
+import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
 
 const Settings = observer(() => {
@@ -81,8 +81,7 @@ const Settings = observer(() => {
       }
       const newDir = dirs[0];
 
-      const isEmpty = (await fse.readdir(newDir)).length === 0;
-      if (!isEmpty) {
+      if (!(await isDirEmpty(newDir))) {
         alert('Please choose an empty directory.');
         return;
       }
@@ -121,6 +120,16 @@ const Settings = observer(() => {
           <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
           <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
           <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
+        </RadioGroup>
+
+        <RadioGroup
+          selectedValue={uiStore.view.thumbnailShape}
+          onChange={() => undefined}
+          label="Thumbnail shape"
+          inline
+        >
+          <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
+          <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
         </RadioGroup>
 
         <Switch
@@ -202,12 +211,8 @@ const Settings = observer(() => {
             Did you know there are hotkeys?
             <br />
             Press&nbsp;
-            <span className={Classes.KEY_COMBO}>
-              <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>Ctrl</span>
-              &nbsp;
-              <span className={Classes.KEY}>K</span>
-              &nbsp;to see them.
-            </span>
+            <KeyCombo combo="mod+k" />
+            &nbsp;to see them.
           </p>
         </Callout>
       </div>
