@@ -94,18 +94,20 @@ const GridGallery = observer(
 
   // Arrow keys up/down for selecting image in next row
   useEffect(() => {
-    // When an arrow key is pressed, select the item relative to the last selected item
     const onKeyDown = (e: KeyboardEvent) => {
-      const lastSelIndex = lastSelectionIndex.current;
-      if (lastSelIndex === undefined) { // no selection => do nothing
+      let index = lastSelectionIndex.current;
+      if (index === undefined) {
         return;
       }
-      let indexMod = e.key === 'ArrowUp' ? -numColumns : 0;
-      indexMod += e.key === 'ArrowDown' ? numColumns : 0;
-      if (indexMod === 0 || lastSelIndex + indexMod < 0 || lastSelIndex + indexMod >= fileList.length) {
+      // Move up/down to next row.
+      if (e.key === 'ArrowUp' && index >= numColumns) {
+        index -= numColumns;
+      } else if (e.key === 'ArrowDown' && index < fileList.length - 1 && index < fileList.length + numColumns - 1) {
+        index = Math.min(index + numColumns, fileList.length - 1);
+      } else {
         return;
       }
-      handleFileSelect(fileList[lastSelIndex + indexMod], e.ctrlKey || e.metaKey, e.shiftKey);
+      handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
     };
 
     const throttledKeyDown = throttle(onKeyDown, 50);
@@ -404,20 +406,19 @@ const Gallery = ({
   );
 
   useEffect(() => {
-    // When an arrow key is pressed, select the item relative to the last selected item
     const onKeyDown = (e: KeyboardEvent) => {
-      const lastSelIndex = lastSelectionIndex.current;
-      if (lastSelIndex === undefined) { // no selection => do nothing
+      let index = lastSelectionIndex.current;
+      if (index === undefined) {
         return;
       }
-
-      let indexMod = e.key === 'ArrowLeft' ? -1 : 0;
-      indexMod += e.key === 'ArrowRight' ? 1 : 0;
-      if (indexMod === 0 || lastSelIndex + indexMod < 0 || lastSelIndex + indexMod >= fileList.length) {
+      if (e.key === 'ArrowLeft' && index > 0) {
+        index -= 1;
+      } else if (e.key === 'ArrowRight' && index < fileList.length - 1) {
+        index += 1;
+      } else {
         return;
       }
-
-      handleFileSelect(fileList[lastSelIndex + indexMod], e.ctrlKey || e.metaKey, e.shiftKey);
+      handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
     };
 
     const throttledKeyDown = throttle(onKeyDown, 50);
