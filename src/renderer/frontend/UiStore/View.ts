@@ -8,11 +8,13 @@ const PersistentPreferenceFields: Array<keyof View> = [
   'orderBy',
   'fileOrder',
   'thumbnailSize',
+  'thumbnailShape'
 ];
 
 export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
 export type ViewContent = 'query' | 'all' | 'untagged';
 export type ViewThumbnailSize = 'small' | 'medium' | 'large';
+export type ViewThumbnailShape = 'square' | 'letterbox';
 
 class View {
   @observable method: ViewMethod = 'grid';
@@ -21,6 +23,7 @@ class View {
   /** The origin of the current files that are shown */
   @observable content: ViewContent = 'all';
   @observable thumbnailSize: ViewThumbnailSize = 'medium';
+  @observable thumbnailShape: ViewThumbnailShape = 'square';
 
   @observable orderBy: keyof IFile = 'dateAdded';
   @observable fileOrder: FileOrder = 'DESC';
@@ -83,6 +86,14 @@ class View {
     this.setThumbnailSize('large');
   }
 
+  @action.bound setThumbnailSquare() {
+    this.setThumbnailShape('square');
+  }
+
+  @action.bound setThumbnailLetterbox() {
+    this.setThumbnailShape('letterbox');
+  }
+
   @action.bound orderFilesBy(prop: keyof IFile = 'dateAdded') {
     this.orderBy = prop;
   }
@@ -138,6 +149,10 @@ class View {
 
   @action private setThumbnailSize(size: ViewThumbnailSize = 'medium') {
     this.thumbnailSize = size;
+  }
+
+  @action private setThumbnailShape(shape: ViewThumbnailShape) {
+    this.thumbnailShape = shape;
   }
 
   @action private setFileOrder(order: FileOrder = 'DESC') {

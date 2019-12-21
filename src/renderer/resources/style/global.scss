@@ -45,6 +45,7 @@ body {
 main {
   grid-area: main;
   overflow: hidden; //temp fix for double scrollbar
+  height: inherit;
 }
 
 #layoutContainer {
@@ -349,7 +350,7 @@ img {
 .bp3-overlay-content {
   display: flex;
   align-items: center;
-  justify-content: center;
+  // justify-content: center;
 }
 .drop-overlay-content {
   // top: 0;

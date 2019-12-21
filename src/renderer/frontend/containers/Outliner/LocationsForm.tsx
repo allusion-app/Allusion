@@ -1,5 +1,5 @@
 import React, { useContext, useCallback, useState, useEffect } from 'react';
-import { remote, ipcRenderer } from 'electron';
+import { remote } from 'electron';
 import Path from 'path';
 import { observer, Observer } from 'mobx-react-lite';
 import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert, Dialog, Checkbox, Label } from '@blueprintjs/core';
@@ -10,6 +10,7 @@ import { ClientWatchedDirectory } from '../../../entities/WatchedDirectory';
 import { ClientStringSearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
+import { RendererMessenger } from '../../../../Messaging';
 
 interface ILocationListItemProps {
   dir: ClientWatchedDirectory;
@@ -125,7 +126,7 @@ const LocationsForm = () => {
   const [importPath, setImportPath] = useState('');
 
   useEffect(() => {
-    setImportPath(ipcRenderer.sendSync('getDownloadPath'));
+    setImportPath(RendererMessenger.getDownloadPath());
   }, []);
 
   const handleChooseWatchedDir = useCallback(async (e: React.MouseEvent) => {

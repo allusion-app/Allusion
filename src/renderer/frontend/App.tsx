@@ -59,11 +59,11 @@ const App = observer(() => {
 
             <Outliner />
 
-          <ContentView />
+            <ContentView />
 
-          {uiStore.imageViewerFile ? (
-            <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.setImageViewer(null)} />
-          ) : <></>}
+            {uiStore.imageViewerFile ? (
+              <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.setImageViewer(null)} />
+            ) : <></>}
 
             <Inspector />
 

@@ -3,7 +3,6 @@ import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from '../UiStore';
 import TagCollectionStore from './TagCollectionStore';
-import { ipcRenderer } from 'electron';
 import WatchedDirectoryStore from './WatchedDirectoryStore';
 
 import { configure } from 'mobx';
@@ -52,7 +51,6 @@ class RootStore {
     ]);
     // Upon loading data, initialize UI state.
     this.uiStore.init();
-    ipcRenderer.send('initialized');
   }
 
   async clearDatabase() {
