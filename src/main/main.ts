@@ -260,17 +260,17 @@ MainMessenger.onStoreFile(({ filenameWithExt, imgBase64 }) =>
 );
 
 // Forward files from the main window to the preview window
-MainMessenger.onSendPreviewFiles(({ ids, thumbnailDirectory }) => {
+MainMessenger.onSendPreviewFiles((msg) => {
   // Create preview window if needed, and send the files selected in the primary window
   if (!previewWindow) {
     previewWindow = createPreviewWindow();
     MainMessenger.onceInitialized().then(() => {
       if (previewWindow) {
-        previewWindow.webContents.send('receivePreviewFiles', ids, thumbnailDirectory);
+        MainMessenger.sendPreviewFiles(previewWindow.webContents, msg);
       }
     });
   } else {
-    previewWindow.webContents.send('receivePreviewFiles', ids, thumbnailDirectory);
+    MainMessenger.sendPreviewFiles(previewWindow.webContents, msg);
 
     if (!previewWindow.isVisible()) {
       previewWindow.show();
