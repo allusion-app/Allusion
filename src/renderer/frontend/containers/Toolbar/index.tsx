@@ -128,7 +128,7 @@ const Toolbar = observer(() => {
       uiStore.openOutlinerTags();
     }
   }, [uiStore]);
-  const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), [handleChooseOutlinerPage]);
+  // const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), [handleChooseOutlinerPage]);
   const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), [handleChooseOutlinerPage]);
   const handleOlSearch = uiStore.toggleQuickSearch;
 
@@ -219,13 +219,13 @@ const Toolbar = observer(() => {
     <div id="toolbar">
       <section id="outliner-toolbar">
         <ButtonGroup minimal>
-          <Button
+          {/* <Button
             icon={IconSet.ADD}
             onClick={handleOlImport}
             intent={olPage === 'IMPORT' && uiStore.isOutlinerOpen ? 'primary' : 'none'}
             className="tooltip"
             data-right={Tooltip.Add}
-          />
+          /> */}
           <Button
             icon={IconSet.TAG}
             onClick={handleOlTags}
