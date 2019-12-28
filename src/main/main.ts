@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu, Tray, screen } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
+import TrayIcon from '../renderer/resources/logo/logomark_light@2x.png';
 import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';
@@ -147,7 +148,7 @@ function createWindow() {
   // System tray icon: For when the app can run in the background
   // Useful for browser extension, so it will work even when the window is closed
   if (!tray) {
-    tray = new Tray(`${__dirname}/${AppIcon}`);
+    tray = new Tray(`${__dirname}/${TrayIcon}`);
     const trayMenu = Menu.buildFromTemplate([
       {
         label: 'Open',
