@@ -200,12 +200,12 @@ const Toolbar = observer(() => {
           text="Masonry"
           active={uiStore.view.isMasonry}
         />
-        <MenuItem
+        {/* <MenuItem
           onClick={uiStore.view.setMethodSlide}
           icon={IconSet.VIEW_PRESENT}
           text="Slide"
           active={uiStore.view.isSlide}
-        />
+        /> */}
       </Menu>
     ),
     [uiStore.view.isGrid, uiStore.view.isList, uiStore.view.isMasonry, uiStore.view.isSlide, uiStore.view.setMethodGrid, uiStore.view.setMethodList, uiStore.view.setMethodMasonry, uiStore.view.setMethodSlide],

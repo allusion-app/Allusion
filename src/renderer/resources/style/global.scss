@@ -445,6 +445,27 @@ img {
 
 }
 
+#zoomableImage {
+  .sideButton {
+    opacity: 0;
+    height: 100%;
+    width: 64px;
+    color: "white";
+    transition: opacity 0.2s ease-in-out;
+    position: absolute;
+
+    > span {
+      position: absolute;
+      height: 64px;
+      margin-top: -32px;
+      top: 50%;
+    }
+  }
+  .sideButton:hover {
+    opacity: 0.75;
+  }
+}
+
 .color-black {
   color: black;
   transition: color 0.2s ease;
