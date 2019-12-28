@@ -9,7 +9,7 @@ export const DB_NAME = 'Allusion';
 // https://dexie.org/docs/Tutorial/Design#database-versioning
 export const dbConfig: IDBVersioningConfig[] = [
   {
-    version: 1.1,
+    version: 1,
     collections: [
       {
         name: 'files',
