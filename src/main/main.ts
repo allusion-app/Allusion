@@ -61,10 +61,28 @@ function createWindow() {
   const menuBar: Electron.MenuItemConstructorOptions[] = [];
 
   // Mac App menu - used for styling so shortcuts work
+  // if (process.platform === 'darwin') {
+    //   menuBar.push({ role: 'appMenu' });
+    // }
+  // https://livebook.manning.com/book/cross-platform-desktop-applications/chapter-9/78
   if (process.platform === 'darwin') {
-    menuBar.push({ role: 'appMenu' });
+    menuBar.push({
+      // label: app.getName(),
+      label: 'Allusion',
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services', submenu: [] },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide'},
+        { type: 'separator' },
+        { label: 'Quit', accelerator: 'Command+Q', click: () => { process.exit(0); }},
+      ],
+    });
   }
-
+  
   menuBar.push({
     label: 'Edit',
     submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
@@ -153,13 +171,13 @@ function createWindow() {
       {
         label: 'Open',
         type: 'normal',
-        click: () => (mainWindow ? mainWindow.focus() : createWindow()),
+        click: () => (mainWindow ? mainWindow.focus() : initialize()),
       },
-      { label: 'Exit', type: 'normal', click: app.quit },
+      { label: 'Quit', click: () => { process.exit(0); }},
     ]);
     tray.setContextMenu(trayMenu);
     tray.setToolTip('Allusion - Your Visual Library');
-    tray.on('click', () => mainWindow ? mainWindow.focus() : createWindow());
+    tray.on('click', () => mainWindow ? mainWindow.focus() : initialize());
   }
 
   if (!clipServer) {
