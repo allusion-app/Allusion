@@ -337,6 +337,10 @@
   //   background: red !important;
   // }
 }
+// Fix for temp placeholder masonry smiley
+.masonry {
+  position: relative !important;
+}
 
 .slide .thumbnail {
   height: calc(100vh - 4rem) !important;
