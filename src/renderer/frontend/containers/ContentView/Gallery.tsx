@@ -251,23 +251,23 @@ const SlideGallery = observer(
       [fileList, uiStore, uiStore.view.firstItem],
     );
 
-    const incrImgIndex = useCallback(
-      () => uiStore.view.setFirstItem(Math.max(0, uiStore.view.firstItem - 1)),
-      [uiStore.view],
-    );
     const decrImgIndex = useCallback(
+      () => uiStore.view.setFirstItem(Math.max(0, uiStore.view.firstItem - 1)),
+      [uiStore.view, uiStore.view.firstItem],
+    );
+    const incrImgIndex = useCallback(
       () =>
         uiStore.view.setFirstItem(Math.min(uiStore.view.firstItem + 1, fileList.length - 1)),
-      [fileList.length, uiStore.view],
+      [uiStore.view, uiStore.view.firstItem, fileList.length],
     );
 
     // Detect left/right arrow keys to scroll between images
     const handleUserKeyPress = useCallback(
       (event: KeyboardEvent) => {
         if (event.code === 'ArrowLeft') {
-          incrImgIndex();
-        } else if (event.code === 'ArrowRight') {
           decrImgIndex();
+        } else if (event.code === 'ArrowRight') {
+          incrImgIndex();
         }
       },
       [incrImgIndex, decrImgIndex],
@@ -303,17 +303,33 @@ const SlideGallery = observer(
       [handleUserKeyPress, handleUserWheel],
     );
 
+    // Preload next and previous image for better UX
+    useEffect(() => {
+      if (uiStore.view.firstItem + 1 < fileList.length) {
+        const nextImg = new Image();
+        nextImg.src = fileList[uiStore.view.firstItem + 1].path;
+      }
+      if (uiStore.view.firstItem - 1 >= 0) {
+        const prevImg = new Image();
+        prevImg.src = fileList[uiStore.view.firstItem - 1].path;
+      }
+    }, [fileList, uiStore.view.firstItem]);
+
     if (uiStore.view.firstItem >= fileList.length) {
       return <p>No files available</p>;
     }
 
     const file = fileList[uiStore.view.firstItem];
 
+    console.log(uiStore.view.firstItem, fileList.length);
+
     return (
       // <ZoomableSlideImage
       <ZoomableImage
         src={file.path}
         contentRect={contentRect}
+        prevImage={uiStore.view.firstItem - 1 >= 0 ? decrImgIndex : undefined}
+        nextImage={uiStore.view.firstItem + 1 < fileList.length ? incrImgIndex : undefined}
       />
     );
   },

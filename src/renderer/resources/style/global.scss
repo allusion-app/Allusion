@@ -446,23 +446,41 @@ img {
 }
 
 #zoomableImage {
-  .sideButton {
-    opacity: 0;
-    height: 100%;
-    width: 64px;
-    color: "white";
-    transition: opacity 0.2s ease-in-out;
-    position: absolute;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 
-    > span {
+  > div {
+    flex: auto;
+    position: relative;
+
+    .sideButton {
+      top: 0;
+      opacity: 0;
+      height: 100%;
+      width: 48px;
+      transition: opacity 0.2s ease-in-out;
       position: absolute;
-      height: 64px;
-      margin-top: -32px;
-      top: 50%;
+
+      > span {
+        position: absolute;
+        height: 48px;
+        margin-top: -24px;
+        top: 50%;
+        color: white;
+        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, .5));
+      }
     }
-  }
-  .sideButton:hover {
-    opacity: 0.75;
+
+    .sideButton:hover {
+      opacity: 1;
+    }
+    
+
+    #backButton {
+      top: 0;
+      position: absolute;
+    }
   }
 }
 

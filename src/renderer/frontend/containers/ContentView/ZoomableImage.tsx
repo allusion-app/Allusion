@@ -9,9 +9,11 @@ import StoreContext from '../../contexts/StoreContext';
 interface IZoomableImageProps {
   src: string;
   contentRect: Rectangle;
+  prevImage?: () => any;
+  nextImage?: () => any;
 }
 
-const ZoomableImage = ({ src, contentRect }: IZoomableImageProps) => {
+const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImageProps) => {
   const ignoreClick = useCallback((e: React.MouseEvent) => e.stopPropagation(), []);
 
   const { uiStore } = useContext(StoreContext);
@@ -19,12 +21,10 @@ const ZoomableImage = ({ src, contentRect }: IZoomableImageProps) => {
   // Todo: Same context menu as GalleryItem
   return (
     <div
-      style={{height: '100vh', display: 'flex', flexDirection: 'column'}}
       onClick={ignoreClick}
       id="zoomableImage"
     >
       <div style={{
-        flex: 'auto',
         width: `${contentRect.width}px`,
         height: `${contentRect.height}px`,
       }}>
@@ -32,20 +32,20 @@ const ZoomableImage = ({ src, contentRect }: IZoomableImageProps) => {
         <PinchZoomPan position="center" zoomButtons={false} maxScale={4} key={src} doubleTapBehavior="zoom">
           <img src={src} alt={src} />
         </PinchZoomPan>
-      </div>
 
-      {/* Overlay buttons/icons */}
-      <div
-        style={{ position: 'absolute', width: '100%', height: '100%' }}
-      >
-        <div className="sideButton" style={{ left: '4px' }}>
-          <Icon icon="chevron-left" iconSize={64} />
-        </div>
-        <div className="sideButton" style={{ right: '28px' }}>
-          <Icon icon="chevron-right" iconSize={64} />
-        </div>
+        {/* Overlay buttons/icons */}
+        {prevImage && (
+          <div className="sideButton" onClick={prevImage}>
+            <Icon icon="chevron-left" iconSize={48} />
+          </div>
+        )}
+        {nextImage && (
+          <div className="sideButton" onClick={nextImage} style={{ right: 0 }}>
+            <Icon icon="chevron-right" iconSize={48} />
+          </div>
+        )}
         {/* TODO: Set to previous method (either grid or list) */}
-        <Button icon="arrow-left" intent="primary" onClick={uiStore.view.setMethodGrid} style={{ position: 'absolute' }} />
+        <Button id="backButton" icon="arrow-left" intent="primary" onClick={uiStore.view.setMethodGrid} />
       </div>
     </div>
   );
