@@ -41,16 +41,17 @@ interface IGalleryLayoutProps {
   handleDrop: (item: any, file: ClientFile) => void;
 }
 
-function getLayoutComponent(viewMethod: ViewMethod, props: IGalleryLayoutProps) {
+function getLayoutComponent(viewMethod: ViewMethod, isSlideMode: boolean, props: IGalleryLayoutProps) {
+  if (isSlideMode) {
+    return <SlideGallery {...props} />;
+  }
   switch (viewMethod) {
     case 'grid':
       return <GridGallery {...props} />;
-    case 'masonry':
-      return <MasonryGallery {...props} />;
+    // case 'masonry':
+    //   return <MasonryGallery {...props} />;
     case 'list':
       return <ListGallery {...props} />;
-    case 'slide':
-      return <SlideGallery {...props} />;
     default:
       return null;
   }
@@ -218,7 +219,7 @@ const ListGallery = observer(
   );
 });
 
-const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
+export const MasonryGallery = observer(({ }: IGalleryLayoutProps) => {
   const Styles: any = {
     textAlign: 'center',
     display: 'flex',
@@ -321,8 +322,6 @@ const SlideGallery = observer(
 
     const file = fileList[uiStore.view.firstItem];
 
-    console.log(uiStore.view.firstItem, fileList.length);
-
     return (
       // <ZoomableSlideImage
       <ZoomableImage
@@ -415,7 +414,7 @@ const Gallery = ({
   const handleDoubleClick = useCallback(
     (clickedFile: ClientFile) => {
       uiStore.selectFile(clickedFile, true);
-      uiStore.view.setMethodSlide();
+      uiStore.view.enableSlideMode();
   }, [uiStore]);
 
   useEffect(() => {
@@ -498,6 +497,7 @@ const Gallery = ({
       >
         {getLayoutComponent(
           uiStore.view.method,
+          uiStore.view.isSlideMode,
           { contentRect, fileList, uiStore, handleClick: handleItemClick, handleDoubleClick, handleDrop },
         )}
       </div>

@@ -45,7 +45,7 @@ if (isPreviewWindow) {
   ipcRenderer.on('receivePreviewFiles', (event: any, fileIds: ID[], thumbnailDir: string) => {
     rootStore.uiStore.view.setFirstItem(0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDir);
-    rootStore.uiStore.view.setMethodSlide();
+    rootStore.uiStore.view.enableSlideMode();
     rootStore.fileStore.fetchFilesByIDs(fileIds);
   });
 
@@ -54,7 +54,7 @@ if (isPreviewWindow) {
     if (e.code === 'Space' || e.code === 'Escape') {
       rootStore.uiStore.clearFileSelection();
       rootStore.fileStore.clearFileList();
-      rootStore.uiStore.view.setMethodSlide();
+      rootStore.uiStore.view.enableSlideMode();
 
       // remove focus from element so closing preview with spacebar does not trigger any ui elements
       if (document.activeElement && document.activeElement instanceof HTMLElement) {

@@ -10,12 +10,13 @@ const PersistentPreferenceFields: Array<keyof View> = [
   'thumbnailSize',
 ];
 
-export type ViewMethod = 'list' | 'grid' | 'masonry' | 'slide';
+export type ViewMethod = 'list' | 'grid';
 export type ViewContent = 'query' | 'all' | 'untagged';
 export type ViewThumbnailSize = 'small' | 'medium' | 'large';
 
 class View {
   @observable method: ViewMethod = 'grid';
+  @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
   @observable firstItem: number = 0;
   /** The origin of the current files that are shown */
@@ -31,14 +32,6 @@ class View {
 
   @computed get isGrid(): boolean {
     return this.method === 'grid';
-  }
-
-  @computed get isMasonry(): boolean {
-    return this.method === 'masonry';
-  }
-
-  @computed get isSlide(): boolean {
-    return this.method === 'slide';
   }
 
   @computed get showsAllContent() {
@@ -120,12 +113,16 @@ class View {
     this.setMethod('grid');
   }
 
-  @action.bound setMethodMasonry() {
-    this.setMethod('masonry');
+  @action.bound enableSlideMode() {
+    this.isSlideMode = true;
   }
 
-  @action.bound setMethodSlide() {
-    this.setMethod('slide');
+  @action.bound disableSlideMode() {
+    this.isSlideMode = false;
+  }
+
+  @action.bound toggleSlideMode() {
+    this.isSlideMode = !this.isSlideMode;
   }
 
   @action private setMethod(method: ViewMethod = 'grid') {

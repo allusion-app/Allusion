@@ -11,7 +11,7 @@ const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
-  useEffect(uiStore.view.setMethodSlide, []);
+  useEffect(uiStore.view.enableSlideMode, []);
 
   const handleLeftButton = useCallback(
     () => uiStore.view.setFirstItem(Math.max(0, uiStore.view.firstItem - 1)),
@@ -45,8 +45,8 @@ const PreviewApp = observer(() => {
             />
             <Switch
               label="Overview"
-              onChange={uiStore.view.isSlide ? uiStore.view.setMethodGrid : uiStore.view.setMethodSlide}
-              checked={!uiStore.view.isSlide}
+              onChange={uiStore.view.toggleSlideMode}
+              checked={!uiStore.view.isSlideMode}
               style={{ margin: 'auto', marginLeft: '1em', display: 'inline' }}
             />
           </section>

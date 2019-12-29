@@ -30,6 +30,7 @@ const enum Tooltip {
   Filter = 'Filter view content panel',
   Inspector = 'Toggle Inspector',
   Settings = 'Toggle Settings',
+  Back = 'Back to your gallery'
   // FilterTag = 'Filter images by first tag',
 }
 
@@ -179,38 +180,6 @@ const Toolbar = observer(() => {
     [uiStore],
   );
 
-  const layoutMenu = useMemo(
-    () => (
-      <Menu>
-        <MenuItem
-          onClick={uiStore.view.setMethodList}
-          icon={IconSet.VIEW_LIST}
-          text="List"
-          active={uiStore.view.isList}
-        />
-        <MenuItem
-          onClick={uiStore.view.setMethodGrid}
-          icon={IconSet.VIEW_GRID}
-          text="Grid"
-          active={uiStore.view.isGrid}
-        />
-        <MenuItem
-          onClick={uiStore.view.setMethodMasonry}
-          icon={IconSet.VIEW_MASON}
-          text="Masonry"
-          active={uiStore.view.isMasonry}
-        />
-        {/* <MenuItem
-          onClick={uiStore.view.setMethodSlide}
-          icon={IconSet.VIEW_PRESENT}
-          text="Slide"
-          active={uiStore.view.isSlide}
-        /> */}
-      </Menu>
-    ),
-    [uiStore.view.isGrid, uiStore.view.isList, uiStore.view.isMasonry, uiStore.view.isSlide, uiStore.view.setMethodGrid, uiStore.view.setMethodList, uiStore.view.setMethodMasonry, uiStore.view.setMethodSlide],
-  );
-
   const numFiles = fileStore.fileList.length;
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
   const olPage = uiStore.outlinerPage;
@@ -244,16 +213,28 @@ const Toolbar = observer(() => {
       </section>
 
       <section id="main-toolbar">
-        {/* Library info. Todo: Show entire library count instead of current fileList */}
-        <Button
-          id="media"
-          icon={IconSet.MEDIA}
-          minimal
-          className="tooltip"
-          data-right={Tooltip.Media}
-        >
-          {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
-        </Button>
+        <ButtonGroup minimal>
+          {/* Disable slide mode */}
+          {uiStore.view.isSlideMode && (
+            <Button
+              icon="arrow-left"
+              onClick={uiStore.view.disableSlideMode}
+              intent="primary"
+              className="tooltip"
+              data-right={Tooltip.Back}
+            />
+          )}
+
+          {/* Library info. Todo: Show entire library count instead of current fileList */}
+          <Button
+            id="media"
+            icon={IconSet.MEDIA}
+            className="tooltip"
+            data-right={Tooltip.Media}
+          >
+            {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
+          </Button>
+        </ButtonGroup>
 
         <ButtonGroup minimal>
           {/* Selection info and actions */}
@@ -279,14 +260,6 @@ const Toolbar = observer(() => {
             // hasBackdrop={false}
           />
 
-          {/* Gallery actions */}
-          <Popover
-            minimal
-            target={
-              <Button icon={IconSet.VIEW_GRID} className="tooltip" data-right={Tooltip.View} />
-            }
-            content={layoutMenu}
-          />
           <Popover
             minimal
             target={
@@ -295,6 +268,20 @@ const Toolbar = observer(() => {
             content={sortMenu}
           />
         </ButtonGroup>
+        
+        <ButtonGroup>
+          <Button
+            onClick={uiStore.view.setMethodList}
+            icon={IconSet.VIEW_LIST}
+            active={uiStore.view.isList}
+          />
+          <Button
+            onClick={uiStore.view.setMethodGrid}
+            icon={IconSet.VIEW_GRID}
+            active={uiStore.view.isGrid}
+          />
+        </ButtonGroup>
+        
         <div id="spacer" style={{ width: '100px' }} />
       </section>
 

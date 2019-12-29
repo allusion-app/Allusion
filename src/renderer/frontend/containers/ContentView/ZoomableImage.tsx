@@ -1,10 +1,9 @@
-import React, { useRef, useState, useCallback, useEffect, useContext } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Rectangle } from 'electron';
 
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import { observer } from 'mobx-react-lite';
-import { Button, Icon } from '@blueprintjs/core';
-import StoreContext from '../../contexts/StoreContext';
+import { Icon } from '@blueprintjs/core';
 
 interface IZoomableImageProps {
   src: string;
@@ -15,8 +14,6 @@ interface IZoomableImageProps {
 
 const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImageProps) => {
   const ignoreClick = useCallback((e: React.MouseEvent) => e.stopPropagation(), []);
-
-  const { uiStore } = useContext(StoreContext);
 
   // Todo: Same context menu as GalleryItem
   return (
@@ -44,8 +41,6 @@ const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImag
             <Icon icon="chevron-right" iconSize={48} />
           </div>
         )}
-        {/* TODO: Set to previous method (either grid or list) */}
-        <Button id="backButton" icon="arrow-left" intent="primary" onClick={uiStore.view.setMethodGrid} />
       </div>
     </div>
   );
