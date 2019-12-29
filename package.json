@@ -34,6 +34,7 @@
     "@types/react-inlinesvg": "^0.8.0",
     "@types/react-transition-group": "^4.2.2",
     "@types/react-window": "^1.8.1",
+    "@types/reactour": "^1.13.1",
     "@types/uuid": "^3.4.5",
     "@typescript-eslint/eslint-plugin": "^2.3.0",
     "@typescript-eslint/parser": "^2.3.0",
@@ -77,7 +78,9 @@
     "react-dom": "^16.8.6",
     "react-transition-group": "^4.3.0",
     "react-window": "^1.8.5",
+    "reactour": "^1.15.5",
     "sourcemapped-stacktrace": "^1.1.9",
+    "styled-components": "4.0.0",
     "uuid": "^3.3.2"
   }
 }

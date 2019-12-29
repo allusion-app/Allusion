@@ -15,6 +15,7 @@ import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
 import ImageViewer from './components/ImageViewer';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { DragLayer } from './containers/Outliner/TagPanel';
+import IntroTour from './components/IntroTour';
 
 const SPLASH_SCREEN_TIME = 700;
 
@@ -67,6 +68,8 @@ const App = observer(() => {
 
             {/* Overlay for showing custom drag previews */}
             <DragLayer />
+
+            <IntroTour />
           </GlobalHotkeys>
         </ErrorBoundary>
       </div>
