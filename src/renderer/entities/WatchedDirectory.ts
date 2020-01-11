@@ -102,6 +102,8 @@ export class ClientWatchedDirectory implements IWatchedDirectory, ISerializable<
     // Make a list of all files in this directory, which will be returned when all subdirs have been traversed
     const initialFiles: string[] = [];
 
+    // TODO: Maybe do this on a web worker?
+
     return new Promise<string[]>((resolve) => {
       watcher
         .on('add', async (path: string) => {

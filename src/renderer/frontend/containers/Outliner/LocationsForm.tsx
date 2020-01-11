@@ -1,5 +1,5 @@
 import React, { useContext, useCallback, useState, useEffect } from 'react';
-import { remote } from 'electron';
+import { remote, shell } from 'electron';
 import Path from 'path';
 import { observer, Observer } from 'mobx-react-lite';
 import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert, Dialog, Checkbox, Label } from '@blueprintjs/core';
@@ -36,6 +36,8 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
 
   handleAddToSearch = () => this.props.addToSearch(this.props.dir.path);
   handleReplaceSearch = () => this.props.replaceSearch(this.props.dir.path);
+
+  handleOpenFileExplorer = () => shell.openItem(this.props.dir.path);
 
   render() {
     const { dir } = this.props;
@@ -111,6 +113,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
         <MenuItem text="Configure" onClick={this.openConfigDialog} icon={IconSet.SETTINGS} />
         <MenuItem onClick={this.handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
         <MenuItem onClick={this.handleReplaceSearch} text="Replace Search Query" icon={IconSet.REPLACE} />
+        <MenuItem onClick={this.handleOpenFileExplorer} text="Open in File Browser" icon={IconSet.FOLDER_CLOSE} />
         <MenuItem text="Delete" onClick={this.openDeleteAlert} icon={IconSet.DELETE} />
       </Menu>
     );
