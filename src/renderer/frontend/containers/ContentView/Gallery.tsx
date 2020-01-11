@@ -269,9 +269,11 @@ const SlideGallery = observer(
           decrImgIndex();
         } else if (event.code === 'ArrowRight') {
           incrImgIndex();
+        } else if (event.code === 'Escape') {
+          uiStore.view.disableSlideMode();
         }
       },
-      [incrImgIndex, decrImgIndex],
+      [incrImgIndex, decrImgIndex, uiStore],
     );
 
     // Detect scroll wheel to scroll between images
