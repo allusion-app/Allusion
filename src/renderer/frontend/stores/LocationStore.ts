@@ -3,14 +3,14 @@ import { action, observable } from 'mobx';
 import Backend from '../../backend/Backend';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { ClientWatchedDirectory, IWatchedDirectory } from '../../entities/WatchedDirectory';
+import { ClientLocation, ILocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
 import { IFile, ClientFile } from '../../entities/File';
 
-class WatchedDirectoryStore {
+class LocationStore {
   backend: Backend;
   rootStore: RootStore;
 
-  readonly directoryList = observable<ClientWatchedDirectory>([]);
+  readonly locationList = observable<ClientLocation>([]);
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -23,9 +23,9 @@ class WatchedDirectoryStore {
     const dirs = await this.backend.getWatchedDirectories('dateAdded',  'DESC');
 
     const clientDirs = dirs.map((dir) =>
-      new ClientWatchedDirectory(this, dir.id, dir.path, dir.recursive, dir.dateAdded, dir.tagsToAdd));
+      new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd));
 
-    this.directoryList.push(...clientDirs);
+    this.locationList.push(...clientDirs);
 
     const initialPathLists = await Promise.all(clientDirs.map((clientDir) => clientDir.init()));
 
@@ -33,7 +33,7 @@ class WatchedDirectoryStore {
       initialPathLists.map(async (paths, i): Promise<IFile[]> => {
         const dir = clientDirs[i];
         return Promise.all(
-          paths.map(async (path) => this.pathToIFile(path, dir.tagsToAdd.toJS()),
+          paths.map(async (path) => this.pathToIFile(path, dir.id, dir.tagsToAdd.toJS()),
         ));
       }),
     );
@@ -44,29 +44,43 @@ class WatchedDirectoryStore {
         (initFiles, i) => this.backend.createFilesFromPath(clientDirs[i].path, initFiles)));
   }
 
-  async pathToIFile(path: string, tagsToAdd?: ID[]) {
+  get(locationId: ID): ClientLocation | undefined {
+    return this.locationList.find((loc) => loc.id === locationId);
+  }
+
+  getDefaultLocation() {
+    const defaultLocation = this.get(DEFAULT_LOCATION_ID);
+    if (!defaultLocation) {
+      throw new Error('Default location not found. This should not happen!');
+    }
+    return defaultLocation;
+  }
+
+  async pathToIFile(path: string, locationId: ID, tagsToAdd?: ID[]): Promise<IFile> {
     return ({
       path,
       id: generateId(),
+      locationId,
       tags: tagsToAdd || [],
       dateAdded: new Date(),
+      dateModified: new Date(),
       ...await ClientFile.getMetaData(path),
     });
   }
 
   @action.bound
-  async addDirectory(dirInput: Omit<IWatchedDirectory, 'id' | 'dateAdded'>, id = generateId(), dateAdded = new Date()) {
-    const dirData: IWatchedDirectory = { ...dirInput, id, dateAdded };
-    const clientDir = new ClientWatchedDirectory(
-      this, id, dirData.path, dirData.recursive, dirData.dateAdded, dirData.tagsToAdd);
-    this.directoryList.push(clientDir);
+  async addDirectory(dirInput: Omit<ILocation, 'id' | 'dateAdded'>, id = generateId(), dateAdded = new Date()) {
+    const dirData: ILocation = { ...dirInput, id, dateAdded };
+    const clientDir = new ClientLocation(
+      this, id, dirData.path, dirData.dateAdded, dirData.tagsToAdd);
+    this.locationList.push(clientDir);
     // The function caller is responsible for handling errors.
-    await this.backend.createWatchedDirectory(dirData);
+    await this.backend.createLocation(dirData);
 
     // Import files of dir
     clientDir.init().then((filePaths) => {
       for (const path of filePaths) {
-        this.rootStore.fileStore.addFile(path);
+        this.rootStore.fileStore.addFile(path, id);
       }
     });
 
@@ -75,7 +89,7 @@ class WatchedDirectoryStore {
 
   @action.bound
   async removeDirectory(id: ID) {
-    const watchedDir = this.directoryList.find((dir) => dir.id === id);
+    const watchedDir = this.locationList.find((dir) => dir.id === id);
     if (!watchedDir) {
       console.log('Cannot remove watched directory: ID not found', id);
       return;
@@ -86,11 +100,11 @@ class WatchedDirectoryStore {
     // const filesToRemove = ...
 
     // Remove locally
-    this.directoryList.remove(watchedDir);
+    this.locationList.remove(watchedDir);
 
     // Remove entity from DB through backend
-    await this.backend.removeWatchedDirectory(watchedDir);
+    await this.backend.removeLocation(watchedDir);
   }
 }
 
-export default WatchedDirectoryStore;
+export default LocationStore;

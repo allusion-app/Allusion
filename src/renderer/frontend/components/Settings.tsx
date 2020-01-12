@@ -160,12 +160,12 @@ const Settings = observer(() => {
         <FormGroup label="Thumbnail directory">
           <label
             className={`${Classes.FILL} ${Classes.FILE_INPUT} ${Classes.FILE_INPUT_HAS_SELECTION}`}
-            htmlFor="importPathInput"
+            htmlFor="thumbnailPathInput"
           >
             {/* Where to import images you drop on the app or import through the browser extension */}
             <span
               className={Classes.FILE_UPLOAD_INPUT}
-              id="importPathInput"
+              id="thumbnailPathInput"
               onClick={browseThumbnailDirectory}
               title={uiStore.thumbnailDirectory}
             >

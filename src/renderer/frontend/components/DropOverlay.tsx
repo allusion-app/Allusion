@@ -2,12 +2,14 @@ import React, { useState, useCallback, useContext } from 'react';
 import { Card, Overlay, H4, Tag } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
+import fse from 'fs-extra';
+import path from 'path';
 
 import { imgExtensions } from '../containers/Outliner/ImportForm';
 import { ClientTag } from '../../entities/Tag';
 import { timeoutPromise } from '../utils';
 import { ClientFile, IMG_EXTENSIONS } from '../../entities/File';
-import { RendererMessenger } from '../../../Messaging';
+import { RendererMessenger, IStoreFileMessage } from '../../../Messaging';
 
 const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
@@ -163,14 +165,17 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     try {
       for (const dataItem of dropData) {
         const clientFile = await new Promise<ClientFile>(async (resolve, reject) => {
+          let fileData: IStoreFileMessage | undefined;
+
+          // Copy file into the default import location
           if (dataItem instanceof File) {
-            resolve(fileStore.addFile(dataItem.path));
+            const file = await fse.readFile(dataItem.path);
+            fileData = {
+              filenameWithExt: path.basename(dataItem.path),
+              imgBase64: new Buffer(file).toString('base64'),
+            };
+
           } else if (typeof dataItem === 'string') {
-            let rejected = false;
-            const timeout = setTimeout(() => {
-              rejected = true;
-              reject('Could not store dropped image in backend');
-            }, 5000);
 
             // Get filename and data
             const { imgBase64, blob } = await imageAsBase64(dataItem);
@@ -179,13 +184,26 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
             const filenameWithExt = imgExtensions.some((ext) => filename.endsWith(ext))
               ? filename
               : `${filename}.${extension}`;
+            fileData = { imgBase64, filenameWithExt };
+          }
+          if (fileData) {
+            const { imgBase64, filenameWithExt } = fileData;
+
+            let rejected = false;
+            const timeout = setTimeout(() => {
+              rejected = true;
+              reject('Could not store dropped image in backend');
+            }, 5000);
 
             // Send base64 file to main process, get back filename where it is stored
             const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
 
             if (!rejected) {
               clearTimeout(timeout);
-              resolve(fileStore.addFile(reply.downloadPath));
+              console.log('Imported file', reply.downloadPath);
+              // resolve(fileStore.addFile(reply.downloadPath, DEFAULT_LOCATION_ID));
+              // File will be detected automatically by the filesystem - no longer needed to import manually
+              // TODO: It will be imported, but the chosen tag won't be automatically added... yet
             }
           }
         });

@@ -6,14 +6,15 @@ import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes,
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
-import { ClientWatchedDirectory } from '../../../entities/WatchedDirectory';
+import { ClientLocation } from '../../../entities/Location';
 import { ClientStringSearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { RendererMessenger } from '../../../../Messaging';
+import { AppToaster } from '../../App';
 
 interface ILocationListItemProps {
-  dir: ClientWatchedDirectory;
+  dir: ClientLocation;
   onDelete: (id: string) => void;
   addToSearch: (path: string) => void;
   replaceSearch: (path: string) => void;
@@ -43,11 +44,16 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
     const { dir } = this.props;
     return (
       <li>
-        <span>
-          <Icon icon="map-marker" />
-          &nbsp;
+        <Button
+          fill
+          icon="map-marker"
+          rightIcon={dir.isBroken ? <Icon icon={IconSet.WARNING} /> : null}
+          className={'tooltip'}
+          data-right={`${dir.isBroken ? 'Cannot find this location: ' : ''} ${dir.path}`}
+        >
           <span className="ellipsis" title={dir.path}>{Path.basename(dir.path)}</span>
-        </span>
+        </Button>
+
 
         <Alert
           isOpen={this.state.isDeleteOpen}
@@ -122,7 +128,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
 
 const LocationsForm = () => {
 
-  const { watchedDirectoryStore, uiStore } = useContext(StoreContext);
+  const { locationStore, uiStore } = useContext(StoreContext);
 
   const [isCollapsed, setCollapsed] = useState(false);
 
@@ -142,8 +148,19 @@ const LocationsForm = () => {
     if (!dirs || dirs.length === 0) {
       return;
     }
-    watchedDirectoryStore.addDirectory({ path: dirs[0], recursive: true, tagsToAdd: [] });
-  }, [watchedDirectoryStore]);
+
+    // Todo: Check if sub-dir of an existing location
+    const parentDir = locationStore.locationList.find((dir) => dirs[0].includes(dir.path));
+    if (parentDir) {
+      AppToaster.show({
+        message: 'You cannot add a location that is a subfolder of an existing location.',
+        intent: 'danger',
+      });
+      return;
+    }
+
+    locationStore.addDirectory({ path: dirs[0], tagsToAdd: [] });
+  }, [locationStore]);
 
   const toggleLocations = useCallback(
     () => setCollapsed(!isCollapsed),
@@ -186,11 +203,11 @@ const LocationsForm = () => {
             </span>
           </li>
           {
-            watchedDirectoryStore.directoryList.map((dir, i) => (
+            locationStore.locationList.map((dir, i) => (
               <LocationListItem
                 key={`${dir.path}-${i}`}
                 dir={dir}
-                onDelete={watchedDirectoryStore.removeDirectory}
+                onDelete={locationStore.removeDirectory}
                 addToSearch={addToSearch}
                 replaceSearch={replaceSearch}
               />

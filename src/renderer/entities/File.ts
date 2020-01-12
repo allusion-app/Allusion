@@ -3,6 +3,10 @@ import Path from 'path';
 import fse from 'fs-extra';
 import systemPath from 'path';
 
+import { promisify } from 'util';
+import ImageSize from 'image-size';
+const sizeOf = promisify(ImageSize.imageSize);
+
 import FileStore from '../frontend/stores/FileStore';
 import { ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag } from './Tag';
@@ -13,10 +17,14 @@ export type IMG_EXTENSIONS_TYPE = 'gif' | 'png' | 'jpg' | 'jpg';
 /* Generic properties of a File in our application (usually an image) */
 export interface IFile extends IIdentifiable {
   id: ID;
-  path: string;
+  locationId: ID;
+  path: string; // todo: could store relativePath, and convert to a absPath in clientFile (easier for import/export/sync in future)
   tags: ID[];
-  dateAdded: Date;
   size: number;
+  width: number;
+  height: number;
+  dateAdded: Date;
+  dateModified: Date;
 
   // Duplicate data; also in path. Used for DB queries
   name: string;
@@ -26,20 +34,28 @@ export interface IFile extends IIdentifiable {
 /* A File as it is represented in the Database */
 export class DbFile implements IFile {
   public id: ID;
+  public locationId: ID;
   public path: string;
   public tags: ID[];
-  public dateAdded: Date;
   public size: number;
+  public width: number;
+  public height: number;
+  public dateAdded: Date;
+  public dateModified: Date;
 
   public name: string;
   public extension: string;
 
-  constructor({ id, path, tags, dateAdded, size, name, extension }: IFile) {
+  constructor({ id, locationId, path, tags, size, width, height, dateAdded, dateModified, name, extension }: IFile) {
     this.id = id;
+    this.locationId = locationId;
     this.path = path;
     this.tags = tags;
-    this.dateAdded = dateAdded;
     this.size = size;
+    this.width = width;
+    this.height = height;
+    this.dateAdded = dateAdded;
+    this.dateModified = dateModified;
     this.name = name;
     this.extension = extension;
   }
@@ -54,10 +70,17 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   /** Should be called when after constructing a file before sending it to the backend. */
   static async getMetaData(path: string) {
     const stats = await fse.stat(path);
+    const dimensions = await sizeOf(path);
+    if (!dimensions) {
+      console.error('Could not find dimensions for ', path);
+    }
+
     return {
       name: systemPath.basename(path),
       extension: systemPath.extname(path).toLowerCase(),
       size: stats.size,
+      width: (dimensions && dimensions.width) || 0,
+      height: (dimensions && dimensions.height) || 0,
     };
   }
 
@@ -66,10 +89,14 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   autoSave = true;
 
   readonly id: ID;
-  readonly dateAdded: Date;
+  readonly locationId: ID;
   readonly path: string;
   readonly tags = observable<ID>([]);
   readonly size: number;
+  readonly width: number;
+  readonly height: number;
+  readonly dateAdded: Date;
+  readonly dateModified: Date;
   readonly name: string;
   readonly extension: string;
 
@@ -80,9 +107,13 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
     this.store = store;
 
     this.id = fileProps.id;
+    this.locationId = fileProps.locationId;
     this.path = fileProps.path;
-    this.dateAdded = new Date(fileProps.dateAdded);
     this.size = fileProps.size;
+    this.width = fileProps.width;
+    this.height = fileProps.height;
+    this.dateAdded = new Date(fileProps.dateAdded);
+    this.dateModified = new Date(fileProps.dateModified);
     this.name = fileProps.name;
     this.extension = fileProps.extension;
     this.thumbnailPath = '';
@@ -149,10 +180,14 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   serialize(): IFile {
     return {
       id: this.id,
+      locationId: this.locationId,
       path: this.path,
       tags: this.tags.toJS(), // removes observable properties from observable array
-      dateAdded: this.dateAdded,
       size: this.size,
+      width: this.width,
+      height: this.height,
+      dateAdded: this.dateAdded,
+      dateModified: this.dateModified,
       name: this.name,
       extension: this.extension,
     };
