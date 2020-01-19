@@ -46,22 +46,27 @@ class FileStore {
     return file;
   }
 
-  @action.bound async removeFilesById(ids: ID[]) {
+  /** Client-only remove: Hides a file */
+  @action.bound async hideFile(file: ClientFile) {
+    file.dispose();
+    this.rootStore.uiStore.deselectFile(file);
+    this.fileList.remove(file);
+    if (file.tags.length === 0) {
+      this.decrementNumUntaggedFiles();
+    }
+  }
+
+  @action.bound async removeFilesById(ids: ID[], removeFromDB = true) {
     const filesToRemove = ids
       .map((id) => this.get(id))
       .filter((f) => f !== undefined) as ClientFile[];
 
     try {
-      filesToRemove.forEach((file) => {
-        file.dispose();
-        this.rootStore.uiStore.deselectFile(file);
-        this.fileList.remove(file);
-        if (file.tags.length === 0) {
-          this.decrementNumUntaggedFiles();
-        }
-      });
-      await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
-      await this.backend.removeFiles(filesToRemove);
+      filesToRemove.forEach((file) => this.hideFile(file));
+      if (removeFromDB) {
+        await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
+        await this.backend.removeFiles(filesToRemove);
+      }
     } catch (err) {
       console.error('Could not remove files', err);
     }
@@ -172,20 +177,7 @@ class FileStore {
   @action.bound private async loadFiles() {
     const { orderBy, fileOrder } = this.rootStore.uiStore.view;
     const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
-
-    // Removes files with invalid file path. Otherwise adds files to fileList.
-    // In the future the user should have the option to input the new path if the file was only moved or renamed.
-    await Promise.all(
-      fetchedFiles.map(async (backendFile: IFile) => {
-        try {
-          await fs.access(backendFile.path, fs.constants.F_OK);
-          this.fileList.push(new ClientFile(this, backendFile));
-        } catch (e) {
-          console.warn(`${backendFile.path} 'does not exist'`);
-          this.backend.removeFile(backendFile);
-        }
-      }),
-    );
+    await this.updateFromBackend(fetchedFiles);
   }
 
   @action.bound private async updateFromBackend(backendFiles: IFile[]) {
@@ -214,11 +206,16 @@ class FileStore {
             // this.removeFile()
           }
 
-          // this.backend.removeFile(backendFile);
-          // const clientFile = this.get(backendFile.id);
-          // if (clientFile) {
-          //   await this.removeFile(clientFile);
-          // }
+          // Remove file from client only - keep in DB in case it will be recovered later
+          // TODO: Store missing date so it can be automatically removed after some time?
+          const clientFile = this.get(backendFile.id);
+          if (clientFile) {
+            if (clientFile.tags.length === 0) {
+              this.decrementNumUntaggedFiles();
+            }
+            clientFile.dispose();
+            this.fileList.remove(clientFile);
+          }
           return false;
         }
       }),

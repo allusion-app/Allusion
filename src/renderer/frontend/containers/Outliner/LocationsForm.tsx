@@ -1,4 +1,4 @@
-import React, { useContext, useCallback, useState, useEffect } from 'react';
+import React, { useContext, useCallback, useState } from 'react';
 import { remote, shell } from 'electron';
 import Path from 'path';
 import { observer, Observer } from 'mobx-react-lite';
@@ -6,11 +6,10 @@ import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes,
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
-import { ClientLocation } from '../../../entities/Location';
+import { ClientLocation, DEFAULT_LOCATION_ID } from '../../../entities/Location';
 import { ClientStringSearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
-import { RendererMessenger } from '../../../../Messaging';
 import { AppToaster } from '../../App';
 
 interface ILocationListItemProps {
@@ -114,13 +113,15 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
   }
 
   public renderContextMenu() {
+    const isImportLocation = this.props.dir.id === DEFAULT_LOCATION_ID;
+
     return (
       <Menu>
         <MenuItem text="Configure" onClick={this.openConfigDialog} icon={IconSet.SETTINGS} />
         <MenuItem onClick={this.handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
         <MenuItem onClick={this.handleReplaceSearch} text="Replace Search Query" icon={IconSet.REPLACE} />
         <MenuItem onClick={this.handleOpenFileExplorer} text="Open in File Browser" icon={IconSet.FOLDER_CLOSE} />
-        <MenuItem text="Delete" onClick={this.openDeleteAlert} icon={IconSet.DELETE} />
+        <MenuItem text="Delete" onClick={this.openDeleteAlert} icon={IconSet.DELETE} disabled={isImportLocation} />
       </Menu>
     );
   }
@@ -131,13 +132,6 @@ const LocationsForm = () => {
   const { locationStore, uiStore } = useContext(StoreContext);
 
   const [isCollapsed, setCollapsed] = useState(false);
-
-  const [importPath, setImportPath] = useState('');
-
-  useEffect(() => {
-    setImportPath(RendererMessenger.getDownloadPath());
-  }, []);
-
   const handleChooseWatchedDir = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     const dirs = remote.dialog.showOpenDialog({
@@ -194,14 +188,6 @@ const LocationsForm = () => {
       </div>
       <Collapse isOpen={!isCollapsed}>
         <ul id="watched-folders">
-          <li>
-            <span>
-              {/* Todo: Link this to the actual import dir */}
-              <Icon icon="map-marker" />
-              &nbsp;
-              <span className="ellipsis" title={importPath}>Import location</span>
-            </span>
-          </li>
           {
             locationStore.locationList.map((dir, i) => (
               <LocationListItem

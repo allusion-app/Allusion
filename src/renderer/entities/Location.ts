@@ -1,6 +1,7 @@
 import { IReactionDisposer, reaction, computed, observable, action } from 'mobx';
 import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
+import SysPath from 'path';
 
 import { ID, IIdentifiable, ISerializable } from './ID';
 import LocationStore from '../frontend/stores/LocationStore';
@@ -159,10 +160,18 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
           }
         })
         .on('change', (path: string) => console.log(`File ${path} has been changed`))
-        .on('unlink', (path: string) => console.log(`File ${path} has been removed`))
+        .on('unlink', (path: string) => {
+          console.log(`Location "${SysPath.basename(this.path)}": File ${path} has been removed.`);
+          const fileStore = this.store.rootStore.fileStore;
+          const clientFile = fileStore.fileList.find((f) => f.path === path);
+          if (clientFile) {
+            fileStore.hideFile(clientFile);
+          }
+          this.store.rootStore.fileStore.removeFilesById
+        })
         .on('ready', () => {
           this.isReady = true;
-          console.log('Ready: init files', initialFiles);
+          console.log(`Location "${SysPath.basename(this.path)}" ready. Detected files:`, initialFiles.length);
           // Todo: Compare this in DB, add new files and mark missing files as missing
           resolve(initialFiles);
         });

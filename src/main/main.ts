@@ -278,3 +278,5 @@ MainMessenger.onSendPreviewFiles((msg) => {
     previewWindow.focus();
   }
 });
+
+MainMessenger.onGetUserPicturesPath();

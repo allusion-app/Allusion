@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, computed } from 'mobx';
 
 import Backend from '../../backend/Backend';
 import RootStore from './RootStore';
@@ -17,10 +17,18 @@ class LocationStore {
     this.rootStore = rootStore;
   }
 
+  @computed get importDirectory() {
+    if (this.locationList.length === 0 || this.locationList[0].id !== DEFAULT_LOCATION_ID) {
+      console.error('Default location not properly set-up');
+      return '';
+    }
+    return this.locationList[0].path;
+  }
+
   @action.bound
   async init() {
     // Get dirs from backend
-    const dirs = await this.backend.getWatchedDirectories('dateAdded',  'DESC');
+    const dirs = await this.backend.getWatchedDirectories('dateAdded',  'ASC');
 
     const clientDirs = dirs.map((dir) =>
       new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd));
@@ -44,11 +52,11 @@ class LocationStore {
         (initFiles, i) => this.backend.createFilesFromPath(clientDirs[i].path, initFiles)));
   }
 
-  get(locationId: ID): ClientLocation | undefined {
+  @action.bound get(locationId: ID): ClientLocation | undefined {
     return this.locationList.find((loc) => loc.id === locationId);
   }
 
-  getDefaultLocation() {
+  @action.bound getDefaultLocation() {
     const defaultLocation = this.get(DEFAULT_LOCATION_ID);
     if (!defaultLocation) {
       throw new Error('Default location not found. This should not happen!');

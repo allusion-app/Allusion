@@ -1,7 +1,7 @@
 import { ID } from './renderer/entities/ID';
 import { IImportItem } from './main/clipServer';
 import { ITag } from './renderer/entities/Tag';
-import { ipcRenderer, ipcMain, WebContents, IpcMessageEvent, IpcRenderer, IpcMain } from 'electron';
+import { ipcRenderer, ipcMain, WebContents, IpcMessageEvent, IpcRenderer, IpcMain, app } from 'electron';
 
 /////////////////// General ////////////////////
 export const INITIALIZED = 'INITIALIZED';
@@ -57,6 +57,7 @@ export interface IRunInBackgroundMessage {
   isRunInBackground: boolean;
 }
 
+export const GET_USER_PICTURES_PATH = 'GET_USER_PICTURES_PATH';
 export const GET_DOWNLOAD_PATH = 'GET_DOWNLOAD_PATH';
 export const SET_DOWNLOAD_PATH = 'SET_DOWNLOAD_PATH';
 export interface IDownloadPathMessage {
@@ -135,6 +136,8 @@ export class RendererMessenger {
   static onClosedPreviewWindow = (cb: () => void): IpcRenderer => {
     return ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
   };
+
+  static getUserPicturesPath = (): string => ipcRenderer.sendSync(GET_USER_PICTURES_PATH);
 }
 
 export class MainMessenger {
@@ -207,5 +210,9 @@ export class MainMessenger {
       const downloadPath = await getDownloadPath(msg);
       e.sender.send(STORE_FILE_REPLY, { downloadPath } as IStoreFileReplyMessage);
     });
+  };
+
+  static onGetUserPicturesPath = (): IpcMain => {
+    return ipcMain.on(GET_USER_PICTURES_PATH, (e: IpcMessageEvent) => (e.returnValue = app.getPath('pictures')));
   };
 }

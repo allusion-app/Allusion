@@ -38,15 +38,15 @@ export default class Backend {
       await this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
     }
     
-    const locCount = await this.locationRepository.count();
-    if (locCount === 0) {
-      await this.createLocation({
-        id: DEFAULT_LOCATION_ID,
-        path: path.join(os.homedir(), 'Allusion'), // todo: make user configurable on startup
-        dateAdded: new Date(),
-        tagsToAdd: [],
-      });
-    }
+    // const locCount = await this.locationRepository.count();
+    // if (locCount === 0) {
+    //   await this.createLocation({
+    //     id: DEFAULT_LOCATION_ID,
+    //     path: path.join(os.homedir(), 'Allusion'), // todo: make user configurable on startup
+    //     dateAdded: new Date(),
+    //     tagsToAdd: [],
+    //   });
+    // }
     // Here we could start indexing, or checking for changed files
   }
 
