@@ -88,12 +88,7 @@ const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
 
 export const formatDateTime = (d: Date) => {
   return DateTimeFormat.formatToParts(d)
-    .map(({ type, value }) => {
-      if (type === 'literal' && value === ', ') {
-        return ' ';
-      }
-      return value;
-    })
+    .map(({ type, value }) => type === 'literal' && value === ', ' ? ' ' : value)
     .reduce((str, part) => str + part);
 };
 
