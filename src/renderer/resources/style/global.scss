@@ -45,6 +45,7 @@ body {
 main {
   grid-area: main;
   overflow: hidden; //temp fix for double scrollbar
+  height: inherit;
 }
 
 #layoutContainer {
@@ -349,7 +350,7 @@ img {
 .bp3-overlay-content {
   display: flex;
   align-items: center;
-  justify-content: center;
+  // justify-content: center;
 }
 .drop-overlay-content {
   // top: 0;
@@ -436,13 +437,12 @@ img {
     height: 100%;
     width: 100%;
     object-fit: contain;
-    
+
     &.no-drag {
       // No transform transition when dragging, since also applies to zoom (scale) otherwise
       transition: transform 0.1s ease-in-out;
     }
   }
-
 }
 
 #zoomableImage {
@@ -468,14 +468,13 @@ img {
         margin-top: -24px;
         top: 50%;
         color: white;
-        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, .5));
+        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
       }
     }
 
     .sideButton:hover {
       opacity: 1;
     }
-    
 
     #backButton {
       top: 0;

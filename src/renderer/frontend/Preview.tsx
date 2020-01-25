@@ -1,15 +1,19 @@
 import React, { useContext, useEffect, useCallback } from 'react';
+import { Button, Switch } from '@blueprintjs/core';
+import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ContentView from './containers/ContentView';
-import { Button, Switch } from '@blueprintjs/core';
-import { observer } from 'mobx-react-lite';
 import IconSet from './components/Icons';
+import { useWorkerListener } from './ThumbnailGeneration';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+
+  // Listen to responses of Web Workers
+  useWorkerListener();
 
   useEffect(uiStore.view.enableSlideMode, []);
 

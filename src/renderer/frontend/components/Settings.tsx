@@ -10,15 +10,16 @@ import {
   RadioGroup,
   Radio,
   FormGroup,
+  KeyCombo,
 } from '@blueprintjs/core';
-import fse from 'fs-extra';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { ClearDbButton } from './ErrorBoundary';
-import { ipcRenderer, remote } from 'electron';
+import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
-import { getThumbnailPath } from '../utils';
+import { getThumbnailPath, isDirEmpty } from '../utils';
+import { RendererMessenger } from '../../../Messaging';
 
 const Settings = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -27,80 +28,67 @@ const Settings = observer(() => {
   const [isRunningInBackground, setRunningInBackground] = useState(false);
   const [importPath, setImportPath] = useState('');
 
-  const toggleClipServer = useCallback(
-    () => {
-      ipcRenderer.send('setClipServerEnabled', !isClipServerRunning);
-      setClipServerRunning(!isClipServerRunning);
-    },
-    [setClipServerRunning, isClipServerRunning],
-  );
+  const toggleClipServer = useCallback(() => {
+    RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
+    setClipServerRunning(!isClipServerRunning);
+  }, [setClipServerRunning, isClipServerRunning]);
 
-  const toggleRunInBackground = useCallback(
-    () => {
-      ipcRenderer.send('setRunningInBackground', !isRunningInBackground);
-      setRunningInBackground(!isRunningInBackground);
-    },
-    [setRunningInBackground, isRunningInBackground],
-  );
+  const toggleRunInBackground = useCallback(() => {
+    RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
+    setRunningInBackground(!isRunningInBackground);
+  }, [setRunningInBackground, isRunningInBackground]);
 
-  const browseImportDir = useCallback(
-    () => {
-      const dirs = remote.dialog.showOpenDialog({
-        properties: ['openDirectory'],
-      });
+  const browseImportDir = useCallback(() => {
+    const dirs = remote.dialog.showOpenDialog({
+      properties: ['openDirectory'],
+    });
 
-      if (!dirs) {
-        return;
-      }
+    if (!dirs) {
+      return;
+    }
 
-      const dir = dirs[0];
-      setImportPath(dir);
-      ipcRenderer.send('setDownloadPath', dir);
-    },
-    [setImportPath],
-  );
+    const dir = dirs[0];
+    setImportPath(dir);
+    RendererMessenger.setDownloadPath({ dir });
+  }, [setImportPath]);
 
   useEffect(() => {
-    setClipServerRunning(ipcRenderer.sendSync('isClipServerRunning'));
-    setRunningInBackground(ipcRenderer.sendSync('isRunningInBackground'));
-    setImportPath(ipcRenderer.sendSync('getDownloadPath'));
+    setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
+    setRunningInBackground(RendererMessenger.getIsRunningInBackground());
+    setImportPath(RendererMessenger.getDownloadPath());
   }, []);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
-  const browseThumbnailDirectory = useCallback(
-    async () => {
-      const dirs = remote.dialog.showOpenDialog({
-        properties: ['openDirectory'],
-        defaultPath: uiStore.thumbnailDirectory,
-      });
+  const browseThumbnailDirectory = useCallback(async () => {
+    const dirs = remote.dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      defaultPath: uiStore.thumbnailDirectory,
+    });
 
-      if (!dirs) {
-        return;
+    if (!dirs) {
+      return;
+    }
+    const newDir = dirs[0];
+
+    if (!(await isDirEmpty(newDir))) {
+      alert('Please choose an empty directory.');
+      return;
+    }
+
+    const oldDir = uiStore.thumbnailDirectory;
+
+    // Move thumbnail files
+    await moveThumbnailDir(oldDir, newDir);
+    uiStore.setThumbnailDirectory(newDir);
+
+    // Reset thumbnail paths for those that already have one
+    fileStore.fileList.forEach((f) => {
+      if (f.thumbnailPath) {
+        f.setThumbnailPath(getThumbnailPath(f.path, newDir));
       }
-      const newDir = dirs[0];
-
-      const isEmpty = (await fse.readdir(newDir)).length === 0;
-      if (!isEmpty) {
-        alert('Please choose an empty directory.');
-        return;
-      }
-
-      const oldDir = uiStore.thumbnailDirectory;
-
-      // Move thumbnail files
-      await moveThumbnailDir(oldDir, newDir);
-      uiStore.setThumbnailDirectory(newDir);
-
-      // Reset thumbnail paths for those that already have one
-      fileStore.fileList.forEach((f) => {
-        if (f.thumbnailPath) {
-          f.setThumbnailPath(getThumbnailPath(f.path, newDir));
-        }
-      });
-    },
-    [fileStore.fileList, uiStore],
-  );
+    });
+  }, [fileStore.fileList, uiStore]);
 
   return (
     <Drawer
@@ -120,6 +108,16 @@ const Settings = observer(() => {
           <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
           <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
           <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
+        </RadioGroup>
+
+        <RadioGroup
+          selectedValue={uiStore.view.thumbnailShape}
+          onChange={() => undefined}
+          label="Thumbnail shape"
+          inline
+        >
+          <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
+          <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
         </RadioGroup>
 
         <Switch
@@ -201,12 +199,8 @@ const Settings = observer(() => {
             Did you know there are hotkeys?
             <br />
             Press&nbsp;
-            <span className={Classes.KEY_COMBO}>
-              <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>Ctrl</span>
-              &nbsp;
-              <span className={Classes.KEY}>K</span>
-              &nbsp;to see them.
-            </span>
+            <KeyCombo combo="mod+k" />
+            &nbsp;to see them.
           </p>
         </Callout>
       </div>

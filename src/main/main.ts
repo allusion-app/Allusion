@@ -1,9 +1,10 @@
-import { app, BrowserWindow, Menu, Tray, ipcMain, IpcMessageEvent, screen } from 'electron';
+import { app, BrowserWindow, Menu, Tray, screen } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';
+import { MainMessenger } from '../Messaging';
 
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
@@ -12,7 +13,7 @@ let clipServer: ClipServer | null;
 
 const importExternalImage = async (item: IImportItem) => {
   if (mainWindow) {
-    mainWindow.webContents.send('importExternalImage', item);
+    MainMessenger.sendImportExternalImage(mainWindow.webContents, { item });
     return true;
   }
   return false;
@@ -20,7 +21,7 @@ const importExternalImage = async (item: IImportItem) => {
 
 const addTagsToFile = async (item: IImportItem) => {
   if (mainWindow) {
-    mainWindow.webContents.send('addTagsToFile', item);
+    MainMessenger.sendAddTagsToFile(mainWindow.webContents, { item });
     return true;
   }
   return false;
@@ -28,10 +29,8 @@ const addTagsToFile = async (item: IImportItem) => {
 
 const getTags = async (): Promise<ITag[]> => {
   if (mainWindow) {
-    mainWindow.webContents.send('getTags');
-    return new Promise((resolve) => {
-      ipcMain.once('receiveTags', (tags: ITag[]) => resolve(tags));
-    });
+    const { tags } = await MainMessenger.getTags(mainWindow.webContents);
+    return tags;
   }
   // Todo: cache tags from frontend in case the window is closed
   return [];
@@ -165,13 +164,12 @@ function createWindow() {
   if (!clipServer) {
     clipServer = new ClipServer(importExternalImage, addTagsToFile, getTags);
   }
+
   // Import images that were added while the window was closed
-  ipcMain.once('initialized', async () => {
-    if (clipServer) {
-      const importItems = await clipServer.getImportQueue();
-      await Promise.all(importItems.map(importExternalImage));
-      clipServer.clearImportQueue();
-    }
+  MainMessenger.onceInitialized().then(async () => {
+    const importItems = await clipServer!.getImportQueue();
+    await Promise.all(importItems.map(importExternalImage));
+    clipServer!.clearImportQueue();
   });
 }
 
@@ -204,7 +202,7 @@ function createPreviewWindow() {
     // Prevent close, hide the window instead, for faster launch next time
     if (mainWindow) {
       e.preventDefault();
-      mainWindow.webContents.send('closedPreviewWindow');
+      MainMessenger.sendClosedPreviewWindow(mainWindow.webContents);
       mainWindow.focus();
     }
     if (previewWindow) {
@@ -245,66 +243,34 @@ app.on('activate', () => {
 
 // Messaging ///////////////////////////////
 ////////////////////////////////////////////
-ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
-  if (clipServer) {
-    clipServer.setDownloadPath(path);
-  }
-});
+MainMessenger.onGetDownloadPath(() => clipServer!.getDownloadPath());
+MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
+MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
 
-ipcMain.on('setClipServerEnabled', (event: IpcMessageEvent, isEnabled: boolean) => {
-  if (clipServer) {
-    clipServer.setEnabled(isEnabled);
-  }
-});
+MainMessenger.onSetDownloadPath(({ dir }) => clipServer!.setDownloadPath(dir));
+MainMessenger.onSetClipServerEnabled(({ isClipServerRunning }) =>
+  clipServer!.setEnabled(isClipServerRunning),
+);
+MainMessenger.onSetRunningInBackground(({ isRunInBackground }) =>
+  clipServer!.setRunInBackground(isRunInBackground),
+);
 
-ipcMain.on('isClipServerRunning', (event: IpcMessageEvent) => {
-  if (clipServer) {
-    event.returnValue = clipServer.isEnabled();
-  } else {
-    event.returnValue = false;
-  }
-});
+MainMessenger.onStoreFile(({ filenameWithExt, imgBase64 }) =>
+  clipServer!.storeImageWithoutImport(filenameWithExt, imgBase64),
+);
 
-ipcMain.on('setDownloadPath', (event: IpcMessageEvent, path: string) => {
-  if (clipServer) {
-    clipServer.setDownloadPath(path);
-  }
-});
-
-ipcMain.on('getDownloadPath', (event: IpcMessageEvent) => {
-  if (clipServer) {
-    event.returnValue = clipServer.getDownloadPath();
-  }
-});
-
-ipcMain.on('setRunningInBackground', (event: IpcMessageEvent, isEnabled: boolean) => {
-  if (clipServer) {
-    clipServer.setRunInBackground(isEnabled);
-  }
-});
-
-ipcMain.on('isRunningInBackground', (event: IpcMessageEvent) => {
-  event.returnValue = clipServer && clipServer.isRunInBackgroundEnabled();
-});
-
-ipcMain.on('storeFile', async (event: IpcMessageEvent, filename: string, imgBase64: string) => {
-  if (clipServer) {
-    const downloadPath = await clipServer.storeImageWithoutImport(filename, imgBase64);
-    event.sender.send('storeFileReply', downloadPath);
-  }
-});
-
-ipcMain.on('sendPreviewFiles', (event: any, fileIds: string[], thumbnailDir: string) => {
+// Forward files from the main window to the preview window
+MainMessenger.onSendPreviewFiles((msg) => {
   // Create preview window if needed, and send the files selected in the primary window
   if (!previewWindow) {
     previewWindow = createPreviewWindow();
-    ipcMain.once('initialized', () => {
+    MainMessenger.onceInitialized().then(() => {
       if (previewWindow) {
-        previewWindow.webContents.send('receivePreviewFiles', fileIds, thumbnailDir);
+        MainMessenger.sendPreviewFiles(previewWindow.webContents, msg);
       }
     });
   } else {
-    previewWindow.webContents.send('receivePreviewFiles', fileIds, thumbnailDir);
+    MainMessenger.sendPreviewFiles(previewWindow.webContents, msg);
 
     if (!previewWindow.isVisible()) {
       previewWindow.show();

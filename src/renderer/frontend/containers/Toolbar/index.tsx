@@ -30,7 +30,7 @@ const enum Tooltip {
   Filter = 'Filter view content panel',
   Inspector = 'Toggle Inspector',
   Settings = 'Toggle Settings',
-  Back = 'Back to your gallery'
+  Back = 'Back to your gallery',
   // FilterTag = 'Filter images by first tag',
 }
 
@@ -106,7 +106,7 @@ const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopover
   </Popover>
 ));
 
-const sortMenuData: Array<{ prop: keyof IFile, icon: JSX.Element, text: string }> = [
+const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }> = [
   // { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
   { prop: 'name', icon: IconSet.FILTER_NAME_UP, text: 'Name' },
   { prop: 'extension', icon: IconSet.FILTER_FILE_TYPE, text: 'File type' },
@@ -118,19 +118,26 @@ const Toolbar = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
-  const handleChooseOutlinerPage = useCallback((page: typeof uiStore.outlinerPage) => {
-    if (uiStore.outlinerPage === page) {
-      uiStore.toggleOutliner();
-    }
+  const handleChooseOutlinerPage = useCallback(
+    (page: typeof uiStore.outlinerPage) => {
+      if (uiStore.outlinerPage === page) {
+        uiStore.toggleOutliner();
+      }
 
-    if (page === 'IMPORT') {
-      uiStore.openOutlinerImport();
-    } else if (page === 'TAGS') {
-      uiStore.openOutlinerTags();
-    }
-  }, [uiStore]);
-  const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), [handleChooseOutlinerPage]);
-  const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), [handleChooseOutlinerPage]);
+      if (page === 'IMPORT') {
+        uiStore.openOutlinerImport();
+      } else if (page === 'TAGS') {
+        uiStore.openOutlinerTags();
+      }
+    },
+    [uiStore],
+  );
+  const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), [
+    handleChooseOutlinerPage,
+  ]);
+  const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), [
+    handleChooseOutlinerPage,
+  ]);
   const handleOlSearch = uiStore.toggleQuickSearch;
 
   // Content actions
@@ -153,32 +160,27 @@ const Toolbar = observer(() => {
   );
 
   // Render variables
-  const sortMenu = useMemo(
-    () => {
-      const orderIcon = (
-        <Icon icon={uiStore.view.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
-      );
-      return (
-        <Menu>
-          {sortMenuData.map(({ prop, icon, text }) => (
-            <MenuItem
-              key={prop}
-              icon={icon}
-              text={text}
-              active={uiStore.view.orderBy === prop}
-              labelElement={uiStore.view.orderBy === prop && orderIcon}
-              onClick={() =>
-                uiStore.view.orderBy === prop
-                  ? uiStore.switchFileOrder()
-                  : uiStore.orderFilesBy(prop)
-              }
-            />
-          ))}
-        </Menu>
-      );
-    },
-    [uiStore],
-  );
+  const sortMenu = useMemo(() => {
+    const orderIcon = (
+      <Icon icon={uiStore.view.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
+    );
+    return (
+      <Menu>
+        {sortMenuData.map(({ prop, icon, text }) => (
+          <MenuItem
+            key={prop}
+            icon={icon}
+            text={text}
+            active={uiStore.view.orderBy === prop}
+            labelElement={uiStore.view.orderBy === prop && orderIcon}
+            onClick={() =>
+              uiStore.view.orderBy === prop ? uiStore.switchFileOrder() : uiStore.orderFilesBy(prop)
+            }
+          />
+        ))}
+      </Menu>
+    );
+  }, [uiStore.view.orderFilesBy, uiStore.view.orderBy, uiStore.view.fileOrder]); //eslint-disable-line
 
   const numFiles = fileStore.fileList.length;
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
@@ -226,12 +228,7 @@ const Toolbar = observer(() => {
           )}
 
           {/* Library info. Todo: Show entire library count instead of current fileList */}
-          <Button
-            id="media"
-            icon={IconSet.MEDIA}
-            className="tooltip"
-            data-right={Tooltip.Media}
-          >
+          <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={Tooltip.Media}>
             {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
           </Button>
         </ButtonGroup>
@@ -268,7 +265,7 @@ const Toolbar = observer(() => {
             content={sortMenu}
           />
         </ButtonGroup>
-        
+
         <ButtonGroup>
           <Button
             onClick={uiStore.view.setMethodList}
@@ -281,7 +278,7 @@ const Toolbar = observer(() => {
             active={uiStore.view.isGrid}
           />
         </ButtonGroup>
-        
+
         <div id="spacer" style={{ width: '100px' }} />
       </section>
 

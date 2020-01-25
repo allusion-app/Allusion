@@ -55,7 +55,7 @@ export const TreeLeaf = (props: ITreeLeafProps) => {
   const { id, name, isSelected, leaf, onDropLeaf, render } = props;
 
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
-    item: { type: leaf },
+    item: { id, name, type: leaf, isSelected },
     begin: () => ({ id, name, type: leaf, isSelected }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
@@ -129,7 +129,7 @@ export const TreeBranch = (props: ITreeBranchProps) => {
     render,
   } = props;
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
-    item: { type: branch },
+    item: { type: branch, id, name, isSelected },
     begin: () => ({ type: branch, id, name, isSelected }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
@@ -190,23 +190,20 @@ export const TreeBranch = (props: ITreeBranchProps) => {
 
   // When hovering over a collection for some time, automatically expand it
   const [expandTimeout, setExpandTimeout] = useState(0);
-  useEffect(
-    () => {
-      if (!canDrop) {
-        clearTimeout(expandTimeout);
-        return;
-      }
-      // Clear timer if isHovering changes
-      if (expandTimeout) {
-        clearTimeout(expandTimeout);
-      }
-      // Set a timeout to expand after some time if starting to hover
-      if (isHovering) {
-        setExpandTimeout(window.setTimeout(onDropHover, hoverTimeToExpand));
-      }
-    },
-    [canDrop, expandTimeout, isHovering, onDropHover],
-  );
+  useEffect(() => {
+    if (!canDrop) {
+      clearTimeout(expandTimeout);
+      return;
+    }
+    // Clear timer if isHovering changes
+    if (expandTimeout) {
+      clearTimeout(expandTimeout);
+    }
+    // Set a timeout to expand after some time if starting to hover
+    if (isHovering) {
+      setExpandTimeout(window.setTimeout(onDropHover, hoverTimeToExpand));
+    }
+  }, [canDrop, expandTimeout, isHovering, onDropHover]);
 
   // Style whether the element is being dragged or hovered over to drop on
   const className = `${canDrop && !isDragging && isHovering ? 'reorder-target' : ''} ${

@@ -1,6 +1,11 @@
 import path from 'path';
+import fse from 'fs-extra';
+
 import { thumbnailType } from '../../config';
 
+////////////////////////
+//// Time-out utils ////
+////////////////////////
 export function debounce<F extends (...args: any) => any>(func: F, wait: number = 300): F {
   let timeoutID: number;
 
@@ -29,29 +34,32 @@ export const throttle = (fn: (...args: any) => any, wait: number = 300) => {
       }, wait);
     }
   };
-}
+};
 
 export const timeoutPromise = <T>(timeMS: number, promise: Promise<T>): Promise<T> => {
   return new Promise((resolve, reject) => {
     promise.then(resolve, reject);
     setTimeout(reject, timeMS);
   });
-}
+};
 
+///////////////////////////////
+//// Text formatting utils ////
+///////////////////////////////
 export const formatTagCountText = (numTags: number, numCols: number) => {
   const extraTagsText = numTags ? `+${numTags} tag${numTags === 1 ? '' : 's'}` : '';
   const extraColsText = numCols
     ? `${extraTagsText && ', '}+${numCols} collection${numCols === 1 ? '' : 's'}`
     : '';
   return `${extraTagsText}${extraColsText}`;
-}
+};
 
 export const capitalize = (value: string) => {
   if (!value) {
     return '';
   }
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
-}
+};
 
 export const camelCaseToSpaced = (value: string) => {
   if (!value) {
@@ -64,8 +72,11 @@ export const camelCaseToSpaced = (value: string) => {
       // uppercase the first character
       .replace(/^./, (str) => str.toUpperCase())
   );
-}
+};
 
+/////////////////////////
+//// Date/time utils ////
+/////////////////////////
 const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
   timeZone: 'UTC',
   year: 'numeric',
@@ -92,6 +103,9 @@ export const jsDateFormatter = {
   placeholder: 'Choose a date...',
 };
 
+//////////////////////
+//// Color utils /////
+//////////////////////
 export const hexToHSL = (H: string) => {
   // Convert hex to RGB first
   let r = 0;
@@ -141,14 +155,48 @@ export const hexToHSL = (H: string) => {
   l = +(l * 100).toFixed(1);
 
   return [h, s, l];
-}
+};
+
+/*!
+ * Get the contrasting color for any hex color
+ * (c) 2019 Chris Ferdinandi, MIT License, https://gomakethings.com
+ * Derived from work by Brian Suda, https://24ways.org/2010/calculating-color-contrast/
+ * @param  {String} A hexcolor value
+ * @return {String} The contrasting color (black or white)
+ */
+export const getContrast = (hexcolor: string) => {
+  // If a leading # is provided, remove it
+  if (hexcolor.slice(0, 1) === '#') {
+    hexcolor = hexcolor.slice(1);
+  }
+
+  // If a three-character hexcode, make six-character
+  if (hexcolor.length === 3) {
+    hexcolor = hexcolor
+      .split('')
+      .map((hex) => hex + hex)
+      .join('');
+  }
+
+  // Convert to RGB value
+  const r = parseInt(hexcolor.substr(0, 2), 16);
+  const g = parseInt(hexcolor.substr(2, 2), 16);
+  const b = parseInt(hexcolor.substr(4, 2), 16);
+
+  // Get YIQ ratio
+  return (r * 299 + g * 587 + b * 114) / 1000;
+};
 
 export const getClassForBackground = (backHex: string) => {
-  const hsl = hexToHSL(backHex);
-  const [, sat, lum] = hsl;
+  // const hsl = hexToHSL(backHex);
+  // const [, sat, lum] = hsl;
+  // return lum < 50 || (lum < 60 && sat > 75) ? 'color-white' : 'color-black';
+  return getContrast(backHex) >= 128 ? 'color-black' : 'color-white';
+};
 
-  return lum < 50 || (lum < 60 && sat > 75) ? 'color-white' : 'color-black';
-}
+////////////////////
+//// Misc utils ////
+////////////////////
 
 export const hashString = (s: string) => {
   let hash = 0;
@@ -173,4 +221,9 @@ export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): 
   const hash = hashString(filePath);
 
   return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailType}`);
+};
+
+export const isDirEmpty = async (dir: string) => {
+  const dirContents = await fse.readdir(dir);
+  return dirContents.length === 0 || (dirContents.length === 1 && dirContents[0] === '.DS_Store');
 };
