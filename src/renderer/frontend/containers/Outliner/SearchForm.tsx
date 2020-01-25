@@ -46,7 +46,8 @@ export const AdvancedSearchDialog = observer(() => {
       title="Advanced Search"
       // className={themeClass}
       className={`${themeClass} light`}
-      canOutsideClickClose={false}
+      canEscapeKeyClose={true}
+      canOutsideClickClose={true}
     >
       <SearchForm />
     </Dialog>

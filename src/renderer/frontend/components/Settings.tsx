@@ -28,38 +28,29 @@ const Settings = observer(() => {
   const [isRunningInBackground, setRunningInBackground] = useState(false);
   const [importPath, setImportPath] = useState('');
 
-  const toggleClipServer = useCallback(
-    () => {
-      RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
-      setClipServerRunning(!isClipServerRunning);
-    },
-    [setClipServerRunning, isClipServerRunning],
-  );
+  const toggleClipServer = useCallback(() => {
+    RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
+    setClipServerRunning(!isClipServerRunning);
+  }, [setClipServerRunning, isClipServerRunning]);
 
-  const toggleRunInBackground = useCallback(
-    () => {
-      RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
-      setRunningInBackground(!isRunningInBackground);
-    },
-    [setRunningInBackground, isRunningInBackground],
-  );
+  const toggleRunInBackground = useCallback(() => {
+    RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
+    setRunningInBackground(!isRunningInBackground);
+  }, [setRunningInBackground, isRunningInBackground]);
 
-  const browseImportDir = useCallback(
-    () => {
-      const dirs = remote.dialog.showOpenDialog({
-        properties: ['openDirectory'],
-      });
+  const browseImportDir = useCallback(() => {
+    const dirs = remote.dialog.showOpenDialog({
+      properties: ['openDirectory'],
+    });
 
-      if (!dirs) {
-        return;
-      }
+    if (!dirs) {
+      return;
+    }
 
-      const dir = dirs[0];
-      setImportPath(dir);
-      RendererMessenger.setDownloadPath({ dir });
-    },
-    [setImportPath],
-  );
+    const dir = dirs[0];
+    setImportPath(dir);
+    RendererMessenger.setDownloadPath({ dir });
+  }, [setImportPath]);
 
   useEffect(() => {
     setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
@@ -69,38 +60,35 @@ const Settings = observer(() => {
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
-  const browseThumbnailDirectory = useCallback(
-    async () => {
-      const dirs = remote.dialog.showOpenDialog({
-        properties: ['openDirectory'],
-        defaultPath: uiStore.thumbnailDirectory,
-      });
+  const browseThumbnailDirectory = useCallback(async () => {
+    const dirs = remote.dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      defaultPath: uiStore.thumbnailDirectory,
+    });
 
-      if (!dirs) {
-        return;
+    if (!dirs) {
+      return;
+    }
+    const newDir = dirs[0];
+
+    if (!(await isDirEmpty(newDir))) {
+      alert('Please choose an empty directory.');
+      return;
+    }
+
+    const oldDir = uiStore.thumbnailDirectory;
+
+    // Move thumbnail files
+    await moveThumbnailDir(oldDir, newDir);
+    uiStore.setThumbnailDirectory(newDir);
+
+    // Reset thumbnail paths for those that already have one
+    fileStore.fileList.forEach((f) => {
+      if (f.thumbnailPath) {
+        f.setThumbnailPath(getThumbnailPath(f.path, newDir));
       }
-      const newDir = dirs[0];
-
-      if (!(await isDirEmpty(newDir))) {
-        alert('Please choose an empty directory.');
-        return;
-      }
-
-      const oldDir = uiStore.thumbnailDirectory;
-
-      // Move thumbnail files
-      await moveThumbnailDir(oldDir, newDir);
-      uiStore.setThumbnailDirectory(newDir);
-
-      // Reset thumbnail paths for those that already have one
-      fileStore.fileList.forEach((f) => {
-        if (f.thumbnailPath) {
-          f.setThumbnailPath(getThumbnailPath(f.path, newDir));
-        }
-      });
-    },
-    [fileStore.fileList, uiStore],
-  );
+    });
+  }, [fileStore.fileList, uiStore]);
 
   return (
     <Drawer

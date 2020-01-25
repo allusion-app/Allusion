@@ -15,7 +15,7 @@ const PreviewApp = observer(() => {
   // Listen to responses of Web Workers
   useWorkerListener();
 
-  useEffect(uiStore.view.setMethodSlide, []);
+  useEffect(uiStore.view.enableSlideMode, []);
 
   const handleLeftButton = useCallback(
     () => uiStore.view.setFirstItem(Math.max(0, uiStore.view.firstItem - 1)),
@@ -31,7 +31,7 @@ const PreviewApp = observer(() => {
   );
 
   return (
-    <div className={`${themeClass}`} style={{ height: '100%' }}>
+    <div id="layoutContainer" className={`${themeClass}`} style={{ height: '100%' }}>
       <ErrorBoundary>
         <div id="toolbar" style={{ height: '2.4rem' }}>
           <section id="preview-toolbar">
@@ -49,8 +49,8 @@ const PreviewApp = observer(() => {
             />
             <Switch
               label="Overview"
-              onChange={uiStore.view.isSlide ? uiStore.view.setMethodGrid : uiStore.view.setMethodSlide}
-              checked={!uiStore.view.isSlide}
+              onChange={uiStore.view.toggleSlideMode}
+              checked={!uiStore.view.isSlideMode}
               style={{ margin: 'auto', marginLeft: '1em', display: 'inline' }}
             />
           </section>
