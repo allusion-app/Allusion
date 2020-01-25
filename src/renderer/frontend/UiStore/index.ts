@@ -35,7 +35,7 @@ interface IHotkeyMap {
   deselectAll: string;
   viewList: string;
   viewGrid: string;
-  viewMason: string;
+  // viewMason: string;
   viewSlide: string;
   quickSearch: string;
   advancedSearch: string;
@@ -59,8 +59,9 @@ const defaultHotkeyMap: IHotkeyMap = {
   deselectAll: 'mod + d',
   viewList: 'alt + 1',
   viewGrid: 'alt + 2',
-  viewMason: 'alt + 3',
-  viewSlide: 'alt + 4',
+  // TODO: Add masonry layout
+  // viewMason: 'alt + 3',
+  viewSlide: 'alt + 3',
   quickSearch: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',

@@ -82,7 +82,7 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
         <Hotkey
           global={true}
           combo={hotkeyMap.viewGrid}
-          label="Sets view to Grid mode"
+          label="Sets view to grid mode"
           onKeyDown={uiStore.view.setMethodGrid}
         />
         <Hotkey
