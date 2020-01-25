@@ -8,7 +8,6 @@ import Logo from '../../resources/logo/favicon_512x512.png';
 
 const stepStyle: React.CSSProperties = {
   background: 'rgb(200, 200, 200)',
-  fontFamily: '"Comic Sans MS"'
 };
 
 const SearchStep = observer(({ uiStore, goTo, step }: { uiStore: UiStore } & ReactourStepContentArgs) => {
@@ -19,6 +18,85 @@ const SearchStep = observer(({ uiStore, goTo, step }: { uiStore: UiStore } & Rea
 });
 
 const steps = (uiStore: UiStore): ReactourStep[] => [
+  {
+    content: <>This application provides you with tools for visual library management. Take a quick tour to learn the basics.</>,
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+         To get started, click on the plus icon to select a folder that you want to manage.
+         In Allusion, such folders are called “locations”.
+         Allusion will watch your folder and automatically load all images inside.
+         You can have multiple locations at once and remove them without difficulty at any time.
+      </>
+    ),
+    selector: '#outliner',
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+        Once you have selected a location, all images will be displayed in the main view.
+        The images in Allusion are loaded directly from your folder.
+        If you want to remove an image from Allusion, you can either remove the image from its folder or remove the location as a whole.
+      </>
+    ),
+    selector: '.gallery-content',
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+        With many locations in place, your library will soon contain thousands of images.
+        To manage your data, Allusion allows you to create tags in the tag hierarchy.
+        Click on the plus icon to create a new tag.
+      </>
+    ),
+    selector: '#outliner',
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+        Now that you have created a tag, you can easily drag it onto an image.
+        Alternately, select an image and press (T) to quickly assign a new tag.
+      </>
+    ),
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+        To make sure that all your files have been tagged, you can click here to display only untagged images.
+        Similarly, click “Show all images” to return to your complete library.
+      </>
+    ),
+    selector: '#system-tags',
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+        Eventually, you may want to find an image.
+        To access the search panel, click on the icon here or press (F).
+      </>
+    ),
+    selector: '#outliner-toolbar div :nth-child(3)',
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+        Use this search field to filter for images that have a certain tag assigned. For more advanced features…
+      </>
+    ),
+    style: stepStyle,
+  },
+];
+
+
+const stepsOld = (uiStore: UiStore): ReactourStep[] => [
   {
     content: (
     <span>
@@ -80,10 +158,12 @@ const IntroTour = () => {
       isOpen={isTourOpen}
       steps={steps(uiStore)}
       onRequestClose={handleHideTour}
-      // lastStepNextButton={<span>Finish!</span>}
+      lastStepNextButton={<span onClick={handleHideTour}>Start!</span>}
       badgeContent={(curr, tot) => `${curr} / ${tot}`}
       disableDotsNavigation
       prevButton={undefined}
+      closeWithMask={false}
+      rounded={1}
     />
   )
 };
