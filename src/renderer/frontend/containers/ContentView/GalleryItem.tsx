@@ -34,6 +34,7 @@ interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;
   isSelected: boolean;
   onClick: (file: ClientFile, e: React.MouseEvent) => void;
+  onDoubleClick?: (file: ClientFile, e: React.MouseEvent) => void;
   onDrop: (item: any, file: ClientFile) => void;
   showName?: boolean;
   showTags?: boolean;
@@ -44,6 +45,7 @@ export const GalleryItem = observer(({
   file,
   isSelected,
   onClick,
+  onDoubleClick,
   onDrop,
   showName, showTags, showInfo,
 }: IGalleryItemProps) => {
@@ -65,11 +67,12 @@ export const GalleryItem = observer(({
 
   const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), [file]);
   const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
+  const handleDoubleClickImg = useCallback((e) => onDoubleClick && onDoubleClick(file, e), [file, onDoubleClick]);
 
   const [isImageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState();
 
-  const imagePath = uiStore.view.isSlide ? file.path : file.thumbnailPath;
+  const imagePath = uiStore.view.isSlideMode ? file.path : file.thumbnailPath;
 
   useEffect(() => {
     // First check whether a thumbnail exists, generate it if needed
@@ -92,7 +95,7 @@ export const GalleryItem = observer(({
 
   return (
     <div ref={galleryItemDrop} className={className}>
-      <div onClick={handleClickImg} className="img-wrapper">
+      <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
         {isImageLoaded ? <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
           : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
             : <div className={Classes.SKELETON} /> // Else show a placeholder
@@ -104,7 +107,7 @@ export const GalleryItem = observer(({
       {showInfo && <ImageInfo file={file} />}
 
       {showTags && (
-        <span className="thumbnailTags" onClick={handleClickImg}>
+        <span className="thumbnailTags" onClick={handleClickImg} onDoubleClick={handleDoubleClickImg}>
           {file.clientTags.map((tag) => (
             <GalleryItemTag
               key={`gal-tag-${file.id}-${tag.id}`}

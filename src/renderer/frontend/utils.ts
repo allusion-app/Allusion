@@ -34,14 +34,14 @@ export const throttle = (fn: (...args: any) => any, wait: number = 300) => {
       }, wait);
     }
   };
-}
+};
 
 export const timeoutPromise = <T>(timeMS: number, promise: Promise<T>): Promise<T> => {
   return new Promise((resolve, reject) => {
     promise.then(resolve, reject);
     setTimeout(reject, timeMS);
   });
-}
+};
 
 ///////////////////////////////
 //// Text formatting utils ////
@@ -52,14 +52,14 @@ export const formatTagCountText = (numTags: number, numCols: number) => {
     ? `${extraTagsText && ', '}+${numCols} collection${numCols === 1 ? '' : 's'}`
     : '';
   return `${extraTagsText}${extraColsText}`;
-}
+};
 
 export const capitalize = (value: string) => {
   if (!value) {
     return '';
   }
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
-}
+};
 
 export const camelCaseToSpaced = (value: string) => {
   if (!value) {
@@ -72,8 +72,7 @@ export const camelCaseToSpaced = (value: string) => {
       // uppercase the first character
       .replace(/^./, (str) => str.toUpperCase())
   );
-}
-
+};
 
 /////////////////////////
 //// Date/time utils ////
@@ -89,12 +88,7 @@ const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
 
 export const formatDateTime = (d: Date) => {
   return DateTimeFormat.formatToParts(d)
-    .map(({ type, value }) => {
-      if (type === 'literal' && value === ', ') {
-        return ' ';
-      }
-      return value;
-    })
+    .map(({ type, value }) => type === 'literal' && value === ', ' ? ' ' : value)
     .reduce((str, part) => str + part);
 };
 
@@ -156,7 +150,7 @@ export const hexToHSL = (H: string) => {
   l = +(l * 100).toFixed(1);
 
   return [h, s, l];
-}
+};
 
 /*!
  * Get the contrasting color for any hex color
@@ -166,34 +160,34 @@ export const hexToHSL = (H: string) => {
  * @return {String} The contrasting color (black or white)
  */
 export const getContrast = (hexcolor: string) => {
-	// If a leading # is provided, remove it
-	if (hexcolor.slice(0, 1) === '#') {
-		hexcolor = hexcolor.slice(1);
-	}
+  // If a leading # is provided, remove it
+  if (hexcolor.slice(0, 1) === '#') {
+    hexcolor = hexcolor.slice(1);
+  }
 
-	// If a three-character hexcode, make six-character
-	if (hexcolor.length === 3) {
-		hexcolor = hexcolor.split('').map(function (hex) {
-			return hex + hex;
-		}).join('');
-	}
+  // If a three-character hexcode, make six-character
+  if (hexcolor.length === 3) {
+    hexcolor = hexcolor
+      .split('')
+      .map((hex) => hex + hex)
+      .join('');
+  }
 
-	// Convert to RGB value
-	const r = parseInt(hexcolor.substr(0,2),16);
-	const g = parseInt(hexcolor.substr(2,2),16);
-	const b = parseInt(hexcolor.substr(4,2),16);
+  // Convert to RGB value
+  const r = parseInt(hexcolor.substr(0, 2), 16);
+  const g = parseInt(hexcolor.substr(2, 2), 16);
+  const b = parseInt(hexcolor.substr(4, 2), 16);
 
-	// Get YIQ ratio
-	const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-	return yiq;
+  // Get YIQ ratio
+  return (r * 299 + g * 587 + b * 114) / 1000;
 };
 
 export const getClassForBackground = (backHex: string) => {
   // const hsl = hexToHSL(backHex);
   // const [, sat, lum] = hsl;
   // return lum < 50 || (lum < 60 && sat > 75) ? 'color-white' : 'color-black';
-  return getContrast(backHex) >= 128 ? 'color-black' : 'color-white'
-}
+  return getContrast(backHex) >= 128 ? 'color-black' : 'color-white';
+};
 
 ////////////////////
 //// Misc utils ////
@@ -226,6 +220,5 @@ export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): 
 
 export const isDirEmpty = async (dir: string) => {
   const dirContents = await fse.readdir(dir);
-  return dirContents.length === 0 ||
-         dirContents.length === 1 && dirContents[0] === '.DS_Store';
-}
+  return dirContents.length === 0 || (dirContents.length === 1 && dirContents[0] === '.DS_Store');
+};
