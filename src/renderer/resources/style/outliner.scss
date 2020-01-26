@@ -15,6 +15,7 @@ nav {
   &.outlinerOpen {
     min-width: var(--outliner-width);
     width: 16rem;
+    margin-right: 8px;  
 
     button.bp3-button.bp3-minimal {
       opacity: 0;
