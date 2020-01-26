@@ -54,7 +54,7 @@ export const CustomZoomableImage = ({ src, contentRect }: IZoomableImageProps) =
   const [baseOffset, setBaseOffset] = useState([0, 0]); // UV coordinates on image [0, 1]
   const [deltaOffset, setDeltaOffset] = useState([0, 0]); // Change in translation from panning [0, 1]
 
-  const isZooming = zoomLevel !== 1;
+  const isZooming = zoomLevel !== 3;
   const offset = [baseOffset[0] + deltaOffset[0], baseOffset[1] + deltaOffset[1]];
 
   // const clamp = useCallback((offs: number) => {
@@ -173,8 +173,8 @@ export const CustomZoomableImage = ({ src, contentRect }: IZoomableImageProps) =
       } else {
         setZoomLevel(DBL_CLICK_ZOOM);
         const initOffset = [
-          (0.5 - (e.clientX - contentRect.x) / contentRect.width) * zoomLevel,
-          (0.5 - (e.clientY - contentRect.y) / contentRect.height) * zoomLevel,
+          (.5 - (e.clientX - contentRect.x) / contentRect.width) * zoomLevel,
+          (.5 - (e.clientY - contentRect.y) / contentRect.height) * zoomLevel,
         ];
         setBaseOffset(initOffset); // todo: zoom into click position, without going out of bounds
       }
