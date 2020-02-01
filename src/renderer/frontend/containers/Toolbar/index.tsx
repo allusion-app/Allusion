@@ -39,7 +39,7 @@ interface IRemoveFilesPopoverProps {
   uiStore: UiStore;
 }
 
-const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
+export const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
   const handleConfirm = useCallback(() => {
     onRemove();
     uiStore.closeToolbarFileRemover();
@@ -128,7 +128,7 @@ const Toolbar = observer(() => {
       uiStore.openOutlinerTags();
     }
   }, [uiStore]);
-  const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), [handleChooseOutlinerPage]);
+  // const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), [handleChooseOutlinerPage]);
   const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), [handleChooseOutlinerPage]);
   const handleOlSearch = uiStore.toggleQuickSearch;
 
@@ -146,10 +146,10 @@ const Toolbar = observer(() => {
     [fileStore.fileList, isFileListSelected, uiStore],
   );
 
-  const handleRemoveSelectedFiles = useCallback(
-    () => fileStore.removeFilesById(uiStore.fileSelection),
-    [fileStore, uiStore.fileSelection],
-  );
+  // const handleRemoveSelectedFiles = useCallback(
+  //   () => fileStore.removeFilesById(uiStore.fileSelection),
+  //   [fileStore, uiStore.fileSelection],
+  // );
 
   // Render variables
   const sortMenu = useMemo(
@@ -176,7 +176,7 @@ const Toolbar = observer(() => {
         </Menu>
       );
     },
-    [uiStore],
+    [uiStore.view.orderFilesBy, uiStore.view.orderBy, uiStore.view.fileOrder], // eslint-disable-line
   );
 
   const layoutMenu = useMemo(
@@ -219,13 +219,13 @@ const Toolbar = observer(() => {
     <div id="toolbar">
       <section id="outliner-toolbar">
         <ButtonGroup minimal>
-          <Button
+          {/* <Button
             icon={IconSet.ADD}
             onClick={handleOlImport}
             intent={olPage === 'IMPORT' && uiStore.isOutlinerOpen ? 'primary' : 'none'}
             className="tooltip"
             data-right={Tooltip.Add}
-          />
+          /> */}
           <Button
             icon={IconSet.TAG}
             onClick={handleOlTags}
@@ -272,12 +272,11 @@ const Toolbar = observer(() => {
             disabled={!selectionModeOn}
             uiStore={uiStore}
           />
-          <RemoveFilesPopover
+          {/* <RemoveFilesPopover
             onRemove={handleRemoveSelectedFiles}
             disabled={!selectionModeOn}
             uiStore={uiStore}
-            // hasBackdrop={false}
-          />
+          /> */}
 
           {/* Gallery actions */}
           <Popover

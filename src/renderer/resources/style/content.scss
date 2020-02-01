@@ -81,6 +81,9 @@
   > div {
     // Fix for height cut-off when the quick search bar is open
     position: absolute !important;
+
+    // No horizontal scrollbar
+    overflow-x: hidden !important;
   }
 }
 
@@ -137,7 +140,7 @@
       // transition: all 0.1s ease-in-out;
       width: var(--thumbnail-size);
       height: var(--thumbnail-size);
-      object-fit: cover;
+      // object-fit: cover;
       cursor: pointer;
       margin-left: auto;
       margin-right: auto;
@@ -172,7 +175,7 @@
   //   }
   // }
   &.droppable .img-wrapper {
-    border: 1rem solid $yellow1;
+    background: $yellow1;
     border-radius: 0.25rem;
 
     img {
@@ -224,12 +227,12 @@
     "image tags";
 
   &.selected .img-wrapper {
-    border: 1rem solid $blue1;
+    background: $blue1;
     border-radius: 0.25rem;
   }
 
   &.droppable .img-wrapper {
-    border: 1rem solid $yellow1;
+    background: $yellow1;
     border-radius: 0.25rem;
 
     img {
@@ -361,4 +364,11 @@
   &.selected img {
     transform: translateX(-50%) translateY(-50%) scale(0.9);
   }
+}
+
+.thumb-square:not(.slide) img {
+  object-fit: cover;
+}
+.thumb-letterbox:not(.slide) img {
+  object-fit: contain;
 }

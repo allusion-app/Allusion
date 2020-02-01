@@ -28,11 +28,13 @@ class FileStore {
     }
   }
 
-  @action.bound async addFile(filePath: string, dateAdded?: Date) {
+  @action.bound async addFile(filePath: string, locationId: ID, dateAdded?: Date) {
     const fileData: IFile = {
       id: generateId(),
+      locationId,
       path: filePath,
       dateAdded: dateAdded ? new Date(dateAdded) : new Date(),
+      dateModified: new Date(),
       tags: [],
       ...(await ClientFile.getMetaData(filePath)),
     };
@@ -44,22 +46,27 @@ class FileStore {
     return file;
   }
 
-  @action.bound async removeFilesById(ids: ID[]) {
+  /** Client-only remove: Hides a file */
+  @action.bound async hideFile(file: ClientFile) {
+    file.dispose();
+    this.rootStore.uiStore.deselectFile(file);
+    this.fileList.remove(file);
+    if (file.tags.length === 0) {
+      this.decrementNumUntaggedFiles();
+    }
+  }
+
+  @action.bound async removeFilesById(ids: ID[], removeFromDB = true) {
     const filesToRemove = ids
       .map((id) => this.get(id))
       .filter((f) => f !== undefined) as ClientFile[];
 
     try {
-      filesToRemove.forEach((file) => {
-        file.dispose();
-        this.rootStore.uiStore.deselectFile(file);
-        this.fileList.remove(file);
-        if (file.tags.length === 0) {
-          this.decrementNumUntaggedFiles();
-        }
-      });
-      await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
-      await this.backend.removeFiles(filesToRemove);
+      filesToRemove.forEach((file) => this.hideFile(file));
+      if (removeFromDB) {
+        await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
+        await this.backend.removeFiles(filesToRemove);
+      }
     } catch (err) {
       console.error('Could not remove files', err);
     }
@@ -163,26 +170,14 @@ class FileStore {
   }
 
   save(file: IFile) {
+    file.dateModified = new Date();
     this.backend.saveFile(file);
   }
 
   @action.bound private async loadFiles() {
     const { orderBy, fileOrder } = this.rootStore.uiStore.view;
     const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
-
-    // Removes files with invalid file path. Otherwise adds files to fileList.
-    // In the future the user should have the option to input the new path if the file was only moved or renamed.
-    await Promise.all(
-      fetchedFiles.map(async (backendFile: IFile) => {
-        try {
-          await fs.access(backendFile.path, fs.constants.F_OK);
-          this.fileList.push(new ClientFile(this, backendFile));
-        } catch (e) {
-          console.warn(`${backendFile.path} 'does not exist'`);
-          this.backend.removeFile(backendFile);
-        }
-      }),
-    );
+    await this.updateFromBackend(fetchedFiles);
   }
 
   @action.bound private async updateFromBackend(backendFiles: IFile[]) {
@@ -199,10 +194,27 @@ class FileStore {
           await fs.access(backendFile.path, fs.constants.F_OK);
           return true;
         } catch (err) {
-          this.backend.removeFile(backendFile);
+          // Todo: Check if location link is broken, keep file saved.
+          // Maybe mark as missing?
+
+          const location = this.rootStore.locationStore.locationList
+            .find((dir) => dir.id === backendFile.locationId);
+          if (location) {
+            location.checkIfBroken();
+          } else {
+            // TODO: Remove file if location no longer exist?
+            // this.removeFile()
+          }
+
+          // Remove file from client only - keep in DB in case it will be recovered later
+          // TODO: Store missing date so it can be automatically removed after some time?
           const clientFile = this.get(backendFile.id);
           if (clientFile) {
-            await this.removeFile(clientFile);
+            if (clientFile.tags.length === 0) {
+              this.decrementNumUntaggedFiles();
+            }
+            clientFile.dispose();
+            this.fileList.remove(clientFile);
           }
           return false;
         }
@@ -233,15 +245,6 @@ class FileStore {
 
   @action.bound private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
     return backendFiles.map((file) => new ClientFile(this, file));
-  }
-
-  @action.bound private async removeFile(file: ClientFile): Promise<void> {
-    // Deselect in case it was selected
-    this.rootStore.uiStore.deselectFile(file);
-    file.dispose();
-    this.fileList.remove(file);
-    await this.removeThumbnail(file);
-    return this.backend.removeFile(file);
   }
 
   @action.bound private async removeThumbnail(file: ClientFile) {

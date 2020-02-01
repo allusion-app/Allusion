@@ -3,8 +3,36 @@
   // Hover to view descriptions of existing attributes.	
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387	
   "version": "0.2.0",	
-  "configurations": [	
-    {	
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Main Process",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+      "windows": {
+        "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+      },
+      "runtimeArgs": [
+				"./dist/main.bundle.js",
+				"--remote-debugging-port=9222"
+			],
+    },
+    {
+			"type": "chrome",
+			"request": "attach",
+			"name": "Renderer Process (Attach)",
+			"port": 9222,
+      "webRoot": "${workspaceRoot}/dist",
+      "timeout": 1000,
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+				"webpack:///./~/*": "${workspaceRoot}/node_modules/*",
+        "webpack:///./*": "${workspaceRoot}/*",
+        "webpack:///*": "*"
+			}
+		},
+    {
       "type": "node",	
       "request": "launch",	
       "name": "Jest All",	
@@ -41,5 +69,14 @@
       },	
       "smartStep": false,	
     }	
-  ]	
+  ],
+  "compounds": [
+    {
+      "name": "Electron: All",
+      "configurations": [
+        "Main Process",
+        "Renderer Process (Attach)"
+      ]
+    }
+  ]
 }

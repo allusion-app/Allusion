@@ -90,6 +90,9 @@ export const GalleryItem = observer(({
     setImageLoaded(false);
   }, [imagePath]);
 
+  // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
+  // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
+
   return (
     <div ref={galleryItemDrop} className={className}>
       <div onClick={handleClickImg} className="img-wrapper">
@@ -135,7 +138,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
       <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+      {/* <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} /> */}
     </Menu>
   );
 };

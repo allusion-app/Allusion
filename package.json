@@ -70,6 +70,7 @@
     "chokidar": "^3.0.2",
     "dexie": "^2.0.4",
     "fs-extra": "^8.1.0",
+    "image-size": "^0.8.3",
     "mobx": "^5.13.0",
     "mobx-react-lite": "^1.4.1",
     "react": "^16.8.6",

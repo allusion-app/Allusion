@@ -55,7 +55,7 @@ export const TreeLeaf = (props: ITreeLeafProps) => {
   const { id, name, isSelected, leaf, onDropLeaf, render } = props;
 
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
-    item: { type: leaf },
+    item: { id, name, type: leaf, isSelected },
     begin: () => ({ id, name, type: leaf, isSelected }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
@@ -129,7 +129,7 @@ export const TreeBranch = (props: ITreeBranchProps) => {
     render,
   } = props;
   const [{ isDragging }, connectDragSource, connectDragPreview] = useDrag({
-    item: { type: branch },
+    item: { type: branch, id, name, isSelected },
     begin: () => ({ type: branch, id, name, isSelected }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),

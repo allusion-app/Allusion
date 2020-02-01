@@ -13,6 +13,7 @@ import TagStore from '../../stores/TagStore';
 import IconSet from '../../components/Icons';
 import RootStore from '../../stores/RootStore';
 import { IMG_EXTENSIONS } from '../../../entities/File';
+import { DEFAULT_LOCATION_ID } from '../../../entities/Location';
 
 export const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
 
@@ -28,7 +29,7 @@ const chooseFiles = async (fileStore: FileStore) => {
 
   files.forEach(async (filename) => {
     if (!filename.startsWith('.')) {
-      fileStore.addFile(filename);
+      fileStore.addFile(filename, DEFAULT_LOCATION_ID);
     }
   });
 };
@@ -65,7 +66,7 @@ const chooseDirectories = async (fileStore: FileStore) => {
 
     imgFileNames.forEach(async (filename) => {
       const joinedPath = path.join(dir, filename);
-      fileStore.addFile(joinedPath);
+      fileStore.addFile(joinedPath, DEFAULT_LOCATION_ID);
     });
   });
 };
@@ -78,7 +79,7 @@ const importDir = async (fileStore: FileStore, dir: string) => {
   return await Promise.all(
     imgFileNames.map((filename) => {
       const joinedPath = path.join(dir, filename);
-      return fileStore.addFile(joinedPath);
+      return fileStore.addFile(joinedPath, DEFAULT_LOCATION_ID);
     }),
   );
 };

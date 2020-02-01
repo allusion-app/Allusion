@@ -10,6 +10,7 @@ const path = require('path');
 let mainConfig = {
     mode: 'development',
     entry: './src/main/main.ts',
+    devtool: 'source-map',
     target: 'electron-main',
     output: {
         filename: 'main.bundle.js',
@@ -57,7 +58,7 @@ let mainConfig = {
 let rendererConfig = {
     mode: 'development',
     entry: './src/renderer/renderer.tsx',
-    devtool: 'inline-source-map',
+    devtool: 'source-map',
     target: 'electron-renderer',
     output: {
         filename: 'renderer.bundle.js',

@@ -12,6 +12,7 @@ import {
   Button,
   H4,
   Icon,
+  Collapse,
 } from '@blueprintjs/core';
 import { IRootStoreProp } from '../../../contexts/StoreContext';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../../entities/TagCollection';
@@ -550,7 +551,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     return [...root.clientSubCollections.map((c) => createCollection(c)), ...createTags(root)];
   }, [editNode, expandState, root, tagCollectionStore, tagStore, uiStore]);
 
-  const handleRootAddTag = useCallback(() => {
+  const handleRootAddTag = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     tagStore
       .addTag(DEFAULT_TAG_NAME)
       .then((tag) => {
@@ -560,7 +562,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
       .catch((err) => console.log('Could not create tag', err));
   }, [root, tagStore]);
 
-  const handleAddRootCollection = useCallback(() => {
+  const handleAddRootCollection = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     tagCollectionStore
       .addTagCollection(DEFAULT_COLLECTION_NAME, root)
       .then((col) => setEditNode({ id: col.id, kind: DragAndDropType.Collection }))
@@ -613,11 +616,16 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     drop: (_, monitor) => handleRootDrop(monitor),
   });
 
+  const [isCollapsed, setCollapsed] = useState(false);
+  const toggleCollapse = useCallback(
+    () => setCollapsed(!isCollapsed),
+    [isCollapsed, setCollapsed]);
+
   return (
     <>
-      <div className="outliner-header-wrapper" ref={headerDrop}>
+      <div className="outliner-header-wrapper" ref={headerDrop} onClick={toggleCollapse}>
         <H4 className="bp3-heading">
-          <Icon icon={'caret-down'} />
+          <Icon icon={isCollapsed ? 'caret-right' : 'caret-down'} />
           Tags
         </H4>
         <Button
@@ -636,24 +644,26 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         />
       </div>
 
-      <TreeList
-        nodes={nodes.get()}
-        branch={DragAndDropType.Collection}
-        leaf={DragAndDropType.Tag}
-        expandState={expandState}
-        setExpandState={setExpandState}
-        getSubTreeLeaves={(branch) => {
-          const collection = tagCollectionStore.get(branch);
-          if (collection) {
-            return collection.getTagsRecursively();
-          }
-          return [];
-        }}
-        onSelect={(selection, clear) => uiStore.selectTags(selection, clear)}
-        onDeselect={(selection) => uiStore.deselectTags(selection)}
-        selectionLength={uiStore.tagSelection.length}
-        onContextMenu={handleOnContextMenu}
-      />
+      <Collapse isOpen={!isCollapsed}>
+        <TreeList
+          nodes={nodes.get()}
+          branch={DragAndDropType.Collection}
+          leaf={DragAndDropType.Tag}
+          expandState={expandState}
+          setExpandState={setExpandState}
+          getSubTreeLeaves={(branch) => {
+            const collection = tagCollectionStore.get(branch);
+            if (collection) {
+              return collection.getTagsRecursively();
+            }
+            return [];
+          }}
+          onSelect={(selection, clear) => uiStore.selectTags(selection, clear)}
+          onDeselect={(selection) => uiStore.deselectTags(selection)}
+          selectionLength={uiStore.tagSelection.length}
+          onContextMenu={handleOnContextMenu}
+        />
+      </Collapse>
 
       {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
       <div id="tree-footer" ref={footerDrop} onClick={uiStore.clearTagSelection} />

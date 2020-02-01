@@ -1,18 +1,19 @@
-import React, { useContext, useCallback, useState, useEffect } from 'react';
-import { remote, ipcRenderer } from 'electron';
+import React, { useContext, useCallback, useState } from 'react';
+import { remote, shell } from 'electron';
 import Path from 'path';
 import { observer, Observer } from 'mobx-react-lite';
 import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert, Dialog, Checkbox, Label } from '@blueprintjs/core';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
-import { ClientWatchedDirectory } from '../../../entities/WatchedDirectory';
+import { ClientLocation, DEFAULT_LOCATION_ID } from '../../../entities/Location';
 import { ClientStringSearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
+import { AppToaster } from '../../App';
 
 interface ILocationListItemProps {
-  dir: ClientWatchedDirectory;
+  dir: ClientLocation;
   onDelete: (id: string) => void;
   addToSearch: (path: string) => void;
   replaceSearch: (path: string) => void;
@@ -36,19 +37,22 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
   handleAddToSearch = () => this.props.addToSearch(this.props.dir.path);
   handleReplaceSearch = () => this.props.replaceSearch(this.props.dir.path);
 
+  handleOpenFileExplorer = () => shell.openItem(this.props.dir.path);
+
   render() {
     const { dir } = this.props;
     return (
-      <li className="bp3-tree-node">
-        <div className="bp3-tree-node-content bp3-tree-node-content-0">
+      <li>
+        <Button
+          fill
+          icon="map-marker"
+          rightIcon={dir.isBroken ? <Icon icon={IconSet.WARNING} /> : null}
+          className={'tooltip'}
+          data-right={`${dir.isBroken ? 'Cannot find this location: ' : ''} ${dir.path}`}
+        >
+          <span className="ellipsis" title={dir.path}>{Path.basename(dir.path)}</span>
+        </Button>
 
-          <span>&nbsp;</span>
-          {/* <Icon icon="map-marker" /> */}
-          <span className="custom-icon-14">
-            <Icon icon={IconSet.FOLDER_CLOSE} />
-          </span>
-          <span className="bp3-tree-node-label" title={dir.path}>{Path.basename(dir.path)}</span>
-        </div>
 
         <Alert
           isOpen={this.state.isDeleteOpen}
@@ -80,7 +84,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
         >
           <div className={Classes.DIALOG_BODY}>
             <Observer>
-              {() =>
+              { () =>
                 <>
                   <Checkbox label="Recursive" checked />
                   <Checkbox label="Add folder name as tag" />
@@ -109,12 +113,15 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
   }
 
   public renderContextMenu() {
+    const isImportLocation = this.props.dir.id === DEFAULT_LOCATION_ID;
+
     return (
       <Menu>
         <MenuItem text="Configure" onClick={this.openConfigDialog} icon={IconSet.SETTINGS} />
         <MenuItem onClick={this.handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
         <MenuItem onClick={this.handleReplaceSearch} text="Replace Search Query" icon={IconSet.REPLACE} />
-        <MenuItem text="Delete" onClick={this.openDeleteAlert} icon={IconSet.DELETE} />
+        <MenuItem onClick={this.handleOpenFileExplorer} text="Open in File Browser" icon={IconSet.FOLDER_CLOSE} />
+        <MenuItem text="Delete" onClick={this.openDeleteAlert} icon={IconSet.DELETE} disabled={isImportLocation} />
       </Menu>
     );
   }
@@ -122,16 +129,9 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
 
 const LocationsForm = () => {
 
-  const { watchedDirectoryStore, uiStore } = useContext(StoreContext);
+  const { locationStore, uiStore } = useContext(StoreContext);
 
   const [isCollapsed, setCollapsed] = useState(false);
-
-  const [importPath, setImportPath] = useState('');
-
-  useEffect(() => {
-    setImportPath(ipcRenderer.sendSync('getDownloadPath'));
-  }, []);
-
   const handleChooseWatchedDir = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     const dirs = remote.dialog.showOpenDialog({
@@ -142,8 +142,19 @@ const LocationsForm = () => {
     if (!dirs || dirs.length === 0) {
       return;
     }
-    watchedDirectoryStore.addDirectory({ path: dirs[0], recursive: true, tagsToAdd: [] });
-  }, [watchedDirectoryStore]);
+
+    // Todo: Check if sub-dir of an existing location
+    const parentDir = locationStore.locationList.find((dir) => dirs[0].includes(dir.path));
+    if (parentDir) {
+      AppToaster.show({
+        message: 'You cannot add a location that is a subfolder of an existing location.',
+        intent: 'danger',
+      });
+      return;
+    }
+
+    locationStore.addDirectory({ path: dirs[0], tagsToAdd: [] });
+  }, [locationStore]);
 
   const toggleLocations = useCallback(
     () => setCollapsed(!isCollapsed),
@@ -161,7 +172,7 @@ const LocationsForm = () => {
   }, [uiStore, addToSearch]);
 
   return (
-    <div>
+   <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
         <H4 className="bp3-heading">
           <Icon icon={isCollapsed ? 'caret-right' : 'caret-down'} />
@@ -169,39 +180,26 @@ const LocationsForm = () => {
         </H4>
         <Button
           minimal
-          icon={IconSet.FOLDER_CLOSE_ADD}
+          icon={IconSet.ADD}
           onClick={handleChooseWatchedDir}
           className="tooltip"
-        // data-right={DEFAULT_TAG_NAME}
+          // data-right={DEFAULT_TAG_NAME}
         />
       </div>
       <Collapse isOpen={!isCollapsed}>
-        <div className="bp3-tree">
-          <ul className="bp3-tree-node-list bp3-tree-root" id="watched-folders">
-            <li className="bp3-tree-node">
-              <div className="bp3-tree-node-content bp3-tree-node-content-0">
-                {/* Todo: Link this to the actual import dir */}
-                {/* <Icon icon="map-marker" /> */}
-                <span>&nbsp;</span>
-                <span className="custom-icon-14">
-                  <Icon icon={IconSet.FOLDER_CLOSE_IMPORT} />
-                </span>
-                <span className="bp3-tree-node-label" title={importPath}>Import location</span>
-              </div>
-            </li>
-            {
-              watchedDirectoryStore.directoryList.map((dir, i) => (
-                <LocationListItem
-                  key={`${dir.path}-${i}`}
-                  dir={dir}
-                  onDelete={watchedDirectoryStore.removeDirectory}
-                  addToSearch={addToSearch}
-                  replaceSearch={replaceSearch}
-                />
-              ))
-            }
-          </ul>
-        </div>
+        <ul id="watched-folders">
+          {
+            locationStore.locationList.map((dir, i) => (
+              <LocationListItem
+                key={`${dir.path}-${i}`}
+                dir={dir}
+                onDelete={locationStore.removeDirectory}
+                addToSearch={addToSearch}
+                replaceSearch={replaceSearch}
+              />
+            ))
+          }
+        </ul>
       </Collapse>
     </div>
   );

@@ -10,26 +10,27 @@ import {
   RadioGroup,
   Radio,
   FormGroup,
+  KeyCombo,
 } from '@blueprintjs/core';
-import fse from 'fs-extra';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { ClearDbButton } from './ErrorBoundary';
-import { ipcRenderer, remote } from 'electron';
+import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
-import { getThumbnailPath } from '../utils';
+import { getThumbnailPath, isDirEmpty } from '../utils';
+import { RendererMessenger } from '../../../Messaging';
 
 const Settings = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
   const [isClipServerRunning, setClipServerRunning] = useState(false);
   const [isRunningInBackground, setRunningInBackground] = useState(false);
-  const [importPath, setImportPath] = useState('');
+  const [importPath, setImportPath] = useState(locationStore.importDirectory);
 
   const toggleClipServer = useCallback(
     () => {
-      ipcRenderer.send('setClipServerEnabled', !isClipServerRunning);
+      RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
       setClipServerRunning(!isClipServerRunning);
     },
     [setClipServerRunning, isClipServerRunning],
@@ -37,7 +38,7 @@ const Settings = observer(() => {
 
   const toggleRunInBackground = useCallback(
     () => {
-      ipcRenderer.send('setRunningInBackground', !isRunningInBackground);
+      RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
       setRunningInBackground(!isRunningInBackground);
     },
     [setRunningInBackground, isRunningInBackground],
@@ -53,17 +54,20 @@ const Settings = observer(() => {
         return;
       }
 
-      const dir = dirs[0];
-      setImportPath(dir);
-      ipcRenderer.send('setDownloadPath', dir);
+      const chosenDir = dirs[0];
+      locationStore.changeDefaultLocation(chosenDir);
+      setImportPath(chosenDir);
+
+      // Todo: Provide option to move/copy the files in that directory (?)
+      // Since the import dir could also contain non-allusion files, not sure if a good idea
+      // But then there should be support for re-importing manually copied files
     },
-    [setImportPath],
+    [setImportPath, locationStore],
   );
 
   useEffect(() => {
-    setClipServerRunning(ipcRenderer.sendSync('isClipServerRunning'));
-    setRunningInBackground(ipcRenderer.sendSync('isRunningInBackground'));
-    setImportPath(ipcRenderer.sendSync('getDownloadPath'));
+    setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
+    setRunningInBackground(RendererMessenger.getIsRunningInBackground());
   }, []);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
@@ -80,8 +84,7 @@ const Settings = observer(() => {
       }
       const newDir = dirs[0];
 
-      const isEmpty = (await fse.readdir(newDir)).length === 0;
-      if (!isEmpty) {
+      if (!(await isDirEmpty(newDir))) {
         alert('Please choose an empty directory.');
         return;
       }
@@ -122,6 +125,16 @@ const Settings = observer(() => {
           <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
         </RadioGroup>
 
+        <RadioGroup
+          selectedValue={uiStore.view.thumbnailShape}
+          onChange={() => undefined}
+          label="Thumbnail shape"
+          inline
+        >
+          <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
+          <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
+        </RadioGroup>
+
         <Switch
           checked={uiStore.isFullScreen}
           onChange={uiStore.toggleFullScreen}
@@ -150,12 +163,12 @@ const Settings = observer(() => {
         <FormGroup label="Thumbnail directory">
           <label
             className={`${Classes.FILL} ${Classes.FILE_INPUT} ${Classes.FILE_INPUT_HAS_SELECTION}`}
-            htmlFor="importPathInput"
+            htmlFor="thumbnailPathInput"
           >
             {/* Where to import images you drop on the app or import through the browser extension */}
             <span
               className={Classes.FILE_UPLOAD_INPUT}
-              id="importPathInput"
+              id="thumbnailPathInput"
               onClick={browseThumbnailDirectory}
               title={uiStore.thumbnailDirectory}
             >
@@ -201,12 +214,8 @@ const Settings = observer(() => {
             Did you know there are hotkeys?
             <br />
             Press&nbsp;
-            <span className={Classes.KEY_COMBO}>
-              <span className={`${Classes.KEY} ${Classes.MODIFIER_KEY}`}>Ctrl</span>
-              &nbsp;
-              <span className={Classes.KEY}>K</span>
-              &nbsp;to see them.
-            </span>
+            <KeyCombo combo="mod+k" />
+            &nbsp;to see them.
           </p>
         </Callout>
       </div>

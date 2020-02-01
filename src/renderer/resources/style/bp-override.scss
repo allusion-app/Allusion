@@ -452,12 +452,17 @@ button:has(.bp3-intent-danger) {
 }
 
 // .bp3-button.bp3-intent-primary,
-.bp3-button.bp3-intent-warning,
-.bp3-button:not([class*='bp3-intent-']),
-.bp3-button.bp3-intent-danger {
-  box-shadow: none !important;
-  background-image: none !important;
-  color: #ffffff;
+.bp3-button {
+  &.bp3-intent-warning,
+  &:not([class*='bp3-intent-']),
+  &.bp3-intent-danger {
+    box-shadow: none !important;
+    background-image: none !important;
+    color: #ffffff;
+    &.bp3-minimal.bp3-active {
+      background: none;
+    }
+  }
 }
 
 // .bp3-button.bp3-intent-warning,
@@ -1071,8 +1076,9 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-tag-input .bp3-tag.bp3-active {
-  outline: #007af5 solid 2px;
-  outline-offset: 1px;
+  background: hsla(210, 100%, 55%, 1);
+  outline: none;
+  outline-offset: 0;
 }
 
 .bp3-portal #fileTag,

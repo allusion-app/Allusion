@@ -4,7 +4,7 @@ import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
-import { IWatchedDirectory } from '../entities/WatchedDirectory';
+import { ILocation } from '../entities/Location';
 import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
 /**
@@ -17,7 +17,7 @@ export default class Backend {
   private fileRepository: DBRepository<IFile>;
   private tagRepository: DBRepository<ITag>;
   private tagCollectionRepository: DBRepository<ITagCollection>;
-  private watchedDirectoryRepository: DBRepository<IWatchedDirectory>;
+  private locationRepository: DBRepository<ILocation>;
 
   constructor() {
     // Initialize database tables
@@ -25,7 +25,7 @@ export default class Backend {
     this.fileRepository = new DBRepository('files', db);
     this.tagRepository = new DBRepository('tags', db);
     this.tagCollectionRepository = new DBRepository('tagCollections', db);
-    this.watchedDirectoryRepository = new DBRepository('watchedDirectories', db);
+    this.locationRepository = new DBRepository('locations', db);
   }
 
   async init() {
@@ -35,6 +35,15 @@ export default class Backend {
       await this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
     }
 
+    // const locCount = await this.locationRepository.count();
+    // if (locCount === 0) {
+    //   await this.createLocation({
+    //     id: DEFAULT_LOCATION_ID,
+    //     path: path.join(os.homedir(), 'Allusion'), // todo: make user configurable on startup
+    //     dateAdded: new Date(),
+    //     tagsToAdd: [],
+    //   });
+    // }
     // Here we could start indexing, or checking for changed files
   }
 
@@ -142,24 +151,24 @@ export default class Backend {
       { criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' } });
   }
 
-  async getWatchedDirectories(order: keyof IWatchedDirectory, fileOrder: FileOrder) {
+  async getWatchedDirectories(order: keyof ILocation, fileOrder: FileOrder) {
     console.log('Backend: Getting watched directories...');
-    return this.watchedDirectoryRepository.getAll({ order, fileOrder });
+    return this.locationRepository.getAll({ order, fileOrder });
   }
 
-  async createWatchedDirectory(dir: IWatchedDirectory) {
+  async createLocation(dir: ILocation) {
     console.log('Backend: Creating watched directory...');
-    return this.watchedDirectoryRepository.create(dir);
+    return this.locationRepository.create(dir);
   }
 
-  async saveWatchedDirectory(dir: IWatchedDirectory) {
+  async saveLocation(dir: ILocation) {
     console.log('Backend: Saving watched directory...', dir);
-    return await this.watchedDirectoryRepository.update(dir);
+    return await this.locationRepository.update(dir);
   }
 
-  async removeWatchedDirectory(dir: IWatchedDirectory) {
+  async removeLocation(dir: ILocation) {
     console.log('Backend: Removing watched directory...');
-    return this.watchedDirectoryRepository.remove(dir);
+    return this.locationRepository.remove(dir);
   }
 
   // Creates many files at once, and checks for duplicates in the path they are in
