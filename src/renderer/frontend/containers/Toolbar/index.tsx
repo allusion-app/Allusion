@@ -272,12 +272,11 @@ const Toolbar = observer(() => {
             disabled={!selectionModeOn}
             uiStore={uiStore}
           />
-          <RemoveFilesPopover
+          {/* <RemoveFilesPopover
             onRemove={handleRemoveSelectedFiles}
             disabled={!selectionModeOn}
             uiStore={uiStore}
-            // hasBackdrop={false}
-          />
+          /> */}
 
           {/* Gallery actions */}
           <Popover

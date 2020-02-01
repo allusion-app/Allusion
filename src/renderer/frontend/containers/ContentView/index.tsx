@@ -151,12 +151,12 @@ class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
           onKeyDown={uiStore.clearFileSelection}
           group="Gallery"
         />
-        <Hotkey
+        {/* <Hotkey
           combo={hotkeyMap.deleteSelection}
           label="Delete the selected files"
           onKeyDown={uiStore.toggleToolbarFileRemover}
           group="Gallery"
-        />
+        /> */}
         <Hotkey
           combo={hotkeyMap.closeSearch}
           label="Close search bar"
