@@ -2,6 +2,7 @@ import React, { useState, useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Dialog, Classes, Button, FormGroup, Divider } from '@blueprintjs/core';
 import path from 'path';
+import fse from 'fs-extra';
 
 import IconSet from './Icons';
 import LocationsForm from '../containers/Outliner/LocationsForm';
@@ -31,14 +32,19 @@ const WelcomeDialog = () => {
       return;
     }
     const newDir = dirs[0];
-    // TODO: Check if empty (?) maybe not
     setImportLocation(newDir);
   }, [importLocation]);
 
   const handleSubmit = useCallback(async () => {
+    // Make directory in case not exists
+    fse.ensureDirSync(importLocation);
+
+    // Create the first Location
     await locationStore.addDirectory({ path: importLocation, tagsToAdd: [] }, DEFAULT_LOCATION_ID);
+
+    // Todo: Start tour?
     setShowDialog(false);
-    // Start tour?
+
   }, [importLocation, locationStore]);
 
   return (

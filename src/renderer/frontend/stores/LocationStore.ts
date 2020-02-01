@@ -5,6 +5,7 @@ import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
 import { ClientLocation, ILocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
 import { IFile, ClientFile } from '../../entities/File';
+import { RendererMessenger } from '../../../Messaging';
 
 class LocationStore {
   backend: Backend;
@@ -19,7 +20,7 @@ class LocationStore {
 
   @computed get importDirectory() {
     if (this.locationList.length === 0 || this.locationList[0].id !== DEFAULT_LOCATION_ID) {
-      console.error('Default location not properly set-up');
+      console.error('Default location not properly set-up. This should not happen!');
       return '';
     }
     return this.locationList[0].path;
@@ -62,6 +63,15 @@ class LocationStore {
       throw new Error('Default location not found. This should not happen!');
     }
     return defaultLocation;
+  }
+
+  @action.bound async changeDefaultLocation(dir: string) {
+    const loc = this.getDefaultLocation();
+    loc.path = dir;
+    // Todo: The path isn't observable, so the old path will still appear in the UI
+    await this.backend.saveLocation(loc.serialize());
+    // Todo: What about the files inside that loc? Keep them in DB? Move them over?
+    RendererMessenger.setDownloadPath({ dir });
   }
 
   async pathToIFile(path: string, locationId: ID, tagsToAdd?: ID[]): Promise<IFile> {

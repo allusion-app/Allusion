@@ -152,7 +152,7 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
               }, 'refresh');
 
               // Add to backend
-              const fileToStore = await this.store.pathToIFile(path, this.id, this.tagsToAdd);
+              const fileToStore = await this.store.pathToIFile(path, this.id, this.tagsToAdd.toJS());
               this.store.backend.createFilesFromPath(path, [fileToStore]);
             } else {
               initialFiles.push(path);

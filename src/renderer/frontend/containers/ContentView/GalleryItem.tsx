@@ -90,6 +90,9 @@ export const GalleryItem = observer(({
     setImageLoaded(false);
   }, [imagePath]);
 
+  // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
+  // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
+
   return (
     <div ref={galleryItemDrop} className={className}>
       <div onClick={handleClickImg} className="img-wrapper">

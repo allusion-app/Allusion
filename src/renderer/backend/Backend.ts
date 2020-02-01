@@ -1,13 +1,10 @@
-import os from 'os';
-import path from 'path';
-
 import { DbFile, IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
-import { ILocation, DEFAULT_LOCATION_ID } from '../entities/Location';
+import { ILocation } from '../entities/Location';
 import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
 /**
@@ -37,7 +34,7 @@ export default class Backend {
     if (colCount === 0) {
       await this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
     }
-    
+
     // const locCount = await this.locationRepository.count();
     // if (locCount === 0) {
     //   await this.createLocation({

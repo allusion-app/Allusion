@@ -22,11 +22,11 @@ import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
 
 const Settings = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
   const [isClipServerRunning, setClipServerRunning] = useState(false);
   const [isRunningInBackground, setRunningInBackground] = useState(false);
-  const [importPath, setImportPath] = useState('');
+  const [importPath, setImportPath] = useState(locationStore.importDirectory);
 
   const toggleClipServer = useCallback(
     () => {
@@ -54,17 +54,20 @@ const Settings = observer(() => {
         return;
       }
 
-      const dir = dirs[0];
-      setImportPath(dir);
-      RendererMessenger.setDownloadPath({ dir });
+      const chosenDir = dirs[0];
+      locationStore.changeDefaultLocation(chosenDir);
+      setImportPath(chosenDir);
+
+      // Todo: Provide option to move/copy the files in that directory (?)
+      // Since the import dir could also contain non-allusion files, not sure if a good idea
+      // But then there should be support for re-importing manually copied files
     },
-    [setImportPath],
+    [setImportPath, locationStore],
   );
 
   useEffect(() => {
     setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
     setRunningInBackground(RendererMessenger.getIsRunningInBackground());
-    setImportPath(RendererMessenger.getDownloadPath());
   }, []);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
