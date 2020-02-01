@@ -39,7 +39,7 @@ interface IRemoveFilesPopoverProps {
   uiStore: UiStore;
 }
 
-const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
+export const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
   const handleConfirm = useCallback(() => {
     onRemove();
     uiStore.closeToolbarFileRemover();
@@ -146,10 +146,10 @@ const Toolbar = observer(() => {
     [fileStore.fileList, isFileListSelected, uiStore],
   );
 
-  const handleRemoveSelectedFiles = useCallback(
-    () => fileStore.removeFilesById(uiStore.fileSelection),
-    [fileStore, uiStore.fileSelection],
-  );
+  // const handleRemoveSelectedFiles = useCallback(
+  //   () => fileStore.removeFilesById(uiStore.fileSelection),
+  //   [fileStore, uiStore.fileSelection],
+  // );
 
   // Render variables
   const sortMenu = useMemo(

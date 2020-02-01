@@ -27,7 +27,7 @@ class LocationStore {
   }
 
   @action.bound
-  async init() {
+  async init(autoLoad: boolean) {
     // Get dirs from backend
     const dirs = await this.backend.getWatchedDirectories('dateAdded',  'ASC');
 
@@ -35,6 +35,9 @@ class LocationStore {
       new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd));
 
     this.locationList.push(...clientDirs);
+
+    // E.g. in preview window, it's not needed to watch the locations
+    if (!autoLoad) return;
 
     const initialPathLists = await Promise.all(clientDirs.map((clientDir) => clientDir.init()));
 
