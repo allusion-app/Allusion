@@ -1,8 +1,8 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 nav {
   grid-area: outliner;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow-y: initial;
+  // overflow-x: hidden;
   flex-shrink: 0;
   width: 0;
   min-width: 0;
@@ -15,8 +15,9 @@ nav {
   &.outlinerOpen {
     min-width: var(--outliner-width);
     width: 16rem;
+    z-index: 1;
 
-    button.bp3-button.bp3-minimal {
+    button.bp3-button.bp3-minimal:not(.tooltip) {
       opacity: 0;
       border-radius: 0;
       margin-bottom: 1px;
@@ -243,13 +244,26 @@ nav .bp3-tree {
 }
 
 #watched-folders {
+  padding-left: 0;
+  margin: 0;
   div > span:first-child {
   padding: 0.25rem 0.05rem;
   margin-left: 0.5rem;
   }
+  > ul {
+    margin: 0;
+  }
   > li {
     list-style-type: none;
-
+    button {
+      background: none;
+      // width: fit-content !important;
+      padding: 0 1rem;
+      padding-right: 0;
+      justify-content: left;
+      width: 100%;
+      border-radius: 0;
+    }
     > span {
       width: calc(100% - 30px);
       display: inline-block;

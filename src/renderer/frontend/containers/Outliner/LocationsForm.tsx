@@ -175,12 +175,12 @@ const LocationsForm = () => {
    <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
         <H4 className="bp3-heading">
-          <Icon icon={isCollapsed ? 'caret-right' : 'caret-down'} />
+          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/>
           Locations
         </H4>
         <Button
           minimal
-          icon={IconSet.ADD}
+          icon={IconSet.FOLDER_CLOSE_ADD}
           onClick={handleChooseWatchedDir}
           className="tooltip"
           // data-right={DEFAULT_TAG_NAME}
