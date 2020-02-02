@@ -45,7 +45,8 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
       <li>
         <Button
           fill
-          icon="map-marker"
+          // icon="map-marker"
+          icon={IconSet.FOLDER_CLOSE}
           rightIcon={dir.isBroken ? <Icon icon={IconSet.WARNING} /> : null}
           className={'tooltip'}
           data-right={`${dir.isBroken ? 'Cannot find this location: ' : ''} ${dir.path}`}
