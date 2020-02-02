@@ -625,7 +625,6 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     <>
       <div className="outliner-header-wrapper" ref={headerDrop} onClick={toggleCollapse}>
         <H4 className="bp3-heading">
-          {/* <Icon icon={isCollapsed ? 'caret-right' : 'caret-down'} /> */}
           <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/>
           Tags
         </H4>

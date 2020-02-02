@@ -1097,10 +1097,12 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 .bp3-dark #watched-folders .bp3-button:hover {
   background-color: #252525 !important;
   border-left: 2px solid $blue1;
-  padding-left: .5 rem !important;
+  padding-left: .85rem !important;
   transition: all 0.2s $pt-transition-ease2;
   color: white;
 }
+
+
 
 @for $i from 0 through 20 {
   .#{$ns}-tree-node-content-#{$i}:hover {
@@ -1122,8 +1124,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 // Hardcode left padding
-.#{$ns}-tree-node-content-0:hover,
-#watched-folders .bp3-minimal .bp3-icon {
+.#{$ns}-tree-node-content-0:hover {
   padding-left: 2px !important;
 }
 

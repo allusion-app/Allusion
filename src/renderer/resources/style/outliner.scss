@@ -17,7 +17,7 @@ nav {
     width: 16rem;
     z-index: 1;
 
-    button.bp3-button.bp3-minimal:not(.tooltip) {
+    button.bp3-button.bp3-minimal {
       opacity: 0;
       border-radius: 0;
       margin-bottom: 1px;
@@ -159,8 +159,9 @@ nav {
     margin-right: auto;
       // caret icon
     > .bp3-icon {
-      margin-right: 8px;
+      margin-right: 4px;
       margin-bottom: 2px;
+      margin-left: 4px;
     }
   }
 }
