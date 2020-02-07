@@ -12,6 +12,11 @@ import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { AppToaster } from '../../App';
 
+// Tooltip info
+const enum Tooltip {
+  Location = 'Add New Location',
+}
+
 interface ILocationListItemProps {
   dir: ClientLocation;
   onDelete: (id: string) => void;
@@ -46,6 +51,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
         <Button
           fill
           // icon="map-marker"
+          
           icon={IconSet.FOLDER_CLOSE}
           rightIcon={dir.isBroken ? <Icon icon={IconSet.WARNING} /> : null}
           className={'tooltip'}
@@ -184,7 +190,7 @@ const LocationsForm = () => {
           icon={IconSet.FOLDER_CLOSE_ADD}
           onClick={handleChooseWatchedDir}
           className="tooltip"
-          // data-right={DEFAULT_TAG_NAME}
+          data-right={Tooltip.Location}
         />
       </div>
       <Collapse isOpen={!isCollapsed}>

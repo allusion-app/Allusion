@@ -154,7 +154,7 @@ img {
   max-width: 600px !important;
   min-width: max-content;
   left: 1rem;
-  top: 1rem;
+  top: .25rem; //Fix for z-index issue
   margin-left: 1.5rem;
   margin-top: 1.5rem;
   text-align: left;
