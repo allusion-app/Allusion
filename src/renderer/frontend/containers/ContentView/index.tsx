@@ -10,7 +10,6 @@ import { ClientTag } from '../../../entities/Tag';
 import { ClientArraySearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
-import { KeyLabelMap } from '../Outliner/SearchForm';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
@@ -56,6 +55,10 @@ const QuickSearchList = observer(() => {
       // refocusObject={quickSearchFocusDate}
       onKeyDown={handleCloseSearch}
       showClearButton={false}
+      includeCollections
+      // selectedCollections={queriedCollections}
+      // onTagColDeselect={handleDeselectTagCol}
+      // onTagColSelect={handleSelectTagCol}
     />
   );
 });
@@ -88,7 +91,8 @@ const CriteriaList = observer(() => {
   return (
     <div id="criteria-list">
       <TagInput
-        values={uiStore.searchCriteriaList.map((crit, i) => `${i + 1}: ${KeyLabelMap[crit.key]}`)}
+        // values={uiStore.searchCriteriaList.map((crit, i) => `${i + 1}: ${KeyLabelMap[crit.key]}`)}
+        values={uiStore.searchCriteriaList.map((crit) => `${crit.toString()}`)}
         // rightElement={ClearButton}
         onRemove={handleRemove}
         inputProps={{ disabled: true, onMouseUp: handleInputClick }}

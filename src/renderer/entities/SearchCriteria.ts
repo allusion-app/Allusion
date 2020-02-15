@@ -1,5 +1,6 @@
 import { ID } from './ID';
 import { action, observable } from 'mobx';
+import { formatDateTime } from '../frontend/utils';
 
 // type SearchCriteriaValueType = 'number' | 'string' |
 
@@ -85,6 +86,8 @@ export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
     this.valueType = valueType;
     this.operator = operator;
   }
+
+  abstract toString(): string;
 }
 
 export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
@@ -95,6 +98,7 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
       this.value.push(...ids);
     }
   }
+  toString = () => this.value.toString();
   @action.bound setOperator(op: ArrayOperatorType) {
     this.operator = op;
   }
@@ -115,6 +119,7 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
     super(key, 'string', 'contains');
     this.value = '';
   }
+  toString = () => `${this.operator} ${this.value}`;
   @action.bound setOperator(op: StringOperatorType) {
     this.operator = op;
   }
@@ -129,6 +134,7 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
     super(key, 'number', 'greaterThanOrEquals');
     this.value = 0;
   }
+  toString = () => `${this.operator} ${this.value}`;
   @action.bound setOperator(op: NumberOperatorType) {
     this.operator = op;
   }
@@ -144,6 +150,7 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.value = new Date();
     this.value.setHours(0, 0, 0, 0);
   }
+  toString = () => `${this.operator} ${formatDateTime(this.value)}`;
   @action.bound setOperator(op: NumberOperatorType) {
     this.operator = op;
   }

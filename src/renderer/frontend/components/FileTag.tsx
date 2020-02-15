@@ -4,6 +4,7 @@ import { ClientFile } from '../../entities/File';
 import { observer } from 'mobx-react-lite';
 import MultiTagSelector from './MultiTagSelector';
 import StoreContext from '../contexts/StoreContext';
+import { ClientTagCollection } from '../../entities/TagCollection';
 
 interface IFileTagProps {
   files: ClientFile[];
@@ -69,7 +70,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
   );
 
   const tagLabel = useCallback(
-    (tag: ClientTag) => {
+    (tag: ClientTag | ClientTagCollection) => {
       const match = sortedTags.find((pair) => pair[0] === tag);
       return `${tag.name} (${match ? match[1] : '?'})`;
     },

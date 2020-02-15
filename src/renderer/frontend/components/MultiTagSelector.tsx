@@ -8,8 +8,9 @@ import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { getClassForBackground } from '../utils';
+import { ClientTagCollection } from '../../entities/TagCollection';
 
-const TagMultiSelect = MultiSelect.ofType<ClientTag>();
+const TagMultiSelect = MultiSelect.ofType<ClientTag | ClientTagCollection>();
 
 const NoResults = <MenuItem disabled={true} text="No results." />;
 
@@ -29,7 +30,7 @@ const renderCreateTagOption = (
   />
 );
 
-const filterTag: ItemPredicate<ClientTag> = (query, tag, index, exactMatch) => {
+const filterTag: ItemPredicate<ClientTag | ClientTagCollection> = (query, tag, index, exactMatch) => {
   const normalizedName = tag.name.toLowerCase();
   const normalizedQuery = query.toLowerCase();
 
@@ -42,7 +43,7 @@ const filterTag: ItemPredicate<ClientTag> = (query, tag, index, exactMatch) => {
 
 interface IMultiTagSelectorProps {
   selectedTags: ClientTag[];
-  tagLabel?: (tag: ClientTag) => string;
+  tagLabel?: (tag: ClientTag | ClientTagCollection) => string;
   onTagSelect: (tag: ClientTag) => void;
   onTagDeselect: (tag: ClientTag, index: number) => void;
   onClearSelection: () => void;
@@ -56,6 +57,10 @@ interface IMultiTagSelectorProps {
   tagIntent?: Intent;
   onKeyDown?: (event: React.KeyboardEvent<HTMLElement>, index?: number | undefined) => void;
   showClearButton?: boolean;
+  includeCollections?: boolean;
+  selectedCollections?: ClientTagCollection[];
+  onTagColSelect?: (tag: ClientTagCollection) => void;
+  onTagColDeselect?: (tag: ClientTagCollection, index: number) => void;
 }
 
 const MultiTagSelector = ({
@@ -71,21 +76,31 @@ const MultiTagSelector = ({
   refocusObject,
   onKeyDown,
   showClearButton = true,
+  includeCollections,
+  selectedCollections = [],
+  onTagColSelect,
+  onTagColDeselect,
 }: IMultiTagSelectorProps) => {
-  const { tagStore } = useContext(StoreContext);
+  const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
   const handleSelect = useCallback(
-    async (tag: ClientTag) => {
+    async (tag: ClientTag | ClientTagCollection) => {
       // When a tag is created, it is selected. Here we detect whether we need to actually create the ClientTag.
       if (onTagCreation && tag.id === CREATED_TAG_ID) {
         tag = await onTagCreation(tag.name);
       }
 
-      return selectedTags.includes(tag)
-        ? onTagDeselect(tag, selectedTags.indexOf(tag))
-        : onTagSelect(tag);
+      if (tag instanceof ClientTag) {
+        return selectedTags.includes(tag)
+          ? onTagDeselect(tag, selectedTags.indexOf(tag))
+          : onTagSelect(tag);
+      } else if (onTagColSelect && onTagColDeselect) {
+        return selectedCollections.includes(tag)
+          ? onTagColDeselect(tag, selectedCollections.indexOf(tag))
+          : onTagColSelect(tag);
+      }
     },
-    [onTagCreation, onTagDeselect, onTagSelect, selectedTags],
+    [onTagColDeselect, onTagColSelect, onTagCreation, onTagDeselect, onTagSelect, selectedCollections, selectedTags],
   );
 
   const handleDeselect = useCallback(
@@ -104,18 +119,29 @@ const MultiTagSelector = ({
     [onClearSelection, selectedTags.length],
   );
 
-  const SearchTagItem = useCallback<ItemRenderer<ClientTag>>(
+  const SearchTagItem = useCallback<ItemRenderer<ClientTag | ClientTagCollection>>(
     (tag, { modifiers, handleClick }) => {
       if (!modifiers.matchesPredicate) {
         return null;
       }
+      const isSelected = tag instanceof ClientTag
+        ? selectedTags.includes(tag)
+        : selectedCollections.includes(tag);
+
+      const isCol = tag instanceof ClientTagCollection;
+
+      const rightIcon = isCol
+        ? <Icon icon={IconSet.TAG_GROUP} iconSize={12} color={tag.viewColor} />
+        : (
+          tag.viewColor
+            ? <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
+            : undefined
+        );
       return (
         <MenuItem
           active={modifiers.active}
-          icon={selectedTags.includes(tag) ? 'tick' : 'blank'}
-          labelElement={tag.viewColor
-            ? <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
-            : undefined}
+          icon={isSelected ? 'tick' : 'blank'}
+          labelElement={rightIcon}
           key={tag.id}
           label={tag.description ? tag.description.toString() : ''}
           onClick={handleClick}
@@ -124,10 +150,10 @@ const MultiTagSelector = ({
         />
       );
     },
-    [selectedTags],
+    [selectedTags, selectedCollections],
   );
 
-  const TagLabel = (tag: ClientTag) => {
+  const TagLabel = (tag: ClientTag | ClientTagCollection) => {
     const colClass = tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white';
     const text = tagLabel ? tagLabel(tag) : tag.name;
     return (
@@ -163,9 +189,13 @@ const MultiTagSelector = ({
     style: { backgroundColor: selectedTags[index].viewColor },
   });
 
+  const items = includeCollections
+    ? [...tagStore.tagList, ...tagCollectionStore.tagCollectionList]
+    : tagStore.tagList;
+
   return (
     <TagMultiSelect
-      items={tagStore.tagList}
+      items={items}
       selectedItems={selectedTags}
       itemRenderer={SearchTagItem}
       noResults={NoResults}

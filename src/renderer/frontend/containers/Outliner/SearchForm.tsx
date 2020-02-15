@@ -23,6 +23,7 @@ import { FileSearchCriteria } from '../../UiStore';
 interface IKeyLabel {
   [key: string]: string;
 }
+
 export const KeyLabelMap: IKeyLabel = {
   name: 'File name',
   path: 'File path',
