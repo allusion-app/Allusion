@@ -37,6 +37,8 @@ const getTags = async (): Promise<ITag[]> => {
   return [];
 };
 
+let initialize = () => {}; // placeholder
+
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
@@ -61,9 +63,6 @@ function createWindow() {
   const menuBar: Electron.MenuItemConstructorOptions[] = [];
 
   // Mac App menu - used for styling so shortcuts work
-  // if (process.platform === 'darwin') {
-    //   menuBar.push({ role: 'appMenu' });
-    // }
   // https://livebook.manning.com/book/cross-platform-desktop-applications/chapter-9/78
   if (process.platform === 'darwin') {
     menuBar.push({
@@ -82,7 +81,7 @@ function createWindow() {
       ],
     });
   }
-  
+
   menuBar.push({
     label: 'Edit',
     submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
@@ -231,7 +230,7 @@ function createPreviewWindow() {
   return previewWindow;
 }
 
-const initialize = () => {
+initialize = () => {
   createWindow();
   createPreviewWindow();
 };

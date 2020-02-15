@@ -216,17 +216,17 @@ const Toolbar = observer(() => {
         </ButtonGroup>
       </section>
 
-      <section id="main-toolbar" className={uiStore.view.isSlideMode ? 'toolb-center' : 'none'} >
+      <section id="main-toolbar">
         <ButtonGroup minimal>
           {/* Disable slide mode */}
           {uiStore.view.isSlideMode && (
             <Button
-              icon={IconSet.CLOSE}
+              icon={IconSet.ARROW_LEFT}
               onClick={uiStore.view.disableSlideMode}
               intent="primary"
               className="tooltip"
               data-right={Tooltip.Back}
-            >Close Preview</Button>
+            >Go back</Button>
           )}
 
           {/* Library info. Todo: Show entire library count instead of current fileList */}
