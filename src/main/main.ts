@@ -1,6 +1,8 @@
 import { app, BrowserWindow, Menu, Tray, screen } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
+import TrayIcon from '../renderer/resources/logo/logomark_256.png';
+import TrayIconMac from '../renderer/resources/logo/logomark_light@2x.png';
 import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';
@@ -10,6 +12,8 @@ let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
 let tray: Tray | null;
 let clipServer: ClipServer | null;
+
+const isMac = process.platform === 'darwin';
 
 const importExternalImage = async (item: IImportItem) => {
   if (mainWindow) {
@@ -36,6 +40,25 @@ const getTags = async (): Promise<ITag[]> => {
   return [];
 };
 
+let initialize = () => {}; // placeholder
+
+function createTrayMenu() {
+  if (!tray) {
+    tray = new Tray(`${__dirname}/${isMac ? TrayIconMac : TrayIcon}`);
+    const trayMenu = Menu.buildFromTemplate([
+      {
+        label: 'Open',
+        type: 'normal',
+        click: () => (mainWindow ? mainWindow.focus() : initialize()),
+      },
+      { label: 'Quit', click: () => { process.exit(0); }},
+    ]);
+    tray.setContextMenu(trayMenu);
+    tray.setToolTip('Allusion - Your Visual Library');
+    tray.on('click', () => mainWindow ? mainWindow.focus() : initialize());
+  }
+}
+
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
@@ -60,8 +83,23 @@ function createWindow() {
   const menuBar: Electron.MenuItemConstructorOptions[] = [];
 
   // Mac App menu - used for styling so shortcuts work
+  // https://livebook.manning.com/book/cross-platform-desktop-applications/chapter-9/78
   if (process.platform === 'darwin') {
-    menuBar.push({ role: 'appMenu' });
+    menuBar.push({
+      // label: app.getName(),
+      label: 'Allusion',
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services', submenu: [] },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide'},
+        { type: 'separator' },
+        { label: 'Quit', accelerator: 'Command+Q', click: () => { process.exit(0); }},
+      ],
+    });
   }
 
   menuBar.push({
@@ -144,25 +182,14 @@ function createWindow() {
     }
   });
 
-  // System tray icon: For when the app can run in the background
-  // Useful for browser extension, so it will work even when the window is closed
-  if (!tray) {
-    tray = new Tray(`${__dirname}/${AppIcon}`);
-    const trayMenu = Menu.buildFromTemplate([
-      {
-        label: 'Open',
-        type: 'normal',
-        click: () => (mainWindow ? mainWindow.focus() : createWindow()),
-      },
-      { label: 'Exit', type: 'normal', click: app.quit },
-    ]);
-    tray.setContextMenu(trayMenu);
-    tray.setToolTip('Allusion - Your Visual Library');
-    tray.on('click', () => mainWindow ? mainWindow.focus() : createWindow());
-  }
-
   if (!clipServer) {
     clipServer = new ClipServer(importExternalImage, addTagsToFile, getTags);
+  }
+
+  // System tray icon: Always show on Mac, or other platforms when the app is running in the background
+  // Useful for browser extension, so it will work even when the window is closed
+  if (isMac || clipServer.isRunInBackgroundEnabled()) {
+    createTrayMenu();
   }
 
   // Import images that were added while the window was closed
@@ -212,7 +239,7 @@ function createPreviewWindow() {
   return previewWindow;
 }
 
-const initialize = () => {
+initialize = () => {
   createWindow();
   createPreviewWindow();
 };
@@ -251,9 +278,15 @@ MainMessenger.onSetDownloadPath(({ dir }) => clipServer!.setDownloadPath(dir));
 MainMessenger.onSetClipServerEnabled(({ isClipServerRunning }) =>
   clipServer!.setEnabled(isClipServerRunning),
 );
-MainMessenger.onSetRunningInBackground(({ isRunInBackground }) =>
-  clipServer!.setRunInBackground(isRunInBackground),
-);
+MainMessenger.onSetRunningInBackground(({ isRunInBackground }) => {
+  clipServer!.setRunInBackground(isRunInBackground);
+  if (isRunInBackground) {
+    createTrayMenu();
+  } else if (tray) {
+    tray.destroy();
+    tray = null;
+  }
+});
 
 MainMessenger.onStoreFile(({ filenameWithExt, imgBase64 }) =>
   clipServer!.storeImageWithoutImport(filenameWithExt, imgBase64),

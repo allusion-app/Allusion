@@ -27,10 +27,12 @@ const enum Tooltip {
   TagFiles = 'Quick add or delete tags to selection',
   Delete = 'Delete selection from library',
   View = 'Change view content panel',
+  ViewGrid = 'Change view to Grid',
+  ViewList = 'Change view List',
   Filter = 'Filter view content panel',
   Inspector = 'Toggle Inspector',
   Settings = 'Toggle Settings',
-  Back = 'Back to your gallery',
+  Back = 'Back to Content panel',
   // FilterTag = 'Filter images by first tag',
 }
 
@@ -219,20 +221,23 @@ const Toolbar = observer(() => {
           {/* Disable slide mode */}
           {uiStore.view.isSlideMode && (
             <Button
-              icon="arrow-left"
+              icon={IconSet.ARROW_LEFT}
               onClick={uiStore.view.disableSlideMode}
               intent="primary"
               className="tooltip"
               data-right={Tooltip.Back}
-            />
+            >Return</Button>
           )}
 
           {/* Library info. Todo: Show entire library count instead of current fileList */}
+          {!uiStore.view.isSlideMode && (
           <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={Tooltip.Media}>
             {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
           </Button>
+          )}
         </ButtonGroup>
 
+        {!uiStore.view.isSlideMode && (    
         <ButtonGroup minimal>
           {/* Selection info and actions */}
           <Button
@@ -265,21 +270,27 @@ const Toolbar = observer(() => {
             content={sortMenu}
           />
         </ButtonGroup>
+        )}
 
-        <ButtonGroup>
+        {!uiStore.view.isSlideMode && (    
+        <ButtonGroup minimal>
           <Button
             onClick={uiStore.view.setMethodList}
             icon={IconSet.VIEW_LIST}
             active={uiStore.view.isList}
+            className="tooltip"
+            data-right={Tooltip.ViewList}
           />
           <Button
             onClick={uiStore.view.setMethodGrid}
             icon={IconSet.VIEW_GRID}
             active={uiStore.view.isGrid}
+            className="tooltip"
+            data-right={Tooltip.ViewGrid}
           />
+          <div id="spacer" style={{ width: '1rem' }} />
         </ButtonGroup>
-
-        <div id="spacer" style={{ width: '100px' }} />
+        )}
       </section>
 
       <section id="inspector-toolbar">

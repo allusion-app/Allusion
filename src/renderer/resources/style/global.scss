@@ -1,6 +1,7 @@
 // Styling to match Allusion Mockups
 $pt-transition-ease: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
 $pt-transition-ease2: cubic-bezier(0.4, 0, 0.2, 1) !default;
+$pt-transition-ease3: cubic-bezier(0.4, 0, 0.2, 1) 0.8s !default;
 $pt-transition-ease-bounce: cubic-bezier(0.54, 1.12, 0.38, 1.11) !default;
 $pt-transition-duration: 100ms !default;
 
@@ -171,7 +172,7 @@ img {
 [data-right]:hover:after,
 [data-left]:hover:after {
   opacity: 1;
-  transition: all 0.2s $pt-transition-ease2;
+  transition: all 0.2s $pt-transition-ease3; // Tooltip needs delay!
   visibility: visible;
   position: absolute;
   z-index: 1000;
@@ -392,6 +393,8 @@ img {
 }
 
 #imageViewer {
+  content: 'Close';
+  color: $light-gray1;
   position: fixed;
   top: 0;
   left: 0;

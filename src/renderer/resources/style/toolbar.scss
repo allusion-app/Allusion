@@ -28,12 +28,15 @@
   #main-toolbar {
     display: flex;
     justify-content: space-between;
-    width: calc(100vw - 34rem);
+    width: calc(100vw - 40rem);
     left: 16rem;
     position: absolute;
   }
 }
 
+.toolb-center {
+  justify-content: center !important;
+}
 // For frameless app
 // #preview-toolbar{
 //   margin-left: 4rem;
