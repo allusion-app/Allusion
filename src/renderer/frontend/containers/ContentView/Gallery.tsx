@@ -104,11 +104,13 @@ const GridGallery = observer(
     const forceUpdateObj = uiStore.fileSelection.length === 0 ? null : uiStore.fileSelection[0];
 
     // Scroll to a file when selecting it
-    const latestSelectedFile =
-      lastSelectionIndex.current && fileList[lastSelectionIndex.current].id;
+    const latestSelectedFile = lastSelectionIndex.current
+      && lastSelectionIndex.current < fileList.length
+      && fileList[lastSelectionIndex.current].id;
     useEffect(() => {
-      if (latestSelectedFile) {
-        handleScrollTo(fileList.findIndex((f) => f.id === latestSelectedFile));
+      const index = fileList.findIndex((f) => f.id === latestSelectedFile);
+      if (latestSelectedFile && index >= 0) {
+        handleScrollTo(index);
       }
     }, [latestSelectedFile, handleScrollTo, fileList, forceUpdateObj]);
 
@@ -229,11 +231,13 @@ const ListGallery = observer(
     const forceUpdateObj = uiStore.fileSelection.length === 0 ? null : uiStore.fileSelection[0];
 
     // Scroll to a file when selecting it
-    const latestSelectedFile =
-      lastSelectionIndex.current && fileList[lastSelectionIndex.current].id;
+    const latestSelectedFile = lastSelectionIndex.current
+      && lastSelectionIndex.current < fileList.length
+      && fileList[lastSelectionIndex.current].id;
     useEffect(() => {
-      if (latestSelectedFile) {
-        handleScrollTo(fileList.findIndex((f) => f.id === latestSelectedFile));
+      const index = fileList.findIndex((f) => f.id === latestSelectedFile);
+      if (latestSelectedFile && index >= 0) {
+        handleScrollTo(index);
       }
     }, [latestSelectedFile, handleScrollTo, fileList, forceUpdateObj]);
 

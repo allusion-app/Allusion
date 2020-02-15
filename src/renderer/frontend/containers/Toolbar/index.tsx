@@ -226,7 +226,7 @@ const Toolbar = observer(() => {
               intent="primary"
               className="tooltip"
               data-right={Tooltip.Back}
-            >Go back</Button>
+            >Return</Button>
           )}
 
           {/* Library info. Todo: Show entire library count instead of current fileList */}
