@@ -1,6 +1,6 @@
 import path from 'path';
 import fse from 'fs-extra';
-import { action, observable, computed } from 'mobx';
+import { action, observable, computed, observe } from 'mobx';
 import { remote } from 'electron';
 
 import RootStore from '../stores/RootStore';
@@ -8,9 +8,10 @@ import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
-import View, { ViewMethod, ViewContent, ViewThumbnailSize } from './View';
+import View, { ViewMethod, ViewContent, ViewThumbnailSize, PersistentPreferenceFields as ViewPersistentPrefFields } from './View';
 import { ClientBaseCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
+import { debounce } from '../utils';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -133,6 +134,11 @@ class UiStore {
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
+
+    // Store preferences immediately when anything is changed
+    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
+    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+    ViewPersistentPrefFields.forEach((f) => observe(this.view, f, debouncedPersist));
   }
 
   @action.bound init() {
