@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, Hotkey, Hotkeys, HotkeysTarget, TagInput } from '@blueprintjs/core';
 import { CSSTransition } from 'react-transition-group';
@@ -7,34 +7,56 @@ import StoreContext, { IRootStoreProp, withRootstore } from '../../contexts/Stor
 import Gallery from './Gallery';
 import IconSet from '../../components/Icons';
 import { ClientTag } from '../../../entities/Tag';
-import { ClientArraySearchCriteria } from '../../../entities/SearchCriteria';
-import { IFile } from '../../../entities/File';
+import { ClientIDSearchCriteria, ClientCollectionSearchCriteria } from '../../../entities/SearchCriteria';
 import MultiTagSelector from '../../components/MultiTagSelector';
+import { ClientTagCollection } from '../../../entities/TagCollection';
 
 const QuickSearchList = observer(() => {
-  const { uiStore, tagStore, fileStore } = useContext(StoreContext);
+  const { uiStore, tagStore, tagCollectionStore } = useContext(StoreContext);
 
-  const tagCrit = uiStore.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>;
-  const tags = tagCrit.value.toJS();
+  const selectedItems: (ClientTag | ClientTagCollection)[] = [];
+  uiStore.searchCriteriaList.forEach((c) => {
+    if (c instanceof ClientIDSearchCriteria) {
+      const tag = tagStore.get(c.value.length === 1 ? c.value[0] : '');
+      if (tag) selectedItems.push(tag);
+    } else if (c instanceof ClientCollectionSearchCriteria) {
+      const col = tagCollectionStore.get(c.collectionId);
+      if (col) selectedItems.push(col);
+    }
+  });
 
-  const queriedTags = useMemo(
-    () => tags.map((id) => tagStore.tagList.find((t) => t.id === id)).filter((t) => t !== undefined) as ClientTag[],
-    [tags, tagStore.tagList]);
+  console.log('selectedItems', selectedItems);
 
   const handleSelectTag = useCallback((tag: ClientTag) => {
-    tagCrit.addID(tag.id);
+    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', tag.id, tag.name));
     uiStore.searchByQuery();
-  }, [tagCrit, uiStore]);
+  }, [uiStore]);
+  const handleSelectCol = useCallback((col: ClientTagCollection) => {
+    uiStore.addSearchCriteria(new ClientCollectionSearchCriteria(col.id, col.getTagsRecursively(), col.name));
+    uiStore.searchByQuery();
+  }, [uiStore]);
 
   const handleDeselectTag = useCallback((tag: ClientTag) => {
-    tagCrit.removeID(tag.id);
-    uiStore.searchByQuery();
-  }, [tagCrit, uiStore]);
+    console.log('deselecting tag', tag);
+    const crit = uiStore.searchCriteriaList.find((c) => c instanceof ClientIDSearchCriteria && c.value.includes(tag.id));
+    if (crit) {
+      uiStore.removeSearchCriteria(crit);
+      uiStore.searchByQuery();
+    }
+  }, [uiStore]);
+  const handleDeselectCol = useCallback((col: ClientTagCollection) => {
+    console.log('deselecting col', col);
+    const crit = uiStore.searchCriteriaList.find((c) => c instanceof ClientCollectionSearchCriteria && c.collectionId === col.id);
+    if (crit) {
+      uiStore.removeSearchCriteria(crit);
+      uiStore.searchByQuery();
+    }
+  }, [uiStore]);
 
-  const handleClearTags = useCallback(() => {
-    uiStore.toggleQuickSearch();
-    fileStore.fetchAllFiles();
-  }, [fileStore, uiStore]);
+  const handleClear = useCallback(() => {
+    uiStore.clearSearchCriteriaList();
+    uiStore.searchByQuery();
+  }, [ uiStore]);
 
   const handleCloseSearch = useCallback((e: React.KeyboardEvent) => {
     if (e.key.toLowerCase() === uiStore.hotkeyMap.closeSearch) {
@@ -46,19 +68,18 @@ const QuickSearchList = observer(() => {
 
   return (
     <MultiTagSelector
-      selectedTags={queriedTags}
+      selectedItems={selectedItems}
       onTagSelect={handleSelectTag}
       onTagDeselect={handleDeselectTag}
-      onClearSelection={handleClearTags}
+      onClearSelection={handleClear}
       autoFocus
       tagIntent="primary"
       // refocusObject={quickSearchFocusDate}
       onKeyDown={handleCloseSearch}
       showClearButton={false}
       includeCollections
-      // selectedCollections={queriedCollections}
-      // onTagColDeselect={handleDeselectTagCol}
-      // onTagColSelect={handleSelectTagCol}
+      onTagColDeselect={handleDeselectCol}
+      onTagColSelect={handleSelectCol}
     />
   );
 });
@@ -107,7 +128,10 @@ const CriteriaList = observer(() => {
 const SearchBar = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
-  const showQuickSearch = uiStore.searchCriteriaList.length === 1 && uiStore.searchCriteriaList[0].key === 'tags';
+  // Only show quick search bar when all criteria are tags or collections, else show a search bar that opens to the advanced search form
+  const showQuickSearch = uiStore.searchCriteriaList.length === 0 || uiStore.searchCriteriaList.every((crit) => crit.key === 'tags');
+
+  console.log(showQuickSearch, uiStore.searchCriteriaList.map((c: any) => `${c.toString()} (${c.value.toString()})`));
 
   return (
     <CSSTransition in={uiStore.isQuickSearchOpen} classNames="quick-search" timeout={200} unmountOnExit>

@@ -10,7 +10,7 @@ import {
   BinaryOperatorType, BinaryOperators,
   StringOperatorType, StringOperators,
   ArrayOperatorType, ArrayOperators, ClientStringSearchCriteria,
-  ClientArraySearchCriteria, ClientNumberSearchCriteria, ClientDateSearchCriteria,
+  ClientArraySearchCriteria, ClientNumberSearchCriteria, ClientDateSearchCriteria, ClientIDSearchCriteria,
 } from '../../../entities/SearchCriteria';
 import { IFile, IMG_EXTENSIONS } from '../../../entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
@@ -100,29 +100,29 @@ const OperatorSelect = ({ onSelect, value, options }: IOperatorSelectProps) => {
   );
 };
 
-const TagCriteriaItem = observer(({ criteria }: { criteria: ClientArraySearchCriteria<IFile> }) => {
+const TagCriteriaItem = observer(({ criteria }: { criteria: ClientIDSearchCriteria<IFile> }) => {
   const { tagStore } = useContext(StoreContext);
 
   const setOperator = useCallback(
     (operator: string) => criteria.setOperator(operator as ArrayOperatorType), [criteria]);
 
-  const handleSelectTag = useCallback((t: ClientTag) => criteria.addID(t.id), [criteria]);
+  const handleSelectTag = useCallback((t: ClientTag) => criteria.setValue(t.id, t.name), [criteria]);
 
   const handleDeselectTag = useCallback(
-    (t: ClientTag) => criteria.removeID(t.id), [criteria]);
+    () => criteria.setValue('', ''), [criteria]);
 
-  const handleClearTags = useCallback(() => criteria.clearIDs(), [criteria]);
+  const handleClearTags = useCallback(() => criteria.setValue('', ''), [criteria]);
 
-  const tags = criteria.value.toJS();
-  const criteriaTags = useMemo(
-    () => tags.map((id) => tagStore.tagList.find((tag) => tag.id === id) as ClientTag),
-    [tags, tagStore.tagList]);
+  const tagId = criteria.value.length === 1 ? criteria.value[0] : '';
+  const criteriaTag = useMemo(
+    () => tagStore.tagList.find((tag) => tag.id === tagId) as ClientTag,
+    [tagId, tagStore.tagList]);
 
   return (
     <>
       <OperatorSelect onSelect={setOperator} value={criteria.operator} options={ArrayOperators} />
       <MultiTagSelector
-        selectedTags={criteriaTags}
+        selectedItems={[criteriaTag]}
         onTagSelect={handleSelectTag}
         onTagDeselect={handleDeselectTag}
         onClearSelection={handleClearTags}
@@ -217,7 +217,7 @@ const CriteriaItem = observer(({ criteria, onRemove, onAdd, removable }: ICriter
     if (criteria.key === 'name' || criteria.key === 'path') {
       return <StringCriteriaItem criteria={criteria as ClientStringSearchCriteria<IFile>} />;
     } else if (criteria.key === 'tags') {
-      return <TagCriteriaItem criteria={criteria as ClientArraySearchCriteria<IFile>} />;
+      return <TagCriteriaItem criteria={criteria as ClientIDSearchCriteria<IFile>} />;
     } else if (criteria.key === 'extension') {
       return <ExtensionCriteriaItem criteria={criteria as ClientStringSearchCriteria<IFile>} />;
     } else if (criteria.key === 'size') {

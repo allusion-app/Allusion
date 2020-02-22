@@ -42,7 +42,7 @@ const filterTag: ItemPredicate<ClientTag | ClientTagCollection> = (query, tag, i
 };
 
 interface IMultiTagSelectorProps {
-  selectedTags: ClientTag[];
+  selectedItems: (ClientTag | ClientTagCollection)[];
   tagLabel?: (tag: ClientTag | ClientTagCollection) => string;
   onTagSelect: (tag: ClientTag) => void;
   onTagDeselect: (tag: ClientTag, index: number) => void;
@@ -58,13 +58,12 @@ interface IMultiTagSelectorProps {
   onKeyDown?: (event: React.KeyboardEvent<HTMLElement>, index?: number | undefined) => void;
   showClearButton?: boolean;
   includeCollections?: boolean;
-  selectedCollections?: ClientTagCollection[];
   onTagColSelect?: (tag: ClientTagCollection) => void;
   onTagColDeselect?: (tag: ClientTagCollection, index: number) => void;
 }
 
 const MultiTagSelector = ({
-  selectedTags,
+  selectedItems,
   tagLabel,
   onTagSelect,
   onTagDeselect,
@@ -77,7 +76,6 @@ const MultiTagSelector = ({
   onKeyDown,
   showClearButton = true,
   includeCollections,
-  selectedCollections = [],
   onTagColSelect,
   onTagColDeselect,
 }: IMultiTagSelectorProps) => {
@@ -91,32 +89,36 @@ const MultiTagSelector = ({
       }
 
       if (tag instanceof ClientTag) {
-        return selectedTags.includes(tag)
-          ? onTagDeselect(tag, selectedTags.indexOf(tag))
+        return selectedItems.includes(tag)
+          ? onTagDeselect(tag, selectedItems.indexOf(tag))
           : onTagSelect(tag);
       } else if (onTagColSelect && onTagColDeselect) {
-        return selectedCollections.includes(tag)
-          ? onTagColDeselect(tag, selectedCollections.indexOf(tag))
+        return selectedItems.includes(tag)
+          ? onTagColDeselect(tag, selectedItems.indexOf(tag))
           : onTagColSelect(tag);
       }
     },
-    [onTagColDeselect, onTagColSelect, onTagCreation, onTagDeselect, onTagSelect, selectedCollections, selectedTags],
+    [onTagColDeselect, onTagColSelect, onTagCreation, onTagDeselect, onTagSelect, selectedItems],
   );
 
   const handleDeselect = useCallback(
-    (_: string, index: number) => onTagDeselect(selectedTags[index], index),
-    [onTagDeselect, selectedTags],
+    (_: string, index: number) => {
+      const item = selectedItems[index];
+     item instanceof ClientTag
+      ? onTagDeselect(item, index)
+      : onTagColDeselect && onTagColDeselect(item, index);
+    }, [onTagDeselect, onTagColDeselect, selectedItems],
   );
 
   // Todo: Might need a confirmation pop over
   const ClearButton = useMemo(
     () =>
-      selectedTags.length > 0 ? (
+      selectedItems.length > 0 ? (
         <Button icon={IconSet.CLOSE} minimal={true} onClick={onClearSelection} />
       ) : (
         undefined
       ),
-    [onClearSelection, selectedTags.length],
+    [onClearSelection, selectedItems.length],
   );
 
   const SearchTagItem = useCallback<ItemRenderer<ClientTag | ClientTagCollection>>(
@@ -124,10 +126,7 @@ const MultiTagSelector = ({
       if (!modifiers.matchesPredicate) {
         return null;
       }
-      const isSelected = tag instanceof ClientTag
-        ? selectedTags.includes(tag)
-        : selectedCollections.includes(tag);
-
+      const isSelected = selectedItems.includes(tag);
       const isCol = tag instanceof ClientTagCollection;
 
       const rightIcon = isCol
@@ -150,10 +149,11 @@ const MultiTagSelector = ({
         />
       );
     },
-    [selectedTags, selectedCollections],
+    [selectedItems],
   );
 
   const TagLabel = (tag: ClientTag | ClientTagCollection) => {
+    if (!tag) return <span>???</span>;
     const colClass = tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white';
     const text = tagLabel ? tagLabel(tag) : tag.name;
     return (
@@ -183,20 +183,21 @@ const MultiTagSelector = ({
     }
   }, [refocusObject, autoFocus]);
 
-  const getTagProps = (_: any, index: number): ITagProps => ({
-    minimal: true,
-    // Todo: Style doesn't update until focusing the tagInput
-    style: { backgroundColor: selectedTags[index].viewColor },
-  });
-
   const items = includeCollections
     ? [...tagStore.tagList, ...tagCollectionStore.tagCollectionList]
     : tagStore.tagList;
 
+  const getTagProps = (_: any, index: number): ITagProps => ({
+    minimal: true,
+    // Todo: Style doesn't update until focusing the tagInput
+    style: { backgroundColor: items[index].viewColor },
+  });
+
   return (
     <TagMultiSelect
       items={items}
-      selectedItems={selectedTags}
+      // Todo: The ordering is lost
+      selectedItems={selectedItems}
       itemRenderer={SearchTagItem}
       noResults={NoResults}
       onItemSelect={handleSelect}

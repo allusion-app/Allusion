@@ -194,7 +194,7 @@ export default class BaseRepository<T extends IIdentifiable> {
       // Check whether to search for empty arrays (e.g. no tags)
       return (crit.value.length === 0)
         ? col.and((val: any) => val[crit.key as string].length === 0)
-        : col.and((val: any) => crit.value.every((item) => val[crit.key as string].indexOf(item) !== -1));
+        : col.and((val: any) => crit.value.some((item) => val[crit.key as string].indexOf(item) !== -1));
     } else { // not contains
       return (crit.value.length === 0)
         ? col.and((val: any) => val[crit.key as string].length !== 0)

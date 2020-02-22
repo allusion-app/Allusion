@@ -32,7 +32,7 @@ const Single = observer(({ file, autoFocus }: { file: ClientFile, autoFocus?: bo
 
   return (
     <MultiTagSelector
-      selectedTags={file.clientTags}
+      selectedItems={file.clientTags}
       onClearSelection={handleClear}
       onTagDeselect={handleDeselect}
       onTagSelect={handleSelect}
@@ -89,7 +89,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
 
   return (
     <MultiTagSelector
-      selectedTags={sortedTags.map((pair) => pair[0])}
+      selectedItems={sortedTags.map((pair) => pair[0])}
       onClearSelection={handleClear}
       onTagDeselect={handleDeselect}
       onTagSelect={handleSelect}

@@ -1,6 +1,7 @@
 import { ID } from './ID';
 import { action, observable } from 'mobx';
 import { formatDateTime } from '../frontend/utils';
+import { IFile } from './File';
 
 // type SearchCriteriaValueType = 'number' | 'string' |
 
@@ -113,6 +114,24 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 }
 
+export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
+  @observable public value: ID[];
+  @observable public label: string;
+  constructor(key: keyof T, id?: ID, label?: string) {
+    super(key, 'array', 'contains');
+    this.value = id ? [id] : [];
+    this.label = label || '';
+  }
+  toString = () => this.label;
+  @action.bound setOperator(op: StringOperatorType) {
+    this.operator = op;
+  }
+  @action.bound setValue(value: ID, label: string) {
+    this.value = value ? [value] : [];
+    this.label = label;
+  }
+}
+
 export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: string;
   constructor(key: keyof T) {
@@ -157,4 +176,15 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
   @action.bound setValue(date: Date) {
     this.value = date;
   }
+}
+
+export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IFile> {
+  @observable public collectionId: ID;
+  @observable public label: string;
+  constructor(collectionId: ID, tagIDs: ID[], label: string) {
+    super('tags', tagIDs);
+    this.collectionId = collectionId;
+    this.label = label;
+  }
+  toString = () => `${this.operator} ${this.label}`;
 }

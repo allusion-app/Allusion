@@ -95,7 +95,7 @@ class FileStore {
   async fetchFilesByQuery() {
     const criteria = this.rootStore.uiStore.searchCriteriaList.slice();
     if (criteria.length === 0) {
-      return;
+      return this.fetchAllFiles();
     }
     const { orderBy, fileOrder } = this.rootStore.uiStore.view;
     try {
