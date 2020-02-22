@@ -1,7 +1,7 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 nav {
   grid-area: outliner;
-  overflow-y: auto;
+  overflow-y: initial;
   overflow-x: hidden;
   flex-shrink: 0;
   width: 0;
@@ -15,6 +15,7 @@ nav {
   &.outlinerOpen {
     min-width: var(--outliner-width);
     width: 16rem;
+    overflow-x: visible !important;
 
     button.bp3-button.bp3-minimal {
       opacity: 0;
