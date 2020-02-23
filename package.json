@@ -57,7 +57,7 @@
     "svg-inline-loader": "^0.8.0",
     "ts-jest": "^24.0.2",
     "ts-loader": "^5.3.2",
-    "typescript": "^3.5.3",
+    "typescript": "^3.8.2",
     "webpack": "^4.28.3",
     "webpack-cli": "^3.2.0",
     "worker-loader": "^2.0.0"

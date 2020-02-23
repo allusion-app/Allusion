@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
-  FormGroup, Button, ButtonGroup, Dialog, ControlGroup, InputGroup, NumericInput, HTMLSelect,
+  FormGroup, Button, Dialog, ControlGroup, InputGroup, NumericInput, HTMLSelect,
 } from '@blueprintjs/core';
 
 import {
@@ -10,7 +10,7 @@ import {
   BinaryOperatorType, BinaryOperators,
   StringOperatorType, StringOperators,
   ArrayOperatorType, ArrayOperators, ClientStringSearchCriteria,
-  ClientArraySearchCriteria, ClientNumberSearchCriteria, ClientDateSearchCriteria, ClientIDSearchCriteria,
+  ClientArraySearchCriteria, ClientNumberSearchCriteria, ClientDateSearchCriteria, ClientIDSearchCriteria, ClientCollectionSearchCriteria,
 } from '../../../entities/SearchCriteria';
 import { IFile, IMG_EXTENSIONS } from '../../../entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
@@ -19,21 +19,22 @@ import IconSet from '../../components/Icons';
 import { ClientTag } from '../../../entities/Tag';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { FileSearchCriteria } from '../../UiStore';
+import { ClientTagCollection } from '../../../entities/TagCollection';
 
 interface IKeyLabel {
   [key: string]: string;
 }
 
 export const KeyLabelMap: IKeyLabel = {
+  tags: 'Tags',
   name: 'File name',
   path: 'File path',
   extension: 'File type',
   size: 'File size (MB)',
-  tags: 'Tags',
   dateAdded: 'Date added',
 };
 
-const CriteriaKeyOrder: Array<keyof IFile> = ['name', 'path', 'extension', 'size', 'tags', 'dateAdded'];
+const CriteriaKeyOrder: Array<keyof IFile> = ['tags', 'name', 'path', 'extension', 'size', 'dateAdded'];
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -100,34 +101,58 @@ const OperatorSelect = ({ onSelect, value, options }: IOperatorSelectProps) => {
   );
 };
 
-const TagCriteriaItem = observer(({ criteria }: { criteria: ClientIDSearchCriteria<IFile> }) => {
-  const { tagStore } = useContext(StoreContext);
+const TagCriteriaItem = observer(({ criteria }: { criteria: ClientIDSearchCriteria<IFile> | ClientCollectionSearchCriteria }) => {
+  const { uiStore, tagStore, tagCollectionStore } = useContext(StoreContext);
 
   const setOperator = useCallback(
     (operator: string) => criteria.setOperator(operator as ArrayOperatorType), [criteria]);
 
-  const handleSelectTag = useCallback((t: ClientTag) => criteria.setValue(t.id, t.name), [criteria]);
+  const handleSelectTag = useCallback((t: ClientTag) => {
+    if (criteria instanceof ClientIDSearchCriteria) {
+      criteria.setValue(t.id, t.name);
+    } else {
+      uiStore.replaceCriteriaItem(criteria, new ClientIDSearchCriteria('tags', t.id, t.name));
+    }
+  }, [criteria, uiStore]);
+  const handleSelectCol = useCallback((col: ClientTagCollection) => {
+    if (criteria instanceof ClientCollectionSearchCriteria) {
+      criteria.setValue(col.id, col.getTagsRecursively(), col.name);
+    } else {
+      uiStore.replaceCriteriaItem(criteria, new ClientCollectionSearchCriteria(col.id, col.getTagsRecursively(), col.name));
+    }
+  }, [criteria, uiStore]);
 
-  const handleDeselectTag = useCallback(
-    () => criteria.setValue('', ''), [criteria]);
+  const handleClear = useCallback(() => {
+    if (criteria instanceof ClientIDSearchCriteria) {
+      criteria.setValue('', '');
+    } else if (criteria instanceof ClientCollectionSearchCriteria) {
+      criteria.setValue('', [], '');
+    }
+  }, [criteria]);
 
-  const handleClearTags = useCallback(() => criteria.setValue('', ''), [criteria]);
-
-  const tagId = criteria.value.length === 1 ? criteria.value[0] : '';
-  const criteriaTag = useMemo(
-    () => tagStore.tagList.find((tag) => tag.id === tagId) as ClientTag,
-    [tagId, tagStore.tagList]);
+  const selectedItem = useMemo(() => {
+    if (criteria instanceof ClientIDSearchCriteria) {
+      return criteria.value.length === 1 ? tagStore.get(criteria.value[0]) : undefined;
+    } else if (criteria instanceof ClientCollectionSearchCriteria) {
+      return tagCollectionStore.get(criteria.collectionId);
+    }
+  },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [tagStore, tagCollectionStore, criteria instanceof ClientCollectionSearchCriteria ? criteria.collectionId : criteria.value]);
 
   return (
     <>
       <OperatorSelect onSelect={setOperator} value={criteria.operator} options={ArrayOperators} />
       <MultiTagSelector
-        selectedItems={[criteriaTag]}
+        selectedItems={selectedItem ? [selectedItem] : []}
         onTagSelect={handleSelectTag}
-        onTagDeselect={handleDeselectTag}
-        onClearSelection={handleClearTags}
+        onTagDeselect={handleClear}
+        onClearSelection={handleClear}
         placeholder="Untagged"
         autoFocus
+        includeCollections
+        onTagColDeselect={handleClear}
+        onTagColSelect={handleSelectCol}
       />
     </>
   );
@@ -211,7 +236,7 @@ interface ICriteriaItemProps {
 }
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
-const CriteriaItem = observer(({ criteria, onRemove, onAdd, removable }: ICriteriaItemProps) => {
+const CriteriaItem = observer(({ criteria, onRemove, removable }: ICriteriaItemProps) => {
 
   const critFields = useMemo(() => {
     if (criteria.key === 'name' || criteria.key === 'path') {
@@ -233,10 +258,12 @@ const CriteriaItem = observer(({ criteria, onRemove, onAdd, removable }: ICriter
       <KeySelector criteria={criteria} />
       {critFields}
 
-      <ButtonGroup vertical className="add-remove">
+      {/* <ButtonGroup vertical className="add-remove">
         <Button text="-" onClick={onRemove} disabled={!removable} />
         <Button text="+" onClick={onAdd} />
-      </ButtonGroup>
+      </ButtonGroup> */}
+      <Button text="-" onClick={onRemove} disabled={!removable} className="remove" />
+
     </ControlGroup>
   );
 });
@@ -255,8 +282,6 @@ const SearchForm = observer(() => {
     addSearchCriteria();
   }, [addSearchCriteria, uiStore]);
 
-  // Todo: Also search through collections
-
   return (
     <div id="search-form">
       <FormGroup>
@@ -271,7 +296,7 @@ const SearchForm = observer(() => {
         ))}
       </FormGroup>
 
-      {/* <Button icon={IconSet.ADD} onClick={addSearchCriteria} fill text="Query"/> */}
+      <Button icon={IconSet.ADD} onClick={addSearchCriteria} minimal text="Add"/>
 
       <div>
         {/* <RadioGroup inline label="Match with" selectedValue="all" onChange={() => undefined}>

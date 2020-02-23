@@ -574,6 +574,10 @@ class UiStore {
     if (this.isAdvancedSearchOpen && !this.isQuickSearchOpen) {
       this.toggleQuickSearch();
     }
+    // Add initial empty criteria if none exist
+    if (this.isAdvancedSearchOpen && this.searchCriteriaList.length === 0) {
+      this.addSearchCriteria(new ClientArraySearchCriteria('tags'));
+    }
   }
   @action.bound closeSearch() {
     if (this.isQuickSearchOpen) {

@@ -190,13 +190,12 @@ const MultiTagSelector = ({
   const getTagProps = (_: any, index: number): ITagProps => ({
     minimal: true,
     // Todo: Style doesn't update until focusing the tagInput
-    style: { backgroundColor: items[index].viewColor },
+    style: { backgroundColor: selectedItems[index]?.viewColor },
   });
 
   return (
     <TagMultiSelect
       items={items}
-      // Todo: The ordering is lost
       selectedItems={selectedItems}
       itemRenderer={SearchTagItem}
       noResults={NoResults}

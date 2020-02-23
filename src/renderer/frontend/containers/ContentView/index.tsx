@@ -25,8 +25,6 @@ const QuickSearchList = observer(() => {
     }
   });
 
-  console.log('selectedItems', selectedItems);
-
   const handleSelectTag = useCallback((tag: ClientTag) => {
     uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', tag.id, tag.name));
     uiStore.searchByQuery();
@@ -37,7 +35,6 @@ const QuickSearchList = observer(() => {
   }, [uiStore]);
 
   const handleDeselectTag = useCallback((tag: ClientTag) => {
-    console.log('deselecting tag', tag);
     const crit = uiStore.searchCriteriaList.find((c) => c instanceof ClientIDSearchCriteria && c.value.includes(tag.id));
     if (crit) {
       uiStore.removeSearchCriteria(crit);
@@ -45,7 +42,6 @@ const QuickSearchList = observer(() => {
     }
   }, [uiStore]);
   const handleDeselectCol = useCallback((col: ClientTagCollection) => {
-    console.log('deselecting col', col);
     const crit = uiStore.searchCriteriaList.find((c) => c instanceof ClientCollectionSearchCriteria && c.collectionId === col.id);
     if (crit) {
       uiStore.removeSearchCriteria(crit);
@@ -74,7 +70,6 @@ const QuickSearchList = observer(() => {
       onClearSelection={handleClear}
       autoFocus
       tagIntent="primary"
-      // refocusObject={quickSearchFocusDate}
       onKeyDown={handleCloseSearch}
       showClearButton={false}
       includeCollections
@@ -130,8 +125,6 @@ const SearchBar = observer(() => {
 
   // Only show quick search bar when all criteria are tags or collections, else show a search bar that opens to the advanced search form
   const showQuickSearch = uiStore.searchCriteriaList.length === 0 || uiStore.searchCriteriaList.every((crit) => crit.key === 'tags');
-
-  console.log(showQuickSearch, uiStore.searchCriteriaList.map((c: any) => `${c.toString()} (${c.value.toString()})`));
 
   return (
     <CSSTransition in={uiStore.isQuickSearchOpen} classNames="quick-search" timeout={200} unmountOnExit>
