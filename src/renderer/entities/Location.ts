@@ -32,10 +32,12 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
   saveHandler: IReactionDisposer;
   watcher?: FSWatcher;
   autoSave = true;
-  // Whether the initial scan has been completed
+  // whether initialization has started or has been completed
+  @observable isInitialized = false;
+  // Whether the initial scan has been completed, and new/removed files are being watched
   isReady = false;
   // true when the path no longer exists (broken link)
-  isBroken = false;
+  @observable isBroken = false;
 
   readonly tagsToAdd = observable<ID>([]);
 
@@ -69,6 +71,7 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
   }
 
   @action.bound async init() {
+    this.isInitialized = true;
     const pathExists = await fse.pathExists(this.path);
     if (pathExists) {
       return this.watchDirectory(this.path);
@@ -89,6 +92,7 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
 
   @action.bound addTag(tag: ClientTag) { this.tagsToAdd.push(tag.id); }
   @action.bound removeTag(tag: ClientTag) { this.tagsToAdd.remove(tag.id); }
+  @action.bound clearTags() { this.tagsToAdd.clear(); }
 
   @action.bound private addTags(tags: ID[]) { this.tagsToAdd.push(...tags); }
 

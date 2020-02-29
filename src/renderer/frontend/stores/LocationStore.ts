@@ -90,7 +90,7 @@ class LocationStore {
   }
 
   @action.bound
-  async addDirectory(dirInput: Omit<ILocation, 'id' | 'dateAdded'>, id = generateId(), dateAdded = new Date()) {
+  async addDirectory(dirInput: Omit<ILocation, 'id' | 'dateAdded'>, id = generateId(), dateAdded = new Date(), initialize?: false) {
     const dirData: ILocation = { ...dirInput, id, dateAdded };
     const clientDir = new ClientLocation(
       this, id, dirData.path, dirData.dateAdded, dirData.tagsToAdd);
@@ -98,14 +98,21 @@ class LocationStore {
     // The function caller is responsible for handling errors.
     await this.backend.createLocation(dirData);
 
+    if (initialize) {
+      this.initializeLocation(clientDir);
+    }
+
+    return clientDir;
+  }
+
+  /** Imports all files from a location into the FileStore */
+  @action.bound initializeLocation(clientDir: ClientLocation) {
     // Import files of dir
     clientDir.init().then((filePaths) => {
       for (const path of filePaths) {
-        this.rootStore.fileStore.addFile(path, id);
+        this.rootStore.fileStore.addFile(path, clientDir.id);
       }
     });
-
-    return clientDir;
   }
 
   @action.bound

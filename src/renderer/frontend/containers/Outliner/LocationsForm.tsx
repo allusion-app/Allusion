@@ -14,25 +14,17 @@ import { AppToaster } from '../../App';
 
 interface ILocationListItemProps {
   dir: ClientLocation;
-  onDelete: (id: string) => void;
+  onDelete: (location: ClientLocation) => void;
+  onConfig: (location: ClientLocation) => void;
   addToSearch: (path: string) => void;
   replaceSearch: (path: string) => void;
 }
 
 @ContextMenuTarget
-class LocationListItem extends React.PureComponent<ILocationListItemProps, { isDeleteOpen: boolean, isConfigOpen: boolean }> {
-  state = {
-    isDeleteOpen: false,
-    isConfigOpen: false,
-  };
+class LocationListItem extends React.PureComponent<ILocationListItemProps> {
+  handleDelete= () => this.props.onDelete(this.props.dir);
 
-  // todo: need to take into account selection of multiple watched dir
-  openDeleteAlert = () => this.setState({ isDeleteOpen: true });
-  closeDeleteAlert = () => this.setState({ isDeleteOpen: false });
-  handleDeleteConfirm = () => this.props.onDelete(this.props.dir.id);
-
-  openConfigDialog = () => this.setState({ isConfigOpen: true });
-  closeConfigDialog = () => this.setState({ isConfigOpen: false });
+  openConfigDialog = () => this.props.onConfig(this.props.dir);
 
   handleAddToSearch = () => this.props.addToSearch(this.props.dir.path);
   handleReplaceSearch = () => this.props.replaceSearch(this.props.dir.path);
@@ -52,62 +44,6 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
         >
           <span className="ellipsis" title={dir.path}>{Path.basename(dir.path)}</span>
         </Button>
-
-
-        <Alert
-          isOpen={this.state.isDeleteOpen}
-          cancelButtonText="Cancel"
-          confirmButtonText="Delete"
-          icon={IconSet.DELETE}
-          intent="danger"
-          onCancel={this.closeDeleteAlert}
-          onConfirm={this.handleDeleteConfirm}
-          canEscapeKeyCancel
-          canOutsideClickCancel
-          className={Classes.DARK}
-        >
-          <div className="bp3-dark" id="deleteFile">
-            <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
-            <p>
-              Remove {`"${Path.basename(dir.path)}"`} from your locations?
-              <br />
-              This will also remove its files from your library.
-            </p>
-          </div>
-        </Alert>
-
-        <Dialog
-          title={<span className="ellipsis" title={dir.path}>Location: {Path.basename(dir.path)}</span>}
-          icon={IconSet.SETTINGS}
-          isOpen={this.state.isConfigOpen}
-          onClose={this.closeConfigDialog}
-        >
-          <div className={Classes.DIALOG_BODY}>
-            <Observer>
-              { () =>
-                <>
-                  <Checkbox label="Recursive" checked />
-                  <Checkbox label="Add folder name as tag" />
-                  <Label>
-                    Tags to add
-                    <MultiTagSelector
-                      selectedTags={dir.clientTagsToAdd}
-                      onTagSelect={dir.addTag}
-                      onTagDeselect={dir.removeTag}
-                      onClearSelection={console.log}
-                    />
-                  </Label>
-                </>
-              }
-            </Observer>
-          </div>
-
-          <div className={Classes.DIALOG_FOOTER}>
-            <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-              <Button onClick={this.closeConfigDialog}>Close</Button>
-            </div>
-          </div>
-        </Dialog>
       </li>
     );
   }
@@ -121,15 +57,107 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps, { isD
         <MenuItem onClick={this.handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
         <MenuItem onClick={this.handleReplaceSearch} text="Replace Search Query" icon={IconSet.REPLACE} />
         <MenuItem onClick={this.handleOpenFileExplorer} text="Open in File Browser" icon={IconSet.FOLDER_CLOSE} />
-        <MenuItem text="Delete" onClick={this.openDeleteAlert} icon={IconSet.DELETE} disabled={isImportLocation} />
+        <MenuItem text="Delete" onClick={this.handleDelete} icon={IconSet.DELETE} disabled={isImportLocation} />
       </Menu>
     );
   }
 }
 
+interface ILocationConfigModalProps {
+  dir: ClientLocation | undefined;
+  handleClose: () => void;
+}
+
+const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) => {
+  if (!dir) return <> </>;
+  return (
+    <Dialog
+      title={<span className="ellipsis" title={dir.path}>Location: {Path.basename(dir.path)}</span>}
+      icon={IconSet.SETTINGS}
+      isOpen={Boolean(dir)}
+      onClose={handleClose}
+    >
+      <div className={Classes.DIALOG_BODY}>
+        <Observer>
+          { () =>
+            <>
+              <span>Path: <pre>{dir.path}</pre></span>
+              {/* <Checkbox label="Recursive" checked /> */}
+              <Checkbox label="Add folder name as tag" />
+              <Label>
+                Tags to add
+                <MultiTagSelector
+                  selectedTags={dir.clientTagsToAdd}
+                  onTagSelect={dir.addTag}
+                  onTagDeselect={dir.removeTag}
+                  onClearSelection={dir.clearTags}
+                />
+              </Label>
+            </>
+          }
+        </Observer>
+      </div>
+
+      <div className={Classes.DIALOG_FOOTER}>
+        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
+          <Button onClick={handleClose}>{dir.isInitialized ? 'Close' : 'Confirm'}</Button>
+        </div>
+      </div>
+    </Dialog>
+  );
+};
+
+interface ILocationRemovalAlertProps {
+  dir: ClientLocation | undefined;
+  handleClose: () => void;
+}
+
+const LocationRemovalAlert = ({ dir, handleClose }: ILocationRemovalAlertProps) => {
+  const { locationStore } = useContext(StoreContext);
+  const handleRemove = useCallback(() => dir && locationStore.removeDirectory(dir.id), [dir]);
+  
+  if (!dir) return <> </>;
+
+  return (
+    <Alert
+      isOpen={Boolean(dir)}
+      cancelButtonText="Cancel"
+      confirmButtonText="Delete"
+      icon={IconSet.DELETE}
+      intent="danger"
+      onCancel={handleClose}
+      onConfirm={handleRemove}
+      canEscapeKeyCancel
+      canOutsideClickCancel
+      className={Classes.DARK}
+    >
+      <div className="bp3-dark" id="deleteFile">
+        <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
+        <p>
+          Remove {`"${Path.basename(dir.path)}"`} from your locations?
+          <br />
+          This will remove all files it contains from Allusion.
+        </p>
+      </div>
+    </Alert>
+  );
+};
+
 const LocationsForm = () => {
 
   const { locationStore, uiStore } = useContext(StoreContext);
+
+  const [locationConfigOpen, setLocationConfigOpen] = useState<ClientLocation | undefined>(undefined);
+  const closeConfig = useCallback(() => setLocationConfigOpen(undefined), []);
+
+  const [locationRemoverOpen, setLocationRemoverOpen] = useState<ClientLocation | undefined>(undefined);
+  const closeLocationRemover = useCallback(() => {
+    setLocationRemoverOpen(undefined);
+    // Initialize the location in case it was newly added
+    if (locationConfigOpen && !locationConfigOpen.isInitialized) {
+      locationStore.initializeLocation(locationConfigOpen);
+    }
+  }, [locationConfigOpen]);
 
   const [isCollapsed, setCollapsed] = useState(false);
   const handleChooseWatchedDir = useCallback(async (e: React.MouseEvent) => {
@@ -143,7 +171,7 @@ const LocationsForm = () => {
       return;
     }
 
-    // Todo: Check if sub-dir of an existing location
+    // Check if sub-dir of an existing location
     const parentDir = locationStore.locationList.find((dir) => dirs[0].includes(dir.path));
     if (parentDir) {
       AppToaster.show({
@@ -153,7 +181,8 @@ const LocationsForm = () => {
       return;
     }
 
-    locationStore.addDirectory({ path: dirs[0], tagsToAdd: [] });
+    const newLoc = await locationStore.addDirectory({ path: dirs[0], tagsToAdd: [] });
+    setLocationConfigOpen(newLoc);
   }, [locationStore]);
 
   const toggleLocations = useCallback(
@@ -193,7 +222,8 @@ const LocationsForm = () => {
               <LocationListItem
                 key={`${dir.path}-${i}`}
                 dir={dir}
-                onDelete={locationStore.removeDirectory}
+                onDelete={() => setLocationRemoverOpen(dir)}
+                onConfig={() => setLocationConfigOpen(dir)}
                 addToSearch={addToSearch}
                 replaceSearch={replaceSearch}
               />
@@ -201,6 +231,9 @@ const LocationsForm = () => {
           }
         </ul>
       </Collapse>
+
+      <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
+      <LocationRemovalAlert dir={locationRemoverOpen} handleClose={closeLocationRemover} />
     </div>
   );
 };
