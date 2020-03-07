@@ -8,7 +8,7 @@ import path from 'path';
 import { imgExtensions } from '../containers/Outliner/ImportForm';
 import { ClientTag } from '../../entities/Tag';
 import { timeoutPromise } from '../utils';
-import { ClientFile, IMG_EXTENSIONS } from '../../entities/File';
+import { IMG_EXTENSIONS } from '../../entities/File';
 import { RendererMessenger, IStoreFileMessage } from '../../../Messaging';
 import { DEFAULT_LOCATION_ID } from '../../entities/Location';
 

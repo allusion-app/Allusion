@@ -168,6 +168,7 @@ img {
   box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 }
 [data-right]:hover:after,
 [data-left]:hover:after {
