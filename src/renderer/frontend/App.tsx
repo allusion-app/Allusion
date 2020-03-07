@@ -15,8 +15,15 @@ import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
 import ImageViewer from './components/ImageViewer';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { DragLayer } from './containers/Outliner/TagPanel';
+import { Toaster, Position } from '@blueprintjs/core';
+import WelcomeDialog from './components/WelcomeDialog';
 
 const SPLASH_SCREEN_TIME = 700;
+
+export const AppToaster = Toaster.create({
+  position: Position.BOTTOM_RIGHT,
+  className: 'toaster',
+});
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -53,17 +60,19 @@ const App = observer(() => {
 
             <Outliner />
 
-          <ContentView />
+            <ContentView />
 
-          {uiStore.imageViewerFile ? (
-            <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.setImageViewer(null)} />
-          ) : <></>}
+            {uiStore.imageViewerFile ? (
+              <ImageViewer file={uiStore.imageViewerFile} onClose={() => uiStore.setImageViewer(null)} />
+            ) : <></>}
 
             <Inspector />
 
             <Settings />
 
             <AdvancedSearchDialog />
+
+            <WelcomeDialog />
 
             {/* Overlay for showing custom drag previews */}
             <DragLayer />

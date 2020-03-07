@@ -399,8 +399,11 @@ form .bp3-icon {
 }
 
 // Labels
-.bp3-dark label.bp3-label {
+.bp3-dark {
+  label.bp3-label,
+  #watched-folders .bp3-button  {
   color: $light-gray1;
+}
 }
 
 // Buttons
@@ -413,7 +416,8 @@ button:has(.bp3-intent-primary) {
 }
 
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
-:not(.bp3-input):not(.bp3-tag) > .bp3-button:hover > .custom-icon {
+:not(.bp3-input):not(.bp3-tag) > .bp3-button:hover > .custom-icon,
+.bp3-dark #watched-folders .bp3-button:hover > .bp3-icon {
   // :not(.bp3-input):not(.bp3-tag) > .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled):not(.bp3-dialog-close-button) .bp3-icon:hover {
   background: transparent;
   color: white !important;
@@ -496,7 +500,8 @@ button:has(.bp3-intent-danger) {
 // .bp3-tree-node-caret,
 .bp3-tree-node-caret>.custom-icon,
 .bp3-tree-node-content>span.custom-icon,
-.bp3-tree-node-content > span span.custom-icon {
+.bp3-tree-node-content > span span.custom-icon,
+.bp3-tree-node-content > .custom-icon-14.custom-icon {
   margin-right: 0.25rem;
 }
 
@@ -845,7 +850,8 @@ li .bp3-menu-item {
   color: white;
 }
 
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled) {
+.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled), 
+.bp3-dark #watched-folders .bp3-button:hover {
   // .bp3-button:hover > .custom-icon,
   // .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
   background: transparent;
@@ -859,7 +865,8 @@ li .bp3-menu-item {
 
 .bp3-dark #toolbar .bp3-button-group.bp3-minimal .bp3-button:hover,
 .bp3-dark #outliner-tags-header-wrapper .bp3-button.bp3-minimal:hover,
-.bp3-dark .bp3-button:not([class*='bp3-intent-']):hover {
+.bp3-dark .bp3-button:not([class*='bp3-intent-']):hover,
+.bp3-dark #watched-folders .bp3-button {
   background: transparent !important;
 }
 
@@ -1038,7 +1045,6 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
     &.bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
       background: $blue1;
       color: $light-gray4;
-
       &.bp3-intent-primary {
         background: $dark-gray3;
       }
@@ -1092,10 +1098,16 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   }
 }
 
-// .bp3-dark .bp3-tree-node-content:hover {
-//   background-color: #252525 !important;
-//   border-left: 2px solid $blue1;
-// }
+.bp3-dark #watched-folders .bp3-button:hover {
+  background-color: #252525 !important;
+  border-left: 2px solid $blue1;
+  padding-left: .85rem !important;
+  transition: all 0.2s $pt-transition-ease2;
+  color: white;
+}
+
+
+
 @for $i from 0 through 20 {
   .#{$ns}-tree-node-content-#{$i}:hover {
     background-color: #252525 !important;
@@ -1106,9 +1118,13 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   }
 }
 
-.bp3-dark .bp3-tree-node-content:hover,
-.bp3-dark .bp3-tree-node-content:hover > .custom-icon {
+.bp3-dark {
+  .bp3-tree-node-content:hover,
+  .bp3-tree-node-content:hover > .custom-icon,
+  .bp3-button.bp3-minimal:hover .bp3-button-text,
+  #watched-folders .bp3-minimal .bp3-icon {
   color: white;
+}
 }
 
 // Hardcode left padding

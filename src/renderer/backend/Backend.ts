@@ -4,7 +4,8 @@ import { DbTag, ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
-import { SearchCriteria } from '../entities/SearchCriteria';
+import { ILocation } from '../entities/Location';
+import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -16,6 +17,7 @@ export default class Backend {
   private fileRepository: DBRepository<IFile>;
   private tagRepository: DBRepository<ITag>;
   private tagCollectionRepository: DBRepository<ITagCollection>;
+  private locationRepository: DBRepository<ILocation>;
 
   constructor() {
     // Initialize database tables
@@ -23,6 +25,7 @@ export default class Backend {
     this.fileRepository = new DBRepository('files', db);
     this.tagRepository = new DBRepository('tags', db);
     this.tagCollectionRepository = new DBRepository('tagCollections', db);
+    this.locationRepository = new DBRepository('locations', db);
   }
 
   async init() {
@@ -32,6 +35,15 @@ export default class Backend {
       await this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
     }
 
+    // const locCount = await this.locationRepository.count();
+    // if (locCount === 0) {
+    //   await this.createLocation({
+    //     id: DEFAULT_LOCATION_ID,
+    //     path: path.join(os.homedir(), 'Allusion'), // todo: make user configurable on startup
+    //     dateAdded: new Date(),
+    //     tagsToAdd: [],
+    //   });
+    // }
     // Here we could start indexing, or checking for changed files
   }
 
@@ -137,6 +149,41 @@ export default class Backend {
     console.log('Get number of untagged files...');
     return this.fileRepository.count(
       { criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' } });
+  }
+
+  async getWatchedDirectories(order: keyof ILocation, fileOrder: FileOrder) {
+    console.log('Backend: Getting watched directories...');
+    return this.locationRepository.getAll({ order, fileOrder });
+  }
+
+  async createLocation(dir: ILocation) {
+    console.log('Backend: Creating watched directory...');
+    return this.locationRepository.create(dir);
+  }
+
+  async saveLocation(dir: ILocation) {
+    console.log('Backend: Saving watched directory...', dir);
+    return await this.locationRepository.update(dir);
+  }
+
+  async removeLocation(dir: ILocation) {
+    console.log('Backend: Removing watched directory...');
+    return this.locationRepository.remove(dir);
+  }
+
+  // Creates many files at once, and checks for duplicates in the path they are in
+  async createFilesFromPath(path: string, files: IFile[]) {
+    console.log('Backend: Creating files...', path, files);
+    // Search for file paths that start with 'path', so those can be filtered out
+    const criteria: IStringSearchCriteria<IFile> = {
+      valueType: 'string',
+      operator: 'contains', // Fixme: should be startWith, but doesn't work for some reason :/ 'path' is not an index for 'files' collection?!
+      key: 'path',
+      value: path,
+    };
+    const existingFilesInPath: IFile[] = await this.fileRepository.find({ criteria });
+    const newFiles = files.filter((file) => !existingFilesInPath.some((f) => f.path === file.path));
+    return this.fileRepository.createMany(newFiles);
   }
 
   async clearDatabase() {

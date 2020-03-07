@@ -194,6 +194,7 @@ function createWindow() {
 
   // Import images that were added while the window was closed
   MainMessenger.onceInitialized().then(async () => {
+    clipServer!.setDownloadPath((await MainMessenger.getDownloadPath(mainWindow!.webContents)).dir);
     const importItems = await clipServer!.getImportQueue();
     await Promise.all(importItems.map(importExternalImage));
     clipServer!.clearImportQueue();
@@ -270,7 +271,7 @@ app.on('activate', () => {
 
 // Messaging ///////////////////////////////
 ////////////////////////////////////////////
-MainMessenger.onGetDownloadPath(() => clipServer!.getDownloadPath());
+MainMessenger.onSetDownloadPath(({ dir }) => clipServer!.setDownloadPath(dir));
 MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
 MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
 
@@ -311,3 +312,5 @@ MainMessenger.onSendPreviewFiles((msg) => {
     previewWindow.focus();
   }
 });
+
+MainMessenger.onGetUserPicturesPath();

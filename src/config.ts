@@ -11,6 +11,8 @@ export const SERVER_PORT = 5454;
 
 export const githubUrl = 'https://github.com/RvanderLaan/VisualLibrary';
 
+export const RECURSIVE_DIR_WATCH_DEPTH = 8;
+
 export const thumbnailType = 'webp';
 
 const isRenderer = process && process.type === 'renderer';

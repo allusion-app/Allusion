@@ -111,9 +111,9 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
 
 export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: string;
-  constructor(key: keyof T) {
-    super(key, 'string', 'contains');
-    this.value = '';
+  constructor(key: keyof T, value?: string, operator?: StringOperatorType) {
+    super(key, 'string', operator || 'contains');
+    this.value = value || '';
   }
   @action.bound setOperator(op: StringOperatorType) {
     this.operator = op;

@@ -13,6 +13,12 @@ export const enum DragAndDropType {
   Tag = 'tag',
 }
 
+// Tooltip info
+const enum Tooltip {
+  AllImages = 'View all images in library',
+  Untagged = 'View all untagged images',
+}
+
 const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
   const { uiStore, fileStore } = rootStore;
 
@@ -35,6 +41,7 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
             onClick={uiStore.viewAllContent}
             active={uiStore.view.showsAllContent}
             fill
+            data-right={Tooltip.AllImages}
           />
           <Button
             text={`Untagged (${fileStore.numUntaggedFiles})`}
@@ -49,6 +56,7 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
             onClick={uiStore.viewUntaggedContent}
             active={uiStore.view.showsUntaggedContent}
             fill
+            data-right={Tooltip.Untagged}
           />
         </ButtonGroup>
       </div>
