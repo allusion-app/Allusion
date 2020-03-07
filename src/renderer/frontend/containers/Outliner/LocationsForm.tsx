@@ -12,6 +12,11 @@ import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { AppToaster } from '../../App';
 
+// Tooltip info
+const enum Tooltip {
+  Location = 'Add New Location',
+}
+
 interface ILocationListItemProps {
   dir: ClientLocation;
   onDelete: (location: ClientLocation) => void;
@@ -37,7 +42,9 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps> {
       <li>
         <Button
           fill
-          icon="map-marker"
+          // icon="map-marker"
+          
+          icon={IconSet.FOLDER_CLOSE}
           rightIcon={dir.isBroken ? <Icon icon={IconSet.WARNING} /> : null}
           className={'tooltip'}
           data-right={`${dir.isBroken ? 'Cannot find this location: ' : ''} ${dir.path}`}
@@ -222,15 +229,15 @@ const LocationsForm = () => {
    <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
         <H4 className="bp3-heading">
-          <Icon icon={isCollapsed ? 'caret-right' : 'caret-down'} />
+          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/>
           Locations
         </H4>
         <Button
           minimal
-          icon={IconSet.ADD}
+          icon={IconSet.FOLDER_CLOSE_ADD}
           onClick={handleChooseWatchedDir}
           className="tooltip"
-          // data-right={DEFAULT_TAG_NAME}
+          data-right={Tooltip.Location}
         />
       </div>
       <Collapse isOpen={!isCollapsed}>

@@ -45,7 +45,8 @@ body {
 main {
   grid-area: main;
   overflow: hidden; //temp fix for double scrollbar
-  height: inherit;
+  // height: inherit;
+  // z-index: 0;
 }
 
 #layoutContainer {
@@ -153,7 +154,7 @@ img {
   max-width: 600px !important;
   min-width: max-content;
   left: 1rem;
-  top: 1rem;
+  top: .25rem; //Fix for z-index issue
   margin-left: 1.5rem;
   margin-top: 1.5rem;
   text-align: left;
@@ -350,7 +351,7 @@ img {
 .bp3-overlay-content {
   display: flex;
   align-items: center;
-  // justify-content: center;
+  justify-content: center;
 }
 .drop-overlay-content {
   // top: 0;
@@ -381,6 +382,11 @@ img {
 .custom-icon-64 > * {
   height: 4rem !important;
   width: 4rem !important;
+}
+.custom-icon-14 > * {
+  height: 0.875rem !important;
+  width: 0.875rem !important;
+  display: block;
 }
 .bp3-alert .custom-icon,
 .custom-icon-32 > * {

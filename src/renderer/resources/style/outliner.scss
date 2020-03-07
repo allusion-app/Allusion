@@ -1,8 +1,8 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 nav {
   grid-area: outliner;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow-y: initial;
+  // overflow-x: hidden;
   flex-shrink: 0;
   width: 0;
   min-width: 0;
@@ -15,6 +15,7 @@ nav {
   &.outlinerOpen {
     min-width: var(--outliner-width);
     width: 16rem;
+    z-index: 1;
 
     button.bp3-button.bp3-minimal {
       opacity: 0;
@@ -158,8 +159,9 @@ nav {
     margin-right: auto;
       // caret icon
     > .bp3-icon {
-      margin-right: 8px;
+      margin-right: 4px;
       margin-bottom: 2px;
+      margin-left: 4px;
     }
   }
 }
@@ -191,7 +193,11 @@ nav .bp3-tree {
 // Reordering by dragging
 .bp3-tree-node {
   &-label {
-    min-height: 20px !important;
+    // min-height: 20px !important;
+    text-transform: lowercase;
+    &::first-letter {
+      text-transform: uppercase;
+    }
   }
   .reorder-target {
     border-bottom: 2px solid $blue1;
@@ -239,13 +245,26 @@ nav .bp3-tree {
 }
 
 #watched-folders {
-  padding: 4px;
-  margin: 0px;
-  margin-left: 8px;
-
+  padding-left: 0;
+  margin: 0;
+  div > span:first-child {
+  padding: 0.25rem 0.05rem;
+  margin-left: 0.5rem;
+  }
+  > ul {
+    margin: 0;
+  }
   > li {
     list-style-type: none;
-
+    button {
+      background: none;
+      // width: fit-content !important;
+      padding: 0 1rem;
+      padding-right: 0;
+      justify-content: left;
+      width: 100%;
+      border-radius: 0;
+    }
     > span {
       width: calc(100% - 30px);
       display: inline-block;
