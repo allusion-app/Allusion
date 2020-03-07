@@ -188,23 +188,12 @@ class FileStore {
     // Todo: instead of removing invalid files, add them to an MissingFiles list and prompt to the user?
     // (maybe fetch all files, not only the ones passed given as arguments here)
 
+    const locationIds = this.rootStore.locationStore.locationList.map((l) => l.id);
     const existenceChecker = await Promise.all(
       backendFiles.map(async (backendFile) => {
         try {
           await fs.access(backendFile.path, fs.constants.F_OK);
-          return true;
         } catch (err) {
-          // Todo: Check if location link is broken, keep file saved.
-          // Maybe mark as missing?
-
-          const location = this.rootStore.locationStore.locationList
-            .find((dir) => dir.id === backendFile.locationId);
-          if (location) {
-            location.checkIfBroken();
-          } else {
-            // TODO: Remove file if location no longer exist?
-            // this.removeFile()
-          }
 
           // Remove file from client only - keep in DB in case it will be recovered later
           // TODO: Store missing date so it can be automatically removed after some time?
@@ -218,6 +207,16 @@ class FileStore {
           }
           return false;
         }
+
+        // Check if location link is broken, keep file saved.
+        if (!locationIds.includes(backendFile.locationId)) {
+          // TODO: Remove file if location no longer exist?
+          // this.removeFile()
+          // TODO: Show in the ImageRecovery panel?
+          console.warn('Found a file that does not belong to any location!', backendFile);
+          return false;
+        }
+        return true;
       }),
     );
 

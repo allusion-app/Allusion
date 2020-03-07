@@ -42,8 +42,6 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps> {
       <li>
         <Button
           fill
-          // icon="map-marker"
-          
           icon={IconSet.FOLDER_CLOSE}
           rightIcon={dir.isBroken ? <Icon icon={IconSet.WARNING} /> : null}
           className={'tooltip'}
@@ -80,9 +78,10 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
   return (
     <Dialog
       title={<span className="ellipsis" title={dir.path}>Location: {Path.basename(dir.path)}</span>}
-      icon={IconSet.SETTINGS}
+      icon={IconSet.FOLDER_CLOSE}
       isOpen={Boolean(dir)}
       onClose={handleClose}
+      className={Classes.DARK}
     >
       <div className={Classes.DIALOG_BODY}>
         <Observer>
@@ -160,7 +159,13 @@ const LocationsForm = () => {
   const { locationStore, uiStore } = useContext(StoreContext);
 
   const [locationConfigOpen, setLocationConfigOpen] = useState<ClientLocation | undefined>(undefined);
-  const closeConfig = useCallback(() => setLocationConfigOpen(undefined), []);
+  const closeConfig = useCallback(() => {
+    if (locationConfigOpen !== undefined && !locationConfigOpen.isInitialized) {
+      // Import files after config modal is closed, if not already initialized
+      locationStore.initializeLocation(locationConfigOpen);
+    }
+    setLocationConfigOpen(undefined);
+  }, [locationConfigOpen, locationStore]);
 
   const [locationRemoverOpen, setLocationRemoverOpen] = useState<ClientLocation | undefined>(undefined);
   const closeLocationRemover = useCallback(() => {

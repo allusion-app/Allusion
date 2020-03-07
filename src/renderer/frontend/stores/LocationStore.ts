@@ -1,4 +1,4 @@
-import { action, observable, computed } from 'mobx';
+import { action, observable, computed, runInAction } from 'mobx';
 
 import Backend from '../../backend/Backend';
 import RootStore from './RootStore';
@@ -6,6 +6,7 @@ import { ID, generateId } from '../../entities/ID';
 import { ClientLocation, ILocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
 import { IFile, ClientFile } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
+import { IStringSearchCriteria } from '../../entities/SearchCriteria';
 
 class LocationStore {
   backend: Backend;
@@ -112,25 +113,26 @@ class LocationStore {
       for (const path of filePaths) {
         this.rootStore.fileStore.addFile(path, clientDir.id);
       }
+      this.rootStore.uiStore.refetch();
     });
   }
 
-  @action.bound
-  async removeDirectory(id: ID) {
+  @action.bound async removeDirectory(id: ID) {
     const watchedDir = this.locationList.find((dir) => dir.id === id);
     if (!watchedDir) {
       console.log('Cannot remove watched directory: ID not found', id);
       return;
     }
 
-    // Todo: Remove files in backend and filestore
-    // Search in backend for files that start with watchedDir.path
-    // const filesToRemove = ...
+    // Remove files in backend and filestore
+    const crit: IStringSearchCriteria<IFile> = { key: 'locationId', value: id, operator: 'equals', valueType: 'string' };
+    const filesToRemove = await this.backend.searchFiles(crit, 'id', 'ASC');
+    await this.rootStore.fileStore.removeFilesById(filesToRemove.map((f) => f.id));
 
-    // Remove locally
-    this.locationList.remove(watchedDir);
+    // Remove location locally
+    runInAction(() => this.locationList.remove(watchedDir));
 
-    // Remove entity from DB through backend
+    // Remove location from DB through backend
     await this.backend.removeLocation(watchedDir);
   }
 }

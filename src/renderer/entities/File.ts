@@ -10,6 +10,7 @@ const sizeOf = promisify(ImageSize.imageSize);
 import FileStore from '../frontend/stores/FileStore';
 import { ID, IIdentifiable, ISerializable } from './ID';
 import { ClientTag } from './Tag';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
 export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'];
 export type IMG_EXTENSIONS_TYPE = 'gif' | 'png' | 'jpg' | 'jpg';
@@ -70,9 +71,14 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   /** Should be called when after constructing a file before sending it to the backend. */
   static async getMetaData(path: string) {
     const stats = await fse.stat(path);
-    const dimensions = await sizeOf(path);
-    if (!dimensions) {
-      console.error('Could not find dimensions for ', path);
+    let dimensions: ISizeCalculationResult | undefined;
+    try {
+      dimensions = await sizeOf(path);
+    } catch (e) {
+      if (!dimensions) {
+        console.error('Could not find dimensions for ', path);
+      }
+      // TODO: Remove image? Probably unsupported file type
     }
 
     return {
