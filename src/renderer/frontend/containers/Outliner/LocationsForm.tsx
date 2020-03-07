@@ -114,8 +114,13 @@ interface ILocationRemovalAlertProps {
 
 const LocationRemovalAlert = ({ dir, handleClose }: ILocationRemovalAlertProps) => {
   const { locationStore } = useContext(StoreContext);
-  const handleRemove = useCallback(() => dir && locationStore.removeDirectory(dir.id), [dir]);
-  
+  const handleRemove = useCallback(() => {
+    if (dir) {
+      locationStore.removeDirectory(dir.id);
+      handleClose();
+    }
+  }, [dir, handleClose, locationStore]);
+
   if (!dir) return <> </>;
 
   return (
@@ -157,7 +162,7 @@ const LocationsForm = () => {
     if (locationConfigOpen && !locationConfigOpen.isInitialized) {
       locationStore.initializeLocation(locationConfigOpen);
     }
-  }, [locationConfigOpen]);
+  }, [locationConfigOpen, locationStore]);
 
   const [isCollapsed, setCollapsed] = useState(false);
   const handleChooseWatchedDir = useCallback(async (e: React.MouseEvent) => {
@@ -170,18 +175,31 @@ const LocationsForm = () => {
     if (!dirs || dirs.length === 0) {
       return;
     }
+    const newLocPath = dirs[0];
 
-    // Check if sub-dir of an existing location
-    const parentDir = locationStore.locationList.find((dir) => dirs[0].includes(dir.path));
+    // Check if the new location is a sub-directory of an existing location
+    const parentDir = locationStore.locationList.find((dir) => newLocPath.includes(dir.path));
     if (parentDir) {
       AppToaster.show({
-        message: 'You cannot add a location that is a subfolder of an existing location.',
+        message: 'You cannot add a location that is a sub-folder of an existing location.',
         intent: 'danger',
       });
       return;
     }
 
-    const newLoc = await locationStore.addDirectory({ path: dirs[0], tagsToAdd: [] });
+    // Check if the new location is a parent-directory of an existing location
+    const childDir = locationStore.locationList.find((dir) => dir.path.includes(newLocPath));
+    if (childDir) {
+      AppToaster.show({
+        message: 'You cannot add a location that is a parent-folder of an existing location.',
+        intent: 'danger',
+      });
+      return;
+    }
+
+    // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
+
+    const newLoc = await locationStore.addDirectory({ path: newLocPath, tagsToAdd: [] });
     setLocationConfigOpen(newLoc);
   }, [locationStore]);
 
