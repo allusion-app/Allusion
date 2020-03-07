@@ -48,7 +48,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps> {
           className={'tooltip'}
           data-right={`${dir.isBroken ? 'Cannot find this location: ' : ''} ${dir.path}`}
         >
-          <span className="ellipsis" title={dir.path}>{Path.basename(dir.path)}</span>
+          <span className="ellipsis">{Path.basename(dir.path)}</span>
         </Button>
       </li>
     );
