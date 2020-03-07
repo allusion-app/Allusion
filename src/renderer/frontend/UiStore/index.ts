@@ -486,18 +486,13 @@ class UiStore {
   }
 
   @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
-    // Remove empty array criteria if it already exists before adding the new one
-    if (this.searchCriteriaList.length === 1 && this.searchCriteriaList[0].valueType === 'array') {
-      if ((this.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>).value.length === 0) {
-        this.searchCriteriaList.clear();
-      }
-    }
     this.searchCriteriaList.push(query);
     this.view.setContentQuery();
   }
 
   @action.bound async removeSearchCriteria(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
+    this.view.setContentQuery();
   }
 
   @action.bound async removeSearchCriteriaByIndex(i: number) {
@@ -570,11 +565,7 @@ class UiStore {
   }
   @action.bound toggleQuickSearch() {
     this.isQuickSearchOpen = !this.isQuickSearchOpen;
-    if (this.isQuickSearchOpen) {
-      if (this.searchCriteriaList.length === 0) {
-        this.searchCriteriaList.push(new ClientArraySearchCriteria('tags'));
-      }
-    } else {
+    if (!this.isQuickSearchOpen) {
       this.clearSearchCriteriaList();
     }
   }
@@ -582,6 +573,10 @@ class UiStore {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
     if (this.isAdvancedSearchOpen && !this.isQuickSearchOpen) {
       this.toggleQuickSearch();
+    }
+    // Add initial empty criteria if none exist
+    if (this.isAdvancedSearchOpen && this.searchCriteriaList.length === 0) {
+      this.addSearchCriteria(new ClientArraySearchCriteria('tags'));
     }
   }
   @action.bound closeSearch() {
