@@ -72,38 +72,35 @@ const Settings = observer(() => {
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
-  const browseThumbnailDirectory = useCallback(
-    async () => {
-      const dirs = remote.dialog.showOpenDialog({
-        properties: ['openDirectory'],
-        defaultPath: uiStore.thumbnailDirectory,
-      });
+  const browseThumbnailDirectory = useCallback(async () => {
+    const dirs = remote.dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      defaultPath: uiStore.thumbnailDirectory,
+    });
 
-      if (!dirs) {
-        return;
+    if (!dirs) {
+      return;
+    }
+    const newDir = dirs[0];
+
+    if (!(await isDirEmpty(newDir))) {
+      alert('Please choose an empty directory.');
+      return;
+    }
+
+    const oldDir = uiStore.thumbnailDirectory;
+
+    // Move thumbnail files
+    await moveThumbnailDir(oldDir, newDir);
+    uiStore.setThumbnailDirectory(newDir);
+
+    // Reset thumbnail paths for those that already have one
+    fileStore.fileList.forEach((f) => {
+      if (f.thumbnailPath) {
+        f.setThumbnailPath(getThumbnailPath(f.path, newDir));
       }
-      const newDir = dirs[0];
-
-      if (!(await isDirEmpty(newDir))) {
-        alert('Please choose an empty directory.');
-        return;
-      }
-
-      const oldDir = uiStore.thumbnailDirectory;
-
-      // Move thumbnail files
-      await moveThumbnailDir(oldDir, newDir);
-      uiStore.setThumbnailDirectory(newDir);
-
-      // Reset thumbnail paths for those that already have one
-      fileStore.fileList.forEach((f) => {
-        if (f.thumbnailPath) {
-          f.setThumbnailPath(getThumbnailPath(f.path, newDir));
-        }
-      });
-    },
-    [fileStore.fileList, uiStore],
-  );
+    });
+  }, [fileStore.fileList, uiStore]);
 
   return (
     <Drawer

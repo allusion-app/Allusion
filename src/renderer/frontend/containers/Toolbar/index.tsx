@@ -30,6 +30,7 @@ const enum Tooltip {
   Filter = 'Filter view content panel',
   Inspector = 'Toggle Inspector',
   Settings = 'Toggle Settings',
+  Back = 'Back to your gallery',
   // FilterTag = 'Filter images by first tag',
 }
 
@@ -105,7 +106,7 @@ const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopover
   </Popover>
 ));
 
-const sortMenuData: Array<{ prop: keyof IFile, icon: JSX.Element, text: string }> = [
+const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }> = [
   // { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
   { prop: 'name', icon: IconSet.FILTER_NAME_UP, text: 'Name' },
   { prop: 'extension', icon: IconSet.FILTER_FILE_TYPE, text: 'File type' },
@@ -117,10 +118,11 @@ const Toolbar = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
   // Outliner actions
-  const handleChooseOutlinerPage = useCallback((page: typeof uiStore.outlinerPage) => {
-    if (uiStore.outlinerPage === page) {
-      uiStore.toggleOutliner();
-    }
+  const handleChooseOutlinerPage = useCallback(
+    (page: typeof uiStore.outlinerPage) => {
+      if (uiStore.outlinerPage === page) {
+        uiStore.toggleOutliner();
+      }
 
     if (page === 'IMPORT') {
       uiStore.openOutlinerImport();
@@ -128,7 +130,6 @@ const Toolbar = observer(() => {
       uiStore.openOutlinerTags();
     }
   }, [uiStore]);
-  // const handleOlImport = useCallback(() => handleChooseOutlinerPage('IMPORT'), [handleChooseOutlinerPage]);
   const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), [handleChooseOutlinerPage]);
   const handleOlSearch = uiStore.toggleQuickSearch;
 
@@ -152,64 +153,27 @@ const Toolbar = observer(() => {
   // );
 
   // Render variables
-  const sortMenu = useMemo(
-    () => {
-      const orderIcon = (
-        <Icon icon={uiStore.view.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
-      );
-      return (
-        <Menu>
-          {sortMenuData.map(({ prop, icon, text }) => (
-            <MenuItem
-              key={prop}
-              icon={icon}
-              text={text}
-              active={uiStore.view.orderBy === prop}
-              labelElement={uiStore.view.orderBy === prop && orderIcon}
-              onClick={() =>
-                uiStore.view.orderBy === prop
-                  ? uiStore.switchFileOrder()
-                  : uiStore.orderFilesBy(prop)
-              }
-            />
-          ))}
-        </Menu>
-      );
-    },
-    [uiStore.view.orderFilesBy, uiStore.view.orderBy, uiStore.view.fileOrder], // eslint-disable-line
-  );
-
-  const layoutMenu = useMemo(
-    () => (
+  const sortMenu = useMemo(() => {
+    const orderIcon = (
+      <Icon icon={uiStore.view.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
+    );
+    return (
       <Menu>
-        <MenuItem
-          onClick={uiStore.view.setMethodList}
-          icon={IconSet.VIEW_LIST}
-          text="List"
-          active={uiStore.view.isList}
-        />
-        <MenuItem
-          onClick={uiStore.view.setMethodGrid}
-          icon={IconSet.VIEW_GRID}
-          text="Grid"
-          active={uiStore.view.isGrid}
-        />
-        <MenuItem
-          onClick={uiStore.view.setMethodMasonry}
-          icon={IconSet.VIEW_MASON}
-          text="Masonry"
-          active={uiStore.view.isMasonry}
-        />
-        <MenuItem
-          onClick={uiStore.view.setMethodSlide}
-          icon={IconSet.VIEW_PRESENT}
-          text="Slide"
-          active={uiStore.view.isSlide}
-        />
+        {sortMenuData.map(({ prop, icon, text }) => (
+          <MenuItem
+            key={prop}
+            icon={icon}
+            text={text}
+            active={uiStore.view.orderBy === prop}
+            labelElement={uiStore.view.orderBy === prop && orderIcon}
+            onClick={() =>
+              uiStore.view.orderBy === prop ? uiStore.switchFileOrder() : uiStore.orderFilesBy(prop)
+            }
+          />
+        ))}
       </Menu>
-    ),
-    [uiStore.view.isGrid, uiStore.view.isList, uiStore.view.isMasonry, uiStore.view.isSlide, uiStore.view.setMethodGrid, uiStore.view.setMethodList, uiStore.view.setMethodMasonry, uiStore.view.setMethodSlide],
-  );
+    );
+  }, [uiStore.view.orderFilesBy, uiStore.view.orderBy, uiStore.view.fileOrder]); //eslint-disable-line
 
   const numFiles = fileStore.fileList.length;
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
@@ -219,13 +183,6 @@ const Toolbar = observer(() => {
     <div id="toolbar">
       <section id="outliner-toolbar">
         <ButtonGroup minimal>
-          {/* <Button
-            icon={IconSet.ADD}
-            onClick={handleOlImport}
-            intent={olPage === 'IMPORT' && uiStore.isOutlinerOpen ? 'primary' : 'none'}
-            className="tooltip"
-            data-right={Tooltip.Add}
-          /> */}
           <Button
             icon={IconSet.TAG}
             onClick={handleOlTags}
@@ -244,16 +201,23 @@ const Toolbar = observer(() => {
       </section>
 
       <section id="main-toolbar">
-        {/* Library info. Todo: Show entire library count instead of current fileList */}
-        <Button
-          id="media"
-          icon={IconSet.MEDIA}
-          minimal
-          className="tooltip"
-          data-right={Tooltip.Media}
-        >
-          {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
-        </Button>
+        <ButtonGroup minimal>
+          {/* Disable slide mode */}
+          {uiStore.view.isSlideMode && (
+            <Button
+              icon="arrow-left"
+              onClick={uiStore.view.disableSlideMode}
+              intent="primary"
+              className="tooltip"
+              data-right={Tooltip.Back}
+            />
+          )}
+
+          {/* Library info. Todo: Show entire library count instead of current fileList */}
+          <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={Tooltip.Media}>
+            {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
+          </Button>
+        </ButtonGroup>
 
         <ButtonGroup minimal>
           {/* Selection info and actions */}
@@ -278,14 +242,6 @@ const Toolbar = observer(() => {
             uiStore={uiStore}
           /> */}
 
-          {/* Gallery actions */}
-          <Popover
-            minimal
-            target={
-              <Button icon={IconSet.VIEW_GRID} className="tooltip" data-right={Tooltip.View} />
-            }
-            content={layoutMenu}
-          />
           <Popover
             minimal
             target={
@@ -294,6 +250,20 @@ const Toolbar = observer(() => {
             content={sortMenu}
           />
         </ButtonGroup>
+
+        <ButtonGroup>
+          <Button
+            onClick={uiStore.view.setMethodList}
+            icon={IconSet.VIEW_LIST}
+            active={uiStore.view.isList}
+          />
+          <Button
+            onClick={uiStore.view.setMethodGrid}
+            icon={IconSet.VIEW_GRID}
+            active={uiStore.view.isGrid}
+          />
+        </ButtonGroup>
+
         <div id="spacer" style={{ width: '100px' }} />
       </section>
 

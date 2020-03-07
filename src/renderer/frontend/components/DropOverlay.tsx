@@ -10,6 +10,7 @@ import { ClientTag } from '../../entities/Tag';
 import { timeoutPromise } from '../utils';
 import { ClientFile, IMG_EXTENSIONS } from '../../entities/File';
 import { RendererMessenger, IStoreFileMessage } from '../../../Messaging';
+import { DEFAULT_LOCATION_ID } from '../../entities/Location';
 
 const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
@@ -24,16 +25,17 @@ async function testImage(url: string, timeout: number = 2000): Promise<boolean> 
   }
 }
 
-function imageAsBase64(url: string): Promise<{ imgBase64: string, blob: Blob }> {
+function imageAsBase64(url: string): Promise<{ imgBase64: string; blob: Blob }> {
   return new Promise(async (resolve, reject) => {
     const response = await fetch(url);
     const blob = await response.blob();
     const reader = new FileReader();
 
     reader.onerror = reject;
-    reader.onload = () => reader.result
-      ? resolve({ imgBase64: reader.result.toString(), blob })
-      : reject('Could not convert to base64 image');
+    reader.onload = () =>
+      reader.result
+        ? resolve({ imgBase64: reader.result.toString(), blob })
+        : reject('Could not convert to base64 image');
     reader.readAsDataURL(blob);
   });
 }
@@ -44,7 +46,7 @@ function getFilenameFromUrl(url: string, fallback: string) {
   }
   const pathname = new URL(url).pathname;
   const index = pathname.lastIndexOf('/');
-  return (index !== -1 ? pathname.substring(index + 1) : pathname);
+  return index !== -1 ? pathname.substring(index + 1) : pathname;
 }
 
 async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
@@ -81,18 +83,20 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
   }
 
   // Filter out URLs that are not an image
-  const imageItems = await Promise.all(Array.from(dropItems).filter((item) => {
-    if (item instanceof File) {
-      return true;
-    } else {
-      // Check if the URL has an image extension, or perform a network request
-      if (imgExtensions.some((ext) => item.toLowerCase().indexOf(`.${ext}`) !== -1)) {
+  const imageItems = await Promise.all(
+    Array.from(dropItems).filter((item) => {
+      if (item instanceof File) {
         return true;
       } else {
-        return testImage(item);
+        // Check if the URL has an image extension, or perform a network request
+        if (imgExtensions.some((ext) => item.toLowerCase().indexOf(`.${ext}`) !== -1)) {
+          return true;
+        } else {
+          return testImage(item);
+        }
       }
-    }
-  }));
+    }),
+  );
 
   return imageItems;
 }
@@ -102,7 +106,10 @@ interface IQuickTagProps {
   onDropOnTag: (e: React.DragEvent, tag?: ClientTag) => void;
 }
 const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
-  const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [onDropOnTag, tag]);
+  const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [
+    onDropOnTag,
+    tag,
+  ]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const handleDragOver = useCallback(() => setIsDraggingOver(true), []);
   const handleDragLeave = useCallback(() => setIsDraggingOver(false), []);
@@ -130,25 +137,28 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
 
   const [isDropping, setIsDropping] = useState<boolean>(false);
 
-  const handleDropStart = useCallback(async (e: React.DragEvent) => {
-    e.dataTransfer.dropEffect = 'copy';
-    let allowDrop = e.dataTransfer.types.some((t) => ALLOWED_DROP_TYPES.includes(t));
-    if (e.dataTransfer.types.includes('Files')) {
-      e.dataTransfer.dropEffect = 'link';
-      allowDrop = false;
-      for (let i = 0; i < e.dataTransfer.items.length; i++) {
-        const f = e.dataTransfer.items[i];
-        if (f && ALLOWED_FILE_DROP_TYPES.includes(f.type)) {
-          allowDrop = true;
-          break;
+  const handleDropStart = useCallback(
+    async (e: React.DragEvent) => {
+      e.dataTransfer.dropEffect = 'copy';
+      let allowDrop = e.dataTransfer.types.some((t) => ALLOWED_DROP_TYPES.includes(t));
+      if (e.dataTransfer.types.includes('Files')) {
+        e.dataTransfer.dropEffect = 'link';
+        allowDrop = false;
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+          const f = e.dataTransfer.items[i];
+          if (f && ALLOWED_FILE_DROP_TYPES.includes(f.type)) {
+            allowDrop = true;
+            break;
+          }
         }
       }
-    }
-    e.preventDefault();
-    if (isDropping !== allowDrop) {
-      setIsDropping(allowDrop);
-    }
-  }, [isDropping]);
+      e.preventDefault();
+      if (isDropping !== allowDrop) {
+        setIsDropping(allowDrop);
+      }
+    },
+    [isDropping],
+  );
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     // Only trigger if dragging outside itself or its children
@@ -164,52 +174,49 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     const dropData = await getDropData(e);
     try {
       for (const dataItem of dropData) {
-        const clientFile = await new Promise<ClientFile>(async (resolve, reject) => {
-          let fileData: IStoreFileMessage | undefined;
+        let fileData: IStoreFileMessage | undefined;
 
-          // Copy file into the default import location
-          if (dataItem instanceof File) {
-            const file = await fse.readFile(dataItem.path);
-            fileData = {
-              filenameWithExt: path.basename(dataItem.path),
-              imgBase64: new Buffer(file).toString('base64'),
-            };
+        // Copy file into the default import location
+        // Reusing the same code for importing through the web extension
+        // Store file -> detected by watching the directory -> import
+        if (dataItem instanceof File) {
+          const file = await fse.readFile(dataItem.path);
+          fileData = {
+            filenameWithExt: path.basename(dataItem.path),
+            imgBase64: new Buffer(file).toString('base64'),
+          };
+        } else if (typeof dataItem === 'string') {
+          // It's probably a URL, so we can download it to get the image data
+          const { imgBase64, blob } = await imageAsBase64(dataItem);
+          const extension = blob.type.split('/')[1];
+          const filename = getFilenameFromUrl(dataItem, 'image');
+          const filenameWithExt = imgExtensions.some((ext) => filename.endsWith(ext))
+            ? filename
+            : `${filename}.${extension}`;
+          fileData = { imgBase64, filenameWithExt };
+        }
+        if (fileData) {
+          const { imgBase64, filenameWithExt } = fileData;
 
-          } else if (typeof dataItem === 'string') {
+          let rejected = false;
+          const timeout = setTimeout(() => {
+            rejected = true;
+            console.error('Could not store dropped image in backend');
+          }, 5000);
 
-            // Get filename and data
-            const { imgBase64, blob } = await imageAsBase64(dataItem);
-            const extension = blob.type.split('/')[1];
-            const filename = getFilenameFromUrl(dataItem, 'image');
-            const filenameWithExt = imgExtensions.some((ext) => filename.endsWith(ext))
-              ? filename
-              : `${filename}.${extension}`;
-            fileData = { imgBase64, filenameWithExt };
-          }
-          if (fileData) {
-            const { imgBase64, filenameWithExt } = fileData;
+          // Send base64 file to main process, get back filename where it is stored
+          const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
 
-            let rejected = false;
-            const timeout = setTimeout(() => {
-              rejected = true;
-              reject('Could not store dropped image in backend');
-            }, 5000);
+          if (!rejected) {
+            clearTimeout(timeout);
+            console.log('Imported file', reply.downloadPath);
 
-            // Send base64 file to main process, get back filename where it is stored
-            const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
-
-            if (!rejected) {
-              clearTimeout(timeout);
-              console.log('Imported file', reply.downloadPath);
-              // resolve(fileStore.addFile(reply.downloadPath, DEFAULT_LOCATION_ID));
-              // File will be detected automatically by the filesystem - no longer needed to import manually
-              // TODO: It will be imported, but the chosen tag won't be automatically added... yet
+            // Add tag if needed
+            const clientFile = await fileStore.addFile(reply.downloadPath, DEFAULT_LOCATION_ID);
+            if (clientFile && tag) {
+              clientFile.addTag(tag.id);
             }
           }
-        });
-        // Add tag if needed
-        if (clientFile && tag) {
-          clientFile.addTag(tag.id);
         }
       }
     } catch (e) {
@@ -217,17 +224,14 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     } finally {
       setIsDropping(false);
     }
-  }, [fileStore]);
+  },
+    [fileStore],
+  );
 
   return (
-    <div
-      onDragOver={handleDropStart}
-    >
+    <div onDragOver={handleDropStart}>
       {children}
-      <Overlay
-        isOpen={isDropping}
-        canEscapeKeyClose={false}
-      >
+      <Overlay isOpen={isDropping} canEscapeKeyClose={false}>
         <div
           onDragLeave={handleDragLeave}
           style={{ width: '100%', height: '100%' }}
@@ -246,9 +250,9 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
 
             {/* TODO: Sort by frequenc, or alphabetically? */}
             <div className="quick-tags">
-              {tagStore.tagList.map((tag) =>
-                <QuickTag tag={tag} onDropOnTag={handleDrop} key={tag.id} />,
-              )}
+              {tagStore.tagList.map((tag) => (
+                <QuickTag tag={tag} onDropOnTag={handleDrop} key={tag.id} />
+              ))}
             </div>
           </Card>
         </div>
