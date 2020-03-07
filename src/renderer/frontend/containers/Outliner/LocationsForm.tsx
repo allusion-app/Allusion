@@ -38,11 +38,12 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps> {
 
   render() {
     const { dir } = this.props;
+    const isImportLocation = this.props.dir.id === DEFAULT_LOCATION_ID;
     return (
       <li>
         <Button
           fill
-          icon={IconSet.FOLDER_CLOSE}
+          icon={isImportLocation ? 'import' : IconSet.FOLDER_CLOSE}
           rightIcon={dir.isBroken ? <Icon icon={IconSet.WARNING} /> : null}
           className={'tooltip'}
           data-right={`${dir.isBroken ? 'Cannot find this location: ' : ''} ${dir.path}`}
