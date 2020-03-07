@@ -2,7 +2,7 @@ import React, { useContext, useCallback, useState } from 'react';
 import { remote, shell } from 'electron';
 import Path from 'path';
 import { observer, Observer } from 'mobx-react-lite';
-import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert, Dialog, Checkbox, Label } from '@blueprintjs/core';
+import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert, Dialog, Label } from '@blueprintjs/core';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
@@ -90,11 +90,11 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
             <>
               <span>Path: <pre>{dir.path}</pre></span>
               {/* <Checkbox label="Recursive" checked /> */}
-              <Checkbox label="Add folder name as tag" />
+              {/* <Checkbox label="Add folder name as tag" /> */}
               <Label>
                 Tags to add
                 <MultiTagSelector
-                  selectedTags={dir.clientTagsToAdd}
+                  selectedItems={dir.clientTagsToAdd}
                   onTagSelect={dir.addTag}
                   onTagDeselect={dir.removeTag}
                   onClearSelection={dir.clearTags}
