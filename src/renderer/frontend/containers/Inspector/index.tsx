@@ -41,8 +41,8 @@ const Inspector = observer(() => {
     selectionPreview = (
       <img
         src={singleFile.path}
-        style={{ cursor: 'zoom-in' }}
-        onClick={() => (uiStore.setImageViewer(singleFile))}
+        style={{ cursor: uiStore.view.isSlideMode ? undefined : 'zoom-in' }}
+        onClick={() => (uiStore.view.enableSlideMode())}
       />
     );
     headerText = path.basename(singleFile.path);

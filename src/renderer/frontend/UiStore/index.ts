@@ -119,7 +119,6 @@ class UiStore {
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
-  @observable imageViewerFile: ClientFile | null = null;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
@@ -236,10 +235,6 @@ class UiStore {
     return this.tagSelection
       .map((id) => this.rootStore.tagStore.get(id))
       .filter((t) => t !== undefined) as ClientTag[];
-  }
-
-  @action.bound setImageViewer(file: ClientFile | null) {
-    this.imageViewerFile = file;
   }
 
   @action.bound setThumbnailDirectory(dir: string = '') {

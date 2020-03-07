@@ -46,6 +46,10 @@ const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImag
   );
 };
 
+/**
+ * Not used anymore. Tried creating custom component for full control but had some difficulty with supporting
+ * all combinations of image sizes and aspect ratios. Could retry later on.
+ */
 export const CustomZoomableImage = ({ src, contentRect }: IZoomableImageProps) => {
   const imageEl = useRef<HTMLImageElement>(null);
   const [isDragging, setIsDragging] = useState(false);
