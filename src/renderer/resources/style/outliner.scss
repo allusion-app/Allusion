@@ -2,7 +2,7 @@
 nav {
   grid-area: outliner;
   overflow-y: initial;
-  // overflow-x: hidden;
+  overflow-x: hidden;
   flex-shrink: 0;
   width: 0;
   min-width: 0;
@@ -15,6 +15,7 @@ nav {
   &.outlinerOpen {
     min-width: var(--outliner-width);
     width: 16rem;
+    overflow-x: visible !important;
     z-index: 1;
     margin-right: 8px;  
 
