@@ -3,6 +3,7 @@ import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from '../UiStore';
 import TagCollectionStore from './TagCollectionStore';
+import LocationStore from './LocationStore';
 
 import { configure } from 'mobx';
 
@@ -25,6 +26,7 @@ class RootStore {
   public tagStore: TagStore;
   public tagCollectionStore: TagCollectionStore;
   public fileStore: FileStore;
+  public locationStore: LocationStore;
   public uiStore: UiStore;
 
   private backend: Backend;
@@ -34,6 +36,7 @@ class RootStore {
     this.tagStore = new TagStore(backend, this);
     this.tagCollectionStore = new TagCollectionStore(backend, this);
     this.fileStore = new FileStore(backend, this);
+    this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);
 
     this.clearDatabase = this.clearDatabase.bind(this);
@@ -44,6 +47,7 @@ class RootStore {
       this.tagStore.init(),
       this.tagCollectionStore.init(),
       this.fileStore.init(autoLoadFiles),
+      this.locationStore.init(autoLoadFiles),
     ]);
     // Upon loading data, initialize UI state.
     this.uiStore.init();

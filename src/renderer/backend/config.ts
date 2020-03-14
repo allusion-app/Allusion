@@ -9,11 +9,11 @@ export const DB_NAME = 'Allusion';
 // https://dexie.org/docs/Tutorial/Design#database-versioning
 export const dbConfig: IDBVersioningConfig[] = [
   {
-    version: 1.1,
+    version: 1,
     collections: [
       {
         name: 'files',
-        schema: '++id, *tags, dateAdded, name, extension, size',
+        schema: '++id, locationId, *tags, &path, name, extension, size, width, height, dateAdded, dateModified',
       },
       {
         name: 'tags',
@@ -22,6 +22,10 @@ export const dbConfig: IDBVersioningConfig[] = [
       {
         name: 'tagCollections',
         schema: '++id',
+      },
+      {
+        name: 'locations',
+        schema: '++id, dateAdded',
       },
     ],
   },

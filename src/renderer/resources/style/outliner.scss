@@ -16,6 +16,8 @@ nav {
     min-width: var(--outliner-width);
     width: 16rem;
     overflow-x: visible !important;
+    z-index: 1;
+    margin-right: 8px;  
 
     button.bp3-button.bp3-minimal {
       opacity: 0;
@@ -148,17 +150,26 @@ nav {
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
-#outliner-tags-header-wrapper {
+.outliner-header-wrapper {
   display: flex;
   min-height: 39px;
+  background: transparent !important;
+  cursor: pointer;
 
   h4 {
+    margin-left: 4px;
     margin-right: auto;
+      // caret icon
+    > .bp3-icon {
+      margin-right: 4px;
+      margin-bottom: 2px;
+      margin-left: 4px;
+    }
   }
 }
 
 #outliner {
-  &:hover #outliner-tags-header-wrapper:not(last-child) > * {
+  > div:hover .outliner-header-wrapper:not(last-child) > * {
     opacity: 1;
   }
 }
@@ -184,7 +195,11 @@ nav .bp3-tree {
 // Reordering by dragging
 .bp3-tree-node {
   &-label {
-    min-height: 20px !important;
+    // min-height: 20px !important;
+    text-transform: lowercase;
+    &::first-letter {
+      text-transform: uppercase;
+    }
   }
   .reorder-target {
     border-bottom: 2px solid $blue1;
@@ -229,4 +244,35 @@ nav .bp3-tree {
 
 .bp3-tree .bp3-input {
   height: 1.6rem;
+}
+
+#watched-folders {
+  padding-left: 0;
+  margin: 0;
+  div > span:first-child {
+  padding: 0.25rem 0.05rem;
+  margin-left: 0.5rem;
+  }
+  > ul {
+    margin: 0;
+  }
+  > li {
+    list-style-type: none;
+    button {
+      background: none;
+      // width: fit-content !important;
+      padding: 0 1rem;
+      padding-right: 0;
+      justify-content: left;
+      width: 100%;
+      border-radius: 0;
+    }
+    > span {
+      width: calc(100% - 30px);
+      display: inline-block;
+      height: 30px;
+      display: flex;
+      align-items: center;
+    }
+  }
 }

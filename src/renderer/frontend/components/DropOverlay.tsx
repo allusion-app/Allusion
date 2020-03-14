@@ -2,12 +2,15 @@ import React, { useState, useCallback, useContext } from 'react';
 import { Card, Overlay, H4, Tag } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
+import fse from 'fs-extra';
+import path from 'path';
 
 import { imgExtensions } from '../containers/Outliner/ImportForm';
 import { ClientTag } from '../../entities/Tag';
 import { timeoutPromise } from '../utils';
-import { ClientFile, IMG_EXTENSIONS } from '../../entities/File';
-import { RendererMessenger } from '../../../Messaging';
+import { IMG_EXTENSIONS } from '../../entities/File';
+import { RendererMessenger, IStoreFileMessage } from '../../../Messaging';
+import { DEFAULT_LOCATION_ID } from '../../entities/Location';
 
 const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
@@ -164,52 +167,64 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     }
   }, []);
 
-  const handleDrop = useCallback(
-    async (e: React.DragEvent, tag?: ClientTag) => {
-      e.preventDefault();
-      e.stopPropagation();
+  const handleDrop = useCallback(async (e: React.DragEvent, tag?: ClientTag) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-      const dropData = await getDropData(e);
-      try {
-        for (const dataItem of dropData) {
-          const clientFile = await new Promise<ClientFile>(async (resolve, reject) => {
-            if (dataItem instanceof File) {
-              resolve(fileStore.addFile(dataItem.path));
-            } else if (typeof dataItem === 'string') {
-              let rejected = false;
-              const timeout = setTimeout(() => {
-                rejected = true;
-                reject('Could not store dropped image in backend');
-              }, 5000);
+    const dropData = await getDropData(e);
+    try {
+      for (const dataItem of dropData) {
+        let fileData: IStoreFileMessage | undefined;
 
-              // Get filename and data
-              const { imgBase64, blob } = await imageAsBase64(dataItem);
-              const extension = blob.type.split('/')[1];
-              const filename = getFilenameFromUrl(dataItem, 'image');
-              const filenameWithExt = imgExtensions.some((ext) => filename.endsWith(ext))
-                ? filename
-                : `${filename}.${extension}`;
+        // Copy file into the default import location
+        // Reusing the same code for importing through the web extension
+        // Store file -> detected by watching the directory -> import
+        if (dataItem instanceof File) {
+          const file = await fse.readFile(dataItem.path);
+          fileData = {
+            filenameWithExt: path.basename(dataItem.path),
+            imgBase64: new Buffer(file).toString('base64'),
+          };
+        } else if (typeof dataItem === 'string') {
+          // It's probably a URL, so we can download it to get the image data
+          const { imgBase64, blob } = await imageAsBase64(dataItem);
+          const extension = blob.type.split('/')[1];
+          const filename = getFilenameFromUrl(dataItem, 'image');
+          const filenameWithExt = imgExtensions.some((ext) => filename.endsWith(ext))
+            ? filename
+            : `${filename}.${extension}`;
+          fileData = { imgBase64, filenameWithExt };
+        }
+        if (fileData) {
+          const { imgBase64, filenameWithExt } = fileData;
 
-              // Send base64 file to main process, get back filename where it is stored
-              const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
+          let rejected = false;
+          const timeout = setTimeout(() => {
+            rejected = true;
+            console.error('Could not store dropped image in backend');
+          }, 5000);
 
-              if (!rejected) {
-                clearTimeout(timeout);
-                resolve(fileStore.addFile(reply.downloadPath));
-              }
+          // Send base64 file to main process, get back filename where it is stored
+          const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
+
+          if (!rejected) {
+            clearTimeout(timeout);
+            console.log('Imported file', reply.downloadPath);
+
+            // Add tag if needed
+            const clientFile = await fileStore.addFile(reply.downloadPath, DEFAULT_LOCATION_ID);
+            if (clientFile && tag) {
+              clientFile.addTag(tag.id);
             }
-          });
-          // Add tag if needed
-          if (clientFile && tag) {
-            clientFile.addTag(tag.id);
           }
         }
-      } catch (e) {
-        console.log('Error while importing dropped file:', e);
-      } finally {
-        setIsDropping(false);
       }
-    },
+    } catch (e) {
+      console.log('Error while importing dropped file:', e);
+    } finally {
+      setIsDropping(false);
+    }
+  },
     [fileStore],
   );
 
@@ -225,7 +240,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
           <Card
             elevation={4}
             className="drop-overlay-content"
-            // todo: blue background when dropping over
+          // todo: blue background when dropping over
           >
             <H4 className="bp3-heading inpectorHeading">Drop import</H4>
             <p>Drag onto a tag to immediately tag it or anywhere to import it untagged</p>

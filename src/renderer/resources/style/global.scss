@@ -46,7 +46,8 @@ body {
 main {
   grid-area: main;
   overflow: hidden; //temp fix for double scrollbar
-  height: inherit;
+  // height: inherit;
+  // z-index: 0;
 }
 
 #layoutContainer {
@@ -154,7 +155,7 @@ img {
   max-width: 600px !important;
   min-width: max-content;
   left: 1rem;
-  top: 1rem;
+  top: .25rem; //Fix for z-index issue
   margin-left: 1.5rem;
   margin-top: 1.5rem;
   text-align: left;
@@ -168,6 +169,7 @@ img {
   box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 }
 [data-right]:hover:after,
 [data-left]:hover:after {
@@ -351,7 +353,7 @@ img {
 .bp3-overlay-content {
   display: flex;
   align-items: center;
-  // justify-content: center;
+  justify-content: center;
 }
 .drop-overlay-content {
   // top: 0;
@@ -382,6 +384,11 @@ img {
 .custom-icon-64 > * {
   height: 4rem !important;
   width: 4rem !important;
+}
+.custom-icon-14 > * {
+  height: 0.875rem !important;
+  width: 0.875rem !important;
+  display: block;
 }
 .bp3-alert .custom-icon,
 .custom-icon-32 > * {
@@ -494,4 +501,18 @@ img {
 .color-white {
   color: white;
   transition: color 0.2s ease;
+}
+
+.ellipsis {
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ellipsis-left {
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
 }

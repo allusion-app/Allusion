@@ -1,6 +1,6 @@
 import path from 'path';
 import fse from 'fs-extra';
-import { action, observable, computed } from 'mobx';
+import { action, observable, computed, observe } from 'mobx';
 import { remote } from 'electron';
 
 import RootStore from '../stores/RootStore';
@@ -8,9 +8,10 @@ import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
-import View, { ViewMethod, ViewContent, ViewThumbnailSize } from './View';
+import View, { ViewMethod, ViewContent, ViewThumbnailSize, PersistentPreferenceFields as ViewPersistentPrefFields } from './View';
 import { ClientBaseCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
+import { debounce } from '../utils';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -118,7 +119,6 @@ class UiStore {
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
-  @observable imageViewerFile: ClientFile | null = null;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
@@ -133,6 +133,11 @@ class UiStore {
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
+
+    // Store preferences immediately when anything is changed
+    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
+    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+    ViewPersistentPrefFields.forEach((f) => observe(this.view, f, debouncedPersist));
   }
 
   @action.bound init() {
@@ -230,10 +235,6 @@ class UiStore {
     return this.tagSelection
       .map((id) => this.rootStore.tagStore.get(id))
       .filter((t) => t !== undefined) as ClientTag[];
-  }
-
-  @action.bound setImageViewer(file: ClientFile | null) {
-    this.imageViewerFile = file;
   }
 
   @action.bound setThumbnailDirectory(dir: string = '') {
@@ -480,18 +481,13 @@ class UiStore {
   }
 
   @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
-    // Remove empty array criteria if it already exists before adding the new one
-    if (this.searchCriteriaList.length === 1 && this.searchCriteriaList[0].valueType === 'array') {
-      if ((this.searchCriteriaList[0] as ClientArraySearchCriteria<IFile>).value.length === 0) {
-        this.searchCriteriaList.clear();
-      }
-    }
     this.searchCriteriaList.push(query);
     this.view.setContentQuery();
   }
 
   @action.bound async removeSearchCriteria(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
+    this.view.setContentQuery();
   }
 
   @action.bound async removeSearchCriteriaByIndex(i: number) {
@@ -564,11 +560,7 @@ class UiStore {
   }
   @action.bound toggleQuickSearch() {
     this.isQuickSearchOpen = !this.isQuickSearchOpen;
-    if (this.isQuickSearchOpen) {
-      if (this.searchCriteriaList.length === 0) {
-        this.searchCriteriaList.push(new ClientArraySearchCriteria('tags'));
-      }
-    } else {
+    if (!this.isQuickSearchOpen) {
       this.clearSearchCriteriaList();
     }
   }
@@ -576,6 +568,10 @@ class UiStore {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
     if (this.isAdvancedSearchOpen && !this.isQuickSearchOpen) {
       this.toggleQuickSearch();
+    }
+    // Add initial empty criteria if none exist
+    if (this.isAdvancedSearchOpen && this.searchCriteriaList.length === 0) {
+      this.addSearchCriteria(new ClientArraySearchCriteria('tags'));
     }
   }
   @action.bound closeSearch() {

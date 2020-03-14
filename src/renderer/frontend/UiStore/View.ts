@@ -2,9 +2,8 @@ import { observable, action, computed } from 'mobx';
 import { IFile } from '../../entities/File';
 import { FileOrder } from '../../backend/DBRepository';
 
-const PersistentPreferenceFields: Array<keyof View> = [
+export const PersistentPreferenceFields: Array<keyof View> = [
   'method',
-  'content',
   'orderBy',
   'fileOrder',
   'thumbnailSize',

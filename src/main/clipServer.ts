@@ -1,18 +1,23 @@
 import http, { Server } from 'http';
 import path from 'path';
-import os from 'os';
 import fse from 'fs-extra';
 
 import { SERVER_PORT } from '../config';
 import { app } from 'electron';
 import { ITag } from '../renderer/entities/Tag';
 
+/**
+ * The clip server hosts endpoints for our browser extension to import images,
+ * optionally including metadata such as tags.
+ */
+
 // Contains a single preferences JSON object
 const preferencesFilePath = path.join(app.getPath('userData'), 'clipPreferences.json');
-// Contains a IImportItem JSON object per line
+// Contains a IImportItem JSON object per line, added when importing images while the main window is closed
 const importQueueFilePath = path.join(app.getPath('userData'), 'importQueue.txt');
 
 export interface IImportItem {
+  // Path relative to the import location
   filePath: string;
   tagNames: string[];
   dateAdded: Date;
@@ -59,7 +64,7 @@ class ClipServer {
 
   private preferences = {
     isEnabled: false,
-    downloadPath: path.join(os.homedir(), 'Allusion'),
+    downloadPath: '',
     runInBackground: false,
   };
 
@@ -68,6 +73,11 @@ class ClipServer {
   private addTagsToFile: (item: IImportItem) => Promise<boolean>;
   private requestTags: () => Promise<ITag[]>;
 
+  /**
+   * @param importImage A callback function that imports an image in the database - returns false when database is not accessible.
+   * @param addTagsToFile A callback that adds tags to a previously imported image
+   * @param requestTags A callback that retrieves all tags stored in the database
+   */
   constructor(
     importImage: (item: IImportItem) => Promise<boolean>,
     addTagsToFile: (item: IImportItem) => Promise<boolean>,

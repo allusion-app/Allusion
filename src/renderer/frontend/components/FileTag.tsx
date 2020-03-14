@@ -4,6 +4,7 @@ import { ClientFile } from '../../entities/File';
 import { observer } from 'mobx-react-lite';
 import MultiTagSelector from './MultiTagSelector';
 import StoreContext from '../contexts/StoreContext';
+import { ClientTagCollection } from '../../entities/TagCollection';
 
 interface IFileTagProps {
   files: ClientFile[];
@@ -31,7 +32,7 @@ const Single = observer(({ file, autoFocus }: { file: ClientFile, autoFocus?: bo
 
   return (
     <MultiTagSelector
-      selectedTags={file.clientTags}
+      selectedItems={file.clientTags}
       onClearSelection={handleClear}
       onTagDeselect={handleDeselect}
       onTagSelect={handleSelect}
@@ -69,7 +70,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
   );
 
   const tagLabel = useCallback(
-    (tag: ClientTag) => {
+    (tag: ClientTag | ClientTagCollection) => {
       const match = sortedTags.find((pair) => pair[0] === tag);
       return `${tag.name} (${match ? match[1] : '?'})`;
     },
@@ -88,7 +89,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
 
   return (
     <MultiTagSelector
-      selectedTags={sortedTags.map((pair) => pair[0])}
+      selectedItems={sortedTags.map((pair) => pair[0])}
       onClearSelection={handleClear}
       onTagDeselect={handleDeselect}
       onTagSelect={handleSelect}

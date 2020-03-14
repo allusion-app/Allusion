@@ -1,7 +1,11 @@
 import { ID } from './renderer/entities/ID';
 import { IImportItem } from './main/clipServer';
 import { ITag } from './renderer/entities/Tag';
-import { ipcRenderer, ipcMain, WebContents, IpcMessageEvent, IpcRenderer, IpcMain } from 'electron';
+import { ipcRenderer, ipcMain, WebContents, IpcMessageEvent, IpcRenderer, IpcMain, app } from 'electron';
+
+/**
+ * All types of messages between the main and renderer process in one place, with type safety.
+ */
 
 /////////////////// General ////////////////////
 export const INITIALIZED = 'INITIALIZED';
@@ -57,8 +61,10 @@ export interface IRunInBackgroundMessage {
   isRunInBackground: boolean;
 }
 
+export const GET_USER_PICTURES_PATH = 'GET_USER_PICTURES_PATH';
 export const GET_DOWNLOAD_PATH = 'GET_DOWNLOAD_PATH';
-export const SET_DOWNLOAD_PATH = 'SET_DOWNLOAD_PATH';
+export const RECEIVE_DOWNLOAD_PATH = 'RECEIVE_DOWNLOAD_PATH';
+export const SET_DOWNLOAD_PATH = 'S ET_DOWNLOAD_PATH';
 export interface IDownloadPathMessage {
   dir: string;
 }
@@ -76,10 +82,6 @@ export class RendererMessenger {
     });
   };
 
-  static getDownloadPath = (): string => {
-    return ipcRenderer.sendSync(GET_DOWNLOAD_PATH);
-  };
-
   static getIsClipServerEnabled = (): boolean => {
     return ipcRenderer.sendSync(IS_CLIP_SERVER_RUNNING);
   };
@@ -90,6 +92,10 @@ export class RendererMessenger {
 
   static setDownloadPath = (msg: IDownloadPathMessage) => {
     ipcRenderer.send(SET_DOWNLOAD_PATH, msg);
+  };
+
+  static onGetDownloadPath = (cb: () => string) => {
+    return ipcRenderer.on(RECEIVE_DOWNLOAD_PATH, cb);
   };
 
   static setClipServerEnabled = (msg: IClipServerEnabledMessage) => {
@@ -135,6 +141,8 @@ export class RendererMessenger {
   static onClosedPreviewWindow = (cb: () => void): IpcRenderer => {
     return ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
   };
+
+  static getUserPicturesPath = (): string => ipcRenderer.sendSync(GET_USER_PICTURES_PATH);
 }
 
 export class MainMessenger {
@@ -168,8 +176,11 @@ export class MainMessenger {
     );
   };
 
-  static onGetDownloadPath = (cb: () => string): IpcMain => {
-    return ipcMain.on(GET_DOWNLOAD_PATH, (e: IpcMessageEvent) => (e.returnValue = cb()));
+  static getDownloadPath = (wc: WebContents): Promise<IDownloadPathMessage> => {
+    wc.send(GET_DOWNLOAD_PATH);
+    return new Promise((resolve) =>
+      ipcMain.once(RECEIVE_DOWNLOAD_PATH, (_: IpcMessageEvent, msg: IDownloadPathMessage) => resolve(msg))
+    );
   };
 
   static onIsClipServerRunning = (cb: () => boolean): IpcMain => {
@@ -207,5 +218,9 @@ export class MainMessenger {
       const downloadPath = await getDownloadPath(msg);
       e.sender.send(STORE_FILE_REPLY, { downloadPath } as IStoreFileReplyMessage);
     });
+  };
+
+  static onGetUserPicturesPath = (): IpcMain => {
+    return ipcMain.on(GET_USER_PICTURES_PATH, (e: IpcMessageEvent) => (e.returnValue = app.getPath('pictures')));
   };
 }

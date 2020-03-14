@@ -22,40 +22,52 @@ import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
 
 const Settings = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
   const [isClipServerRunning, setClipServerRunning] = useState(false);
   const [isRunningInBackground, setRunningInBackground] = useState(false);
-  const [importPath, setImportPath] = useState('');
+  const [importPath, setImportPath] = useState(locationStore.importDirectory);
 
-  const toggleClipServer = useCallback(() => {
-    RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
-    setClipServerRunning(!isClipServerRunning);
-  }, [setClipServerRunning, isClipServerRunning]);
+  const toggleClipServer = useCallback(
+    () => {
+      RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
+      setClipServerRunning(!isClipServerRunning);
+    },
+    [setClipServerRunning, isClipServerRunning],
+  );
 
-  const toggleRunInBackground = useCallback(() => {
-    RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
-    setRunningInBackground(!isRunningInBackground);
-  }, [setRunningInBackground, isRunningInBackground]);
+  const toggleRunInBackground = useCallback(
+    () => {
+      RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
+      setRunningInBackground(!isRunningInBackground);
+    },
+    [setRunningInBackground, isRunningInBackground],
+  );
 
-  const browseImportDir = useCallback(() => {
-    const dirs = remote.dialog.showOpenDialog({
-      properties: ['openDirectory'],
-    });
+  const browseImportDir = useCallback(
+    () => {
+      const dirs = remote.dialog.showOpenDialog({
+        properties: ['openDirectory'],
+      });
 
-    if (!dirs) {
-      return;
-    }
+      if (!dirs) {
+        return;
+      }
 
-    const dir = dirs[0];
-    setImportPath(dir);
-    RendererMessenger.setDownloadPath({ dir });
-  }, [setImportPath]);
+      const chosenDir = dirs[0];
+      locationStore.changeDefaultLocation(chosenDir);
+      setImportPath(chosenDir);
+
+      // Todo: Provide option to move/copy the files in that directory (?)
+      // Since the import dir could also contain non-allusion files, not sure if a good idea
+      // But then there should be support for re-importing manually copied files
+    },
+    [setImportPath, locationStore],
+  );
 
   useEffect(() => {
     setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
     setRunningInBackground(RendererMessenger.getIsRunningInBackground());
-    setImportPath(RendererMessenger.getDownloadPath());
   }, []);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
@@ -148,12 +160,12 @@ const Settings = observer(() => {
         <FormGroup label="Thumbnail directory">
           <label
             className={`${Classes.FILL} ${Classes.FILE_INPUT} ${Classes.FILE_INPUT_HAS_SELECTION}`}
-            htmlFor="importPathInput"
+            htmlFor="thumbnailPathInput"
           >
             {/* Where to import images you drop on the app or import through the browser extension */}
             <span
               className={Classes.FILE_UPLOAD_INPUT}
-              id="importPathInput"
+              id="thumbnailPathInput"
               onClick={browseThumbnailDirectory}
               title={uiStore.thumbnailDirectory}
             >

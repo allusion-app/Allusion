@@ -17,9 +17,13 @@ const mockTag: ITag = {
 
 const mockFile: IFile = {
   path: 'c:/test file.jpg',
+  locationId: 'Default location',
   name: 'test file.jpg',
-  dateAdded: new Date(),
   size: 42,
+  width: 640,
+  height: 480,
+  dateAdded: new Date(),
+  dateModified: new Date(),
   extension: 'jpg',
   id: '1234',
   tags: [mockTag.id],

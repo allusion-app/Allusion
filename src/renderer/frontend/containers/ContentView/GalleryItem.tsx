@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useContext } from 're
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { useDrop } from 'react-dnd';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes, H3 } from '@blueprintjs/core';
+import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -93,11 +93,14 @@ export const GalleryItem = observer(({
     setImageLoaded(false);
   }, [imagePath]);
 
+  // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
+  // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
+
   return (
     <div ref={galleryItemDrop} className={className}>
       <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
         {isImageLoaded ? <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
-          : imageError ? <H3>:( <br /> Could not load image</H3> // Show an error it it could not be loaded
+          : imageError ? <span className="image-error"><span className="bp3-icon custom-icon custom-icon-32">{IconSet.DB_ERROR}</span> <br /> Could not load image</span> // Show an error it it could not be loaded
             : <div className={Classes.SKELETON} /> // Else show a placeholder
         }
       </div>
@@ -138,7 +141,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
       <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+      {/* <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} /> */}
     </Menu>
   );
 };
