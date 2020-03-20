@@ -21,7 +21,9 @@ const WelcomeDialog = () => {
   const [showDialog, setShowDialog] = useState(!Boolean(locationStore.get(DEFAULT_LOCATION_ID)));
   const handleClose = useCallback(() => setShowDialog(false), []);
 
-  const [importLocation, setImportLocation] = useState(path.join(RendererMessenger.getUserPicturesPath(), 'Allusion'));
+  const [importLocation, setImportLocation] = useState(
+    path.join(RendererMessenger.getUserPicturesPath(), 'Allusion'),
+  );
   const browseImportDirectory = useCallback(() => {
     const dirs = remote.dialog.showOpenDialog({
       properties: ['openDirectory'],
@@ -44,7 +46,6 @@ const WelcomeDialog = () => {
 
     // Todo: Start tour?
     setShowDialog(false);
-
   }, [importLocation, locationStore]);
 
   return (
@@ -60,22 +61,22 @@ const WelcomeDialog = () => {
       <div className={Classes.DIALOG_BODY}>
         <p>
           <strong>
-            Allusion is a tool designed to help you organize your <i>Visual Library</i>,
-            so you can easily retrieve relevant images throughout your creative process.
+            Allusion is a tool designed to help you organize your <i>Visual Library</i>, so you can
+            easily retrieve relevant images throughout your creative process.
           </strong>
         </p>
 
         {/*
-        * Add files by
-        * - Adding a location - files added to that folder will automatically show up in Allusion
-        * - Drag and drop images from your file explorer or browser to copy them into your Import Location
-        * - Use the Allusion Chrome Extension to download, even when Allusion is running in the background
-        */}
+         * Add files by
+         * - Adding a location - files added to that folder will automatically show up in Allusion
+         * - Drag and drop images from your file explorer or browser to copy them into your Import Location
+         * - Use the Allusion Chrome Extension to download, even when Allusion is running in the background
+         */}
 
         {/* Todo: Would be nicer to do in steps (cards sliding (NEXT -> NEXT -> Start tour)) */}
         <p>
-          Before setting up your visual library, please choose where you would like
-          to store images that you import from external sources:
+          Before setting up your visual library, please choose where you would like to store images
+          that you import from external sources:
         </p>
         <p>
           This will be the directory of your default <b>Location</b>.
@@ -103,27 +104,27 @@ const WelcomeDialog = () => {
           Do you have any existing directories containing images that you would like to add as
           Locations to your visual library?
         </p>
-        
+
         <Divider />
 
         <LocationsForm />
 
         <br />
-        <p>
-          Woud you like a quick tour to familiarize yourself with Allusion?
-        </p>
+        <p>Woud you like a quick tour to familiarize yourself with Allusion?</p>
       </div>
 
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-            <Button onClick={handleClose} disabled>Skip</Button>
-            <Button intent="primary" onClick={handleSubmit}>
-              Start
-            </Button>
+          <Button onClick={handleClose} disabled>
+            Skip
+          </Button>
+          <Button intent="primary" onClick={handleSubmit}>
+            Start
+          </Button>
         </div>
       </div>
     </Dialog>
-  )
+  );
 };
 
 export default observer(WelcomeDialog);

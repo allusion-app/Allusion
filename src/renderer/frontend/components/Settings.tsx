@@ -28,42 +28,33 @@ const Settings = observer(() => {
   const [isRunningInBackground, setRunningInBackground] = useState(false);
   const [importPath, setImportPath] = useState(locationStore.importDirectory);
 
-  const toggleClipServer = useCallback(
-    () => {
-      RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
-      setClipServerRunning(!isClipServerRunning);
-    },
-    [setClipServerRunning, isClipServerRunning],
-  );
+  const toggleClipServer = useCallback(() => {
+    RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
+    setClipServerRunning(!isClipServerRunning);
+  }, [setClipServerRunning, isClipServerRunning]);
 
-  const toggleRunInBackground = useCallback(
-    () => {
-      RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
-      setRunningInBackground(!isRunningInBackground);
-    },
-    [setRunningInBackground, isRunningInBackground],
-  );
+  const toggleRunInBackground = useCallback(() => {
+    RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
+    setRunningInBackground(!isRunningInBackground);
+  }, [setRunningInBackground, isRunningInBackground]);
 
-  const browseImportDir = useCallback(
-    () => {
-      const dirs = remote.dialog.showOpenDialog({
-        properties: ['openDirectory'],
-      });
+  const browseImportDir = useCallback(() => {
+    const dirs = remote.dialog.showOpenDialog({
+      properties: ['openDirectory'],
+    });
 
-      if (!dirs) {
-        return;
-      }
+    if (!dirs) {
+      return;
+    }
 
-      const chosenDir = dirs[0];
-      locationStore.changeDefaultLocation(chosenDir);
-      setImportPath(chosenDir);
+    const chosenDir = dirs[0];
+    locationStore.changeDefaultLocation(chosenDir);
+    setImportPath(chosenDir);
 
-      // Todo: Provide option to move/copy the files in that directory (?)
-      // Since the import dir could also contain non-allusion files, not sure if a good idea
-      // But then there should be support for re-importing manually copied files
-    },
-    [setImportPath, locationStore],
-  );
+    // Todo: Provide option to move/copy the files in that directory (?)
+    // Since the import dir could also contain non-allusion files, not sure if a good idea
+    // But then there should be support for re-importing manually copied files
+  }, [setImportPath, locationStore]);
 
   useEffect(() => {
     setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
