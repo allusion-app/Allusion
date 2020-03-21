@@ -21,6 +21,7 @@ import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
+import Recovery from '../Recovery';
 
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
 const CELL_SIZE_SMALL = 160 - 2;
@@ -54,10 +55,14 @@ interface IGalleryLayoutProps {
 function getLayoutComponent(
   viewMethod: ViewMethod,
   isSlideMode: boolean,
+  isRecoveryMode: boolean,
   props: IGalleryLayoutProps,
 ) {
   if (isSlideMode) {
     return <SlideGallery {...props} />;
+  }
+  if (isRecoveryMode) {
+    return <Recovery />;
   }
   switch (viewMethod) {
     case 'grid':
@@ -584,7 +589,7 @@ const Gallery = ({
         }`}
         onClick={handleBackgroundClick}
       >
-        {getLayoutComponent(uiStore.view.method, uiStore.view.isSlideMode, {
+        {getLayoutComponent(uiStore.view.method, uiStore.view.isSlideMode, uiStore.view.showsRecoveryContent, {
           contentRect,
           fileList,
           uiStore,

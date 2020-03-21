@@ -252,7 +252,9 @@ class UiStore {
   }
 
   @action.bound refetch() {
-    if (this.view.showsAllContent) {
+    if (this.view.content === 'recovery') {
+      this.rootStore.fileStore.fetchBrokenFiles();
+    } else if (this.view.showsAllContent) {
       this.rootStore.fileStore.fetchAllFiles();
     } else if (this.view.showsUntaggedContent) {
       this.rootStore.fileStore.fetchUntaggedFiles();
@@ -542,6 +544,12 @@ class UiStore {
     if (this.isAdvancedSearchOpen) {
       this.toggleAdvancedSearch();
     }
+  }
+  @action.bound viewRecoveryContent() {
+    this.clearTagSelection();
+    this.clearFileSelection();
+    this.rootStore.fileStore.fetchBrokenFiles();
+    this.view.setContentRecovery();
   }
 
   @action.bound toggleTheme() {

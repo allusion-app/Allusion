@@ -58,6 +58,16 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
             fill
             data-right={Tooltip.Untagged}
           />
+          <Button
+            text={`Recovery (x)`}
+            icon="heart-broken"
+            rightIcon={
+              <Icon icon={uiStore.view.showsRecoveryContent ? IconSet.PREVIEW : IconSet.WARNING} />
+            }
+            onClick={uiStore.viewRecoveryContent}
+            active={uiStore.view.showsRecoveryContent}
+            fill
+          />
         </ButtonGroup>
       </div>
     </div>

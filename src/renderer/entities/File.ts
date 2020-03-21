@@ -107,9 +107,12 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   readonly extension: string;
 
   @observable
+  isBroken: boolean;
+
+  @observable
   thumbnailPath: string;
 
-  constructor(store: FileStore, fileProps: IFile) {
+  constructor(store: FileStore, fileProps: IFile, isBroken?: boolean) {
     this.store = store;
 
     this.id = fileProps.id;
@@ -123,6 +126,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
     this.name = fileProps.name;
     this.extension = fileProps.extension;
     this.thumbnailPath = '';
+    this.isBroken = isBroken || false;
 
     this.tags.push(...fileProps.tags);
 

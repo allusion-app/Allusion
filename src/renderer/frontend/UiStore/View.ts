@@ -11,7 +11,7 @@ export const PersistentPreferenceFields: Array<keyof View> = [
 ];
 
 export type ViewMethod = 'list' | 'grid';
-export type ViewContent = 'query' | 'all' | 'untagged';
+export type ViewContent = 'query' | 'all' | 'untagged' | 'recovery';
 export type ViewThumbnailSize = 'small' | 'medium' | 'large';
 export type ViewThumbnailShape = 'square' | 'letterbox';
 
@@ -46,6 +46,10 @@ class View {
 
   @computed get showsQueryContent() {
     return this.content === 'query';
+  }
+  
+  @computed get showsRecoveryContent() {
+    return this.content === 'recovery';
   }
 
   /////////////////// Persistent Preferences ///////////////////
@@ -114,6 +118,10 @@ class View {
   @action.bound setContentUntagged() {
     this.setContent('untagged');
   }
+  
+  @action.bound setContentRecovery() {
+    this.setContent('recovery');
+  }
 
   @action.bound setMethodList() {
     this.setMethod('list');
@@ -122,7 +130,7 @@ class View {
   @action.bound setMethodGrid() {
     this.setMethod('grid');
   }
-
+  
   @action.bound enableSlideMode() {
     this.isSlideMode = true;
   }
