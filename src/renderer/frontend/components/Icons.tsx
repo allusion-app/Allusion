@@ -34,11 +34,12 @@ import FOLDER_OPEN from '../../resources/icons/folder-open.svg';
 import FOLDER_STRUCTURE from '../../resources/icons/folder-structure.svg';
 import FORM_DROP from '../../resources/icons/form-drop.svg';
 import GITHUB from '../../resources/icons/github.svg';
+import IMPORT from '../../resources/icons/import.svg';
+import INFO from '../../resources/icons/info.svg';
 import ITEM_COLLAPS from '../../resources/icons/item-collaps.svg';
 import ITEM_EXPAND from '../../resources/icons/item-expand.svg';
 import ITEM_MOVE_DOWN from '../../resources/icons/item-move-down.svg';
 import ITEM_MOVE_UP from '../../resources/icons/item-move-up.svg';
-import INFO from '../../resources/icons/info.svg';
 import LOCATIONS from '../../resources/icons/locations.svg';
 import MEDIA from '../../resources/icons/media.svg';
 import META_INFO from '../../resources/icons/meta-info.svg';
@@ -112,11 +113,12 @@ const IconSet = {
   FOLDER_STRUCTURE: toSvg(FOLDER_STRUCTURE),
   FORM_DROP: toSvg(FORM_DROP),
   GITHUB: toSvg(GITHUB),
+  IMPORT: toSvg(IMPORT),
+  INFO: toSvg(INFO),
   ITEM_COLLAPS: toSvg(ITEM_COLLAPS),
   ITEM_EXPAND: toSvg(ITEM_EXPAND),
   ITEM_MOVE_DOWN: toSvg(ITEM_MOVE_DOWN),
   ITEM_MOVE_UP: toSvg(ITEM_MOVE_UP),
-  INFO: toSvg(INFO),
   LOCATIONS: toSvg(LOCATIONS),
   MEDIA: toSvg(MEDIA),
   META_INFO: toSvg(META_INFO),

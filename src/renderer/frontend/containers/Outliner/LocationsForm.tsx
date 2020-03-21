@@ -43,7 +43,7 @@ class LocationListItem extends React.PureComponent<ILocationListItemProps> {
       <li>
         <Button
           fill
-          icon={isImportLocation ? 'import' : IconSet.FOLDER_CLOSE}
+          icon={isImportLocation ? IconSet.IMPORT : IconSet.FOLDER_CLOSE}
           rightIcon={dir.isBroken ? <Icon icon={IconSet.WARNING} /> : null}
           className={'tooltip'}
           data-right={`${dir.isBroken ? 'Cannot find this location: ' : ''} ${dir.path}`}
@@ -235,7 +235,9 @@ const LocationsForm = () => {
    <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
         <H4 className="bp3-heading">
-          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/>
+          <span className="bp3-icon custom-icon custom-icon-14">{isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}</span>
+          {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
+          {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
           Locations
         </H4>
         <Button

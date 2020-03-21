@@ -625,7 +625,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     <>
       <div className="outliner-header-wrapper" ref={headerDrop} onClick={toggleCollapse}>
         <H4 className="bp3-heading">
-          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/>
+          <span className="bp3-icon custom-icon custom-icon-14">{isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}</span>
+          {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
           Tags
         </H4>
         <Button

@@ -20,7 +20,7 @@ import UiStore from '../../UiStore';
 // Tooltip info
 const enum Tooltip {
   Add = 'Toggle Add Panel',
-  Tag = 'Toggle Tag Panel',
+  Outliner = 'Toggle Outliner',
   Search = 'Toggle Search Panel',
   Media = 'Number of files using selected tag(s)',
   Select = 'Selects or deselects all images',
@@ -192,11 +192,11 @@ const Toolbar = observer(() => {
       <section id="outliner-toolbar">
         <ButtonGroup minimal>
           <Button
-            icon={IconSet.TAG}
+            icon={IconSet.LOCATIONS}
             onClick={handleOlTags}
             intent={olPage === 'TAGS' && uiStore.isOutlinerOpen ? 'primary' : 'none'}
             className="tooltip"
-            data-right={Tooltip.Tag}
+            data-right={Tooltip.Outliner}
           />
           <Button
             icon={IconSet.SEARCH}

@@ -1,7 +1,7 @@
 ///////////////////////////////// Global Blueprint overriddes /////////////////////////////////
 // Skeleton override
 .#{$ns}-skeleton {
-  border-color: #282828 !important;
+  border-color: $dark-gray3 !important;
   border-radius: 0.25rem;
   animation: none !important;
 }
@@ -25,6 +25,10 @@
   font-size: 0.8rem;
   background: white;
   font-family: inherit;
+}
+
+.bp3-heading {
+  font-weight: 500;
 }
 
 .bp3-dark .bp3-heading,
@@ -103,7 +107,7 @@
 }
 .bp3-tag-input .bp3-input-ghost,
 #outliner input {
-  color: #919191 !important;
+  color: $light-gray1 !important;
 }
 // #inspector {
 //   .bp3-input,
@@ -117,7 +121,7 @@
 .bp3-dark .bp3-input.bp3-disabled {
   box-shadow: none;
   background: $dark-gray3;
-  color: $dark-gray2;
+  color: $dark-gray1;
 }
 
 .bp3-dark .bp3-input,
@@ -358,7 +362,7 @@ form .bp3-icon {
     .bp3-tag-input.bp3-active,
     input:not(.bp3-input-ghost),
     .bp3-input-group {
-      background-color: #2828288e !important;
+      background-color: #2327298e !important;
     }
   }
 }
@@ -662,6 +666,7 @@ button:has(.bp3-intent-danger) {
   .bp3-dialog-header .bp3-heading {
     line-height: 19px;
     font-size: 18px;
+    font-weight: 500;
     color: $dark-gray4;
   }
 }
@@ -679,7 +684,7 @@ button:has(.bp3-intent-danger) {
 .bp3-dark .bp3-submenu.bp3-popover > .bp3-popover-content,
 .bp3-submenu.bp3-popover.bp3-dark > .bp3-popover-content {
   // box-shadow: 0 30px 90px -20px rgb(24, 24, 24), 0 0 30px #18181b !important;
-  // box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
+  // box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
   // box-shadow: 0 0 0 1px rgba(16,22,26,.2), 0 2px 4px rgba(16,22,26,.4), 0 8px 24px rgba(16,22,26,.4);
   box-shadow: 0 4px 8px rgba(16, 22, 26, 0.4), 0 18px 46px 6px rgba(16, 22, 26, 0.4);
 }
@@ -691,7 +696,7 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-dark .bp3-popover-content {
-  background-color: $dark-gray2;
+  background-color: $dark-gray1;
   color: $light-gray1;
 }
 
@@ -717,7 +722,7 @@ button:has(.bp3-intent-danger) {
   //   padding-bottom: 1rem;
   // }
   .bp3-dark {
-    background-color: $dark-gray2;
+    background-color: $dark-gray1;
     color: $light-gray1;
   }
 }
@@ -816,7 +821,7 @@ nav .bp3-divider {
   padding: 0.25rem 0rem;
   font-size: 14px;
   line-height: 1.2;
-  color: #919191 !important;
+  color: $light-gray1 !important;
 }
 
 .bp3-popover-content {
@@ -975,8 +980,11 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 @for $i from 0 through 20 {
   .#{$ns}-tree-node-content-#{$i} {
-    padding-left: ($tree-row-height - $tree-icon-spacing) * $i !important;
+    padding-left: (($tree-row-height - $tree-icon-spacing) - 2px) * $i !important;
   }
+}
+.#{$ns}-tree-node-content-#0 {
+  padding-left: ($tree-row-height - $tree-icon-spacing) + 4px !important;
 }
 
 .bp3-tree .bp3-icon,
@@ -990,7 +998,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-dark .bp3-collapse {
-  background-color: $dark-gray1;
+  background-color: $dark-gray0;
 }
 
 .bp3-light .bp3-collapse {
@@ -1110,9 +1118,10 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-dark #watched-folders .bp3-button:hover {
-  background-color: #252525 !important;
+  background-color: $dark-gray2 !important;
   border-left: 2px solid $blue1;
   padding-left: .85rem !important;
+  // padding-left: calc(.85rem + 8px) !important
   transition: all 0.2s $pt-transition-ease2;
   color: white;
 }
@@ -1121,12 +1130,15 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 @for $i from 0 through 20 {
   .#{$ns}-tree-node-content-#{$i}:hover {
-    background-color: #252525 !important;
+    background-color: $dark-gray2 !important;
     border-left: 2px solid $blue1;
     padding-left: (($tree-row-height - $tree-icon-spacing) * $i) - 2px !important;
     transition: all 0.2s $pt-transition-ease2;
     color: white;
   }
+}
+.#{$ns}-tree-node-content-#0:hover {
+  padding-left: (($tree-row-height - $tree-icon-spacing) + 4px) - 2px !important;
 }
 
 .bp3-dark {

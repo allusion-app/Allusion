@@ -35,7 +35,7 @@ nav {
   // }
 
   .bp3-dark {
-    background: $dark-gray2;
+    background: $dark-gray1;
   }
 
   &.outlinerOpen #import {
@@ -157,7 +157,7 @@ nav {
   cursor: pointer;
 
   h4 {
-    margin-left: 4px;
+    margin-left: 10px;
     margin-right: auto;
       // caret icon
     > .bp3-icon {
@@ -175,7 +175,7 @@ nav {
 }
 
 nav .bp3-tree {
-  background-color: $dark-gray2;
+  background-color: $dark-gray1;
   overflow: auto;
 
   .bp3-tree-root {
