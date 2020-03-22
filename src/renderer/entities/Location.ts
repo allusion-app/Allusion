@@ -28,6 +28,34 @@ export class DbLocation implements ILocation {
   ) { }
 }
 
+export interface IDirectoryTreeItem {
+  name: string;
+  fullPath: string;
+  children: IDirectoryTreeItem[];
+}
+
+/**
+ * Recursive function that returns the dir list for a given path
+ */
+async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
+  try {
+    let dirs: string[] = []
+    for (const file of await fse.readdir(path)) {
+      const fullPath = SysPath.join(path, file);
+      if ((await fse.stat(fullPath)).isDirectory()) {
+        dirs = [...dirs, fullPath]
+      }
+    }
+    return Promise.all(dirs.map(async (dir): Promise<IDirectoryTreeItem> => ({
+      name: SysPath.basename(dir),
+      fullPath: dir,
+      children: await getDirectoryTree(dir),
+    })));
+  } catch (e) {
+    return [];
+  }
+}
+
 export class ClientLocation implements ILocation, ISerializable<DbLocation> {
   saveHandler: IReactionDisposer;
   watcher?: FSWatcher;
@@ -180,5 +208,9 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
           resolve(initialFiles);
         });
     });
+  }
+
+  async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
+    return getDirectoryTree(this.path);
   }
 }

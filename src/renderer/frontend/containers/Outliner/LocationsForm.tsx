@@ -1,12 +1,12 @@
-import React, { useContext, useCallback, useState } from 'react';
+import React, { useContext, useCallback, useState, useEffect } from 'react';
 import { remote, shell } from 'electron';
 import Path from 'path';
 import { observer, Observer } from 'mobx-react-lite';
-import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert, Dialog, Label } from '@blueprintjs/core';
+import { Button, H4, Collapse, Icon, ContextMenuTarget, Menu, MenuItem, Classes, Alert, Dialog, Label, ITreeNode, TreeNode, Tree, ContextMenu } from '@blueprintjs/core';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
-import { ClientLocation, DEFAULT_LOCATION_ID } from '../../../entities/Location';
+import { ClientLocation, DEFAULT_LOCATION_ID, IDirectoryTreeItem } from '../../../entities/Location';
 import { ClientStringSearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
@@ -15,6 +15,7 @@ import { AppToaster } from '../../App';
 // Tooltip info
 const enum Tooltip {
   Location = 'Add New Location',
+  Refresh = 'Refresh directories'
 }
 
 interface ILocationListItemProps {
@@ -23,6 +24,35 @@ interface ILocationListItemProps {
   onConfig: (location: ClientLocation) => void;
   addToSearch: (path: string) => void;
   replaceSearch: (path: string) => void;
+}
+
+const LocationTreeContextMenu = ({ path }: { path: string }) => {
+
+  // const handleDelete = useCallback(() => 
+  //   this.props.onDelete(this.props.dir), []);
+  // const openConfigDialog = useCallback(() => 
+  //   this.props.onConfig(this.props.dir), []);
+  // const handleAddToSearch = useCallback(() => 
+  //   this.props.addToSearch(this.props.dir.path), []);
+  // const handleReplaceSearch = useCallback(() => 
+  //   this.props.replaceSearch(this.props.dir.path), []);
+  // const handleOpenFileExplorer = useCallback(() => 
+  //   shell.openItem(this.props.dir.path), []);
+
+  const { locationStore } = useContext(StoreContext);
+
+  // const isImportLocation = location.id === DEFAULT_LOCATION_ID;
+
+  return (
+    <Menu>
+      <MenuItem text="Configure" onClick={console.log} icon={IconSet.SETTINGS} />
+      <MenuItem onClick={console.log} text="Add to Search Query" icon={IconSet.SEARCH} />
+      <MenuItem onClick={console.log} text="Replace Search Query" icon={IconSet.REPLACE} />
+      <MenuItem onClick={console.log} text="Open in File Browser" icon={IconSet.FOLDER_CLOSE} />
+      <MenuItem text="Delete" onClick={console.log} icon={IconSet.DELETE} disabled={false} />
+    </Menu>
+  );
+}
 }
 
 @ContextMenuTarget
@@ -155,6 +185,92 @@ const LocationRemovalAlert = ({ dir, handleClose }: ILocationRemovalAlertProps) 
   );
 };
 
+function dirItemAsTreeNode (dirItem: IDirectoryTreeItem): ITreeNode<string> {
+  return {
+    id: dirItem.fullPath,
+    label: dirItem.name,
+    nodeData: dirItem.fullPath,
+    childNodes: dirItem.children.map(dirItemAsTreeNode),
+    hasCaret: dirItem.children.length > 0,
+  }
+}
+
+const LocationsTree = () => {
+  const { locationStore, uiStore } = useContext(StoreContext);
+  const [nodes, setNodes] = useState<ITreeNode<string>[]>(
+    locationStore.locationList.map((location) => ({
+      id: location.id,
+      label: Path.basename(location.path),
+      nodeData: location.path,
+      icon: location.id === DEFAULT_LOCATION_ID ? 'import' : IconSet.FOLDER_CLOSE,
+      rightIcon: location.isBroken ? <Icon icon={IconSet.WARNING} /> : 'tag',
+      className: 'tooltip',
+      'data-right': `${location.isBroken ? 'Cannot find this location: ' : ''} ${location.path}`,
+    })
+  ));
+
+  useEffect(() => {
+    locationStore.locationList.forEach(
+      (loc, locIndex) => loc.getDirectoryTree()
+        .then((children) =>
+          setNodes((nodes) => {
+            const newNodes = [...nodes];
+            newNodes[locIndex].childNodes = children.map(dirItemAsTreeNode);
+            return newNodes;
+          }),
+        ),
+      )
+  }, []);
+
+  const addToSearch = useCallback((path: string) => {
+    uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('path', path, 'contains'));
+    uiStore.searchByQuery();
+    uiStore.openSearch();
+  }, [uiStore]);
+
+  const replaceSearch = useCallback((path: string) => {
+    uiStore.clearSearchCriteriaList();
+    addToSearch(path);
+  }, [uiStore, addToSearch]);
+
+  const handleNodeClick = useCallback(
+    (node: ITreeNode<string>, _path: number[], e: React.MouseEvent) =>
+      // TODO: Mark searched nodes as selected?
+      e.ctrlKey ? addToSearch(node.nodeData || '') : replaceSearch(node.nodeData || ''),
+    [addToSearch, replaceSearch]);
+
+  const handleNodeExpand = useCallback((node: ITreeNode<string>) => {
+    node.isExpanded = true;
+    setNodes([...nodes]);
+  }, [nodes]);
+
+  const handleNodeCollapse = useCallback((node: ITreeNode<string>) => {
+    node.isExpanded = false;
+    setNodes([...nodes]);
+  }, [nodes]);
+
+  const handleNodeContextMenu = useCallback(
+    (node: ITreeNode<string>, _: number[],
+      e: React.MouseEvent<HTMLElement>,
+    ) => {
+      ContextMenu.show(
+        <LocationTreeContextMenu path={node.nodeData || ''} />,
+        { left: e.clientX, top: e.clientY }
+      );
+  }, []);
+
+  return (
+    <Tree
+      contents={nodes}
+      onNodeClick={handleNodeClick}
+      onNodeExpand={handleNodeExpand}
+      onNodeCollapse={handleNodeCollapse}
+      onNodeContextMenu={handleNodeContextMenu}
+    />
+  )
+
+}
+
 const LocationsForm = () => {
 
   const { locationStore, uiStore } = useContext(StoreContext);
@@ -231,6 +347,9 @@ const LocationsForm = () => {
     addToSearch(path);
   }, [uiStore, addToSearch]);
 
+  const [locationTreeKey, setLocationTreeKey] = useState(new Date());
+  const handleRefresh = useCallback(() => setLocationTreeKey(new Date()), []);
+
   return (
    <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
@@ -245,9 +364,16 @@ const LocationsForm = () => {
           className="tooltip"
           data-right={Tooltip.Location}
         />
+        <Button
+          minimal
+          icon={IconSet.RELOAD}
+          onClick={handleRefresh}
+          className="tooltip"
+          data-right={Tooltip.Refresh}
+        />
       </div>
       <Collapse isOpen={!isCollapsed}>
-        <ul id="watched-folders">
+        {/* <ul id="watched-folders">
           {
             locationStore.locationList.map((dir, i) => (
               <LocationListItem
@@ -260,7 +386,8 @@ const LocationsForm = () => {
               />
             ))
           }
-        </ul>
+        </ul> */}
+        <LocationsTree key={locationTreeKey.toString()} />
       </Collapse>
 
       <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
