@@ -20,12 +20,7 @@ export interface ILocation extends IIdentifiable {
 }
 
 export class DbLocation implements ILocation {
-  constructor(
-    public id: ID,
-    public path: string,
-    public dateAdded: Date,
-    public tagsToAdd: ID[],
-  ) { }
+  constructor(public id: ID, public path: string, public dateAdded: Date, public tagsToAdd: ID[]) {}
 }
 
 export class ClientLocation implements ILocation, ISerializable<DbLocation> {
@@ -90,18 +85,28 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
     };
   }
 
-  @action.bound addTag(tag: ClientTag) { this.tagsToAdd.push(tag.id); }
-  @action.bound removeTag(tag: ClientTag) { this.tagsToAdd.remove(tag.id); }
-  @action.bound clearTags() { this.tagsToAdd.clear(); }
+  @action.bound addTag(tag: ClientTag) {
+    this.tagsToAdd.push(tag.id);
+  }
 
-  @action.bound private addTags(tags: ID[]) { this.tagsToAdd.push(...tags); }
+  @action.bound removeTag(tag: ClientTag) {
+    this.tagsToAdd.remove(tag.id);
+  }
+
+  @action.bound clearTags() {
+    this.tagsToAdd.clear();
+  }
+
+  @action.bound private addTags(tags: ID[]) {
+    this.tagsToAdd.push(...tags);
+  }
 
   // async relocate(newPath: string) {
-    // TODO: Check if all files can be found. If not, notify user, else, update all files in db from this location
-    // locationFiles = ...
-    // locationFiles.forEach((f) => f.path = )?
+  // TODO: Check if all files can be found. If not, notify user, else, update all files in db from this location
+  // locationFiles = ...
+  // locationFiles.forEach((f) => f.path = )?
 
-    // if we decide to store relative paths for files, no need to relocate individual files
+  // if we decide to store relative paths for files, no need to relocate individual files
   // }
 
   async checkIfBroken() {
@@ -119,15 +124,12 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
 
   private watchDirectory(inputPath: string): Promise<string[]> {
     // Watch for folder changes
-    this.watcher = chokidar.watch(
-      inputPath,
-      {
-        depth: RECURSIVE_DIR_WATCH_DEPTH,
-        // Ignore dot files. Also dot folders?
-        // Todo: Ignore everything but image files
-        ignored: /(^|[\/\\])\../,
-      },
-    );
+    this.watcher = chokidar.watch(inputPath, {
+      depth: RECURSIVE_DIR_WATCH_DEPTH,
+      // Ignore dot files. Also dot folders?
+      // Todo: Ignore everything but image files
+      ignored: /(^|[\/\\])\../,
+    });
 
     const watcher = this.watcher;
 
@@ -144,19 +146,26 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
             if (this.isReady) {
               console.log(`File ${path} has been added after initialization`);
 
-              AppToaster.show({
-                message: 'New images have been detected.',
-                intent: 'primary',
-                timeout: 0,
-                action: {
-                  text: 'Refresh',
-                  icon: 'refresh',
-                  onClick: this.store.rootStore.uiStore.refetch,
+              AppToaster.show(
+                {
+                  message: 'New images have been detected.',
+                  intent: 'primary',
+                  timeout: 0,
+                  action: {
+                    text: 'Refresh',
+                    icon: 'refresh',
+                    onClick: this.store.rootStore.fileStore.refetch,
+                  },
                 },
-              }, 'refresh');
+                'refresh',
+              );
 
               // Add to backend
-              const fileToStore = await this.store.pathToIFile(path, this.id, this.tagsToAdd.toJS());
+              const fileToStore = await this.store.pathToIFile(
+                path,
+                this.id,
+                this.tagsToAdd.toJS(),
+              );
               this.store.backend.createFilesFromPath(path, [fileToStore]);
             } else {
               initialFiles.push(path);
@@ -171,11 +180,14 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
           if (clientFile) {
             fileStore.hideFile(clientFile);
           }
-          this.store.rootStore.fileStore.removeFilesById
+          this.store.rootStore.fileStore.removeFilesById;
         })
         .on('ready', () => {
           this.isReady = true;
-          console.log(`Location "${SysPath.basename(this.path)}" ready. Detected files:`, initialFiles.length);
+          console.log(
+            `Location "${SysPath.basename(this.path)}" ready. Detected files:`,
+            initialFiles.length,
+          );
           // Todo: Compare this in DB, add new files and mark missing files as missing
           resolve(initialFiles);
         });

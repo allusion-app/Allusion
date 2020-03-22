@@ -8,8 +8,16 @@ import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
-import View, { ViewMethod, ViewContent, ViewThumbnailSize, PersistentPreferenceFields as ViewPersistentPrefFields } from './View';
-import { ClientBaseCriteria, ClientArraySearchCriteria, ClientIDSearchCriteria } from '../../entities/SearchCriteria';
+import View, {
+  ViewMethod,
+  ViewThumbnailSize,
+  PersistentPreferenceFields as ViewPersistentPrefFields,
+} from './View';
+import {
+  ClientBaseCriteria,
+  ClientArraySearchCriteria,
+  ClientIDSearchCriteria,
+} from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
@@ -151,13 +159,13 @@ class UiStore {
 
   @action.bound openOutlinerImport() {
     this.setOutlinerPage('IMPORT');
-    if (!this.view.showsUntaggedContent) {
+    if (!this.rootStore.fileStore.showsUntaggedContent) {
       this.viewUntaggedContent();
     }
   }
   @action.bound openOutlinerTags() {
     this.setOutlinerPage('TAGS');
-    if (!this.view.showsAllContent) {
+    if (!this.rootStore.fileStore.showsAllContent) {
       this.viewAllContent();
     }
   }
@@ -239,26 +247,6 @@ class UiStore {
 
   @action.bound setThumbnailDirectory(dir: string = '') {
     this.thumbnailDirectory = dir;
-  }
-
-  @action.bound orderFilesBy(prop: keyof IFile) {
-    this.view.orderFilesBy(prop);
-    this.refetch();
-  }
-
-  @action.bound switchFileOrder() {
-    this.view.switchFileOrder();
-    this.refetch();
-  }
-
-  @action.bound refetch() {
-    if (this.view.showsAllContent) {
-      this.rootStore.fileStore.fetchAllFiles();
-    } else if (this.view.showsUntaggedContent) {
-      this.rootStore.fileStore.fetchUntaggedFiles();
-    } else if (this.view.showsQueryContent) {
-      this.rootStore.fileStore.fetchFilesByQuery();
-    }
   }
 
   /////////////////// Selection actions ///////////////////
@@ -477,17 +465,14 @@ class UiStore {
   @action.bound async searchByQuery() {
     await this.rootStore.fileStore.fetchFilesByQuery();
     this.cleanFileSelection();
-    this.view.setContentQuery();
   }
 
   @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
     this.searchCriteriaList.push(query);
-    this.view.setContentQuery();
   }
 
   @action.bound async removeSearchCriteria(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
-    this.view.setContentQuery();
   }
 
   @action.bound async removeSearchCriteriaByIndex(i: number) {
@@ -502,7 +487,6 @@ class UiStore {
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
     this.searchCriteriaList.replace(ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
-    this.view.setContentQuery();
     this.openQuickSearch();
     this.searchByQuery();
   }
@@ -524,19 +508,16 @@ class UiStore {
   @action.bound viewAllContent() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchAllFiles();
-    this.view.setContentAll();
     this.cleanFileSelection();
   }
   @action.bound viewUntaggedContent() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchUntaggedFiles();
-    this.view.setContentUntagged();
     this.cleanFileSelection();
   }
   @action.bound viewQueryContent() {
     this.tagSelection.clear();
     this.rootStore.fileStore.fetchFilesByQuery();
-    this.view.setContentQuery();
     this.cleanFileSelection();
 
     if (this.isAdvancedSearchOpen) {
@@ -654,4 +635,4 @@ class UiStore {
 
 export default UiStore;
 
-export { ViewMethod, ViewContent, ViewThumbnailSize };
+export { ViewMethod, ViewThumbnailSize };
