@@ -9,7 +9,7 @@ import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 import View, { ViewMethod, ViewContent, ViewThumbnailSize, PersistentPreferenceFields as ViewPersistentPrefFields } from './View';
-import { ClientBaseCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
+import { ClientBaseCriteria, ClientArraySearchCriteria, ClientIDSearchCriteria } from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
@@ -495,13 +495,13 @@ class UiStore {
   }
 
   @action.bound addTagsToCriteria(ids: ID[]) {
-    this.addSearchCriteria(new ClientArraySearchCriteria<IFile>('tags', ids));
+    this.searchCriteriaList.push(...ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
     this.openQuickSearch();
     this.searchByQuery();
   }
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
-    this.searchCriteriaList.replace([new ClientArraySearchCriteria<IFile>('tags', ids)]);
+    this.searchCriteriaList.replace(ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
     this.view.setContentQuery();
     this.openQuickSearch();
     this.searchByQuery();
