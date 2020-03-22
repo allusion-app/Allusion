@@ -27,8 +27,6 @@ export const PREFERENCES_STORAGE_KEY = 'preferences';
 interface IHotkeyMap {
   // Outerliner actions
   toggleOutliner: string;
-  openOutlinerImport: string;
-  openOutlinerTags: string;
   replaceQuery: string;
 
   // Inspector actions
@@ -56,8 +54,6 @@ interface IHotkeyMap {
 const defaultHotkeyMap: IHotkeyMap = {
   toggleOutliner: '1',
   toggleInspector: '2',
-  openOutlinerImport: 'shift + 1',
-  openOutlinerTags: 'shift + 2',
   replaceQuery: 'r',
   openTagSelector: 't',
   toggleSettings: 's',
@@ -97,7 +93,6 @@ const defaultHotkeyMap: IHotkeyMap = {
 const PersistentPreferenceFields: Array<keyof UiStore> = [
   'theme',
   'isFullScreen',
-  'outlinerPage',
   'isOutlinerOpen',
   'isInspectorOpen',
   'thumbnailDirectory',
@@ -117,12 +112,10 @@ class UiStore {
   @observable isFullScreen: boolean = false;
 
   // UI
-  @observable outlinerPage: 'IMPORT' | 'TAGS' = 'TAGS';
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
-  @observable isToolbarFileRemoverOpen: boolean = false;
   @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
@@ -153,21 +146,12 @@ class UiStore {
   }
 
   /////////////////// UI Actions ///////////////////
-  @action.bound toggleOutliner() {
-    this.setIsOutlinerOpen(!this.isOutlinerOpen);
+  @action.bound openOutliner() {
+    this.setIsOutlinerOpen(true);
   }
 
-  @action.bound openOutlinerImport() {
-    this.setOutlinerPage('IMPORT');
-    if (!this.rootStore.fileStore.showsUntaggedContent) {
-      this.viewUntaggedContent();
-    }
-  }
-  @action.bound openOutlinerTags() {
-    this.setOutlinerPage('TAGS');
-    if (!this.rootStore.fileStore.showsAllContent) {
-      this.viewAllContent();
-    }
+  @action.bound toggleOutliner() {
+    this.setIsOutlinerOpen(!this.isOutlinerOpen);
   }
 
   @action.bound openPreviewWindow() {
@@ -207,18 +191,6 @@ class UiStore {
 
   @action.bound closeToolbarTagSelector() {
     this.isToolbarTagSelectorOpen = false;
-  }
-
-  @action.bound toggleToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = this.fileSelection.length > 0 && !this.isToolbarFileRemoverOpen;
-  }
-
-  @action.bound openToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = true;
-  }
-
-  @action.bound closeToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = false;
   }
 
   @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
@@ -574,7 +546,6 @@ class UiStore {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
         this.setIsFullScreen(prefs.isFullScreen);
-        this.setOutlinerPage(prefs.outlinerPage);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.setIsInspectorOpen(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
@@ -618,10 +589,6 @@ class UiStore {
 
   @action private setIsFullScreen(value: boolean = false) {
     this.isFullScreen = value;
-  }
-
-  @action private setOutlinerPage(page: 'IMPORT' | 'TAGS' = 'TAGS') {
-    this.outlinerPage = page;
   }
 
   @action private setIsOutlinerOpen(value: boolean = true) {

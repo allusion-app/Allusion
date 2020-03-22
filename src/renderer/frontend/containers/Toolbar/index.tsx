@@ -1,21 +1,14 @@
+/* eslint-disable react/display-name */
 import React, { useContext, useCallback, useMemo } from 'react';
-import {
-  Button,
-  Popover,
-  MenuItem,
-  Menu,
-  Icon,
-  Classes,
-  ButtonGroup,
-  Alert,
-} from '@blueprintjs/core';
+import { Button, Popover, MenuItem, Menu, Icon, ButtonGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
 import FileTag from '../../components/FileTag';
 import { ClientFile, IFile } from '../../../entities/File';
-import UiStore from '../../UiStore';
+import { ViewMethod } from '../../UiStore';
+import { FileOrder } from '../../../backend/DBRepository';
 
 // Tooltip info
 const enum Tooltip {
@@ -33,82 +26,96 @@ const enum Tooltip {
   Inspector = 'Toggle Inspector',
   Settings = 'Toggle Settings',
   Back = 'Back to Content panel',
-  // FilterTag = 'Filter images by first tag',
 }
 
-interface IRemoveFilesPopoverProps {
-  disabled: boolean;
-  onRemove: () => void;
-  uiStore: UiStore;
+interface IOutlinerToolbar {
+  isOutlinerOpen: boolean;
+  isQuickSearchOpen: boolean;
+  toggleSearch: () => void;
+  toggleOutliner: () => void;
 }
 
-export const RemoveFilesPopover = observer(
-  ({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
-    const handleConfirm = useCallback(() => {
-      onRemove();
-      uiStore.closeToolbarFileRemover();
-    }, [onRemove, uiStore]);
-    return (
-      <>
+const OutlinerToolbar = React.memo(
+  ({ isOutlinerOpen, isQuickSearchOpen, toggleSearch, toggleOutliner }: IOutlinerToolbar) => (
+    <section id="outliner-toolbar">
+      <ButtonGroup minimal>
         <Button
-          icon={IconSet.DELETE}
-          disabled={disabled}
-          onClick={uiStore.toggleToolbarFileRemover}
+          icon={IconSet.TAG}
+          onClick={toggleOutliner}
+          intent={isOutlinerOpen ? 'primary' : 'none'}
           className="tooltip"
-          data-right={Tooltip.Delete}
+          data-right={Tooltip.Tag}
         />
-        <Alert
-          isOpen={uiStore.isToolbarFileRemoverOpen}
-          cancelButtonText="Cancel"
-          confirmButtonText="Delete"
-          icon={IconSet.DELETE}
-          intent="danger"
-          onCancel={uiStore.closeToolbarFileRemover}
-          onConfirm={handleConfirm}
-          canEscapeKeyCancel
-          canOutsideClickCancel
-          className={Classes.DARK}
-        >
-          <div className="bp3-dark" id="deleteFile">
-            {' '}
-            {/*popoverContent*/}
-            <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
-            <p>
-              Remove {uiStore.fileSelection.length} image
-              {uiStore.fileSelection.length > 1 ? 's' : ''} from your library?
-              <br />
-              Your files will not be deleted.
-            </p>
-          </div>
-        </Alert>
-      </>
-    );
-  },
+        <Button
+          icon={IconSet.SEARCH}
+          onClick={toggleSearch}
+          intent={isQuickSearchOpen ? 'primary' : 'none'}
+          className="tooltip"
+          data-right={Tooltip.Search}
+        />
+      </ButtonGroup>
+    </section>
+  ),
+);
+
+/* Library info. Todo: Show entire library count instead of current fileList */
+const LibraryInfo = React.memo(({ fileCount }: { fileCount: number }) => (
+  <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={Tooltip.Media}>
+    {fileCount} item{`${fileCount === 1 ? '' : 's'}`}
+  </Button>
+));
+
+interface IFileSelection {
+  allFilesSelected: boolean;
+  toggleSelection: () => void;
+  selectionCount: number;
+}
+
+const FileSelection = React.memo(
+  ({ allFilesSelected, toggleSelection: toggle, selectionCount }: IFileSelection) => (
+    <Button
+      rightIcon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
+      onClick={toggle}
+      intent={allFilesSelected ? 'primary' : 'none'}
+      className="tooltip"
+      data-right={Tooltip.Select}
+    >
+      {selectionCount} selected
+    </Button>
+  ),
 );
 
 interface ITagFilesPopoverProps {
   disabled: boolean;
   files: ClientFile[];
-  uiStore: UiStore;
+  isOpen: boolean;
+  close: () => void;
+  toggle: () => void;
 }
-const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopoverProps) => (
-  <Popover
-    minimal
-    isOpen={uiStore.isToolbarTagSelectorOpen}
-    onClose={uiStore.closeToolbarTagSelector}
-  >
-    <Button
-      icon={IconSet.TAG}
-      disabled={disabled}
-      onClick={uiStore.toggleToolbarTagSelector}
-      className="tooltip"
-      data-right={Tooltip.TagFiles}
-    />
-    <div className="popoverContent">
-      <FileTag files={files} autoFocus />
-    </div>
-  </Popover>
-));
+
+const TagFilesPopover = React.memo(
+  ({ disabled, files, isOpen, close, toggle }: ITagFilesPopoverProps) => (
+    <Popover minimal isOpen={isOpen} onClose={close}>
+      <Button
+        icon={IconSet.TAG}
+        disabled={disabled}
+        onClick={toggle}
+        className="tooltip"
+        data-right={Tooltip.TagFiles}
+      />
+      <div className="popoverContent">
+        <FileTag files={files} autoFocus />
+      </div>
+    </Popover>
+  ),
+);
+
+interface IFileFilter {
+  fileOrder: FileOrder;
+  orderBy: keyof IFile;
+  orderFilesBy: (prop: keyof IFile) => void;
+  switchFileOrder: () => void;
+}
 
 const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }> = [
   // { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
@@ -118,98 +125,119 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateAdded', icon: IconSet.FILTER_DATE, text: 'Date added' },
 ];
 
-const Toolbar = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+const FileFilter = React.memo(
+  ({ fileOrder, orderBy, orderFilesBy, switchFileOrder }: IFileFilter) => {
+    // Render variables
+    const sortMenu = useMemo(() => {
+      const orderIcon = (
+        <Icon icon={fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
+      );
+      return (
+        <Menu>
+          {sortMenuData.map(({ prop, icon, text }) => (
+            <MenuItem
+              key={prop}
+              icon={icon}
+              text={text}
+              active={orderBy === prop}
+              labelElement={orderBy === prop && orderIcon}
+              onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
+            />
+          ))}
+        </Menu>
+      );
+    }, [fileOrder, orderBy, switchFileOrder, orderFilesBy]);
 
-  // Outliner actions
-  const handleChooseOutlinerPage = useCallback(
-    (page: typeof uiStore.outlinerPage) => {
-      if (uiStore.outlinerPage === page) {
-        uiStore.toggleOutliner();
-      }
-
-      if (page === 'IMPORT') {
-        uiStore.openOutlinerImport();
-      } else if (page === 'TAGS') {
-        uiStore.openOutlinerTags();
-      }
-    },
-    [uiStore],
-  );
-  const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), [
-    handleChooseOutlinerPage,
-  ]);
-  const handleOlSearch = uiStore.toggleQuickSearch;
-
-  // Content actions
-  const isFileListSelected =
-    uiStore.fileSelection.length > 0 && uiStore.fileSelection.length === fileStore.fileList.length;
-  // If everything is selected, deselect all. Else, select all
-  const handleToggleSelect = useCallback(
-    () =>
-      isFileListSelected
-        ? uiStore.clearFileSelection()
-        : uiStore.selectFiles(
-            fileStore.fileList.map((f) => f.id).filter((f) => !uiStore.fileSelection.includes(f)),
-          ),
-    [fileStore.fileList, isFileListSelected, uiStore],
-  );
-
-  // const handleRemoveSelectedFiles = useCallback(
-  //   () => fileStore.removeFilesById(uiStore.fileSelection),
-  //   [fileStore, uiStore.fileSelection],
-  // );
-
-  // Render variables
-  const sortMenu = useMemo(() => {
-    const orderIcon = (
-      <Icon icon={fileStore.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
-    );
     return (
-      <Menu>
-        {sortMenuData.map(({ prop, icon, text }) => (
-          <MenuItem
-            key={prop}
-            icon={icon}
-            text={text}
-            active={fileStore.orderBy === prop}
-            labelElement={fileStore.orderBy === prop && orderIcon}
-            onClick={() =>
-              fileStore.orderBy === prop
-                ? fileStore.switchFileOrder()
-                : fileStore.orderFilesBy(prop)
-            }
-          />
-        ))}
-      </Menu>
+      <Popover
+        minimal
+        target={<Button icon={IconSet.FILTER} className="tooltip" data-right={Tooltip.Filter} />}
+        content={sortMenu}
+      />
     );
-  }, [fileStore.orderFilesBy, fileStore.orderBy, fileStore.fileOrder]); //eslint-disable-line
+  },
+);
 
-  const numFiles = fileStore.fileList.length;
-  const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
-  const olPage = uiStore.outlinerPage;
+interface ILayoutOptions {
+  method: ViewMethod;
+  viewGrid: () => void;
+  viewList: () => void;
+}
 
-  return (
-    <div id="toolbar">
-      <section id="outliner-toolbar">
+const LayoutOptions = React.memo(({ method, viewGrid, viewList }: ILayoutOptions) => (
+  <ButtonGroup minimal>
+    <Button
+      onClick={viewList}
+      icon={IconSet.VIEW_LIST}
+      active={method === 'list'}
+      className="tooltip"
+      data-right={Tooltip.ViewList}
+    />
+    <Button
+      onClick={viewGrid}
+      icon={IconSet.VIEW_GRID}
+      active={method === 'grid'}
+      className="tooltip"
+      data-right={Tooltip.ViewGrid}
+    />
+    <div id="spacer" style={{ width: '1rem' }} />
+  </ButtonGroup>
+));
+
+interface IInspectorToolbar {
+  isInspectorOpen: boolean;
+  toggleInspector: () => void;
+  toggleSettings: () => void;
+}
+
+const InspectorToolbar = React.memo(
+  ({ isInspectorOpen, toggleInspector, toggleSettings }: IInspectorToolbar) => {
+    return (
+      <section id="inspector-toolbar">
         <ButtonGroup minimal>
           <Button
-            icon={IconSet.TAG}
-            onClick={handleOlTags}
-            intent={olPage === 'TAGS' && uiStore.isOutlinerOpen ? 'primary' : 'none'}
+            icon={IconSet.INFO}
+            onClick={toggleInspector}
+            intent={isInspectorOpen ? 'primary' : 'none'}
             className="tooltip"
-            data-right={Tooltip.Tag}
+            data-left={Tooltip.Inspector}
           />
           <Button
-            icon={IconSet.SEARCH}
-            onClick={handleOlSearch}
-            intent={uiStore.isQuickSearchOpen ? 'primary' : 'none'}
+            icon={IconSet.SETTINGS}
+            onClick={toggleSettings}
             className="tooltip"
-            data-right={Tooltip.Search}
+            data-left={Tooltip.Settings}
           />
         </ButtonGroup>
       </section>
+    );
+  },
+);
 
+const Toolbar = observer(() => {
+  const {
+    uiStore,
+    fileStore: { fileList, fileOrder, orderBy, orderFilesBy, switchFileOrder },
+  } = useContext(StoreContext);
+  const { fileSelection, clearFileSelection, selectFiles } = uiStore;
+
+  // If everything is selected, deselect all. Else, select all
+  const handleToggleSelect = useCallback(
+    () =>
+      fileSelection.length > 0 && fileSelection.length === fileList.length
+        ? clearFileSelection()
+        : selectFiles(fileList.map((f) => f.id).filter((f) => !fileSelection.includes(f))),
+    [clearFileSelection, fileList, fileSelection, selectFiles],
+  );
+
+  return (
+    <div id="toolbar">
+      <OutlinerToolbar
+        isOutlinerOpen={uiStore.isOutlinerOpen}
+        isQuickSearchOpen={uiStore.isQuickSearchOpen}
+        toggleSearch={uiStore.toggleQuickSearch}
+        toggleOutliner={uiStore.toggleOutliner}
+      />
       <section id="main-toolbar">
         <ButtonGroup minimal>
           {/* Disable slide mode */}
@@ -225,86 +253,47 @@ const Toolbar = observer(() => {
             </Button>
           )}
 
-          {/* Library info. Todo: Show entire library count instead of current fileList */}
-          {!uiStore.view.isSlideMode && (
-            <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={Tooltip.Media}>
-              {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
-            </Button>
-          )}
+          {!uiStore.view.isSlideMode && <LibraryInfo fileCount={fileList.length} />}
         </ButtonGroup>
 
         {!uiStore.view.isSlideMode && (
-          <ButtonGroup minimal>
-            {/* Selection info and actions */}
-            <Button
-              rightIcon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
-              onClick={handleToggleSelect}
-              intent={isFileListSelected ? 'primary' : 'none'}
-              className="tooltip"
-              data-right={Tooltip.Select}
-            >
-              {uiStore.fileSelection.length} selected
-            </Button>
-            {/* Show popover for modifying tags of selection (same as inspector) */}
-            <TagFilesPopover
-              files={uiStore.clientFileSelection}
-              disabled={!selectionModeOn}
-              uiStore={uiStore}
-            />
-            {/* <RemoveFilesPopover
-            onRemove={handleRemoveSelectedFiles}
-            disabled={!selectionModeOn}
-            uiStore={uiStore}
-          /> */}
+          <>
+            <ButtonGroup minimal>
+              <FileSelection
+                allFilesSelected={
+                  fileSelection.length > 0 && fileSelection.length === fileList.length
+                }
+                toggleSelection={handleToggleSelect}
+                selectionCount={fileSelection.length}
+              />
+              <TagFilesPopover
+                files={uiStore.clientFileSelection}
+                disabled={fileSelection.length <= 0 || fileList.length <= 0}
+                isOpen={uiStore.isToolbarTagSelectorOpen}
+                close={uiStore.closeToolbarTagSelector}
+                toggle={uiStore.toggleToolbarTagSelector}
+              />
+              <FileFilter
+                fileOrder={fileOrder}
+                orderBy={orderBy}
+                orderFilesBy={orderFilesBy}
+                switchFileOrder={switchFileOrder}
+              />
+            </ButtonGroup>
 
-            <Popover
-              minimal
-              target={
-                <Button icon={IconSet.FILTER} className="tooltip" data-right={Tooltip.Filter} />
-              }
-              content={sortMenu}
+            <LayoutOptions
+              method={uiStore.view.method}
+              viewGrid={uiStore.view.setMethodGrid}
+              viewList={uiStore.view.setMethodList}
             />
-          </ButtonGroup>
-        )}
-
-        {!uiStore.view.isSlideMode && (
-          <ButtonGroup minimal>
-            <Button
-              onClick={uiStore.view.setMethodList}
-              icon={IconSet.VIEW_LIST}
-              active={uiStore.view.isList}
-              className="tooltip"
-              data-right={Tooltip.ViewList}
-            />
-            <Button
-              onClick={uiStore.view.setMethodGrid}
-              icon={IconSet.VIEW_GRID}
-              active={uiStore.view.isGrid}
-              className="tooltip"
-              data-right={Tooltip.ViewGrid}
-            />
-            <div id="spacer" style={{ width: '1rem' }} />
-          </ButtonGroup>
+          </>
         )}
       </section>
-
-      <section id="inspector-toolbar">
-        <ButtonGroup minimal>
-          <Button
-            icon={IconSet.INFO}
-            onClick={uiStore.toggleInspector}
-            intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
-            className="tooltip"
-            data-left={Tooltip.Inspector}
-          />
-          <Button
-            icon={IconSet.SETTINGS}
-            onClick={uiStore.toggleSettings}
-            className="tooltip"
-            data-left={Tooltip.Settings}
-          />
-        </ButtonGroup>
-      </section>
+      <InspectorToolbar
+        isInspectorOpen={uiStore.isInspectorOpen}
+        toggleInspector={uiStore.toggleInspector}
+        toggleSettings={uiStore.toggleSettings}
+      />
     </div>
   );
 });

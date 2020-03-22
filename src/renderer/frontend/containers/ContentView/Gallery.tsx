@@ -526,12 +526,12 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
 
   if (fileList.length === 0) {
     let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
-    let title = 'No images imported';
-    let description = 'Import some images to get started!';
+    let title = 'No images';
+    let description = 'Add some images to get started!';
     let action = (
       <Button
-        onClick={uiStore.openOutlinerImport}
-        text="Open import panel"
+        onClick={uiStore.openOutliner}
+        text="Add location with images"
         intent="primary"
         icon={IconSet.ADD}
       />
