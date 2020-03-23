@@ -13,7 +13,7 @@ import { FileOrder } from '../../backend/DBRepository';
 const FILE_STORAGE_KEY = 'Allusion_File';
 
 /** These fields are stored and recovered when the application opens up */
-const PersistentPreferenceFields: Array<keyof FileStore> = ['content', 'fileOrder', 'orderBy'];
+const PersistentPreferenceFields: Array<keyof FileStore> = ['fileOrder', 'orderBy'];
 
 export type ViewContent = 'query' | 'all' | 'untagged';
 
@@ -239,7 +239,6 @@ class FileStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        this.setContent(prefs.content);
         this.setFileOrder(prefs.fileOrder);
         this.setOrderBy(prefs.orderBy);
       } catch (e) {

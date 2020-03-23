@@ -175,7 +175,6 @@ const GridGallery = observer(
                   onClick={handleClick}
                   onDoubleClick={handleDoubleClick}
                   onDrop={handleDrop}
-                  showTags
                 />
               )}
             </Observer>
@@ -275,9 +274,7 @@ const ListGallery = observer(
                   onClick={handleClick}
                   onDoubleClick={handleDoubleClick}
                   onDrop={handleDrop}
-                  showInfo
-                  showName
-                  showTags
+                  showDetails
                 />
               )}
             </Observer>

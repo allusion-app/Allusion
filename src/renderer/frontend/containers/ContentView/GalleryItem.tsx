@@ -12,23 +12,31 @@ import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/Stor
 import { DragAndDropType } from '../Outliner/TagPanel';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
+import { ID } from '../../../entities/ID';
 
-interface IGalleryItemTagProps {
-  tag: ClientTag;
-  onRemove: (tag: ClientTag) => void;
-}
-
-const GalleryItemTag = observer(({ tag }: IGalleryItemTagProps) => {
-  const colClass = useMemo(
-    () => (tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white'),
-    [tag.viewColor],
-  );
+const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
+  const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
   return (
-    <Tag intent="primary" style={{ backgroundColor: tag.viewColor }}>
-      <span className={colClass}>{tag.name}</span>
+    <Tag intent="primary" style={{ backgroundColor: color }}>
+      <span className={colClass}>{name}</span>
     </Tag>
   );
-});
+};
+
+interface IThumbnailTags {
+  id: ID;
+  tags: ClientTag[];
+  onClick: (event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => void;
+  onDoubleClick: (event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => void;
+}
+
+const ThumbnailTags = observer(({ id, tags, onClick, onDoubleClick }: IThumbnailTags) => (
+  <span className="thumbnailTags" onClick={onClick} onDoubleClick={onDoubleClick}>
+    {tags.map((tag) => (
+      <ThumbnailTag key={`gal-tag-${id}-${tag.id}`} name={tag.name} color={tag.viewColor} />
+    ))}
+  </span>
+));
 
 interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;
@@ -36,22 +44,11 @@ interface IGalleryItemProps extends IRootStoreProp {
   onClick: (file: ClientFile, e: React.MouseEvent) => void;
   onDoubleClick?: (file: ClientFile, e: React.MouseEvent) => void;
   onDrop: (item: any, file: ClientFile) => void;
-  showName?: boolean;
-  showTags?: boolean;
-  showInfo?: boolean;
+  showDetails?: boolean;
 }
 
-export const GalleryItem = observer(
-  ({
-    file,
-    isSelected,
-    onClick,
-    onDoubleClick,
-    onDrop,
-    showName,
-    showTags,
-    showInfo,
-  }: IGalleryItemProps) => {
+const GalleryItem = observer(
+  ({ file, isSelected, onClick, onDoubleClick, onDrop, showDetails }: IGalleryItemProps) => {
     const { uiStore } = useContext(StoreContext);
 
     const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
@@ -68,7 +65,6 @@ export const GalleryItem = observer(
     const dropStyle = canDrop ? ' droppable' : ' undroppable';
     const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
-    const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), [file]);
     const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
     const handleDoubleClickImg = useCallback((e) => onDoubleClick && onDoubleClick(file, e), [
       file,
@@ -120,26 +116,18 @@ export const GalleryItem = observer(
           ) // Else show a placeholder
           }
         </div>
-
-        {showName && <H4>{file.name}</H4>}
-
-        {showInfo && <ImageInfo file={file} />}
-
-        {showTags && (
-          <span
-            className="thumbnailTags"
-            onClick={handleClickImg}
-            onDoubleClick={handleDoubleClickImg}
-          >
-            {file.clientTags.map((tag) => (
-              <GalleryItemTag
-                key={`gal-tag-${file.id}-${tag.id}`}
-                onRemove={handleRemoveTag}
-                tag={tag}
-              />
-            ))}
-          </span>
+        {showDetails && (
+          <>
+            <H4>{file.name}</H4>
+            <ImageInfo file={file} />
+          </>
         )}
+        <ThumbnailTags
+          id={file.id}
+          tags={file.clientTags}
+          onClick={handleClickImg}
+          onDoubleClick={handleDoubleClickImg}
+        />
       </div>
     );
   },
