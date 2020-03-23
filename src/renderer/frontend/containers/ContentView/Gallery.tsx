@@ -547,7 +547,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
           <Button
             text="Search"
             icon={IconSet.SEARCH}
-            onClick={uiStore.openSearch}
+            onClick={uiStore.openQuickSearch}
             intent="primary"
           />
         </ButtonGroup>
@@ -562,7 +562,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
           <Button
             text="Search"
             icon={IconSet.SEARCH}
-            onClick={uiStore.openSearch}
+            onClick={uiStore.openQuickSearch}
             intent="primary"
           />
         </ButtonGroup>

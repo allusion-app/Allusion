@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
+import React, { useCallback, useContext, useMemo, ChangeEvent, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
@@ -176,9 +176,13 @@ const TagCriteriaItem = observer(
       } else if (criteria instanceof ClientCollectionSearchCriteria) {
         return tagCollectionStore.get(criteria.collectionId);
       }
-    },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  [tagStore, tagCollectionStore, criteria instanceof ClientCollectionSearchCriteria ? criteria.collectionId : criteria.value]);
+    }, [
+      tagStore,
+      tagCollectionStore,
+      criteria,
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      criteria instanceof ClientCollectionSearchCriteria ? criteria.collectionId : criteria.value,
+    ]);
 
     return (
       <>
@@ -344,6 +348,14 @@ const CriteriaItem = observer(({ criteria, onRemove, removable }: ICriteriaItemP
 
 const SearchForm = observer(() => {
   const { uiStore } = useContext(StoreContext);
+
+  useEffect(() => {
+    uiStore.openQuickSearch();
+    // Add initial empty criteria if none exist
+    if (uiStore.searchCriteriaList.length === 0) {
+      uiStore.addSearchCriteria(new ClientArraySearchCriteria('tags'));
+    }
+  }, [uiStore]);
 
   const addSearchCriteria = useCallback(
     () => uiStore.addSearchCriteria(new ClientArraySearchCriteria('tags')),

@@ -13,11 +13,7 @@ import View, {
   ViewThumbnailSize,
   PersistentPreferenceFields as ViewPersistentPrefFields,
 } from './View';
-import {
-  ClientBaseCriteria,
-  ClientArraySearchCriteria,
-  ClientIDSearchCriteria,
-} from '../../entities/SearchCriteria';
+import { ClientBaseCriteria, ClientIDSearchCriteria } from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
@@ -425,10 +421,6 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
-  @action.bound openQuickSearch() {
-    this.isQuickSearchOpen = true;
-  }
-
   @action.bound async clearSearchCriteriaList() {
     this.searchCriteriaList.clear();
     this.viewAllContent();
@@ -453,20 +445,18 @@ class UiStore {
 
   @action.bound addTagsToCriteria(ids: ID[]) {
     this.searchCriteriaList.push(...ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
-    this.openQuickSearch();
-    this.searchByQuery();
   }
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
     this.searchCriteriaList.replace(ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
-    this.openQuickSearch();
-    this.searchByQuery();
+    // The array doesn't necessarily change length which make automatic fetching inconsistent.
+    if (ids.length === this.searchCriteriaList.length) {
+      this.searchByQuery();
+    }
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceCriteriaWithTags(this.tagSelection.toJS());
-    this.searchByQuery();
-    this.openQuickSearch();
   }
 
   @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
@@ -507,35 +497,26 @@ class UiStore {
   @action.bound reload() {
     remote.getCurrentWindow().reload();
   }
+
   @action.bound toggleFullScreen() {
     this.setIsFullScreen(!this.isFullScreen);
     remote.getCurrentWindow().setFullScreen(this.isFullScreen);
   }
+
   @action.bound toggleQuickSearch() {
     this.isQuickSearchOpen = !this.isQuickSearchOpen;
-    if (!this.isQuickSearchOpen) {
-      this.clearSearchCriteriaList();
-    }
   }
+
   @action.bound toggleAdvancedSearch() {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
-    if (this.isAdvancedSearchOpen && !this.isQuickSearchOpen) {
-      this.toggleQuickSearch();
-    }
-    // Add initial empty criteria if none exist
-    if (this.isAdvancedSearchOpen && this.searchCriteriaList.length === 0) {
-      this.addSearchCriteria(new ClientArraySearchCriteria('tags'));
-    }
   }
-  @action.bound closeSearch() {
-    if (this.isQuickSearchOpen) {
-      this.toggleQuickSearch();
-    }
+
+  @action.bound closeQuickSearch() {
+    this.isQuickSearchOpen = false;
   }
-  @action.bound openSearch() {
-    if (!this.isQuickSearchOpen) {
-      this.toggleQuickSearch();
-    }
+
+  @action.bound openQuickSearch() {
+    this.isQuickSearchOpen = true;
   }
 
   // Storing preferences
