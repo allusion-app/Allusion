@@ -19,8 +19,8 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
+  font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans",
+    "Helvetica Neue", "Icons16", sans-serif;
   .bp3-light {
     color: $light-gray1;
   }
@@ -35,7 +35,99 @@ body {
   height: 100%;
 }
 
+// Override standard CSS attributes
+pre {
+  word-wrap: break-word;
+  white-space: initial;
+  margin: 2px;
+}
+.bp3-dark {
+  pre {
+    background: $dark-gray4;
+  }
+}
+
 // Test with vertical sidenav
+.sidebar {
+  --toolbar-height: 100vh !important;
+  --toolbar-width: 3rem !important;
+  /*     --main-width: fit-content; */
+  --content-area-height: 100vh !important;
+  height: 100%;
+}
+.sidebar #layoutContainer {
+  display: grid;
+  /*     grid-template-rows: none; */
+  grid-template-columns: var(--toolbar-width) min-content 1fr min-content;
+  grid-template-areas: "toolbar outliner main inspector";
+}
+.sidebar #toolbar {
+  grid-area: toolbar;
+  width: 3rem !important;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  z-index: 1000;
+  border-right: 2px solid #14181a !important;
+}
+.sidebar #toolbar #main-toolbar {
+  display: flex;
+  flex-direction: column;
+  top: 20%;
+  left: 0px !important;
+  width: var(--toolbar-width) !important;
+  height: 40%;
+}
+.sidebar #toolbar > * > * {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  flex-direction: column !important;
+  justify-content: space-between;
+  margin: 0 auto;
+}
+
+// Toolbar items
+
+.sidebar {
+  #toolbar {
+    #outliner-toolbar,
+    #inspector-toolbar {
+      width: var(--toolbar-width) !important;
+    }
+    #main-toolbar {
+      div:nth-child(1) span:nth-child(2),
+      div:nth-child(2) > button:nth-child(1) span:nth-child(1) {
+        visibility: hidden;
+        display: none;
+      }
+      div:nth-child(1) button {
+        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0 25%;
+      }
+      div:nth-child(1) span:nth-child(2) {
+        /* background: red !important; */
+        visibility: visible;
+        display: flex;
+        text-orientation: upright;
+        writing-mode: vertical-rl;
+        /*         white-space: normal; */
+        overflow: hidden;
+        /*         text-align: -webkit-auto; */
+        width: initial;
+        height: 4rem;
+      }
+      div:nth-child(2) button {
+        width: -webkit-fill-available;
+      }
+    }
+  }
+}
+
 .sidenav #toolbar {
   width: 2rem !important;
   height: 100vh;
@@ -54,8 +146,8 @@ body {
 }
 
 // .sidenav main {
-  /* position: absolute; */
-  /* top: 0; */
+/* position: absolute; */
+/* top: 0; */
 // }
 
 .sidenav #inspector {
@@ -67,8 +159,8 @@ body {
 .preloader {
   font-size: 18px;
   font-weight: 700;
-  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
+  font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans",
+    "Helvetica Neue", "Icons16", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -84,8 +176,8 @@ main {
   grid-template-rows: var(--toolbar-height) var(--content-area-height);
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
-    'toolbar toolbar toolbar'
-    'outliner main inspector';
+    "toolbar toolbar toolbar"
+    "outliner main inspector";
 
   &.bp3-dark {
     background: $dark-gray0;
@@ -184,7 +276,7 @@ img {
   max-width: 600px !important;
   min-width: max-content;
   left: 1rem;
-  top: .25rem; //Fix for z-index issue
+  top: 0.25rem; //Fix for z-index issue
   margin-left: 1.5rem;
   margin-top: 1.5rem;
   text-align: left;
@@ -429,7 +521,7 @@ img {
 }
 
 #imageViewer {
-  content: 'Close';
+  content: "Close";
   color: $light-gray1;
   position: fixed;
   top: 0;
@@ -533,13 +625,13 @@ img {
 }
 
 .ellipsis {
-  white-space: nowrap; 
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .ellipsis-left {
-  white-space: nowrap; 
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   direction: rtl;

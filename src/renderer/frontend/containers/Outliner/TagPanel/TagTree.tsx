@@ -634,14 +634,14 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           icon={IconSet.TAG_ADD}
           onClick={handleRootAddTag}
           className="tooltip"
-          data-right={DEFAULT_TAG_NAME}
+          data-left={DEFAULT_TAG_NAME}
         />
         <Button
           minimal
           icon={IconSet.TAG_ADD_COLLECTION}
           onClick={handleAddRootCollection}
           className="tooltip"
-          data-right={DEFAULT_COLLECTION_NAME}
+          data-left={DEFAULT_COLLECTION_NAME}
         />
       </div>
 

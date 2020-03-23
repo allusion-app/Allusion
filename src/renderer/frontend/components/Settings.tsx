@@ -128,6 +128,12 @@ const Settings = observer(() => {
           onChange={uiStore.toggleFullScreen}
           label="Full screen"
         />
+        
+        <Switch
+          checked={uiStore.sidebar === 'sidebar'}
+          onChange={uiStore.toggleSidebar}
+          label="Sidebar"
+        />
         <Switch
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}

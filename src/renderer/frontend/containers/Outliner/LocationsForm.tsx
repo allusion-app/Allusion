@@ -88,17 +88,18 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
         <Observer>
           { () =>
             <>
-              <span>Path: <pre>{dir.path}</pre></span>
+              <p>Path: <pre>{dir.path}</pre></p>
               {/* <Checkbox label="Recursive" checked /> */}
               {/* <Checkbox label="Add folder name as tag" /> */}
               <Label>
-                Tags to add
+                <p>Tags to add
                 <MultiTagSelector
                   selectedItems={dir.clientTagsToAdd}
                   onTagSelect={dir.addTag}
                   onTagDeselect={dir.removeTag}
                   onClearSelection={dir.clearTags}
                 />
+                </p>
               </Label>
             </>
           }

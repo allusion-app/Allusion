@@ -900,6 +900,17 @@ li .bp3-menu-item {
   transition: all 0.2s $pt-transition-ease2;
 }
 
+//Sidebar override
+.sidebar .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
+.sidebar .bp3-button.bp3-minimal:hover,
+.sidebar .bp3-dark .bp3-button.bp3-minimal:hover {
+  border-left: 2px solid $blue1;
+  border-bottom: none !important;
+  border-radius: 0;
+  padding-left: 7px;
+  padding-bottom: 5px;
+}
+
 #system-tags {
   padding-left: 4px !important;
 
@@ -1132,7 +1143,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   .#{$ns}-tree-node-content-#{$i}:hover {
     background-color: $dark-gray2 !important;
     border-left: 2px solid $blue1;
-    padding-left: (($tree-row-height - $tree-icon-spacing) * $i) - 2px !important;
+    padding-left: (($tree-row-height - $tree-icon-spacing) * $i) - 4px !important;
+    // padding-left: (($tree-row-height - $tree-icon-spacing) - 6px) * $i !important;
     transition: all 0.2s $pt-transition-ease2;
     color: white;
   }

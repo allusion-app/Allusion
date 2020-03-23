@@ -88,6 +88,7 @@ const defaultHotkeyMap: IHotkeyMap = {
 /** These fields are stored and recovered when the application opens up */
 const PersistentPreferenceFields: Array<keyof UiStore> = [
   'theme',
+  'sidebar',
   'isFullScreen',
   'outlinerPage',
   'isOutlinerOpen',
@@ -104,6 +105,9 @@ class UiStore {
 
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
+  
+  // Sidebar
+  @observable sidebar: '' | 'sidebar' = 'sidebar';
 
   // FullScreen
   @observable isFullScreen: boolean = false;
@@ -547,7 +551,9 @@ class UiStore {
   @action.bound toggleTheme() {
     this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
   }
-
+  @action.bound toggleSidebar() {
+    this.setSidebar(this.sidebar === 'sidebar' ? '' : 'sidebar');
+  }
   @action.bound toggleDevtools() {
     remote.getCurrentWebContents().toggleDevTools();
   }
@@ -592,6 +598,7 @@ class UiStore {
       try {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
+        this.setSidebar(prefs.sidebar);
         this.setIsFullScreen(prefs.isFullScreen);
         this.setOutlinerPage(prefs.outlinerPage);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
@@ -633,6 +640,10 @@ class UiStore {
 
   @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
     this.theme = theme;
+  }
+  
+  @action private setSidebar(sidebar: '' | 'sidebar' = 'sidebar') {
+    this.sidebar = sidebar;
   }
 
   @action private setIsFullScreen(value: boolean = false) {
