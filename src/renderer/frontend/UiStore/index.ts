@@ -88,7 +88,6 @@ const defaultHotkeyMap: IHotkeyMap = {
 /** These fields are stored and recovered when the application opens up */
 const PersistentPreferenceFields: Array<keyof UiStore> = [
   'theme',
-  'isFullScreen',
   'isOutlinerOpen',
   'isInspectorOpen',
   'thumbnailDirectory',
@@ -103,9 +102,6 @@ class UiStore {
 
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
-
-  // FullScreen
-  @observable isFullScreen: boolean = false;
 
   // UI
   @observable isOutlinerOpen: boolean = true;
@@ -514,11 +510,6 @@ class UiStore {
     remote.getCurrentWindow().reload();
   }
 
-  @action.bound toggleFullScreen() {
-    this.setIsFullScreen(!this.isFullScreen);
-    remote.getCurrentWindow().setFullScreen(this.isFullScreen);
-  }
-
   @action.bound toggleQuickSearch() {
     if (this.isQuickSearchOpen && this.searchCriteriaList.length > 0) {
       this.clearSearchCriteriaList();
@@ -548,7 +539,6 @@ class UiStore {
       try {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
-        this.setIsFullScreen(prefs.isFullScreen);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.setIsInspectorOpen(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
@@ -593,10 +583,6 @@ class UiStore {
 
   @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
     this.theme = theme;
-  }
-
-  @action private setIsFullScreen(value: boolean = false) {
-    this.isFullScreen = value;
   }
 
   @action private setIsOutlinerOpen(value: boolean = true) {

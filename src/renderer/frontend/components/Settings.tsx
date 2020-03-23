@@ -21,12 +21,22 @@ import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
 
+// Window state
+const WINDOW_STORAGE_KEY = 'Allusion_Window';
+
 const Settings = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
   const [isClipServerRunning, setClipServerRunning] = useState(false);
   const [isRunningInBackground, setRunningInBackground] = useState(false);
   const [importPath, setImportPath] = useState(locationStore.importDirectory);
+
+  const toggleFullScreen = useCallback(() => {
+    const { isFullScreen, setFullScreen } = remote.getCurrentWindow();
+    // Save window state
+    localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: !isFullScreen() }));
+    setFullScreen(!isFullScreen());
+  }, []);
 
   const toggleClipServer = useCallback(() => {
     RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
@@ -57,6 +67,18 @@ const Settings = observer(() => {
   }, [setImportPath, locationStore]);
 
   useEffect(() => {
+    // Load last window state
+    const preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
+    if (preferences) {
+      try {
+        const prefs = JSON.parse(preferences);
+        if (prefs.isFullScreen) {
+          remote.getCurrentWindow().setFullScreen(prefs.isFullScreen);
+        }
+      } catch (e) {
+        console.log('Cannot load persistent preferences', e);
+      }
+    }
     setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
     setRunningInBackground(RendererMessenger.getIsRunningInBackground());
   }, []);
@@ -124,8 +146,8 @@ const Settings = observer(() => {
         </RadioGroup>
 
         <Switch
-          checked={uiStore.isFullScreen}
-          onChange={uiStore.toggleFullScreen}
+          defaultChecked={remote.getCurrentWindow().isFullScreen()}
+          onChange={toggleFullScreen}
           label="Full screen"
         />
         <Switch
