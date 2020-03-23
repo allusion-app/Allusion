@@ -191,7 +191,10 @@ const LocationRemovalAlert = ({ dir, handleClose }: ILocationRemovalAlertProps) 
 };
 
 const LocationsForm = () => {
-  const { locationStore, uiStore } = useContext(StoreContext);
+  const {
+    locationStore,
+    uiStore: { addSearchCriteria, replaceSearchCriteria },
+  } = useContext(StoreContext);
 
   const [locationConfigOpen, setLocationConfigOpen] = useState<ClientLocation | undefined>(
     undefined,
@@ -264,17 +267,16 @@ const LocationsForm = () => {
 
   const addToSearch = useCallback(
     (path: string) => {
-      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('path', path, 'contains'));
+      addSearchCriteria(new ClientStringSearchCriteria<IFile>('path', path, 'contains'));
     },
-    [uiStore],
+    [addSearchCriteria],
   );
 
   const replaceSearch = useCallback(
     (path: string) => {
-      uiStore.clearSearchCriteriaList();
-      addToSearch(path);
+      replaceSearchCriteria(new ClientStringSearchCriteria<IFile>('path', path, 'contains'));
     },
-    [uiStore, addToSearch],
+    [replaceSearchCriteria],
   );
 
   return (

@@ -16,13 +16,13 @@ export const NumberOperators = [
 ] as const;
 export type NumberOperatorType = typeof NumberOperators[number];
 
-export const NumberOperatorSymbols: { [key: string]: string} = {
-  'equals': '=',
-  'notEqual': '≠',
-  'smallerThan': '<',
-  'smallerThanOrEquals': '≤',
-  'greaterThan': '>',
-  'greaterThanOrEquals': '≥',
+export const NumberOperatorSymbols: { [key: string]: string } = {
+  equals: '=',
+  notEqual: '≠',
+  smallerThan: '<',
+  smallerThanOrEquals: '≤',
+  greaterThan: '>',
+  greaterThanOrEquals: '≥',
 };
 
 export const StringOperators = [
@@ -147,7 +147,8 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
     super(key, 'string', operator || 'contains');
     this.value = value || '';
   }
-  toString = () => `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} "${this.value}"`;
+  toString = () =>
+    `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} "${this.value}"`;
   @action.bound setOperator(op: StringOperatorType) {
     this.operator = op;
   }
@@ -162,8 +163,9 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
     super(key, 'number', 'greaterThanOrEquals');
     this.value = 0;
   }
-  toString = () =>`${camelCaseToSpaced(this.key as string)} ${NumberOperatorSymbols[this.operator]
-    || camelCaseToSpaced(this.operator)} ${this.value}`;
+  toString = () =>
+    `${camelCaseToSpaced(this.key as string)} ${NumberOperatorSymbols[this.operator] ||
+      camelCaseToSpaced(this.operator)} ${this.value}`;
   @action.bound setOperator(op: NumberOperatorType) {
     this.operator = op;
   }
@@ -179,8 +181,9 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.value = new Date();
     this.value.setHours(0, 0, 0, 0);
   }
-  toString = () =>`${camelCaseToSpaced(this.key as string)} ${NumberOperatorSymbols[this.operator]
-    || camelCaseToSpaced(this.operator)} ${this.value.toLocaleDateString()}`;
+  toString = () =>
+    `${camelCaseToSpaced(this.key as string)} ${NumberOperatorSymbols[this.operator] ||
+      camelCaseToSpaced(this.operator)} ${this.value.toLocaleDateString()}`;
   @action.bound setOperator(op: NumberOperatorType) {
     this.operator = op;
   }
@@ -197,7 +200,7 @@ export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IF
     this.collectionId = collectionId;
     this.label = label;
   }
-  toString = () =>`${this.label}`;
+  toString = () => `${this.label}`;
   @action.bound setValue(collectionId: ID, tagIDs: ID[], label: string) {
     this.collectionId = collectionId;
     this.value.clear();

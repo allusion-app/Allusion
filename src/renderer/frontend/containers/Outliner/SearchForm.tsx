@@ -336,11 +336,6 @@ const CriteriaItem = observer(({ criteria, onRemove, removable }: ICriteriaItemP
     <ControlGroup fill className="criteria">
       <KeySelector criteria={criteria} />
       {critFields}
-
-      {/* <ButtonGroup vertical className="add-remove">
-        <Button text="-" onClick={onRemove} disabled={!removable} />
-        <Button text="+" onClick={onAdd} />
-      </ButtonGroup> */}
       <Button text="-" onClick={onRemove} disabled={!removable} className="remove" />
     </ControlGroup>
   );
@@ -389,29 +384,6 @@ const SearchForm = observer(() => {
       <Button icon={IconSet.ADD} onClick={addSearchCriteria} minimal text="Add" />
 
       <div>
-        {/* <RadioGroup inline label="Match with" selectedValue="all" onChange={() => undefined}>
-          <Radio label="All" value="all" />
-          <Radio label="Any" value="any" />
-        </RadioGroup> */}
-
-        {/* <ButtonGroup id="actions-bar">
-          <Button
-            onClick={resetSearchCriteria}
-            disabled={uiStore.searchCriteriaList.length === 0}
-            text="Reset"
-            icon={IconSet.CLOSE}
-            fill
-          />
-          <Button
-            intent="primary"
-            onClick={uiStore.viewContentQuery}
-            disabled={uiStore.searchCriteriaList.length === 0}
-            text="Search"
-            icon={IconSet.SEARCH}
-            fill
-          />
-        </ButtonGroup> */}
-
         <div id="actions-bar" className="bp3-alert-footer">
           <Button
             intent="primary"

@@ -423,7 +423,10 @@ class UiStore {
   /////////////////// Search Actions ///////////////////
   @action.bound async clearSearchCriteriaList() {
     this.searchCriteriaList.clear();
-    this.viewAllContent();
+    this.clearFileSelection();
+    if (!this.rootStore.fileStore.showsAllContent) {
+      this.rootStore.fileStore.fetchAllFiles();
+    }
   }
 
   @action.bound async searchByQuery() {
@@ -439,6 +442,24 @@ class UiStore {
     this.searchCriteriaList.remove(query);
   }
 
+  @action.bound async replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+    if (this.searchCriteriaList.length === 1) {
+      this.searchCriteriaList.replace([query]);
+      this.searchByQuery();
+    } else {
+      this.searchCriteriaList.replace([query]);
+    }
+  }
+
+  @action.bound async replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+    if (this.searchCriteriaList.length > 0 && this.searchCriteriaList.length === queries.length) {
+      this.searchCriteriaList.replace(queries);
+      this.searchByQuery();
+    } else {
+      this.searchCriteriaList.replace(queries);
+    }
+  }
+
   @action.bound async removeSearchCriteriaByIndex(i: number) {
     this.searchCriteriaList.splice(i, 1);
   }
@@ -448,11 +469,7 @@ class UiStore {
   }
 
   @action.bound replaceCriteriaWithTags(ids: ID[]) {
-    this.searchCriteriaList.replace(ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
-    // The array doesn't necessarily change length which make automatic fetching inconsistent.
-    if (ids.length === this.searchCriteriaList.length) {
-      this.searchByQuery();
-    }
+    this.replaceSearchCriterias(ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
@@ -468,19 +485,18 @@ class UiStore {
 
   /////////////////// UI Actions ///////////////////
   @action.bound viewAllContent() {
-    this.tagSelection.clear();
     this.rootStore.fileStore.fetchAllFiles();
-    this.cleanFileSelection();
+    this.clearSelection();
   }
+
   @action.bound viewUntaggedContent() {
-    this.tagSelection.clear();
     this.rootStore.fileStore.fetchUntaggedFiles();
-    this.cleanFileSelection();
+    this.clearSelection();
   }
+
   @action.bound viewQueryContent() {
-    this.tagSelection.clear();
     this.rootStore.fileStore.fetchFilesByQuery();
-    this.cleanFileSelection();
+    this.clearSelection();
 
     if (this.isAdvancedSearchOpen) {
       this.toggleAdvancedSearch();
@@ -504,6 +520,9 @@ class UiStore {
   }
 
   @action.bound toggleQuickSearch() {
+    if (this.isQuickSearchOpen && this.searchCriteriaList.length > 0) {
+      this.clearSearchCriteriaList();
+    }
     this.isQuickSearchOpen = !this.isQuickSearchOpen;
   }
 
@@ -512,6 +531,9 @@ class UiStore {
   }
 
   @action.bound closeQuickSearch() {
+    if (this.isQuickSearchOpen && this.searchCriteriaList.length > 0) {
+      this.clearSearchCriteriaList();
+    }
     this.isQuickSearchOpen = false;
   }
 
@@ -553,6 +575,11 @@ class UiStore {
   }
 
   /////////////////// Helper methods ///////////////////
+  @action clearSelection() {
+    this.tagSelection.clear();
+    this.fileSelection.clear();
+  }
+
   /**
    * Deselect files that are not tagged with any tag in the current tag selection
    */
