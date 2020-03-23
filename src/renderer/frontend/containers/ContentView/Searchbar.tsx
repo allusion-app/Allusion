@@ -149,7 +149,6 @@ export const SearchBar = observer(() => {
   // Open searchbar on adding queries
   useEffect(() => {
     if (searchCriteriaList.length > 0 && !isQuickSearchOpen) {
-      console.log('Open...');
       openQuickSearch();
     }
   }, [isQuickSearchOpen, openQuickSearch, searchCriteriaList.length]);
@@ -157,7 +156,6 @@ export const SearchBar = observer(() => {
   // Fetch whenever a query changes
   useEffect(() => {
     if (searchCriteriaList.length > 0) {
-      console.log('Fetch query...');
       searchByQuery();
     }
   }, [searchByQuery, searchCriteriaList.length]);
