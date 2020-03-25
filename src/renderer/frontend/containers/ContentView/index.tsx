@@ -4,12 +4,12 @@ import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 
 import { IRootStoreProp, withRootstore } from '../../contexts/StoreContext';
 import Gallery from './Gallery';
-import SearchBar from './Searchbar';
+import Searchbar from './Searchbar';
 
 const ContentView = observer(() => {
   return (
     <div className="gallery">
-      <SearchBar />
+      <Searchbar />
       <Gallery />
     </div>
   );

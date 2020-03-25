@@ -126,7 +126,7 @@ const CriteriaList = React.memo(({ criterias, toggleAdvancedSearch, onRemove }: 
   );
 });
 
-export const SearchBar = observer(() => {
+export const Searchbar = observer(() => {
   const rootStore = useContext(StoreContext);
   const {
     uiStore: {
@@ -209,4 +209,4 @@ export const SearchBar = observer(() => {
   );
 });
 
-export default SearchBar;
+export default Searchbar;
