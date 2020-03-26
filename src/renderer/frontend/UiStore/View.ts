@@ -91,7 +91,7 @@ class View {
     this.thumbnailSize = size;
   }
 
-  @action private setThumbnailShape(shape: ViewThumbnailShape) {
+  @action setThumbnailShape(shape: ViewThumbnailShape) {
     this.thumbnailShape = shape;
   }
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { TextInput, NumberInput } from './input';
+import { Radio, RadioGroup } from './radio';
 
 const Select = (
   props: React.DetailedHTMLProps<React.SelectHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>,
@@ -12,4 +13,4 @@ const Select = (
   );
 };
 
-export { TextInput, NumberInput, Select };
+export { TextInput, NumberInput, Radio, RadioGroup, Select };

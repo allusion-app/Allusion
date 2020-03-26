@@ -113,6 +113,42 @@ input:read-only {
   text-overflow: ellipsis;
 }
 
+label {
+  color: $dark-gray4;
+}
+
+input[type='radio'] {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 50%;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(16, 22, 26, 0.5);
+  vertical-align: text-bottom;
+  margin-right: 0.5rem;
+}
+
+input[type='radio']:checked {
+  background-color: $blue1;
+}
+
+input[type='radio']::before {
+  display: block;
+  content: ' ';
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background-color: white;
+  transform: scale(0);
+  transform-origin: center;
+  transition: all 0.3s ease-in;
+}
+
+input[type='radio']:checked::before {
+  transform: scale(0.45);
+  transition: all 0.2s cubic-bezier(0.25, 0.25, 0.56, 2);
+}
+
 #outliner input[type='text'],
 #search-form input[type='text'],
 #search-form input[type='number'] {

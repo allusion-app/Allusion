@@ -13,6 +13,8 @@ import {
   KeyCombo,
 } from '@blueprintjs/core';
 
+import { Radio as MyRadio, RadioGroup as MyRadioGroup } from '../components/form';
+
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { ClearDbButton } from './ErrorBoundary';
@@ -20,6 +22,7 @@ import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
+import { ViewThumbnailShape } from '../UiStore/View';
 
 const Settings = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
@@ -93,6 +96,13 @@ const Settings = observer(() => {
     });
   }, [fileStore.fileList, uiStore]);
 
+  const handleThumbnailShape = useCallback(
+    (value: string) => {
+      uiStore.view.setThumbnailShape(value as ViewThumbnailShape);
+    },
+    [uiStore.view],
+  );
+
   return (
     <Drawer
       isOpen={uiStore.isSettingsOpen}
@@ -113,15 +123,17 @@ const Settings = observer(() => {
           <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
         </RadioGroup>
 
-        <RadioGroup
-          selectedValue={uiStore.view.thumbnailShape}
-          onChange={() => undefined}
-          label="Thumbnail shape"
-          inline
-        >
-          <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
-          <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
-        </RadioGroup>
+        <div>
+          <h4>Thumbnail shape</h4>
+          <MyRadioGroup
+            name="Thumbnail shape"
+            checkedValue={uiStore.view.thumbnailShape}
+            setValue={handleThumbnailShape}
+          >
+            <MyRadio label="Square" value="square" />
+            <MyRadio label="Letterbox" value="letterbox" />
+          </MyRadioGroup>
+        </div>
 
         <Switch
           checked={uiStore.isFullScreen}
