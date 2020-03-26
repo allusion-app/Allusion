@@ -21,7 +21,7 @@ import { ClientTag } from '../../../../entities/Tag';
 import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';
 import { SketchPicker, ColorResult } from 'react-color';
-import { TextInput } from '../../../components/Input';
+import { TextInput } from '../../../components/form';
 
 const DEFAULT_TAG_NAME = 'New Tag';
 const DEFAULT_COLLECTION_NAME = 'New Collection';

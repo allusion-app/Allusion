@@ -1,14 +1,7 @@
 import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
-import {
-  FormGroup,
-  Button,
-  Dialog,
-  ControlGroup,
-  NumericInput,
-  HTMLSelect,
-} from '@blueprintjs/core';
+import { FormGroup, Button, Dialog, ControlGroup } from '@blueprintjs/core';
 
 import {
   NumberOperatorType,
@@ -34,7 +27,7 @@ import { ClientTag } from '../../../entities/Tag';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { FileSearchCriteria } from '../../UiStore';
 import { ClientTagCollection } from '../../../entities/TagCollection';
-import { TextInput } from '../../components/Input';
+import { TextInput, NumberInput, Select } from '../../components/form';
 
 interface IKeyLabel {
   [key: string]: string;
@@ -101,11 +94,13 @@ const KeySelector = observer(({ criteria }: { criteria: FileSearchCriteria }) =>
   );
 
   return (
-    <HTMLSelect
-      onChange={handlePickKey}
-      options={CriteriaKeyOrder.map((key) => ({ value: key, label: KeyLabelMap[key] }))}
-      value={criteria.key}
-    />
+    <Select onChange={handlePickKey} value={criteria.key}>
+      {CriteriaKeyOrder.map((key) => (
+        <option key={key} value={key}>
+          {KeyLabelMap[key]}
+        </option>
+      ))}
+    </Select>
   );
 });
 
@@ -121,11 +116,13 @@ const OperatorSelect = ({ onSelect, value, options }: IOperatorSelectProps) => {
     [onSelect],
   );
   return (
-    <HTMLSelect
-      onChange={handleSelect}
-      options={options.map((opt) => ({ value: opt, label: camelCaseToSpaced(opt) }))}
-      value={value}
-    />
+    <Select onChange={handleSelect} value={value}>
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {camelCaseToSpaced(o)}
+        </option>
+      ))}
+    </Select>
   );
 };
 
@@ -246,11 +243,11 @@ const ExtensionCriteriaItem = observer(
           value={criteria.operator}
           options={BinaryOperators}
         />
-        <HTMLSelect
-          onChange={handlePickValue}
-          options={IMG_EXTENSIONS.map((ext) => ({ value: ext, label: ext.toUpperCase() }))}
-          value={criteria.value}
-        />
+        <Select defaultValue={criteria.value} onChange={handlePickValue}>
+          {IMG_EXTENSIONS.map((value) => (
+            <option key={value}>{value.toUpperCase()}</option>
+          ))}
+        </Select>
       </>
     );
   },
@@ -263,9 +260,7 @@ const NumberCriteriaItem = observer(
       (operator: string) => criteria.setOperator(operator as NumberOperatorType),
       [criteria],
     );
-    const handleChangeValue = useCallback((val: number) => criteria.setValue(val * bytesInMb), [
-      criteria,
-    ]);
+
     return (
       <>
         <OperatorSelect
@@ -273,12 +268,11 @@ const NumberCriteriaItem = observer(
           value={criteria.operator}
           options={NumberOperators}
         />
-        <NumericInput
+        <NumberInput
+          focusOnEdit
           placeholder="Enter a number..."
           value={criteria.value / bytesInMb}
-          onValueChange={handleChangeValue}
-          autoFocus
-          buttonPosition="none"
+          setValue={criteria.setValue}
         />
       </>
     );

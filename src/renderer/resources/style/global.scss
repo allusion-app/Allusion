@@ -67,7 +67,9 @@ main {
 }
 
 // Input
-input[type='text'] {
+input[type='text'],
+input[type='number'],
+select {
   height: 1.6rem;
   line-height: 1.5rem;
   border-radius: 6px;
@@ -76,16 +78,21 @@ input[type='text'] {
   border: none;
 }
 
-input[type='text']:read-only {
+input[type='text']:read-only,
+input[type='number']:read-only {
   background-color: transparent;
   padding: 0;
 }
 
-input[type='text']:read-write:focus {
+input[type='text']:read-write:focus,
+input[type='number']:read-write:focus,
+select:focus {
   border: 2px solid $blue1;
 }
 
-input[type='text']:invalid:read-write:focus {
+input[type='text']:invalid:read-write:focus,
+input[type='number']:invalid:read-write:focus,
+select:invalid {
   border-color: red !important;
 }
 
@@ -94,25 +101,29 @@ input[type='text']:disabled {
   color: $dark-gray2;
 }
 
-input[type='text']::placeholder {
+input::placeholder {
   color: $light-gray5;
   opacity: 0.5;
 }
 
-input[type='text']::placeholder,
-input[type='text']:read-only {
+input::placeholder,
+input:read-only {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 #outliner input[type='text'],
-#search-form input[type='text'] {
+#search-form input[type='text'],
+#search-form input[type='number'] {
   width: 100%;
 }
 
-#search-form input[type='text'] {
-  height: 30px;
+#search-form {
+  input[type='text'],
+  input[type='number'] {
+    height: 30px;
+  }
 }
 
 .empty-collection {
@@ -126,8 +137,51 @@ input[type='text']:read-only {
   color: $blue1;
 }
 
-.bp3-dialog input[type='text']:read-write:focus {
-  background-color: $light-gray4;
+.bp3-dialog {
+  input[type='text']:read-write:focus,
+  input[type='number']:read-write:focus,
+  select:focus {
+    background-color: $light-gray4;
+  }
+}
+
+// Override appearance
+input[type='number'],
+select,
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+.select-wrapper {
+  position: relative;
+
+  > select {
+    color: $dark-gray4;
+    padding-right: 1.5rem;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.select-wrapper::after {
+  content: ' ';
+  background-image: url(resources/icons/arrow-down.svg);
+  top: calc((100% - 1rem) / 2);
+  right: 0.5rem;
+  position: absolute;
+  pointer-events: none;
+  width: 1rem;
+  height: 1rem;
+  background-color: $dark-gray4;
+  background-blend-mode: screen;
+  mask-image: url(resources/icons/arrow-down.svg);
+  -webkit-mask-image: url(resources/icons/arrow-down.svg);
 }
 
 // Global component layout
