@@ -6,7 +6,6 @@ import {
   Button,
   Dialog,
   ControlGroup,
-  InputGroup,
   NumericInput,
   HTMLSelect,
 } from '@blueprintjs/core';
@@ -35,6 +34,7 @@ import { ClientTag } from '../../../entities/Tag';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { FileSearchCriteria } from '../../UiStore';
 import { ClientTagCollection } from '../../../entities/TagCollection';
+import { TextInput } from '../../components/Input';
 
 interface IKeyLabel {
   [key: string]: string;
@@ -176,9 +176,13 @@ const TagCriteriaItem = observer(
       } else if (criteria instanceof ClientCollectionSearchCriteria) {
         return tagCollectionStore.get(criteria.collectionId);
       }
-    },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  [tagStore, tagCollectionStore, criteria instanceof ClientCollectionSearchCriteria ? criteria.collectionId : criteria.value]);
+    }, [
+      tagStore,
+      tagCollectionStore,
+      criteria,
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      criteria instanceof ClientCollectionSearchCriteria ? criteria.collectionId : criteria.value,
+    ]);
 
     return (
       <>
@@ -205,7 +209,7 @@ const StringCriteriaItem = observer(
       (operator: string) => criteria.setOperator(operator as StringOperatorType),
       [criteria],
     );
-    const handleChangeValue = useCallback((e) => criteria.setValue(e.target.value), [criteria]);
+
     return (
       <>
         <OperatorSelect
@@ -213,11 +217,11 @@ const StringCriteriaItem = observer(
           value={criteria.operator}
           options={StringOperators}
         />
-        <InputGroup
+        <TextInput
+          focusOnEdit
           placeholder="Enter some text..."
-          value={criteria.value}
-          onChange={handleChangeValue}
-          autoFocus
+          text={criteria.value}
+          setText={criteria.setValue}
         />
       </>
     );

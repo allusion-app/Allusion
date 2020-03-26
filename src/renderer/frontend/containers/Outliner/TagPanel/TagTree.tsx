@@ -2,18 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { useDrop } from 'react-dnd';
 import { ID } from '../../../../entities/ID';
-import {
-  ITreeNode,
-  MenuItem,
-  Menu,
-  Divider,
-  ControlGroup,
-  InputGroup,
-  Button,
-  H4,
-  Icon,
-  Collapse,
-} from '@blueprintjs/core';
+import { ITreeNode, MenuItem, Menu, Divider, Button, H4, Icon, Collapse } from '@blueprintjs/core';
 import { IRootStoreProp } from '../../../contexts/StoreContext';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../../entities/TagCollection';
 import { formatTagCountText } from '../../../utils';
@@ -32,113 +21,56 @@ import { ClientTag } from '../../../../entities/Tag';
 import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';
 import { SketchPicker, ColorResult } from 'react-color';
+import { TextInput } from '../../../components/Input';
 
 const DEFAULT_TAG_NAME = 'New Tag';
 const DEFAULT_COLLECTION_NAME = 'New Collection';
 
-interface ITagCollectionItemProps {
-  col: ClientTagCollection;
+const isValidTagName = (text: string) => text.trim().length > 0;
+
+interface IEditorProp {
+  text: string;
+  setText: (name: string) => void;
   isEditing: boolean;
   setEditing: (val: boolean) => void;
 }
 
-const TagCollectionItem = ({ col, isEditing, setEditing }: ITagCollectionItemProps) => {
-  return isEditing ? (
-    <TreeListItemEditor
-      initialName={col.name}
-      onRename={(name) => {
-        col.rename(name);
-        setEditing(false);
-      }}
-      onAbort={() => setEditing(false)}
-    />
-  ) : (
-    <>
-      {col.name}
-      {col.isEmpty && <i style={{ color: '#007af5 !important' }}> (empty)</i>}
-    </>
+const Editor = ({ text, setText, isEditing, setEditing }: IEditorProp) => {
+  const submit = useCallback(
+    (target) => {
+      target.focus();
+      setEditing(false), [setEditing];
+    },
+    [setEditing],
   );
-};
-
-interface ITagItemProps {
-  tag: ClientTag;
-  isEditing: boolean;
-  setEditing: (val: boolean) => void;
-}
-
-const TagItem = ({ tag, isEditing, setEditing }: ITagItemProps) => {
-  return isEditing ? (
-    <TreeListItemEditor
-      initialName={tag.name}
-      onRename={(name) => {
-        tag.rename(name);
-        setEditing(false);
-      }}
-      onAbort={() => setEditing(false)}
-    />
-  ) : (
-    <div className={'tagLabel'}>{tag.name}</div>
-  );
-};
-
-interface ITreeListItemEditorProps {
-  initialName: string;
-  onRename: (name: string) => void;
-  onAbort?: () => void;
-  autoFocus?: boolean;
-  // icon?: IconName;
-  placeholder?: string;
-  resetOnSubmit?: boolean;
-}
-
-const TreeListItemEditor = ({
-  initialName,
-  onRename,
-  onAbort = () => null, // no-op function by default
-  autoFocus = true,
-  placeholder = 'Enter a new name',
-  resetOnSubmit = false,
-}: ITreeListItemEditorProps) => {
-  const [newName, setNewName] = useState(initialName);
-  const [isFocused, setFocused] = useState(false);
-
-  const isValidInput = newName.trim() !== '';
-
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (isValidInput) {
-          onRename(newName);
-          if (resetOnSubmit) {
-            setNewName(initialName);
-          }
-        }
-      }}
-    >
-      <ControlGroup fill={true} vertical={false} onAbort={onAbort}>
-        <InputGroup
-          placeholder={placeholder}
-          onChange={(e: React.FormEvent<HTMLElement>) =>
-            setNewName((e.target as HTMLInputElement).value)
-          }
-          value={newName}
-          autoFocus={autoFocus}
-          onBlur={() => {
-            setFocused(false);
-            onAbort();
-          }}
-          onFocus={(e) => {
-            setFocused(true);
-            e.target.select();
-          }}
-          // Only show red outline when input field is in focus and text is invalid
-          className={isFocused && !isValidInput ? 'bp3-intent-danger' : ''}
-        />
-        {/* <Button icon={icon} type="submit"/> */}
-      </ControlGroup>
-    </form>
+    <TextInput
+      focusOnEdit
+      placeholder="Enter a new name"
+      editable={isEditing}
+      text={text}
+      setText={setText}
+      isValid={isValidTagName}
+      onSubmit={submit}
+    />
   );
+};
+
+const TagCollectionItem = ({
+  text,
+  setText,
+  isEditing,
+  setEditing,
+  isEmpty,
+}: IEditorProp & { isEmpty: boolean }) => {
+  if (!isEditing && isEmpty) {
+    return (
+      <div className="empty-collection">
+        <Editor text={text} setText={setText} isEditing={isEditing} setEditing={setEditing} />
+      </div>
+    );
+  }
+  return <Editor text={text} setText={setText} isEditing={isEditing} setEditing={setEditing} />;
 };
 
 //// Add context menu /////
@@ -398,10 +330,13 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
                 onDropHover={() => undefined}
                 onDropSelection={() => uiStore.moveSelectedTagItems(col.id)}
                 isSelected={tag.isSelected}
-                isEditing={isEditMode(tag.id, DragAndDropType.Tag)}
-                setEditing={(editing) => setEditMode(tag.id, DragAndDropType.Tag, editing)}
-                render={(props) => (
-                  <TagItem tag={tag} isEditing={props.isEditing} setEditing={props.setEditing} />
+                render={() => (
+                  <Editor
+                    isEditing={isEditMode(tag.id, DragAndDropType.Tag)}
+                    text={tag.name}
+                    setText={tag.rename}
+                    setEditing={(editing) => setEditMode(tag.id, DragAndDropType.Tag, editing)}
+                  />
                 )}
               />
             ),
@@ -430,13 +365,13 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           onDropBranch={(item) => uiStore.moveCollection(item.id, col)}
           branch={DragAndDropType.Collection}
           onDropSelection={() => uiStore.moveSelectedTagItems(col.id)}
-          isEditing={isEditMode(col.id, DragAndDropType.Collection)}
-          setEditing={(editing) => setEditMode(col.id, DragAndDropType.Collection, editing)}
-          render={(props) => (
+          render={() => (
             <TagCollectionItem
-              col={col}
-              isEditing={props.isEditing}
-              setEditing={props.setEditing}
+              isEmpty={col.isEmpty}
+              text={col.name}
+              setText={col.rename}
+              isEditing={isEditMode(col.id, DragAndDropType.Collection)}
+              setEditing={(editing) => setEditMode(col.id, DragAndDropType.Collection, editing)}
             />
           )}
         />
@@ -551,42 +486,51 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     return [...root.clientSubCollections.map((c) => createCollection(c)), ...createTags(root)];
   }, [editNode, expandState, root, tagCollectionStore, tagStore, uiStore]);
 
-  const handleRootAddTag = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    tagStore
-      .addTag(DEFAULT_TAG_NAME)
-      .then((tag) => {
-        root.addTag(tag.id);
-        setEditNode({ id: tag.id, kind: DragAndDropType.Tag });
-      })
-      .catch((err) => console.log('Could not create tag', err));
-  }, [root, tagStore]);
+  const handleRootAddTag = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      tagStore
+        .addTag(DEFAULT_TAG_NAME)
+        .then((tag) => {
+          root.addTag(tag.id);
+          setEditNode({ id: tag.id, kind: DragAndDropType.Tag });
+        })
+        .catch((err) => console.log('Could not create tag', err));
+    },
+    [root, tagStore],
+  );
 
-  const handleAddRootCollection = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    tagCollectionStore
-      .addTagCollection(DEFAULT_COLLECTION_NAME, root)
-      .then((col) => setEditNode({ id: col.id, kind: DragAndDropType.Collection }))
-      .catch((err) => console.log('Could not create collection', err));
-  }, [root, tagCollectionStore]);
+  const handleAddRootCollection = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      tagCollectionStore
+        .addTagCollection(DEFAULT_COLLECTION_NAME, root)
+        .then((col) => setEditNode({ id: col.id, kind: DragAndDropType.Collection }))
+        .catch((err) => console.log('Could not create collection', err));
+    },
+    [root, tagCollectionStore],
+  );
 
-  const handleRootDrop = useCallback((monitor) => {
-    const item: IDragAndDropItem = monitor.getItem();
-    if (item.isSelected) {
-      return uiStore.moveSelectedTagItems(ROOT_TAG_COLLECTION_ID);
-    }
+  const handleRootDrop = useCallback(
+    (monitor) => {
+      const item: IDragAndDropItem = monitor.getItem();
+      if (item.isSelected) {
+        return uiStore.moveSelectedTagItems(ROOT_TAG_COLLECTION_ID);
+      }
 
-    switch (monitor.getItemType()) {
-      case DragAndDropType.Collection:
-        uiStore.moveCollection(item.id, root);
-        break;
-      case DragAndDropType.Tag:
-        uiStore.moveTag(item.id, root);
-        break;
-      default:
-        break;
-    }
-  }, [root, uiStore]);
+      switch (monitor.getItemType()) {
+        case DragAndDropType.Collection:
+          uiStore.moveCollection(item.id, root);
+          break;
+        case DragAndDropType.Tag:
+          uiStore.moveTag(item.id, root);
+          break;
+        default:
+          break;
+      }
+    },
+    [root, uiStore],
+  );
 
   const handleOnContextMenu = (node: ITreeNode<INodeData>): JSX.Element => {
     if (node.nodeData) {
@@ -617,15 +561,13 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   });
 
   const [isCollapsed, setCollapsed] = useState(false);
-  const toggleCollapse = useCallback(
-    () => setCollapsed(!isCollapsed),
-    [isCollapsed, setCollapsed]);
+  const toggleCollapse = useCallback(() => setCollapsed(!isCollapsed), [isCollapsed, setCollapsed]);
 
   return (
     <>
       <div className="outliner-header-wrapper" ref={headerDrop} onClick={toggleCollapse}>
         <H4 className="bp3-heading">
-          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/>
+          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
           Tags
         </H4>
         <Button

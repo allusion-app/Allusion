@@ -66,6 +66,70 @@ main {
   }
 }
 
+// Input
+input[type='text'] {
+  height: 1.6rem;
+  line-height: 1.5rem;
+  border-radius: 6px;
+  padding: 0em 0.5em;
+  background-color: rgba(1, 1, 1, 0.1);
+  border: none;
+}
+
+input[type='text']:read-only {
+  background-color: transparent;
+  padding: 0;
+}
+
+input[type='text']:read-write:focus {
+  border: 2px solid $blue1;
+}
+
+input[type='text']:invalid:read-write:focus {
+  border-color: red !important;
+}
+
+input[type='text']:disabled {
+  background: $dark-gray3;
+  color: $dark-gray2;
+}
+
+input[type='text']::placeholder {
+  color: $light-gray5;
+  opacity: 0.5;
+}
+
+input[type='text']::placeholder,
+input[type='text']:read-only {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#outliner input[type='text'],
+#search-form input[type='text'] {
+  width: 100%;
+}
+
+#search-form input[type='text'] {
+  height: 30px;
+}
+
+.empty-collection {
+  display: flex;
+  align-items: center;
+}
+
+.empty-collection::after {
+  content: ' (empty)';
+  font-style: italic;
+  color: $blue1;
+}
+
+.bp3-dialog input[type='text']:read-write:focus {
+  background-color: $light-gray4;
+}
+
 // Global component layout
 .popoverContent {
   padding: 0.5em;
@@ -155,7 +219,7 @@ img {
   max-width: 600px !important;
   min-width: max-content;
   left: 1rem;
-  top: .25rem; //Fix for z-index issue
+  top: 0.25rem; //Fix for z-index issue
   margin-left: 1.5rem;
   margin-top: 1.5rem;
   text-align: left;
@@ -504,13 +568,13 @@ img {
 }
 
 .ellipsis {
-  white-space: nowrap; 
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .ellipsis-left {
-  white-space: nowrap; 
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   direction: rtl;

@@ -27,17 +27,7 @@ interface ITreeItemProps {
   // Inserts dragged item at a new position in the list
   onDropSelection: (item: IDragAndDropItem) => void;
   onDropHover: () => void;
-  isEditing: boolean;
-  setEditing: (val: boolean) => void;
-  render: (props: ITreeItemRenderProps) => JSX.Element;
-}
-
-interface ITreeItemRenderProps {
-  id: string;
-  name: string;
-  isSelected: boolean;
-  isEditing: boolean;
-  setEditing: (val: boolean) => void;
+  render: (props: ITreeItemProps) => JSX.Element;
 }
 
 interface ITreeLeafProps extends ITreeItemProps {
@@ -92,7 +82,7 @@ export const TreeLeaf = (props: ITreeLeafProps) => {
   }, [connectDragPreview]);
 
   // Style whether the element is being dragged or hovered over to drop on
-  const className = `${isHovering ? 'reorder-target' : ''} ${isDragging ? 'reorder-source' : ''}`;
+  const className = `${isHovering ? 'reorder-target' : ''}${isDragging ? ' reorder-source' : ''}`;
   return connectDropTarget(
     connectDragSource(<div className={className}>{render({ ...props })}</div>),
   );
@@ -206,8 +196,8 @@ export const TreeBranch = (props: ITreeBranchProps) => {
   }, [canDrop, expandTimeout, isHovering, onDropHover]);
 
   // Style whether the element is being dragged or hovered over to drop on
-  const className = `${canDrop && !isDragging && isHovering ? 'reorder-target' : ''} ${
-    isDragging ? 'reorder-source' : ''
+  const className = `${canDrop && !isDragging && isHovering ? 'reorder-target' : ''}${
+    isDragging ? ' reorder-source' : ''
   }`;
 
   return connectDropTarget(

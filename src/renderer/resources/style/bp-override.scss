@@ -353,7 +353,6 @@ form .bp3-icon {
 }
 .bp3-dark {
   #inspector,
-  #outliner,
   .gallery {
     .bp3-tag-input.bp3-active,
     input:not(.bp3-input-ghost),
@@ -412,9 +411,9 @@ form .bp3-icon {
 // Labels
 .bp3-dark {
   label.bp3-label,
-  #watched-folders .bp3-button  {
-  color: $light-gray1;
-}
+  #watched-folders .bp3-button {
+    color: $light-gray1;
+  }
 }
 
 // Buttons
@@ -762,7 +761,7 @@ nav .bp3-divider {
 .bp3-button-group.bp3-minimal {
   .bp3-button.bp3-intent-primary,
   .bp3-button.bp3-active .bp3-icon {
-  color: $blue1;
+    color: $blue1;
   }
 }
 
@@ -861,7 +860,7 @@ li .bp3-menu-item {
   color: white;
 }
 
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled), 
+.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
 .bp3-dark #watched-folders .bp3-button:hover {
   // .bp3-button:hover > .custom-icon,
   // .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
@@ -1112,12 +1111,10 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 .bp3-dark #watched-folders .bp3-button:hover {
   background-color: #252525 !important;
   border-left: 2px solid $blue1;
-  padding-left: .85rem !important;
+  padding-left: 0.85rem !important;
   transition: all 0.2s $pt-transition-ease2;
   color: white;
 }
-
-
 
 @for $i from 0 through 20 {
   .#{$ns}-tree-node-content-#{$i}:hover {
@@ -1134,8 +1131,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   .bp3-tree-node-content:hover > .custom-icon,
   .bp3-button.bp3-minimal:hover .bp3-button-text,
   #watched-folders .bp3-minimal .bp3-icon {
-  color: white;
-}
+    color: white;
+  }
 }
 
 // Hardcode left padding
