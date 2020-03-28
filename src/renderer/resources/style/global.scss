@@ -78,25 +78,22 @@ select {
   border: none;
 }
 
-input[type='text']:read-only,
-input[type='number']:read-only {
+input:read-only {
   background-color: transparent;
   padding: 0;
 }
 
-input[type='text']:read-write:focus,
-input[type='number']:read-write:focus,
+input:read-write:focus,
 select:focus {
   border: 2px solid $blue1;
 }
 
-input[type='text']:invalid:read-write:focus,
-input[type='number']:invalid:read-write:focus,
+input:invalid:read-write:focus,
 select:invalid {
   border-color: red !important;
 }
 
-input[type='text']:disabled {
+input:disabled {
   background: $dark-gray3;
   color: $dark-gray2;
 }
@@ -124,21 +121,12 @@ input[type='radio'] {
   margin-right: 0.5rem;
 }
 
-.bp3-dark {
-  input[type='radio'] {
-    background-color: rgba(16, 22, 26, 0.5);
-  }
+.bp3-dark input[type='radio'] {
+  background-color: rgba(16, 22, 26, 0.5);
 }
 
-.bp3-light {
-  input[type='radio'] {
-    background-color: $light-gray4;
-    border: 1px solid rgba(16, 22, 26, 0.5);
-  }
-
-  input[type='radio']:checked {
-    border: none;
-  }
+.bp3-light input[type='radio'] {
+  background-color: rgba(167, 182, 194, 0.5);
 }
 
 input[type='radio']:checked {
@@ -157,7 +145,7 @@ input[type='radio']::before {
   transition: all 0.3s ease-in;
 }
 
-input[type='radio']:checked::before {
+input[type='radio']::before:checked {
   transform: scale(0.45);
   transition: all 0.2s cubic-bezier(0.25, 0.25, 0.56, 2);
 }
@@ -180,32 +168,19 @@ fieldset {
 }
 
 #outliner input[type='text'],
-#search-form input[type='text'],
-#search-form input[type='number'] {
+#search-form input {
   width: 100%;
 }
 
 #search-form {
-  input[type='text'],
-  input[type='number'] {
+  input,
+  select {
     height: 30px;
   }
 }
 
-.empty-collection {
-  display: flex;
-  align-items: center;
-}
-
-.empty-collection::after {
-  content: ' (empty)';
-  font-style: italic;
-  color: $blue1;
-}
-
 .bp3-dialog {
-  input[type='text']:read-write:focus,
-  input[type='number']:read-write:focus,
+  input:read-write:focus,
   select:focus {
     background-color: $light-gray4;
   }

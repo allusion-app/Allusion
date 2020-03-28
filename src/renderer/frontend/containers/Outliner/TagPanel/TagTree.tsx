@@ -56,23 +56,6 @@ const Editor = ({ text, setText, isEditing, setEditing }: IEditorProp) => {
   );
 };
 
-const TagCollectionItem = ({
-  text,
-  setText,
-  isEditing,
-  setEditing,
-  isEmpty,
-}: IEditorProp & { isEmpty: boolean }) => {
-  if (!isEditing && isEmpty) {
-    return (
-      <div className="empty-collection">
-        <Editor text={text} setText={setText} isEditing={isEditing} setEditing={setEditing} />
-      </div>
-    );
-  }
-  return <Editor text={text} setText={setText} isEditing={isEditing} setEditing={setEditing} />;
-};
-
 //// Add context menu /////
 interface ITagCollectionContextMenu {
   collection: ClientTagCollection;
@@ -366,8 +349,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           branch={DragAndDropType.Collection}
           onDropSelection={() => uiStore.moveSelectedTagItems(col.id)}
           render={() => (
-            <TagCollectionItem
-              isEmpty={col.isEmpty}
+            <Editor
               text={col.name}
               setText={col.rename}
               isEditing={isEditMode(col.id, DragAndDropType.Collection)}
