@@ -1,8 +1,8 @@
 /* eslint-disable react/display-name */
 import React from 'react';
-import { Input } from './input';
+import { FormElement } from './index';
 
-interface IRadio extends Input {
+interface IRadio extends FormElement {
   label: string;
   checked?: boolean;
 }
@@ -14,7 +14,7 @@ const Radio = React.memo(({ className, label, name, value, checked, onChange }: 
         className={className}
         name={name}
         type="radio"
-        checked={checked}
+        defaultChecked={checked}
         value={value}
         onChange={onChange}
       />
@@ -23,7 +23,7 @@ const Radio = React.memo(({ className, label, name, value, checked, onChange }: 
   );
 });
 
-interface IRadioGroup extends Input {
+interface IRadioGroup extends FormElement {
   name: string;
   children: React.ReactElement<IRadio>[];
 }

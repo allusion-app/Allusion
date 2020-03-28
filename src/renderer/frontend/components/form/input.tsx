@@ -1,18 +1,10 @@
 import React, { useEffect, useRef } from 'react';
+import { FormElement } from '.';
 
-export interface Input<T = string> {
-  className?: string;
-  disabled?: boolean;
-  name?: string;
-  required?: boolean;
-  value: T;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-interface IInputProps<T> extends Input<T> {
+interface InputElement<T> extends FormElement<T> {
   focusOnEdit?: boolean;
   placeholder: string;
-  editable?: boolean;
+  readonly?: boolean;
   isValid?: (value: string) => boolean;
   onSubmit?: (target: EventTarget & HTMLInputElement) => void;
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
@@ -108,7 +100,7 @@ function handleOnEnter<T>(
   };
 }
 
-interface ITextInputProps extends IInputProps<string> {
+interface TextInput extends InputElement<string> {
   setText: (text: string) => void;
 }
 
@@ -123,7 +115,7 @@ const TextInput = ({
   className,
   disabled,
   placeholder,
-  editable = true,
+  readonly,
   required,
   value = '',
   setText,
@@ -134,19 +126,19 @@ const TextInput = ({
   onFocus,
   onInvalid,
   onSubmit = () => {},
-}: ITextInputProps) => {
+}: TextInput) => {
   const input = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (input.current) {
-      if (focusOnEdit && editable) {
+      if (focusOnEdit && !readonly) {
         input.current.focus();
       }
-      if (!editable) {
+      if (readonly) {
         input.current.setSelectionRange(0, 0);
       }
     }
-  }, [editable, focusOnEdit]);
+  }, [readonly, focusOnEdit]);
 
   return (
     <input
@@ -158,17 +150,17 @@ const TextInput = ({
       disabled={disabled}
       placeholder={placeholder}
       required={required}
-      readOnly={!editable}
-      onBlur={handleOnBlur(onBlur, editable, isValid, setText, onSubmit, value)}
-      onFocus={handleOnFocus(onFocus, editable)}
+      readOnly={readonly}
+      onBlur={handleOnBlur(onBlur, !readonly, isValid, setText, onSubmit, value)}
+      onFocus={handleOnFocus(onFocus, !readonly)}
       onInput={handleOnInput(onInput, isValid)}
       onInvalid={handleOnInvalid(onInvalid)}
-      onKeyUp={handleOnEnter(editable, isValid, setText, onSubmit, onAbort)}
+      onKeyUp={handleOnEnter(!readonly, isValid, setText, onSubmit, onAbort)}
     />
   );
 };
 
-interface INumberInputProps extends IInputProps<number> {
+interface NumberInput extends InputElement<number> {
   min?: number;
   max?: number;
   step?: number;
@@ -183,7 +175,7 @@ const NumberInput = ({
   className,
   disabled,
   placeholder,
-  editable = true,
+  readonly: editable = true,
   required,
   value,
   setValue,
@@ -194,7 +186,7 @@ const NumberInput = ({
   onFocus,
   onInvalid,
   onSubmit = () => {},
-}: INumberInputProps) => {
+}: NumberInput) => {
   const input = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {

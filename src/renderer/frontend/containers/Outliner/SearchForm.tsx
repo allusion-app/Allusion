@@ -243,7 +243,7 @@ const ExtensionCriteriaItem = observer(
           value={criteria.operator}
           options={BinaryOperators}
         />
-        <Select defaultValue={criteria.value} onChange={handlePickValue}>
+        <Select value={criteria.value} onChange={handlePickValue}>
           {IMG_EXTENSIONS.map((value) => (
             <option key={value}>{value.toUpperCase()}</option>
           ))}
