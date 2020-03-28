@@ -7,13 +7,11 @@ import {
   Button,
   Callout,
   H4,
-  RadioGroup,
-  Radio,
   FormGroup,
   KeyCombo,
 } from '@blueprintjs/core';
 
-import { Radio as MyRadio, RadioGroup as MyRadioGroup } from '../components/form';
+import { Radio, RadioGroup } from '../components/form';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
@@ -22,7 +20,6 @@ import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
-import { ViewThumbnailShape } from '../UiStore/View';
 
 const Settings = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
@@ -96,13 +93,6 @@ const Settings = observer(() => {
     });
   }, [fileStore.fileList, uiStore]);
 
-  const handleThumbnailShape = useCallback(
-    (value: string) => {
-      uiStore.view.setThumbnailShape(value as ViewThumbnailShape);
-    },
-    [uiStore.view],
-  );
-
   return (
     <Drawer
       isOpen={uiStore.isSettingsOpen}
@@ -112,28 +102,20 @@ const Settings = observer(() => {
       className={themeClass}
     >
       <div className={Classes.DRAWER_BODY}>
-        <RadioGroup
-          selectedValue={uiStore.view.thumbnailSize}
-          onChange={() => undefined}
-          label="Thumbnail size"
-          inline
-        >
-          <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
-          <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
-          <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
+        <RadioGroup value={uiStore.view.thumbnailSize} name="Thumbnail size">
+          <Radio label="Small" value="small" onChange={uiStore.view.setThumbnailSmall} />
+          <Radio label="Medium" value="medium" onChange={uiStore.view.setThumbnailMedium} />
+          <Radio label="Large" value="large" onChange={uiStore.view.setThumbnailLarge} />
         </RadioGroup>
 
-        <div>
-          <h4>Thumbnail shape</h4>
-          <MyRadioGroup
-            name="Thumbnail shape"
-            checkedValue={uiStore.view.thumbnailShape}
-            setValue={handleThumbnailShape}
-          >
-            <MyRadio label="Square" value="square" />
-            <MyRadio label="Letterbox" value="letterbox" />
-          </MyRadioGroup>
-        </div>
+        <RadioGroup name="Thumbnail shape" value={uiStore.view.thumbnailShape}>
+          <Radio label="Square" value="square" onChange={uiStore.view.setThumbnailSquare} />
+          <Radio
+            label="Letterbox"
+            value="letterbox"
+            onChange={uiStore.view.setThumbnailLetterbox}
+          />
+        </RadioGroup>
 
         <Switch
           checked={uiStore.isFullScreen}

@@ -1,59 +1,51 @@
-import React, { useCallback } from 'react';
+/* eslint-disable react/display-name */
+import React from 'react';
+import { Input } from './input';
 
-interface IRadio {
-  className?: string;
-  name?: string;
+interface IRadio extends Input {
   label: string;
-  value: string;
-  isChecked?: boolean;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  checked?: boolean;
 }
 
-const Radio = ({ className = '', label, name, value, isChecked, onChange = () => {} }: IRadio) => {
+const Radio = React.memo(({ className, label, name, value, checked, onChange }: IRadio) => {
   return (
     <label>
       <input
         className={className}
         name={name}
         type="radio"
-        checked={isChecked}
+        checked={checked}
         value={value}
         onChange={onChange}
       />
       {label}
     </label>
   );
-};
+});
 
-interface IRadioGroup {
+interface IRadioGroup extends Input {
   name: string;
-  checkedValue?: string;
   children: React.ReactElement<IRadio>[];
-  setValue: (value: string) => void;
 }
 
-const RadioGroup = ({ name, checkedValue, children, setValue }: IRadioGroup) => {
-  const handleOnChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValue(event.target.value);
-    },
-    [setValue],
-  );
+const RadioGroup = React.memo(({ name, disabled, value, children, onChange }: IRadioGroup) => {
   return (
-    <>
-      {children.map((c) => (
+    <fieldset>
+      <legend>{name}</legend>
+      {children.map(({ props }) => (
         <Radio
-          key={c.props.value}
-          {...{
-            ...c.props,
-            name,
-            isChecked: checkedValue === c.props.value,
-            onChange: handleOnChange,
-          }}
+          disabled={disabled}
+          className={props.className}
+          name={name}
+          key={props.value}
+          value={props.value}
+          label={props.label}
+          onChange={props.onChange ?? onChange}
+          checked={value === props.value}
         />
       ))}
-    </>
+    </fieldset>
   );
-};
+});
 
 export { Radio, RadioGroup };

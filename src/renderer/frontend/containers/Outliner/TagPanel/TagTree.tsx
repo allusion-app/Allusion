@@ -48,7 +48,7 @@ const Editor = ({ text, setText, isEditing, setEditing }: IEditorProp) => {
       focusOnEdit
       placeholder="Enter a new name"
       editable={isEditing}
-      text={text}
+      value={text}
       setText={setText}
       isValid={isValidTagName}
       onSubmit={submit}

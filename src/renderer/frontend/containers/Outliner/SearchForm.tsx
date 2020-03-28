@@ -217,7 +217,7 @@ const StringCriteriaItem = observer(
         <TextInput
           focusOnEdit
           placeholder="Enter some text..."
-          text={criteria.value}
+          value={criteria.value}
           setText={criteria.setValue}
         />
       </>

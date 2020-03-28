@@ -1,12 +1,18 @@
 import React, { useEffect, useRef } from 'react';
 
-interface IInputProps<T> {
-  focusOnEdit?: boolean;
+export interface Input<T = string> {
   className?: string;
   disabled?: boolean;
+  name?: string;
+  required?: boolean;
+  value: T;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+interface IInputProps<T> extends Input<T> {
+  focusOnEdit?: boolean;
   placeholder: string;
   editable?: boolean;
-  required?: boolean;
   isValid?: (value: string) => boolean;
   onSubmit?: (target: EventTarget & HTMLInputElement) => void;
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
@@ -103,7 +109,6 @@ function handleOnEnter<T>(
 }
 
 interface ITextInputProps extends IInputProps<string> {
-  text: string;
   setText: (text: string) => void;
 }
 
@@ -115,12 +120,12 @@ interface ITextInputProps extends IInputProps<string> {
  */
 const TextInput = ({
   focusOnEdit = false,
-  className = '',
+  className,
   disabled,
   placeholder,
   editable = true,
   required,
-  text,
+  value = '',
   setText,
   isValid = () => true,
   onAbort = () => {},
@@ -148,13 +153,13 @@ const TextInput = ({
       spellCheck={false}
       ref={input}
       className={className}
-      defaultValue={text}
+      defaultValue={value}
       type="text"
       disabled={disabled}
       placeholder={placeholder}
       required={required}
       readOnly={!editable}
-      onBlur={handleOnBlur(onBlur, editable, isValid, setText, onSubmit, text)}
+      onBlur={handleOnBlur(onBlur, editable, isValid, setText, onSubmit, value)}
       onFocus={handleOnFocus(onFocus, editable)}
       onInput={handleOnInput(onInput, isValid)}
       onInvalid={handleOnInvalid(onInvalid)}
@@ -167,7 +172,6 @@ interface INumberInputProps extends IInputProps<number> {
   min?: number;
   max?: number;
   step?: number;
-  value: number;
   setValue: (value: number) => void;
 }
 
@@ -176,7 +180,7 @@ const NumberInput = ({
   max,
   step,
   focusOnEdit = false,
-  className = '',
+  className,
   disabled,
   placeholder,
   editable = true,
