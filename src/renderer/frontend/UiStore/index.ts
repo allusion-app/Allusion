@@ -487,6 +487,12 @@ class UiStore {
     this.view.setContentQuery();
   }
 
+  @action.bound async replaceSearchCriteriaList(query: Exclude<FileSearchCriteria, 'key'>) {
+    this.searchCriteriaList.clear();
+    this.searchCriteriaList.push(query);
+    this.view.setContentQuery();
+  }
+
   @action.bound async removeSearchCriteria(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
     this.view.setContentQuery();
