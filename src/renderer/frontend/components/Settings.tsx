@@ -1,17 +1,8 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import {
-  Drawer,
-  Classes,
-  Switch,
-  Button,
-  Callout,
-  H4,
-  FormGroup,
-  KeyCombo,
-} from '@blueprintjs/core';
+import { Drawer, Classes, Button, Callout, H4, FormGroup, KeyCombo } from '@blueprintjs/core';
 
-import { Radio, RadioGroup } from '../components/form';
+import { Radio, RadioGroup, Switch } from '../components/form';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
@@ -122,6 +113,7 @@ const Settings = observer(() => {
           onChange={uiStore.toggleFullScreen}
           label="Full screen"
         />
+
         <Switch
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
@@ -133,6 +125,7 @@ const Settings = observer(() => {
           onChange={toggleRunInBackground}
           label="Run in background"
         />
+
         <Switch
           checked={isClipServerRunning}
           onChange={toggleClipServer}

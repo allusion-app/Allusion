@@ -67,6 +67,19 @@ main {
 }
 
 // Input
+// Override appearance
+input[type='number'],
+input[type='radio'],
+input[type='checkbox'],
+select,
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+// Text and Number Input
 input[type='text'],
 input[type='number'],
 select {
@@ -110,34 +123,42 @@ input:read-only {
   text-overflow: ellipsis;
 }
 
-input[type='radio'] {
-  -webkit-appearance: none;
-  appearance: none;
-  border-radius: 50%;
+// Radio and Checkbox Input
+input[type='radio'],
+input[type='checkbox'] {
   width: 1rem;
   height: 1rem;
-  border-radius: 50%;
   vertical-align: text-bottom;
   margin-right: 0.5rem;
+  transition: background-color 0.3s;
+
+  &:checked {
+    background-color: $blue1;
+  }
+
+  &::before {
+    content: ' ';
+    display: block;
+    width: 1rem;
+    height: 1rem;
+  }
 }
 
-.bp3-dark input[type='radio'] {
-  background-color: rgba(16, 22, 26, 0.5);
-}
-
-.bp3-light input[type='radio'] {
+.bp3-dark input[type='radio'],
+.bp3-dark input[type='checkbox'] {
   background-color: rgba(167, 182, 194, 0.5);
 }
 
-input[type='radio']:checked {
-  background-color: $blue1;
+.bp3-light input[type='radio'],
+.bp3-light input[type='checkbox'] {
+  background-color: rgba(16, 22, 26, 0.5);
+}
+
+input[type='radio'] {
+  border-radius: 50%;
 }
 
 input[type='radio']::before {
-  display: block;
-  content: ' ';
-  width: 1rem;
-  height: 1rem;
   border-radius: 50%;
   background-color: white;
   transform: scale(0);
@@ -145,26 +166,67 @@ input[type='radio']::before {
   transition: all 0.3s ease-in;
 }
 
-input[type='radio']::before:checked {
+input[type='radio']:checked::before {
   transform: scale(0.45);
   transition: all 0.2s cubic-bezier(0.25, 0.25, 0.56, 2);
 }
 
+// Radio Group mostly
 fieldset {
   margin: 0;
   border: none;
   padding: 0 0 0.5rem;
-  color: $dark-gray4;
 
   legend {
-    color: $light-gray1;
+    color: $dark-gray4;
     display: block;
     margin-bottom: 1rem;
   }
 
   label {
+    color: inherit;
+    display: inline;
     padding-inline-end: 1rem;
   }
+}
+
+input[type='checkbox'] {
+  border-radius: 12.25%;
+  padding: 0.125rem;
+
+  &::before {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+input[type='checkbox']:checked::before {
+  background-image: url(resources/icons/checkmark.svg);
+  background-color: white;
+  background-blend-mode: screen;
+  mask-repeat: no-repeat;
+  mask-image: url(resources/icons/checkmark.svg);
+  -webkit-mask-image: url(resources/icons/checkmark.svg);
+}
+
+// Switch
+input[type='checkbox'][data-subtype-switch] {
+  width: 1.75rem;
+  border-radius: 1.75rem;
+}
+
+input[type='checkbox'][data-subtype-switch]::before {
+  border-radius: 50%;
+  background-image: none;
+  mask-image: none;
+  -webkit-mask-image: none;
+  background-color: white;
+  transform: translateX(0);
+  transition: all 0.4s;
+}
+
+input[type='checkbox'][data-subtype-switch]:checked::before {
+  transform: translateX(0.75rem);
 }
 
 #outliner input[type='text'],
@@ -186,16 +248,7 @@ fieldset {
   }
 }
 
-// Override appearance
-input[type='number'],
-select,
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  appearance: none;
-  margin: 0;
-}
-
+// Select
 .select-wrapper {
   position: relative;
 
@@ -208,21 +261,27 @@ input::-webkit-inner-spin-button {
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+
+  &::after {
+    content: ' ';
+    background-image: url(resources/icons/arrow-down.svg);
+    top: calc((100% - 1rem) / 2);
+    right: 0.5rem;
+    position: absolute;
+    pointer-events: none;
+    width: 1rem;
+    height: 1rem;
+    background-color: $dark-gray4;
+    background-blend-mode: screen;
+    mask-image: url(resources/icons/arrow-down.svg);
+    -webkit-mask-image: url(resources/icons/arrow-down.svg);
+  }
 }
 
-.select-wrapper::after {
-  content: ' ';
-  background-image: url(resources/icons/arrow-down.svg);
-  top: calc((100% - 1rem) / 2);
-  right: 0.5rem;
-  position: absolute;
-  pointer-events: none;
-  width: 1rem;
-  height: 1rem;
-  background-color: $dark-gray4;
-  background-blend-mode: screen;
-  mask-image: url(resources/icons/arrow-down.svg);
-  -webkit-mask-image: url(resources/icons/arrow-down.svg);
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: $dark-gray1;
 }
 
 // Global component layout
