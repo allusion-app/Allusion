@@ -109,25 +109,25 @@ const Settings = observer(() => {
         </RadioGroup>
 
         <Switch
-          checked={uiStore.isFullScreen}
+          defaultChecked={uiStore.isFullScreen}
           onChange={uiStore.toggleFullScreen}
           label="Full screen"
         />
 
         <Switch
-          checked={uiStore.theme === 'DARK'}
+          defaultChecked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
           label="Dark theme"
         />
 
         <Switch
-          checked={isRunningInBackground}
+          defaultChecked={isRunningInBackground}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
 
         <Switch
-          checked={isClipServerRunning}
+          defaultChecked={isClipServerRunning}
           onChange={toggleClipServer}
           label="Browser extension support"
         />

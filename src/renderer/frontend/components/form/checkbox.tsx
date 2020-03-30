@@ -9,38 +9,23 @@ interface ICheckbox<T = string> {
   value?: T;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   label: string;
-  checked?: boolean;
+  defaultChecked?: boolean;
 }
 
-const Switch = React.memo(({ className, label, name, value, checked, onChange }: ICheckbox) => {
+const Switch = React.memo((props: ICheckbox) => {
   return (
     <label>
-      <input
-        data-subtype-switch
-        className={className}
-        name={name}
-        type="checkbox"
-        defaultChecked={checked}
-        value={value}
-        onChange={onChange}
-      />
-      {label}
+      <input data-subtype-switch {...props} type="checkbox" />
+      {props.label}
     </label>
   );
 });
 
-const Checkbox = React.memo(({ className, label, name, value, checked, onChange }: ICheckbox) => {
+const Checkbox = React.memo((props: ICheckbox) => {
   return (
     <label>
-      <input
-        className={className}
-        name={name}
-        type="checkbox"
-        defaultChecked={checked}
-        value={value}
-        onChange={onChange}
-      />
-      {label}
+      <input {...props} type="checkbox" />
+      {props.label}
     </label>
   );
 });

@@ -4,21 +4,14 @@ import { FormElement } from './index';
 
 interface IRadio extends FormElement {
   label: string;
-  checked?: boolean;
+  defaultChecked?: boolean;
 }
 
-const Radio = React.memo(({ className, label, name, value, checked, onChange }: IRadio) => {
+const Radio = React.memo((props: IRadio) => {
   return (
     <label>
-      <input
-        className={className}
-        name={name}
-        type="radio"
-        defaultChecked={checked}
-        value={value}
-        onChange={onChange}
-      />
-      {label}
+      <input {...props} type="radio" />
+      {props.label}
     </label>
   );
 });
@@ -34,14 +27,12 @@ const RadioGroup = React.memo(({ name, disabled, value, children, onChange }: IR
       <legend>{name}</legend>
       {children.map(({ props }) => (
         <Radio
+          {...props}
           disabled={disabled}
-          className={props.className}
           name={name}
           key={props.value}
-          value={props.value}
-          label={props.label}
           onChange={props.onChange ?? onChange}
-          checked={value === props.value}
+          defaultChecked={value === props.value}
         />
       ))}
     </fieldset>
