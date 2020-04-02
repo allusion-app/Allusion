@@ -419,7 +419,7 @@ class UiStore {
   /////////////////// Search Actions ///////////////////
   @action.bound async clearSearchCriteriaList() {
     this.searchCriteriaList.clear();
-    this.clearFileSelection();
+    this.clearSelection();
     if (!this.rootStore.fileStore.showsAllContent) {
       this.rootStore.fileStore.fetchAllFiles();
     }
