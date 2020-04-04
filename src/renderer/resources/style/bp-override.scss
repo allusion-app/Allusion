@@ -76,18 +76,6 @@
   border-bottom: 2px solid rgba(0, 0, 0, 0);
 }
 
-.bp3-tag-input-values::placeholder,
-.bp3-input-ghost::placeholder {
-  color: $light-gray5;
-  // color: $dark-gray4;
-  opacity: 0.5;
-}
-
-.bp3-tag-input .bp3-input-ghost {
-  // color: $dark-gray4;
-  color: $light-gray1 !important;
-}
-
 .bp3-popover-content #fileTag,
 #search-form {
   .bp3-tag-input.bp3-active {
