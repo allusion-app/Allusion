@@ -21,7 +21,6 @@ import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
-import Recovery from '../Recovery';
 
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
 const CELL_SIZE_SMALL = 160 - 2;
@@ -55,14 +54,10 @@ interface IGalleryLayoutProps {
 function getLayoutComponent(
   viewMethod: ViewMethod,
   isSlideMode: boolean,
-  isRecoveryMode: boolean,
   props: IGalleryLayoutProps,
 ) {
   if (isSlideMode) {
     return <SlideGallery {...props} />;
-  }
-  if (isRecoveryMode) {
-    return <Recovery />;
   }
   switch (viewMethod) {
     case 'grid':
@@ -109,9 +104,10 @@ const GridGallery = observer(
     const forceUpdateObj = uiStore.fileSelection.length === 0 ? null : uiStore.fileSelection[0];
 
     // Scroll to a file when selecting it
-    const latestSelectedFile = lastSelectionIndex.current
-      && lastSelectionIndex.current < fileList.length
-      && fileList[lastSelectionIndex.current].id;
+    const latestSelectedFile =
+      lastSelectionIndex.current &&
+      lastSelectionIndex.current < fileList.length &&
+      fileList[lastSelectionIndex.current].id;
     useEffect(() => {
       const index = fileList.findIndex((f) => f.id === latestSelectedFile);
       if (latestSelectedFile && index >= 0) {
@@ -236,9 +232,10 @@ const ListGallery = observer(
     const forceUpdateObj = uiStore.fileSelection.length === 0 ? null : uiStore.fileSelection[0];
 
     // Scroll to a file when selecting it
-    const latestSelectedFile = lastSelectionIndex.current
-      && lastSelectionIndex.current < fileList.length
-      && fileList[lastSelectionIndex.current].id;
+    const latestSelectedFile =
+      lastSelectionIndex.current &&
+      lastSelectionIndex.current < fileList.length &&
+      fileList[lastSelectionIndex.current].id;
     useEffect(() => {
       const index = fileList.findIndex((f) => f.id === latestSelectedFile);
       if (latestSelectedFile && index >= 0) {
@@ -431,12 +428,8 @@ const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayou
   );
 });
 
-const Gallery = ({
-  rootStore: {
-    uiStore,
-    fileStore: { fileList },
-  },
-}: IRootStoreProp) => {
+const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
+  const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
   const handleResize = useCallback((entries: IResizeEntry[]) => {
     const { contentRect: rect, target } = entries[0];
@@ -543,7 +536,7 @@ const Gallery = ({
         icon={IconSet.ADD}
       />
     );
-    if (uiStore.view.showsQueryContent) {
+    if (fileStore.showsQueryContent) {
       description = 'Try searching for something else.';
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       title = 'No images found';
@@ -559,7 +552,7 @@ const Gallery = ({
           />
         </ButtonGroup>
       );
-    } else if (uiStore.view.showsUntaggedContent) {
+    } else if (fileStore.showsUntaggedContent) {
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       description = 'All images have been tagged. Nice work!';
       title = 'No untagged images';
@@ -589,7 +582,7 @@ const Gallery = ({
         }`}
         onClick={handleBackgroundClick}
       >
-        {getLayoutComponent(uiStore.view.method, uiStore.view.isSlideMode, uiStore.view.showsRecoveryContent, {
+        {getLayoutComponent(uiStore.view.method, uiStore.view.isSlideMode, {
           contentRect,
           fileList,
           uiStore,

@@ -34,12 +34,10 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
             text="All Images"
             icon={IconSet.MEDIA}
             rightIcon={
-              uiStore.view.showsAllContent ? (
-                <Icon intent="primary" icon={IconSet.PREVIEW} />
-              ) : null
+              fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
             }
             onClick={uiStore.viewAllContent}
-            active={uiStore.view.showsAllContent}
+            active={fileStore.showsAllContent}
             fill
             data-right={Tooltip.AllImages}
           />
@@ -47,26 +45,16 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
             text={`Untagged (${fileStore.numUntaggedFiles})`}
             icon={IconSet.TAG_BLANCO}
             rightIcon={
-              uiStore.view.showsUntaggedContent ? (
+              fileStore.showsUntaggedContent ? (
                 <Icon icon={IconSet.PREVIEW} />
               ) : fileStore.numUntaggedFiles > 0 ? (
                 <Icon icon={IconSet.WARNING} />
               ) : null
             }
             onClick={uiStore.viewUntaggedContent}
-            active={uiStore.view.showsUntaggedContent}
+            active={fileStore.showsUntaggedContent}
             fill
             data-right={Tooltip.Untagged}
-          />
-          <Button
-            text={`Recovery (x)`}
-            icon="heart-broken"
-            rightIcon={
-              <Icon icon={uiStore.view.showsRecoveryContent ? IconSet.PREVIEW : IconSet.WARNING} />
-            }
-            onClick={uiStore.viewRecoveryContent}
-            active={uiStore.view.showsRecoveryContent}
-            fill
           />
         </ButtonGroup>
       </div>
@@ -81,10 +69,10 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   }
   selectAllTags = () => {
     this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());
-  }
+  };
   openTagRemover = () => {
     this.props.rootStore.uiStore.openOutlinerTagRemover();
-  }
+  };
   renderHotkeys() {
     const { uiStore } = this.props.rootStore;
     const { hotkeyMap } = uiStore;

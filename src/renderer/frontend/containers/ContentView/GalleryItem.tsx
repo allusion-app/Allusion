@@ -20,7 +20,7 @@ interface IGalleryItemTagProps {
 
 const GalleryItemTag = observer(({ tag }: IGalleryItemTagProps) => {
   const colClass = useMemo(
-    () => tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white',
+    () => (tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white'),
     [tag.viewColor],
   );
   return (
@@ -41,88 +41,109 @@ interface IGalleryItemProps extends IRootStoreProp {
   showInfo?: boolean;
 }
 
-export const GalleryItem = observer(({
-  file,
-  isSelected,
-  onClick,
-  onDoubleClick,
-  onDrop,
-  showName, showTags, showInfo,
-}: IGalleryItemProps) => {
-  const { uiStore } = useContext(StoreContext);
+export const GalleryItem = observer(
+  ({
+    file,
+    isSelected,
+    onClick,
+    onDoubleClick,
+    onDrop,
+    showName,
+    showTags,
+    showInfo,
+  }: IGalleryItemProps) => {
+    const { uiStore } = useContext(StoreContext);
 
-  const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
-    accept: DragAndDropType.Tag,
-    drop: (_, monitor) => onDrop(monitor.getItem(), file),
-    canDrop: () => true,
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  });
+    const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
+      accept: DragAndDropType.Tag,
+      drop: (_, monitor) => onDrop(monitor.getItem(), file),
+      canDrop: () => true,
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+        canDrop: monitor.canDrop(),
+      }),
+    });
 
-  const selectedStyle = isSelected ? 'selected' : '';
-  const dropStyle = canDrop ? ' droppable' : ' undroppable';
-  const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
+    const selectedStyle = isSelected ? 'selected' : '';
+    const dropStyle = canDrop ? ' droppable' : ' undroppable';
+    const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
 
-  const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), [file]);
-  const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
-  const handleDoubleClickImg = useCallback((e) => onDoubleClick && onDoubleClick(file, e), [file, onDoubleClick]);
+    const handleRemoveTag = useCallback((tag: ClientTag) => file.removeTag(tag.id), [file]);
+    const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
+    const handleDoubleClickImg = useCallback((e) => onDoubleClick && onDoubleClick(file, e), [
+      file,
+      onDoubleClick,
+    ]);
 
-  const [isImageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState();
+    const [isImageLoaded, setImageLoaded] = useState(false);
+    const [imageError, setImageError] = useState();
 
-  const imagePath = uiStore.view.isSlideMode ? file.path : file.thumbnailPath;
+    const imagePath = uiStore.view.isSlideMode ? file.path : file.thumbnailPath;
 
-  useEffect(() => {
-    // First check whether a thumbnail exists, generate it if needed
-    ensureThumbnail(file, uiStore.thumbnailDirectory);
-  }, [file, uiStore.thumbnailDirectory]);
+    useEffect(() => {
+      // First check whether a thumbnail exists, generate it if needed
+      ensureThumbnail(file, uiStore.thumbnailDirectory);
+    }, [file, uiStore.thumbnailDirectory]);
 
-  useEffect(() => {
-    if (imagePath) {
-      setImageLoaded(true);
-    } else {
-      setImageLoaded(false);
-    }
-  }, [imagePath]);
+    useEffect(() => {
+      if (imagePath) {
+        setImageLoaded(true);
+      } else {
+        setImageLoaded(false);
+      }
+    }, [imagePath]);
 
-  const handleImageError = useCallback((err: any) => {
-    console.log('Could not load image:', imagePath, err);
-    setImageError(err);
-    setImageLoaded(false);
-  }, [imagePath]);
+    const handleImageError = useCallback(
+      (err: any) => {
+        console.log('Could not load image:', imagePath, err);
+        setImageError(err);
+        setImageLoaded(false);
+      },
+      [imagePath],
+    );
 
-  // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
-  // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
+    // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
+    // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
-  return (
-    <div ref={galleryItemDrop} className={className}>
-      <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
-        {isImageLoaded ? <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
-          : imageError ? <span className="image-error"><span className="bp3-icon custom-icon custom-icon-32">{IconSet.DB_ERROR}</span> <br /> Could not load image</span> // Show an error it it could not be loaded
-            : <div className={Classes.SKELETON} /> // Else show a placeholder
-        }
+    return (
+      <div ref={galleryItemDrop} className={className}>
+        <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
+          {isImageLoaded ? (
+            <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
+          ) : imageError ? (
+            <span className="image-error">
+              <span className="bp3-icon custom-icon custom-icon-32">{IconSet.DB_ERROR}</span> <br />{' '}
+              Could not load image
+            </span> // Show an error it it could not be loaded
+          ) : (
+            <div className={Classes.SKELETON} />
+          ) // Else show a placeholder
+          }
+        </div>
+
+        {showName && <H4>{file.name}</H4>}
+
+        {showInfo && <ImageInfo file={file} />}
+
+        {showTags && (
+          <span
+            className="thumbnailTags"
+            onClick={handleClickImg}
+            onDoubleClick={handleDoubleClickImg}
+          >
+            {file.clientTags.map((tag) => (
+              <GalleryItemTag
+                key={`gal-tag-${file.id}-${tag.id}`}
+                onRemove={handleRemoveTag}
+                tag={tag}
+              />
+            ))}
+          </span>
+        )}
       </div>
-
-      {showName && <H4>{file.name}</H4>}
-
-      {showInfo && <ImageInfo file={file} />}
-
-      {showTags && (
-        <span className="thumbnailTags" onClick={handleClickImg} onDoubleClick={handleDoubleClickImg}>
-          {file.clientTags.map((tag) => (
-            <GalleryItemTag
-              key={`gal-tag-${file.id}-${tag.id}`}
-              onRemove={handleRemoveTag}
-              tag={tag}
-            />
-          ))}
-        </span>
-      )}
-    </div>
-  );
-});
+    );
+  },
+);
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
@@ -139,7 +160,11 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
   return (
     <Menu>
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
-      <MenuItem onClick={handleOpenFileExplorer} text="Reveal in File Browser" icon={IconSet.FOLDER_CLOSE} />
+      <MenuItem
+        onClick={handleOpenFileExplorer}
+        text="Reveal in File Browser"
+        icon={IconSet.FOLDER_CLOSE}
+      />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
       {/* <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} /> */}
     </Menu>
@@ -150,7 +175,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
 @ContextMenuTarget
 class GalleryItemWithContextMenu extends React.PureComponent<
   IGalleryItemProps,
-  { isContextMenuOpen: boolean, _isMounted: boolean }
+  { isContextMenuOpen: boolean; _isMounted: boolean }
 > {
   state = {
     isContextMenuOpen: false,
@@ -162,11 +187,11 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   }
 
   componentDidMount() {
-    this.setState({...this.state, _isMounted: true});
+    this.setState({ ...this.state, _isMounted: true });
   }
 
   componentWillUnmount() {
-    this.setState({...this.state, _isMounted: false});
+    this.setState({ ...this.state, _isMounted: false });
   }
 
   render() {
@@ -194,13 +219,13 @@ class GalleryItemWithContextMenu extends React.PureComponent<
 
   onContextMenuClose = () => {
     this.updateState({ isContextMenuOpen: false });
-  }
+  };
 
   private updateState = (updatableProp: any) => {
     if (this.state._isMounted) {
       this.setState(updatableProp);
     }
-  }
+  };
 }
 
 export default observer(withRootstore(GalleryItemWithContextMenu));

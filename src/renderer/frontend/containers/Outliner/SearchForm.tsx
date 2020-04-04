@@ -2,15 +2,30 @@ import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
-  FormGroup, Button, Dialog, ControlGroup, InputGroup, NumericInput, HTMLSelect,
+  FormGroup,
+  Button,
+  Dialog,
+  ControlGroup,
+  InputGroup,
+  NumericInput,
+  HTMLSelect,
 } from '@blueprintjs/core';
 
 import {
-  NumberOperatorType, NumberOperators,
-  BinaryOperatorType, BinaryOperators,
-  StringOperatorType, StringOperators,
-  ArrayOperatorType, ArrayOperators, ClientStringSearchCriteria,
-  ClientArraySearchCriteria, ClientNumberSearchCriteria, ClientDateSearchCriteria, ClientIDSearchCriteria, ClientCollectionSearchCriteria,
+  NumberOperatorType,
+  NumberOperators,
+  BinaryOperatorType,
+  BinaryOperators,
+  StringOperatorType,
+  StringOperators,
+  ArrayOperatorType,
+  ArrayOperators,
+  ClientStringSearchCriteria,
+  ClientArraySearchCriteria,
+  ClientNumberSearchCriteria,
+  ClientDateSearchCriteria,
+  ClientIDSearchCriteria,
+  ClientCollectionSearchCriteria,
 } from '../../../entities/SearchCriteria';
 import { IFile, IMG_EXTENSIONS } from '../../../entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
@@ -34,7 +49,14 @@ export const KeyLabelMap: IKeyLabel = {
   dateAdded: 'Date added',
 };
 
-const CriteriaKeyOrder: Array<keyof IFile> = ['tags', 'name', 'path', 'extension', 'size', 'dateAdded'];
+const CriteriaKeyOrder: Array<keyof IFile> = [
+  'tags',
+  'name',
+  'path',
+  'extension',
+  'size',
+  'dateAdded',
+];
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -58,22 +80,25 @@ export const AdvancedSearchDialog = observer(() => {
 
 const KeySelector = observer(({ criteria }: { criteria: FileSearchCriteria }) => {
   const { uiStore } = useContext(StoreContext);
-  const handlePickKey = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-    const key = e.target.value as keyof IFile;
-    if (key === 'name' || key === 'path' || key === 'extension') {
-      const newCrit = new ClientStringSearchCriteria(key);
-      uiStore.replaceCriteriaItem(criteria, newCrit);
-      if (newCrit.key === 'extension') {
-        newCrit.setValue(IMG_EXTENSIONS[0]);
+  const handlePickKey = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => {
+      const key = e.target.value as keyof IFile;
+      if (key === 'name' || key === 'path' || key === 'extension') {
+        const newCrit = new ClientStringSearchCriteria(key);
+        uiStore.replaceCriteriaItem(criteria, newCrit);
+        if (newCrit.key === 'extension') {
+          newCrit.setValue(IMG_EXTENSIONS[0]);
+        }
+      } else if (key === 'tags') {
+        uiStore.replaceCriteriaItem(criteria, new ClientArraySearchCriteria(key));
+      } else if (key === 'size') {
+        uiStore.replaceCriteriaItem(criteria, new ClientNumberSearchCriteria(key));
+      } else if (key === 'dateAdded') {
+        uiStore.replaceCriteriaItem(criteria, new ClientDateSearchCriteria(key));
       }
-    } else if (key === 'tags') {
-      uiStore.replaceCriteriaItem(criteria, new ClientArraySearchCriteria(key));
-    } else if (key === 'size') {
-      uiStore.replaceCriteriaItem(criteria, new ClientNumberSearchCriteria(key));
-    } else if (key === 'dateAdded') {
-      uiStore.replaceCriteriaItem(criteria, new ClientDateSearchCriteria(key));
-    }
-  }, [criteria, uiStore]);
+    },
+    [criteria, uiStore],
+  );
 
   return (
     <HTMLSelect
@@ -91,7 +116,10 @@ interface IOperatorSelectProps {
 }
 
 const OperatorSelect = ({ onSelect, value, options }: IOperatorSelectProps) => {
-  const handleSelect = useCallback((e: ChangeEvent<HTMLSelectElement>) => onSelect(e.target.value), [onSelect]);
+  const handleSelect = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => onSelect(e.target.value),
+    [onSelect],
+  );
   return (
     <HTMLSelect
       onChange={handleSelect}
@@ -101,115 +129,163 @@ const OperatorSelect = ({ onSelect, value, options }: IOperatorSelectProps) => {
   );
 };
 
-const TagCriteriaItem = observer(({ criteria }: { criteria: ClientIDSearchCriteria<IFile> | ClientCollectionSearchCriteria }) => {
-  const { uiStore, tagStore, tagCollectionStore } = useContext(StoreContext);
+const TagCriteriaItem = observer(
+  ({ criteria }: { criteria: ClientIDSearchCriteria<IFile> | ClientCollectionSearchCriteria }) => {
+    const { uiStore, tagStore, tagCollectionStore } = useContext(StoreContext);
 
-  const setOperator = useCallback(
-    (operator: string) => criteria.setOperator(operator as ArrayOperatorType), [criteria]);
+    const setOperator = useCallback(
+      (operator: string) => criteria.setOperator(operator as ArrayOperatorType),
+      [criteria],
+    );
 
-  const handleSelectTag = useCallback((t: ClientTag) => {
-    if (criteria instanceof ClientIDSearchCriteria) {
-      criteria.setValue(t.id, t.name);
-    } else {
-      uiStore.replaceCriteriaItem(criteria, new ClientIDSearchCriteria('tags', t.id, t.name));
-    }
-  }, [criteria, uiStore]);
-  const handleSelectCol = useCallback((col: ClientTagCollection) => {
-    if (criteria instanceof ClientCollectionSearchCriteria) {
-      criteria.setValue(col.id, col.getTagsRecursively(), col.name);
-    } else {
-      uiStore.replaceCriteriaItem(criteria, new ClientCollectionSearchCriteria(col.id, col.getTagsRecursively(), col.name));
-    }
-  }, [criteria, uiStore]);
+    const handleSelectTag = useCallback(
+      (t: ClientTag) => {
+        if (criteria instanceof ClientIDSearchCriteria) {
+          criteria.setValue(t.id, t.name);
+        } else {
+          uiStore.replaceCriteriaItem(criteria, new ClientIDSearchCriteria('tags', t.id, t.name));
+        }
+      },
+      [criteria, uiStore],
+    );
+    const handleSelectCol = useCallback(
+      (col: ClientTagCollection) => {
+        if (criteria instanceof ClientCollectionSearchCriteria) {
+          criteria.setValue(col.id, col.getTagsRecursively(), col.name);
+        } else {
+          uiStore.replaceCriteriaItem(
+            criteria,
+            new ClientCollectionSearchCriteria(col.id, col.getTagsRecursively(), col.name),
+          );
+        }
+      },
+      [criteria, uiStore],
+    );
 
-  const handleClear = useCallback(() => {
-    if (criteria instanceof ClientIDSearchCriteria) {
-      criteria.setValue('', '');
-    } else if (criteria instanceof ClientCollectionSearchCriteria) {
-      criteria.setValue('', [], '');
-    }
-  }, [criteria]);
+    const handleClear = useCallback(() => {
+      if (criteria instanceof ClientIDSearchCriteria) {
+        criteria.setValue('', '');
+      } else if (criteria instanceof ClientCollectionSearchCriteria) {
+        criteria.setValue('', [], '');
+      }
+    }, [criteria]);
 
-  const selectedItem = useMemo(() => {
-    if (criteria instanceof ClientIDSearchCriteria) {
-      return criteria.value.length === 1 ? tagStore.get(criteria.value[0]) : undefined;
-    } else if (criteria instanceof ClientCollectionSearchCriteria) {
-      return tagCollectionStore.get(criteria.collectionId);
-    }
-  },
+    const selectedItem = useMemo(() => {
+      if (criteria instanceof ClientIDSearchCriteria) {
+        return criteria.value.length === 1 ? tagStore.get(criteria.value[0]) : undefined;
+      } else if (criteria instanceof ClientCollectionSearchCriteria) {
+        return tagCollectionStore.get(criteria.collectionId);
+      }
+    },
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [tagStore, tagCollectionStore, criteria instanceof ClientCollectionSearchCriteria ? criteria.collectionId : criteria.value]);
 
-  return (
-    <>
-      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={ArrayOperators} />
-      <MultiTagSelector
-        selectedItems={selectedItem ? [selectedItem] : []}
-        onTagSelect={handleSelectTag}
-        onTagDeselect={handleClear}
-        onClearSelection={handleClear}
-        placeholder="Untagged"
-        autoFocus
-        includeCollections
-        onTagColDeselect={handleClear}
-        onTagColSelect={handleSelectCol}
-      />
-    </>
-  );
-});
+    return (
+      <>
+        <OperatorSelect onSelect={setOperator} value={criteria.operator} options={ArrayOperators} />
+        <MultiTagSelector
+          selectedItems={selectedItem ? [selectedItem] : []}
+          onTagSelect={handleSelectTag}
+          onTagDeselect={handleClear}
+          onClearSelection={handleClear}
+          placeholder="Untagged"
+          autoFocus
+          includeCollections
+          onTagColDeselect={handleClear}
+          onTagColSelect={handleSelectCol}
+        />
+      </>
+    );
+  },
+);
 
-const StringCriteriaItem = observer(({ criteria }: { criteria: ClientStringSearchCriteria<IFile> }) => {
-  const setOperator = useCallback(
-    (operator: string) => criteria.setOperator(operator as StringOperatorType), [criteria]);
-  const handleChangeValue = useCallback((e) => criteria.setValue(e.target.value), [criteria]);
-  return (
-    <>
-      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={StringOperators} />
-      <InputGroup placeholder="Enter some text..." value={criteria.value} onChange={handleChangeValue} autoFocus />
-    </>
-  );
-});
+const StringCriteriaItem = observer(
+  ({ criteria }: { criteria: ClientStringSearchCriteria<IFile> }) => {
+    const setOperator = useCallback(
+      (operator: string) => criteria.setOperator(operator as StringOperatorType),
+      [criteria],
+    );
+    const handleChangeValue = useCallback((e) => criteria.setValue(e.target.value), [criteria]);
+    return (
+      <>
+        <OperatorSelect
+          onSelect={setOperator}
+          value={criteria.operator}
+          options={StringOperators}
+        />
+        <InputGroup
+          placeholder="Enter some text..."
+          value={criteria.value}
+          onChange={handleChangeValue}
+          autoFocus
+        />
+      </>
+    );
+  },
+);
 
-const ExtensionCriteriaItem = observer(({ criteria }: { criteria: ClientStringSearchCriteria<IFile> }) => {
-  const setOperator = useCallback(
-    (operator: string) => criteria.setOperator(operator as BinaryOperatorType), [criteria]);
-  const handlePickValue = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => criteria.setValue(e.target.value), [criteria]);
+const ExtensionCriteriaItem = observer(
+  ({ criteria }: { criteria: ClientStringSearchCriteria<IFile> }) => {
+    const setOperator = useCallback(
+      (operator: string) => criteria.setOperator(operator as BinaryOperatorType),
+      [criteria],
+    );
+    const handlePickValue = useCallback(
+      (e: ChangeEvent<HTMLSelectElement>) => criteria.setValue(e.target.value),
+      [criteria],
+    );
 
-  return (
-    <>
-      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={BinaryOperators} />
-      <HTMLSelect
-        onChange={handlePickValue}
-        options={IMG_EXTENSIONS.map((ext) => ({ value: ext, label: ext.toUpperCase() }))}
-        value={criteria.value}
-      />
-    </>
-  );
-});
+    return (
+      <>
+        <OperatorSelect
+          onSelect={setOperator}
+          value={criteria.operator}
+          options={BinaryOperators}
+        />
+        <HTMLSelect
+          onChange={handlePickValue}
+          options={IMG_EXTENSIONS.map((ext) => ({ value: ext, label: ext.toUpperCase() }))}
+          value={criteria.value}
+        />
+      </>
+    );
+  },
+);
 
 const bytesInMb = 1024 * 1024;
-const NumberCriteriaItem = observer(({ criteria }: { criteria: ClientNumberSearchCriteria<IFile> }) => {
-  const setOperator = useCallback(
-    (operator: string) => criteria.setOperator(operator as NumberOperatorType), [criteria]);
-  const handleChangeValue = useCallback((val: number) => criteria.setValue(val * bytesInMb), [criteria]);
-  return (
-    <>
-      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={NumberOperators} />
-      <NumericInput
-        placeholder="Enter a number..."
-        value={criteria.value / bytesInMb}
-        onValueChange={handleChangeValue}
-        autoFocus
-        buttonPosition="none"
-      />
-    </>
-  );
-});
+const NumberCriteriaItem = observer(
+  ({ criteria }: { criteria: ClientNumberSearchCriteria<IFile> }) => {
+    const setOperator = useCallback(
+      (operator: string) => criteria.setOperator(operator as NumberOperatorType),
+      [criteria],
+    );
+    const handleChangeValue = useCallback((val: number) => criteria.setValue(val * bytesInMb), [
+      criteria,
+    ]);
+    return (
+      <>
+        <OperatorSelect
+          onSelect={setOperator}
+          value={criteria.operator}
+          options={NumberOperators}
+        />
+        <NumericInput
+          placeholder="Enter a number..."
+          value={criteria.value / bytesInMb}
+          onValueChange={handleChangeValue}
+          autoFocus
+          buttonPosition="none"
+        />
+      </>
+    );
+  },
+);
 
 const DateCriteriaItem = observer(({ criteria }: { criteria: ClientDateSearchCriteria<IFile> }) => {
   const setOperator = useCallback(
-    (operator: string) => criteria.setOperator(operator as NumberOperatorType), [criteria]);
+    (operator: string) => criteria.setOperator(operator as NumberOperatorType),
+    [criteria],
+  );
   const handleChangeValue = useCallback((date: Date) => criteria.setValue(date), [criteria]);
   return (
     <>
@@ -237,7 +313,6 @@ interface ICriteriaItemProps {
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
 const CriteriaItem = observer(({ criteria, onRemove, removable }: ICriteriaItemProps) => {
-
   const critFields = useMemo(() => {
     if (criteria.key === 'name' || criteria.key === 'path') {
       return <StringCriteriaItem criteria={criteria as ClientStringSearchCriteria<IFile>} />;
@@ -263,7 +338,6 @@ const CriteriaItem = observer(({ criteria, onRemove, removable }: ICriteriaItemP
         <Button text="+" onClick={onAdd} />
       </ButtonGroup> */}
       <Button text="-" onClick={onRemove} disabled={!removable} className="remove" />
-
     </ControlGroup>
   );
 });
@@ -273,9 +347,13 @@ const SearchForm = observer(() => {
 
   const addSearchCriteria = useCallback(
     () => uiStore.addSearchCriteria(new ClientArraySearchCriteria('tags')),
-    [uiStore]);
+    [uiStore],
+  );
 
-  const removeSearchCriteria = useCallback((index: number) => uiStore.removeSearchCriteriaByIndex(index), [uiStore]);
+  const removeSearchCriteria = useCallback(
+    (index: number) => uiStore.removeSearchCriteriaByIndex(index),
+    [uiStore],
+  );
 
   const resetSearchCriteria = useCallback(() => {
     uiStore.clearSearchCriteriaList();
@@ -296,7 +374,7 @@ const SearchForm = observer(() => {
         ))}
       </FormGroup>
 
-      <Button icon={IconSet.ADD} onClick={addSearchCriteria} minimal text="Add"/>
+      <Button icon={IconSet.ADD} onClick={addSearchCriteria} minimal text="Add" />
 
       <div>
         {/* <RadioGroup inline label="Match with" selectedValue="all" onChange={() => undefined}>

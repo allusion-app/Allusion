@@ -89,6 +89,7 @@ if (isPreviewWindow) {
 
   // Load persistent preferences
   rootStore.uiStore.recoverPersistentPreferences();
+  rootStore.fileStore.recoverPersistentPreferences();
 
   // Before closing the main window, store preferences
   remote.getCurrentWindow().on('close', () => {
@@ -115,17 +116,19 @@ ReactDOM.render(
 async function addTagsToFile(filePath: string, tagNames: string[]) {
   const clientFile = rootStore.fileStore.fileList.find((file) => file.path === filePath);
   if (clientFile) {
-    const tagIds = await Promise.all(tagNames.map(async (tagName) => {
-      const clientTag = rootStore.tagStore.tagList.find((tag) => tag.name === tagName);
-      console.log(clientTag);
-      if (clientTag) {
-        return clientTag.id;
-      } else {
-        const newClientTag = await rootStore.tagStore.addTag(tagName);
-        rootStore.tagCollectionStore.getRootCollection().addTag(newClientTag);
-        return newClientTag.id;
-      }
-    }));
+    const tagIds = await Promise.all(
+      tagNames.map(async (tagName) => {
+        const clientTag = rootStore.tagStore.tagList.find((tag) => tag.name === tagName);
+        console.log(clientTag);
+        if (clientTag) {
+          return clientTag.id;
+        } else {
+          const newClientTag = await rootStore.tagStore.addTag(tagName);
+          rootStore.tagCollectionStore.getRootCollection().addTag(newClientTag);
+          return newClientTag.id;
+        }
+      }),
+    );
     tagIds.forEach((t) => clientFile.addTag(t));
   } else {
     console.error('Could not find image to set tags for', filePath);

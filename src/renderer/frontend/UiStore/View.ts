@@ -1,17 +1,8 @@
 import { observable, action, computed } from 'mobx';
-import { IFile } from '../../entities/File';
-import { FileOrder } from '../../backend/DBRepository';
 
-export const PersistentPreferenceFields: Array<keyof View> = [
-  'method',
-  'orderBy',
-  'fileOrder',
-  'thumbnailSize',
-  'thumbnailShape'
-];
+export const PersistentPreferenceFields: Array<keyof View> = ['thumbnailSize', 'thumbnailShape'];
 
 export type ViewMethod = 'list' | 'grid';
-export type ViewContent = 'query' | 'all' | 'untagged' | 'recovery';
 export type ViewThumbnailSize = 'small' | 'medium' | 'large';
 export type ViewThumbnailShape = 'square' | 'letterbox';
 
@@ -20,13 +11,8 @@ class View {
   @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
   @observable firstItem: number = 0;
-  /** The origin of the current files that are shown */
-  @observable content: ViewContent = 'all';
   @observable thumbnailSize: ViewThumbnailSize = 'medium';
   @observable thumbnailShape: ViewThumbnailShape = 'square';
-
-  @observable orderBy: keyof IFile = 'dateAdded';
-  @observable fileOrder: FileOrder = 'DESC';
 
   @computed get isList(): boolean {
     return this.method === 'list';
@@ -36,30 +22,11 @@ class View {
     return this.method === 'grid';
   }
 
-  @computed get showsAllContent() {
-    return this.content === 'all';
-  }
-
-  @computed get showsUntaggedContent() {
-    return this.content === 'untagged';
-  }
-
-  @computed get showsQueryContent() {
-    return this.content === 'query';
-  }
-  
-  @computed get showsRecoveryContent() {
-    return this.content === 'recovery';
-  }
-
   /////////////////// Persistent Preferences ///////////////////
   loadPreferences(prefs: any) {
     this.setMethod(prefs.method);
     this.setFirstItem(prefs.firstItem);
-    this.setContent(prefs.content);
     this.setThumbnailSize(prefs.thumbnailSize);
-    this.orderFilesBy(prefs.orderBy);
-    this.setFileOrder(prefs.fileOrder);
   }
 
   savePreferences(prefs: any): string {
@@ -90,37 +57,10 @@ class View {
     this.setThumbnailShape('letterbox');
   }
 
-  @action.bound orderFilesBy(prop: keyof IFile = 'dateAdded') {
-    this.orderBy = prop;
-  }
-
-  @action.bound switchFileOrder() {
-    // Todo: it is a bit confusing that this same function exists in the main UiStore,
-    // but with different behavior.
-    // I'd move those functions to here and pass a reference to the UiStore in the constructur of View
-    this.setFileOrder(this.fileOrder === 'DESC' ? 'ASC' : 'DESC');
-  }
-
   @action.bound setFirstItem(index: number = 0) {
     if (isFinite(index)) {
       this.firstItem = index;
     }
-  }
-
-  @action.bound setContentQuery() {
-    this.setContent('query');
-  }
-
-  @action.bound setContentAll() {
-    this.setContent('all');
-  }
-
-  @action.bound setContentUntagged() {
-    this.setContent('untagged');
-  }
-  
-  @action.bound setContentRecovery() {
-    this.setContent('recovery');
   }
 
   @action.bound setMethodList() {
@@ -147,20 +87,12 @@ class View {
     this.method = method;
   }
 
-  @action private setContent(content: ViewContent = 'all') {
-    this.content = content;
-  }
-
   @action private setThumbnailSize(size: ViewThumbnailSize = 'medium') {
     this.thumbnailSize = size;
   }
 
   @action private setThumbnailShape(shape: ViewThumbnailShape) {
     this.thumbnailShape = shape;
-  }
-
-  @action private setFileOrder(order: FileOrder = 'DESC') {
-    this.fileOrder = order;
   }
 }
 

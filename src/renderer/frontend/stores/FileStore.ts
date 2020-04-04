@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, computed, observe } from 'mobx';
 import fs from 'fs-extra';
 
 import Backend from '../../backend/Backend';
@@ -6,11 +6,24 @@ import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
 import { SearchCriteria } from '../../entities/SearchCriteria';
-import { getThumbnailPath } from '../utils';
+import { getThumbnailPath, debounce } from '../utils';
 import { ClientTag } from '../../entities/Tag';
+import { FileOrder } from '../../backend/DBRepository';
+
+const FILE_STORAGE_KEY = 'Allusion_File';
+
+/** These fields are stored and recovered when the application opens up */
+const PersistentPreferenceFields: Array<keyof FileStore> = ['content', 'fileOrder', 'orderBy'];
+
+export type ViewContent = 'query' | 'all' | 'untagged';
 
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
+
+  /** The origin of the current files that are shown */
+  @observable content: ViewContent = 'all';
+  @observable fileOrder: FileOrder = 'DESC';
+  @observable orderBy: keyof IFile = 'dateAdded';
   @observable numUntaggedFiles = 0;
 
   private backend: Backend;
@@ -19,6 +32,44 @@ class FileStore {
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
+
+    // Store preferences immediately when anything is changed
+    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
+    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+  }
+
+  @computed get showsAllContent() {
+    return this.content === 'all';
+  }
+
+  @computed get showsUntaggedContent() {
+    return this.content === 'untagged';
+  }
+
+  @computed get showsQueryContent() {
+    return this.content === 'query';
+  }
+
+  @action.bound switchFileOrder() {
+    this.setFileOrder(this.fileOrder === 'DESC' ? 'ASC' : 'DESC');
+    this.refetch();
+  }
+
+  @action.bound orderFilesBy(prop: keyof IFile = 'dateAdded') {
+    this.setOrderBy(prop);
+    this.refetch();
+  }
+
+  @action.bound setContentQuery() {
+    this.setContent('query');
+  }
+
+  @action.bound setContentAll() {
+    this.setContent('all');
+  }
+
+  @action.bound setContentUntagged() {
+    this.setContent('untagged');
   }
 
   @action.bound async init(autoLoadFiles: boolean) {
@@ -72,11 +123,21 @@ class FileStore {
     }
   }
 
+  @action.bound refetch() {
+    if (this.showsAllContent) {
+      this.fetchAllFiles();
+    } else if (this.showsUntaggedContent) {
+      this.fetchUntaggedFiles();
+    } else if (this.showsQueryContent) {
+      this.fetchFilesByQuery();
+    }
+  }
+
   @action.bound async fetchAllFiles() {
     try {
-      const { orderBy, fileOrder } = this.rootStore.uiStore.view;
-      const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
+      const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
+      this.setContentAll();
     } catch (err) {
       console.error('Could not load all files', err);
     }
@@ -84,15 +145,15 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
-      const { fileOrder, orderBy } = this.rootStore.uiStore.view;
       const criteria: SearchCriteria<IFile> = {
         key: 'tags',
         value: [],
         operator: 'contains',
         valueType: 'array',
       };
-      const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
+      const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
+      this.setContentUntagged();
     } catch (err) {
       console.error('Could not load all files', err);
     }
@@ -104,14 +165,14 @@ class FileStore {
     if (criteria.length === 0) {
       return this.fetchAllFiles();
     }
-    const { orderBy, fileOrder } = this.rootStore.uiStore.view;
     try {
       const fetchedFiles = await this.backend.searchFiles(
         criteria as [SearchCriteria<IFile>],
-        orderBy,
-        fileOrder,
+        this.orderBy,
+        this.fileOrder,
       );
       this.updateFromBackend(fetchedFiles);
+      this.setContentQuery();
     } catch (e) {
       console.log('Could not find files based on criteria', e);
     }
@@ -120,14 +181,13 @@ class FileStore {
   @action.bound async fetchFilesByTagIDs(tags: ID[]) {
     // Query the backend to send back only files with these tags
     try {
-      const { orderBy, fileOrder } = this.rootStore.uiStore.view;
       const criteria: SearchCriteria<IFile> = {
         key: 'tags',
         value: tags,
         operator: 'contains',
         valueType: 'array',
       };
-      const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
+      const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on tag search', e);
@@ -174,9 +234,30 @@ class FileStore {
     this.backend.saveFile(file);
   }
 
+  recoverPersistentPreferences() {
+    const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
+    if (prefsString) {
+      try {
+        const prefs = JSON.parse(prefsString);
+        this.setContent(prefs.content);
+        this.setFileOrder(prefs.fileOrder);
+        this.setOrderBy(prefs.orderBy);
+      } catch (e) {
+        console.log('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);
+      }
+    }
+  }
+
+  storePersistentPreferences() {
+    const prefs: any = {};
+    for (const field of PersistentPreferenceFields) {
+      prefs[field] = this[field];
+    }
+    localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
+  }
+
   @action.bound private async loadFiles() {
-    const { orderBy, fileOrder } = this.rootStore.uiStore.view;
-    const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
+    const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
     await this.updateFromBackend(fetchedFiles);
   }
 
@@ -194,8 +275,6 @@ class FileStore {
         try {
           await fs.access(backendFile.path, fs.constants.F_OK);
         } catch (err) {
-          // If file cannot be accessed, mark it as such so that it can be recovered
-          
           // Remove file from client only - keep in DB in case it will be recovered later
           // TODO: Store missing date so it can be automatically removed after some time?
           const clientFile = this.get(backendFile.id);
@@ -278,6 +357,18 @@ class FileStore {
   @action.bound private replaceFileList(backendFiles: ClientFile[]) {
     this.fileList.forEach((f) => f.dispose());
     this.fileList.replace(backendFiles);
+  }
+
+  @action private setFileOrder(order: FileOrder = 'DESC') {
+    this.fileOrder = order;
+  }
+
+  @action private setOrderBy(prop: keyof IFile = 'dateAdded') {
+    this.orderBy = prop;
+  }
+
+  @action private setContent(content: ViewContent = 'all') {
+    this.content = content;
   }
 }
 

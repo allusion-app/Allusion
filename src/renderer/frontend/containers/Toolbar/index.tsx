@@ -42,47 +42,49 @@ interface IRemoveFilesPopoverProps {
   uiStore: UiStore;
 }
 
-export const RemoveFilesPopover = observer(({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
-  const handleConfirm = useCallback(() => {
-    onRemove();
-    uiStore.closeToolbarFileRemover();
-  }, [onRemove, uiStore]);
-  return (
-    <>
-      <Button
-        icon={IconSet.DELETE}
-        disabled={disabled}
-        onClick={uiStore.toggleToolbarFileRemover}
-        className="tooltip"
-        data-right={Tooltip.Delete}
-      />
-      <Alert
-        isOpen={uiStore.isToolbarFileRemoverOpen}
-        cancelButtonText="Cancel"
-        confirmButtonText="Delete"
-        icon={IconSet.DELETE}
-        intent="danger"
-        onCancel={uiStore.closeToolbarFileRemover}
-        onConfirm={handleConfirm}
-        canEscapeKeyCancel
-        canOutsideClickCancel
-        className={Classes.DARK}
-      >
-        <div className="bp3-dark" id="deleteFile">
-          {' '}
-          {/*popoverContent*/}
-          <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
-          <p>
-            Remove {uiStore.fileSelection.length} image{uiStore.fileSelection.length > 1 ? 's' : ''}{' '}
-            from your library?
-            <br />
-            Your files will not be deleted.
-          </p>
-        </div>
-      </Alert>
-    </>
-  );
-});
+export const RemoveFilesPopover = observer(
+  ({ onRemove, disabled, uiStore }: IRemoveFilesPopoverProps) => {
+    const handleConfirm = useCallback(() => {
+      onRemove();
+      uiStore.closeToolbarFileRemover();
+    }, [onRemove, uiStore]);
+    return (
+      <>
+        <Button
+          icon={IconSet.DELETE}
+          disabled={disabled}
+          onClick={uiStore.toggleToolbarFileRemover}
+          className="tooltip"
+          data-right={Tooltip.Delete}
+        />
+        <Alert
+          isOpen={uiStore.isToolbarFileRemoverOpen}
+          cancelButtonText="Cancel"
+          confirmButtonText="Delete"
+          icon={IconSet.DELETE}
+          intent="danger"
+          onCancel={uiStore.closeToolbarFileRemover}
+          onConfirm={handleConfirm}
+          canEscapeKeyCancel
+          canOutsideClickCancel
+          className={Classes.DARK}
+        >
+          <div className="bp3-dark" id="deleteFile">
+            {' '}
+            {/*popoverContent*/}
+            <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
+            <p>
+              Remove {uiStore.fileSelection.length} image
+              {uiStore.fileSelection.length > 1 ? 's' : ''} from your library?
+              <br />
+              Your files will not be deleted.
+            </p>
+          </div>
+        </Alert>
+      </>
+    );
+  },
+);
 
 interface ITagFilesPopoverProps {
   disabled: boolean;
@@ -126,13 +128,17 @@ const Toolbar = observer(() => {
         uiStore.toggleOutliner();
       }
 
-    if (page === 'IMPORT') {
-      uiStore.openOutlinerImport();
-    } else if (page === 'TAGS') {
-      uiStore.openOutlinerTags();
-    }
-  }, [uiStore]);
-  const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), [handleChooseOutlinerPage]);
+      if (page === 'IMPORT') {
+        uiStore.openOutlinerImport();
+      } else if (page === 'TAGS') {
+        uiStore.openOutlinerTags();
+      }
+    },
+    [uiStore],
+  );
+  const handleOlTags = useCallback(() => handleChooseOutlinerPage('TAGS'), [
+    handleChooseOutlinerPage,
+  ]);
   const handleOlSearch = uiStore.toggleQuickSearch;
 
   // Content actions
@@ -157,7 +163,7 @@ const Toolbar = observer(() => {
   // Render variables
   const sortMenu = useMemo(() => {
     const orderIcon = (
-      <Icon icon={uiStore.view.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
+      <Icon icon={fileStore.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
     );
     return (
       <Menu>
@@ -166,16 +172,18 @@ const Toolbar = observer(() => {
             key={prop}
             icon={icon}
             text={text}
-            active={uiStore.view.orderBy === prop}
-            labelElement={uiStore.view.orderBy === prop && orderIcon}
+            active={fileStore.orderBy === prop}
+            labelElement={fileStore.orderBy === prop && orderIcon}
             onClick={() =>
-              uiStore.view.orderBy === prop ? uiStore.switchFileOrder() : uiStore.orderFilesBy(prop)
+              fileStore.orderBy === prop
+                ? fileStore.switchFileOrder()
+                : fileStore.orderFilesBy(prop)
             }
           />
         ))}
       </Menu>
     );
-  }, [uiStore.view.orderFilesBy, uiStore.view.orderBy, uiStore.view.fileOrder]); //eslint-disable-line
+  }, [fileStore.orderFilesBy, fileStore.orderBy, fileStore.fileOrder]); //eslint-disable-line
 
   const numFiles = fileStore.fileList.length;
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;
@@ -212,69 +220,71 @@ const Toolbar = observer(() => {
               intent="primary"
               className="tooltip"
               data-right={Tooltip.Back}
-            >Return</Button>
+            >
+              Return
+            </Button>
           )}
 
           {/* Library info. Todo: Show entire library count instead of current fileList */}
           {!uiStore.view.isSlideMode && (
-          <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={Tooltip.Media}>
-            {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
-          </Button>
+            <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={Tooltip.Media}>
+              {numFiles} item{`${numFiles === 1 ? '' : 's'}`}
+            </Button>
           )}
         </ButtonGroup>
 
-        {!uiStore.view.isSlideMode && (    
-        <ButtonGroup minimal>
-          {/* Selection info and actions */}
-          <Button
-            rightIcon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
-            onClick={handleToggleSelect}
-            intent={isFileListSelected ? 'primary' : 'none'}
-            className="tooltip"
-            data-right={Tooltip.Select}
-          >
-            {uiStore.fileSelection.length} selected
-          </Button>
-          {/* Show popover for modifying tags of selection (same as inspector) */}
-          <TagFilesPopover
-            files={uiStore.clientFileSelection}
-            disabled={!selectionModeOn}
-            uiStore={uiStore}
-          />
-          {/* <RemoveFilesPopover
+        {!uiStore.view.isSlideMode && (
+          <ButtonGroup minimal>
+            {/* Selection info and actions */}
+            <Button
+              rightIcon={isFileListSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
+              onClick={handleToggleSelect}
+              intent={isFileListSelected ? 'primary' : 'none'}
+              className="tooltip"
+              data-right={Tooltip.Select}
+            >
+              {uiStore.fileSelection.length} selected
+            </Button>
+            {/* Show popover for modifying tags of selection (same as inspector) */}
+            <TagFilesPopover
+              files={uiStore.clientFileSelection}
+              disabled={!selectionModeOn}
+              uiStore={uiStore}
+            />
+            {/* <RemoveFilesPopover
             onRemove={handleRemoveSelectedFiles}
             disabled={!selectionModeOn}
             uiStore={uiStore}
           /> */}
 
-          <Popover
-            minimal
-            target={
-              <Button icon={IconSet.FILTER} className="tooltip" data-right={Tooltip.Filter} />
-            }
-            content={sortMenu}
-          />
-        </ButtonGroup>
+            <Popover
+              minimal
+              target={
+                <Button icon={IconSet.FILTER} className="tooltip" data-right={Tooltip.Filter} />
+              }
+              content={sortMenu}
+            />
+          </ButtonGroup>
         )}
 
-        {!uiStore.view.isSlideMode && (    
-        <ButtonGroup minimal>
-          <Button
-            onClick={uiStore.view.setMethodList}
-            icon={IconSet.VIEW_LIST}
-            active={uiStore.view.isList}
-            className="tooltip"
-            data-right={Tooltip.ViewList}
-          />
-          <Button
-            onClick={uiStore.view.setMethodGrid}
-            icon={IconSet.VIEW_GRID}
-            active={uiStore.view.isGrid}
-            className="tooltip"
-            data-right={Tooltip.ViewGrid}
-          />
-          <div id="spacer" style={{ width: '1rem' }} />
-        </ButtonGroup>
+        {!uiStore.view.isSlideMode && (
+          <ButtonGroup minimal>
+            <Button
+              onClick={uiStore.view.setMethodList}
+              icon={IconSet.VIEW_LIST}
+              active={uiStore.view.isList}
+              className="tooltip"
+              data-right={Tooltip.ViewList}
+            />
+            <Button
+              onClick={uiStore.view.setMethodGrid}
+              icon={IconSet.VIEW_GRID}
+              active={uiStore.view.isGrid}
+              className="tooltip"
+              data-right={Tooltip.ViewGrid}
+            />
+            <div id="spacer" style={{ width: '1rem' }} />
+          </ButtonGroup>
         )}
       </section>
 
