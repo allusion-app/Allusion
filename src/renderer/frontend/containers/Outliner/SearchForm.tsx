@@ -405,5 +405,3 @@ const SearchForm = observer(() => {
     </div>
   );
 });
-
-export default SearchForm;

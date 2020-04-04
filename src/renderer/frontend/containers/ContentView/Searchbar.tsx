@@ -142,7 +142,8 @@ export const Searchbar = observer(() => {
     tagStore,
   } = rootStore;
 
-  // Only show quick search bar when all criteria are tags or collections, else show a search bar that opens to the advanced search form
+  // Only show quick search bar when all criteria are tags or collections, else
+  // show a search bar that opens to the advanced search form
   const isQuickSearch =
     searchCriteriaList.length === 0 || searchCriteriaList.every((crit) => crit.key === 'tags');
 
