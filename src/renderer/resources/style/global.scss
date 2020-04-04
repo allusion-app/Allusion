@@ -90,7 +90,6 @@ pre {
 }
 
 // Toolbar items
-
 .sidebar {
   #toolbar {
     .bp3-button:empty::before,
@@ -131,6 +130,39 @@ pre {
       }
     }
   }
+}
+
+// Split Sidebar > Looks very sloppy & confusing
+.split #main-toolbar {
+  flex-direction: row !important;
+  /* grid-area: var(--inspector-width); */
+  width: calc(100vw - 42.5rem) !important;
+  top: 0px !important;
+  left: 19.5rem !important;
+  height: 2.5rem !important;
+  background-color: #1f2224 !important;
+}
+
+.split #main-toolbar > * {
+  display: inline-flex !important;
+  flex-wrap: unset !important;
+  flex-direction: row !important;
+  justify-content: space-between;
+}
+
+.split #toolbar #main-toolbar div:nth-child(1) button {
+  flex-wrap: nowrap !important;
+  flex-direction: row !important;
+  text-align: -webkit-center;
+  align-items: flex-start;
+}
+
+.split #main-toolbar .bp3-button > :first-child {margin-right: 0.25rem !important;}
+
+.split #toolbar #main-toolbar div:nth-child(1) span:nth-child(2) {
+  text-orientation: initial;
+  writing-mode: lr;
+  height: auto;
 }
 
 .sidenav #toolbar {
