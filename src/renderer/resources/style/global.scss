@@ -86,13 +86,17 @@ pre {
   flex-wrap: wrap !important;
   flex-direction: column !important;
   justify-content: space-between;
-  margin: 0 auto;
+  // margin: 0 auto;
 }
 
 // Toolbar items
 
 .sidebar {
   #toolbar {
+    .bp3-button:empty::before,
+    .bp3-button > :first-child {
+        margin: 0 !important;
+    }
     #outliner-toolbar,
     #inspector-toolbar {
       width: var(--toolbar-width) !important;
@@ -106,8 +110,9 @@ pre {
       div:nth-child(1) button {
         flex-wrap: wrap;
         flex-direction: column;
+        text-align: -webkit-center;
         align-items: flex-start;
-        padding: 0 25%;
+        // padding: 0 25%;
       }
       div:nth-child(1) span:nth-child(2) {
         /* background: red !important; */

@@ -96,6 +96,7 @@ const TagFilesPopover = observer(({ disabled, files, uiStore }: ITagFilesPopover
     minimal
     isOpen={uiStore.isToolbarTagSelectorOpen}
     onClose={uiStore.closeToolbarTagSelector}
+    position={"bottom"}
   >
     <Button
       icon={IconSet.TAG}
@@ -261,6 +262,7 @@ const Toolbar = observer(() => {
                 <Button icon={IconSet.FILTER} className="tooltip" data-right={Tooltip.Filter} />
               }
               content={sortMenu}
+              position={"bottom"}
             />
           </ButtonGroup>
         )}
