@@ -153,18 +153,13 @@ const TagCriteriaItem = observer(({ criteria, replaceCriteria }: ITagCriteriaIte
     criteria instanceof ClientCollectionSearchCriteria ? criteria.collectionId : criteria.value,
   ]);
 
-  const options = useMemo(() => {
-    if (!selectedItem) {
-      return ArrayOperators;
-    }
-    return selectedItem instanceof ClientCollectionSearchCriteria
-      ? ArrayOperators
-      : StringOperators;
-  }, [selectedItem]);
-
   return (
     <>
-      <OperatorSelect onSelect={criteria.setOperator} value={criteria.operator} options={options} />
+      <OperatorSelect
+        onSelect={criteria.setOperator}
+        value={criteria.operator}
+        options={ArrayOperators}
+      />
       <TagSelector
         selectedItem={selectedItem}
         onTagSelect={handleSelectTag}
