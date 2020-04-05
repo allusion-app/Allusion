@@ -311,7 +311,13 @@ const CriteriaItem = observer(
 );
 
 const SearchForm = ({
-  uiStore: { searchCriteriaList, openQuickSearch, replaceSearchCriterias, clearSearchCriteriaList },
+  uiStore: {
+    searchCriteriaList,
+    openQuickSearch,
+    replaceSearchCriterias,
+    clearSearchCriteriaList,
+    closeAdvancedSearch,
+  },
 }: {
   uiStore: UiStore;
 }) => {
@@ -338,10 +344,10 @@ const SearchForm = ({
     setCriterias(criterias.slice());
   };
 
-  const submitSearchCriterias = useCallback(() => replaceSearchCriterias(criterias), [
-    criterias,
-    replaceSearchCriterias,
-  ]);
+  const submitSearchCriterias = useCallback(() => {
+    replaceSearchCriterias(criterias);
+    closeAdvancedSearch();
+  }, [criterias, replaceSearchCriterias, closeAdvancedSearch]);
 
   const resetSearchCriteria = useCallback(() => {
     clearSearchCriteriaList();
@@ -397,7 +403,6 @@ export const AdvancedSearchDialog = observer(() => {
       onClose={uiStore.toggleAdvancedSearch}
       icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      // className={themeClass}
       className={`${themeClass} light`}
       canEscapeKeyClose={true}
       canOutsideClickClose={true}

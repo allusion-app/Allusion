@@ -141,13 +141,14 @@ export const Searchbar = observer(() => {
       removeSearchCriteriaByIndex,
     },
     tagStore,
-    tagCollectionStore
+    tagCollectionStore,
   } = rootStore;
 
   // Only show quick search bar when all criteria are tags or collections, else
   // show a search bar that opens to the advanced search form
   const isQuickSearch =
-    searchCriteriaList.length === 0 || searchCriteriaList.every((crit) => crit.key === 'tags');
+    searchCriteriaList.length === 0 ||
+    searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
 
   // Open searchbar on adding queries
   useEffect(() => {
@@ -183,10 +184,10 @@ export const Searchbar = observer(() => {
       const label = `${camelCaseToSpaced(criteria.key as string)} ${camelCaseToSpaced(criteria.operator)} `;
       if (criteria.label) {
         criterias.push(label.concat(`"${criteria.label}"`))
-      } else if (criteria instanceof ClientIDSearchCriteria) {
+      } else if (criteria instanceof ClientCollectionSearchCriteria) {
+        criterias.push(label.concat(`"${tagCollectionStore.get(criteria.collectionId)}"`))
+      } else if (criteria.value.length > 0) {
         criterias.push(label.concat(`"${tagStore.get(criteria.value[0])?.name}"`))
-      } else {
-        criterias.push(label.concat(`"${tagCollectionStore.get(criteria.value[0])?.name}"`))
       }
     } else {
       criterias.push(criteria.toString());

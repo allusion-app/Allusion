@@ -493,10 +493,7 @@ class UiStore {
   @action.bound viewQueryContent() {
     this.rootStore.fileStore.fetchFilesByQuery();
     this.clearSelection();
-
-    if (this.isAdvancedSearchOpen) {
-      this.toggleAdvancedSearch();
-    }
+    this.closeAdvancedSearch();
   }
 
   @action.bound toggleTheme() {
@@ -530,6 +527,10 @@ class UiStore {
 
   @action.bound openQuickSearch() {
     this.isQuickSearchOpen = true;
+  }
+
+  @action.bound closeAdvancedSearch() {
+    this.isAdvancedSearchOpen = false;
   }
 
   // Storing preferences
