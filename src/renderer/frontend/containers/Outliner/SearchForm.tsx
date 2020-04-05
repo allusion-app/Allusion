@@ -28,7 +28,7 @@ import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
 import { ClientTag } from '../../../entities/Tag';
-import MultiTagSelector from '../../components/MultiTagSelector';
+import TagSelector from '../../components/TagSelector';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
 import { ClientTagCollection } from '../../../entities/TagCollection';
 
@@ -139,14 +139,6 @@ const TagCriteriaItem = observer(({ criteria, replaceCriteria }: ITagCriteriaIte
     [criteria, replaceCriteria],
   );
 
-  const handleClear = useCallback(() => {
-    if (criteria instanceof ClientIDSearchCriteria) {
-      criteria.setValue('', '');
-    } else if (criteria instanceof ClientCollectionSearchCriteria) {
-      criteria.setValue('', [], '');
-    }
-  }, [criteria]);
-
   const selectedItem = useMemo(() => {
     if (criteria instanceof ClientIDSearchCriteria) {
       return criteria.value.length === 1 ? tagStore.get(criteria.value[0]) : undefined;
@@ -161,22 +153,23 @@ const TagCriteriaItem = observer(({ criteria, replaceCriteria }: ITagCriteriaIte
     criteria instanceof ClientCollectionSearchCriteria ? criteria.collectionId : criteria.value,
   ]);
 
+  const options = useMemo(() => {
+    if (!selectedItem) {
+      return ArrayOperators;
+    }
+    return selectedItem instanceof ClientCollectionSearchCriteria
+      ? ArrayOperators
+      : StringOperators;
+  }, [selectedItem]);
+
   return (
     <>
-      <OperatorSelect
-        onSelect={criteria.setOperator}
-        value={criteria.operator}
-        options={ArrayOperators}
-      />
-      <MultiTagSelector
-        selectedItems={selectedItem ? [selectedItem] : []}
+      <OperatorSelect onSelect={criteria.setOperator} value={criteria.operator} options={options} />
+      <TagSelector
+        selectedItem={selectedItem}
         onTagSelect={handleSelectTag}
-        onTagDeselect={handleClear}
-        onClearSelection={handleClear}
-        placeholder="Untagged"
         autoFocus
         includeCollections
-        onTagColDeselect={handleClear}
         onTagColSelect={handleSelectCol}
       />
     </>

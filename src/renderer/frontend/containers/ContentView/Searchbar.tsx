@@ -12,6 +12,7 @@ import {
 } from '../../../entities/SearchCriteria';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { ClientTagCollection } from '../../../entities/TagCollection';
+import { camelCaseToSpaced } from '../../utils';
 
 const QuickSearchList = ({
   rootStore: { uiStore, tagStore, tagCollectionStore },
@@ -140,6 +141,7 @@ export const Searchbar = observer(() => {
       removeSearchCriteriaByIndex,
     },
     tagStore,
+    tagCollectionStore
   } = rootStore;
 
   // Only show quick search bar when all criteria are tags or collections, else
@@ -177,9 +179,14 @@ export const Searchbar = observer(() => {
 
   const criterias: React.ReactNode[] = [];
   for (const criteria of searchCriteriaList) {
-    if (criteria instanceof ClientIDSearchCriteria && !criteria.label && criteria.key === 'tags') {
-      if (criteria.key === 'tags') {
-        criterias.push(...criteria.value.map((c) => tagStore.get(c)?.name));
+    if (criteria instanceof ClientIDSearchCriteria || criteria instanceof ClientCollectionSearchCriteria) {
+      const label = `${camelCaseToSpaced(criteria.key as string)} ${camelCaseToSpaced(criteria.operator)} `;
+      if (criteria.label) {
+        criterias.push(label.concat(`"${criteria.label}"`))
+      } else if (criteria instanceof ClientIDSearchCriteria) {
+        criterias.push(label.concat(`"${tagStore.get(criteria.value[0])?.name}"`))
+      } else {
+        criterias.push(label.concat(`"${tagCollectionStore.get(criteria.value[0])?.name}"`))
       }
     } else {
       criterias.push(criteria.toString());
