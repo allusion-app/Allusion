@@ -88,7 +88,7 @@ export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
   constructor(
     key: keyof T,
     valueType: 'number' | 'date' | 'string' | 'array',
-    operator: NumberOperatorType | StringOperatorType | BinaryOperatorType | ArrayOperatorType,
+    operator: OperatorType,
   ) {
     this.key = key;
     this.valueType = valueType;
