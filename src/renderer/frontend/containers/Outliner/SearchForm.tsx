@@ -193,7 +193,7 @@ const StringCriteriaItem = observer(({ value, setValue }: IValueInput<string>) =
     <InputGroup
       placeholder="Enter some text..."
       defaultValue={value}
-      onChange={handleChangeValue}
+      onBlur={handleChangeValue}
       autoFocus
     />
   );
@@ -251,15 +251,17 @@ const CriteriaItem = observer(
     const setOperator = useCallback(
       (operator: CriteriaOperator) => {
         criteria.operator = operator;
+        setCriteria(criteria);
       },
-      [criteria.operator],
+      [criteria, setCriteria],
     );
 
     const setValue = useCallback(
       (value: CriteriaValue) => {
         criteria.value = value;
+        setCriteria(criteria);
       },
-      [criteria.value],
+      [criteria, setCriteria],
     );
 
     const critFields = useMemo(() => {
@@ -386,7 +388,7 @@ const SearchForm = ({
       <FormGroup>
         {criterias.map((crit, i) => (
           <CriteriaItem
-            key={`crit-${i}`}
+            key={`crit-${crit.key}-${crit.operator}-${crit.value}-${i}`}
             criteria={crit}
             setCriteria={setCriteria.bind(null, i)}
             removeCriteria={removeSearchCriteria.bind(null, i)}
