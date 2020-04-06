@@ -6,7 +6,7 @@ import { ID, generateId } from '../../entities/ID';
 import { ClientLocation, ILocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
 import { IFile, ClientFile } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
-import { IStringSearchCriteria } from '../../entities/SearchCriteria';
+import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
 
 class LocationStore {
   backend: Backend;
@@ -139,15 +139,9 @@ class LocationStore {
       return;
     }
 
-    // Remove files in backend and filestore
-    const crit: IStringSearchCriteria<IFile> = {
-      key: 'locationId',
-      value: id,
-      operator: 'equals',
-      valueType: 'string',
-    };
+    const crit = new ClientStringSearchCriteria('locationId', id, 'equals');
     const filesToRemove = await this.backend.searchFiles(crit, 'id', 'ASC');
-    await this.rootStore.fileStore.removeFilesById(filesToRemove.map((f) => f.id));
+    await this.rootStore.fileStore.removeFilesById(filesToRemove.map((f: IFile) => f.id));
 
     // Remove location locally
     runInAction(() => this.locationList.remove(watchedDir));

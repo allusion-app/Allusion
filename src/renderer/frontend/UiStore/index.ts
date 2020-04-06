@@ -13,11 +13,11 @@ import View, {
   ViewThumbnailSize,
   PersistentPreferenceFields as ViewPersistentPrefFields,
 } from './View';
-import { ClientBaseCriteria, ClientIDSearchCriteria } from '../../entities/SearchCriteria';
+import { ClientIDSearchCriteria, ISearchCriteria } from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
-export type FileSearchCriteria = ClientBaseCriteria<IFile>;
+export type FileSearchCriteria = ISearchCriteria<IFile>;
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 interface IHotkeyMap {

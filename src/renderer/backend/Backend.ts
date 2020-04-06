@@ -5,7 +5,7 @@ import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 import { ILocation } from '../entities/Location';
-import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
+import { ISearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -68,10 +68,12 @@ export default class Backend {
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
-  async searchFiles(criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
-                    order: keyof IFile, fileOrder: FileOrder): Promise<IFile[]> {
-    // Fixme: This shouldn't be necesary, but I keep getting Mobx proxy objects, even when calling .toJS()
-    const serializedCriteria = JSON.parse(JSON.stringify(criteria));
+  async searchFiles(
+    criteria: ISearchCriteria<IFile>,
+    order: keyof IFile,
+    fileOrder: FileOrder,
+  ): Promise<IFile[]> {
+    const serializedCriteria = criteria.serialize();
     console.log('Backend: Searching files...', serializedCriteria);
     return this.fileRepository.find({ criteria: serializedCriteria, order, fileOrder });
   }
@@ -110,8 +112,9 @@ export default class Backend {
     console.log('Removing tag...', tag);
     // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
-    const filesWithTag = await this.fileRepository
-      .find({ criteria: { key: 'tags', value: tag.id, operator: 'contains', valueType: 'array' }});
+    const filesWithTag = await this.fileRepository.find({
+      criteria: { key: 'tags', value: tag.id, operator: 'contains', valueType: 'array' },
+    });
     // Remove tag from files
     filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
     // Update files in db
@@ -124,7 +127,8 @@ export default class Backend {
     console.log('Removing tag collection...', tagCollection);
     // Get all sub collections
     const subCollections = await Promise.all(
-      tagCollection.subCollections.map((col) => this.tagCollectionRepository.get(col)));
+      tagCollection.subCollections.map((col) => this.tagCollectionRepository.get(col)),
+    );
     // Remove subcollections
     await Promise.all(subCollections.map((col) => col && this.removeTagCollection(col)));
     // Get all tags
@@ -147,8 +151,9 @@ export default class Backend {
 
   async getNumUntaggedFiles() {
     console.log('Get number of untagged files...');
-    return this.fileRepository.count(
-      { criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' } });
+    return this.fileRepository.count({
+      criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' },
+    });
   }
 
   async getWatchedDirectories(order: keyof ILocation, fileOrder: FileOrder) {

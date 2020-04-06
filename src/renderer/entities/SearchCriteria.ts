@@ -1,4 +1,4 @@
-import { ID } from './ID';
+import { ID, ISerializable } from './ID';
 import { action, observable } from 'mobx';
 import { camelCaseToSpaced } from '../frontend/utils';
 import { IFile } from './File';
@@ -80,7 +80,11 @@ export type SearchCriteria<T> =
   | INumberSearchCriteria<T>
   | IDateSearchCriteria<T>;
 
-export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
+export interface ISearchCriteria<T>
+  extends IBaseSearchCriteria<T>,
+    ISerializable<SearchCriteria<T>> {}
+
+export abstract class ClientBaseCriteria<T> implements ISearchCriteria<T> {
   @observable public key: keyof T;
   @observable public valueType: 'number' | 'date' | 'string' | 'array';
   @observable public operator: OperatorType;
@@ -96,6 +100,7 @@ export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
   }
 
   abstract toString(): string;
+  abstract serialize(): SearchCriteria<T>;
 }
 
 export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
@@ -106,16 +111,30 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
       this.value.push(...ids);
     }
   }
+
   toString = () => this.value.toString();
+
+  serialize = (): IArraySearchCriteria<T> => {
+    return {
+      key: this.key,
+      valueType: this.valueType,
+      operator: this.operator as ArrayOperatorType,
+      value: this.value.toJS(),
+    };
+  };
+
   @action.bound setOperator(op: ArrayOperatorType) {
     this.operator = op;
   }
+
   @action.bound addID(id: ID) {
     this.value.push(id);
   }
+
   @action.bound removeID(id: ID) {
     this.value.remove(id);
   }
+
   @action.bound clearIDs() {
     this.value.clear();
   }
@@ -124,15 +143,28 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
 export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: ID[];
   @observable public label: string;
+
   constructor(key: keyof T, id?: ID, label?: string) {
     super(key, 'array', 'contains');
     this.value = id ? [id] : [];
     this.label = label || '';
   }
+
   toString = () => this.label;
+
+  serialize = (): IArraySearchCriteria<T> => {
+    return {
+      key: this.key,
+      valueType: this.valueType,
+      operator: this.operator as ArrayOperatorType,
+      value: this.value,
+    };
+  };
+
   @action.bound setOperator(op: ArrayOperatorType) {
     this.operator = op;
   }
+
   @action.bound setValue(value: ID, label: string) {
     this.value = value ? [value] : [];
     this.label = label;
@@ -145,11 +177,24 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
     super(key, 'string', operator || 'contains');
     this.value = value || '';
   }
+
   toString = () =>
     `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} "${this.value}"`;
-  @action.bound setOperator(op: StringOperatorType) {
+
+  serialize = (): IStringSearchCriteria<T> => {
+    return {
+      key: this.key,
+      valueType: this.valueType,
+      operator: this.operator as StringOperatorType,
+      value: this.value,
+    };
+  };
+
+  @action.bound
+  setOperator(op: StringOperatorType) {
     this.operator = op;
   }
+
   @action.bound setValue(str: string) {
     this.value = str;
   }
@@ -164,9 +209,20 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
   toString = () =>
     `${camelCaseToSpaced(this.key as string)} ${NumberOperatorSymbols[this.operator] ||
       camelCaseToSpaced(this.operator)} ${this.value}`;
+
+  serialize = (): INumberSearchCriteria<T> => {
+    return {
+      key: this.key,
+      valueType: this.valueType,
+      operator: this.operator as NumberOperatorType,
+      value: this.value,
+    };
+  };
+
   @action.bound setOperator(op: NumberOperatorType) {
     this.operator = op;
   }
+
   @action.bound setValue(num: number) {
     this.value = num;
   }
@@ -174,17 +230,30 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
 
 export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: Date;
+
   constructor(key: keyof T) {
     super(key, 'date', 'equals');
     this.value = new Date();
     this.value.setHours(0, 0, 0, 0);
   }
+
   toString = () =>
     `${camelCaseToSpaced(this.key as string)} ${NumberOperatorSymbols[this.operator] ||
       camelCaseToSpaced(this.operator)} ${this.value.toLocaleDateString()}`;
+
+  serialize = (): IDateSearchCriteria<T> => {
+    return {
+      key: this.key,
+      valueType: this.valueType,
+      operator: this.operator as NumberOperatorType,
+      value: this.value,
+    };
+  };
+
   @action.bound setOperator(op: NumberOperatorType) {
     this.operator = op;
   }
+
   @action.bound setValue(date: Date) {
     this.value = date;
   }
@@ -193,12 +262,15 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
 export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IFile> {
   @observable public collectionId: ID;
   @observable public label: string;
+
   constructor(collectionId: ID, tagIDs: ID[], label: string) {
     super('tags', tagIDs);
     this.collectionId = collectionId;
     this.label = label;
   }
+
   toString = () => `${this.label}`;
+
   @action.bound setValue(collectionId: ID, tagIDs: ID[], label: string) {
     this.collectionId = collectionId;
     this.value.clear();

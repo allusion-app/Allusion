@@ -1,10 +1,10 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import TagStore from '../frontend/stores/TagStore';
-import { generateId, ID, IIdentifiable, ISerializable } from './ID';
+import { generateId, ID, IResource, ISerializable } from './ID';
 import { ClientTagCollection } from './TagCollection';
 
 /* Generic properties of a Tag in our application */
-export interface ITag extends IIdentifiable {
+export interface ITag extends IResource {
   id: ID;
   name: string;
   description: string;

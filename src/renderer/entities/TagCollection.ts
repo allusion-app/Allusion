@@ -1,12 +1,12 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
-import { generateId, ID, IIdentifiable, ISerializable } from './ID';
+import { generateId, ID, IResource, ISerializable } from './ID';
 import { ClientTag, ITag } from './Tag';
 import TagCollectionStore from '../frontend/stores/TagCollectionStore';
 
 export const ROOT_TAG_COLLECTION_ID = 'hierarchy';
 
 /* Generic properties of a Tag Collection in our application */
-export interface ITagCollection extends IIdentifiable {
+export interface ITagCollection extends IResource {
   id: ID;
   name: string;
   description: string;

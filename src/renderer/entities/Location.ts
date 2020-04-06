@@ -3,7 +3,7 @@ import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
 
-import { ID, IIdentifiable, ISerializable } from './ID';
+import { ID, IResource, ISerializable } from './ID';
 import LocationStore from '../frontend/stores/LocationStore';
 import { IMG_EXTENSIONS } from './File';
 import { ClientTag } from './Tag';
@@ -12,7 +12,7 @@ import { AppToaster } from '../frontend/App';
 
 export const DEFAULT_LOCATION_ID: ID = 'default-location';
 
-export interface ILocation extends IIdentifiable {
+export interface ILocation extends IResource {
   id: ID;
   path: string;
   dateAdded: Date;

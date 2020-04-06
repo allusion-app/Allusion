@@ -5,7 +5,7 @@ import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { SearchCriteria } from '../../entities/SearchCriteria';
+import { ClientArraySearchCriteria } from '../../entities/SearchCriteria';
 import { getThumbnailPath, debounce } from '../utils';
 import { ClientTag } from '../../entities/Tag';
 import { FileOrder } from '../../backend/DBRepository';
@@ -145,12 +145,7 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
-      const criteria: SearchCriteria<IFile> = {
-        key: 'tags',
-        value: [],
-        operator: 'contains',
-        valueType: 'array',
-      };
+      const criteria = new ClientArraySearchCriteria('tags', []);
       const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
       this.setContentUntagged();
@@ -167,7 +162,7 @@ class FileStore {
     }
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria as [SearchCriteria<IFile>],
+        criteria[0],
         this.orderBy,
         this.fileOrder,
       );
@@ -175,22 +170,6 @@ class FileStore {
       this.setContentQuery();
     } catch (e) {
       console.log('Could not find files based on criteria', e);
-    }
-  }
-
-  @action.bound async fetchFilesByTagIDs(tags: ID[]) {
-    // Query the backend to send back only files with these tags
-    try {
-      const criteria: SearchCriteria<IFile> = {
-        key: 'tags',
-        value: tags,
-        operator: 'contains',
-        valueType: 'array',
-      };
-      const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
-      this.updateFromBackend(fetchedFiles);
-    } catch (e) {
-      console.log('Could not find files based on tag search', e);
     }
   }
 

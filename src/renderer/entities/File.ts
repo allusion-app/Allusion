@@ -8,7 +8,7 @@ import ImageSize from 'image-size';
 const sizeOf = promisify(ImageSize.imageSize);
 
 import FileStore from '../frontend/stores/FileStore';
-import { ID, IIdentifiable, ISerializable } from './ID';
+import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
@@ -16,7 +16,7 @@ export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'];
 export type IMG_EXTENSIONS_TYPE = 'gif' | 'png' | 'jpg' | 'jpg';
 
 /* Generic properties of a File in our application (usually an image) */
-export interface IFile extends IIdentifiable {
+export interface IFile extends IResource {
   id: ID;
   locationId: ID;
   path: string; // todo: could store relativePath, and convert to a absPath in clientFile (easier for import/export/sync in future)
@@ -47,7 +47,19 @@ export class DbFile implements IFile {
   public name: string;
   public extension: string;
 
-  constructor({ id, locationId, path, tags, size, width, height, dateAdded, dateModified, name, extension }: IFile) {
+  constructor({
+    id,
+    locationId,
+    path,
+    tags,
+    size,
+    width,
+    height,
+    dateAdded,
+    dateModified,
+    name,
+    extension,
+  }: IFile) {
     this.id = id;
     this.locationId = locationId;
     this.path = path;
