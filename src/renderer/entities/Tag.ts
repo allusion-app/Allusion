@@ -20,12 +20,12 @@ export class DbTag implements ITag {
   public dateAdded: Date;
   public color: string;
 
-  constructor(id: ID, name: string, color?: string, description?: string) {
+  constructor(id: ID, name: string, color: string = '', description: string = '') {
     this.id = id;
     this.name = name;
-    this.description = description || '';
+    this.description = description;
     this.dateAdded = new Date();
-    this.color = color || '';
+    this.color = color;
   }
 }
 
@@ -46,10 +46,10 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
   @observable color: string;
   // icon, color, (fileCount?)
 
-  constructor(store: TagStore, name?: string, id = generateId()) {
+  constructor(store: TagStore, name: string = '', id = generateId()) {
     this.store = store;
     this.id = id;
-    this.name = name || '';
+    this.name = name;
     this.description = '';
     this.dateAdded = new Date();
     this.color = '';

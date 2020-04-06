@@ -26,14 +26,14 @@ export class DbTagCollection implements ITagCollection {
   public tags: ID[];
   public color: string;
 
-  constructor(id: ID, name: string, color?: string, description?: string) {
+  constructor(id: ID, name: string, color: string = '', description: string = '') {
     this.id = id;
     this.name = name;
-    this.description = description || '';
+    this.description = description;
     this.dateAdded = new Date();
     this.subCollections = [];
     this.tags = [];
-    this.color = color || '';
+    this.color = color;
   }
 }
 
@@ -54,10 +54,10 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
 
   @observable color: string;
 
-  constructor(store: TagCollectionStore, name?: string, id = generateId()) {
+  constructor(store: TagCollectionStore, name: string = '', id = generateId()) {
     this.store = store;
     this.id = id;
-    this.name = name || '';
+    this.name = name;
     this.description = '';
     this.color = '';
     this.dateAdded = new Date();

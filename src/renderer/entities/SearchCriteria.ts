@@ -105,8 +105,9 @@ export abstract class ClientBaseCriteria<T> implements ISearchCriteria<T> {
 
 export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
   readonly value = observable<ID>([]);
-  constructor(key: keyof T, ids?: ID[]) {
-    super(key, 'array', 'contains');
+
+  constructor(key: keyof T, ids?: ID[], operator: ArrayOperatorType = 'contains') {
+    super(key, 'array', operator);
     if (ids) {
       this.value.push(...ids);
     }
@@ -144,10 +145,10 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: ID[];
   @observable public label: string;
 
-  constructor(key: keyof T, id?: ID, label?: string) {
-    super(key, 'array', 'contains');
+  constructor(key: keyof T, id?: ID, label: string = '', operator: ArrayOperatorType = 'contains') {
+    super(key, 'array', operator);
     this.value = id ? [id] : [];
-    this.label = label || '';
+    this.label = label;
   }
 
   toString = () => this.label;
@@ -173,9 +174,10 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
 
 export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: string;
-  constructor(key: keyof T, value?: string, operator?: StringOperatorType) {
-    super(key, 'string', operator || 'contains');
-    this.value = value || '';
+
+  constructor(key: keyof T, value: string = '', operator: StringOperatorType = 'contains') {
+    super(key, 'string', operator);
+    this.value = value;
   }
 
   toString = () =>
@@ -202,9 +204,14 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
 
 export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: number;
-  constructor(key: keyof T) {
-    super(key, 'number', 'greaterThanOrEquals');
-    this.value = 0;
+
+  constructor(
+    key: keyof T,
+    value: number = 0,
+    operator: NumberOperatorType = 'greaterThanOrEquals',
+  ) {
+    super(key, 'number', operator);
+    this.value = value;
   }
   toString = () =>
     `${camelCaseToSpaced(this.key as string)} ${NumberOperatorSymbols[this.operator] ||
@@ -231,9 +238,9 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
 export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: Date;
 
-  constructor(key: keyof T) {
-    super(key, 'date', 'equals');
-    this.value = new Date();
+  constructor(key: keyof T, value: Date = new Date(), operator: NumberOperatorType = 'equals') {
+    super(key, 'date', operator);
+    this.value = value;
     this.value.setHours(0, 0, 0, 0);
   }
 
@@ -263,8 +270,8 @@ export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IF
   @observable public collectionId: ID;
   @observable public label: string;
 
-  constructor(collectionId: ID, tagIDs: ID[], label: string) {
-    super('tags', tagIDs);
+  constructor(collectionId: ID, tagIDs: ID[], label: string, operator?: ArrayOperatorType) {
+    super('tags', tagIDs, operator);
     this.collectionId = collectionId;
     this.label = label;
   }

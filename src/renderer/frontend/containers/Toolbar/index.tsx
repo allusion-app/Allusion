@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import React, { useContext, useCallback, useMemo } from 'react';
 import { Button, Popover, MenuItem, Menu, Icon, ButtonGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
@@ -35,7 +34,7 @@ interface IOutlinerToolbar {
   toggleOutliner: () => void;
 }
 
-const OutlinerToolbar = React.memo(
+const OutlinerToolbar = observer(
   ({ isOutlinerOpen, isQuickSearchOpen, toggleSearch, toggleOutliner }: IOutlinerToolbar) => (
     <section id="outliner-toolbar">
       <ButtonGroup minimal>
@@ -59,7 +58,7 @@ const OutlinerToolbar = React.memo(
 );
 
 /* Library info. Todo: Show entire library count instead of current fileList */
-const LibraryInfo = React.memo(({ fileCount }: { fileCount: number }) => (
+const LibraryInfo = observer(({ fileCount }: { fileCount: number }) => (
   <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={Tooltip.Media}>
     {fileCount} item{`${fileCount === 1 ? '' : 's'}`}
   </Button>
@@ -71,7 +70,7 @@ interface IFileSelection {
   selectionCount: number;
 }
 
-const FileSelection = React.memo(
+const FileSelection = observer(
   ({ allFilesSelected, toggleSelection: toggle, selectionCount }: IFileSelection) => (
     <Button
       rightIcon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
@@ -93,7 +92,7 @@ interface ITagFilesPopoverProps {
   toggle: () => void;
 }
 
-const TagFilesPopover = React.memo(
+const TagFilesPopover = observer(
   ({ disabled, files, isOpen, close, toggle }: ITagFilesPopoverProps) => (
     <Popover minimal isOpen={isOpen} onClose={close}>
       <Button
@@ -125,7 +124,7 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateAdded', icon: IconSet.FILTER_DATE, text: 'Date added' },
 ];
 
-const FileFilter = React.memo(
+const FileFilter = observer(
   ({ fileOrder, orderBy, orderFilesBy, switchFileOrder }: IFileFilter) => {
     // Render variables
     const sortMenu = useMemo(() => {
@@ -164,7 +163,7 @@ interface ILayoutOptions {
   viewList: () => void;
 }
 
-const LayoutOptions = React.memo(({ method, viewGrid, viewList }: ILayoutOptions) => (
+const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) => (
   <ButtonGroup minimal>
     <Button
       onClick={viewList}
@@ -190,7 +189,7 @@ interface IInspectorToolbar {
   toggleSettings: () => void;
 }
 
-const InspectorToolbar = React.memo(
+const InspectorToolbar = observer(
   ({ isInspectorOpen, toggleInspector, toggleSettings }: IInspectorToolbar) => {
     return (
       <section id="inspector-toolbar">

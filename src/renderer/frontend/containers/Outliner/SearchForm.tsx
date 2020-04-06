@@ -38,9 +38,7 @@ import { ClientTagCollection } from '../../../entities/TagCollection';
 import { ID } from '../../../entities/ID';
 
 type CriteriaKey = 'name' | 'path' | 'tags' | 'extension' | 'size' | 'dateAdded';
-
 type CriteriaOperator = OperatorType;
-
 type CriteriaValue = string | number | Date | [ID, string] | [ID, string, ID[]] | [];
 
 interface ICriteriaField<
@@ -152,13 +150,13 @@ const OperatorSelector = observer(
   },
 );
 
-interface ICriteriaProps<V extends CriteriaValue> {
+interface IValueInput<V extends CriteriaValue> {
   value: V;
   setValue: (value: CriteriaValue) => void;
 }
 
 const TagCriteriaItem = observer(
-  ({ value, setValue }: ICriteriaProps<[ID, string] | [ID, string, ID[]] | []>) => {
+  ({ value, setValue }: IValueInput<[ID, string] | [ID, string, ID[]] | []>) => {
     const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
     const handleSelectTag = useCallback((t: ClientTag) => setValue([t.id, t.name]), [setValue]);
@@ -188,7 +186,7 @@ const TagCriteriaItem = observer(
   },
 );
 
-const StringCriteriaItem = observer(({ value, setValue }: ICriteriaProps<string>) => {
+const StringCriteriaItem = observer(({ value, setValue }: IValueInput<string>) => {
   const handleChangeValue = useCallback((e) => setValue(e.target.value), [setValue]);
 
   return (
@@ -203,7 +201,7 @@ const StringCriteriaItem = observer(({ value, setValue }: ICriteriaProps<string>
 
 const ExtensionOptions = IMG_EXTENSIONS.map((ext) => ({ value: ext, label: ext.toUpperCase() }));
 
-const ExtensionCriteriaItem = observer(({ value, setValue }: ICriteriaProps<string>) => {
+const ExtensionCriteriaItem = observer(({ value, setValue }: IValueInput<string>) => {
   const handlePickValue = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => setValue(e.target.value),
     [setValue],
@@ -213,7 +211,7 @@ const ExtensionCriteriaItem = observer(({ value, setValue }: ICriteriaProps<stri
 });
 
 const bytesInMb = 1024 * 1024;
-const NumberCriteriaItem = observer(({ value, setValue }: ICriteriaProps<number>) => {
+const NumberCriteriaItem = observer(({ value, setValue }: IValueInput<number>) => {
   const handleChangeValue = useCallback((val: number) => setValue(val * bytesInMb), [setValue]);
 
   return (
@@ -227,7 +225,7 @@ const NumberCriteriaItem = observer(({ value, setValue }: ICriteriaProps<number>
   );
 });
 
-const DateCriteriaItem = observer(({ value, setValue }: ICriteriaProps<Date>) => {
+const DateCriteriaItem = observer(({ value, setValue }: IValueInput<Date>) => {
   return (
     <DateInput
       defaultValue={value}
@@ -243,13 +241,13 @@ const DateCriteriaItem = observer(({ value, setValue }: ICriteriaProps<Date>) =>
 interface ICriteriaItemProps {
   criteria: CriteriaField;
   setCriteria: (replacement: CriteriaField) => void;
-  onRemove: () => any;
+  removeCriteria: () => void;
   removable: boolean;
 }
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
 const CriteriaItem = observer(
-  ({ criteria, onRemove, removable, setCriteria }: ICriteriaItemProps) => {
+  ({ criteria, removeCriteria, removable, setCriteria }: ICriteriaItemProps) => {
     const setOperator = useCallback(
       (operator: CriteriaOperator) => {
         criteria.operator = operator;
@@ -288,7 +286,7 @@ const CriteriaItem = observer(
           setOperator={setOperator}
         />
         {critFields}
-        <Button text="-" onClick={onRemove} disabled={!removable} className="remove" />
+        <Button text="-" onClick={removeCriteria} disabled={!removable} className="remove" />
       </ControlGroup>
     );
   },
@@ -321,27 +319,18 @@ function intoCriteria(field: CriteriaField): FileSearchCriteria | undefined {
   if (field.key === 'name' || field.key === 'path' || field.key === 'extension') {
     return new ClientStringSearchCriteria(field.key, field.value, field.operator);
   } else if (field.key === 'dateAdded') {
-    const date = new ClientDateSearchCriteria(field.key);
-    date.setOperator(field.operator);
-    date.setValue(field.value);
-    return date;
+    return new ClientDateSearchCriteria(field.key, field.value, field.operator);
   } else if (field.key === 'size') {
-    const size = new ClientNumberSearchCriteria(field.key);
-    size.setOperator(field.operator);
-    size.setValue(field.value);
-    return size;
+    return new ClientNumberSearchCriteria(field.key, field.value, field.operator);
   } else if (field.key === 'tags' && field.value.length === 2) {
-    const tags = new ClientIDSearchCriteria(field.key, field.value[0], field.value[1]);
-    tags.setOperator(field.operator);
-    return tags;
+    return new ClientIDSearchCriteria(field.key, field.value[0], field.value[1], field.operator);
   } else if (field.key === 'tags' && field.value.length === 3) {
-    const collection = new ClientCollectionSearchCriteria(
+    return new ClientCollectionSearchCriteria(
       field.value[0],
       field.value[2],
       field.value[1],
+      field.operator,
     );
-    collection.setOperator(field.operator);
-    return collection;
   } else {
     return undefined;
   }
@@ -400,7 +389,7 @@ const SearchForm = ({
             key={`crit-${i}`}
             criteria={crit}
             setCriteria={setCriteria.bind(null, i)}
-            onRemove={removeSearchCriteria.bind(null, i)}
+            removeCriteria={removeSearchCriteria.bind(null, i)}
             removable={criterias.length !== 1}
           />
         ))}

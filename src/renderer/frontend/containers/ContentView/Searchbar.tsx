@@ -97,8 +97,7 @@ interface ICriteriaList {
   toggleAdvancedSearch: () => void;
 }
 
-// eslint-disable-next-line react/display-name
-const CriteriaList = React.memo(({ criterias, toggleAdvancedSearch, onRemove }: ICriteriaList) => {
+const CriteriaList = observer(({ criterias, toggleAdvancedSearch, onRemove }: ICriteriaList) => {
   const preventTyping = (e: React.KeyboardEvent<HTMLElement>, i?: number) => {
     // If it's not an event on an existing Tag element, ignore it
     if (i === undefined && !e.ctrlKey) {
