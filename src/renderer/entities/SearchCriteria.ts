@@ -41,14 +41,16 @@ export type BinaryOperatorType = typeof BinaryOperators[number];
 export const ArrayOperators = ['contains', 'notContains'] as const;
 export type ArrayOperatorType = typeof ArrayOperators[number];
 
+export type OperatorType =
+  | ArrayOperatorType
+  | NumberOperatorType
+  | StringOperatorType
+  | BinaryOperatorType;
+
 interface IBaseSearchCriteria<T> {
   key: keyof T;
   valueType: 'number' | 'date' | 'string' | 'array';
-  readonly operator:
-    | NumberOperatorType
-    | StringOperatorType
-    | BinaryOperatorType
-    | ArrayOperatorType;
+  readonly operator: OperatorType;
 }
 
 export interface IArraySearchCriteria<T> extends IBaseSearchCriteria<T> {
@@ -81,11 +83,7 @@ export type SearchCriteria<T> =
 export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
   @observable public key: keyof T;
   @observable public valueType: 'number' | 'date' | 'string' | 'array';
-  @observable public operator:
-    | NumberOperatorType
-    | StringOperatorType
-    | BinaryOperatorType
-    | ArrayOperatorType;
+  @observable public operator: OperatorType;
 
   constructor(
     key: keyof T,
