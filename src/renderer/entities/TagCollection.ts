@@ -21,18 +21,15 @@ export class DbTagCollection implements ITagCollection {
   public id: ID;
   public name: string;
   public description: string;
-  public dateAdded: Date;
-  public subCollections: ID[];
-  public tags: ID[];
+  public dateAdded: Date = new Date();
+  public subCollections: ID[] = [];
+  public tags: ID[] = [];
   public color: string;
 
   constructor(id: ID, name: string, color: string = '', description: string = '') {
     this.id = id;
     this.name = name;
     this.description = description;
-    this.dateAdded = new Date();
-    this.subCollections = [];
-    this.tags = [];
     this.color = color;
   }
 }
@@ -46,21 +43,18 @@ export class ClientTagCollection implements ITagCollection, ISerializable<DbTagC
   autoSave = true;
 
   id: ID;
-  dateAdded: Date;
+  dateAdded: Date = new Date();
   @observable name: string;
-  @observable description: string;
+  @observable description: string = '';
   readonly subCollections = observable<ID>([]);
   readonly tags = observable<ID>([]);
 
-  @observable color: string;
+  @observable color: string = '';
 
   constructor(store: TagCollectionStore, name: string = '', id = generateId()) {
     this.store = store;
     this.id = id;
     this.name = name;
-    this.description = '';
-    this.color = '';
-    this.dateAdded = new Date();
 
     // observe all changes to observable fields
     this.saveHandler = reaction(

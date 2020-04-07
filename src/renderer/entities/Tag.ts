@@ -17,14 +17,13 @@ export class DbTag implements ITag {
   public id: ID;
   public name: string;
   public description: string;
-  public dateAdded: Date;
+  public dateAdded: Date = new Date();
   public color: string;
 
   constructor(id: ID, name: string, color: string = '', description: string = '') {
     this.id = id;
     this.name = name;
     this.description = description;
-    this.dateAdded = new Date();
     this.color = color;
   }
 }
@@ -40,19 +39,16 @@ export class ClientTag implements ITag, ISerializable<DbTag> {
   autoSave = true;
 
   id: ID;
-  dateAdded: Date;
+  dateAdded: Date = new Date();
   @observable name: string;
-  @observable description: string;
-  @observable color: string;
+  @observable description: string = '';
+  @observable color: string = '';
   // icon, color, (fileCount?)
 
   constructor(store: TagStore, name: string = '', id = generateId()) {
     this.store = store;
     this.id = id;
     this.name = name;
-    this.description = '';
-    this.dateAdded = new Date();
-    this.color = '';
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
