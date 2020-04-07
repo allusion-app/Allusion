@@ -439,20 +439,18 @@ class UiStore {
   }
 
   @action.bound async replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
-    if (this.searchCriteriaList.length === 1) {
-      this.searchCriteriaList.replace([query]);
+    const fetch = this.searchCriteriaList.length === 1;
+    this.searchCriteriaList.replace([query]);
+    if (fetch) {
       this.searchByQuery();
-    } else {
-      this.searchCriteriaList.replace([query]);
     }
   }
 
   @action.bound async replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
-    if (this.searchCriteriaList.length > 0 && this.searchCriteriaList.length === queries.length) {
-      this.searchCriteriaList.replace(queries);
+    const fetch = this.searchCriteriaList.length === queries.length && queries.length > 0;
+    this.searchCriteriaList.replace(queries);
+    if (fetch) {
       this.searchByQuery();
-    } else {
-      this.searchCriteriaList.replace(queries);
     }
   }
 

@@ -183,6 +183,74 @@ const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) 
   </ButtonGroup>
 ));
 
+const ContentToolbar = observer(() => {
+  const { uiStore, fileStore } = useContext(StoreContext);
+  const { fileSelection, clearFileSelection, selectFiles } = uiStore;
+  // If everything is selected, deselect all. Else, select all
+  const handleToggleSelect = useCallback(
+    () =>
+      fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
+        ? clearFileSelection()
+        : selectFiles(
+            fileStore.fileList.map((f) => f.id).filter((f) => !fileSelection.includes(f)),
+          ),
+    [fileSelection, fileStore.fileList, clearFileSelection, selectFiles],
+  );
+  return (
+    <section id="main-toolbar">
+      {uiStore.view.isSlideMode ? (
+        <ButtonGroup minimal>
+          {/* Slide mode */}
+          <Button
+            icon={IconSet.ARROW_LEFT}
+            onClick={uiStore.view.disableSlideMode}
+            intent="primary"
+            className="tooltip"
+            data-right={Tooltip.Back}
+          >
+            Return
+          </Button>
+        </ButtonGroup>
+      ) : (
+        <>
+          <ButtonGroup minimal>
+            <LibraryInfo fileCount={fileStore.fileList.length} />
+          </ButtonGroup>
+
+          <ButtonGroup minimal>
+            <FileSelection
+              allFilesSelected={
+                fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
+              }
+              toggleSelection={handleToggleSelect}
+              selectionCount={fileSelection.length}
+            />
+            <TagFilesPopover
+              files={uiStore.clientFileSelection}
+              disabled={fileSelection.length <= 0 || fileStore.fileList.length <= 0}
+              isOpen={uiStore.isToolbarTagSelectorOpen}
+              close={uiStore.closeToolbarTagSelector}
+              toggle={uiStore.toggleToolbarTagSelector}
+            />
+            <FileFilter
+              fileOrder={fileStore.fileOrder}
+              orderBy={fileStore.orderBy}
+              orderFilesBy={fileStore.orderFilesBy}
+              switchFileOrder={fileStore.switchFileOrder}
+            />
+          </ButtonGroup>
+
+          <LayoutOptions
+            method={uiStore.view.method}
+            viewGrid={uiStore.view.setMethodGrid}
+            viewList={uiStore.view.setMethodList}
+          />
+        </>
+      )}
+    </section>
+  );
+});
+
 interface IInspectorToolbar {
   isInspectorOpen: boolean;
   toggleInspector: () => void;
@@ -214,20 +282,7 @@ const InspectorToolbar = observer(
 );
 
 const Toolbar = observer(() => {
-  const {
-    uiStore,
-    fileStore: { fileList, fileOrder, orderBy, orderFilesBy, switchFileOrder },
-  } = useContext(StoreContext);
-  const { fileSelection, clearFileSelection, selectFiles } = uiStore;
-
-  // If everything is selected, deselect all. Else, select all
-  const handleToggleSelect = useCallback(
-    () =>
-      fileSelection.length > 0 && fileSelection.length === fileList.length
-        ? clearFileSelection()
-        : selectFiles(fileList.map((f) => f.id).filter((f) => !fileSelection.includes(f))),
-    [clearFileSelection, fileList, fileSelection, selectFiles],
-  );
+  const { uiStore } = useContext(StoreContext);
 
   return (
     <div id="toolbar">
@@ -237,57 +292,7 @@ const Toolbar = observer(() => {
         toggleSearch={uiStore.toggleQuickSearch}
         toggleOutliner={uiStore.toggleOutliner}
       />
-      <section id="main-toolbar">
-        <ButtonGroup minimal>
-          {/* Disable slide mode */}
-          {uiStore.view.isSlideMode && (
-            <Button
-              icon={IconSet.ARROW_LEFT}
-              onClick={uiStore.view.disableSlideMode}
-              intent="primary"
-              className="tooltip"
-              data-right={Tooltip.Back}
-            >
-              Return
-            </Button>
-          )}
-
-          {!uiStore.view.isSlideMode && <LibraryInfo fileCount={fileList.length} />}
-        </ButtonGroup>
-
-        {!uiStore.view.isSlideMode && (
-          <>
-            <ButtonGroup minimal>
-              <FileSelection
-                allFilesSelected={
-                  fileSelection.length > 0 && fileSelection.length === fileList.length
-                }
-                toggleSelection={handleToggleSelect}
-                selectionCount={fileSelection.length}
-              />
-              <TagFilesPopover
-                files={uiStore.clientFileSelection}
-                disabled={fileSelection.length <= 0 || fileList.length <= 0}
-                isOpen={uiStore.isToolbarTagSelectorOpen}
-                close={uiStore.closeToolbarTagSelector}
-                toggle={uiStore.toggleToolbarTagSelector}
-              />
-              <FileFilter
-                fileOrder={fileOrder}
-                orderBy={orderBy}
-                orderFilesBy={orderFilesBy}
-                switchFileOrder={switchFileOrder}
-              />
-            </ButtonGroup>
-
-            <LayoutOptions
-              method={uiStore.view.method}
-              viewGrid={uiStore.view.setMethodGrid}
-              viewList={uiStore.view.setMethodList}
-            />
-          </>
-        )}
-      </section>
+      <ContentToolbar />
       <InspectorToolbar
         isInspectorOpen={uiStore.isInspectorOpen}
         toggleInspector={uiStore.toggleInspector}

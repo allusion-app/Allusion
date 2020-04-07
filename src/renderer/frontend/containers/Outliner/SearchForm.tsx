@@ -27,7 +27,7 @@ import {
   OperatorType,
   BinaryOperatorType,
 } from '../../../entities/SearchCriteria';
-import { IFile, IMG_EXTENSIONS } from '../../../entities/File';
+import { IMG_EXTENSIONS } from '../../../entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
@@ -58,19 +58,25 @@ type CriteriaField =
   | ICriteriaField<'size', NumberOperatorType, number>
   | ICriteriaField<'dateAdded', NumberOperatorType, Date>;
 
-const DEFAULT_NAME: CriteriaField = { key: 'name', operator: 'contains', value: '' };
-const DEFAULT_PATH: CriteriaField = { key: 'path', operator: 'contains', value: '' };
-const DEFAULT_TAGS: CriteriaField = { key: 'tags', operator: 'contains', value: [] };
-const DEFAULT_EXTENSION: CriteriaField = {
-  key: 'extension',
-  operator: 'equals',
-  value: IMG_EXTENSIONS[0],
-};
-const DEFAULT_SIZE: CriteriaField = { key: 'size', operator: 'greaterThanOrEquals', value: 0 };
-const DEFAULT_DATE_ADDED: CriteriaField = {
-  key: 'dateAdded',
-  operator: 'equals',
-  value: new Date(),
+interface IDefaultCriteria {
+  [key: string]: CriteriaField;
+}
+
+const Default: IDefaultCriteria = {
+  name: { key: 'name', operator: 'contains', value: '' },
+  path: { key: 'path', operator: 'contains', value: '' },
+  tags: { key: 'tags', operator: 'contains', value: [] },
+  extension: {
+    key: 'extension',
+    operator: 'equals',
+    value: IMG_EXTENSIONS[0],
+  },
+  size: { key: 'size', operator: 'greaterThanOrEquals', value: 0 },
+  dateAdded: {
+    key: 'dateAdded',
+    operator: 'equals',
+    value: new Date(),
+  },
 };
 
 interface IKeySelector {
@@ -88,25 +94,19 @@ const KeyOptions = [
 ];
 
 const KeySelector = observer(({ selectedKey, setCriteria }: IKeySelector) => {
-  const handlePickKey = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => {
-      const key = e.target.value;
-      if (key === 'name') {
-        setCriteria({ ...DEFAULT_NAME });
-      } else if (key === 'path') {
-        setCriteria({ ...DEFAULT_PATH });
-      } else if (key === 'extension') {
-        setCriteria({ ...DEFAULT_EXTENSION });
-      } else if (key === 'tags') {
-        setCriteria({ ...DEFAULT_TAGS });
-      } else if (key === 'size') {
-        setCriteria({ ...DEFAULT_SIZE });
-      } else if (key === 'dateAdded') {
-        setCriteria({ ...DEFAULT_DATE_ADDED });
-      }
-    },
-    [setCriteria],
-  );
+  const handlePickKey = (e: ChangeEvent<HTMLSelectElement>) => {
+    const key = e.target.value;
+    if (
+      key === 'name' ||
+      key === 'path' ||
+      key === 'extension' ||
+      key === 'tags' ||
+      key === 'size' ||
+      key === 'dateAdded'
+    ) {
+      setCriteria({ ...Default[key] });
+    }
+  };
 
   return <HTMLSelect onChange={handlePickKey} options={KeyOptions} defaultValue={selectedKey} />;
 });
@@ -126,13 +126,6 @@ const OperatorOptions = {
 
 const OperatorSelector = observer(
   ({ selectedKey, selectedOperator, setOperator }: IOperatorSelector) => {
-    const handleSelect = useCallback(
-      (e: ChangeEvent<HTMLSelectElement>) => {
-        setOperator(e.target.value as CriteriaOperator);
-      },
-      [setOperator],
-    );
-
     const options = useMemo(() => {
       if (selectedKey === 'dateAdded' || selectedKey === 'size') {
         return OperatorOptions.NUMBER;
@@ -146,7 +139,13 @@ const OperatorSelector = observer(
       return [];
     }, [selectedKey]);
 
-    return <HTMLSelect onChange={handleSelect} options={options} defaultValue={selectedOperator} />;
+    return (
+      <HTMLSelect
+        onChange={(e) => setOperator(e.target.value as CriteriaOperator)}
+        options={options}
+        defaultValue={selectedOperator}
+      />
+    );
   },
 );
 
@@ -155,77 +154,73 @@ interface IValueInput<V extends CriteriaValue> {
   setValue: (value: CriteriaValue) => void;
 }
 
-const TagCriteriaItem = observer(
-  ({ value, setValue }: IValueInput<[ID, string] | [ID, string, ID[]] | []>) => {
-    const { tagStore, tagCollectionStore } = useContext(StoreContext);
+const TagCriteriaItem = ({
+  value,
+  setValue,
+}: IValueInput<[ID, string] | [ID, string, ID[]] | []>) => {
+  const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
-    const handleSelectTag = useCallback((t: ClientTag) => setValue([t.id, t.name]), [setValue]);
+  const handleSelectTag = (t: ClientTag) => setValue([t.id, t.name]);
 
-    const handleSelectCol = useCallback(
-      (col: ClientTagCollection) => setValue([col.id, col.name, col.getTagsRecursively()]),
-      [setValue],
-    );
+  const handleSelectCol = (col: ClientTagCollection) =>
+    setValue([col.id, col.name, col.getTagsRecursively()]);
 
-    const selectedItem = useMemo(() => {
-      if (value.length === 2) {
-        return tagStore.get(value[0]);
-      } else if (value.length === 3) {
-        return tagCollectionStore.get(value[0]);
-      }
-    }, [value, tagStore, tagCollectionStore]);
+  const selectedItem = useMemo(() => {
+    if (value.length === 2) {
+      return tagStore.get(value[0]);
+    } else if (value.length === 3) {
+      return tagCollectionStore.get(value[0]);
+    }
+  }, [value, tagStore, tagCollectionStore]);
 
-    return (
-      <TagSelector
-        selectedItem={selectedItem}
-        onTagSelect={handleSelectTag}
-        autoFocus
-        includeCollections
-        onTagColSelect={handleSelectCol}
-      />
-    );
-  },
-);
+  return (
+    <TagSelector
+      autoFocus
+      includeCollections
+      selectedItem={selectedItem}
+      onTagSelect={handleSelectTag}
+      onTagColSelect={handleSelectCol}
+    />
+  );
+};
 
-const StringCriteriaItem = observer(({ value, setValue }: IValueInput<string>) => {
-  const handleChangeValue = useCallback((e) => setValue(e.target.value), [setValue]);
-
+const StringCriteriaItem = ({ value, setValue }: IValueInput<string>) => {
   return (
     <InputGroup
       placeholder="Enter some text..."
       defaultValue={value}
-      onBlur={handleChangeValue}
+      onBlur={(e) => setValue(e.target.value)}
       autoFocus
     />
   );
-});
+};
 
 const ExtensionOptions = IMG_EXTENSIONS.map((ext) => ({ value: ext, label: ext.toUpperCase() }));
 
-const ExtensionCriteriaItem = observer(({ value, setValue }: IValueInput<string>) => {
-  const handlePickValue = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => setValue(e.target.value),
-    [setValue],
+const ExtensionCriteriaItem = ({ value, setValue }: IValueInput<string>) => {
+  return (
+    <HTMLSelect
+      onChange={(e) => setValue(e.target.value)}
+      options={ExtensionOptions}
+      defaultValue={value}
+    />
   );
-
-  return <HTMLSelect onChange={handlePickValue} options={ExtensionOptions} defaultValue={value} />;
-});
+};
 
 const bytesInMb = 1024 * 1024;
-const NumberCriteriaItem = observer(({ value, setValue }: IValueInput<number>) => {
-  const handleChangeValue = useCallback((val: number) => setValue(val * bytesInMb), [setValue]);
-
+const NumberCriteriaItem = ({ value, setValue }: IValueInput<number>) => {
   return (
     <NumericInput
       placeholder="Enter a number..."
       value={value / bytesInMb}
-      onValueChange={handleChangeValue}
+      onValueChange={(v) => setValue(v * bytesInMb)}
       autoFocus
       buttonPosition="none"
     />
   );
-});
+};
 
-const DateCriteriaItem = observer(({ value, setValue }: IValueInput<Date>) => {
+const DateCriteriaItem = ({ value, setValue }: IValueInput<Date>) => {
   return (
     <DateInput
       defaultValue={value}
@@ -236,7 +231,7 @@ const DateCriteriaItem = observer(({ value, setValue }: IValueInput<Date>) => {
       {...jsDateFormatter}
     />
   );
-});
+};
 
 interface ICriteriaItemProps {
   criteria: CriteriaField;
@@ -296,21 +291,16 @@ const CriteriaItem = observer(
 
 function fromCriteria(criteria: FileSearchCriteria): CriteriaField | undefined {
   let value: CriteriaValue;
-  if (criteria.key === 'name' || criteria.key === 'path' || criteria.key === 'extension') {
-    value = (criteria as ClientStringSearchCriteria<IFile>).value;
-  } else if (
-    criteria.key === 'tags' &&
-    criteria instanceof ClientIDSearchCriteria &&
-    criteria.value.length > 0
+  if (
+    criteria instanceof ClientStringSearchCriteria ||
+    criteria instanceof ClientNumberSearchCriteria ||
+    criteria instanceof ClientDateSearchCriteria
   ) {
+    value = criteria.value;
+  } else if (criteria instanceof ClientIDSearchCriteria && criteria.value.length > 0) {
     value = [criteria.value[0], criteria.label];
-  } else if (criteria.key === 'tags' && criteria instanceof ClientCollectionSearchCriteria) {
-    const collection = criteria as ClientCollectionSearchCriteria;
-    value = [collection.collectionId, collection.label, collection.value];
-  } else if (criteria.key === 'size') {
-    value = (criteria as ClientNumberSearchCriteria<IFile>).value;
-  } else if (criteria.key === 'dateAdded') {
-    value = (criteria as ClientDateSearchCriteria<IFile>).value;
+  } else if (criteria instanceof ClientCollectionSearchCriteria) {
+    value = [criteria.collectionId, criteria.label, criteria.value];
   } else {
     return undefined;
   }
@@ -352,14 +342,14 @@ const SearchForm = ({
   const [criterias, setCriterias] = useState<CriteriaField[]>(
     searchCriteriaList.length > 0
       ? (searchCriteriaList.map(fromCriteria).filter((c) => c !== undefined) as CriteriaField[])
-      : [{ ...DEFAULT_TAGS }],
+      : [{ ...Default.tags }],
   );
 
   useEffect(() => {
     openQuickSearch();
   }, [openQuickSearch]);
 
-  const addSearchCriteria = () => setCriterias(criterias.concat({ ...DEFAULT_TAGS }));
+  const addSearchCriteria = () => setCriterias(criterias.concat({ ...Default.tags }));
 
   const removeSearchCriteria = (index: number) => {
     criterias.splice(index, 1);
@@ -380,7 +370,7 @@ const SearchForm = ({
 
   const resetSearchCriteria = useCallback(() => {
     clearSearchCriteriaList();
-    setCriterias([{ ...DEFAULT_TAGS }]);
+    setCriterias([{ ...Default.tags }]);
   }, [clearSearchCriteriaList]);
 
   return (

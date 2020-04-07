@@ -97,7 +97,7 @@ interface ICriteriaList {
   toggleAdvancedSearch: () => void;
 }
 
-const CriteriaList = observer(({ criterias, toggleAdvancedSearch, onRemove }: ICriteriaList) => {
+const CriteriaList = ({ criterias, toggleAdvancedSearch, onRemove }: ICriteriaList) => {
   const preventTyping = (e: React.KeyboardEvent<HTMLElement>, i?: number) => {
     // If it's not an event on an existing Tag element, ignore it
     if (i === undefined && !e.ctrlKey) {
@@ -124,7 +124,7 @@ const CriteriaList = observer(({ criterias, toggleAdvancedSearch, onRemove }: IC
       />
     </div>
   );
-});
+};
 
 export const Searchbar = observer(() => {
   const rootStore = useContext(StoreContext);
@@ -180,7 +180,7 @@ export const Searchbar = observer(() => {
   const criterias: React.ReactNode[] = [];
   for (const criteria of searchCriteriaList) {
     if (criteria instanceof ClientIDSearchCriteria || criteria instanceof ClientCollectionSearchCriteria) {
-      const label = `${camelCaseToSpaced(criteria.key as string)} ${camelCaseToSpaced(criteria.operator)} `;
+      const label = `${camelCaseToSpaced(criteria.key)} ${camelCaseToSpaced(criteria.operator)} `;
       if (criteria.label) {
         criterias.push(label.concat(`"${criteria.label}"`))
       } else if (criteria instanceof ClientCollectionSearchCriteria) {

@@ -1,13 +1,4 @@
 ///////////////////////////////// Content area /////////////////////////////////
-.gallery {
-  width: 100%;
-  padding: 0 0 0 0px;
-  height: 100%;
-
-  display: flex;
-  flex-flow: column;
-}
-
 .quick-search {
   background: $dark-gray1;
   border-radius: 6px;
@@ -225,9 +216,9 @@
   grid-template-columns: auto 1fr;
   // grid-template-rows:    auto 1fr;
   grid-template-areas:
-    "image title"
-    "image info"
-    "image tags";
+    'image title'
+    'image info'
+    'image tags';
 
   &.selected .img-wrapper {
     background: $blue1;

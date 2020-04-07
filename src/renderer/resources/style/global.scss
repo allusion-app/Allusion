@@ -45,9 +45,8 @@ body {
 
 main {
   grid-area: main;
-  overflow: hidden; //temp fix for double scrollbar
-  // height: inherit;
-  // z-index: 0;
+  display: flex;
+  flex-flow: column;
 }
 
 #layoutContainer {
@@ -155,7 +154,7 @@ img {
   max-width: 600px !important;
   min-width: max-content;
   left: 1rem;
-  top: .25rem; //Fix for z-index issue
+  top: 0.25rem; //Fix for z-index issue
   margin-left: 1.5rem;
   margin-top: 1.5rem;
   text-align: left;
@@ -504,13 +503,13 @@ img {
 }
 
 .ellipsis {
-  white-space: nowrap; 
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .ellipsis-left {
-  white-space: nowrap; 
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   direction: rtl;
