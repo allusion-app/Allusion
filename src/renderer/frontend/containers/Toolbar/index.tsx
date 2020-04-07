@@ -1,10 +1,10 @@
-import React, { useContext, useCallback, useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Button, Popover, MenuItem, Menu, Icon, ButtonGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
-import FileTag from '../../components/FileTag';
+import FileTags from '../../components/FileTag';
 import { ClientFile, IFile } from '../../../entities/File';
 import { ViewMethod } from '../../UiStore';
 import { FileOrder } from '../../../backend/DBRepository';
@@ -103,7 +103,7 @@ const TagFilesPopover = observer(
         data-right={Tooltip.TagFiles}
       />
       <div className="popoverContent">
-        <FileTag files={files} autoFocus />
+        <FileTags files={files} autoFocus />
       </div>
     </Popover>
   ),
@@ -185,17 +185,15 @@ const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) 
 
 const ContentToolbar = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
-  const { fileSelection, clearFileSelection, selectFiles } = uiStore;
+  const { fileSelection } = uiStore;
   // If everything is selected, deselect all. Else, select all
-  const handleToggleSelect = useCallback(
-    () =>
-      fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
-        ? clearFileSelection()
-        : selectFiles(
-            fileStore.fileList.map((f) => f.id).filter((f) => !fileSelection.includes(f)),
-          ),
-    [fileSelection, fileStore.fileList, clearFileSelection, selectFiles],
-  );
+  const handleToggleSelect = () =>
+    fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
+      ? uiStore.clearFileSelection()
+      : uiStore.selectFiles(
+          fileStore.fileList.map((f) => f.id).filter((f) => !fileSelection.includes(f)),
+        );
+
   return (
     <section id="main-toolbar">
       {uiStore.view.isSlideMode ? (

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useCallback } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, TagInput } from '@blueprintjs/core';
 import { CSSTransition } from 'react-transition-group';
@@ -93,11 +93,11 @@ const QuickSearchList = ({
 
 interface ICriteriaList {
   criterias: React.ReactNode[];
-  onRemove: (value: string, index: number) => void;
+  removeCriteriaByIndex: (index: number) => void;
   toggleAdvancedSearch: () => void;
 }
 
-const CriteriaList = ({ criterias, toggleAdvancedSearch, onRemove }: ICriteriaList) => {
+const CriteriaList = ({ criterias, toggleAdvancedSearch, removeCriteriaByIndex }: ICriteriaList) => {
   const preventTyping = (e: React.KeyboardEvent<HTMLElement>, i?: number) => {
     // If it's not an event on an existing Tag element, ignore it
     if (i === undefined && !e.ctrlKey) {
@@ -116,7 +116,7 @@ const CriteriaList = ({ criterias, toggleAdvancedSearch, onRemove }: ICriteriaLi
     <div id="criteria-list">
       <TagInput
         values={criterias}
-        onRemove={onRemove}
+        onRemove={(_, i) => removeCriteriaByIndex(i)}
         inputProps={{ disabled: true, onMouseUp: toggleAdvancedSearch }}
         onKeyDown={preventTyping}
         tagProps={{ minimal: true, intent: 'primary', onClick: handleTagClick, interactive: true }}
@@ -154,13 +154,6 @@ export const Searchbar = observer(() => {
     }
   }, [isQuickSearchOpen, openQuickSearch, searchCriteriaList.length]);
 
-  const handleOnRemove = useCallback(
-    (_: string, index: number) => {
-      removeSearchCriteriaByIndex(index);
-    },
-    [removeSearchCriteriaByIndex],
-  );
-
   const criterias: React.ReactNode[] = [];
   for (const criteria of searchCriteriaList) {
     if (criteria instanceof ClientIDSearchCriteria || criteria instanceof ClientCollectionSearchCriteria) {
@@ -192,7 +185,7 @@ export const Searchbar = observer(() => {
           <CriteriaList
             criterias={criterias}
             toggleAdvancedSearch={toggleAdvancedSearch}
-            onRemove={handleOnRemove}
+            removeCriteriaByIndex={removeSearchCriteriaByIndex}
           />
         )}
         <Button minimal icon={IconSet.CLOSE} onClick={closeQuickSearch} title="Close (Escape)" />

@@ -58,11 +58,7 @@ type CriteriaField =
   | ICriteriaField<'size', NumberOperatorType, number>
   | ICriteriaField<'dateAdded', NumberOperatorType, Date>;
 
-interface IDefaultCriteria {
-  [key: string]: CriteriaField;
-}
-
-const Default: IDefaultCriteria = {
+const Default: { [key: string]: CriteriaField } = {
   name: { key: 'name', operator: 'contains', value: '' },
   path: { key: 'path', operator: 'contains', value: '' },
   tags: { key: 'tags', operator: 'contains', value: [] },
