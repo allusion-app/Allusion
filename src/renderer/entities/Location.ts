@@ -141,7 +141,7 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
     return new Promise<string[]>((resolve) => {
       watcher
         .on('add', async (path: string) => {
-          if (IMG_EXTENSIONS.some((ext) => path.toLowerCase().endsWith(ext))) {
+          if (IMG_EXTENSIONS.some((ext) => SysPath.extname(path).endsWith(ext))) {
             // Todo: ignore dot files/dirs?
             if (this.isReady) {
               console.log(`File ${path} has been added after initialization`);

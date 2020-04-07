@@ -95,7 +95,10 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
     return {
       name: systemPath.basename(path),
-      extension: systemPath.extname(path).toLowerCase(),
+      extension: systemPath
+        .extname(path)
+        .slice(1)
+        .toLowerCase(),
       size: stats.size,
       width: (dimensions && dimensions.width) || 0,
       height: (dimensions && dimensions.height) || 0,
