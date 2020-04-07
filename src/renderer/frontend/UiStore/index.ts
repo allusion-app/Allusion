@@ -418,62 +418,64 @@ class UiStore {
 
   /////////////////// Search Actions ///////////////////
   @action.bound async clearSearchCriteriaList() {
-    this.searchCriteriaList.clear();
-    this.clearSelection();
-    if (!this.rootStore.fileStore.showsAllContent) {
-      this.rootStore.fileStore.fetchAllFiles();
+    if (this.searchCriteriaList.length > 0) {
+      this.searchCriteriaList.clear();
+      this.viewAllContent();
     }
-  }
-
-  @action.bound async searchByQuery() {
-    await this.rootStore.fileStore.fetchFilesByQuery();
-    this.cleanFileSelection();
   }
 
   @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
     this.searchCriteriaList.push(query);
+    this.viewQueryContent();
+  }
+
+  @action.bound async addSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+    this.searchCriteriaList.push(...queries);
+    this.viewQueryContent();
   }
 
   @action.bound async removeSearchCriteria(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
-  }
-
-  @action.bound async replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
-    const fetch = this.searchCriteriaList.length === 1;
-    this.searchCriteriaList.replace([query]);
-    if (fetch) {
-      this.searchByQuery();
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
     }
   }
 
+  @action.bound async replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+    this.replaceSearchCriterias([query]);
+  }
+
   @action.bound async replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
-    const fetch = this.searchCriteriaList.length === queries.length && queries.length > 0;
     this.searchCriteriaList.replace(queries);
-    if (fetch) {
-      this.searchByQuery();
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
     }
   }
 
   @action.bound async removeSearchCriteriaByIndex(i: number) {
     this.searchCriteriaList.splice(i, 1);
-  }
-
-  @action.bound addTagsToCriteria(ids: ID[]) {
-    this.searchCriteriaList.push(...ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
-  }
-
-  @action.bound replaceCriteriaWithTags(ids: ID[]) {
-    this.replaceSearchCriterias(ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
+    }
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
-    this.replaceCriteriaWithTags(this.tagSelection.toJS());
+    this.replaceSearchCriterias(
+      this.tagSelection.toJS().map((id) => new ClientIDSearchCriteria('tags', id)),
+    );
   }
 
   @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
     const index = this.searchCriteriaList.indexOf(oldCrit);
     if (index !== -1) {
       this.searchCriteriaList[index] = crit;
+      this.viewQueryContent();
     }
   }
 
@@ -491,7 +493,6 @@ class UiStore {
   @action.bound viewQueryContent() {
     this.rootStore.fileStore.fetchFilesByQuery();
     this.clearSelection();
-    this.closeAdvancedSearch();
   }
 
   @action.bound toggleTheme() {
@@ -506,7 +507,7 @@ class UiStore {
   }
 
   @action.bound toggleQuickSearch() {
-    if (this.isQuickSearchOpen && this.searchCriteriaList.length > 0) {
+    if (this.isQuickSearchOpen) {
       this.clearSearchCriteriaList();
     }
     this.isQuickSearchOpen = !this.isQuickSearchOpen;
@@ -517,9 +518,7 @@ class UiStore {
   }
 
   @action.bound closeQuickSearch() {
-    if (this.isQuickSearchOpen && this.searchCriteriaList.length > 0) {
-      this.clearSearchCriteriaList();
-    }
+    this.clearSearchCriteriaList();
     this.isQuickSearchOpen = false;
   }
 
@@ -567,17 +566,6 @@ class UiStore {
   @action clearSelection() {
     this.tagSelection.clear();
     this.fileSelection.clear();
-  }
-
-  /**
-   * Deselect files that are not tagged with any tag in the current tag selection
-   */
-  @action private cleanFileSelection() {
-    for (const file of this.clientFileSelection) {
-      if (!file.tags.some((t) => this.tagSelection.includes(t))) {
-        this.deselectFile(file);
-      }
-    }
   }
 
   @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {

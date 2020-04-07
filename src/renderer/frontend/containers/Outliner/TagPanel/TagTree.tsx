@@ -32,6 +32,7 @@ import { ClientTag } from '../../../../entities/Tag';
 import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';
 import { SketchPicker, ColorResult } from 'react-color';
+import { ClientIDSearchCriteria } from '../../../../entities/SearchCriteria';
 
 const DEFAULT_TAG_NAME = 'New Tag';
 const DEFAULT_COLLECTION_NAME = 'New Collection';
@@ -371,12 +372,14 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
                   uiStore.openOutlinerTagRemover(tag.isSelected ? 'selected' : tag.id)
                 }
                 onAddSelectionToQuery={() =>
-                  uiStore.addTagsToCriteria(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
+                  tag.isSelected
+                    ? uiStore.replaceCriteriaWithTagSelection()
+                    : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
                 }
                 onReplaceQuery={() =>
-                  uiStore.replaceCriteriaWithTags(
-                    tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id],
-                  )
+                  tag.isSelected
+                    ? uiStore.replaceCriteriaWithTagSelection()
+                    : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
                 }
                 numColsInContext={contextItems.collections.length}
                 numTagsInContext={Math.max(0, contextItems.tags.length - 1)}
@@ -514,14 +517,18 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
             onCollapseAll={() => setExpandState({ ...collapseSubCollection(col) })}
             onRemove={() => uiStore.openOutlinerTagRemover(col.isSelected ? 'selected' : col.id)}
             onAddSelectionToQuery={() =>
-              uiStore.addTagsToCriteria(
-                col.isSelected ? uiStore.tagSelection.toJS() : col.getTagsRecursively(),
-              )
+              col.isSelected
+                ? uiStore.replaceCriteriaWithTagSelection()
+                : uiStore.addSearchCriterias(
+                    col.getTagsRecursively().map((c) => new ClientIDSearchCriteria('tags', c)),
+                  )
             }
             onReplaceQuery={() =>
-              uiStore.replaceCriteriaWithTags(
-                col.isSelected ? uiStore.tagSelection.toJS() : col.getTagsRecursively(),
-              )
+              col.isSelected
+                ? uiStore.replaceCriteriaWithTagSelection()
+                : uiStore.replaceSearchCriterias(
+                    col.getTagsRecursively().map((c) => new ClientIDSearchCriteria('tags', c)),
+                  )
             }
             onMoveUp={() => movePosition((n) => n - 1)}
             onMoveDown={() => movePosition((n) => n + 1)}
@@ -551,42 +558,51 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     return [...root.clientSubCollections.map((c) => createCollection(c)), ...createTags(root)];
   }, [editNode, expandState, root, tagCollectionStore, tagStore, uiStore]);
 
-  const handleRootAddTag = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    tagStore
-      .addTag(DEFAULT_TAG_NAME)
-      .then((tag) => {
-        root.addTag(tag.id);
-        setEditNode({ id: tag.id, kind: DragAndDropType.Tag });
-      })
-      .catch((err) => console.log('Could not create tag', err));
-  }, [root, tagStore]);
+  const handleRootAddTag = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      tagStore
+        .addTag(DEFAULT_TAG_NAME)
+        .then((tag) => {
+          root.addTag(tag.id);
+          setEditNode({ id: tag.id, kind: DragAndDropType.Tag });
+        })
+        .catch((err) => console.log('Could not create tag', err));
+    },
+    [root, tagStore],
+  );
 
-  const handleAddRootCollection = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    tagCollectionStore
-      .addTagCollection(DEFAULT_COLLECTION_NAME, root)
-      .then((col) => setEditNode({ id: col.id, kind: DragAndDropType.Collection }))
-      .catch((err) => console.log('Could not create collection', err));
-  }, [root, tagCollectionStore]);
+  const handleAddRootCollection = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      tagCollectionStore
+        .addTagCollection(DEFAULT_COLLECTION_NAME, root)
+        .then((col) => setEditNode({ id: col.id, kind: DragAndDropType.Collection }))
+        .catch((err) => console.log('Could not create collection', err));
+    },
+    [root, tagCollectionStore],
+  );
 
-  const handleRootDrop = useCallback((monitor) => {
-    const item: IDragAndDropItem = monitor.getItem();
-    if (item.isSelected) {
-      return uiStore.moveSelectedTagItems(ROOT_TAG_COLLECTION_ID);
-    }
+  const handleRootDrop = useCallback(
+    (monitor) => {
+      const item: IDragAndDropItem = monitor.getItem();
+      if (item.isSelected) {
+        return uiStore.moveSelectedTagItems(ROOT_TAG_COLLECTION_ID);
+      }
 
-    switch (monitor.getItemType()) {
-      case DragAndDropType.Collection:
-        uiStore.moveCollection(item.id, root);
-        break;
-      case DragAndDropType.Tag:
-        uiStore.moveTag(item.id, root);
-        break;
-      default:
-        break;
-    }
-  }, [root, uiStore]);
+      switch (monitor.getItemType()) {
+        case DragAndDropType.Collection:
+          uiStore.moveCollection(item.id, root);
+          break;
+        case DragAndDropType.Tag:
+          uiStore.moveTag(item.id, root);
+          break;
+        default:
+          break;
+      }
+    },
+    [root, uiStore],
+  );
 
   const handleOnContextMenu = (node: ITreeNode<INodeData>): JSX.Element => {
     if (node.nodeData) {
@@ -617,15 +633,13 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   });
 
   const [isCollapsed, setCollapsed] = useState(false);
-  const toggleCollapse = useCallback(
-    () => setCollapsed(!isCollapsed),
-    [isCollapsed, setCollapsed]);
+  const toggleCollapse = useCallback(() => setCollapsed(!isCollapsed), [isCollapsed, setCollapsed]);
 
   return (
     <>
       <div className="outliner-header-wrapper" ref={headerDrop} onClick={toggleCollapse}>
         <H4 className="bp3-heading">
-          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/>
+          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
           Tags
         </H4>
         <Button

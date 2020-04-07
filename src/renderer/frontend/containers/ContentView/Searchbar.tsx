@@ -133,10 +133,8 @@ export const Searchbar = observer(() => {
       isQuickSearchOpen,
       searchCriteriaList,
       openQuickSearch,
-      clearSearchCriteriaList,
       closeQuickSearch,
       toggleAdvancedSearch,
-      searchByQuery,
       removeSearchCriteriaByIndex,
     },
     tagStore,
@@ -155,20 +153,6 @@ export const Searchbar = observer(() => {
       openQuickSearch();
     }
   }, [isQuickSearchOpen, openQuickSearch, searchCriteriaList.length]);
-
-  // Fetch whenever a query changes
-  useEffect(() => {
-    if (searchCriteriaList.length > 0) {
-      searchByQuery();
-    }
-  }, [searchByQuery, searchCriteriaList.length]);
-
-  // Fatch all files when search bar has been emptied by the user
-  useEffect(() => {
-    if (isQuickSearchOpen && searchCriteriaList.length === 0) {
-      clearSearchCriteriaList();
-    }
-  }, [clearSearchCriteriaList, isQuickSearchOpen, searchCriteriaList.length]);
 
   const handleOnRemove = useCallback(
     (_: string, index: number) => {
