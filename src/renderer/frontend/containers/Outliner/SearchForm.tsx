@@ -39,7 +39,8 @@ import { ID } from '../../../entities/ID';
 
 type CriteriaKey = 'name' | 'path' | 'tags' | 'extension' | 'size' | 'dateAdded';
 type CriteriaOperator = OperatorType;
-type CriteriaValue = string | number | Date | [ID, string] | [ID, string, ID[]] | [];
+type TagValue = [ID, string] | [ID, string, ID[]] | [];
+type CriteriaValue = string | number | Date | TagValue;
 
 interface ICriteriaField<
   K extends CriteriaKey,
@@ -53,7 +54,7 @@ interface ICriteriaField<
 
 type CriteriaField =
   | ICriteriaField<'name' | 'path', StringOperatorType, string>
-  | ICriteriaField<'tags', ArrayOperatorType, [ID, string] | [ID, string, ID[]] | []>
+  | ICriteriaField<'tags', ArrayOperatorType, TagValue>
   | ICriteriaField<'extension', BinaryOperatorType, string>
   | ICriteriaField<'size', NumberOperatorType, number>
   | ICriteriaField<'dateAdded', NumberOperatorType, Date>;
@@ -145,7 +146,7 @@ const OperatorSelector = observer(
   },
 );
 
-interface IValueInput<V extends CriteriaValue> {
+interface IValueInput<V extends CriteriaValue = CriteriaValue> {
   value: V;
   setValue: (value: CriteriaValue) => void;
 }
@@ -229,6 +230,23 @@ const DateCriteriaItem = ({ value, setValue }: IValueInput<Date>) => {
   );
 };
 
+const ValueInput = observer(
+  ({ keyValue, value, setValue }: IValueInput & { keyValue: CriteriaKey }) => {
+    if (keyValue === 'name' || keyValue === 'path') {
+      return <StringCriteriaItem value={value as string} setValue={setValue} />;
+    } else if (keyValue === 'tags') {
+      return <TagCriteriaItem value={value as TagValue} setValue={setValue} />;
+    } else if (keyValue === 'extension') {
+      return <ExtensionCriteriaItem value={value as string} setValue={setValue} />;
+    } else if (keyValue === 'size') {
+      return <NumberCriteriaItem value={value as number} setValue={setValue} />;
+    } else if (keyValue === 'dateAdded') {
+      return <DateCriteriaItem value={value as Date} setValue={setValue} />;
+    }
+    return <p>This should never happen.</p>;
+  },
+);
+
 interface ICriteriaItemProps {
   criteria: CriteriaField;
   setCriteria: (replacement: CriteriaField) => void;
@@ -255,21 +273,6 @@ const CriteriaItem = observer(
       [criteria, setCriteria],
     );
 
-    const critFields = useMemo(() => {
-      if (criteria.key === 'name' || criteria.key === 'path') {
-        return <StringCriteriaItem value={criteria.value} setValue={setValue} />;
-      } else if (criteria.key === 'tags') {
-        return <TagCriteriaItem value={criteria.value} setValue={setValue} />;
-      } else if (criteria.key === 'extension') {
-        return <ExtensionCriteriaItem value={criteria.value} setValue={setValue} />;
-      } else if (criteria.key === 'size') {
-        return <NumberCriteriaItem value={criteria.value} setValue={setValue} />;
-      } else if (criteria.key === 'dateAdded') {
-        return <DateCriteriaItem value={criteria.value} setValue={setValue} />;
-      }
-      return <p>This should never happen.</p>;
-    }, [criteria.key, criteria.value, setValue]);
-
     return (
       <ControlGroup fill className="criteria">
         <KeySelector selectedKey={criteria.key} setCriteria={setCriteria} />
@@ -278,7 +281,7 @@ const CriteriaItem = observer(
           selectedOperator={criteria.operator}
           setOperator={setOperator}
         />
-        {critFields}
+        <ValueInput keyValue={criteria.key} value={criteria.value} setValue={setValue} />
         <Button text="-" onClick={removeCriteria} disabled={!removable} className="remove" />
       </ControlGroup>
     );

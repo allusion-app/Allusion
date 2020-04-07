@@ -8,33 +8,23 @@ import { ClientTag } from '../../../entities/Tag';
 import {
   ClientIDSearchCriteria,
   ClientCollectionSearchCriteria,
-  ClientArraySearchCriteria,
 } from '../../../entities/SearchCriteria';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { ClientTagCollection } from '../../../entities/TagCollection';
-import { camelCaseToSpaced } from '../../utils';
 
 const QuickSearchList = ({
   rootStore: { uiStore, tagStore, tagCollectionStore },
 }: IRootStoreProp) => {
   const selectedItems: (ClientTag | ClientTagCollection)[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
-    if (c instanceof ClientIDSearchCriteria) {
-      const tag = tagStore.get(c.value.length === 1 ? c.value[0] : '');
-      if (tag) {
-        selectedItems.push(tag);
-      }
+    let item;
+    if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
+      item = tagStore.get(c.value[0]);
     } else if (c instanceof ClientCollectionSearchCriteria) {
-      const col = tagCollectionStore.get(c.collectionId);
-      if (col) {
-        selectedItems.push(col);
-      }
-    } else if (c instanceof ClientArraySearchCriteria) {
-      if (c.key === 'tags') {
-        selectedItems.push(
-          ...(c.value.map((v) => tagStore.get(v)).filter((t) => t !== undefined) as ClientTag[]),
-        );
-      }
+      item = tagCollectionStore.get(c.collectionId);
+    }
+    if (item) {
+      selectedItems.push(item);
     }
   });
 
@@ -97,7 +87,11 @@ interface ICriteriaList {
   toggleAdvancedSearch: () => void;
 }
 
-const CriteriaList = ({ criterias, toggleAdvancedSearch, removeCriteriaByIndex }: ICriteriaList) => {
+const CriteriaList = ({
+  criterias,
+  toggleAdvancedSearch,
+  removeCriteriaByIndex,
+}: ICriteriaList) => {
   const preventTyping = (e: React.KeyboardEvent<HTMLElement>, i?: number) => {
     // If it's not an event on an existing Tag element, ignore it
     if (i === undefined && !e.ctrlKey) {
@@ -138,7 +132,6 @@ export const Searchbar = observer(() => {
       removeSearchCriteriaByIndex,
     },
     tagStore,
-    tagCollectionStore,
   } = rootStore;
 
   // Only show quick search bar when all criteria are tags or collections, else
@@ -154,21 +147,16 @@ export const Searchbar = observer(() => {
     }
   }, [isQuickSearchOpen, openQuickSearch, searchCriteriaList.length]);
 
-  const criterias: React.ReactNode[] = [];
-  for (const criteria of searchCriteriaList) {
-    if (criteria instanceof ClientIDSearchCriteria || criteria instanceof ClientCollectionSearchCriteria) {
-      const label = `${camelCaseToSpaced(criteria.key)} ${camelCaseToSpaced(criteria.operator)} `;
-      if (criteria.label) {
-        criterias.push(label.concat(`"${criteria.label}"`))
-      } else if (criteria instanceof ClientCollectionSearchCriteria) {
-        criterias.push(label.concat(`"${tagCollectionStore.get(criteria.collectionId)}"`))
-      } else if (criteria.value.length > 0) {
-        criterias.push(label.concat(`"${tagStore.get(criteria.value[0])?.name}"`))
+  const criterias = searchCriteriaList.map((c) => {
+    const label = c.toString();
+    if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
+      const tag = tagStore.get(c.value[0]);
+      if (tag) {
+        return label.concat(tag.name);
       }
-    } else {
-      criterias.push(criteria.toString());
     }
-  }
+    return label;
+  });
 
   return (
     <CSSTransition in={isQuickSearchOpen} classNames="quick-search" timeout={200} unmountOnExit>

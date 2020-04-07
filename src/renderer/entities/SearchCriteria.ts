@@ -151,7 +151,8 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.label = label;
   }
 
-  toString = () => this.label;
+  toString = () =>
+    `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} ${this.label}`;
 
   serialize = (): IArraySearchCriteria<T> => {
     return {
@@ -276,7 +277,8 @@ export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IF
     this.label = label;
   }
 
-  toString = () => `${this.label}`;
+  toString = () =>
+    `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} ${this.label}`;
 
   @action.bound setValue(collectionId: ID, tagIDs: ID[], label: string) {
     this.collectionId = collectionId;
