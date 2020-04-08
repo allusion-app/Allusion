@@ -35,7 +35,7 @@ import { ClientTag } from '../../../entities/Tag';
 import TagSelector from '../../components/TagSelector';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
 import { ClientTagCollection } from '../../../entities/TagCollection';
-import { ID } from '../../../entities/ID';
+import { ID, generateId } from '../../../entities/ID';
 
 type CriteriaKey = 'name' | 'path' | 'tags' | 'extension' | 'size' | 'dateAdded';
 type CriteriaOperator = OperatorType;
@@ -47,6 +47,7 @@ interface ICriteriaField<
   O extends CriteriaOperator,
   V extends CriteriaValue
 > {
+  id: ID;
   key: K;
   operator: O;
   value: V;
@@ -60,16 +61,18 @@ type CriteriaField =
   | ICriteriaField<'dateAdded', NumberOperatorType, Date>;
 
 const Default: { [key: string]: CriteriaField } = {
-  name: { key: 'name', operator: 'contains', value: '' },
-  path: { key: 'path', operator: 'contains', value: '' },
-  tags: { key: 'tags', operator: 'contains', value: [] },
+  name: { id: 'name', key: 'name', operator: 'contains', value: '' },
+  path: { id: 'path', key: 'path', operator: 'contains', value: '' },
+  tags: { id: 'tags', key: 'tags', operator: 'contains', value: [] },
   extension: {
+    id: 'extensions',
     key: 'extension',
     operator: 'equals',
     value: IMG_EXTENSIONS[0],
   },
-  size: { key: 'size', operator: 'greaterThanOrEquals', value: 0 },
+  size: { id: 'size', key: 'size', operator: 'greaterThanOrEquals', value: 0 },
   dateAdded: {
+    id: 'dateAdded',
     key: 'dateAdded',
     operator: 'equals',
     value: new Date(),
@@ -90,7 +93,7 @@ const KeyOptions = [
   { value: 'dateAdded', label: 'Date added' },
 ];
 
-const KeySelector = observer(({ selectedKey, setCriteria }: IKeySelector) => {
+const KeySelector = ({ selectedKey, setCriteria }: IKeySelector) => {
   const handlePickKey = (e: ChangeEvent<HTMLSelectElement>) => {
     const key = e.target.value;
     if (
@@ -106,7 +109,7 @@ const KeySelector = observer(({ selectedKey, setCriteria }: IKeySelector) => {
   };
 
   return <HTMLSelect onChange={handlePickKey} options={KeyOptions} defaultValue={selectedKey} />;
-});
+};
 
 interface IOperatorSelector {
   selectedKey: CriteriaKey;
@@ -121,30 +124,28 @@ const OperatorOptions = {
   STRING: StringOperators.map((opt) => ({ value: opt, label: camelCaseToSpaced(opt) })),
 };
 
-const OperatorSelector = observer(
-  ({ selectedKey, selectedOperator, setOperator }: IOperatorSelector) => {
-    const options = useMemo(() => {
-      if (selectedKey === 'dateAdded' || selectedKey === 'size') {
-        return OperatorOptions.NUMBER;
-      } else if (selectedKey === 'extension') {
-        return OperatorOptions.BINARY;
-      } else if (selectedKey === 'name' || selectedKey === 'path') {
-        return OperatorOptions.STRING;
-      } else if (selectedKey === 'tags') {
-        return OperatorOptions.ARRAY;
-      }
-      return [];
-    }, [selectedKey]);
+const OperatorSelector = ({ selectedKey, selectedOperator, setOperator }: IOperatorSelector) => {
+  const options = useMemo(() => {
+    if (selectedKey === 'dateAdded' || selectedKey === 'size') {
+      return OperatorOptions.NUMBER;
+    } else if (selectedKey === 'extension') {
+      return OperatorOptions.BINARY;
+    } else if (selectedKey === 'name' || selectedKey === 'path') {
+      return OperatorOptions.STRING;
+    } else if (selectedKey === 'tags') {
+      return OperatorOptions.ARRAY;
+    }
+    return [];
+  }, [selectedKey]);
 
-    return (
-      <HTMLSelect
-        onChange={(e) => setOperator(e.target.value as CriteriaOperator)}
-        options={options}
-        defaultValue={selectedOperator}
-      />
-    );
-  },
-);
+  return (
+    <HTMLSelect
+      onChange={(e) => setOperator(e.target.value as CriteriaOperator)}
+      options={options}
+      defaultValue={selectedOperator}
+    />
+  );
+};
 
 interface IValueInput<V extends CriteriaValue = CriteriaValue> {
   value: V;
@@ -230,83 +231,88 @@ const DateCriteriaItem = ({ value, setValue }: IValueInput<Date>) => {
   );
 };
 
-const ValueInput = observer(
-  ({ keyValue, value, setValue }: IValueInput & { keyValue: CriteriaKey }) => {
-    if (keyValue === 'name' || keyValue === 'path') {
-      return <StringCriteriaItem value={value as string} setValue={setValue} />;
-    } else if (keyValue === 'tags') {
-      return <TagCriteriaItem value={value as TagValue} setValue={setValue} />;
-    } else if (keyValue === 'extension') {
-      return <ExtensionCriteriaItem value={value as string} setValue={setValue} />;
-    } else if (keyValue === 'size') {
-      return <NumberCriteriaItem value={value as number} setValue={setValue} />;
-    } else if (keyValue === 'dateAdded') {
-      return <DateCriteriaItem value={value as Date} setValue={setValue} />;
-    }
-    return <p>This should never happen.</p>;
-  },
-);
+const ValueInput = ({ keyValue, value, setValue }: IValueInput & { keyValue: CriteriaKey }) => {
+  if (keyValue === 'name' || keyValue === 'path') {
+    return <StringCriteriaItem value={value as string} setValue={setValue} />;
+  } else if (keyValue === 'tags') {
+    return <TagCriteriaItem value={value as TagValue} setValue={setValue} />;
+  } else if (keyValue === 'extension') {
+    return <ExtensionCriteriaItem value={value as string} setValue={setValue} />;
+  } else if (keyValue === 'size') {
+    return <NumberCriteriaItem value={value as number} setValue={setValue} />;
+  } else if (keyValue === 'dateAdded') {
+    return <DateCriteriaItem value={value as Date} setValue={setValue} />;
+  }
+  return <p>This should never happen.</p>;
+};
 
 interface ICriteriaItemProps {
   criteria: CriteriaField;
-  setCriteria: (replacement: CriteriaField) => void;
-  removeCriteria: () => void;
+  replace: (replacement: CriteriaField) => void;
+  remove: () => void;
   removable: boolean;
 }
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
-const CriteriaItem = observer(
-  ({ criteria, removeCriteria, removable, setCriteria }: ICriteriaItemProps) => {
-    const setOperator = useCallback(
-      (operator: CriteriaOperator) => {
-        criteria.operator = operator;
-        setCriteria(criteria);
-      },
-      [criteria, setCriteria],
-    );
+const CriteriaItem = ({ criteria, remove, removable, replace }: ICriteriaItemProps) => {
+  const setOperator = useCallback(
+    (operator: CriteriaOperator) => {
+      criteria.operator = operator;
+      replace(criteria);
+    },
+    [criteria, replace],
+  );
 
-    const setValue = useCallback(
-      (value: CriteriaValue) => {
-        criteria.value = value;
-        setCriteria(criteria);
-      },
-      [criteria, setCriteria],
-    );
+  const setValue = useCallback(
+    (value: CriteriaValue) => {
+      criteria.value = value;
+      replace(criteria);
+    },
+    [criteria, replace],
+  );
 
-    return (
-      <ControlGroup fill className="criteria">
-        <KeySelector selectedKey={criteria.key} setCriteria={setCriteria} />
-        <OperatorSelector
-          selectedKey={criteria.key}
-          selectedOperator={criteria.operator}
-          setOperator={setOperator}
-        />
-        <ValueInput keyValue={criteria.key} value={criteria.value} setValue={setValue} />
-        <Button text="-" onClick={removeCriteria} disabled={!removable} className="remove" />
-      </ControlGroup>
-    );
-  },
-);
+  return (
+    <ControlGroup fill className="criteria">
+      <KeySelector selectedKey={criteria.key} setCriteria={replace} />
+      <OperatorSelector
+        selectedKey={criteria.key}
+        selectedOperator={criteria.operator}
+        setOperator={setOperator}
+      />
+      <ValueInput keyValue={criteria.key} value={criteria.value} setValue={setValue} />
+      <Button text="-" onClick={remove} disabled={!removable} className="remove" />
+    </ControlGroup>
+  );
+};
 
-function fromCriteria(criteria: FileSearchCriteria): CriteriaField | undefined {
-  let value: CriteriaValue;
+function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
+  const c = { ...Default.tags, id: generateId() };
   if (
-    criteria instanceof ClientStringSearchCriteria ||
-    criteria instanceof ClientNumberSearchCriteria ||
-    criteria instanceof ClientDateSearchCriteria
+    criteria instanceof ClientStringSearchCriteria &&
+    (criteria.key === 'name' || criteria.key === 'path' || criteria.key === 'extension')
   ) {
-    value = criteria.value;
-  } else if (criteria instanceof ClientIDSearchCriteria && criteria.value.length > 0) {
-    value = [criteria.value[0], criteria.label];
-  } else if (criteria instanceof ClientCollectionSearchCriteria) {
-    value = [criteria.collectionId, criteria.label, criteria.value];
+    c.value = criteria.value;
+  } else if (criteria instanceof ClientDateSearchCriteria && criteria.key === 'dateAdded') {
+    c.value = criteria.value;
+  } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
+    c.value = criteria.value;
+  } else if (
+    criteria instanceof ClientIDSearchCriteria &&
+    criteria.key === 'tags' &&
+    criteria.value.length > 0
+  ) {
+    c.value = [criteria.value[0], criteria.label];
+  } else if (criteria instanceof ClientCollectionSearchCriteria && criteria.key === 'tags') {
+    c.value = [criteria.collectionId, criteria.label, criteria.value];
   } else {
-    return undefined;
+    return c;
   }
-  return { key: criteria.key, operator: criteria.operator, value } as CriteriaField;
+  c.key = criteria.key;
+  c.operator = criteria.operator;
+  return c;
 }
 
-function intoCriteria(field: CriteriaField): FileSearchCriteria | undefined {
+function intoCriteria(field: CriteriaField): FileSearchCriteria {
   if (field.key === 'name' || field.key === 'path' || field.key === 'extension') {
     return new ClientStringSearchCriteria(field.key, field.value, field.operator);
   } else if (field.key === 'dateAdded') {
@@ -323,7 +329,7 @@ function intoCriteria(field: CriteriaField): FileSearchCriteria | undefined {
       field.operator,
     );
   } else {
-    return undefined;
+    return new ClientIDSearchCriteria('tags');
   }
 }
 
@@ -339,54 +345,58 @@ const SearchForm = ({
   uiStore: UiStore;
 }) => {
   const [criterias, setCriterias] = useState<CriteriaField[]>(
-    searchCriteriaList.length > 0
-      ? (searchCriteriaList.map(fromCriteria).filter((c) => c !== undefined) as CriteriaField[])
-      : [{ ...Default.tags }],
+    searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : [{ ...Default.tags }],
   );
 
   useEffect(() => {
     openQuickSearch();
   }, [openQuickSearch]);
 
-  const addSearchCriteria = () => setCriterias(criterias.concat({ ...Default.tags }));
-
-  const removeSearchCriteria = (index: number) => {
+  const removeCriteria = (index: number) => {
     criterias.splice(index, 1);
     setCriterias(criterias.slice());
   };
 
-  const setCriteria = (current: number, replacement: CriteriaField) => {
+  const replaceCriteria = (current: number, replacement: CriteriaField) => {
+    replacement.id = criterias[current].id;
     criterias[current] = replacement;
     setCriterias(criterias.slice());
   };
 
-  const submitSearchCriterias = useCallback(() => {
-    replaceSearchCriterias(criterias
-      .map(intoCriteria)
-      .filter((c) => c !== undefined) as FileSearchCriteria[]);
+  const submitSearchCriterias = () => {
+    replaceSearchCriterias(criterias.map(intoCriteria));
     closeAdvancedSearch();
-  }, [criterias, replaceSearchCriterias, closeAdvancedSearch]);
+  };
 
-  const resetSearchCriteria = useCallback(() => {
+  const resetSearchCriteria = () => {
     clearSearchCriteriaList();
-    setCriterias([{ ...Default.tags }]);
-  }, [clearSearchCriteriaList]);
+    // The list is never empty (see condition for disabled remove button).
+    // That's why we can just re-use the first element's id safely.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const id = criterias.shift()!.id;
+    setCriterias([{ ...Default.tags, id }]);
+  };
 
   return (
     <div id="search-form">
       <FormGroup>
         {criterias.map((crit, i) => (
           <CriteriaItem
-            key={`crit-${crit.key}-${crit.operator}-${crit.value}-${i}`}
+            key={crit.id}
             criteria={crit}
-            setCriteria={setCriteria.bind(null, i)}
-            removeCriteria={removeSearchCriteria.bind(null, i)}
+            replace={replaceCriteria.bind(null, i)}
+            remove={removeCriteria.bind(null, i)}
             removable={criterias.length !== 1}
           />
         ))}
       </FormGroup>
 
-      <Button icon={IconSet.ADD} onClick={addSearchCriteria} minimal text="Add" />
+      <Button
+        icon={IconSet.ADD}
+        onClick={() => setCriterias(criterias.concat({ ...Default.tags, id: generateId() }))}
+        minimal
+        text="Add"
+      />
 
       <div>
         <div id="actions-bar" className="bp3-alert-footer">
