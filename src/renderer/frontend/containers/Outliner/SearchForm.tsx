@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, ChangeEvent, useEffect, useState } from 'react';
+import React, { useContext, ChangeEvent, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
@@ -116,30 +116,30 @@ interface IOperatorSelector {
 }
 
 const OperatorOptions = {
-  ARRAY: ArrayOperators.map((opt) => ({ value: opt, label: camelCaseToSpaced(opt) })),
-  BINARY: BinaryOperators.map((opt) => ({ value: opt, label: camelCaseToSpaced(opt) })),
-  NUMBER: NumberOperators.map((opt) => ({ value: opt, label: camelCaseToSpaced(opt) })),
-  STRING: StringOperators.map((opt) => ({ value: opt, label: camelCaseToSpaced(opt) })),
+  ARRAY: ArrayOperators.map((o) => ({ value: o, label: camelCaseToSpaced(o) })),
+  BINARY: BinaryOperators.map((o) => ({ value: o, label: camelCaseToSpaced(o) })),
+  NUMBER: NumberOperators.map((o) => ({ value: o, label: camelCaseToSpaced(o) })),
+  STRING: StringOperators.map((o) => ({ value: o, label: camelCaseToSpaced(o) })),
+};
+
+const getOperatorOptions = (key: CriteriaKey) => {
+  if (key === 'dateAdded' || key === 'size') {
+    return OperatorOptions.NUMBER;
+  } else if (key === 'extension') {
+    return OperatorOptions.BINARY;
+  } else if (key === 'name' || key === 'path') {
+    return OperatorOptions.STRING;
+  } else if (key === 'tags') {
+    return OperatorOptions.ARRAY;
+  }
+  return [];
 };
 
 const OperatorSelector = ({ selectedKey, selectedOperator, setOperator }: IOperatorSelector) => {
-  const options = useMemo(() => {
-    if (selectedKey === 'dateAdded' || selectedKey === 'size') {
-      return OperatorOptions.NUMBER;
-    } else if (selectedKey === 'extension') {
-      return OperatorOptions.BINARY;
-    } else if (selectedKey === 'name' || selectedKey === 'path') {
-      return OperatorOptions.STRING;
-    } else if (selectedKey === 'tags') {
-      return OperatorOptions.ARRAY;
-    }
-    return [];
-  }, [selectedKey]);
-
   return (
     <HTMLSelect
       onChange={(e) => setOperator(e.target.value as CriteriaOperator)}
-      options={options}
+      options={getOperatorOptions(selectedKey)}
       value={selectedOperator}
     />
   );
@@ -150,20 +150,15 @@ interface IValueInput<V extends CriteriaValue = CriteriaValue> {
   setValue: (value: CriteriaValue) => void;
 }
 
-const TagCriteriaItem = ({
-  value,
-  setValue,
-}: IValueInput<[ID, string] | [ID, string, ID[]] | []>) => {
+const TagCriteriaItem = ({ value, setValue }: IValueInput<TagValue>) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
-  const selectedItem = useMemo(() => {
-    if (value.length === 2) {
-      return tagStore.get(value[0]);
-    } else if (value.length === 3) {
-      return tagCollectionStore.get(value[0]);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value?.[0], tagStore, tagCollectionStore]);
+  const selectedItem =
+    value.length !== 0
+      ? value.length === 2
+        ? tagStore.get(value[0])
+        : tagCollectionStore.get(value[0])
+      : undefined;
 
   return (
     <TagSelector
@@ -171,19 +166,7 @@ const TagCriteriaItem = ({
       includeCollections
       selectedItem={selectedItem}
       onTagSelect={(t) => setValue([t.id, t.name])}
-      onTagColSelect={(col) =>
-        setValue([col.id, col.name, col.getTagsRecursively()])}
-    />
-  );
-};
-
-const StringCriteriaItem = ({ value, setValue }: IValueInput<string>) => {
-  return (
-    <InputGroup
-      placeholder="Enter some text..."
-      defaultValue={value}
-      onBlur={(e) => setValue(e.target.value)}
-      autoFocus
+      onTagColSelect={(c) => setValue([c.id, c.name, c.getTagsRecursively()])}
     />
   );
 };
@@ -201,42 +184,42 @@ const ExtensionCriteriaItem = ({ value, setValue }: IValueInput<string>) => {
 };
 
 const bytesInMb = 1024 * 1024;
-const NumberCriteriaItem = ({ value, setValue }: IValueInput<number>) => {
-  return (
-    <NumericInput
-      placeholder="Enter a number..."
-      value={value / bytesInMb}
-      onValueChange={(v) => setValue(v * bytesInMb)}
-      autoFocus
-      buttonPosition="none"
-    />
-  );
-};
-
-const DateCriteriaItem = ({ value, setValue }: IValueInput<Date>) => {
-  return (
-    <DateInput
-      value={value}
-      onChange={setValue}
-      popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
-      canClearSelection={false}
-      maxDate={new Date()}
-      {...jsDateFormatter}
-    />
-  );
-};
 
 const ValueInput = ({ keyValue, value, setValue }: IValueInput & { keyValue: CriteriaKey }) => {
   if (keyValue === 'name' || keyValue === 'path') {
-    return <StringCriteriaItem value={value as string} setValue={setValue} />;
+    return (
+      <InputGroup
+        placeholder="Enter some text..."
+        defaultValue={value as string}
+        onBlur={(e) => setValue(e.target.value)}
+        autoFocus
+      />
+    );
   } else if (keyValue === 'tags') {
     return <TagCriteriaItem value={value as TagValue} setValue={setValue} />;
   } else if (keyValue === 'extension') {
     return <ExtensionCriteriaItem value={value as string} setValue={setValue} />;
   } else if (keyValue === 'size') {
-    return <NumberCriteriaItem value={value as number} setValue={setValue} />;
+    return (
+      <NumericInput
+        placeholder="Enter a number..."
+        value={value as number}
+        onValueChange={setValue}
+        autoFocus
+        buttonPosition="none"
+      />
+    );
   } else if (keyValue === 'dateAdded') {
-    return <DateCriteriaItem value={value as Date} setValue={setValue} />;
+    return (
+      <DateInput
+        value={value as Date}
+        onChange={setValue}
+        popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
+        canClearSelection={false}
+        maxDate={new Date()}
+        {...jsDateFormatter}
+      />
+    );
   }
   return <p>This should never happen.</p>;
 };
@@ -284,7 +267,7 @@ function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
   } else if (criteria instanceof ClientDateSearchCriteria && criteria.key === 'dateAdded') {
     c.value = criteria.value;
   } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
-    c.value = criteria.value;
+    c.value = criteria.value / bytesInMb;
   } else if (
     criteria instanceof ClientIDSearchCriteria &&
     criteria.key === 'tags' &&
@@ -307,7 +290,7 @@ function intoCriteria(field: CriteriaField): FileSearchCriteria {
   } else if (field.key === 'dateAdded') {
     return new ClientDateSearchCriteria(field.key, field.value, field.operator);
   } else if (field.key === 'size') {
-    return new ClientNumberSearchCriteria(field.key, field.value, field.operator);
+    return new ClientNumberSearchCriteria(field.key, field.value * bytesInMb, field.operator);
   } else if (field.key === 'tags' && field.value.length === 2) {
     return new ClientIDSearchCriteria(field.key, field.value[0], field.value[1], field.operator);
   } else if (field.key === 'tags' && field.value.length === 3) {

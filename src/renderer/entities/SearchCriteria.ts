@@ -80,11 +80,8 @@ export type SearchCriteria<T> =
   | INumberSearchCriteria<T>
   | IDateSearchCriteria<T>;
 
-export interface ISearchCriteria<T>
-  extends IBaseSearchCriteria<T>,
-    ISerializable<SearchCriteria<T>> {}
-
-export abstract class ClientBaseCriteria<T> implements ISearchCriteria<T> {
+export abstract class ClientBaseCriteria<T>
+  implements IBaseSearchCriteria<T>, ISerializable<SearchCriteria<T>> {
   @observable public key: keyof T;
   @observable public valueType: 'number' | 'date' | 'string' | 'array';
   @observable public operator: OperatorType;

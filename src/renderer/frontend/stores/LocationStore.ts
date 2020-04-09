@@ -141,7 +141,7 @@ class LocationStore {
 
     const crit = new ClientStringSearchCriteria('locationId', id, 'equals').serialize();
     const filesToRemove = await this.backend.searchFiles(crit, 'id', 'ASC');
-    await this.rootStore.fileStore.removeFilesById(filesToRemove.map((f: IFile) => f.id));
+    await this.rootStore.fileStore.removeFilesById(filesToRemove.map((f) => f.id));
 
     // Remove location locally
     runInAction(() => this.locationList.remove(watchedDir));
