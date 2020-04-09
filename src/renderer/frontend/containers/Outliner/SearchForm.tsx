@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, ChangeEvent, useEffect, useState } from 'react';
+import React, { useContext, useMemo, ChangeEvent, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
@@ -31,10 +31,8 @@ import { IMG_EXTENSIONS } from '../../../entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
-import { ClientTag } from '../../../entities/Tag';
 import TagSelector from '../../components/TagSelector';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
-import { ClientTagCollection } from '../../../entities/TagCollection';
 import { ID, generateId } from '../../../entities/ID';
 
 type CriteriaKey = 'name' | 'path' | 'tags' | 'extension' | 'size' | 'dateAdded';
@@ -108,7 +106,7 @@ const KeySelector = ({ selectedKey, setCriteria }: IKeySelector) => {
     }
   };
 
-  return <HTMLSelect onChange={handlePickKey} options={KeyOptions} defaultValue={selectedKey} />;
+  return <HTMLSelect onChange={handlePickKey} options={KeyOptions} value={selectedKey} />;
 };
 
 interface IOperatorSelector {
@@ -142,7 +140,7 @@ const OperatorSelector = ({ selectedKey, selectedOperator, setOperator }: IOpera
     <HTMLSelect
       onChange={(e) => setOperator(e.target.value as CriteriaOperator)}
       options={options}
-      defaultValue={selectedOperator}
+      value={selectedOperator}
     />
   );
 };
@@ -158,26 +156,23 @@ const TagCriteriaItem = ({
 }: IValueInput<[ID, string] | [ID, string, ID[]] | []>) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
-  const handleSelectTag = (t: ClientTag) => setValue([t.id, t.name]);
-
-  const handleSelectCol = (col: ClientTagCollection) =>
-    setValue([col.id, col.name, col.getTagsRecursively()]);
-
   const selectedItem = useMemo(() => {
     if (value.length === 2) {
       return tagStore.get(value[0]);
     } else if (value.length === 3) {
       return tagCollectionStore.get(value[0]);
     }
-  }, [value, tagStore, tagCollectionStore]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value?.[0], tagStore, tagCollectionStore]);
 
   return (
     <TagSelector
       autoFocus
       includeCollections
       selectedItem={selectedItem}
-      onTagSelect={handleSelectTag}
-      onTagColSelect={handleSelectCol}
+      onTagSelect={(t) => setValue([t.id, t.name])}
+      onTagColSelect={(col) =>
+        setValue([col.id, col.name, col.getTagsRecursively()])}
     />
   );
 };
@@ -200,7 +195,7 @@ const ExtensionCriteriaItem = ({ value, setValue }: IValueInput<string>) => {
     <HTMLSelect
       onChange={(e) => setValue(e.target.value)}
       options={ExtensionOptions}
-      defaultValue={value}
+      value={value}
     />
   );
 };
@@ -221,7 +216,7 @@ const NumberCriteriaItem = ({ value, setValue }: IValueInput<number>) => {
 const DateCriteriaItem = ({ value, setValue }: IValueInput<Date>) => {
   return (
     <DateInput
-      defaultValue={value}
+      value={value}
       onChange={setValue}
       popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
       canClearSelection={false}
@@ -255,31 +250,25 @@ interface ICriteriaItemProps {
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
 const CriteriaItem = ({ criteria, remove, removable, replace }: ICriteriaItemProps) => {
-  const setOperator = useCallback(
-    (operator: CriteriaOperator) => {
-      criteria.operator = operator;
-      replace(criteria);
-    },
-    [criteria, replace],
-  );
-
-  const setValue = useCallback(
-    (value: CriteriaValue) => {
-      criteria.value = value;
-      replace(criteria);
-    },
-    [criteria, replace],
-  );
-
   return (
     <ControlGroup fill className="criteria">
       <KeySelector selectedKey={criteria.key} setCriteria={replace} />
       <OperatorSelector
         selectedKey={criteria.key}
         selectedOperator={criteria.operator}
-        setOperator={setOperator}
+        setOperator={(operator: CriteriaOperator) => {
+          criteria.operator = operator;
+          replace(criteria);
+        }}
       />
-      <ValueInput keyValue={criteria.key} value={criteria.value} setValue={setValue} />
+      <ValueInput
+        keyValue={criteria.key}
+        value={criteria.value}
+        setValue={(value: CriteriaValue) => {
+          criteria.value = value;
+          replace(criteria);
+        }}
+      />
       <Button text="-" onClick={remove} disabled={!removable} className="remove" />
     </ControlGroup>
   );
@@ -363,20 +352,6 @@ const SearchForm = ({
     setCriterias(criterias.slice());
   };
 
-  const submitSearchCriterias = () => {
-    replaceSearchCriterias(criterias.map(intoCriteria));
-    closeAdvancedSearch();
-  };
-
-  const resetSearchCriteria = () => {
-    clearSearchCriteriaList();
-    // The list is never empty (see condition for disabled remove button).
-    // That's why we can just re-use the first element's id safely.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const id = criterias.shift()!.id;
-    setCriterias([{ ...Default.tags, id }]);
-  };
-
   return (
     <div id="search-form">
       <FormGroup>
@@ -392,26 +367,32 @@ const SearchForm = ({
       </FormGroup>
 
       <Button
+        text="Add"
         icon={IconSet.ADD}
         onClick={() => setCriterias(criterias.concat({ ...Default.tags, id: generateId() }))}
         minimal
-        text="Add"
       />
 
       <div>
         <div id="actions-bar" className="bp3-alert-footer">
           <Button
             intent="primary"
-            onClick={submitSearchCriterias}
-            disabled={criterias.length === 0}
             text="Search"
+            onClick={() => {
+              replaceSearchCriterias(criterias.map(intoCriteria));
+              closeAdvancedSearch();
+            }}
+            disabled={criterias.length === 0}
             icon={IconSet.SEARCH}
             fill
           />
           <Button
-            onClick={resetSearchCriteria}
-            disabled={criterias.length === 0}
             text="Reset"
+            onClick={() => {
+              clearSearchCriteriaList();
+              setCriterias([{ ...Default.tags, id: generateId() }]);
+            }}
+            disabled={criterias.length === 0}
             icon={IconSet.CLOSE}
             fill
           />

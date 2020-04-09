@@ -5,7 +5,7 @@ import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
 import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 import { ILocation } from '../entities/Location';
-import { ISearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
+import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -69,13 +69,12 @@ export default class Backend {
   }
 
   async searchFiles(
-    criteria: ISearchCriteria<IFile>,
+    criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
     order: keyof IFile,
     fileOrder: FileOrder,
   ): Promise<IFile[]> {
-    const serializedCriteria = criteria.serialize();
-    console.log('Backend: Searching files...', serializedCriteria);
-    return this.fileRepository.find({ criteria: serializedCriteria, order, fileOrder });
+    console.log('Backend: Searching files...', criteria);
+    return this.fileRepository.find({ criteria, order, fileOrder });
   }
 
   async createTag(id: ID, name: string, description?: string) {

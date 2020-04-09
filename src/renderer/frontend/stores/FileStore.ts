@@ -5,7 +5,7 @@ import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { ClientArraySearchCriteria } from '../../entities/SearchCriteria';
+import { SearchCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
 import { getThumbnailPath, debounce } from '../utils';
 import { ClientTag } from '../../entities/Tag';
 import { FileOrder } from '../../backend/DBRepository';
@@ -145,7 +145,7 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
-      const criteria = new ClientArraySearchCriteria('tags', []);
+      const criteria = new ClientArraySearchCriteria('tags', []).serialize();
       const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
       this.setContentUntagged();
@@ -156,13 +156,13 @@ class FileStore {
 
   @action.bound
   async fetchFilesByQuery() {
-    const criteria = this.rootStore.uiStore.searchCriteriaList.slice();
+    const criteria = this.rootStore.uiStore.searchCriteriaList.slice().map((c) => c.serialize());
     if (criteria.length === 0) {
       return this.fetchAllFiles();
     }
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria[0],
+        criteria as [SearchCriteria<IFile>],
         this.orderBy,
         this.fileOrder,
       );
