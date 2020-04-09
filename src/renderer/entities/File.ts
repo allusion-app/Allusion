@@ -12,8 +12,8 @@ import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
-export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'];
-export type IMG_EXTENSIONS_TYPE = 'gif' | 'png' | 'jpg' | 'jpg';
+export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'] as const;
+export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
 /* Generic properties of a File in our application (usually an image) */
 export interface IFile extends IResource {
@@ -47,30 +47,18 @@ export class DbFile implements IFile {
   public name: string;
   public extension: string;
 
-  constructor({
-    id,
-    locationId,
-    path,
-    tags,
-    size,
-    width,
-    height,
-    dateAdded,
-    dateModified,
-    name,
-    extension,
-  }: IFile) {
-    this.id = id;
-    this.locationId = locationId;
-    this.path = path;
-    this.tags = tags;
-    this.size = size;
-    this.width = width;
-    this.height = height;
-    this.dateAdded = dateAdded;
-    this.dateModified = dateModified;
-    this.name = name;
-    this.extension = extension;
+  constructor(file: IFile) {
+    this.id = file.id;
+    this.locationId = file.locationId;
+    this.path = file.path;
+    this.tags = file.tags;
+    this.size = file.size;
+    this.width = file.width;
+    this.height = file.height;
+    this.dateAdded = file.dateAdded;
+    this.dateModified = file.dateModified;
+    this.name = file.name;
+    this.extension = file.extension;
   }
 }
 
