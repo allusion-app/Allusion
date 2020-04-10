@@ -137,7 +137,7 @@ input[type='checkbox'] {
   }
 
   &::before {
-    content: ' ';
+    content: '';
     display: block;
     width: 1rem;
     height: 1rem;
@@ -263,7 +263,7 @@ input[type='checkbox'][data-subtype-switch]:checked::before {
   }
 
   &::after {
-    content: ' ';
+    content: '';
     background-image: url(resources/icons/arrow-down.svg);
     top: calc((100% - 1rem) / 2);
     right: 0.5rem;
