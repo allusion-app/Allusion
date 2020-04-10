@@ -63,7 +63,7 @@ const Default: { [key: string]: CriteriaField } = {
   path: { id: 'path', key: 'path', operator: 'contains', value: '' },
   tags: { id: 'tags', key: 'tags', operator: 'contains', value: [] },
   extension: {
-    id: 'extensions',
+    id: 'extension',
     key: 'extension',
     operator: 'equals',
     value: IMG_EXTENSIONS[0],

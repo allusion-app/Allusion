@@ -1,6 +1,10 @@
 import { observable, action, computed } from 'mobx';
 
-export const PersistentPreferenceFields: Array<keyof View> = ['thumbnailSize', 'thumbnailShape'];
+export const PersistentPreferenceFields: Array<keyof View> = [
+  'method',
+  'thumbnailSize',
+  'thumbnailShape',
+];
 
 export type ViewMethod = 'list' | 'grid';
 export type ViewThumbnailSize = 'small' | 'medium' | 'large';
@@ -25,8 +29,8 @@ class View {
   /////////////////// Persistent Preferences ///////////////////
   loadPreferences(prefs: any) {
     this.setMethod(prefs.method);
-    this.setFirstItem(prefs.firstItem);
     this.setThumbnailSize(prefs.thumbnailSize);
+    this.setThumbnailShape(prefs.thumbnailShape);
   }
 
   savePreferences(prefs: any): string {

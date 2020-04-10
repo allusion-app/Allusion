@@ -244,8 +244,8 @@ const ListGallery = observer(
     );
 
     const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
-      ({ index, style }) => {
-        const file = index < fileList.length ? fileList[index] : null;
+      ({ index, style, data }) => {
+        const file = index < data.length ? data[index] : null;
         if (!file) {
           return <div />;
         }
@@ -266,7 +266,7 @@ const ListGallery = observer(
           </div>
         );
       },
-      [fileList, handleClick, handleDoubleClick, handleDrop, uiStore.fileSelection],
+      [handleClick, handleDoubleClick, handleDrop, uiStore.fileSelection],
     );
 
     return (
@@ -275,6 +275,7 @@ const ListGallery = observer(
         width={contentRect.width}
         itemSize={cellSize}
         itemCount={fileList.length}
+        itemData={fileList}
         itemKey={getItemKey}
         overscanCount={2}
         children={Row}
