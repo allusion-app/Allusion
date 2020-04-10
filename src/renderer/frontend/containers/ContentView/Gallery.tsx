@@ -2,9 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
-  GridItemKeySelector,
   FixedSizeList,
-  ListItemKeySelector,
   GridChildComponentProps,
   ListChildComponentProps,
   GridOnScrollProps,
@@ -70,6 +68,12 @@ function getLayoutComponent(
       return null;
   }
 }
+
+/** Generates a unique key for an element in the fileList */
+const getItemKey = (index: number, data: ClientFile[]): string => {
+  const file = index < data.length ? data[index] : null;
+  return file ? file.id : '';
+};
 
 const GridGallery = observer(
   ({
@@ -148,14 +152,9 @@ const GridGallery = observer(
       return () => window.removeEventListener('keydown', throttledKeyDown);
     }, [fileList, uiStore, numColumns, handleFileSelect, lastSelectionIndex]);
 
-    /** Generates a unique key for an element in the grid */
-    const handleItemKey: GridItemKeySelector = useCallback(
-      ({ columnIndex, rowIndex }) => {
-        const itemIndex = rowIndex * numColumns + columnIndex;
-        const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
-        return `${rowIndex}-${columnIndex}-${file ? file.id : ''}`;
-      },
-      [fileList, numColumns],
+    const handleItemKey = useCallback(
+      ({ columnIndex, rowIndex, data }) => getItemKey(rowIndex * numColumns + columnIndex, data),
+      [numColumns],
     );
 
     const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
@@ -166,7 +165,7 @@ const GridGallery = observer(
           return <div />;
         }
         return (
-          <div style={style} key={`file-${file.id}`} className="galleryItem">
+          <div style={style} className="galleryItem">
             <Observer>
               {() => (
                 <GalleryItem
@@ -196,11 +195,6 @@ const GridGallery = observer(
         overscanRowCount={2}
         children={Cell}
         onScroll={handleScroll}
-        key={
-          fileList.length > 0
-            ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}`
-            : ''
-        } // force rerender when file list changes
         initialScrollTop={Math.round(uiStore.view.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
         ref={ref}
       />
@@ -249,15 +243,6 @@ const ListGallery = observer(
       [cellSize, uiStore.view],
     );
 
-    /** Generates a unique key for an element in the grid */
-    const handleItemKey: ListItemKeySelector = useCallback(
-      (index) => {
-        const file = index < fileList.length ? fileList[index] : null;
-        return `${index}-${file ? file.id : ''}`;
-      },
-      [fileList],
-    );
-
     const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
       ({ index, style }) => {
         const file = index < fileList.length ? fileList[index] : null;
@@ -290,15 +275,10 @@ const ListGallery = observer(
         width={contentRect.width}
         itemSize={cellSize}
         itemCount={fileList.length}
-        itemKey={handleItemKey}
+        itemKey={getItemKey}
         overscanCount={2}
         children={Row}
         onScroll={handleScroll}
-        key={
-          fileList.length > 0
-            ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}`
-            : ''
-        } // force rerender when file list changes
         initialScrollOffset={uiStore.view.firstItem * cellSize}
         ref={ref}
       />

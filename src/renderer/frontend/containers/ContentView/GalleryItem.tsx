@@ -12,7 +12,6 @@ import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/Stor
 import { DragAndDropType } from '../Outliner/TagPanel';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
-import { ID } from '../../../entities/ID';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -24,16 +23,15 @@ const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
 };
 
 interface IThumbnailTags {
-  id: ID;
   tags: ClientTag[];
   onClick: (event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => void;
   onDoubleClick: (event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => void;
 }
 
-const ThumbnailTags = observer(({ id, tags, onClick, onDoubleClick }: IThumbnailTags) => (
+const ThumbnailTags = observer(({ tags, onClick, onDoubleClick }: IThumbnailTags) => (
   <span className="thumbnailTags" onClick={onClick} onDoubleClick={onDoubleClick}>
     {tags.map((tag) => (
-      <ThumbnailTag key={`gal-tag-${id}-${tag.id}`} name={tag.name} color={tag.viewColor} />
+      <ThumbnailTag key={tag.id} name={tag.name} color={tag.viewColor} />
     ))}
   </span>
 ));
@@ -123,7 +121,6 @@ const GalleryItem = observer(
           </>
         )}
         <ThumbnailTags
-          id={file.id}
           tags={file.clientTags}
           onClick={handleClickImg}
           onDoubleClick={handleDoubleClickImg}

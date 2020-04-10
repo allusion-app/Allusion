@@ -296,9 +296,9 @@ const LocationsForm = () => {
       </div>
       <Collapse isOpen={!isCollapsed}>
         <ul id="watched-folders">
-          {locationStore.locationList.map((dir, i) => (
+          {locationStore.locationList.map((dir) => (
             <LocationListItem
-              key={`${dir.path}-${i}`}
+              key={dir.path}
               dir={dir}
               onDelete={() => setLocationRemoverOpen(dir)}
               onConfig={() => setLocationConfigOpen(dir)}
