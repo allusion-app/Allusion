@@ -43,11 +43,11 @@ class RootStore {
   }
 
   async init(autoLoadFiles: boolean) {
+    await this.locationStore.init(autoLoadFiles);
     await Promise.all([
       this.tagStore.init(),
       this.tagCollectionStore.init(),
       this.fileStore.init(autoLoadFiles),
-      this.locationStore.init(autoLoadFiles),
     ]);
     // Upon loading data, initialize UI state.
     this.uiStore.init();
