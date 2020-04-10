@@ -72,7 +72,7 @@ function getLayoutComponent(
 /** Generates a unique key for an element in the fileList */
 const getItemKey = (index: number, data: ClientFile[]): string => {
   const file = index < data.length ? data[index] : null;
-  return file ? file.id : '';
+  return file ? file.id : `${index}`;
 };
 
 const GridGallery = observer(
