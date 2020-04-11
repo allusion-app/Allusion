@@ -83,10 +83,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
     return {
       name: systemPath.basename(path),
-      extension: systemPath
-        .extname(path)
-        .slice(1)
-        .toLowerCase(),
+      extension: systemPath.extname(path).slice(1).toLowerCase(),
       size: stats.size,
       width: (dimensions && dimensions.width) || 0,
       height: (dimensions && dimensions.height) || 0,
@@ -111,7 +108,9 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
   @observable thumbnailPath: string = '';
 
-  constructor(store: FileStore, fileProps: IFile) {
+  @observable isBroken: boolean;
+
+  constructor(store: FileStore, fileProps: IFile, isBroken: boolean = false) {
     this.store = store;
 
     this.id = fileProps.id;
@@ -124,6 +123,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
     this.dateModified = new Date(fileProps.dateModified);
     this.name = fileProps.name;
     this.extension = fileProps.extension;
+    this.isBroken = isBroken;
 
     this.tags.push(...fileProps.tags);
 

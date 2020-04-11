@@ -212,8 +212,9 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.value = value;
   }
   toString = () =>
-    `${camelCaseToSpaced(this.key as string)} ${NumberOperatorSymbols[this.operator] ||
-      camelCaseToSpaced(this.operator)} ${this.value}`;
+    `${camelCaseToSpaced(this.key as string)} ${
+      NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
+    } ${this.value}`;
 
   serialize = (): INumberSearchCriteria<T> => {
     return {
@@ -243,8 +244,9 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 
   toString = () =>
-    `${camelCaseToSpaced(this.key as string)} ${NumberOperatorSymbols[this.operator] ||
-      camelCaseToSpaced(this.operator)} ${this.value.toLocaleDateString()}`;
+    `${camelCaseToSpaced(this.key as string)} ${
+      NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
+    } ${this.value.toLocaleDateString()}`;
 
   serialize = (): IDateSearchCriteria<T> => {
     return {

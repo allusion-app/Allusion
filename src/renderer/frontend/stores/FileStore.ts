@@ -266,12 +266,9 @@ class FileStore {
           return false;
         }
 
-        // Check if location link is broken, keep file saved.
+        // Check if file belongs to a location; shouldn't be needed, but useful for during development
         if (!locationIds.includes(backendFile.locationId)) {
-          // TODO: Remove file if location no longer exist?
-          // this.removeFile()
-          // TODO: Show in the ImageRecovery panel?
-          console.warn('Found a file that does not belong to any location!', backendFile);
+          console.warn('Found a file that does not belong to any location! Will still show up', backendFile);
           return false;
         }
         return true;
@@ -290,6 +287,30 @@ class FileStore {
     }
 
     return this.replaceFileList(this.filesFromBackend(existingBackendFiles));
+  }
+
+  @action.bound async fetchBrokenFiles() {
+    try {
+      const { orderBy, fileOrder } = this;
+      const backendFiles = await this.backend.fetchFiles(orderBy, fileOrder);
+
+      const brokenFiles = await Promise.all(
+        backendFiles.filter(async (backendFile) => {
+          try {
+            await fs.access(backendFile.path, fs.constants.F_OK);
+            return false;
+          } catch (err) {
+            return true;
+          }
+        }),
+      );
+      const clientFiles = brokenFiles.map((f) => new ClientFile(this, f, true));
+      clientFiles.forEach((f) => f.setThumbnailPath(
+        getThumbnailPath(f.path, this.rootStore.uiStore.thumbnailDirectory)));
+      this.replaceFileList(clientFiles);
+    } catch (err) {
+      console.error('Could not load broken files', err);
+    }
   }
 
   @action.bound private add(file: ClientFile) {
