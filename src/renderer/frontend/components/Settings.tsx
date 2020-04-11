@@ -24,19 +24,19 @@ import { RendererMessenger } from '../../../Messaging';
 // Window state
 const WINDOW_STORAGE_KEY = 'Allusion_Window';
 
+const toggleFullScreen = () => {
+  const { isFullScreen, setFullScreen } = remote.getCurrentWindow();
+  // Save window state
+  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: !isFullScreen() }));
+  setFullScreen(!isFullScreen());
+};
+
 const Settings = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
   const [isClipServerRunning, setClipServerRunning] = useState(false);
   const [isRunningInBackground, setRunningInBackground] = useState(false);
   const [importPath, setImportPath] = useState(locationStore.importDirectory);
-
-  const toggleFullScreen = useCallback(() => {
-    const { isFullScreen, setFullScreen } = remote.getCurrentWindow();
-    // Save window state
-    localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: !isFullScreen() }));
-    setFullScreen(!isFullScreen());
-  }, []);
 
   const toggleClipServer = useCallback(() => {
     RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
