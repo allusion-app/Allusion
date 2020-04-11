@@ -20,11 +20,12 @@ class LocationStore {
   }
 
   @computed get importDirectory() {
-    if (this.locationList.length === 0 || this.locationList[0].id !== DEFAULT_LOCATION_ID) {
+    const location = this.get(DEFAULT_LOCATION_ID);
+    if (!location) {
       console.error('Default location not properly set-up. This should not happen!');
       return '';
     }
-    return this.locationList[0].path;
+    return location.path;
   }
 
   @action.bound
