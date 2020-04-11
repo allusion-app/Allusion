@@ -158,24 +158,25 @@ const GridGallery = observer(
     );
 
     const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
-      ({ columnIndex, rowIndex, style }) => useObserver(() => {
-        const itemIndex = rowIndex * numColumns + columnIndex;
-        const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
-        if (!file) {
-          return <div />;
-        }
-        return (
-          <div style={style} className="galleryItem">
-            <GalleryItem
-              file={file}
-              isSelected={uiStore.fileSelection.includes(file.id)}
-              onClick={handleClick}
-              onDoubleClick={handleDoubleClick}
-              onDrop={handleDrop}
-            />
-          </div>
-        );
-      }),
+      ({ columnIndex, rowIndex, style }) =>
+        useObserver(() => {
+          const itemIndex = rowIndex * numColumns + columnIndex;
+          const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
+          if (!file) {
+            return <div />;
+          }
+          return (
+            <div style={style} className="galleryItem">
+              <GalleryItem
+                file={file}
+                isSelected={uiStore.fileSelection.includes(file.id)}
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
+                onDrop={handleDrop}
+              />
+            </div>
+          );
+        }),
       [fileList, handleClick, handleDoubleClick, handleDrop, numColumns, uiStore.fileSelection],
     );
     return (
@@ -240,24 +241,25 @@ const ListGallery = observer(
     );
 
     const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
-      ({ index, style, data }) => useObserver(() => {
-        const file = index < data.length ? data[index] : null;
-        if (!file) {
-          return <div />;
-        }
-        return (
-          <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
-            <GalleryItem
-              file={file}
-              isSelected={uiStore.fileSelection.includes(file.id)}
-              onClick={handleClick}
-              onDoubleClick={handleDoubleClick}
-              onDrop={handleDrop}
-              showDetails
-            />
-          </div>
-        );
-      }),
+      ({ index, style, data }) =>
+        useObserver(() => {
+          const file = index < data.length ? data[index] : null;
+          if (!file) {
+            return <div />;
+          }
+          return (
+            <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
+              <GalleryItem
+                file={file}
+                isSelected={uiStore.fileSelection.includes(file.id)}
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
+                onDrop={handleDrop}
+                showDetails
+              />
+            </div>
+          );
+        }),
       [handleClick, handleDoubleClick, handleDrop, uiStore.fileSelection],
     );
 
@@ -279,7 +281,7 @@ const ListGallery = observer(
   },
 );
 
-export const MasonryGallery = observer(({  }: IGalleryLayoutProps) => {
+export const MasonryGallery = observer(({}: IGalleryLayoutProps) => {
   const Styles: any = {
     textAlign: 'center',
     display: 'flex',
@@ -512,8 +514,12 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
       title = 'No images found';
       action = (
         <ButtonGroup>
-          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
-          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewUntaggedContent} />
+          <Button text="All images" icon={IconSet.MEDIA} onClick={fileStore.fetchAllFiles} />
+          <Button
+            text="Untagged"
+            icon={IconSet.TAG_BLANCO}
+            onClick={fileStore.fetchUntaggedFiles}
+          />
           <Button
             text="Search"
             icon={IconSet.SEARCH}
@@ -528,7 +534,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
       title = 'No untagged images';
       action = (
         <ButtonGroup>
-          <Button text="All Images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
+          <Button text="All Images" icon={IconSet.MEDIA} onClick={fileStore.fetchAllFiles} />
           <Button
             text="Search"
             icon={IconSet.SEARCH}

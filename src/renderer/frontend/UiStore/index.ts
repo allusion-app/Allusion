@@ -469,6 +469,7 @@ class UiStore {
     this.replaceSearchCriterias(
       this.tagSelection.toJS().map((id) => new ClientIDSearchCriteria('tags', id)),
     );
+    this.clearTagSelection();
   }
 
   @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
@@ -480,21 +481,6 @@ class UiStore {
   }
 
   /////////////////// UI Actions ///////////////////
-  @action.bound viewAllContent() {
-    this.rootStore.fileStore.fetchAllFiles();
-    this.clearSelection();
-  }
-
-  @action.bound viewUntaggedContent() {
-    this.rootStore.fileStore.fetchUntaggedFiles();
-    this.clearSelection();
-  }
-
-  @action.bound viewQueryContent() {
-    this.rootStore.fileStore.fetchFilesByQuery();
-    this.clearSelection();
-  }
-
   @action.bound toggleTheme() {
     this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
   }
@@ -566,6 +552,14 @@ class UiStore {
   @action clearSelection() {
     this.tagSelection.clear();
     this.fileSelection.clear();
+  }
+
+  @action private viewAllContent() {
+    this.rootStore.fileStore.fetchAllFiles();
+  }
+
+  @action private viewQueryContent() {
+    this.rootStore.fileStore.fetchFilesByQuery();
   }
 
   @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
