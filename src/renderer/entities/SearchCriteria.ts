@@ -132,7 +132,7 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.label = label || '';
   }
   toString = () => this.label;
-  @action.bound setOperator(op: StringOperatorType) {
+  @action.bound setOperator(op: ArrayOperatorType) {
     this.operator = op;
   }
   @action.bound setValue(value: ID, label: string) {
