@@ -467,7 +467,7 @@ class UiStore {
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceSearchCriterias(
-      this.tagSelection.toJS().map((id) => new ClientIDSearchCriteria('tags', id)),
+      this.tagSelection.map((id) => new ClientIDSearchCriteria('tags', id)),
     );
     this.clearTagSelection();
   }

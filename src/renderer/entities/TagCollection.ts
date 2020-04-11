@@ -5,7 +5,7 @@ import TagCollectionStore from '../frontend/stores/TagCollectionStore';
 
 export const ROOT_TAG_COLLECTION_ID = 'hierarchy';
 
-/* Generic properties of a Tag Collection in our application */
+/* A Tag Collection as it is represented in the Database */
 export interface ITagCollection extends IResource {
   id: ID;
   name: string;
@@ -16,28 +16,10 @@ export interface ITagCollection extends IResource {
   color: string;
 }
 
-/* A Tag Collection as it is represented in the Database */
-export class DbTagCollection implements ITagCollection {
-  public id: ID;
-  public name: string;
-  public description: string;
-  public dateAdded: Date = new Date();
-  public subCollections: ID[] = [];
-  public tags: ID[] = [];
-  public color: string;
-
-  constructor(id: ID, name: string, color: string = '', description: string = '') {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.color = color;
-  }
-}
-
 /**
  * A Tag collection as it is stored in the Client.
  */
-export class ClientTagCollection implements ITagCollection, ISerializable<DbTagCollection> {
+export class ClientTagCollection implements ISerializable<ITagCollection> {
   store: TagCollectionStore;
   saveHandler: IReactionDisposer;
   autoSave = true;

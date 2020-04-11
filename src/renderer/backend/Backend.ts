@@ -1,9 +1,9 @@
-import { DbFile, IFile } from '../entities/File';
+import { IFile } from '../entities/File';
 import { ID } from '../entities/ID';
-import { DbTag, ITag } from '../entities/Tag';
+import { ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
-import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
+import { ITagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 import { ILocation } from '../entities/Location';
 import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
@@ -32,19 +32,16 @@ export default class Backend {
     // Create a root 'Hierarchy' collection if it does not exist
     const colCount = await this.tagCollectionRepository.count();
     if (colCount === 0) {
-      await this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
+      await this.createTagCollection({
+        id: ROOT_TAG_COLLECTION_ID,
+        name: 'Hierarchy',
+        description: '',
+        dateAdded: new Date(),
+        subCollections: [],
+        tags: [],
+        color: '',
+      });
     }
-
-    // const locCount = await this.locationRepository.count();
-    // if (locCount === 0) {
-    //   await this.createLocation({
-    //     id: DEFAULT_LOCATION_ID,
-    //     path: path.join(os.homedir(), 'Allusion'), // todo: make user configurable on startup
-    //     dateAdded: new Date(),
-    //     tagsToAdd: [],
-    //   });
-    // }
-    // Here we could start indexing, or checking for changed files
   }
 
   async fetchTags(): Promise<ITag[]> {
@@ -77,19 +74,19 @@ export default class Backend {
     return this.fileRepository.find({ criteria, order, fileOrder });
   }
 
-  async createTag(id: ID, name: string, description?: string) {
-    console.log('Backend: Creating tag...', id, name, description);
-    return await this.tagRepository.create(new DbTag(id, name, description));
+  async createTag(tag: ITag) {
+    console.log('Backend: Creating tag...', tag);
+    return await this.tagRepository.create(tag);
   }
 
-  async createTagCollection(id: ID, name: string, description?: string) {
-    console.log('Backend: Creating tag collection...', id, name, description);
-    return this.tagCollectionRepository.create(new DbTagCollection(id, name, description));
+  async createTagCollection(collection: ITagCollection) {
+    console.log('Backend: Creating tag collection...', collection);
+    return this.tagCollectionRepository.create(collection);
   }
 
   async createFile(file: IFile) {
     console.log('Backend: Creating file...', file);
-    return await this.fileRepository.create(new DbFile(file));
+    return await this.fileRepository.create(file);
   }
 
   async saveTag(tag: ITag): Promise<ITag> {

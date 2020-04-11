@@ -79,19 +79,18 @@ class FileStore {
     }
   }
 
-  @action.bound async addFile(filePath: string, locationId: ID, dateAdded?: Date) {
-    const fileData: IFile = {
+  @action.bound async addFile(path: string, locationId: ID, dateAdded: Date = new Date()) {
+    const file = new ClientFile(this, {
       id: generateId(),
       locationId,
-      path: filePath,
-      dateAdded: dateAdded ? new Date(dateAdded) : new Date(),
+      path,
+      dateAdded: dateAdded,
       dateModified: new Date(),
       tags: [],
-      ...(await ClientFile.getMetaData(filePath)),
-    };
-    const file = new ClientFile(this, fileData);
+      ...(await ClientFile.getMetaData(path)),
+    });
     // The function caller is responsible for handling errors.
-    await this.backend.createFile(fileData);
+    await this.backend.createFile(file.serialize());
     this.add(file);
     this.incrementNumUntaggedFiles();
     return file;
@@ -156,7 +155,7 @@ class FileStore {
 
   @action.bound
   async fetchFilesByQuery() {
-    const criteria = this.rootStore.uiStore.searchCriteriaList.slice().map((c) => c.serialize());
+    const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) => c.serialize());
     if (criteria.length === 0) {
       return this.fetchAllFiles();
     }
@@ -268,7 +267,10 @@ class FileStore {
 
         // Check if file belongs to a location; shouldn't be needed, but useful for during development
         if (!locationIds.includes(backendFile.locationId)) {
-          console.warn('Found a file that does not belong to any location! Will still show up', backendFile);
+          console.warn(
+            'Found a file that does not belong to any location! Will still show up',
+            backendFile,
+          );
           return false;
         }
         return true;
@@ -305,8 +307,9 @@ class FileStore {
         }),
       );
       const clientFiles = brokenFiles.map((f) => new ClientFile(this, f, true));
-      clientFiles.forEach((f) => f.setThumbnailPath(
-        getThumbnailPath(f.path, this.rootStore.uiStore.thumbnailDirectory)));
+      clientFiles.forEach((f) =>
+        f.setThumbnailPath(getThumbnailPath(f.path, this.rootStore.uiStore.thumbnailDirectory)),
+      );
       this.replaceFileList(clientFiles);
     } catch (err) {
       console.error('Could not load broken files', err);

@@ -58,7 +58,7 @@ const Settings = observer(() => {
     }
 
     const chosenDir = dirs[0];
-    locationStore.changeDefaultLocation(chosenDir);
+    locationStore.setDefaultLocation(chosenDir);
     setImportPath(chosenDir);
 
     // Todo: Provide option to move/copy the files in that directory (?)

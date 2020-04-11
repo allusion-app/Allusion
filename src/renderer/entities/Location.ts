@@ -19,10 +19,6 @@ export interface ILocation extends IResource {
   tagsToAdd: ID[];
 }
 
-export class DbLocation implements ILocation {
-  constructor(public id: ID, public path: string, public dateAdded: Date, public tagsToAdd: ID[]) {}
-}
-
 export interface IDirectoryTreeItem {
   name: string;
   fullPath: string;
@@ -34,24 +30,28 @@ export interface IDirectoryTreeItem {
  */
 async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
   try {
-    let dirs: string[] = []
+    let dirs: string[] = [];
     for (const file of await fse.readdir(path)) {
       const fullPath = SysPath.join(path, file);
       if ((await fse.stat(fullPath)).isDirectory()) {
-        dirs = [...dirs, fullPath]
+        dirs = [...dirs, fullPath];
       }
     }
-    return Promise.all(dirs.map(async (dir): Promise<IDirectoryTreeItem> => ({
-      name: SysPath.basename(dir),
-      fullPath: dir,
-      children: await getDirectoryTree(dir),
-    })));
+    return Promise.all(
+      dirs.map(
+        async (dir): Promise<IDirectoryTreeItem> => ({
+          name: SysPath.basename(dir),
+          fullPath: dir,
+          children: await getDirectoryTree(dir),
+        }),
+      ),
+    );
   } catch (e) {
     return [];
   }
 }
 
-export class ClientLocation implements ILocation, ISerializable<DbLocation> {
+export class ClientLocation implements ISerializable<ILocation> {
   saveHandler: IReactionDisposer;
   watcher?: FSWatcher;
   autoSave = true;

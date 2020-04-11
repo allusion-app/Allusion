@@ -42,7 +42,7 @@ const WelcomeDialog = () => {
     fse.ensureDirSync(importLocation);
 
     // Create the first Location
-    await locationStore.addDirectory({ path: importLocation, tagsToAdd: [] }, DEFAULT_LOCATION_ID);
+    await locationStore.setDefaultLocation(importLocation);
 
     // Todo: Start tour?
     setShowDialog(false);

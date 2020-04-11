@@ -362,7 +362,7 @@ const LocationsForm = () => {
 
       // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
 
-      const newLoc = await locationStore.addDirectory({ path: newLocPath, tagsToAdd: [] });
+      const newLoc = await locationStore.addDirectory(newLocPath);
       setLocationConfigOpen(newLoc);
       handleRefresh();
     },

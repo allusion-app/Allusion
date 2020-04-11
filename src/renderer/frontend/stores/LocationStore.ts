@@ -3,7 +3,7 @@ import { action, observable, computed, runInAction } from 'mobx';
 import Backend from '../../backend/Backend';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { ClientLocation, ILocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
+import { ClientLocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
 import { IFile, ClientFile } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
@@ -74,8 +74,15 @@ class LocationStore {
     return defaultLocation;
   }
 
-  @action.bound async changeDefaultLocation(dir: string) {
-    const loc = this.getDefaultLocation();
+  @action.bound async setDefaultLocation(dir: string) {
+    const loc = this.get(DEFAULT_LOCATION_ID);
+    if (!loc) {
+      console.warn('Default location not found. This should only happen on first launch!');
+      await this.backend.createLocation(
+        new ClientLocation(this, DEFAULT_LOCATION_ID, dir, new Date()).serialize(),
+      );
+      return;
+    }
     loc.path = dir;
     // Todo: The path isn't observable, so the old path will still appear in the UI
     await this.backend.saveLocation(loc.serialize());
@@ -96,28 +103,11 @@ class LocationStore {
   }
 
   @action.bound
-  async addDirectory(
-    dirInput: Omit<ILocation, 'id' | 'dateAdded'>,
-    id = generateId(),
-    dateAdded = new Date(),
-    initialize?: false,
-  ) {
-    const dirData: ILocation = { ...dirInput, id, dateAdded };
-    const clientDir = new ClientLocation(
-      this,
-      id,
-      dirData.path,
-      dirData.dateAdded,
-      dirData.tagsToAdd,
-    );
+  async addDirectory(path: string, tags: string[] = [], dateAdded = new Date()) {
+    const clientDir = new ClientLocation(this, generateId(), path, dateAdded, tags);
     this.locationList.push(clientDir);
     // The function caller is responsible for handling errors.
-    await this.backend.createLocation(dirData);
-
-    if (initialize) {
-      this.initializeLocation(clientDir);
-    }
-
+    await this.backend.createLocation(clientDir.serialize());
     return clientDir;
   }
 

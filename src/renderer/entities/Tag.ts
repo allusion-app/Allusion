@@ -3,7 +3,7 @@ import TagStore from '../frontend/stores/TagStore';
 import { generateId, ID, IResource, ISerializable } from './ID';
 import { ClientTagCollection } from './TagCollection';
 
-/* Generic properties of a Tag in our application */
+/* A Tag as it is represented in the Database */
 export interface ITag extends IResource {
   id: ID;
   name: string;
@@ -12,28 +12,12 @@ export interface ITag extends IResource {
   color: string;
 }
 
-/* A Tag as it is represented in the Database */
-export class DbTag implements ITag {
-  public id: ID;
-  public name: string;
-  public description: string;
-  public dateAdded: Date = new Date();
-  public color: string;
-
-  constructor(id: ID, name: string, color: string = '', description: string = '') {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.color = color;
-  }
-}
-
 /**
  * A Tag as it is stored in the Client.
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientTag implements ITag, ISerializable<DbTag> {
+export class ClientTag implements ISerializable<ITag> {
   store: TagStore;
   saveHandler: IReactionDisposer;
   autoSave = true;
