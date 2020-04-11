@@ -198,7 +198,7 @@ class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
     return (
       <main tabIndex={1}>
-        <ContentView {...this.props} />
+        <ContentView />
       </main>
     );
   }
