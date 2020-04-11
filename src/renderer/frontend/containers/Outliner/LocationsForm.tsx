@@ -38,14 +38,6 @@ const enum Tooltip {
   Refresh = 'Refresh directories',
 }
 
-// interface ILocationListItemProps {
-//   dir: ClientLocation;
-//   onDelete: (location: ClientLocation) => void;
-//   onConfig: (location: ClientLocation) => void;
-//   addToSearch: (path: string) => void;
-//   replaceSearch: (path: string) => void;
-// }
-
 interface ILocationTreeProps {
   onDelete: (loc: ClientLocation) => void;
   onConfig: (loc: ClientLocation) => void;
@@ -104,50 +96,6 @@ const LocationTreeContextMenu = ({
     </Menu>
   );
 };
-
-// @ContextMenuTarget
-// class LocationListItem extends React.PureComponent<ILocationListItemProps> {
-//   handleDelete= () => this.props.onDelete(this.props.dir);
-
-//   openConfigDialog = () => this.props.onConfig(this.props.dir);
-
-//   handleAddToSearch = () => this.props.addToSearch(this.props.dir.path);
-//   handleReplaceSearch = () => this.props.replaceSearch(this.props.dir.path);
-
-//   handleOpenFileExplorer = () => shell.openItem(this.props.dir.path);
-
-//   render() {
-//     const { dir } = this.props;
-//     const isImportLocation = this.props.dir.id === DEFAULT_LOCATION_ID;
-//     return (
-//       <li>
-//         <Button
-//           fill
-//           icon={isImportLocation ? 'import' : IconSet.FOLDER_CLOSE}
-//           rightIcon={dir.isBroken ? <Icon icon={IconSet.WARNING} /> : null}
-//           className={'tooltip'}
-//           data-right={`${dir.isBroken ? 'Cannot find this location: ' : ''} ${dir.path}`}
-//         >
-//           <span className="ellipsis">{Path.basename(dir.path)}</span>
-//         </Button>
-//       </li>
-//     );
-//   }
-
-//   public renderContextMenu() {
-//     const isImportLocation = this.props.dir.id === DEFAULT_LOCATION_ID;
-
-//     return (
-//       <Menu>
-//         <MenuItem text="Configure" onClick={this.openConfigDialog} icon={IconSet.SETTINGS} />
-//         <MenuItem onClick={this.handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
-//         <MenuItem onClick={this.handleReplaceSearch} text="Replace Search Query" icon={IconSet.REPLACE} />
-//         <MenuItem onClick={this.handleOpenFileExplorer} text="Open in File Browser" icon={IconSet.FOLDER_CLOSE} />
-//         <MenuItem text="Delete" onClick={this.handleDelete} icon={IconSet.DELETE} disabled={isImportLocation} />
-//       </Menu>
-//     );
-//   }
-// }
 
 interface ILocationConfigModalProps {
   dir: ClientLocation | undefined;
@@ -449,20 +397,6 @@ const LocationsForm = () => {
         />
       </div>
       <Collapse isOpen={!isCollapsed}>
-        {/* <ul id="watched-folders">
-          {
-            locationStore.locationList.map((dir, i) => (
-              <LocationListItem
-                key={`${dir.path}-${i}`}
-                dir={dir}
-                onDelete={() => setLocationRemoverOpen(dir)}
-                onConfig={() => setLocationConfigOpen(dir)}
-                addToSearch={addToSearch}
-                replaceSearch={replaceSearch}
-              />
-            ))
-          }
-        </ul> */}
         <LocationsTree
           key={locationTreeKey.toString()}
           onDelete={setLocationRemoverOpen}
