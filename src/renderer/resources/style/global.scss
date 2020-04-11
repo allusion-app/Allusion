@@ -39,11 +39,14 @@ body {
 pre {
   word-wrap: break-word;
   white-space: initial;
-  margin: 2px;
+  // margin: 2px;
 }
 .bp3-dark {
   pre {
-    background: $dark-gray4;
+    font-family: unset;
+    background: rgba(1, 1, 1, 0.1);
+    padding: 6px;
+    border-radius: 6px;
   }
 }
 
