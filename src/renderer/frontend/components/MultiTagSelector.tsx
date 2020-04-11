@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useCallback, useRef, useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
+import { observer, useComputed } from 'mobx-react-lite';
 
 import { Button, MenuItem, Intent, Icon, ITagProps } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
@@ -8,7 +8,7 @@ import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { getClassForBackground } from '../utils';
-import { ClientTagCollection } from '../../entities/TagCollection';
+import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag | ClientTagCollection>();
 
@@ -183,15 +183,18 @@ const MultiTagSelector = ({
     }
   }, [refocusObject, autoFocus]);
 
-  const items = includeCollections
-    ? [...tagStore.tagList, ...tagCollectionStore.tagCollectionList]
-    : tagStore.tagList;
+  const items = useComputed(() => {
+    if (!includeCollections) return tagStore.tagList;
+    console.log('was computed');
+    const collectionsWithoutRoot = tagCollectionStore.tagCollectionList.filter(col => col.id !== ROOT_TAG_COLLECTION_ID)
+    return [...tagStore.tagList, ...collectionsWithoutRoot];
+  }, [includeCollections, tagStore.tagList, tagCollectionStore.tagCollectionList]);
 
-  const getTagProps = (_: any, index: number): ITagProps => ({
+  const getTagProps = useCallback((_: any, index: number): ITagProps => ({
     minimal: true,
     // Todo: Style doesn't update until focusing the tagInput
     style: { backgroundColor: selectedItems[index]?.viewColor },
-  });
+  }), [selectedItems]);
 
   return (
     <TagMultiSelect
