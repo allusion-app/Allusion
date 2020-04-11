@@ -20,11 +20,12 @@ class LocationStore {
   }
 
   @computed get importDirectory() {
-    if (this.locationList.length === 0 || this.locationList[0].id !== DEFAULT_LOCATION_ID) {
+    const location = this.get(DEFAULT_LOCATION_ID);
+    if (!location) {
       console.error('Default location not properly set-up. This should not happen!');
       return '';
     }
-    return this.locationList[0].path;
+    return location.path;
   }
 
   @action.bound
@@ -77,7 +78,6 @@ class LocationStore {
   @action.bound async changeDefaultLocation(dir: string) {
     const loc = this.getDefaultLocation();
     loc.path = dir;
-    // Todo: The path isn't observable, so the old path will still appear in the UI
     await this.backend.saveLocation(loc.serialize());
     // Todo: What about the files inside that loc? Keep them in DB? Move them over?
     RendererMessenger.setDownloadPath({ dir });
