@@ -313,9 +313,9 @@ class FileStore {
 
   @action.bound async fetchBrokenFiles() {
     try {
-      const { orderBy, fileOrder } = this.rootStore.uiStore.view;
+      const { orderBy, fileOrder } = this;
       const backendFiles = await this.backend.fetchFiles(orderBy, fileOrder);
-      
+
       const brokenFiles = await Promise.all(
         backendFiles.filter(async (backendFile) => {
           try {

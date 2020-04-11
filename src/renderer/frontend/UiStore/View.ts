@@ -70,7 +70,7 @@ class View {
   @action.bound setMethodGrid() {
     this.setMethod('grid');
   }
-  
+
   @action.bound enableSlideMode() {
     this.isSlideMode = true;
   }
