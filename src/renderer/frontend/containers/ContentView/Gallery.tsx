@@ -8,7 +8,7 @@ import {
   GridOnScrollProps,
   ListOnScrollProps,
 } from 'react-window';
-import { observer, Observer } from 'mobx-react-lite';
+import { observer, useObserver } from 'mobx-react-lite';
 
 import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
@@ -158,7 +158,7 @@ const GridGallery = observer(
     );
 
     const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
-      ({ columnIndex, rowIndex, style }) => {
+      ({ columnIndex, rowIndex, style }) => useObserver(() => {
         const itemIndex = rowIndex * numColumns + columnIndex;
         const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
         if (!file) {
@@ -166,20 +166,16 @@ const GridGallery = observer(
         }
         return (
           <div style={style} className="galleryItem">
-            <Observer>
-              {() => (
-                <GalleryItem
-                  file={file}
-                  isSelected={uiStore.fileSelection.includes(file.id)}
-                  onClick={handleClick}
-                  onDoubleClick={handleDoubleClick}
-                  onDrop={handleDrop}
-                />
-              )}
-            </Observer>
+            <GalleryItem
+              file={file}
+              isSelected={uiStore.fileSelection.includes(file.id)}
+              onClick={handleClick}
+              onDoubleClick={handleDoubleClick}
+              onDrop={handleDrop}
+            />
           </div>
         );
-      },
+      }),
       [fileList, handleClick, handleDoubleClick, handleDrop, numColumns, uiStore.fileSelection],
     );
     return (
@@ -244,28 +240,24 @@ const ListGallery = observer(
     );
 
     const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
-      ({ index, style, data }) => {
+      ({ index, style, data }) => useObserver(() => {
         const file = index < data.length ? data[index] : null;
         if (!file) {
           return <div />;
         }
         return (
           <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
-            <Observer>
-              {() => (
-                <GalleryItem
-                  file={file}
-                  isSelected={uiStore.fileSelection.includes(file.id)}
-                  onClick={handleClick}
-                  onDoubleClick={handleDoubleClick}
-                  onDrop={handleDrop}
-                  showDetails
-                />
-              )}
-            </Observer>
+            <GalleryItem
+              file={file}
+              isSelected={uiStore.fileSelection.includes(file.id)}
+              onClick={handleClick}
+              onDoubleClick={handleDoubleClick}
+              onDrop={handleDrop}
+              showDetails
+            />
           </div>
         );
-      },
+      }),
       [handleClick, handleDoubleClick, handleDrop, uiStore.fileSelection],
     );
 
