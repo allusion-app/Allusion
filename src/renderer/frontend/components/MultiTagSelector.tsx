@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useCallback, useRef, useEffect } from 'react';
-import { observer, useComputed } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 
 import { Button, MenuItem, Intent, Icon, ITagProps } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
@@ -183,12 +183,13 @@ const MultiTagSelector = ({
     }
   }, [refocusObject, autoFocus]);
 
-  const items = useComputed(() => {
+  const items = useMemo(() => {
     if (!includeCollections) return tagStore.tagList;
-    console.log('was computed');
-    const collectionsWithoutRoot = tagCollectionStore.tagCollectionList.filter(col => col.id !== ROOT_TAG_COLLECTION_ID)
+    const collectionsWithoutRoot = tagCollectionStore.tagCollectionList
+      .filter(col => col.id !== ROOT_TAG_COLLECTION_ID)
     return [...tagStore.tagList, ...collectionsWithoutRoot];
-  }, [includeCollections, tagStore.tagList, tagCollectionStore.tagCollectionList]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [includeCollections, tagStore.tagList.length, tagCollectionStore.tagCollectionList.length]);
 
   const getTagProps = useCallback((_: any, index: number): ITagProps => ({
     minimal: true,
