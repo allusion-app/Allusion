@@ -158,10 +158,10 @@ const GridGallery = observer(
     );
 
     const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
-      ({ columnIndex, rowIndex, style }) =>
+      ({ columnIndex, rowIndex, style, data }) =>
         useObserver(() => {
           const itemIndex = rowIndex * numColumns + columnIndex;
-          const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
+          const file = itemIndex < data.length ? data[itemIndex] : null;
           if (!file) {
             return <div />;
           }
@@ -177,7 +177,7 @@ const GridGallery = observer(
             </div>
           );
         }),
-      [fileList, handleClick, handleDoubleClick, handleDrop, numColumns, uiStore.fileSelection],
+      [handleClick, handleDoubleClick, handleDrop, numColumns, uiStore.fileSelection],
     );
     return (
       <FixedSizeGrid
