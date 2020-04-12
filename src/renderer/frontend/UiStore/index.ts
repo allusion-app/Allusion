@@ -13,11 +13,7 @@ import View, {
   ViewThumbnailSize,
   PersistentPreferenceFields as ViewPersistentPrefFields,
 } from './View';
-import {
-  ClientBaseCriteria,
-  ClientArraySearchCriteria,
-  ClientIDSearchCriteria,
-} from '../../entities/SearchCriteria';
+import { ClientBaseCriteria, ClientIDSearchCriteria } from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
@@ -27,8 +23,6 @@ export const PREFERENCES_STORAGE_KEY = 'preferences';
 interface IHotkeyMap {
   // Outerliner actions
   toggleOutliner: string;
-  openOutlinerImport: string;
-  openOutlinerTags: string;
   replaceQuery: string;
 
   // Inspector actions
@@ -56,8 +50,6 @@ interface IHotkeyMap {
 const defaultHotkeyMap: IHotkeyMap = {
   toggleOutliner: '1',
   toggleInspector: '2',
-  openOutlinerImport: 'shift + 1',
-  openOutlinerTags: 'shift + 2',
   replaceQuery: 'r',
   openTagSelector: 't',
   toggleSettings: 's',
@@ -96,8 +88,6 @@ const defaultHotkeyMap: IHotkeyMap = {
 /** These fields are stored and recovered when the application opens up */
 const PersistentPreferenceFields: Array<keyof UiStore> = [
   'theme',
-  'isFullScreen',
-  'outlinerPage',
   'isOutlinerOpen',
   'isInspectorOpen',
   'thumbnailDirectory',
@@ -113,16 +103,11 @@ class UiStore {
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
-  // FullScreen
-  @observable isFullScreen: boolean = false;
-
   // UI
-  @observable outlinerPage: 'IMPORT' | 'TAGS' = 'TAGS';
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
-  @observable isToolbarFileRemoverOpen: boolean = false;
   @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
@@ -153,21 +138,12 @@ class UiStore {
   }
 
   /////////////////// UI Actions ///////////////////
-  @action.bound toggleOutliner() {
-    this.setIsOutlinerOpen(!this.isOutlinerOpen);
+  @action.bound openOutliner() {
+    this.setIsOutlinerOpen(true);
   }
 
-  @action.bound openOutlinerImport() {
-    this.setOutlinerPage('IMPORT');
-    if (!this.rootStore.fileStore.showsUntaggedContent) {
-      this.viewUntaggedContent();
-    }
-  }
-  @action.bound openOutlinerTags() {
-    this.setOutlinerPage('TAGS');
-    if (!this.rootStore.fileStore.showsAllContent) {
-      this.viewAllContent();
-    }
+  @action.bound toggleOutliner() {
+    this.setIsOutlinerOpen(!this.isOutlinerOpen);
   }
 
   @action.bound openPreviewWindow() {
@@ -207,18 +183,6 @@ class UiStore {
 
   @action.bound closeToolbarTagSelector() {
     this.isToolbarTagSelectorOpen = false;
-  }
-
-  @action.bound toggleToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = this.fileSelection.length > 0 && !this.isToolbarFileRemoverOpen;
-  }
-
-  @action.bound openToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = true;
-  }
-
-  @action.bound closeToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = false;
   }
 
   @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
@@ -453,84 +417,70 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
-  @action.bound openQuickSearch() {
-    this.isQuickSearchOpen = true;
-  }
-
   @action.bound async clearSearchCriteriaList() {
-    this.searchCriteriaList.clear();
-    this.viewAllContent();
-  }
-
-  @action.bound async searchByQuery() {
-    await this.rootStore.fileStore.fetchFilesByQuery();
-    this.cleanFileSelection();
+    if (this.searchCriteriaList.length > 0) {
+      this.searchCriteriaList.clear();
+      this.viewAllContent();
+    }
   }
 
   @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
     this.searchCriteriaList.push(query);
+    this.viewQueryContent();
   }
 
-  @action.bound async replaceSearchCriteriaList(query: Exclude<FileSearchCriteria, 'key'>) {
-    this.searchCriteriaList.clear();
-    this.searchCriteriaList.push(query);
-    this.rootStore.fileStore.setContentQuery();
+  @action.bound async addSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+    this.searchCriteriaList.push(...queries);
+    this.viewQueryContent();
   }
 
   @action.bound async removeSearchCriteria(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
+    }
+  }
+
+  @action.bound async replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+    this.replaceSearchCriterias([query]);
+  }
+
+  @action.bound async replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+    this.searchCriteriaList.replace(queries);
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
+    }
   }
 
   @action.bound async removeSearchCriteriaByIndex(i: number) {
     this.searchCriteriaList.splice(i, 1);
-  }
-
-  @action.bound addTagsToCriteria(ids: ID[]) {
-    this.searchCriteriaList.push(...ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
-    this.openQuickSearch();
-    this.searchByQuery();
-  }
-
-  @action.bound replaceCriteriaWithTags(ids: ID[]) {
-    this.searchCriteriaList.replace(ids.map((id) => new ClientIDSearchCriteria<IFile>('tags', id)));
-    this.openQuickSearch();
-    this.searchByQuery();
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
+    }
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
-    this.replaceCriteriaWithTags(this.tagSelection.toJS());
-    this.searchByQuery();
-    this.openQuickSearch();
+    this.replaceSearchCriterias(
+      this.tagSelection.map((id) => new ClientIDSearchCriteria('tags', id)),
+    );
+    this.clearTagSelection();
   }
 
   @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
     const index = this.searchCriteriaList.indexOf(oldCrit);
     if (index !== -1) {
       this.searchCriteriaList[index] = crit;
+      this.viewQueryContent();
     }
   }
 
   /////////////////// UI Actions ///////////////////
-  @action.bound viewAllContent() {
-    this.tagSelection.clear();
-    this.rootStore.fileStore.fetchAllFiles();
-    this.cleanFileSelection();
-  }
-  @action.bound viewUntaggedContent() {
-    this.tagSelection.clear();
-    this.rootStore.fileStore.fetchUntaggedFiles();
-    this.cleanFileSelection();
-  }
-  @action.bound viewQueryContent() {
-    this.tagSelection.clear();
-    this.rootStore.fileStore.fetchFilesByQuery();
-    this.cleanFileSelection();
-
-    if (this.isAdvancedSearchOpen) {
-      this.toggleAdvancedSearch();
-    }
-  }
-
   @action.bound toggleTheme() {
     this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
   }
@@ -541,35 +491,29 @@ class UiStore {
   @action.bound reload() {
     remote.getCurrentWindow().reload();
   }
-  @action.bound toggleFullScreen() {
-    this.setIsFullScreen(!this.isFullScreen);
-    remote.getCurrentWindow().setFullScreen(this.isFullScreen);
-  }
+
   @action.bound toggleQuickSearch() {
-    this.isQuickSearchOpen = !this.isQuickSearchOpen;
-    if (!this.isQuickSearchOpen) {
+    if (this.isQuickSearchOpen) {
       this.clearSearchCriteriaList();
     }
+    this.isQuickSearchOpen = !this.isQuickSearchOpen;
   }
+
   @action.bound toggleAdvancedSearch() {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
-    if (this.isAdvancedSearchOpen && !this.isQuickSearchOpen) {
-      this.toggleQuickSearch();
-    }
-    // Add initial empty criteria if none exist
-    if (this.isAdvancedSearchOpen && this.searchCriteriaList.length === 0) {
-      this.addSearchCriteria(new ClientArraySearchCriteria('tags'));
-    }
   }
-  @action.bound closeSearch() {
-    if (this.isQuickSearchOpen) {
-      this.toggleQuickSearch();
-    }
+
+  @action.bound closeQuickSearch() {
+    this.clearSearchCriteriaList();
+    this.isQuickSearchOpen = false;
   }
-  @action.bound openSearch() {
-    if (!this.isQuickSearchOpen) {
-      this.toggleQuickSearch();
-    }
+
+  @action.bound openQuickSearch() {
+    this.isQuickSearchOpen = true;
+  }
+
+  @action.bound closeAdvancedSearch() {
+    this.isAdvancedSearchOpen = false;
   }
 
   // Storing preferences
@@ -579,8 +523,6 @@ class UiStore {
       try {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
-        this.setIsFullScreen(prefs.isFullScreen);
-        this.setOutlinerPage(prefs.outlinerPage);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.setIsInspectorOpen(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
@@ -607,27 +549,21 @@ class UiStore {
   }
 
   /////////////////// Helper methods ///////////////////
-  /**
-   * Deselect files that are not tagged with any tag in the current tag selection
-   */
-  @action private cleanFileSelection() {
-    for (const file of this.clientFileSelection) {
-      if (!file.tags.some((t) => this.tagSelection.includes(t))) {
-        this.deselectFile(file);
-      }
-    }
+  @action clearSelection() {
+    this.tagSelection.clear();
+    this.fileSelection.clear();
+  }
+
+  @action private viewAllContent() {
+    this.rootStore.fileStore.fetchAllFiles();
+  }
+
+  @action private viewQueryContent() {
+    this.rootStore.fileStore.fetchFilesByQuery();
   }
 
   @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
     this.theme = theme;
-  }
-
-  @action private setIsFullScreen(value: boolean = false) {
-    this.isFullScreen = value;
-  }
-
-  @action private setOutlinerPage(page: 'IMPORT' | 'TAGS' = 'TAGS') {
-    this.outlinerPage = page;
   }
 
   @action private setIsOutlinerOpen(value: boolean = true) {

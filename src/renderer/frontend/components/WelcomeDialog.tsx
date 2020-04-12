@@ -11,8 +11,13 @@ import StoreContext from '../contexts/StoreContext';
 import { RendererMessenger } from '../../../Messaging';
 import { DEFAULT_LOCATION_ID } from '../../entities/Location';
 
-const SetupImportDirStep = ({ importLocation, setImportLocation }: { importLocation: string, setImportLocation: (loc: string) => void }) => {
-
+const SetupImportDirStep = ({
+  importLocation,
+  setImportLocation,
+}: {
+  importLocation: string;
+  setImportLocation: (loc: string) => void;
+}) => {
   const browseImportDirectory = useCallback(() => {
     const dirs = remote.dialog.showOpenDialog({
       properties: ['openDirectory'],
@@ -36,11 +41,11 @@ const SetupImportDirStep = ({ importLocation, setImportLocation }: { importLocat
       </p>
 
       {/*
-        * Add files by
-        * - Adding a location - files added to that folder will automatically show up in Allusion
-        * - Drag and drop images from your file explorer or browser to copy them into your Import Location
-        * - Use the Allusion Chrome Extension to download, even when Allusion is running in the background
-        */}
+       * Add files by
+       * - Adding a location - files added to that folder will automatically show up in Allusion
+       * - Drag and drop images from your file explorer or browser to copy them into your Import Location
+       * - Use the Allusion Chrome Extension to download, even when Allusion is running in the background
+       */}
 
       {/* Todo: Would be nicer to do in steps (cards sliding (NEXT -> NEXT -> Start tour)) */}
       <p>
@@ -69,8 +74,8 @@ const SetupImportDirStep = ({ importLocation, setImportLocation }: { importLocat
         </label>
       </FormGroup>
     </>
-  )
-}
+  );
+};
 
 const InitialLocationsStep = () => {
   return (
@@ -84,8 +89,8 @@ const InitialLocationsStep = () => {
 
       <LocationsForm />
     </>
-  )
-}
+  );
+};
 
 const NUM_STEPS = 3;
 
@@ -101,7 +106,7 @@ const WelcomeDialog = () => {
     if (!Boolean(locationStore.get(DEFAULT_LOCATION_ID))) {
       setShowDialog(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [importLocation, setImportLocation] = useState(
@@ -115,7 +120,7 @@ const WelcomeDialog = () => {
       fse.ensureDirSync(importLocation);
 
       // Create the first Location
-      await locationStore.addDirectory({ path: importLocation, tagsToAdd: [] }, DEFAULT_LOCATION_ID);
+      await locationStore.setDefaultLocation(importLocation);
 
       setStep(step + 1);
     } else if (step === 1) {
@@ -136,14 +141,17 @@ const WelcomeDialog = () => {
       canEscapeKeyClose={false}
       className={`${themeClass}`}
       isCloseButtonShown={false}
-      style={{ minHeight: '50vh'}}
+      style={{ minHeight: '50vh' }}
     >
       <div className={Classes.DIALOG_BODY}>
-        {step === 0 && <SetupImportDirStep importLocation={importLocation} setImportLocation={setImportLocation} />}
-        {step === 1 && <InitialLocationsStep />}
-        {step === 2 && (
-          <p>Woud you like a quick tour to familiarize yourself with Allusion?</p>
+        {step === 0 && (
+          <SetupImportDirStep
+            importLocation={importLocation}
+            setImportLocation={setImportLocation}
+          />
         )}
+        {step === 1 && <InitialLocationsStep />}
+        {step === 2 && <p>Woud you like a quick tour to familiarize yourself with Allusion?</p>}
       </div>
 
       <div className={Classes.DIALOG_FOOTER}>
@@ -152,7 +160,7 @@ const WelcomeDialog = () => {
             Skip
           </Button>
           <Button intent="primary" onClick={handleNextStep}>
-            {step !== NUM_STEPS - 1 ? 'Next': 'Start'}
+            {step !== NUM_STEPS - 1 ? 'Next' : 'Start'}
           </Button>
         </div>
       </div>

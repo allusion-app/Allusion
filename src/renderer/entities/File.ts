@@ -8,15 +8,15 @@ import ImageSize from 'image-size';
 const sizeOf = promisify(ImageSize.imageSize);
 
 import FileStore from '../frontend/stores/FileStore';
-import { ID, IIdentifiable, ISerializable } from './ID';
+import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
-export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'];
-export type IMG_EXTENSIONS_TYPE = 'gif' | 'png' | 'jpg' | 'jpg';
+export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'] as const;
+export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
-/* Generic properties of a File in our application (usually an image) */
-export interface IFile extends IIdentifiable {
+/* A File as it is represented in the Database */
+export interface IFile extends IResource {
   id: ID;
   locationId: ID;
   path: string; // todo: could store relativePath, and convert to a absPath in clientFile (easier for import/export/sync in future)
@@ -32,42 +32,12 @@ export interface IFile extends IIdentifiable {
   extension: string; // in lowercase, without the dot
 }
 
-/* A File as it is represented in the Database */
-export class DbFile implements IFile {
-  public id: ID;
-  public locationId: ID;
-  public path: string;
-  public tags: ID[];
-  public size: number;
-  public width: number;
-  public height: number;
-  public dateAdded: Date;
-  public dateModified: Date;
-
-  public name: string;
-  public extension: string;
-
-  constructor({ id, locationId, path, tags, size, width, height, dateAdded, dateModified, name, extension }: IFile) {
-    this.id = id;
-    this.locationId = locationId;
-    this.path = path;
-    this.tags = tags;
-    this.size = size;
-    this.width = width;
-    this.height = height;
-    this.dateAdded = dateAdded;
-    this.dateModified = dateModified;
-    this.name = name;
-    this.extension = extension;
-  }
-}
-
 /**
  * A File as it is stored in the Client.
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientFile implements IFile, ISerializable<DbFile> {
+export class ClientFile implements ISerializable<IFile> {
   /** Should be called when after constructing a file before sending it to the backend. */
   static async getMetaData(path: string) {
     const stats = await fse.stat(path);
@@ -83,7 +53,7 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
 
     return {
       name: systemPath.basename(path),
-      extension: systemPath.extname(path).toLowerCase(),
+      extension: systemPath.extname(path).slice(1).toLowerCase(),
       size: stats.size,
       width: (dimensions && dimensions.width) || 0,
       height: (dimensions && dimensions.height) || 0,
@@ -106,13 +76,11 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   readonly name: string;
   readonly extension: string;
 
-  @observable
-  isBroken: boolean;
+  @observable thumbnailPath: string = '';
 
-  @observable
-  thumbnailPath: string;
+  @observable isBroken: boolean;
 
-  constructor(store: FileStore, fileProps: IFile, isBroken?: boolean) {
+  constructor(store: FileStore, fileProps: IFile, isBroken: boolean = false) {
     this.store = store;
 
     this.id = fileProps.id;
@@ -121,12 +89,11 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
     this.size = fileProps.size;
     this.width = fileProps.width;
     this.height = fileProps.height;
-    this.dateAdded = new Date(fileProps.dateAdded);
-    this.dateModified = new Date(fileProps.dateModified);
+    this.dateAdded = fileProps.dateAdded;
+    this.dateModified = fileProps.dateModified;
     this.name = fileProps.name;
     this.extension = fileProps.extension;
-    this.thumbnailPath = '';
-    this.isBroken = isBroken || false;
+    this.isBroken = isBroken;
 
     this.tags.push(...fileProps.tags);
 
