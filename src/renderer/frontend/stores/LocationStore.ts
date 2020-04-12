@@ -20,11 +20,12 @@ class LocationStore {
   }
 
   @computed get importDirectory() {
-    if (this.locationList.length === 0 || this.locationList[0].id !== DEFAULT_LOCATION_ID) {
-      console.error('Default location not properly set-up. This should not happen!');
+    const location = this.get(DEFAULT_LOCATION_ID);
+    if (!location) {
+      console.warn('Default location not properly set-up. This should not happen!');
       return '';
     }
-    return this.locationList[0].path;
+    return location.path;
   }
 
   @action.bound
@@ -78,13 +79,12 @@ class LocationStore {
     const loc = this.get(DEFAULT_LOCATION_ID);
     if (!loc) {
       console.warn('Default location not found. This should only happen on first launch!');
-      await this.backend.createLocation(
-        new ClientLocation(this, DEFAULT_LOCATION_ID, dir, new Date()).serialize(),
-      );
+      const l = new ClientLocation(this, DEFAULT_LOCATION_ID, dir, new Date());
+      await this.backend.createLocation(l.serialize());
+      this.addLocation(l);
       return;
     }
     loc.path = dir;
-    // Todo: The path isn't observable, so the old path will still appear in the UI
     await this.backend.saveLocation(loc.serialize());
     // Todo: What about the files inside that loc? Keep them in DB? Move them over?
     RendererMessenger.setDownloadPath({ dir });
@@ -105,7 +105,7 @@ class LocationStore {
   @action.bound
   async addDirectory(path: string, tags: string[] = [], dateAdded = new Date()) {
     const clientDir = new ClientLocation(this, generateId(), path, dateAdded, tags);
-    this.locationList.push(clientDir);
+    this.addLocation(clientDir);
     // The function caller is responsible for handling errors.
     await this.backend.createLocation(clientDir.serialize());
     return clientDir;
@@ -138,6 +138,10 @@ class LocationStore {
 
     // Remove location from DB through backend
     await this.backend.removeLocation(watchedDir);
+  }
+
+  @action.bound private addLocation(location: ClientLocation) {
+    this.locationList.push(location);
   }
 }
 

@@ -122,6 +122,7 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'extension', icon: IconSet.FILTER_FILE_TYPE, text: 'File type' },
   { prop: 'size', icon: IconSet.FILTER_FILTER_DOWN, text: 'File size' },
   { prop: 'dateAdded', icon: IconSet.FILTER_DATE, text: 'Date added' },
+  { prop: 'dateModified', icon: IconSet.FILTER_DATE, text: 'Date modified' },
 ];
 
 const FileFilter = observer(
