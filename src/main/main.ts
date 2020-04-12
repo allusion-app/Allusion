@@ -40,8 +40,6 @@ const getTags = async (): Promise<ITag[]> => {
   return [];
 };
 
-let initialize = () => {}; // placeholder
-
 function createTrayMenu() {
   if (!tray) {
     tray = new Tray(`${__dirname}/${isMac ? TrayIconMac : TrayIcon}`);
@@ -49,13 +47,18 @@ function createTrayMenu() {
       {
         label: 'Open',
         type: 'normal',
-        click: () => (mainWindow ? mainWindow.focus() : initialize()),
+        click: () => mainWindow?.focus(),
       },
-      { label: 'Quit', click: () => { process.exit(0); }},
+      {
+        label: 'Quit',
+        click: () => {
+          process.exit(0);
+        },
+      },
     ]);
     tray.setContextMenu(trayMenu);
     tray.setToolTip('Allusion - Your Visual Library');
-    tray.on('click', () => mainWindow ? mainWindow.focus() : initialize());
+    tray.on('click', () => mainWindow?.focus());
   }
 }
 
@@ -94,10 +97,16 @@ function createWindow() {
         { role: 'services', submenu: [] },
         { type: 'separator' },
         { role: 'hide' },
-        { role: 'hideothers' },
-        { role: 'unhide'},
+        { role: 'hideOthers' },
+        { role: 'unhide' },
         { type: 'separator' },
-        { label: 'Quit', accelerator: 'Command+Q', click: () => { process.exit(0); }},
+        {
+          label: 'Quit',
+          accelerator: 'Command+Q',
+          click: () => {
+            process.exit(0);
+          },
+        },
       ],
     });
   }
@@ -111,8 +120,8 @@ function createWindow() {
     label: 'View',
     submenu: [
       { role: 'reload' },
-      { role: 'forcereload' },
-      { role: 'toggledevtools' },
+      { role: 'forceReload' },
+      { role: 'toggleDevTools' },
       { type: 'separator' },
       {
         label: 'Actual Size',
@@ -240,15 +249,13 @@ function createPreviewWindow() {
   return previewWindow;
 }
 
-initialize = () => {
-  createWindow();
-  createPreviewWindow();
-};
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', initialize);
+app.on('ready', () => {
+  createWindow();
+  createPreviewWindow();
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

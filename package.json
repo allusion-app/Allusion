@@ -38,7 +38,7 @@
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
     "css-loader": "^2.1.0",
-    "electron": "^5.0.8",
+    "electron": "^6.1.9",
     "electron-packager": "^14.0.3",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.1",
