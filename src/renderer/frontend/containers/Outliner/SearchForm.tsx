@@ -1,55 +1,402 @@
-import React, { useCallback, useContext, useMemo, ChangeEvent } from 'react';
+import React, { useContext, ChangeEvent, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import { FormGroup, Button, Dialog, ControlGroup } from '@blueprintjs/core';
 
 import {
-  NumberOperatorType,
   NumberOperators,
-  BinaryOperatorType,
   BinaryOperators,
-  StringOperatorType,
   StringOperators,
-  ArrayOperatorType,
   ArrayOperators,
   ClientStringSearchCriteria,
-  ClientArraySearchCriteria,
   ClientNumberSearchCriteria,
   ClientDateSearchCriteria,
   ClientIDSearchCriteria,
   ClientCollectionSearchCriteria,
+  StringOperatorType,
+  ArrayOperatorType,
+  NumberOperatorType,
+  OperatorType,
+  BinaryOperatorType,
 } from '../../../entities/SearchCriteria';
-import { IFile, IMG_EXTENSIONS } from '../../../entities/File';
+import { IMG_EXTENSIONS } from '../../../entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
-import { ClientTag } from '../../../entities/Tag';
-import MultiTagSelector from '../../components/MultiTagSelector';
-import { FileSearchCriteria } from '../../UiStore';
-import { ClientTagCollection } from '../../../entities/TagCollection';
+import TagSelector from '../../components/TagSelector';
+import UiStore, { FileSearchCriteria } from '../../UiStore';
+import { ID, generateId } from '../../../entities/ID';
 import { TextInput, NumberInput, Select } from '../../components/form';
 
-interface IKeyLabel {
-  [key: string]: string;
+type CriteriaKey = 'name' | 'path' | 'tags' | 'extension' | 'size' | 'dateAdded';
+type CriteriaOperator = OperatorType;
+type TagValue = [ID, string] | [ID, string, ID[]] | [];
+type CriteriaValue = string | number | Date | TagValue;
+
+interface ICriteriaField<
+  K extends CriteriaKey,
+  O extends CriteriaOperator,
+  V extends CriteriaValue
+> {
+  id: ID;
+  key: K;
+  operator: O;
+  value: V;
 }
 
-export const KeyLabelMap: IKeyLabel = {
-  tags: 'Tags',
-  name: 'File name',
-  path: 'File path',
-  extension: 'File type',
-  size: 'File size (MB)',
-  dateAdded: 'Date added',
+type CriteriaField =
+  | ICriteriaField<'name' | 'path', StringOperatorType, string>
+  | ICriteriaField<'tags', ArrayOperatorType, TagValue>
+  | ICriteriaField<'extension', BinaryOperatorType, string>
+  | ICriteriaField<'size', NumberOperatorType, number>
+  | ICriteriaField<'dateAdded', NumberOperatorType, Date>;
+
+const Default: { [key: string]: CriteriaField } = {
+  name: { id: 'name', key: 'name', operator: 'contains', value: '' },
+  path: { id: 'path', key: 'path', operator: 'contains', value: '' },
+  tags: { id: 'tags', key: 'tags', operator: 'contains', value: [] },
+  extension: {
+    id: 'extension',
+    key: 'extension',
+    operator: 'equals',
+    value: IMG_EXTENSIONS[0],
+  },
+  size: { id: 'size', key: 'size', operator: 'greaterThanOrEquals', value: 0 },
+  dateAdded: {
+    id: 'dateAdded',
+    key: 'dateAdded',
+    operator: 'equals',
+    value: new Date(),
+  },
 };
 
-const CriteriaKeyOrder: Array<keyof IFile> = [
-  'tags',
-  'name',
-  'path',
-  'extension',
-  'size',
-  'dateAdded',
-];
+interface IKeySelector {
+  selectedKey: CriteriaKey;
+  setCriteria: (criteria: CriteriaField) => void;
+}
+
+const KeySelector = ({ selectedKey, setCriteria }: IKeySelector) => {
+  const handlePickKey = (e: ChangeEvent<HTMLSelectElement>) => {
+    const key = e.target.value;
+    if (
+      key === 'name' ||
+      key === 'path' ||
+      key === 'extension' ||
+      key === 'tags' ||
+      key === 'size' ||
+      key === 'dateAdded'
+    ) {
+      setCriteria({ ...Default[key] });
+    }
+  };
+
+  return (
+    <Select onChange={handlePickKey} value={selectedKey}>
+      <option key="tags" value="tags">
+        Tags
+      </option>
+      <option key="name" value="name">
+        File name
+      </option>
+      <option key="path" value="path">
+        File path
+      </option>
+      <option key="extension" value="extension">
+        File type
+      </option>
+      <option key="size" value="size">
+        File size (MB)
+      </option>
+      <option key="dateAdded" value="dateAdded">
+        Date added
+      </option>
+    </Select>
+  );
+};
+
+interface IOperatorSelector {
+  selectedKey: CriteriaKey;
+  selectedOperator: CriteriaOperator;
+  setOperator: (operator: CriteriaOperator) => void;
+}
+
+const toOption = (o: string) => (
+  <option key={o} value={o}>
+    {camelCaseToSpaced(o)}
+  </option>
+);
+
+const OperatorOptions = {
+  ARRAY: ArrayOperators.map(toOption),
+  BINARY: BinaryOperators.map(toOption),
+  NUMBER: NumberOperators.map(toOption),
+  STRING: StringOperators.map(toOption),
+};
+
+const getOperatorOptions = (key: CriteriaKey) => {
+  if (key === 'dateAdded' || key === 'size') {
+    return OperatorOptions.NUMBER;
+  } else if (key === 'extension') {
+    return OperatorOptions.BINARY;
+  } else if (key === 'name' || key === 'path') {
+    return OperatorOptions.STRING;
+  } else if (key === 'tags') {
+    return OperatorOptions.ARRAY;
+  }
+  return [];
+};
+
+const OperatorSelector = ({ selectedKey, selectedOperator, setOperator }: IOperatorSelector) => {
+  return (
+    <Select
+      onChange={(e) => setOperator(e.target.value as CriteriaOperator)}
+      value={selectedOperator}
+    >
+      {getOperatorOptions(selectedKey)}
+    </Select>
+  );
+};
+
+interface IValueInput<V extends CriteriaValue = CriteriaValue> {
+  value: V;
+  setValue: (value: CriteriaValue) => void;
+}
+
+const TagCriteriaItem = ({ value, setValue }: IValueInput<TagValue>) => {
+  const { tagStore, tagCollectionStore } = useContext(StoreContext);
+
+  const selectedItem =
+    value.length !== 0
+      ? value.length === 2
+        ? tagStore.get(value[0])
+        : tagCollectionStore.get(value[0])
+      : undefined;
+
+  return (
+    <TagSelector
+      autoFocus
+      includeCollections
+      selectedItem={selectedItem}
+      onTagSelect={(t) => setValue([t.id, t.name])}
+      onTagColSelect={(c) => setValue([c.id, c.name, c.getTagsRecursively()])}
+    />
+  );
+};
+
+const ExtensionOptions = IMG_EXTENSIONS.map((ext) => (
+  <option key={ext} value={ext}>
+    {ext.toUpperCase()}
+  </option>
+));
+
+const ExtensionCriteriaItem = ({ value, setValue }: IValueInput<string>) => {
+  return (
+    <Select onChange={(e) => setValue(e.target.value)} value={value}>
+      {ExtensionOptions}
+    </Select>
+  );
+};
+
+const bytesInMb = 1024 * 1024;
+
+const ValueInput = ({ keyValue, value, setValue }: IValueInput & { keyValue: CriteriaKey }) => {
+  if (keyValue === 'name' || keyValue === 'path') {
+    return (
+      <TextInput
+        focusOnEdit
+        placeholder="Enter some text..."
+        value={value as string}
+        setText={setValue}
+      />
+    );
+  } else if (keyValue === 'tags') {
+    return <TagCriteriaItem value={value as TagValue} setValue={setValue} />;
+  } else if (keyValue === 'extension') {
+    return <ExtensionCriteriaItem value={value as string} setValue={setValue} />;
+  } else if (keyValue === 'size') {
+    return (
+      <NumberInput
+        placeholder="Enter a number..."
+        value={value as number}
+        setValue={setValue}
+        focusOnEdit
+      />
+    );
+  } else if (keyValue === 'dateAdded') {
+    return (
+      <DateInput
+        value={value as Date}
+        onChange={setValue}
+        popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
+        canClearSelection={false}
+        maxDate={new Date()}
+        {...jsDateFormatter}
+      />
+    );
+  }
+  return <p>This should never happen.</p>;
+};
+
+interface ICriteriaItemProps {
+  criteria: CriteriaField;
+  replace: (replacement: CriteriaField) => void;
+  remove: () => void;
+  removable: boolean;
+}
+
+// The main Criteria component, finds whatever input fields for the key should be rendered
+const CriteriaItem = ({ criteria, remove, removable, replace }: ICriteriaItemProps) => {
+  return (
+    <ControlGroup fill className="criteria">
+      <KeySelector selectedKey={criteria.key} setCriteria={replace} />
+      <OperatorSelector
+        selectedKey={criteria.key}
+        selectedOperator={criteria.operator}
+        setOperator={(operator: CriteriaOperator) => {
+          criteria.operator = operator;
+          replace(criteria);
+        }}
+      />
+      <ValueInput
+        keyValue={criteria.key}
+        value={criteria.value}
+        setValue={(value: CriteriaValue) => {
+          criteria.value = value;
+          replace(criteria);
+        }}
+      />
+      <Button text="-" onClick={remove} disabled={!removable} className="remove" />
+    </ControlGroup>
+  );
+};
+
+function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
+  const c = { ...Default.tags, id: generateId() };
+  if (
+    criteria instanceof ClientStringSearchCriteria &&
+    (criteria.key === 'name' || criteria.key === 'path' || criteria.key === 'extension')
+  ) {
+    c.value = criteria.value;
+  } else if (criteria instanceof ClientDateSearchCriteria && criteria.key === 'dateAdded') {
+    c.value = criteria.value;
+  } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
+    c.value = criteria.value / bytesInMb;
+  } else if (
+    criteria instanceof ClientIDSearchCriteria &&
+    criteria.key === 'tags' &&
+    criteria.value.length > 0
+  ) {
+    c.value = [criteria.value[0], criteria.label];
+  } else if (criteria instanceof ClientCollectionSearchCriteria && criteria.key === 'tags') {
+    c.value = [criteria.collectionId, criteria.label, criteria.value];
+  } else {
+    return c;
+  }
+  c.key = criteria.key;
+  c.operator = criteria.operator;
+  return c;
+}
+
+function intoCriteria(field: CriteriaField): FileSearchCriteria {
+  if (field.key === 'name' || field.key === 'path' || field.key === 'extension') {
+    return new ClientStringSearchCriteria(field.key, field.value, field.operator);
+  } else if (field.key === 'dateAdded') {
+    return new ClientDateSearchCriteria(field.key, field.value, field.operator);
+  } else if (field.key === 'size') {
+    return new ClientNumberSearchCriteria(field.key, field.value * bytesInMb, field.operator);
+  } else if (field.key === 'tags' && field.value.length === 2) {
+    return new ClientIDSearchCriteria(field.key, field.value[0], field.value[1], field.operator);
+  } else if (field.key === 'tags' && field.value.length === 3) {
+    return new ClientCollectionSearchCriteria(
+      field.value[0],
+      field.value[2],
+      field.value[1],
+      field.operator,
+    );
+  } else {
+    return new ClientIDSearchCriteria('tags');
+  }
+}
+
+const SearchForm = ({
+  uiStore: {
+    searchCriteriaList,
+    openQuickSearch,
+    replaceSearchCriterias,
+    clearSearchCriteriaList,
+    closeAdvancedSearch,
+  },
+}: {
+  uiStore: UiStore;
+}) => {
+  const [criterias, setCriterias] = useState<CriteriaField[]>(
+    searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : [{ ...Default.tags }],
+  );
+
+  useEffect(() => {
+    openQuickSearch();
+  }, [openQuickSearch]);
+
+  const removeCriteria = (index: number) => {
+    criterias.splice(index, 1);
+    setCriterias(criterias.slice());
+  };
+
+  const replaceCriteria = (current: number, replacement: CriteriaField) => {
+    replacement.id = criterias[current].id;
+    criterias[current] = replacement;
+    setCriterias(criterias.slice());
+  };
+
+  return (
+    <div id="search-form">
+      <FormGroup>
+        {criterias.map((crit, i) => (
+          <CriteriaItem
+            key={crit.id}
+            criteria={crit}
+            replace={replaceCriteria.bind(null, i)}
+            remove={removeCriteria.bind(null, i)}
+            removable={criterias.length !== 1}
+          />
+        ))}
+      </FormGroup>
+
+      <Button
+        text="Add"
+        icon={IconSet.ADD}
+        onClick={() => setCriterias(criterias.concat({ ...Default.tags, id: generateId() }))}
+        minimal
+      />
+
+      <div>
+        <div id="actions-bar" className="bp3-alert-footer">
+          <Button
+            intent="primary"
+            text="Search"
+            onClick={() => {
+              replaceSearchCriterias(criterias.map(intoCriteria));
+              closeAdvancedSearch();
+            }}
+            disabled={criterias.length === 0}
+            icon={IconSet.SEARCH}
+            fill
+          />
+          <Button
+            text="Reset"
+            onClick={() => {
+              clearSearchCriteriaList();
+              setCriterias([{ ...Default.tags, id: generateId() }]);
+            }}
+            disabled={criterias.length === 0}
+            icon={IconSet.CLOSE}
+            fill
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -61,363 +408,11 @@ export const AdvancedSearchDialog = observer(() => {
       onClose={uiStore.toggleAdvancedSearch}
       icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      // className={themeClass}
       className={`${themeClass} light`}
       canEscapeKeyClose={true}
       canOutsideClickClose={true}
     >
-      <SearchForm />
+      <SearchForm uiStore={uiStore} />
     </Dialog>
   );
 });
-
-const KeySelector = observer(({ criteria }: { criteria: FileSearchCriteria }) => {
-  const { uiStore } = useContext(StoreContext);
-  const handlePickKey = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => {
-      const key = e.target.value as keyof IFile;
-      if (key === 'name' || key === 'path' || key === 'extension') {
-        const newCrit = new ClientStringSearchCriteria(key);
-        uiStore.replaceCriteriaItem(criteria, newCrit);
-        if (newCrit.key === 'extension') {
-          newCrit.setValue(IMG_EXTENSIONS[0]);
-        }
-      } else if (key === 'tags') {
-        uiStore.replaceCriteriaItem(criteria, new ClientArraySearchCriteria(key));
-      } else if (key === 'size') {
-        uiStore.replaceCriteriaItem(criteria, new ClientNumberSearchCriteria(key));
-      } else if (key === 'dateAdded') {
-        uiStore.replaceCriteriaItem(criteria, new ClientDateSearchCriteria(key));
-      }
-    },
-    [criteria, uiStore],
-  );
-
-  return (
-    <Select onChange={handlePickKey} value={criteria.key}>
-      {CriteriaKeyOrder.map((key) => (
-        <option key={key} value={key}>
-          {KeyLabelMap[key]}
-        </option>
-      ))}
-    </Select>
-  );
-});
-
-interface IOperatorSelectProps {
-  onSelect: (sign: string) => void;
-  value: string;
-  options: readonly string[];
-}
-
-const OperatorSelect = ({ onSelect, value, options }: IOperatorSelectProps) => {
-  const handleSelect = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => onSelect(e.target.value),
-    [onSelect],
-  );
-  return (
-    <Select onChange={handleSelect} value={value}>
-      {options.map((o) => (
-        <option key={o} value={o}>
-          {camelCaseToSpaced(o)}
-        </option>
-      ))}
-    </Select>
-  );
-};
-
-const TagCriteriaItem = observer(
-  ({ criteria }: { criteria: ClientIDSearchCriteria<IFile> | ClientCollectionSearchCriteria }) => {
-    const { uiStore, tagStore, tagCollectionStore } = useContext(StoreContext);
-
-    const setOperator = useCallback(
-      (operator: string) => criteria.setOperator(operator as ArrayOperatorType),
-      [criteria],
-    );
-
-    const handleSelectTag = useCallback(
-      (t: ClientTag) => {
-        if (criteria instanceof ClientIDSearchCriteria) {
-          criteria.setValue(t.id, t.name);
-        } else {
-          uiStore.replaceCriteriaItem(criteria, new ClientIDSearchCriteria('tags', t.id, t.name));
-        }
-      },
-      [criteria, uiStore],
-    );
-    const handleSelectCol = useCallback(
-      (col: ClientTagCollection) => {
-        if (criteria instanceof ClientCollectionSearchCriteria) {
-          criteria.setValue(col.id, col.getTagsRecursively(), col.name);
-        } else {
-          uiStore.replaceCriteriaItem(
-            criteria,
-            new ClientCollectionSearchCriteria(col.id, col.getTagsRecursively(), col.name),
-          );
-        }
-      },
-      [criteria, uiStore],
-    );
-
-    const handleClear = useCallback(() => {
-      if (criteria instanceof ClientIDSearchCriteria) {
-        criteria.setValue('', '');
-      } else if (criteria instanceof ClientCollectionSearchCriteria) {
-        criteria.setValue('', [], '');
-      }
-    }, [criteria]);
-
-    const selectedItem = useMemo(() => {
-      if (criteria instanceof ClientIDSearchCriteria) {
-        return criteria.value.length === 1 ? tagStore.get(criteria.value[0]) : undefined;
-      } else if (criteria instanceof ClientCollectionSearchCriteria) {
-        return tagCollectionStore.get(criteria.collectionId);
-      }
-    }, [
-      tagStore,
-      tagCollectionStore,
-      criteria,
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      criteria instanceof ClientCollectionSearchCriteria ? criteria.collectionId : criteria.value,
-    ]);
-
-    return (
-      <>
-        <OperatorSelect onSelect={setOperator} value={criteria.operator} options={ArrayOperators} />
-        <MultiTagSelector
-          selectedItems={selectedItem ? [selectedItem] : []}
-          onTagSelect={handleSelectTag}
-          onTagDeselect={handleClear}
-          onClearSelection={handleClear}
-          placeholder="Untagged"
-          autoFocus
-          includeCollections
-          onTagColDeselect={handleClear}
-          onTagColSelect={handleSelectCol}
-        />
-      </>
-    );
-  },
-);
-
-const StringCriteriaItem = observer(
-  ({ criteria }: { criteria: ClientStringSearchCriteria<IFile> }) => {
-    const setOperator = useCallback(
-      (operator: string) => criteria.setOperator(operator as StringOperatorType),
-      [criteria],
-    );
-
-    return (
-      <>
-        <OperatorSelect
-          onSelect={setOperator}
-          value={criteria.operator}
-          options={StringOperators}
-        />
-        <TextInput
-          focusOnEdit
-          placeholder="Enter some text..."
-          value={criteria.value}
-          setText={criteria.setValue}
-        />
-      </>
-    );
-  },
-);
-
-const ExtensionCriteriaItem = observer(
-  ({ criteria }: { criteria: ClientStringSearchCriteria<IFile> }) => {
-    const setOperator = useCallback(
-      (operator: string) => criteria.setOperator(operator as BinaryOperatorType),
-      [criteria],
-    );
-    const handlePickValue = useCallback(
-      (e: ChangeEvent<HTMLSelectElement>) => criteria.setValue(e.target.value),
-      [criteria],
-    );
-
-    return (
-      <>
-        <OperatorSelect
-          onSelect={setOperator}
-          value={criteria.operator}
-          options={BinaryOperators}
-        />
-        <Select value={criteria.value} onChange={handlePickValue}>
-          {IMG_EXTENSIONS.map((value) => (
-            <option key={value}>{value.toUpperCase()}</option>
-          ))}
-        </Select>
-      </>
-    );
-  },
-);
-
-const bytesInMb = 1024 * 1024;
-const NumberCriteriaItem = observer(
-  ({ criteria }: { criteria: ClientNumberSearchCriteria<IFile> }) => {
-    const setOperator = useCallback(
-      (operator: string) => criteria.setOperator(operator as NumberOperatorType),
-      [criteria],
-    );
-
-    return (
-      <>
-        <OperatorSelect
-          onSelect={setOperator}
-          value={criteria.operator}
-          options={NumberOperators}
-        />
-        <NumberInput
-          focusOnEdit
-          placeholder="Enter a number..."
-          value={criteria.value / bytesInMb}
-          setValue={criteria.setValue}
-        />
-      </>
-    );
-  },
-);
-
-const DateCriteriaItem = observer(({ criteria }: { criteria: ClientDateSearchCriteria<IFile> }) => {
-  const setOperator = useCallback(
-    (operator: string) => criteria.setOperator(operator as NumberOperatorType),
-    [criteria],
-  );
-  const handleChangeValue = useCallback((date: Date) => criteria.setValue(date), [criteria]);
-  return (
-    <>
-      <OperatorSelect onSelect={setOperator} value={criteria.operator} options={NumberOperators} />
-      <DateInput
-        value={criteria.value}
-        onChange={handleChangeValue}
-        // timePrecision="minute"
-        popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
-        canClearSelection={false}
-        maxDate={new Date()}
-        // timePickerProps={{ showArrowButtons: true, selectAllOnFocus: true }}
-        {...jsDateFormatter}
-      />
-    </>
-  );
-});
-
-interface ICriteriaItemProps {
-  criteria: FileSearchCriteria;
-  onRemove: () => any;
-  onAdd: () => any;
-  removable: boolean;
-}
-
-// The main Criteria component, finds whatever input fields for the key should be rendered
-const CriteriaItem = observer(({ criteria, onRemove, removable }: ICriteriaItemProps) => {
-  const critFields = useMemo(() => {
-    if (criteria.key === 'name' || criteria.key === 'path') {
-      return <StringCriteriaItem criteria={criteria as ClientStringSearchCriteria<IFile>} />;
-    } else if (criteria.key === 'tags') {
-      return <TagCriteriaItem criteria={criteria as ClientIDSearchCriteria<IFile>} />;
-    } else if (criteria.key === 'extension') {
-      return <ExtensionCriteriaItem criteria={criteria as ClientStringSearchCriteria<IFile>} />;
-    } else if (criteria.key === 'size') {
-      return <NumberCriteriaItem criteria={criteria as ClientNumberSearchCriteria<IFile>} />;
-    } else if (criteria.key === 'dateAdded') {
-      return <DateCriteriaItem criteria={criteria as ClientDateSearchCriteria<IFile>} />;
-    }
-    return <p>This should never happen.</p>;
-  }, [criteria]);
-
-  return (
-    <ControlGroup fill className="criteria">
-      <KeySelector criteria={criteria} />
-      {critFields}
-
-      {/* <ButtonGroup vertical className="add-remove">
-        <Button text="-" onClick={onRemove} disabled={!removable} />
-        <Button text="+" onClick={onAdd} />
-      </ButtonGroup> */}
-      <Button text="-" onClick={onRemove} disabled={!removable} className="remove" />
-    </ControlGroup>
-  );
-});
-
-const SearchForm = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-
-  const addSearchCriteria = useCallback(
-    () => uiStore.addSearchCriteria(new ClientArraySearchCriteria('tags')),
-    [uiStore],
-  );
-
-  const removeSearchCriteria = useCallback(
-    (index: number) => uiStore.removeSearchCriteriaByIndex(index),
-    [uiStore],
-  );
-
-  const resetSearchCriteria = useCallback(() => {
-    uiStore.clearSearchCriteriaList();
-    addSearchCriteria();
-  }, [addSearchCriteria, uiStore]);
-
-  return (
-    <div id="search-form">
-      <FormGroup>
-        {uiStore.searchCriteriaList.map((crit, i) => (
-          <CriteriaItem
-            criteria={crit}
-            key={`crit-${i}-${crit.key}`}
-            onAdd={addSearchCriteria}
-            onRemove={removeSearchCriteria.bind(null, i)}
-            removable={uiStore.searchCriteriaList.length !== 1}
-          />
-        ))}
-      </FormGroup>
-
-      <Button icon={IconSet.ADD} onClick={addSearchCriteria} minimal text="Add" />
-
-      <div>
-        {/* <RadioGroup inline label="Match with" selectedValue="all" onChange={() => undefined}>
-          <Radio label="All" value="all" />
-          <Radio label="Any" value="any" />
-        </RadioGroup> */}
-
-        {/* <ButtonGroup id="actions-bar">
-          <Button
-            onClick={resetSearchCriteria}
-            disabled={uiStore.searchCriteriaList.length === 0}
-            text="Reset"
-            icon={IconSet.CLOSE}
-            fill
-          />
-          <Button
-            intent="primary"
-            onClick={uiStore.viewContentQuery}
-            disabled={uiStore.searchCriteriaList.length === 0}
-            text="Search"
-            icon={IconSet.SEARCH}
-            fill
-          />
-        </ButtonGroup> */}
-
-        <div id="actions-bar" className="bp3-alert-footer">
-          <Button
-            intent="primary"
-            onClick={uiStore.viewQueryContent}
-            disabled={uiStore.searchCriteriaList.length === 0}
-            text="Search"
-            icon={IconSet.SEARCH}
-            fill
-          />
-          <Button
-            onClick={resetSearchCriteria}
-            disabled={uiStore.searchCriteriaList.length === 0}
-            text="Reset"
-            icon={IconSet.CLOSE}
-            fill
-          />
-        </div>
-      </div>
-    </div>
-  );
-});
-
-export default SearchForm;

@@ -3,7 +3,7 @@ import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
 
-import { ID, IIdentifiable, ISerializable } from './ID';
+import { ID, IResource, ISerializable } from './ID';
 import LocationStore from '../frontend/stores/LocationStore';
 import { IMG_EXTENSIONS } from './File';
 import { ClientTag } from './Tag';
@@ -12,18 +12,46 @@ import { AppToaster } from '../frontend/App';
 
 export const DEFAULT_LOCATION_ID: ID = 'default-location';
 
-export interface ILocation extends IIdentifiable {
+export interface ILocation extends IResource {
   id: ID;
   path: string;
   dateAdded: Date;
   tagsToAdd: ID[];
 }
 
-export class DbLocation implements ILocation {
-  constructor(public id: ID, public path: string, public dateAdded: Date, public tagsToAdd: ID[]) {}
+export interface IDirectoryTreeItem {
+  name: string;
+  fullPath: string;
+  children: IDirectoryTreeItem[];
 }
 
-export class ClientLocation implements ILocation, ISerializable<DbLocation> {
+/**
+ * Recursive function that returns the dir list for a given path
+ */
+async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
+  try {
+    let dirs: string[] = [];
+    for (const file of await fse.readdir(path)) {
+      const fullPath = SysPath.join(path, file);
+      if ((await fse.stat(fullPath)).isDirectory()) {
+        dirs = [...dirs, fullPath];
+      }
+    }
+    return Promise.all(
+      dirs.map(
+        async (dir): Promise<IDirectoryTreeItem> => ({
+          name: SysPath.basename(dir),
+          fullPath: dir,
+          children: await getDirectoryTree(dir),
+        }),
+      ),
+    );
+  } catch (e) {
+    return [];
+  }
+}
+
+export class ClientLocation implements ISerializable<ILocation> {
   saveHandler: IReactionDisposer;
   watcher?: FSWatcher;
   autoSave = true;
@@ -141,7 +169,7 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
     return new Promise<string[]>((resolve) => {
       watcher
         .on('add', async (path: string) => {
-          if (IMG_EXTENSIONS.some((ext) => path.toLowerCase().endsWith(ext))) {
+          if (IMG_EXTENSIONS.some((ext) => SysPath.extname(path).endsWith(ext))) {
             // Todo: ignore dot files/dirs?
             if (this.isReady) {
               console.log(`File ${path} has been added after initialization`);
@@ -192,5 +220,9 @@ export class ClientLocation implements ILocation, ISerializable<DbLocation> {
           resolve(initialFiles);
         });
     });
+  }
+
+  async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
+    return getDirectoryTree(this.path);
   }
 }

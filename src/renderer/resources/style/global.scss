@@ -45,9 +45,8 @@ body {
 
 main {
   grid-area: main;
-  overflow: hidden; //temp fix for double scrollbar
-  // height: inherit;
-  // z-index: 0;
+  display: flex;
+  flex-flow: column;
 }
 
 #layoutContainer {
