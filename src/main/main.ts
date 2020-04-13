@@ -40,6 +40,10 @@ const getTags = async (): Promise<ITag[]> => {
   return [];
 };
 
+let initialize = () => {
+  console.log('Initializing...');
+};
+
 function createTrayMenu() {
   if (!tray) {
     tray = new Tray(`${__dirname}/${isMac ? TrayIconMac : TrayIcon}`);
@@ -47,18 +51,16 @@ function createTrayMenu() {
       {
         label: 'Open',
         type: 'normal',
-        click: () => mainWindow?.focus(),
+        click: () => mainWindow?.focus() ?? initialize(),
       },
       {
         label: 'Quit',
-        click: () => {
-          process.exit(0);
-        },
+        click: () => process.exit(0),
       },
     ]);
     tray.setContextMenu(trayMenu);
     tray.setToolTip('Allusion - Your Visual Library');
-    tray.on('click', () => mainWindow?.focus());
+    tray.on('click', () => mainWindow?.focus() ?? initialize());
   }
 }
 
@@ -103,9 +105,7 @@ function createWindow() {
         {
           label: 'Quit',
           accelerator: 'Command+Q',
-          click: () => {
-            process.exit(0);
-          },
+          click: () => process.exit(0),
         },
       ],
     });
@@ -249,13 +249,15 @@ function createPreviewWindow() {
   return previewWindow;
 }
 
+initialize = () => {
+  createWindow();
+  createPreviewWindow();
+};
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {
-  createWindow();
-  createPreviewWindow();
-});
+app.on('ready', initialize);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
