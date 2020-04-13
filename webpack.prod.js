@@ -39,10 +39,6 @@ let mainConfig = {
         },
       },
       {
-        test: /\.svg$/,
-        loader: 'svg-inline-loader?classPrefix',
-      },
-      {
         test: /\.(eot|ttf|woff|woff2)$/,
         loader: 'file-loader',
         options: {
@@ -109,7 +105,16 @@ let rendererConfig = {
       },
       {
         test: /\.svg$/,
-        use: ['@svgr/webpack'],
+        oneOf: [
+          {
+            issuer: /\.scss$/,
+            loader: 'file-loader',
+          },
+          {
+            issuer: /.tsx?$/,
+            loader: '@svgr/webpack',
+          },
+        ],
       },
     ],
   },
