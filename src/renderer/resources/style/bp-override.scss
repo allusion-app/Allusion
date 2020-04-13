@@ -507,11 +507,10 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-button::before,
-.bp3-button>*,
-// .bp3-tree-node-caret,
-.bp3-tree-node-caret>.custom-icon,
-.bp3-tree-node-content>span.custom-icon,
-.bp3-tree-node-content > span span.custom-icon,
+.bp3-button > *,
+.bp3-tree-node-caret > .custom-icon,
+.bp3-tree-node-content > .custom-icon,
+.bp3-tree-node-content > span > .custom-icon,
 .bp3-tree-node-content > .custom-icon-14.custom-icon {
   margin-right: 0.25rem;
 }
