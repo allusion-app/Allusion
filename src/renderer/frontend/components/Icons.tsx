@@ -1,5 +1,4 @@
 import React from 'react';
-import { H3, IconName, Tag, Intent } from '@blueprintjs/core';
 
 interface ISVG extends React.SVGProps<SVGSVGElement> {
   src: any;
@@ -153,61 +152,5 @@ const IconSet = {
   WARNING_FILL: toSvg(WARNING_FILL),
   WARNING: toSvg(WARNING),
 };
-
-export const IconDemo = () => (
-  <>
-    <H3>Built-in icons</H3>
-    {([
-      'plus',
-      'small-plus',
-      '',
-      '',
-      'chevron-down',
-      'chevron-right',
-      'chevron-up',
-      'tick',
-      'cross',
-      'trash',
-      'delete' /*'small-cross'*/,
-      ,
-      'edit',
-      'folder-close',
-      'folder-open',
-      '',
-      'info-sign',
-      'menu',
-      '',
-      '',
-      'more',
-      'search',
-      'path-search',
-      'tag',
-      'calendar',
-      'sort-alphabetical',
-      'sort-alphabetical-desc',
-      'play',
-      'warning-sign',
-      'double-caret-vertical',
-    ] as IconName[]).map((name, i) => (
-      <Tag
-        icon={name}
-        large
-        intent={Object.values(Intent)[i % Object.values(Intent).length]}
-        key={i}
-      />
-    ))}
-
-    <br />
-    <H3>Custom icons</H3>
-    {Object.values(IconSet).map((icon, i) => (
-      <Tag
-        icon={icon}
-        large
-        intent={Object.values(Intent)[i % Object.values(Intent).length]}
-        key={`tag-${i}`}
-      />
-    ))}
-  </>
-);
 
 export default IconSet;
