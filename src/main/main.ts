@@ -41,7 +41,7 @@ const getTags = async (): Promise<ITag[]> => {
 };
 
 let initialize = () => {
-  console.error('Placeholder function! App was not properly initialized.');
+  console.error('Placeholder function. App was not properly initialized!');
 };
 
 function createTrayMenu() {
