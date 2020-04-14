@@ -1,12 +1,12 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
-import { generateId, ID, IIdentifiable, ISerializable } from './ID';
+import { generateId, ID, IResource, ISerializable } from './ID';
 import { ClientTag, ITag } from './Tag';
 import TagCollectionStore from '../frontend/stores/TagCollectionStore';
 
 export const ROOT_TAG_COLLECTION_ID = 'hierarchy';
 
-/* Generic properties of a Tag Collection in our application */
-export interface ITagCollection extends IIdentifiable {
+/* A Tag Collection as it is represented in the Database */
+export interface ITagCollection extends IResource {
   id: ID;
   name: string;
   description: string;
@@ -16,51 +16,27 @@ export interface ITagCollection extends IIdentifiable {
   color: string;
 }
 
-/* A Tag Collection as it is represented in the Database */
-export class DbTagCollection implements ITagCollection {
-  public id: ID;
-  public name: string;
-  public description: string;
-  public dateAdded: Date;
-  public subCollections: ID[];
-  public tags: ID[];
-  public color: string;
-
-  constructor(id: ID, name: string, color?: string, description?: string) {
-    this.id = id;
-    this.name = name;
-    this.description = description || '';
-    this.dateAdded = new Date();
-    this.subCollections = [];
-    this.tags = [];
-    this.color = color || '';
-  }
-}
-
 /**
  * A Tag collection as it is stored in the Client.
  */
-export class ClientTagCollection implements ITagCollection, ISerializable<DbTagCollection> {
+export class ClientTagCollection implements ISerializable<ITagCollection> {
   store: TagCollectionStore;
   saveHandler: IReactionDisposer;
   autoSave = true;
 
   id: ID;
-  dateAdded: Date;
+  dateAdded: Date = new Date();
   @observable name: string;
-  @observable description: string;
+  @observable description: string = '';
   readonly subCollections = observable<ID>([]);
   readonly tags = observable<ID>([]);
 
-  @observable color: string;
+  @observable color: string = '';
 
-  constructor(store: TagCollectionStore, name?: string, id = generateId()) {
+  constructor(store: TagCollectionStore, name: string = '', id = generateId()) {
     this.store = store;
     this.id = id;
-    this.name = name || '';
-    this.description = '';
-    this.color = '';
-    this.dateAdded = new Date();
+    this.name = name;
 
     // observe all changes to observable fields
     this.saveHandler = reaction(

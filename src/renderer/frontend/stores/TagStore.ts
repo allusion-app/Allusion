@@ -48,7 +48,7 @@ class TagStore {
   @action.bound async addTag(tagName: string) {
     const tag = new ClientTag(this, tagName);
     this.tagList.push(tag);
-    await this.backend.createTag(tag.id, tag.name, tag.description);
+    await this.backend.createTag(tag.serialize());
     return tag;
   }
 

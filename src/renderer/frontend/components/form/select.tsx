@@ -8,28 +8,11 @@ interface ISelect extends FormElement<string | string[], HTMLSelectElement> {
   >[];
 }
 
-const Select = ({
-  className,
-  disabled,
-  name,
-  required,
-  value,
-  onChange,
-  multiple,
-  children,
-}: ISelect) => {
+const Select = (props: ISelect) => {
   return (
     <div className={'select-wrapper'}>
-      <select
-        className={className}
-        disabled={disabled}
-        name={name}
-        required={required}
-        defaultValue={value}
-        onChange={onChange}
-        multiple={multiple}
-      >
-        {children}
+      <select {...props} value={undefined} defaultValue={props.value}>
+        {props.children}
       </select>
     </div>
   );

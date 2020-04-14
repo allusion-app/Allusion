@@ -21,6 +21,7 @@ import { ClientTag } from '../../../../entities/Tag';
 import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';
 import { SketchPicker, ColorResult } from 'react-color';
+import { ClientIDSearchCriteria } from '../../../../entities/SearchCriteria';
 import { TextInput } from '../../../components/form';
 
 const DEFAULT_TAG_NAME = 'New Tag';
@@ -286,12 +287,14 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
                   uiStore.openOutlinerTagRemover(tag.isSelected ? 'selected' : tag.id)
                 }
                 onAddSelectionToQuery={() =>
-                  uiStore.addTagsToCriteria(tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id])
+                  tag.isSelected
+                    ? uiStore.replaceCriteriaWithTagSelection()
+                    : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
                 }
                 onReplaceQuery={() =>
-                  uiStore.replaceCriteriaWithTags(
-                    tag.isSelected ? uiStore.tagSelection.toJS() : [tag.id],
-                  )
+                  tag.isSelected
+                    ? uiStore.replaceCriteriaWithTagSelection()
+                    : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
                 }
                 numColsInContext={contextItems.collections.length}
                 numTagsInContext={Math.max(0, contextItems.tags.length - 1)}
@@ -431,14 +434,18 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
             onCollapseAll={() => setExpandState({ ...collapseSubCollection(col) })}
             onRemove={() => uiStore.openOutlinerTagRemover(col.isSelected ? 'selected' : col.id)}
             onAddSelectionToQuery={() =>
-              uiStore.addTagsToCriteria(
-                col.isSelected ? uiStore.tagSelection.toJS() : col.getTagsRecursively(),
-              )
+              col.isSelected
+                ? uiStore.replaceCriteriaWithTagSelection()
+                : uiStore.addSearchCriterias(
+                    col.getTagsRecursively().map((c) => new ClientIDSearchCriteria('tags', c)),
+                  )
             }
             onReplaceQuery={() =>
-              uiStore.replaceCriteriaWithTags(
-                col.isSelected ? uiStore.tagSelection.toJS() : col.getTagsRecursively(),
-              )
+              col.isSelected
+                ? uiStore.replaceCriteriaWithTagSelection()
+                : uiStore.replaceSearchCriterias(
+                    col.getTagsRecursively().map((c) => new ClientIDSearchCriteria('tags', c)),
+                  )
             }
             onMoveUp={() => movePosition((n) => n - 1)}
             onMoveDown={() => movePosition((n) => n + 1)}

@@ -341,7 +341,8 @@ form .bp3-icon {
 }
 .bp3-dark {
   #inspector,
-  .gallery {
+  #outliner,
+  main {
     .bp3-tag-input.bp3-active,
     input:not(.bp3-input-ghost),
     .bp3-input-group {
@@ -1187,7 +1188,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 // Search panel
 #search-form,
-.gallery {
+main {
   .bp3-button-group.bp3-vertical > {
     .bp3-button:not(:first-child) {
       border-radius: 0 0 6px 6px !important;

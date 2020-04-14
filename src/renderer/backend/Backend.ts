@@ -1,9 +1,9 @@
-import { DbFile, IFile } from '../entities/File';
+import { IFile } from '../entities/File';
 import { ID } from '../entities/ID';
-import { DbTag, ITag } from '../entities/Tag';
+import { ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
-import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
+import { ITagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
 import { ILocation } from '../entities/Location';
 import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
@@ -32,19 +32,16 @@ export default class Backend {
     // Create a root 'Hierarchy' collection if it does not exist
     const colCount = await this.tagCollectionRepository.count();
     if (colCount === 0) {
-      await this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
+      await this.createTagCollection({
+        id: ROOT_TAG_COLLECTION_ID,
+        name: 'Hierarchy',
+        description: '',
+        dateAdded: new Date(),
+        subCollections: [],
+        tags: [],
+        color: '',
+      });
     }
-
-    // const locCount = await this.locationRepository.count();
-    // if (locCount === 0) {
-    //   await this.createLocation({
-    //     id: DEFAULT_LOCATION_ID,
-    //     path: path.join(os.homedir(), 'Allusion'), // todo: make user configurable on startup
-    //     dateAdded: new Date(),
-    //     tagsToAdd: [],
-    //   });
-    // }
-    // Here we could start indexing, or checking for changed files
   }
 
   async fetchTags(): Promise<ITag[]> {
@@ -68,27 +65,28 @@ export default class Backend {
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
-  async searchFiles(criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
-                    order: keyof IFile, fileOrder: FileOrder): Promise<IFile[]> {
-    // Fixme: This shouldn't be necesary, but I keep getting Mobx proxy objects, even when calling .toJS()
-    const serializedCriteria = JSON.parse(JSON.stringify(criteria));
-    console.log('Backend: Searching files...', serializedCriteria);
-    return this.fileRepository.find({ criteria: serializedCriteria, order, fileOrder });
+  async searchFiles(
+    criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
+    order: keyof IFile,
+    fileOrder: FileOrder,
+  ): Promise<IFile[]> {
+    console.log('Backend: Searching files...', criteria);
+    return this.fileRepository.find({ criteria, order, fileOrder });
   }
 
-  async createTag(id: ID, name: string, description?: string) {
-    console.log('Backend: Creating tag...', id, name, description);
-    return await this.tagRepository.create(new DbTag(id, name, description));
+  async createTag(tag: ITag) {
+    console.log('Backend: Creating tag...', tag);
+    return await this.tagRepository.create(tag);
   }
 
-  async createTagCollection(id: ID, name: string, description?: string) {
-    console.log('Backend: Creating tag collection...', id, name, description);
-    return this.tagCollectionRepository.create(new DbTagCollection(id, name, description));
+  async createTagCollection(collection: ITagCollection) {
+    console.log('Backend: Creating tag collection...', collection);
+    return this.tagCollectionRepository.create(collection);
   }
 
   async createFile(file: IFile) {
     console.log('Backend: Creating file...', file);
-    return await this.fileRepository.create(new DbFile(file));
+    return await this.fileRepository.create(file);
   }
 
   async saveTag(tag: ITag): Promise<ITag> {
@@ -110,8 +108,9 @@ export default class Backend {
     console.log('Removing tag...', tag);
     // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
-    const filesWithTag = await this.fileRepository
-      .find({ criteria: { key: 'tags', value: tag.id, operator: 'contains', valueType: 'array' }});
+    const filesWithTag = await this.fileRepository.find({
+      criteria: { key: 'tags', value: tag.id, operator: 'contains', valueType: 'array' },
+    });
     // Remove tag from files
     filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
     // Update files in db
@@ -124,7 +123,8 @@ export default class Backend {
     console.log('Removing tag collection...', tagCollection);
     // Get all sub collections
     const subCollections = await Promise.all(
-      tagCollection.subCollections.map((col) => this.tagCollectionRepository.get(col)));
+      tagCollection.subCollections.map((col) => this.tagCollectionRepository.get(col)),
+    );
     // Remove subcollections
     await Promise.all(subCollections.map((col) => col && this.removeTagCollection(col)));
     // Get all tags
@@ -147,8 +147,9 @@ export default class Backend {
 
   async getNumUntaggedFiles() {
     console.log('Get number of untagged files...');
-    return this.fileRepository.count(
-      { criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' } });
+    return this.fileRepository.count({
+      criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' },
+    });
   }
 
   async getWatchedDirectories(order: keyof ILocation, fileOrder: FileOrder) {

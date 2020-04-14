@@ -1,10 +1,10 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import TagStore from '../frontend/stores/TagStore';
-import { generateId, ID, IIdentifiable, ISerializable } from './ID';
+import { generateId, ID, IResource, ISerializable } from './ID';
 import { ClientTagCollection } from './TagCollection';
 
-/* Generic properties of a Tag in our application */
-export interface ITag extends IIdentifiable {
+/* A Tag as it is represented in the Database */
+export interface ITag extends IResource {
   id: ID;
   name: string;
   description: string;
@@ -12,47 +12,27 @@ export interface ITag extends IIdentifiable {
   color: string;
 }
 
-/* A Tag as it is represented in the Database */
-export class DbTag implements ITag {
-  public id: ID;
-  public name: string;
-  public description: string;
-  public dateAdded: Date;
-  public color: string;
-
-  constructor(id: ID, name: string, color?: string, description?: string) {
-    this.id = id;
-    this.name = name;
-    this.description = description || '';
-    this.dateAdded = new Date();
-    this.color = color || '';
-  }
-}
-
 /**
  * A Tag as it is stored in the Client.
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientTag implements ITag, ISerializable<DbTag> {
+export class ClientTag implements ISerializable<ITag> {
   store: TagStore;
   saveHandler: IReactionDisposer;
   autoSave = true;
 
   id: ID;
-  dateAdded: Date;
+  dateAdded: Date = new Date();
   @observable name: string;
-  @observable description: string;
-  @observable color: string;
+  @observable description: string = '';
+  @observable color: string = '';
   // icon, color, (fileCount?)
 
-  constructor(store: TagStore, name?: string, id = generateId()) {
+  constructor(store: TagStore, name: string = '', id = generateId()) {
     this.store = store;
     this.id = id;
-    this.name = name || '';
-    this.description = '';
-    this.dateAdded = new Date();
-    this.color = '';
+    this.name = name;
 
     // observe all changes to observable fields
     this.saveHandler = reaction(

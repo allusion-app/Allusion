@@ -20,7 +20,7 @@ const enum Tooltip {
 }
 
 const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
-  const { uiStore, fileStore } = rootStore;
+  const { fileStore } = rootStore;
 
   return (
     <div tabIndex={0}>
@@ -36,7 +36,7 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
             rightIcon={
               fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
             }
-            onClick={uiStore.viewAllContent}
+            onClick={fileStore.fetchAllFiles}
             active={fileStore.showsAllContent}
             fill
             data-right={Tooltip.AllImages}
@@ -51,7 +51,7 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
                 <Icon icon={IconSet.WARNING} />
               ) : null
             }
-            onClick={uiStore.viewUntaggedContent}
+            onClick={fileStore.fetchUntaggedFiles}
             active={fileStore.showsUntaggedContent}
             fill
             data-right={Tooltip.Untagged}
