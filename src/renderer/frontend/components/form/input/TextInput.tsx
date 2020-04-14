@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import React, { useEffect, useRef } from 'react';
 import {
   InputElement,
@@ -19,7 +20,7 @@ interface TextInput extends InputElement<string> {
  * @param param0
  */
 const TextInput = ({
-  focusOnEdit = false,
+  autoFocus,
   className,
   disabled,
   placeholder,
@@ -38,14 +39,14 @@ const TextInput = ({
   const input = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
     if (input.current) {
-      if (focusOnEdit && !readonly) {
+      if (autoFocus && !readonly) {
         input.current.focus();
       }
       if (readonly) {
         input.current.setSelectionRange(0, 0);
       }
     }
-  }, [readonly, focusOnEdit]);
+  }, [readonly, autoFocus]);
   return (
     <input
       spellCheck={false}

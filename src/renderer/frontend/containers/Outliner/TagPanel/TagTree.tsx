@@ -46,7 +46,7 @@ const Editor = ({ text, setText, isEditing, setEditing }: IEditorProp) => {
   );
   return (
     <TextInput
-      focusOnEdit
+      autoFocus
       placeholder="Enter a new name"
       readonly={!isEditing}
       value={text}

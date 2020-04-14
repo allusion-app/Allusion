@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import React, { useEffect, useRef } from 'react';
 
 import {
@@ -20,11 +21,11 @@ const NumberInput = ({
   min,
   max,
   step,
-  focusOnEdit = false,
+  autoFocus,
   className,
   disabled,
   placeholder,
-  readonly: editable = true,
+  readonly,
   required,
   value,
   setValue,
@@ -39,14 +40,14 @@ const NumberInput = ({
   const input = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
     if (input.current) {
-      if (focusOnEdit && editable) {
+      if (autoFocus && !readonly) {
         input.current.focus();
       }
-      if (!editable) {
+      if (readonly) {
         input.current.setSelectionRange(0, 0);
       }
     }
-  }, [editable, focusOnEdit]);
+  }, [readonly, autoFocus]);
   return (
     <input
       ref={input}
@@ -59,12 +60,12 @@ const NumberInput = ({
       disabled={disabled}
       placeholder={placeholder}
       required={required}
-      readOnly={!editable}
-      onBlur={handleOnBlur(onBlur, editable, isValid, setValue, onSubmit, value)}
-      onFocus={handleOnFocus(onFocus, editable)}
+      readOnly={readonly}
+      onBlur={handleOnBlur(onBlur, !readonly, isValid, setValue, onSubmit, value)}
+      onFocus={handleOnFocus(onFocus, !readonly)}
       onInput={handleOnInput(onInput, isValid)}
       onInvalid={handleOnInvalid(onInvalid)}
-      onKeyUp={handleOnEnter(editable, isValid, setValue, onSubmit, onAbort)}
+      onKeyUp={handleOnEnter(!readonly, isValid, setValue, onSubmit, onAbort)}
     />
   );
 };

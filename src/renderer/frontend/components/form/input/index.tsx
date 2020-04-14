@@ -4,7 +4,7 @@ import TextInput from './TextInput';
 import NumberInput from './NumberInput';
 
 export interface InputElement<T> extends FormElement<T> {
-  focusOnEdit?: boolean;
+  autoFocus?: boolean;
   placeholder: string;
   readonly?: boolean;
   isValid?: (value: string) => boolean;

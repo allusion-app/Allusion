@@ -203,7 +203,7 @@ const ValueInput = ({ keyValue, value, setValue }: IValueInput & { keyValue: Cri
   if (keyValue === 'name' || keyValue === 'path') {
     return (
       <TextInput
-        focusOnEdit
+        autoFocus
         placeholder="Enter some text..."
         value={value as string}
         setText={setValue}
@@ -216,10 +216,10 @@ const ValueInput = ({ keyValue, value, setValue }: IValueInput & { keyValue: Cri
   } else if (keyValue === 'size') {
     return (
       <NumberInput
+        autoFocus
         placeholder="Enter a number..."
         value={value as number}
         setValue={setValue}
-        focusOnEdit
       />
     );
   } else if (keyValue === 'dateAdded') {

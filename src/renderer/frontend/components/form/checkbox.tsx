@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import React from 'react';
 
 interface ICheckbox<T = string> {
@@ -12,22 +11,27 @@ interface ICheckbox<T = string> {
   defaultChecked?: boolean;
 }
 
-const Switch = React.memo((props: ICheckbox) => {
+const toggle = (props: ICheckbox) => {
+  const { label, ...p } = props;
   return (
     <label>
-      <input data-subtype-switch {...props} type="checkbox" />
-      {props.label}
+      <input data-subtype-switch {...p} type="checkbox" />
+      {label}
     </label>
   );
-});
+};
 
-const Checkbox = React.memo((props: ICheckbox) => {
+const checkbox = (props: ICheckbox) => {
+  const { label, ...p } = props;
   return (
     <label>
-      <input {...props} type="checkbox" />
-      {props.label}
+      <input {...p} type="checkbox" />
+      {label}
     </label>
   );
-});
+};
+
+const Checkbox = React.memo(checkbox);
+const Switch = React.memo(toggle);
 
 export { Switch, Checkbox };

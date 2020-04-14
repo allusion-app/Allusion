@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import React from 'react';
 import { FormElement } from './index';
 
@@ -7,36 +6,44 @@ interface IRadio extends FormElement {
   defaultChecked?: boolean;
 }
 
-const Radio = React.memo((props: IRadio) => {
+const radio = (props: IRadio) => {
+  const { label, ...p } = props;
   return (
     <label>
-      <input {...props} type="radio" />
-      {props.label}
+      <input {...p} type="radio" />
+      {label}
     </label>
   );
-});
+};
 
 interface IRadioGroup extends FormElement {
   name: string;
   children: React.ReactElement<IRadio>[];
 }
 
-const RadioGroup = React.memo(({ name, disabled, value, children, onChange }: IRadioGroup) => {
+const group = ({ name, disabled, value, children, onChange }: IRadioGroup) => {
   return (
     <fieldset>
       <legend>{name}</legend>
       {children.map(({ props }) => (
         <Radio
-          {...props}
-          disabled={disabled}
-          name={name}
           key={props.value}
-          onChange={props.onChange ?? onChange}
-          defaultChecked={value === props.value}
+          {...Object.assign(
+            {
+              disabled,
+              name,
+              onChange,
+              defaultChecked: value === props.value,
+            },
+            props,
+          )}
         />
       ))}
     </fieldset>
   );
-});
+};
+
+const Radio = React.memo(radio);
+const RadioGroup = React.memo(group);
 
 export { Radio, RadioGroup };
