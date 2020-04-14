@@ -21,7 +21,7 @@ interface IRadioGroup extends FormElement {
   children: React.ReactElement<IRadio>[];
 }
 
-const RadioGroup = ({ name, disabled, value, children, onChange }: IRadioGroup) => {
+const Group = ({ name, disabled, value, children, onChange }: IRadioGroup) => {
   return (
     <fieldset>
       <legend>{name}</legend>
@@ -42,5 +42,7 @@ const RadioGroup = ({ name, disabled, value, children, onChange }: IRadioGroup) 
     </fieldset>
   );
 };
+
+const RadioGroup = React.memo(Group);
 
 export { Radio, RadioGroup };

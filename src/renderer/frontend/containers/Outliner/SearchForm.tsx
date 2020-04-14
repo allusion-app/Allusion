@@ -1,4 +1,4 @@
-import React, { useContext, ChangeEvent, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import { FormGroup, Button, Dialog, ControlGroup } from '@blueprintjs/core';
@@ -71,52 +71,39 @@ const Default: { [key: string]: CriteriaField } = {
 };
 
 interface IKeySelector {
-  selectedKey: CriteriaKey;
+  keyValue: CriteriaKey;
   setCriteria: (criteria: CriteriaField) => void;
 }
 
-const KeySelector = ({ selectedKey, setCriteria }: IKeySelector) => {
-  const handlePickKey = (e: ChangeEvent<HTMLSelectElement>) => {
-    const key = e.target.value;
-    if (
-      key === 'name' ||
-      key === 'path' ||
-      key === 'extension' ||
-      key === 'tags' ||
-      key === 'size' ||
-      key === 'dateAdded'
-    ) {
-      setCriteria({ ...Default[key] });
-    }
-  };
-
-  return (
-    <Select onChange={handlePickKey} value={selectedKey}>
-      <option key="tags" value="tags">
-        Tags
-      </option>
-      <option key="name" value="name">
-        File name
-      </option>
-      <option key="path" value="path">
-        File path
-      </option>
-      <option key="extension" value="extension">
-        File type
-      </option>
-      <option key="size" value="size">
-        File size (MB)
-      </option>
-      <option key="dateAdded" value="dateAdded">
-        Date added
-      </option>
-    </Select>
-  );
-};
+const KeySelector = ({ keyValue, setCriteria }: IKeySelector) => (
+  <Select
+    onChange={(e) => setCriteria({ ...Default[e.target.value as CriteriaKey] })}
+    value={keyValue}
+  >
+    <option key="tags" value="tags">
+      Tags
+    </option>
+    <option key="name" value="name">
+      File name
+    </option>
+    <option key="path" value="path">
+      File path
+    </option>
+    <option key="extension" value="extension">
+      File type
+    </option>
+    <option key="size" value="size">
+      File size (MB)
+    </option>
+    <option key="dateAdded" value="dateAdded">
+      Date added
+    </option>
+  </Select>
+);
 
 interface IOperatorSelector {
-  selectedKey: CriteriaKey;
-  selectedOperator: CriteriaOperator;
+  keyValue: CriteriaKey;
+  operator: CriteriaOperator;
   setOperator: (operator: CriteriaOperator) => void;
 }
 
@@ -146,13 +133,10 @@ const getOperatorOptions = (key: CriteriaKey) => {
   return [];
 };
 
-const OperatorSelector = ({ selectedKey, selectedOperator, setOperator }: IOperatorSelector) => {
+const OperatorSelector = ({ keyValue, operator, setOperator }: IOperatorSelector) => {
   return (
-    <Select
-      onChange={(e) => setOperator(e.target.value as CriteriaOperator)}
-      value={selectedOperator}
-    >
-      {getOperatorOptions(selectedKey)}
+    <Select onChange={(e) => setOperator(e.target.value as CriteriaOperator)} value={operator}>
+      {getOperatorOptions(keyValue)}
     </Select>
   );
 };
@@ -248,11 +232,11 @@ interface ICriteriaItemProps {
 const CriteriaItem = ({ criteria, remove, removable, replace }: ICriteriaItemProps) => {
   return (
     <ControlGroup fill className="criteria">
-      <KeySelector selectedKey={criteria.key} setCriteria={replace} />
+      <KeySelector keyValue={criteria.key} setCriteria={replace} />
       <OperatorSelector
-        selectedKey={criteria.key}
-        selectedOperator={criteria.operator}
-        setOperator={(operator: CriteriaOperator) => {
+        keyValue={criteria.key}
+        operator={criteria.operator}
+        setOperator={(operator) => {
           criteria.operator = operator;
           replace(criteria);
         }}
@@ -260,7 +244,7 @@ const CriteriaItem = ({ criteria, remove, removable, replace }: ICriteriaItemPro
       <ValueInput
         keyValue={criteria.key}
         value={criteria.value}
-        setValue={(value: CriteriaValue) => {
+        setValue={(value) => {
           criteria.value = value;
           replace(criteria);
         }}
