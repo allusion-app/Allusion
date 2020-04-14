@@ -6,7 +6,7 @@ interface IRadio extends FormElement {
   defaultChecked?: boolean;
 }
 
-const radio = (props: IRadio) => {
+const Radio = (props: IRadio) => {
   const { label, ...p } = props;
   return (
     <label>
@@ -21,7 +21,7 @@ interface IRadioGroup extends FormElement {
   children: React.ReactElement<IRadio>[];
 }
 
-const group = ({ name, disabled, value, children, onChange }: IRadioGroup) => {
+const RadioGroup = ({ name, disabled, value, children, onChange }: IRadioGroup) => {
   return (
     <fieldset>
       <legend>{name}</legend>
@@ -42,8 +42,5 @@ const group = ({ name, disabled, value, children, onChange }: IRadioGroup) => {
     </fieldset>
   );
 };
-
-const Radio = React.memo(radio);
-const RadioGroup = React.memo(group);
 
 export { Radio, RadioGroup };

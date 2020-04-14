@@ -15,6 +15,20 @@ import { RendererMessenger } from '../../../Messaging';
 // Window state
 const WINDOW_STORAGE_KEY = 'Allusion_Window';
 
+const getDirectory = (defaultPath?: string): string | undefined => {
+  const dir = remote.dialog.showOpenDialog({
+    properties: ['openDirectory'],
+    defaultPath,
+  });
+  return dir?.[0];
+};
+
+const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setClipServerEnabled({ isClipServerRunning: event.target.checked });
+
+const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });
+
 const toggleFullScreen = () => {
   const { isFullScreen, setFullScreen } = remote.getCurrentWindow();
   // Save window state
@@ -24,34 +38,15 @@ const toggleFullScreen = () => {
 
 const Settings = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
-
-  const [isClipServerRunning, setClipServerRunning] = useState(false);
-  const [isRunningInBackground, setRunningInBackground] = useState(false);
   const [importPath, setImportPath] = useState(locationStore.importDirectory);
 
-  const toggleClipServer = useCallback(() => {
-    RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
-    setClipServerRunning(!isClipServerRunning);
-  }, [setClipServerRunning, isClipServerRunning]);
-
-  const toggleRunInBackground = useCallback(() => {
-    RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
-    setRunningInBackground(!isRunningInBackground);
-  }, [setRunningInBackground, isRunningInBackground]);
-
   const browseImportDir = useCallback(() => {
-    const dirs = remote.dialog.showOpenDialog({
-      properties: ['openDirectory'],
-    });
+    const dir = getDirectory();
 
-    if (!dirs) {
-      return;
+    if (dir) {
+      locationStore.setDefaultLocation(dir);
+      setImportPath(dir);
     }
-
-    const chosenDir = dirs[0];
-    locationStore.setDefaultLocation(chosenDir);
-    setImportPath(chosenDir);
-
     // Todo: Provide option to move/copy the files in that directory (?)
     // Since the import dir could also contain non-allusion files, not sure if a good idea
     // But then there should be support for re-importing manually copied files
@@ -70,24 +65,18 @@ const Settings = observer(() => {
         console.log('Cannot load persistent preferences', e);
       }
     }
-    setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
-    setRunningInBackground(RendererMessenger.getIsRunningInBackground());
   }, []);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   const browseThumbnailDirectory = useCallback(async () => {
-    const dirs = remote.dialog.showOpenDialog({
-      properties: ['openDirectory'],
-      defaultPath: uiStore.thumbnailDirectory,
-    });
+    const dir = getDirectory(uiStore.thumbnailDirectory);
 
-    if (!dirs) {
+    if (!dir) {
       return;
     }
-    const newDir = dirs[0];
 
-    if (!(await isDirEmpty(newDir))) {
+    if (!(await isDirEmpty(dir))) {
       alert('Please choose an empty directory.');
       return;
     }
@@ -95,13 +84,13 @@ const Settings = observer(() => {
     const oldDir = uiStore.thumbnailDirectory;
 
     // Move thumbnail files
-    await moveThumbnailDir(oldDir, newDir);
-    uiStore.setThumbnailDirectory(newDir);
+    await moveThumbnailDir(oldDir, dir);
+    uiStore.setThumbnailDirectory(dir);
 
     // Reset thumbnail paths for those that already have one
     fileStore.fileList.forEach((f) => {
       if (f.thumbnailPath) {
-        f.setThumbnailPath(getThumbnailPath(f.path, newDir));
+        f.setThumbnailPath(getThumbnailPath(f.path, dir));
       }
     });
   }, [fileStore.fileList, uiStore]);
@@ -143,13 +132,13 @@ const Settings = observer(() => {
         />
 
         <Switch
-          defaultChecked={isRunningInBackground}
+          defaultChecked={RendererMessenger.getIsRunningInBackground()}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
 
         <Switch
-          defaultChecked={isClipServerRunning}
+          defaultChecked={RendererMessenger.getIsClipServerEnabled()}
           onChange={toggleClipServer}
           label="Browser extension support"
         />

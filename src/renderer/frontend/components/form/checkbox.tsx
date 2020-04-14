@@ -11,7 +11,7 @@ interface ICheckbox<T = string> {
   defaultChecked?: boolean;
 }
 
-const toggle = (props: ICheckbox) => {
+const Switch = (props: ICheckbox) => {
   const { label, ...p } = props;
   return (
     <label>
@@ -21,7 +21,7 @@ const toggle = (props: ICheckbox) => {
   );
 };
 
-const checkbox = (props: ICheckbox) => {
+const Checkbox = (props: ICheckbox) => {
   const { label, ...p } = props;
   return (
     <label>
@@ -30,8 +30,5 @@ const checkbox = (props: ICheckbox) => {
     </label>
   );
 };
-
-const Checkbox = React.memo(checkbox);
-const Switch = React.memo(toggle);
 
 export { Switch, Checkbox };
