@@ -169,12 +169,12 @@ input[type='radio']::before {
   background-color: white;
   transform: scale(0);
   transform-origin: center;
-  transition: all 0.3s ease-in;
+  transition: transform 0.3s ease-in;
 }
 
 input[type='radio']:checked::before {
   transform: scale(0.45);
-  transition: all 0.2s cubic-bezier(0.25, 0.25, 0.56, 2);
+  transition: transform 0.2s cubic-bezier(0.25, 0.25, 0.56, 2);
 }
 
 // Radio Group mostly
@@ -228,7 +228,7 @@ input[type='checkbox'][data-subtype-switch]::before {
   -webkit-mask-image: none;
   background-color: white;
   transform: translateX(0);
-  transition: all 0.4s;
+  transition: transform 0.4s;
 }
 
 input[type='checkbox'][data-subtype-switch]:checked::before {
