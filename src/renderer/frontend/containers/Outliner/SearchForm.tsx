@@ -192,7 +192,7 @@ const ValueInput = observer(({ id, keyValue, value, dispatch }: IValueInput) => 
       <TextInput
         autoFocus
         placeholder="Enter some text..."
-        value={value as string}
+        defaultValue={value as string}
         setText={(value) => dispatch({ type: 'value', id, value })}
       />
     );
@@ -205,14 +205,14 @@ const ValueInput = observer(({ id, keyValue, value, dispatch }: IValueInput) => 
       <NumberInput
         autoFocus
         placeholder="Enter a number..."
-        value={value as number}
+        defaultValue={value as number}
         setValue={(value) => dispatch({ type: 'value', id, value })}
       />
     );
   } else if (keyValue === 'dateAdded') {
     return (
       <DateInput
-        value={value as Date}
+        defaultValue={value as Date}
         onChange={(value) => dispatch({ type: 'value', id, value })}
         popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
         canClearSelection={false}

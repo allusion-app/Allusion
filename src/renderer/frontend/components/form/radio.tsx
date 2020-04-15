@@ -1,9 +1,8 @@
 import React from 'react';
-import { FormElement } from './index';
 
-interface IRadio extends FormElement {
+interface IRadio extends React.HTMLAttributes<HTMLInputElement> {
   label: string;
-  defaultChecked?: boolean;
+  value?: string;
 }
 
 const Radio = (props: IRadio) => {
@@ -16,8 +15,10 @@ const Radio = (props: IRadio) => {
   );
 };
 
-interface IRadioGroup extends FormElement {
+interface IRadioGroup extends React.HTMLAttributes<HTMLInputElement> {
   name: string;
+  value?: string;
+  disabled?: boolean;
   children: React.ReactElement<IRadio>[];
 }
 

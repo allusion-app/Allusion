@@ -1,67 +1,49 @@
 import React from 'react';
-import { FormElement } from '..';
 import TextInput from './TextInput';
 import NumberInput from './NumberInput';
 
-export interface InputElement<T> extends FormElement<T> {
-  autoFocus?: boolean;
-  placeholder: string;
-  readonly?: boolean;
+export interface InputElement<T>
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    'value' | 'onSubmit' | 'onAbort' | 'defaultValue'
+  > {
+  value?: T;
+  defaultValue?: T;
   isValid?: (value: string) => boolean;
   onSubmit?: (target: EventTarget & HTMLInputElement) => void;
-  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
-  onInput?: (event: React.FormEvent<HTMLInputElement>) => void;
-  onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
-  onInvalid?: (event: React.FormEvent<HTMLInputElement>) => void;
   onAbort?: (rawValue: string) => void;
 }
 
 export function handleOnBlur<T>(
-  onBlur: ((event: React.FocusEvent<HTMLInputElement>) => void) | undefined,
   editable: boolean,
   isValid: (text: string) => boolean,
   setText: (text: T) => void,
-  onSubmit: (target: EventTarget & HTMLInputElement) => void,
-  text: T,
+  onSubmit?: (target: EventTarget & HTMLInputElement) => void,
+  defaultValue?: T,
 ) {
   return (event: React.FocusEvent<HTMLInputElement>) => {
-    if (onBlur) {
-      return onBlur(event);
-    }
     if (editable) {
       const element = event.target as HTMLInputElement;
       if (isValid(element.value)) {
         setText((element.value.trim() as unknown) as T);
-        onSubmit(element);
+        onSubmit?.(element);
       } else {
-        element.value = `${text}`;
+        element.value = `${defaultValue}`;
       }
     }
   };
 }
 
-export function handleOnFocus(
-  onFocus: ((event: React.FocusEvent<HTMLInputElement>) => void) | undefined,
-  editable: boolean,
-) {
+export function handleOnFocus(editable: boolean) {
   return (event: React.FocusEvent<HTMLInputElement>) => {
-    if (onFocus) {
-      return onFocus(event);
-    }
     if (editable) {
       event.target.select();
     }
   };
 }
 
-export function handleOnInput(
-  onInput: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined,
-  isValid: (text: string) => boolean,
-) {
+export function handleOnInput(isValid: (text: string) => boolean) {
   return (event: React.FormEvent<HTMLInputElement>) => {
-    if (onInput) {
-      return onInput(event);
-    }
     const element = event.target as HTMLInputElement;
     element.setCustomValidity(isValid(element.value) ? '' : 'INVALID');
   };
@@ -82,8 +64,8 @@ export function handleOnEnter<T>(
   editable: boolean,
   isValid: (text: string) => boolean,
   setText: (text: T) => void,
-  onSubmit: (target: EventTarget & HTMLInputElement) => void,
-  onAbort: (rawValue: string) => void,
+  onSubmit?: (target: EventTarget & HTMLInputElement) => void,
+  onAbort?: (rawValue: string) => void,
 ) {
   return (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') {
@@ -93,10 +75,10 @@ export function handleOnEnter<T>(
       const element = event.target as HTMLInputElement;
       if (isValid(element.value)) {
         setText((element.value.trim() as unknown) as T);
-        onSubmit(element);
+        onSubmit?.(element);
         event.currentTarget.setSelectionRange(0, 0);
       } else {
-        onAbort(element.value);
+        onAbort?.(element.value);
       }
     }
   };

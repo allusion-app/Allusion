@@ -1,14 +1,7 @@
 import React from 'react';
 
-interface ICheckbox<T = string> {
-  className?: string;
-  disabled?: boolean;
-  name?: string;
-  required?: boolean;
-  value?: T;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+interface ICheckbox extends React.HTMLAttributes<HTMLInputElement> {
   label: string;
-  defaultChecked?: boolean;
 }
 
 const Switch = (props: ICheckbox) => {

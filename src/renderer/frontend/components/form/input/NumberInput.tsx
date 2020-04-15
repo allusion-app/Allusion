@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import React, { useEffect, useRef } from 'react';
 
 import {
@@ -11,61 +10,50 @@ import {
 } from './index';
 
 interface NumberInput extends InputElement<number> {
-  min?: number;
-  max?: number;
-  step?: number;
   setValue: (value: number) => void;
 }
 
-const NumberInput = ({
-  min,
-  max,
-  step,
-  autoFocus,
-  className,
-  disabled,
-  placeholder,
-  readonly,
-  required,
-  value,
-  setValue,
-  isValid = () => true,
-  onAbort = () => {},
-  onBlur,
-  onInput,
-  onFocus,
-  onInvalid,
-  onSubmit = () => {},
-}: NumberInput) => {
+const NumberInput = (props: NumberInput) => {
+  const {
+    autoFocus,
+    readOnly,
+    value,
+    defaultValue,
+    setValue,
+    isValid = () => true,
+    onAbort,
+    onInvalid,
+    onSubmit,
+    ...p
+  } = props;
   const input = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
     if (input.current) {
-      if (autoFocus && !readonly) {
+      if (autoFocus && !readOnly) {
         input.current.focus();
       }
-      if (readonly) {
+      if (readOnly) {
         input.current.setSelectionRange(0, 0);
       }
     }
-  }, [readonly, autoFocus]);
+  }, [readOnly, autoFocus]);
+
   return (
     <input
-      ref={input}
-      min={min}
-      max={max}
-      step={step}
-      className={className}
-      defaultValue={`${value}`}
-      type="number"
-      disabled={disabled}
-      placeholder={placeholder}
-      required={required}
-      readOnly={readonly}
-      onBlur={handleOnBlur(onBlur, !readonly, isValid, setValue, onSubmit, value)}
-      onFocus={handleOnFocus(onFocus, !readonly)}
-      onInput={handleOnInput(onInput, isValid)}
-      onInvalid={handleOnInvalid(onInvalid)}
-      onKeyUp={handleOnEnter(!readonly, isValid, setValue, onSubmit, onAbort)}
+      {...Object.assign(p, {
+        ref: input,
+        defaultValue: defaultValue ? `${defaultValue}` : undefined,
+        value,
+        type: 'number',
+        readOnly,
+        onBlur:
+          p.onBlur ?? handleOnBlur(!readOnly, isValid, setValue, onSubmit, value ?? defaultValue),
+        onFocus: p.onFocus ?? handleOnFocus(!readOnly),
+        onInput: p.onInput ?? handleOnInput(isValid),
+        onChange: p.onChange ?? handleOnInput(isValid),
+        onInvalid: handleOnInvalid(onInvalid),
+        onKeyUp: p.onKeyUp ?? handleOnEnter(!readOnly, isValid, setValue, onSubmit, onAbort),
+      })}
     />
   );
 };
