@@ -51,9 +51,18 @@ const Inspector = observer(() => {
     // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
     const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.path).size, 0);
 
-    // Todo: What to show when selecting multiple images?
-    selectionPreview = <p>Carousel of selected images here?</p>;
-    headerText = selectedFiles.map((f) => path.basename(f.path)).join(', ');
+    // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
+    // TODO: Would be nice to hover over an image and that all images before that get opacity 0.1
+    // Or their transform is adjusted so they're more spread apart or something
+    selectionPreview = (
+      <figure id="stack" className="stack-queue">
+        {/* Show a stack of the first 5 images (with some css magic - the 5 limit is also hard coded in there) */}
+        {selectedFiles.slice(0, 5).map((file) => (
+          <img src={file.thumbnailPath} key={file.id} />
+        ))}
+      </figure>
+    );
+    headerText = `${selectedFiles[0].name} and ${selectedFiles.length - 1} more`;
     headerSubtext = getBytes(size);
   }
 
