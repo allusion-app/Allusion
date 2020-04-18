@@ -76,14 +76,6 @@ pre {
   z-index: 1000;
   border-right: 2px solid #14181a !important;
 }
-.sidebar #toolbar #main-toolbar {
-  display: flex;
-  flex-direction: column;
-  top: 20%;
-  left: 0px !important;
-  width: var(--toolbar-width) !important;
-  height: 40%;
-}
 .sidebar #toolbar > * > * {
   display: flex !important;
   flex-wrap: wrap !important;
@@ -93,47 +85,17 @@ pre {
 }
 
 // Toolbar items
-.sidebar {
-  #toolbar {
-    .bp3-button:empty::before,
-    .bp3-button > :first-child {
-        margin: 0 !important;
-    }
-    #outliner-toolbar,
-    #inspector-toolbar {
-      width: var(--toolbar-width) !important;
-    }
-    #main-toolbar {
-      div:nth-child(1) span:nth-child(2),
-      div:nth-child(2) > button:nth-child(1) span:nth-child(1) {
-        visibility: hidden;
-        display: none;
-      }
-      div:nth-child(1) button {
-        flex-wrap: wrap;
-        flex-direction: column;
-        text-align: -webkit-center;
-        align-items: flex-start;
-        // padding: 0 25%;
-      }
-      div:nth-child(1) span:nth-child(2) {
-        /* background: red !important; */
-        visibility: visible;
-        display: flex;
-        text-orientation: upright;
-        writing-mode: vertical-rl;
-        /*         white-space: normal; */
-        overflow: hidden;
-        /*         text-align: -webkit-auto; */
-        width: initial;
-        height: 4rem;
-      }
-      div:nth-child(2) button {
-        width: -webkit-fill-available;
-      }
-    }
+#toolbar #main-toolbar {
+  .bp3-button:empty::before,
+  .bp3-button > :first-child {
+      margin: 0 !important;
+  }
+  #outliner-toolbar,
+  #inspector-toolbar {
+    width: var(--toolbar-width) !important;
   }
 }
+
 
 // Split Sidebar > Looks very sloppy & confusing
 .split #main-toolbar {
@@ -167,6 +129,51 @@ pre {
   writing-mode: lr;
   height: auto;
 }
+
+#main-toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+// #main-toolbar {
+//   display: flex;
+//   flex-direction: column;
+//   // top: 20%;
+//   // left: 0px !important;
+//   // width: 100%; // var(--toolbar-width) !important;
+//   // height: 40%;
+// }
+
+// #main-toolbar {
+//   div:nth-child(1) span:nth-child(2),
+//   div:nth-child(2) > button:nth-child(1) span:nth-child(1) {
+//     visibility: hidden;
+//     display: none;
+//   }
+//   div:nth-child(1) button {
+//     flex-wrap: wrap;
+//     flex-direction: column;
+//     text-align: -webkit-center;
+//     align-items: flex-start;
+//     // padding: 0 25%;
+//   }
+//   div:nth-child(1) span:nth-child(2) {
+//     /* background: red !important; */
+//     visibility: visible;
+//     display: flex;
+//     text-orientation: upright;
+//     writing-mode: vertical-rl;
+//     /*         white-space: normal; */
+//     overflow: hidden;
+//     /*         text-align: -webkit-auto; */
+//     width: initial;
+//     height: 4rem;
+//   }
+//   div:nth-child(2) button {
+//     width: -webkit-fill-available;
+//   }
+// }
 
 .sidenav #toolbar {
   width: 2rem !important;

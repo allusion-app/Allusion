@@ -4,12 +4,14 @@ import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 import { IRootStoreProp, withRootstore } from '../../contexts/StoreContext';
 import Gallery from './Gallery';
 import Searchbar from './Searchbar';
+import ContentToolbar from '../Toolbar/ContentToolbar';
 
 @HotkeysTarget
 class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
     return (
       <main tabIndex={1}>
+        <ContentToolbar />
         <Searchbar />
         <Gallery />
       </main>
