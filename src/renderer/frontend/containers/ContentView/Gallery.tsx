@@ -428,12 +428,8 @@ const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayou
   );
 });
 
-const Gallery = ({
-  rootStore: {
-    uiStore,
-    fileStore: { fileList },
-  },
-}: IRootStoreProp) => {
+const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
+  const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
   const handleResize = useCallback((entries: IResizeEntry[]) => {
     const { contentRect: rect, target } = entries[0];
@@ -540,7 +536,7 @@ const Gallery = ({
         icon={IconSet.ADD}
       />
     );
-    if (uiStore.view.showsQueryContent) {
+    if (fileStore.showsQueryContent) {
       description = 'Try searching for something else.';
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       title = 'No images found';
@@ -556,7 +552,7 @@ const Gallery = ({
           />
         </ButtonGroup>
       );
-    } else if (uiStore.view.showsUntaggedContent) {
+    } else if (fileStore.showsUntaggedContent) {
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       description = 'All images have been tagged. Nice work!';
       title = 'No untagged images';

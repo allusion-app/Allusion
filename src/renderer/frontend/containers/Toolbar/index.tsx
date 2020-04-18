@@ -164,7 +164,7 @@ const Toolbar = observer(() => {
   // Render variables
   const sortMenu = useMemo(() => {
     const orderIcon = (
-      <Icon icon={uiStore.view.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
+      <Icon icon={fileStore.fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
     );
     return (
       <Menu>
@@ -173,16 +173,18 @@ const Toolbar = observer(() => {
             key={prop}
             icon={icon}
             text={text}
-            active={uiStore.view.orderBy === prop}
-            labelElement={uiStore.view.orderBy === prop && orderIcon}
+            active={fileStore.orderBy === prop}
+            labelElement={fileStore.orderBy === prop && orderIcon}
             onClick={() =>
-              uiStore.view.orderBy === prop ? uiStore.switchFileOrder() : uiStore.orderFilesBy(prop)
+              fileStore.orderBy === prop
+                ? fileStore.switchFileOrder()
+                : fileStore.orderFilesBy(prop)
             }
           />
         ))}
       </Menu>
     );
-  }, [uiStore.view.orderFilesBy, uiStore.view.orderBy, uiStore.view.fileOrder]); //eslint-disable-line
+  }, [fileStore.orderFilesBy, fileStore.orderBy, fileStore.fileOrder]); //eslint-disable-line
 
   const numFiles = fileStore.fileList.length;
   const selectionModeOn = uiStore.fileSelection.length > 0 && numFiles > 0;

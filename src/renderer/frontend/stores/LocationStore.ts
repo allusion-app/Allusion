@@ -30,10 +30,11 @@ class LocationStore {
   @action.bound
   async init(autoLoad: boolean) {
     // Get dirs from backend
-    const dirs = await this.backend.getWatchedDirectories('dateAdded',  'ASC');
+    const dirs = await this.backend.getWatchedDirectories('dateAdded', 'ASC');
 
-    const clientDirs = dirs.map((dir) =>
-      new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd));
+    const clientDirs = dirs.map(
+      (dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd),
+    );
 
     this.locationList.push(...clientDirs);
 
@@ -43,18 +44,22 @@ class LocationStore {
     const initialPathLists = await Promise.all(clientDirs.map((clientDir) => clientDir.init()));
 
     const initialFileLists = await Promise.all(
-      initialPathLists.map(async (paths, i): Promise<IFile[]> => {
-        const dir = clientDirs[i];
-        return Promise.all(
-          paths.map(async (path) => this.pathToIFile(path, dir.id, dir.tagsToAdd.toJS()),
-        ));
-      }),
+      initialPathLists.map(
+        async (paths, i): Promise<IFile[]> => {
+          const dir = clientDirs[i];
+          return Promise.all(
+            paths.map(async (path) => this.pathToIFile(path, dir.id, dir.tagsToAdd.toJS())),
+          );
+        },
+      ),
     );
 
     // Sync file changes with DB
     await Promise.all(
-      initialFileLists.map(
-        (initFiles, i) => this.backend.createFilesFromPath(clientDirs[i].path, initFiles)));
+      initialFileLists.map((initFiles, i) =>
+        this.backend.createFilesFromPath(clientDirs[i].path, initFiles),
+      ),
+    );
   }
 
   @action.bound get(locationId: ID): ClientLocation | undefined {
@@ -79,22 +84,32 @@ class LocationStore {
   }
 
   async pathToIFile(path: string, locationId: ID, tagsToAdd?: ID[]): Promise<IFile> {
-    return ({
+    return {
       path,
       id: generateId(),
       locationId,
       tags: tagsToAdd || [],
       dateAdded: new Date(),
       dateModified: new Date(),
-      ...await ClientFile.getMetaData(path),
-    });
+      ...(await ClientFile.getMetaData(path)),
+    };
   }
 
   @action.bound
-  async addDirectory(dirInput: Omit<ILocation, 'id' | 'dateAdded'>, id = generateId(), dateAdded = new Date(), initialize?: false) {
+  async addDirectory(
+    dirInput: Omit<ILocation, 'id' | 'dateAdded'>,
+    id = generateId(),
+    dateAdded = new Date(),
+    initialize?: false,
+  ) {
     const dirData: ILocation = { ...dirInput, id, dateAdded };
     const clientDir = new ClientLocation(
-      this, id, dirData.path, dirData.dateAdded, dirData.tagsToAdd);
+      this,
+      id,
+      dirData.path,
+      dirData.dateAdded,
+      dirData.tagsToAdd,
+    );
     this.locationList.push(clientDir);
     // The function caller is responsible for handling errors.
     await this.backend.createLocation(dirData);
@@ -113,7 +128,7 @@ class LocationStore {
       for (const path of filePaths) {
         this.rootStore.fileStore.addFile(path, clientDir.id);
       }
-      this.rootStore.uiStore.refetch();
+      this.rootStore.fileStore.refetch();
     });
   }
 
@@ -125,7 +140,12 @@ class LocationStore {
     }
 
     // Remove files in backend and filestore
-    const crit: IStringSearchCriteria<IFile> = { key: 'locationId', value: id, operator: 'equals', valueType: 'string' };
+    const crit: IStringSearchCriteria<IFile> = {
+      key: 'locationId',
+      value: id,
+      operator: 'equals',
+      valueType: 'string',
+    };
     const filesToRemove = await this.backend.searchFiles(crit, 'id', 'ASC');
     await this.rootStore.fileStore.removeFilesById(filesToRemove.map((f) => f.id));
 
