@@ -28,13 +28,11 @@ class TagCollectionStore {
   }
 
   @action.bound async addTagCollection(name: string, parent?: ClientTagCollection) {
-    const newCol = new ClientTagCollection(this, name);
-    this.tagCollectionList.push(newCol);
-    await this.backend.createTagCollection(newCol.id, newCol.name, newCol.description);
-    if (parent) {
-      parent.addCollection(newCol.id);
-    }
-    return newCol;
+    const col = new ClientTagCollection(this, name);
+    this.tagCollectionList.push(col);
+    await this.backend.createTagCollection(col.serialize());
+    parent?.addCollection(col.id);
+    return col;
   }
 
   @action.bound async removeTagCollection(tagCol: ClientTagCollection) {

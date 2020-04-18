@@ -8,7 +8,7 @@ import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 import { getClassForBackground } from '../utils';
-import { ClientTagCollection } from '../../entities/TagCollection';
+import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag | ClientTagCollection>();
 
@@ -183,15 +183,19 @@ const MultiTagSelector = ({
     }
   }, [refocusObject, autoFocus]);
 
-  const items = includeCollections
-    ? [...tagStore.tagList, ...tagCollectionStore.tagCollectionList]
-    : tagStore.tagList;
+  const items = useMemo(() => {
+    if (!includeCollections) return tagStore.tagList;
+    const collectionsWithoutRoot = tagCollectionStore.tagCollectionList
+      .filter(col => col.id !== ROOT_TAG_COLLECTION_ID)
+    return [...tagStore.tagList, ...collectionsWithoutRoot];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [includeCollections, tagStore.tagList.length, tagCollectionStore.tagCollectionList.length]);
 
-  const getTagProps = (_: any, index: number): ITagProps => ({
+  const getTagProps = useCallback((_: any, index: number): ITagProps => ({
     minimal: true,
     // Todo: Style doesn't update until focusing the tagInput
     style: { backgroundColor: selectedItems[index]?.viewColor },
-  });
+  }), [selectedItems]);
 
   return (
     <TagMultiSelect

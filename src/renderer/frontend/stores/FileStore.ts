@@ -5,7 +5,7 @@ import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { SearchCriteria } from '../../entities/SearchCriteria';
+import { SearchCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
 import { getThumbnailPath, debounce } from '../utils';
 import { ClientTag } from '../../entities/Tag';
 import { FileOrder } from '../../backend/DBRepository';
@@ -13,7 +13,7 @@ import { FileOrder } from '../../backend/DBRepository';
 const FILE_STORAGE_KEY = 'Allusion_File';
 
 /** These fields are stored and recovered when the application opens up */
-const PersistentPreferenceFields: Array<keyof FileStore> = ['content', 'fileOrder', 'orderBy'];
+const PersistentPreferenceFields: Array<keyof FileStore> = ['fileOrder', 'orderBy'];
 
 export type ViewContent = 'query' | 'all' | 'untagged';
 
@@ -79,19 +79,18 @@ class FileStore {
     }
   }
 
-  @action.bound async addFile(filePath: string, locationId: ID, dateAdded?: Date) {
-    const fileData: IFile = {
+  @action.bound async addFile(path: string, locationId: ID, dateAdded: Date = new Date()) {
+    const file = new ClientFile(this, {
       id: generateId(),
       locationId,
-      path: filePath,
-      dateAdded: dateAdded ? new Date(dateAdded) : new Date(),
+      path,
+      dateAdded: dateAdded,
       dateModified: new Date(),
       tags: [],
-      ...(await ClientFile.getMetaData(filePath)),
-    };
-    const file = new ClientFile(this, fileData);
+      ...(await ClientFile.getMetaData(path)),
+    });
     // The function caller is responsible for handling errors.
-    await this.backend.createFile(fileData);
+    await this.backend.createFile(file.serialize());
     this.add(file);
     this.incrementNumUntaggedFiles();
     return file;
@@ -145,12 +144,7 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
-      const criteria: SearchCriteria<IFile> = {
-        key: 'tags',
-        value: [],
-        operator: 'contains',
-        valueType: 'array',
-      };
+      const criteria = new ClientArraySearchCriteria('tags', []).serialize();
       const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
       this.setContentUntagged();
@@ -161,7 +155,7 @@ class FileStore {
 
   @action.bound
   async fetchFilesByQuery() {
-    const criteria = this.rootStore.uiStore.searchCriteriaList.slice();
+    const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) => c.serialize());
     if (criteria.length === 0) {
       return this.fetchAllFiles();
     }
@@ -175,22 +169,6 @@ class FileStore {
       this.setContentQuery();
     } catch (e) {
       console.log('Could not find files based on criteria', e);
-    }
-  }
-
-  @action.bound async fetchFilesByTagIDs(tags: ID[]) {
-    // Query the backend to send back only files with these tags
-    try {
-      const criteria: SearchCriteria<IFile> = {
-        key: 'tags',
-        value: tags,
-        operator: 'contains',
-        valueType: 'array',
-      };
-      const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
-      this.updateFromBackend(fetchedFiles);
-    } catch (e) {
-      console.log('Could not find files based on tag search', e);
     }
   }
 
@@ -239,7 +217,6 @@ class FileStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        this.setContent(prefs.content);
         this.setFileOrder(prefs.fileOrder);
         this.setOrderBy(prefs.orderBy);
       } catch (e) {
@@ -288,12 +265,12 @@ class FileStore {
           return false;
         }
 
-        // Check if location link is broken, keep file saved.
+        // Check if file belongs to a location; shouldn't be needed, but useful for during development
         if (!locationIds.includes(backendFile.locationId)) {
-          // TODO: Remove file if location no longer exist?
-          // this.removeFile()
-          // TODO: Show in the ImageRecovery panel?
-          console.warn('Found a file that does not belong to any location!', backendFile);
+          console.warn(
+            'Found a file that does not belong to any location! Will still show up',
+            backendFile,
+          );
           return false;
         }
         return true;
@@ -312,6 +289,31 @@ class FileStore {
     }
 
     return this.replaceFileList(this.filesFromBackend(existingBackendFiles));
+  }
+
+  @action.bound async fetchBrokenFiles() {
+    try {
+      const { orderBy, fileOrder } = this;
+      const backendFiles = await this.backend.fetchFiles(orderBy, fileOrder);
+
+      const brokenFiles = await Promise.all(
+        backendFiles.filter(async (backendFile) => {
+          try {
+            await fs.access(backendFile.path, fs.constants.F_OK);
+            return false;
+          } catch (err) {
+            return true;
+          }
+        }),
+      );
+      const clientFiles = brokenFiles.map((f) => new ClientFile(this, f, true));
+      clientFiles.forEach((f) =>
+        f.setThumbnailPath(getThumbnailPath(f.path, this.rootStore.uiStore.thumbnailDirectory)),
+      );
+      this.replaceFileList(clientFiles);
+    } catch (err) {
+      console.error('Could not load broken files', err);
+    }
   }
 
   @action.bound private add(file: ClientFile) {

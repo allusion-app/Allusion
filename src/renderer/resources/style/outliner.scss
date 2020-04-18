@@ -17,7 +17,7 @@ nav {
     width: 16rem;
     // overflow-x: visible !important;
     z-index: 1;
-    margin-right: 8px;  
+    margin-right: 8px;
 
     button.bp3-button.bp3-minimal {
       opacity: 0;
@@ -61,7 +61,7 @@ nav {
 ///////////////////////////////// Import /////////////////////////////////
 #import,
 // #search-form,
-.gallery,
+main,
 .error-boundary,
 .inspectorOpen {
   // .error-boundary
@@ -144,7 +144,8 @@ nav {
   }
 }
 
-.bp3-overlay .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
+.bp3-overlay
+  .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
   background: $light-gray1-trans;
   color: $light-gray2;
 }
@@ -159,7 +160,7 @@ nav {
   h4 {
     margin-left: 10px;
     margin-right: auto;
-      // caret icon
+    // caret icon
     > .bp3-icon {
       margin-right: 4px;
       margin-bottom: 2px;
@@ -251,8 +252,8 @@ nav .bp3-tree {
   padding-left: 0;
   margin: 0;
   div > span:first-child {
-  padding: 0.25rem 0.05rem;
-  margin-left: 0.5rem;
+    padding: 0.25rem 0.05rem;
+    margin-left: 0.5rem;
   }
   > ul {
     margin: 0;

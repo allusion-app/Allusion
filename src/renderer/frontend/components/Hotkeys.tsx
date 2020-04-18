@@ -37,19 +37,6 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           onKeyDown={uiStore.toggleInspector}
         />
 
-        {/* Toggle outliner tabs */}
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.openOutlinerImport}
-          label="Opens the import tab in the outliner (left sidebar)"
-          onKeyDown={uiStore.openOutlinerImport}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.openOutlinerTags}
-          label="Opens the tag tab in the outliner (left sidebar)"
-          onKeyDown={uiStore.openOutlinerTags}
-        />
         <Hotkey
           global={true}
           combo={hotkeyMap.toggleSettings}
