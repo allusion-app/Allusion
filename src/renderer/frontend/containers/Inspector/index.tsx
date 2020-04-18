@@ -54,6 +54,7 @@ const Inspector = observer(() => {
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
     // TODO: Would be nice to hover over an image and that all images before that get opacity 0.1
     // Or their transform is adjusted so they're more spread apart or something
+    // TODO: Maybe a dropshadow?
     selectionPreview = (
       <figure id="stack" className="stack-queue">
         {/* Show a stack of the first 5 images (with some css magic - the 5 limit is also hard coded in there) */}
