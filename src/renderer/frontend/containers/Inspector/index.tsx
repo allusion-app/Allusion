@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useCallback } from 'react';
 import fs from 'fs';
 import path from 'path';
 import { observer } from 'mobx-react-lite';
@@ -7,6 +7,7 @@ import StoreContext from '../../contexts/StoreContext';
 import ImageInfo from '../../components/ImageInfo';
 import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
+import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
@@ -24,6 +25,27 @@ const MultiFileInfo = observer(({ files }: { files: ClientFile[] }) => {
     </section>
   );
 });
+
+const Carousel = ({ items, maxItems = 5 }: { items: ClientFile[], maxItems: number }) => {
+  const [scrollIndex, setScrollIndex] = useState(0);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    const delta = e.deltaY > 0 ? -1 : 1;
+    setScrollIndex((v) => (v + delta + items.length) % items.length);
+    console.log( delta);
+  }, [items.length]);
+
+  return (
+    <figure id="carousel" onWheel={handleWheel}>
+      {/* Show a stack of the first N images (with some css magic - the N limit is also hard coded in there) */}
+      {items.slice(scrollIndex, scrollIndex + maxItems).map((file) => (
+        <div key={file.id}>
+          <img src={file.thumbnailPath} />
+        </div>
+      ))}
+    </figure>
+  )
+}
 
 const Inspector = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -56,12 +78,13 @@ const Inspector = observer(() => {
     // Or their transform is adjusted so they're more spread apart or something
     // TODO: Maybe a dropshadow?
     selectionPreview = (
-      <figure id="stack" className="stack-queue">
-        {/* Show a stack of the first 5 images (with some css magic - the 5 limit is also hard coded in there) */}
-        {selectedFiles.slice(0, 5).map((file) => (
-          <img src={file.thumbnailPath} key={file.id} />
-        ))}
-      </figure>
+      // <figure id="stack" className="stack-queue">
+      //   {/* Show a stack of the first 5 images (with some css magic - the 5 limit is also hard coded in there) */}
+      //   {selectedFiles.slice(0, 5).map((file) => (
+      //     <img src={file.thumbnailPath} key={file.id} />
+      //   ))}
+      // </figure>
+      <Carousel items={selectedFiles} />
     );
     headerText = `${selectedFiles[0].name} and ${selectedFiles.length - 1} more`;
     headerSubtext = getBytes(size);
