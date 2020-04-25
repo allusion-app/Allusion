@@ -7,6 +7,7 @@ import { ClientLocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
 import { IFile, ClientFile } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
+import { AppToaster } from '../App';
 
 class LocationStore {
   backend: Backend;
@@ -44,6 +45,17 @@ class LocationStore {
 
     const initialPathLists = await Promise.all(clientDirs.map((clientDir) => clientDir.init()));
 
+    // TODO: Initialize in batches
+    // TODO: Should try catch finally
+    // Should show a progress-toast indicator
+    const progressToastKey = 'progress';
+    AppToaster.show({
+      // icon: '',
+      intent: 'none',
+      message: 'Loading files... [X]%',
+      timeout: 0,
+    }, progressToastKey);
+
     const initialFileLists = await Promise.all(
       initialPathLists.map(
         async (paths, i): Promise<IFile[]> => {
@@ -61,6 +73,12 @@ class LocationStore {
         this.backend.createFilesFromPath(clientDirs[i].path, initFiles),
       ),
     );
+
+    AppToaster.show({
+      message: 'Files loaded!',
+      intent: 'success',
+      timeout: 2500,
+    }, progressToastKey);
   }
 
   @action.bound get(locationId: ID): ClientLocation | undefined {

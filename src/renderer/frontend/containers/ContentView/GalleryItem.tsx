@@ -213,4 +213,31 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   };
 }
 
-export default observer(withRootstore(GalleryItemWithContextMenu));
+const SimpleGalleryItem = observer(({ file, rootStore: { uiStore } }: IGalleryItemProps) => {
+  // useEffect(() => {
+  //   // First check whether a thumbnail exists, generate it if needed
+  //   ensureThumbnail(file, uiStore.thumbnailDirectory);
+  // }, [file, uiStore.thumbnailDirectory]);
+
+  return (
+    <div className="thumbnail">
+      <img src={file.thumbnailPath} alt="" className="bp3-skeleton" />
+      {/* <ThumbnailTags
+        tags={file.clientTags}
+        onClick={handleClickImg}
+        onDoubleClick={handleDoubleClickImg}
+      /> */}
+    </div>
+  )
+});
+
+const DelayedGalleryItem = (props: IGalleryItemProps) => {
+  const [showSimple, setShowSimple] = useState(true);
+  useEffect(() => {
+    const timeout = setTimeout(() => setShowSimple(false), 300);
+    return () => clearTimeout(timeout);
+  });
+  return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItemWithContextMenu {...props} />
+}
+
+export default observer(withRootstore(DelayedGalleryItem));

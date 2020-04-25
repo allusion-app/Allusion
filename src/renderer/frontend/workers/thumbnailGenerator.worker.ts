@@ -1,5 +1,5 @@
 import fse from 'fs-extra';
-import { getThumbnailPath } from '../utils';
+import { getThumbnailPath, needsThumbnail } from '../utils';
 import { thumbnailType, thumbnailMaxSize } from '../../../config';
 
 const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | null> => {
@@ -8,7 +8,7 @@ const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | nu
   const img = await createImageBitmap(inputBlob);
 
   // If the image is smaller than `thumbnailMaxSize`, don't create a thumbnail
-  if (img.width < thumbnailMaxSize && img.height < thumbnailMaxSize) {
+  if (needsThumbnail(img.width, img.height)) {
     return null;
   }
 

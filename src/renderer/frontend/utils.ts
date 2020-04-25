@@ -1,7 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 
-import { thumbnailType } from '../../config';
+import { thumbnailType, thumbnailMaxSize } from '../../config';
 
 ////////////////////////
 //// Time-out utils ////
@@ -217,6 +217,10 @@ export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): 
 
   return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailType}`);
 };
+
+export function needsThumbnail(width: number, height: number) {
+  return width > thumbnailMaxSize || height > thumbnailMaxSize;
+}
 
 export const isDirEmpty = async (dir: string) => {
   const dirContents = await fse.readdir(dir);
