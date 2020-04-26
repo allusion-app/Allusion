@@ -24,6 +24,7 @@ const enum Tooltip {
   Filter = 'Filter view content panel',
   Inspector = 'Toggle Inspector',
   Settings = 'Toggle Settings',
+  HelpCenter = 'Toggle HelpCenter',
   Back = 'Back to Content panel',
 }
 
@@ -254,10 +255,11 @@ interface IInspectorToolbar {
   isInspectorOpen: boolean;
   toggleInspector: () => void;
   toggleSettings: () => void;
+  toggleHelpCenter: () => void;
 }
 
 const InspectorToolbar = observer(
-  ({ isInspectorOpen, toggleInspector, toggleSettings }: IInspectorToolbar) => {
+  ({ isInspectorOpen, toggleInspector, toggleSettings, toggleHelpCenter }: IInspectorToolbar) => {
     return (
       <section id="inspector-toolbar">
         <ButtonGroup minimal>
@@ -273,6 +275,12 @@ const InspectorToolbar = observer(
             onClick={toggleSettings}
             className="tooltip"
             data-left={Tooltip.Settings}
+          />
+          <Button
+            icon={IconSet.OPEN_EXTERNAL}
+            onClick={toggleHelpCenter}
+            className="tooltip"
+            data-left={Tooltip.HelpCenter}
           />
         </ButtonGroup>
       </section>
@@ -296,6 +304,7 @@ const Toolbar = observer(() => {
         isInspectorOpen={uiStore.isInspectorOpen}
         toggleInspector={uiStore.toggleInspector}
         toggleSettings={uiStore.toggleSettings}
+        toggleHelpCenter={uiStore.toggleHelpCenter}
       />
     </div>
   );
