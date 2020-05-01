@@ -1,16 +1,29 @@
-import { action, observable } from 'mobx';
+import { action, observable, computed, observe } from 'mobx';
 import fs from 'fs-extra';
 
 import Backend from '../../backend/Backend';
 import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { SearchCriteria } from '../../entities/SearchCriteria';
-import { getThumbnailPath } from '../utils';
+import { SearchCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
+import { getThumbnailPath, debounce } from '../utils';
 import { ClientTag } from '../../entities/Tag';
+import { FileOrder } from '../../backend/DBRepository';
+
+const FILE_STORAGE_KEY = 'Allusion_File';
+
+/** These fields are stored and recovered when the application opens up */
+const PersistentPreferenceFields: Array<keyof FileStore> = ['fileOrder', 'orderBy'];
+
+export type ViewContent = 'query' | 'all' | 'untagged';
 
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
+
+  /** The origin of the current files that are shown */
+  @observable content: ViewContent = 'all';
+  @observable fileOrder: FileOrder = 'DESC';
+  @observable orderBy: keyof IFile = 'dateAdded';
   @observable numUntaggedFiles = 0;
 
   private backend: Backend;
@@ -19,6 +32,44 @@ class FileStore {
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
+
+    // Store preferences immediately when anything is changed
+    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
+    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+  }
+
+  @computed get showsAllContent() {
+    return this.content === 'all';
+  }
+
+  @computed get showsUntaggedContent() {
+    return this.content === 'untagged';
+  }
+
+  @computed get showsQueryContent() {
+    return this.content === 'query';
+  }
+
+  @action.bound switchFileOrder() {
+    this.setFileOrder(this.fileOrder === 'DESC' ? 'ASC' : 'DESC');
+    this.refetch();
+  }
+
+  @action.bound orderFilesBy(prop: keyof IFile = 'dateAdded') {
+    this.setOrderBy(prop);
+    this.refetch();
+  }
+
+  @action.bound setContentQuery() {
+    this.setContent('query');
+  }
+
+  @action.bound setContentAll() {
+    this.setContent('all');
+  }
+
+  @action.bound setContentUntagged() {
+    this.setContent('untagged');
   }
 
   @action.bound async init(autoLoadFiles: boolean) {
@@ -28,19 +79,18 @@ class FileStore {
     }
   }
 
-  @action.bound async addFile(filePath: string, locationId: ID, dateAdded?: Date) {
-    const fileData: IFile = {
+  @action.bound async addFile(path: string, locationId: ID, dateAdded: Date = new Date()) {
+    const file = new ClientFile(this, {
       id: generateId(),
       locationId,
-      path: filePath,
-      dateAdded: dateAdded ? new Date(dateAdded) : new Date(),
+      path,
+      dateAdded: dateAdded,
       dateModified: new Date(),
       tags: [],
-      ...(await ClientFile.getMetaData(filePath)),
-    };
-    const file = new ClientFile(this, fileData);
+      ...(await ClientFile.getMetaData(path)),
+    });
     // The function caller is responsible for handling errors.
-    await this.backend.createFile(fileData);
+    await this.backend.createFile(file.serialize());
     this.add(file);
     this.incrementNumUntaggedFiles();
     return file;
@@ -72,11 +122,21 @@ class FileStore {
     }
   }
 
+  @action.bound refetch() {
+    if (this.showsAllContent) {
+      this.fetchAllFiles();
+    } else if (this.showsUntaggedContent) {
+      this.fetchUntaggedFiles();
+    } else if (this.showsQueryContent) {
+      this.fetchFilesByQuery();
+    }
+  }
+
   @action.bound async fetchAllFiles() {
     try {
-      const { orderBy, fileOrder } = this.rootStore.uiStore.view;
-      const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
+      const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
+      this.setContentAll();
     } catch (err) {
       console.error('Could not load all files', err);
     }
@@ -84,15 +144,10 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
-      const { fileOrder, orderBy } = this.rootStore.uiStore.view;
-      const criteria: SearchCriteria<IFile> = {
-        key: 'tags',
-        value: [],
-        operator: 'contains',
-        valueType: 'array',
-      };
-      const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
+      const criteria = new ClientArraySearchCriteria('tags', []).serialize();
+      const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
+      this.setContentUntagged();
     } catch (err) {
       console.error('Could not load all files', err);
     }
@@ -100,37 +155,20 @@ class FileStore {
 
   @action.bound
   async fetchFilesByQuery() {
-    const criteria = this.rootStore.uiStore.searchCriteriaList.slice();
+    const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) => c.serialize());
     if (criteria.length === 0) {
       return this.fetchAllFiles();
     }
-    const { orderBy, fileOrder } = this.rootStore.uiStore.view;
     try {
       const fetchedFiles = await this.backend.searchFiles(
         criteria as [SearchCriteria<IFile>],
-        orderBy,
-        fileOrder,
+        this.orderBy,
+        this.fileOrder,
       );
       this.updateFromBackend(fetchedFiles);
+      this.setContentQuery();
     } catch (e) {
       console.log('Could not find files based on criteria', e);
-    }
-  }
-
-  @action.bound async fetchFilesByTagIDs(tags: ID[]) {
-    // Query the backend to send back only files with these tags
-    try {
-      const { orderBy, fileOrder } = this.rootStore.uiStore.view;
-      const criteria: SearchCriteria<IFile> = {
-        key: 'tags',
-        value: tags,
-        operator: 'contains',
-        valueType: 'array',
-      };
-      const fetchedFiles = await this.backend.searchFiles(criteria, orderBy, fileOrder);
-      this.updateFromBackend(fetchedFiles);
-    } catch (e) {
-      console.log('Could not find files based on tag search', e);
     }
   }
 
@@ -174,9 +212,29 @@ class FileStore {
     this.backend.saveFile(file);
   }
 
+  recoverPersistentPreferences() {
+    const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
+    if (prefsString) {
+      try {
+        const prefs = JSON.parse(prefsString);
+        this.setFileOrder(prefs.fileOrder);
+        this.setOrderBy(prefs.orderBy);
+      } catch (e) {
+        console.log('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);
+      }
+    }
+  }
+
+  storePersistentPreferences() {
+    const prefs: any = {};
+    for (const field of PersistentPreferenceFields) {
+      prefs[field] = this[field];
+    }
+    localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
+  }
+
   @action.bound private async loadFiles() {
-    const { orderBy, fileOrder } = this.rootStore.uiStore.view;
-    const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
+    const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
     await this.updateFromBackend(fetchedFiles);
   }
 
@@ -194,7 +252,6 @@ class FileStore {
         try {
           await fs.access(backendFile.path, fs.constants.F_OK);
         } catch (err) {
-
           // Remove file from client only - keep in DB in case it will be recovered later
           // TODO: Store missing date so it can be automatically removed after some time?
           const clientFile = this.get(backendFile.id);
@@ -208,12 +265,12 @@ class FileStore {
           return false;
         }
 
-        // Check if location link is broken, keep file saved.
+        // Check if file belongs to a location; shouldn't be needed, but useful for during development
         if (!locationIds.includes(backendFile.locationId)) {
-          // TODO: Remove file if location no longer exist?
-          // this.removeFile()
-          // TODO: Show in the ImageRecovery panel?
-          console.warn('Found a file that does not belong to any location!', backendFile);
+          console.warn(
+            'Found a file that does not belong to any location! Will still show up',
+            backendFile,
+          );
           return false;
         }
         return true;
@@ -232,6 +289,31 @@ class FileStore {
     }
 
     return this.replaceFileList(this.filesFromBackend(existingBackendFiles));
+  }
+
+  @action.bound async fetchBrokenFiles() {
+    try {
+      const { orderBy, fileOrder } = this;
+      const backendFiles = await this.backend.fetchFiles(orderBy, fileOrder);
+
+      const brokenFiles = await Promise.all(
+        backendFiles.filter(async (backendFile) => {
+          try {
+            await fs.access(backendFile.path, fs.constants.F_OK);
+            return false;
+          } catch (err) {
+            return true;
+          }
+        }),
+      );
+      const clientFiles = brokenFiles.map((f) => new ClientFile(this, f, true));
+      clientFiles.forEach((f) =>
+        f.setThumbnailPath(getThumbnailPath(f.path, this.rootStore.uiStore.thumbnailDirectory)),
+      );
+      this.replaceFileList(clientFiles);
+    } catch (err) {
+      console.error('Could not load broken files', err);
+    }
   }
 
   @action.bound private add(file: ClientFile) {
@@ -256,6 +338,18 @@ class FileStore {
   @action.bound private replaceFileList(backendFiles: ClientFile[]) {
     this.fileList.forEach((f) => f.dispose());
     this.fileList.replace(backendFiles);
+  }
+
+  @action private setFileOrder(order: FileOrder = 'DESC') {
+    this.fileOrder = order;
+  }
+
+  @action private setOrderBy(prop: keyof IFile = 'dateAdded') {
+    this.orderBy = prop;
+  }
+
+  @action private setContent(content: ViewContent = 'all') {
+    this.content = content;
   }
 }
 

@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import ImageInfo from '../../components/ImageInfo';
-import FileTag from '../../components/FileTag';
+import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -17,7 +17,7 @@ const getBytes = (bytes: number) => {
   return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sufixes[i];
 };
 
-const MultiFileInfo = observer(({ files }: {files: ClientFile[]}) => {
+const MultiFileInfo = observer(({ files }: { files: ClientFile[] }) => {
   return (
     <section>
       <p>Selected {files.length} files</p>
@@ -42,7 +42,7 @@ const Inspector = observer(() => {
       <img
         src={singleFile.path}
         style={{ cursor: uiStore.view.isSlideMode ? undefined : 'zoom-in' }}
-        onClick={() => (uiStore.view.enableSlideMode())}
+        onClick={uiStore.view.enableSlideMode}
       />
     );
     headerText = path.basename(singleFile.path);
@@ -72,7 +72,7 @@ const Inspector = observer(() => {
         ) : (
           <MultiFileInfo files={selectedFiles} />
         )}
-        <FileTag files={selectedFiles} />
+        <FileTags files={selectedFiles} />
       </aside>
     );
   } else {

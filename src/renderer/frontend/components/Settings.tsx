@@ -21,6 +21,16 @@ import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
 
+// Window state
+const WINDOW_STORAGE_KEY = 'Allusion_Window';
+
+const toggleFullScreen = () => {
+  const { isFullScreen, setFullScreen } = remote.getCurrentWindow();
+  // Save window state
+  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: !isFullScreen() }));
+  setFullScreen(!isFullScreen());
+};
+
 const Settings = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
@@ -48,7 +58,7 @@ const Settings = observer(() => {
     }
 
     const chosenDir = dirs[0];
-    locationStore.changeDefaultLocation(chosenDir);
+    locationStore.setDefaultLocation(chosenDir);
     setImportPath(chosenDir);
 
     // Todo: Provide option to move/copy the files in that directory (?)
@@ -57,6 +67,18 @@ const Settings = observer(() => {
   }, [setImportPath, locationStore]);
 
   useEffect(() => {
+    // Load last window state
+    const preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
+    if (preferences) {
+      try {
+        const prefs = JSON.parse(preferences);
+        if (prefs.isFullScreen) {
+          remote.getCurrentWindow().setFullScreen(prefs.isFullScreen);
+        }
+      } catch (e) {
+        console.log('Cannot load persistent preferences', e);
+      }
+    }
     setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
     setRunningInBackground(RendererMessenger.getIsRunningInBackground());
   }, []);
@@ -124,8 +146,8 @@ const Settings = observer(() => {
         </RadioGroup>
 
         <Switch
-          checked={uiStore.isFullScreen}
-          onChange={uiStore.toggleFullScreen}
+          defaultChecked={remote.getCurrentWindow().isFullScreen()}
+          onChange={toggleFullScreen}
           label="Full screen"
         />
         

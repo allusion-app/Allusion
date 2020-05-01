@@ -20,7 +20,7 @@ const enum Tooltip {
 }
 
 const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
-  const { uiStore, fileStore } = rootStore;
+  const { fileStore } = rootStore;
 
   return (
     <div tabIndex={0}>
@@ -34,12 +34,10 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
             text="All Images"
             icon={IconSet.MEDIA}
             rightIcon={
-              uiStore.view.showsAllContent ? (
-                <Icon intent="primary" icon={IconSet.PREVIEW} />
-              ) : null
+              fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
             }
-            onClick={uiStore.viewAllContent}
-            active={uiStore.view.showsAllContent}
+            onClick={fileStore.fetchAllFiles}
+            active={fileStore.showsAllContent}
             fill
             data-right={Tooltip.AllImages}
           />
@@ -47,14 +45,14 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
             text={`Untagged (${fileStore.numUntaggedFiles})`}
             icon={IconSet.TAG_BLANCO}
             rightIcon={
-              uiStore.view.showsUntaggedContent ? (
+              fileStore.showsUntaggedContent ? (
                 <Icon icon={IconSet.PREVIEW} />
               ) : fileStore.numUntaggedFiles > 0 ? (
                 <Icon icon={IconSet.WARNING} />
               ) : null
             }
-            onClick={uiStore.viewUntaggedContent}
-            active={uiStore.view.showsUntaggedContent}
+            onClick={fileStore.fetchUntaggedFiles}
+            active={fileStore.showsUntaggedContent}
             fill
             data-right={Tooltip.Untagged}
           />
@@ -71,10 +69,10 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   }
   selectAllTags = () => {
     this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());
-  }
+  };
   openTagRemover = () => {
     this.props.rootStore.uiStore.openOutlinerTagRemover();
-  }
+  };
   renderHotkeys() {
     const { uiStore } = this.props.rootStore;
     const { hotkeyMap } = uiStore;

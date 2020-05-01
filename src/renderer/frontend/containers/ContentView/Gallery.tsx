@@ -2,15 +2,13 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
-  GridItemKeySelector,
   FixedSizeList,
-  ListItemKeySelector,
   GridChildComponentProps,
   ListChildComponentProps,
   GridOnScrollProps,
   ListOnScrollProps,
 } from 'react-window';
-import { observer, Observer } from 'mobx-react-lite';
+import { observer, useObserver } from 'mobx-react-lite';
 
 import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
@@ -70,6 +68,12 @@ function getLayoutComponent(
       return null;
   }
 }
+
+/** Generates a unique key for an element in the fileList */
+const getItemKey = (index: number, data: ClientFile[]): string => {
+  const file = index < data.length ? data[index] : null;
+  return file ? file.id : `${index}`;
+};
 
 const GridGallery = observer(
   ({
@@ -148,41 +152,32 @@ const GridGallery = observer(
       return () => window.removeEventListener('keydown', throttledKeyDown);
     }, [fileList, uiStore, numColumns, handleFileSelect, lastSelectionIndex]);
 
-    /** Generates a unique key for an element in the grid */
-    const handleItemKey: GridItemKeySelector = useCallback(
-      ({ columnIndex, rowIndex }) => {
-        const itemIndex = rowIndex * numColumns + columnIndex;
-        const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
-        return `${rowIndex}-${columnIndex}-${file ? file.id : ''}`;
-      },
-      [fileList, numColumns],
+    const handleItemKey = useCallback(
+      ({ columnIndex, rowIndex, data }) => getItemKey(rowIndex * numColumns + columnIndex, data),
+      [numColumns],
     );
 
     const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
-      ({ columnIndex, rowIndex, style }) => {
-        const itemIndex = rowIndex * numColumns + columnIndex;
-        const file = itemIndex < fileList.length ? fileList[itemIndex] : null;
-        if (!file) {
-          return <div />;
-        }
-        return (
-          <div style={style} key={`file-${file.id}`} className="galleryItem">
-            <Observer>
-              {() => (
-                <GalleryItem
-                  file={file}
-                  isSelected={uiStore.fileSelection.includes(file.id)}
-                  onClick={handleClick}
-                  onDoubleClick={handleDoubleClick}
-                  onDrop={handleDrop}
-                  showTags
-                />
-              )}
-            </Observer>
-          </div>
-        );
-      },
-      [fileList, handleClick, handleDoubleClick, handleDrop, numColumns, uiStore.fileSelection],
+      ({ columnIndex, rowIndex, style, data }) =>
+        useObserver(() => {
+          const itemIndex = rowIndex * numColumns + columnIndex;
+          const file = itemIndex < data.length ? data[itemIndex] : null;
+          if (!file) {
+            return <div />;
+          }
+          return (
+            <div style={style} className="galleryItem">
+              <GalleryItem
+                file={file}
+                isSelected={uiStore.fileSelection.includes(file.id)}
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
+                onDrop={handleDrop}
+              />
+            </div>
+          );
+        }),
+      [handleClick, handleDoubleClick, handleDrop, numColumns, uiStore.fileSelection],
     );
     return (
       <FixedSizeGrid
@@ -197,11 +192,6 @@ const GridGallery = observer(
         overscanRowCount={2}
         children={Cell}
         onScroll={handleScroll}
-        key={
-          fileList.length > 0
-            ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}`
-            : ''
-        } // force rerender when file list changes
         initialScrollTop={Math.round(uiStore.view.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
         ref={ref}
       />
@@ -250,41 +240,27 @@ const ListGallery = observer(
       [cellSize, uiStore.view],
     );
 
-    /** Generates a unique key for an element in the grid */
-    const handleItemKey: ListItemKeySelector = useCallback(
-      (index) => {
-        const file = index < fileList.length ? fileList[index] : null;
-        return `${index}-${file ? file.id : ''}`;
-      },
-      [fileList],
-    );
-
     const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
-      ({ index, style }) => {
-        const file = index < fileList.length ? fileList[index] : null;
-        if (!file) {
-          return <div />;
-        }
-        return (
-          <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
-            <Observer>
-              {() => (
-                <GalleryItem
-                  file={file}
-                  isSelected={uiStore.fileSelection.includes(file.id)}
-                  onClick={handleClick}
-                  onDoubleClick={handleDoubleClick}
-                  onDrop={handleDrop}
-                  showInfo
-                  showName
-                  showTags
-                />
-              )}
-            </Observer>
-          </div>
-        );
-      },
-      [fileList, handleClick, handleDoubleClick, handleDrop, uiStore.fileSelection],
+      ({ index, style, data }) =>
+        useObserver(() => {
+          const file = index < data.length ? data[index] : null;
+          if (!file) {
+            return <div />;
+          }
+          return (
+            <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
+              <GalleryItem
+                file={file}
+                isSelected={uiStore.fileSelection.includes(file.id)}
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
+                onDrop={handleDrop}
+                showDetails
+              />
+            </div>
+          );
+        }),
+      [handleClick, handleDoubleClick, handleDrop, uiStore.fileSelection],
     );
 
     return (
@@ -293,15 +269,11 @@ const ListGallery = observer(
         width={contentRect.width}
         itemSize={cellSize}
         itemCount={fileList.length}
-        itemKey={handleItemKey}
+        itemData={fileList}
+        itemKey={getItemKey}
         overscanCount={2}
         children={Row}
         onScroll={handleScroll}
-        key={
-          fileList.length > 0
-            ? `${fileList.length}-${fileList[0].id}-${fileList[fileList.length - 1].id}`
-            : ''
-        } // force rerender when file list changes
         initialScrollOffset={uiStore.view.firstItem * cellSize}
         ref={ref}
       />
@@ -309,7 +281,7 @@ const ListGallery = observer(
   },
 );
 
-export const MasonryGallery = observer(({  }: IGalleryLayoutProps) => {
+export const MasonryGallery = observer(({}: IGalleryLayoutProps) => {
   const Styles: any = {
     textAlign: 'center',
     display: 'flex',
@@ -428,12 +400,8 @@ const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayou
   );
 });
 
-const Gallery = ({
-  rootStore: {
-    uiStore,
-    fileStore: { fileList },
-  },
-}: IRootStoreProp) => {
+const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
+  const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
   const handleResize = useCallback((entries: IResizeEntry[]) => {
     const { contentRect: rect, target } = entries[0];
@@ -530,43 +498,47 @@ const Gallery = ({
 
   if (fileList.length === 0) {
     let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
-    let title = 'No images imported';
-    let description = 'Import some images to get started!';
+    let title = 'No images';
+    let description = 'Add some images to get started!';
     let action = (
       <Button
-        onClick={uiStore.openOutlinerImport}
-        text="Open import panel"
+        onClick={uiStore.openOutliner}
+        text="Add location with images"
         intent="primary"
         icon={IconSet.ADD}
       />
     );
-    if (uiStore.view.showsQueryContent) {
+    if (fileStore.showsQueryContent) {
       description = 'Try searching for something else.';
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       title = 'No images found';
       action = (
         <ButtonGroup>
-          <Button text="All images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
-          <Button text="Untagged" icon={IconSet.TAG_BLANCO} onClick={uiStore.viewUntaggedContent} />
+          <Button text="All images" icon={IconSet.MEDIA} onClick={fileStore.fetchAllFiles} />
+          <Button
+            text="Untagged"
+            icon={IconSet.TAG_BLANCO}
+            onClick={fileStore.fetchUntaggedFiles}
+          />
           <Button
             text="Search"
             icon={IconSet.SEARCH}
-            onClick={uiStore.openSearch}
+            onClick={uiStore.openQuickSearch}
             intent="primary"
           />
         </ButtonGroup>
       );
-    } else if (uiStore.view.showsUntaggedContent) {
+    } else if (fileStore.showsUntaggedContent) {
       icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
       description = 'All images have been tagged. Nice work!';
       title = 'No untagged images';
       action = (
         <ButtonGroup>
-          <Button text="All Images" icon={IconSet.MEDIA} onClick={uiStore.viewAllContent} />
+          <Button text="All Images" icon={IconSet.MEDIA} onClick={fileStore.fetchAllFiles} />
           <Button
             text="Search"
             icon={IconSet.SEARCH}
-            onClick={uiStore.openSearch}
+            onClick={uiStore.openQuickSearch}
             intent="primary"
           />
         </ButtonGroup>

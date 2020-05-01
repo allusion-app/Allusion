@@ -1,8 +1,13 @@
 import Dexie from 'dexie';
-import { ID, IIdentifiable } from '../entities/ID';
+import { ID, IResource } from '../entities/ID';
 import {
-  SearchCriteria, IArraySearchCriteria, IStringSearchCriteria,
-  INumberSearchCriteria, IDateSearchCriteria, StringOperatorType, NumberOperatorType,
+  SearchCriteria,
+  IArraySearchCriteria,
+  IStringSearchCriteria,
+  INumberSearchCriteria,
+  IDateSearchCriteria,
+  StringOperatorType,
+  NumberOperatorType,
 } from '../entities/SearchCriteria';
 
 export interface IDBCollectionConfig {
@@ -57,7 +62,7 @@ export interface IDbQueryRequest<T> extends IDbRequest<T> {
  * A class that manages data retrieval and updating with a database.
  * Extends Dexie: https://dexie.org/docs/Tutorial/Consuming-dexie-as-a-module
  */
-export default class BaseRepository<T extends IIdentifiable> {
+export default class BaseRepository<T extends IResource> {
   db: Dexie;
   collectionName: string;
   collection: Dexie.Table<T, ID>;
@@ -124,9 +129,7 @@ export default class BaseRepository<T extends IIdentifiable> {
     return items;
   }
 
-  private async _find({ criteria }: IDbQueryRequest<T>)
-    : Promise<Dexie.Collection<T, string>> {
-
+  private async _find({ criteria }: IDbQueryRequest<T>): Promise<Dexie.Collection<T, string>> {
     // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
     // Unfortunately doesn't work out of the box.
     // It's one of the things they are working on, looks much better: https://github.com/dfahlander/Dexie.js/issues/427
@@ -139,13 +142,17 @@ export default class BaseRepository<T extends IIdentifiable> {
     let table = where.equals(firstCrit.value);
     switch (firstCrit.valueType) {
       case 'array':
-        table = this._filterArrayInitial(where, firstCrit as IArraySearchCriteria<T>); break;
+        table = this._filterArrayInitial(where, firstCrit as IArraySearchCriteria<T>);
+        break;
       case 'string':
-        table = this._filterStringInitial(where, firstCrit as IStringSearchCriteria<T>); break;
+        table = this._filterStringInitial(where, firstCrit as IStringSearchCriteria<T>);
+        break;
       case 'number':
-        table = this._filterNumberInitial(where, firstCrit as INumberSearchCriteria<T>); break;
+        table = this._filterNumberInitial(where, firstCrit as INumberSearchCriteria<T>);
+        break;
       case 'date':
-        table = this._filterDateInitial(where, firstCrit as IDateSearchCriteria<T>); break;
+        table = this._filterDateInitial(where, firstCrit as IDateSearchCriteria<T>);
+        break;
     }
 
     // const matchFuncName = matchAny ? 'or' : 'and';
@@ -157,13 +164,17 @@ export default class BaseRepository<T extends IIdentifiable> {
     for (const crit of otherCrits as Array<SearchCriteria<T>>) {
       switch (crit.valueType) {
         case 'array':
-          table = this._filterArray(table, crit as IArraySearchCriteria<T>); break;
+          table = this._filterArray(table, crit as IArraySearchCriteria<T>);
+          break;
         case 'string':
-          table = this._filterString(table, crit as IStringSearchCriteria<T>); break;
+          table = this._filterString(table, crit as IStringSearchCriteria<T>);
+          break;
         case 'number':
-          table = this._filterNumber(table, crit as INumberSearchCriteria<T>); break;
+          table = this._filterNumber(table, crit as INumberSearchCriteria<T>);
+          break;
         case 'date':
-          table = this._filterDate(table, crit as IDateSearchCriteria<T>); break;
+          table = this._filterDate(table, crit as IDateSearchCriteria<T>);
+          break;
       }
     }
 
@@ -183,7 +194,8 @@ export default class BaseRepository<T extends IIdentifiable> {
       return crit.operator === 'contains'
         ? this.collection.filter((val: any) => val[crit.key as string].length === 0)
         : this.collection.filter((val: any) => val[crit.key as string].length !== 0);
-    } else { // not contains
+    } else {
+      // not contains
       const idsFuncName = crit.operator === 'contains' ? 'anyOf' : 'noneOf';
       return where[idsFuncName](crit.value).distinct();
     }
@@ -192,23 +204,34 @@ export default class BaseRepository<T extends IIdentifiable> {
   private _filterArray(col: Dexie.Collection<T, string>, crit: IArraySearchCriteria<T>) {
     if (crit.operator === 'contains') {
       // Check whether to search for empty arrays (e.g. no tags)
-      return (crit.value.length === 0)
+      return crit.value.length === 0
         ? col.and((val: any) => val[crit.key as string].length === 0)
-        : col.and((val: any) => crit.value.some((item) => val[crit.key as string].indexOf(item) !== -1));
-    } else { // not contains
-      return (crit.value.length === 0)
+        : col.and((val: any) =>
+            crit.value.some((item) => val[crit.key as string].indexOf(item) !== -1),
+          );
+    } else {
+      // not contains
+      return crit.value.length === 0
         ? col.and((val: any) => val[crit.key as string].length !== 0)
-        : col.and((val: any) => !crit.value.some((item) => val[crit.key as string].indexOf(item) !== -1));
+        : col.and(
+            (val: any) => !crit.value.some((item) => val[crit.key as string].indexOf(item) !== -1),
+          );
     }
   }
 
-  private _filterStringInitial(where: Dexie.WhereClause<T, string>, crit: IStringSearchCriteria<T>) {
+  private _filterStringInitial(
+    where: Dexie.WhereClause<T, string>,
+    crit: IStringSearchCriteria<T>,
+  ) {
     type DbStringOperator = 'equalsIgnoreCase' | 'startsWithIgnoreCase';
     const funcName = ((operator: StringOperatorType): DbStringOperator | undefined => {
       switch (operator) {
-        case 'equals':     return 'equalsIgnoreCase';
-        case 'startsWith': return 'startsWithIgnoreCase';
-        default:           return undefined;
+        case 'equals':
+          return 'equalsIgnoreCase';
+        case 'startsWith':
+          return 'startsWithIgnoreCase';
+        default:
+          return undefined;
       }
     })(crit.operator);
 
@@ -219,7 +242,10 @@ export default class BaseRepository<T extends IIdentifiable> {
     return where[funcName](crit.value);
   }
 
-  private _filterString(col: Dexie.Collection<T, string> | undefined, crit: IStringSearchCriteria<T>) {
+  private _filterString(
+    col: Dexie.Collection<T, string> | undefined,
+    crit: IStringSearchCriteria<T>,
+  ) {
     const { key, value } = crit as IStringSearchCriteria<T>;
     const valLow = value.toLowerCase();
 
@@ -250,17 +276,33 @@ export default class BaseRepository<T extends IIdentifiable> {
     return this.collection.filter(filterFunc);
   }
 
-  private _filterNumberInitial(where: Dexie.WhereClause<T, string>, crit: INumberSearchCriteria<T>) {
-    type DbNumberOperator = 'equals' | 'notEqual' | 'below' | 'belowOrEqual' | 'above' | 'aboveOrEqual';
+  private _filterNumberInitial(
+    where: Dexie.WhereClause<T, string>,
+    crit: INumberSearchCriteria<T>,
+  ) {
+    type DbNumberOperator =
+      | 'equals'
+      | 'notEqual'
+      | 'below'
+      | 'belowOrEqual'
+      | 'above'
+      | 'aboveOrEqual';
     const funcName = ((operator: NumberOperatorType): DbNumberOperator | undefined => {
       switch (operator) {
-        case 'equals':              return 'equals';
-        case 'notEqual':            return 'notEqual';
-        case 'smallerThan':         return 'below';
-        case 'smallerThanOrEquals': return 'belowOrEqual';
-        case 'greaterThan':         return 'above';
-        case 'greaterThanOrEquals': return 'aboveOrEqual';
-        default:                    return undefined;
+        case 'equals':
+          return 'equals';
+        case 'notEqual':
+          return 'notEqual';
+        case 'smallerThan':
+          return 'below';
+        case 'smallerThanOrEquals':
+          return 'belowOrEqual';
+        case 'greaterThan':
+          return 'above';
+        case 'greaterThanOrEquals':
+          return 'aboveOrEqual';
+        default:
+          return undefined;
       }
     })(crit.operator);
 
@@ -271,17 +313,26 @@ export default class BaseRepository<T extends IIdentifiable> {
     return where[funcName](crit.value);
   }
 
-  private _filterNumber(col: Dexie.Collection<T, string> | undefined, crit: INumberSearchCriteria<T>) {
+  private _filterNumber(
+    col: Dexie.Collection<T, string> | undefined,
+    crit: INumberSearchCriteria<T>,
+  ) {
     const { key, value } = crit;
 
     const getFilterFunc = (operator: NumberOperatorType) => {
       switch (operator) {
-        case 'equals':              return (t: any) => t[key] === value;
-        case 'notEqual':            return (t: any) => t[key] !== value;
-        case 'smallerThan':         return (t: any) => t[key] < value;
-        case 'smallerThanOrEquals': return (t: any) => t[key] <= value;
-        case 'greaterThan':         return (t: any) => t[key] > value;
-        case 'greaterThanOrEquals': return (t: any) => t[key] >= value;
+        case 'equals':
+          return (t: any) => t[key] === value;
+        case 'notEqual':
+          return (t: any) => t[key] !== value;
+        case 'smallerThan':
+          return (t: any) => t[key] < value;
+        case 'smallerThanOrEquals':
+          return (t: any) => t[key] <= value;
+        case 'greaterThan':
+          return (t: any) => t[key] > value;
+        case 'greaterThanOrEquals':
+          return (t: any) => t[key] >= value;
         default:
           console.log('Number operator not allowed:', crit.operator);
           return () => false;
@@ -304,12 +355,18 @@ export default class BaseRepository<T extends IIdentifiable> {
     const col = ((operator: NumberOperatorType): Dexie.Collection<T, string> | undefined => {
       switch (operator) {
         // equal to this day, so between 0:00 and 23:59
-        case 'equals': return where.between(dateStart, dateEnd);
-        case 'smallerThan':         return where.below(dateStart);
-        case 'smallerThanOrEquals': return where.below(dateEnd);
-        case 'greaterThan':         return where.above(dateEnd);
-        case 'greaterThanOrEquals': return where.above(dateStart);
-        default:                    return undefined;
+        case 'equals':
+          return where.between(dateStart, dateEnd);
+        case 'smallerThan':
+          return where.below(dateStart);
+        case 'smallerThanOrEquals':
+          return where.below(dateEnd);
+        case 'greaterThan':
+          return where.above(dateEnd);
+        case 'greaterThanOrEquals':
+          return where.above(dateStart);
+        default:
+          return undefined;
       }
     })(crit.operator);
 
@@ -329,12 +386,18 @@ export default class BaseRepository<T extends IIdentifiable> {
 
     const getFilterFunc = (operator: NumberOperatorType) => {
       switch (operator) {
-        case 'equals':              return (t: any) => t[key] >= start || t[key] <= end;
-        case 'notEqual':            return (t: any) => t[key] < start || t[key] > end;
-        case 'smallerThan':         return (t: any) => t[key] < start;
-        case 'smallerThanOrEquals': return (t: any) => t[key] <= end;
-        case 'greaterThan':         return (t: any) => t[key] > end;
-        case 'greaterThanOrEquals': return (t: any) => t[key] >= start;
+        case 'equals':
+          return (t: any) => t[key] >= start || t[key] <= end;
+        case 'notEqual':
+          return (t: any) => t[key] < start || t[key] > end;
+        case 'smallerThan':
+          return (t: any) => t[key] < start;
+        case 'smallerThanOrEquals':
+          return (t: any) => t[key] <= end;
+        case 'greaterThan':
+          return (t: any) => t[key] > end;
+        case 'greaterThanOrEquals':
+          return (t: any) => t[key] >= start;
         default:
           console.log('Date operator not allowed:', crit.operator);
           return () => false;

@@ -2,11 +2,18 @@ import { v4 as uuid } from 'uuid';
 
 export type ID = string;
 
-export interface IIdentifiable {
+/** Identifier for resources
+ *
+ * Resources are in the context of this application data that is stored in the
+ * backend (external data). Each resource has an identifier to make it possible
+ * to retrieve them from the database.
+ */
+export interface IResource {
   id: ID;
 }
 
-export interface ISerializable<S extends IIdentifiable> {
+/** Converting client objects into database objects */
+export interface ISerializable<S> {
   serialize(): S;
 }
 

@@ -358,7 +358,7 @@ form .bp3-icon {
 .bp3-dark {
   #inspector,
   #outliner,
-  .gallery {
+  main {
     .bp3-tag-input.bp3-active,
     input:not(.bp3-input-ghost),
     .bp3-input-group {
@@ -1122,8 +1122,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 .bp3-dark #watched-folders .bp3-button:hover {
   background-color: $dark-gray2 !important;
   border-left: 2px solid $blue1;
-  padding-left: 0.85rem !important;
-  // padding-left: calc(.85rem + 8px) !important
+  // padding-left: 0.85rem !important;
+  padding-left: calc(.85rem + 8px) !important;
   transition: all 0.2s $pt-transition-ease2;
   color: white;
 }
@@ -1215,7 +1215,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 
 // Search panel
 #search-form,
-.gallery {
+main {
   .bp3-button-group.bp3-vertical > {
     .bp3-button:not(:first-child) {
       border-radius: 0 0 6px 6px !important;
