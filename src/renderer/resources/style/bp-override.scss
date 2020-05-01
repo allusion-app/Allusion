@@ -901,14 +901,18 @@ li .bp3-menu-item {
 }
 
 //Sidebar override
-.sidebar .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
-.sidebar .bp3-button.bp3-minimal:hover,
-.sidebar .bp3-dark .bp3-button.bp3-minimal:hover {
-  border-left: 2px solid $blue1;
-  border-bottom: none !important;
-  border-radius: 0;
-  padding-left: 7px;
-  padding-bottom: 5px;
+.sidebar {
+  #toolbar {
+    .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
+    .bp3-button.bp3-minimal:hover,
+    .bp3-dark .bp3-button.bp3-minimal:hover {
+      border-left: 2px solid $blue1;
+      border-bottom: none !important;
+      border-radius: 0;
+      padding-left: 7px;
+      padding-bottom: 5px;
+    }
+  }
 }
 
 #system-tags {
@@ -988,6 +992,7 @@ li .bp3-menu-item {
 $pt-grid-size: 10px !default;
 $tree-row-height: $pt-grid-size * 3 !default;
 $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
+$tree-boffset: 8px !default;
 
 .bp3-tree .bp3-icon,
 .bp3-tree .bp3-icon-standard,
@@ -1123,32 +1128,35 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   background-color: $dark-gray2 !important;
   border-left: 2px solid $blue1;
   // padding-left: 0.85rem !important;
-  padding-left: calc(.85rem + 8px) !important;
+  padding-left: calc(0.85rem + 8px) !important;
   transition: all 0.2s $pt-transition-ease2;
   color: white;
 }
 
 @for $j from 0 through 20 {
   .#{$ns}-tree-node-content-#{$j} {
-    padding-left: (($tree-row-height - $tree-icon-spacing) * $j) + 2px !important;
+    padding-left: (((($tree-row-height - $tree-icon-spacing) - 8px) * $j) + $tree-boffset) +
+      2px !important;
+    // color: red !important;
   }
 }
 
-.#{$ns}-tree-node-content-#0 {
-  padding-left: ($tree-row-height - $tree-icon-spacing) + 4px;
+.#{$ns}-tree-node-content-0 {
+  padding-left: $tree-boffset + 4px !important;
 }
 
 @for $i from 0 through 20 {
   .#{$ns}-tree-node-content-#{$i}:hover {
     background-color: #252525 !important;
     border-left: 2px solid $blue1;
-    padding-left: (($tree-row-height - $tree-icon-spacing) * $i) + 0px !important;
+    padding-left: (((($tree-row-height - $tree-icon-spacing) - 8px) * $i) + $tree-boffset) +
+      0px !important;
     transition: all 0.2s $pt-transition-ease2;
     color: white;
   }
 }
-.#{$ns}-tree-node-content-#0:hover {
-  padding-left: (($tree-row-height - $tree-icon-spacing) + 4px) + 2px;
+.#{$ns}-tree-node-content-0:hover {
+  padding-left: $tree-boffset + 2px !important;
 }
 
 .bp3-dark {

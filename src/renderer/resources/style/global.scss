@@ -19,8 +19,8 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans",
-    "Helvetica Neue", "Icons16", sans-serif;
+  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
   .bp3-light {
     color: $light-gray1;
   }
@@ -53,7 +53,7 @@ pre {
 // Test with vertical sidenav
 .sidebar {
   --toolbar-height: 100vh !important;
-  --toolbar-width: 3rem !important;
+  --toolbar-width: 2.8rem !important;
   /*     --main-width: fit-content; */
   --content-area-height: 100vh !important;
   height: 100%;
@@ -62,11 +62,11 @@ pre {
   display: grid;
   /*     grid-template-rows: none; */
   grid-template-columns: var(--toolbar-width) min-content 1fr min-content;
-  grid-template-areas: "toolbar outliner main inspector";
+  grid-template-areas: 'toolbar outliner main inspector';
 }
 .sidebar #toolbar {
   grid-area: toolbar;
-  width: 3rem !important;
+  width: 2.8rem !important;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
@@ -74,8 +74,18 @@ pre {
   align-items: center;
   padding: 0.5rem 0;
   z-index: 1000;
+  #outliner-toolbar > div,
+  #main-toolbar > div,
+  #inspector-toolbar > div {
+    text-align: center;
+  align-content: center;
+  }
   border-right: 2px solid #14181a !important;
+  .bp3-button {
+    max-width: 30px;
+  }
 }
+
 .sidebar #toolbar #main-toolbar {
   display: flex;
   flex-direction: column;
@@ -97,7 +107,7 @@ pre {
   #toolbar {
     .bp3-button:empty::before,
     .bp3-button > :first-child {
-        margin: 0 !important;
+      margin: 0 !important;
     }
     #outliner-toolbar,
     #inspector-toolbar {
@@ -111,20 +121,18 @@ pre {
       }
       div:nth-child(1) button {
         flex-wrap: wrap;
-        flex-direction: column;
-        text-align: -webkit-center;
-        align-items: flex-start;
-        // padding: 0 25%;
+        // flex-direction: column;
+        // text-align: -webkit-center;
+        // align-items: flex-start;
       }
       div:nth-child(1) span:nth-child(2) {
         /* background: red !important; */
         visibility: visible;
         display: flex;
+        align-items: center;
         text-orientation: upright;
         writing-mode: vertical-rl;
-        /*         white-space: normal; */
         overflow: hidden;
-        /*         text-align: -webkit-auto; */
         width: initial;
         height: 4rem;
       }
@@ -160,7 +168,9 @@ pre {
   align-items: flex-start;
 }
 
-.split #main-toolbar .bp3-button > :first-child {margin-right: 0.25rem !important;}
+.split #main-toolbar .bp3-button > :first-child {
+  margin-right: 0.25rem !important;
+}
 
 .split #toolbar #main-toolbar div:nth-child(1) span:nth-child(2) {
   text-orientation: initial;
@@ -199,8 +209,8 @@ pre {
 .preloader {
   font-size: 18px;
   font-weight: 700;
-  font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans",
-    "Helvetica Neue", "Icons16", sans-serif;
+  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -215,8 +225,8 @@ main {
   grid-template-rows: var(--toolbar-height) var(--content-area-height);
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
-    "toolbar toolbar toolbar"
-    "outliner main inspector";
+    'toolbar toolbar toolbar'
+    'outliner main inspector';
 
   &.bp3-dark {
     background: $dark-gray0;
@@ -560,7 +570,7 @@ img {
 }
 
 #imageViewer {
-  content: "Close";
+  content: 'Close';
   color: $light-gray1;
   position: fixed;
   top: 0;
