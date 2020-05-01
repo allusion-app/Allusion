@@ -416,9 +416,9 @@ form .bp3-icon {
 // Labels
 .bp3-dark {
   label.bp3-label,
-  #watched-folders .bp3-button  {
-  color: $light-gray1;
-}
+  #watched-folders .bp3-button {
+    color: $light-gray1;
+  }
 }
 
 // Buttons
@@ -662,8 +662,8 @@ button:has(.bp3-intent-danger) {
 // Menus
 .bp3-dark {
   #fileTag .bp3-heading.inpectorHeading,
-  .bp3-drawer-header .bp3-heading,
-  .bp3-dialog-header .bp3-heading {
+  .bp3-drawer-header .bp3-heading {
+    // .bp3-dialog-header .bp3-heading {
     line-height: 19px;
     font-size: 18px;
     font-weight: 500;
@@ -767,7 +767,7 @@ nav .bp3-divider {
 .bp3-button-group.bp3-minimal {
   .bp3-button.bp3-intent-primary,
   .bp3-button.bp3-active .bp3-icon {
-  color: $blue1;
+    color: $blue1;
   }
 }
 
@@ -866,7 +866,7 @@ li .bp3-menu-item {
   color: white;
 }
 
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled), 
+.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
 .bp3-dark #watched-folders .bp3-button:hover {
   // .bp3-button:hover > .custom-icon,
   // .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
@@ -988,15 +988,6 @@ li .bp3-menu-item {
 $pt-grid-size: 10px !default;
 $tree-row-height: $pt-grid-size * 3 !default;
 $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
-
-@for $i from 0 through 20 {
-  .#{$ns}-tree-node-content-#{$i} {
-    padding-left: (($tree-row-height - $tree-icon-spacing) - 2px) * $i !important;
-  }
-}
-.#{$ns}-tree-node-content-#0 {
-  padding-left: ($tree-row-height - $tree-icon-spacing) + 4px !important;
-}
 
 .bp3-tree .bp3-icon,
 .bp3-tree .bp3-icon-standard,
@@ -1131,26 +1122,33 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 .bp3-dark #watched-folders .bp3-button:hover {
   background-color: $dark-gray2 !important;
   border-left: 2px solid $blue1;
-  padding-left: .85rem !important;
+  padding-left: 0.85rem !important;
   // padding-left: calc(.85rem + 8px) !important
   transition: all 0.2s $pt-transition-ease2;
   color: white;
 }
 
+@for $j from 0 through 20 {
+  .#{$ns}-tree-node-content-#{$j} {
+    padding-left: (($tree-row-height - $tree-icon-spacing) * $j) + 2px !important;
+  }
+}
 
+.#{$ns}-tree-node-content-#0 {
+  padding-left: ($tree-row-height - $tree-icon-spacing) + 4px;
+}
 
 @for $i from 0 through 20 {
   .#{$ns}-tree-node-content-#{$i}:hover {
-    background-color: $dark-gray2 !important;
+    background-color: #252525 !important;
     border-left: 2px solid $blue1;
-    padding-left: (($tree-row-height - $tree-icon-spacing) * $i) - 4px !important;
-    // padding-left: (($tree-row-height - $tree-icon-spacing) - 6px) * $i !important;
+    padding-left: (($tree-row-height - $tree-icon-spacing) * $i) + 0px !important;
     transition: all 0.2s $pt-transition-ease2;
     color: white;
   }
 }
 .#{$ns}-tree-node-content-#0:hover {
-  padding-left: (($tree-row-height - $tree-icon-spacing) + 4px) - 2px !important;
+  padding-left: (($tree-row-height - $tree-icon-spacing) + 4px) + 2px;
 }
 
 .bp3-dark {
@@ -1158,17 +1156,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   .bp3-tree-node-content:hover > .custom-icon,
   .bp3-button.bp3-minimal:hover .bp3-button-text,
   #watched-folders .bp3-minimal .bp3-icon {
-  color: white;
-}
-}
-
-// Hardcode left padding
-.#{$ns}-tree-node-content-0:hover {
-  padding-left: 2px !important;
-}
-
-.#{$ns}-tree-node-content-0 {
-  padding-left: 4px !important;
+    color: white;
+  }
 }
 
 .#{$ns}-tree-node-caret {
@@ -1208,8 +1197,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   margin-bottom: 0.5rem;
 }
 
-.bp3-drawer,
-.bp3-dialog .bp3-dialog-header {
+.bp3-drawer {
+  // .bp3-dialog .bp3-dialog-header {
   .custom-icon {
     color: $dark-gray4;
   }
