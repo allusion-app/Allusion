@@ -40,7 +40,9 @@ const getTags = async (): Promise<ITag[]> => {
   return [];
 };
 
-let initialize = () => {}; // placeholder
+let initialize = () => {
+  console.error('Placeholder function. App was not properly initialized!');
+};
 
 function createTrayMenu() {
   if (!tray) {
@@ -49,13 +51,16 @@ function createTrayMenu() {
       {
         label: 'Open',
         type: 'normal',
-        click: () => (mainWindow ? mainWindow.focus() : initialize()),
+        click: () => mainWindow?.focus() ?? initialize(),
       },
-      { label: 'Quit', click: () => { process.exit(0); }},
+      {
+        label: 'Quit',
+        click: () => process.exit(0),
+      },
     ]);
     tray.setContextMenu(trayMenu);
     tray.setToolTip('Allusion - Your Visual Library');
-    tray.on('click', () => mainWindow ? mainWindow.focus() : initialize());
+    tray.on('click', () => mainWindow?.focus() ?? initialize());
   }
 }
 
@@ -94,10 +99,14 @@ function createWindow() {
         { role: 'services', submenu: [] },
         { type: 'separator' },
         { role: 'hide' },
-        { role: 'hideothers' },
-        { role: 'unhide'},
+        { role: 'hideOthers' },
+        { role: 'unhide' },
         { type: 'separator' },
-        { label: 'Quit', accelerator: 'Command+Q', click: () => { process.exit(0); }},
+        {
+          label: 'Quit',
+          accelerator: 'Command+Q',
+          click: () => process.exit(0),
+        },
       ],
     });
   }
@@ -111,8 +120,8 @@ function createWindow() {
     label: 'View',
     submenu: [
       { role: 'reload' },
-      { role: 'forcereload' },
-      { role: 'toggledevtools' },
+      { role: 'forceReload' },
+      { role: 'toggleDevTools' },
       { type: 'separator' },
       {
         label: 'Actual Size',
