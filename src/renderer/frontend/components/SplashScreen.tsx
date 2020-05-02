@@ -11,7 +11,7 @@ const splashScreenStyles: React.CSSProperties = {
   width: '200p',
   textAlign: 'center',
   color: '#f5f8fa',
-  zIndex: 1,
+  zIndex: 2,
 };
 
 const textStyles: React.CSSProperties = {
@@ -60,10 +60,7 @@ const SplashScreen = () => (
       Allusion
     </p>
   </div>
-    <div className={'welcomedialog'}>
-      <div className={'grad'}></div>
-      <div className={'welcome'}></div>
-    </div>
+    <div className={'splash'}></div>
     </>
 );
 

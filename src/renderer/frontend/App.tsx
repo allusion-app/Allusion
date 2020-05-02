@@ -18,7 +18,7 @@ import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
 // import isOutlinerOpen from './UiStore';
 
-const SPLASH_SCREEN_TIME = 800;
+const SPLASH_SCREEN_TIME = 1400;
 
 
 const App = observer(() => {

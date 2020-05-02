@@ -5,7 +5,6 @@
 // }
 .welcomedialog {
   background: rgba(0, 0, 0, 0) !important;
-
   p {
     text-align: center;
     margin: 30px auto;
@@ -42,9 +41,10 @@
   }
 
   .grad {
-    background: rgba(20, 24, 26,0.5);
-    background: url(../renderer/resources/images/noise.png), -webkit-gradient(linear, 0% 80%, 0% 20%, from(#14181ae5), to(#14181a00));    
-    
+    background: rgba(20, 24, 26, 0.5);
+    background: url(../renderer/resources/images/noise.png),
+      -webkit-gradient(linear, 0% 80%, 0% 20%, from(#14181ae5), to(#14181a00));
+
     position: absolute;
     top: 0;
     left: 0;
@@ -64,4 +64,16 @@
     height: 100vh;
     z-index: 0;
   }
+}
+.splash {
+  background-image: url(../renderer/resources/images/welcome-bg-16-9-low.jpg);
+  background-position: center;
+  background-position-x: left;
+  background-size: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 0;
 }
