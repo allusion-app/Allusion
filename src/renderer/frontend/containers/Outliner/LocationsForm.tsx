@@ -330,7 +330,7 @@ const LocationsForm = () => {
   const handleChooseWatchedDir = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
-      const dirs = remote.dialog.showOpenDialog({
+      const dirs = remote.dialog.showOpenDialogSync({
         properties: ['openDirectory'],
       });
 

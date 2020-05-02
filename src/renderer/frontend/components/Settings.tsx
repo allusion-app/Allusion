@@ -49,7 +49,7 @@ const Settings = observer(() => {
   }, [setRunningInBackground, isRunningInBackground]);
 
   const browseImportDir = useCallback(() => {
-    const dirs = remote.dialog.showOpenDialog({
+    const dirs = remote.dialog.showOpenDialogSync({
       properties: ['openDirectory'],
     });
 
@@ -86,7 +86,7 @@ const Settings = observer(() => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   const browseThumbnailDirectory = useCallback(async () => {
-    const dirs = remote.dialog.showOpenDialog({
+    const dirs = remote.dialog.showOpenDialogSync({
       properties: ['openDirectory'],
       defaultPath: uiStore.thumbnailDirectory,
     });
