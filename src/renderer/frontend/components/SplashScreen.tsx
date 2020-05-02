@@ -11,6 +11,7 @@ const splashScreenStyles: React.CSSProperties = {
   width: '200p',
   textAlign: 'center',
   color: '#f5f8fa',
+  zIndex: 1,
 };
 
 const textStyles: React.CSSProperties = {
@@ -23,6 +24,7 @@ const textStyles: React.CSSProperties = {
 };
 
 const SplashScreen = () => (
+  <>
   <div style={splashScreenStyles}>
     <svg style={{ width: 0 }}>
       <defs>
@@ -58,6 +60,11 @@ const SplashScreen = () => (
       Allusion
     </p>
   </div>
+    <div className={'welcomedialog'}>
+      <div className={'grad'}></div>
+      <div className={'welcome'}></div>
+    </div>
+    </>
 );
 
 export default SplashScreen;

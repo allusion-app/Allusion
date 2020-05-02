@@ -105,7 +105,7 @@ class UiStore {
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
   
   // Sidebar
-  @observable sidebar: '' | 'sidebar' = 'sidebar';
+  @observable sidebar: 'sidebar' | '' = 'sidebar';
 
   // UI
   @observable isOutlinerOpen: boolean = true;

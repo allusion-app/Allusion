@@ -9,6 +9,7 @@ import { IMG_EXTENSIONS } from './File';
 import { ClientTag } from './Tag';
 import { RECURSIVE_DIR_WATCH_DEPTH } from '../../config';
 import { AppToaster } from '../frontend/App';
+import IconSet from '../frontend/components/Icons';
 
 export const DEFAULT_LOCATION_ID: ID = 'default-location';
 
@@ -180,8 +181,8 @@ export class ClientLocation implements ISerializable<ILocation> {
                   intent: 'primary',
                   timeout: 0,
                   action: {
-                    text: 'Refresh',
-                    icon: 'refresh',
+                    // text: 'Refresh',
+                    icon: IconSet.RELOAD,
                     onClick: this.store.rootStore.fileStore.refetch,
                   },
                 },

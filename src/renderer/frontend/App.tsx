@@ -16,13 +16,10 @@ import { useWorkerListener } from './ThumbnailGeneration';
 import { DragLayer } from './containers/Outliner/TagPanel';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
+// import isOutlinerOpen from './UiStore';
 
-const SPLASH_SCREEN_TIME = 700;
+const SPLASH_SCREEN_TIME = 800;
 
-export const AppToaster = Toaster.create({
-  position: Position.BOTTOM_RIGHT,
-  className: 'toaster',
-});
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -80,6 +77,19 @@ const App = observer(() => {
       </div>
     </DropOverlay>
   );
+});
+
+// const outlinerOpen = isOutlinerOpen === true ? 'outlinerOpen' : '';
+// const inspectorOpen = isOutlinerOpen === true ? 'onspectorOpen' : '';
+
+// const outlinerOpen={isOutlinerOpen ? 'primary' : 'none'}
+
+export const AppToaster = Toaster.create({
+  // position: Position.BOTTOM_RIGHT,
+  position: Position.TOP,
+  // className: 'toaster', ${outlinerOpen},
+  // className: `toaster {uiStore.isOutlinerOpen}`,
+  className: `toaster`,
 });
 
 export default App;

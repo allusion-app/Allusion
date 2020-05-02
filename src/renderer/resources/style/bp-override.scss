@@ -130,7 +130,7 @@
   // box-shadow: none;
   // box-shadow: 0 0 0 1.5px $blue1;
   // min-width: 100%;
-  background: rgba(1, 1, 1, 0.1);
+  background: rgba(18, 18, 18, 0.3);
   color: $dark-gray4;
   // margin-bottom: 0.15rem;
   box-shadow: none;
@@ -178,10 +178,12 @@ form,
   }
 }
 
-// Advanced search
+// Advanced search & Dialogs > Move off center
 .bp3-dialog {
   width: 650px !important;
+  margin-bottom: 20vh;
 }
+
 #search-form {
   .bp3-popover-target {
     width: 100%;
@@ -1241,3 +1243,28 @@ main {
 // .bp3-button-group.bp3-vertical > .bp3-button:not(:last-child) {
 //   border-radius: 6px 6px 0 0 !important;
 // }
+
+
+// Toaster
+.toaster {
+  z-index: 1001;
+  margin-top: 2rem;
+  .outlinerOpen {
+    padding-left: 16rem;
+  }
+  .inspectorOpen {
+    padding-right: 24rem;
+  }
+}
+.bp3-toast {
+  border-radius: 5px;
+}
+.bp3-toast[class*="bp3-intent-"] {
+  background: $blue1;
+}
+
+.bp3-toast[class*="bp3-intent-"] .bp3-button:hover {
+  background-color: unset !important;
+  color: #ffffff !important;
+}
+
