@@ -10,6 +10,9 @@
 .bp3-dark {
   color: $light-gray1;
 }
+.white-color {
+  color: white !important;
+}
 
 .bp3-key-combo {
   display: initial;
@@ -130,12 +133,13 @@
   // box-shadow: none;
   // box-shadow: 0 0 0 1.5px $blue1;
   // min-width: 100%;
-  background: rgba(18, 18, 18, 0.3);
+  background: rgba(1, 1, 1, 0.1);
   color: $dark-gray4;
   // margin-bottom: 0.15rem;
   box-shadow: none;
   border-radius: 6px;
 }
+
 
 .bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
   background-color: $blue1-unimportant;

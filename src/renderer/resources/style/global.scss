@@ -555,16 +555,18 @@ img {
   height: 4rem !important;
   width: 4rem !important;
 }
-.bp3-alert .custom-icon,
-.custom-icon-32 > * {
-  height: 2rem !important;
-  width: 2rem !important;
-}
 .custom-icon-14 > * {
   height: 0.875rem !important;
   width: 0.875rem !important;
   display: block;
 }
+
+.bp3-alert .custom-icon,
+.custom-icon-32 > * {
+  height: 2rem !important;
+  width: 2rem !important;
+}
+
 .fillWidth {
   width: 100%;
 }

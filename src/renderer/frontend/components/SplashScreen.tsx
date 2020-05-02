@@ -60,6 +60,7 @@ const SplashScreen = () => (
       Allusion
     </p>
   </div>
+    <div className={'grad'}></div>
     <div className={'splash'}></div>
     </>
 );

@@ -106,7 +106,7 @@ const GalleryItem = observer(
             <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
           ) : imageError ? (
             <span className="image-error">
-              <span className="bp3-icon custom-icon custom-icon-32">{IconSet.DB_ERROR}</span> <br />{' '}
+              <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span> <br />{' '}
               Could not load image
             </span> // Show an error it it could not be loaded
           ) : (
