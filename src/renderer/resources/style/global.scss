@@ -126,15 +126,23 @@ pre {
         // align-items: flex-start;
       }
       div:nth-child(1) span:nth-child(2) {
-        /* background: red !important; */
-        visibility: visible;
-        display: flex;
-        align-items: center;
-        text-orientation: upright;
-        writing-mode: vertical-rl;
-        overflow: hidden;
-        width: initial;
-        height: 4rem;
+        // visibility: visible;
+        // display: flex;
+        // align-items: center;
+        // text-orientation: upright;
+        // writing-mode: vertical-rl;
+        // overflow: hidden;
+        // width: initial;
+        // height: 4rem;
+        // writing-mode: horizontal-tb;
+        // display: block;
+        // text-orientation: sideways;
+        height: 100%;
+        width: 16px;
+        overflow: visible;
+        font-size: 11px;
+        text-align: center;
+        margin-top: 4px;
       }
       div:nth-child(2) button {
         width: -webkit-fill-available;

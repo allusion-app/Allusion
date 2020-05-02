@@ -12,7 +12,6 @@ import {
   Classes,
   Alert,
   Dialog,
-  Label,
   ITreeNode,
   Tree,
   ContextMenu,
@@ -120,13 +119,15 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
         <Observer>
           {() => (
             <>
+              <div>
               <p>Path: <pre>{dir.path}</pre></p>
-              {/* <span>
-                Path: <pre>{dir.path}</pre>
-              </span> */}
-              {/* <Checkbox label="Recursive" checked /> */}
-              {/* <Checkbox label="Add folder name as tag" /> */}
-              <Label>
+                {/* <span>
+                  Path: <pre>{dir.path}</pre>
+                </span> */}
+                {/* <Checkbox label="Recursive" checked /> */}
+                {/* <Checkbox label="Add folder name as tag" /> */}
+              </div>
+              <div>
                 <p>Tags to add
                 <MultiTagSelector
                   selectedItems={dir.clientTagsToAdd}
@@ -135,7 +136,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
                   onClearSelection={dir.clearTags}
                 />
                 </p>
-              </Label>
+              </div>
             </>
           )}
         </Observer>
@@ -143,7 +144,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
 
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button onClick={handleClose}>{dir.isInitialized ? 'Close' : 'Confirm'}</Button>
+          <Button onClick={handleClose} intent="primary">{dir.isInitialized ? 'Close' : 'Confirm'}</Button>
         </div>
       </div>
     </Dialog>

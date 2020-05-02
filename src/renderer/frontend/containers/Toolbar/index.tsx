@@ -60,7 +60,8 @@ const OutlinerToolbar = observer(
 /* Library info. Todo: Show entire library count instead of current fileList */
 const LibraryInfo = observer(({ fileCount }: { fileCount: number }) => (
   <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={Tooltip.Media}>
-    {fileCount} item{`${fileCount === 1 ? '' : 's'}`}
+    {/* {fileCount} item{`${fileCount === 1 ? '' : 's'}`} */}
+    {fileCount}
   </Button>
 ));
 
