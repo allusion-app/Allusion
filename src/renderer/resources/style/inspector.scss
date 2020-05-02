@@ -117,22 +117,20 @@
   height: 400px;
   max-height: 400px;
 
-  @keyframes highlight-green-fade {
-    0% { opacity: 1; }
-    100% { opacity: 0; display: none; }
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
   }
-  .item-enter.item-enter-active {
-    animation: highlight-green-fade .2s ease-out;
-    // outline: 1px solid green
+  .item-enter {
+    animation: highlight-green-fade .2s ease;
   }
 
-  @keyframes highlight-fade-remove {
+  @keyframes fade-out {
     0% { opacity: 1; }
-    100% { opacity: 0; display: none; }
+    100% { opacity: 0; }
   }
-  .item-exit.item-exit-active {
-    animation: highlight-fade-remove .2s ease-out;
-    // outline: 1px solid red;
+  .item-exit {
+    animation: highlight-fade-remove .2s ease;
   }
 
   
@@ -142,7 +140,8 @@
 
   > div {
     width: 100%;
-    transition: all .2s ease-out;
+    transition: all .2s ease;
+    opacity: 1;
       
     img {
       // object-fit: contain;
@@ -153,14 +152,13 @@
       width: 100%;
       box-shadow: $pt-dark-elevation-shadow-2;
       transform-origin: center;
-      transition: all .2s ease-out;
+      transition: all .2s ease;
 
       // TODO: Try making all images quare, to avoid having to deal with different aspect ratios
     }
 
-    // TODO: nth-child doesn't work well with transition group, there's more items during transitions
     @for $i from 0 through 10 {
-      &:nth-child(#{$i}) {
+      &.child-#{$i} {
         height: 0px; //16px;
         // margin-top: -16px;
         // height: calc(8px + 4px * #{$i});
@@ -171,6 +169,11 @@
             scale(calc(0.5 + 0.1 * #{$i}))
             translateY(calc(32px * #{$i} - 64px));
           // z-index: calc(5 - #{$i});
+          filter: brightness(calc(0.4 + 0.1 * #{$i}));
+          
+          &:hover {
+            filter: brightness(calc(0.5 + 0.1 * #{$i}));
+          }
         }
       }
     }
