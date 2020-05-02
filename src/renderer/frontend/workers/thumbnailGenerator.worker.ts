@@ -8,7 +8,7 @@ const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | nu
   const img = await createImageBitmap(inputBlob);
 
   // If the image is smaller than `thumbnailMaxSize`, don't create a thumbnail
-  if (needsThumbnail(img.width, img.height)) {
+  if (!needsThumbnail(img.width, img.height)) {
     return null;
   }
 
