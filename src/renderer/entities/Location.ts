@@ -70,6 +70,10 @@ export class ClientLocation implements ISerializable<ILocation> {
       .filter((t) => t !== undefined) as ClientTag[];
   }
 
+  @computed get name() {
+    return SysPath.basename(this.path);
+  }
+
   constructor(
     public store: LocationStore,
     public id: ID,

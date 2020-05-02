@@ -170,6 +170,9 @@ main,
 }
 
 #outliner {
+  // Show y scrollbar when there's loads of tags or location list items
+  overflow: hidden auto !important;
+
   > div:hover .outliner-header-wrapper:not(last-child) > * {
     opacity: 1;
   }

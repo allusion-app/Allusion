@@ -44,6 +44,47 @@ export const timeoutPromise = <T>(timeMS: number, promise: Promise<T>): Promise<
 };
 
 ///////////////////////////////
+//////// Promise utils ////////
+///////////////////////////////
+/**
+ * Like Promise.all, but runs batches of N promises in sequence
+ * @param batchSize The amount of promises in a batch
+ * @param proms The promises to run
+ */
+export const promiseAllBatch = async <T>(batchSize = 50, proms: Promise<T>[]) => {
+  const res: T[] = [];
+  for (let i = 0; i < proms.length; i += batchSize) {
+    res.push(...(await Promise.all(proms.slice(i, i + batchSize))));
+  }
+  return res;
+}
+
+/**
+ * Like Promise.all, but only runs N promises in parallel
+ * https://gist.github.com/jcouyang/632709f30e12a7879a73e9e132c0d56b
+ * @param n The amount of promises to run in parallel
+ * @param list The promises to run
+ */
+export const promiseAllLimit = async <T>(n: number, list: (() => Promise<T>)[]) => {
+  const head = list.slice(0, n)
+  const tail = list.slice(n)
+  const result: T[] = []
+  const execute = async (promise: () => Promise<T>, i: number, runNext: () => Promise<void>) => {
+    result[i] = await promise()
+    await runNext()
+  }
+  const runNext = async () => {
+    const i = list.length - tail.length
+    const promise = tail.shift()
+    if (promise !== undefined) {
+      await execute(promise, i, runNext)
+    }
+  }
+  await Promise.all(head.map((promise, i) => execute(promise, i, runNext)))
+  return result
+}
+
+///////////////////////////////
 //// Text formatting utils ////
 ///////////////////////////////
 export const formatTagCountText = (numTags: number, numCols: number) => {
