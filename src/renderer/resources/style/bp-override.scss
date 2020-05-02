@@ -140,7 +140,6 @@
   border-radius: 6px;
 }
 
-
 .bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
   background-color: $blue1-unimportant;
 }
@@ -1248,7 +1247,6 @@ main {
 //   border-radius: 6px 6px 0 0 !important;
 // }
 
-
 // Toaster
 .toaster {
   z-index: 1001;
@@ -1259,16 +1257,18 @@ main {
   .inspectorOpen {
     padding-right: 24rem;
   }
+  .bp3-button {
+    background: rgba(0,0,0,0) !important;
+  }
 }
 .bp3-toast {
   border-radius: 5px;
 }
-.bp3-toast[class*="bp3-intent-"] {
+.bp3-toast[class*='bp3-intent-'] {
   background: $blue1;
 }
 
-.bp3-toast[class*="bp3-intent-"] .bp3-button:hover {
+.bp3-toast[class*='bp3-intent-'] .bp3-button:hover {
   background-color: unset !important;
   color: #ffffff !important;
 }
-

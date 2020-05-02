@@ -144,7 +144,7 @@ main,
 
 .bp3-overlay
   .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
-  // background: $light-gray1-trans; /* Not sure what items use this */
+  background: $light-gray1-trans; /* Not sure what items use this  > buttons none intent*/
   color: $light-gray6;
 }
 
