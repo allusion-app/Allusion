@@ -110,13 +110,14 @@ main,
       box-shadow: none !important;
     }
 
-    &.bp3-fill:not([class*='bp3-intent-primary']) {
-      border: 1.3px solid $light-gray5-trans !important;
-      color: #495057;
-      background: none;
-    }
+     /* Breaks stykling buttns search forms */
+    // &.bp3-fill:not([class*='bp3-intent-primary']) {
+    //   border: 1.3px solid $light-gray5-trans !important;
+    //   color: #495057;
+    //   ackground: none;
+    // }
 
-    &:hover {
+    &:not(.btn-blank):hover {
       background-color: $dark-gray3;
       color: $light-gray5;
     }

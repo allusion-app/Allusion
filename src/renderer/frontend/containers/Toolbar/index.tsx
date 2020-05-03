@@ -80,7 +80,8 @@ const FileSelection = observer(
       className="tooltip"
       data-right={Tooltip.Select}
     >
-      {selectionCount} selected
+      {/* {selectionCount} selected */}
+      {selectionCount}
     </Button>
   ),
 );

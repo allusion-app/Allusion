@@ -106,7 +106,7 @@ const KeySelector = ({ selectedKey, setCriteria }: IKeySelector) => {
     }
   };
 
-  return <HTMLSelect onChange={handlePickKey} options={KeyOptions} value={selectedKey} />;
+  return <HTMLSelect onChange={handlePickKey} options={KeyOptions} value={selectedKey} autoFocus={true}/>;
 };
 
 interface IOperatorSelector {
@@ -162,7 +162,7 @@ const TagCriteriaItem = ({ value, setValue }: IValueInput<TagValue>) => {
 
   return (
     <TagSelector
-      autoFocus
+      autoFocus={true}
       includeCollections
       selectedItem={selectedItem}
       onTagSelect={(t) => setValue([t.id, t.name])}
@@ -354,6 +354,7 @@ const SearchForm = ({
         icon={IconSet.ADD}
         onClick={() => setCriterias(criterias.concat({ ...Default.tags, id: generateId() }))}
         minimal
+        className={"btn-blank"}
       />
 
       <div>
@@ -395,7 +396,7 @@ export const AdvancedSearchDialog = observer(() => {
       onClose={uiStore.toggleAdvancedSearch}
       icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      className={`${themeClass} light`}
+      className={`${themeClass} light header-dark`}
       canEscapeKeyClose={true}
       canOutsideClickClose={true}
     >

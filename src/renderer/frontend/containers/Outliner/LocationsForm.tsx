@@ -12,6 +12,7 @@ import {
   Classes,
   Alert,
   Dialog,
+  Label,
   ITreeNode,
   Tree,
   ContextMenu,
@@ -128,6 +129,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
                 {/* <Checkbox label="Add folder name as tag" /> */}
               </div>
               <div>
+                <Label>
                 <p>Tags to add
                 <MultiTagSelector
                   selectedItems={dir.clientTagsToAdd}
@@ -136,6 +138,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
                   onClearSelection={dir.clearTags}
                 />
                 </p>
+                </Label>
               </div>
             </>
           )}

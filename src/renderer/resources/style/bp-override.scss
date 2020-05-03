@@ -74,6 +74,51 @@
   }
 }
 // Input field
+
+.#{$ns}-file-input {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  height: $pt-input-height;
+
+  input {
+    opacity: 0;
+    margin: 0;
+    min-width: $pt-grid-size * 20;
+
+    // unlike other form controls that directly style native elements,
+    // pt-file-input wraps and hides the native element for better control over
+    // visual styles. to disable, we need to disable the hidden child input, not
+    // the surrounding wrapper. @see https://github.com/palantir/blueprint/issues/689
+    // for gory details.
+    &:disabled + .#{$ns}-file-upload-input,
+    &.#{$ns}-disabled + .#{$ns}-file-upload-input {
+      @include pt-input-disabled();
+
+      &::after {
+        @include pt-button-disabled();
+      }
+
+      .#{$ns}-dark & {
+        @include pt-dark-input-disabled();
+
+        &::after {
+          @include pt-dark-button-disabled();
+        }
+      }
+    }
+  }
+  &.#{$ns}-file-input-has-selection {
+    .#{$ns}-file-upload-input {
+      color: $pt-text-color;
+    }
+
+    .#{$ns}-dark & .#{$ns}-file-upload-input {
+      color: $pt-dark-text-color;
+    }
+  }
+}
+
 ::selection {
   color: white;
   background: $blue1;
@@ -158,6 +203,9 @@ form,
   > :last-child,
   .bp3-input {
     border-radius: 0 6px 6px 0;
+  }
+  .remove {
+    border-radius: 6px;
   }
 }
 #outliner {
@@ -541,6 +589,23 @@ button:has(.bp3-intent-danger) {
   background: transparent;
   color: #f5f8fa;
 }
+.bp3-button {
+  &.btn-blank,
+  .btn-blank,
+  &.bp3-minimal.btn-blank {
+    background: none !important;
+    background-color: none !important;
+    color: $light-gray1 !important;
+    &:hover,
+    &:hover .bp3-icon {
+      color: $light-gray1 !important;
+    }
+    .bp3-button-text,
+    .bp3-icon {
+      color: $light-gray1 !important;
+    }
+  }
+}
 
 // Controls
 .bp3-dark {
@@ -667,7 +732,8 @@ button:has(.bp3-intent-danger) {
 // Menus
 .bp3-dark {
   #fileTag .bp3-heading.inpectorHeading,
-  .bp3-drawer-header .bp3-heading {
+  .bp3-drawer-header .bp3-heading,
+  &.header-dark .bp3-heading {
     // .bp3-dialog-header .bp3-heading {
     line-height: 19px;
     font-size: 18px;
@@ -1217,7 +1283,8 @@ $tree-boffset: 8px !default;
   }
 }
 
-.bp3-drawer .bp3-intent-warning .custom-icon {
+.bp3-drawer .bp3-intent-warning .custom-icon,
+#actions-bar button .bp3-icon {
   color: white !important;
 }
 
@@ -1258,7 +1325,7 @@ main {
     padding-right: 24rem;
   }
   .bp3-button {
-    background: rgba(0,0,0,0) !important;
+    background: rgba(0, 0, 0, 0) !important;
   }
 }
 .bp3-toast {

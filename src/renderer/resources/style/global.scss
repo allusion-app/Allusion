@@ -107,42 +107,30 @@ pre {
   #toolbar {
     .bp3-button:empty::before,
     .bp3-button > :first-child {
-      margin: 0 !important;
+      margin: 0;
     }
     #outliner-toolbar,
     #inspector-toolbar {
       width: var(--toolbar-width) !important;
     }
     #main-toolbar {
-      div:nth-child(1) span:nth-child(2),
-      div:nth-child(2) > button:nth-child(1) span:nth-child(1) {
-        visibility: hidden;
-        display: none;
-      }
-      div:nth-child(1) button {
+      // Dont hide using numnbers only
+      // div:nth-child(1) span:nth-child(2),
+      // div:nth-child(2) > button:nth-child(1) span:nth-child(1) {
+      //   visibility: hidden;
+      //   display: none;
+      // }
+      div:nth-child(1) button,
+      div:nth-child(2) button:nth-of-type(1) {
         flex-wrap: wrap;
-        // flex-direction: column;
-        // text-align: -webkit-center;
-        // align-items: flex-start;
       }
-      div:nth-child(1) span:nth-child(2) {
-        // visibility: visible;
-        // display: flex;
-        // align-items: center;
-        // text-orientation: upright;
-        // writing-mode: vertical-rl;
-        // overflow: hidden;
-        // width: initial;
-        // height: 4rem;
-        // writing-mode: horizontal-tb;
-        // display: block;
-        // text-orientation: sideways;
-        height: 100%;
-        width: 16px;
+      div:nth-child(1) span:nth-child(2),
+      div:nth-of-type(2) button:nth-of-type(1) span:nth-of-type(1) {
         overflow: visible;
         font-size: 11px;
         text-align: center;
-        margin-top: 4px;
+        margin: 4px auto;
+        font-weight: 600;
       }
       div:nth-child(2) button {
         width: -webkit-fill-available;
