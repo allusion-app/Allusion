@@ -394,14 +394,14 @@ const LocationsForm = () => {
           icon={IconSet.FOLDER_CLOSE_ADD}
           onClick={handleChooseWatchedDir}
           className="tooltip"
-          data-right={Tooltip.Location}
+          data-left={Tooltip.Location}
         />
         <Button
           minimal
           icon={IconSet.RELOAD}
           onClick={handleRefresh}
           className="tooltip"
-          data-right={Tooltip.Refresh}
+          data-left={Tooltip.Refresh}
         />
       </div>
       <Collapse isOpen={!isCollapsed}>
