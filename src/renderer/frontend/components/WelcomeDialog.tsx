@@ -19,7 +19,7 @@ const SetupImportDirStep = ({
   setImportLocation: (loc: string) => void;
 }) => {
   const browseImportDirectory = useCallback(() => {
-    const dirs = remote.dialog.showOpenDialog({
+    const dirs = remote.dialog.showOpenDialogSync({
       properties: ['openDirectory'],
       defaultPath: importLocation,
     });
