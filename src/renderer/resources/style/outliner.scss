@@ -83,7 +83,7 @@ main,
   // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
   .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal) {
     // .bp3-multi-select .bp3-minimal {
-    background: $light-gray1-trans;
+    background: $dark-gray1-trans;
     color: $light-gray2;
   }
   .bp3-input.bp3-minimal {
@@ -97,7 +97,7 @@ main,
 
 
   button.bp3-intent-primary {
-    background: $light-gray0-trans !important;
+    background: $dark-gray0-trans !important;
   }
 }
 
@@ -112,7 +112,7 @@ main,
 
      /* Breaks stykling buttns search forms */
     // &.bp3-fill:not([class*='bp3-intent-primary']) {
-    //   border: 1.3px solid $light-gray5-trans !important;
+    //   border: 1.3px solid $dark-gray5-trans !important;
     //   color: #495057;
     //   ackground: none;
     // }
@@ -129,14 +129,15 @@ main,
     button {
       &.bp3-fill:not([class*='bp3-intent-primary']),
       &.bp3-button:not([class*='bp3-intent-primary']) {
-        background: $light-gray5-trans;
+        background: $dark-gray5-trans;
         color: $light-gray1 !important;
       }
       .custom-icon {
         color: $dark-gray4;
       }
       &:hover {
-        background-color: $light-gray6-trans !important;
+        // background-color: $dark-gray6-trans !important;
+        background-color: $dark-gray2;
         color: $light-gray5;
       }
     }
@@ -145,7 +146,7 @@ main,
 
 .bp3-overlay
   .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
-  background: $light-gray1-trans; /* Not sure what items use this  > buttons none intent*/
+  background: $dark-gray1-trans; /* Not sure what items use this  > buttons none intent*/
   color: $light-gray6;
 }
 

@@ -175,10 +175,8 @@
 .bp3-dark .bp3-input,
 .bp3-light .bp3-input,
 .bp3-dark .bp3-file-upload-input {
-  // box-shadow: none;
-  // box-shadow: 0 0 0 1.5px $blue1;
-  // min-width: 100%;
-  background: rgba(1, 1, 1, 0.1);
+  // background: rgba(1, 1, 1, 0.1);
+  background: $light-gray3;
   color: $dark-gray4;
   // margin-bottom: 0.15rem;
   box-shadow: none;
@@ -564,10 +562,11 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-button::before,
-.bp3-button > *,
-.bp3-tree-node-caret > .custom-icon,
-.bp3-tree-node-content > .custom-icon,
-.bp3-tree-node-content > span > .custom-icon,
+.bp3-button>*,
+// .bp3-tree-node-caret,
+.bp3-tree-node-caret>.custom-icon,
+.bp3-tree-node-content>span.custom-icon,
+.bp3-tree-node-content > span span.custom-icon,
 .bp3-tree-node-content > .custom-icon-14.custom-icon {
   margin-right: 0.25rem;
 }
@@ -647,14 +646,16 @@ button:has(.bp3-intent-danger) {
 .bp3-dark .bp3-html-select select,
 .bp3-dark .bp3-select select {
   box-shadow: none;
-  background-color: rgba(1, 1, 1, 0.1);
+  // background-color: rgba(1, 1, 1, 0.1);
+  background-color: $light-gray3;
   background-image: none;
   color: $dark-gray4;
 
   &:hover {
     box-shadow: none;
-    background-color: $light-gray6-trans !important;
-    color: $light-gray5 !important;
+    // background-color: $dark-gray6-trans !important;
+    background-color: $light-gray4;
+    color: $dark-gray4;
   }
 }
 // .bp3-control.bp3-switch input:checked ~ .bp3-control-indicator,
