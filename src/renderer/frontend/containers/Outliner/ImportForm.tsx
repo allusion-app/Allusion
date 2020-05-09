@@ -18,7 +18,7 @@ import { DEFAULT_LOCATION_ID } from '../../../entities/Location';
 export const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
 
 const chooseFiles = async (fileStore: FileStore) => {
-  const files = remote.dialog.showOpenDialog({
+  const files = remote.dialog.showOpenDialogSync({
     filters: [{ name: 'Images', extensions: imgExtensions }],
     properties: ['openFile', 'multiSelections'],
   });
@@ -53,7 +53,7 @@ const findFiles = async (dir: string) => {
 };
 
 const chooseDirectories = async (fileStore: FileStore) => {
-  const dirs = remote.dialog.showOpenDialog({
+  const dirs = remote.dialog.showOpenDialogSync({
     properties: ['openDirectory', 'multiSelections'],
   });
 
@@ -135,7 +135,7 @@ const importDirRecursive = async (
 
 /** Opens a folder picker and adds all files and sub-directories to the library */
 const chooseFolderStructure = async (rootStore: RootStore) => {
-  const dirs = remote.dialog.showOpenDialog({
+  const dirs = remote.dialog.showOpenDialogSync({
     properties: ['openDirectory'],
   });
 
@@ -163,9 +163,15 @@ const ImportForm = observer(() => {
 
   const rootStore = useContext(StoreContext);
 
-  const handleChooseFiles = useCallback(() => chooseFiles(rootStore.fileStore), [rootStore.fileStore]);
-  const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), [rootStore.fileStore]);
-  const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), [rootStore]);
+  const handleChooseFiles = useCallback(() => chooseFiles(rootStore.fileStore), [
+    rootStore.fileStore,
+  ]);
+  const handleChooseDirectory = useCallback(() => chooseDirectories(rootStore.fileStore), [
+    rootStore.fileStore,
+  ]);
+  const handleChooseFolderStructure = useCallback(() => chooseFolderStructure(rootStore), [
+    rootStore,
+  ]);
 
   return (
     <div id="import">
