@@ -58,10 +58,7 @@ const SetupImportDirStep = ({
       {/* Todo: Would be nicer to do in steps (cards sliding (NEXT -> NEXT -> Start tour)) */}
       <p>
         Before setting up your visual library, please choose where you would like to store images
-        that you import from external sources:
-      </p>
-      <p>
-        This will be the directory of your default <b>Location</b>.
+        that you import from external sources. This will be the directory of your default <b>Location</b>:
       </p>
 
       {/* TODO: Maybe simplify text to: "Where would you like to store new images by default?" */}

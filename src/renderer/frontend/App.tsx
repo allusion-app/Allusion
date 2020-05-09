@@ -46,7 +46,7 @@ const App = observer(() => {
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
-  const sidebarClass = uiStore.sidebar === '' ? '' : 'sidebar';
+  const sidebarClass = uiStore.sidebar === 'sidebar' ? '' : 'sidebar';
 
   return (
     // Overlay that shows up when dragging files/images over the application

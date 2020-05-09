@@ -105,7 +105,7 @@ class UiStore {
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
   
   // Sidebar
-  @observable sidebar: 'sidebar' | '' = 'sidebar';
+  @observable sidebar: '' | 'sidebar' = 'sidebar';
 
   // UI
   @observable isOutlinerOpen: boolean = true;
@@ -565,7 +565,7 @@ class UiStore {
     this.rootStore.fileStore.fetchAllFiles();
   }
   
-  @action private setSidebar(sidebar: '' | 'sidebar' = 'sidebar') {
+  @action private setSidebar(sidebar: 'sidebar' | '' = 'sidebar') {
     this.sidebar = sidebar;
   }
 
