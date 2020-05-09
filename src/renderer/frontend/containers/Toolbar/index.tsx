@@ -39,11 +39,11 @@ const OutlinerToolbar = observer(
     <section id="outliner-toolbar">
       <ButtonGroup minimal>
         <Button
-          icon={IconSet.TAG}
+          icon={IconSet.OUTLINER}
           onClick={toggleOutliner}
           intent={isOutlinerOpen ? 'primary' : 'none'}
           className="tooltip"
-          data-right={Tooltip.TagFiles}
+          data-right={Tooltip.Outliner}
         />
         <Button
           icon={IconSet.SEARCH}
