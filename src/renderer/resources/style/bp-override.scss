@@ -176,9 +176,8 @@
 .bp3-light .bp3-input,
 .bp3-dark .bp3-file-upload-input {
   // background: rgba(1, 1, 1, 0.1);
-  background: $light-gray3;
-  color: $dark-gray4;
-  // margin-bottom: 0.15rem;
+  background: $dark-gray8-trans;
+  // color: $dark-gray4;
   box-shadow: none;
   border-radius: 6px;
 }
