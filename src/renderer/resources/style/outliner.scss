@@ -95,16 +95,14 @@ main,
     color: $light-gray3;
   }
 
-  button.bp3-intent-primary {
-    background: $light-gray0-trans !important;
-  }
 
   button.bp3-intent-primary {
     background: $light-gray0-trans !important;
   }
 }
 
-#search-form {
+#search-form,
+.bp3-overlay {
   button {
     &.bp3-intent-primary {
       background: $blue1;
@@ -147,7 +145,7 @@ main,
 .bp3-overlay
   .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
   background: $light-gray1-trans;
-  color: $light-gray2;
+  color: $light-gray6;
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////

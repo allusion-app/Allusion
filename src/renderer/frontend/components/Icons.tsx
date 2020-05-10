@@ -1,6 +1,13 @@
 import React from 'react';
-import SVG from 'react-inlinesvg';
-import { H3, IconName, Tag, Intent } from '@blueprintjs/core';
+
+interface ISVG extends React.SVGProps<SVGSVGElement> {
+  src: any;
+}
+
+export const SVG = (props: ISVG) => {
+  const { src: SVG, ...p } = props;
+  return <SVG {...p} />;
+};
 
 import ADD_TAG_FILL from '../../resources/icons/add-tag-fill.svg';
 import ADD_TAG_OUTLINE from '../../resources/icons/add-tag-outline.svg';
@@ -73,11 +80,7 @@ import WARNING_FILL from '../../resources/icons/warning-fill.svg';
 import WARNING from '../../resources/icons/warning.svg';
 
 const toSvg = (src: any) => (
-  <SVG
-    src={src}
-    className="bp3-icon custom-icon"
-    style={{ width: '16px', height: '16px' }}
-  />
+  <SVG src={src} className="bp3-icon custom-icon" style={{ width: '16px', height: '16px' }} />
 );
 
 const IconSet = {
@@ -151,37 +154,5 @@ const IconSet = {
   WARNING_FILL: toSvg(WARNING_FILL),
   WARNING: toSvg(WARNING),
 };
-
-export const IconDemo = () => (
-  <>
-    <H3>Built-in icons</H3>
-    { (['plus', 'small-plus', '', '', 'chevron-down', 'chevron-right', 'chevron-up',
-        'tick', 'cross', 'trash', 'delete', /*'small-cross'*/, 'edit', 'folder-close', 'folder-open',
-        '', 'info-sign', 'menu', '', '', 'more', 'search', 'path-search',
-        'tag', 'calendar',
-        'sort-alphabetical', 'sort-alphabetical-desc', 'play', 'warning-sign', 'double-caret-vertical',
-      ] as IconName[])
-    .map((name, i) =>
-      <Tag
-        icon={name}
-        large
-        intent={Object.values(Intent)[i % Object.values(Intent).length]}
-        key={i}
-      />,
-    )}
-
-    <br />
-    <H3>Custom icons</H3>
-    {Object.values(IconSet)
-      .map((icon, i) =>
-        <Tag
-          icon={icon}
-          large
-          intent={Object.values(Intent)[i % Object.values(Intent).length]}
-          key={`tag-${i}`}
-        />,
-      )}
-  </>
-);
 
 export default IconSet;

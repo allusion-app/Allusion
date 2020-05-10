@@ -88,6 +88,7 @@ const defaultHotkeyMap: IHotkeyMap = {
 /** These fields are stored and recovered when the application opens up */
 const PersistentPreferenceFields: Array<keyof UiStore> = [
   'theme',
+  'sidebar',
   'isOutlinerOpen',
   'isInspectorOpen',
   'thumbnailDirectory',
@@ -528,6 +529,7 @@ class UiStore {
       try {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
+        this.setSidebar(prefs.sidebar);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.setIsInspectorOpen(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);

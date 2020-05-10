@@ -511,11 +511,10 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-button::before,
-.bp3-button>*,
-// .bp3-tree-node-caret,
-.bp3-tree-node-caret>.custom-icon,
-.bp3-tree-node-content>span.custom-icon,
-.bp3-tree-node-content > span span.custom-icon,
+.bp3-button > *,
+.bp3-tree-node-caret > .custom-icon,
+.bp3-tree-node-content > .custom-icon,
+.bp3-tree-node-content > span > .custom-icon,
 .bp3-tree-node-content > .custom-icon-14.custom-icon {
   margin-right: 0.25rem;
 }
@@ -662,8 +661,8 @@ button:has(.bp3-intent-danger) {
 // Menus
 .bp3-dark {
   #fileTag .bp3-heading.inpectorHeading,
-  .bp3-drawer-header .bp3-heading,
-  .bp3-dialog-header .bp3-heading {
+  .bp3-drawer-header .bp3-heading {
+    // .bp3-dialog-header .bp3-heading {
     line-height: 19px;
     font-size: 18px;
     font-weight: 500;
@@ -901,14 +900,18 @@ li .bp3-menu-item {
 }
 
 //Sidebar override
-.sidebar .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
-.sidebar .bp3-button.bp3-minimal:hover,
-.sidebar .bp3-dark .bp3-button.bp3-minimal:hover {
-  border-left: 2px solid $blue1;
-  border-bottom: none !important;
-  border-radius: 0;
-  padding-left: 7px;
-  padding-bottom: 5px;
+.sidebar {
+  #toolbar {
+    .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
+    .bp3-button.bp3-minimal:hover,
+    .bp3-dark .bp3-button.bp3-minimal:hover {
+      border-left: 2px solid $blue1;
+      border-bottom: none !important;
+      border-radius: 0;
+      padding-left: 7px;
+      padding-bottom: 5px;
+    }
+  }
 }
 
 #system-tags {
@@ -988,15 +991,7 @@ li .bp3-menu-item {
 $pt-grid-size: 10px !default;
 $tree-row-height: $pt-grid-size * 3 !default;
 $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
-
-@for $i from 0 through 20 {
-  .#{$ns}-tree-node-content-#{$i} {
-    padding-left: (($tree-row-height - $tree-icon-spacing) - 2px) * $i !important;
-  }
-}
-.#{$ns}-tree-node-content-#0 {
-  padding-left: ($tree-row-height - $tree-icon-spacing) + 4px !important;
-}
+$tree-boffset: 8px !default;
 
 .bp3-tree .bp3-icon,
 .bp3-tree .bp3-icon-standard,
@@ -1131,23 +1126,36 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 .bp3-dark #watched-folders .bp3-button:hover {
   background-color: $dark-gray2 !important;
   border-left: 2px solid $blue1;
-  padding-left: 0.85rem !important;
+  // padding-left: 0.85rem !important;
+  padding-left: calc(0.85rem + 8px) !important;
   transition: all 0.2s $pt-transition-ease2;
   color: white;
 }
 
+@for $j from 0 through 20 {
+  .#{$ns}-tree-node-content-#{$j} {
+    padding-left: (((($tree-row-height - $tree-icon-spacing) - 8px) * $j) + $tree-boffset) +
+      2px !important;
+    // color: red !important;
+  }
+}
+
+.#{$ns}-tree-node-content-0 {
+  padding-left: $tree-boffset + 4px !important;
+}
+
 @for $i from 0 through 20 {
   .#{$ns}-tree-node-content-#{$i}:hover {
-    background-color: $dark-gray2 !important;
+    background-color: #252525 !important;
     border-left: 2px solid $blue1;
-    padding-left: (($tree-row-height - $tree-icon-spacing) * $i) - 4px !important;
-    // padding-left: (($tree-row-height - $tree-icon-spacing) - 6px) * $i !important;
+    padding-left: (((($tree-row-height - $tree-icon-spacing) - 8px) * $i) + $tree-boffset) +
+      0px !important;
     transition: all 0.2s $pt-transition-ease2;
     color: white;
   }
 }
-.#{$ns}-tree-node-content-#0:hover {
-  padding-left: (($tree-row-height - $tree-icon-spacing) + 4px) - 2px !important;
+.#{$ns}-tree-node-content-0:hover {
+  padding-left: $tree-boffset + 2px !important;
 }
 
 .bp3-dark {
@@ -1157,15 +1165,6 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   #watched-folders .bp3-minimal .bp3-icon {
     color: white;
   }
-}
-
-// Hardcode left padding
-.#{$ns}-tree-node-content-0:hover {
-  padding-left: 2px !important;
-}
-
-.#{$ns}-tree-node-content-0 {
-  padding-left: 4px !important;
 }
 
 .#{$ns}-tree-node-caret {
@@ -1205,8 +1204,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   margin-bottom: 0.5rem;
 }
 
-.bp3-drawer,
-.bp3-dialog .bp3-dialog-header {
+.bp3-drawer {
+  // .bp3-dialog .bp3-dialog-header {
   .custom-icon {
     color: $dark-gray4;
   }

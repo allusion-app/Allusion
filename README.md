@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/RvanderLaan/VisualLibrary.svg?token=ZyyPRcvUrKna9We5wrbh&branch=master)](https://travis-ci.com/RvanderLaan/VisualLibrary)
+[![Build Status](https://travis-ci.com/allusion-app/Allusion.svg?token=a7yw4czL1Lye2zty617R&branch=master)](https://travis-ci.com/allusion-app/Allusion)
 
 # Visual Library
 
