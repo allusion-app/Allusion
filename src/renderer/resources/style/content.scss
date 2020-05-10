@@ -69,6 +69,8 @@
 .gallery-content {
   flex: 1;
   max-height: 100%;
+  
+  margin-left: 8px;
 }
 
 .gallery-content:not(.slide) {

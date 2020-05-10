@@ -42,3 +42,15 @@
 //   margin-left: 4rem;
 //   margin-top: .25rem;
 // }
+
+#main-toolbar.separated { // Intended for when the main (content) toolbar is separate from the rest of the toolbar
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  background: $dark-gray1;
+  border-bottom: 2px solid $dark-gray0;
+
+  .bp3-button {
+    background: transparent;
+  }
+}

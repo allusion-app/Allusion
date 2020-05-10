@@ -5,13 +5,14 @@ import { IRootStoreProp, withRootstore } from '../../contexts/StoreContext';
 import Gallery from './Gallery';
 import Searchbar from './Searchbar';
 import ContentToolbar from '../Toolbar/ContentToolbar';
+import { Observer } from 'mobx-react-lite';
 
 @HotkeysTarget
 class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
     return (
       <main tabIndex={1}>
-        <ContentToolbar />
+        <Observer>{() => Boolean(this.props.rootStore.uiStore.sidebar) ? <ContentToolbar className="separated" /> : <></>}</Observer>
         <Searchbar />
         <Gallery />
       </main>

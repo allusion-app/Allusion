@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
+import ContentToolbar from './ContentToolbar';
 
 // Tooltip info
 export const enum ToolbarTooltips {
@@ -87,7 +88,7 @@ const Toolbar = observer(() => {
   return (
     <div id="toolbar">
       <OutlinerToolbar />
-      {/* <ContentToolbar /> */}
+      {!Boolean(uiStore.sidebar) && <ContentToolbar /> }
       <InspectorToolbar
         isInspectorOpen={uiStore.isInspectorOpen}
         toggleInspector={uiStore.toggleInspector}

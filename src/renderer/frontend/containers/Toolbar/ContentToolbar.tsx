@@ -14,7 +14,7 @@ import StoreContext from '../../contexts/StoreContext';
 /* Library info. Todo: Show entire library count instead of current fileList */
 const LibraryInfo = observer(({ fileCount }: { fileCount: number }) => (
   <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={ToolbarTooltips.Media}>
-    {fileCount} item{`${fileCount === 1 ? '' : 's'}`}
+    {` ${fileCount} item${fileCount === 1 ? '' : 's'}`}
   </Button>
 ));
 
@@ -138,7 +138,7 @@ const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) 
   </ButtonGroup>
 ));
 
-const ContentToolbar = observer(() => {
+const ContentToolbar = observer(({ className }: { className?: string }) => {
   const { uiStore, fileStore } = useContext(StoreContext);
   const { fileSelection } = uiStore;
   // If everything is selected, deselect all. Else, select all
@@ -150,7 +150,7 @@ const ContentToolbar = observer(() => {
         );
 
   return (
-    <section id="main-toolbar">
+    <section id="main-toolbar" className={className}>
       {uiStore.view.isSlideMode ? (
         <ButtonGroup minimal>
           {/* Slide mode */}
@@ -167,6 +167,14 @@ const ContentToolbar = observer(() => {
       ) : (
         <>
           <ButtonGroup minimal>
+            <Button
+              icon={IconSet.SEARCH}
+              onClick={uiStore.toggleQuickSearch}
+              intent={uiStore.isQuickSearchOpen ? 'primary' : 'none'}
+              className="tooltip"
+              data-right={ToolbarTooltips.Search}
+            />
+
             <LibraryInfo fileCount={fileStore.fileList.length} />
           </ButtonGroup>
 
@@ -198,16 +206,6 @@ const ContentToolbar = observer(() => {
             viewGrid={uiStore.view.setMethodGrid}
             viewList={uiStore.view.setMethodList}
           />
-
-          <ButtonGroup minimal>
-            <Button
-              icon={IconSet.SEARCH}
-              onClick={uiStore.toggleQuickSearch}
-              intent={uiStore.isQuickSearchOpen ? 'primary' : 'none'}
-              className="tooltip"
-              data-right={ToolbarTooltips.Search}
-            />
-          </ButtonGroup>
         </>
       )}
     </section>
