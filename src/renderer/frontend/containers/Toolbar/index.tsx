@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from 'react';
-import { Button, Popover, MenuItem, Menu, Icon, ButtonGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
+import { Button, Popover, MenuItem, Menu, Icon, ButtonGroup } from '@blueprintjs/core';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
@@ -14,7 +14,7 @@ const enum Tooltip {
   Add = 'Toggle Add Panel',
   Outliner = 'Toggle Outliner',
   Search = 'Toggle Search Panel',
-  Media = 'Number of files using selected tag(s)',
+  Media = 'Number of files in library',
   Select = 'Selects or deselects all images',
   TagFiles = 'Quick add or delete tags to selection',
   Delete = 'Delete selection from library',
@@ -94,9 +94,13 @@ interface ITagFilesPopoverProps {
   toggle: () => void;
 }
 
-const TagFilesPopover = observer(
-  ({ disabled, files, isOpen, close, toggle }: ITagFilesPopoverProps) => (
-    <Popover minimal isOpen={isOpen} onClose={close}>
+const TagFilesPopover = observer(  
+  ({ disabled, files, isOpen, close, toggle }: ITagFilesPopoverProps) => {
+    // const { uiStore } = useContext(StoreContext);
+    // const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+
+  return (
+    <Popover minimal isOpen={isOpen} onClose={close}> 
       <Button
         icon={IconSet.TAG}
         disabled={disabled}
@@ -104,11 +108,12 @@ const TagFilesPopover = observer(
         className="tooltip"
         data-right={Tooltip.TagFiles}
       />
-      <div className="popoverContent">
+      <div className={`popoverContent`}>
         <FileTags files={files} autoFocus />
       </div>
     </Popover>
-  ),
+  );
+  },
 );
 
 interface IFileFilter {

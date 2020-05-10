@@ -3,6 +3,12 @@
 // .bp3-dark .bp3-dialog {
 //   box-shadow: none !important;
 // }
+
+label.bp3-label .bp3-input {
+  display: flex !important; // fix tag input > center vertical
+}
+
+
 .welcomedialog {
   background: rgba(0, 0, 0, 0) !important;
   p {
@@ -18,8 +24,11 @@
   //   text-align: left;
   // }
   .bp3-file-upload-input {
-    background: rgba(18, 18, 18, 0.3);
+    background: $dark-gray8-trans !important;
+    // color: $pt-text-color;
+    color: $pt-dark-text-color !important;
   }
+    
   .bp3-dialog-footer {
     margin-top: 40px;
     z-index: 2;

@@ -150,7 +150,7 @@
   }
   .bp3-input-ghost::placeholder,
   ::placeholder {
-    color: $dark-gray3;
+    color: $dark-gray4;
   }
 }
 .bp3-tag-input .bp3-input-ghost,
@@ -172,14 +172,17 @@
   color: $dark-gray1;
 }
 
-.bp3-dark .bp3-input,
-.bp3-light .bp3-input,
-.bp3-dark .bp3-file-upload-input {
-  // background: rgba(1, 1, 1, 0.1);
-  background: $dark-gray8-trans;
-  color: $dark-gray4;
-  box-shadow: none;
-  border-radius: 6px;
+.bp3-dark,
+.bp3-light {
+  .bp3-input,
+  .bp3-file-upload-input,
+  .bp3-file-input.bp3-file-input-has-selection .bp3-file-upload-input {
+    // background: rgba(1, 1, 1, 0.1);
+    background: $dark-gray8-trans;
+    color: $dark-gray4;
+    box-shadow: none;
+    border-radius: 6px;
+  }
 }
 
 .bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
@@ -729,7 +732,8 @@ button:has(.bp3-intent-danger) {
 // }
 
 // Menus
-.bp3-dark {
+.bp3-dark,
+.bp3-light {
   #fileTag .bp3-heading.inpectorHeading,
   .bp3-drawer-header .bp3-heading,
   &.header-dark .bp3-heading {
@@ -799,8 +803,9 @@ button:has(.bp3-intent-danger) {
 
 // .bp3-dark {
 .bp3-menu-item::before,
+.bp3-dark .bp3-menu-item > .bp3-icon,
 .bp3-menu-item > .bp3-icon {
-  color: $dark-gray4;
+  color: $dark-gray4 !important;
 }
 // }
 

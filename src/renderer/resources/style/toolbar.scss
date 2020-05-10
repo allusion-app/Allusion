@@ -12,6 +12,10 @@
   #media {
     pointer-events: none;
     white-space: nowrap;
+    > * {
+      cursor: default;
+      pointer-events: auto;
+    }
   }
 
   .custom-icon {
