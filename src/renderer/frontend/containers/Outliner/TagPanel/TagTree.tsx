@@ -705,8 +705,21 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           isSelectionActive={isSelectionActive}
           onFilter={(ids, clear) => {
             const crits = ids.map((id) => new ClientIDSearchCriteria('tags', id));
-            // TODO: Check if not already filter active for these tags (no dupes)
-            clear ? uiStore.replaceSearchCriterias(crits) : uiStore.addSearchCriterias(crits);
+            const alreadySearchedCrits = uiStore.searchCriteriaList
+              .filter(crit => crit instanceof ClientIDSearchCriteria
+                  && crit.value.length === 1
+                  && ids.includes(crit.value[0]));
+
+            // If all ids are already in search, remove from the search instead (like a toggle)
+            if (!clear && alreadySearchedCrits.length === ids.length) {
+              uiStore.replaceSearchCriterias(
+                uiStore.searchCriteriaList.filter(
+                  crit => !alreadySearchedCrits.includes(crit)));
+            } else if (clear) {
+              uiStore.replaceSearchCriterias(crits);
+            } else {
+              uiStore.addSearchCriterias(crits);
+            }
           }}
           onContextMenu={handleOnContextMenu}
         />

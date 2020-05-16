@@ -350,7 +350,7 @@ export const TreeList = ({
       || (target.parentNode as HTMLElement).classList.contains('selection-icon')
       || ((target.parentNode as HTMLElement).parentNode as HTMLElement).classList.contains('selection-icon');;
 
-    if (e.ctrlKey || e.metaKey || clickedCheckbox || isSelectionActive) {
+    if (clickedCheckbox || isSelectionActive) {
       handleSelect(node, e, clickSelection);
     } else {
       onFilter(clickSelection, !(e.ctrlKey || e.metaKey));
