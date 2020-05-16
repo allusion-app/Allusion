@@ -65,9 +65,10 @@ interface ITagItemProps {
   tag: ClientTag;
   isEditing: boolean;
   setEditing: (val: boolean) => void;
+  // onSelect: (tag: ClientTag) => void;
 }
 
-const TagItem = ({ tag, isEditing, setEditing }: ITagItemProps) => {
+const TagItem = ({ tag, isEditing, setEditing, /*onSelect*/ }: ITagItemProps) => {
   return isEditing ? (
     <TreeListItemEditor
       initialName={tag.name}
@@ -78,7 +79,12 @@ const TagItem = ({ tag, isEditing, setEditing }: ITagItemProps) => {
       onAbort={() => setEditing(false)}
     />
   ) : (
-    <div className={'tagLabel'}>{tag.name}</div>
+    <div className="tagLabel">
+      <span className="label-content">{tag.name}</span>
+      {/* <span className="selection-icon" onClick={() => onSelect(tag)}>
+        <Icon icon={IconSet.CHECKMARK} />
+      </span> */}
+    </div>
   );
 };
 
@@ -409,6 +415,10 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
               />
             ),
             nodeData: { type: DragAndDropType.Tag, contextMenu: <ContextMenu /> },
+            secondaryLabel: <span className="selection-icon">
+              {/* Show circle if selection mode is active and it's not selected */}
+              {(uiStore.tagSelection.length > 0 && !tag.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK}
+            </span>,
           };
         },
       );
@@ -635,6 +645,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   const [isCollapsed, setCollapsed] = useState(false);
   const toggleCollapse = useCallback(() => setCollapsed(!isCollapsed), [isCollapsed, setCollapsed]);
 
+  const isSelectionActive = uiStore.tagSelection.length > 0;
+
   return (
     <>
       <div className="outliner-header-wrapper" ref={headerDrop} onClick={toggleCollapse}>
@@ -658,7 +670,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         />
       </div>
 
-      <Collapse isOpen={!isCollapsed}>
+      <Collapse isOpen={!isCollapsed} className={`tag-tree ${uiStore.tagSelection.length > 0 ? 'selection-active' : ''}`}>
         <TreeList
           nodes={nodes.get()}
           branch={DragAndDropType.Collection}
@@ -675,6 +687,12 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           onSelect={(selection, clear) => uiStore.selectTags(selection, clear)}
           onDeselect={(selection) => uiStore.deselectTags(selection)}
           selectionLength={uiStore.tagSelection.length}
+          isSelectionActive={isSelectionActive}
+          onFilter={(ids, clear) => {
+            const crits = ids.map((id) => new ClientIDSearchCriteria('tags', id));
+            // TODO: Check if not already filter active for these tags (no dupes)
+            clear ? uiStore.replaceSearchCriterias(crits) : uiStore.addSearchCriterias(crits);
+          }}
           onContextMenu={handleOnContextMenu}
         />
       </Collapse>

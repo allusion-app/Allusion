@@ -208,7 +208,7 @@ export const TreeBranch = (props: ITreeBranchProps) => {
   // Style whether the element is being dragged or hovered over to drop on
   const className = `${canDrop && !isDragging && isHovering ? 'reorder-target' : ''} ${
     isDragging ? 'reorder-source' : ''
-  }`;
+    }`;
 
   return connectDropTarget(
     connectDragSource(<div className={className}>{render({ ...props })}</div>),
@@ -228,6 +228,9 @@ interface ITreeList {
   onDeselect: (selection: ID[]) => void;
   /** Number of selected leaves */
   selectionLength: number;
+  /** Filtering leaves */
+  isSelectionActive: boolean;
+  onFilter: (tagIds: ID[], clear?: boolean) => void;
   onContextMenu: (node: ITreeNode<INodeData>) => JSX.Element;
 }
 
@@ -257,6 +260,8 @@ export const TreeList = ({
   onSelect,
   onDeselect,
   selectionLength,
+  isSelectionActive,
+  onFilter,
   onContextMenu,
 }: ITreeList) => {
   /** The first item that is selected in a multi-selection */
@@ -264,79 +269,92 @@ export const TreeList = ({
   /** The last item that is selected in a multi-selection */
   const lastSelectionIndex = useRef<number | undefined>(undefined);
 
-  const handleNodeClick = useCallback(
-    (node: ITreeNode<INodeData>, _, e: React.MouseEvent) => {
-      // The tags selected in this event
-      const clickSelection: ID[] = [];
-      const isClickSelectionSelected = node.isSelected || false;
+  const handleSelect = useCallback((node: ITreeNode<INodeData>, e: React.MouseEvent, clickSelection: ID[]) => {
+    const isClickSelectionSelected = node.isSelected || false;
 
-      if (node.nodeData) {
-        switch (node.nodeData.type) {
-          case branch:
-            // When clicking on a branch get all descendants that are leaves
-            clickSelection.push(...getSubTreeLeaves(node.id as ID));
-            break;
-          case leaf:
-            // When clicking on a single leaf add to selection
-            clickSelection.push(node.id as ID);
-            break;
-          default:
-            // Nothing was selected
-            break;
-        }
+    const flattenHierarchy = (n: ITreeNode<INodeData>): Array<ITreeNode<INodeData>> => {
+      return n.childNodes ? [n, ...n.childNodes.flatMap(flattenHierarchy)] : [n];
+    };
+
+    const flatHierarchy = nodes.flatMap((n) => flattenHierarchy(n));
+    const i = flatHierarchy.findIndex((item) => item.id === node.id);
+
+    // Based on the event options, add or subtract the clickSelection from the global tag selection
+    if (e.shiftKey && initialSelectionIndex.current !== undefined) {
+      // Shift selection: Select from the initial up to the current index
+      // Make sure that sliceStart is the lowest index of the two and vice versa
+      let sliceStart = initialSelectionIndex.current;
+      let sliceEnd = i;
+      if (sliceEnd < sliceStart) {
+        sliceStart = i;
+        sliceEnd = initialSelectionIndex.current;
       }
-
-      const flattenHierarchy = (n: ITreeNode<INodeData>): Array<ITreeNode<INodeData>> => {
-        return n.childNodes ? [n, ...n.childNodes.flatMap(flattenHierarchy)] : [n];
-      };
-
-      const flatHierarchy = nodes.flatMap((n) => flattenHierarchy(n));
-      const i = flatHierarchy.findIndex((item) => item.id === node.id);
-
-      // Based on the event options, add or subtract the clickSelection from the global tag selection
-      if (e.shiftKey && initialSelectionIndex.current !== undefined) {
-        // Shift selection: Select from the initial up to the current index
-        // Make sure that sliceStart is the lowest index of the two and vice versa
-        let sliceStart = initialSelectionIndex.current;
-        let sliceEnd = i;
-        if (sliceEnd < sliceStart) {
-          sliceStart = i;
-          sliceEnd = initialSelectionIndex.current;
+      const idsToSelect = new Set(
+        flatHierarchy
+          .slice(sliceStart, sliceEnd + 1)
+          .filter((item) => !item.hasCaret) // only collections have a caret
+          .map((item) => item.id as ID),
+      );
+      // If the first/last item that was selected was a collection, also add that the tags of that collection
+      [sliceStart, sliceEnd].map((index) => {
+        if (flatHierarchy[index].hasCaret) {
+          getSubTreeLeaves(flatHierarchy[index].id as ID).forEach((tagId) =>
+            idsToSelect.add(tagId),
+          );
         }
-        const idsToSelect = new Set(
-          flatHierarchy
-            .slice(sliceStart, sliceEnd + 1)
-            .filter((item) => !item.hasCaret) // only collections have a caret
-            .map((item) => item.id as ID),
-        );
-        // If the first/last item that was selected was a collection, also add that the tags of that collection
-        [sliceStart, sliceEnd].map((index) => {
-          if (flatHierarchy[index].hasCaret) {
-            getSubTreeLeaves(flatHierarchy[index].id as ID).forEach((tagId) =>
-              idsToSelect.add(tagId),
-            );
-          }
-        });
-        onSelect(Array.from(idsToSelect), true);
-      } else if (e.ctrlKey || e.metaKey) {
-        initialSelectionIndex.current = i;
-        isClickSelectionSelected ? onDeselect(clickSelection) : onSelect(clickSelection);
-      } else {
-        // Normal click: If it was the only one that was selected, deselect it
-        const isOnlySelected =
-          isClickSelectionSelected && selectionLength === clickSelection.length;
+      });
+      onSelect(Array.from(idsToSelect), true);
 
-        if (isOnlySelected) {
-          onDeselect(clickSelection);
-        } else {
-          onSelect(clickSelection, true);
-        }
-        initialSelectionIndex.current = i;
-      }
-      lastSelectionIndex.current = i;
-    },
-    [branch, getSubTreeLeaves, leaf, nodes, onDeselect, onSelect, selectionLength],
-  );
+    // Additive selection (previously only with Ctrl down) is now the default behavior
+    } else { // if (e.ctrlKey || e.metaKey) {
+      initialSelectionIndex.current = i;
+      isClickSelectionSelected ? onDeselect(clickSelection) : onSelect(clickSelection);
+    }
+    // else {
+    //   // Normal click: If it was the only one that was selected, deselect it
+    //   const isOnlySelected =
+    //     isClickSelectionSelected && selectionLength === clickSelection.length;
+
+    //   if (isOnlySelected) {
+    //     onDeselect(clickSelection);
+    //   } else {
+    //     onSelect(clickSelection, true);
+    //   }
+    //   initialSelectionIndex.current = i;
+    // }
+    lastSelectionIndex.current = i;
+  }, [getSubTreeLeaves, nodes, onDeselect, onSelect, selectionLength]);
+
+  const handleNodeClick = useCallback((node: ITreeNode<INodeData>, _, e: React.MouseEvent) => {
+  // The tags selected in this event
+  const clickSelection: ID[] = [];
+
+  if (node.nodeData) {
+    switch (node.nodeData.type) {
+      case branch:
+        // When clicking on a branch get all descendants that are leaves
+        clickSelection.push(...getSubTreeLeaves(node.id as ID));
+        break;
+      case leaf:
+        // When clicking on a single leaf add to selection
+        clickSelection.push(node.id as ID);
+        break;
+      default:
+        // Nothing was selected
+        break;
+    }
+  }
+
+    const target = e.target as HTMLElement;
+    const clickedCheckbox = target.classList.contains('custom-icon')
+      && (target.parentNode as HTMLElement).classList.contains('selection-icon');
+
+    if (clickedCheckbox || isSelectionActive) {
+      handleSelect(node, e, clickSelection);
+    } else {
+      onFilter(clickSelection, !(e.ctrlKey || e.metaKey));
+    }
+  }, [branch, getSubTreeLeaves, handleSelect, isSelectionActive, leaf, onFilter]);
 
   const handleNodeCollapse = useCallback(
     (node: ITreeNode<INodeData>) => setExpandState({ ...expandState, [node.id]: false }),
