@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, MouseEvent } from 'react';
 
 import { useDrop } from 'react-dnd';
 import { ID } from '../../../../entities/ID';
@@ -394,6 +394,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
             );
           };
 
+          const isSearched = uiStore.searchCriteriaList.find(crit => crit.key === 'tags' && (crit as ClientIDSearchCriteria<any>).value.includes(tag.id));
+
           return {
             id: tag.id,
             icon: <span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>,
@@ -419,6 +421,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
               {/* Show circle if selection mode is active and it's not selected */}
               {(uiStore.tagSelection.length > 0 && !tag.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK}
             </span>,
+            className: isSearched ? 'is-searched' : '',
           };
         },
       );
@@ -562,6 +565,10 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         label,
         childNodes,
         nodeData: { type: DragAndDropType.Collection, contextMenu: <ContextMenu /> },
+        secondaryLabel: <span className="selection-icon">
+          {/* Show circle if selection mode is active and it's not selected */}
+          {(uiStore.tagSelection.length > 0 && !col.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK}
+        </span>,
       };
     };
 
@@ -654,20 +661,28 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
           Tags
         </H4>
-        <Button
-          minimal
-          icon={IconSet.TAG_ADD}
-          onClick={handleRootAddTag}
-          className="tooltip"
-          data-right={DEFAULT_TAG_NAME}
-        />
-        <Button
-          minimal
-          icon={IconSet.TAG_ADD_COLLECTION}
-          onClick={handleAddRootCollection}
-          className="tooltip"
-          data-right={DEFAULT_COLLECTION_NAME}
-        />
+        {isSelectionActive ? (
+          <Button
+            minimal
+            icon={IconSet.CLOSE}
+            onClick={(e: MouseEvent) => { e.stopPropagation(); uiStore.clearTagSelection(); }}
+          />
+        ) : <>
+          <Button
+            minimal
+            icon={IconSet.TAG_ADD}
+            onClick={handleRootAddTag}
+            className="tooltip"
+            data-right={DEFAULT_TAG_NAME}
+          />
+          <Button
+            minimal
+            icon={IconSet.TAG_ADD_COLLECTION}
+            onClick={handleAddRootCollection}
+            className="tooltip"
+            data-right={DEFAULT_COLLECTION_NAME}
+          />
+        </>}
       </div>
 
       <Collapse isOpen={!isCollapsed} className={`tag-tree ${uiStore.tagSelection.length > 0 ? 'selection-active' : ''}`}>

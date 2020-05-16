@@ -291,11 +291,18 @@ nav .bp3-tree {
     &:hover {
       > .bp3-tree-node-secondary-label {
         display: inline;
+        // background-color: $dark-gray1;
+        // border-radius: 100%;
       }
     }
 
-    .bp3-icon:hover {
-      color: white;
+    .bp3-tree-node-secondary-label {
+      > * {
+        opacity: 0.6;
+        &:hover {
+          opacity: 1;
+        }
+      }
     }
   }
 
@@ -310,6 +317,15 @@ nav .bp3-tree {
         display: inline;
       }
     }
+    .bp3-tree-node-secondary-label {
+      > * {
+        opacity: 1;
+      }
+    }
+  }
+
+  .is-searched {
+    color: green; // placeholder
   }
 }
 

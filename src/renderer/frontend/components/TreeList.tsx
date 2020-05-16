@@ -305,7 +305,7 @@ export const TreeList = ({
       });
       onSelect(Array.from(idsToSelect), true);
 
-    // Additive selection (previously only with Ctrl down) is now the default behavior
+      // Additive selection (previously only with Ctrl down) is now the default behavior
     } else { // if (e.ctrlKey || e.metaKey) {
       initialSelectionIndex.current = i;
       isClickSelectionSelected ? onDeselect(clickSelection) : onSelect(clickSelection);
@@ -326,30 +326,31 @@ export const TreeList = ({
   }, [getSubTreeLeaves, nodes, onDeselect, onSelect, selectionLength]);
 
   const handleNodeClick = useCallback((node: ITreeNode<INodeData>, _, e: React.MouseEvent) => {
-  // The tags selected in this event
-  const clickSelection: ID[] = [];
+    // The tags selected in this event
+    const clickSelection: ID[] = [];
 
-  if (node.nodeData) {
-    switch (node.nodeData.type) {
-      case branch:
-        // When clicking on a branch get all descendants that are leaves
-        clickSelection.push(...getSubTreeLeaves(node.id as ID));
-        break;
-      case leaf:
-        // When clicking on a single leaf add to selection
-        clickSelection.push(node.id as ID);
-        break;
-      default:
-        // Nothing was selected
-        break;
+    if (node.nodeData) {
+      switch (node.nodeData.type) {
+        case branch:
+          // When clicking on a branch get all descendants that are leaves
+          clickSelection.push(...getSubTreeLeaves(node.id as ID));
+          break;
+        case leaf:
+          // When clicking on a single leaf add to selection
+          clickSelection.push(node.id as ID);
+          break;
+        default:
+          // Nothing was selected
+          break;
+      }
     }
-  }
 
     const target = e.target as HTMLElement;
-    const clickedCheckbox = target.classList.contains('custom-icon')
-      && (target.parentNode as HTMLElement).classList.contains('selection-icon');
+    const clickedCheckbox = target.classList.contains('selection-icon')
+      || (target.parentNode as HTMLElement).classList.contains('selection-icon')
+      || ((target.parentNode as HTMLElement).parentNode as HTMLElement).classList.contains('selection-icon');;
 
-    if (clickedCheckbox || isSelectionActive) {
+    if (e.ctrlKey || e.metaKey || clickedCheckbox || isSelectionActive) {
       handleSelect(node, e, clickSelection);
     } else {
       onFilter(clickSelection, !(e.ctrlKey || e.metaKey));
