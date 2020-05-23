@@ -38,7 +38,12 @@ class LocationStore {
       (dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd),
     );
 
-    this.locationList.push(...locations);
+    runInAction(() => {
+      this.locationList.clear();
+      this.locationList.push(...locations);
+    });
+
+    console.log('initializing with ', locations);
 
     // E.g. in preview window, it's not needed to watch the locations
     if (!autoLoad) return;
