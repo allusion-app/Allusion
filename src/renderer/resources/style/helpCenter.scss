@@ -1,78 +1,107 @@
 ///////////////////////////////// Help Center /////////////////////////////////
+#help-center-drawer {
 
-.helpCenter {
+  .bp3-panel-stack {
+    height: 100%;
+  }
+
+  .bp3-panel-stack-view {
+    // position: relative;
+    background-color: transparent;
+    color: $dark-gray4;
+  }
+
+  .bp3-panel-stack-header {
+    box-shadow: 0 1px 0 $pt-divider-black;
+    margin-bottom: 1em;
+
+    .bp3-heading {
+      font-size: large;
+    }
+
+    .bp3-button-text {
+      color: $light-gray2;
+    }
+  }
+
+  .pageContent {
+    overflow-y: auto;
+  }
+}
+  
+.helpCenterHome {
   font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
 
-.helpCenter .opening {
-  text-align: center;
-}
+  .opening {
+    text-align: center;
+  }
 
-.helpCenter .navigation {
-  background-color: #d4d5d7;
-  border-radius: 4px;
-  margin-bottom: 24px;
-  overflow: hidden;
-}
+  .navigation {
+    background-color: #d4d5d7;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
 
-.helpCenter .navigation li:hover {
-  text-decoration: underline;
-  cursor: pointer;
-}
+  .navigation li:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
 
-.helpCenter ul {
-  list-style: none;
-  margin: 0px;
-  padding: 0px;
-}
+  ul {
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+  }
 
-.helpCenter .navigation > ul > li {
-  color: #475059;
-  font-size: 14px;
-  font-weight: bold;
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-between;
-}
+  .navigation > ul > li {
+    color: $dark-gray4;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+  }
 
-.helpCenter .navigation > ul > ul > li {
-  color: #475059;
-  background-color: #e6e7e9;
-  font-size: 14px;
-  font-weight: normal;
-  padding: 8px 12px;
-}
+  .navigation > ul > ul > li {
+    color: $dark-gray4;
+    background-color: #e6e7e9;
+    font-size: 14px;
+    font-weight: normal;
+    padding: 8px 12px;
+  }
 
-.helpCenter .panelHeader {
-  margin: 18px 0;
-  border-bottom: 2px solid #d4d5d7;
-  padding-bottom: 9px;
-  display: flex;
-  justify-content: space-between;
-}
+  .panelHeader {
+    margin: 18px 0;
+    border-bottom: 2px solid #d4d5d7;
+    padding-bottom: 9px;
+    display: flex;
+    justify-content: space-between;
+  }
 
-.helpCenter h1 {
-  color: #475059;
-  font-size: 18px;
-  font-weight: bold;
-  margin: 0;
-}
+  h1 {
+    color: $dark-gray4;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+  }
 
-.helpCenter h2 {
-  color: #0073e5;
-  font-size: 16px;
-  font-weight: bold;
-  margin: 4px 0;
-}
+  h2 {
+    color: #0073e5;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 4px 0;
+  }
 
-.helpCenter p {
-  color: #475059;
-  font-size: 14px;
-  font-weight: normal;
-  margin-top: 0;
-  margin-bottom: 14px;
-  line-height: 1.5;
+  p {
+    color: $dark-gray4;
+    font-size: 14px;
+    font-weight: normal;
+    margin-top: 0;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
 }
