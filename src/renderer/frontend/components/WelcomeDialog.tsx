@@ -4,7 +4,7 @@ import { Dialog, Classes, Button, FormGroup, Divider } from '@blueprintjs/core';
 import path from 'path';
 import fse from 'fs-extra';
 
-import IconSet from './Icons';
+import IconSet from 'components/Icons';
 import LocationsForm from '../containers/Outliner/LocationsForm';
 import { remote } from 'electron';
 import StoreContext from '../contexts/StoreContext';

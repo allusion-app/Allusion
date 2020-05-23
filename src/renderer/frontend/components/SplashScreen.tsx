@@ -1,5 +1,5 @@
 import React from 'react';
-import { SVG } from './Icons';
+import { SVG } from 'components/Icons';
 
 import PreloadIcon from '../../resources/icons/preload.svg';
 

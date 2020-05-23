@@ -14,7 +14,7 @@ import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import GalleryItem from './GalleryItem';
 import UiStore, { ViewMethod } from '../../UiStore';
 import { ClientFile } from '../../../entities/File';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';

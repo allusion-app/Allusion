@@ -6,7 +6,7 @@ import { ItemRenderer, Suggest, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
-import IconSet from './Icons';
+import IconSet from 'components/Icons';
 import { ClientTagCollection } from '../../entities/TagCollection';
 
 const TagSelect = Suggest.ofType<ClientTag | ClientTagCollection>();

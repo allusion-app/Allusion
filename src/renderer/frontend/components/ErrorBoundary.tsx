@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { remote, shell } from 'electron';
 import { Button, NonIdealState, ButtonGroup, EditableText, Popover, H5, Classes, Position } from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
-import IconSet from './Icons';
+import IconSet from 'components/Icons';
 
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';

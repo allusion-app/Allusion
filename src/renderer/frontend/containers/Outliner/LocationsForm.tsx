@@ -19,7 +19,7 @@ import {
 } from '@blueprintjs/core';
 
 import StoreContext from '../../contexts/StoreContext';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import {
   ClientLocation,
   DEFAULT_LOCATION_ID,

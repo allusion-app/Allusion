@@ -17,7 +17,7 @@ import {
 import { IRootStoreProp } from '../../../contexts/StoreContext';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../../entities/TagCollection';
 import { formatTagCountText } from '../../../utils';
-import IconSet from '../../../components/Icons';
+import IconSet from 'components/Icons';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import {

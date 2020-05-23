@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Hotkey, Hotkeys, Button, Icon, ButtonGroup, HotkeysTarget } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import IconSet from '../../../components/Icons';
+import IconSet from 'components/Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 
 import { DragLayer } from './DragLayer';

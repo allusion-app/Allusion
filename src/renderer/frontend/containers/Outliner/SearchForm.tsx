@@ -30,7 +30,7 @@ import {
 import { IMG_EXTENSIONS } from '../../../entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
 import StoreContext from '../../contexts/StoreContext';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import TagSelector from '../../components/TagSelector';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
 import { ID, generateId } from '../../../entities/ID';

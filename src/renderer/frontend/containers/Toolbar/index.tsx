@@ -3,7 +3,7 @@ import { Button, Popover, MenuItem, Menu, Icon, ButtonGroup } from '@blueprintjs
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import FileTags from '../../components/FileTag';
 import { ClientFile, IFile } from '../../../entities/File';
 import { ViewMethod } from '../../UiStore';

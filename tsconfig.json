@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "components/*": ["components/*"]
+    },
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
     "module": "ESNext",
@@ -12,10 +16,6 @@
     "noUnusedLocals": true,
     "strict": true
   },
-  "include": [
-    "components/**/*",
-    "src/**/*",
-    "custom.d.ts",
-    "types/*.d.ts"
-  ]
+  "include": ["components/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts"],
+  "exclude": ["dist", "resources"]
 }

@@ -63,6 +63,9 @@ let rendererConfig = {
   },
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
+    alias: {
+      components: path.resolve(__dirname, 'components/'),
+    },
   },
   module: {
     rules: [
