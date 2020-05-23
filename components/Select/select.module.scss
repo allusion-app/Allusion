@@ -1,0 +1,54 @@
+@import '../../resources/style/colors.scss';
+
+.select {
+  height: 1.5rem;
+  width: 200px;
+  min-width: max-content;
+  position: relative;
+
+  > select {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: unset;
+    line-height: normal;
+    border: 2px solid var(--stroke-color, $gray4);
+    border-radius: 0.25em;
+    padding: 0 0.5rem;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    > option {
+      &:checked {
+        background-color: var(--primary-color, $blue1);
+        color: white;
+      }
+    }
+
+    &:hover {
+      border-color: var(--focus-color, $blue-trans1);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary-color, $blue1);
+    }
+  }
+
+  &::after {
+    content: '';
+    background-image: url(../../resources/icons/arrow-down.svg);
+    top: 25%;
+    right: -0.5rem;
+    position: absolute;
+    pointer-events: none;
+    width: 1rem;
+    height: 1rem;
+    background-color: var(--font-color, black);
+    background-blend-mode: screen;
+    mask-image: url(../../resources/icons/arrow-down.svg);
+    -webkit-mask-image: url(../../resources/icons/arrow-down.svg);
+  }
+}

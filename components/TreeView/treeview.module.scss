@@ -1,0 +1,74 @@
+@import '../../resources/style/colors.scss';
+
+// Removes bullet points automatically.
+.tree,
+.tree .group {
+  padding: 0;
+}
+
+.group {
+  transition: transform 100ms ease-out;
+  transform: translateY(0);
+}
+
+.group_transition {
+  overflow: hidden;
+  transition: height 100ms ease-out;
+}
+
+.tree_item {
+  padding: 0;
+
+  > .label {
+    min-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    border-left: 2px solid transparent;
+    padding-left: calc((var(--level) - 1) * 1.25rem + 0.25rem);
+    padding-right: 1rem; //.default_caret width + margin-right
+
+    &:hover {
+      background-color: var(--focus-color, $blue-trans1);
+      border-color: var(--primary-color, $blue1);
+    }
+  }
+
+  &[aria-expanded='false'] > .group_transition > .group {
+    transform: translateY(-100%);
+  }
+
+  &[aria-selected='true'] > .label {
+    color: var(--primary-color, $blue1);
+
+    .default_caret {
+      background-color: var(--primary-color, $blue1);
+    }
+  }
+
+  &:focus {
+    outline: none;
+
+    > .label {
+      background-color: var(--focus-color, $blue-trans1);
+      border-color: var(--primary-color, $blue1);
+    }
+  }
+}
+
+.default_caret {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.25rem;
+  background-image: url(../../resources/icons/arrow-right.svg);
+  background-repeat: no-repeat;
+  background-color: var(--font-color, black);
+  background-blend-mode: screen;
+  mask-repeat: no-repeat;
+  mask-image: url(../../resources/icons/arrow-right.svg);
+  -webkit-mask-image: url(../../resources/icons/arrow-right.svg);
+  transition: transform 100ms ease-out;
+
+  &[aria-pressed='true'] {
+    transform: rotateZ(90deg);
+  }
+}

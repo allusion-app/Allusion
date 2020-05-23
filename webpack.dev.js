@@ -84,7 +84,16 @@ let rendererConfig = {
       },
       {
         test: /\.(scss|css)$/,
+        exclude: /\.module\.scss$/,
         use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+      },
+      {
+        test: /\.module.(scss|css)$/,
+        use: [
+          'style-loader',
+          { loader: 'css-loader', options: { sourceMap: true, modules: true } },
+          'sass-loader?sourceMap',
+        ],
       },
       {
         test: /\.(jpg|png|ico|icns)$/,

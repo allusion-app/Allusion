@@ -13,6 +13,7 @@
     "strict": true
   },
   "include": [
+    "components/**/*",
     "src/**/*",
     "custom.d.ts",
     "types/*.d.ts"

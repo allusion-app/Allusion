@@ -1,17 +1,7 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import {
-  Drawer,
-  Classes,
-  Switch,
-  Button,
-  Callout,
-  H4,
-  RadioGroup,
-  Radio,
-  FormGroup,
-  KeyCombo,
-} from '@blueprintjs/core';
+import { Drawer, Classes, Button, Callout, H4, FormGroup, KeyCombo } from '@blueprintjs/core';
+import { Toggle, Radio, RadioGroup } from '../../../../components';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
@@ -125,10 +115,9 @@ const Settings = observer(() => {
     >
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup
-          selectedValue={uiStore.view.thumbnailSize}
+          value={uiStore.view.thumbnailSize}
           onChange={() => undefined}
-          label="Thumbnail size"
-          inline
+          name="Thumbnail size"
         >
           <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
           <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
@@ -136,32 +125,31 @@ const Settings = observer(() => {
         </RadioGroup>
 
         <RadioGroup
-          selectedValue={uiStore.view.thumbnailShape}
+          value={uiStore.view.thumbnailShape}
           onChange={() => undefined}
-          label="Thumbnail shape"
-          inline
+          name="Thumbnail shape"
         >
           <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
           <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
         </RadioGroup>
 
-        <Switch
+        <Toggle
           defaultChecked={remote.getCurrentWindow().isFullScreen()}
           onChange={toggleFullScreen}
           label="Full screen"
         />
-        <Switch
+        <Toggle
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
           label="Dark theme"
         />
 
-        <Switch
+        <Toggle
           checked={isRunningInBackground}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
-        <Switch
+        <Toggle
           checked={isClipServerRunning}
           onChange={toggleClipServer}
           label="Browser extension support"

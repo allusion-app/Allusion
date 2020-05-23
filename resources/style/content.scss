@@ -1,0 +1,372 @@
+///////////////////////////////// Content area /////////////////////////////////
+.quick-search {
+  background: $dark-gray1;
+  border-radius: 6px;
+  position: sticky;
+  width: calc(100% - 0.75rem);
+  top: 0.2rem;
+  z-index: 999;
+  display: flex;
+
+  border-bottom: 2px solid $black;
+  box-shadow: $pt-dark-elevation-shadow-2;
+
+  button.bp3-button {
+    width: 30px;
+    height: 30px;
+    margin: auto;
+    margin-top: 2px;
+    background: none !important;
+  }
+
+  .bp3-button-group {
+    .bp3-button {
+      border-radius: 6px;
+      // background: rgba(1, 1, 1, .1) !important;
+      background: none !important;
+    }
+
+    .bp3-intent-primary {
+      background: $blue1;
+    }
+  }
+
+  .bp3-popover-wrapper,
+  #criteria-list {
+    padding: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  #criteria-list {
+    width: 100%;
+  }
+
+  .bp3-popover-target,
+  .bp3-popover-wrapper {
+    width: 100%;
+  }
+}
+
+.quick-search-enter {
+  max-height: 0px;
+}
+.quick-search-enter-active {
+  max-height: 100px;
+  transition: max-height 0.2s;
+}
+.quick-search-exit {
+  max-height: 100px;
+}
+.quick-search-exit-active {
+  max-height: 0px;
+  transition: max-height 0.2s;
+}
+.quick-search-exit-done {
+  max-height: 0px;
+}
+
+.gallery-content {
+  flex: 1;
+  max-height: 100%;
+}
+
+.gallery-content:not(.slide) {
+  > div {
+    // Fix for height cut-off when the quick search bar is open
+    position: absolute !important;
+
+    // No horizontal scrollbar
+    overflow-x: hidden !important;
+  }
+}
+
+.thumbnail-small {
+  --thumbnail-size: 150px;
+}
+.thumbnail-medium {
+  --thumbnail-size: 250px;
+}
+.thumbnail-large {
+  --thumbnail-size: 350px;
+}
+.galleryItem {
+  padding: 0.3rem 0 0 0;
+}
+
+/////////////////////// Thumbnail //////////////////////////////////
+.thumbnail {
+  // This is to demanding on processor
+  // transition: all 0.1s ease-in-out;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
+  display: inline-flex;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.25rem;
+  // margin: 0.4rem;
+  .image-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+  }
+  .h4 {
+    grid-area: title;
+  }
+
+  .img-wrapper {
+    grid-area: image;
+
+    width: var(--thumbnail-size);
+    height: var(--thumbnail-size);
+
+    .bp3-skeleton {
+      width: 100%;
+      height: 100%;
+    }
+
+    img {
+      // This is to demanding on processor
+      // transition: all 0.1s ease-in-out;
+      width: var(--thumbnail-size);
+      height: var(--thumbnail-size);
+      // object-fit: cover;
+      cursor: pointer;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+      transform-origin: center;
+      transition: 0.2s $pt-transition-ease2;
+      // transform: scale(1);
+      // transition: 0.2s $pt-transition-ease2;
+    }
+  }
+
+  &.selected {
+    background: $blue1;
+
+    img {
+      transform: scale(0.9);
+      // transition: 0.2s $pt-transition-ease2;
+    }
+  }
+
+  &.open img {
+    outline-color: red;
+    outline-width: 5px;
+    outline-offset: -5px;
+    outline-style: solid;
+  }
+
+  // &.droppable {
+  //   background: $yellow1;
+  //   img {
+  //     transform: scale(0.95);
+  //   }
+  // }
+  &.droppable .img-wrapper {
+    background: $yellow1;
+    border-radius: 0.25rem;
+
+    img {
+      transform: scale(0.95);
+    }
+  }
+
+  &.undroppable {
+    background: $pt-intent-warning;
+  }
+
+  .thumbnailTags {
+    grid-area: tags;
+
+    // This is to demanding on process
+    // transition: height 0.1s ease-in-out;
+    width: 100%;
+    height: auto;
+    padding: 0.4em 0.4rem 0.15rem 0.4rem;
+    position: absolute;
+    bottom: 0;
+    > * {
+      margin: 0.25em;
+    }
+  }
+  &:hover .thumbnailTags {
+    background-color: rgba(0, 0, 0, 0.25);
+  }
+
+  #fileInfo {
+    grid-area: info;
+  }
+}
+
+/////////////////////// View methods //////////////////////////////////
+.list .thumbnail {
+  width: auto;
+  // height: 100%;
+  // margin-left: 0.4rem;
+  // margin-right: 0.4rem;
+
+  display: grid;
+  grid-column-gap: 1.5em;
+  grid-template-columns: auto 1fr;
+  // grid-template-rows:    auto 1fr;
+  grid-template-areas:
+    'image title'
+    'image info'
+    'image tags';
+
+  &.selected .img-wrapper {
+    background: $blue1;
+    border-radius: 0.25rem;
+  }
+
+  &.droppable .img-wrapper {
+    background: $yellow1;
+    border-radius: 0.25rem;
+
+    img {
+      transform: scale(0.9);
+    }
+  }
+
+  &.selected {
+    background: none !important;
+  }
+
+  &.selected img {
+    transform: scale(0.9);
+  }
+
+  img {
+    position: absolute;
+    left: 0rem;
+    top: 0rem;
+    margin-left: 0;
+    border-radius: 0.25rem;
+  }
+
+  span > * {
+    text-align: left !important;
+  }
+
+  .thumbnailTags {
+    display: block;
+    position: relative;
+    background: none !important;
+    padding: 0.2rem 0.2rem 0.4rem 0;
+    margin-left: -0.2rem;
+    align-self: start;
+  }
+
+  .bp3-heading {
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    align-self: end;
+  }
+}
+.list div div > .list-item-even {
+  background-color: rgba(102, 102, 102, 0.045);
+  // padding: .3rem 0
+}
+// .list div div > .list-item-uneven {
+// padding: .3rem 0
+// }
+.thumbnail-small.list {
+  .bp3-heading {
+    font-size: 16px;
+    align-self: start;
+  }
+  #fileInfo {
+    grid-row-gap: 0.02rem;
+    line-height: 1rem;
+  }
+  .thumbnailTags {
+    padding-top: 0;
+    align-self: end;
+  }
+}
+
+.grid .thumbnail {
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
+
+  &.selected {
+    background: $blue1;
+  }
+
+  img {
+    width: var(--thumbnail-size);
+    height: var(--thumbnail-size);
+    position: absolute;
+    left: 0rem;
+    top: 0rem;
+    margin-left: 0;
+    border-radius: 0.25rem;
+  }
+
+  &.droppable img {
+    transform: scale(0.9);
+  }
+
+  &.droppable .thumbnailTags {
+    display: block;
+    overflow-y: hidden;
+  }
+  .thumbnailTags {
+    transition: 0.25s $pt-transition-ease2;
+    max-height: 2.8em;
+  }
+  &:hover .thumbnailTags {
+    max-height: var(--thumbnail-size);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  &.droppable .thumbnailTags {
+    max-height: var(--thumbnail-size);
+    overflow: hidden; // can't scroll while dropping
+  }
+
+  // display: flex;
+  // span:nth-child(3) {
+  //   z-index: -1;
+  //   background: red !important;
+  // }
+}
+// Fix for temp placeholder masonry smiley
+.masonry {
+  position: relative !important;
+}
+
+.slide .thumbnail {
+  height: calc(100vh - 4rem) !important;
+  width: 100% !important;
+  margin: 0.4rem 0;
+
+  img {
+    height: 95% !important;
+    width: 95% !important;
+    transform: translateX(-50%) translateY(-50%);
+    position: absolute;
+    object-fit: contain;
+    top: 49%;
+    left: 50%;
+  }
+
+  &.selected img {
+    transform: translateX(-50%) translateY(-50%) scale(0.9);
+  }
+}
+
+.thumb-square:not(.slide) img {
+  object-fit: cover;
+}
+.thumb-letterbox:not(.slide) img {
+  object-fit: contain;
+}

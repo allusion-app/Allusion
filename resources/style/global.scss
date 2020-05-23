@@ -1,0 +1,516 @@
+// Styling to match Allusion Mockups
+$pt-transition-ease: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
+$pt-transition-ease2: cubic-bezier(0.4, 0, 0.2, 1) !default;
+$pt-transition-ease3: cubic-bezier(0.4, 0, 0.2, 1) 0.8s !default;
+$pt-transition-ease-bounce: cubic-bezier(0.54, 1.12, 0.38, 1.11) !default;
+$pt-transition-duration: 100ms !default;
+
+// Page layout
+html {
+  height: 100%;
+  // margin-top: 24px;
+  background: $dark-gray1;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: $dark-gray1;
+  margin: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
+  .bp3-light {
+    color: $light-gray1;
+  }
+}
+
+#app {
+  --outliner-width: 16em;
+  --inspector-width: 24em;
+  --toolbar-height: 2.4rem;
+  --content-area-height: calc(100vh - var(--toolbar-height));
+  --thumbnail-size: 250px;
+  height: 100%;
+}
+
+.preloader {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  grid-area: main;
+  display: flex;
+  flex-flow: column;
+}
+
+#layoutContainer {
+  display: grid;
+  grid-template-rows: var(--toolbar-height) var(--content-area-height);
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'outliner main inspector';
+
+  &.bp3-dark {
+    background: $dark-gray1;
+  }
+  &.bp3-light {
+    background: $light-gray5;
+  }
+}
+
+// Global component layout
+.popoverContent {
+  padding: 0.5em;
+  max-width: 32em;
+  #tag .custom-icon {
+    margin-top: 0;
+    margin-right: 20px;
+    font-size: 40px;
+  }
+  #fileTag {
+    padding: 0.75rem !important;
+  }
+}
+.contextMenuTarget {
+  outline-color: $pt-intent-primary;
+  outline-width: 2px;
+  outline-offset: -2px;
+  outline-style: solid;
+}
+
+// Default browser CSS overrides
+/* Prevent text selection in all HTML elements for more native feel */
+*,
+*::after,
+*::before {
+  -webkit-user-select: none;
+}
+// Disable default outline on focused elements (e.g. clicked buttons)
+:focus {
+  outline: none !important;
+  // background: rgba(255, 255, 255, 0.05) !important;
+}
+// Don't allow images to be dragged from within the app
+img {
+  -webkit-user-drag: none;
+}
+
+// Custom scrollbar style
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background-color: $dark-gray3;
+}
+.bp3-popover-backdrop {
+  background: rgba(16, 22, 26, 0); //Set 2 zero for now
+}
+.bp3-popover-content,
+.bp3-drawer,
+.bp3-overlay {
+  ::-webkit-scrollbar-track {
+    background-color: $light-gray4;
+  }
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background-color: $dark-gray5;
+}
+.bp3-popover-content,
+.bp3-drawer,
+.bp3-overlay {
+  ::-webkit-scrollbar-thumb {
+    background-color: $light-gray2;
+  }
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background-color: $dark-gray1;
+}
+.bp3-popover-content ::-webkit-scrollbar-thumb:hover {
+  background-color: $light-gray1;
+}
+
+///////////////////////////////// Custom Hover tooltip /////////////////////////////////
+[data-right],
+[data-left] {
+  position: relative !important;
+  z-index: auto;
+}
+[data-right]:after {
+  content: attr(data-right);
+  position: absolute !important;
+  max-width: 600px !important;
+  min-width: max-content;
+  left: 1rem;
+  top: 0.25rem; //Fix for z-index issue
+  margin-left: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: left;
+  line-height: 1.5;
+  padding: 0.55rem 0.8rem;
+  background: $blue1;
+  color: white;
+  z-index: auto;
+  // white-space: nowrap;
+  border-radius: 5px;
+  box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+[data-right]:hover:after,
+[data-left]:hover:after {
+  opacity: 1;
+  transition: all 0.2s $pt-transition-ease3; // Tooltip needs delay!
+  visibility: visible;
+  position: absolute;
+  z-index: 1000;
+}
+[data-left]:after {
+  content: attr(data-left);
+  position: absolute !important;
+  max-width: 600px !important;
+  min-width: max-content;
+  right: 1rem;
+  top: 1rem;
+  margin-left: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: left;
+  line-height: 1.5;
+  padding: 0.55rem 0.8rem;
+  background: $blue1;
+  color: white;
+  z-index: auto;
+  // white-space: nowrap;
+  border-radius: 5px;
+  box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
+  opacity: 0;
+  visibility: hidden;
+}
+
+///////////////////////////////// Theme Colours /////////////////////////////////
+// Todo: The nice thing about variables is that we can change them depending on the theme,
+// instead of switching colors around like this
+// Dark
+.bp3-dark {
+  #toolbar,
+  #inspector,
+  nav,
+  #outliner {
+    background-color: $dark-gray2;
+  }
+  background-color: $dark-gray2;
+}
+
+// Light
+.bp3-light {
+  #toolbar,
+  #inspector,
+  nav,
+  #outliner {
+    background-color: $light-gray5 !important;
+  }
+  background-color: $light-gray5 !important;
+}
+
+///////////////////////////////// Media Queries /////////////////////////////////
+@media (min-width: 1601px) {
+  .grid.thumbnail,
+  .grid.thumbnail img,
+  .list.thumbnail img {
+    width: 350px !important;
+    height: 350px !important;
+  }
+}
+@media (min-width: 1281px) {
+  .grid.thumbnail,
+  .grid.thumbnail img,
+  .list.thumbnail img {
+    width: 260px !important;
+    height: 260px !important;
+  }
+}
+@media (max-width: 1280px) {
+  .grid.thumbnail,
+  .grid.thumbnail img,
+  .list.thumbnail img {
+    width: 225px !important;
+    height: 225px !important;
+  }
+}
+@media (max-width: 960px) {
+  #main-toolbar {
+    left: 25% !important;
+    width: 50% !important;
+    #spacer {
+      display: none;
+      visibility: hidden;
+    }
+  }
+  .grid.thumbnail,
+  .grid.thumbnail img,
+  .list.thumbnail img {
+    width: 150px !important;
+    height: 150px !important;
+  }
+}
+@media (max-width: 720px) {
+  #main-toolbar {
+    left: 20% !important;
+    width: 60% !important;
+    #spacer {
+      display: none;
+      visibility: hidden;
+    }
+  }
+}
+@media (max-width: 540px) {
+  #app {
+    --toolbar-height: 4.8rem;
+  }
+  #toolbar {
+    align-items: flex-start !important;
+    height: 4.8rem;
+    #outliner-toolbar,
+    #inspector-toolbar {
+      top: 1.4rem;
+      position: inherit;
+    }
+  }
+  #main-toolbar {
+    left: 0 !important;
+    width: 100% !important;
+    top: 2.2rem !important;
+    padding: 0.25rem 0.5rem !important;
+    #spacer {
+      display: none;
+      visibility: hidden;
+    }
+  }
+  .slide.thumbnail {
+    height: calc(50vh - 4.8rem) !important;
+  }
+}
+
+// Outliner dimensions
+// --outliner-width + --thumbnail-size
+@media (max-width: 40em) {
+  #inspector.inspectorOpen {
+    min-width: 0;
+  }
+}
+
+// --outliner-width
+@media (max-width: 20em) {
+  #inspector {
+    display: none;
+  }
+
+  nav {
+    display: none;
+  }
+  #toolbar #media {
+    display: none;
+  }
+  .bp3-button-group {
+    width: 100%;
+  }
+}
+
+///////////////////////////////// Misc /////////////////////////////////
+// Error boundary (when app crashes)
+.error-boundary {
+  grid-area: main;
+
+  .bp3-non-ideal-state > * {
+    max-width: 500px;
+  }
+
+  .message {
+    text-align: left;
+    width: 800px;
+    max-width: 800px;
+  }
+}
+
+// Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
+.custom-icon * {
+  fill: currentColor;
+}
+.bp3-overlay-content {
+  display: flex;
+  align-items: center;
+}
+.drop-overlay-content {
+  // top: 0;
+  // left: calc(50vw - 200px);
+  margin: auto calc(50% - 200px);
+  // margin: 15vh 0;
+  width: 400px;
+  // position: absolute;
+  padding: 20px !important;
+
+  .quick-tags {
+    text-align: center;
+    margin-top: 20px !important;
+  }
+}
+
+.bp3-tree-node-content .custom-icon {
+  color: inherit !important;
+}
+
+.bp3-icon-eye {
+  cursor: none;
+}
+.custom-icon-128 > * {
+  height: 8rem !important;
+  width: 8rem !important;
+}
+.custom-icon-64 > * {
+  height: 4rem !important;
+  width: 4rem !important;
+}
+.custom-icon-14 > * {
+  height: 0.875rem !important;
+  width: 0.875rem !important;
+  display: block;
+}
+.bp3-alert .custom-icon,
+.custom-icon-32 > * {
+  height: 2rem !important;
+  width: 2rem !important;
+}
+.fillWidth {
+  width: 100%;
+}
+
+#imageViewer {
+  content: 'Close';
+  color: $light-gray1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #181818db;
+  z-index: 1001;
+  cursor: url(../renderer/resources/icons/close_24x.png), auto;
+
+  #fullImage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 128px rgba(0, 0, 0, 0.5);
+    background-color: rgba(1, 1, 1, 0.5);
+    transition: width 0.1s ease-in-out, height 0.1s ease-in-out;
+  }
+
+  .zoomIn {
+    cursor: zoom-in;
+    width: auto;
+    height: calc(100vh - 6rem);
+  }
+
+  .zoomOut {
+    cursor: zoom-out;
+  }
+}
+
+#zoomableSlideImage {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    transition: width 0.1s ease-in-out, height 0.1s ease-in-out;
+    vertical-align: middle;
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+
+    &.no-drag {
+      // No transform transition when dragging, since also applies to zoom (scale) otherwise
+      transition: transform 0.1s ease-in-out;
+    }
+  }
+}
+
+#zoomableImage {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  > div {
+    flex: auto;
+    position: relative;
+
+    .sideButton {
+      top: 0;
+      opacity: 0;
+      height: 100%;
+      width: 48px;
+      transition: opacity 0.2s ease-in-out;
+      position: absolute;
+
+      > span {
+        position: absolute;
+        height: 48px;
+        margin-top: -24px;
+        top: 50%;
+        color: white;
+        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
+      }
+    }
+
+    .sideButton:hover {
+      opacity: 1;
+    }
+
+    #backButton {
+      top: 0;
+      position: absolute;
+    }
+  }
+}
+
+.color-black {
+  color: black;
+  transition: color 0.2s ease;
+}
+
+.color-white {
+  color: white;
+  transition: color 0.2s ease;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ellipsis-left {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
+}

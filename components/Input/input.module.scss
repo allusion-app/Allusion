@@ -1,0 +1,66 @@
+@import '../../resources/style/colors.scss';
+
+.number {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.text,
+.number {
+  height: 1.5rem;
+  border: 2px solid var(--stroke-color, $gray3);
+  border-radius: 0.25em;
+  padding: 0em 0.5em;
+
+  &:hover {
+    border-color: var(--focus-color, $blue-trans1);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color, $blue1);
+  }
+
+  &:read-only {
+    border: none;
+  }
+
+  &::placeholder {
+    color: var(--stroke-color, $gray3);
+    opacity: none;
+  }
+
+  &:placeholder-shown,
+  &:read-only {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &:-moz-read-only {
+    border: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.input {
+  &:invalid:read-write:focus {
+    border-color: red;
+  }
+
+  &:invalid:-moz-read-write:focus {
+    border-color: red;
+  }
+
+  &:-moz-ui-invalid,
+  &:-moz-submit-invalid {
+    box-shadow: none;
+  }
+
+  &:disabled {
+    background: $dark-gray3;
+    color: $dark-gray2;
+  }
+}
