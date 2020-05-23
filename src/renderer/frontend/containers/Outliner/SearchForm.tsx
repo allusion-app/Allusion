@@ -1,15 +1,7 @@
-import React, { useContext, ChangeEvent, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useReducer, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
-import {
-  FormGroup,
-  Button,
-  Dialog,
-  ControlGroup,
-  InputGroup,
-  NumericInput,
-  HTMLSelect,
-} from '@blueprintjs/core';
+import { FormGroup, Button, Dialog, ControlGroup } from '@blueprintjs/core';
 
 import {
   NumberOperators,
@@ -34,6 +26,7 @@ import IconSet from 'components/Icons';
 import TagSelector from '../../components/TagSelector';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
 import { ID, generateId } from '../../../entities/ID';
+import { TextInput, NumberInput, Select } from 'components';
 
 type CriteriaKey = 'name' | 'path' | 'tags' | 'extension' | 'size' | 'dateAdded';
 type CriteriaOperator = OperatorType;
@@ -78,48 +71,56 @@ const Default: { [key: string]: CriteriaField } = {
 };
 
 interface IKeySelector {
-  selectedKey: CriteriaKey;
-  setCriteria: (criteria: CriteriaField) => void;
+  id: ID;
+  dispatch: Dispatch;
+  keyValue: CriteriaKey;
 }
 
 const KeyOptions = [
-  { value: 'tags', label: 'Tags' },
-  { value: 'name', label: 'File name' },
-  { value: 'path', label: 'File path' },
-  { value: 'extension', label: 'File type' },
-  { value: 'size', label: 'File size (MB)' },
-  { value: 'dateAdded', label: 'Date added' },
+  <option key="tags" value="tags">
+    Tags
+  </option>,
+  <option key="name" value="name">
+    File name
+  </option>,
+  <option key="path" value="path">
+    File path
+  </option>,
+  <option key="extension" value="extension">
+    File type
+  </option>,
+  <option key="size" value="size">
+    File size (MB)
+  </option>,
+  <option key="dateAdded" value="dateAdded">
+    Date added
+  </option>,
 ];
 
-const KeySelector = ({ selectedKey, setCriteria }: IKeySelector) => {
-  const handlePickKey = (e: ChangeEvent<HTMLSelectElement>) => {
-    const key = e.target.value;
-    if (
-      key === 'name' ||
-      key === 'path' ||
-      key === 'extension' ||
-      key === 'tags' ||
-      key === 'size' ||
-      key === 'dateAdded'
-    ) {
-      setCriteria({ ...Default[key] });
-    }
-  };
+const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => (
+  <Select
+    onChange={(e) => dispatch({ type: 'key', id, value: e.target.value as CriteriaKey })}
+    value={keyValue}
+  >
+    {KeyOptions}
+  </Select>
+);
 
-  return <HTMLSelect onChange={handlePickKey} options={KeyOptions} value={selectedKey} />;
-};
-
-interface IOperatorSelector {
-  selectedKey: CriteriaKey;
-  selectedOperator: CriteriaOperator;
-  setOperator: (operator: CriteriaOperator) => void;
+interface IOperatorSelector extends IKeySelector {
+  operator: CriteriaOperator;
 }
 
+const toOption = (o: string) => (
+  <option key={o} value={o}>
+    {camelCaseToSpaced(o)}
+  </option>
+);
+
 const OperatorOptions = {
-  ARRAY: ArrayOperators.map((o) => ({ value: o, label: camelCaseToSpaced(o) })),
-  BINARY: BinaryOperators.map((o) => ({ value: o, label: camelCaseToSpaced(o) })),
-  NUMBER: NumberOperators.map((o) => ({ value: o, label: camelCaseToSpaced(o) })),
-  STRING: StringOperators.map((o) => ({ value: o, label: camelCaseToSpaced(o) })),
+  ARRAY: ArrayOperators.map(toOption),
+  BINARY: BinaryOperators.map(toOption),
+  NUMBER: NumberOperators.map(toOption),
+  STRING: StringOperators.map(toOption),
 };
 
 const getOperatorOptions = (key: CriteriaKey) => {
@@ -132,25 +133,23 @@ const getOperatorOptions = (key: CriteriaKey) => {
   } else if (key === 'tags') {
     return OperatorOptions.ARRAY;
   }
-  return [];
+  return null;
 };
 
-const OperatorSelector = ({ selectedKey, selectedOperator, setOperator }: IOperatorSelector) => {
-  return (
-    <HTMLSelect
-      onChange={(e) => setOperator(e.target.value as CriteriaOperator)}
-      options={getOperatorOptions(selectedKey)}
-      value={selectedOperator}
-    />
-  );
-};
+const OperatorSelector = ({ id, keyValue, operator, dispatch }: IOperatorSelector) => (
+  <Select
+    onChange={(e) => dispatch({ type: 'operator', id, value: e.target.value as CriteriaOperator })}
+    defaultValue={operator}
+  >
+    {getOperatorOptions(keyValue)}
+  </Select>
+);
 
-interface IValueInput<V extends CriteriaValue = CriteriaValue> {
+interface IValueInput<V extends CriteriaValue = CriteriaValue> extends IKeySelector {
   value: V;
-  setValue: (value: CriteriaValue) => void;
 }
 
-const TagCriteriaItem = ({ value, setValue }: IValueInput<TagValue>) => {
+const TagCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<TagValue>, 'keyValue'>) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
 
   const selectedItem =
@@ -165,55 +164,60 @@ const TagCriteriaItem = ({ value, setValue }: IValueInput<TagValue>) => {
       autoFocus
       includeCollections
       selectedItem={selectedItem}
-      onTagSelect={(t) => setValue([t.id, t.name])}
-      onTagColSelect={(c) => setValue([c.id, c.name, c.getTagsRecursively()])}
+      onTagSelect={(t) => dispatch({ type: 'value', id, value: [t.id, t.name] })}
+      onTagColSelect={(c) =>
+        dispatch({ type: 'value', id, value: [c.id, c.name, c.getTagsRecursively()] })
+      }
     />
   );
 };
 
-const ExtensionOptions = IMG_EXTENSIONS.map((ext) => ({ value: ext, label: ext.toUpperCase() }));
+const ExtensionOptions = IMG_EXTENSIONS.map((ext) => (
+  <option key={ext} value={ext}>
+    {ext.toUpperCase()}
+  </option>
+));
 
-const ExtensionCriteriaItem = ({ value, setValue }: IValueInput<string>) => {
-  return (
-    <HTMLSelect
-      onChange={(e) => setValue(e.target.value)}
-      options={ExtensionOptions}
-      value={value}
-    />
-  );
-};
+const ExtensionCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<string>, 'keyValue'>) => (
+  <Select
+    onChange={(e) => dispatch({ type: 'value', id, value: e.target.value })}
+    defaultValue={value}
+  >
+    {ExtensionOptions}
+  </Select>
+);
 
 const bytesInMb = 1024 * 1024;
 
-const ValueInput = ({ keyValue, value, setValue }: IValueInput & { keyValue: CriteriaKey }) => {
+const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
   if (keyValue === 'name' || keyValue === 'path') {
     return (
-      <InputGroup
+      <TextInput
+        key={keyValue}
+        autoFocus
         placeholder="Enter some text..."
         defaultValue={value as string}
-        onBlur={(e) => setValue(e.target.value)}
-        autoFocus
+        setText={(value) => dispatch({ type: 'value', id, value })}
       />
     );
   } else if (keyValue === 'tags') {
-    return <TagCriteriaItem value={value as TagValue} setValue={setValue} />;
+    return <TagCriteriaItem id={id} value={value as TagValue} dispatch={dispatch} />;
   } else if (keyValue === 'extension') {
-    return <ExtensionCriteriaItem value={value as string} setValue={setValue} />;
+    return <ExtensionCriteriaItem id={id} value={value as string} dispatch={dispatch} />;
   } else if (keyValue === 'size') {
     return (
-      <NumericInput
-        placeholder="Enter a number..."
-        value={value as number}
-        onValueChange={setValue}
+      <NumberInput
         autoFocus
-        buttonPosition="none"
+        placeholder="Enter a number..."
+        defaultValue={value as number}
+        setValue={(value) => dispatch({ type: 'value', id, value })}
       />
     );
   } else if (keyValue === 'dateAdded') {
     return (
       <DateInput
-        value={value as Date}
-        onChange={setValue}
+        defaultValue={value as Date}
+        onChange={(value) => dispatch({ type: 'value', id, value })}
         popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
         canClearSelection={false}
         maxDate={new Date()}
@@ -226,36 +230,37 @@ const ValueInput = ({ keyValue, value, setValue }: IValueInput & { keyValue: Cri
 
 interface ICriteriaItemProps {
   criteria: CriteriaField;
-  replace: (replacement: CriteriaField) => void;
-  remove: () => void;
+  dispatch: Dispatch;
   removable: boolean;
 }
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
-const CriteriaItem = ({ criteria, remove, removable, replace }: ICriteriaItemProps) => {
+const CriteriaItem = observer(({ criteria, dispatch, removable }: ICriteriaItemProps) => {
   return (
     <ControlGroup fill className="criteria">
-      <KeySelector selectedKey={criteria.key} setCriteria={replace} />
+      <KeySelector id={criteria.id} keyValue={criteria.key} dispatch={dispatch} />
       <OperatorSelector
-        selectedKey={criteria.key}
-        selectedOperator={criteria.operator}
-        setOperator={(operator: CriteriaOperator) => {
-          criteria.operator = operator;
-          replace(criteria);
-        }}
+        key={criteria.key}
+        id={criteria.id}
+        keyValue={criteria.key}
+        operator={criteria.operator}
+        dispatch={dispatch}
       />
       <ValueInput
+        id={criteria.id}
         keyValue={criteria.key}
         value={criteria.value}
-        setValue={(value: CriteriaValue) => {
-          criteria.value = value;
-          replace(criteria);
-        }}
+        dispatch={dispatch}
       />
-      <Button text="-" onClick={remove} disabled={!removable} className="remove" />
+      <Button
+        text="-"
+        onClick={() => dispatch({ type: 'remove', id: criteria.id })}
+        disabled={!removable}
+        className="remove"
+      />
     </ControlGroup>
   );
-};
+});
 
 function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
   const c = { ...Default.tags, id: generateId() };
@@ -305,6 +310,47 @@ function intoCriteria(field: CriteriaField): FileSearchCriteria {
   }
 }
 
+type Action =
+  | { type: 'add' | 'reset' }
+  | { type: 'key'; id: ID; value: CriteriaKey }
+  | { type: 'operator'; id: ID; value: CriteriaOperator }
+  | { type: 'value'; id: ID; value: CriteriaValue }
+  | { type: 'remove'; id: ID };
+
+const reducer = (state: { items: CriteriaField[] }, action: Action) => {
+  switch (action.type) {
+    case 'add':
+      state.items.push({ ...Default.tags, id: generateId() });
+      return { ...state };
+    case 'key': {
+      const index = state.items.findIndex((i) => i.id === action.id);
+      state.items[index] = { ...Default[action.value], id: action.id };
+      return { ...state };
+    }
+    case 'operator': {
+      const index = state.items.findIndex((i) => i.id === action.id);
+      state.items[index].operator = action.value;
+      return { ...state };
+    }
+    case 'value': {
+      const index = state.items.findIndex((i) => i.id === action.id);
+      state.items[index].value = action.value;
+      return { ...state };
+    }
+    case 'remove': {
+      const index = state.items.findIndex((i) => i.id === action.id);
+      state.items.splice(index, 1);
+      return { ...state };
+    }
+    case 'reset':
+      return { items: [{ ...Default.tags, id: generateId() }] };
+    default:
+      return state;
+  }
+};
+
+type Dispatch = React.Dispatch<Action>;
+
 const SearchForm = ({
   uiStore: {
     searchCriteriaList,
@@ -316,66 +362,56 @@ const SearchForm = ({
 }: {
   uiStore: UiStore;
 }) => {
-  const [criterias, setCriterias] = useState<CriteriaField[]>(
-    searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : [{ ...Default.tags }],
-  );
+  const [state, dispatch] = useReducer(reducer, {
+    items:
+      searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : [{ ...Default.tags }],
+  });
 
   useEffect(() => {
     openQuickSearch();
   }, [openQuickSearch]);
 
-  const removeCriteria = (index: number) => {
-    criterias.splice(index, 1);
-    setCriterias(criterias.slice());
-  };
+  const add = useCallback(() => dispatch({ type: 'add' }), []);
 
-  const replaceCriteria = (current: number, replacement: CriteriaField) => {
-    replacement.id = criterias[current].id;
-    criterias[current] = replacement;
-    setCriterias(criterias.slice());
-  };
+  const search = useCallback(() => {
+    replaceSearchCriterias(state.items.map(intoCriteria));
+    closeAdvancedSearch();
+  }, [closeAdvancedSearch, replaceSearchCriterias, state.items]);
+
+  const reset = useCallback(() => {
+    clearSearchCriteriaList();
+    dispatch({ type: 'reset' });
+  }, [clearSearchCriteriaList]);
 
   return (
     <div id="search-form">
       <FormGroup>
-        {criterias.map((crit, i) => (
+        {state.items.map((crit) => (
           <CriteriaItem
             key={crit.id}
             criteria={crit}
-            replace={replaceCriteria.bind(null, i)}
-            remove={removeCriteria.bind(null, i)}
-            removable={criterias.length !== 1}
+            dispatch={dispatch}
+            removable={state.items.length !== 1}
           />
         ))}
       </FormGroup>
 
-      <Button
-        text="Add"
-        icon={IconSet.ADD}
-        onClick={() => setCriterias(criterias.concat({ ...Default.tags, id: generateId() }))}
-        minimal
-      />
+      <Button text="Add" icon={IconSet.ADD} onClick={add} minimal />
 
       <div>
         <div id="actions-bar" className="bp3-alert-footer">
           <Button
             intent="primary"
             text="Search"
-            onClick={() => {
-              replaceSearchCriterias(criterias.map(intoCriteria));
-              closeAdvancedSearch();
-            }}
-            disabled={criterias.length === 0}
+            onClick={search}
+            disabled={state.items.length === 0}
             icon={IconSet.SEARCH}
             fill
           />
           <Button
             text="Reset"
-            onClick={() => {
-              clearSearchCriteriaList();
-              setCriterias([{ ...Default.tags, id: generateId() }]);
-            }}
-            disabled={criterias.length === 0}
+            onClick={reset}
+            disabled={state.items.length === 0}
             icon={IconSet.CLOSE}
             fill
           />

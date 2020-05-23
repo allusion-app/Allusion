@@ -27,8 +27,6 @@ interface ITreeItemProps {
   // Inserts dragged item at a new position in the list
   onDropSelection: (item: IDragAndDropItem) => void;
   onDropHover: () => void;
-  isEditing: boolean;
-  setEditing: (val: boolean) => void;
   render: (props: ITreeItemRenderProps) => JSX.Element;
 }
 
@@ -36,8 +34,6 @@ interface ITreeItemRenderProps {
   id: string;
   name: string;
   isSelected: boolean;
-  isEditing: boolean;
-  setEditing: (val: boolean) => void;
 }
 
 interface ITreeLeafProps extends ITreeItemProps {

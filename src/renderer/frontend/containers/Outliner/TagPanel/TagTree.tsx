@@ -2,18 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { useDrop } from 'react-dnd';
 import { ID } from '../../../../entities/ID';
-import {
-  ITreeNode,
-  MenuItem,
-  Menu,
-  Divider,
-  ControlGroup,
-  InputGroup,
-  Button,
-  H4,
-  Icon,
-  Collapse,
-} from '@blueprintjs/core';
+import { ITreeNode, MenuItem, Menu, Divider, Button, H4, Icon, Collapse } from '@blueprintjs/core';
 import { IRootStoreProp } from '../../../contexts/StoreContext';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../../../entities/TagCollection';
 import { formatTagCountText } from '../../../utils';
@@ -33,112 +22,39 @@ import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';
 import { SketchPicker, ColorResult } from 'react-color';
 import { ClientIDSearchCriteria } from '../../../../entities/SearchCriteria';
+import { TextInput } from 'components';
 
 const DEFAULT_TAG_NAME = 'New Tag';
 const DEFAULT_COLLECTION_NAME = 'New Collection';
 
-interface ITagCollectionItemProps {
-  col: ClientTagCollection;
+const isValidTagName = (text: string) => text.trim().length > 0;
+
+interface IEditorProp {
+  text: string;
+  setText: (name: string) => void;
   isEditing: boolean;
   setEditing: (val: boolean) => void;
 }
 
-const TagCollectionItem = ({ col, isEditing, setEditing }: ITagCollectionItemProps) => {
-  return isEditing ? (
-    <TreeListItemEditor
-      initialName={col.name}
-      onRename={(name) => {
-        col.rename(name);
-        setEditing(false);
-      }}
-      onAbort={() => setEditing(false)}
-    />
-  ) : (
-    <>
-      {col.name}
-      {col.isEmpty && <i style={{ color: '#007af5 !important' }}> (empty)</i>}
-    </>
+const Editor = ({ text, setText, isEditing, setEditing }: IEditorProp) => {
+  const submit = useCallback(
+    (target) => {
+      target.focus();
+      setEditing(false);
+      target.setSelectionRange(0, 0);
+    },
+    [setEditing],
   );
-};
-
-interface ITagItemProps {
-  tag: ClientTag;
-  isEditing: boolean;
-  setEditing: (val: boolean) => void;
-}
-
-const TagItem = ({ tag, isEditing, setEditing }: ITagItemProps) => {
-  return isEditing ? (
-    <TreeListItemEditor
-      initialName={tag.name}
-      onRename={(name) => {
-        tag.rename(name);
-        setEditing(false);
-      }}
-      onAbort={() => setEditing(false)}
-    />
-  ) : (
-    <div className={'tagLabel'}>{tag.name}</div>
-  );
-};
-
-interface ITreeListItemEditorProps {
-  initialName: string;
-  onRename: (name: string) => void;
-  onAbort?: () => void;
-  autoFocus?: boolean;
-  // icon?: IconName;
-  placeholder?: string;
-  resetOnSubmit?: boolean;
-}
-
-const TreeListItemEditor = ({
-  initialName,
-  onRename,
-  onAbort = () => null, // no-op function by default
-  autoFocus = true,
-  placeholder = 'Enter a new name',
-  resetOnSubmit = false,
-}: ITreeListItemEditorProps) => {
-  const [newName, setNewName] = useState(initialName);
-  const [isFocused, setFocused] = useState(false);
-
-  const isValidInput = newName.trim() !== '';
-
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (isValidInput) {
-          onRename(newName);
-          if (resetOnSubmit) {
-            setNewName(initialName);
-          }
-        }
-      }}
-    >
-      <ControlGroup fill={true} vertical={false} onAbort={onAbort}>
-        <InputGroup
-          placeholder={placeholder}
-          onChange={(e: React.FormEvent<HTMLElement>) =>
-            setNewName((e.target as HTMLInputElement).value)
-          }
-          value={newName}
-          autoFocus={autoFocus}
-          onBlur={() => {
-            setFocused(false);
-            onAbort();
-          }}
-          onFocus={(e) => {
-            setFocused(true);
-            e.target.select();
-          }}
-          // Only show red outline when input field is in focus and text is invalid
-          className={isFocused && !isValidInput ? 'bp3-intent-danger' : ''}
-        />
-        {/* <Button icon={icon} type="submit"/> */}
-      </ControlGroup>
-    </form>
+    <TextInput
+      autoFocus
+      placeholder="Enter a new name"
+      readOnly={!isEditing}
+      defaultValue={text}
+      setText={setText}
+      isValid={isValidTagName}
+      onSubmit={submit}
+    />
   );
 };
 
@@ -401,10 +317,13 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
                 onDropHover={() => undefined}
                 onDropSelection={() => uiStore.moveSelectedTagItems(col.id)}
                 isSelected={tag.isSelected}
-                isEditing={isEditMode(tag.id, DragAndDropType.Tag)}
-                setEditing={(editing) => setEditMode(tag.id, DragAndDropType.Tag, editing)}
-                render={(props) => (
-                  <TagItem tag={tag} isEditing={props.isEditing} setEditing={props.setEditing} />
+                render={() => (
+                  <Editor
+                    isEditing={isEditMode(tag.id, DragAndDropType.Tag)}
+                    text={tag.name}
+                    setText={tag.rename}
+                    setEditing={(editing) => setEditMode(tag.id, DragAndDropType.Tag, editing)}
+                  />
                 )}
               />
             ),
@@ -433,13 +352,12 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           onDropBranch={(item) => uiStore.moveCollection(item.id, col)}
           branch={DragAndDropType.Collection}
           onDropSelection={() => uiStore.moveSelectedTagItems(col.id)}
-          isEditing={isEditMode(col.id, DragAndDropType.Collection)}
-          setEditing={(editing) => setEditMode(col.id, DragAndDropType.Collection, editing)}
-          render={(props) => (
-            <TagCollectionItem
-              col={col}
-              isEditing={props.isEditing}
-              setEditing={props.setEditing}
+          render={() => (
+            <Editor
+              text={col.name}
+              setText={col.rename}
+              isEditing={isEditMode(col.id, DragAndDropType.Collection)}
+              setEditing={(editing) => setEditMode(col.id, DragAndDropType.Collection, editing)}
             />
           )}
         />

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Drawer, Classes, Button, Callout, H4, FormGroup, KeyCombo } from '@blueprintjs/core';
-import { Toggle, Radio, RadioGroup } from '../../../../components';
+import { Toggle, Radio, RadioGroup } from 'components';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';

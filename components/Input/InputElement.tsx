@@ -18,9 +18,9 @@ export function handleOnBlur<T>(
   return (event: React.FocusEvent<HTMLInputElement>) => {
     if (editable) {
       const element = event.target as HTMLInputElement;
-      if (onSubmit && isValid(element.value)) {
+      if (isValid(element.value)) {
         setText((element.value.trim() as unknown) as T);
-        onSubmit(element);
+        onSubmit?.(element);
       }
     }
   };
