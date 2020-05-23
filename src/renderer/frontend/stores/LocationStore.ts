@@ -74,7 +74,7 @@ class LocationStore {
       }
 
       // Get files in database for this location
-      // TODO: Could be optimized, at startup we already fetch all files
+      // TODO: Could be optimized, at startup we already fetch all files - but might not in the future
       const dbFiles = await this.findLocationFiles(loc.id);
 
       // Find all files that have been created (those on disk but not in DB)
@@ -96,48 +96,35 @@ class LocationStore {
             mf.size === cf.size
       )));
 
-      // These files have been renamed -> update backend file to retain tags
-      // await this.backend.saveFile();
+      const foundMatches = matches.filter(m => m !== undefined);
+      if (foundMatches.length > 0) {
+        console.log(`DEBUG: Found ${foundMatches.length} renamed/moved files in location ${loc.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`);
+        // These files have been renamed -> update backend file to retain tags
+        // TODO: remove thumbnail as well (clean-up needed, since the path changed)
+        await Promise.all(matches.map((match, missingFilesIndex) => !match ? undefined :
+          this.backend.saveFile({
+            ...missingFiles[missingFilesIndex],
+            path: match.path,
+          }),
+        ));
+      }
 
       // For createdFiles without a match, insert them in the DB as new files
       const newFiles = createdFiles.filter(cf => !matches.includes(cf));
       await this.backend.createFilesFromPath(loc.path, newFiles);
 
       // For dbFiles without a match, mark them as missing (decided not to permanently delete them)
-      // const deletedFiles = matches.map((match, i) => !match ? missingFiles[i] : undefined);
-      // TODO: backend.updateFiles(deletedFiles => {... isBroken: true })
+      const deletedFiles = matches.map((match, i) => !match ? missingFiles[i] : undefined);
+      if (deletedFiles.length > 0) {
+        console.log(`DEBUG: Found ${deletedFiles.length} removed files in location ${loc.name}. This will be shown as 'broken' images and will have to be removed manually in the Recovery panel`);
+        // They'll be marked as broken after being fetched. The user will have to manually remove them then, no need to update with isBroken
+        // await Promise.all(deletedFiles.map(f => this.backend.saveFile({ ...f, isBroken: true });
+      }
 
-      console.log(`Found ${matches.filter(m => m !== undefined).length} matches! (renamed/moved files)`);
-
-      // TODO: Also update files that have changed, e.g. when overwriting a file
-      // Look at modified date? For these ones, update metadata (resolution, size) and recreate thumbnail
-
+      // TODO: Also update files that have changed, e.g. when overwriting a file (with same filename)
+      // Look at modified date? Or file size? For these ones, update metadata (resolution, size) and recreate thumbnail
       foundNewFiles = foundNewFiles || newFiles.length > 0;
     }
-    // const initialPathLists = await Promise.all(locations.map((clientDir) => clientDir.init()));
-
-    // TODO: Initialize in batches
-    // TODO: Should try catch finally
-    // Should show a progress-toast indicator
-
-
-    // const initialFileLists = await Promise.all(
-    //   initialPathLists.map(
-    //     async (paths, i): Promise<IFile[]> => {
-    //       const dir = clientDirs[i];
-    //       return Promise.all(
-    //         paths.map(async (path) => this.pathToIFile(path, dir.id, dir.tagsToAdd.toJS())),
-    //       );
-    //     },
-    //   ),
-    // );
-
-    // // Sync file changes with DB
-    // await Promise.all(
-    //   initialFileLists.map((initFiles, i) =>
-    //     this.backend.createFilesFromPath(clientDirs[i].path, initFiles),
-    //   ),
-    // );
 
     if (foundNewFiles) {
       AppToaster.show({
