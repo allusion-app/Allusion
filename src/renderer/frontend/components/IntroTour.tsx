@@ -10,25 +10,30 @@ const stepStyle: React.CSSProperties = {
   background: 'rgb(200, 200, 200)',
 };
 
-const SearchStep = observer(({ uiStore, goTo, step }: { uiStore: UiStore } & ReactourStepContentArgs) => {
-  if (uiStore.isQuickSearchOpen) {
-    setTimeout(() => goTo(step), 200);
-  }
-  return <span>One of Allusion's main goals is letting you easily find the images you are looking for. <br /> Try clicking the Search button!</span>;
-});
+const SearchStep = observer(
+  ({ uiStore, goTo, step }: { uiStore: UiStore } & ReactourStepContentArgs) => {
+    if (uiStore.isQuickSearchOpen) {
+      setTimeout(() => goTo(step), 200);
+    }
+    return (
+      <span>
+        One of Allusion's main goals is letting you easily find the images you are looking for.{' '}
+        <br /> Try clicking the Search button!
+      </span>
+    );
+  },
+);
 
 const steps = (uiStore: UiStore): ReactourStep[] => [
   {
-    content: <>This application provides you with tools for visual library management. Take a quick tour to learn the basics.</>,
+    content: <>Welcome! This tour will help you familiarize yourself with Allusion!</>,
     style: stepStyle,
   },
   {
     content: (
       <>
-         To get started, click on the plus icon to select a folder that you want to manage.
-         In Allusion, such folders are called “locations”.
-         Allusion will watch your folder and automatically load all images inside.
-         You can have multiple locations at once and remove them without difficulty at any time.
+        In Allusion you can tag your images, based on Locations. Such Locations are watched folders,
+        therefore, any image placed into a location will be displayed in Allusion.
       </>
     ),
     selector: '#outliner',
@@ -37,9 +42,9 @@ const steps = (uiStore: UiStore): ReactourStep[] => [
   {
     content: (
       <>
-        Once you have selected a location, all images will be displayed in the main view.
-        The images in Allusion are loaded directly from your folder.
-        If you want to remove an image from Allusion, you can either remove the image from its folder or remove the location as a whole.
+        Once you have selected a location, all images will be displayed in the main view. The images
+        in Allusion are loaded directly from your folder. If you want to remove an image from
+        Allusion, you can either remove the image from its folder or remove the location as a whole.
       </>
     ),
     selector: '.gallery-content',
@@ -48,9 +53,9 @@ const steps = (uiStore: UiStore): ReactourStep[] => [
   {
     content: (
       <>
-        With many locations in place, your library will soon contain thousands of images.
-        To manage your data, Allusion allows you to create tags in the tag hierarchy.
-        Click on the plus icon to create a new tag.
+        Your default location is a preset folder, to which images are saved when imported by means
+        of drag&drop. You can however freely add additional locations to keep your images wherever
+        they are.
       </>
     ),
     selector: '#outliner',
@@ -59,8 +64,8 @@ const steps = (uiStore: UiStore): ReactourStep[] => [
   {
     content: (
       <>
-        Now that you have created a tag, you can easily drag it onto an image.
-        Alternately, select an image and press (T) to quickly assign a new tag.
+        Click on this icon to add a new location to your library. Once you add a location, images
+        will begin appear in the content view.
       </>
     ),
     style: stepStyle,
@@ -68,8 +73,9 @@ const steps = (uiStore: UiStore): ReactourStep[] => [
   {
     content: (
       <>
-        To make sure that all your files have been tagged, you can click here to display only untagged images.
-        Similarly, click “Show all images” to return to your complete library.
+        Although displayed as part of one big library, rest assured, your data is still in its
+        supposed place. Remember that locations are watched folders, therefore, adding and removing
+        images from your folder will affect your library in Allusion.
       </>
     ),
     selector: '#system-tags',
@@ -78,8 +84,22 @@ const steps = (uiStore: UiStore): ReactourStep[] => [
   {
     content: (
       <>
-        Eventually, you may want to find an image.
-        To access the search panel, click on the icon here or press (F).
+        Now take a look at the outliner. This is where you create and manage tags to be assigned to
+        images.
+      </>
+    ),
+    selector: '#outliner-toolbar div :nth-child(3)',
+    style: stepStyle,
+  },
+  {
+    content: <>Create a new tag by clicking on the icon here.</>,
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+        When you are done setting up your tag hierarchy, simply assign them by dragging onto images.
+        You can also select an image and press (T) to access the tag editor.
       </>
     ),
     selector: '#outliner-toolbar div :nth-child(3)',
@@ -88,33 +108,64 @@ const steps = (uiStore: UiStore): ReactourStep[] => [
   {
     content: (
       <>
-        Use this search field to filter for images that have a certain tag assigned. For more advanced features…
+        Now you may want to search an image. Simply click on any location, collection or tag to add
+        them to your search query.
       </>
     ),
+    selector: '#outliner-toolbar div :nth-child(3)',
+    style: stepStyle,
+  },
+  {
+    content: <>You can also press the search icon to access the search interface.</>,
+    selector: '#outliner-toolbar div :nth-child(3)',
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+        You can add and remove search criteria through the search bar. For more detailed queries
+        also consider using the advanced search, which can be accessed by clicking the icon at the
+        left end of the search bar.
+      </>
+    ),
+    selector: '#outliner-toolbar div :nth-child(3)',
+    style: stepStyle,
+  },
+  {
+    content: (
+      <>
+        This concludes the quick tour of Allusion. If you need any more help, take a look at the
+        help center that can be accessed by pressing (H).
+      </>
+    ),
+    selector: '#outliner-toolbar div :nth-child(3)',
     style: stepStyle,
   },
 ];
 
-
 const stepsOld = (uiStore: UiStore): ReactourStep[] => [
   {
     content: (
-    <span>
-      <img src={Logo} height={128} className="center" />
-      <br />
-      Welcome to Allusion! A tool for managing your <b>Visual library</b>.
-      <br />
-      Follow these steps to get started, or you can dismiss them at any time.
-      {/* TODO: You can revisit this guide at any time through the settings panel. */}
-      <br />
-      <br />
-      <b>Pro tip:</b> Use the arrow keys to move between steps!
-    </span>
-    )
+      <span>
+        <img src={Logo} height={128} className="center" />
+        <br />
+        Welcome to Allusion! A tool for managing your <b>Visual library</b>.
+        <br />
+        Follow these steps to get started, or you can dismiss them at any time.
+        {/* TODO: You can revisit this guide at any time through the settings panel. */}
+        <br />
+        <br />
+        <b>Pro tip:</b> Use the arrow keys to move between steps!
+      </span>
+    ),
   },
   {
     selector: '#outliner',
-    content: <div>This is the left sidebar, showing the <i>Tag Panel</i></div>,
+    content: (
+      <div>
+        This is the left sidebar, showing the <i>Tag Panel</i>
+      </div>
+    ),
     style: stepStyle,
   },
   {
@@ -125,7 +176,8 @@ const stepsOld = (uiStore: UiStore): ReactourStep[] => [
   },
   {
     selector: '.quick-search',
-    content: 'You can find files with specific tags in the Quick Search bar. Advanced Search is available through button on the left for searching by other image properties',
+    content:
+      'You can find files with specific tags in the Quick Search bar. Advanced Search is available through button on the left for searching by other image properties',
     stepInteraction: false,
     style: stepStyle,
   },
@@ -165,7 +217,7 @@ const IntroTour = () => {
       closeWithMask={false}
       rounded={1}
     />
-  )
+  );
 };
 
 export default IntroTour;
