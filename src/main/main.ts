@@ -250,8 +250,6 @@ function createPreviewWindow() {
 }
 
 initialize = () => {
-
-BrowserWindow.addDevToolsExtension('C:/Users/Chi/AppData/Local/Google/Chrome/User Data/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.7.0_0');
   createWindow();
   createPreviewWindow();
 };
