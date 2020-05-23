@@ -4,18 +4,8 @@ import React, { ReactNode, useContext, useRef, useEffect } from 'react';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
 
-// Some placeholder content
-/* const generatePlaceholderContent = () => (
-  <>
-    {Array.from(Array(1 + Math.round(Math.random() * 4))).map((_, i) => (
-      <p key={i}>
-        {Array.from(Array(Math.round(Math.random() * 100) + 10))
-          .map(() => 'placeholder')
-          .join(' ')}
-      </p>
-    ))}
-  </>
-); */
+import Logo from '../../resources/logo/favicon_512x512.png';
+// TODO: Put images in /resources/helpcenter/ or somewhere like that
 
 interface ISection {
   title: string;
@@ -32,6 +22,7 @@ const sections: ISection[] = [
         title: 'What is Allusion',
         content: (
           <>
+            <img src={Logo} alt="Logo" />
             <p>
               Allusion is a tool designed to help artists organize their visual library. It is very
               common for creative people to use reference images throughout their projects.
@@ -312,15 +303,12 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
             onClick={() => {
               // Close and open a new panel, with a delay to get the sweet animation
               closePanel();
-              setTimeout(
-                () =>
-                  openPanel({
-                    title: nextSection.title,
-                    component: SectionPanel,
-                    props: { section: nextSection },
-                  }),
-                300,
-              );
+              // wrap the openPanel in a setTimeout (e.g. 300ms) for an animation. But feels nicer without
+              openPanel({
+                title: nextSection.title,
+                component: SectionPanel,
+                props: { section: nextSection },
+              });
             }}
           >
             Next: {nextSection.title}

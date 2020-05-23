@@ -9,6 +9,7 @@
     // position: relative;
     background-color: transparent;
     color: $dark-gray4;
+
   }
 
   .bp3-panel-stack-header {
@@ -26,6 +27,18 @@
 
   .pageContent {
     overflow-y: auto;
+    
+    padding-right: 12px;
+    text-align: justify;
+  }
+
+  .bp3-text-overflow-ellipsis { // blueprint cuts of the header by default...
+    overflow: inherit;
+  }
+
+  img {
+    // Width of the help center panel
+    max-width: 320px;
   }
 }
   
