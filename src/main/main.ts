@@ -1,8 +1,8 @@
 import { app, BrowserWindow, Menu, Tray, screen } from 'electron';
 
-import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
-import TrayIcon from '../renderer/resources/logo/logomark_256.png';
-import TrayIconMac from '../renderer/resources/logo/logomark_light@2x.png';
+import AppIcon from '../../resources/logo/favicon_512x512.png';
+import TrayIcon from '../../resources/logo/logomark_256.png';
+import TrayIconMac from '../../resources/logo/logomark_light@2x.png';
 import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';
@@ -250,6 +250,8 @@ function createPreviewWindow() {
 }
 
 initialize = () => {
+
+BrowserWindow.addDevToolsExtension('C:/Users/Chi/AppData/Local/Google/Chrome/User Data/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.7.0_0');
   createWindow();
   createPreviewWindow();
 };

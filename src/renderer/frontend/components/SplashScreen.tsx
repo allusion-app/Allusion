@@ -1,7 +1,7 @@
 import React from 'react';
 import { SVG } from 'components/Icons';
 
-import PreloadIcon from '../../resources/icons/preload.svg';
+import PreloadIcon from 'resources/icons/preload.svg';
 
 // Using inline style since css file might not have been loaded
 const splashScreenStyles: React.CSSProperties = {

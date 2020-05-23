@@ -11,7 +11,7 @@
     "package": "rimraf release && npm run production && electron-packager ./dist Allusion --out=./release --asar",
     "lint": "eslint src/**/*{ts,tsx} -f codeframe",
     "test": "jest",
-    "package:mac": "rimraf release && npm run production && electron-packager ./dist Allusion --out=./release --asar --icon=./src/renderer/resources/logo/allusion-logomark.icns",
+    "package:mac": "rimraf release && npm run production && electron-packager ./dist Allusion --out=./release --asar --icon=./resources/logo/allusion-logomark.icns",
     "storybook": "start-storybook -p 6006"
   },
   "repository": {

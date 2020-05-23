@@ -311,8 +311,8 @@ form .bp3-button {
 
 form .bp3-icon-confirm {
   // background-color: $blue1;
-  -webkit-mask-image: url(../icons/checkmark.svg);
-  mask-image: url(../icons/checkmark.svg);
+  -webkit-mask-image: url(~resources/icons/checkmark.svg);
+  mask-image: url(~resources/icons/checkmark.svg);
   background-size: contain;
   background-color: white;
   color: white;
@@ -606,8 +606,8 @@ button:has(.bp3-intent-danger) {
 //   }
 // }
 .bp3-icon-double-caret-vertical {
-  -webkit-mask-image: url(../icons/arrow-down.svg);
-  mask-image: url(../icons/arrow-down.svg);
+  -webkit-mask-image: url(~resources/icons/arrow-down.svg);
+  mask-image: url(~resources/icons/arrow-down.svg);
   background-size: contain;
   background-color: $dark-gray4;
   color: $dark-gray4;

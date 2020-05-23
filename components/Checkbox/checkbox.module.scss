@@ -1,4 +1,4 @@
-@import '../../resources/style/colors.scss';
+@import '~resources/style/colors.scss';
 
 .checkbox {
   -webkit-appearance: none;
@@ -29,12 +29,12 @@
   }
 
   &:checked::before {
-    background-image: url(../../resources/icons/checkmark.svg);
+    background-image: url(~resources/icons/checkmark.svg);
     background-color: white;
     background-blend-mode: screen;
     mask-repeat: no-repeat;
-    mask-image: url(../../resources/icons/checkmark.svg);
-    -webkit-mask-image: url(../../resources/icons/checkmark.svg);
+    mask-image: url(~resources/icons/checkmark.svg);
+    -webkit-mask-image: url(~resources/icons/checkmark.svg);
   }
 
   &:hover {

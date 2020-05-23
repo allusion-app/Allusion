@@ -1,4 +1,4 @@
-@import '../../resources/style/colors.scss';
+@import '~resources/style/colors.scss';
 
 .select {
   height: 1.5rem;
@@ -39,7 +39,7 @@
 
   &::after {
     content: '';
-    background-image: url(../../resources/icons/arrow-down.svg);
+    background-image: url(~resources/icons/arrow-down.svg);
     top: 25%;
     right: -0.5rem;
     position: absolute;
@@ -48,7 +48,7 @@
     height: 1rem;
     background-color: var(--font-color, black);
     background-blend-mode: screen;
-    mask-image: url(../../resources/icons/arrow-down.svg);
-    -webkit-mask-image: url(../../resources/icons/arrow-down.svg);
+    mask-image: url(~resources/icons/arrow-down.svg);
+    -webkit-mask-image: url(~resources/icons/arrow-down.svg);
   }
 }

@@ -1,4 +1,4 @@
-@import '../../resources/style/colors.scss';
+@import '~resources/style/colors.scss';
 
 // Removes bullet points automatically.
 .tree,
@@ -59,13 +59,13 @@
   width: 0.75rem;
   height: 0.75rem;
   margin-right: 0.25rem;
-  background-image: url(../../resources/icons/arrow-right.svg);
+  background-image: url(~resources/icons/arrow-right.svg);
   background-repeat: no-repeat;
   background-color: var(--font-color, black);
   background-blend-mode: screen;
   mask-repeat: no-repeat;
-  mask-image: url(../../resources/icons/arrow-right.svg);
-  -webkit-mask-image: url(../../resources/icons/arrow-right.svg);
+  mask-image: url(~resources/icons/arrow-right.svg);
+  -webkit-mask-image: url(~resources/icons/arrow-right.svg);
   transition: transform 100ms ease-out;
 
   &[aria-pressed='true'] {
