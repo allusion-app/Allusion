@@ -43,7 +43,7 @@ const Editor = ({ text, setText, isEditing, setEditing }: IEditorProp) => {
       setEditing(false);
       target.setSelectionRange(0, 0);
     },
-    [setEditing],
+    [setEditing]
   );
   return (
     <TextInput

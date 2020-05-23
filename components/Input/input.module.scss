@@ -64,3 +64,9 @@
     color: $dark-gray2;
   }
 }
+
+// TODO: Global CSS?
+.label {
+  display: var(--display, block);
+  margin-bottom: 0.5rem;
+}

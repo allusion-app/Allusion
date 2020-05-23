@@ -10,7 +10,7 @@ interface ICheckbox extends React.InputHTMLAttributes<HTMLInputElement> {
 const Toggle = (props: ICheckbox) => {
   const { label, className, ...p } = props;
   return (
-    <label>
+    <label className={input.label}>
       <input
         className={`${input.input} ${style.checkbox} ${style.toggle} ${className ?? ''}`}
         {...p}
@@ -24,7 +24,7 @@ const Toggle = (props: ICheckbox) => {
 const Checkbox = (props: ICheckbox) => {
   const { label, className, ...p } = props;
   return (
-    <label>
+    <label className={style.label}>
       <input
         className={`${input.input} ${style.checkbox} ${className ?? ''}`}
         {...p}

@@ -115,6 +115,7 @@ const Settings = observer(() => {
     >
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup
+          inline
           value={uiStore.view.thumbnailSize}
           onChange={() => undefined}
           name="Thumbnail size"
@@ -125,6 +126,7 @@ const Settings = observer(() => {
         </RadioGroup>
 
         <RadioGroup
+          inline
           value={uiStore.view.thumbnailShape}
           onChange={() => undefined}
           name="Thumbnail shape"
