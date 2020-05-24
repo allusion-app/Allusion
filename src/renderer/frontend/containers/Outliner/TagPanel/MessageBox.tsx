@@ -37,7 +37,9 @@ const TagRemoverContent = ({
         }
       }
     }
-  }, [tagCollectionStore, tagStore, uiStore.clientTagSelection, uiStore.isOutlinerTagRemoverOpen]);
+  // we can't use uiStore.clientTagSelection as a dep - it's a new array every time (@computed) -> infinite loop
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tagCollectionStore, tagStore, uiStore.tagSelection.length, uiStore.isOutlinerTagRemoverOpen]);
 
   const tagsToRemoveOverview = (
     <div id="tag-remove-overview">
