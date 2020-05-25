@@ -20,7 +20,7 @@ class LocationStore {
     this.rootStore = rootStore;
   }
 
-  @computed get importDirectory() {
+  get importDirectory() {
     const location = this.get(DEFAULT_LOCATION_ID);
     if (!location) {
       console.warn('Default location not properly set-up. This should not happen!');
