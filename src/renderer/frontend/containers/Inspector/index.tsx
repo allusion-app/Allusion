@@ -7,7 +7,6 @@ import StoreContext from '../../contexts/StoreContext';
 import ImageInfo from '../../components/ImageInfo';
 import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
-import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -27,7 +26,7 @@ const MultiFileInfo = observer(({ files }: { files: ClientFile[] }) => {
   );
 });
 
-const Carousel = ({ items, maxItems = 5 }: { items: ClientFile[], maxItems: number }) => {
+const Carousel = ({ items, maxItems = 5 }: { items: ClientFile[], maxItems?: number }) => {
   const [scrollIndex, setScrollIndex] = useState(0);
   // const [directionClass, setDirectionClass] = useState<'up' | 'down'>('up');
 
