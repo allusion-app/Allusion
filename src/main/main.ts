@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, Tray, screen } from 'electron';
+import { app, BrowserWindow, Menu, Tray, screen, ipcMain, IpcMessageEvent, nativeImage } from 'electron';
 
 import AppIcon from '../renderer/resources/logo/favicon_512x512.png';
 import TrayIcon from '../renderer/resources/logo/logomark_256.png';
@@ -323,3 +323,19 @@ MainMessenger.onSendPreviewFiles((msg) => {
 });
 
 MainMessenger.onGetUserPicturesPath();
+
+ipcMain.on('ondragstart', (e: any, path: string | string[]) => {
+  if (typeof path === 'string') {
+    e.sender.startDrag({
+      file: path,
+      icon: nativeImage.createFromPath(path).resize({ width: 200 }) || AppIcon,
+      type: 'text/allusion-ignore',
+      
+    })
+  } else if (path.length > 0) {
+    e.sender.startDrag({
+      files: path,
+      icon: nativeImage.createFromPath(path[0]).resize({ width: 200 }) || AppIcon,
+    })
+  }
+});

@@ -137,11 +137,33 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
 
   const [isDropping, setIsDropping] = useState<boolean>(false);
 
+  const [checkedDrop, setCheckedDrop] = useState(false);
+
   const handleDropStart = useCallback(
     async (e: React.DragEvent) => {
+      if (checkedDrop) console.log('not checking');
+      // We only have to check once, until drag leave
+      if (checkedDrop) return;
+      setCheckedDrop(true);
+
       e.dataTransfer.dropEffect = 'copy';
       let allowDrop = e.dataTransfer.types.some((t) => ALLOWED_DROP_TYPES.includes(t));
-      if (e.dataTransfer.types.includes('Files')) {
+
+      // console.log(e.dataTransfer, e.eventPhase, e.isTrusted, e.nativeEvent, e.target, e.type, e.relatedTarget, e.dataTransfer.types, e.dataTransfer.types.map((t) => ({[t]: e.dataTransfer.getData(t)})))
+
+      // Detect whether the drag event came from within Allusion
+      // FIXME: Yes, this is hacky. But... The native drag event does not allow you to specify any metadata, just a list of files...
+      const w = window as any;
+      const isInternalEvent = w.internalDragStart && (new Date().getTime() - (w.internalDragStart as Date)?.getTime() < 300);
+
+      console.log('isInternalEvent', isInternalEvent)
+
+      // Don't show drop overlay when dragging an image from inside of allusion
+      if (e.dataTransfer.types.includes('text/allusion-ignore') || isInternalEvent) {
+        e.dataTransfer.dropEffect = 'none';
+        allowDrop = false;
+        console.log('ignoring new event');
+      } else if (e.dataTransfer.types.includes('Files')) {
         e.dataTransfer.dropEffect = 'link';
         allowDrop = false;
         for (let i = 0; i < e.dataTransfer.items.length; i++) {
@@ -157,13 +179,15 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
         setIsDropping(allowDrop);
       }
     },
-    [isDropping],
+    [isDropping, checkedDrop],
   );
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
+    console.log('DRAG LEAVE')
     // Only trigger if dragging outside itself or its children
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsDropping(false);
+      setCheckedDrop(false);
     }
   }, []);
 
@@ -221,19 +245,22 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
       }
     } catch (e) {
       console.log('Error while importing dropped file:', e);
-    } finally {
+    } finally {    
       setIsDropping(false);
+      setCheckedDrop(false);
     }
   },
     [fileStore],
   );
 
   return (
-    <div onDragOver={handleDropStart}>
+    <div onDragEnter={handleDropStart}>
       {children}
+      {/* TODO: Blue-ish backdrop */}
       <Overlay isOpen={isDropping} canEscapeKeyClose={false}>
         <div
           onDragLeave={handleDragLeave}
+          onDragExit={handleDragLeave}
           style={{ width: '100%', height: '100%' }}
           onDrop={handleDrop}
         >
@@ -248,7 +275,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
             {/* <H4 className="bp3-heading inpectorHeading">Drop anywhere to import</H4>
             <p>Or drag onto a tag to immediately tag it</p> */}
 
-            {/* TODO: Sort by frequenc, or alphabetically? */}
+            {/* TODO: Sort by frequency, or alphabetically? */}
             <div className="quick-tags">
               {tagStore.tagList.map((tag) => (
                 <QuickTag tag={tag} onDropOnTag={handleDrop} key={tag.id} />

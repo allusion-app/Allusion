@@ -21,6 +21,8 @@ interface IThumbnailMessageResponse {
   thumbnailPath: string;
 }
 
+// TODO: Look into NativeImage operators: https://www.electronjs.org/docs/api/native-image#imageresizeoptions
+
 // Todo: look into having multiple workers
 // Messages are put on a queue, so only 1 thumbnail is generated at a time.
 // Multiple workers could improve performance,
