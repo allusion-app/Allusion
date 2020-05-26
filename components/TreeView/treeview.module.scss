@@ -13,7 +13,7 @@
 
 .group_transition {
   overflow: hidden;
-  transition: height 100ms ease-out;
+  transition: max-height 100ms ease-out;
 }
 
 .tree_item {
@@ -24,8 +24,8 @@
     display: flex;
     align-items: center;
     border-left: 2px solid transparent;
-    padding-left: calc((var(--level) - 1) * 1.25rem + 0.25rem);
-    padding-right: 1rem; //.default_caret width + margin-right
+    padding-left: calc(var(--level) * 1.25rem + 0.25rem);
+    padding-right: 0.25rem;
 
     &:hover {
       background-color: var(--focus-color, $blue-trans1);
