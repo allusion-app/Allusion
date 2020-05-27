@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { NumberInput } from '../components';
+import { NumberInput } from 'components';
 
 export default {
   component: NumberInput,
@@ -8,5 +8,5 @@ export default {
 };
 
 export const Default = () => {
-  return <NumberInput placeholder="Enter a number!" setValue={() => {}} />;
+  return <NumberInput placeholder="Enter a number!" setValue={(value) => console.log(value)} />;
 };

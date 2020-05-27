@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 
-import { TextInput } from '../components';
+import { TextInput } from 'components';
 
 export default {
   component: TextInput,
@@ -8,7 +8,7 @@ export default {
 };
 
 export const Default = () => {
-  return <TextInput placeholder="Enter a word!" setText={() => {}} />;
+  return <TextInput placeholder="Enter a word!" setText={(value) => console.log(value)} />;
 };
 
 export const Readonly = () => {
@@ -17,13 +17,13 @@ export const Readonly = () => {
       readOnly
       placeholder="Enter a word..."
       value="You cannot touch me!"
-      setText={() => {}}
+      setText={(value) => console.log(value)}
     />
   );
 };
 
 export const Required = () => {
-  return <TextInput required placeholder="Invalid when empty..." setText={() => {}} />;
+  return <TextInput required placeholder="Invalid when empty..." setText={(value) => console.log(value)} />;
 };
 
 export const Invalid = () => {
@@ -31,7 +31,7 @@ export const Invalid = () => {
     <TextInput
       required
       placeholder="Enter 'Viva La Vegan'!"
-      setText={() => {}}
+      setText={(value) => console.log(value)}
       isValid={(text) => text === 'Viva La Vegan'}
     />
   );
@@ -69,7 +69,7 @@ export const Overflow = () => {
     <TextInput
       placeholder="Overflowing placeholder text gets truncated by ellipsis!"
       value=""
-      setText={() => {}}
+      setText={(value) => console.log(value)}
     />
   );
 };

@@ -232,7 +232,7 @@ interface ITreeNode extends INodeData {
   size: number;
   pos: number;
   treeData: any;
-  onKeyDown: KeyDownEventHandler;
+  onLeafKeyDown: KeyDownEventHandler;
 }
 
 type ILeaf = ITreeNode;
@@ -242,44 +242,45 @@ interface IBranch extends ITreeNode {
   toggleExpansion: (id: ID, nodeData: any, treeData: any) => void;
   branches: ITreeBranch[];
   leaves: ITreeLeaf[];
+  onBranchKeyDown: KeyDownEventHandler;
 }
 
-const Leaf = ({
-  id,
-  label,
-  isSelected,
-  level,
-  size,
-  pos,
-  nodeData,
-  treeData,
-  onKeyDown,
-  className = '',
-}: ILeaf) => {
-  const handleOnKeyDown = useCallback((e) => onKeyDown(e, id, nodeData, treeData), [
-    onKeyDown,
+const TreeLeaf = observer(
+  ({
     id,
+    label,
+    isSelected,
+    level,
+    size,
+    pos,
     nodeData,
     treeData,
-  ]);
+    onLeafKeyDown,
+    className = '',
+  }: ILeaf) => {
+    const handleOnKeyDown = useCallback((e) => onLeafKeyDown(e, id, nodeData, treeData), [
+      onLeafKeyDown,
+      id,
+      nodeData,
+      treeData,
+    ]);
 
-  return (
-    <li
-      className={`${className} ${style.tree_item}`}
-      aria-level={level}
-      aria-setsize={size}
-      aria-posinset={pos}
-      aria-selected={isSelected?.(id, nodeData, treeData)}
-      onKeyDown={handleOnKeyDown}
-      role="treeitem"
-      tabIndex={-1}
-    >
-      <div className={style.label}>{label}</div>
-    </li>
-  );
-};
-
-const TreeLeaf = observer(Leaf);
+    return (
+      <li
+        className={`${className} ${style.tree_item}`}
+        aria-level={level}
+        aria-setsize={size}
+        aria-posinset={pos}
+        aria-selected={isSelected?.(id, nodeData, treeData)}
+        onKeyDown={handleOnKeyDown}
+        role="treeitem"
+        tabIndex={-1}
+      >
+        <div className={style.label}>{label}</div>
+      </li>
+    );
+  },
+);
 
 const resizeObserver = new ResizeObserver((entries) => {
   for (const entry of entries) {
@@ -290,120 +291,122 @@ const resizeObserver = new ResizeObserver((entries) => {
   }
 });
 
-const Branch = ({
-  id,
-  branches,
-  leaves,
-  label,
-  level,
-  size,
-  pos,
-  nodeData,
-  isExpanded,
-  treeData,
-  isSelected,
-  toggleExpansion,
-  onKeyDown,
-  className = '',
-}: IBranch) => {
-  const group = useRef<HTMLUListElement | null>(null);
-  const expanded = useMemo(() => isExpanded(id, nodeData, treeData) ?? false, [
+const TreeBranch = observer(
+  ({
     id,
+    branches,
+    leaves,
+    label,
+    level,
+    size,
+    pos,
+    nodeData,
     isExpanded,
-    nodeData,
     treeData,
-  ]);
-  useLayoutEffect(() => {
-    const node = group.current;
-    if (node) {
-      if (expanded) {
-        resizeObserver.observe(node);
-      } else {
-        // This is probably more performant but if the animation gets janky, this line should be removed.
-        resizeObserver.unobserve(node);
-        node.parentElement!.style.maxHeight = '0px';
-      }
-    }
-
-    return () => {
-      if (node) {
-        resizeObserver.unobserve(node);
-      }
-    };
-  }, [expanded]);
-
-  const handleToggle = useCallback(() => toggleExpansion(id, nodeData, treeData), [
+    isSelected,
     toggleExpansion,
-    id,
-    nodeData,
-    treeData,
-  ]);
+    onBranchKeyDown,
+    onLeafKeyDown,
+    className = '',
+  }: IBranch) => {
+    const group = useRef<HTMLUListElement | null>(null);
+    const expanded = useMemo(() => isExpanded(id, nodeData, treeData) ?? false, [
+      id,
+      isExpanded,
+      nodeData,
+      treeData,
+    ]);
+    useLayoutEffect(() => {
+      const node = group.current;
+      if (node) {
+        if (expanded) {
+          resizeObserver.observe(node);
+        } else {
+          // This is probably more performant but if the animation gets janky, this line should be removed.
+          resizeObserver.unobserve(node);
+          node.parentElement!.style.maxHeight = '0px';
+        }
+      }
 
-  const handleOnKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLLIElement>) => onKeyDown(event, id, nodeData, treeData),
-    [onKeyDown, id, nodeData, treeData],
-  );
+      return () => {
+        if (node) {
+          resizeObserver.unobserve(node);
+        }
+      };
+    }, [expanded]);
 
-  return (
-    <li
-      className={`${className} ${style.tree_item}`}
-      role="treeitem"
-      tabIndex={-1}
-      aria-expanded={expanded}
-      aria-selected={isSelected?.(id, nodeData, treeData)}
-      aria-level={level}
-      aria-setsize={size}
-      aria-posinset={pos}
-      onKeyDown={handleOnKeyDown}
-    >
-      <div className={style.label}>
-        <div
-          className={style.default_caret}
-          aria-pressed={expanded}
-          aria-label="Expand"
-          onClick={handleToggle}
-        />
-        {label}
-      </div>
-      <div className={style.group_transition} style={{ maxHeight: expanded ? undefined : 0 }}>
-        {(branches.length > 0 || leaves.length > 0) && (
-          <ul
-            style={{ '--level': level } as React.CSSProperties}
-            className={style.group}
-            role="group"
-            ref={group}
-          >
-            {branches.map((b, i) => (
-              <TreeBranch
-                {...b}
-                key={b.id}
-                level={level + 1}
-                size={branches.length + leaves.length}
-                pos={i + 1}
-                toggleExpansion={toggleExpansion}
-                onKeyDown={onKeyDown}
-                treeData={treeData}
-              />
-            ))}
-            {leaves.map((l, i) => (
-              <TreeLeaf
-                {...l}
-                key={l.id}
-                level={level + 1}
-                size={branches.length + leaves.length}
-                pos={branches.length + i + 1}
-                onKeyDown={onKeyDown}
-                treeData={treeData}
-              />
-            ))}
-          </ul>
-        )}
-      </div>
-    </li>
-  );
-};
+    const handleToggle = useCallback(() => toggleExpansion(id, nodeData, treeData), [
+      toggleExpansion,
+      id,
+      nodeData,
+      treeData,
+    ]);
 
-const TreeBranch = observer(Branch);
+    const handleOnKeyDown = useCallback(
+      (event: React.KeyboardEvent<HTMLLIElement>) => onBranchKeyDown(event, id, nodeData, treeData),
+      [onBranchKeyDown, id, nodeData, treeData],
+    );
+
+    return (
+      <li
+        className={`${className} ${style.tree_item}`}
+        role="treeitem"
+        tabIndex={-1}
+        aria-expanded={expanded}
+        aria-selected={isSelected?.(id, nodeData, treeData)}
+        aria-level={level}
+        aria-setsize={size}
+        aria-posinset={pos}
+        onKeyDown={handleOnKeyDown}
+      >
+        <div className={style.label}>
+          <div
+            className={style.default_caret}
+            aria-pressed={expanded}
+            aria-label="Expand"
+            onClick={handleToggle}
+          />
+          {label}
+        </div>
+        <div className={style.group_transition} style={{ maxHeight: expanded ? undefined : 0 }}>
+          {(branches.length > 0 || leaves.length > 0) && (
+            <ul
+              style={{ '--level': level } as React.CSSProperties}
+              className={style.group}
+              role="group"
+              ref={group}
+            >
+              {branches.map((b, i) => (
+                <TreeBranch
+                  {...b}
+                  key={b.id}
+                  level={level + 1}
+                  size={branches.length + leaves.length}
+                  pos={i + 1}
+                  toggleExpansion={toggleExpansion}
+                  onBranchKeyDown={onBranchKeyDown}
+                  onLeafKeyDown={onLeafKeyDown}
+                  treeData={treeData}
+                />
+              ))}
+              {leaves.map((l, i) => (
+                <TreeLeaf
+                  {...l}
+                  key={l.id}
+                  level={level + 1}
+                  size={branches.length + leaves.length}
+                  pos={branches.length + i + 1}
+                  onLeafKeyDown={onLeafKeyDown}
+                  treeData={treeData}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
+      </li>
+    );
+  },
+);
 
 // --- Public API ---
 
@@ -421,15 +424,13 @@ export interface ITree {
   /** Toggles the expansion of a parent node */
   toggleExpansion: (id: ID, nodeData: any, treeData: any) => void;
   /**
-   * `onKeyDown` Event Handler
-   *
-   * Trees are unique components which makes it harder to have a good default
-   * for keyboard navigation. However, that can be more work if only basic
-   * support is required which is why factory functions (see
-   * `createBranchOnKeyDown` and `createLeafOnKeyDown`) are provided. Those
-   * take an optional parameter, so other keys can be handled.
+   * `onKeyDown` Event Handler for branch nodes (see `createBranchOnKeyDown`)
    * */
-  onKeyDown: KeyDownEventHandler;
+  onLeafKeyDown: KeyDownEventHandler;
+  /**
+   * `onKeyDown` Event Handler for leaf nodes (see `createLeafOnKeyDown`)
+   * */
+  onBranchKeyDown: KeyDownEventHandler;
   /**
    * Pointer to external data
    *
@@ -447,9 +448,10 @@ export interface ITree {
    *
    * Furthermore, not only (observable) state but also setters/dispatchers can
    * be passed instead of memoized functions and accessed instead inside the
-   * provided callbacks. This is in combination with the `useReducer` hook very powerfuls.
+   * provided callbacks. This is in combination with the `useReducer` hook very
+   * powerful.
    */
-  treeData: any; // e.g. { state, dispatch }
+  treeData: any;
 }
 
 /** Presentation for leaf nodes */
@@ -491,7 +493,8 @@ const Tree = ({
   branches,
   leaves,
   treeData,
-  onKeyDown,
+  onBranchKeyDown,
+  onLeafKeyDown,
   toggleExpansion,
 }: ITree) => {
   const tree = useRef<HTMLUListElement | null>(null);
@@ -521,7 +524,8 @@ const Tree = ({
           level={1}
           size={branches.length + leaves.length}
           pos={i + 1}
-          onKeyDown={onKeyDown}
+          onBranchKeyDown={onBranchKeyDown}
+          onLeafKeyDown={onLeafKeyDown}
           toggleExpansion={toggleExpansion}
           treeData={treeData}
         />
@@ -533,7 +537,7 @@ const Tree = ({
           level={1}
           size={branches.length + leaves.length}
           pos={branches.length + i + 1}
-          onKeyDown={onKeyDown}
+          onLeafKeyDown={onLeafKeyDown}
           treeData={treeData}
         />
       ))}

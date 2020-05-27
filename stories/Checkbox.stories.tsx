@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Checkbox, Toggle } from '../components';
+import { Checkbox, Toggle } from 'components';
 
 export default {
   component: Checkbox,
