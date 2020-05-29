@@ -18,26 +18,24 @@ const setTabFocus = (element: HTMLElement) => {
   element.focus();
 };
 
-export const refocus = (previousTarget: HTMLElement, nextTarget: HTMLElement) => {
+const refocus = (previousTarget: Element, nextTarget: HTMLElement) => {
   previousTarget.setAttribute('tabIndex', '-1');
   setTabFocus(nextTarget);
 };
 
-export const isTreeItem = (element: Element) => element?.getAttribute('role') === 'treeitem';
+const isGroup = (element: Element | null) => element?.getAttribute('role') === 'group';
 
-export const isGroup = (element: Element | null) => element?.getAttribute('role') === 'group';
+const isExpanded = (element: Element | null) => element?.getAttribute('aria-expanded') === 'true';
 
-export const isExpanded = (element: Element) => element?.getAttribute('aria-expanded') === 'true';
-
-export const getParent = (element: Element): HTMLElement | null =>
+const getParent = (element: Element): HTMLElement | null =>
   isGroup(element.parentElement) ? element.parentElement!.parentElement!.parentElement : null;
 
-export const getFirstChild = (element: Element): Element | null =>
+const getFirstChild = (element: Element): Element | null =>
   isExpanded(element) && isGroup(element.lastElementChild!.lastElementChild)
     ? element.lastElementChild!.lastElementChild!.firstElementChild
     : null;
 
-export const getLastDescendant = (element: Element): Element | null => {
+const getLastDescendant = (element: Element): Element | null => {
   if (isExpanded(element) && isGroup(element.lastElementChild!.lastElementChild)) {
     const last = element.lastElementChild!.lastElementChild!.lastElementChild;
     if (last) {
@@ -47,7 +45,7 @@ export const getLastDescendant = (element: Element): Element | null => {
   return element;
 };
 
-export const getNextSibling = (element: Element): Element | null => {
+const getNextSibling = (element: Element): Element | null => {
   if (!element.nextElementSibling) {
     const parent = getParent(element);
     if (parent) {
@@ -68,7 +66,7 @@ type KeyDownEventHandler = (
 
 const KeyboardSpaceEvent = new KeyboardEvent('keydown', { key: ' ', bubbles: true, repeat: false });
 
-const shiftKeyFocus = (shiftKey: boolean, current: HTMLElement | null, target: HTMLElement) => {
+const shiftKeyFocus = (shiftKey: boolean, current: HTMLElement | null, target: Element) => {
   if (current) {
     if (shiftKey) {
       current.dispatchEvent(KeyboardSpaceEvent);
@@ -77,7 +75,7 @@ const shiftKeyFocus = (shiftKey: boolean, current: HTMLElement | null, target: H
   }
 };
 
-const keyFocus = (current: HTMLElement | null, target: HTMLElement) => {
+const keyFocus = (current: HTMLElement | null, target: Element) => {
   if (current) {
     refocus(target, current);
   }
@@ -91,10 +89,7 @@ export const createLeafOnKeyDown = (
   toggleSelection: (id: ID, nodeData: any, treeData: any) => void,
   onKeyDown?: KeyDownEventHandler,
 ) => {
-  if (event.target !== event.currentTarget) {
-    return;
-  }
-  const leaf = event.target as HTMLElement;
+  const leaf = event.currentTarget;
   switch (event.key) {
     case ' ':
       event.stopPropagation();
@@ -127,20 +122,24 @@ export const createLeafOnKeyDown = (
 };
 
 const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
-  if (!isTreeItem(event.target as Element)) {
-    return;
-  }
-  const target = event.target as HTMLElement;
   switch (event.key) {
-    case 'Home':
-      event.stopPropagation();
-      keyFocus(event.currentTarget.firstElementChild as HTMLElement, target);
+    case 'Home': {
+      const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');
+      setTabFocus(event.currentTarget.firstElementChild as HTMLElement);
+      if (prev) {
+        prev.setAttribute('tabIndex', '-1');
+      }
       break;
+    }
 
-    case 'End':
-      event.stopPropagation();
-      keyFocus(target, event.currentTarget.lastElementChild as HTMLElement);
+    case 'End': {
+      const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');
+      setTabFocus(event.currentTarget.lastElementChild as HTMLElement);
+      if (prev) {
+        prev.setAttribute('tabIndex', '-1');
+      }
       break;
+    }
 
     default:
       break;
@@ -157,15 +156,13 @@ export const createBranchOnKeyDown = (
   toggleExpansion: (id: ID, nodeData: any, treeData: any) => void,
   onKeyDown?: KeyDownEventHandler,
 ) => {
-  if (event.target !== event.currentTarget) {
-    return;
-  }
   const branch = event.currentTarget;
   switch (event.key) {
     case ' ':
       event.stopPropagation();
       toggleSelection(id, nodeData, treeData);
       break;
+
     case 'ArrowDown': {
       event.stopPropagation();
       const next = getFirstChild(branch) ?? getNextSibling(branch);
@@ -227,7 +224,7 @@ interface INodeData {
 /** Internal Node Representation */
 interface ITreeNode extends INodeData {
   className?: string;
-  label: JSX.Element | string;
+  label: TreeLabel;
   level: number;
   size: number;
   pos: number;
@@ -248,7 +245,7 @@ interface IBranch extends ITreeNode {
 const TreeLeaf = observer(
   ({
     id,
-    label,
+    label: Label,
     isSelected,
     level,
     size,
@@ -276,7 +273,9 @@ const TreeLeaf = observer(
         role="treeitem"
         tabIndex={-1}
       >
-        <div className={style.label}>{label}</div>
+        <div className={style.label}>
+          {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
+        </div>
       </li>
     );
   },
@@ -296,13 +295,13 @@ const TreeBranch = observer(
     id,
     branches,
     leaves,
-    label,
+    label: Label,
     level,
     size,
     pos,
     nodeData,
-    isExpanded,
     treeData,
+    isExpanded,
     isSelected,
     toggleExpansion,
     onBranchKeyDown,
@@ -366,7 +365,7 @@ const TreeBranch = observer(
             aria-label="Expand"
             onClick={handleToggle}
           />
-          {label}
+          {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
         </div>
         <div className={style.group_transition} style={{ maxHeight: expanded ? undefined : 0 }}>
           {(branches.length > 0 || leaves.length > 0) && (
@@ -454,10 +453,22 @@ export interface ITree {
   treeData: any;
 }
 
+export interface ITreeLabel {
+  nodeData: any;
+  treeData: any;
+  level: number;
+  size: number;
+  pos: number;
+}
+
+export type TreeLabel =
+  | ((nodeData: any, treeData: any, level: number, size: number, pos: number) => JSX.Element)
+  | string;
+
 /** Presentation for leaf nodes */
 export interface ITreeLeaf extends INodeData {
   /** Actual rendered label */
-  label: JSX.Element | string; // (id: ID, level: number, size: number, pos: number, nodeData: any) => JSX.Element | string
+  label: TreeLabel;
   /** CSS class added to a tree item */
   className?: string;
 }
@@ -473,7 +484,7 @@ export interface ITreeBranch extends ITreeLeaf {
 }
 
 const handleOnFocus = (event: React.FocusEvent<HTMLUListElement>) => {
-  if (!isTreeItem(event.target)) {
+  if (event.target.getAttribute('role') !== 'treeitem') {
     return;
   }
   const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');

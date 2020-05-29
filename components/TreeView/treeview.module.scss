@@ -3,6 +3,7 @@
 // Removes bullet points automatically.
 .tree,
 .tree .group {
+  margin: 0;
   padding: 0;
 }
 
@@ -56,16 +57,24 @@
 }
 
 .default_caret {
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 1rem;
+  height: 1rem;
   margin-right: 0.25rem;
+  cursor: pointer;
   background-image: url(~resources/icons/arrow-right.svg);
   background-repeat: no-repeat;
   background-color: var(--font-color, black);
   background-blend-mode: screen;
-  mask-repeat: no-repeat;
+  background-position: center;
+  background-size: 0.75rem;
   mask-image: url(~resources/icons/arrow-right.svg);
   -webkit-mask-image: url(~resources/icons/arrow-right.svg);
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-size: 0.75rem;
+  -webkit-mask-size: 0.75rem;
   transition: transform 100ms ease-out;
 
   &[aria-pressed='true'] {

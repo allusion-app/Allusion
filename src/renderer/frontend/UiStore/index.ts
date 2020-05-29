@@ -378,13 +378,13 @@ class UiStore {
 
       // Only include selected collections of which their parent is not selected
       const selectedColsNotInSelectedCols = selectedCols.filter(
-        (col) => !selectedCols.some((parent) => parent.subCollections.includes(col.id)),
+        (col) => selectedCols.every((parent) => !parent.subCollections.includes(col.id)),
       );
       contextCols.push(...selectedColsNotInSelectedCols);
 
       // Only include the selected tags that are not in a selected collection
       const selectedTagsNotInSelectedCols = this.clientTagSelection.filter(
-        (t) => !selectedCols.some((col) => col.tags.includes(t.id)),
+        (t) => selectedCols.every((col) => !col.tags.includes(t.id)),
       );
       contextTags.push(...selectedTagsNotInSelectedCols);
     }

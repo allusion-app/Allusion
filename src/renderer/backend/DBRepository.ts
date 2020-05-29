@@ -214,7 +214,7 @@ export default class BaseRepository<T extends IResource> {
       return crit.value.length === 0
         ? col.and((val: any) => val[crit.key as string].length !== 0)
         : col.and(
-            (val: any) => !crit.value.some((item) => val[crit.key as string].indexOf(item) !== -1),
+            (val: any) => crit.value.every((item) => val[crit.key as string].indexOf(item) === -1),
           );
     }
   }

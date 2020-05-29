@@ -183,7 +183,7 @@ export default class Backend {
       value: path,
     };
     const existingFilesInPath: IFile[] = await this.fileRepository.find({ criteria });
-    const newFiles = files.filter((file) => !existingFilesInPath.some((f) => f.path === file.path));
+    const newFiles = files.filter((file) => existingFilesInPath.every((f) => f.path !== file.path));
     return this.fileRepository.createMany(newFiles);
   }
 
