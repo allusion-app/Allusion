@@ -134,6 +134,7 @@ class FileStore {
 
   @action.bound async fetchAllFiles() {
     try {
+      this.rootStore.uiStore.closeQuickSearch();
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
       this.setContentAll();
@@ -144,6 +145,7 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
+      this.rootStore.uiStore.closeQuickSearch();
       const criteria = new ClientArraySearchCriteria('tags', []).serialize();
       const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);

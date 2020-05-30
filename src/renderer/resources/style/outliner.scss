@@ -278,3 +278,56 @@ nav .bp3-tree {
     }
   }
 }
+
+// Google-photos like selection for tag tree
+.tag-tree {
+
+  // Only show checkbox on hover
+  .bp3-tree-node-content {
+
+    > .bp3-tree-node-secondary-label {
+      display: none;
+    }
+    // Show on hover or when the selection state is active (any item is selected)
+    &:hover {
+      > .bp3-tree-node-secondary-label {
+        display: inline;
+        // background-color: $dark-gray1;
+        // border-radius: 100%;
+      }
+    }
+
+    .bp3-tree-node-secondary-label {
+      > * {
+        opacity: 0.6;
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  &.selection-active {
+    .bp3-tree {
+      // Indicator that selection mode is active
+      box-shadow: inset 0 0 4px $blue1;
+    }
+
+    .bp3-tree-node-content {
+      > .bp3-tree-node-secondary-label {
+        display: inline;
+      }
+    }
+    .bp3-tree-node-secondary-label {
+      > * {
+        opacity: 1;
+      }
+    }
+  }
+
+  .is-searched {
+    > .bp3-tree-node-content {
+      background-color: $blue-trans1;
+    }
+  }
+}
