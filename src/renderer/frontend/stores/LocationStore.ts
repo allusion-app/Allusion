@@ -73,7 +73,8 @@ class LocationStore {
           action: {
             text: 'Recover',
             onClick: () => alert('TODO: Open location recovery dialog'),
-          }
+          },
+          timeout: 0,
         });
         continue;
       }

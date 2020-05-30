@@ -1,4 +1,4 @@
-import { IReactionDisposer, reaction, computed, observable, action } from 'mobx';
+import { IReactionDisposer, reaction, computed, observable, action, runInAction } from 'mobx';
 import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
@@ -103,7 +103,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     if (pathExists) {
       return this.watchDirectory(this.path);
     } else {
-      this.isBroken = true;
+      runInAction(() => this.isBroken = true);
       return [];
     }
   }

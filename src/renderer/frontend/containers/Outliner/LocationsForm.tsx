@@ -127,14 +127,15 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
               {/* <Checkbox label="Recursive" checked /> */}
               {/* <Checkbox label="Add folder name as tag" /> */}
               <Label>
-                <p>Tags to add
-                <MultiTagSelector
-                  selectedItems={dir.clientTagsToAdd}
-                  onTagSelect={dir.addTag}
-                  onTagDeselect={dir.removeTag}
-                  onClearSelection={dir.clearTags}
-                />
-                </p>
+                <div>
+                  <p>Tags to add</p>
+                  <MultiTagSelector
+                    selectedItems={dir.clientTagsToAdd}
+                    onTagSelect={dir.addTag}
+                    onTagDeselect={dir.removeTag}
+                    onClearSelection={dir.clearTags}
+                  />
+                </div>
               </Label>
             </>
           )}
@@ -204,17 +205,24 @@ function dirItemAsTreeNode(dirItem: IDirectoryTreeItem): ITreeNode<string> {
   };
 }
 
-const LocationsTree = ({ onDelete, onConfig }: ILocationTreeProps) => {
+const LocationRootLabel = ({ location }: { location: ClientLocation }) => (
+  <span
+    className="tooltip"
+    data-right={`${location.isBroken ? 'Cannot find this location: ' : ''} ${location.path}`}
+  >
+    {Path.basename(location.path)}
+  </span>
+);
+
+const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useContext(StoreContext);
   const [nodes, setNodes] = useState<ITreeNode<string>[]>(
     locationStore.locationList.map((location) => ({
       id: location.id,
-      label: Path.basename(location.path),
+      label: <LocationRootLabel location={location} />,
       nodeData: location.path,
       icon: location.id === DEFAULT_LOCATION_ID ? 'import' : IconSet.FOLDER_CLOSE,
-      rightIcon: location.isBroken ? <Icon icon={IconSet.WARNING} /> : 'tag',
-      className: 'tooltip',
-      'data-right': `${location.isBroken ? 'Cannot find this location: ' : ''} ${location.path}`,
+      secondaryLabel: location.isBroken ? <Icon icon={IconSet.WARNING} /> : undefined,
     })),
   );
 
@@ -229,6 +237,8 @@ const LocationsTree = ({ onDelete, onConfig }: ILocationTreeProps) => {
       ),
     );
   }, [locationStore.locationList]);
+
+  console.log( locationStore.locationList.map(l => l.isBroken), nodes)
 
   const addToSearch = useCallback(
     (path: string) =>
@@ -298,7 +308,7 @@ const LocationsTree = ({ onDelete, onConfig }: ILocationTreeProps) => {
       onNodeContextMenu={handleNodeContextMenu}
     />
   );
-};
+});
 
 const LocationsForm = () => {
   const { locationStore } = useContext(StoreContext);

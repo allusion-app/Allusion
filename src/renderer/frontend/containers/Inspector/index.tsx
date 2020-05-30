@@ -89,6 +89,7 @@ const Inspector = observer(() => {
     headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.path).size)}`;
   } else {
     // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
+    // TODO: This will crash the app if the image can't be found - same for the other case a few lines earlier
     const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.path).size, 0);
 
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
