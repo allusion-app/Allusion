@@ -1,6 +1,6 @@
 ///////////////////////////////// Content area /////////////////////////////////
 .quick-search {
-  background: $dark-gray1;
+  background: $dark-gray0;
   border-radius: 6px;
   position: sticky;
   width: calc(100% - 0.75rem);
@@ -69,6 +69,8 @@
 .gallery-content {
   flex: 1;
   max-height: 100%;
+  
+  margin-left: 8px;
 }
 
 .gallery-content:not(.slide) {
@@ -124,7 +126,7 @@
     width: var(--thumbnail-size);
     height: var(--thumbnail-size);
 
-    .bp3-skeleton {
+    .placeholder {
       width: 100%;
       height: 100%;
     }

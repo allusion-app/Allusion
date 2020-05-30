@@ -6,7 +6,7 @@ import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
 import { SearchCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
-import { getThumbnailPath, debounce } from '../utils';
+import { getThumbnailPath, debounce, needsThumbnail } from '../utils';
 import { ClientTag } from '../../entities/Tag';
 import { FileOrder } from '../../backend/DBRepository';
 
@@ -327,7 +327,15 @@ class FileStore {
   }
 
   @action.bound private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
-    return backendFiles.map((file) => new ClientFile(this, file));
+    return backendFiles.map((file) => {
+      const f = new ClientFile(this, file);
+      // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
+      // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
+      f.thumbnailPath = needsThumbnail(file.width, file.height)
+        ? getThumbnailPath(file.path, this.rootStore.uiStore.thumbnailDirectory)
+        : file.path;
+      return f;
+    });
   }
 
   @action.bound private async removeThumbnail(file: ClientFile) {

@@ -1,7 +1,7 @@
 ///////////////////////////////// Global Blueprint overriddes /////////////////////////////////
 // Skeleton override
 .#{$ns}-skeleton {
-  border-color: #282828 !important;
+  border-color: $dark-gray3 !important;
   border-radius: 0.25rem;
   animation: none !important;
 }
@@ -25,6 +25,10 @@
   font-size: 0.8rem;
   background: white;
   font-family: inherit;
+}
+
+.bp3-heading {
+  font-weight: 500;
 }
 
 .bp3-dark .bp3-heading,
@@ -103,7 +107,7 @@
 }
 .bp3-tag-input .bp3-input-ghost,
 #outliner input {
-  color: #919191 !important;
+  color: $light-gray1 !important;
 }
 // #inspector {
 //   .bp3-input,
@@ -117,7 +121,7 @@
 .bp3-dark .bp3-input.bp3-disabled {
   box-shadow: none;
   background: $dark-gray3;
-  color: $dark-gray2;
+  color: $dark-gray1;
 }
 
 .bp3-dark .bp3-input,
@@ -358,7 +362,7 @@ form .bp3-icon {
     .bp3-tag-input.bp3-active,
     input:not(.bp3-input-ghost),
     .bp3-input-group {
-      background-color: #2828288e !important;
+      background-color: #2327298e !important;
     }
   }
 }
@@ -657,10 +661,11 @@ button:has(.bp3-intent-danger) {
 // Menus
 .bp3-dark {
   #fileTag .bp3-heading.inpectorHeading,
-  .bp3-drawer-header .bp3-heading,
-  .bp3-dialog-header .bp3-heading {
+  .bp3-drawer-header .bp3-heading {
+    // .bp3-dialog-header .bp3-heading {
     line-height: 19px;
     font-size: 18px;
+    font-weight: 500;
     color: $dark-gray4;
   }
 }
@@ -678,7 +683,7 @@ button:has(.bp3-intent-danger) {
 .bp3-dark .bp3-submenu.bp3-popover > .bp3-popover-content,
 .bp3-submenu.bp3-popover.bp3-dark > .bp3-popover-content {
   // box-shadow: 0 30px 90px -20px rgb(24, 24, 24), 0 0 30px #18181b !important;
-  // box-shadow: 0 30px 90px 0px #181818, 0px 0px 0px 0px #181818 !important;
+  // box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
   // box-shadow: 0 0 0 1px rgba(16,22,26,.2), 0 2px 4px rgba(16,22,26,.4), 0 8px 24px rgba(16,22,26,.4);
   box-shadow: 0 4px 8px rgba(16, 22, 26, 0.4), 0 18px 46px 6px rgba(16, 22, 26, 0.4);
 }
@@ -690,7 +695,7 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-dark .bp3-popover-content {
-  background-color: $dark-gray2;
+  background-color: $dark-gray1;
   color: $light-gray1;
 }
 
@@ -716,7 +721,7 @@ button:has(.bp3-intent-danger) {
   //   padding-bottom: 1rem;
   // }
   .bp3-dark {
-    background-color: $dark-gray2;
+    background-color: $dark-gray1;
     color: $light-gray1;
   }
 }
@@ -815,7 +820,7 @@ nav .bp3-divider {
   padding: 0.25rem 0rem;
   font-size: 14px;
   line-height: 1.2;
-  color: #919191 !important;
+  color: $light-gray1 !important;
 }
 
 .bp3-popover-content {
@@ -892,6 +897,21 @@ li .bp3-menu-item {
   border-radius: 0;
   padding-bottom: 3px;
   transition: all 0.2s $pt-transition-ease2;
+}
+
+//Sidebar override
+.vertical-toolbar {
+  #toolbar {
+    .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
+    .bp3-button.bp3-minimal:hover,
+    .bp3-dark .bp3-button.bp3-minimal:hover {
+      border-left: 2px solid $blue1;
+      border-bottom: none !important;
+      border-radius: 0;
+      padding-left: 7px;
+      padding-bottom: 5px;
+    }
+  }
 }
 
 #system-tags {
@@ -971,12 +991,7 @@ li .bp3-menu-item {
 $pt-grid-size: 10px !default;
 $tree-row-height: $pt-grid-size * 3 !default;
 $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
-
-@for $i from 0 through 20 {
-  .#{$ns}-tree-node-content-#{$i} {
-    padding-left: ($tree-row-height - $tree-icon-spacing) * $i !important;
-  }
-}
+$tree-boffset: 8px !default;
 
 .bp3-tree .bp3-icon,
 .bp3-tree .bp3-icon-standard,
@@ -989,7 +1004,7 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-dark .bp3-collapse {
-  background-color: $dark-gray1;
+  background-color: $dark-gray0;
 }
 
 .bp3-light .bp3-collapse {
@@ -1109,21 +1124,38 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
 }
 
 .bp3-dark #watched-folders .bp3-button:hover {
-  background-color: #252525 !important;
+  background-color: $dark-gray2 !important;
   border-left: 2px solid $blue1;
-  padding-left: 0.85rem !important;
+  // padding-left: 0.85rem !important;
+  padding-left: calc(0.85rem + 8px) !important;
   transition: all 0.2s $pt-transition-ease2;
   color: white;
+}
+
+@for $j from 0 through 20 {
+  .#{$ns}-tree-node-content-#{$j} {
+    padding-left: (((($tree-row-height - $tree-icon-spacing) - 8px) * $j) + $tree-boffset) +
+      2px !important;
+    // color: red !important;
+  }
+}
+
+.#{$ns}-tree-node-content-0 {
+  padding-left: $tree-boffset + 4px !important;
 }
 
 @for $i from 0 through 20 {
   .#{$ns}-tree-node-content-#{$i}:hover {
     background-color: #252525 !important;
     border-left: 2px solid $blue1;
-    padding-left: (($tree-row-height - $tree-icon-spacing) * $i) - 2px !important;
+    padding-left: (((($tree-row-height - $tree-icon-spacing) - 8px) * $i) + $tree-boffset) +
+      0px !important;
     transition: all 0.2s $pt-transition-ease2;
     color: white;
   }
+}
+.#{$ns}-tree-node-content-0:hover {
+  padding-left: $tree-boffset + 2px !important;
 }
 
 .bp3-dark {
@@ -1133,15 +1165,6 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   #watched-folders .bp3-minimal .bp3-icon {
     color: white;
   }
-}
-
-// Hardcode left padding
-.#{$ns}-tree-node-content-0:hover {
-  padding-left: 2px !important;
-}
-
-.#{$ns}-tree-node-content-0 {
-  padding-left: 4px !important;
 }
 
 .#{$ns}-tree-node-caret {
@@ -1181,8 +1204,8 @@ $tree-icon-spacing: ($tree-row-height - 100rem) / 2 !default;
   margin-bottom: 0.5rem;
 }
 
-.bp3-drawer,
-.bp3-dialog .bp3-dialog-header {
+.bp3-drawer {
+  // .bp3-dialog .bp3-dialog-header {
   .custom-icon {
     color: $dark-gray4;
   }

@@ -43,7 +43,9 @@ class RootStore {
   }
 
   async init(autoLoadFiles: boolean) {
-    await this.locationStore.init(autoLoadFiles);
+    // The location store is not required to be finished with loading before showing the rest
+    // So it does not need to be awaited
+    this.locationStore.init(autoLoadFiles);
     await Promise.all([
       this.tagStore.init(),
       this.tagCollectionStore.init(),
