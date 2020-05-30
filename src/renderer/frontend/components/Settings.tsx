@@ -150,6 +150,13 @@ const Settings = observer(() => {
           onChange={toggleFullScreen}
           label="Full screen"
         />
+
+        <Switch
+          checked={uiStore.isToolbarVertical}
+          onChange={uiStore.toggleToolbarVertical}
+          label="Vertical toolbar"
+        />
+
         <Switch
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
@@ -161,6 +168,7 @@ const Settings = observer(() => {
           onChange={toggleRunInBackground}
           label="Run in background"
         />
+
         <Switch
           checked={isClipServerRunning}
           onChange={toggleClipServer}

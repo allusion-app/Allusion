@@ -1,7 +1,7 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 nav {
   grid-area: outliner;
-  overflow-y: initial;
+  overflow-y: scroll;
   overflow-x: hidden;
   flex-shrink: 0;
   width: 0;
@@ -15,9 +15,8 @@ nav {
   &.outlinerOpen {
     min-width: var(--outliner-width);
     width: 16rem;
-    overflow-x: visible !important;
+    // overflow-x: visible !important;
     z-index: 1;
-    margin-right: 8px;
 
     button.bp3-button.bp3-minimal {
       opacity: 0;
@@ -35,7 +34,7 @@ nav {
   // }
 
   .bp3-dark {
-    background: $dark-gray2;
+    background: $dark-gray1;
   }
 
   &.outlinerOpen #import {
@@ -95,16 +94,14 @@ main,
     color: $light-gray3;
   }
 
-  button.bp3-intent-primary {
-    background: $light-gray0-trans !important;
-  }
 
   button.bp3-intent-primary {
     background: $light-gray0-trans !important;
   }
 }
 
-#search-form {
+#search-form,
+.bp3-overlay {
   button {
     &.bp3-intent-primary {
       background: $blue1;
@@ -147,7 +144,7 @@ main,
 .bp3-overlay
   .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
   background: $light-gray1-trans;
-  color: $light-gray2;
+  color: $light-gray6;
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
@@ -158,7 +155,7 @@ main,
   cursor: pointer;
 
   h4 {
-    margin-left: 4px;
+    margin-left: 10px;
     margin-right: auto;
     // caret icon
     > .bp3-icon {
@@ -176,7 +173,7 @@ main,
 }
 
 nav .bp3-tree {
-  background-color: $dark-gray2;
+  background-color: $dark-gray1;
   overflow: auto;
 
   .bp3-tree-root {
@@ -198,9 +195,10 @@ nav .bp3-tree {
   &-label {
     // min-height: 20px !important;
     text-transform: lowercase;
-    &::first-letter {
-      text-transform: uppercase;
-    }
+    // Turn off auto Capatilizing first letter
+    // &::first-letter {
+    //   text-transform: uppercase;
+    // }
   }
   .reorder-target {
     border-bottom: 2px solid $blue1;
