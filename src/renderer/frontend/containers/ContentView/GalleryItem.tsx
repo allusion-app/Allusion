@@ -110,7 +110,7 @@ const GalleryItem = observer(
               Could not load image
             </span> // Show an error it it could not be loaded
           ) : (
-            <div className={Classes.SKELETON} />
+            <div className={`placeholder ${Classes.SKELETON}`} />
           ) // Else show a placeholder
           }
         </div>
@@ -213,4 +213,37 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   };
 }
 
-export default observer(withRootstore(GalleryItemWithContextMenu));
+// A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
+const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryItemProps) => {
+  // TODO: List gallery styling
+  // useEffect(() => {
+  //   // First check whether a thumbnail exists, generate it if needed
+  //   ensureThumbnail(file, uiStore.thumbnailDirectory);
+  // }, [file, uiStore.thumbnailDirectory]);
+
+  return (
+    <div className={`thumbnail ${isSelected ? 'selected' : ''}`}>
+      <div className="img-wrapper">
+        <img src={file.thumbnailPath} alt="" className="bp3-skeleton" />
+      </div>
+      {showDetails && (
+        <>
+          <H4>{file.name}</H4>
+          <ImageInfo file={file} />
+        </>
+      )}
+      <span className="thumbnailTags placeholder bp3-skeleton" />
+    </div>
+  )
+});
+
+const DelayedGalleryItem = (props: IGalleryItemProps) => {
+  const [showSimple, setShowSimple] = useState(true);
+  useEffect(() => {
+    const timeout = setTimeout(() => setShowSimple(false), 300);
+    return () => clearTimeout(timeout);
+  });
+  return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItemWithContextMenu {...props} />
+}
+
+export default observer(withRootstore(DelayedGalleryItem));

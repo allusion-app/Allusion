@@ -326,7 +326,10 @@ const LocationsForm = () => {
   }, [locationConfigOpen, locationStore]);
 
   const [locationTreeKey, setLocationTreeKey] = useState(new Date());
-  const handleRefresh = useCallback(() => setLocationTreeKey(new Date()), []);
+  const handleRefresh = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setLocationTreeKey(new Date());
+  }, []);
 
   const [isCollapsed, setCollapsed] = useState(false);
   const handleChooseWatchedDir = useCallback(
@@ -368,6 +371,7 @@ const LocationsForm = () => {
       setLocationConfigOpen(newLoc);
       handleRefresh();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [handleRefresh, locationStore],
   );
 
@@ -375,6 +379,11 @@ const LocationsForm = () => {
     isCollapsed,
     setCollapsed,
   ]);
+
+  // Refresh when adding/removing location
+  useEffect(() => {
+    handleRefresh();
+  }, [handleRefresh, locationStore.locationList.length]);
 
   return (
     <div>
