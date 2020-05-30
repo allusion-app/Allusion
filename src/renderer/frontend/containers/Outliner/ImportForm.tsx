@@ -15,11 +15,9 @@ import RootStore from '../../stores/RootStore';
 import { IMG_EXTENSIONS } from '../../../entities/File';
 import { DEFAULT_LOCATION_ID } from '../../../entities/Location';
 
-export const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
-
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialogSync({
-    filters: [{ name: 'Images', extensions: imgExtensions }],
+    filters: [{ name: 'Images', extensions: [...IMG_EXTENSIONS] }],
     properties: ['openFile', 'multiSelections'],
   });
 
