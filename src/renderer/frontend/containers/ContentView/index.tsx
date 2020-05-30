@@ -6,13 +6,14 @@ import Gallery from './Gallery';
 import Searchbar from './Searchbar';
 import ContentToolbar from '../Toolbar/ContentToolbar';
 import { Observer } from 'mobx-react-lite';
+import { IS_PREVIEW_WINDOW } from '../../../renderer';
 
 @HotkeysTarget
 class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
     return (
       <main tabIndex={1}>
-        <Observer>{() => Boolean(this.props.rootStore.uiStore.sidebar) ? <ContentToolbar className="separated" /> : <></>}</Observer>
+        <Observer>{() => Boolean(!IS_PREVIEW_WINDOW && this.props.rootStore.uiStore.isToolbarVertical) ? <ContentToolbar className="separated" /> : <></>}</Observer>
         <Searchbar />
         <Gallery />
       </main>

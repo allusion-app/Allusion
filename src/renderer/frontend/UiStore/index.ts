@@ -88,10 +88,10 @@ const defaultHotkeyMap: IHotkeyMap = {
 /** These fields are stored and recovered when the application opens up */
 const PersistentPreferenceFields: Array<keyof UiStore> = [
   'theme',
-  'sidebar',
   'isOutlinerOpen',
   'isInspectorOpen',
   'thumbnailDirectory',
+  'isToolbarVertical',
 ];
 
 class UiStore {
@@ -103,9 +103,9 @@ class UiStore {
 
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
-  
+
   // Sidebar
-  @observable sidebar: '' | 'sidebar' = 'sidebar';
+  @observable isToolbarVertical: boolean = true;
 
   // UI
   @observable isOutlinerOpen: boolean = true;
@@ -488,9 +488,6 @@ class UiStore {
   @action.bound toggleTheme() {
     this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
   }
-  @action.bound toggleSidebar() {
-    this.setSidebar(this.sidebar === 'sidebar' ? '' : 'sidebar');
-  }
   @action.bound toggleDevtools() {
     remote.getCurrentWebContents().toggleDevTools();
   }
@@ -522,6 +519,10 @@ class UiStore {
     this.isAdvancedSearchOpen = false;
   }
 
+  @action.bound toggleToolbarVertical() {
+    this.setToolbarVertical(!this.isToolbarVertical);
+  }
+
   // Storing preferences
   recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
@@ -529,7 +530,7 @@ class UiStore {
       try {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
-        this.setSidebar(prefs.sidebar);
+        this.setToolbarVertical(prefs.sidebar);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.setIsInspectorOpen(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
@@ -564,10 +565,6 @@ class UiStore {
   @action private viewAllContent() {
     this.rootStore.fileStore.fetchAllFiles();
   }
-  
-  @action private setSidebar(sidebar: '' | 'sidebar' = 'sidebar') {
-    this.sidebar = sidebar;
-  }
 
   @action private viewQueryContent() {
     this.rootStore.fileStore.fetchFilesByQuery();
@@ -583,6 +580,10 @@ class UiStore {
 
   @action private setIsInspectorOpen(value: boolean = false) {
     this.isInspectorOpen = value;
+  }
+
+  @action private setToolbarVertical(val: boolean) {
+    this.isToolbarVertical = val;
   }
 }
 

@@ -38,20 +38,20 @@ const OutlinerToolbar = observer(() => {
           className="tooltip"
           data-right={ToolbarTooltips.Tag}
         />
-        
         <Button
           icon={IconSet.INFO}
           onClick={uiStore.toggleInspector}
           intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
           className="tooltip"
-          data-left={ToolbarTooltips.Inspector}
+          data-right={ToolbarTooltips.Inspector}
         />
         <Button
           icon={IconSet.PREVIEW}
           onClick={uiStore.openPreviewWindow}
           intent={uiStore.isPreviewOpen ? 'primary' : 'none'}
           className="tooltip"
-          data-right={ToolbarTooltips.Preview}
+          data-right={`${ToolbarTooltips.Preview} (${uiStore.hotkeyMap.openPreviewWindow})`}
+          disabled={uiStore.fileSelection.length === 0}
         />
       </ButtonGroup>
     </section>
@@ -66,7 +66,7 @@ interface IInspectorToolbar {
 }
 
 const InspectorToolbar = observer(
-  ({ isInspectorOpen, toggleInspector, toggleSettings }: IInspectorToolbar) => {
+  ({ toggleSettings }: IInspectorToolbar) => {
     return (
       <section id="inspector-toolbar">
         <ButtonGroup minimal>
@@ -88,7 +88,7 @@ const Toolbar = observer(() => {
   return (
     <div id="toolbar">
       <OutlinerToolbar />
-      {!Boolean(uiStore.sidebar) && <ContentToolbar /> }
+      {!Boolean(uiStore.isToolbarVertical) && <ContentToolbar /> }
       <InspectorToolbar
         isInspectorOpen={uiStore.isInspectorOpen}
         toggleInspector={uiStore.toggleInspector}
