@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback } from 'react';
+import React, { useContext, useState, useCallback, useMemo } from 'react';
 import fs from 'fs';
 import path from 'path';
 import { observer } from 'mobx-react-lite';
@@ -7,7 +7,7 @@ import StoreContext from '../../contexts/StoreContext';
 import ImageInfo from '../../components/ImageInfo';
 import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
-import { TransitionGroup, CSSTransition } from 'react-transition-group';
+import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
@@ -26,30 +26,42 @@ const MultiFileInfo = observer(({ files }: { files: ClientFile[] }) => {
   );
 });
 
-const Carousel = ({ items, maxItems = 5 }: { items: ClientFile[], maxItems?: number }) => {
+const Carousel = ({ items }: { items: ClientFile[] }) => {
+  // NOTE: maxItems is coupled to the CSS! Max is 10 atm (see inspector.scss)
+  const maxItems = 7;
   const [scrollIndex, setScrollIndex] = useState(0);
-  // const [directionClass, setDirectionClass] = useState<'up' | 'down'>('up');
+
+  // Add some padding items so that you can scroll the last item to the front
+  const paddedItems = useMemo(() => {
+    const padding = Array.from(Array(maxItems - 1));
+    setScrollIndex(items.length - 1);
+    return [...padding, ...items];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     const delta = e.deltaY > 0 ? -1 : 1;
-    setScrollIndex((v) => (v + delta + items.length) % items.length);
-    console.log( delta);
-  }, [items.length]);
+    setScrollIndex((v) => clamp((v + delta), 0, paddedItems.length - 1));
+  }, [paddedItems.length]);
 
   return (
-    <TransitionGroup id="carousel" onWheel={handleWheel}>
-      {/* Show a stack of the first N images (with some css magic - the N limit is also hard coded in there) */}
-      {[
-        ...items.slice(scrollIndex, scrollIndex + maxItems),
-        ...items.slice(0, Math.max(0, scrollIndex - items.length + maxItems)),
-      ].map((file) => (
-        <CSSTransition timeout={200}  classNames="item" key={file.id}>
-          <div key={file.id}>
-            <img src={file.thumbnailPath} />
+    <div id="carousel" onWheel={handleWheel}>
+      {/* Show a stack of the first N images (or fewer) */}
+      {paddedItems.slice(scrollIndex, scrollIndex + maxItems)
+        .map((file, index) => !file ? null : (
+          <div
+            key={file.id}
+            className={`item child-${index
+              // TODO: Could add in and out transition, but you'd also need to know the scroll direction for that
+              // }${index === 0 ? ' item-enter' : ''
+              // }${index === maxItems - 1 ? ' item-exit' : ''
+            }`}
+          >
+            {/* TODO: Thumbnail path is not always resolved atm, working on that in another branch */}
+            <img src={file.thumbnailPath} onClick={() => setScrollIndex(scrollIndex - maxItems + 1 + index)} />
           </div>
-        </CSSTransition>
       ))}
-    </TransitionGroup>
+    </div>
   )
 }
 

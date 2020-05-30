@@ -1,13 +1,12 @@
-import React, { useContext, useCallback, useRef, useEffect } from 'react';
+import React, { MutableRefObject, useCallback, useContext, useEffect, useRef } from 'react';
+import { Icon, Intent, MenuItem } from '@blueprintjs/core';
+import { ItemPredicate, ItemRenderer, Suggest } from '@blueprintjs/select';
 import { observer } from 'mobx-react-lite';
 
-import { MenuItem, Intent, Icon } from '@blueprintjs/core';
-import { ItemRenderer, Suggest, ItemPredicate } from '@blueprintjs/select';
-
 import { ClientTag } from '../../entities/Tag';
+import { ClientTagCollection } from '../../entities/TagCollection';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from './Icons';
-import { ClientTagCollection } from '../../entities/TagCollection';
 
 const TagSelect = Suggest.ofType<ClientTag | ClientTagCollection>();
 
@@ -134,13 +133,15 @@ const TagSelector = ({
   const maybeCreateNewItemFromQuery = onTagCreation ? createNewTag : undefined;
   const maybeCreateNewItemRenderer = onTagCreation ? renderCreateTagOption : undefined;
 
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  // Focus on the input element with an Effect whe the focusObject changes and autoFocus is requested
+  const inputRef = useRef<HTMLInputElement>(null) as MutableRefObject<HTMLInputElement | null>;
+  const setRef = useCallback((ref: HTMLInputElement | null) => { inputRef.current = ref }, [inputRef]);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [refocusObject, autoFocus]);
+  }, [refocusObject, autoFocus, inputRef]);
 
   const items = includeCollections
     ? [...tagStore.tagList, ...tagCollectionStore.tagCollectionList]
@@ -154,12 +155,17 @@ const TagSelector = ({
       noResults={NoResults}
       onItemSelect={handleSelect}
       popoverProps={{ minimal: true }}
-      openOnKeyDown={false}
+      openOnKeyDown={true} // don't show the select list until you start typing
       inputValueRenderer={TagLabel}
       createNewItemFromQuery={maybeCreateNewItemFromQuery}
       createNewItemRenderer={maybeCreateNewItemRenderer}
       itemPredicate={filterTag}
       resetOnSelect={true}
+      inputProps={{
+        autoFocus,
+        // add a ref to the input so we can re-focus when needed
+        inputRef: setRef,
+      }}
     />
   );
 };

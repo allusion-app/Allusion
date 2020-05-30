@@ -639,7 +639,9 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
     <>
       <div className="outliner-header-wrapper" ref={headerDrop} onClick={toggleCollapse}>
         <H4 className="bp3-heading">
-          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
+          <span className="bp3-icon custom-icon custom-icon-14">{isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}</span>
+          {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
+          {/* <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} /> */}
           Tags
         </H4>
         <Button
@@ -647,14 +649,14 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           icon={IconSet.TAG_ADD}
           onClick={handleRootAddTag}
           className="tooltip"
-          data-right={DEFAULT_TAG_NAME}
+          data-left={DEFAULT_TAG_NAME}
         />
         <Button
           minimal
           icon={IconSet.TAG_ADD_COLLECTION}
           onClick={handleAddRootCollection}
           className="tooltip"
-          data-right={DEFAULT_COLLECTION_NAME}
+          data-left={DEFAULT_COLLECTION_NAME}
         />
       </div>
 

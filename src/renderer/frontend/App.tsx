@@ -49,9 +49,12 @@ const App = observer(() => {
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
+  const sidebarClass = uiStore.isToolbarVertical ? 'vertical-toolbar' : '';
+
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
+      <div className={sidebarClass}>
       <div id="layoutContainer" className={`${themeClass}`}>
         <ErrorBoundary>
           <GlobalHotkeys>
@@ -73,6 +76,7 @@ const App = observer(() => {
             <DragLayer />
           </GlobalHotkeys>
         </ErrorBoundary>
+      </div>
       </div>
     </DropOverlay>
   );

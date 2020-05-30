@@ -120,19 +120,21 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
         <Observer>
           {() => (
             <>
-              <span>
+              <p>Path: <pre>{dir.path}</pre></p>
+              {/* <span>
                 Path: <pre>{dir.path}</pre>
-              </span>
+              </span> */}
               {/* <Checkbox label="Recursive" checked /> */}
               {/* <Checkbox label="Add folder name as tag" /> */}
               <Label>
-                Tags to add
+                <p>Tags to add
                 <MultiTagSelector
                   selectedItems={dir.clientTagsToAdd}
                   onTagSelect={dir.addTag}
                   onTagDeselect={dir.removeTag}
                   onClearSelection={dir.clearTags}
                 />
+                </p>
               </Label>
             </>
           )}
@@ -387,7 +389,9 @@ const LocationsForm = () => {
     <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
         <H4 className="bp3-heading">
-          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
+          <span className="bp3-icon custom-icon custom-icon-14">{isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}</span>
+          {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
+          {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
           Locations
         </H4>
         <Button
