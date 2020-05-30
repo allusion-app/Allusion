@@ -230,7 +230,7 @@ interface ITreeList {
   selectionLength: number;
   /** Filtering leaves */
   isSelectionActive: boolean;
-  onFilter: (tagIds: ID[], clear?: boolean) => void;
+  onFilter: (id: ID, type: string, clear?: boolean) => void;
   onContextMenu: (node: ITreeNode<INodeData>) => JSX.Element;
 }
 
@@ -352,8 +352,9 @@ export const TreeList = ({
 
     if (clickedCheckbox || isSelectionActive) {
       handleSelect(node, e, clickSelection);
-    } else {
-      onFilter(clickSelection, !(e.ctrlKey || e.metaKey));
+    } else if (node.nodeData) {
+      // Filter by collection, or by single tag
+      onFilter(node.id as ID, node.nodeData.type, !(e.ctrlKey || e.metaKey));
     }
   }, [branch, getSubTreeLeaves, handleSelect, isSelectionActive, leaf, onFilter]);
 

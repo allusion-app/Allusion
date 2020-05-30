@@ -32,7 +32,8 @@ import { ClientTag } from '../../../../entities/Tag';
 import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';
 import { SketchPicker, ColorResult } from 'react-color';
-import { ClientIDSearchCriteria } from '../../../../entities/SearchCriteria';
+import { ClientIDSearchCriteria, ClientCollectionSearchCriteria } from '../../../../entities/SearchCriteria';
+import { FileSearchCriteria } from '../../../UiStore';
 
 const DEFAULT_TAG_NAME = 'New Tag';
 const DEFAULT_COLLECTION_NAME = 'New Collection';
@@ -552,6 +553,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         );
       };
 
+      const isSearched = uiStore.searchCriteriaList.find(crit => crit.key === 'tags' && (crit as ClientCollectionSearchCriteria)?.collectionId === col.id);
+
       return {
         id: col.id,
         icon: (
@@ -569,6 +572,7 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           {/* Show circle if selection mode is active and it's not selected */}
           {(uiStore.tagSelection.length > 0 && !col.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK}
         </span>,
+        className: isSearched ? 'is-searched' : '',
       };
     };
 
@@ -703,22 +707,40 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           onDeselect={(selection) => uiStore.deselectTags(selection)}
           selectionLength={uiStore.tagSelection.length}
           isSelectionActive={isSelectionActive}
-          onFilter={(ids, clear) => {
-            const crits = ids.map((id) => new ClientIDSearchCriteria('tags', id));
-            const alreadySearchedCrits = uiStore.searchCriteriaList
-              .filter(crit => crit instanceof ClientIDSearchCriteria
-                  && crit.value.length === 1
-                  && ids.includes(crit.value[0]));
+          onFilter={(id, type, clear) => {
+            let crit: FileSearchCriteria | undefined;
+            let alreadySearchedCrit: FileSearchCriteria | undefined;;
 
-            // If all ids are already in search, remove from the search instead (like a toggle)
-            if (!clear && alreadySearchedCrits.length === ids.length) {
-              uiStore.replaceSearchCriterias(
-                uiStore.searchCriteriaList.filter(
-                  crit => !alreadySearchedCrits.includes(crit)));
-            } else if (clear) {
-              uiStore.replaceSearchCriterias(crits);
-            } else {
-              uiStore.addSearchCriterias(crits);
+            if (type === DragAndDropType.Collection) {
+              const col = rootStore.tagCollectionStore.get(id)!;
+              crit = new ClientCollectionSearchCriteria(id, col.getTagsRecursively(), col.name);
+              alreadySearchedCrit = uiStore.searchCriteriaList.find(
+                c => (c as ClientCollectionSearchCriteria)?.collectionId === id);
+            } else if (type === DragAndDropType.Tag) {
+              crit = new ClientIDSearchCriteria('tags', id);
+              alreadySearchedCrit = uiStore.searchCriteriaList.find(
+                c => (c as ClientIDSearchCriteria<any>)?.value?.includes(id));
+            }
+
+            console.log('crit', crit, 'already', alreadySearchedCrit);
+
+            if (crit) {
+
+              if (!clear && alreadySearchedCrit) { // if not clear (additive) and already exists, then remove it
+                uiStore.replaceSearchCriterias(
+                  uiStore.searchCriteriaList.filter(c => c !== alreadySearchedCrit));
+              } else if (clear && alreadySearchedCrit) { // if clear (not additive) and already exists, clear everything
+                // if it's not the only searched item though, keep it selected  (same behavior for selection of items, feels more natural)
+                if (uiStore.searchCriteriaList.length > 1) {
+                  uiStore.replaceSearchCriterias([crit]);
+                } else {
+                  uiStore.clearSearchCriteriaList();
+                }
+              } else if (clear) { // not additive: clear and replace with new crit
+                uiStore.replaceSearchCriterias([crit]);
+              } else { // additive: just add it
+                uiStore.addSearchCriteria(crit);
+              }
             }
           }}
           onContextMenu={handleOnContextMenu}

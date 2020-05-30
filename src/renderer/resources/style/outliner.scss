@@ -325,7 +325,9 @@ nav .bp3-tree {
   }
 
   .is-searched {
-    color: green; // placeholder
+    > .bp3-tree-node-content {
+      background-color: $blue-trans1;
+    }
   }
 }
 
