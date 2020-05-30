@@ -69,6 +69,117 @@
   object-fit: contain;
 }
 
+#filePreview > #stack {
+  margin: 0;
+  width: 100%;
+  max-height: calc(var(--inspector-width) - 2em);
+  overflow: hidden;
+
+  img {
+    max-width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: all 0.3s;
+
+    &:last-child {
+      position: relative;
+    }
+  }
+
+  &.stack-queue {
+    transform: scale(0.9);
+    padding-top: 50px;
+    margin-top: 50px;
+
+    > img {
+      transform-origin: 50% -50%;
+
+      @for $i from 0 through 5 {
+        &:nth-child(#{$i}) {
+          transform: scale(calc(1 - 0.1 * #{$i}));
+          z-index: calc(5 - #{$i});
+        }
+      }
+
+      &:hover {
+        // transform: scale(1);
+        // z-index: -1;
+        opacity: 0.1;
+      }
+    }
+  }
+}
+
+#filePreview > #carousel {
+  overflow: hidden;
+  margin: 0;
+  height: 400px;
+  max-height: 400px;
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  .item-enter {
+    animation: highlight-green-fade .2s ease;
+  }
+
+  @keyframes fade-out {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .item-exit {
+    animation: highlight-fade-remove .2s ease;
+  }
+
+  
+  // display: flex;
+  // align-items: center;
+  // justify-content: center;
+
+  > div {
+    width: 100%;
+    transition: all .2s ease;
+    opacity: 1;
+      
+    img {
+      // object-fit: contain;
+      // width: 100%;
+      // display:block;
+      // margin-left:auto;
+      // margin-right:auto;
+      width: 100%;
+      box-shadow: $pt-dark-elevation-shadow-2;
+      transform-origin: center;
+      transition: all .2s ease;
+
+      // TODO: Try making all images quare, to avoid having to deal with different aspect ratios
+    }
+
+    @for $i from 0 through 10 {
+      &.child-#{$i} {
+        height: 0px; //16px;
+        // margin-top: -16px;
+        // height: calc(8px + 4px * #{$i});
+        // opacity: calc(0.5 + 0.1 * #{$i});
+
+        > img {
+          transform:
+            scale(calc(0.5 + 0.1 * #{$i}))
+            translateY(calc(32px * #{$i} - 64px));
+          // z-index: calc(5 - #{$i});
+          filter: brightness(calc(0.4 + 0.1 * #{$i}));
+          
+          &:hover {
+            filter: brightness(calc(0.5 + 0.1 * #{$i}));
+          }
+        }
+      }
+    }
+  }
+}
+
 // File tag (kind of global style)
 #fileTag .bp3-popover-target,
 #inspector .bp3-popover-target {
