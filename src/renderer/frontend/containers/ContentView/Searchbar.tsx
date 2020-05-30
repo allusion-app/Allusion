@@ -70,7 +70,7 @@ const QuickSearchList = ({
       onTagSelect={handleSelectTag}
       onTagDeselect={handleDeselectTag}
       onClearSelection={uiStore.clearSearchCriteriaList}
-      autoFocus
+      autoFocus={!uiStore.isAdvancedSearchOpen} // don't auto focus with advanced search open; focus is needed there instead
       tagIntent="primary"
       onKeyDown={handleCloseSearch}
       showClearButton={false}
