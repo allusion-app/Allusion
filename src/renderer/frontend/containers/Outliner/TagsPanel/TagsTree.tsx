@@ -204,7 +204,9 @@ const isValid = (text: string) => text.trim().length > 0;
 const Label = (props: ILabelProps) => {
   return (
     <>
-      <span className="pre-icon" style={{ color: props.color }}>{props.icon}</span>
+      <span className="pre-icon" style={{ color: props.color }}>
+        {props.icon}
+      </span>
       {props.isEditing ? (
         <TextInput
           autoFocus
@@ -433,6 +435,17 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
     [nodeData.parent, pos, uiStore.rootStore.tagStore],
   );
 
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      if (event.ctrlKey) {
+        uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id));
+      } else {
+        uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id));
+      }
+    },
+    [nodeData.id, uiStore],
+  );
+
   return (
     <div
       className="tree-content-label"
@@ -443,6 +456,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
       onDrop={handleDrop}
       onDragEnd={handleDragEnd}
       onContextMenu={handleContextMenu}
+      onClick={handleClick}
     >
       <Label
         text={nodeData.name}
@@ -663,6 +677,20 @@ const Collection = observer((props: ICollectionProps) => {
     [nodeData, uiStore],
   );
 
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      const criterias = nodeData
+        .getTagsRecursively()
+        .map((c: ID) => new ClientIDSearchCriteria('tags', c));
+      if (event.ctrlKey) {
+        uiStore.addSearchCriterias(criterias);
+      } else {
+        uiStore.replaceSearchCriterias(criterias);
+      }
+    },
+    [nodeData, uiStore],
+  );
+
   return (
     <div
       className="tree-content-label"
@@ -673,6 +701,7 @@ const Collection = observer((props: ICollectionProps) => {
       onDragEnd={handleDragEnd}
       onDrop={handleDrop}
       onContextMenu={handleContextMenu}
+      onClick={handleClick}
     >
       <Label
         text={nodeData.name}
