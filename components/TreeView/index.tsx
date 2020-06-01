@@ -59,7 +59,6 @@ const getNextSibling = (element: Element): Element | null => {
 
 type KeyDownEventHandler = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  id: ID,
   nodeData: any,
   treeData: any,
 ) => void;
@@ -83,7 +82,6 @@ const keyFocus = (current: HTMLElement | null, target: Element) => {
 
 export const createLeafOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  id: ID,
   nodeData: any,
   treeData: any,
   toggleSelection: (nodeData: any, treeData: any) => void,
@@ -116,7 +114,7 @@ export const createLeafOnKeyDown = (
       break;
 
     default:
-      onKeyDown?.(event, id, nodeData, treeData);
+      onKeyDown?.(event, nodeData, treeData);
       break;
   }
 };
@@ -148,7 +146,6 @@ const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
 
 export const createBranchOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  id: ID,
   nodeData: any,
   treeData: any,
   isExpanded: (nodeData: any, treeData: any) => boolean,
@@ -198,7 +195,7 @@ export const createBranchOnKeyDown = (
       break;
 
     default:
-      onKeyDown?.(event, id, nodeData, treeData);
+      onKeyDown?.(event, nodeData, treeData);
       break;
   }
 };
@@ -207,7 +204,7 @@ export const createBranchOnKeyDown = (
 
 /** Representation of Node Data */
 interface INodeData {
-  /** A unique key identifier */
+  /** A unique key identifier used as the key value for React components */
   id: ID;
   /** Pointer to addionally related data */
   nodeData: any;
@@ -244,7 +241,6 @@ interface IBranch extends ITreeNode {
 
 const TreeLeaf = observer(
   ({
-    id,
     label: Label,
     isSelected,
     level,
@@ -255,9 +251,8 @@ const TreeLeaf = observer(
     onLeafKeyDown,
     className = '',
   }: ILeaf) => {
-    const handleOnKeyDown = useCallback((e) => onLeafKeyDown(e, id, nodeData, treeData), [
+    const handleOnKeyDown = useCallback((e) => onLeafKeyDown(e, nodeData, treeData), [
       onLeafKeyDown,
-      id,
       nodeData,
       treeData,
     ]);
@@ -292,7 +287,6 @@ const resizeObserver = new ResizeObserver((entries) => {
 
 const TreeBranch = observer(
   ({
-    id,
     branches,
     leaves,
     label: Label,
@@ -340,8 +334,8 @@ const TreeBranch = observer(
     ]);
 
     const handleOnKeyDown = useCallback(
-      (event: React.KeyboardEvent<HTMLLIElement>) => onBranchKeyDown(event, id, nodeData, treeData),
-      [onBranchKeyDown, id, nodeData, treeData],
+      (event: React.KeyboardEvent<HTMLLIElement>) => onBranchKeyDown(event, nodeData, treeData),
+      [onBranchKeyDown, nodeData, treeData],
     );
 
     return (
@@ -407,6 +401,7 @@ const TreeBranch = observer(
 
 // --- Public API ---
 
+// TODO: Add autoFocus property
 export interface ITree {
   /** Element id of the tree view used for the aria-labelledby attribute */
   labelledBy?: string;

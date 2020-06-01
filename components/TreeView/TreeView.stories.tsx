@@ -87,26 +87,15 @@ export const leavesData = [
 
 const handleLeafOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  id: string,
   nodeData: any,
   treeData: any,
-) => createLeafOnKeyDown(event, id, nodeData, treeData, toggleSelection);
+) => createLeafOnKeyDown(event, nodeData, treeData, toggleSelection);
 
 const handleBranchOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  id: string,
   nodeData: any,
   treeData: any,
-) => createBranchOnKeyDown(
-  event,
-  id,
-  nodeData,
-  treeData,
-  isExpanded,
-  toggleSelection,
-  toggleExpansion,
-);
-
+) => createBranchOnKeyDown(event, nodeData, treeData, isExpanded, toggleSelection, toggleExpansion);
 
 export const Default = () => {
   const [expansion, setExpansion] = useState({});

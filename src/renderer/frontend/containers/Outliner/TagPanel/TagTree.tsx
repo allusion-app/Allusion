@@ -724,7 +724,6 @@ const toggleSelection = (nodeData: ClientTag | ClientTagCollection, { uiStore }:
 
 const customKeys = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  _id: ID,
   nodeData: any,
   treeData: ITagTreeData,
 ) => {
@@ -748,13 +747,11 @@ const customKeys = (
 
 const handleBranchOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  id: string,
   nodeData: ClientTagCollection,
   treeData: ITagTreeData,
 ) =>
   createBranchOnKeyDown(
     event,
-    id,
     nodeData,
     treeData,
     isExpanded,
@@ -765,13 +762,12 @@ const handleBranchOnKeyDown = (
 
 const handleLeafOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  id: string,
   nodeData: ClientTag,
   treeData: ITagTreeData,
 ) =>
-  createLeafOnKeyDown(event, id, nodeData, treeData, (nodeData, treeData) => {
+  createLeafOnKeyDown(event, nodeData, treeData, (nodeData, treeData) => {
     const uiStore = (treeData as ITagTreeData).uiStore;
-    return nodeData.isSelected ? uiStore.deselectTag(id) : uiStore.selectTag(nodeData);
+    return nodeData.isSelected ? uiStore.deselectTag(nodeData.id) : uiStore.selectTag(nodeData);
   });
 
 const mapLeaf = (tag: ClientTag): ITreeLeaf => {
