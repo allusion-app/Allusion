@@ -16,12 +16,14 @@ const isSelected = (nodeData: string, treeData: any): boolean => treeData.select
 
 const toggleExpansion = (nodeData: string, treeData: any) => {
   const { expansion, setExpansion } = treeData;
+  console.log(nodeData, treeData);
   setExpansion({ ...expansion, [nodeData]: !expansion[nodeData] });
 };
 
 const toggleSelection = (nodeData: string, treeData: any) => {
   const { selection, setSelection } = treeData;
-  setSelection({ ...selection, [nodeData]: !selection[nodeData] });
+  console.log(nodeData, treeData);
+  setSelection({ ...selection, [nodeData]: !selection[nodeData] ?? false });
 };
 
 export const branchesData = [

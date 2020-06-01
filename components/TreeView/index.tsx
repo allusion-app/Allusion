@@ -86,14 +86,14 @@ export const createLeafOnKeyDown = (
   id: ID,
   nodeData: any,
   treeData: any,
-  toggleSelection: (id: ID, nodeData: any, treeData: any) => void,
+  toggleSelection: (nodeData: any, treeData: any) => void,
   onKeyDown?: KeyDownEventHandler,
 ) => {
   const leaf = event.currentTarget;
   switch (event.key) {
     case ' ':
       event.stopPropagation();
-      toggleSelection(id, nodeData, treeData);
+      toggleSelection(nodeData, treeData);
       break;
 
     case 'ArrowDown':

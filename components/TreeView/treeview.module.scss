@@ -30,13 +30,14 @@
     display: flex;
     align-items: center;
     border-left: 2px solid transparent;
-    padding-left: calc(var(--level) * 1.25rem + 0.5rem);
+    padding-left: calc(var(--level) * 1.25rem + 0.5rem); // TODO: variable indentation and offset?#
     padding-right: 0.25rem;
 
     &:hover {
-      background-color: var(--highlight-background-color, $blue-trans1);
+      background-color: var(--highlight-background-color, $light-gray4);
       border-color: var(--highlight-font-color, black);
-      color: var(--highlight-font-color, $blue1);
+      color: var(--highlight-font-color, black);
+      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
   }
 
@@ -45,18 +46,19 @@
   }
 
   &[aria-selected='true'] > .label {
-    color: var(--selection-font-color, $blue1);
-    background-color: var(--selection-background-color, white);
+    color: var(--selection-font-color, white);
+    background-color: var(--selection-background-color, #007bf53f);
   }
 
   &:focus {
     outline: none;
-
-    &[aria-selected='false'] {
-      background-color: var(--focus-color, $blue-trans1);
+    
+    &[aria-selected='true'] > .label {
+      background-color: var(--selection-background-color, #007bf53f);
     }
-
+    
     > .label {
+      background-color: var(--focus-color, $light-gray4);
       border-color: var(--primary-color, $blue1);
     }
   }

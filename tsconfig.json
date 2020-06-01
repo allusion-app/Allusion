@@ -16,6 +16,6 @@
     "experimentalDecorators": true,
     "strict": true
   },
-  "include": ["components/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts", "stories/**/*.tsx"],
+  "include": ["components/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts"],
   "exclude": ["node_modules", "dist", "resources"]
 }

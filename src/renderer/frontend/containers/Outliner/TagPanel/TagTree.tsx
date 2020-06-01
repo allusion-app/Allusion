@@ -769,9 +769,10 @@ const handleLeafOnKeyDown = (
   nodeData: ClientTag,
   treeData: ITagTreeData,
 ) =>
-  createLeafOnKeyDown(event, id, nodeData, treeData, (_id, nodeData, { uiStore }) =>
-    nodeData.isSelected ? uiStore.deselectTag(id) : uiStore.selectTag(nodeData),
-  );
+  createLeafOnKeyDown(event, id, nodeData, treeData, (nodeData, treeData) => {
+    const uiStore = (treeData as ITagTreeData).uiStore;
+    return nodeData.isSelected ? uiStore.deselectTag(id) : uiStore.selectTag(nodeData);
+  });
 
 const mapLeaf = (tag: ClientTag): ITreeLeaf => {
   return {
