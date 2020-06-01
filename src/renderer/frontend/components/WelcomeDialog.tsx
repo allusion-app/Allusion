@@ -5,7 +5,7 @@ import path from 'path';
 import fse from 'fs-extra';
 
 import IconSet from 'components/Icons';
-import LocationsForm from '../containers/Outliner/LocationsForm';
+import LocationsPanel from '../containers/Outliner/LocationsPanel';
 import { remote } from 'electron';
 import StoreContext from '../contexts/StoreContext';
 import { RendererMessenger } from '../../../Messaging';
@@ -87,7 +87,7 @@ const InitialLocationsStep = () => {
 
       <Divider />
 
-      <LocationsForm />
+      <LocationsPanel />
     </>
   );
 };

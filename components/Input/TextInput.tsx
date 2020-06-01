@@ -3,11 +3,11 @@ import React, { useEffect, useRef } from 'react';
 import {
   // eslint-disable-next-line no-unused-vars
   InputElement,
-  handleOnBlur,
-  handleOnFocus,
-  handleOnInput,
-  handleOnInvalid,
-  handleOnEnter
+  handleBlur,
+  handleFocus,
+  handleInput,
+  handleInvalid,
+  handleEnter
 } from './InputElement';
 
 interface TextInput extends InputElement<string> {
@@ -48,12 +48,12 @@ const TextInput = (props: TextInput) => {
         ref: input,
         type: 'text',
         readOnly,
-        onBlur: p.onBlur ?? handleOnBlur(!readOnly, isValid, setText, onSubmit),
-        onFocus: p.onFocus ?? handleOnFocus(!readOnly),
-        onInput: p.onInput ?? handleOnInput(isValid),
-        onChange: p.onChange ?? handleOnInput(isValid),
-        onInvalid: handleOnInvalid(onInvalid),
-        onKeyUp: p.onKeyUp ?? handleOnEnter(!readOnly, isValid, setText, onSubmit, onAbort)
+        onBlur: p.onBlur ?? handleBlur(!readOnly, isValid, setText, onSubmit),
+        onFocus: p.onFocus ?? handleFocus(!readOnly),
+        onInput: p.onInput ?? handleInput(isValid),
+        onChange: p.onChange ?? handleInput(isValid),
+        onInvalid: handleInvalid(onInvalid),
+        onKeyUp: p.onKeyUp ?? handleEnter(!readOnly, isValid, setText, onSubmit, onAbort)
       })}
     />
   );

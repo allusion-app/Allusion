@@ -228,7 +228,7 @@ export const createBranchOnKeyDown = (
 // --- Low Level Interface --
 
 /** Representation of Node Data */
-interface INodeData {
+export interface INodeData {
   /** A unique key identifier used as the key value for React components */
   id: ID;
   /** Pointer to addionally related data */
@@ -276,7 +276,7 @@ const TreeLeaf = observer(
     onLeafKeyDown,
     className = '',
   }: ILeaf) => {
-    const handleOnKeyDown = useCallback((e) => onLeafKeyDown(e, nodeData, treeData), [
+    const handleKeyDown = useCallback((e) => onLeafKeyDown(e, nodeData, treeData), [
       onLeafKeyDown,
       nodeData,
       treeData,
@@ -289,7 +289,7 @@ const TreeLeaf = observer(
         aria-setsize={size}
         aria-posinset={pos}
         aria-selected={isSelected?.(nodeData, treeData)}
-        onKeyDown={handleOnKeyDown}
+        onKeyDown={handleKeyDown}
         role="treeitem"
         tabIndex={-1}
       >
@@ -358,7 +358,7 @@ const TreeBranch = observer(
       treeData,
     ]);
 
-    const handleOnKeyDown = useCallback(
+    const handleKeyDown = useCallback(
       (event: React.KeyboardEvent<HTMLLIElement>) => onBranchKeyDown(event, nodeData, treeData),
       [onBranchKeyDown, nodeData, treeData],
     );
@@ -373,7 +373,7 @@ const TreeBranch = observer(
         aria-level={level}
         aria-setsize={size}
         aria-posinset={pos}
-        onKeyDown={handleOnKeyDown}
+        onKeyDown={handleKeyDown}
       >
         <div className={style.label}>
           <div
@@ -501,7 +501,7 @@ export interface ITreeBranch extends ITreeLeaf {
   isExpanded: (nodeData: any, treeData: any) => boolean;
 }
 
-const handleOnFocus = (event: React.FocusEvent<HTMLUListElement>) => {
+const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
   if (event.target.getAttribute('role') !== 'treeitem') {
     return;
   }
@@ -544,7 +544,7 @@ const Tree = ({
       aria-labelledby={labelledBy}
       aria-multiselectable={multiSelect}
       onKeyDown={handleTreeKeyDown}
-      onFocus={handleOnFocus}
+      onFocus={handleFocus}
     >
       {branches.map((b, i) => (
         <TreeBranch

@@ -175,15 +175,6 @@ main,
   }
 }
 
-nav .bp3-tree {
-  background-color: $dark-gray2;
-  overflow: auto;
-
-  .bp3-tree-root {
-    overflow: hidden;
-  }
-}
-
 .bp3-light {
   background-color: $light-gray2;
 }
@@ -212,10 +203,6 @@ nav .bp3-tree {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.bp3-tree .bp3-input {
-  height: 1.6rem;
 }
 
 #watched-folders {
@@ -249,7 +236,7 @@ nav .bp3-tree {
   }
 }
 
-.tag-label {
+.tree-content-label {
   display: flex;
   align-items: center;
   width: 100%;
@@ -263,9 +250,18 @@ nav .bp3-tree {
     opacity: 0.25;
   }
 
-  > span {
+  > .pre-icon,
+  > .after-icon {
     flex-shrink: 0;
+  }
+
+  // Not very language direction friendly...
+  > .pre-icon {
     margin-right: 0.25rem;
+  }
+
+  > .after-icon {
+    margin-left: 0.25rem;
   }
 
   > input {

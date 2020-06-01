@@ -204,7 +204,7 @@ const isValid = (text: string) => text.trim().length > 0;
 const Label = (props: ILabelProps) => {
   return (
     <>
-      <span style={{ color: props.color }}>{props.icon}</span>
+      <span className="pre-icon" style={{ color: props.color }}>{props.icon}</span>
       {props.isEditing ? (
         <TextInput
           autoFocus
@@ -316,7 +316,7 @@ export const enum DnDAttribute {
 let DragItem = { id: '', isSelected: false };
 
 /** Clears all set data attributes. */
-const onDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
+const handleDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
   delete event.currentTarget.dataset[DnDAttribute.Source];
   DragItem = { id: '', isSelected: false };
 };
@@ -381,7 +381,7 @@ const handleCollectionDragLeave = (event: React.DragEvent<HTMLDivElement>) =>
   onDragLeave(event, (t) => t === DnDType.Tag || t === DnDType.Collection);
 
 const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps) => {
-  const onSubmit = useCallback(
+  const handleSubmit = useCallback(
     (target: EventTarget & HTMLInputElement) => {
       target.focus();
       dispatch({ type: ActionType.SetEditableNode, payload: undefined });
@@ -389,7 +389,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
     [dispatch],
   );
 
-  const onContextMenu = useCallback(
+  const handleContextMenu = useCallback(
     (e) =>
       ContextMenu.show(
         <TagContextMenu
@@ -416,7 +416,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
     [nodeData.isSelected],
   );
 
-  const onDrop = useCallback(
+  const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
         event.dataTransfer.dropEffect = 'none';
@@ -435,14 +435,14 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
 
   return (
     <div
-      className="tag-label"
+      className="tree-content-label"
       draggable={!isEditing}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragLeave={handleTagDragLeave}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
-      onContextMenu={onContextMenu}
+      onDrop={handleDrop}
+      onDragEnd={handleDragEnd}
+      onContextMenu={handleContextMenu}
     >
       <Label
         text={nodeData.name}
@@ -450,7 +450,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
         color={nodeData.color}
         icon={IconSet.TAG}
         isEditing={isEditing}
-        onSubmit={onSubmit}
+        onSubmit={handleSubmit}
       />
     </div>
   );
@@ -584,7 +584,7 @@ const CollectionContextMenu = (props: ICollectionMenuProps) => {
 
 const Collection = observer((props: ICollectionProps) => {
   const { nodeData, dispatch, expansion, isEditing, pos, uiStore } = props;
-  const onSubmit = useCallback(
+  const handleSubmit = useCallback(
     (target: EventTarget & HTMLInputElement) => {
       target.focus();
       dispatch({ type: ActionType.SetEditableNode, payload: undefined });
@@ -593,7 +593,7 @@ const Collection = observer((props: ICollectionProps) => {
     [dispatch],
   );
 
-  const onContextMenu = useCallback(
+  const handleContextMenu = useCallback(
     (e) =>
       ContextMenu.show(
         <CollectionContextMenu
@@ -636,7 +636,7 @@ const Collection = observer((props: ICollectionProps) => {
     [dispatch, nodeData.id, nodeData.isSelected, uiStore.rootStore.tagCollectionStore],
   );
 
-  const onDrop = useCallback(
+  const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       if (DragItem.isSelected) {
         uiStore.moveSelectedTagItems(nodeData.id);
@@ -665,14 +665,14 @@ const Collection = observer((props: ICollectionProps) => {
 
   return (
     <div
-      className="tag-label"
+      className="tree-content-label"
       draggable={!isEditing}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragLeave={handleCollectionDragLeave}
-      onDragEnd={onDragEnd}
-      onDrop={onDrop}
-      onContextMenu={onContextMenu}
+      onDragEnd={handleDragEnd}
+      onDrop={handleDrop}
+      onContextMenu={handleContextMenu}
     >
       <Label
         text={nodeData.name}
@@ -680,7 +680,7 @@ const Collection = observer((props: ICollectionProps) => {
         color={nodeData.color}
         icon={expansion[nodeData.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP}
         isEditing={isEditing}
-        onSubmit={onSubmit}
+        onSubmit={handleSubmit}
       />
     </div>
   );
@@ -803,7 +803,7 @@ const handleDragOverAndLeave = (event: React.DragEvent<HTMLDivElement>) => {
   }
 };
 
-const TagTree = observer(({ root, uiStore }: ITagTree) => {
+const TagsTree = observer(({ root, uiStore }: ITagTree) => {
   const { tagStore, tagCollectionStore } = uiStore.rootStore;
   const [state, dispatch] = useReducer(reducer, { expansion: {}, editableNode: undefined });
   const treeData = useMemo(() => {
@@ -926,4 +926,4 @@ const TagTree = observer(({ root, uiStore }: ITagTree) => {
   );
 });
 
-export default TagTree;
+export default TagsTree;

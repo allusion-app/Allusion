@@ -4,7 +4,7 @@ import { Hotkey, Hotkeys, Button, Icon, ButtonGroup, HotkeysTarget } from '@blue
 import { observer } from 'mobx-react-lite';
 import IconSet from 'components/Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
-import TagTree from './TagTree';
+import TagsTree from './TagsTree';
 
 export const enum DragAndDropType {
   Collection = 'collection',
@@ -17,12 +17,12 @@ const enum Tooltip {
   Untagged = 'View all untagged images',
 }
 
-const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
+const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
   const { fileStore, tagCollectionStore, uiStore } = rootStore;
 
   return (
     <div tabIndex={0}>
-      <TagTree root={tagCollectionStore.getRootCollection()} uiStore={uiStore} />
+      <TagsTree root={tagCollectionStore.getRootCollection()} uiStore={uiStore} />
 
       <div className="bp3-divider" />
 
@@ -63,7 +63,7 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
 @HotkeysTarget
 class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
-    return <TagPanel rootStore={this.props.rootStore} />;
+    return <TagsPanel rootStore={this.props.rootStore} />;
   }
   selectAllTags = () => {
     this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());

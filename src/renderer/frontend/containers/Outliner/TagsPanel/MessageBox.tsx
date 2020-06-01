@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Tag, Alert, Classes } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import IconSet from 'components/Icons';
-import { DragAndDropType } from '../TagPanel';
+import { DragAndDropType } from '.';
 import { ClientTag } from '../../../../entities/Tag';
 import { ClientTagCollection } from '../../../../entities/TagCollection';
 

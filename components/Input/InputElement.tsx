@@ -9,7 +9,7 @@ export interface InputElement<T>
   onSubmit?: (target: EventTarget & HTMLInputElement) => void;
   onAbort?: (rawValue: string) => void;
 }
-export function handleOnBlur<T>(
+export function handleBlur<T>(
   editable: boolean,
   isValid: (text: string) => boolean,
   setText: (text: T) => void,
@@ -25,20 +25,20 @@ export function handleOnBlur<T>(
     }
   };
 }
-export function handleOnFocus(editable: boolean) {
+export function handleFocus(editable: boolean) {
   return (event: React.FocusEvent<HTMLInputElement>) => {
     if (editable) {
       event.target.select();
     }
   };
 }
-export function handleOnInput(isValid: (text: string) => boolean) {
+export function handleInput(isValid: (text: string) => boolean) {
   return (event: React.FormEvent<HTMLInputElement>) => {
     const element = event.target as HTMLInputElement;
     element.setCustomValidity(isValid(element.value) ? '' : 'INVALID');
   };
 }
-export function handleOnInvalid(
+export function handleInvalid(
   onInvalid: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined
 ) {
   return (event: React.FormEvent<HTMLInputElement>) => {
@@ -48,7 +48,7 @@ export function handleOnInvalid(
     event.preventDefault();
   };
 }
-export function handleOnEnter<T>(
+export function handleEnter<T>(
   editable: boolean,
   isValid: (text: string) => boolean,
   setText: (text: T) => void,

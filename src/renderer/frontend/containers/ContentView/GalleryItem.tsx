@@ -10,7 +10,7 @@ import ImageInfo from '../../components/ImageInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
-import { DnDType, DnDAttribute } from '../Outliner/TagPanel/TagTree';
+import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/TagsTree';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -77,8 +77,6 @@ const GalleryItem = observer(
       [file],
     );
 
-    const className = `thumbnail ${isSelected ? 'selected' : ''}`;
-
     const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
     const handleDoubleClickImg = useCallback((e) => onDoubleClick && onDoubleClick(file, e), [
       file,
@@ -117,7 +115,7 @@ const GalleryItem = observer(
 
     return (
       <div
-        className={className}
+        className={`thumbnail ${isSelected ? 'selected' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
