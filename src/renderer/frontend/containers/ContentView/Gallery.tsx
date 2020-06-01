@@ -333,11 +333,11 @@ const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayou
   // Detect left/right arrow keys to scroll between images
   const handleUserKeyPress = useCallback(
     (event: KeyboardEvent) => {
-      if (event.code === 'ArrowLeft') {
+      if (event.key === 'ArrowLeft') {
         decrImgIndex();
-      } else if (event.code === 'ArrowRight') {
+      } else if (event.key === 'ArrowRight') {
         incrImgIndex();
-      } else if (event.code === 'Escape') {
+      } else if (event.key === 'Escape') {
         uiStore.view.disableSlideMode();
       }
     },

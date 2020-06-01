@@ -121,7 +121,7 @@ export const CustomZoomableImage = ({ src, contentRect }: IZoomableImageProps) =
   }, [setZoomLevel, setBaseOffset, setDeltaOffset, setIsDragging]);
 
   const handleEscape = useCallback((e: React.KeyboardEvent) => {
-    if (e.keyCode === 27) {
+    if (e.key === 'Escape') {
       stopZooming();
     }
   }, [stopZooming]);

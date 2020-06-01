@@ -36,7 +36,7 @@ const App = observer(() => {
 
     // Prevent scrolling with Space, instead used to open preview window
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !(e.target instanceof HTMLInputElement)) {
+      if (e.key === ' ' && !(e.target instanceof HTMLInputElement)) {
         e.preventDefault();
       }
     });

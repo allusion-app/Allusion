@@ -80,6 +80,13 @@ const keyFocus = (current: HTMLElement | null, target: Element) => {
   }
 };
 
+/**
+ * Function factory handling keyDown event on leaves
+ *
+ * The event is ONLY triggered when a tree item is focused. If you need other
+ * behaviour, you should write the key event handler from scratch. This might
+ * seem restrictive but prevents text input accidentially triggering events.
+ */
 export const createLeafOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: any,
@@ -87,6 +94,10 @@ export const createLeafOnKeyDown = (
   toggleSelection: (nodeData: any, treeData: any) => void,
   onKeyDown?: KeyDownEventHandler,
 ) => {
+  // We only want to trigger those events when the tree item is focused!
+  if (event.currentTarget !== event.target) {
+    return;
+  }
   const leaf = event.currentTarget;
   switch (event.key) {
     case ' ':
@@ -120,6 +131,9 @@ export const createLeafOnKeyDown = (
 };
 
 const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
+  if (event.target instanceof Element && event.target.getAttribute('role') !== 'treeitem') {
+    return;
+  }
   switch (event.key) {
     case 'Home': {
       const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');
@@ -144,6 +158,13 @@ const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
   }
 };
 
+/**
+ * Function factory handling keyDown event on branches
+ *
+ * The event is ONLY triggered when a tree item is focused. If you need other
+ * behaviour, you should write the key event handler from scratch. This might
+ * seem restrictive but prevents text input accidentially triggering events.
+ */
 export const createBranchOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: any,
@@ -153,6 +174,10 @@ export const createBranchOnKeyDown = (
   toggleExpansion: (nodeData: any, treeData: any) => void,
   onKeyDown?: KeyDownEventHandler,
 ) => {
+  // We only want to trigger those events when the tree item is focused!
+  if (event.currentTarget !== event.target) {
+    return;
+  }
   const branch = event.currentTarget;
   switch (event.key) {
     case ' ':

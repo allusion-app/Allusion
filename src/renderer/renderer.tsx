@@ -49,7 +49,7 @@ if (isPreviewWindow) {
 
   // Close preview with space
   window.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.code === 'Space' || e.code === 'Escape') {
+    if (e.key === ' ' || e.key === 'Escape') {
       rootStore.uiStore.clearFileSelection();
       rootStore.fileStore.clearFileList();
       rootStore.uiStore.view.enableSlideMode();
