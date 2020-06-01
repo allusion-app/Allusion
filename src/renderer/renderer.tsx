@@ -7,9 +7,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { remote } from 'electron';
 
-import HTML5Backend from 'react-dnd-html5-backend';
-import { DndProvider } from 'react-dnd';
-
 // Import the styles here to let Webpack know to include them
 // in the HTML file
 import './style.scss';
@@ -101,11 +98,9 @@ if (isPreviewWindow) {
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application
 ReactDOM.render(
-  <DndProvider backend={HTML5Backend}>
-    <StoreContext.Provider value={rootStore}>
-      {isPreviewWindow ? <PreviewApp /> : <App />}
-    </StoreContext.Provider>
-  </DndProvider>,
+  <StoreContext.Provider value={rootStore}>
+    {isPreviewWindow ? <PreviewApp /> : <App />}
+  </StoreContext.Provider>,
   document.getElementById('app'),
 );
 

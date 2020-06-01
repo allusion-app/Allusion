@@ -162,23 +162,13 @@
     outline-style: solid;
   }
 
-  // &.droppable {
-  //   background: $yellow1;
-  //   img {
-  //     transform: scale(0.95);
-  //   }
-  // }
-  &.droppable .img-wrapper {
+  &[data-dnd-target='true'] .img-wrapper {
     background: $yellow1;
     border-radius: 0.25rem;
 
     img {
       transform: scale(0.95);
     }
-  }
-
-  &.undroppable {
-    background: $pt-intent-warning;
   }
 
   .thumbnailTags {
@@ -225,7 +215,7 @@
     border-radius: 0.25rem;
   }
 
-  &.droppable .img-wrapper {
+  &[data-dnd-target='true'] .img-wrapper {
     background: $yellow1;
     border-radius: 0.25rem;
 
@@ -311,11 +301,11 @@
     border-radius: 0.25rem;
   }
 
-  &.droppable img {
+  &[data-dnd-target='true'] img {
     transform: scale(0.9);
   }
 
-  &.droppable .thumbnailTags {
+  &[data-dnd-target='true'] .thumbnailTags {
     display: block;
     overflow-y: hidden;
   }
@@ -328,7 +318,7 @@
     overflow-y: auto;
     overflow-x: hidden;
   }
-  &.droppable .thumbnailTags {
+  &[data-dnd-target='true'] .thumbnailTags {
     max-height: var(--thumbnail-size);
     overflow: hidden; // can't scroll while dropping
   }

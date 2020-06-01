@@ -19,18 +19,24 @@
 
 .tree_item {
   padding: 0;
+  background-color: var(--background-color, transparent);
+
+  &[aria-level='1'] {
+    background-color: var(--foreground-color, transparent);
+  }
 
   > .label {
     min-height: 1.5rem;
     display: flex;
     align-items: center;
     border-left: 2px solid transparent;
-    padding-left: calc(var(--level) * 1.25rem + 0.25rem);
+    padding-left: calc(var(--level) * 1.25rem + 0.5rem);
     padding-right: 0.25rem;
 
     &:hover {
-      background-color: var(--focus-color, $blue-trans1);
-      border-color: var(--primary-color, $blue1);
+      background-color: var(--highlight-background-color, $blue-trans1);
+      border-color: var(--highlight-font-color, black);
+      color: var(--highlight-font-color, $blue1);
     }
   }
 
@@ -39,34 +45,29 @@
   }
 
   &[aria-selected='true'] > .label {
-    color: var(--primary-color, $blue1);
-
-    .default_caret {
-      background-color: var(--primary-color, $blue1);
-    }
+    color: var(--selection-font-color, $blue1);
+    background-color: var(--selection-background-color, white);
   }
 
   &:focus {
     outline: none;
 
-    > .label {
+    &[aria-selected='false'] {
       background-color: var(--focus-color, $blue-trans1);
+    }
+
+    > .label {
       border-color: var(--primary-color, $blue1);
     }
   }
 }
 
 .default_caret {
-  width: 1rem;
-  height: 1rem;
-  margin-right: 0.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
   cursor: pointer;
-  background-image: url(~resources/icons/arrow-right.svg);
-  background-repeat: no-repeat;
-  background-color: var(--font-color, black);
-  background-blend-mode: screen;
-  background-position: center;
-  background-size: 0.75rem;
+  background-color: var(--caret-color, black);
   mask-image: url(~resources/icons/arrow-right.svg);
   -webkit-mask-image: url(~resources/icons/arrow-right.svg);
   mask-repeat: no-repeat;

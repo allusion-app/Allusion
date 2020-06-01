@@ -29,10 +29,9 @@
   }
 
   &:checked::before {
-    background-image: url(~resources/icons/checkmark.svg);
     background-color: white;
-    background-blend-mode: screen;
     mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
     mask-image: url(~resources/icons/checkmark.svg);
     -webkit-mask-image: url(~resources/icons/checkmark.svg);
   }
@@ -56,7 +55,6 @@
     width: 0.75rem;
     height: 0.75rem;
     border-radius: 50%;
-    background-image: none;
     mask-image: none;
     -webkit-mask-image: none;
     background-color: var(--stroke-color, $gray3);

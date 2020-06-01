@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { useDrop } from 'react-dnd';
 import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
@@ -9,9 +8,9 @@ import { ClientTag } from '../../../entities/Tag';
 import IconSet from 'components/Icons';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
-import { DragAndDropType } from '../Outliner/TagPanel';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
+import { DnDType, DnDAttribute } from '../Outliner/TagPanel/TagTree';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -45,23 +44,40 @@ interface IGalleryItemProps extends IRootStoreProp {
   showDetails?: boolean;
 }
 
+const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+  if (event.dataTransfer.types.includes(DnDType.Tag)) {
+    event.dataTransfer.dropEffect = 'link';
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.dataset[DnDAttribute.Target] = 'true';
+  }
+};
+
+const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+  if (event.dataTransfer.types.includes(DnDType.Tag)) {
+    event.dataTransfer.dropEffect = 'none';
+    event.preventDefault();
+    event.stopPropagation();
+    delete event.currentTarget.dataset[DnDAttribute.Target];
+  }
+};
+
 const GalleryItem = observer(
-  ({ file, isSelected, onClick, onDoubleClick, onDrop, showDetails }: IGalleryItemProps) => {
+  ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
     const { uiStore } = useContext(StoreContext);
 
-    const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
-      accept: DragAndDropType.Tag,
-      drop: (_, monitor) => onDrop(monitor.getItem(), file),
-      canDrop: () => true,
-      collect: (monitor) => ({
-        isOver: monitor.isOver(),
-        canDrop: monitor.canDrop(),
-      }),
-    });
+    const handleDrop = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        if (event.dataTransfer.types.includes(DnDType.Tag)) {
+          event.dataTransfer.dropEffect = 'none';
+          file.addTag(event.dataTransfer.getData(DnDType.Tag));
+          delete event.currentTarget.dataset[DnDAttribute.Target];
+        }
+      },
+      [file],
+    );
 
-    const selectedStyle = isSelected ? 'selected' : '';
-    const dropStyle = canDrop ? ' droppable' : ' undroppable';
-    const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
+    const className = `thumbnail ${isSelected ? 'selected' : ''}`;
 
     const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
     const handleDoubleClickImg = useCallback((e) => onDoubleClick && onDoubleClick(file, e), [
@@ -100,18 +116,24 @@ const GalleryItem = observer(
     // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
     return (
-      <div ref={galleryItemDrop} className={className}>
+      <div
+        className={className}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
-          {isImageLoaded ? (
-            <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
-          ) : imageError ? (
-            <span className="image-error">
-              <span className="bp3-icon custom-icon custom-icon-32">{IconSet.DB_ERROR}</span> <br />{' '}
-              Could not load image
-            </span> // Show an error it it could not be loaded
-          ) : (
-            <div className={Classes.SKELETON} />
-          ) // Else show a placeholder
+          {
+            isImageLoaded ? (
+              <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
+            ) : imageError ? (
+              <span className="image-error">
+                <span className="bp3-icon custom-icon custom-icon-32">{IconSet.DB_ERROR}</span>{' '}
+                <br /> Could not load image
+              </span> // Show an error it it could not be loaded
+            ) : (
+              <div className={Classes.SKELETON} />
+            ) // Else show a placeholder
           }
         </div>
         {showDetails && (

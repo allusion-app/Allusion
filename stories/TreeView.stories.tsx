@@ -10,18 +10,18 @@ export default {
   excludeStories: /.*Data$/,
 };
 
-const isExpanded = (id: string, _nodeData: any, treeData: any): boolean => treeData.expansion[id];
+const isExpanded = (nodeData: string, treeData: any): boolean => treeData.expansion[nodeData];
 
-const isSelected = (id: string, _nodeData: any, treeData: any): boolean => treeData.selection[id];
+const isSelected = (nodeData: string, treeData: any): boolean => treeData.selection[nodeData];
 
-const toggleExpansion = (id: string, _nodeData: any, treeData: any) => {
+const toggleExpansion = (nodeData: string, treeData: any) => {
   const { expansion, setExpansion } = treeData;
-  setExpansion({ ...expansion, [id]: !expansion[id] });
+  setExpansion({ ...expansion, [nodeData]: !expansion[nodeData] });
 };
 
-const toggleSelection = (id: string, _nodeData: any, treeData: any) => {
+const toggleSelection = (nodeData: string, treeData: any) => {
   const { selection, setSelection } = treeData;
-  setSelection({ ...selection, [id]: !selection[id] });
+  setSelection({ ...selection, [nodeData]: !selection[nodeData] });
 };
 
 export const branchesData = [
@@ -30,21 +30,21 @@ export const branchesData = [
     label: 'First',
     isSelected,
     isExpanded,
-    nodeData: null,
+    nodeData: '1',
     branches: [
       {
         id: '1.1',
         label: 'First First',
         isSelected,
         isExpanded,
-        nodeData: null,
+        nodeData: '1.1',
         branches: [
           {
             id: '1.1.1',
             label: 'First First First',
             isSelected,
             isExpanded,
-            nodeData: null,
+            nodeData: '1.1.1',
             branches: [],
             leaves: [],
           },
@@ -54,15 +54,15 @@ export const branchesData = [
             id: '1.1.2',
             label: 'First First Second',
             isSelected,
-            nodeData: null,
+            nodeData: '1.1.2',
           },
         ],
       },
     ],
     leaves: [
-      { id: '1.2', label: 'First Second', isSelected, nodeData: null },
-      { id: '1.3', label: 'First Third', isSelected, nodeData: null },
-      { id: '1.4', label: 'First Fourth', isSelected, nodeData: null },
+      { id: '1.2', label: 'First Second', isSelected, nodeData: '1.2' },
+      { id: '1.3', label: 'First Third', isSelected, nodeData: '1.3' },
+      { id: '1.4', label: 'First Fourth', isSelected, nodeData: '1.4' },
     ],
   },
   {
@@ -70,17 +70,17 @@ export const branchesData = [
     label: 'Second',
     isSelected,
     isExpanded,
-    nodeData: null,
+    nodeData: '2',
     branches: [],
-    leaves: [{ id: '2.1', label: 'Second First', isSelected, nodeData: null }],
+    leaves: [{ id: '2.1', label: 'Second First', isSelected, nodeData: '2.1' }],
   },
 ];
 
 export const leavesData = [
-  { id: '3', label: 'Third', isSelected, nodeData: null },
-  { id: '4', label: 'Fourth', isSelected, nodeData: null },
-  { id: '5', label: 'Fifth', isSelected, nodeData: null },
-  { id: '6', label: 'Sixth', isSelected, nodeData: null },
+  { id: '3', label: 'Third', isSelected, nodeData: '3' },
+  { id: '4', label: 'Fourth', isSelected, nodeData: '4' },
+  { id: '5', label: 'Fifth', isSelected, nodeData: '5' },
+  { id: '6', label: 'Sixth', isSelected, nodeData: '6' },
 ];
 
 const handleLeafOnKeyDown = (

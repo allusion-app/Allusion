@@ -5,18 +5,16 @@ import StoreContext from '../../contexts/StoreContext';
 
 import TagPanel from './TagPanel';
 import LocationsForm from './LocationsForm';
-import TagTree from './TagTree';
 
 const Outliner = () => {
   const rootStore = useContext(StoreContext);
-  const { uiStore, tagCollectionStore } = rootStore;
+  const { uiStore } = rootStore;
 
   // Todo: Use https://blueprintjs.com/docs/#core/components/tabs
   return (
     <nav id="outliner" className={`${uiStore.isOutlinerOpen ? 'outlinerOpen' : ''}`}>
       <LocationsForm />
       <TagPanel />
-      <TagTree root={tagCollectionStore.getRootCollection()} uiStore={uiStore} />
     </nav>
   );
 };

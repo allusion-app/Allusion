@@ -151,16 +151,16 @@ export const createBranchOnKeyDown = (
   id: ID,
   nodeData: any,
   treeData: any,
-  isExpanded: (id: ID, nodeData: any, treeData: any) => boolean,
-  toggleSelection: (id: ID, nodeData: any, treeData: any) => void,
-  toggleExpansion: (id: ID, nodeData: any, treeData: any) => void,
+  isExpanded: (nodeData: any, treeData: any) => boolean,
+  toggleSelection: (nodeData: any, treeData: any) => void,
+  toggleExpansion: (nodeData: any, treeData: any) => void,
   onKeyDown?: KeyDownEventHandler,
 ) => {
   const branch = event.currentTarget;
   switch (event.key) {
     case ' ':
       event.stopPropagation();
-      toggleSelection(id, nodeData, treeData);
+      toggleSelection(nodeData, treeData);
       break;
 
     case 'ArrowDown': {
@@ -181,17 +181,17 @@ export const createBranchOnKeyDown = (
 
     case 'ArrowRight':
       event.stopPropagation();
-      if (isExpanded(id, nodeData, treeData)) {
+      if (isExpanded(nodeData, treeData)) {
         keyFocus(getFirstChild(branch) as HTMLElement, branch);
       } else {
-        toggleExpansion(id, nodeData, treeData);
+        toggleExpansion(nodeData, treeData);
       }
       break;
 
     case 'ArrowLeft':
       event.stopPropagation();
-      if (isExpanded(id, nodeData, treeData)) {
-        toggleExpansion(id, nodeData, treeData);
+      if (isExpanded(nodeData, treeData)) {
+        toggleExpansion(nodeData, treeData);
       } else {
         keyFocus(getParent(branch), branch);
       }
@@ -218,7 +218,7 @@ interface INodeData {
    * tree has only single selection, undefined should be returned for
    * unselected nodes.
    * */
-  isSelected?: (id: ID, nodeData: any, treeData: any) => boolean;
+  isSelected?: (nodeData: any, treeData: any) => boolean;
 }
 
 /** Internal Node Representation */
@@ -235,8 +235,8 @@ interface ITreeNode extends INodeData {
 type ILeaf = ITreeNode;
 
 interface IBranch extends ITreeNode {
-  isExpanded: (id: ID, nodeData: any, treeData: any) => boolean;
-  toggleExpansion: (id: ID, nodeData: any, treeData: any) => void;
+  isExpanded: (nodeData: any, treeData: any) => boolean;
+  toggleExpansion: (nodeData: any, treeData: any) => void;
   branches: ITreeBranch[];
   leaves: ITreeLeaf[];
   onBranchKeyDown: KeyDownEventHandler;
@@ -268,7 +268,7 @@ const TreeLeaf = observer(
         aria-level={level}
         aria-setsize={size}
         aria-posinset={pos}
-        aria-selected={isSelected?.(id, nodeData, treeData)}
+        aria-selected={isSelected?.(nodeData, treeData)}
         onKeyDown={handleOnKeyDown}
         role="treeitem"
         tabIndex={-1}
@@ -309,8 +309,7 @@ const TreeBranch = observer(
     className = '',
   }: IBranch) => {
     const group = useRef<HTMLUListElement | null>(null);
-    const expanded = useMemo(() => isExpanded(id, nodeData, treeData) ?? false, [
-      id,
+    const expanded = useMemo(() => isExpanded(nodeData, treeData) ?? false, [
       isExpanded,
       nodeData,
       treeData,
@@ -334,9 +333,8 @@ const TreeBranch = observer(
       };
     }, [expanded]);
 
-    const handleToggle = useCallback(() => toggleExpansion(id, nodeData, treeData), [
+    const handleToggle = useCallback(() => toggleExpansion(nodeData, treeData), [
       toggleExpansion,
-      id,
       nodeData,
       treeData,
     ]);
@@ -352,7 +350,7 @@ const TreeBranch = observer(
         role="treeitem"
         tabIndex={-1}
         aria-expanded={expanded}
-        aria-selected={isSelected?.(id, nodeData, treeData)}
+        aria-selected={isSelected?.(nodeData, treeData)}
         aria-level={level}
         aria-setsize={size}
         aria-posinset={pos}
@@ -421,7 +419,7 @@ export interface ITree {
   /** Non-expandable nodes */
   leaves: ITreeLeaf[];
   /** Toggles the expansion of a parent node */
-  toggleExpansion: (id: ID, nodeData: any, treeData: any) => void;
+  toggleExpansion: (nodeData: any, treeData: any) => void;
   /**
    * `onKeyDown` Event Handler for branch nodes (see `createBranchOnKeyDown`)
    * */
@@ -480,7 +478,7 @@ export interface ITreeBranch extends ITreeLeaf {
   /** Non-expandable child nodes */
   leaves: ITreeLeaf[];
   /** Checks whether a parent node is open or closed */
-  isExpanded: (id: ID, nodeData: any, treeData: any) => boolean;
+  isExpanded: (nodeData: any, treeData: any) => boolean;
 }
 
 const handleOnFocus = (event: React.FocusEvent<HTMLUListElement>) => {

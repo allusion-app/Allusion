@@ -4,8 +4,6 @@ import { Hotkey, Hotkeys, Button, Icon, ButtonGroup, HotkeysTarget } from '@blue
 import { observer } from 'mobx-react-lite';
 import IconSet from 'components/Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
-
-import { DragLayer } from './DragLayer';
 import TagTree from './TagTree';
 
 export const enum DragAndDropType {
@@ -20,11 +18,11 @@ const enum Tooltip {
 }
 
 const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
-  const { fileStore } = rootStore;
+  const { fileStore, tagCollectionStore, uiStore } = rootStore;
 
   return (
     <div tabIndex={0}>
-      <TagTree rootStore={rootStore} />
+      <TagTree root={tagCollectionStore.getRootCollection()} uiStore={uiStore} />
 
       <div className="bp3-divider" />
 
@@ -100,7 +98,5 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
     );
   }
 }
-
-export { DragLayer };
 
 export default withRootstore(TagPanelWithHotkeys);

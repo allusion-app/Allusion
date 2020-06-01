@@ -1,6 +1,6 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import { generateId, ID, IResource, ISerializable } from './ID';
-import { ClientTag, ITag } from './Tag';
+import { ClientTag } from './Tag';
 import TagCollectionStore from '../frontend/stores/TagCollectionStore';
 
 export const ROOT_TAG_COLLECTION_ID = 'hierarchy';
@@ -177,9 +177,9 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
   /**
    * Recursively checks all subcollections whether it contains a specified collection
    */
-  containsSubCollection(queryCol: ITagCollection): boolean {
+  containsSubCollection(queryCol: ID): boolean {
     return (
-      this.subCollections.some((subCol) => subCol.includes(queryCol.id)) ||
+      this.subCollections.some((subCol) => subCol.includes(queryCol)) ||
       this.clientSubCollections.some((subCol) => subCol.containsSubCollection(queryCol))
     );
   }
@@ -187,9 +187,9 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
   /**
    * Recursively checks all subcollections whether it contains a specified collection
    */
-  containsTag(queryTag: ITag): boolean {
+  containsTag(queryTag: ID): boolean {
     return (
-      this.tags.includes(queryTag.id) ||
+      this.tags.includes(queryTag) ||
       this.clientSubCollections.some((subCol) => subCol.containsTag(queryTag))
     );
   }

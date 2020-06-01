@@ -77,8 +77,6 @@
     "mobx-react-lite": "^2.0.6",
     "react": "^16.13.1",
     "react-color": "^2.18.0",
-    "react-dnd": "^10.0.2",
-    "react-dnd-html5-backend": "^10.0.2",
     "react-dom": "^16.13.1",
     "react-responsive-pinch-zoom-pan": "^0.2.2",
     "react-transition-group": "^4.3.0",

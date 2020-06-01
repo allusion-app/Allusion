@@ -13,7 +13,6 @@ import Settings from './components/Settings';
 import DropOverlay from './components/DropOverlay';
 import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
 import { useWorkerListener } from './ThumbnailGeneration';
-import { DragLayer } from './containers/Outliner/TagPanel';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
 
@@ -52,7 +51,7 @@ const App = observer(() => {
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div id="layoutContainer" className={`${themeClass}`}>
+      <div id="layoutContainer" className={`app-theme ${themeClass}`}>
         <ErrorBoundary>
           <GlobalHotkeys>
             <Toolbar />
@@ -69,8 +68,6 @@ const App = observer(() => {
 
             <WelcomeDialog />
 
-            {/* Overlay for showing custom drag previews */}
-            <DragLayer />
           </GlobalHotkeys>
         </ErrorBoundary>
       </div>
