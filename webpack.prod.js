@@ -66,6 +66,7 @@ let rendererConfig = {
     alias: {
       components: path.resolve(__dirname, 'components/'),
       resources: path.resolve(__dirname, 'resources/'),
+      src: path.resolve(__dirname, 'src/'),
     },
   },
   module: {
@@ -97,10 +98,6 @@ let rendererConfig = {
           { loader: 'css-loader', options: { sourceMap: true, modules: true } },
           'sass-loader?sourceMap',
         ],
-      },
-      {
-        test: /\.(scss|css)$/,
-        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
       },
       {
         test: /\.(jpg|png|ico|icns)$/,

@@ -69,6 +69,7 @@ let rendererConfig = {
     alias: {
       components: path.resolve(__dirname, 'components/'),
       resources: path.resolve(__dirname, 'resources/'),
+      src: path.resolve(__dirname, 'src/'),
     },
   },
   module: {

@@ -3,7 +3,8 @@
     "baseUrl": "./",
     "paths": {
       "components/*": ["components/*"],
-      "resources/*": ["resources/*"]
+      "resources/*": ["resources/*"],
+      "src/*": ["src/*"]
     },
     "allowSyntheticDefaultImports": true,
     "jsx": "react",

@@ -10,7 +10,7 @@ import ImageInfo from '../../components/ImageInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
-import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/TagsTree';
+import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);

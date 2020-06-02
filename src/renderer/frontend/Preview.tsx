@@ -1,10 +1,11 @@
 import React, { useContext, useEffect, useCallback } from 'react';
-import { Button, Switch } from '@blueprintjs/core';
+import { Button } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ContentView from './containers/ContentView';
+import { Toggle } from 'components';
 import IconSet from 'components/Icons';
 import { useWorkerListener } from './ThumbnailGeneration';
 
@@ -47,11 +48,10 @@ const PreviewApp = observer(() => {
               minimal
               disabled={uiStore.view.firstItem === fileStore.fileList.length - 1}
             />
-            <Switch
+            <Toggle
               label="Overview"
               onChange={uiStore.view.toggleSlideMode}
               checked={!uiStore.view.isSlideMode}
-              style={{ margin: 'auto', marginLeft: '1em', display: 'inline' }}
             />
           </section>
         </div>
