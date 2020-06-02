@@ -95,11 +95,15 @@ const InitialLocationsStep = () => {
 const NUM_STEPS = 3;
 
 const WelcomeDialog = () => {
-  const { uiStore, locationStore } = useContext(StoreContext);
+  const { uiStore, locationStore, fileStore } = useContext(StoreContext);
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   const [showDialog, setShowDialog] = useState(false);
-  const handleClose = useCallback(() => setShowDialog(false), []);
+  const handleClose = useCallback(async () => {
+    await locationStore.init(true);
+    fileStore.refetch();
+    setShowDialog(false);
+  }, [locationStore, fileStore]);
 
   // Only check on mount whether to show the dialog, when no default directory exists
   useEffect(() => {
@@ -126,7 +130,7 @@ const WelcomeDialog = () => {
     } else if (step === 1) {
       setStep(step + 1);
     } else if (step === 2) {
-      setShowDialog(false);
+      handleClose();
       // TODO: Start tour here
     }
   }, [importLocation, locationStore, step]);

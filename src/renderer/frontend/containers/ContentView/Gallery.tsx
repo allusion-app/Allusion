@@ -19,6 +19,7 @@ import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
+import useDebounce from '../../hooks/useDebounce';
 
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
 const CELL_SIZE_SMALL = 160 - 2;
@@ -40,7 +41,6 @@ interface IGalleryLayoutProps {
   uiStore: UiStore;
   handleClick: (file: ClientFile, e: React.MouseEvent) => void;
   handleDoubleClick: (file: ClientFile, e: React.MouseEvent) => void;
-  handleDrop: (item: any, file: ClientFile) => void;
   handleFileSelect: (
     selectedFile: ClientFile,
     selectAdditive: boolean,
@@ -82,12 +82,13 @@ const GridGallery = observer(
     uiStore,
     handleClick,
     handleDoubleClick,
-    handleDrop,
     handleFileSelect,
     lastSelectionIndex,
   }: IGalleryLayoutProps) => {
     const cellSize = getThumbnailSize(uiStore.view.thumbnailSize);
-    const numColumns = Math.floor(contentRect.width / cellSize);
+
+    // Debounce the numColums so it doesn't constantly update when the panel width changes (sidebar toggling or window resize)
+    const numColumns = useDebounce(Math.floor(contentRect.width / cellSize), 100);
     const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
     const ref = useRef<FixedSizeGrid>(null);
@@ -172,12 +173,11 @@ const GridGallery = observer(
                 isSelected={uiStore.fileSelection.includes(file.id)}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
-                onDrop={handleDrop}
               />
             </div>
           );
         }),
-      [handleClick, handleDoubleClick, handleDrop, numColumns, uiStore.fileSelection],
+      [handleClick, handleDoubleClick, numColumns, uiStore.fileSelection],
     );
     return (
       <FixedSizeGrid
@@ -206,7 +206,6 @@ const ListGallery = observer(
     uiStore,
     handleClick,
     handleDoubleClick,
-    handleDrop,
     lastSelectionIndex,
   }: IGalleryLayoutProps) => {
     const cellSize = getThumbnailSize(uiStore.view.thumbnailSize);
@@ -254,13 +253,12 @@ const ListGallery = observer(
                 isSelected={uiStore.fileSelection.includes(file.id)}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
-                onDrop={handleDrop}
                 showDetails
               />
             </div>
           );
         }),
-      [handleClick, handleDoubleClick, handleDrop, uiStore.fileSelection],
+      [handleClick, handleDoubleClick, uiStore.fileSelection],
     );
 
     return (
@@ -419,19 +417,6 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
 
   const handleBackgroundClick = useCallback(() => uiStore.clearFileSelection(), [uiStore]);
 
-  const handleDrop = useCallback(
-    (item: any, file: ClientFile) => {
-      // Add all tags in the context to the targeted file
-      const ctx = uiStore.getTagContextItems(item.id);
-      const allContextTags = [
-        ...ctx.tags.map((t) => t.id),
-        ...ctx.collections.flatMap((col) => col.getTagsRecursively()),
-      ];
-      allContextTags.forEach(file.addTag);
-    },
-    [uiStore],
-  );
-
   // useComputed to listen to fileSelection changes
   const handleFileSelect = useCallback(
     (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => {
@@ -564,7 +549,6 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
           uiStore,
           handleClick: handleItemClick,
           handleDoubleClick,
-          handleDrop,
           handleFileSelect,
           lastSelectionIndex,
         })}

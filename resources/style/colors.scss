@@ -1,12 +1,20 @@
 // Adjustment Colors
-$black: #050505 !default;
+$black: #050505;
 
-$dark-gray1: #181818;
-$dark-gray2: #222222;
-$dark-gray3: #282828;
+$dark-gray0: #14181a;
+$dark-gray1: #1f2224;
+$dark-gray2: #2a2d30;
+$dark-gray3: #232729;
 $dark-gray4: #495057;
 $dark-gray5: #3e3e3e;
-$dark-gray6: #182026;
+$dark-gray6: #7d8991;
+
+$dark-wgray1: #181818;
+$dark-wgray2: #252525;
+$dark-wgray3: #282828;
+$dark-wgray4: #495057;
+$dark-wgray5: #3e3e3e;
+$dark-wgray6: #182026;
 
 $gray1: #5c7080;
 $gray2: #738694;
@@ -14,12 +22,20 @@ $gray3: #8a9ba8;
 $gray4: #a7b6c2;
 $gray5: #bfccd6;
 
-$light-gray1: #919191; //#919191
-$light-gray2: #adadad;
+$light-gray1: #95999d; //8c9195; //#8f9ca6;
+$light-gray2: #7d8991;
 $light-gray3: #d1d1d1; //#e1e8ed
 $light-gray4: #ebf1f5;
 $light-gray5: #f7f9fa; //#f5f8fa !default;
 $light-gray6: #f5f8fa;
+
+$light-wgray1: #919191;
+$light-wgray2: #adadad;
+$light-wgray3: #d1d1d1; //#e1e8ed
+$light-wgray4: #ebf1f5;
+$light-wgray5: #f7f9fa; //#f5f8fa !default;
+$light-wgray6: #f5f8fa;
+
 $white: #ffffff !default;
 
 $light-gray0-trans: #505050e1 !default;

@@ -12,11 +12,14 @@ import {
   createLeafOnKeyDown,
 } from 'components/TreeView';
 import { TagRemoval } from './MessageBox';
-import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
+import {
+  ClientIDSearchCriteria,
+  ClientCollectionSearchCriteria,
+} from 'src/renderer/entities/SearchCriteria';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import { ID } from 'src/renderer/entities/ID';
-import UiStore from 'src/renderer/frontend/UiStore';
+import UiStore, { FileSearchCriteria } from 'src/renderer/frontend/UiStore';
 import { TagContextMenu, CollectionContextMenu } from './ContextMenu';
 import {
   DnDType,
@@ -122,7 +125,7 @@ const Label = (props: ILabelProps) => {
           onSubmit={props.onSubmit}
         />
       ) : (
-        props.text
+        <div>{props.text}</div>
       )}
     </>
   );
@@ -136,7 +139,53 @@ interface ITagProps {
   pos: number;
 }
 
+/**
+ * Toggles Query
+ *
+ * All it does is remove the query if it already searched, otherwise adds a
+ * query. Handling filter mode or replacing the search criteria list is up to
+ * the component.
+ */
+const toggleQuery = (
+  nodeData: ClientTagCollection | ClientTag,
+  isSearched: boolean,
+  uiStore: UiStore,
+) => {
+  if (isSearched) {
+    // if it already exists, then remove it
+    let alreadySearchedCrit: FileSearchCriteria | undefined;
+    if (nodeData instanceof ClientTagCollection) {
+      alreadySearchedCrit = uiStore.searchCriteriaList.find(
+        (c) => (c as ClientCollectionSearchCriteria)?.collectionId === nodeData.id,
+      );
+    } else {
+      alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
+        (c as ClientIDSearchCriteria<any>)?.value?.includes(nodeData.id),
+      );
+    }
+    if (alreadySearchedCrit) {
+      uiStore.replaceSearchCriterias(
+        uiStore.searchCriteriaList.filter((c) => c !== alreadySearchedCrit),
+      );
+    }
+  } else {
+    if (nodeData instanceof ClientTagCollection) {
+      uiStore.addSearchCriteria(
+        new ClientCollectionSearchCriteria(
+          nodeData.id,
+          nodeData.getTagsRecursively(),
+          nodeData.name,
+        ),
+      );
+    } else {
+      uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id));
+    }
+  }
+};
+
 const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps) => {
+  const [isSearched, setIsSearched] = useState(false);
+
   const handleSubmit = useCallback(
     (target: EventTarget & HTMLInputElement) => {
       target.focus();
@@ -192,13 +241,18 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       if (event.ctrlKey) {
-        uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id));
+        nodeData.isSelected ? uiStore.deselectTag(nodeData.id) : uiStore.selectTag(nodeData);
       } else {
-        uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id));
+        uiStore.selectTag(nodeData, true);
       }
     },
-    [nodeData.id, uiStore],
+    [nodeData, uiStore],
   );
+
+  const handleQuickQuery = useCallback(() => {
+    toggleQuery(nodeData, isSearched, uiStore);
+    setIsSearched(!isSearched);
+  }, [isSearched, nodeData, uiStore]);
 
   return (
     <div
@@ -220,6 +274,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
         isEditing={isEditing}
         onSubmit={handleSubmit}
       />
+      <span onClick={handleQuickQuery} className={`after-icon ${isSearched && 'searched'}`}></span>
     </div>
   );
 });
@@ -247,6 +302,8 @@ interface ICollectionProps extends Omit<ITagProps, 'nodeData'> {
 
 const Collection = observer((props: ICollectionProps) => {
   const { nodeData, dispatch, expansion, isEditing, pos, uiStore } = props;
+  const [isSearched, setIsSearched] = useState(false);
+
   const handleSubmit = useCallback(
     (target: EventTarget & HTMLInputElement) => {
       target.focus();
@@ -328,17 +385,20 @@ const Collection = observer((props: ICollectionProps) => {
 
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-      const criterias = nodeData
-        .getTagsRecursively()
-        .map((c: ID) => new ClientIDSearchCriteria('tags', c));
+      const tags = nodeData.getTagsRecursively();
       if (event.ctrlKey) {
-        uiStore.addSearchCriterias(criterias);
+        nodeData.isSelected ? uiStore.deselectTags(tags) : uiStore.selectTags(tags);
       } else {
-        uiStore.replaceSearchCriterias(criterias);
+        uiStore.selectTags(tags, true);
       }
     },
     [nodeData, uiStore],
   );
+
+  const handleQuickQuery = useCallback(() => {
+    toggleQuery(nodeData, isSearched, uiStore);
+    setIsSearched(!isSearched);
+  }, [isSearched, nodeData, uiStore]);
 
   return (
     <div
@@ -360,6 +420,7 @@ const Collection = observer((props: ICollectionProps) => {
         isEditing={isEditing}
         onSubmit={handleSubmit}
       />
+      <span onClick={handleQuickQuery} className={`after-icon ${isSearched && 'searched'}`}></span>
     </div>
   );
 });
@@ -468,12 +529,12 @@ const mapCollection = (collection: ClientTagCollection): ITreeBranch => {
   };
 };
 
-interface ITagTree {
+interface ITagsTreeProps {
   root: ClientTagCollection;
   uiStore: UiStore;
 }
 
-const TagsTree = observer(({ root, uiStore }: ITagTree) => {
+const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
   const { tagStore, tagCollectionStore } = uiStore.rootStore;
   const [state, dispatch] = useReducer(reducer, { expansion: {}, editableNode: undefined });
   const treeData = useMemo(() => {

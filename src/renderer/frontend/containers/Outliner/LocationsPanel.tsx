@@ -6,7 +6,6 @@ import {
   Button,
   H4,
   Collapse,
-  Icon,
   Menu,
   MenuItem,
   Classes,
@@ -60,13 +59,10 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
         <Observer>
           {() => (
             <>
-              <span>
-                Path: <pre>{dir.path}</pre>
-              </span>
-              {/* <Checkbox label="Recursive" checked /> */}
-              {/* <Checkbox label="Add folder name as tag" /> */}
+              <p>Path:</p>
+              <pre>{dir.path}</pre>
               <Label>
-                Tags to add
+                <p>Tags to add</p>
                 <MultiTagSelector
                   selectedItems={dir.clientTagsToAdd}
                   onTagSelect={dir.addTag}
@@ -290,13 +286,9 @@ const Location = observer(
     return (
       <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
         <span className="pre-icon">
-          {nodeData.id === DEFAULT_LOCATION_ID
-            ? IconSet.FOLDER_CLOSE_IMPORT
-            : treeData.expansion[nodeData.id]
-            ? IconSet.FOLDER_OPEN
-            : IconSet.FOLDER_CLOSE}
+          {nodeData.id === DEFAULT_LOCATION_ID ? IconSet.IMPORT : IconSet.LOCATIONS}
         </span>
-        {Path.basename(nodeData.path)}
+        {nodeData.name}
         {nodeData.isBroken && <span className="after-icon">{IconSet.WARNING}</span>}
       </div>
     );
@@ -408,7 +400,10 @@ const LocationsPanel = () => {
     }
   }, [locationConfigOpen, locationStore]);
 
-  const handleRefresh = useCallback(() => setLocationTreeKey(new Date()), []);
+  const handleRefresh = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setLocationTreeKey(new Date());
+  }, []);
 
   const handleChooseWatchedDir = useCallback(
     async (e: React.MouseEvent) => {
@@ -449,16 +444,24 @@ const LocationsPanel = () => {
       setLocationConfigOpen(newLoc);
       handleRefresh();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [handleRefresh, locationStore],
   );
 
   const toggleLocations = useCallback(() => setCollapsed(!isCollapsed), [isCollapsed]);
 
+  // Refresh when adding/removing location
+  useEffect(() => {
+    handleRefresh();
+  }, [handleRefresh, locationStore.locationList.length]);
+
   return (
     <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
         <H4 className="bp3-heading">
-          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
+          <span className="bp3-icon custom-icon custom-icon-14">
+            {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}
+          </span>
           Locations
         </H4>
         <Button

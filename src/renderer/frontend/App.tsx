@@ -48,28 +48,31 @@ const App = observer(() => {
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
+  const sidebarClass = uiStore.isToolbarVertical ? 'vertical-toolbar' : '';
+
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div id="layoutContainer" className={`app-theme ${themeClass}`}>
-        <ErrorBoundary>
-          <GlobalHotkeys>
-            <Toolbar />
+      <div className={sidebarClass}>
+        <div id="layoutContainer" className={`app-theme ${themeClass}`}>
+          <ErrorBoundary>
+            <GlobalHotkeys>
+              <Toolbar />
 
-            <Outliner />
+              <Outliner />
 
-            <ContentView />
+              <ContentView />
 
-            <Inspector />
+              <Inspector />
 
-            <Settings />
+              <Settings />
 
-            <AdvancedSearchDialog />
+              <AdvancedSearchDialog />
 
-            <WelcomeDialog />
-
-          </GlobalHotkeys>
-        </ErrorBoundary>
+              <WelcomeDialog />
+            </GlobalHotkeys>
+          </ErrorBoundary>
+        </div>
       </div>
     </DropOverlay>
   );

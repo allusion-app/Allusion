@@ -80,7 +80,7 @@ function createWindow() {
     height,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
-    backgroundColor: '#181818',
+    backgroundColor: '#14181a',
     title: 'Allusion - Your Visual Library',
   });
 
@@ -229,7 +229,7 @@ function createPreviewWindow() {
     width: (display.size.width * 3) / 4,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
-    backgroundColor: '#181818',
+    backgroundColor: '#14181a',
     title: 'Allusion Quick View',
     show: false, // invis by default
   });

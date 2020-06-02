@@ -3,6 +3,7 @@ import { Rectangle } from 'electron';
 
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import { observer } from 'mobx-react-lite';
+import IconSet from 'components/Icons';
 import { Icon } from '@blueprintjs/core';
 
 interface IZoomableImageProps {
@@ -33,12 +34,12 @@ const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImag
         {/* Overlay buttons/icons */}
         {prevImage && (
           <div className="sideButton" onClick={prevImage}>
-            <Icon icon="chevron-left" iconSize={48} />
+            <Icon icon={IconSet.ARROW_LEFT} iconSize={48} />
           </div>
         )}
         {nextImage && (
           <div className="sideButton" onClick={nextImage} style={{ right: 0 }}>
-            <Icon icon="chevron-right" iconSize={48} />
+            <Icon icon={IconSet.ARROW_RIGHT} iconSize={48} />
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 nav {
   grid-area: outliner;
-  overflow-y: initial;
+  overflow-y: scroll;
   overflow-x: hidden;
   flex-shrink: 0;
   width: 0;
@@ -15,9 +15,8 @@ nav {
   &.outlinerOpen {
     min-width: var(--outliner-width);
     width: 16rem;
-    overflow-x: visible !important;
+    // overflow-x: visible !important;
     z-index: 1;
-    margin-right: 8px;
 
     button.bp3-button.bp3-minimal {
       opacity: 0;
@@ -35,7 +34,7 @@ nav {
   // }
 
   .bp3-dark {
-    background: $dark-gray2;
+    background: $dark-gray1;
   }
 
   &.outlinerOpen #import {
@@ -98,13 +97,10 @@ main,
   button.bp3-intent-primary {
     background: $light-gray0-trans !important;
   }
-
-  button.bp3-intent-primary {
-    background: $light-gray0-trans !important;
-  }
 }
 
-#search-form {
+#search-form,
+.bp3-overlay {
   button {
     &.bp3-intent-primary {
       background: $blue1;
@@ -147,7 +143,7 @@ main,
 .bp3-overlay
   .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
   background: $light-gray1-trans;
-  color: $light-gray2;
+  color: $light-gray6;
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
@@ -158,7 +154,7 @@ main,
   cursor: pointer;
 
   h4 {
-    margin-left: 4px;
+    margin-left: 10px;
     margin-right: auto;
     // caret icon
     > .bp3-icon {
@@ -170,6 +166,9 @@ main,
 }
 
 #outliner {
+  // Show y scrollbar when there's loads of tags or location list items
+  overflow: hidden auto !important;
+
   > div:hover .outliner-header-wrapper:not(last-child) > * {
     opacity: 1;
   }
@@ -255,16 +254,31 @@ main,
     flex-shrink: 0;
   }
 
-  // Not very language direction friendly...
   > .pre-icon {
     margin-right: 0.25rem;
   }
 
   > .after-icon {
     margin-left: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    mask-image: url(~resources/icons/search.svg);
+    -webkit-mask-image: url(~resources/icons/search.svg);
+    cursor: pointer;
+
+    &.searched {
+      background-color: currentColor;
+      mask-image: url(~resources/icons/select-all-round.svg);
+      -webkit-mask-image:url(~resources/icons/select-all-round.svg);
+    }
   }
 
-  > input {
+  &:hover > .after-icon {
+    background-color: currentColor;
+  }
+
+  > input,
+  > div {
     width: 100%;
   }
 }

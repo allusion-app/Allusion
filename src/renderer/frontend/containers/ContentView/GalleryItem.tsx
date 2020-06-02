@@ -40,7 +40,6 @@ interface IGalleryItemProps extends IRootStoreProp {
   isSelected: boolean;
   onClick: (file: ClientFile, e: React.MouseEvent) => void;
   onDoubleClick?: (file: ClientFile, e: React.MouseEvent) => void;
-  onDrop: (item: any, file: ClientFile) => void;
   showDetails?: boolean;
 }
 
@@ -66,6 +65,7 @@ const GalleryItem = observer(
   ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
     const { uiStore } = useContext(StoreContext);
 
+    // TODO: Add selected tags and handle collections.
     const handleDrop = useCallback(
       (event: React.DragEvent<HTMLDivElement>) => {
         if (event.dataTransfer.types.includes(DnDType.Tag)) {
@@ -73,6 +73,13 @@ const GalleryItem = observer(
           file.addTag(event.dataTransfer.getData(DnDType.Tag));
           delete event.currentTarget.dataset[DnDAttribute.Target];
         }
+
+        // const ctx = uiStore.getTagContextItems(item.id);
+        // const allContextTags = [
+        //   ...ctx.tags.map((t) => t.id),
+        //   ...ctx.collections.flatMap((col) => col.getTagsRecursively()),
+        // ];
+        // allContextTags.forEach(file.addTag);
       },
       [file],
     );
@@ -130,7 +137,7 @@ const GalleryItem = observer(
                 <br /> Could not load image
               </span> // Show an error it it could not be loaded
             ) : (
-              <div className={Classes.SKELETON} />
+              <div className={`placeholder ${Classes.SKELETON}`} />
             ) // Else show a placeholder
           }
         </div>
@@ -203,7 +210,7 @@ class GalleryItemWithContextMenu extends React.PureComponent<
     return (
       // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <span className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <GalleryItem {...this.props} onDrop={this.props.onDrop} />
+        <GalleryItem {...this.props} />
       </span>
     );
   }
@@ -233,4 +240,37 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   };
 }
 
-export default observer(withRootstore(GalleryItemWithContextMenu));
+// A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
+const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryItemProps) => {
+  // TODO: List gallery styling
+  // useEffect(() => {
+  //   // First check whether a thumbnail exists, generate it if needed
+  //   ensureThumbnail(file, uiStore.thumbnailDirectory);
+  // }, [file, uiStore.thumbnailDirectory]);
+
+  return (
+    <div className={`thumbnail ${isSelected ? 'selected' : ''}`}>
+      <div className="img-wrapper">
+        <img src={file.thumbnailPath} alt="" className="bp3-skeleton" />
+      </div>
+      {showDetails && (
+        <>
+          <H4>{file.name}</H4>
+          <ImageInfo file={file} />
+        </>
+      )}
+      <span className="thumbnailTags placeholder bp3-skeleton" />
+    </div>
+  );
+});
+
+const DelayedGalleryItem = (props: IGalleryItemProps) => {
+  const [showSimple, setShowSimple] = useState(true);
+  useEffect(() => {
+    const timeout = setTimeout(() => setShowSimple(false), 300);
+    return () => clearTimeout(timeout);
+  });
+  return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItemWithContextMenu {...props} />;
+};
+
+export default observer(withRootstore(DelayedGalleryItem));

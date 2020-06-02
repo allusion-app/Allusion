@@ -6,7 +6,6 @@ import ThumbnailWorker from './workers/thumbnailGenerator.worker';
 import StoreContext from './contexts/StoreContext';
 import { ID } from '../entities/ID';
 import { ClientFile } from '../entities/File';
-import { getThumbnailPath } from './utils';
 import { thumbnailType } from '../../config';
 
 interface IThumbnailMessage {
@@ -29,20 +28,16 @@ const thumbnailWorker = new ThumbnailWorker({ type: 'module' });
 
 // Generates thumbnail if not yet exists. Will set file.thumbnailPath when it exists.
 export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
-  if (!file.thumbnailPath) {
-    const thumbnailPath = getThumbnailPath(file.path, thumbnailDir);
-    const thumbnailExists = await fse.pathExists(thumbnailPath);
-    if (!thumbnailExists) {
-      const msg: IThumbnailMessage = {
-        filePath: file.path,
-        thumbnailDirectory: thumbnailDir,
-        thumbnailType,
-        fileId: file.id,
-      };
-      thumbnailWorker.postMessage(msg);
-    } else {
-      file.setThumbnailPath(thumbnailPath);
-    }
+  const thumbnailPath = file.thumbnailPath;
+  const thumbnailExists = await fse.pathExists(thumbnailPath);
+  if (!thumbnailExists) {
+    const msg: IThumbnailMessage = {
+      filePath: file.path,
+      thumbnailDirectory: thumbnailDir,
+      thumbnailType,
+      fileId: file.id,
+    };
+    thumbnailWorker.postMessage(msg);
   }
 }
 
@@ -55,7 +50,8 @@ export const useWorkerListener = () => {
       const { fileId, thumbnailPath } = e.data;
       const clientFile = fileStore.fileList.find((f) => f.id === fileId);
       if (clientFile) {
-        clientFile.setThumbnailPath(thumbnailPath);
+        // update the thumbnail path so that the image will reload, as it did not exist before
+        clientFile.setThumbnailPath(`${thumbnailPath}?v=1`);
       }
     };
 

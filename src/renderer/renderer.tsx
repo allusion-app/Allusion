@@ -25,7 +25,7 @@ import { DEFAULT_LOCATION_ID } from './entities/Location';
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
 const params = new URLSearchParams(window.location.search.slice(1));
-const isPreviewWindow = params.get('preview') === 'true';
+export const IS_PREVIEW_WINDOW = params.get('preview') === 'true';
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
@@ -34,12 +34,12 @@ backend
   .init()
   .then(async () => {
     console.log('Backend has been initialized!');
-    await rootStore.init(!isPreviewWindow);
+    await rootStore.init(!IS_PREVIEW_WINDOW);
     RendererMessenger.initialized();
   })
   .catch((err) => console.log('Could not initialize backend!', err));
 
-if (isPreviewWindow) {
+if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory }) => {
     rootStore.uiStore.view.setFirstItem(0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
@@ -99,7 +99,7 @@ if (isPreviewWindow) {
 // The Provider component provides the state management for the application
 ReactDOM.render(
   <StoreContext.Provider value={rootStore}>
-    {isPreviewWindow ? <PreviewApp /> : <App />}
+    {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
   </StoreContext.Provider>,
   document.getElementById('app'),
 );

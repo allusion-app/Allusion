@@ -12,7 +12,7 @@ import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
-export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg'] as const;
+export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
 /* A File as it is represented in the Database */
