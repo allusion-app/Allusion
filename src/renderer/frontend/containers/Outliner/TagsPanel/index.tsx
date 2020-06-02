@@ -6,11 +6,6 @@ import IconSet from 'components/Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 
-export const enum DragAndDropType {
-  Collection = 'collection',
-  Tag = 'tag',
-}
-
 // Tooltip info
 const enum Tooltip {
   AllImages = 'View all images in library',
