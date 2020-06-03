@@ -7,5 +7,5 @@ module.exports = {
     config.resolve.extensions = rendererConfig.resolve.extensions;
     config.resolve.alias = rendererConfig.resolve.alias;
     return config;
-  }
+  },
 };

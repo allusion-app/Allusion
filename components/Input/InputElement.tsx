@@ -13,7 +13,7 @@ export function handleBlur<T>(
   editable: boolean,
   isValid: (text: string) => boolean,
   setText: (text: T) => void,
-  onSubmit?: (target: EventTarget & HTMLInputElement) => void
+  onSubmit?: (target: EventTarget & HTMLInputElement) => void,
 ) {
   return (event: React.FocusEvent<HTMLInputElement>) => {
     if (editable) {
@@ -39,7 +39,7 @@ export function handleInput(isValid: (text: string) => boolean) {
   };
 }
 export function handleInvalid(
-  onInvalid: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined
+  onInvalid: ((event: React.FormEvent<HTMLInputElement>) => void) | undefined,
 ) {
   return (event: React.FormEvent<HTMLInputElement>) => {
     if (onInvalid) {
@@ -53,7 +53,7 @@ export function handleEnter<T>(
   isValid: (text: string) => boolean,
   setText: (text: T) => void,
   onSubmit?: (target: EventTarget & HTMLInputElement) => void,
-  onAbort?: (rawValue: string) => void
+  onAbort?: (rawValue: string) => void,
 ) {
   return (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') {

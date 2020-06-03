@@ -4,7 +4,7 @@ import { NumberInput } from 'components';
 
 export default {
   component: NumberInput,
-  title: 'Input/Number'
+  title: 'Input/Number',
 };
 
 export const Default = () => {

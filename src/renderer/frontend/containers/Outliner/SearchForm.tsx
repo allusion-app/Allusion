@@ -133,7 +133,7 @@ const getOperatorOptions = (key: CriteriaKey) => {
   } else if (key === 'tags') {
     return OperatorOptions.ARRAY;
   }
-  return null;
+  return [];
 };
 
 const OperatorSelector = ({ id, keyValue, operator, dispatch }: IOperatorSelector) => (

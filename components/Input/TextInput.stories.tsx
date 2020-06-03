@@ -4,7 +4,7 @@ import { TextInput } from 'components';
 
 export default {
   component: TextInput,
-  title: 'Input/Text'
+  title: 'Input/Text',
 };
 
 export const Default = () => {
@@ -23,7 +23,13 @@ export const Readonly = () => {
 };
 
 export const Required = () => {
-  return <TextInput required placeholder="Invalid when empty..." setText={(value) => console.log(value)} />;
+  return (
+    <TextInput
+      required
+      placeholder="Invalid when empty..."
+      setText={(value) => console.log(value)}
+    />
+  );
 };
 
 export const Invalid = () => {

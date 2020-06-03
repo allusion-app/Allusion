@@ -4,7 +4,7 @@ import { Checkbox, Toggle } from 'components';
 
 export default {
   component: Checkbox,
-  title: 'Checkbox'
+  title: 'Checkbox',
 };
 
 export const CheckBox = () => {

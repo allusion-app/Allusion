@@ -82,7 +82,7 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
   }
 
   @computed get isEmpty(): boolean {
-    return this.tags.length === 0 && this.clientSubCollections.every((subCol) => !subCol.isEmpty);
+    return this.tags.length === 0 && this.clientSubCollections.every((subCol) => subCol.isEmpty);
   }
 
   @computed get isSelected(): boolean {

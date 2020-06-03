@@ -7,7 +7,7 @@ import {
   handleFocus,
   handleInput,
   handleInvalid,
-  handleEnter
+  handleEnter,
 } from './InputElement';
 
 interface NumberInput extends InputElement<number> {
@@ -57,7 +57,7 @@ const NumberInput = (props: NumberInput) => {
         onInput: p.onInput ?? handleInput(isValid),
         onChange: p.onChange ?? handleInput(isValid),
         onInvalid: handleInvalid(onInvalid),
-        onKeyUp: p.onKeyUp ?? handleEnter(!readOnly, isValid, setValue, onSubmit, onAbort)
+        onKeyUp: p.onKeyUp ?? handleEnter(!readOnly, isValid, setValue, onSubmit, onAbort),
       })}
     />
   );

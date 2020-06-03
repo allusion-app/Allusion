@@ -4,7 +4,7 @@ import { Select } from 'components';
 
 export default {
   component: Select,
-  title: 'Select'
+  title: 'Select',
 };
 
 export const Default = () => {

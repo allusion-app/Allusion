@@ -52,11 +52,11 @@
 
   &:focus {
     outline: none;
-    
+
     &[aria-selected='true'] > .label {
       background-color: var(--selection-background-color, #007bf53f);
     }
-    
+
     > .label {
       background-color: var(--focus-color, $light-gray4);
       border-color: var(--primary-color, $blue1);

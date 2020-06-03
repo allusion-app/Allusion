@@ -469,14 +469,14 @@ const customKeys = (
     event.stopPropagation();
     treeData.dispatch({ type: ActionType.SetEditableNode, payload: nodeData.id });
   } else if (event.shiftKey && event.key === 'F10') {
-    const input = event.currentTarget.querySelector('input');
-    if (input) {
+    const element = event.currentTarget.querySelector('.tree-content-label');
+    if (element) {
       // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
       event.stopPropagation();
-      input.dispatchEvent(
+      element.dispatchEvent(
         new MouseEvent('contextmenu', {
-          clientX: input.getBoundingClientRect().right,
-          clientY: input.getBoundingClientRect().top,
+          clientX: element.getBoundingClientRect().right,
+          clientY: element.getBoundingClientRect().top,
         }),
       );
     }
@@ -502,11 +502,7 @@ const handleLeafOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: ClientTag,
   treeData: ITagTreeData,
-) =>
-  createLeafOnKeyDown(event, nodeData, treeData, (nodeData, treeData) => {
-    const uiStore = (treeData as ITagTreeData).uiStore;
-    return nodeData.isSelected ? uiStore.deselectTag(nodeData.id) : uiStore.selectTag(nodeData);
-  });
+) => createLeafOnKeyDown(event, nodeData, treeData, toggleSelection, customKeys);
 
 const mapLeaf = (tag: ClientTag): ITreeLeaf => {
   return {
