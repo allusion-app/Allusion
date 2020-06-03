@@ -100,6 +100,10 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
     );
   }
 
+  @computed get isSearched(): boolean {
+    return this.store.isSearched(this.id);
+  }
+
   @action.bound addTag(tag: ClientTag | ID) {
     const id = tag instanceof ClientTag ? tag.id : tag;
     if (!this.tags.includes(id)) {

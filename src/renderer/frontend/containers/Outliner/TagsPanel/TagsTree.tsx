@@ -184,7 +184,6 @@ const toggleQuery = (
 };
 
 const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps) => {
-  const [isSearched, setIsSearched] = useState(false);
 
   const handleSubmit = useCallback(
     (target: EventTarget & HTMLInputElement) => {
@@ -250,9 +249,8 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
   );
 
   const handleQuickQuery = useCallback(() => {
-    toggleQuery(nodeData, isSearched, uiStore);
-    setIsSearched(!isSearched);
-  }, [isSearched, nodeData, uiStore]);
+    toggleQuery(nodeData, nodeData.isSearched, uiStore);
+  }, [nodeData, uiStore]);
 
   return (
     <div
@@ -274,7 +272,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
         isEditing={isEditing}
         onSubmit={handleSubmit}
       />
-      <span onClick={handleQuickQuery} className={`after-icon ${isSearched && 'searched'}`}></span>
+      <span onClick={handleQuickQuery} className={`after-icon ${nodeData.isSearched && 'searched'}`}></span>
     </div>
   );
 });
@@ -302,7 +300,8 @@ interface ICollectionProps extends Omit<ITagProps, 'nodeData'> {
 
 const Collection = observer((props: ICollectionProps) => {
   const { nodeData, dispatch, expansion, isEditing, pos, uiStore } = props;
-  const [isSearched, setIsSearched] = useState(false);
+
+  const isSearched = nodeData.isSearched;
 
   const handleSubmit = useCallback(
     (target: EventTarget & HTMLInputElement) => {
@@ -397,7 +396,6 @@ const Collection = observer((props: ICollectionProps) => {
 
   const handleQuickQuery = useCallback(() => {
     toggleQuery(nodeData, isSearched, uiStore);
-    setIsSearched(!isSearched);
   }, [isSearched, nodeData, uiStore]);
 
   return (
@@ -465,13 +463,14 @@ const customKeys = (
   nodeData: any,
   treeData: ITagTreeData,
 ) => {
-  if (event.key === 'F2') {
+  if (event.key === 'F2') { // Rename with F2
     event.stopPropagation();
     treeData.dispatch({ type: ActionType.SetEditableNode, payload: nodeData.id });
-  } else if (event.shiftKey && event.key === 'F10') {
+  } else if (event.shiftKey && event.key === 'F10') { // Context menu with F10
     const element = event.currentTarget.querySelector('.tree-content-label');
     if (element) {
       // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
+      // Why not trigger context menus through `ContextMenu.show()`?
       event.stopPropagation();
       element.dispatchEvent(
         new MouseEvent('contextmenu', {

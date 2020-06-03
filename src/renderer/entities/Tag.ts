@@ -60,6 +60,10 @@ export class ClientTag implements ISerializable<ITag> {
     return this.color || this.parent.viewColor;
   }
 
+  @computed get isSearched() {
+    return this.store.isSearched(this.id);
+  }
+
   @action.bound rename(name: string) {
     this.name = name;
   }
