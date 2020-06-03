@@ -96,7 +96,16 @@ let rendererConfig = {
         test: /\.module.(scss|css)$/,
         use: [
           'style-loader',
-          { loader: 'css-loader', options: { sourceMap: true, modules: true } },
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true,
+              modules: {
+                // Use real class name, hash only added when needed
+                localIdentName: '[local]_[hash:base64:5]' ,
+              },
+            },
+          },
           'sass-loader?sourceMap',
         ],
       },
