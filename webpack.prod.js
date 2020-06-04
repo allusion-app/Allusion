@@ -3,6 +3,7 @@
 // scripts are loaded and all required files to run the application are
 // neatly put into the build directory.
 
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
@@ -89,23 +90,28 @@ let rendererConfig = {
       {
         test: /\.(scss|css)$/,
         exclude: /\.module\.scss$/,
-        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       },
       {
         test: /\.module.(scss|css)$/,
         use: [
-          'style-loader',
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              esModule: true,
+            },
+          },
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true,
+              esModule: true,
               modules: {
                 // Use real class name, hash only added when needed
-                localIdentName: '[local]_[hash:base64:5]' ,
+                localIdentName: '[local]_[hash:base64:5]',
               },
             },
           },
-          'sass-loader?sourceMap',
+          'sass-loader',
         ],
       },
       {
@@ -145,6 +151,7 @@ let rendererConfig = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './src/renderer/index.html'),
     }),
+    new MiniCssExtractPlugin({ filename: '[name].[hash].css', chunkFilename: '[id].[hash].css' }),
   ],
 };
 

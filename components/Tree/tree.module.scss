@@ -72,8 +72,8 @@
   flex-shrink: 0;
   cursor: pointer;
   background-color: var(--caret-color, black);
-  mask-image: url(~resources/icons/arrow-right.svg);
-  -webkit-mask-image: url(~resources/icons/arrow-right.svg);
+  mask-image: url(~resources/icons/arrow-down.svg);
+  -webkit-mask-image: url(~resources/icons/arrow-down.svg);
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
   mask-position: center;
@@ -82,7 +82,7 @@
   -webkit-mask-size: 0.75rem;
   transition: transform 100ms ease-out;
 
-  &[aria-pressed='true'] {
-    transform: rotateZ(90deg);
+  &[aria-pressed='false'] {
+    transform: rotateZ(-90deg);
   }
 }
