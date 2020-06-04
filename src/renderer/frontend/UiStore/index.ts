@@ -381,14 +381,14 @@ class UiStore {
       }
 
       // Only include selected collections of which their parent is not selected
-      const selectedColsNotInSelectedCols = selectedCols.filter(
-        (col) => selectedCols.every((parent) => !parent.subCollections.includes(col.id)),
+      const selectedColsNotInSelectedCols = selectedCols.filter((col) =>
+        selectedCols.every((parent) => !parent.subCollections.includes(col.id)),
       );
       contextCols.push(...selectedColsNotInSelectedCols);
 
       // Only include the selected tags that are not in a selected collection
-      const selectedTagsNotInSelectedCols = this.clientTagSelection.filter(
-        (t) => selectedCols.every((col) => !col.tags.includes(t.id)),
+      const selectedTagsNotInSelectedCols = this.clientTagSelection.filter((t) =>
+        selectedCols.every((col) => !col.tags.includes(t.id)),
       );
       contextTags.push(...selectedTagsNotInSelectedCols);
     }
@@ -530,7 +530,7 @@ class UiStore {
       try {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
-        this.setToolbarVertical(prefs.sidebar);
+        this.setToolbarVertical(prefs.isToolbarVertical);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.setIsInspectorOpen(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);

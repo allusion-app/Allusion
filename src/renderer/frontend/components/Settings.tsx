@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useCallback } from 'react';
+import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Drawer, Classes, Button, Callout, H4, FormGroup, KeyCombo } from '@blueprintjs/core';
 import { Toggle, Radio, RadioGroup } from 'components';
@@ -21,21 +21,14 @@ const toggleFullScreen = () => {
   setFullScreen(!isFullScreen());
 };
 
+const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setClipServerEnabled({ isClipServerRunning: event.target.checked });
+
+const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });
+
 const Settings = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
-
-  const [isClipServerRunning, setClipServerRunning] = useState(false);
-  const [isRunningInBackground, setRunningInBackground] = useState(false);
-
-  const toggleClipServer = useCallback(() => {
-    RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
-    setClipServerRunning(!isClipServerRunning);
-  }, [setClipServerRunning, isClipServerRunning]);
-
-  const toggleRunInBackground = useCallback(() => {
-    RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
-    setRunningInBackground(!isRunningInBackground);
-  }, [setRunningInBackground, isRunningInBackground]);
 
   const browseImportDir = useCallback(() => {
     const dirs = remote.dialog.showOpenDialogSync({
@@ -67,8 +60,6 @@ const Settings = observer(() => {
         console.log('Cannot load persistent preferences', e);
       }
     }
-    setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
-    setRunningInBackground(RendererMessenger.getIsRunningInBackground());
   }, []);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
@@ -152,13 +143,13 @@ const Settings = observer(() => {
         />
 
         <Toggle
-          checked={isRunningInBackground}
+          defaultChecked={RendererMessenger.getIsRunningInBackground()}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
 
         <Toggle
-          checked={isClipServerRunning}
+          defaultChecked={RendererMessenger.getIsClipServerEnabled()}
           onChange={toggleClipServer}
           label="Browser extension support"
         />
