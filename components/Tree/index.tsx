@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import style from './treeview.module.scss';
+import style from './tree.module.scss';
 import React, {
   useCallback,
   useEffect,
@@ -426,8 +426,10 @@ const TreeBranch = observer(
 
 // --- Public API ---
 
-// TODO: Add autoFocus property
 export interface ITree {
+  /** Focuses the first tree item on mount and also when a node is added to an
+   * empty tree */
+  autoFocus?: boolean;
   /** Element id of the tree view used for the aria-labelledby attribute */
   labelledBy?: string;
   /** Sets the aria-multiselectable attribute */
@@ -440,13 +442,9 @@ export interface ITree {
   leaves: ITreeLeaf[];
   /** Toggles the expansion of a parent node */
   toggleExpansion: (nodeData: any, treeData: any) => void;
-  /**
-   * `onKeyDown` Event Handler for branch nodes (see `createBranchOnKeyDown`)
-   * */
+  /** `onKeyDown` Event Handler for branch nodes (see `createBranchOnKeyDown`) */
   onLeafKeyDown: KeyDownEventHandler;
-  /**
-   * `onKeyDown` Event Handler for leaf nodes (see `createLeafOnKeyDown`)
-   * */
+  /** `onKeyDown` Event Handler for leaf nodes (see `createLeafOnKeyDown`) */
   onBranchKeyDown: KeyDownEventHandler;
   /**
    * Pointer to external data
@@ -516,6 +514,7 @@ const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
 };
 
 const Tree = ({
+  autoFocus,
   className = '',
   multiSelect,
   labelledBy,
@@ -530,10 +529,13 @@ const Tree = ({
 
   useEffect(() => {
     if (tree.current?.firstElementChild) {
-      setTabFocus(tree.current.firstElementChild as HTMLElement);
+      tree.current.firstElementChild.setAttribute('tabIndex', '0');
+      if (autoFocus) {
+        (tree.current.firstElementChild as HTMLElement).focus();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [branches.length > 0 || leaves.length > 0]);
+  }, [branches.length > 0 || leaves.length > 0, autoFocus]);
 
   return (
     <ul

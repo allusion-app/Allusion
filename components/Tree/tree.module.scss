@@ -30,7 +30,9 @@
     display: flex;
     align-items: center;
     border-left: 2px solid transparent;
-    padding-left: calc(var(--level) * 1.25rem + 0.5rem); // TODO: variable indentation and offset?#
+    padding-left: calc(
+      var(--level) * var(--treeitem-identation, 1rem) + var(--treeitem-offset, 1rem)
+    );
     padding-right: 0.25rem;
 
     &:hover {
@@ -65,8 +67,8 @@
 }
 
 .default_caret {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1rem;
+  height: 1rem;
   flex-shrink: 0;
   cursor: pointer;
   background-color: var(--caret-color, black);

@@ -3,14 +3,14 @@ import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { ContextMenu, Collapse, Button, H4, Icon } from '@blueprintjs/core';
 
-import { TreeView, TextInput } from 'components';
+import { Tree, TextInput } from 'components';
 import IconSet from 'components/Icons';
 import {
   ITreeBranch,
   ITreeLeaf,
   createBranchOnKeyDown,
   createLeafOnKeyDown,
-} from 'components/TreeView';
+} from 'components/Tree';
 import { TagRemoval } from './MessageBox';
 import {
   ClientIDSearchCriteria,
@@ -146,12 +146,8 @@ interface ITagProps {
  * query. Handling filter mode or replacing the search criteria list is up to
  * the component.
  */
-const toggleQuery = (
-  nodeData: ClientTagCollection | ClientTag,
-  isSearched: boolean,
-  uiStore: UiStore,
-) => {
-  if (isSearched) {
+const toggleQuery = (nodeData: ClientTagCollection | ClientTag, uiStore: UiStore) => {
+  if (nodeData.isSearched) {
     // if it already exists, then remove it
     let alreadySearchedCrit: FileSearchCriteria | undefined;
     if (nodeData instanceof ClientTagCollection) {
@@ -184,7 +180,6 @@ const toggleQuery = (
 };
 
 const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps) => {
-
   const handleSubmit = useCallback(
     (target: EventTarget & HTMLInputElement) => {
       target.focus();
@@ -248,9 +243,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
     [nodeData, uiStore],
   );
 
-  const handleQuickQuery = useCallback(() => {
-    toggleQuery(nodeData, nodeData.isSearched, uiStore);
-  }, [nodeData, uiStore]);
+  const handleQuickQuery = useCallback(() => toggleQuery(nodeData, uiStore), [nodeData, uiStore]);
 
   return (
     <div
@@ -272,7 +265,10 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
         isEditing={isEditing}
         onSubmit={handleSubmit}
       />
-      <span onClick={handleQuickQuery} className={`after-icon ${nodeData.isSearched && 'searched'}`}></span>
+      <span
+        onClick={handleQuickQuery}
+        className={`after-icon ${nodeData.isSearched && 'searched'}`}
+      ></span>
     </div>
   );
 });
@@ -300,8 +296,6 @@ interface ICollectionProps extends Omit<ITagProps, 'nodeData'> {
 
 const Collection = observer((props: ICollectionProps) => {
   const { nodeData, dispatch, expansion, isEditing, pos, uiStore } = props;
-
-  const isSearched = nodeData.isSearched;
 
   const handleSubmit = useCallback(
     (target: EventTarget & HTMLInputElement) => {
@@ -394,9 +388,7 @@ const Collection = observer((props: ICollectionProps) => {
     [nodeData, uiStore],
   );
 
-  const handleQuickQuery = useCallback(() => {
-    toggleQuery(nodeData, isSearched, uiStore);
-  }, [isSearched, nodeData, uiStore]);
+  const handleQuickQuery = useCallback(() => toggleQuery(nodeData, uiStore), [nodeData, uiStore]);
 
   return (
     <div
@@ -418,7 +410,10 @@ const Collection = observer((props: ICollectionProps) => {
         isEditing={isEditing}
         onSubmit={handleSubmit}
       />
-      <span onClick={handleQuickQuery} className={`after-icon ${isSearched && 'searched'}`}></span>
+      <span
+        onClick={handleQuickQuery}
+        className={`after-icon ${nodeData.isSearched && 'searched'}`}
+      ></span>
     </div>
   );
 });
@@ -463,10 +458,43 @@ const customKeys = (
   nodeData: any,
   treeData: ITagTreeData,
 ) => {
-  if (event.key === 'F2') { // Rename with F2
+  switch (event.key) {
+    case 'F2':
+      event.stopPropagation();
+      treeData.dispatch({ type: ActionType.SetEditableNode, payload: nodeData.id });
+      break;
+
+    case 'F10':
+      if (event.shiftKey) {
+        const element = event.currentTarget.querySelector('.tree-content-label');
+        if (element) {
+          // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
+          // Why not trigger context menus through `ContextMenu.show()`?
+          event.stopPropagation();
+          element.dispatchEvent(
+            new MouseEvent('contextmenu', {
+              clientX: element.getBoundingClientRect().right,
+              clientY: element.getBoundingClientRect().top,
+            }),
+          );
+        }
+      }
+      break;
+
+    case 'Enter':
+      event.stopPropagation();
+      toggleQuery(nodeData, treeData.uiStore);
+      break;
+
+    default:
+      break;
+  }
+  if (event.key === 'F2') {
+    // Rename with F2
     event.stopPropagation();
     treeData.dispatch({ type: ActionType.SetEditableNode, payload: nodeData.id });
-  } else if (event.shiftKey && event.key === 'F10') { // Context menu with F10
+  } else if (event.shiftKey && event.key === 'F10') {
+    // Context menu with F10
     const element = event.currentTarget.querySelector('.tree-content-label');
     if (element) {
       // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
@@ -627,7 +655,7 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
       </div>
 
       <Collapse isOpen={!isCollapsed}>
-        <TreeView
+        <Tree
           multiSelect
           branches={branches.get()}
           leaves={leaves.get()}

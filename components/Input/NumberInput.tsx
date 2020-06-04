@@ -52,7 +52,7 @@ const NumberInput = (props: NumberInput) => {
         value,
         type: 'number',
         readOnly,
-        onBlur: p.onBlur ?? handleBlur(!readOnly, isValid, setValue, onSubmit),
+        onBlur: p.onBlur ?? handleBlur(!readOnly, isValid, setValue, onSubmit, defaultValue),
         onFocus: p.onFocus ?? handleFocus(!readOnly),
         onInput: p.onInput ?? handleInput(isValid),
         onChange: p.onChange ?? handleInput(isValid),

@@ -14,12 +14,16 @@ export function handleBlur<T>(
   isValid: (text: string) => boolean,
   setText: (text: T) => void,
   onSubmit?: (target: EventTarget & HTMLInputElement) => void,
+  defaultValue?: T,
 ) {
   return (event: React.FocusEvent<HTMLInputElement>) => {
     if (editable) {
       const element = event.target as HTMLInputElement;
       if (isValid(element.value)) {
         setText((element.value.trim() as unknown) as T);
+        onSubmit?.(element);
+      } else if (defaultValue) {
+        setText(defaultValue);
         onSubmit?.(element);
       }
     }

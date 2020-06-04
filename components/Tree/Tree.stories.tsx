@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
-import { TreeView } from 'components';
-import { createBranchOnKeyDown, createLeafOnKeyDown } from 'components/TreeView';
+import { Tree } from 'components';
+import { createBranchOnKeyDown, createLeafOnKeyDown } from 'components/Tree';
 
 export default {
-  component: TreeView,
-  title: 'TreeView',
+  component: Tree,
+  title: 'Tree',
   // Our exports that end in "Data" are not stories.
   excludeStories: /.*Data$/,
 };
@@ -104,7 +104,7 @@ export const Default = () => {
   return (
     <React.Fragment>
       <h1 id="tree">Tree View Widget</h1>
-      <TreeView
+      <Tree
         multiSelect
         labelledBy="tree"
         branches={branchesData}

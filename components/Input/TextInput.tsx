@@ -48,7 +48,7 @@ const TextInput = (props: TextInput) => {
         ref: input,
         type: 'text',
         readOnly,
-        onBlur: p.onBlur ?? handleBlur(!readOnly, isValid, setText, onSubmit),
+        onBlur: p.onBlur ?? handleBlur(!readOnly, isValid, setText, onSubmit, p.defaultValue),
         onFocus: p.onFocus ?? handleFocus(!readOnly),
         onInput: p.onInput ?? handleInput(isValid),
         onChange: p.onChange ?? handleInput(isValid),

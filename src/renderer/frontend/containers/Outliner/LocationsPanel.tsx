@@ -27,8 +27,8 @@ import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { AppToaster } from '../../App';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
-import { TreeView } from 'components';
-import { ITreeBranch, createBranchOnKeyDown } from 'components/TreeView';
+import { Tree } from 'components';
+import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
 
 // Tooltip info
 const enum Tooltip {
@@ -361,7 +361,8 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
   }, [locationStore.locationList, lastRefresh]);
 
   return (
-    <TreeView
+    <Tree
+      autoFocus
       multiSelect
       branches={branches}
       leaves={[]}
