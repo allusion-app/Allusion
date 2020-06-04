@@ -28,7 +28,7 @@
     }
 
     &:hover {
-      border-color: var(--focus-color, $blue-trans1);
+      border-color: var(--highlight-font-color, $blue-trans1);
     }
 
     &:focus {

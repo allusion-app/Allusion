@@ -15,7 +15,7 @@ import { ID } from '../../src/renderer/entities/ID';
 
 const setTabFocus = (element: HTMLElement) => {
   element.setAttribute('tabIndex', '0');
-  element.focus();
+  element.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
 };
 
 const refocus = (previousTarget: Element, nextTarget: HTMLElement) => {

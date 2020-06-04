@@ -94,6 +94,7 @@ const reducer = (state: State, action: Action): State => {
 interface ITagTreeData {
   state: State;
   dispatch: React.Dispatch<Action>;
+  submit: (target: EventTarget & HTMLInputElement) => void;
   uiStore: UiStore;
 }
 
@@ -136,6 +137,7 @@ interface ITagProps {
   uiStore: UiStore;
   dispatch: React.Dispatch<Action>;
   isEditing: boolean;
+  submit: (target: EventTarget & HTMLInputElement) => void;
   pos: number;
 }
 
@@ -179,15 +181,7 @@ const toggleQuery = (nodeData: ClientTagCollection | ClientTag, uiStore: UiStore
   }
 };
 
-const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps) => {
-  const handleSubmit = useCallback(
-    (target: EventTarget & HTMLInputElement) => {
-      target.focus();
-      dispatch({ type: ActionType.SetEditableNode, payload: undefined });
-    },
-    [dispatch],
-  );
-
+const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, submit, pos }: ITagProps) => {
   const handleContextMenu = useCallback(
     (e) =>
       ContextMenu.show(
@@ -263,7 +257,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, pos }: ITagProps
         color={nodeData.color}
         icon={IconSet.TAG}
         isEditing={isEditing}
-        onSubmit={handleSubmit}
+        onSubmit={submit}
       />
       <span
         onClick={handleQuickQuery}
@@ -284,6 +278,7 @@ const TagLabel = (
     nodeData={nodeData}
     dispatch={treeData.dispatch}
     isEditing={treeData.state.editableNode === nodeData.id}
+    submit={treeData.submit}
     uiStore={treeData.uiStore}
     pos={pos}
   />
@@ -295,16 +290,7 @@ interface ICollectionProps extends Omit<ITagProps, 'nodeData'> {
 }
 
 const Collection = observer((props: ICollectionProps) => {
-  const { nodeData, dispatch, expansion, isEditing, pos, uiStore } = props;
-
-  const handleSubmit = useCallback(
-    (target: EventTarget & HTMLInputElement) => {
-      target.focus();
-      dispatch({ type: ActionType.SetEditableNode, payload: undefined });
-      target.setSelectionRange(0, 0);
-    },
-    [dispatch],
-  );
+  const { nodeData, dispatch, expansion, isEditing, submit, pos, uiStore } = props;
 
   const handleContextMenu = useCallback(
     (e) =>
@@ -408,7 +394,7 @@ const Collection = observer((props: ICollectionProps) => {
         color={nodeData.color}
         icon={expansion[nodeData.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP}
         isEditing={isEditing}
-        onSubmit={handleSubmit}
+        onSubmit={submit}
       />
       <span
         onClick={handleQuickQuery}
@@ -430,6 +416,7 @@ const CollectionLabel = (
     dispatch={treeData.dispatch}
     expansion={treeData.state.expansion}
     isEditing={treeData.state.editableNode === nodeData.id}
+    submit={treeData.submit}
     pos={pos}
     uiStore={treeData.uiStore}
   />
@@ -453,9 +440,24 @@ const toggleSelection = (nodeData: ClientTag | ClientTagCollection, { uiStore }:
   }
 };
 
+const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+  const element = event.currentTarget.querySelector('.tree-content-label');
+  if (element) {
+    // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
+    // Why not trigger context menus through `ContextMenu.show()`?
+    event.stopPropagation();
+    element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: element.getBoundingClientRect().right,
+        clientY: element.getBoundingClientRect().top,
+      }),
+    );
+  }
+};
+
 const customKeys = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: any,
+  nodeData: ClientTag | ClientTagCollection,
   treeData: ITagTreeData,
 ) => {
   switch (event.key) {
@@ -466,18 +468,7 @@ const customKeys = (
 
     case 'F10':
       if (event.shiftKey) {
-        const element = event.currentTarget.querySelector('.tree-content-label');
-        if (element) {
-          // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
-          // Why not trigger context menus through `ContextMenu.show()`?
-          event.stopPropagation();
-          element.dispatchEvent(
-            new MouseEvent('contextmenu', {
-              clientX: element.getBoundingClientRect().right,
-              clientY: element.getBoundingClientRect().top,
-            }),
-          );
-        }
+        triggerContextMenuEvent(event);
       }
       break;
 
@@ -486,27 +477,16 @@ const customKeys = (
       toggleQuery(nodeData, treeData.uiStore);
       break;
 
+    case 'Delete':
+      treeData.uiStore.openOutlinerTagRemover(nodeData.isSelected ? 'selected' : nodeData.id);
+      break;
+
+    case 'ContextMenu':
+      triggerContextMenuEvent(event);
+      break;
+
     default:
       break;
-  }
-  if (event.key === 'F2') {
-    // Rename with F2
-    event.stopPropagation();
-    treeData.dispatch({ type: ActionType.SetEditableNode, payload: nodeData.id });
-  } else if (event.shiftKey && event.key === 'F10') {
-    // Context menu with F10
-    const element = event.currentTarget.querySelector('.tree-content-label');
-    if (element) {
-      // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
-      // Why not trigger context menus through `ContextMenu.show()`?
-      event.stopPropagation();
-      element.dispatchEvent(
-        new MouseEvent('contextmenu', {
-          clientX: element.getBoundingClientRect().right,
-          clientY: element.getBoundingClientRect().top,
-        }),
-      );
-    }
   }
 };
 
@@ -560,9 +540,20 @@ interface ITagsTreeProps {
 const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
   const { tagStore, tagCollectionStore } = uiStore.rootStore;
   const [state, dispatch] = useReducer(reducer, { expansion: {}, editableNode: undefined });
-  const treeData = useMemo(() => {
-    return { state, dispatch, uiStore };
-  }, [state, uiStore]);
+  const submit = useCallback((target: EventTarget & HTMLInputElement) => {
+    target.focus();
+    dispatch({ type: ActionType.SetEditableNode, payload: undefined });
+    target.setSelectionRange(0, 0);
+  }, []);
+  const treeData = useMemo(
+    () => ({
+      state,
+      dispatch,
+      uiStore,
+      submit,
+    }),
+    [state, submit, uiStore],
+  );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);

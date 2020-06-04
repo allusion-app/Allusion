@@ -34,7 +34,6 @@ export const handleDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
 const PreviewTag = document.createElement('div');
 PreviewTag.classList.add(Classes.TAG);
 PreviewTag.classList.add(Classes.INTENT_PRIMARY);
-PreviewTag.classList.add('tag-drag-drop');
 PreviewTag.style.position = 'absolute';
 PreviewTag.style.top = '-100vh';
 document.body.appendChild(PreviewTag);
