@@ -70,7 +70,7 @@ pre {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   z-index: 1000;
   #outliner-toolbar > div,
   #main-toolbar > div,
@@ -78,7 +78,7 @@ pre {
     text-align: center;
     align-content: center;
   }
-  border-right: 2px solid #14181a !important;
+  border-right: 1px solid $dark-gray0;
   .bp3-button {
     max-width: 30px;
   }

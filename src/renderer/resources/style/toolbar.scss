@@ -8,6 +8,9 @@
   padding: 0 0.5rem;
   z-index: 1000;
   border-bottom: 2px solid $dark-gray0;
+  border-left: 1px solid $dark-gray0;
+  border-right: 2px solid $dark-gray0;
+  
   // Turn of event for show media items
   #media {
     pointer-events: none;
@@ -46,10 +49,13 @@
 #main-toolbar.separated { // Intended for when the main (content) toolbar is separate from the rest of the toolbar
   display: flex;
   flex-direction: row;
+  padding: 0 0.5rem;
   height: 2.4rem;
   justify-content: space-between;
   background: $dark-gray1;
   border-bottom: 2px solid $dark-gray0;
+  border-left: 1px solid $dark-gray0;
+  border-right: 1px solid $dark-gray0;
 
   .bp3-button {
     background: transparent;
