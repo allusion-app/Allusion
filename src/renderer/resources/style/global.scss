@@ -76,7 +76,7 @@ pre {
   #main-toolbar > div,
   #inspector-toolbar > div {
     text-align: center;
-  align-content: center;
+    align-content: center;
   }
   border-right: 2px solid #14181a !important;
   .bp3-button {
@@ -571,9 +571,9 @@ img {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  
+
   img {
-   animation: fade .25s cubic-bezier(0.65, 0.05, 0.36, 1);
+    animation: fade 0.25s cubic-bezier(0.65, 0.05, 0.36, 1);
   }
 
   > div {
@@ -587,11 +587,20 @@ img {
       width: 48px;
       transition: opacity 0.2s ease-in-out;
       position: absolute;
-      
+
       > svg {
-        display: table-cell;
-        vertical-align: middle;
-    }
+        position: absolute;
+        height: 36px !important;
+        width: 36px !important;
+        margin-top: -24px;
+        top: 50%;
+        color: #ffffffc7;
+        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
+      }
+      // & > svg {
+      //   display: table-cell;
+      //   vertical-align: middle;
+      // }
 
       > span {
         position: absolute;
@@ -615,9 +624,15 @@ img {
 }
 
 @keyframes fade {
-    0% {opacity: 0.0} 
-    50% {opacity: 0.5}
-    100% {opacity: 1.0}
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .color-black {
