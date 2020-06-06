@@ -31,6 +31,7 @@ import MultiTagSelector from '../../components/MultiTagSelector';
 import { AppToaster } from '../../App';
 import LocationStore from '../../stores/LocationStore';
 import UiStore from '../../UiStore';
+import LocationRecoveryDialog from '../../components/LocationRecoveryDialog';
 
 // Tooltip info
 const enum Tooltip {
@@ -216,13 +217,21 @@ const LocationRootLabel = ({ location }: { location: ClientLocation }) => (
 
 const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useContext(StoreContext);
+
   const [nodes, setNodes] = useState<ITreeNode<string>[]>(
     locationStore.locationList.map((location) => ({
       id: location.id,
       label: <LocationRootLabel location={location} />,
       nodeData: location.path,
       icon: location.id === DEFAULT_LOCATION_ID ? 'import' : IconSet.FOLDER_CLOSE,
-      secondaryLabel: location.isBroken ? <Icon icon={IconSet.WARNING} /> : undefined,
+      secondaryLabel: (
+        <Observer>{
+          () => location.isBroken
+            ? <Button icon={IconSet.WARNING} onClick={() => uiStore.openLocationRecovery(location.id)} />
+            : <></>
+          }
+        </Observer>
+      ),
     })),
   );
 
@@ -429,6 +438,8 @@ const LocationsForm = () => {
 
       <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
       <LocationRemovalAlert dir={locationRemoverOpen} handleClose={closeLocationRemover} />
+
+      <LocationRecoveryDialog onDelete={setLocationRemoverOpen} />
     </div>
   );
 };

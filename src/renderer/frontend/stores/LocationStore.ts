@@ -72,7 +72,7 @@ class LocationStore {
           message: `Cannot find Location "${loc.name}"`,
           action: {
             text: 'Recover',
-            onClick: () => alert('TODO: Open location recovery dialog'),
+            onClick: () => this.rootStore.uiStore.openLocationRecovery(loc.id),
           },
           timeout: 0,
         });
@@ -198,10 +198,24 @@ class LocationStore {
   @action.bound async initializeLocation(loc: ClientLocation) {
     const toastKey = `initialize-${loc.id}`;
 
-    AppToaster.show({ message: 'Finding all images...', timeout: 0 }, toastKey);
+    AppToaster.show({
+      message: 'Finding all images...',
+      timeout: 0,
+      action: {
+        text: 'Cancel',
+        onClick: () => alert('TODO: Cancel image loading, e.g. when picking the system root. Should show popup warning with "importing will start when reloading the application. If this is not desired, remove the location')
+      }
+    }, toastKey);
     const filePaths = await loc.init();
 
-    AppToaster.show({ message: 'Gathering image metadata...', timeout: 0 }, toastKey);
+    AppToaster.show({
+      message: 'Gathering image metadata...',
+      timeout: 0,
+      action: {
+        text: 'Cancel',
+        onClick: () => alert('TODO: Should also support cancelling here')
+      }
+    }, toastKey);
     const files = await Promise.all(
         filePaths.map(path => this.pathToIFile(path, loc.id, loc.tagsToAdd.toJS())));
 
@@ -241,9 +255,9 @@ class LocationStore {
   }
 
   /**
-   * Fetches the files belonging to this location
+   * Fetches the files belonging to a location
    */
-  protected async findLocationFiles(locationId: ID) {
+  async findLocationFiles(locationId: ID) {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
     return this.backend.searchFiles(crit, 'id', 'ASC');
   }
