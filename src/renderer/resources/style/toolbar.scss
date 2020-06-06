@@ -46,6 +46,7 @@
 #main-toolbar.separated { // Intended for when the main (content) toolbar is separate from the rest of the toolbar
   display: flex;
   flex-direction: row;
+  height: 2.4rem;
   justify-content: space-between;
   background: $dark-gray1;
   border-bottom: 2px solid $dark-gray0;

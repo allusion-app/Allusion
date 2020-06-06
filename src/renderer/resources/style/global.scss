@@ -103,10 +103,11 @@ pre {
 
 // Toolbar items
 #toolbar #main-toolbar {
-  .bp3-button:empty::before,
-  .bp3-button > :first-child {
-      margin: 0 !important;
-  }
+  // Only for vertical Toolbar
+  // .bp3-button:empty::before,
+  // .bp3-button > :first-child {
+  //     margin: 0 !important;
+  // }
   #outliner-toolbar,
   #inspector-toolbar {
     width: var(--toolbar-width) !important;
@@ -570,6 +571,10 @@ img {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  
+  img {
+   animation: fade .25s cubic-bezier(0.65, 0.05, 0.36, 1);
+  }
 
   > div {
     flex: auto;
@@ -582,6 +587,11 @@ img {
       width: 48px;
       transition: opacity 0.2s ease-in-out;
       position: absolute;
+      
+      > svg {
+        display: table-cell;
+        vertical-align: middle;
+    }
 
       > span {
         position: absolute;
@@ -602,6 +612,12 @@ img {
       position: absolute;
     }
   }
+}
+
+@keyframes fade {
+    0% {opacity: 0.0} 
+    50% {opacity: 0.5}
+    100% {opacity: 1.0}
 }
 
 .color-black {
