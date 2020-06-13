@@ -70,15 +70,15 @@ pre {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   z-index: 1000;
   #outliner-toolbar > div,
   #main-toolbar > div,
   #inspector-toolbar > div {
     text-align: center;
-  align-content: center;
+    align-content: center;
   }
-  border-right: 2px solid #14181a !important;
+  border-right: 1px solid $dark-gray0;
   .bp3-button {
     max-width: 30px;
   }
@@ -103,10 +103,11 @@ pre {
 
 // Toolbar items
 #toolbar #main-toolbar {
-  .bp3-button:empty::before,
-  .bp3-button > :first-child {
-      margin: 0 !important;
-  }
+  // Only for vertical Toolbar
+  // .bp3-button:empty::before,
+  // .bp3-button > :first-child {
+  //     margin: 0 !important;
+  // }
   #outliner-toolbar,
   #inspector-toolbar {
     width: var(--toolbar-width) !important;
@@ -567,6 +568,10 @@ img {
   display: flex;
   flex-direction: column;
 
+  img {
+    animation: fade 0.25s cubic-bezier(0.65, 0.05, 0.36, 1);
+  }
+
   > div {
     flex: auto;
     position: relative;
@@ -578,6 +583,20 @@ img {
       width: 48px;
       transition: opacity 0.2s ease-in-out;
       position: absolute;
+
+      > svg {
+        position: absolute;
+        height: 36px !important;
+        width: 36px !important;
+        margin-top: -24px;
+        top: 50%;
+        color: #ffffffc7;
+        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
+      }
+      // & > svg {
+      //   display: table-cell;
+      //   vertical-align: middle;
+      // }
 
       > span {
         position: absolute;
@@ -597,6 +616,18 @@ img {
       top: 0;
       position: absolute;
     }
+  }
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
   }
 }
 

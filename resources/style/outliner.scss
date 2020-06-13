@@ -68,7 +68,7 @@ main,
   .button.bp3-fill,
   button.bp3-button.bp3-fill,
   .bp3-non-ideal-state button.bp3-button,
-  .bp3-button:not([class*='bp3-intent-']) {
+  .bp3-button:not([class*='bp3-intent-']):not(.bp3-disabled) {
     color: $light-gray2;
   }
 
@@ -80,7 +80,7 @@ main,
 
   button.bp3-fill,
   // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal) {
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal):not(.bp3-disabled) {
     // .bp3-multi-select .bp3-minimal {
     background: $light-gray1-trans;
     color: $light-gray2;
@@ -89,7 +89,7 @@ main,
     background: none !important;
   }
   .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*='bp3-intent-warning']):not([class*='bp3-intent-danger']) {
+  .bp3-button:not([class*='bp3-intent-warning']):not([class*='bp3-intent-danger']):not(.bp3-disabled) {
     // .bp3-icon > svg:not([fill]) {
     color: $light-gray3;
   }
@@ -152,6 +152,7 @@ main,
   min-height: 39px;
   background: transparent !important;
   cursor: pointer;
+  padding-right: 2px;
 
   h4 {
     margin-left: 10px;
@@ -168,6 +169,8 @@ main,
 #outliner {
   // Show y scrollbar when there's loads of tags or location list items
   overflow: hidden auto !important;
+  border-left: 1px solid $dark-gray0;
+  border-right: 1px solid $dark-gray0;
 
   > div:hover .outliner-header-wrapper:not(last-child) > * {
     opacity: 1;

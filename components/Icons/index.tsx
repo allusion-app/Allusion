@@ -60,7 +60,9 @@ import SEARCH from 'resources/icons/search.svg';
 import SEARCH_EXTENDED from 'resources/icons/search-extended.svg';
 import SELECT_ALL_CHECKED from 'resources/icons/select-all-checked.svg';
 import SELECT_ALL_ROUND from 'resources/icons/select-all-round.svg';
+import SELECT_ALL_ROUND_CHECKED from 'resources/icons/select-all-round-checked.svg';
 import SELECT_ALL_TRANS from 'resources/icons/select-all-trans.svg';
+import SELECT_ALL_TRANS_CHECKED from 'resources/icons/select-all-trans-checked.svg';
 import SELECT_ALL from 'resources/icons/select-all.svg';
 import SETTINGS from 'resources/icons/settings.svg';
 import TAG_ADD from 'resources/icons/tag-add.svg';
@@ -135,7 +137,9 @@ const IconSet = {
   SEARCH_EXTENDED: toSvg(SEARCH_EXTENDED),
   SELECT_ALL_CHECKED: toSvg(SELECT_ALL_CHECKED),
   SELECT_ALL_ROUND: toSvg(SELECT_ALL_ROUND),
+  SELECT_ALL_ROUND_CHECKED: toSvg(SELECT_ALL_ROUND_CHECKED),
   SELECT_ALL_TRANS: toSvg(SELECT_ALL_TRANS),
+  SELECT_ALL_TRANS_CHECKED: toSvg(SELECT_ALL_TRANS_CHECKED),
   SELECT_ALL: toSvg(SELECT_ALL),
   SETTINGS: toSvg(SETTINGS),
   TAG_ADD: toSvg(TAG_ADD),
