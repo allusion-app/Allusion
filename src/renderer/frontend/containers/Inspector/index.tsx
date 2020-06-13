@@ -77,20 +77,20 @@ const Inspector = observer(() => {
     headerText = 'No image selected';
   } else if (selectedFiles.length === 1) {
     const singleFile = selectedFiles[0];
-    const ext = singleFile.path.substr(singleFile.path.lastIndexOf('.') + 1).toUpperCase();
+    const ext = singleFile.absolutePath.substr(singleFile.absolutePath.lastIndexOf('.') + 1).toUpperCase();
     selectionPreview = (
       <img
-        src={singleFile.path}
+        src={singleFile.absolutePath}
         style={{ cursor: uiStore.view.isSlideMode ? undefined : 'zoom-in' }}
         onClick={uiStore.view.enableSlideMode}
       />
     );
-    headerText = path.basename(singleFile.path);
-    headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.path).size)}`;
+    headerText = path.basename(singleFile.absolutePath);
+    headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.absolutePath).size)}`;
   } else {
     // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
     // TODO: This will crash the app if the image can't be found - same for the other case a few lines earlier
-    const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.path).size, 0);
+    const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.absolutePath).size, 0);
 
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
     // TODO: Would be nice to hover over an image and that all images before that get opacity 0.1

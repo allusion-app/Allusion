@@ -6,7 +6,6 @@ import {
   Button,
   H4,
   Collapse,
-  Icon,
   Menu,
   MenuItem,
   Classes,
@@ -61,14 +60,14 @@ const LocationTreeContextMenu = ({
 
   const addToSearch = useCallback(
     () =>
-      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('path', path, 'contains')),
+      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains')),
     [path, uiStore],
   );
 
   const replaceSearch = useCallback(
     () =>
       uiStore.replaceSearchCriteria(
-        new ClientStringSearchCriteria<IFile>('path', path, 'contains'),
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains'),
       ),
     [uiStore, path],
   );
@@ -251,14 +250,14 @@ const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
 
   const addToSearch = useCallback(
     (path: string) =>
-      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('path', path, 'contains')),
+      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains')),
     [uiStore],
   );
 
   const replaceSearch = useCallback(
     (path: string) =>
       uiStore.replaceSearchCriteria(
-        new ClientStringSearchCriteria<IFile>('path', path, 'contains'),
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains'),
       ),
     [uiStore],
   );

@@ -35,7 +35,7 @@ import TagSelector from '../../components/TagSelector';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
 import { ID, generateId } from '../../../entities/ID';
 
-type CriteriaKey = 'name' | 'path' | 'tags' | 'extension' | 'size' | 'dateAdded';
+type CriteriaKey = 'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded';
 type CriteriaOperator = OperatorType;
 type TagValue = [ID, string] | [ID, string, ID[]] | [];
 type CriteriaValue = string | number | Date | TagValue;
@@ -52,7 +52,7 @@ interface ICriteriaField<
 }
 
 type CriteriaField =
-  | ICriteriaField<'name' | 'path', StringOperatorType, string>
+  | ICriteriaField<'name' | 'absolutePath', StringOperatorType, string>
   | ICriteriaField<'tags', ArrayOperatorType, TagValue>
   | ICriteriaField<'extension', BinaryOperatorType, string>
   | ICriteriaField<'size', NumberOperatorType, number>
@@ -60,7 +60,7 @@ type CriteriaField =
 
 const Default: { [key: string]: CriteriaField } = {
   name: { id: 'name', key: 'name', operator: 'contains', value: '' },
-  path: { id: 'path', key: 'path', operator: 'contains', value: '' },
+  path: { id: 'path', key: 'absolutePath', operator: 'contains', value: '' },
   tags: { id: 'tags', key: 'tags', operator: 'contains', value: [] },
   extension: {
     id: 'extension',
@@ -127,7 +127,7 @@ const getOperatorOptions = (key: CriteriaKey) => {
     return OperatorOptions.NUMBER;
   } else if (key === 'extension') {
     return OperatorOptions.BINARY;
-  } else if (key === 'name' || key === 'path') {
+  } else if (key === 'name' || key === 'absolutePath') {
     return OperatorOptions.STRING;
   } else if (key === 'tags') {
     return OperatorOptions.ARRAY;
@@ -186,7 +186,7 @@ const ExtensionCriteriaItem = ({ value, setValue }: IValueInput<string>) => {
 const bytesInMb = 1024 * 1024;
 
 const ValueInput = ({ keyValue, value, setValue }: IValueInput & { keyValue: CriteriaKey }) => {
-  if (keyValue === 'name' || keyValue === 'path') {
+  if (keyValue === 'name' || keyValue === 'absolutePath') {
     return (
       <InputGroup
         placeholder="Enter some text..."
@@ -261,7 +261,7 @@ function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
   const c = { ...Default.tags, id: generateId() };
   if (
     criteria instanceof ClientStringSearchCriteria &&
-    (criteria.key === 'name' || criteria.key === 'path' || criteria.key === 'extension')
+    (criteria.key === 'name' || criteria.key === 'absolutePath' || criteria.key === 'extension')
   ) {
     c.value = criteria.value;
   } else if (criteria instanceof ClientDateSearchCriteria && criteria.key === 'dateAdded') {
@@ -285,7 +285,7 @@ function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
 }
 
 function intoCriteria(field: CriteriaField): FileSearchCriteria {
-  if (field.key === 'name' || field.key === 'path' || field.key === 'extension') {
+  if (field.key === 'name' || field.key === 'absolutePath' || field.key === 'extension') {
     return new ClientStringSearchCriteria(field.key, field.value, field.operator);
   } else if (field.key === 'dateAdded') {
     return new ClientDateSearchCriteria(field.key, field.value, field.operator);

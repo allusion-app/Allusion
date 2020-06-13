@@ -85,12 +85,12 @@ class LocationStore {
 
       // Find all files that have been created (those on disk but not in DB)
       // TODO: Can be optimized: Sort dbFiles, so the includes check can be a binary search
-      const createdPaths = filePaths.filter(path => !dbFiles.find(dbFile => dbFile.path === path));
+      const createdPaths = filePaths.filter(path => !dbFiles.find(dbFile => dbFile.absolutePath === path));
       const createdFiles = await Promise.all(
         createdPaths.map((path) => this.pathToIFile(path, loc.id, loc.tagsToAdd.toJS())));
 
       // Find all files that have been removed (those in DB but not on disk)
-      const missingFiles = dbFiles.filter(file => !filePaths.includes(file.path));
+      const missingFiles = dbFiles.filter(file => !filePaths.includes(file.absolutePath));
 
       // Find matches between removed and created images (different name/path but same characteristics)
       // TODO: Should we also do cross-location matching?
@@ -110,7 +110,8 @@ class LocationStore {
         await Promise.all(matches.map((match, missingFilesIndex) => !match ? undefined :
           this.backend.saveFile({
             ...missingFiles[missingFilesIndex],
-            path: match.path,
+            absolutePath: match.absolutePath,
+            relativePath: match.relativePath,
           }),
         ));
       }
@@ -174,8 +175,10 @@ class LocationStore {
   }
 
   async pathToIFile(path: string, locationId: ID, tagsToAdd?: ID[]): Promise<IFile> {
+    const loc = this.get(locationId)!;
     return {
-      path,
+      absolutePath: path,
+      relativePath: path.replace(loc.path, ''),
       id: generateId(),
       locationId,
       tags: tagsToAdd || [],

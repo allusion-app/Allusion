@@ -10,6 +10,7 @@ const sizeOf = promisify(ImageSize.imageSize);
 import FileStore from '../frontend/stores/FileStore';
 import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
+import { ClientLocation } from './Location';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
 export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
@@ -19,7 +20,9 @@ export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 export interface IFile extends IResource {
   id: ID;
   locationId: ID;
-  path: string; // todo: could store relativePath, and convert to a absPath in clientFile (easier for import/export/sync in future)
+  // Relative path from location
+  relativePath: string;
+  absolutePath: string;
   tags: ID[];
   size: number;
   width: number;
@@ -66,7 +69,8 @@ export class ClientFile implements ISerializable<IFile> {
 
   readonly id: ID;
   readonly locationId: ID;
-  readonly path: string;
+  readonly relativePath: string;
+  readonly absolutePath: string
   readonly tags = observable<ID>([]);
   readonly size: number;
   readonly width: number;
@@ -75,6 +79,8 @@ export class ClientFile implements ISerializable<IFile> {
   readonly dateModified: Date;
   readonly name: string;
   readonly extension: string;
+
+  readonly location: ClientLocation;
 
   @observable thumbnailPath: string = '';
 
@@ -85,7 +91,7 @@ export class ClientFile implements ISerializable<IFile> {
 
     this.id = fileProps.id;
     this.locationId = fileProps.locationId;
-    this.path = fileProps.path;
+    this.relativePath = fileProps.relativePath;
     this.size = fileProps.size;
     this.width = fileProps.width;
     this.height = fileProps.height;
@@ -94,6 +100,9 @@ export class ClientFile implements ISerializable<IFile> {
     this.name = fileProps.name;
     this.extension = fileProps.extension;
     this.isBroken = isBroken;
+
+    this.location = store.getFileLocation(this);
+    this.absolutePath = systemPath.join(this.location.path, this.relativePath);
 
     this.tags.push(...fileProps.tags);
 
@@ -112,7 +121,7 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @computed get filename(): string {
-    const base = Path.basename(this.path);
+    const base = Path.basename(this.relativePath);
     return base.substr(0, base.lastIndexOf('.'));
   }
 
@@ -158,7 +167,8 @@ export class ClientFile implements ISerializable<IFile> {
     return {
       id: this.id,
       locationId: this.locationId,
-      path: this.path,
+      relativePath: this.relativePath,
+      absolutePath: this.absolutePath,
       tags: this.tags.toJS(), // removes observable properties from observable array
       size: this.size,
       width: this.width,

@@ -9,6 +9,7 @@ import { SearchCriteria, ClientArraySearchCriteria } from '../../entities/Search
 import { getThumbnailPath, debounce, needsThumbnail } from '../utils';
 import { ClientTag } from '../../entities/Tag';
 import { FileOrder } from '../../backend/DBRepository';
+import { ClientLocation } from '../../entities/Location';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
 
@@ -80,10 +81,12 @@ class FileStore {
   }
 
   @action.bound async addFile(path: string, locationId: ID, dateAdded: Date = new Date()) {
+    const loc = this.rootStore.locationStore.get(locationId)!;
     const file = new ClientFile(this, {
       id: generateId(),
       locationId,
-      path,
+      absolutePath: path,
+      relativePath: path.replace(loc.path, ''),
       dateAdded: dateAdded,
       dateModified: new Date(),
       tags: [],
@@ -214,6 +217,10 @@ class FileStore {
     this.backend.saveFile(file);
   }
 
+  getFileLocation(file: IFile): ClientLocation {
+    return this.rootStore.locationStore.get(file.locationId)!;
+  }
+
   recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
     if (prefsString) {
@@ -252,7 +259,7 @@ class FileStore {
     const existenceChecker = await Promise.all(
       backendFiles.map(async (backendFile) => {
         try {
-          await fs.access(backendFile.path, fs.constants.F_OK);
+          await fs.access(backendFile.absolutePath, fs.constants.F_OK);
         } catch (err) {
           // Remove file from client only - keep in DB in case it will be recovered later
           // TODO: Store missing date so it can be automatically removed after some time?
@@ -301,7 +308,7 @@ class FileStore {
       const brokenFiles = await Promise.all(
         backendFiles.filter(async (backendFile) => {
           try {
-            await fs.access(backendFile.path, fs.constants.F_OK);
+            await fs.access(backendFile.absolutePath, fs.constants.F_OK);
             return false;
           } catch (err) {
             return true;
@@ -310,7 +317,7 @@ class FileStore {
       );
       const clientFiles = brokenFiles.map((f) => new ClientFile(this, f, true));
       clientFiles.forEach((f) =>
-        f.setThumbnailPath(getThumbnailPath(f.path, this.rootStore.uiStore.thumbnailDirectory)),
+        f.setThumbnailPath(getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory)),
       );
       this.replaceFileList(clientFiles);
     } catch (err) {
@@ -332,14 +339,14 @@ class FileStore {
       // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
       // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
       f.thumbnailPath = needsThumbnail(file.width, file.height)
-        ? getThumbnailPath(file.path, this.rootStore.uiStore.thumbnailDirectory)
-        : file.path;
+        ? getThumbnailPath(file.absolutePath, this.rootStore.uiStore.thumbnailDirectory)
+        : file.absolutePath;
       return f;
     });
   }
 
   @action.bound private async removeThumbnail(file: ClientFile) {
-    const thumbDir = getThumbnailPath(file.path, this.rootStore.uiStore.thumbnailDirectory);
+    const thumbDir = getThumbnailPath(file.absolutePath, this.rootStore.uiStore.thumbnailDirectory);
     if (await fs.pathExists(thumbDir)) {
       await fs.remove(thumbDir);
     }

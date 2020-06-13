@@ -32,7 +32,7 @@ export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
   const thumbnailExists = await fse.pathExists(thumbnailPath);
   if (!thumbnailExists) {
     const msg: IThumbnailMessage = {
-      filePath: file.path,
+      filePath: file.absolutePath,
       thumbnailDirectory: thumbnailDir,
       thumbnailType,
       fileId: file.id,
@@ -61,7 +61,7 @@ export const useWorkerListener = () => {
       const clientFile = fileStore.fileList.find((f) => f.id === fileId);
       if (clientFile) {
         // Load normal image as fallback
-        clientFile.setThumbnailPath(clientFile.path);
+        clientFile.setThumbnailPath(clientFile.absolutePath);
       }
     };
     return () => thumbnailWorker.terminate();

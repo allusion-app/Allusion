@@ -117,6 +117,14 @@ export class ClientLocation implements ISerializable<ILocation> {
     };
   }
 
+  @action changePath(newPath: string) {
+    this.path = newPath;
+    this.store.backend.saveLocation(this.serialize());
+    this.isBroken = false;
+
+    // TODO: Re-set all the absolutePaths for files of this location
+  }
+
   @action.bound addTag(tag: ClientTag) {
     this.tagsToAdd.push(tag.id);
   }
@@ -208,7 +216,7 @@ export class ClientLocation implements ISerializable<ILocation> {
         .on('unlink', (path: string) => {
           console.log(`Location "${SysPath.basename(this.path)}": File ${path} has been removed.`);
           const fileStore = this.store.rootStore.fileStore;
-          const clientFile = fileStore.fileList.find((f) => f.path === path);
+          const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
           if (clientFile) {
             fileStore.hideFile(clientFile);
           }

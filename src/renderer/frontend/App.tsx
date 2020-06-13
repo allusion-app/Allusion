@@ -16,7 +16,6 @@ import { useWorkerListener } from './ThumbnailGeneration';
 import { DragLayer } from './containers/Outliner/TagPanel';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
-import LocationRecoveryDialog from './components/LocationRecoveryDialog';
 
 const SPLASH_SCREEN_TIME = 700;
 

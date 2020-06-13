@@ -35,17 +35,17 @@ async function findImagesRecursively(path: string): Promise<string[]> {
 
 async function doesLocationMatchWithDir(loc: ClientLocation, dir: string, locStore: LocationStore): Promise<IMatch> {
   const folderImagePaths = await findImagesRecursively(dir);
-  const folderImagePathsBase = folderImagePaths.map(f => f.slice(dir.length));
+  const folderImagePathsRelative = folderImagePaths.map(f => f.slice(dir.length));
 
   const locFiles = await locStore.findLocationFiles(loc.id);
-  const locImagePathsBase = locFiles.map(f => f.path.slice(loc.path.length));
+  const locImagePathsRelative = locFiles.map(f => f.relativePath);
 
-  const intersection = folderImagePathsBase.filter(f => locImagePathsBase.includes(f));
+  const intersection = folderImagePathsRelative.filter(f => locImagePathsRelative.includes(f));
 
-  console.log({ folderImagePathsBase, locImagePathsBase, intersection });
+  console.log({ folderImagePathsRelative, locImagePathsRelative, intersection });
 
   return {
-    locationImageCount: locImagePathsBase.length,
+    locationImageCount: locImagePathsRelative.length,
     directoryImageCount: folderImagePaths.length,
     matchCount: intersection.length,
   };
@@ -59,7 +59,7 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
   const [pickedDir, setPickedDir] = useState<string>();
 
   const handleChangeLocationPath = useCallback((location: ClientLocation, path: string) => {
-    location.path = path;
+    location.changePath(path);
   }, []);
 
   const handleRecover = useCallback(async () => {
@@ -126,7 +126,7 @@ return (
               <Callout intent="success">
                 The location has been recovered, all files were found in the specified directory!
                 <br />
-                <Button onClick={uiStore.closeLocationRecovery}>Close</Button> 
+                <Button onClick={uiStore.closeLocationRecovery}>Close</Button>
                 {/* TODO: Refetch on close? */}
               </Callout>
             )}
