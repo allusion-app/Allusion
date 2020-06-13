@@ -1,7 +1,17 @@
 import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Drawer, Classes, Button, Callout, H4, FormGroup, KeyCombo } from '@blueprintjs/core';
-import { Switch, Radio, RadioGroup } from 'components';
+import {
+  Drawer,
+  Classes,
+  Button,
+  Callout,
+  H4,
+  FormGroup,
+  KeyCombo,
+  Switch,
+  Radio,
+  RadioGroup,
+} from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
@@ -105,7 +115,7 @@ const Settings = observer(() => {
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup
           inline
-          value={uiStore.view.thumbnailSize}
+          selectedValue={uiStore.view.thumbnailSize}
           onChange={() => undefined}
           name="Thumbnail size"
         >
@@ -116,7 +126,7 @@ const Settings = observer(() => {
 
         <RadioGroup
           inline
-          value={uiStore.view.thumbnailShape}
+          selectedValue={uiStore.view.thumbnailShape}
           onChange={() => undefined}
           name="Thumbnail shape"
         >

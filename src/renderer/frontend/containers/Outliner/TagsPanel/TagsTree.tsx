@@ -1,9 +1,9 @@
 import React, { useMemo, useState, useCallback, useReducer } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { ContextMenu, Collapse, Button, H4, Icon } from '@blueprintjs/core';
+import { ContextMenu, Collapse, Button, H4, Icon, InputGroup } from '@blueprintjs/core';
 
-import { Tree, TextInput } from 'components';
+import { Tree } from 'components';
 import IconSet from 'components/Icons';
 import {
   ITreeBranch,
@@ -110,7 +110,7 @@ interface ILabelProps {
   onSubmit: (target: EventTarget & HTMLInputElement) => void;
 }
 
-const isValid = (text: string) => text.trim().length > 0;
+// const isValid = (text: string) => text.trim().length > 0;
 
 const Label = observer((props: ILabelProps) => {
   return (
@@ -119,13 +119,28 @@ const Label = observer((props: ILabelProps) => {
         {props.icon}
       </span>
       {props.isEditing ? (
-        <TextInput
+        <InputGroup
           autoFocus
           placeholder="Enter a new name"
           defaultValue={props.text}
-          setText={props.setText}
-          isValid={isValid}
-          onSubmit={props.onSubmit}
+          onBlur={(e) => {
+            const value = e.currentTarget.value.trim();
+            if (value.length > 0) {
+              props.setText(value);
+            }
+            props.onSubmit(e.currentTarget);
+          }}
+          onKeyDown={(e) => {
+            const value = e.currentTarget.value.trim();
+            if (e.key === 'Enter' && value.length > 0) {
+              props.setText(value);
+            }
+            props.onSubmit(e.currentTarget);
+          }}
+          onFocus={(e) => e.target.select()}
+          // Only show red outline when input field is in focus and text is invalid
+          // TODO: Visualizing errors...
+          // className={!isValidInput ? 'bp3-intent-danger' : ''}
         />
       ) : (
         <div>{props.text}</div>

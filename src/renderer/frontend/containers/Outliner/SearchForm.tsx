@@ -1,7 +1,15 @@
 import React, { useContext, useEffect, useReducer, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
-import { FormGroup, Button, Dialog, ControlGroup } from '@blueprintjs/core';
+import {
+  FormGroup,
+  Button,
+  Dialog,
+  ControlGroup,
+  NumericInput,
+  HTMLSelect,
+  InputGroup,
+} from '@blueprintjs/core';
 
 import {
   NumberOperators,
@@ -26,7 +34,6 @@ import IconSet from 'components/Icons';
 import TagSelector from '../../components/TagSelector';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
 import { ID, generateId } from '../../../entities/ID';
-import { TextInput, NumberInput, Select } from 'components';
 
 type CriteriaKey = 'name' | 'path' | 'tags' | 'extension' | 'size' | 'dateAdded';
 type CriteriaOperator = OperatorType;
@@ -98,12 +105,12 @@ const KeyOptions = [
 ];
 
 const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => (
-  <Select
+  <HTMLSelect
     onChange={(e) => dispatch({ type: 'key', id, value: e.target.value as CriteriaKey })}
     value={keyValue}
   >
     {KeyOptions}
-  </Select>
+  </HTMLSelect>
 );
 
 interface IOperatorSelector extends IKeySelector {
@@ -137,12 +144,12 @@ const getOperatorOptions = (key: CriteriaKey) => {
 };
 
 const OperatorSelector = ({ id, keyValue, operator, dispatch }: IOperatorSelector) => (
-  <Select
+  <HTMLSelect
     onChange={(e) => dispatch({ type: 'operator', id, value: e.target.value as CriteriaOperator })}
     defaultValue={operator}
   >
     {getOperatorOptions(keyValue)}
-  </Select>
+  </HTMLSelect>
 );
 
 interface IValueInput<V extends CriteriaValue = CriteriaValue> extends IKeySelector {
@@ -179,12 +186,12 @@ const ExtensionOptions = IMG_EXTENSIONS.map((ext) => (
 ));
 
 const ExtensionCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<string>, 'keyValue'>) => (
-  <Select
+  <HTMLSelect
     onChange={(e) => dispatch({ type: 'value', id, value: e.target.value })}
     defaultValue={value}
   >
     {ExtensionOptions}
-  </Select>
+  </HTMLSelect>
 );
 
 const bytesInMb = 1024 * 1024;
@@ -192,12 +199,12 @@ const bytesInMb = 1024 * 1024;
 const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
   if (keyValue === 'name' || keyValue === 'path') {
     return (
-      <TextInput
+      <InputGroup
         key={keyValue}
         autoFocus
         placeholder="Enter some text..."
         defaultValue={value as string}
-        setText={(value) => dispatch({ type: 'value', id, value })}
+        onBlur={(e) => dispatch({ type: 'value', id, value: e.target.value })}
       />
     );
   } else if (keyValue === 'tags') {
@@ -206,11 +213,12 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
     return <ExtensionCriteriaItem id={id} value={value as string} dispatch={dispatch} />;
   } else if (keyValue === 'size') {
     return (
-      <NumberInput
+      <NumericInput
         autoFocus
         placeholder="Enter a number..."
         defaultValue={value as number}
-        setValue={(value) => dispatch({ type: 'value', id, value })}
+        onValueChange={(value) => dispatch({ type: 'value', id, value })}
+        buttonPosition="none"
       />
     );
   } else if (keyValue === 'dateAdded') {

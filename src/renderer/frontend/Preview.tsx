@@ -1,11 +1,10 @@
 import React, { useContext, useEffect, useCallback } from 'react';
-import { Button } from '@blueprintjs/core';
+import { Button, Switch } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ContentView from './containers/ContentView';
-import { Switch } from 'components';
 import IconSet from 'components/Icons';
 import { useWorkerListener } from './ThumbnailGeneration';
 
