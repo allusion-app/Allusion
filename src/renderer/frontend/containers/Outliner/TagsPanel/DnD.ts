@@ -1,14 +1,13 @@
 import { ID } from 'src/renderer/entities/ID';
 import { Classes } from '@blueprintjs/core';
 
+/** Data transfer types of TagsTree items. */
 export const enum DnDType {
   Collection = 'collection',
   Tag = 'tag',
 }
 
-/**
- * Data attributes that will be available on every drag operation.
- */
+/** Data attributes that will be available on every drag operation. */
 export const enum DnDAttribute {
   Source = 'dndSource',
   Target = 'dndTarget',

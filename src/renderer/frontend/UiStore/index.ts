@@ -303,30 +303,6 @@ class UiStore {
     }
   }
 
-  @action.bound async moveTag(id: ID, target: ClientTag | ClientTagCollection) {
-    const tag = this.rootStore.tagStore.get(id);
-    if (!tag) {
-      throw new Error('Cannot find tag to move ' + id);
-    }
-
-    if (target instanceof ClientTag) {
-      // Insert the moved tag below the position of the current tag where it was dropped
-      const insertionIndex = target.parent.tags.indexOf(target.id) + 1;
-      target.parent.insertTag(tag, insertionIndex);
-    } else {
-      // Insert at start when dragging tag to collection
-      target.insertTag(tag);
-    }
-  }
-
-  @action.bound async moveCollection(id: ID, target: ClientTagCollection) {
-    const collection = this.rootStore.tagCollectionStore.get(id);
-    if (!collection) {
-      throw new Error('Cannot find collection to move ' + id);
-    }
-    target.insertCollection(collection);
-  }
-
   @action.bound async colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
     const ctx = this.getTagContextItems(activeElementId);
     ctx.collections.forEach((col) => col.setColor(color));
