@@ -32,6 +32,7 @@ import {
   DragItem,
   handleDragOverAndLeave,
 } from './DnD';
+import { formatTagCountText } from 'src/renderer/frontend/utils';
 
 /** Map that keeps track of the IDs that are expanded */
 export type IExpansionState = { [key: string]: boolean };
@@ -198,9 +199,18 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, submit, pos }: I
   );
 
   const handleDragStart = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) =>
-      onDragStart(event, nodeData.name, DnDType.Tag, nodeData.id, nodeData.isSelected, 'linkMove'),
-    [nodeData.id, nodeData.isSelected, nodeData.name],
+    (event: React.DragEvent<HTMLDivElement>) => {
+      let name = nodeData.name;
+      if (nodeData.isSelected) {
+        const ctx = uiStore.getTagContextItems(nodeData.id);
+        const extraText = formatTagCountText(ctx.tags.length - 1, ctx.collections.length);
+        if (extraText.length > 0) {
+          name = name + ` (${extraText})`;
+        }
+      }
+      onDragStart(event, name, DnDType.Tag, nodeData.id, nodeData.isSelected, 'linkMove');
+    },
+    [nodeData.id, nodeData.isSelected, nodeData.name, uiStore],
   );
 
   const handleDragOver = useCallback(
@@ -308,9 +318,18 @@ const Collection = observer((props: ICollectionProps) => {
   );
 
   const handleDragStart = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) =>
-      onDragStart(event, nodeData.name, DnDType.Collection, nodeData.id, nodeData.isSelected),
-    [nodeData.id, nodeData.isSelected, nodeData.name],
+    (event: React.DragEvent<HTMLDivElement>) => {
+      let name = nodeData.name;
+      if (nodeData.isSelected) {
+        const ctx = uiStore.getTagContextItems(nodeData.id);
+        const extraText = formatTagCountText(ctx.tags.length, ctx.collections.length - 1);
+        if (extraText.length > 0) {
+          name = name + `(${extraText})`;
+        }
+      }
+      onDragStart(event, name, DnDType.Collection, nodeData.id, nodeData.isSelected);
+    },
+    [nodeData.id, nodeData.isSelected, nodeData.name, uiStore],
   );
 
   const handleDragOver = useCallback(

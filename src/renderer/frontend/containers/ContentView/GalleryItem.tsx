@@ -70,18 +70,13 @@ const GalleryItem = observer(
       (event: React.DragEvent<HTMLDivElement>) => {
         if (event.dataTransfer.types.includes(DnDType.Tag)) {
           event.dataTransfer.dropEffect = 'none';
-          file.addTag(event.dataTransfer.getData(DnDType.Tag));
+          const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType.Tag));
+          ctx.tags.forEach((tag) => file.addTag(tag.id));
+          ctx.collections.forEach((col) => col.getTagsRecursively().forEach(file.addTag));
           delete event.currentTarget.dataset[DnDAttribute.Target];
         }
-
-        // const ctx = uiStore.getTagContextItems(item.id);
-        // const allContextTags = [
-        //   ...ctx.tags.map((t) => t.id),
-        //   ...ctx.collections.flatMap((col) => col.getTagsRecursively()),
-        // ];
-        // allContextTags.forEach(file.addTag);
       },
-      [file],
+      [file, uiStore],
     );
 
     const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
