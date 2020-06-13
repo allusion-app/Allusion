@@ -134,7 +134,7 @@ const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) 
       className="tooltip"
       data-right={ToolbarTooltips.ViewGrid}
     />
-    <div id="spacer" style={{ width: '1rem' }} />
+    {/* <div id="spacer" style={{ width: '1rem' }} /> */}
   </ButtonGroup>
 ));
 
