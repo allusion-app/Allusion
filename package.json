@@ -11,8 +11,7 @@
     "package": "rimraf release && npm run production && electron-packager ./dist Allusion --out=./release --asar",
     "lint": "eslint src/**/*{ts,tsx} -f codeframe",
     "test": "jest",
-    "package:mac": "rimraf release && npm run production && electron-packager ./dist Allusion --out=./release --asar --icon=./resources/logo/allusion-logomark.icns",
-    "storybook": "start-storybook -p 6006"
+    "package:mac": "rimraf release && npm run production && electron-packager ./dist Allusion --out=./release --asar --icon=./resources/logo/allusion-logomark.icns"
   },
   "repository": {
     "type": "git",
@@ -25,8 +24,6 @@
   },
   "homepage": "https://github.com/RvanderLaan/VisualLibrary#readme",
   "devDependencies": {
-    "@babel/core": "^7.9.6",
-    "@storybook/react": "^5.3.18",
     "@svgr/webpack": "^5.3.1",
     "@types/chrome": "^0.0.86",
     "@types/fs-extra": "^8.1.0",
@@ -40,7 +37,6 @@
     "@types/uuid": "^7.0.2",
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
-    "babel-loader": "^8.1.0",
     "css-loader": "^3.5.2",
     "electron": "^8.2.1",
     "electron-packager": "^14.2.1",
