@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Drawer, Classes, Button, Callout, H4, FormGroup, KeyCombo } from '@blueprintjs/core';
-import { Toggle, Radio, RadioGroup } from 'components';
+import { Switch, Radio, RadioGroup } from 'components';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
@@ -124,31 +124,31 @@ const Settings = observer(() => {
           <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
         </RadioGroup>
 
-        <Toggle
+        <Switch
           defaultChecked={remote.getCurrentWindow().isFullScreen()}
           onChange={toggleFullScreen}
           label="Full screen"
         />
 
-        <Toggle
+        <Switch
           checked={uiStore.isToolbarVertical}
           onChange={uiStore.toggleToolbarVertical}
           label="Vertical toolbar"
         />
 
-        <Toggle
+        <Switch
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
           label="Dark theme"
         />
 
-        <Toggle
+        <Switch
           defaultChecked={RendererMessenger.getIsRunningInBackground()}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
 
-        <Toggle
+        <Switch
           defaultChecked={RendererMessenger.getIsClipServerEnabled()}
           onChange={toggleClipServer}
           label="Browser extension support"

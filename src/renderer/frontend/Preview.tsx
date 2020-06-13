@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import StoreContext from './contexts/StoreContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ContentView from './containers/ContentView';
-import { Toggle } from 'components';
+import { Switch } from 'components';
 import IconSet from 'components/Icons';
 import { useWorkerListener } from './ThumbnailGeneration';
 
@@ -48,7 +48,7 @@ const PreviewApp = observer(() => {
               minimal
               disabled={uiStore.view.firstItem === fileStore.fileList.length - 1}
             />
-            <Toggle
+            <Switch
               label="Overview"
               onChange={uiStore.view.toggleSlideMode}
               checked={!uiStore.view.isSlideMode}

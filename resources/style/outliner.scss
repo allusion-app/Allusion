@@ -265,14 +265,14 @@ main,
     margin-left: 0.25rem;
     width: 1rem;
     height: 1rem;
-    mask-image: url(~resources/icons/search.svg);
-    -webkit-mask-image: url(~resources/icons/search.svg);
+    mask-image: url(~resources/icons/select-all-round.svg);
+    -webkit-mask-image: url(~resources/icons/select-all-round.svg);
     cursor: pointer;
 
     &.searched {
       background-color: currentColor;
-      mask-image: url(~resources/icons/select-all-round.svg);
-      -webkit-mask-image: url(~resources/icons/select-all-round.svg);
+      mask-image: url(~resources/icons/search.svg);
+      -webkit-mask-image: url(~resources/icons/search.svg);
     }
   }
 

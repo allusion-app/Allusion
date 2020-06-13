@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Checkbox, Toggle } from 'components';
+import { Checkbox, Switch } from 'components';
 
 export default {
   component: Checkbox,
@@ -11,6 +11,6 @@ export const CheckBox = () => {
   return <Checkbox label="Option" />;
 };
 
-export const ToggleCheckBox = () => {
-  return <Toggle label="ON" />;
+export const SwitchCheckBox = () => {
+  return <Switch label="ON" />;
 };
