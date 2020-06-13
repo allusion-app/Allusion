@@ -125,7 +125,7 @@ const LocationRemovalAlert = ({ dir, handleClose }: ILocationRemovalAlertProps) 
   );
 };
 
-interface ILocationTreeData {
+interface ITreeData {
   uiStore: UiStore;
   expansion: IExpansionState;
   setExpansion: React.Dispatch<IExpansionState>;
@@ -135,16 +135,13 @@ interface ILocationTreeData {
 
 type IExpansionState = { [key: string]: boolean };
 
-const toggleExpansion = (
-  nodeData: ClientLocation | IDirectoryTreeItem,
-  treeData: ILocationTreeData,
-) => {
+const toggleExpansion = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITreeData) => {
   const { expansion, setExpansion } = treeData;
   const id = nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath;
   setExpansion({ ...expansion, [id]: !expansion[id] });
 };
 
-const isExpanded = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ILocationTreeData) =>
+const isExpanded = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITreeData) =>
   treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -171,7 +168,7 @@ const searchLocation = (search: (criteria: FileSearchCriteria) => void, path: st
 const customKeys = (
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: ClientLocation | IDirectoryTreeItem,
-  treeData: ILocationTreeData,
+  treeData: ITreeData,
 ) => {
   switch (event.key) {
     case 'F10':
@@ -207,7 +204,7 @@ const customKeys = (
 const handleBranchKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: ClientLocation | IDirectoryTreeItem,
-  treeData: ILocationTreeData,
+  treeData: ITreeData,
 ) => {
   createBranchOnKeyDown(
     event,
@@ -277,7 +274,7 @@ const LocationTreeContextMenu = ({
 };
 
 const SubLocation = observer(
-  ({ nodeData, treeData }: { nodeData: IDirectoryTreeItem; treeData: ILocationTreeData }) => {
+  ({ nodeData, treeData }: { nodeData: IDirectoryTreeItem; treeData: ITreeData }) => {
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         ContextMenu.show(
@@ -316,7 +313,7 @@ const SubLocation = observer(
 );
 
 const Location = observer(
-  ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ILocationTreeData }) => {
+  ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         ContextMenu.show(
@@ -380,7 +377,7 @@ interface ILocationTreeProps {
 const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useContext(StoreContext);
   const [expansion, setExpansion] = useState<IExpansionState>({});
-  const treeData: ILocationTreeData = useMemo(
+  const treeData: ITreeData = useMemo(
     () => ({ expansion, setExpansion, uiStore, delete: onDelete, config: onConfig }),
     [expansion, onConfig, onDelete, uiStore],
   );

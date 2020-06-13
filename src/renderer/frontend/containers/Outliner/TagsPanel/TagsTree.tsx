@@ -92,10 +92,11 @@ const reducer = (state: State, action: Action): State => {
   }
 };
 
-interface ITagTreeData {
+interface ITreeData {
   state: State;
   dispatch: React.Dispatch<Action>;
   submit: (target: EventTarget & HTMLInputElement) => void;
+  select: (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => void;
   uiStore: UiStore;
 }
 
@@ -111,7 +112,7 @@ interface ILabelProps {
 
 const isValid = (text: string) => text.trim().length > 0;
 
-const Label = (props: ILabelProps) => {
+const Label = observer((props: ILabelProps) => {
   return (
     <>
       <span className="pre-icon" style={{ color: props.color }}>
@@ -131,7 +132,7 @@ const Label = (props: ILabelProps) => {
       )}
     </>
   );
-};
+});
 
 interface ITagProps {
   nodeData: ClientTag;
@@ -139,6 +140,7 @@ interface ITagProps {
   dispatch: React.Dispatch<Action>;
   isEditing: boolean;
   submit: (target: EventTarget & HTMLInputElement) => void;
+  select: (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => void;
   pos: number;
 }
 
@@ -182,7 +184,8 @@ const toggleQuery = (nodeData: ClientTagCollection | ClientTag, uiStore: UiStore
   }
 };
 
-const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, submit, pos }: ITagProps) => {
+const Tag = observer((props: ITagProps) => {
+  const { nodeData, uiStore, dispatch, isEditing, submit, pos, select } = props;
   const handleContextMenu = useCallback(
     (e) =>
       ContextMenu.show(
@@ -237,14 +240,8 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, submit, pos }: I
   );
 
   const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-      if (event.ctrlKey) {
-        nodeData.isSelected ? uiStore.deselectTag(nodeData.id) : uiStore.selectTag(nodeData);
-      } else {
-        uiStore.selectTag(nodeData, true);
-      }
-    },
-    [nodeData, uiStore],
+    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => select(event, nodeData),
+    [nodeData, select],
   );
 
   const handleQuickQuery = useCallback(() => toggleQuery(nodeData, uiStore), [nodeData, uiStore]);
@@ -271,7 +268,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, submit, pos }: I
       />
       <span
         onClick={handleQuickQuery}
-        className={`after-icon ${nodeData.isSearched && 'searched'}`}
+        className={`after-icon ${nodeData.isSearched ? 'searched' : ''}`}
       ></span>
     </div>
   );
@@ -279,7 +276,7 @@ const Tag = observer(({ nodeData, uiStore, dispatch, isEditing, submit, pos }: I
 
 const TagLabel = (
   nodeData: ClientTag,
-  treeData: ITagTreeData,
+  treeData: ITreeData,
   _level: number,
   _size: number,
   pos: number,
@@ -291,6 +288,7 @@ const TagLabel = (
     submit={treeData.submit}
     uiStore={treeData.uiStore}
     pos={pos}
+    select={treeData.select}
   />
 );
 
@@ -300,7 +298,7 @@ interface ICollectionProps extends Omit<ITagProps, 'nodeData'> {
 }
 
 const Collection = observer((props: ICollectionProps) => {
-  const { nodeData, dispatch, expansion, isEditing, submit, pos, uiStore } = props;
+  const { nodeData, dispatch, expansion, isEditing, submit, pos, uiStore, select } = props;
 
   const handleContextMenu = useCallback(
     (e) =>
@@ -382,15 +380,8 @@ const Collection = observer((props: ICollectionProps) => {
   );
 
   const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-      const tags = nodeData.getTagsRecursively();
-      if (event.ctrlKey) {
-        nodeData.isSelected ? uiStore.deselectTags(tags) : uiStore.selectTags(tags);
-      } else {
-        uiStore.selectTags(tags, true);
-      }
-    },
-    [nodeData, uiStore],
+    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => select(event, nodeData),
+    [nodeData, select],
   );
 
   const handleQuickQuery = useCallback(() => toggleQuery(nodeData, uiStore), [nodeData, uiStore]);
@@ -417,7 +408,7 @@ const Collection = observer((props: ICollectionProps) => {
       />
       <span
         onClick={handleQuickQuery}
-        className={`after-icon ${nodeData.isSearched && 'searched'}`}
+        className={`after-icon ${nodeData.isSearched ? 'searched' : ''}`}
       ></span>
     </div>
   );
@@ -425,7 +416,7 @@ const Collection = observer((props: ICollectionProps) => {
 
 const CollectionLabel = (
   nodeData: ClientTagCollection,
-  treeData: ITagTreeData,
+  treeData: ITreeData,
   _level: number,
   _size: number,
   pos: number,
@@ -438,18 +429,19 @@ const CollectionLabel = (
     submit={treeData.submit}
     pos={pos}
     uiStore={treeData.uiStore}
+    select={treeData.select}
   />
 );
 
 const isSelected = (nodeData: ClientTag | ClientTagCollection): boolean => nodeData.isSelected;
 
-const isExpanded = (nodeData: ClientTagCollection, treeData: ITagTreeData): boolean =>
+const isExpanded = (nodeData: ClientTagCollection, treeData: ITreeData): boolean =>
   treeData.state.expansion[nodeData.id];
 
-const toggleExpansion = (nodeData: ClientTagCollection, treeData: ITagTreeData) =>
+const toggleExpansion = (nodeData: ClientTagCollection, treeData: ITreeData) =>
   treeData.dispatch({ type: ActionType.ToggleExpansion, payload: nodeData.id });
 
-const toggleSelection = (nodeData: ClientTag | ClientTagCollection, { uiStore }: ITagTreeData) => {
+const toggleSelection = (nodeData: ClientTag | ClientTagCollection, { uiStore }: ITreeData) => {
   if (nodeData instanceof ClientTag) {
     nodeData.isSelected ? uiStore.deselectTag(nodeData.id) : uiStore.selectTag(nodeData);
   } else {
@@ -477,7 +469,7 @@ const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
 const customKeys = (
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: ClientTag | ClientTagCollection,
-  treeData: ITagTreeData,
+  treeData: ITreeData,
 ) => {
   switch (event.key) {
     case 'F2':
@@ -512,7 +504,7 @@ const customKeys = (
 const handleBranchOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: ClientTagCollection,
-  treeData: ITagTreeData,
+  treeData: ITreeData,
 ) =>
   createBranchOnKeyDown(
     event,
@@ -527,8 +519,55 @@ const handleBranchOnKeyDown = (
 const handleLeafOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: ClientTag,
-  treeData: ITagTreeData,
+  treeData: ITreeData,
 ) => createLeafOnKeyDown(event, nodeData, treeData, toggleSelection, customKeys);
+
+// Range Selection from last selected node
+const rangeSelection = (
+  nodeData: ClientTagCollection | ClientTag,
+  lastSelection: ID,
+  root: ClientTagCollection,
+  uiStore: UiStore,
+): ID => {
+  uiStore.clearTagSelection();
+  let isSelecting: { value: boolean } | undefined = undefined;
+  const selectRange = (node: ClientTagCollection | ClientTag) => {
+    console.log(node.name);
+    if (node.id === lastSelection || node.id === nodeData.id) {
+      if (isSelecting === undefined) {
+        isSelecting = { value: true };
+      } else {
+        node instanceof ClientTag
+          ? uiStore.selectTag(node)
+          : uiStore.selectTags(node.getTagsRecursively());
+        isSelecting = { value: false };
+        return nodeData.id;
+      }
+    }
+
+    if (node instanceof ClientTagCollection) {
+      // Pre-order Tree Traversal
+      for (const collection of node.clientSubCollections) {
+        if (isSelecting === undefined || isSelecting.value) {
+          selectRange(collection);
+          continue;
+        }
+        return nodeData.id;
+      }
+      for (const tag of node.clientTags) {
+        if (isSelecting === undefined || isSelecting.value) {
+          selectRange(tag);
+          continue;
+        }
+        return nodeData.id;
+      }
+    } else if (isSelecting?.value) {
+      uiStore.selectTag(node);
+    }
+  };
+  selectRange(root);
+  return nodeData.id;
+};
 
 const mapLeaf = (tag: ClientTag): ITreeLeaf => {
   return {
@@ -558,20 +597,52 @@ interface ITagsTreeProps {
 
 const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
   const { tagStore, tagCollectionStore } = uiStore.rootStore;
+
   const [state, dispatch] = useReducer(reducer, { expansion: {}, editableNode: undefined });
+
   const submit = useCallback((target: EventTarget & HTMLInputElement) => {
     target.focus();
     dispatch({ type: ActionType.SetEditableNode, payload: undefined });
     target.setSelectionRange(0, 0);
   }, []);
-  const treeData = useMemo(
+
+  // Handles selection via click event
+  const [lastSelection, setLastSelection] = useState<ID | undefined>(undefined);
+  const select = useCallback(
+    (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => {
+      if (event.shiftKey && lastSelection !== undefined && lastSelection !== nodeData.id) {
+        setLastSelection(rangeSelection(nodeData, lastSelection, root, uiStore));
+      } else if (event.ctrlKey || event.metaKey) {
+        // Toggles selection state of a single node
+        const nextLastSelection = nodeData.isSelected ? undefined : nodeData.id;
+        if (nodeData instanceof ClientTag) {
+          nodeData.isSelected ? uiStore.deselectTag(nodeData.id) : uiStore.selectTag(nodeData);
+        } else {
+          nodeData.isSelected
+            ? uiStore.deselectTags(nodeData.getTagsRecursively())
+            : uiStore.selectTags(nodeData.getTagsRecursively());
+        }
+        setLastSelection(nextLastSelection);
+      } else {
+        // Replaces whole selection
+        nodeData instanceof ClientTag
+          ? uiStore.selectTag(nodeData, true)
+          : uiStore.selectTags(nodeData.getTagsRecursively(), true);
+        setLastSelection(nodeData.id);
+      }
+    },
+    [lastSelection, root, uiStore],
+  );
+
+  const treeData: ITreeData = useMemo(
     () => ({
       state,
       dispatch,
       uiStore,
       submit,
+      select,
     }),
-    [state, submit, uiStore],
+    [select, state, submit, uiStore],
   );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
