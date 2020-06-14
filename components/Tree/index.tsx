@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import style from './tree.module.scss';
+import './tree.scss';
 import React, {
   useCallback,
   useEffect,
@@ -284,7 +284,7 @@ const TreeLeaf = observer(
 
     return (
       <li
-        className={`${className} ${style.tree_item}`}
+        className={`${className} tree_item`}
         aria-level={level}
         aria-setsize={size}
         aria-posinset={pos}
@@ -293,7 +293,7 @@ const TreeLeaf = observer(
         role="treeitem"
         tabIndex={-1}
       >
-        <div className={style.label}>
+        <div className="label">
           {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
         </div>
       </li>
@@ -365,7 +365,7 @@ const TreeBranch = observer(
 
     return (
       <li
-        className={`${className} ${style.tree_item}`}
+        className={`${className} tree_item`}
         role="treeitem"
         tabIndex={-1}
         aria-expanded={expanded}
@@ -375,21 +375,21 @@ const TreeBranch = observer(
         aria-posinset={pos}
         onKeyDown={handleKeyDown}
       >
-        <div className={style.label}>
+        <div className="label">
           <div
-            className={style.default_caret}
+            className="default_caret"
             aria-pressed={expanded}
             aria-label="Expand"
             onClick={handleToggle}
           />
           {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
         </div>
-        <div className={style.group_transition} style={{ maxHeight: expanded ? undefined : 0 }}>
+        <div className="group_transition" style={{ maxHeight: expanded ? undefined : 0 }}>
           {(branches.length > 0 || leaves.length > 0) && (
             <ul
               style={{ '--level': level } as React.CSSProperties}
-              className={style.group}
               role="group"
+              className="group"
               ref={group}
             >
               {branches.map((b, i) => (
@@ -540,7 +540,7 @@ const Tree = ({
   return (
     <ul
       style={{ '--level': 0 } as CSSProperties}
-      className={`${style.tree} ${className}`}
+      className={`tree ${className}`}
       ref={tree}
       role="tree"
       aria-labelledby={labelledBy}

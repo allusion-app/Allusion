@@ -54,7 +54,7 @@ const App = observer(() => {
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
       <div className={sidebarClass}>
-        <div id="layoutContainer" className={`app-theme ${themeClass}`}>
+        <div id="layoutContainer" className={themeClass}>
           <ErrorBoundary>
             <GlobalHotkeys>
               <Toolbar />
