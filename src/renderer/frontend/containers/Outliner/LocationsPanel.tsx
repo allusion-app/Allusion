@@ -457,11 +457,6 @@ const LocationsPanel = () => {
     }
   }, [locationConfigOpen, locationStore]);
 
-  const handleRefresh = useCallback((e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setLocationTreeKey(new Date());
-  }, []);
-
   const handleChooseWatchedDir = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -499,23 +494,20 @@ const LocationsPanel = () => {
 
       const newLoc = await locationStore.addDirectory(newLocPath);
       setLocationConfigOpen(newLoc);
-      handleRefresh();
+      setLocationTreeKey(new Date());
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [handleRefresh, locationStore],
+    [locationStore],
   );
-
-  const toggleLocations = useCallback(() => setCollapsed(!isCollapsed), [isCollapsed]);
 
   // Refresh when adding/removing location
   useEffect(() => {
-    handleRefresh();
-  }, [handleRefresh, locationStore.locationList.length]);
+    setLocationTreeKey(new Date());
+  }, [locationStore.locationList.length]);
 
   return (
     <div>
-      <div className="outliner-header-wrapper" onClick={toggleLocations}>
-        <H4 className="bp3-heading">
+      <div className="outliner-header-wrapper">
+        <H4 className="bp3-heading" onClick={() => setCollapsed(!isCollapsed)}>
           <span className="bp3-icon custom-icon custom-icon-14">
             {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}
           </span>
@@ -531,7 +523,7 @@ const LocationsPanel = () => {
         <Button
           minimal
           icon={IconSet.RELOAD}
-          onClick={handleRefresh}
+          onClick={() => setLocationTreeKey(new Date())}
           className="tooltip"
           data-right={Tooltip.Refresh}
         />

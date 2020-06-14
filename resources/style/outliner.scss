@@ -177,17 +177,9 @@ main,
   }
 }
 
-.bp3-light {
-  background-color: $light-gray2;
-}
-
 #tree-footer {
   flex: 1;
   min-height: 16px;
-}
-
-.bp3-control-group {
-  padding: 0.25rem 0;
 }
 
 .bp3-input {
@@ -201,48 +193,41 @@ main,
   // box-shadow: none !important;
 }
 
-.tagLabel {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.tags-tree {
+  .searched {
+    // TODO: Use a color without alpha values...
+    --foreground-color: #007bf53f;
+    --background-color: #007bf53f;
+    --focus-color: #007bf53f;
+    --highlight-background-color: #007bf53f;
+    color: white;
+  }
+
+  &.selected {
+    --selection-background-color: transparent;
+    --selection-font-color: var(--primary-color);
+
+    button {
+      opacity: unset;
+    }
+
+    .after-icon {
+      width: 1rem;
+      height: 1rem;
+      background-color: currentColor;
+    }
+  }
 }
 
-#watched-folders {
-  padding-left: 0;
-  margin: 0;
-  div > span:first-child {
-    padding: 0.25rem 0.05rem;
-    margin-left: 0.5rem;
-  }
-  > ul {
-    margin: 0;
-  }
-  > li {
-    list-style-type: none;
-    button {
-      background: none;
-      // width: fit-content !important;
-      padding: 0 1rem;
-      padding-right: 0;
-      justify-content: left;
-      width: 100%;
-      border-radius: 0;
-    }
-    > span {
-      width: calc(100% - 30px);
-      display: inline-block;
-      height: 30px;
-      display: flex;
-      align-items: center;
-    }
-  }
+[aria-selected='true'] > .label > .tree-content-label > .after-icon {
+  mask-image: url(~resources/icons/checkmark.svg);
+  -webkit-mask-image: url(~resources/icons/checkmark.svg);
 }
 
 .tree-content-label {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 1.75rem;
 
   &[data-dnd-target='true'] {
     border-bottom: 2px solid $blue1;
@@ -263,25 +248,28 @@ main,
 
   > .after-icon {
     margin-left: 0.25rem;
-    width: 1rem;
-    height: 1rem;
-    mask-image: url(~resources/icons/select-all-round.svg);
-    -webkit-mask-image: url(~resources/icons/select-all-round.svg);
+    mask-image: url(~resources/icons/select-all.svg);
+    -webkit-mask-image: url(~resources/icons/select-all.svg);
     cursor: pointer;
-
-    &.searched {
-      background-color: currentColor;
-      mask-image: url(~resources/icons/search.svg);
-      -webkit-mask-image: url(~resources/icons/search.svg);
-    }
   }
 
   &:hover > .after-icon {
+    width: 1rem;
+    height: 1rem;
     background-color: currentColor;
   }
 
-  > input,
-  > div {
+  > div,
+  input {
+    min-height: 1.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     width: 100%;
+  }
+
+  > div {
+    display: flex;
+    align-items: center;
   }
 }

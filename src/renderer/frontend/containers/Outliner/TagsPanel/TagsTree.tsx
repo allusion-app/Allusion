@@ -108,46 +108,45 @@ interface ILabelProps {
   isEditing: boolean;
   color: string;
   onSubmit: (target: EventTarget & HTMLInputElement) => void;
+  onClick: (event: React.MouseEvent) => void;
 }
 
 // const isValid = (text: string) => text.trim().length > 0;
 
-const Label = observer((props: ILabelProps) => {
-  return (
-    <>
-      <span className="pre-icon" style={{ color: props.color }}>
-        {props.icon}
-      </span>
-      {props.isEditing ? (
-        <InputGroup
-          autoFocus
-          placeholder="Enter a new name"
-          defaultValue={props.text}
-          onBlur={(e) => {
-            const value = e.currentTarget.value.trim();
-            if (value.length > 0) {
-              props.setText(value);
-            }
+const Label = (props: ILabelProps) => (
+  <>
+    <span className="pre-icon" style={{ color: props.color }}>
+      {props.icon}
+    </span>
+    {props.isEditing ? (
+      <InputGroup
+        autoFocus
+        placeholder="Enter a new name"
+        defaultValue={props.text}
+        onBlur={(e) => {
+          const value = e.currentTarget.value.trim();
+          if (value.length > 0) {
+            props.setText(value);
+          }
+          props.onSubmit(e.currentTarget);
+        }}
+        onKeyDown={(e) => {
+          const value = e.currentTarget.value.trim();
+          if (e.key === 'Enter' && value.length > 0) {
+            props.setText(value);
             props.onSubmit(e.currentTarget);
-          }}
-          onKeyDown={(e) => {
-            const value = e.currentTarget.value.trim();
-            if (e.key === 'Enter' && value.length > 0) {
-              props.setText(value);
-            }
-            props.onSubmit(e.currentTarget);
-          }}
-          onFocus={(e) => e.target.select()}
-          // Only show red outline when input field is in focus and text is invalid
-          // TODO: Visualizing errors...
-          // className={!isValidInput ? 'bp3-intent-danger' : ''}
-        />
-      ) : (
-        <div>{props.text}</div>
-      )}
-    </>
-  );
-});
+          }
+        }}
+        onFocus={(e) => e.target.select()}
+        // TODO: Visualizing errors...
+        // Only show red outline when input field is in focus and text is invalid
+        // className={!isValidInput ? 'bp3-intent-danger' : ''}
+      />
+    ) : (
+      <div onClick={props.onClick}>{props.text}</div>
+    )}
+  </>
+);
 
 interface ITagProps {
   nodeData: ClientTag;
@@ -254,12 +253,24 @@ const Tag = observer((props: ITagProps) => {
     [nodeData.parent, pos, uiStore.rootStore.tagStore],
   );
 
-  const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => select(event, nodeData),
-    [nodeData, select],
-  );
+  const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
+    nodeData,
+    select,
+  ]);
 
-  const handleQuickQuery = useCallback(() => toggleQuery(nodeData, uiStore), [nodeData, uiStore]);
+  const handleQuickQuery = useCallback(
+    (event: React.MouseEvent) => {
+      const query = new ClientIDSearchCriteria('tags', nodeData.id);
+      if (event.ctrlKey) {
+        if (!nodeData.isSearched) {
+          uiStore.addSearchCriteria(query);
+        }
+      } else {
+        uiStore.replaceSearchCriteria(query);
+      }
+    },
+    [nodeData, uiStore],
+  );
 
   return (
     <div
@@ -271,7 +282,6 @@ const Tag = observer((props: ITagProps) => {
       onDrop={handleDrop}
       onDragEnd={handleDragEnd}
       onContextMenu={handleContextMenu}
-      onClick={handleClick}
     >
       <Label
         text={nodeData.name}
@@ -280,11 +290,9 @@ const Tag = observer((props: ITagProps) => {
         icon={IconSet.TAG}
         isEditing={isEditing}
         onSubmit={submit}
-      />
-      <span
         onClick={handleQuickQuery}
-        className={`after-icon ${nodeData.isSearched ? 'searched' : ''}`}
-      ></span>
+      />
+      {!isEditing && <span onClick={handleSelect} className="after-icon" />}
     </div>
   );
 });
@@ -375,16 +383,16 @@ const Collection = observer((props: ICollectionProps) => {
       }
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
         event.dataTransfer.dropEffect = 'none';
-        const data = event.dataTransfer.getData(DnDType.Tag);
-        const tag = uiStore.rootStore.tagStore.get(data);
+        const id = event.dataTransfer.getData(DnDType.Tag);
+        const tag = uiStore.rootStore.tagStore.get(id);
         if (tag) {
           nodeData.insertTag(tag);
         }
         delete event.currentTarget.dataset[DnDAttribute.Target];
       } else if (event.dataTransfer.types.includes(DnDType.Collection)) {
         event.dataTransfer.dropEffect = 'none';
-        const data = event.dataTransfer.getData(DnDType.Collection);
-        const collection = uiStore.rootStore.tagCollectionStore.get(data);
+        const id = event.dataTransfer.getData(DnDType.Collection);
+        const collection = uiStore.rootStore.tagCollectionStore.get(id);
         if (collection && !nodeData.containsSubCollection(collection.id)) {
           nodeData.insertCollection(collection);
         }
@@ -394,12 +402,28 @@ const Collection = observer((props: ICollectionProps) => {
     [nodeData, uiStore],
   );
 
-  const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => select(event, nodeData),
-    [nodeData, select],
-  );
+  const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
+    nodeData,
+    select,
+  ]);
 
-  const handleQuickQuery = useCallback(() => toggleQuery(nodeData, uiStore), [nodeData, uiStore]);
+  const handleQuickQuery = useCallback(
+    (event: React.MouseEvent) => {
+      const query = new ClientCollectionSearchCriteria(
+        nodeData.id,
+        nodeData.getTagsRecursively(),
+        nodeData.name,
+      );
+      if (event.ctrlKey) {
+        if (!nodeData.isSearched) {
+          uiStore.addSearchCriteria(query);
+        }
+      } else {
+        uiStore.replaceSearchCriteria(query);
+      }
+    },
+    [nodeData, uiStore],
+  );
 
   return (
     <div
@@ -411,7 +435,6 @@ const Collection = observer((props: ICollectionProps) => {
       onDragEnd={handleDragEnd}
       onDrop={handleDrop}
       onContextMenu={handleContextMenu}
-      onClick={handleClick}
     >
       <Label
         text={nodeData.name}
@@ -420,11 +443,9 @@ const Collection = observer((props: ICollectionProps) => {
         icon={expansion[nodeData.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP}
         isEditing={isEditing}
         onSubmit={submit}
-      />
-      <span
         onClick={handleQuickQuery}
-        className={`after-icon ${nodeData.isSearched ? 'searched' : ''}`}
-      ></span>
+      />
+      {!isEditing && <span onClick={handleSelect} className="after-icon" />}
     </div>
   );
 });
@@ -590,6 +611,7 @@ const mapLeaf = (tag: ClientTag): ITreeLeaf => {
     label: TagLabel,
     nodeData: tag,
     isSelected,
+    className: tag.isSearched ? 'searched' : undefined,
   };
 };
 
@@ -602,6 +624,7 @@ const mapCollection = (collection: ClientTagCollection): ITreeBranch => {
     nodeData: collection,
     isExpanded,
     isSelected,
+    className: collection.isSearched ? 'searched' : undefined,
   };
 };
 
@@ -627,7 +650,7 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
     (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => {
       if (event.shiftKey && lastSelection !== undefined && lastSelection !== nodeData.id) {
         setLastSelection(rangeSelection(nodeData, lastSelection, root, uiStore));
-      } else if (event.ctrlKey || event.metaKey) {
+      } else {
         // Toggles selection state of a single node
         const nextLastSelection = nodeData.isSelected ? undefined : nodeData.id;
         if (nodeData instanceof ClientTag) {
@@ -638,12 +661,6 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
             : uiStore.selectTags(nodeData.getTagsRecursively());
         }
         setLastSelection(nextLastSelection);
-      } else {
-        // Replaces whole selection
-        nodeData instanceof ClientTag
-          ? uiStore.selectTag(nodeData, true)
-          : uiStore.selectTags(nodeData.getTagsRecursively(), true);
-        setLastSelection(nodeData.id);
       }
     },
     [lastSelection, root, uiStore],
@@ -661,7 +678,6 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
   );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
   const handleRootAddTag = useCallback(
     (e: React.MouseEvent) => {
@@ -725,33 +741,45 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
     <>
       <div
         className="outliner-header-wrapper"
-        onClick={toggleCollapse}
         onDragOver={handleDragOverAndLeave}
         onDragLeave={handleDragOverAndLeave}
         onDrop={handleDrop}
       >
-        <H4 className="bp3-heading">
+        <H4 className="bp3-heading" onClick={() => setIsCollapsed(!isCollapsed)}>
           <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
           Tags
         </H4>
-        <Button
-          minimal
-          icon={IconSet.TAG_ADD}
-          onClick={handleRootAddTag}
-          className="tooltip"
-          data-right="New Tag"
-        />
-        <Button
-          minimal
-          icon={IconSet.TAG_ADD_COLLECTION}
-          onClick={handleAddRootCollection}
-          className="tooltip"
-          data-right="New Collection"
-        />
+        {uiStore.tagSelection.length > 0 ? (
+          <Button
+            minimal
+            icon={IconSet.CLOSE}
+            onClick={uiStore.clearTagSelection}
+            className="tooltip"
+            data-right="Clear Selection"
+          />
+        ) : (
+          <>
+            <Button
+              minimal
+              icon={IconSet.TAG_ADD}
+              onClick={handleRootAddTag}
+              className="tooltip"
+              data-right="New Tag"
+            />
+            <Button
+              minimal
+              icon={IconSet.TAG_ADD_COLLECTION}
+              onClick={handleAddRootCollection}
+              className="tooltip"
+              data-right="New Collection"
+            />
+          </>
+        )}
       </div>
 
       <Collapse isOpen={!isCollapsed}>
         <Tree
+          className={`tags-tree ${uiStore.tagSelection.length > 0 ? 'selected' : ''}`}
           multiSelect
           branches={branches.get()}
           leaves={leaves.get()}

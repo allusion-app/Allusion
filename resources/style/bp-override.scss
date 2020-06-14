@@ -156,17 +156,7 @@ form,
     border-radius: 0 6px 6px 0;
   }
 }
-#outliner {
-  .bp3-control-group .bp3-input,
-  .bp3-input-group {
-    width: 100% !important;
-    min-width: 100% !important;
-  }
-}
-// #search-form input {
-//   width: 100% !important;
-//     min-width: 100% !important;
-// }
+
 .bp3-dark {
   #preview-toolbar .bp3-control {
     color: $light-gray1 !important;
@@ -413,11 +403,8 @@ form .bp3-icon {
 }
 
 // Labels
-.bp3-dark {
-  label.bp3-label,
-  #watched-folders .bp3-button {
-    color: $light-gray1;
-  }
+.bp3-dark label.bp3-label {
+  color: $light-gray1;
 }
 
 // Buttons
@@ -430,8 +417,7 @@ button:has(.bp3-intent-primary) {
 }
 
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
-:not(.bp3-input):not(.bp3-tag) > .bp3-button:hover > .custom-icon,
-.bp3-dark #watched-folders .bp3-button:hover > .bp3-icon {
+:not(.bp3-input):not(.bp3-tag) > .bp3-button:hover > .custom-icon {
   // :not(.bp3-input):not(.bp3-tag) > .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled):not(.bp3-dialog-close-button) .bp3-icon:hover {
   background: transparent;
   color: white !important;
@@ -846,8 +832,7 @@ li .bp3-menu-item {
   color: white;
 }
 
-.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
-.bp3-dark #watched-folders .bp3-button:hover {
+.bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled) {
   // .bp3-button:hover > .custom-icon,
   // .bp3-dark .bp3-button:not([class*="bp3-intent-"]):not(.bp3-disabled) .bp3-icon:hover {
   background: transparent;
@@ -861,8 +846,7 @@ li .bp3-menu-item {
 
 .bp3-dark #toolbar .bp3-button-group.bp3-minimal .bp3-button:hover,
 .bp3-dark #outliner-tags-header-wrapper .bp3-button.bp3-minimal:hover,
-.bp3-dark .bp3-button:not([class*='bp3-intent-']):hover,
-.bp3-dark #watched-folders .bp3-button {
+.bp3-dark .bp3-button:not([class*='bp3-intent-']):hover {
   background: transparent !important;
 }
 
@@ -1079,20 +1063,8 @@ li .bp3-menu-item {
   }
 }
 
-.bp3-dark #watched-folders .bp3-button:hover {
-  background-color: $dark-gray2 !important;
-  border-left: 2px solid $blue1;
-  // padding-left: 0.85rem !important;
-  padding-left: calc(0.85rem + 8px) !important;
-  transition: all 0.2s $pt-transition-ease2;
+.bp3-dark .bp3-button.bp3-minimal:hover .bp3-button-text {
   color: white;
-}
-
-.bp3-dark {
-  .bp3-button.bp3-minimal:hover .bp3-button-text,
-  #watched-folders .bp3-minimal .bp3-icon {
-    color: white;
-  }
 }
 
 // settings panel
