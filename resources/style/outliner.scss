@@ -182,17 +182,6 @@ main,
   min-height: 16px;
 }
 
-.bp3-input {
-  // padding: 0 0.5rem;
-  border-radius: 6px;
-}
-
-.bp3-input:focus,
-.bp3-input.bp3-active {
-  box-shadow: 0 0 0 1.5px $blue1;
-  // box-shadow: none !important;
-}
-
 .tags-tree {
   .searched {
     // TODO: Use a color without alpha values...
@@ -223,6 +212,7 @@ main,
 .tree-content-label {
   display: flex;
   align-items: center;
+  min-height: 1.75rem;
   width: 100%;
 
   &[data-dnd-target='true'] {
@@ -257,7 +247,7 @@ main,
 
   > div,
   input {
-    min-height: 1.75rem;
+    height: 1.75rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

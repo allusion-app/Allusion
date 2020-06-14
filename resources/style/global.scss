@@ -32,13 +32,18 @@ body {
   --toolbar-height: 2.4rem;
   --content-area-height: calc(100vh - var(--toolbar-height));
   --thumbnail-size: 250px;
+  height: 100%;
+}
+
+// Default Theme
+.bp3-dark,
+.bp3-light {
   --primary-color: #{$blue1};
   --stroke-color: #{$gray3};
   --selection-background-color: #007bf53f;
   --selection-font-color: white;
   --treeitem-identation: 1rem;
   --treeitem-offset: 1rem;
-  height: 100%;
 }
 
 // Dark Theme
