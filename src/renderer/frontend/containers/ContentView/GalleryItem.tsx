@@ -65,7 +65,6 @@ const GalleryItem = observer(
   ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
     const { uiStore } = useContext(StoreContext);
 
-    // TODO: Add selected tags and handle collections.
     const handleDrop = useCallback(
       (event: React.DragEvent<HTMLDivElement>) => {
         if (event.dataTransfer.types.includes(DnDType.Tag)) {

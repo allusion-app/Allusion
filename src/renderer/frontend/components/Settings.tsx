@@ -117,7 +117,7 @@ const Settings = observer(() => {
           inline
           selectedValue={uiStore.view.thumbnailSize}
           onChange={() => undefined}
-          name="Thumbnail size"
+          label="Thumbnail size"
         >
           <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
           <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
@@ -128,7 +128,7 @@ const Settings = observer(() => {
           inline
           selectedValue={uiStore.view.thumbnailShape}
           onChange={() => undefined}
-          name="Thumbnail shape"
+          label="Thumbnail shape"
         >
           <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
           <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
