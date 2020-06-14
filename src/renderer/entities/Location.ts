@@ -118,11 +118,7 @@ export class ClientLocation implements ISerializable<ILocation> {
   }
 
   @action changePath(newPath: string) {
-    this.path = newPath;
-    this.store.backend.saveLocation(this.serialize());
-    this.isBroken = false;
-
-    // TODO: Re-set all the absolutePaths for files of this location
+    this.store.changeLocationPath(this, newPath);
   }
 
   @action.bound addTag(tag: ClientTag) {

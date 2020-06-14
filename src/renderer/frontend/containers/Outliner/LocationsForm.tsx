@@ -205,23 +205,23 @@ function dirItemAsTreeNode(dirItem: IDirectoryTreeItem): ITreeNode<string> {
   };
 }
 
-const LocationRootLabel = ({ location }: { location: ClientLocation }) => (
+const LocationRootLabel = observer(({ location }: { location: ClientLocation }) => (
   <span
     className="tooltip"
     data-right={`${location.isBroken ? 'Cannot find this location: ' : ''} ${location.path}`}
   >
     {Path.basename(location.path)}
   </span>
-);
+));
 
 const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useContext(StoreContext);
 
-  const [nodes, setNodes] = useState<ITreeNode<string>[]>(
+  const [nodes, setNodes] = useState<ITreeNode<ClientLocation | string>[]>(
     locationStore.locationList.map((location) => ({
       id: location.id,
       label: <LocationRootLabel location={location} />,
-      nodeData: location.path,
+      nodeData: location,
       icon: location.id === DEFAULT_LOCATION_ID ? 'import' : IconSet.FOLDER_CLOSE,
       secondaryLabel: (
         <Observer>{
@@ -246,8 +246,6 @@ const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
     );
   }, [locationStore.locationList]);
 
-  console.log( locationStore.locationList.map(l => l.isBroken), nodes)
-
   const addToSearch = useCallback(
     (path: string) =>
       uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains')),
@@ -263,17 +261,18 @@ const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
   );
 
   const handleNodeClick = useCallback(
-    (node: ITreeNode<string>, _path: number[], e: React.MouseEvent) => {
+    (node: ITreeNode<ClientLocation | string>, _path: number[], e: React.MouseEvent) => {
       if (node.nodeData) {
-        // TODO: Mark searched nodes as selected?
-        e.ctrlKey ? addToSearch(node.nodeData || '') : replaceSearch(node.nodeData || '');
+        const path = typeof node.nodeData === 'string' ? node.nodeData : node.nodeData.path;
+        // TODO: Mark searched nodes as selected, similar to tags
+        e.ctrlKey ? addToSearch(path) : replaceSearch(path);
       }
     },
     [addToSearch, replaceSearch],
   );
 
   const handleNodeExpand = useCallback(
-    (node: ITreeNode<string>) => {
+    (node: ITreeNode<ClientLocation | string>) => {
       node.isExpanded = true;
       setNodes([...nodes]);
     },
@@ -281,7 +280,7 @@ const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
   );
 
   const handleNodeCollapse = useCallback(
-    (node: ITreeNode<string>) => {
+    (node: ITreeNode<ClientLocation | string>) => {
       node.isExpanded = false;
       setNodes([...nodes]);
     },
@@ -289,12 +288,12 @@ const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
   );
 
   const handleNodeContextMenu = useCallback(
-    (node: ITreeNode<string>, _: number[], e: React.MouseEvent<HTMLElement>) => {
+    (node: ITreeNode<ClientLocation | string>, _: number[], e: React.MouseEvent<HTMLElement>) => {
       // The empty folder markers have path (nodeData) specified -no need for context menu
       if (node.nodeData) {
         ContextMenu.show(
           <LocationTreeContextMenu
-            path={node.nodeData || ''}
+            path={typeof node.nodeData === 'string' ? node.nodeData : node.nodeData.path}
             locationStore={locationStore}
             uiStore={uiStore}
             onConfig={onConfig}

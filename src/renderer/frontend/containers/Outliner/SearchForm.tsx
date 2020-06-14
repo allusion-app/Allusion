@@ -85,7 +85,7 @@ interface IKeySelector {
 const KeyOptions = [
   { value: 'tags', label: 'Tags' },
   { value: 'name', label: 'File name' },
-  { value: 'path', label: 'File path' },
+  { value: 'absolutePath', label: 'File path' },
   { value: 'extension', label: 'File type' },
   { value: 'size', label: 'File size (MB)' },
   { value: 'dateAdded', label: 'Date added' },

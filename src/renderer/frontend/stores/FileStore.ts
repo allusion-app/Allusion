@@ -21,6 +21,8 @@ export type ViewContent = 'query' | 'all' | 'untagged';
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
 
+  // TODO: Also maintain a dictionary of ID -> ClientFile for quick access and getting all IDs using Object.keys
+
   /** The origin of the current files that are shown */
   @observable content: ViewContent = 'all';
   @observable fileOrder: FileOrder = 'DESC';

@@ -1,4 +1,5 @@
 import { action, observable, runInAction } from 'mobx';
+import SysPath from 'path';
 
 import Backend from '../../backend/Backend';
 import RootStore from './RootStore';
@@ -75,7 +76,7 @@ class LocationStore {
             onClick: () => this.rootStore.uiStore.openLocationRecovery(loc.id),
           },
           timeout: 0,
-        });
+        }, `missing-loc-${loc.id}`); // a key such that the toast can be dismissed automatically on recovery
         continue;
       }
 
@@ -100,7 +101,7 @@ class LocationStore {
             mf.width === cf.width &&
             mf.height === cf.height &&
             mf.size === cf.size
-      )));
+          )));
 
       const foundMatches = matches.filter(m => m !== undefined);
       if (foundMatches.length > 0) {
@@ -174,6 +175,32 @@ class LocationStore {
     RendererMessenger.setDownloadPath({ dir });
   }
 
+  @action.bound async changeLocationPath(location: ClientLocation, newPath: string) {
+    // First, update the absolute path of all files from this location
+    const locFiles = await this.findLocationFiles(location.id);
+    await Promise.all(
+      locFiles.map(
+        f => this.backend.saveFile({
+          ...f,
+          absolutePath: SysPath.join(newPath, f.relativePath),
+        }),
+      ),
+    );
+
+    runInAction(() => {
+      // Then, update the path of the location
+      location.path = newPath;
+      location.store.backend.saveLocation(location.serialize());
+      location.isBroken = false;
+    });
+
+    // Refetch files in case some were from this location and could not be found before
+    this.rootStore.fileStore.refetch();
+
+    // Dismiss the 'Cannot find location' toast if it is still open
+    AppToaster.dismiss(`missing-loc-${location.id}`);
+  }
+
   async pathToIFile(path: string, locationId: ID, tagsToAdd?: ID[]): Promise<IFile> {
     const loc = this.get(locationId)!;
     return {
@@ -220,7 +247,7 @@ class LocationStore {
       }
     }, toastKey);
     const files = await Promise.all(
-        filePaths.map(path => this.pathToIFile(path, loc.id, loc.tagsToAdd.toJS())));
+      filePaths.map(path => this.pathToIFile(path, loc.id, loc.tagsToAdd.toJS())));
 
     AppToaster.show({ message: 'Updating database...', timeout: 0 }, toastKey);
     await this.backend.createFilesFromPath(loc.path, files);
