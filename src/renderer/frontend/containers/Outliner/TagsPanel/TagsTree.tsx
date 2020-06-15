@@ -370,9 +370,21 @@ const Collection = observer((props: ICollectionProps) => {
           return true;
         },
         'move',
-        () => dispatch({ type: ActionType.OpenExpansion, payload: nodeData.id }),
+        () => {
+          if (!expansion[nodeData.id]) {
+            dispatch({ type: ActionType.OpenExpansion, payload: nodeData.id });
+          }
+        },
       ),
-    [dispatch, nodeData.id, nodeData.isSelected, uiStore.rootStore.tagCollectionStore],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      dispatch,
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      expansion[nodeData.id],
+      nodeData.id,
+      nodeData.isSelected,
+      uiStore.rootStore.tagCollectionStore,
+    ],
   );
 
   const handleDrop = useCallback(

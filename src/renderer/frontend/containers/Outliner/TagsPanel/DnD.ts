@@ -56,6 +56,12 @@ export const onDragStart = (
   DragItem = { id, isSelected };
 };
 
+/**
+ * Executed callback function while dragging over a target.
+ *
+ * Do not pass an expansive function into the sideEffect parameter. The dragOver
+ * event is fired constantly unlike dragEnter which is only fired once.
+ */
 export const onDragOver = (
   event: React.DragEvent<HTMLDivElement>,
   isSelected: boolean,
