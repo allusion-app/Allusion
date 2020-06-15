@@ -121,6 +121,10 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.store.changeLocationPath(this, newPath);
   }
 
+  @action unBreak() {
+    this.isBroken = false;
+  }
+
   @action.bound addTag(tag: ClientTag) {
     this.tagsToAdd.push(tag.id);
   }

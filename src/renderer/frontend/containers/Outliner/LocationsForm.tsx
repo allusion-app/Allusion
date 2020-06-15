@@ -31,6 +31,7 @@ import { AppToaster } from '../../App';
 import LocationStore from '../../stores/LocationStore';
 import UiStore from '../../UiStore';
 import LocationRecoveryDialog from '../../components/LocationRecoveryDialog';
+import { CustomKeyDict } from './SearchForm';
 
 // Tooltip info
 const enum Tooltip {
@@ -60,14 +61,14 @@ const LocationTreeContextMenu = ({
 
   const addToSearch = useCallback(
     () =>
-      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains')),
+      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict)),
     [path, uiStore],
   );
 
   const replaceSearch = useCallback(
     () =>
       uiStore.replaceSearchCriteria(
-        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains'),
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict),
       ),
     [uiStore, path],
   );
@@ -226,7 +227,7 @@ const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
       secondaryLabel: (
         <Observer>{
           () => location.isBroken
-            ? <Button icon={IconSet.WARNING} onClick={() => uiStore.openLocationRecovery(location.id)} />
+            ? <Button icon={IconSet.WARNING} onClick={(e: React.MouseEvent) => void e.stopPropagation() || uiStore.openLocationRecovery(location.id)} />
             : <></>
           }
         </Observer>
@@ -248,14 +249,14 @@ const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
 
   const addToSearch = useCallback(
     (path: string) =>
-      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains')),
+      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict)),
     [uiStore],
   );
 
   const replaceSearch = useCallback(
     (path: string) =>
       uiStore.replaceSearchCriteria(
-        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains'),
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict),
       ),
     [uiStore],
   );

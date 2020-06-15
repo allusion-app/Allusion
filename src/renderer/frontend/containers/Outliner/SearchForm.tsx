@@ -26,8 +26,9 @@ import {
   NumberOperatorType,
   OperatorType,
   BinaryOperatorType,
+  SearchKeyDict,
 } from '../../../entities/SearchCriteria';
-import { IMG_EXTENSIONS } from '../../../entities/File';
+import { IMG_EXTENSIONS, IFile } from '../../../entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from '../../components/Icons';
@@ -35,7 +36,7 @@ import TagSelector from '../../components/TagSelector';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
 import { ID, generateId } from '../../../entities/ID';
 
-type CriteriaKey = 'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded';
+type CriteriaKey = keyof Pick<IFile, 'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded'>;
 type CriteriaOperator = OperatorType;
 type TagValue = [ID, string] | [ID, string, ID[]] | [];
 type CriteriaValue = string | number | Date | TagValue;
@@ -90,6 +91,8 @@ const KeyOptions = [
   { value: 'size', label: 'File size (MB)' },
   { value: 'dateAdded', label: 'Date added' },
 ];
+
+export const CustomKeyDict: SearchKeyDict<IFile> = { 'absolutePath': 'Path' };
 
 const KeySelector = ({ selectedKey, setCriteria }: IKeySelector) => {
   const handlePickKey = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -286,19 +289,20 @@ function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
 
 function intoCriteria(field: CriteriaField): FileSearchCriteria {
   if (field.key === 'name' || field.key === 'absolutePath' || field.key === 'extension') {
-    return new ClientStringSearchCriteria(field.key, field.value, field.operator);
+    return new ClientStringSearchCriteria(field.key, field.value, field.operator, CustomKeyDict);
   } else if (field.key === 'dateAdded') {
-    return new ClientDateSearchCriteria(field.key, field.value, field.operator);
+    return new ClientDateSearchCriteria(field.key, field.value, field.operator, CustomKeyDict);
   } else if (field.key === 'size') {
-    return new ClientNumberSearchCriteria(field.key, field.value * bytesInMb, field.operator);
+    return new ClientNumberSearchCriteria(field.key, field.value * bytesInMb, field.operator, CustomKeyDict);
   } else if (field.key === 'tags' && field.value.length === 2) {
-    return new ClientIDSearchCriteria(field.key, field.value[0], field.value[1], field.operator);
+    return new ClientIDSearchCriteria(field.key, field.value[0], field.value[1], field.operator, CustomKeyDict);
   } else if (field.key === 'tags' && field.value.length === 3) {
     return new ClientCollectionSearchCriteria(
       field.value[0],
       field.value[2],
       field.value[1],
       field.operator,
+      CustomKeyDict,
     );
   } else {
     return new ClientIDSearchCriteria('tags');

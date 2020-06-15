@@ -9,6 +9,7 @@ import { ClientLocation } from '../../entities/Location';
 import StoreContext from '../contexts/StoreContext';
 import LocationStore from '../stores/LocationStore';
 import IconSet from './Icons';
+import { AppToaster } from '../App';
 
 interface IMatch {
   locationImageCount: number;
@@ -42,8 +43,6 @@ async function doesLocationMatchWithDir(loc: ClientLocation, dir: string, locSto
 
   const intersection = folderImagePathsRelative.filter(f => locImagePathsRelative.includes(f));
 
-  console.log({ folderImagePathsRelative, locImagePathsRelative, intersection });
-
   return {
     locationImageCount: locImagePathsRelative.length,
     directoryImageCount: folderImagePaths.length,
@@ -52,7 +51,7 @@ async function doesLocationMatchWithDir(loc: ClientLocation, dir: string, locSto
 }
 
 const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) => void }) => {
-  const { uiStore, locationStore } = useContext(StoreContext);
+  const { uiStore, locationStore, fileStore } = useContext(StoreContext);
   const { isLocationRecoveryOpen } = uiStore;
 
   const [status, setStatus] = useState<IMatch>();
@@ -60,6 +59,7 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
 
   const handleChangeLocationPath = useCallback((location: ClientLocation, path: string) => {
     location.changePath(path);
+    AppToaster.show({ intent: 'success', message: `Recovered Location ${path}!` });
   }, []);
 
   const handleRecover = useCallback(async () => {
@@ -87,6 +87,26 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
     setStatus(match);
   }, [isLocationRecoveryOpen, locationStore]);
 
+  const handleRescan = useCallback(async () => {
+    // Check if folder is there, close if found, show :( when not
+    const location = locationStore.get(isLocationRecoveryOpen!)!;
+
+    const exists = await fse.pathExists(location.path);
+
+    if (exists) {
+      uiStore.closeLocationRecovery();
+      location.unBreak();
+      if (!location.isInitialized) {
+        locationStore.initializeLocation(location);
+      } else {
+        fileStore.refetch();
+      }
+      AppToaster.show({ intent: 'success', message: `Re-discovered ${location.path}!`});
+    } else {
+      AppToaster.show({ intent: 'warning', message: `Location ${location.path} still not found`});
+    }
+  }, [fileStore, isLocationRecoveryOpen, locationStore]);
+
 if (!isLocationRecoveryOpen) return <></>;
 
 const location = locationStore.get(isLocationRecoveryOpen);
@@ -99,7 +119,6 @@ const fullRecovery = status && !noRecovery && status.locationImageCount === stat
 const partialRecovery = status && !noRecovery && status.matchCount < status.locationImageCount;
 
 // TODO: Should also warn about new images in the folder that were not in the location before (status.directoryImageCount)
-
 return (
   <Dialog
     title={
@@ -126,6 +145,7 @@ return (
               <Callout intent="success">
                 The location has been recovered, all files were found in the specified directory!
                 <br />
+                <br />
                 <Button onClick={uiStore.closeLocationRecovery}>Close</Button>
                 {/* TODO: Refetch on close? */}
               </Callout>
@@ -134,12 +154,14 @@ return (
               <Callout intent="danger">
                 The location could not be recovered since no images of this location were found in the specified directory.
                 <br />
+                <br />
                 <Button onClick={() => setStatus(undefined)}>Retry</Button>
               </Callout>
             )}
             {partialRecovery && (location.path === pickedDir ? (
               <Callout intent="success">
                 The location has been recovered!
+                <br />
                 <br />
                 <Button onClick={uiStore.closeLocationRecovery}>Close</Button>
               </Callout>
@@ -149,8 +171,9 @@ return (
                 By recovering the location, the missing files would be lost.
                 Do you still want to recover the location using this directory?
                 <br />
+                <br />
                 <Button onClick={() => setStatus(undefined)}>Retry</Button>
-                <Button onClick={() => handleChangeLocationPath(location, pickedDir!)} intent="warning">Recover</Button>
+                <Button onClick={() => void uiStore.closeLocationRecovery() || handleChangeLocationPath(location, pickedDir!)} intent="warning">Recover</Button>
               </Callout>
             ))}
           </span>
@@ -161,10 +184,10 @@ return (
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
           <ButtonGroup>
-            {/* TODO: Re-scan option, e.g. for when you mount a drive */}
-            <Button intent="none">Re-scan</Button>
+            {/* Re-scan option, e.g. for when you mount a drive */}
+            <Button intent="none" onClick={handleRescan}>Re-scan</Button>
             <Button intent="primary" onClick={handleRecover}>Relocate</Button>
-            <Button intent="danger" onClick={() => onDelete(location)}>Delete</Button>
+            <Button intent="danger" onClick={() => void uiStore.closeLocationRecovery() || onDelete(location)}>Delete</Button>
             <Button onClick={uiStore.closeLocationRecovery}>Cancel</Button>
           </ButtonGroup>
         </div>

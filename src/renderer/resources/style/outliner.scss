@@ -195,14 +195,14 @@ nav .bp3-tree {
 
 // Reordering by dragging
 .bp3-tree-node {
-  &-label {
-    // min-height: 20px !important;
-    text-transform: lowercase;
-    // Turn off auto Capatilizing first letter
-    // &::first-letter {
-    //   text-transform: uppercase;
-    // }
-  }
+  // &-label {
+  //   // min-height: 20px !important;
+  //   // text-transform: lowercase;
+  //   // Turn off auto Capatilizing first letter
+  //   // &::first-letter {
+  //   //   text-transform: uppercase;
+  //   // }
+  // }
   .reorder-target {
     border-bottom: 2px solid $blue1;
   }
