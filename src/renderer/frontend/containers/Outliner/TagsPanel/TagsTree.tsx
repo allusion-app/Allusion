@@ -457,7 +457,7 @@ const Collection = observer((props: ICollectionProps) => {
         onSubmit={submit}
         onClick={handleQuickQuery}
       />
-      {!isEditing && <span onClick={handleSelect} className="after-icon" />}
+      {!isEditing && !nodeData.isEmpty && <span onClick={handleSelect} className="after-icon" />}
     </div>
   );
 });
