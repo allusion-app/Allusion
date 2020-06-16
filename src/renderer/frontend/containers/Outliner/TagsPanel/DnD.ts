@@ -25,10 +25,10 @@ export const enum DnDAttribute {
 export let DragItem = { id: '', isSelected: false };
 
 /** Clears all set data attributes. */
-export const handleDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
+export function handleDragEnd(event: React.DragEvent<HTMLDivElement>) {
   delete event.currentTarget.dataset[DnDAttribute.Source];
   DragItem = { id: '', isSelected: false };
-};
+}
 
 const PreviewTag = document.createElement('div');
 PreviewTag.classList.add(Classes.TAG);
@@ -38,7 +38,7 @@ PreviewTag.style.top = '-100vh';
 document.body.appendChild(PreviewTag);
 
 /** Sets preview image and current element as drag source */
-export const onDragStart = (
+export function onDragStart(
   event: React.DragEvent<HTMLDivElement>,
   name: string,
   dndType: DnDType,
@@ -46,7 +46,7 @@ export const onDragStart = (
   isSelected: boolean,
   effectAllowed: string = 'move',
   dropEffect: string = 'move',
-) => {
+) {
   PreviewTag.innerText = name;
   event.dataTransfer.setData(dndType, id);
   event.dataTransfer.setDragImage(PreviewTag, 0, 0);
@@ -54,7 +54,7 @@ export const onDragStart = (
   event.dataTransfer.dropEffect = dropEffect;
   event.currentTarget.dataset[DnDAttribute.Source] = 'true';
   DragItem = { id, isSelected };
-};
+}
 
 /**
  * Executed callback function while dragging over a target.
@@ -62,14 +62,14 @@ export const onDragStart = (
  * Do not pass an expansive function into the sideEffect parameter. The dragOver
  * event is fired constantly unlike dragEnter which is only fired once.
  */
-export const onDragOver = (
+export function onDragOver(
   event: React.DragEvent<HTMLDivElement>,
   isSelected: boolean,
   accept: (t: string) => boolean,
   canDrop: (t: string) => boolean = () => true,
   dropEffect: string = 'move',
   sideEffect?: () => void,
-) => {
+) {
   const dropTarget = event.currentTarget;
   const isSource = event.currentTarget.dataset[DnDAttribute.Source] === 'true';
   if (isSource || (DragItem.isSelected && isSelected)) {
@@ -84,27 +84,29 @@ export const onDragOver = (
     dropTarget.dataset[DnDAttribute.Target] = 'true';
     sideEffect?.();
   }
-};
+}
 
-const onDragLeave = (event: React.DragEvent<HTMLDivElement>, accept: (t: string) => boolean) => {
+function onDragLeave(event: React.DragEvent<HTMLDivElement>, accept: (t: string) => boolean) {
   if (event.dataTransfer.types.some(accept)) {
     event.dataTransfer.dropEffect = 'none';
     event.preventDefault();
     event.stopPropagation();
     delete event.currentTarget.dataset[DnDAttribute.Target];
   }
-};
+}
 
-export const handleTagDragLeave = (event: React.DragEvent<HTMLDivElement>) =>
+export function handleTagDragLeave(event: React.DragEvent<HTMLDivElement>) {
   onDragLeave(event, (t) => t === DnDType.Tag);
+}
 
-export const handleCollectionDragLeave = (event: React.DragEvent<HTMLDivElement>) =>
+export function handleCollectionDragLeave(event: React.DragEvent<HTMLDivElement>) {
   onDragLeave(event, (t) => t === DnDType.Tag || t === DnDType.Collection);
+}
 
 /** Header and Footer drop zones of the root node */
-export const handleDragOverAndLeave = (event: React.DragEvent<HTMLDivElement>) => {
+export function handleDragOverAndLeave(event: React.DragEvent<HTMLDivElement>) {
   if (event.dataTransfer.types.some((t) => t === DnDType.Tag || t === DnDType.Collection)) {
     event.preventDefault();
     event.stopPropagation();
   }
-};
+}

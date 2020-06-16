@@ -16,70 +16,31 @@ import {
   BinaryOperators,
   StringOperators,
   ArrayOperators,
-  ClientStringSearchCriteria,
-  ClientNumberSearchCriteria,
-  ClientDateSearchCriteria,
-  ClientIDSearchCriteria,
-  ClientCollectionSearchCriteria,
-  StringOperatorType,
-  ArrayOperatorType,
-  NumberOperatorType,
-  OperatorType,
-  BinaryOperatorType,
-} from '../../../entities/SearchCriteria';
-import { IMG_EXTENSIONS } from '../../../entities/File';
-import { jsDateFormatter, camelCaseToSpaced } from '../../utils';
-import StoreContext from '../../contexts/StoreContext';
+} from 'src/renderer/entities/SearchCriteria';
+import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
+import { jsDateFormatter, camelCaseToSpaced } from 'src/renderer/frontend/utils';
+import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
-import TagSelector from '../../components/TagSelector';
-import UiStore, { FileSearchCriteria } from '../../UiStore';
-import { ID, generateId } from '../../../entities/ID';
-
-type CriteriaKey = 'name' | 'path' | 'tags' | 'extension' | 'size' | 'dateAdded';
-type CriteriaOperator = OperatorType;
-type TagValue = [ID, string] | [ID, string, ID[]] | [];
-type CriteriaValue = string | number | Date | TagValue;
-
-interface ICriteriaField<
-  K extends CriteriaKey,
-  O extends CriteriaOperator,
-  V extends CriteriaValue
-> {
-  id: ID;
-  key: K;
-  operator: O;
-  value: V;
-}
-
-type CriteriaField =
-  | ICriteriaField<'name' | 'path', StringOperatorType, string>
-  | ICriteriaField<'tags', ArrayOperatorType, TagValue>
-  | ICriteriaField<'extension', BinaryOperatorType, string>
-  | ICriteriaField<'size', NumberOperatorType, number>
-  | ICriteriaField<'dateAdded', NumberOperatorType, Date>;
-
-const Default: { [key: string]: CriteriaField } = {
-  name: { id: 'name', key: 'name', operator: 'contains', value: '' },
-  path: { id: 'path', key: 'path', operator: 'contains', value: '' },
-  tags: { id: 'tags', key: 'tags', operator: 'contains', value: [] },
-  extension: {
-    id: 'extension',
-    key: 'extension',
-    operator: 'equals',
-    value: IMG_EXTENSIONS[0],
-  },
-  size: { id: 'size', key: 'size', operator: 'greaterThanOrEquals', value: 0 },
-  dateAdded: {
-    id: 'dateAdded',
-    key: 'dateAdded',
-    operator: 'equals',
-    value: new Date(),
-  },
-};
+import TagSelector from 'src/renderer/frontend/components/TagSelector';
+import UiStore from 'src/renderer/frontend/UiStore';
+import { ID } from 'src/renderer/entities/ID';
+import {
+  reducer,
+  Action,
+  Factory,
+  fromCriteria,
+  intoCriteria,
+  defaultState,
+  CriteriaKey,
+  CriteriaOperator,
+  CriteriaValue,
+  CriteriaField,
+  TagValue,
+} from './StateReducer';
 
 interface IKeySelector {
   id: ID;
-  dispatch: Dispatch;
+  dispatch: React.Dispatch<Action>;
   keyValue: CriteriaKey;
 }
 
@@ -106,7 +67,7 @@ const KeyOptions = [
 
 const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => (
   <HTMLSelect
-    onChange={(e) => dispatch({ type: 'key', id, value: e.target.value as CriteriaKey })}
+    onChange={(e) => dispatch(Factory.setKey(id, e.target.value as CriteriaKey))}
     value={keyValue}
   >
     {KeyOptions}
@@ -145,7 +106,7 @@ const getOperatorOptions = (key: CriteriaKey) => {
 
 const OperatorSelector = ({ id, keyValue, operator, dispatch }: IOperatorSelector) => (
   <HTMLSelect
-    onChange={(e) => dispatch({ type: 'operator', id, value: e.target.value as CriteriaOperator })}
+    onChange={(e) => dispatch(Factory.setOperator(id, e.target.value as CriteriaOperator))}
     defaultValue={operator}
   >
     {getOperatorOptions(keyValue)}
@@ -158,12 +119,11 @@ interface IValueInput<V extends CriteriaValue = CriteriaValue> extends IKeySelec
 
 const TagCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<TagValue>, 'keyValue'>) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
-
   const selectedItem =
-    value.length !== 0
-      ? value.length === 2
-        ? tagStore.get(value[0])
-        : tagCollectionStore.get(value[0])
+    'tagId' in value
+      ? tagStore.get(value.tagId)
+      : 'collectionId' in value
+      ? tagCollectionStore.get(value.collectionId)
       : undefined;
 
   return (
@@ -171,9 +131,9 @@ const TagCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<TagValue>, 'k
       autoFocus
       includeCollections
       selectedItem={selectedItem}
-      onTagSelect={(t) => dispatch({ type: 'value', id, value: [t.id, t.name] })}
+      onTagSelect={(t) => dispatch(Factory.setTag(id, t.id, t.name))}
       onTagColSelect={(c) =>
-        dispatch({ type: 'value', id, value: [c.id, c.name, c.getTagsRecursively()] })
+        dispatch(Factory.setCollection(id, c.id, c.getTagsRecursively(), c.name))
       }
     />
   );
@@ -186,15 +146,10 @@ const ExtensionOptions = IMG_EXTENSIONS.map((ext) => (
 ));
 
 const ExtensionCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<string>, 'keyValue'>) => (
-  <HTMLSelect
-    onChange={(e) => dispatch({ type: 'value', id, value: e.target.value })}
-    defaultValue={value}
-  >
+  <HTMLSelect onChange={(e) => dispatch(Factory.setValue(id, e.target.value))} defaultValue={value}>
     {ExtensionOptions}
   </HTMLSelect>
 );
-
-const bytesInMb = 1024 * 1024;
 
 const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
   if (keyValue === 'name' || keyValue === 'path') {
@@ -204,7 +159,7 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
         autoFocus
         placeholder="Enter some text..."
         defaultValue={value as string}
-        onBlur={(e) => dispatch({ type: 'value', id, value: e.target.value })}
+        onBlur={(e) => dispatch(Factory.setValue(id, e.target.value))}
       />
     );
   } else if (keyValue === 'tags') {
@@ -217,7 +172,7 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
         autoFocus
         placeholder="Enter a number..."
         defaultValue={value as number}
-        onValueChange={(value) => dispatch({ type: 'value', id, value })}
+        onValueChange={(value) => dispatch(Factory.setValue(id, value))}
         buttonPosition="none"
       />
     );
@@ -225,7 +180,7 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
     return (
       <DateInput
         defaultValue={value as Date}
-        onChange={(value) => dispatch({ type: 'value', id, value })}
+        onChange={(value) => dispatch(Factory.setValue(id, value))}
         popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
         canClearSelection={false}
         maxDate={new Date()}
@@ -238,7 +193,7 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
 
 interface ICriteriaItemProps {
   criteria: CriteriaField;
-  dispatch: Dispatch;
+  dispatch: React.Dispatch<Action>;
   removable: boolean;
 }
 
@@ -262,102 +217,13 @@ const CriteriaItem = observer(({ criteria, dispatch, removable }: ICriteriaItemP
       />
       <Button
         text="-"
-        onClick={() => dispatch({ type: 'remove', id: criteria.id })}
+        onClick={() => dispatch(Factory.removeQuery(criteria.id))}
         disabled={!removable}
         className="remove"
       />
     </ControlGroup>
   );
 });
-
-function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
-  const c = { ...Default.tags, id: generateId() };
-  if (
-    criteria instanceof ClientStringSearchCriteria &&
-    (criteria.key === 'name' || criteria.key === 'path' || criteria.key === 'extension')
-  ) {
-    c.value = criteria.value;
-  } else if (criteria instanceof ClientDateSearchCriteria && criteria.key === 'dateAdded') {
-    c.value = criteria.value;
-  } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
-    c.value = criteria.value / bytesInMb;
-  } else if (
-    criteria instanceof ClientIDSearchCriteria &&
-    criteria.key === 'tags' &&
-    criteria.value.length > 0
-  ) {
-    c.value = [criteria.value[0], criteria.label];
-  } else if (criteria instanceof ClientCollectionSearchCriteria && criteria.key === 'tags') {
-    c.value = [criteria.collectionId, criteria.label, criteria.value];
-  } else {
-    return c;
-  }
-  c.key = criteria.key;
-  c.operator = criteria.operator;
-  return c;
-}
-
-function intoCriteria(field: CriteriaField): FileSearchCriteria {
-  if (field.key === 'name' || field.key === 'path' || field.key === 'extension') {
-    return new ClientStringSearchCriteria(field.key, field.value, field.operator);
-  } else if (field.key === 'dateAdded') {
-    return new ClientDateSearchCriteria(field.key, field.value, field.operator);
-  } else if (field.key === 'size') {
-    return new ClientNumberSearchCriteria(field.key, field.value * bytesInMb, field.operator);
-  } else if (field.key === 'tags' && field.value.length === 2) {
-    return new ClientIDSearchCriteria(field.key, field.value[0], field.value[1], field.operator);
-  } else if (field.key === 'tags' && field.value.length === 3) {
-    return new ClientCollectionSearchCriteria(
-      field.value[0],
-      field.value[2],
-      field.value[1],
-      field.operator,
-    );
-  } else {
-    return new ClientIDSearchCriteria('tags');
-  }
-}
-
-type Action =
-  | { type: 'add' | 'reset' }
-  | { type: 'key'; id: ID; value: CriteriaKey }
-  | { type: 'operator'; id: ID; value: CriteriaOperator }
-  | { type: 'value'; id: ID; value: CriteriaValue }
-  | { type: 'remove'; id: ID };
-
-const reducer = (state: { items: CriteriaField[] }, action: Action) => {
-  switch (action.type) {
-    case 'add':
-      state.items.push({ ...Default.tags, id: generateId() });
-      return { ...state };
-    case 'key': {
-      const index = state.items.findIndex((i) => i.id === action.id);
-      state.items[index] = { ...Default[action.value], id: action.id };
-      return { ...state };
-    }
-    case 'operator': {
-      const index = state.items.findIndex((i) => i.id === action.id);
-      state.items[index].operator = action.value;
-      return { ...state };
-    }
-    case 'value': {
-      const index = state.items.findIndex((i) => i.id === action.id);
-      state.items[index].value = action.value;
-      return { ...state };
-    }
-    case 'remove': {
-      const index = state.items.findIndex((i) => i.id === action.id);
-      state.items.splice(index, 1);
-      return { ...state };
-    }
-    case 'reset':
-      return { items: [{ ...Default.tags, id: generateId() }] };
-    default:
-      return state;
-  }
-};
-
-type Dispatch = React.Dispatch<Action>;
 
 const SearchForm = ({
   uiStore: {
@@ -371,15 +237,14 @@ const SearchForm = ({
   uiStore: UiStore;
 }) => {
   const [state, dispatch] = useReducer(reducer, {
-    items:
-      searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : [{ ...Default.tags }],
+    items: searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : defaultState(),
   });
 
   useEffect(() => {
     openQuickSearch();
   }, [openQuickSearch]);
 
-  const add = useCallback(() => dispatch({ type: 'add' }), []);
+  const add = useCallback(() => dispatch(Factory.addQuery()), []);
 
   const search = useCallback(() => {
     replaceSearchCriterias(state.items.map(intoCriteria));
@@ -388,7 +253,7 @@ const SearchForm = ({
 
   const reset = useCallback(() => {
     clearSearchCriteriaList();
-    dispatch({ type: 'reset' });
+    dispatch(Factory.resetSearch());
   }, [clearSearchCriteriaList]);
 
   return (

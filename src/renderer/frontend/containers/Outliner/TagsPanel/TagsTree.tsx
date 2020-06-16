@@ -33,72 +33,8 @@ import {
   handleDragOverAndLeave,
 } from './DnD';
 import { formatTagCountText } from 'src/renderer/frontend/utils';
-
-/** Map that keeps track of the IDs that are expanded */
-export type IExpansionState = { [key: string]: boolean };
-
-export const enum ActionType {
-  InsertNode,
-  SetEditableNode,
-  SetExpansion,
-  ToggleExpansion,
-  OpenExpansion,
-}
-
-type State = { expansion: IExpansionState; editableNode: ID | undefined };
-
-export type Action =
-  | { type: ActionType.InsertNode; payload: { parent: ID; node: ID } }
-  | { type: ActionType.SetEditableNode; payload: ID | undefined }
-  | { type: ActionType.SetExpansion; payload: IExpansionState }
-  | { type: ActionType.ToggleExpansion | ActionType.OpenExpansion; payload: ID };
-
-const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case ActionType.InsertNode:
-      return {
-        expansion: state.expansion[action.payload.parent]
-          ? state.expansion
-          : { ...state.expansion, [action.payload.parent]: true },
-        editableNode: action.payload.node,
-      };
-
-    case ActionType.SetEditableNode:
-      return {
-        ...state,
-        editableNode: action.payload,
-      };
-
-    case ActionType.SetExpansion:
-      return {
-        ...state,
-        expansion: { ...action.payload },
-      };
-
-    case ActionType.ToggleExpansion:
-      return {
-        ...state,
-        expansion: { ...state.expansion, [action.payload]: !state.expansion[action.payload] },
-      };
-
-    case ActionType.OpenExpansion:
-      return {
-        ...state,
-        expansion: { ...state.expansion, [action.payload]: true },
-      };
-
-    default:
-      return state;
-  }
-};
-
-interface ITreeData {
-  state: State;
-  dispatch: React.Dispatch<Action>;
-  submit: (target: EventTarget & HTMLInputElement) => void;
-  select: (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => void;
-  uiStore: UiStore;
-}
+import { IExpansionState } from '..';
+import { Action, State, Factory, reducer } from './StateReducer';
 
 interface ILabelProps {
   /** SVG element */
@@ -297,24 +233,6 @@ const Tag = observer((props: ITagProps) => {
   );
 });
 
-const TagLabel = (
-  nodeData: ClientTag,
-  treeData: ITreeData,
-  _level: number,
-  _size: number,
-  pos: number,
-) => (
-  <Tag
-    nodeData={nodeData}
-    dispatch={treeData.dispatch}
-    isEditing={treeData.state.editableNode === nodeData.id}
-    submit={treeData.submit}
-    uiStore={treeData.uiStore}
-    pos={pos}
-    select={treeData.select}
-  />
-);
-
 interface ICollectionProps extends Omit<ITagProps, 'nodeData'> {
   nodeData: ClientTagCollection;
   expansion: IExpansionState;
@@ -372,7 +290,7 @@ const Collection = observer((props: ICollectionProps) => {
         'move',
         () => {
           if (!expansion[nodeData.id]) {
-            dispatch({ type: ActionType.OpenExpansion, payload: nodeData.id });
+            dispatch(Factory.expandNode(nodeData.id));
           }
         },
       ),
@@ -462,6 +380,32 @@ const Collection = observer((props: ICollectionProps) => {
   );
 });
 
+interface ITreeData {
+  state: State;
+  dispatch: React.Dispatch<Action>;
+  submit: (target: EventTarget & HTMLInputElement) => void;
+  select: (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => void;
+  uiStore: UiStore;
+}
+
+const TagLabel = (
+  nodeData: ClientTag,
+  treeData: ITreeData,
+  _level: number,
+  _size: number,
+  pos: number,
+) => (
+  <Tag
+    nodeData={nodeData}
+    dispatch={treeData.dispatch}
+    isEditing={treeData.state.editableNode === nodeData.id}
+    submit={treeData.submit}
+    uiStore={treeData.uiStore}
+    pos={pos}
+    select={treeData.select}
+  />
+);
+
 const CollectionLabel = (
   nodeData: ClientTagCollection,
   treeData: ITreeData,
@@ -487,7 +431,7 @@ const isExpanded = (nodeData: ClientTagCollection, treeData: ITreeData): boolean
   treeData.state.expansion[nodeData.id];
 
 const toggleExpansion = (nodeData: ClientTagCollection, treeData: ITreeData) =>
-  treeData.dispatch({ type: ActionType.ToggleExpansion, payload: nodeData.id });
+  treeData.dispatch(Factory.toggleNode(nodeData.id));
 
 const toggleSelection = (nodeData: ClientTag | ClientTagCollection, { uiStore }: ITreeData) => {
   if (nodeData instanceof ClientTag) {
@@ -522,7 +466,7 @@ const customKeys = (
   switch (event.key) {
     case 'F2':
       event.stopPropagation();
-      treeData.dispatch({ type: ActionType.SetEditableNode, payload: nodeData.id });
+      treeData.dispatch(Factory.enableEditing(nodeData.id));
       break;
 
     case 'F10':
@@ -652,7 +596,7 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
 
   const submit = useCallback((target: EventTarget & HTMLInputElement) => {
     target.focus();
-    dispatch({ type: ActionType.SetEditableNode, payload: undefined });
+    dispatch(Factory.disableEditing());
     target.setSelectionRange(0, 0);
   }, []);
 
@@ -698,7 +642,7 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
         .addTag('New Tag')
         .then((tag) => {
           root.addTag(tag.id);
-          dispatch({ type: ActionType.SetEditableNode, payload: tag.id });
+          dispatch(Factory.enableEditing(tag.id));
         })
         .catch((err) => console.log('Could not create tag', err));
     },
@@ -712,7 +656,7 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
         .addTagCollection('New Collection')
         .then((col) => {
           root.addCollection(col.id);
-          dispatch({ type: ActionType.SetEditableNode, payload: col.id });
+          dispatch(Factory.enableEditing(col.id));
         })
         .catch((err) => console.log('Could not create collection', err));
     },

@@ -29,6 +29,7 @@ import { AppToaster } from '../../App';
 import UiStore, { FileSearchCriteria } from '../../UiStore';
 import { Tree } from 'components';
 import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
+import { IExpansionState } from '.';
 
 // Tooltip info
 const enum Tooltip {
@@ -132,8 +133,6 @@ interface ITreeData {
   config: (location: ClientLocation) => void;
   delete: (location: ClientLocation) => void;
 }
-
-type IExpansionState = { [key: string]: boolean };
 
 const toggleExpansion = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITreeData) => {
   const { expansion, setExpansion } = treeData;
