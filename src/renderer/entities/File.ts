@@ -10,7 +10,6 @@ const sizeOf = promisify(ImageSize.imageSize);
 import FileStore from '../frontend/stores/FileStore';
 import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
-import { ClientLocation } from './Location';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
 export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
@@ -70,7 +69,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly id: ID;
   readonly locationId: ID;
   readonly relativePath: string;
-  readonly absolutePath: string
+  readonly absolutePath: string;
   readonly tags = observable<ID>([]);
   readonly size: number;
   readonly width: number;
@@ -79,8 +78,6 @@ export class ClientFile implements ISerializable<IFile> {
   readonly dateModified: Date;
   readonly name: string;
   readonly extension: string;
-
-  readonly location: ClientLocation;
 
   @observable thumbnailPath: string = '';
 
@@ -101,8 +98,8 @@ export class ClientFile implements ISerializable<IFile> {
     this.extension = fileProps.extension;
     this.isBroken = isBroken;
 
-    this.location = store.getFileLocation(this);
-    this.absolutePath = systemPath.join(this.location.path, this.relativePath);
+    const location = store.getFileLocation(this);
+    this.absolutePath = systemPath.join(location.path, this.relativePath);
 
     this.tags.push(...fileProps.tags);
 
