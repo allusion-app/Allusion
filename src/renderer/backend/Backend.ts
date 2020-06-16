@@ -179,11 +179,13 @@ export default class Backend {
     const criteria: IStringSearchCriteria<IFile> = {
       valueType: 'string',
       operator: 'contains', // Fixme: should be startWith, but doesn't work for some reason :/ 'path' is not an index for 'files' collection?!
-      key: 'path',
+      key: 'absolutePath',
       value: path,
     };
     const existingFilesInPath: IFile[] = await this.fileRepository.find({ criteria });
-    const newFiles = files.filter((file) => existingFilesInPath.every((f) => f.path !== file.path));
+    const newFiles = files.filter((file) =>
+      existingFilesInPath.every((f) => f.absolutePath !== file.absolutePath),
+    );
     return this.fileRepository.createMany(newFiles);
   }
 

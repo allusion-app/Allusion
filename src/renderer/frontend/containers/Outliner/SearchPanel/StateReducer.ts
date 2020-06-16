@@ -1,4 +1,4 @@
-import { IAction } from '..';
+import { IAction, CustomKeyDict } from '..';
 import {
   StringOperatorType,
   ArrayOperatorType,
@@ -15,7 +15,10 @@ import { ID, generateId } from 'src/renderer/entities/ID';
 import { IMG_EXTENSIONS, IFile } from 'src/renderer/entities/File';
 import { FileSearchCriteria } from 'src/renderer/frontend/stores/UiStore';
 
-export type CriteriaKey = keyof IFile;
+export type CriteriaKey = keyof Pick<
+  IFile,
+  'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded'
+>;
 export type CriteriaOperator = OperatorType;
 export type TagValue =
   | { tagId: ID; label: string }
@@ -35,7 +38,7 @@ interface ICriteriaField<
 }
 
 export type CriteriaField =
-  | ICriteriaField<'name' | 'path', StringOperatorType, string>
+  | ICriteriaField<'name' | 'absolutePath', StringOperatorType, string>
   | ICriteriaField<'tags', ArrayOperatorType, TagValue>
   | ICriteriaField<'extension', BinaryOperatorType, string>
   | ICriteriaField<'size', NumberOperatorType, number>
@@ -43,7 +46,7 @@ export type CriteriaField =
 
 const Default: { [key: string]: CriteriaField } = {
   name: { id: 'name', key: 'name', operator: 'contains', value: '' },
-  path: { id: 'path', key: 'path', operator: 'contains', value: '' },
+  path: { id: 'absolutePath', key: 'absolutePath', operator: 'contains', value: '' },
   tags: { id: 'tags', key: 'tags', operator: 'contains', value: undefined },
   extension: {
     id: 'extension',
@@ -160,7 +163,7 @@ export function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
   const c = { ...Default.tags, id: generateId() };
   if (
     criteria instanceof ClientStringSearchCriteria &&
-    (criteria.key === 'name' || criteria.key === 'path' || criteria.key === 'extension')
+    (criteria.key === 'name' || criteria.key === 'absolutePath' || criteria.key === 'extension')
   ) {
     c.value = criteria.value;
   } else if (criteria instanceof ClientDateSearchCriteria && criteria.key === 'dateAdded') {
@@ -184,12 +187,17 @@ export function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
 }
 
 export function intoCriteria(field: CriteriaField): FileSearchCriteria {
-  if (field.key === 'name' || field.key === 'path' || field.key === 'extension') {
-    return new ClientStringSearchCriteria(field.key, field.value, field.operator);
+  if (field.key === 'name' || field.key === 'absolutePath' || field.key === 'extension') {
+    return new ClientStringSearchCriteria(field.key, field.value, field.operator, CustomKeyDict);
   } else if (field.key === 'dateAdded') {
-    return new ClientDateSearchCriteria(field.key, field.value, field.operator);
+    return new ClientDateSearchCriteria(field.key, field.value, field.operator, CustomKeyDict);
   } else if (field.key === 'size') {
-    return new ClientNumberSearchCriteria(field.key, field.value * BYTES_IN_MB, field.operator);
+    return new ClientNumberSearchCriteria(
+      field.key,
+      field.value * BYTES_IN_MB,
+      field.operator,
+      CustomKeyDict,
+    );
   } else if (field.key === 'tags' && field.value) {
     if ('tagId' in field.value) {
       return new ClientIDSearchCriteria(
@@ -197,6 +205,7 @@ export function intoCriteria(field: CriteriaField): FileSearchCriteria {
         field.value.tagId,
         field.value.label,
         field.operator,
+        CustomKeyDict,
       );
     } else {
       return new ClientCollectionSearchCriteria(
@@ -204,6 +213,7 @@ export function intoCriteria(field: CriteriaField): FileSearchCriteria {
         field.value.tags,
         field.value.label,
         field.operator,
+        CustomKeyDict,
       );
     }
   } else {

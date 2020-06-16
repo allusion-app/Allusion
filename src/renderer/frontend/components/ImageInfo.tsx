@@ -14,7 +14,7 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   // Look up file info when file changes
   useEffect(() => {
     isMounted.current = true;
-    fs.stat(file.path, (err, stats) => {
+    fs.stat(file.absolutePath, (err, stats) => {
       if (isMounted.current) {
         err ? setError(err) : setFileStats(stats);
       }
@@ -26,7 +26,7 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
         setResolution(`${img.width}x${img.height}`);
       }
     };
-    img.src = file.path;
+    img.src = file.absolutePath;
     return () => {
       isMounted.current = false;
     };

@@ -5,6 +5,9 @@ import { IFile } from './File';
 
 // type SearchCriteriaValueType = 'number' | 'string' |
 
+// A dictionary of labels for (some of) the keys of the type we search for
+export type SearchKeyDict<T> = { [key in keyof Partial<T>]: string };
+
 // Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
 export const NumberOperators = [
   'equals',
@@ -85,15 +88,18 @@ export abstract class ClientBaseCriteria<T>
   @observable public key: keyof T;
   @observable public valueType: 'number' | 'date' | 'string' | 'array';
   @observable public operator: OperatorType;
+  readonly dict: SearchKeyDict<T>;
 
   constructor(
     key: keyof T,
     valueType: 'number' | 'date' | 'string' | 'array',
     operator: OperatorType,
+    dict?: SearchKeyDict<T>,
   ) {
     this.key = key;
     this.valueType = valueType;
     this.operator = operator;
+    this.dict = dict || ({} as SearchKeyDict<T>);
   }
 
   abstract toString(): string;
@@ -103,8 +109,13 @@ export abstract class ClientBaseCriteria<T>
 export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
   readonly value = observable<ID>([]);
 
-  constructor(key: keyof T, ids?: ID[], operator: ArrayOperatorType = 'contains') {
-    super(key, 'array', operator);
+  constructor(
+    key: keyof T,
+    ids?: ID[],
+    operator: ArrayOperatorType = 'contains',
+    dict?: SearchKeyDict<T>,
+  ) {
+    super(key, 'array', operator, dict);
     if (ids) {
       this.value.push(...ids);
     }
@@ -142,14 +153,22 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: ID[];
   @observable public label: string;
 
-  constructor(key: keyof T, id?: ID, label: string = '', operator: ArrayOperatorType = 'contains') {
-    super(key, 'array', operator);
+  constructor(
+    key: keyof T,
+    id?: ID,
+    label: string = '',
+    operator: ArrayOperatorType = 'contains',
+    dict?: SearchKeyDict<T>,
+  ) {
+    super(key, 'array', operator, dict);
     this.value = id ? [id] : [];
     this.label = label;
   }
 
   toString: () => string = () =>
-    `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} ${this.label}`;
+    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
+      this.operator,
+    )} ${this.label}`;
 
   serialize = (): IArraySearchCriteria<T> => {
     return {
@@ -173,13 +192,20 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
 export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: string;
 
-  constructor(key: keyof T, value: string = '', operator: StringOperatorType = 'contains') {
-    super(key, 'string', operator);
+  constructor(
+    key: keyof T,
+    value: string = '',
+    operator: StringOperatorType = 'contains',
+    dict?: SearchKeyDict<T>,
+  ) {
+    super(key, 'string', operator, dict);
     this.value = value;
   }
 
   toString: () => string = () =>
-    `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} "${this.value}"`;
+    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
+      this.operator,
+    )} "${this.value}"`;
 
   serialize = (): IStringSearchCriteria<T> => {
     return {
@@ -206,8 +232,9 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
     key: keyof T,
     value: number = 0,
     operator: NumberOperatorType = 'greaterThanOrEquals',
+    dict?: SearchKeyDict<T>,
   ) {
-    super(key, 'number', operator);
+    super(key, 'number', operator, dict);
     this.value = value;
   }
   toString: () => string = () =>
@@ -236,14 +263,19 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
 export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: Date;
 
-  constructor(key: keyof T, value: Date = new Date(), operator: NumberOperatorType = 'equals') {
-    super(key, 'date', operator);
+  constructor(
+    key: keyof T,
+    value: Date = new Date(),
+    operator: NumberOperatorType = 'equals',
+    dict?: SearchKeyDict<T>,
+  ) {
+    super(key, 'date', operator, dict);
     this.value = value;
     this.value.setHours(0, 0, 0, 0);
   }
 
   toString: () => string = () =>
-    `${camelCaseToSpaced(this.key as string)} ${
+    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${
       NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
     } ${this.value.toLocaleDateString()}`;
 
@@ -269,14 +301,22 @@ export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IF
   @observable public collectionId: ID;
   @observable public label: string;
 
-  constructor(collectionId: ID, tagIDs: ID[], label: string, operator?: ArrayOperatorType) {
-    super('tags', tagIDs, operator);
+  constructor(
+    collectionId: ID,
+    tagIDs: ID[],
+    label: string,
+    operator?: ArrayOperatorType,
+    dict?: SearchKeyDict<IFile>,
+  ) {
+    super('tags', tagIDs, operator, dict);
     this.collectionId = collectionId;
     this.label = label;
   }
 
   toString: () => string = () =>
-    `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} ${this.label}`;
+    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
+      this.operator,
+    )} ${this.label}`;
 
   @action.bound setValue(collectionId: ID, tagIDs: ID[], label: string): void {
     this.collectionId = collectionId;

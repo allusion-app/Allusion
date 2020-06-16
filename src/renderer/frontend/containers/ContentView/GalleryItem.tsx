@@ -87,7 +87,7 @@ const GalleryItem = observer(
     const [isImageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState();
 
-    const imagePath = uiStore.isSlideMode ? file.path : file.thumbnailPath;
+    const imagePath = uiStore.isSlideMode ? file.absolutePath : file.thumbnailPath;
 
     useEffect(() => {
       // First check whether a thumbnail exists, generate it if needed
@@ -153,8 +153,10 @@ const GalleryItem = observer(
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
-  const handleOpen = useCallback(() => shell.openItem(file.path), [file.path]);
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.path), [file.path]);
+  const handleOpen = useCallback(() => shell.openItem(file.absolutePath), [file.absolutePath]);
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.absolutePath), [
+    file.absolutePath,
+  ]);
   const handleInspect = useCallback(() => {
     uiStore.clearFileSelection();
     uiStore.selectFile(file);

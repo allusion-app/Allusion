@@ -372,11 +372,11 @@ const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayou
   useEffect(() => {
     if (uiStore.firstItem + 1 < fileList.length) {
       const nextImg = new Image();
-      nextImg.src = fileList[uiStore.firstItem + 1].path;
+      nextImg.src = fileList[uiStore.firstItem + 1].absolutePath;
     }
     if (uiStore.firstItem - 1 >= 0) {
       const prevImg = new Image();
-      prevImg.src = fileList[uiStore.firstItem - 1].path;
+      prevImg.src = fileList[uiStore.firstItem - 1].absolutePath;
     }
   }, [fileList, uiStore.firstItem]);
 
@@ -387,9 +387,8 @@ const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayou
   const file = fileList[uiStore.firstItem];
 
   return (
-    // <ZoomableSlideImage
     <ZoomableImage
-      src={file.path}
+      src={file.absolutePath}
       contentRect={contentRect}
       prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileList.length ? incrImgIndex : undefined}

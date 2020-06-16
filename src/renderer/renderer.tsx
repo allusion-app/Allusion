@@ -67,7 +67,7 @@ if (IS_PREVIEW_WINDOW) {
   rootStore.fileStore.fileList.observe(({ object: list }) => {
     if (list.length > 0) {
       const file = list[0];
-      document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
+      document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.absolutePath}`;
     }
   });
 
@@ -76,7 +76,7 @@ if (IS_PREVIEW_WINDOW) {
     if (list.length > 0) {
       const file = rootStore.fileStore.get(list[0]);
       if (file) {
-        document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
+        document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.absolutePath}`;
       }
     }
   });
@@ -110,7 +110,7 @@ ReactDOM.render(
  * @param tagNames The names of the tags
  */
 async function addTagsToFile(filePath: string, tagNames: string[]) {
-  const clientFile = rootStore.fileStore.fileList.find((file) => file.path === filePath);
+  const clientFile = rootStore.fileStore.fileList.find((file) => file.absolutePath === filePath);
   if (clientFile) {
     const tagIds = await Promise.all(
       tagNames.map(async (tagName) => {

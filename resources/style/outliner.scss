@@ -198,6 +198,16 @@ main,
     color: white;
   }
 
+  .after-icon {
+    cursor: pointer;
+    background-color: currentColor;
+  }
+
+  .tree-content-label:hover > .after-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
   &.selected {
     --selection-background-color: transparent;
     --selection-font-color: var(--primary-color);
@@ -205,7 +215,6 @@ main,
     .after-icon {
       width: 1rem;
       height: 1rem;
-      background-color: currentColor;
     }
   }
 }
@@ -213,6 +222,11 @@ main,
 [aria-selected='true'] > .label > .tree-content-label > .after-icon {
   mask-image: url(~resources/icons/checkmark.svg);
   -webkit-mask-image: url(~resources/icons/checkmark.svg);
+}
+
+[aria-selected='false'] > .label > .tree-content-label > .after-icon {
+  mask-image: url(~resources/icons/select-all.svg);
+  -webkit-mask-image: url(~resources/icons/select-all.svg);
 }
 
 .tree-content-label {
@@ -240,15 +254,6 @@ main,
 
   > .after-icon {
     margin-left: 0.25rem;
-    mask-image: url(~resources/icons/select-all.svg);
-    -webkit-mask-image: url(~resources/icons/select-all.svg);
-    cursor: pointer;
-  }
-
-  &:hover > .after-icon {
-    width: 1rem;
-    height: 1rem;
-    background-color: currentColor;
   }
 
   > div {

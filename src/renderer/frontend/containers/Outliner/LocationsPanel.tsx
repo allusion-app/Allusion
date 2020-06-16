@@ -30,6 +30,8 @@ import UiStore, { FileSearchCriteria } from '../../stores/UiStore';
 import { Tree } from 'components';
 import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
 import { IExpansionState } from '.';
+import LocationRecoveryDialog from '../../components/LocationRecoveryDialog';
+import { CustomKeyDict } from './index';
 
 // Tooltip info
 const enum Tooltip {
@@ -164,7 +166,7 @@ const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
 };
 
 const searchLocation = (search: (criteria: FileSearchCriteria) => void, path: string) =>
-  search(new ClientStringSearchCriteria<IFile>('path', path, 'contains'));
+  search(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict));
 
 const customKeys = (
   event: React.KeyboardEvent<HTMLLIElement>,
@@ -341,7 +343,7 @@ const Location = observer(
     );
 
     return (
-      <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
+      <div className="tree-content-label" onContextMenu={handleContextMenu}>
         <span className="pre-icon">
           {nodeData.id === DEFAULT_LOCATION_ID
             ? IconSet.IMPORT
@@ -349,8 +351,15 @@ const Location = observer(
             ? IconSet.FOLDER_OPEN
             : IconSet.FOLDER_CLOSE}
         </span>
-        {nodeData.name}
-        {nodeData.isBroken && <span className="after-icon">{IconSet.WARNING}</span>}
+        <div onClick={handleClick}>{nodeData.name}</div>
+        {nodeData.isBroken && (
+          <span
+            className="after-icon"
+            onClick={() => treeData.uiStore.openLocationRecovery(nodeData.id)}
+          >
+            {IconSet.WARNING}
+          </span>
+        )}
       </div>
     );
   },
@@ -543,6 +552,7 @@ const LocationsPanel = () => {
 
       <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
       <LocationRemovalAlert dir={locationRemoverOpen} handleClose={closeLocationRemover} />
+      <LocationRecoveryDialog onDelete={setLocationRemoverOpen} />
     </div>
   );
 };

@@ -5,6 +5,8 @@ import StoreContext from '../../contexts/StoreContext';
 
 import TagsPanel from './TagsPanel';
 import LocationsPanel from './LocationsPanel';
+import { SearchKeyDict } from 'src/renderer/entities/SearchCriteria';
+import { IFile } from 'src/renderer/entities/File';
 
 /**
  * Enum variant with associated data for Action enums
@@ -30,6 +32,8 @@ export interface IAction<F, D> {
 
 /** Map that keeps track of the IDs that are expanded */
 export type IExpansionState = { [key: string]: boolean };
+
+export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path' };
 
 const Outliner = () => {
   const rootStore = useContext(StoreContext);

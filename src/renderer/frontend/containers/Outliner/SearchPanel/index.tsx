@@ -97,7 +97,7 @@ const getOperatorOptions = (key: CriteriaKey) => {
     return OperatorOptions.NUMBER;
   } else if (key === 'extension') {
     return OperatorOptions.BINARY;
-  } else if (key === 'name' || key === 'path') {
+  } else if (key === 'name' || key === 'absolutePath') {
     return OperatorOptions.STRING;
   } else if (key === 'tags') {
     return OperatorOptions.ARRAY;
@@ -153,7 +153,7 @@ const ExtensionCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<string>
 );
 
 const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
-  if (keyValue === 'name' || keyValue === 'path') {
+  if (keyValue === 'name' || keyValue === 'absolutePath') {
     return (
       <InputGroup
         key={keyValue}

@@ -27,7 +27,9 @@ interface IMetaData {
 /* A File as it is represented in the Database */
 export interface IFile extends IMetaData, IResource {
   locationId: ID;
-  path: string; // todo: could store relativePath, and convert to a absPath in clientFile (easier for import/export/sync in future)
+  // Relative path from location
+  relativePath: string;
+  absolutePath: string;
   tags: ID[];
   dateAdded: Date;
   dateModified: Date;
@@ -67,7 +69,8 @@ export class ClientFile implements ISerializable<IFile> {
 
   readonly id: ID;
   readonly locationId: ID;
-  readonly path: string;
+  readonly relativePath: string;
+  readonly absolutePath: string;
   readonly tags = observable<ID>([]);
   readonly size: number;
   readonly width: number;
@@ -86,7 +89,7 @@ export class ClientFile implements ISerializable<IFile> {
 
     this.id = fileProps.id;
     this.locationId = fileProps.locationId;
-    this.path = fileProps.path;
+    this.relativePath = fileProps.relativePath;
     this.size = fileProps.size;
     this.width = fileProps.width;
     this.height = fileProps.height;
@@ -95,6 +98,9 @@ export class ClientFile implements ISerializable<IFile> {
     this.name = fileProps.name;
     this.extension = fileProps.extension;
     this.isBroken = isBroken;
+
+    const location = store.getFileLocation(this);
+    this.absolutePath = systemPath.join(location.path, this.relativePath);
 
     this.tags.push(...fileProps.tags);
 
@@ -113,7 +119,7 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @computed get filename(): string {
-    const base = Path.basename(this.path);
+    const base = Path.basename(this.relativePath);
     return base.substr(0, base.lastIndexOf('.'));
   }
 
@@ -159,7 +165,8 @@ export class ClientFile implements ISerializable<IFile> {
     return {
       id: this.id,
       locationId: this.locationId,
-      path: this.path,
+      relativePath: this.relativePath,
+      absolutePath: this.absolutePath,
       tags: this.tags.toJS(), // removes observable properties from observable array
       size: this.size,
       width: this.width,

@@ -156,6 +156,7 @@ const WelcomeDialog = () => {
       isOpen={showDialog}
       onClose={handleClose}
       icon={IconSet.TAG}
+      title="Welcome to Allusion"
       canOutsideClickClose={false}
       canEscapeKeyClose={false}
       className={`${themeClass} welcomedialog`}
