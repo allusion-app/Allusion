@@ -504,13 +504,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
     let title = 'No images';
     let description = 'Images can be added from the outliner';
     let action = (
-      <Button
-        onClick={uiStore.toggleOutliner}
-        // onClick={uiStore.openOutliner}
-        text="Toggle outliner"
-        intent="primary"
-        // icon={IconSet.ADD}
-      />
+      <Button onClick={uiStore.toggleOutliner} text="Toggle outliner" intent="primary" />
     );
     if (fileStore.showsQueryContent) {
       description = 'Try searching for something else.';

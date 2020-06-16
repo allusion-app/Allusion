@@ -106,7 +106,7 @@ const KeySelector = ({ selectedKey, setCriteria }: IKeySelector) => {
     }
   };
 
-  return <HTMLSelect onChange={handlePickKey} options={KeyOptions} value={selectedKey} autoFocus={true}/>;
+  return <HTMLSelect autoFocus onChange={handlePickKey} options={KeyOptions} value={selectedKey} />;
 };
 
 interface IOperatorSelector {
@@ -162,7 +162,7 @@ const TagCriteriaItem = ({ value, setValue }: IValueInput<TagValue>) => {
 
   return (
     <TagSelector
-      autoFocus={true}
+      autoFocus
       includeCollections
       selectedItem={selectedItem}
       onTagSelect={(t) => setValue([t.id, t.name])}
@@ -354,7 +354,7 @@ const SearchForm = ({
         icon={IconSet.ADD}
         onClick={() => setCriterias(criterias.concat({ ...Default.tags, id: generateId() }))}
         minimal
-        className={"btn-blank"}
+        className="btn-blank"
       />
 
       <div>

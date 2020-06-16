@@ -156,12 +156,10 @@ const WelcomeDialog = () => {
       isOpen={showDialog}
       onClose={handleClose}
       icon={IconSet.TAG}
-      // title="Welcome to Allusion"
       canOutsideClickClose={false}
       canEscapeKeyClose={false}
       className={`${themeClass} welcomedialog`}
       isCloseButtonShown={false}
-      // style={{ minHeight: '50vh' }}
     >
       <div className={Classes.DIALOG_BODY}>
         {step === 0 && <WelcomeStep />}

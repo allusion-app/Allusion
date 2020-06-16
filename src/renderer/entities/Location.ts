@@ -185,7 +185,6 @@ export class ClientLocation implements ISerializable<ILocation> {
                   intent: 'primary',
                   timeout: 0,
                   action: {
-                    // text: 'Refresh',
                     icon: IconSet.RELOAD,
                     onClick: this.store.rootStore.fileStore.refetch,
                   },
