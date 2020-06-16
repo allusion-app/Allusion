@@ -11,17 +11,10 @@ export const enum DnDType {
 export const enum DnDAttribute {
   Source = 'dndSource',
   Target = 'dndTarget',
-  // DropEffect = 'dnd-drop-effect' // TODO: Combine this with custum pointer!
+  // DropEffect = 'dnd-drop-effect' // TODO: Combine this with custom pointer!
 }
 
-/**
- * Custom data related ONLY to the currently DRAGGED tag or collection
- *
- * Most importantly DO NOT just export this variable into other components
- * except for the TagsTree. Keeping it in this module will prevent the data
- * being accidentially overwritten. Otherwise create a global variable that can
- * be mutated by functions that capture the variable.
- */
+/** * Custom data related ONLY to the currently DRAGGED tag or collection */
 export let DragItem = { id: '', isSelected: false };
 
 /** Clears all set data attributes. */

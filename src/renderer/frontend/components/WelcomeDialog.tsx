@@ -133,7 +133,7 @@ const WelcomeDialog = () => {
       handleClose();
       // TODO: Start tour here
     }
-  }, [importLocation, locationStore, step]);
+  }, [handleClose, importLocation, locationStore, step]);
 
   return (
     <Dialog

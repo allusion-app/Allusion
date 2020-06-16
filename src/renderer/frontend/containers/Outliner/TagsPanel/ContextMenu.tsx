@@ -8,7 +8,7 @@ import { formatTagCountText } from 'src/renderer/frontend/utils';
 import { Action, Factory } from './StateReducer';
 import { IExpansionState } from '..';
 import { ID } from 'src/renderer/entities/ID';
-import UiStore from 'src/renderer/frontend/UiStore';
+import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 
 interface IColorOptions {

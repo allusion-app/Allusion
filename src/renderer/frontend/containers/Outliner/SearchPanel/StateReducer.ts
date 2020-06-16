@@ -13,14 +13,14 @@ import {
 } from 'src/renderer/entities/SearchCriteria';
 import { ID, generateId } from 'src/renderer/entities/ID';
 import { IMG_EXTENSIONS, IFile } from 'src/renderer/entities/File';
-import { FileSearchCriteria } from 'src/renderer/frontend/UiStore';
+import { FileSearchCriteria } from 'src/renderer/frontend/stores/UiStore';
 
 export type CriteriaKey = keyof IFile;
 export type CriteriaOperator = OperatorType;
 export type TagValue =
   | { tagId: ID; label: string }
   | { collectionId: ID; label: string; tags: ID[] }
-  | {};
+  | undefined;
 export type CriteriaValue = string | number | Date | TagValue;
 
 interface ICriteriaField<
@@ -44,7 +44,7 @@ export type CriteriaField =
 const Default: { [key: string]: CriteriaField } = {
   name: { id: 'name', key: 'name', operator: 'contains', value: '' },
   path: { id: 'path', key: 'path', operator: 'contains', value: '' },
-  tags: { id: 'tags', key: 'tags', operator: 'contains', value: {} },
+  tags: { id: 'tags', key: 'tags', operator: 'contains', value: undefined },
   extension: {
     id: 'extension',
     key: 'extension',
@@ -60,7 +60,7 @@ const Default: { [key: string]: CriteriaField } = {
   },
 };
 
-export function defaultState() {
+export function defaultState(): CriteriaField[] {
   return [{ ...Default['tags'] }];
 }
 
@@ -117,7 +117,7 @@ export const Factory = {
 
 type State = { items: CriteriaField[] };
 
-export function reducer(state: State, action: Action) {
+export function reducer(state: State, action: Action): State {
   switch (action.flag) {
     case Flag.AddQuery:
       state.items.push({ ...Default.tags, id: generateId() });
@@ -172,9 +172,9 @@ export function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
     criteria.key === 'tags' &&
     criteria.value.length > 0
   ) {
-    c.value = [criteria.value[0], criteria.label];
+    c.value = { tagId: criteria.value[0], label: criteria.label };
   } else if (criteria instanceof ClientCollectionSearchCriteria && criteria.key === 'tags') {
-    c.value = [criteria.collectionId, criteria.label, criteria.value];
+    c.value = { collectionId: criteria.collectionId, label: criteria.label, tags: criteria.value };
   } else {
     return c;
   }
@@ -190,20 +190,22 @@ export function intoCriteria(field: CriteriaField): FileSearchCriteria {
     return new ClientDateSearchCriteria(field.key, field.value, field.operator);
   } else if (field.key === 'size') {
     return new ClientNumberSearchCriteria(field.key, field.value * BYTES_IN_MB, field.operator);
-  } else if (field.key === 'tags' && 'tagId' in field.value) {
-    return new ClientIDSearchCriteria(
-      field.key,
-      field.value.tagId,
-      field.value.label,
-      field.operator,
-    );
-  } else if (field.key === 'tags' && 'collectionId' in field.value) {
-    return new ClientCollectionSearchCriteria(
-      field.value.collectionId,
-      field.value.tags,
-      field.value.label,
-      field.operator,
-    );
+  } else if (field.key === 'tags' && field.value) {
+    if ('tagId' in field.value) {
+      return new ClientIDSearchCriteria(
+        field.key,
+        field.value.tagId,
+        field.value.label,
+        field.operator,
+      );
+    } else {
+      return new ClientCollectionSearchCriteria(
+        field.value.collectionId,
+        field.value.tags,
+        field.value.label,
+        field.operator,
+      );
+    }
   } else {
     return new ClientIDSearchCriteria('tags');
   }

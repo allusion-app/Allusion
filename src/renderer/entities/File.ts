@@ -15,21 +15,22 @@ import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
-/* A File as it is represented in the Database */
-export interface IFile extends IResource {
-  id: ID;
-  locationId: ID;
-  path: string; // todo: could store relativePath, and convert to a absPath in clientFile (easier for import/export/sync in future)
-  tags: ID[];
+/** Retrieved file meta data information */
+interface IMetaData {
+  name: string; // Duplicate data; also in path. Used for DB queries
+  extension: string; // in lowercase, without the dot
   size: number;
   width: number;
   height: number;
+}
+
+/* A File as it is represented in the Database */
+export interface IFile extends IMetaData, IResource {
+  locationId: ID;
+  path: string; // todo: could store relativePath, and convert to a absPath in clientFile (easier for import/export/sync in future)
+  tags: ID[];
   dateAdded: Date;
   dateModified: Date;
-
-  // Duplicate data; also in path. Used for DB queries
-  name: string;
-  extension: string; // in lowercase, without the dot
 }
 
 /**
@@ -39,7 +40,7 @@ export interface IFile extends IResource {
  */
 export class ClientFile implements ISerializable<IFile> {
   /** Should be called when after constructing a file before sending it to the backend. */
-  static async getMetaData(path: string) {
+  static async getMetaData(path: string): Promise<IMetaData> {
     const stats = await fse.stat(path);
     let dimensions: ISizeCalculationResult | undefined;
     try {
@@ -123,11 +124,11 @@ export class ClientFile implements ISerializable<IFile> {
       .filter((t) => t !== undefined) as ClientTag[];
   }
 
-  @action.bound setThumbnailPath(thumbnailPath: string) {
+  @action.bound setThumbnailPath(thumbnailPath: string): void {
     this.thumbnailPath = thumbnailPath;
   }
 
-  @action.bound addTag(tag: ID) {
+  @action.bound addTag(tag: ID): void {
     if (this.tags.length === 0) {
       this.store.decrementNumUntaggedFiles();
     }
@@ -137,7 +138,7 @@ export class ClientFile implements ISerializable<IFile> {
     }
   }
 
-  @action.bound removeTag(tag: ID) {
+  @action.bound removeTag(tag: ID): void {
     if (this.tags.includes(tag)) {
       if (this.tags.length === 1) {
         this.store.incrementNumUntaggedFiles();
@@ -147,7 +148,7 @@ export class ClientFile implements ISerializable<IFile> {
     }
   }
 
-  @action.bound removeAllTags() {
+  @action.bound removeAllTags(): void {
     if (this.tags.length !== 0) {
       this.store.incrementNumUntaggedFiles();
     }
@@ -170,7 +171,7 @@ export class ClientFile implements ISerializable<IFile> {
     };
   }
 
-  dispose() {
+  dispose(): void {
     // clean up the observer
     this.saveHandler();
   }

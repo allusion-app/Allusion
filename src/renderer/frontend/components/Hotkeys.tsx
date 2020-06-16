@@ -13,7 +13,7 @@ interface IGlobalHotkeysProps {
  * to the corresponding components. Those need a 'groups' property
  */
 @HotkeysTarget
-export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRootStoreProp, {}> {
+export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRootStoreProp> {
   render() {
     return <>{this.props.children}</>;
   }
@@ -64,19 +64,19 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           global={true}
           combo={hotkeyMap.viewList}
           label="Sets view to list mode"
-          onKeyDown={uiStore.view.setMethodList}
+          onKeyDown={uiStore.setMethodList}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewGrid}
           label="Sets view to grid mode"
-          onKeyDown={uiStore.view.setMethodGrid}
+          onKeyDown={uiStore.setMethodGrid}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewSlide}
           label="Sets view to slide mode"
-          onKeyDown={uiStore.view.toggleSlideMode}
+          onKeyDown={uiStore.toggleSlideMode}
         />
         <Hotkey
           global={true}

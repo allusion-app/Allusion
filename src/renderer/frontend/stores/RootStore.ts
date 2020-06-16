@@ -1,7 +1,7 @@
 import Backend from '../../backend/Backend';
 import FileStore from './FileStore';
 import TagStore from './TagStore';
-import UiStore from '../UiStore';
+import UiStore from './UiStore';
 import TagCollectionStore from './TagCollectionStore';
 import LocationStore from './LocationStore';
 

@@ -115,23 +115,23 @@ const Settings = observer(() => {
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup
           inline
-          selectedValue={uiStore.view.thumbnailSize}
+          selectedValue={uiStore.thumbnailSize}
           onChange={() => undefined}
           label="Thumbnail size"
         >
-          <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
-          <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
-          <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
+          <Radio label="Small" value="small" onClick={uiStore.setThumbnailSmall} />
+          <Radio label="Medium" value="medium" onClick={uiStore.setThumbnailMedium} />
+          <Radio label="Large" value="large" onClick={uiStore.setThumbnailLarge} />
         </RadioGroup>
 
         <RadioGroup
           inline
-          selectedValue={uiStore.view.thumbnailShape}
+          selectedValue={uiStore.thumbnailShape}
           onChange={() => undefined}
           label="Thumbnail shape"
         >
-          <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
-          <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
+          <Radio label="Square" value="square" onClick={uiStore.setThumbnailSquare} />
+          <Radio label="Letterbox" value="letterbox" onClick={uiStore.setThumbnailLetterbox} />
         </RadioGroup>
 
         <Switch

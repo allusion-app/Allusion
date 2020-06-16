@@ -26,7 +26,7 @@ import { ClientStringSearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { AppToaster } from '../../App';
-import UiStore, { FileSearchCriteria } from '../../UiStore';
+import UiStore, { FileSearchCriteria } from '../../stores/UiStore';
 import { Tree } from 'components';
 import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
 import { IExpansionState } from '.';

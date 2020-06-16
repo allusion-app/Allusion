@@ -110,7 +110,7 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
     }
   }
 
-  toString = () => this.value.toString();
+  toString: () => string = () => this.value.toString();
 
   serialize = (): IArraySearchCriteria<T> => {
     return {
@@ -121,19 +121,19 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound setOperator(op: ArrayOperatorType) {
+  @action.bound setOperator(op: ArrayOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound addID(id: ID) {
+  @action.bound addID(id: ID): void {
     this.value.push(id);
   }
 
-  @action.bound removeID(id: ID) {
+  @action.bound removeID(id: ID): void {
     this.value.remove(id);
   }
 
-  @action.bound clearIDs() {
+  @action.bound clearIDs(): void {
     this.value.clear();
   }
 }
@@ -148,7 +148,7 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.label = label;
   }
 
-  toString = () =>
+  toString: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} ${this.label}`;
 
   serialize = (): IArraySearchCriteria<T> => {
@@ -160,11 +160,11 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound setOperator(op: ArrayOperatorType) {
+  @action.bound setOperator(op: ArrayOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound setValue(value: ID, label: string) {
+  @action.bound setValue(value: ID, label: string): void {
     this.value = value ? [value] : [];
     this.label = label;
   }
@@ -178,7 +178,7 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.value = value;
   }
 
-  toString = () =>
+  toString: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} "${this.value}"`;
 
   serialize = (): IStringSearchCriteria<T> => {
@@ -190,12 +190,11 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound
-  setOperator(op: StringOperatorType) {
+  @action.bound setOperator(op: StringOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound setValue(str: string) {
+  @action.bound setValue(str: string): void {
     this.value = str;
   }
 }
@@ -211,7 +210,7 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
     super(key, 'number', operator);
     this.value = value;
   }
-  toString = () =>
+  toString: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${
       NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
     } ${this.value}`;
@@ -225,11 +224,11 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound setOperator(op: NumberOperatorType) {
+  @action.bound setOperator(op: NumberOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound setValue(num: number) {
+  @action.bound setValue(num: number): void {
     this.value = num;
   }
 }
@@ -243,7 +242,7 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.value.setHours(0, 0, 0, 0);
   }
 
-  toString = () =>
+  toString: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${
       NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
     } ${this.value.toLocaleDateString()}`;
@@ -257,11 +256,11 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound setOperator(op: NumberOperatorType) {
+  @action.bound setOperator(op: NumberOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound setValue(date: Date) {
+  @action.bound setValue(date: Date): void {
     this.value = date;
   }
 }
@@ -276,10 +275,10 @@ export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IF
     this.label = label;
   }
 
-  toString = () =>
+  toString: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} ${this.label}`;
 
-  @action.bound setValue(collectionId: ID, tagIDs: ID[], label: string) {
+  @action.bound setValue(collectionId: ID, tagIDs: ID[], label: string): void {
     this.collectionId = collectionId;
     this.value.clear();
     this.value.push(...tagIDs);

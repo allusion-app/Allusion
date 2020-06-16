@@ -22,7 +22,7 @@ import { jsDateFormatter, camelCaseToSpaced } from 'src/renderer/frontend/utils'
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
 import TagSelector from 'src/renderer/frontend/components/TagSelector';
-import UiStore from 'src/renderer/frontend/UiStore';
+import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ID } from 'src/renderer/entities/ID';
 import {
   reducer,
@@ -120,10 +120,10 @@ interface IValueInput<V extends CriteriaValue = CriteriaValue> extends IKeySelec
 const TagCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<TagValue>, 'keyValue'>) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
   const selectedItem =
-    'tagId' in value
-      ? tagStore.get(value.tagId)
-      : 'collectionId' in value
-      ? tagCollectionStore.get(value.collectionId)
+    value !== undefined
+      ? 'tagId' in value
+        ? tagStore.get(value.tagId)
+        : tagCollectionStore.get(value.collectionId)
       : undefined;
 
   return (

@@ -1,6 +1,15 @@
 import React, { useContext } from 'react';
 import { remote, shell } from 'electron';
-import { Button, NonIdealState, ButtonGroup, EditableText, Popover, H5, Classes, Position } from '@blueprintjs/core';
+import {
+  Button,
+  NonIdealState,
+  ButtonGroup,
+  EditableText,
+  Popover,
+  H5,
+  Classes,
+  Position,
+} from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
 import IconSet from 'components/Icons';
 
@@ -13,22 +22,31 @@ export const ClearDbButton = (props: IButtonProps & { position?: Position }) => 
 
   return (
     <Popover position={props.position} targetClassName={props.fill ? 'fillWidth' : ''}>
-      <Button {...props} intent="danger" icon={IconSet.CLEAR_DATABASE} style={{width : 'max-content'}}>
+      <Button
+        {...props}
+        intent="danger"
+        icon={IconSet.CLEAR_DATABASE}
+        style={{ width: 'max-content' }}
+      >
         Clear database
       </Button>
       <div style={{ padding: '8px', maxWidth: '400px' }}>
         <H5>Confirm</H5>
         <p>Are you sure you want to clear the database?</p>
         <p>
-          This is intended to be a last resort,
-          as all imported images and created tags you will be permanently removed.
+          This is intended to be a last resort, as all imported images and created tags you will be
+          permanently removed.
         </p>
         <p>No images on your system will be deleted.</p>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 15 }}>
           <Button className={Classes.POPOVER_DISMISS} style={{ marginRight: 10 }}>
             Cancel
           </Button>
-          <Button intent="danger" className={Classes.POPOVER_DISMISS} onClick={rootStore.clearDatabase}>
+          <Button
+            intent="danger"
+            className={Classes.POPOVER_DISMISS}
+            onClick={rootStore.clearDatabase}
+          >
             Clear
           </Button>
         </div>
@@ -37,12 +55,16 @@ export const ClearDbButton = (props: IButtonProps & { position?: Position }) => 
   );
 };
 
+interface IErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
 interface IErrorBoundaryState {
   hasError: boolean;
   error: string;
 }
 
-class ErrorBoundary extends React.Component<{}, IErrorBoundaryState> {
+class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryState> {
   static getDerivedStateFromError(error: any) {
     // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
@@ -53,7 +75,7 @@ class ErrorBoundary extends React.Component<{}, IErrorBoundaryState> {
     error: '',
   };
 
-  constructor(props: {}) {
+  constructor(props: IErrorBoundaryProps) {
     super(props);
     this.openIssueURL = this.openIssueURL.bind(this);
   }
@@ -67,7 +89,8 @@ class ErrorBoundary extends React.Component<{}, IErrorBoundaryState> {
         error: [
           error.message,
           ...sourceMappedStack.filter((line) => line.indexOf('bundle.js') === -1),
-        ].join('\n') });
+        ].join('\n'),
+      });
     });
   }
 
@@ -102,21 +125,27 @@ ${this.state.error}
       return (
         <div className="error-boundary">
           <NonIdealState
-            icon = {<span className="bp3-icon custom-icon custom-icon-64">{IconSet.DB_ERROR}</span>}
+            icon={<span className="bp3-icon custom-icon custom-icon-64">{IconSet.DB_ERROR}</span>}
             title="Something went wrong."
             description="You can try one of the following options or contact the maintainers"
-            action={<ButtonGroup>
-              <Button onClick={this.reloadApplication} intent="primary" icon={IconSet.RELOAD}>
-                Reload
-              </Button>
-              <Button onClick={this.viewInspector} intent="warning" icon={IconSet.CHROME_DEVTOOLS}>
-                View in DevTools
-              </Button>
-              <ClearDbButton position="bottom" />
-              <Button onClick={this.openIssueURL} icon={IconSet.GITHUB}>
-                Create issue
-              </Button>
-            </ButtonGroup>}
+            action={
+              <ButtonGroup>
+                <Button onClick={this.reloadApplication} intent="primary" icon={IconSet.RELOAD}>
+                  Reload
+                </Button>
+                <Button
+                  onClick={this.viewInspector}
+                  intent="warning"
+                  icon={IconSet.CHROME_DEVTOOLS}
+                >
+                  View in DevTools
+                </Button>
+                <ClearDbButton position="bottom" />
+                <Button onClick={this.openIssueURL} icon={IconSet.GITHUB}>
+                  Create issue
+                </Button>
+              </ButtonGroup>
+            }
           >
             <EditableText
               className="bp3-intent-danger bp3-monospace-text message"

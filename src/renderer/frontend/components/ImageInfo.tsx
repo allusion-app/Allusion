@@ -12,28 +12,25 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   const [resolution, setResolution] = useState<string>('...');
 
   // Look up file info when file changes
-  useEffect(
-    () => {
-      isMounted.current = true;
-      fs.stat(file.path, (err, stats) => {
-        if (isMounted.current) {
-          err ? setError(err) : setFileStats(stats);
-        }
-      });
-      const img = new Image();
+  useEffect(() => {
+    isMounted.current = true;
+    fs.stat(file.path, (err, stats) => {
+      if (isMounted.current) {
+        err ? setError(err) : setFileStats(stats);
+      }
+    });
+    const img = new Image();
 
-      img.onload = () => {
-        if (isMounted.current) {
-          setResolution(`${img.width}x${img.height}`);
-        }
-      };
-      img.src = file.path;
-      return () => {
-        isMounted.current = false;
-      };
-    },
-    [file.path],
-  );
+    img.onload = () => {
+      if (isMounted.current) {
+        setResolution(`${img.width}x${img.height}`);
+      }
+    };
+    img.src = file.path;
+    return () => {
+      isMounted.current = false;
+    };
+  }, [file]);
 
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
   // Or add the units: pixels vs DPI

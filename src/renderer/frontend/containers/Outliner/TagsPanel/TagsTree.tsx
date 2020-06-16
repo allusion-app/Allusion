@@ -19,7 +19,7 @@ import {
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import { ID } from 'src/renderer/entities/ID';
-import UiStore, { FileSearchCriteria } from 'src/renderer/frontend/UiStore';
+import UiStore, { FileSearchCriteria } from 'src/renderer/frontend/stores/UiStore';
 import { TagContextMenu, CollectionContextMenu } from './ContextMenu';
 import {
   DnDType,

@@ -41,9 +41,9 @@ backend
 
 if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory }) => {
-    rootStore.uiStore.view.setFirstItem(0);
+    rootStore.uiStore.setFirstItem(0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
-    rootStore.uiStore.view.enableSlideMode();
+    rootStore.uiStore.enableSlideMode();
     rootStore.fileStore.fetchFilesByIDs(ids);
   });
 
@@ -52,7 +52,7 @@ if (IS_PREVIEW_WINDOW) {
     if (e.key === ' ' || e.key === 'Escape') {
       rootStore.uiStore.clearFileSelection();
       rootStore.fileStore.clearFileList();
-      rootStore.uiStore.view.enableSlideMode();
+      rootStore.uiStore.enableSlideMode();
 
       // remove focus from element so closing preview with spacebar does not trigger any ui elements
       if (document.activeElement && document.activeElement instanceof HTMLElement) {

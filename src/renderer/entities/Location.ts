@@ -64,13 +64,13 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   readonly tagsToAdd = observable<ID>([]);
 
-  @computed get clientTagsToAdd() {
+  @computed get clientTagsToAdd(): ClientTag[] {
     return this.tagsToAdd
       .map((id) => this.store.rootStore.tagStore.get(id))
       .filter((t) => t !== undefined) as ClientTag[];
   }
 
-  @computed get name() {
+  @computed get name(): string {
     return SysPath.basename(this.path);
   }
 
@@ -97,7 +97,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     }
   }
 
-  @action.bound async init() {
+  @action.bound async init(): Promise<string[]> {
     this.isInitialized = true;
     const pathExists = await fse.pathExists(this.path);
     if (pathExists) {
@@ -117,15 +117,15 @@ export class ClientLocation implements ISerializable<ILocation> {
     };
   }
 
-  @action.bound addTag(tag: ClientTag) {
+  @action.bound addTag(tag: ClientTag): void {
     this.tagsToAdd.push(tag.id);
   }
 
-  @action.bound removeTag(tag: ClientTag) {
+  @action.bound removeTag(tag: ClientTag): void {
     this.tagsToAdd.remove(tag.id);
   }
 
-  @action.bound clearTags() {
+  @action.bound clearTags(): void {
     this.tagsToAdd.clear();
   }
 
@@ -141,7 +141,7 @@ export class ClientLocation implements ISerializable<ILocation> {
   // if we decide to store relative paths for files, no need to relocate individual files
   // }
 
-  async checkIfBroken() {
+  async checkIfBroken(): Promise<boolean> {
     if (this.isBroken) {
       return true;
     } else {

@@ -20,7 +20,7 @@ import LocationsPanel from './LocationsPanel';
  *    Foo, // Compiles to 0
  *    Bar, // Compiles to 1
  * }
- * type MyEnum = IAction<Flag.Foo, string> | IAction<Flag.Bar, number;
+ * type MyEnum = IAction<Flag.Foo, string> | IAction<Flag.Bar, number>;
  * ```
  */
 export interface IAction<F, D> {
