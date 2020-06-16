@@ -1,4 +1,4 @@
-import { IReactionDisposer, reaction, computed, observable, action } from 'mobx';
+import { IReactionDisposer, reaction, computed, observable, action, runInAction } from 'mobx';
 import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
@@ -104,7 +104,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     if (pathExists) {
       return this.watchDirectory(this.path);
     } else {
-      this.isBroken = true;
+      runInAction(() => this.isBroken = true);
       return [];
     }
   }
@@ -116,6 +116,14 @@ export class ClientLocation implements ISerializable<ILocation> {
       dateAdded: this.dateAdded,
       tagsToAdd: this.tagsToAdd.toJS(),
     };
+  }
+
+  @action changePath(newPath: string) {
+    this.store.changeLocationPath(this, newPath);
+  }
+
+  @action unBreak() {
+    this.isBroken = false;
   }
 
   @action.bound addTag(tag: ClientTag) {
@@ -208,7 +216,7 @@ export class ClientLocation implements ISerializable<ILocation> {
         .on('unlink', (path: string) => {
           console.log(`Location "${SysPath.basename(this.path)}": File ${path} has been removed.`);
           const fileStore = this.store.rootStore.fileStore;
-          const clientFile = fileStore.fileList.find((f) => f.path === path);
+          const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
           if (clientFile) {
             fileStore.hideFile(clientFile);
           }

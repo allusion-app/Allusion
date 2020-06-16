@@ -6,7 +6,6 @@ import {
   Button,
   H4,
   Collapse,
-  Icon,
   Menu,
   MenuItem,
   Classes,
@@ -31,6 +30,8 @@ import MultiTagSelector from '../../components/MultiTagSelector';
 import { AppToaster } from '../../App';
 import LocationStore from '../../stores/LocationStore';
 import UiStore from '../../UiStore';
+import LocationRecoveryDialog from '../../components/LocationRecoveryDialog';
+import { CustomKeyDict } from './SearchForm';
 
 // Tooltip info
 const enum Tooltip {
@@ -60,14 +61,16 @@ const LocationTreeContextMenu = ({
 
   const addToSearch = useCallback(
     () =>
-      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('path', path, 'contains')),
+      uiStore.addSearchCriteria(
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict),
+      ),
     [path, uiStore],
   );
 
   const replaceSearch = useCallback(
     () =>
       uiStore.replaceSearchCriteria(
-        new ClientStringSearchCriteria<IFile>('path', path, 'contains'),
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict),
       ),
     [uiStore, path],
   );
@@ -121,23 +124,19 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
           {() => (
             <>
               <div>
-              <p>Path: <pre>{dir.path}</pre></p>
-                {/* <span>
+                <p>
                   Path: <pre>{dir.path}</pre>
-                </span> */}
-                {/* <Checkbox label="Recursive" checked /> */}
-                {/* <Checkbox label="Add folder name as tag" /> */}
+                </p>
               </div>
               <div>
                 <Label>
-                <p>Tags to add
-                <MultiTagSelector
-                  selectedItems={dir.clientTagsToAdd}
-                  onTagSelect={dir.addTag}
-                  onTagDeselect={dir.removeTag}
-                  onClearSelection={dir.clearTags}
-                />
-                </p>
+                  <p>Tags to add</p>
+                  <MultiTagSelector
+                    selectedItems={dir.clientTagsToAdd}
+                    onTagSelect={dir.addTag}
+                    onTagDeselect={dir.removeTag}
+                    onClearSelection={dir.clearTags}
+                  />
                 </Label>
               </div>
             </>
@@ -147,7 +146,9 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
 
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button onClick={handleClose} intent="primary">{dir.isInitialized ? 'Close' : 'Confirm'}</Button>
+          <Button onClick={handleClose} intent="primary">
+            {dir.isInitialized ? 'Close' : 'Confirm'}
+          </Button>
         </div>
       </div>
     </Dialog>
@@ -208,17 +209,40 @@ function dirItemAsTreeNode(dirItem: IDirectoryTreeItem): ITreeNode<string> {
   };
 }
 
-const LocationsTree = ({ onDelete, onConfig }: ILocationTreeProps) => {
+const LocationRootLabel = observer(({ location }: { location: ClientLocation }) => (
+  <span
+    className="tooltip"
+    data-right={`${location.isBroken ? 'Cannot find this location: ' : ''} ${location.path}`}
+  >
+    {Path.basename(location.path)}
+  </span>
+));
+
+const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useContext(StoreContext);
-  const [nodes, setNodes] = useState<ITreeNode<string>[]>(
+
+  const [nodes, setNodes] = useState<ITreeNode<ClientLocation | string>[]>(
     locationStore.locationList.map((location) => ({
       id: location.id,
-      label: Path.basename(location.path),
-      nodeData: location.path,
+      label: <LocationRootLabel location={location} />,
+      nodeData: location,
       icon: location.id === DEFAULT_LOCATION_ID ? 'import' : IconSet.FOLDER_CLOSE,
-      rightIcon: location.isBroken ? <Icon icon={IconSet.WARNING} /> : 'tag',
-      className: 'tooltip',
-      'data-right': `${location.isBroken ? 'Cannot find this location: ' : ''} ${location.path}`,
+      secondaryLabel: (
+        <Observer>
+          {() =>
+            location.isBroken ? (
+              <Button
+                icon={IconSet.WARNING}
+                onClick={(e: React.MouseEvent) =>
+                  void e.stopPropagation() || uiStore.openLocationRecovery(location.id)
+                }
+              />
+            ) : (
+              <></>
+            )
+          }
+        </Observer>
+      ),
     })),
   );
 
@@ -236,30 +260,33 @@ const LocationsTree = ({ onDelete, onConfig }: ILocationTreeProps) => {
 
   const addToSearch = useCallback(
     (path: string) =>
-      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('path', path, 'contains')),
+      uiStore.addSearchCriteria(
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict),
+      ),
     [uiStore],
   );
 
   const replaceSearch = useCallback(
     (path: string) =>
       uiStore.replaceSearchCriteria(
-        new ClientStringSearchCriteria<IFile>('path', path, 'contains'),
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict),
       ),
     [uiStore],
   );
 
   const handleNodeClick = useCallback(
-    (node: ITreeNode<string>, _path: number[], e: React.MouseEvent) => {
+    (node: ITreeNode<ClientLocation | string>, _path: number[], e: React.MouseEvent) => {
       if (node.nodeData) {
-        // TODO: Mark searched nodes as selected?
-        e.ctrlKey ? addToSearch(node.nodeData || '') : replaceSearch(node.nodeData || '');
+        const path = typeof node.nodeData === 'string' ? node.nodeData : node.nodeData.path;
+        // TODO: Mark searched nodes as selected, similar to tags
+        e.ctrlKey ? addToSearch(path) : replaceSearch(path);
       }
     },
     [addToSearch, replaceSearch],
   );
 
   const handleNodeExpand = useCallback(
-    (node: ITreeNode<string>) => {
+    (node: ITreeNode<ClientLocation | string>) => {
       node.isExpanded = true;
       setNodes([...nodes]);
     },
@@ -267,7 +294,7 @@ const LocationsTree = ({ onDelete, onConfig }: ILocationTreeProps) => {
   );
 
   const handleNodeCollapse = useCallback(
-    (node: ITreeNode<string>) => {
+    (node: ITreeNode<ClientLocation | string>) => {
       node.isExpanded = false;
       setNodes([...nodes]);
     },
@@ -275,12 +302,12 @@ const LocationsTree = ({ onDelete, onConfig }: ILocationTreeProps) => {
   );
 
   const handleNodeContextMenu = useCallback(
-    (node: ITreeNode<string>, _: number[], e: React.MouseEvent<HTMLElement>) => {
+    (node: ITreeNode<ClientLocation | string>, _: number[], e: React.MouseEvent<HTMLElement>) => {
       // The empty folder markers have path (nodeData) specified -no need for context menu
       if (node.nodeData) {
         ContextMenu.show(
           <LocationTreeContextMenu
-            path={node.nodeData || ''}
+            path={typeof node.nodeData === 'string' ? node.nodeData : node.nodeData.path}
             locationStore={locationStore}
             uiStore={uiStore}
             onConfig={onConfig}
@@ -302,7 +329,7 @@ const LocationsTree = ({ onDelete, onConfig }: ILocationTreeProps) => {
       onNodeContextMenu={handleNodeContextMenu}
     />
   );
-};
+});
 
 const LocationsForm = () => {
   const { locationStore } = useContext(StoreContext);
@@ -393,7 +420,9 @@ const LocationsForm = () => {
     <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
         <H4 className="bp3-heading">
-          <span className="bp3-icon custom-icon custom-icon-14">{isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}</span>
+          <span className="bp3-icon custom-icon custom-icon-14">
+            {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}
+          </span>
           {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
           {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
           Locations
@@ -423,6 +452,8 @@ const LocationsForm = () => {
 
       <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
       <LocationRemovalAlert dir={locationRemoverOpen} handleClose={closeLocationRemover} />
+
+      <LocationRecoveryDialog onDelete={setLocationRemoverOpen} />
     </div>
   );
 };

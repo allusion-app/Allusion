@@ -15,7 +15,7 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   useEffect(
     () => {
       isMounted.current = true;
-      fs.stat(file.path, (err, stats) => {
+      fs.stat(file.absolutePath, (err, stats) => {
         if (isMounted.current) {
           err ? setError(err) : setFileStats(stats);
         }
@@ -27,12 +27,12 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
           setResolution(`${img.width}x${img.height}`);
         }
       };
-      img.src = file.path;
+      img.src = file.absolutePath;
       return () => {
         isMounted.current = false;
       };
     },
-    [file.path],
+    [file.absolutePath],
   );
 
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
