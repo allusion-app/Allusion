@@ -102,16 +102,17 @@ const GalleryItem = observer(
     return (
       <div ref={galleryItemDrop} className={className}>
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
-          {isImageLoaded ? (
-            <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
-          ) : imageError ? (
-            <span className="image-error">
-              <span className="bp3-icon custom-icon custom-icon-32">{IconSet.DB_ERROR}</span> <br />{' '}
-              Could not load image
-            </span> // Show an error it it could not be loaded
-          ) : (
-            <div className={`placeholder ${Classes.SKELETON}`} />
-          ) // Else show a placeholder
+          {
+            isImageLoaded ? (
+              <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
+            ) : imageError ? (
+              <span className="image-error">
+                <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
+                <br /> Could not load image
+              </span> // Show an error it it could not be loaded
+            ) : (
+              <div className={`placeholder ${Classes.SKELETON}`} />
+            ) // Else show a placeholder
           }
         </div>
         {showDetails && (
@@ -234,7 +235,7 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
       )}
       <span className="thumbnailTags placeholder bp3-skeleton" />
     </div>
-  )
+  );
 });
 
 const DelayedGalleryItem = (props: IGalleryItemProps) => {
@@ -243,7 +244,7 @@ const DelayedGalleryItem = (props: IGalleryItemProps) => {
     const timeout = setTimeout(() => setShowSimple(false), 300);
     return () => clearTimeout(timeout);
   });
-  return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItemWithContextMenu {...props} />
-}
+  return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItemWithContextMenu {...props} />;
+};
 
 export default observer(withRootstore(DelayedGalleryItem));

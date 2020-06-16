@@ -106,7 +106,7 @@ const KeySelector = ({ selectedKey, setCriteria }: IKeySelector) => {
     }
   };
 
-  return <HTMLSelect onChange={handlePickKey} options={KeyOptions} value={selectedKey} />;
+  return <HTMLSelect autoFocus onChange={handlePickKey} options={KeyOptions} value={selectedKey} />;
 };
 
 interface IOperatorSelector {
@@ -354,6 +354,7 @@ const SearchForm = ({
         icon={IconSet.ADD}
         onClick={() => setCriterias(criterias.concat({ ...Default.tags, id: generateId() }))}
         minimal
+        className="btn-blank"
       />
 
       <div>
@@ -395,7 +396,7 @@ export const AdvancedSearchDialog = observer(() => {
       onClose={uiStore.toggleAdvancedSearch}
       icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      className={`${themeClass} light`}
+      className={`${themeClass} light header-dark`}
       canEscapeKeyClose={true}
       canOutsideClickClose={true}
     >

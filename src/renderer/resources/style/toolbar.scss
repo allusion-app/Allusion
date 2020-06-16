@@ -10,11 +10,15 @@
   border-bottom: 2px solid $dark-gray0;
   border-left: 1px solid $dark-gray0;
   border-right: 1px solid $dark-gray0;
-  
+
   // Turn of event for show media items
   #media {
     pointer-events: none;
     white-space: nowrap;
+    > * {
+      cursor: default;
+      pointer-events: auto;
+    }
   }
 
   .custom-icon {
@@ -46,7 +50,8 @@
 //   margin-top: .25rem;
 // }
 
-#main-toolbar.separated { // Intended for when the main (content) toolbar is separate from the rest of the toolbar
+#main-toolbar.separated {
+  // Intended for when the main (content) toolbar is separate from the rest of the toolbar
   display: flex;
   flex-direction: row;
   padding: 0 0.5rem;

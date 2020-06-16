@@ -6,8 +6,19 @@ $dark-gray1: #1f2224 !important;
 $dark-gray2: #2a2d30 !important;
 $dark-gray3: #232729 !important;
 $dark-gray4: #495057 !default;
-$dark-gray5: #3e3e3e !important;
+$dark-gray5: #3e3e3e !important; // #5c6064
 $dark-gray6: #7d8991 !important;
+
+$dark-gray0-trans: #14181ae1 !default;
+$dark-gray1-trans: #3e3e3eb8 !default;
+$dark-gray2-trans: #5e5d5dc2 !default;
+$dark-gray3-trans: #7c7c7cc2 !default;
+$dark-gray4-trans: #7c7c7c6e !default;
+$dark-gray5-trans: #7c7c7c30 !default;
+$dark-gray6-trans: #14181a05 !default;
+$dark-gray7-trans: #2e313320 !default;
+$dark-gray8-trans: #686f7330 !default;
+$dark-gray9-trans: #2b2c2d80 !default;
 
 $dark-wgray1: #181818 !important;
 $dark-wgray2: #252525 !important;
@@ -22,18 +33,18 @@ $gray3: #8a9ba8 !important;
 $gray4: #a7b6c2 !important;
 $gray5: #bfccd6 !important;
 
-$light-gray1: #95999d; //8c9195; //#8f9ca6;
-$light-gray2: #7d8991 !important;
-$light-gray3: #d1d1d1 !important; //#e1e8ed
+$light-gray1: #9ca1a6; // Main icons & text //95999d  8c9195; //#8f9ca6;
+$light-gray2: #868d91 !important; // #b1b7bb
+$light-gray3: #dde1e4 !important; // #d1d1d1 #e1e8ed
 $light-gray4: #ebf1f5 !important;
-$light-gray5: #f7f9fa !important; //#f5f8fa !default;
+$light-gray5: #f7f9fa !important; //#f5f8fa;
 $light-gray6: #f5f8fa !important;
 
 $light-wgray1: #919191;
 $light-wgray2: #adadad !important;
 $light-wgray3: #d1d1d1 !important; //#e1e8ed
 $light-wgray4: #ebf1f5 !important;
-$light-wgray5: #f7f9fa !important; //#f5f8fa !default;
+$light-wgray5: #f7f9fa !important; //#f5f8fa;
 $light-wgray6: #f5f8fa !important;
 
 $white: #ffffff !default;

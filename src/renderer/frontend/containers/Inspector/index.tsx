@@ -36,34 +36,42 @@ const Carousel = ({ items }: { items: ClientFile[] }) => {
     const padding = Array.from(Array(maxItems - 1));
     setScrollIndex(items.length - 1);
     return [...padding, ...items];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    const delta = e.deltaY > 0 ? -1 : 1;
-    setScrollIndex((v) => clamp((v + delta), 0, paddedItems.length - 1));
-  }, [paddedItems.length]);
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      const delta = e.deltaY > 0 ? -1 : 1;
+      setScrollIndex((v) => clamp(v + delta, 0, paddedItems.length - 1));
+    },
+    [paddedItems.length],
+  );
 
   return (
     <div id="carousel" onWheel={handleWheel}>
       {/* Show a stack of the first N images (or fewer) */}
-      {paddedItems.slice(scrollIndex, scrollIndex + maxItems)
-        .map((file, index) => !file ? null : (
+      {paddedItems.slice(scrollIndex, scrollIndex + maxItems).map((file, index) =>
+        !file ? null : (
           <div
             key={file.id}
-            className={`item child-${index
+            className={`item child-${
+              index
               // TODO: Could add in and out transition, but you'd also need to know the scroll direction for that
               // }${index === 0 ? ' item-enter' : ''
               // }${index === maxItems - 1 ? ' item-exit' : ''
             }`}
           >
             {/* TODO: Thumbnail path is not always resolved atm, working on that in another branch */}
-            <img src={file.thumbnailPath} onClick={() => setScrollIndex(scrollIndex - maxItems + 1 + index)} />
+            <img
+              src={file.thumbnailPath}
+              onClick={() => setScrollIndex(scrollIndex - maxItems + 1 + index)}
+            />
           </div>
-      ))}
+        ),
+      )}
     </div>
-  )
-}
+  );
+};
 
 const Inspector = observer(() => {
   const { uiStore } = useContext(StoreContext);
