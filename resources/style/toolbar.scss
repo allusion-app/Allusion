@@ -44,11 +44,13 @@
 .toolb-center {
   justify-content: center !important;
 }
-// For frameless app
-// #preview-toolbar{
-//   margin-left: 4rem;
-//   margin-top: .25rem;
-// }
+#preview-toolbar {
+  // For frameless app
+  // margin-left: 4rem;
+  // margin-top: .25rem;
+  display: flex;
+  align-items: baseline;
+}
 
 #main-toolbar.separated {
   // Intended for when the main (content) toolbar is separate from the rest of the toolbar

@@ -6,10 +6,10 @@ import Gallery from './Gallery';
 import Searchbar from './Searchbar';
 import ContentToolbar from '../Toolbar/ContentToolbar';
 import { Observer } from 'mobx-react-lite';
-import { IS_PREVIEW_WINDOW } from '../../../renderer';
+import { IS_PREVIEW_WINDOW } from 'src/renderer/renderer';
 
 @HotkeysTarget
-class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
+class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
     return (
       <main tabIndex={1}>

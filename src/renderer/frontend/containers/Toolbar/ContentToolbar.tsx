@@ -1,13 +1,13 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, Popover, Icon, ButtonGroup, Menu, MenuItem } from '@blueprintjs/core';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import { ToolbarTooltips } from '.';
 import { ClientFile, IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
 import { useMemo, useContext } from 'react';
-import { ViewMethod } from '../../UiStore';
+import { ViewMethod } from '../../stores/UiStore';
 import StoreContext from '../../contexts/StoreContext';
 
 /* Library info. Todo: Show entire library count instead of current fileList */
@@ -152,12 +152,12 @@ const ContentToolbar = observer(({ className }: { className?: string }) => {
 
   return (
     <section id="main-toolbar" className={className}>
-      {uiStore.view.isSlideMode ? (
+      {uiStore.isSlideMode ? (
         <ButtonGroup minimal>
           {/* Slide mode */}
           <Button
             icon={IconSet.ARROW_LEFT}
-            onClick={uiStore.view.disableSlideMode}
+            onClick={uiStore.disableSlideMode}
             intent="primary"
             className="tooltip"
             data-right={ToolbarTooltips.Back}
@@ -203,9 +203,9 @@ const ContentToolbar = observer(({ className }: { className?: string }) => {
           </ButtonGroup>
 
           <LayoutOptions
-            method={uiStore.view.method}
-            viewGrid={uiStore.view.setMethodGrid}
-            viewList={uiStore.view.setMethodList}
+            method={uiStore.method}
+            viewGrid={uiStore.setMethodGrid}
+            viewList={uiStore.setMethodList}
           />
         </>
       )}

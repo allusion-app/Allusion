@@ -8,7 +8,7 @@ import { IMG_EXTENSIONS } from '../../entities/File';
 import { ClientLocation } from '../../entities/Location';
 import StoreContext from '../contexts/StoreContext';
 import LocationStore from '../stores/LocationStore';
-import IconSet from './Icons';
+import IconSet from 'components/Icons';
 import { AppToaster } from '../App';
 
 interface IMatch {

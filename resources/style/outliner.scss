@@ -183,160 +183,97 @@ main,
   }
 }
 
-nav .bp3-tree {
-  background-color: $dark-gray1;
-  overflow: auto;
-
-  .bp3-tree-root {
-    overflow: hidden;
-  }
-}
-
-.bp3-light {
-  background-color: $light-gray2;
-}
-
 #tree-footer {
   flex: 1;
   min-height: 16px;
 }
 
-// Reordering by dragging
-.bp3-tree-node {
-  // &-label {
-  //   // min-height: 20px !important;
-  //   // text-transform: lowercase;
-  //   // Turn off auto Capatilizing first letter
-  //   // &::first-letter {
-  //   //   text-transform: uppercase;
-  //   // }
-  // }
-  .reorder-target {
+.tags-tree {
+  .searched {
+    // TODO: Use a color without alpha values...
+    --foreground-color: #007bf53f;
+    --background-color: #007bf53f;
+    --focus-color: #007bf53f;
+    --highlight-background-color: #007bf53f;
+    color: white;
+  }
+
+  .after-icon {
+    cursor: pointer;
+    background-color: currentColor;
+  }
+
+  .tree-content-label:hover > .after-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &.selected {
+    --selection-background-color: transparent;
+    --selection-font-color: var(--primary-color);
+
+    .after-icon {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}
+
+[aria-selected='true'] > .label > .tree-content-label > .after-icon {
+  mask-image: url(~resources/icons/checkmark.svg);
+  -webkit-mask-image: url(~resources/icons/checkmark.svg);
+}
+
+[aria-selected='false'] > .label > .tree-content-label > .after-icon {
+  mask-image: url(~resources/icons/select-all.svg);
+  -webkit-mask-image: url(~resources/icons/select-all.svg);
+}
+
+.tree-content-label {
+  display: flex;
+  align-items: center;
+  min-height: 1.75rem;
+  width: 100%;
+
+  &[data-dnd-target='true'] {
     border-bottom: 2px solid $blue1;
   }
-  .reorder-source {
-    // .bp3-tree-node .reorder-source > div {
+
+  &[data-dnd-source='true'] {
     opacity: 0.25;
-    &.reorder-target {
-      opacity: 1 !important;
-    }
   }
-}
 
-// .bp3-tree-node .reorder-source {
-// // .bp3-tree-node .reorder-source > div {
-//   opacity: 0.25;
-//   &.reorder-target {
-//     opacity: 1 !important;
-//   }
-// }
-
-.bp3-control-group {
-  padding: 0.25rem 0;
-}
-
-.bp3-input {
-  padding: 0 0.5rem;
-  border-radius: 6px;
-}
-
-.bp3-input:focus,
-.bp3-input.bp3-active {
-  box-shadow: 0 0 0 1.5px $blue1;
-  // box-shadow: none !important;
-}
-
-.tagLabel {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.bp3-tree .bp3-input {
-  height: 1.6rem;
-}
-
-#watched-folders {
-  padding-left: 0;
-  margin: 0;
-  div > span:first-child {
-    padding: 0.25rem 0.05rem;
-    margin-left: 0.5rem;
+  > .pre-icon,
+  > .after-icon {
+    flex-shrink: 0;
   }
-  > ul {
-    margin: 0;
+
+  > .pre-icon {
+    margin-right: 0.25rem;
   }
-  > li {
-    list-style-type: none;
-    button {
-      background: none;
-      // width: fit-content !important;
-      padding: 0 1rem;
-      padding-right: 0;
-      justify-content: left;
+
+  > .after-icon {
+    margin-left: 0.25rem;
+  }
+
+  > div {
+    display: flex;
+    align-items: center;
+    height: 1.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+
+    > .bp3-input {
+      height: 100%;
       width: 100%;
-      border-radius: 0;
-    }
-    > span {
-      width: calc(100% - 30px);
-      display: inline-block;
-      height: 30px;
-      display: flex;
-      align-items: center;
-    }
-  }
-}
 
-// Google-photos like selection for tag tree
-.tag-tree {
-  // Only show checkbox on hover
-  .bp3-tree-node-content {
-    > .bp3-tree-node-secondary-label {
-      display: none;
-    }
-    // Show on hover or when the selection state is active (any item is selected)
-    &:hover {
-      > .bp3-tree-node-secondary-label {
-        display: inline;
-        // background-color: $dark-gray1;
-        // border-radius: 100%;
+      &:focus,
+      &.bp3-active {
+        box-shadow: none !important;
+        border: 1.5px solid $blue1;
       }
-    }
-
-    .bp3-tree-node-secondary-label {
-      > * {
-        opacity: 0.6;
-        &:hover {
-          opacity: 1;
-        }
-      }
-    }
-  }
-
-  &.selection-active {
-    // .bp3-tree {
-    // Indicator that selection mode is active > isnt the selection enough?
-    // box-shadow: inset 0 0 4px $blue1;
-    // }
-
-    .bp3-tree-node-content {
-      > .bp3-tree-node-secondary-label {
-        display: inline;
-      }
-    }
-    .bp3-tree-node-secondary-label {
-      > * {
-        opacity: 1;
-      }
-    }
-  }
-  .selection-icon {
-    cursor: pointer;
-  }
-  .is-searched {
-    > .bp3-tree-node-content {
-      background-color: $blue-trans2;
-      color: $light-gray4;
     }
   }
 }

@@ -3,7 +3,7 @@ import { Button, ButtonGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import ContentToolbar from './ContentToolbar';
 
 // Tooltip info

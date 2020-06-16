@@ -35,6 +35,37 @@ body {
   height: 100%;
 }
 
+// Default Theme
+.bp3-dark,
+.bp3-light {
+  --primary-color: #{$blue1};
+  --stroke-color: #{$gray3};
+  --selection-background-color: #007bf53f;
+  --selection-font-color: white;
+  --treeitem-identation: 1rem;
+  --treeitem-offset: 1rem;
+}
+
+// Dark Theme
+.bp3-dark {
+  --focus-color: #{$dark-gray3};
+  --highlight-background-color: #{$dark-gray3};
+  --highlight-font-color: white;
+  --caret-color: #{$light-gray1};
+  --foreground-color: #{$dark-gray1};
+  --background-color: #{$dark-gray0};
+}
+
+// Light Theme
+.bp3-light {
+  --focus-color: #{$light-gray4};
+  --highlight-background-color: #{$light-gray4};
+  --highlight-font-color: #{$black};
+  --caret-color: #{$dark-gray1};
+  --foreground-color: #{$light-gray5};
+  --background-color: #{$light-gray3};
+}
+
 // Override standard CSS attributes
 pre {
   word-wrap: break-word;
@@ -509,10 +540,6 @@ img {
     text-align: center;
     margin-top: 20px !important;
   }
-}
-
-.bp3-tree-node-content .custom-icon {
-  color: inherit !important;
 }
 
 .bp3-icon-eye {

@@ -66,6 +66,11 @@ let rendererConfig = {
   },
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
+    alias: {
+      components: path.resolve(__dirname, 'components/'),
+      resources: path.resolve(__dirname, 'resources/'),
+      src: path.resolve(__dirname, 'src/'),
+    },
   },
   module: {
     rules: [
@@ -84,7 +89,25 @@ let rendererConfig = {
       },
       {
         test: /\.(scss|css)$/,
+        exclude: /\.module\.scss$/,
         use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+      },
+      {
+        test: /\.module.(scss|css)$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true,
+              modules: {
+                // Use real class name, hash only added when needed
+                localIdentName: '[local]_[hash:base64:5]' ,
+              },
+            },
+          },
+          'sass-loader?sourceMap',
+        ],
       },
       {
         test: /\.(jpg|png|ico|icns)$/,

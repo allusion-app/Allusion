@@ -1,44 +1,46 @@
-import { IRootStoreProp } from '../../../contexts/StoreContext';
+import { IRootStoreProp } from 'src/renderer/frontend/contexts/StoreContext';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Tag, Alert, Classes } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import IconSet from '../../../components/Icons';
-import { DragAndDropType } from '../TagPanel';
-import { ClientTag } from '../../../../entities/Tag';
-import { ClientTagCollection } from '../../../../entities/TagCollection';
+import IconSet from 'components/Icons';
+import { DnDType } from './DnD';
+import { ClientTag } from 'src/renderer/entities/Tag';
+import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 
 const TagRemoverContent = ({
   rootStore: { uiStore, tagStore, tagCollectionStore },
 }: IRootStoreProp) => {
-  const [removeType, setRemoveType] = useState<DragAndDropType.Tag | DragAndDropType.Collection>();
+  const [removeType, setRemoveType] = useState<DnDType.Tag | DnDType.Collection>();
   const [tagsToRemove, setTagsToRemove] = useState<ClientTag[]>([]);
   const [colToRemove, setColToRemove] = useState<ClientTagCollection>();
 
   useEffect(() => {
     // Check whether to remove selected tags or a specific tag or collection
     if (uiStore.isOutlinerTagRemoverOpen === 'selected') {
-      setRemoveType(DragAndDropType.Tag);
+      setRemoveType(DnDType.Tag);
       setTagsToRemove(uiStore.clientTagSelection);
     } else if (uiStore.isOutlinerTagRemoverOpen) {
       const id = uiStore.isOutlinerTagRemoverOpen;
       const remTag = tagStore.get(id);
       if (remTag) {
-        setRemoveType(DragAndDropType.Tag);
+        setRemoveType(DnDType.Tag);
         setTagsToRemove([remTag]);
       } else {
         const remCol = tagCollectionStore.get(id);
         if (remCol) {
-          setRemoveType(DragAndDropType.Collection);
+          setRemoveType(DnDType.Collection);
           setColToRemove(remCol);
-          setTagsToRemove(remCol
-            .getTagsRecursively()
-            .map((t) => tagStore.get(t))
-            .filter((t) => t !== undefined) as ClientTag[]);
+          setTagsToRemove(
+            remCol
+              .getTagsRecursively()
+              .map((t) => tagStore.get(t))
+              .filter((t) => t !== undefined) as ClientTag[],
+          );
         }
       }
     }
-  // we can't use uiStore.clientTagSelection as a dep - it's a new array every time (@computed) -> infinite loop
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // we can't use uiStore.clientTagSelection as a dep - it's a new array every time (@computed) -> infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tagCollectionStore, tagStore, uiStore.tagSelection.length, uiStore.isOutlinerTagRemoverOpen]);
 
   const tagsToRemoveOverview = (
@@ -51,7 +53,7 @@ const TagRemoverContent = ({
     </div>
   );
 
-  if (removeType === DragAndDropType.Tag) {
+  if (removeType === DnDType.Tag) {
     return (
       <>
         <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
@@ -62,7 +64,7 @@ const TagRemoverContent = ({
         {tagsToRemoveOverview}
       </>
     );
-  } else if (removeType === DragAndDropType.Collection && colToRemove) {
+  } else if (removeType === DnDType.Collection && colToRemove) {
     return (
       <>
         <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
@@ -81,26 +83,23 @@ const TagRemoverContent = ({
 export const TagRemoval = observer(({ rootStore }: IRootStoreProp) => {
   const { uiStore, tagStore, tagCollectionStore } = rootStore;
 
-  const handleConfirm = useCallback(
-    async () => {
-      if (uiStore.isOutlinerTagRemoverOpen === 'selected') {
-        await uiStore.removeSelectedTagsAndCollections();
-      } else if (uiStore.isOutlinerTagRemoverOpen) {
-        const id = uiStore.isOutlinerTagRemoverOpen;
-        const remTag = tagStore.get(id);
-        if (remTag) {
-          await remTag.delete();
-        } else {
-          const remCol = tagCollectionStore.get(id);
-          if (remCol) {
-            await remCol.delete();
-          }
+  const handleConfirm = useCallback(async () => {
+    if (uiStore.isOutlinerTagRemoverOpen === 'selected') {
+      await uiStore.removeSelectedTagsAndCollections();
+    } else if (uiStore.isOutlinerTagRemoverOpen) {
+      const id = uiStore.isOutlinerTagRemoverOpen;
+      const remTag = tagStore.get(id);
+      if (remTag) {
+        await remTag.delete();
+      } else {
+        const remCol = tagCollectionStore.get(id);
+        if (remCol) {
+          await remCol.delete();
         }
       }
-      uiStore.closeOutlinerTagRemover();
-    },
-    [tagCollectionStore, tagStore, uiStore],
-  );
+    }
+    uiStore.closeOutlinerTagRemover();
+  }, [tagCollectionStore, tagStore, uiStore]);
 
   return (
     <Alert

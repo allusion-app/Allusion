@@ -1,6 +1,6 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import { generateId, ID, IResource, ISerializable } from './ID';
-import { ClientTag, ITag } from './Tag';
+import { ClientTag } from './Tag';
 import TagCollectionStore from '../frontend/stores/TagCollectionStore';
 
 export const ROOT_TAG_COLLECTION_ID = 'hierarchy';
@@ -82,7 +82,7 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
   }
 
   @computed get isEmpty(): boolean {
-    return this.tags.length === 0 && !this.clientSubCollections.some((subCol) => !subCol.isEmpty);
+    return this.tags.length === 0 && this.clientSubCollections.every((subCol) => subCol.isEmpty);
   }
 
   @computed get isSelected(): boolean {
@@ -100,35 +100,39 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
     );
   }
 
-  @action.bound addTag(tag: ClientTag | ID) {
+  @computed get isSearched(): boolean {
+    return this.store.isSearched(this.id);
+  }
+
+  @action.bound addTag(tag: ClientTag | ID): void {
     const id = tag instanceof ClientTag ? tag.id : tag;
     if (!this.tags.includes(id)) {
       this.tags.push(id);
     }
   }
 
-  @action.bound addCollection(collection: ID) {
+  @action.bound addCollection(collection: ID): void {
     this.subCollections.push(collection);
   }
 
-  @action.bound rename(name: string) {
+  @action.bound rename(name: string): void {
     this.name = name;
   }
 
-  @action setColor(color: string) {
+  @action setColor(color: string): void {
     this.color = color;
   }
 
-  @action removeTag(tag: ClientTag | ID) {
+  @action removeTag(tag: ClientTag | ID): void {
     this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
   }
 
-  @action.bound insertCollection(collection: ClientTagCollection, at = 0) {
+  @action.bound insertCollection(collection: ClientTagCollection, at = 0): void {
     collection.parent.subCollections.remove(collection.id);
     this.subCollections.splice(at, 0, collection.id);
   }
 
-  @action.bound insertTag(tag: ClientTag, at = 0) {
+  @action.bound insertTag(tag: ClientTag, at = 0): void {
     tag.parent.tags.remove(tag.id);
     this.tags.splice(at, 0, tag.id);
   }
@@ -170,16 +174,16 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
     return [...this.tags, ...this.clientSubCollections.flatMap((c) => c.getTagsRecursively())];
   }
 
-  async delete() {
+  async delete(): Promise<void> {
     this.store.removeTagCollection(this);
   }
 
   /**
    * Recursively checks all subcollections whether it contains a specified collection
    */
-  containsSubCollection(queryCol: ITagCollection): boolean {
+  containsSubCollection(queryCol: ID): boolean {
     return (
-      this.subCollections.some((subCol) => subCol.includes(queryCol.id)) ||
+      this.subCollections.some((subCol) => subCol.includes(queryCol)) ||
       this.clientSubCollections.some((subCol) => subCol.containsSubCollection(queryCol))
     );
   }
@@ -187,14 +191,14 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
   /**
    * Recursively checks all subcollections whether it contains a specified collection
    */
-  containsTag(queryTag: ITag): boolean {
+  containsTag(queryTag: ID): boolean {
     return (
-      this.tags.includes(queryTag.id) ||
+      this.tags.includes(queryTag) ||
       this.clientSubCollections.some((subCol) => subCol.containsTag(queryTag))
     );
   }
 
-  dispose() {
+  dispose(): void {
     // clean up the observer
     this.saveHandler();
   }

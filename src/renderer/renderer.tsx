@@ -7,9 +7,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { remote } from 'electron';
 
-import HTML5Backend from 'react-dnd-html5-backend';
-import { DndProvider } from 'react-dnd';
-
 // Import the styles here to let Webpack know to include them
 // in the HTML file
 import './style.scss';
@@ -44,18 +41,18 @@ backend
 
 if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory }) => {
-    rootStore.uiStore.view.setFirstItem(0);
+    rootStore.uiStore.setFirstItem(0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
-    rootStore.uiStore.view.enableSlideMode();
+    rootStore.uiStore.enableSlideMode();
     rootStore.fileStore.fetchFilesByIDs(ids);
   });
 
   // Close preview with space
   window.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.code === 'Space' || e.code === 'Escape') {
+    if (e.key === ' ' || e.key === 'Escape') {
       rootStore.uiStore.clearFileSelection();
       rootStore.fileStore.clearFileList();
-      rootStore.uiStore.view.enableSlideMode();
+      rootStore.uiStore.enableSlideMode();
 
       // remove focus from element so closing preview with spacebar does not trigger any ui elements
       if (document.activeElement && document.activeElement instanceof HTMLElement) {
@@ -101,11 +98,9 @@ if (IS_PREVIEW_WINDOW) {
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application
 ReactDOM.render(
-  <DndProvider backend={HTML5Backend}>
-    <StoreContext.Provider value={rootStore}>
-      {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
-    </StoreContext.Provider>
-  </DndProvider>,
+  <StoreContext.Provider value={rootStore}>
+    {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
+  </StoreContext.Provider>,
   document.getElementById('app'),
 );
 

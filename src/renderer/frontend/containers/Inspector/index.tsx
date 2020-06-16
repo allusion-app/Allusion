@@ -85,12 +85,14 @@ const Inspector = observer(() => {
     headerText = 'No image selected';
   } else if (selectedFiles.length === 1) {
     const singleFile = selectedFiles[0];
-    const ext = singleFile.absolutePath.substr(singleFile.absolutePath.lastIndexOf('.') + 1).toUpperCase();
+    const ext = singleFile.absolutePath
+      .substr(singleFile.absolutePath.lastIndexOf('.') + 1)
+      .toUpperCase();
     selectionPreview = (
       <img
         src={singleFile.absolutePath}
-        style={{ cursor: uiStore.view.isSlideMode ? undefined : 'zoom-in' }}
-        onClick={uiStore.view.enableSlideMode}
+        style={{ cursor: uiStore.isSlideMode ? undefined : 'zoom-in' }}
+        onClick={uiStore.enableSlideMode}
       />
     );
     headerText = path.basename(singleFile.absolutePath);

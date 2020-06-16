@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { useDrop } from 'react-dnd';
 import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
-import { DragAndDropType } from '../Outliner/TagPanel';
+import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 
@@ -41,27 +40,43 @@ interface IGalleryItemProps extends IRootStoreProp {
   isSelected: boolean;
   onClick: (file: ClientFile, e: React.MouseEvent) => void;
   onDoubleClick?: (file: ClientFile, e: React.MouseEvent) => void;
-  onDrop: (item: any, file: ClientFile) => void;
   showDetails?: boolean;
 }
 
+const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+  if (event.dataTransfer.types.includes(DnDType.Tag)) {
+    event.dataTransfer.dropEffect = 'link';
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.dataset[DnDAttribute.Target] = 'true';
+  }
+};
+
+const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+  if (event.dataTransfer.types.includes(DnDType.Tag)) {
+    event.dataTransfer.dropEffect = 'none';
+    event.preventDefault();
+    event.stopPropagation();
+    delete event.currentTarget.dataset[DnDAttribute.Target];
+  }
+};
+
 const GalleryItem = observer(
-  ({ file, isSelected, onClick, onDoubleClick, onDrop, showDetails }: IGalleryItemProps) => {
+  ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
     const { uiStore } = useContext(StoreContext);
 
-    const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
-      accept: DragAndDropType.Tag,
-      drop: (_, monitor) => onDrop(monitor.getItem(), file),
-      canDrop: () => true,
-      collect: (monitor) => ({
-        isOver: monitor.isOver(),
-        canDrop: monitor.canDrop(),
-      }),
-    });
-
-    const selectedStyle = isSelected ? 'selected' : '';
-    const dropStyle = canDrop ? ' droppable' : ' undroppable';
-    const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
+    const handleDrop = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        if (event.dataTransfer.types.includes(DnDType.Tag)) {
+          event.dataTransfer.dropEffect = 'none';
+          const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType.Tag));
+          ctx.tags.forEach((tag) => file.addTag(tag.id));
+          ctx.collections.forEach((col) => col.getTagsRecursively().forEach(file.addTag));
+          delete event.currentTarget.dataset[DnDAttribute.Target];
+        }
+      },
+      [file, uiStore],
+    );
 
     const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
     const handleDoubleClickImg = useCallback((e) => onDoubleClick && onDoubleClick(file, e), [
@@ -72,7 +87,7 @@ const GalleryItem = observer(
     const [isImageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState();
 
-    const imagePath = uiStore.view.isSlideMode ? file.absolutePath : file.thumbnailPath;
+    const imagePath = uiStore.isSlideMode ? file.absolutePath : file.thumbnailPath;
 
     useEffect(() => {
       // First check whether a thumbnail exists, generate it if needed
@@ -100,7 +115,12 @@ const GalleryItem = observer(
     // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
     return (
-      <div ref={galleryItemDrop} className={className}>
+      <div
+        className={`thumbnail ${isSelected ? 'selected' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
           {
             isImageLoaded ? (
@@ -134,7 +154,9 @@ const GalleryItem = observer(
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
   const handleOpen = useCallback(() => shell.openItem(file.absolutePath), [file.absolutePath]);
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.absolutePath), [file.absolutePath]);
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.absolutePath), [
+    file.absolutePath,
+  ]);
   const handleInspect = useCallback(() => {
     uiStore.clearFileSelection();
     uiStore.selectFile(file);
@@ -184,7 +206,7 @@ class GalleryItemWithContextMenu extends React.PureComponent<
     return (
       // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <span className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <GalleryItem {...this.props} onDrop={this.props.onDrop} />
+        <GalleryItem {...this.props} />
       </span>
     );
   }

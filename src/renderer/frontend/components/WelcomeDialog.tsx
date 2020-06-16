@@ -4,8 +4,8 @@ import { Dialog, Classes, Button, FormGroup } from '@blueprintjs/core';
 import path from 'path';
 import fse from 'fs-extra';
 
-import IconSet from './Icons';
-import LocationsForm from '../containers/Outliner/LocationsForm';
+import IconSet from 'components/Icons';
+import LocationsPanel from '../containers/Outliner/LocationsPanel';
 import { remote } from 'electron';
 import StoreContext from '../contexts/StoreContext';
 import { RendererMessenger } from '../../../Messaging';
@@ -92,7 +92,7 @@ const InitialLocationsStep = () => {
       <h3>Import images</h3>
       <p>Do you have any images directories that you would like to add to your Locations folder?</p>
 
-      <LocationsForm />
+      <LocationsPanel />
     </>
   );
 };

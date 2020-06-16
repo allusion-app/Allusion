@@ -11,9 +11,8 @@ import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 import DropOverlay from './components/DropOverlay';
-import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
+import { AdvancedSearchDialog } from './containers/Outliner/SearchPanel';
 import { useWorkerListener } from './ThumbnailGeneration';
-import { DragLayer } from './containers/Outliner/TagPanel';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
 
@@ -37,7 +36,7 @@ const App = observer(() => {
 
     // Prevent scrolling with Space, instead used to open preview window
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !(e.target instanceof HTMLInputElement)) {
+      if (e.key === ' ' && !(e.target instanceof HTMLInputElement)) {
         e.preventDefault();
       }
     });
@@ -55,7 +54,7 @@ const App = observer(() => {
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
       <div className={sidebarClass}>
-        <div id="layoutContainer" className={`${themeClass}`}>
+        <div id="layoutContainer" className={themeClass}>
           <ErrorBoundary>
             <GlobalHotkeys>
               <Toolbar />
@@ -71,9 +70,6 @@ const App = observer(() => {
               <AdvancedSearchDialog />
 
               <WelcomeDialog />
-
-              {/* Overlay for showing custom drag previews */}
-              <DragLayer />
             </GlobalHotkeys>
           </ErrorBoundary>
         </div>

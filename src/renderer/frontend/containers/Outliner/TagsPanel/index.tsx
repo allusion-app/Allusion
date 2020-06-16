@@ -2,16 +2,9 @@ import React from 'react';
 
 import { Hotkey, Hotkeys, Button, Icon, ButtonGroup, HotkeysTarget } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import IconSet from '../../../components/Icons';
+import IconSet from 'components/Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
-
-import { DragLayer } from './DragLayer';
-import TagTree from './TagTree';
-
-export const enum DragAndDropType {
-  Collection = 'collection',
-  Tag = 'tag',
-}
+import TagsTree from './TagsTree';
 
 // Tooltip info
 const enum Tooltip {
@@ -19,12 +12,12 @@ const enum Tooltip {
   Untagged = 'View all untagged images',
 }
 
-const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
-  const { fileStore } = rootStore;
+const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
+  const { fileStore, tagCollectionStore, uiStore } = rootStore;
 
   return (
     <div tabIndex={0}>
-      <TagTree rootStore={rootStore} />
+      <TagsTree root={tagCollectionStore.getRootCollection()} uiStore={uiStore} />
 
       <div className="bp3-divider" />
 
@@ -63,9 +56,9 @@ const TagPanel = observer(({ rootStore }: IRootStoreProp) => {
 });
 
 @HotkeysTarget
-class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
+class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
-    return <TagPanel rootStore={this.props.rootStore} />;
+    return <TagsPanel rootStore={this.props.rootStore} />;
   }
   selectAllTags = () => {
     this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());
@@ -100,7 +93,5 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
     );
   }
 }
-
-export { DragLayer };
 
 export default withRootstore(TagPanelWithHotkeys);

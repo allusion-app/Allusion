@@ -19,16 +19,23 @@
   "plugins": ["@typescript-eslint", "react-hooks"],
   "rules": {
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/interface-name-prefix" : "off",
+    "@typescript-eslint/interface-name-prefix": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-inferrable-types": "off",
-    "@typescript-eslint/ban-ts-ignore": "warn",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
     "quotes": ["error", "single"],
     "jsx-quotes": ["error", "prefer-double"],
     "no-trailing-spaces": "error",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
-    "react/no-children-prop": "off",
-    "no-unused-vars": "error"
-  }
+    "react/no-children-prop": "off"
+  },
+  "overrides": [
+    {
+      "files": ["src/renderer/entities/*.ts", "src/renderer/backend/*.ts"],
+      "rules": {
+        "@typescript-eslint/explicit-module-boundary-types": ["warn"]
+      }
+    }
+  ]
 }

@@ -99,7 +99,7 @@ export abstract class ClientBaseCriteria<T>
     this.key = key;
     this.valueType = valueType;
     this.operator = operator;
-    this.dict = dict || {} as SearchKeyDict<T>;
+    this.dict = dict || ({} as SearchKeyDict<T>);
   }
 
   abstract toString(): string;
@@ -109,14 +109,19 @@ export abstract class ClientBaseCriteria<T>
 export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
   readonly value = observable<ID>([]);
 
-  constructor(key: keyof T, ids?: ID[], operator: ArrayOperatorType = 'contains', dict?: SearchKeyDict<T>) {
+  constructor(
+    key: keyof T,
+    ids?: ID[],
+    operator: ArrayOperatorType = 'contains',
+    dict?: SearchKeyDict<T>,
+  ) {
     super(key, 'array', operator, dict);
     if (ids) {
       this.value.push(...ids);
     }
   }
 
-  toString = () => this.value.toString();
+  toString: () => string = () => this.value.toString();
 
   serialize = (): IArraySearchCriteria<T> => {
     return {
@@ -127,19 +132,19 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound setOperator(op: ArrayOperatorType) {
+  @action.bound setOperator(op: ArrayOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound addID(id: ID) {
+  @action.bound addID(id: ID): void {
     this.value.push(id);
   }
 
-  @action.bound removeID(id: ID) {
+  @action.bound removeID(id: ID): void {
     this.value.remove(id);
   }
 
-  @action.bound clearIDs() {
+  @action.bound clearIDs(): void {
     this.value.clear();
   }
 }
@@ -148,14 +153,22 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: ID[];
   @observable public label: string;
 
-  constructor(key: keyof T, id?: ID, label: string = '', operator: ArrayOperatorType = 'contains', dict?: SearchKeyDict<T>) {
+  constructor(
+    key: keyof T,
+    id?: ID,
+    label: string = '',
+    operator: ArrayOperatorType = 'contains',
+    dict?: SearchKeyDict<T>,
+  ) {
     super(key, 'array', operator, dict);
     this.value = id ? [id] : [];
     this.label = label;
   }
 
-  toString = () =>
-    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} ${this.label}`;
+  toString: () => string = () =>
+    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
+      this.operator,
+    )} ${this.label}`;
 
   serialize = (): IArraySearchCriteria<T> => {
     return {
@@ -166,11 +179,11 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound setOperator(op: ArrayOperatorType) {
+  @action.bound setOperator(op: ArrayOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound setValue(value: ID, label: string) {
+  @action.bound setValue(value: ID, label: string): void {
     this.value = value ? [value] : [];
     this.label = label;
   }
@@ -179,13 +192,20 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
 export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: string;
 
-  constructor(key: keyof T, value: string = '', operator: StringOperatorType = 'contains', dict?: SearchKeyDict<T>) {
+  constructor(
+    key: keyof T,
+    value: string = '',
+    operator: StringOperatorType = 'contains',
+    dict?: SearchKeyDict<T>,
+  ) {
     super(key, 'string', operator, dict);
     this.value = value;
   }
 
-  toString = () =>
-    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} "${this.value}"`;
+  toString: () => string = () =>
+    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
+      this.operator,
+    )} "${this.value}"`;
 
   serialize = (): IStringSearchCriteria<T> => {
     return {
@@ -196,12 +216,11 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound
-  setOperator(op: StringOperatorType) {
+  @action.bound setOperator(op: StringOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound setValue(str: string) {
+  @action.bound setValue(str: string): void {
     this.value = str;
   }
 }
@@ -218,8 +237,8 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
     super(key, 'number', operator, dict);
     this.value = value;
   }
-  toString = () =>
-    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${
+  toString: () => string = () =>
+    `${camelCaseToSpaced(this.key as string)} ${
       NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
     } ${this.value}`;
 
@@ -232,11 +251,11 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound setOperator(op: NumberOperatorType) {
+  @action.bound setOperator(op: NumberOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound setValue(num: number) {
+  @action.bound setValue(num: number): void {
     this.value = num;
   }
 }
@@ -244,13 +263,18 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
 export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: Date;
 
-  constructor(key: keyof T, value: Date = new Date(), operator: NumberOperatorType = 'equals', dict?: SearchKeyDict<T>) {
+  constructor(
+    key: keyof T,
+    value: Date = new Date(),
+    operator: NumberOperatorType = 'equals',
+    dict?: SearchKeyDict<T>,
+  ) {
     super(key, 'date', operator, dict);
     this.value = value;
     this.value.setHours(0, 0, 0, 0);
   }
 
-  toString = () =>
+  toString: () => string = () =>
     `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${
       NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
     } ${this.value.toLocaleDateString()}`;
@@ -264,11 +288,11 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
-  @action.bound setOperator(op: NumberOperatorType) {
+  @action.bound setOperator(op: NumberOperatorType): void {
     this.operator = op;
   }
 
-  @action.bound setValue(date: Date) {
+  @action.bound setValue(date: Date): void {
     this.value = date;
   }
 }
@@ -277,16 +301,24 @@ export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IF
   @observable public collectionId: ID;
   @observable public label: string;
 
-  constructor(collectionId: ID, tagIDs: ID[], label: string, operator?: ArrayOperatorType, dict?: SearchKeyDict<IFile>) {
+  constructor(
+    collectionId: ID,
+    tagIDs: ID[],
+    label: string,
+    operator?: ArrayOperatorType,
+    dict?: SearchKeyDict<IFile>,
+  ) {
     super('tags', tagIDs, operator, dict);
     this.collectionId = collectionId;
     this.label = label;
   }
 
-  toString = () =>
-    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(this.operator)} ${this.label}`;
+  toString: () => string = () =>
+    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
+      this.operator,
+    )} ${this.label}`;
 
-  @action.bound setValue(collectionId: ID, tagIDs: ID[], label: string) {
+  @action.bound setValue(collectionId: ID, tagIDs: ID[], label: string): void {
     this.collectionId = collectionId;
     this.value.clear();
     this.value.push(...tagIDs);

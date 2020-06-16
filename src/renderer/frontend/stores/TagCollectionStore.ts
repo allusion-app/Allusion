@@ -8,6 +8,7 @@ import {
 import RootStore from './RootStore';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
+import { ClientCollectionSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -80,6 +81,11 @@ class TagCollectionStore {
 
   isTagSelected(tag: ID): boolean {
     return this.rootStore.tagStore.isSelected(tag);
+  }
+
+  isSearched(collectionId: ID): boolean {
+    return Boolean(this.rootStore.uiStore.searchCriteriaList.find(
+      crit => crit instanceof ClientCollectionSearchCriteria && crit.collectionId === collectionId));
   }
 
   save(collection: ITagCollection) {
