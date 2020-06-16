@@ -16,10 +16,13 @@ import { useWorkerListener } from './ThumbnailGeneration';
 import { DragLayer } from './containers/Outliner/TagPanel';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
-// import isOutlinerOpen from './UiStore';
 
 const SPLASH_SCREEN_TIME = 1400;
 
+export const AppToaster = Toaster.create({
+  position: Position.TOP,
+  className: 'toaster',
+});
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -46,50 +49,37 @@ const App = observer(() => {
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
-  const sidebarClass = uiStore.sidebar === 'sidebar' ? 'sidebar' : '';
+  const sidebarClass = uiStore.isToolbarVertical ? 'vertical-toolbar' : '';
 
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
       <div className={sidebarClass}>
-      <div id="layoutContainer" className={`${themeClass}`}>
-        <ErrorBoundary>
-          <GlobalHotkeys>
-            <Toolbar />
+        <div id="layoutContainer" className={`${themeClass}`}>
+          <ErrorBoundary>
+            <GlobalHotkeys>
+              <Toolbar />
 
-            <Outliner />
+              <Outliner />
 
-            <ContentView />
+              <ContentView />
 
-            <Inspector />
+              <Inspector />
 
-            <Settings />
+              <Settings />
 
-            <AdvancedSearchDialog />
+              <AdvancedSearchDialog />
 
-            <WelcomeDialog />
+              <WelcomeDialog />
 
-            {/* Overlay for showing custom drag previews */}
-            <DragLayer />
-          </GlobalHotkeys>
-        </ErrorBoundary>
-      </div>
+              {/* Overlay for showing custom drag previews */}
+              <DragLayer />
+            </GlobalHotkeys>
+          </ErrorBoundary>
+        </div>
       </div>
     </DropOverlay>
   );
-});
-
-// const outlinerOpen = isOutlinerOpen === true ? 'outlinerOpen' : '';
-// const inspectorOpen = isOutlinerOpen === true ? 'onspectorOpen' : '';
-
-// const outlinerOpen={isOutlinerOpen ? 'primary' : 'none'}
-
-export const AppToaster = Toaster.create({
-  // position: Position.BOTTOM_RIGHT,
-  position: Position.TOP,
-  // className: 'toaster', ${outlinerOpen},
-  // className: `toaster {uiStore.isOutlinerOpen}`,
-  className: `toaster`,
 });
 
 export default App;

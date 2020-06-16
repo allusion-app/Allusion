@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, MouseEvent } from 'react';
 
 import { useDrop } from 'react-dnd';
 import { ID } from '../../../../entities/ID';
@@ -32,7 +32,8 @@ import { ClientTag } from '../../../../entities/Tag';
 import { DragAndDropType } from '.';
 import { TagRemoval } from './MessageBox';
 import { SketchPicker, ColorResult } from 'react-color';
-import { ClientIDSearchCriteria } from '../../../../entities/SearchCriteria';
+import { ClientIDSearchCriteria, ClientCollectionSearchCriteria } from '../../../../entities/SearchCriteria';
+import { FileSearchCriteria } from '../../../UiStore';
 
 const DEFAULT_TAG_NAME = 'New Tag';
 const DEFAULT_COLLECTION_NAME = 'New Collection';
@@ -65,9 +66,10 @@ interface ITagItemProps {
   tag: ClientTag;
   isEditing: boolean;
   setEditing: (val: boolean) => void;
+  // onSelect: (tag: ClientTag) => void;
 }
 
-const TagItem = ({ tag, isEditing, setEditing }: ITagItemProps) => {
+const TagItem = ({ tag, isEditing, setEditing, /*onSelect*/ }: ITagItemProps) => {
   return isEditing ? (
     <TreeListItemEditor
       initialName={tag.name}
@@ -78,7 +80,12 @@ const TagItem = ({ tag, isEditing, setEditing }: ITagItemProps) => {
       onAbort={() => setEditing(false)}
     />
   ) : (
-    <div className={'tagLabel'}>{tag.name}</div>
+    <div className="tagLabel">
+      <span className="label-content">{tag.name}</span>
+      {/* <span className="selection-icon" onClick={() => onSelect(tag)}>
+        <Icon icon={IconSet.CHECKMARK} />
+      </span> */}
+    </div>
   );
 };
 
@@ -388,6 +395,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
             );
           };
 
+          const isSearched = uiStore.searchCriteriaList.find(crit => crit.key === 'tags' && (crit as ClientIDSearchCriteria<any>).value.includes(tag.id));
+
           return {
             id: tag.id,
             icon: <span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>,
@@ -409,6 +418,12 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
               />
             ),
             nodeData: { type: DragAndDropType.Tag, contextMenu: <ContextMenu /> },
+            secondaryLabel: <span className="selection-icon">
+              {/* Show circle if selection mode is active and it's not selected */}
+              {/* {(uiStore.tagSelection.length > 0 && !tag.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK} */}
+              {(uiStore.tagSelection.length > 0 && !tag.isSelected) ? <Icon icon={IconSet.SELECT_ALL} /> : IconSet.CHECKMARK}
+            </span>,
+            className: isSearched ? 'is-searched' : '',
           };
         },
       );
@@ -539,6 +554,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         );
       };
 
+      const isSearched = uiStore.searchCriteriaList.find(crit => crit.key === 'tags' && (crit as ClientCollectionSearchCriteria)?.collectionId === col.id);
+
       return {
         id: col.id,
         icon: (
@@ -552,6 +569,12 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         label,
         childNodes,
         nodeData: { type: DragAndDropType.Collection, contextMenu: <ContextMenu /> },
+        secondaryLabel: <span className="selection-icon">
+          {/* Show circle if selection mode is active and it's not selected */}
+          {/* {(uiStore.tagSelection.length > 0 && !col.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK} */}
+          {(uiStore.tagSelection.length > 0 && !col.isSelected) ? <Icon icon={IconSet.SELECT_ALL} /> : IconSet.CHECKMARK}
+        </span>,
+        className: isSearched ? 'is-searched' : '',
       };
     };
 
@@ -635,6 +658,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
   const [isCollapsed, setCollapsed] = useState(false);
   const toggleCollapse = useCallback(() => setCollapsed(!isCollapsed), [isCollapsed, setCollapsed]);
 
+  const isSelectionActive = uiStore.tagSelection.length > 0;
+
   return (
     <>
       <div className="outliner-header-wrapper" ref={headerDrop} onClick={toggleCollapse}>
@@ -644,23 +669,31 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           {/* <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} /> */}
           Tags
         </H4>
-        <Button
-          minimal
-          icon={IconSet.TAG_ADD}
-          onClick={handleRootAddTag}
-          className="tooltip"
-          data-left={DEFAULT_TAG_NAME}
-        />
-        <Button
-          minimal
-          icon={IconSet.TAG_ADD_COLLECTION}
-          onClick={handleAddRootCollection}
-          className="tooltip"
-          data-left={DEFAULT_COLLECTION_NAME}
-        />
+        {isSelectionActive ? (
+          <Button
+            minimal
+            icon={IconSet.CLOSE}
+            onClick={(e: MouseEvent) => { e.stopPropagation(); uiStore.clearTagSelection(); }}
+          />
+        ) : <>
+          <Button
+            minimal
+            icon={IconSet.TAG_ADD}
+            onClick={handleRootAddTag}
+            className="tooltip"
+            data-right={DEFAULT_TAG_NAME}
+          />
+          <Button
+            minimal
+            icon={IconSet.TAG_ADD_COLLECTION}
+            onClick={handleAddRootCollection}
+            className="tooltip"
+            data-right={DEFAULT_COLLECTION_NAME}
+          />
+        </>}
       </div>
 
-      <Collapse isOpen={!isCollapsed}>
+      <Collapse isOpen={!isCollapsed} className={`tag-tree ${uiStore.tagSelection.length > 0 ? 'selection-active' : ''}`}>
         <TreeList
           nodes={nodes.get()}
           branch={DragAndDropType.Collection}
@@ -677,6 +710,43 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
           onSelect={(selection, clear) => uiStore.selectTags(selection, clear)}
           onDeselect={(selection) => uiStore.deselectTags(selection)}
           selectionLength={uiStore.tagSelection.length}
+          isSelectionActive={isSelectionActive}
+          onFilter={(id, type, clear) => {
+            let crit: FileSearchCriteria | undefined;
+            let alreadySearchedCrit: FileSearchCriteria | undefined;;
+
+            if (type === DragAndDropType.Collection) {
+              const col = rootStore.tagCollectionStore.get(id)!;
+              crit = new ClientCollectionSearchCriteria(id, col.getTagsRecursively(), col.name);
+              alreadySearchedCrit = uiStore.searchCriteriaList.find(
+                c => (c as ClientCollectionSearchCriteria)?.collectionId === id);
+            } else if (type === DragAndDropType.Tag) {
+              crit = new ClientIDSearchCriteria('tags', id);
+              alreadySearchedCrit = uiStore.searchCriteriaList.find(
+                c => (c as ClientIDSearchCriteria<any>)?.value?.includes(id));
+            }
+
+            console.log('crit', crit, 'already', alreadySearchedCrit);
+
+            if (crit) {
+
+              if (!clear && alreadySearchedCrit) { // if not clear (additive) and already exists, then remove it
+                uiStore.replaceSearchCriterias(
+                  uiStore.searchCriteriaList.filter(c => c !== alreadySearchedCrit));
+              } else if (clear && alreadySearchedCrit) { // if clear (not additive) and already exists, clear everything
+                // if it's not the only searched item though, keep it selected  (same behavior for selection of items, feels more natural)
+                if (uiStore.searchCriteriaList.length > 1) {
+                  uiStore.replaceSearchCriterias([crit]);
+                } else {
+                  uiStore.clearSearchCriteriaList();
+                }
+              } else if (clear) { // not additive: clear and replace with new crit
+                uiStore.replaceSearchCriterias([crit]);
+              } else { // additive: just add it
+                uiStore.addSearchCriteria(crit);
+              }
+            }
+          }}
           onContextMenu={handleOnContextMenu}
         />
       </Collapse>

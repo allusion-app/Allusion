@@ -17,8 +17,8 @@ const WelcomeStep = () => {
       <span className="logo-welcome"></span>
       <h3>Organising made simple</h3>
       <p>
-          Allusion is a tool designed to help you organize your <strong>Visual Library</strong>, so you can
-          easily retrieve relevant images throughout your creative process.
+        Allusion is a tool designed to help you organize your <strong>Visual Library</strong>, so
+        you can easily retrieve relevant images throughout your creative process.
       </p>
     </>
   );
@@ -90,9 +90,7 @@ const InitialLocationsStep = () => {
     <>
       <span className="logo-welcome"></span>
       <h3>Import images</h3>
-      <p>
-        Do you have any images directories that you would like to add to your Locations folder?
-      </p>
+      <p>Do you have any images directories that you would like to add to your Locations folder?</p>
 
       <LocationsForm />
     </>
@@ -102,22 +100,24 @@ const InitialLocationsStep = () => {
 const IntroStep = () => {
   return (
     <>
-      <span className='logo-welcome'></span>
+      <span className="logo-welcome"></span>
       <h3>Import images</h3>
-      <p>
-        Woud you like a quick tour to familiarize yourself with Allusion?
-      </p>
+      <p>Woud you like a quick tour to familiarize yourself with Allusion?</p>
     </>
   );
 };
 const NUM_STEPS = 3;
 
 const WelcomeDialog = () => {
-  const { uiStore, locationStore } = useContext(StoreContext);
+  const { uiStore, locationStore, fileStore } = useContext(StoreContext);
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   const [showDialog, setShowDialog] = useState(false);
-  const handleClose = useCallback(() => setShowDialog(false), []);
+  const handleClose = useCallback(async () => {
+    await locationStore.init(true);
+    fileStore.refetch();
+    setShowDialog(false);
+  }, [locationStore, fileStore]);
 
   // Only check on mount whether to show the dialog, when no default directory exists
   useEffect(() => {
@@ -143,12 +143,13 @@ const WelcomeDialog = () => {
       await locationStore.setDefaultLocation(importLocation);
       setStep(step + 1);
     } else if (step === 2) {
-      setStep(step + 1);  
+      setStep(step + 1);
     } else if (step === 3) {
       setShowDialog(false);
+      handleClose();
       // TODO: Start tour here
     }
-  }, [importLocation, locationStore, step]);
+  }, [handleClose, importLocation, locationStore, step]);
 
   return (
     <Dialog
@@ -162,7 +163,6 @@ const WelcomeDialog = () => {
       isCloseButtonShown={false}
       // style={{ minHeight: '50vh' }}
     >
-      
       <div className={Classes.DIALOG_BODY}>
         {step === 0 && <WelcomeStep />}
         {step === 1 && (

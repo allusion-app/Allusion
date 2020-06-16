@@ -36,7 +36,6 @@ const Settings = observer(() => {
 
   const [isClipServerRunning, setClipServerRunning] = useState(false);
   const [isRunningInBackground, setRunningInBackground] = useState(false);
-  const [importPath, setImportPath] = useState(locationStore.importDirectory);
 
   const toggleClipServer = useCallback(() => {
     RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
@@ -59,12 +58,11 @@ const Settings = observer(() => {
 
     const chosenDir = dirs[0];
     locationStore.setDefaultLocation(chosenDir);
-    setImportPath(chosenDir);
 
     // Todo: Provide option to move/copy the files in that directory (?)
     // Since the import dir could also contain non-allusion files, not sure if a good idea
     // But then there should be support for re-importing manually copied files
-  }, [setImportPath, locationStore]);
+  }, [locationStore]);
 
   useEffect(() => {
     // Load last window state
@@ -150,12 +148,13 @@ const Settings = observer(() => {
           onChange={toggleFullScreen}
           label="Full screen"
         />
-        
+
         <Switch
-          checked={uiStore.sidebar === 'sidebar'}
-          onChange={uiStore.toggleSidebar}
-          label="Sidebar"
+          checked={uiStore.isToolbarVertical}
+          onChange={uiStore.toggleToolbarVertical}
+          label="Vertical toolbar"
         />
+
         <Switch
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
@@ -167,6 +166,7 @@ const Settings = observer(() => {
           onChange={toggleRunInBackground}
           label="Run in background"
         />
+
         <Switch
           checked={isClipServerRunning}
           onChange={toggleClipServer}
@@ -204,7 +204,7 @@ const Settings = observer(() => {
               id="importPathInput"
               onClick={browseImportDir}
             >
-              {importPath}
+              {locationStore.importDirectory}
             </span>
           </label>
         </FormGroup>

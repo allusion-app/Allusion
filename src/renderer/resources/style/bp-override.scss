@@ -866,7 +866,7 @@ nav .bp3-divider {
 }
 
 .bp3-dark .bp3-menu-item.bp3-intent-primary.bp3-active:not(.bp3-popover-dismiss) {
-  background: $blue-trans2;
+  background: $blue-trans3;
 }
 
 .bp3-dark .bp3-menu-item:hover,
@@ -976,7 +976,7 @@ li .bp3-menu-item {
 }
 
 //Sidebar override
-.sidebar {
+.vertical-toolbar {
   #toolbar {
     .bp3-dark .bp3-button-group.bp3-minimal .bp3-button:hover:not(.bp3-disabled),
     .bp3-button.bp3-minimal:hover,

@@ -51,20 +51,18 @@ pre {
 }
 
 // Test with vertical sidenav
-.sidebar {
+.vertical-toolbar {
   --toolbar-height: 100vh !important;
   --toolbar-width: 2.8rem !important;
-  /*     --main-width: fit-content; */
   --content-area-height: 100vh !important;
   height: 100%;
 }
-.sidebar #layoutContainer {
+.vertical-toolbar #layoutContainer {
   display: grid;
-  /*     grid-template-rows: none; */
   grid-template-columns: var(--toolbar-width) min-content 1fr min-content;
   grid-template-areas: 'toolbar outliner main inspector';
 }
-.sidebar #toolbar {
+.vertical-toolbar #toolbar {
   grid-area: toolbar;
   width: 2.8rem !important;
   display: flex;
@@ -72,21 +70,21 @@ pre {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   z-index: 1000;
   #outliner-toolbar > div,
   #main-toolbar > div,
   #inspector-toolbar > div {
     text-align: center;
-  align-content: center;
+    align-content: center;
   }
-  border-right: 2px solid #14181a !important;
+  border-right: 1px solid $dark-gray0;
   .bp3-button {
     max-width: 30px;
   }
 }
 
-.sidebar #toolbar #main-toolbar {
+.vertical-toolbar #toolbar #main-toolbar {
   display: flex;
   flex-direction: column;
   top: 20%;
@@ -94,7 +92,8 @@ pre {
   width: var(--toolbar-width) !important;
   height: 40%;
 }
-.sidebar #toolbar > * > * {
+
+.vertical-toolbar #toolbar > * > * {
   display: flex !important;
   flex-wrap: wrap !important;
   flex-direction: column !important;
@@ -103,7 +102,19 @@ pre {
 }
 
 // Toolbar items
-.sidebar {
+#toolbar #main-toolbar {
+  // Only for vertical Toolbar
+  // .bp3-button:empty::before,
+  // .bp3-button > :first-child {
+  //     margin: 0 !important;
+  // }
+  #outliner-toolbar,
+  #inspector-toolbar {
+    width: var(--toolbar-width) !important;
+  }
+}
+
+.vertical-toolbar {
   #toolbar {
     .bp3-button:empty::before,
     .bp3-button > :first-child {
@@ -137,41 +148,6 @@ pre {
       }
     }
   }
-}
-
-// Split Sidebar > Looks very sloppy & confusing
-.split #main-toolbar {
-  flex-direction: row !important;
-  /* grid-area: var(--inspector-width); */
-  width: calc(100vw - 42.5rem) !important;
-  top: 0px !important;
-  left: 19.5rem !important;
-  height: 2.5rem !important;
-  background-color: #1f2224 !important;
-}
-
-.split #main-toolbar > * {
-  display: inline-flex !important;
-  flex-wrap: unset !important;
-  flex-direction: row !important;
-  justify-content: space-between;
-}
-
-.split #toolbar #main-toolbar div:nth-child(1) button {
-  flex-wrap: nowrap !important;
-  flex-direction: row !important;
-  text-align: -webkit-center;
-  align-items: flex-start;
-}
-
-.split #main-toolbar .bp3-button > :first-child {
-  margin-right: 0.25rem !important;
-}
-
-.split #toolbar #main-toolbar div:nth-child(1) span:nth-child(2) {
-  text-orientation: initial;
-  writing-mode: lr;
-  height: auto;
 }
 
 .sidenav #toolbar {
@@ -566,39 +542,6 @@ img {
   width: 100%;
 }
 
-#imageViewer {
-  content: 'Close';
-  color: $light-gray1;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #14181adb;
-  z-index: 1001;
-  cursor: url(../renderer/resources/icons/close_24x.png), auto;
-
-  #fullImage {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 128px rgba(0, 0, 0, 0.5);
-    background-color: rgba(1, 1, 1, 0.5);
-    transition: width 0.1s ease-in-out, height 0.1s ease-in-out;
-  }
-
-  .zoomIn {
-    cursor: zoom-in;
-    width: auto;
-    height: calc(100vh - 6rem);
-  }
-
-  .zoomOut {
-    cursor: zoom-out;
-  }
-}
-
 #zoomableSlideImage {
   width: 100%;
   height: 100%;
@@ -627,6 +570,10 @@ img {
   display: flex;
   flex-direction: column;
 
+  img {
+    animation: fade 0.25s cubic-bezier(0.65, 0.05, 0.36, 1);
+  }
+
   > div {
     flex: auto;
     position: relative;
@@ -638,6 +585,20 @@ img {
       width: 48px;
       transition: opacity 0.2s ease-in-out;
       position: absolute;
+
+      > svg {
+        position: absolute;
+        height: 36px !important;
+        width: 36px !important;
+        margin-top: -24px;
+        top: 50%;
+        color: #ffffffc7;
+        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
+      }
+      // & > svg {
+      //   display: table-cell;
+      //   vertical-align: middle;
+      // }
 
       > span {
         position: absolute;
@@ -657,6 +618,18 @@ img {
       top: 0;
       position: absolute;
     }
+  }
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
