@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Dialog, Classes, Button, FormGroup, Divider } from '@blueprintjs/core';
+import { Dialog, Classes, Button, FormGroup } from '@blueprintjs/core';
 import path from 'path';
 import fse from 'fs-extra';
 
@@ -10,6 +10,19 @@ import { remote } from 'electron';
 import StoreContext from '../contexts/StoreContext';
 import { RendererMessenger } from '../../../Messaging';
 import { DEFAULT_LOCATION_ID } from '../../entities/Location';
+
+const WelcomeStep = () => {
+  return (
+    <>
+      <span className="logo-welcome"></span>
+      <h3>Organising made simple</h3>
+      <p>
+        Allusion is a tool designed to help you organize your <strong>Visual Library</strong>, so
+        you can easily retrieve relevant images throughout your creative process.
+      </p>
+    </>
+  );
+};
 
 const SetupImportDirStep = ({
   importLocation,
@@ -33,13 +46,8 @@ const SetupImportDirStep = ({
 
   return (
     <>
-      <p>
-        <strong>
-          Allusion is a tool designed to help you organize your <i>Visual Library</i>, so you can
-          easily retrieve relevant images throughout your creative process.
-        </strong>
-      </p>
-
+      <span className="logo-welcome"></span>
+      <h3>Import location</h3>
       {/*
        * Add files by
        * - Adding a location - files added to that folder will automatically show up in Allusion
@@ -80,18 +88,24 @@ const SetupImportDirStep = ({
 const InitialLocationsStep = () => {
   return (
     <>
-      <p>
-        Do you have any existing directories containing images that you would like to add as
-        Locations to your visual library?
-      </p>
-
-      <Divider />
+      <span className="logo-welcome"></span>
+      <h3>Import images</h3>
+      <p>Do you have any images directories that you would like to add to your Locations folder?</p>
 
       <LocationsPanel />
     </>
   );
 };
 
+const IntroStep = () => {
+  return (
+    <>
+      <span className="logo-welcome"></span>
+      <h3>Import images</h3>
+      <p>Woud you like a quick tour to familiarize yourself with Allusion?</p>
+    </>
+  );
+};
 const NUM_STEPS = 3;
 
 const WelcomeDialog = () => {
@@ -120,16 +134,18 @@ const WelcomeDialog = () => {
   const [step, setStep] = useState(0);
   const handleNextStep = useCallback(async () => {
     if (step === 0) {
+      setStep(step + 1);
+    } else if (step === 1) {
       // Make directory in case not exists
       fse.ensureDirSync(importLocation);
 
       // Create the first Location
       await locationStore.setDefaultLocation(importLocation);
-
-      setStep(step + 1);
-    } else if (step === 1) {
       setStep(step + 1);
     } else if (step === 2) {
+      setStep(step + 1);
+    } else if (step === 3) {
+      setShowDialog(false);
       handleClose();
       // TODO: Start tour here
     }
@@ -140,22 +156,21 @@ const WelcomeDialog = () => {
       isOpen={showDialog}
       onClose={handleClose}
       icon={IconSet.TAG}
-      title="Welcome to Allusion"
       canOutsideClickClose={false}
       canEscapeKeyClose={false}
-      className={`${themeClass}`}
+      className={`${themeClass} welcomedialog`}
       isCloseButtonShown={false}
-      style={{ minHeight: '50vh' }}
     >
       <div className={Classes.DIALOG_BODY}>
-        {step === 0 && (
+        {step === 0 && <WelcomeStep />}
+        {step === 1 && (
           <SetupImportDirStep
             importLocation={importLocation}
             setImportLocation={setImportLocation}
           />
         )}
-        {step === 1 && <InitialLocationsStep />}
-        {step === 2 && <p>Woud you like a quick tour to familiarize yourself with Allusion?</p>}
+        {step === 2 && <InitialLocationsStep />}
+        {step === 3 && <IntroStep />}
       </div>
 
       <div className={Classes.DIALOG_FOOTER}>
@@ -168,6 +183,8 @@ const WelcomeDialog = () => {
           </Button>
         </div>
       </div>
+      <div className={'grad'}></div>
+      <div className={'welcome'}></div>
     </Dialog>
   );
 };

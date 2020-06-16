@@ -78,7 +78,9 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
 
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button onClick={handleClose}>{dir.isInitialized ? 'Close' : 'Confirm'}</Button>
+          <Button onClick={handleClose} intent="primary">
+            {dir.isInitialized ? 'Close' : 'Confirm'}
+          </Button>
         </div>
       </div>
     </Dialog>
@@ -341,7 +343,11 @@ const Location = observer(
     return (
       <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
         <span className="pre-icon">
-          {nodeData.id === DEFAULT_LOCATION_ID ? IconSet.IMPORT : IconSet.LOCATIONS}
+          {nodeData.id === DEFAULT_LOCATION_ID
+            ? IconSet.IMPORT
+            : treeData.expansion[nodeData.id]
+            ? IconSet.FOLDER_OPEN
+            : IconSet.FOLDER_CLOSE}
         </span>
         {nodeData.name}
         {nodeData.isBroken && <span className="after-icon">{IconSet.WARNING}</span>}
@@ -517,14 +523,14 @@ const LocationsPanel = () => {
           icon={IconSet.FOLDER_CLOSE_ADD}
           onClick={handleChooseWatchedDir}
           className="tooltip"
-          data-right={Tooltip.Location}
+          data-left={Tooltip.Location}
         />
         <Button
           minimal
           icon={IconSet.RELOAD}
           onClick={() => setLocationTreeKey(new Date())}
           className="tooltip"
-          data-right={Tooltip.Refresh}
+          data-left={Tooltip.Refresh}
         />
       </div>
       <Collapse isOpen={!isCollapsed}>

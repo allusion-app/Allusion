@@ -97,6 +97,7 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Opens a preview window for the selected files"
           onKeyDown={uiStore.openPreviewWindow}
         />
+        {/* How about other keys like arrow keys for selecting items */}
       </Hotkeys>
     );
   }

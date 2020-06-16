@@ -13,7 +13,7 @@ import StoreContext from '../../contexts/StoreContext';
 /* Library info. Todo: Show entire library count instead of current fileList */
 const LibraryInfo = observer(({ fileCount }: { fileCount: number }) => (
   <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={ToolbarTooltips.Media}>
-    {` ${fileCount} item${fileCount === 1 ? '' : 's'}`}
+    {fileCount}
   </Button>
 ));
 
@@ -32,7 +32,7 @@ const FileSelection = observer(
       className="tooltip"
       data-right={ToolbarTooltips.Select}
     >
-      {selectionCount} selected
+      {selectionCount}
     </Button>
   ),
 );

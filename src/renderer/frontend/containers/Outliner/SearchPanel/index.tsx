@@ -67,6 +67,7 @@ const KeyOptions = [
 
 const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => (
   <HTMLSelect
+    autoFocus
     onChange={(e) => dispatch(Factory.setKey(id, e.target.value as CriteriaKey))}
     value={keyValue}
   >
@@ -269,7 +270,7 @@ const SearchForm = ({
         ))}
       </FormGroup>
 
-      <Button text="Add" icon={IconSet.ADD} onClick={add} minimal />
+      <Button text="Add" icon={IconSet.ADD} onClick={add} minimal className="btn-blank" />
 
       <div>
         <div id="actions-bar" className="bp3-alert-footer">
@@ -304,7 +305,7 @@ export const AdvancedSearchDialog = observer(() => {
       onClose={uiStore.toggleAdvancedSearch}
       icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      className={`${themeClass} light`}
+      className={`${themeClass} light header-dark`}
       canEscapeKeyClose={true}
       canOutsideClickClose={true}
     >

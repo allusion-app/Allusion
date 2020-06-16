@@ -47,12 +47,12 @@ import ITEM_COLLAPS from 'resources/icons/item-collaps.svg';
 import ITEM_EXPAND from 'resources/icons/item-expand.svg';
 import ITEM_MOVE_DOWN from 'resources/icons/item-move-down.svg';
 import ITEM_MOVE_UP from 'resources/icons/item-move-up.svg';
-import LOCATIONS from 'resources/icons/locations.svg';
 import MEDIA from 'resources/icons/media.svg';
 import META_INFO from 'resources/icons/meta-info.svg';
 import META_INFO_2 from 'resources/icons/meta-info-2.svg';
 import MORE from 'resources/icons/more.svg';
 import OPEN_EXTERNAL from 'resources/icons/open-external.svg';
+import OUTLINER from 'resources/icons/outliner.svg';
 import PREVIEW from 'resources/icons/preview.svg';
 import RELOAD from 'resources/icons/reload.svg';
 import REPLACE from 'resources/icons/replace.svg';
@@ -124,7 +124,7 @@ const IconSet = {
   ITEM_EXPAND: toSvg(ITEM_EXPAND),
   ITEM_MOVE_DOWN: toSvg(ITEM_MOVE_DOWN),
   ITEM_MOVE_UP: toSvg(ITEM_MOVE_UP),
-  LOCATIONS: toSvg(LOCATIONS),
+  OUTLINER: toSvg(OUTLINER),
   MEDIA: toSvg(MEDIA),
   META_INFO: toSvg(META_INFO),
   META_INFO_2: toSvg(META_INFO_2),

@@ -711,7 +711,7 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
             icon={IconSet.CLOSE}
             onClick={uiStore.clearTagSelection}
             className="tooltip"
-            data-right="Clear Selection"
+            data-left="Clear Selection"
           />
         ) : (
           <>
@@ -720,30 +720,37 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
               icon={IconSet.TAG_ADD}
               onClick={handleRootAddTag}
               className="tooltip"
-              data-right="New Tag"
+              data-left="New Tag"
             />
             <Button
               minimal
               icon={IconSet.TAG_ADD_COLLECTION}
               onClick={handleAddRootCollection}
               className="tooltip"
-              data-right="New Collection"
+              data-left="New Collection"
             />
           </>
         )}
       </div>
 
       <Collapse isOpen={!isCollapsed}>
-        <Tree
-          className={`tags-tree ${uiStore.tagSelection.length > 0 ? 'selected' : ''}`}
-          multiSelect
-          branches={branches.get()}
-          leaves={leaves.get()}
-          treeData={treeData}
-          toggleExpansion={toggleExpansion}
-          onBranchKeyDown={handleBranchOnKeyDown}
-          onLeafKeyDown={handleLeafOnKeyDown}
-        />
+        {root.isEmpty ? (
+          <div className="tree-content-label" style={{ padding: '0.25rem' }}>
+            <span className="pre-icon">{IconSet.INFO}</span>
+            No tags or collections created yet
+          </div>
+        ) : (
+          <Tree
+            className={`tags-tree ${uiStore.tagSelection.length > 0 ? 'selected' : ''}`}
+            multiSelect
+            branches={branches.get()}
+            leaves={leaves.get()}
+            treeData={treeData}
+            toggleExpansion={toggleExpansion}
+            onBranchKeyDown={handleBranchOnKeyDown}
+            onLeafKeyDown={handleLeafOnKeyDown}
+          />
+        )}
       </Collapse>
 
       {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
