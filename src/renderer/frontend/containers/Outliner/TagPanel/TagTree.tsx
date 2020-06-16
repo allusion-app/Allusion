@@ -420,7 +420,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
             nodeData: { type: DragAndDropType.Tag, contextMenu: <ContextMenu /> },
             secondaryLabel: <span className="selection-icon">
               {/* Show circle if selection mode is active and it's not selected */}
-              {(uiStore.tagSelection.length > 0 && !tag.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK}
+              {/* {(uiStore.tagSelection.length > 0 && !tag.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK} */}
+              {(uiStore.tagSelection.length > 0 && !tag.isSelected) ? <Icon icon={IconSet.SELECT_ALL} /> : IconSet.CHECKMARK}
             </span>,
             className: isSearched ? 'is-searched' : '',
           };
@@ -570,7 +571,8 @@ const TagTree = observer(({ rootStore }: IRootStoreProp) => {
         nodeData: { type: DragAndDropType.Collection, contextMenu: <ContextMenu /> },
         secondaryLabel: <span className="selection-icon">
           {/* Show circle if selection mode is active and it's not selected */}
-          {(uiStore.tagSelection.length > 0 && !col.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK}
+          {/* {(uiStore.tagSelection.length > 0 && !col.isSelected) ? <Icon icon="circle" /> : IconSet.CHECKMARK} */}
+          {(uiStore.tagSelection.length > 0 && !col.isSelected) ? <Icon icon={IconSet.SELECT_ALL} /> : IconSet.CHECKMARK}
         </span>,
         className: isSearched ? 'is-searched' : '',
       };

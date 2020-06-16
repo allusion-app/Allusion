@@ -61,7 +61,9 @@ const LocationTreeContextMenu = ({
 
   const addToSearch = useCallback(
     () =>
-      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict)),
+      uiStore.addSearchCriteria(
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict),
+      ),
     [path, uiStore],
   );
 
@@ -121,14 +123,13 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
         <Observer>
           {() => (
             <>
-              <p>Path: <pre>{dir.path}</pre></p>
-              {/* <span>
-                Path: <pre>{dir.path}</pre>
-              </span> */}
-              {/* <Checkbox label="Recursive" checked /> */}
-              {/* <Checkbox label="Add folder name as tag" /> */}
-              <Label>
-                <div>
+              <div>
+                <p>
+                  Path: <pre>{dir.path}</pre>
+                </p>
+              </div>
+              <div>
+                <Label>
                   <p>Tags to add</p>
                   <MultiTagSelector
                     selectedItems={dir.clientTagsToAdd}
@@ -136,8 +137,8 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
                     onTagDeselect={dir.removeTag}
                     onClearSelection={dir.clearTags}
                   />
-                </div>
-              </Label>
+                </Label>
+              </div>
             </>
           )}
         </Observer>
@@ -145,7 +146,9 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
 
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button onClick={handleClose}>{dir.isInitialized ? 'Close' : 'Confirm'}</Button>
+          <Button onClick={handleClose} intent="primary">
+            {dir.isInitialized ? 'Close' : 'Confirm'}
+          </Button>
         </div>
       </div>
     </Dialog>
@@ -225,10 +228,18 @@ const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
       nodeData: location,
       icon: location.id === DEFAULT_LOCATION_ID ? 'import' : IconSet.FOLDER_CLOSE,
       secondaryLabel: (
-        <Observer>{
-          () => location.isBroken
-            ? <Button icon={IconSet.WARNING} onClick={(e: React.MouseEvent) => void e.stopPropagation() || uiStore.openLocationRecovery(location.id)} />
-            : <></>
+        <Observer>
+          {() =>
+            location.isBroken ? (
+              <Button
+                icon={IconSet.WARNING}
+                onClick={(e: React.MouseEvent) =>
+                  void e.stopPropagation() || uiStore.openLocationRecovery(location.id)
+                }
+              />
+            ) : (
+              <></>
+            )
           }
         </Observer>
       ),
@@ -249,7 +260,9 @@ const LocationsTree = observer(({ onDelete, onConfig }: ILocationTreeProps) => {
 
   const addToSearch = useCallback(
     (path: string) =>
-      uiStore.addSearchCriteria(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict)),
+      uiStore.addSearchCriteria(
+        new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict),
+      ),
     [uiStore],
   );
 
@@ -407,7 +420,9 @@ const LocationsForm = () => {
     <div>
       <div className="outliner-header-wrapper" onClick={toggleLocations}>
         <H4 className="bp3-heading">
-          <span className="bp3-icon custom-icon custom-icon-14">{isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}</span>
+          <span className="bp3-icon custom-icon custom-icon-14">
+            {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}
+          </span>
           {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
           {/* <Icon className="custom-icon-14" icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}/> */}
           Locations
@@ -417,14 +432,14 @@ const LocationsForm = () => {
           icon={IconSet.FOLDER_CLOSE_ADD}
           onClick={handleChooseWatchedDir}
           className="tooltip"
-          data-right={Tooltip.Location}
+          data-left={Tooltip.Location}
         />
         <Button
           minimal
           icon={IconSet.RELOAD}
           onClick={handleRefresh}
           className="tooltip"
-          data-right={Tooltip.Refresh}
+          data-left={Tooltip.Refresh}
         />
       </div>
       <Collapse isOpen={!isCollapsed}>

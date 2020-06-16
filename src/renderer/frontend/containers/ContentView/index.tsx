@@ -13,7 +13,15 @@ class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp, {}> {
   render() {
     return (
       <main tabIndex={1}>
-        <Observer>{() => Boolean(!IS_PREVIEW_WINDOW && this.props.rootStore.uiStore.isToolbarVertical) ? <ContentToolbar className="separated" /> : <></>}</Observer>
+        <Observer>
+          {() =>
+            Boolean(!IS_PREVIEW_WINDOW && this.props.rootStore.uiStore.isToolbarVertical) ? (
+              <ContentToolbar className="separated" />
+            ) : (
+              <></>
+            )
+          }
+        </Observer>
         <Searchbar />
         <Gallery />
       </main>

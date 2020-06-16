@@ -68,7 +68,7 @@ main,
   .button.bp3-fill,
   button.bp3-button.bp3-fill,
   .bp3-non-ideal-state button.bp3-button,
-  .bp3-button:not([class*='bp3-intent-']) {
+  .bp3-button:not([class*='bp3-intent-']):not(.bp3-disabled) {
     color: $light-gray2;
   }
 
@@ -80,23 +80,24 @@ main,
 
   button.bp3-fill,
   // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal) {
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal):not(.bp3-disabled) {
     // .bp3-multi-select .bp3-minimal {
-    background: $light-gray1-trans;
+    // background: $light-gray1-trans;
+    background: $dark-gray1-trans;
     color: $light-gray2;
   }
   .bp3-input.bp3-minimal {
     background: none !important;
   }
   .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*='bp3-intent-warning']):not([class*='bp3-intent-danger']) {
+  .bp3-button:not([class*='bp3-intent-warning']):not([class*='bp3-intent-danger']):not(.bp3-disabled) {
     // .bp3-icon > svg:not([fill]) {
     color: $light-gray3;
   }
 
-
   button.bp3-intent-primary {
     background: $light-gray0-trans !important;
+    // background: $dark-gray0-trans !important;
   }
 }
 
@@ -109,13 +110,14 @@ main,
       box-shadow: none !important;
     }
 
-    &.bp3-fill:not([class*='bp3-intent-primary']) {
-      border: 1.3px solid $light-gray5-trans !important;
-      color: #495057;
-      background: none;
-    }
+    /* Breaks stykling buttns search forms */
+    // &.bp3-fill:not([class*='bp3-intent-primary']) {
+    //   border: 1.3px solid $light-gray5-trans !important;
+    //   color: #495057;
+    //   ackground: none;
+    // }
 
-    &:hover {
+    &:not(.btn-blank):hover {
       background-color: $dark-gray3;
       color: $light-gray5;
     }
@@ -128,6 +130,7 @@ main,
       &.bp3-fill:not([class*='bp3-intent-primary']),
       &.bp3-button:not([class*='bp3-intent-primary']) {
         background: $light-gray5-trans;
+        // background: $dark-gray5-trans;
         color: $light-gray1 !important;
       }
       .custom-icon {
@@ -135,6 +138,7 @@ main,
       }
       &:hover {
         background-color: $light-gray6-trans !important;
+        // background-color: $dark-gray2;
         color: $light-gray5;
       }
     }
@@ -143,7 +147,8 @@ main,
 
 .bp3-overlay
   .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
-  background: $light-gray1-trans;
+  // background: $light-gray1-trans; /* Not sure what items use this  > buttons none intent*/
+  background: $dark-gray1-trans;
   color: $light-gray6;
 }
 
@@ -153,6 +158,7 @@ main,
   min-height: 39px;
   background: transparent !important;
   cursor: pointer;
+  padding-right: 2px;
 
   h4 {
     margin-left: 10px;
@@ -169,6 +175,8 @@ main,
 #outliner {
   // Show y scrollbar when there's loads of tags or location list items
   overflow: hidden auto !important;
+  border-left: 1px solid $dark-gray0;
+  border-right: 1px solid $dark-gray0;
 
   > div:hover .outliner-header-wrapper:not(last-child) > * {
     opacity: 1;
@@ -281,10 +289,8 @@ nav .bp3-tree {
 
 // Google-photos like selection for tag tree
 .tag-tree {
-
   // Only show checkbox on hover
   .bp3-tree-node-content {
-
     > .bp3-tree-node-secondary-label {
       display: none;
     }
@@ -308,10 +314,10 @@ nav .bp3-tree {
   }
 
   &.selection-active {
-    .bp3-tree {
-      // Indicator that selection mode is active
-      box-shadow: inset 0 0 4px $blue1;
-    }
+    // .bp3-tree {
+    // Indicator that selection mode is active > isnt the selection enough?
+    // box-shadow: inset 0 0 4px $blue1;
+    // }
 
     .bp3-tree-node-content {
       > .bp3-tree-node-secondary-label {
@@ -324,10 +330,13 @@ nav .bp3-tree {
       }
     }
   }
-
+  .selection-icon {
+    cursor: pointer;
+  }
   .is-searched {
     > .bp3-tree-node-content {
-      background-color: $blue-trans1;
+      background-color: $blue-trans2;
+      color: $light-gray4;
     }
   }
 }

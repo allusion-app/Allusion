@@ -10,11 +10,10 @@ import { useMemo, useContext } from 'react';
 import { ViewMethod } from '../../UiStore';
 import StoreContext from '../../contexts/StoreContext';
 
-
 /* Library info. Todo: Show entire library count instead of current fileList */
 const LibraryInfo = observer(({ fileCount }: { fileCount: number }) => (
   <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={ToolbarTooltips.Media}>
-    {` ${fileCount} item${fileCount === 1 ? '' : 's'}`}
+    {fileCount}
   </Button>
 ));
 
@@ -33,7 +32,7 @@ const FileSelection = observer(
       className="tooltip"
       data-right={ToolbarTooltips.Select}
     >
-      {selectionCount} selected
+      {selectionCount}
     </Button>
   ),
 );
@@ -105,7 +104,9 @@ const FileFilter = observer(
     return (
       <Popover
         minimal
-        target={<Button icon={IconSet.FILTER} className="tooltip" data-right={ToolbarTooltips.Filter} />}
+        target={
+          <Button icon={IconSet.FILTER} className="tooltip" data-right={ToolbarTooltips.Filter} />
+        }
         content={sortMenu}
       />
     );
@@ -134,7 +135,7 @@ const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) 
       className="tooltip"
       data-right={ToolbarTooltips.ViewGrid}
     />
-    <div id="spacer" style={{ width: '1rem' }} />
+    {/* <div id="spacer" style={{ width: '1rem' }} /> */}
   </ButtonGroup>
 ));
 

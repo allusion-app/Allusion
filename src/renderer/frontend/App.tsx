@@ -17,10 +17,10 @@ import { DragLayer } from './containers/Outliner/TagPanel';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
 
-const SPLASH_SCREEN_TIME = 700;
+const SPLASH_SCREEN_TIME = 1400;
 
 export const AppToaster = Toaster.create({
-  position: Position.BOTTOM_RIGHT,
+  position: Position.TOP,
   className: 'toaster',
 });
 
@@ -55,28 +55,28 @@ const App = observer(() => {
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
       <div className={sidebarClass}>
-      <div id="layoutContainer" className={`${themeClass}`}>
-        <ErrorBoundary>
-          <GlobalHotkeys>
-            <Toolbar />
+        <div id="layoutContainer" className={`${themeClass}`}>
+          <ErrorBoundary>
+            <GlobalHotkeys>
+              <Toolbar />
 
-            <Outliner />
+              <Outliner />
 
-            <ContentView />
+              <ContentView />
 
-            <Inspector />
+              <Inspector />
 
-            <Settings />
+              <Settings />
 
-            <AdvancedSearchDialog />
+              <AdvancedSearchDialog />
 
-            <WelcomeDialog />
+              <WelcomeDialog />
 
-            {/* Overlay for showing custom drag previews */}
-            <DragLayer />
-          </GlobalHotkeys>
-        </ErrorBoundary>
-      </div>
+              {/* Overlay for showing custom drag previews */}
+              <DragLayer />
+            </GlobalHotkeys>
+          </ErrorBoundary>
+        </div>
       </div>
     </DropOverlay>
   );

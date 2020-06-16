@@ -501,14 +501,9 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
   if (fileList.length === 0) {
     let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
     let title = 'No images';
-    let description = 'Add some images to get started!';
+    let description = 'Images can be added from the outliner';
     let action = (
-      <Button
-        onClick={uiStore.openOutliner}
-        text="Add location with images"
-        intent="primary"
-        icon={IconSet.ADD}
-      />
+      <Button onClick={uiStore.toggleOutliner} text="Toggle outliner" intent="primary" />
     );
     if (fileStore.showsQueryContent) {
       description = 'Try searching for something else.';

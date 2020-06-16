@@ -44,7 +44,7 @@ pre {
 .bp3-dark {
   pre {
     font-family: unset;
-    background: rgba(1, 1, 1, 0.1);
+    background: $dark-gray8-trans;
     padding: 6px;
     border-radius: 6px;
   }
@@ -70,15 +70,15 @@ pre {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   z-index: 1000;
   #outliner-toolbar > div,
   #main-toolbar > div,
   #inspector-toolbar > div {
     text-align: center;
-  align-content: center;
+    align-content: center;
   }
-  border-right: 2px solid #14181a !important;
+  border-right: 1px solid $dark-gray0;
   .bp3-button {
     max-width: 30px;
   }
@@ -103,10 +103,11 @@ pre {
 
 // Toolbar items
 #toolbar #main-toolbar {
-  .bp3-button:empty::before,
-  .bp3-button > :first-child {
-      margin: 0 !important;
-  }
+  // Only for vertical Toolbar
+  // .bp3-button:empty::before,
+  // .bp3-button > :first-child {
+  //     margin: 0 !important;
+  // }
   #outliner-toolbar,
   #inspector-toolbar {
     width: var(--toolbar-width) !important;
@@ -117,34 +118,30 @@ pre {
   #toolbar {
     .bp3-button:empty::before,
     .bp3-button > :first-child {
-      margin: 0 !important;
+      margin: 0;
     }
     #outliner-toolbar,
     #inspector-toolbar {
       width: var(--toolbar-width) !important;
     }
     #main-toolbar {
-      div:nth-child(1) span:nth-child(2),
-      div:nth-child(2) > button:nth-child(1) span:nth-child(1) {
-        visibility: hidden;
-        display: none;
-      }
-      div:nth-child(1) button {
+      // Dont hide using numnbers only
+      // div:nth-child(1) span:nth-child(2),
+      // div:nth-child(2) > button:nth-child(1) span:nth-child(1) {
+      //   visibility: hidden;
+      //   display: none;
+      // }
+      div:nth-child(1) button,
+      div:nth-child(2) button:nth-of-type(1) {
         flex-wrap: wrap;
-        // flex-direction: column;
-        // text-align: -webkit-center;
-        // align-items: flex-start;
       }
-      div:nth-child(1) span:nth-child(2) {
-        /* background: red !important; */
-        visibility: visible;
-        display: flex;
-        align-items: center;
-        text-orientation: upright;
-        writing-mode: vertical-rl;
-        overflow: hidden;
-        width: initial;
-        height: 4rem;
+      div:nth-child(1) span:nth-child(2),
+      div:nth-of-type(2) button:nth-of-type(1) span:nth-of-type(1) {
+        overflow: visible;
+        font-size: 11px;
+        text-align: center;
+        margin: 4px auto;
+        font-weight: 600;
       }
       div:nth-child(2) button {
         width: -webkit-fill-available;
@@ -534,11 +531,13 @@ img {
   width: 0.875rem !important;
   display: block;
 }
+
 .bp3-alert .custom-icon,
 .custom-icon-32 > * {
   height: 2rem !important;
   width: 2rem !important;
 }
+
 .fillWidth {
   width: 100%;
 }
@@ -571,6 +570,10 @@ img {
   display: flex;
   flex-direction: column;
 
+  img {
+    animation: fade 0.25s cubic-bezier(0.65, 0.05, 0.36, 1);
+  }
+
   > div {
     flex: auto;
     position: relative;
@@ -582,6 +585,20 @@ img {
       width: 48px;
       transition: opacity 0.2s ease-in-out;
       position: absolute;
+
+      > svg {
+        position: absolute;
+        height: 36px !important;
+        width: 36px !important;
+        margin-top: -24px;
+        top: 50%;
+        color: #ffffffc7;
+        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
+      }
+      // & > svg {
+      //   display: table-cell;
+      //   vertical-align: middle;
+      // }
 
       > span {
         position: absolute;
@@ -601,6 +618,18 @@ img {
       top: 0;
       position: absolute;
     }
+  }
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
