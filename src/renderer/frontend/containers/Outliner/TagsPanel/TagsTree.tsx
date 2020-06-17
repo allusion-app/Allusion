@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback, useReducer } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { ContextMenu, Collapse, Button, H4, Icon, InputGroup } from '@blueprintjs/core';
+import { ContextMenu, Collapse, Button, H4, Icon, InputGroup, Classes } from '@blueprintjs/core';
 
 import { Tree } from 'components';
 import IconSet from 'components/Icons';
@@ -228,7 +228,11 @@ const Tag = observer((props: ITagProps) => {
         onSubmit={submit}
         onClick={handleQuickQuery}
       />
-      {!isEditing && <span onClick={handleSelect} className="after-icon" />}
+      {!isEditing && (
+        <span onClick={handleSelect} className="after-icon">
+          {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
+        </span>
+      )}
     </div>
   );
 });
@@ -375,7 +379,15 @@ const Collection = observer((props: ICollectionProps) => {
         onSubmit={submit}
         onClick={handleQuickQuery}
       />
-      {!isEditing && !nodeData.isEmpty && <span onClick={handleSelect} className="after-icon" />}
+      {!isEditing && (
+        <span
+          onClick={handleSelect}
+          className={`after-icon ${nodeData.isEmpty ? Classes.DISABLED : ''}`}
+          data-left={nodeData.isEmpty ? 'You cannot select empty classes.' : undefined}
+        >
+          {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
+        </span>
+      )}
     </div>
   );
 });

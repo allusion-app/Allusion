@@ -408,25 +408,21 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
 
   useEffect(() => {
     // Prevents updating state when component will be unmounted!
-    let isSubscribed = true;
-    Promise.all(
-      locationStore.locationList.map(async (location) => ({
-        id: location.id,
-        label: LocationLabel,
-        branches: (await location.getDirectoryTree()).map(mapDirectory),
-        leaves: [],
-        nodeData: location,
-        isExpanded,
-      })),
-    ).then((value) => {
-      if (isSubscribed) {
-        console.log('Refreshed!', value);
-        setBranches(value);
-      }
-    });
-
+    let isMounted = true;
+    if (isMounted) {
+      Promise.all(
+        locationStore.locationList.map(async (location) => ({
+          id: location.id,
+          label: LocationLabel,
+          branches: (await location.getDirectoryTree()).map(mapDirectory),
+          leaves: [],
+          nodeData: location,
+          isExpanded,
+        })),
+      ).then((value) => setBranches(value));
+    }
     return () => {
-      isSubscribed = false;
+      isMounted = false;
     };
   }, [locationStore.locationList, lastRefresh]);
 

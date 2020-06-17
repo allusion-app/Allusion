@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import fs from 'fs';
 import { observer } from 'mobx-react-lite';
 
@@ -6,31 +6,30 @@ import { ClientFile } from '../../entities/File';
 import { formatDateTime } from '../utils';
 
 const ImageInfo = observer(({ file }: { file: ClientFile }) => {
-  const isMounted = useRef(false);
   const [fileStats, setFileStats] = useState<fs.Stats | undefined>(undefined);
   const [error, setError] = useState<Error | undefined>(undefined);
   const [resolution, setResolution] = useState<string>('...');
 
   // Look up file info when file changes
   useEffect(() => {
-    isMounted.current = true;
+    let isMounted = true;
     fs.stat(file.absolutePath, (err, stats) => {
-      if (isMounted.current) {
+      if (isMounted) {
         err ? setError(err) : setFileStats(stats);
       }
     });
     const img = new Image();
 
     img.onload = () => {
-      if (isMounted.current) {
+      if (isMounted) {
         setResolution(`${img.width}x${img.height}`);
       }
     };
     img.src = file.absolutePath;
     return () => {
-      isMounted.current = false;
+      isMounted = false;
     };
-  }, [file]);
+  }, [file, file.absolutePath]);
 
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
   // Or add the units: pixels vs DPI

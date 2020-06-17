@@ -191,21 +191,20 @@ main,
 .tags-tree {
   .searched {
     // TODO: Use a color without alpha values...
-    --foreground-color: #007bf53f;
-    --background-color: #007bf53f;
-    --focus-color: #007bf53f;
-    --highlight-background-color: #007bf53f;
-    color: white;
+    --foreground-color: #{$blue-trans2};
+    --background-color: #{$blue-trans2};
+    --focus-color: #{$blue-trans2};
+    --highlight-background-color: #{$blue-trans2};
+    color: $light-gray4;
   }
 
   .after-icon {
     cursor: pointer;
-    background-color: currentColor;
+    display: none;
   }
 
   .tree-content-label:hover > .after-icon {
-    width: 1rem;
-    height: 1rem;
+    display: unset;
   }
 
   &.selected {
@@ -213,20 +212,9 @@ main,
     --selection-font-color: var(--primary-color);
 
     .after-icon {
-      width: 1rem;
-      height: 1rem;
+      display: unset;
     }
   }
-}
-
-[aria-selected='true'] > .label > .tree-content-label > .after-icon {
-  mask-image: url(~resources/icons/checkmark.svg);
-  -webkit-mask-image: url(~resources/icons/checkmark.svg);
-}
-
-[aria-selected='false'] > .label > .tree-content-label > .after-icon {
-  mask-image: url(~resources/icons/select-all.svg);
-  -webkit-mask-image: url(~resources/icons/select-all.svg);
 }
 
 .tree-content-label {
