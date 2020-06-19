@@ -29,6 +29,7 @@ const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
 
 const Settings = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
+  const theme = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'}`;
 
   const browseImportDir = useCallback(() => {
     const dirs = remote.dialog.showOpenDialogSync({
@@ -61,8 +62,6 @@ const Settings = observer(() => {
       }
     }
   }, []);
-
-  const themeClass = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'}`;
 
   const browseThumbnailDirectory = useCallback(async () => {
     const dirs = remote.dialog.showOpenDialogSync({
@@ -100,7 +99,7 @@ const Settings = observer(() => {
       icon={IconSet.SETTINGS}
       onClose={uiStore.toggleSettings}
       title="Settings"
-      className={themeClass}
+      className={theme}
     >
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup

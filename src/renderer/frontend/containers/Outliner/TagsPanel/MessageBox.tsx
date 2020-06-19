@@ -1,6 +1,6 @@
 import { IRootStoreProp } from 'src/renderer/frontend/contexts/StoreContext';
 import React, { useState, useEffect, useCallback } from 'react';
-import { Tag, Alert, Classes } from '@blueprintjs/core';
+import { Tag, Alert } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import IconSet from 'components/Icons';
 import { DnDType } from './DnD';
@@ -82,6 +82,7 @@ const TagRemoverContent = ({
 
 export const TagRemoval = observer(({ rootStore }: IRootStoreProp) => {
   const { uiStore, tagStore, tagCollectionStore } = rootStore;
+  const theme = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'}`;
 
   const handleConfirm = useCallback(async () => {
     if (uiStore.isOutlinerTagRemoverOpen === 'selected') {
@@ -112,7 +113,7 @@ export const TagRemoval = observer(({ rootStore }: IRootStoreProp) => {
       canEscapeKeyCancel
       canOutsideClickCancel
       onConfirm={handleConfirm}
-      className={Classes.DARK}
+      className={theme}
     >
       <TagRemoverContent rootStore={rootStore} />
     </Alert>

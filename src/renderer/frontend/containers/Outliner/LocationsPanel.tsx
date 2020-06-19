@@ -40,11 +40,12 @@ const enum Tooltip {
 }
 
 interface ILocationConfigModalProps {
+  theme: string;
   dir: ClientLocation | undefined;
   handleClose: () => void;
 }
 
-const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) => {
+const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalProps) => {
   if (!dir) return <> </>;
   return (
     <Dialog
@@ -56,7 +57,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
       icon={IconSet.FOLDER_CLOSE}
       isOpen={Boolean(dir)}
       onClose={handleClose}
-      className={Classes.DARK}
+      className={theme}
     >
       <div className={Classes.DIALOG_BODY}>
         <Observer>
@@ -89,12 +90,9 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
   );
 };
 
-interface ILocationRemovalAlertProps {
-  dir: ClientLocation | undefined;
-  handleClose: () => void;
-}
+type ILocationRemovalAlertProps = ILocationConfigModalProps;
 
-const LocationRemovalAlert = ({ dir, handleClose }: ILocationRemovalAlertProps) => {
+const LocationRemovalAlert = ({ dir, handleClose, theme }: ILocationRemovalAlertProps) => {
   const { locationStore } = useContext(StoreContext);
   const handleRemove = useCallback(() => {
     if (dir) {
@@ -116,9 +114,9 @@ const LocationRemovalAlert = ({ dir, handleClose }: ILocationRemovalAlertProps) 
       onConfirm={handleRemove}
       canEscapeKeyCancel
       canOutsideClickCancel
-      className={Classes.DARK}
+      className={theme}
     >
-      <div className="bp3-dark" id="deleteFile">
+      <div id="deleteFile">
         <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
         <p>
           Remove {`"${Path.basename(dir.path)}"`} from your locations?
@@ -441,7 +439,9 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
 });
 
 const LocationsPanel = () => {
-  const { locationStore } = useContext(StoreContext);
+  const { locationStore, uiStore } = useContext(StoreContext);
+  const theme = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'}`;
+
   const [locationConfigOpen, setLocationConfigOpen] = useState<ClientLocation | undefined>(
     undefined,
   );
@@ -546,8 +546,12 @@ const LocationsPanel = () => {
         />
       </Collapse>
 
-      <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
-      <LocationRemovalAlert dir={locationRemoverOpen} handleClose={closeLocationRemover} />
+      <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} theme={theme} />
+      <LocationRemovalAlert
+        dir={locationRemoverOpen}
+        handleClose={closeLocationRemover}
+        theme={theme}
+      />
       <LocationRecoveryDialog onDelete={setLocationRemoverOpen} />
     </div>
   );

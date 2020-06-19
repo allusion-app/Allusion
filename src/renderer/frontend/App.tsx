@@ -46,7 +46,7 @@ const App = observer(() => {
     return <SplashScreen />;
   }
 
-  const themeClass = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'}`;
+  const theme = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'}`;
 
   const sidebarClass = uiStore.isToolbarVertical ? 'vertical-toolbar' : '';
 
@@ -54,7 +54,7 @@ const App = observer(() => {
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
       <div className={sidebarClass}>
-        <div id="layoutContainer" className={themeClass}>
+        <div id="layoutContainer" className={theme}>
           <ErrorBoundary>
             <GlobalHotkeys>
               <Toolbar />

@@ -110,9 +110,7 @@ const NUM_STEPS = 3;
 
 const WelcomeDialog = () => {
   const { uiStore, locationStore, fileStore } = useContext(StoreContext);
-  const themeClass = `app-theme ${
-    uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'
-  } welcomedialog`;
+  const theme = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'} welcomedialog`;
 
   const [showDialog, setShowDialog] = useState(false);
   const handleClose = useCallback(async () => {
@@ -161,7 +159,7 @@ const WelcomeDialog = () => {
       title="Welcome to Allusion"
       canOutsideClickClose={false}
       canEscapeKeyClose={false}
-      className={themeClass}
+      className={theme}
       isCloseButtonShown={false}
     >
       <div className={Classes.DIALOG_BODY}>

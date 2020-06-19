@@ -11,7 +11,7 @@ import { useWorkerListener } from './ThumbnailGeneration';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
-  const themeClass = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'}`;
+  const theme = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'}`;
 
   // Listen to responses of Web Workers
   useWorkerListener();
@@ -29,7 +29,7 @@ const PreviewApp = observer(() => {
   );
 
   return (
-    <div id="layoutContainer" className={themeClass} style={{ height: '100%' }}>
+    <div id="layoutContainer" className={theme} style={{ height: '100%' }}>
       <ErrorBoundary>
         <div id="toolbar" style={{ height: '2.4rem' }}>
           <section id="preview-toolbar">

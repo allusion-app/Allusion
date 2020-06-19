@@ -289,7 +289,7 @@ const SearchForm = ({
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
-  const themeClass = `app-theme ${
+  const theme = `app-theme ${
     uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'
   } light header-dark`;
 
@@ -299,7 +299,7 @@ export const AdvancedSearchDialog = observer(() => {
       onClose={uiStore.toggleAdvancedSearch}
       icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      className={themeClass}
+      className={theme}
       canEscapeKeyClose={true}
       canOutsideClickClose={true}
     >

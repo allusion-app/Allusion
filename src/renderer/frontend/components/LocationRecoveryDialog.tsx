@@ -116,6 +116,7 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
   const location = locationStore.get(isLocationRecoveryOpen);
   if (!location) return <></>;
 
+  const theme = `app-theme ${uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'}`;
   const { path } = location;
 
   const noRecovery = status && status.matchCount === 0;
@@ -133,7 +134,7 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
       icon={IconSet.FOLDER_CLOSE}
       isOpen={Boolean(location)}
       onClose={uiStore.closeLocationRecovery}
-      className={Classes.DARK}
+      className={theme}
     >
       <div className={Classes.DIALOG_BODY}>
         {!status ? (
