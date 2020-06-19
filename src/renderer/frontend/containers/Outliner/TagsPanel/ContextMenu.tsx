@@ -10,6 +10,7 @@ import { IExpansionState } from '..';
 import { ID } from 'src/renderer/entities/ID';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
+import { ClientTag } from 'src/renderer/entities/Tag';
 
 interface IColorOptions {
   label: string;
@@ -116,38 +117,36 @@ const SearchMenu = (props: ISearchMenuProps) => {
 };
 
 interface ITagMenuProps {
-  id: ID;
-  color: string;
-  isSelected: boolean;
+  nodeData: ClientTag;
   uiStore: UiStore;
   dispatch: React.Dispatch<Action>;
 }
 
-export const TagContextMenu = ({ id, color, isSelected, uiStore, dispatch }: ITagMenuProps) => {
-  const { tags, collections } = uiStore.getTagContextItems(id);
+export const TagContextMenu = ({ nodeData, uiStore, dispatch }: ITagMenuProps) => {
+  const { tags, collections } = uiStore.getTagContextItems(nodeData.id);
   let contextText = formatTagCountText(Math.max(0, tags.length - 1), collections.length);
   contextText = contextText && ` (${contextText})`;
 
   return (
     <Menu>
       <EditMenu
-        rename={() => dispatch(Factory.enableEditing(id))}
-        delete={() => uiStore.openOutlinerTagRemover(isSelected ? 'selected' : id)}
-        color={color}
-        setColor={(color) => uiStore.colorSelectedTagsAndCollections(id, color)}
+        rename={() => dispatch(Factory.enableEditing(nodeData.id))}
+        delete={() => dispatch(Factory.confirmDeletion(nodeData))}
+        color={nodeData.color}
+        setColor={(color) => uiStore.colorSelectedTagsAndCollections(nodeData.id, color)}
         contextText={contextText}
       />
       <Divider />
       <SearchMenu
         addSearch={() =>
-          isSelected
+          nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', id))
+            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
         }
         replaceSearch={() =>
-          isSelected
+          nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', id))
+            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
         }
       />
     </Menu>
@@ -220,9 +219,7 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
       />
       <EditMenu
         rename={() => dispatch(Factory.enableEditing(nodeData.id))}
-        delete={() =>
-          uiStore.openOutlinerTagRemover(nodeData.isSelected ? 'selected' : nodeData.id)
-        }
+        delete={() => dispatch(Factory.confirmDeletion(nodeData))}
         color={nodeData.color}
         setColor={(color: string) => uiStore.colorSelectedTagsAndCollections(nodeData.id, color)}
         contextText={contextText}

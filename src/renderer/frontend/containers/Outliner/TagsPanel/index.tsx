@@ -63,9 +63,6 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
   selectAllTags = () => {
     this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());
   };
-  openTagRemover = () => {
-    this.props.rootStore.uiStore.openOutlinerTagRemover();
-  };
   renderHotkeys() {
     const { uiStore } = this.props.rootStore;
     const { hotkeyMap } = uiStore;
@@ -81,12 +78,6 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
           combo={hotkeyMap.deselectAll}
           label="Deselect all tags in the outliner"
           onKeyDown={uiStore.clearTagSelection}
-          group="Outliner"
-        />
-        <Hotkey
-          combo={hotkeyMap.deleteSelection}
-          label="Delete the selected tags and collections"
-          onKeyDown={this.openTagRemover}
           group="Outliner"
         />
       </Hotkeys>

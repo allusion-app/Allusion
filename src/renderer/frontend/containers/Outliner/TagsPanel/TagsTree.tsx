@@ -11,7 +11,7 @@ import {
   createBranchOnKeyDown,
   createLeafOnKeyDown,
 } from 'components/Tree';
-import { TagRemoval } from './MessageBox';
+import { TagRemoval } from '../MessageBox';
 import {
   ClientIDSearchCriteria,
   ClientCollectionSearchCriteria,
@@ -139,16 +139,10 @@ const Tag = observer((props: ITagProps) => {
   const handleContextMenu = useCallback(
     (e) =>
       ContextMenu.show(
-        <TagContextMenu
-          dispatch={dispatch}
-          color={nodeData.color}
-          id={nodeData.id}
-          isSelected={nodeData.isSelected}
-          uiStore={uiStore}
-        />,
+        <TagContextMenu dispatch={dispatch} nodeData={nodeData} uiStore={uiStore} />,
         { left: e.clientX, top: e.clientY },
       ),
-    [dispatch, nodeData.color, nodeData.id, nodeData.isSelected, uiStore],
+    [dispatch, nodeData, uiStore],
   );
 
   const handleDragStart = useCallback(
@@ -493,7 +487,7 @@ const customKeys = (
       break;
 
     case 'Delete':
-      treeData.uiStore.openOutlinerTagRemover(nodeData.isSelected ? 'selected' : nodeData.id);
+      treeData.dispatch(Factory.confirmDeletion(nodeData));
       break;
 
     case 'ContextMenu':
@@ -603,8 +597,13 @@ interface ITagsTreeProps {
 
 const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
   const { tagStore, tagCollectionStore } = uiStore.rootStore;
+  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
-  const [state, dispatch] = useReducer(reducer, { expansion: {}, editableNode: undefined });
+  const [state, dispatch] = useReducer(reducer, {
+    expansion: {},
+    editableNode: undefined,
+    deletableNode: undefined,
+  });
 
   const submit = useCallback((target: EventTarget & HTMLInputElement) => {
     target.focus();
@@ -774,7 +773,13 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
         onDrop={handleDrop}
       />
 
-      <TagRemoval rootStore={uiStore.rootStore} />
+      {state.deletableNode && (
+        <TagRemoval
+          theme={theme}
+          object={state.deletableNode}
+          onClose={() => dispatch(Factory.abortDeletion())}
+        />
+      )}
     </>
   );
 });

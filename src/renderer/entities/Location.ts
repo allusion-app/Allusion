@@ -237,4 +237,13 @@ export class ClientLocation implements ISerializable<ILocation> {
   async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
     return getDirectoryTree(this.path);
   }
+
+  async delete(): Promise<void> {
+    this.store.removeDirectory(this);
+  }
+
+  dispose(): void {
+    // clean up the observer
+    this.saveHandler();
+  }
 }

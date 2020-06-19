@@ -56,6 +56,7 @@ async function doesLocationMatchWithDir(
 
 const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) => void }) => {
   const { uiStore, locationStore, fileStore } = useContext(StoreContext);
+  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
   const { isLocationRecoveryOpen } = uiStore;
 
   const [status, setStatus] = useState<IMatch>();
@@ -133,7 +134,7 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
       icon={IconSet.FOLDER_CLOSE}
       isOpen={Boolean(location)}
       onClose={uiStore.closeLocationRecovery}
-      className={Classes.DARK}
+      className={theme}
     >
       <div className={Classes.DIALOG_BODY}>
         {!status ? (
