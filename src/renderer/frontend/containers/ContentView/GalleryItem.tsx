@@ -65,7 +65,6 @@ const GalleryItem = observer(
   ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
     const { uiStore } = useContext(StoreContext);
 
-    // TODO: Add selected tags and handle collections.
     const handleDrop = useCallback(
       (event: React.DragEvent<HTMLDivElement>) => {
         if (event.dataTransfer.types.includes(DnDType.Tag)) {
@@ -88,7 +87,7 @@ const GalleryItem = observer(
     const [isImageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState();
 
-    const imagePath = uiStore.view.isSlideMode ? file.path : file.thumbnailPath;
+    const imagePath = uiStore.isSlideMode ? file.absolutePath : file.thumbnailPath;
 
     useEffect(() => {
       // First check whether a thumbnail exists, generate it if needed
@@ -128,7 +127,7 @@ const GalleryItem = observer(
               <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
             ) : imageError ? (
               <span className="image-error">
-                <span className="bp3-icon custom-icon custom-icon-32">{IconSet.DB_ERROR}</span>{' '}
+                <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
                 <br /> Could not load image
               </span> // Show an error it it could not be loaded
             ) : (
@@ -154,8 +153,10 @@ const GalleryItem = observer(
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
-  const handleOpen = useCallback(() => shell.openItem(file.path), [file.path]);
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.path), [file.path]);
+  const handleOpen = useCallback(() => shell.openItem(file.absolutePath), [file.absolutePath]);
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.absolutePath), [
+    file.absolutePath,
+  ]);
   const handleInspect = useCallback(() => {
     uiStore.clearFileSelection();
     uiStore.selectFile(file);

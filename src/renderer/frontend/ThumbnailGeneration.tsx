@@ -32,7 +32,7 @@ export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
   const thumbnailExists = await fse.pathExists(thumbnailPath);
   if (!thumbnailExists) {
     const msg: IThumbnailMessage = {
-      filePath: file.path,
+      filePath: file.absolutePath,
       thumbnailDirectory: thumbnailDir,
       thumbnailType,
       fileId: file.id,
@@ -55,13 +55,13 @@ export const useWorkerListener = () => {
       }
     };
 
-    thumbnailWorker.onerror = (err: { fileId: ID, error: Error }) => {
+    thumbnailWorker.onerror = (err: { fileId: ID; error: Error }) => {
       console.log('Could not generate thumbnail', err);
       const { fileId } = err;
       const clientFile = fileStore.fileList.find((f) => f.id === fileId);
       if (clientFile) {
         // Load normal image as fallback
-        clientFile.setThumbnailPath(clientFile.path);
+        clientFile.setThumbnailPath(clientFile.absolutePath);
       }
     };
     return () => thumbnailWorker.terminate();
@@ -70,7 +70,7 @@ export const useWorkerListener = () => {
 
 // Moves all thumbnail files from one directory to another
 export const moveThumbnailDir = async (sourceDir: string, targetDir: string) => {
-  if (!await fse.pathExists(sourceDir) || !await fse.pathExists(targetDir)) {
+  if (!(await fse.pathExists(sourceDir)) || !(await fse.pathExists(targetDir))) {
     console.log('Source or target directory does not exist for moving thumbnails');
     return;
   }

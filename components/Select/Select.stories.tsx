@@ -5,6 +5,9 @@ import { Select } from 'components';
 export default {
   component: Select,
   title: 'Select',
+  decorators: [
+    (storyFn: () => React.ReactNode) => <div className="app-theme bp3-light">{storyFn()}</div>,
+  ],
 };
 
 export const Default = () => {

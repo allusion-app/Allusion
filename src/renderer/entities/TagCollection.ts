@@ -104,35 +104,35 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
     return this.store.isSearched(this.id);
   }
 
-  @action.bound addTag(tag: ClientTag | ID) {
+  @action.bound addTag(tag: ClientTag | ID): void {
     const id = tag instanceof ClientTag ? tag.id : tag;
     if (!this.tags.includes(id)) {
       this.tags.push(id);
     }
   }
 
-  @action.bound addCollection(collection: ID) {
+  @action.bound addCollection(collection: ID): void {
     this.subCollections.push(collection);
   }
 
-  @action.bound rename(name: string) {
+  @action.bound rename(name: string): void {
     this.name = name;
   }
 
-  @action setColor(color: string) {
+  @action setColor(color: string): void {
     this.color = color;
   }
 
-  @action removeTag(tag: ClientTag | ID) {
+  @action removeTag(tag: ClientTag | ID): void {
     this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
   }
 
-  @action.bound insertCollection(collection: ClientTagCollection, at = 0) {
+  @action.bound insertCollection(collection: ClientTagCollection, at = 0): void {
     collection.parent.subCollections.remove(collection.id);
     this.subCollections.splice(at, 0, collection.id);
   }
 
-  @action.bound insertTag(tag: ClientTag, at = 0) {
+  @action.bound insertTag(tag: ClientTag, at = 0): void {
     tag.parent.tags.remove(tag.id);
     this.tags.splice(at, 0, tag.id);
   }
@@ -174,7 +174,7 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
     return [...this.tags, ...this.clientSubCollections.flatMap((c) => c.getTagsRecursively())];
   }
 
-  async delete() {
+  async delete(): Promise<void> {
     this.store.removeTagCollection(this);
   }
 
@@ -198,7 +198,7 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
     );
   }
 
-  dispose() {
+  dispose(): void {
     // clean up the observer
     this.saveHandler();
   }

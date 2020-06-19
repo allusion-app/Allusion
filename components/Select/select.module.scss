@@ -1,5 +1,3 @@
-@import '~resources/style/colors.scss';
-
 .select {
   height: 1.5rem;
   width: 200px;
@@ -11,7 +9,7 @@
     appearance: none;
     box-sizing: unset;
     line-height: normal;
-    border: 2px solid var(--stroke-color, $gray4);
+    border: 2px solid var(--stroke-color);
     border-radius: 0.25em;
     padding: 0 0.5rem;
     height: 100%;
@@ -22,18 +20,23 @@
 
     > option {
       &:checked {
-        background-color: var(--primary-color, $blue1);
+        background-color: var(--primary-color);
         color: white;
+      }
+
+      &:hover {
+        border-color: transparent;
+        background-color: yellowgreen;
       }
     }
 
     &:hover {
-      border-color: var(--highlight-font-color, $blue-trans1);
+      border-color: var(--highlight-font-color);
     }
 
     &:focus {
       outline: none;
-      border-color: var(--primary-color, $blue1);
+      border-color: var(--primary-color);
     }
   }
 
@@ -45,7 +48,7 @@
     pointer-events: none;
     width: 1rem;
     height: 1rem;
-    background-color: var(--caret-color, black);
+    background-color: var(--caret-color);
     mask-image: url(~resources/icons/arrow-down.svg);
     -webkit-mask-image: url(~resources/icons/arrow-down.svg);
   }

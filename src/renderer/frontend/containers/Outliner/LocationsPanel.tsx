@@ -26,9 +26,12 @@ import { ClientStringSearchCriteria } from '../../../entities/SearchCriteria';
 import { IFile } from '../../../entities/File';
 import MultiTagSelector from '../../components/MultiTagSelector';
 import { AppToaster } from '../../App';
-import UiStore, { FileSearchCriteria } from '../../UiStore';
+import UiStore, { FileSearchCriteria } from '../../stores/UiStore';
 import { Tree } from 'components';
 import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
+import { IExpansionState } from '.';
+import LocationRecoveryDialog from '../../components/LocationRecoveryDialog';
+import { CustomKeyDict } from './index';
 
 // Tooltip info
 const enum Tooltip {
@@ -77,7 +80,9 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
 
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button onClick={handleClose}>{dir.isInitialized ? 'Close' : 'Confirm'}</Button>
+          <Button onClick={handleClose} intent="primary">
+            {dir.isInitialized ? 'Close' : 'Confirm'}
+          </Button>
         </div>
       </div>
     </Dialog>
@@ -133,8 +138,6 @@ interface ITreeData {
   delete: (location: ClientLocation) => void;
 }
 
-type IExpansionState = { [key: string]: boolean };
-
 const toggleExpansion = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITreeData) => {
   const { expansion, setExpansion } = treeData;
   const id = nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath;
@@ -163,7 +166,7 @@ const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
 };
 
 const searchLocation = (search: (criteria: FileSearchCriteria) => void, path: string) =>
-  search(new ClientStringSearchCriteria<IFile>('path', path, 'contains'));
+  search(new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict));
 
 const customKeys = (
   event: React.KeyboardEvent<HTMLLIElement>,
@@ -340,12 +343,23 @@ const Location = observer(
     );
 
     return (
-      <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
+      <div className="tree-content-label" onContextMenu={handleContextMenu}>
         <span className="pre-icon">
-          {nodeData.id === DEFAULT_LOCATION_ID ? IconSet.IMPORT : IconSet.LOCATIONS}
+          {nodeData.id === DEFAULT_LOCATION_ID
+            ? IconSet.IMPORT
+            : treeData.expansion[nodeData.id]
+            ? IconSet.FOLDER_OPEN
+            : IconSet.FOLDER_CLOSE}
         </span>
-        {nodeData.name}
-        {nodeData.isBroken && <span className="after-icon">{IconSet.WARNING}</span>}
+        <div onClick={handleClick}>{nodeData.name}</div>
+        {nodeData.isBroken && (
+          <span
+            className="after-icon"
+            onClick={() => treeData.uiStore.openLocationRecovery(nodeData.id)}
+          >
+            {IconSet.WARNING}
+          </span>
+        )}
       </div>
     );
   },
@@ -394,25 +408,21 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
 
   useEffect(() => {
     // Prevents updating state when component will be unmounted!
-    let isSubscribed = true;
-    Promise.all(
-      locationStore.locationList.map(async (location) => ({
-        id: location.id,
-        label: LocationLabel,
-        branches: (await location.getDirectoryTree()).map(mapDirectory),
-        leaves: [],
-        nodeData: location,
-        isExpanded,
-      })),
-    ).then((value) => {
-      if (isSubscribed) {
-        console.log('Refreshed!', value);
-        setBranches(value);
-      }
-    });
-
+    let isMounted = true;
+    if (isMounted) {
+      Promise.all(
+        locationStore.locationList.map(async (location) => ({
+          id: location.id,
+          label: LocationLabel,
+          branches: (await location.getDirectoryTree()).map(mapDirectory),
+          leaves: [],
+          nodeData: location,
+          isExpanded,
+        })),
+      ).then((value) => setBranches(value));
+    }
     return () => {
-      isSubscribed = false;
+      isMounted = false;
     };
   }, [locationStore.locationList, lastRefresh]);
 
@@ -457,11 +467,6 @@ const LocationsPanel = () => {
     }
   }, [locationConfigOpen, locationStore]);
 
-  const handleRefresh = useCallback((e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setLocationTreeKey(new Date());
-  }, []);
-
   const handleChooseWatchedDir = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -499,23 +504,20 @@ const LocationsPanel = () => {
 
       const newLoc = await locationStore.addDirectory(newLocPath);
       setLocationConfigOpen(newLoc);
-      handleRefresh();
+      setLocationTreeKey(new Date());
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [handleRefresh, locationStore],
+    [locationStore],
   );
-
-  const toggleLocations = useCallback(() => setCollapsed(!isCollapsed), [isCollapsed]);
 
   // Refresh when adding/removing location
   useEffect(() => {
-    handleRefresh();
-  }, [handleRefresh, locationStore.locationList.length]);
+    setLocationTreeKey(new Date());
+  }, [locationStore.locationList.length]);
 
   return (
     <div>
-      <div className="outliner-header-wrapper" onClick={toggleLocations}>
-        <H4 className="bp3-heading">
+      <div className="outliner-header-wrapper">
+        <H4 className="bp3-heading" onClick={() => setCollapsed(!isCollapsed)}>
           <span className="bp3-icon custom-icon custom-icon-14">
             {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}
           </span>
@@ -526,14 +528,14 @@ const LocationsPanel = () => {
           icon={IconSet.FOLDER_CLOSE_ADD}
           onClick={handleChooseWatchedDir}
           className="tooltip"
-          data-right={Tooltip.Location}
+          data-left={Tooltip.Location}
         />
         <Button
           minimal
           icon={IconSet.RELOAD}
-          onClick={handleRefresh}
+          onClick={() => setLocationTreeKey(new Date())}
           className="tooltip"
-          data-right={Tooltip.Refresh}
+          data-left={Tooltip.Refresh}
         />
       </div>
       <Collapse isOpen={!isCollapsed}>
@@ -546,6 +548,7 @@ const LocationsPanel = () => {
 
       <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
       <LocationRemovalAlert dir={locationRemoverOpen} handleClose={closeLocationRemover} />
+      <LocationRecoveryDialog onDelete={setLocationRemoverOpen} />
     </div>
   );
 };

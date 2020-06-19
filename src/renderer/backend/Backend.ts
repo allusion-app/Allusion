@@ -28,7 +28,7 @@ export default class Backend {
     this.locationRepository = new DBRepository('locations', db);
   }
 
-  async init() {
+  async init(): Promise<void> {
     // Create a root 'Hierarchy' collection if it does not exist
     const colCount = await this.tagCollectionRepository.count();
     if (colCount === 0) {
@@ -74,17 +74,17 @@ export default class Backend {
     return this.fileRepository.find({ criteria, order, fileOrder });
   }
 
-  async createTag(tag: ITag) {
+  async createTag(tag: ITag): Promise<ITag> {
     console.log('Backend: Creating tag...', tag);
     return await this.tagRepository.create(tag);
   }
 
-  async createTagCollection(collection: ITagCollection) {
+  async createTagCollection(collection: ITagCollection): Promise<ITagCollection> {
     console.log('Backend: Creating tag collection...', collection);
     return this.tagCollectionRepository.create(collection);
   }
 
-  async createFile(file: IFile) {
+  async createFile(file: IFile): Promise<IFile> {
     console.log('Backend: Creating file...', file);
     return await this.fileRepository.create(file);
   }
@@ -104,7 +104,7 @@ export default class Backend {
     return await this.fileRepository.update(file);
   }
 
-  async removeTag(tag: ITag) {
+  async removeTag(tag: ITag): Promise<void> {
     console.log('Removing tag...', tag);
     // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
@@ -119,7 +119,7 @@ export default class Backend {
     await this.tagRepository.remove(tag);
   }
 
-  async removeTagCollection(tagCollection: ITagCollection) {
+  async removeTagCollection(tagCollection: ITagCollection): Promise<void> {
     console.log('Removing tag collection...', tagCollection);
     // Get all sub collections
     const subCollections = await Promise.all(
@@ -135,59 +135,61 @@ export default class Backend {
     await this.tagCollectionRepository.remove(tagCollection);
   }
 
-  async removeFile(file: IFile) {
+  async removeFile(file: IFile): Promise<void> {
     console.log('Removing file...', file);
     await this.fileRepository.remove(file);
   }
 
-  async removeFiles(files: IFile[]) {
+  async removeFiles(files: IFile[]): Promise<void> {
     console.log('Removing files...', files);
     await this.fileRepository.removeMany(files);
   }
 
-  async getNumUntaggedFiles() {
+  async getNumUntaggedFiles(): Promise<number> {
     console.log('Get number of untagged files...');
     return this.fileRepository.count({
       criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' },
     });
   }
 
-  async getWatchedDirectories(order: keyof ILocation, fileOrder: FileOrder) {
+  async getWatchedDirectories(order: keyof ILocation, fileOrder: FileOrder): Promise<ILocation[]> {
     console.log('Backend: Getting watched directories...');
     return this.locationRepository.getAll({ order, fileOrder });
   }
 
-  async createLocation(dir: ILocation) {
+  async createLocation(dir: ILocation): Promise<ILocation> {
     console.log('Backend: Creating watched directory...');
     return this.locationRepository.create(dir);
   }
 
-  async saveLocation(dir: ILocation) {
+  async saveLocation(dir: ILocation): Promise<ILocation> {
     console.log('Backend: Saving watched directory...', dir);
     return await this.locationRepository.update(dir);
   }
 
-  async removeLocation(dir: ILocation) {
+  async removeLocation(dir: ILocation): Promise<void> {
     console.log('Backend: Removing watched directory...');
     return this.locationRepository.remove(dir);
   }
 
   // Creates many files at once, and checks for duplicates in the path they are in
-  async createFilesFromPath(path: string, files: IFile[]) {
+  async createFilesFromPath(path: string, files: IFile[]): Promise<IFile[]> {
     console.log('Backend: Creating files...', path, files);
     // Search for file paths that start with 'path', so those can be filtered out
     const criteria: IStringSearchCriteria<IFile> = {
       valueType: 'string',
       operator: 'contains', // Fixme: should be startWith, but doesn't work for some reason :/ 'path' is not an index for 'files' collection?!
-      key: 'path',
+      key: 'absolutePath',
       value: path,
     };
     const existingFilesInPath: IFile[] = await this.fileRepository.find({ criteria });
-    const newFiles = files.filter((file) => existingFilesInPath.every((f) => f.path !== file.path));
+    const newFiles = files.filter((file) =>
+      existingFilesInPath.every((f) => f.absolutePath !== file.absolutePath),
+    );
     return this.fileRepository.createMany(newFiles);
   }
 
-  async clearDatabase() {
+  async clearDatabase(): Promise<void> {
     console.log('Clearing database...');
     return dbDelete(DB_NAME);
   }

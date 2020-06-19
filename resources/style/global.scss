@@ -35,6 +35,37 @@ body {
   height: 100%;
 }
 
+// Default Theme
+.bp3-dark,
+.bp3-light {
+  --primary-color: #{$blue1};
+  --stroke-color: #{$gray3};
+  --selection-background-color: #{$blue-trans2};
+  --selection-font-color: white;
+  --treeitem-identation: 1rem;
+  --treeitem-offset: 1rem;
+}
+
+// Dark Theme
+.bp3-dark {
+  --focus-color: #{$dark-gray3};
+  --highlight-background-color: #{$dark-gray3};
+  --highlight-font-color: white;
+  --caret-color: #{$light-gray1};
+  --foreground-color: #{$dark-gray1};
+  --background-color: #{$dark-gray0};
+}
+
+// Light Theme
+.bp3-light {
+  --focus-color: #{$light-gray4};
+  --highlight-background-color: #{$light-gray4};
+  --highlight-font-color: #{$black};
+  --caret-color: #{$dark-gray1};
+  --foreground-color: #{$light-gray5};
+  --background-color: #{$light-gray3};
+}
+
 // Override standard CSS attributes
 pre {
   word-wrap: break-word;
@@ -44,7 +75,7 @@ pre {
 .bp3-dark {
   pre {
     font-family: unset;
-    background: rgba(1, 1, 1, 0.1);
+    background: $dark-gray8-trans;
     padding: 6px;
     border-radius: 6px;
   }
@@ -118,34 +149,30 @@ pre {
   #toolbar {
     .bp3-button:empty::before,
     .bp3-button > :first-child {
-      margin: 0 !important;
+      margin: 0;
     }
     #outliner-toolbar,
     #inspector-toolbar {
       width: var(--toolbar-width) !important;
     }
     #main-toolbar {
-      div:nth-child(1) span:nth-child(2),
-      div:nth-child(2) > button:nth-child(1) span:nth-child(1) {
-        visibility: hidden;
-        display: none;
-      }
-      div:nth-child(1) button {
+      // Dont hide using numnbers only
+      // div:nth-child(1) span:nth-child(2),
+      // div:nth-child(2) > button:nth-child(1) span:nth-child(1) {
+      //   visibility: hidden;
+      //   display: none;
+      // }
+      div:nth-child(1) button,
+      div:nth-child(2) button:nth-of-type(1) {
         flex-wrap: wrap;
-        // flex-direction: column;
-        // text-align: -webkit-center;
-        // align-items: flex-start;
       }
-      div:nth-child(1) span:nth-child(2) {
-        /* background: red !important; */
-        visibility: visible;
-        display: flex;
-        align-items: center;
-        text-orientation: upright;
-        writing-mode: vertical-rl;
-        overflow: hidden;
-        width: initial;
-        height: 4rem;
+      div:nth-child(1) span:nth-child(2),
+      div:nth-of-type(2) button:nth-of-type(1) span:nth-of-type(1) {
+        overflow: visible;
+        font-size: 11px;
+        text-align: center;
+        margin: 4px auto;
+        font-weight: 600;
       }
       div:nth-child(2) button {
         width: -webkit-fill-available;
@@ -531,11 +558,13 @@ img {
   width: 0.875rem !important;
   display: block;
 }
+
 .bp3-alert .custom-icon,
 .custom-icon-32 > * {
   height: 2rem !important;
   width: 2rem !important;
 }
+
 .fillWidth {
   width: 100%;
 }

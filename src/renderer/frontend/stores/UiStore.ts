@@ -3,21 +3,19 @@ import fse from 'fs-extra';
 import { action, observable, computed, observe } from 'mobx';
 import { remote } from 'electron';
 
-import RootStore from '../stores/RootStore';
+import RootStore from './RootStore';
 import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
-import View, {
-  ViewMethod,
-  ViewThumbnailSize,
-  PersistentPreferenceFields as ViewPersistentPrefFields,
-} from './View';
 import { ClientBaseCriteria, ClientIDSearchCriteria } from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
+export type ViewMethod = 'list' | 'grid';
+export type ViewThumbnailSize = 'small' | 'medium' | 'large';
+export type ViewThumbnailShape = 'square' | 'letterbox';
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 interface IHotkeyMap {
@@ -92,12 +90,13 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'isInspectorOpen',
   'thumbnailDirectory',
   'isToolbarVertical',
+  'method',
+  'thumbnailSize',
+  'thumbnailShape',
 ];
 
 class UiStore {
   rootStore: RootStore;
-  // View (Main Content)
-  public view: View = new View();
 
   @observable isInitialized = false;
 
@@ -113,9 +112,16 @@ class UiStore {
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
   @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
+  @observable isLocationRecoveryOpen: ID | null = null;
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
+  @observable method: ViewMethod = 'grid';
+  @observable isSlideMode: boolean = false;
+  /** Index of the first item in the viewport */
+  @observable firstItem: number = 0;
+  @observable thumbnailSize: ViewThumbnailSize = 'medium';
+  @observable thumbnailShape: ViewThumbnailShape = 'square';
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
@@ -134,7 +140,6 @@ class UiStore {
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
-    ViewPersistentPrefFields.forEach((f) => observe(this.view, f, debouncedPersist));
   }
 
   @action.bound init() {
@@ -142,6 +147,60 @@ class UiStore {
   }
 
   /////////////////// UI Actions ///////////////////
+  @computed get isList(): boolean {
+    return this.method === 'list';
+  }
+
+  @computed get isGrid(): boolean {
+    return this.method === 'grid';
+  }
+
+  @action.bound setThumbnailSmall() {
+    this.setThumbnailSize('small');
+  }
+
+  @action.bound setThumbnailMedium() {
+    this.setThumbnailSize('medium');
+  }
+
+  @action.bound setThumbnailLarge() {
+    this.setThumbnailSize('large');
+  }
+
+  @action.bound setThumbnailSquare() {
+    this.setThumbnailShape('square');
+  }
+
+  @action.bound setThumbnailLetterbox() {
+    this.setThumbnailShape('letterbox');
+  }
+
+  @action.bound setFirstItem(index: number = 0) {
+    if (isFinite(index)) {
+      this.firstItem = index;
+    }
+  }
+
+  @action.bound setMethodList() {
+    this.setMethod('list');
+  }
+
+  @action.bound setMethodGrid() {
+    this.setMethod('grid');
+  }
+
+  @action.bound enableSlideMode() {
+    this.isSlideMode = true;
+  }
+
+  @action.bound disableSlideMode() {
+    this.isSlideMode = false;
+  }
+
+  @action.bound toggleSlideMode() {
+    this.isSlideMode = !this.isSlideMode;
+  }
+
   @action.bound openOutliner() {
     this.setIsOutlinerOpen(true);
   }
@@ -197,10 +256,61 @@ class UiStore {
     this.isOutlinerTagRemoverOpen = null;
   }
 
+  @action.bound openLocationRecovery(locationId: ID) {
+    this.isLocationRecoveryOpen = locationId;
+  }
+
+  @action.bound closeLocationRecovery() {
+    this.isLocationRecoveryOpen = null;
+  }
+
   @action.bound closePreviewWindow() {
     this.isPreviewOpen = false;
   }
 
+  @action.bound setThumbnailDirectory(dir: string = '') {
+    this.thumbnailDirectory = dir;
+  }
+
+  @action.bound toggleTheme() {
+    this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
+  }
+  @action.bound toggleDevtools() {
+    remote.getCurrentWebContents().toggleDevTools();
+  }
+  @action.bound reload() {
+    remote.getCurrentWindow().reload();
+  }
+
+  @action.bound toggleQuickSearch() {
+    if (this.isQuickSearchOpen) {
+      this.clearSearchCriteriaList();
+    }
+    this.isQuickSearchOpen = !this.isQuickSearchOpen;
+  }
+
+  @action.bound toggleAdvancedSearch() {
+    this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
+  }
+
+  @action.bound closeQuickSearch() {
+    this.clearSearchCriteriaList();
+    this.isQuickSearchOpen = false;
+  }
+
+  @action.bound openQuickSearch() {
+    this.isQuickSearchOpen = true;
+  }
+
+  @action.bound closeAdvancedSearch() {
+    this.isAdvancedSearchOpen = false;
+  }
+
+  @action.bound toggleToolbarVertical() {
+    this.setToolbarVertical(!this.isToolbarVertical);
+  }
+
+  /////////////////// Selection actions ///////////////////
   @computed get clientFileSelection(): ClientFile[] {
     return this.fileSelection
       .map((id) => this.rootStore.fileStore.get(id))
@@ -213,11 +323,6 @@ class UiStore {
       .filter((t) => t !== undefined) as ClientTag[];
   }
 
-  @action.bound setThumbnailDirectory(dir: string = '') {
-    this.thumbnailDirectory = dir;
-  }
-
-  /////////////////// Selection actions ///////////////////
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
     if (clear) {
       this.clearFileSelection();
@@ -460,45 +565,6 @@ class UiStore {
     }
   }
 
-  /////////////////// UI Actions ///////////////////
-  @action.bound toggleTheme() {
-    this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
-  }
-  @action.bound toggleDevtools() {
-    remote.getCurrentWebContents().toggleDevTools();
-  }
-  @action.bound reload() {
-    remote.getCurrentWindow().reload();
-  }
-
-  @action.bound toggleQuickSearch() {
-    if (this.isQuickSearchOpen) {
-      this.clearSearchCriteriaList();
-    }
-    this.isQuickSearchOpen = !this.isQuickSearchOpen;
-  }
-
-  @action.bound toggleAdvancedSearch() {
-    this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
-  }
-
-  @action.bound closeQuickSearch() {
-    this.clearSearchCriteriaList();
-    this.isQuickSearchOpen = false;
-  }
-
-  @action.bound openQuickSearch() {
-    this.isQuickSearchOpen = true;
-  }
-
-  @action.bound closeAdvancedSearch() {
-    this.isAdvancedSearchOpen = false;
-  }
-
-  @action.bound toggleToolbarVertical() {
-    this.setToolbarVertical(!this.isToolbarVertical);
-  }
-
   // Storing preferences
   recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
@@ -510,7 +576,9 @@ class UiStore {
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.setIsInspectorOpen(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
-        this.view.loadPreferences(prefs);
+        this.setMethod(prefs.method);
+        this.setThumbnailSize(prefs.thumbnailSize);
+        this.setThumbnailShape(prefs.thumbnailShape);
       } catch (e) {
         console.log('Cannot parse persistent preferences', e);
       }
@@ -524,11 +592,10 @@ class UiStore {
   }
 
   storePersistentPreferences() {
-    let prefs: any = {};
+    const prefs: any = {};
     for (const field of PersistentPreferenceFields) {
       prefs[field] = this[field];
     }
-    prefs = this.view.savePreferences(prefs);
     localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
   }
 
@@ -561,8 +628,18 @@ class UiStore {
   @action private setToolbarVertical(val: boolean) {
     this.isToolbarVertical = val;
   }
+
+  @action private setMethod(method: ViewMethod = 'grid') {
+    this.method = method;
+  }
+
+  @action private setThumbnailSize(size: ViewThumbnailSize = 'medium') {
+    this.thumbnailSize = size;
+  }
+
+  @action private setThumbnailShape(shape: ViewThumbnailShape) {
+    this.thumbnailShape = shape;
+  }
 }
 
 export default UiStore;
-
-export { ViewMethod, ViewThumbnailSize };

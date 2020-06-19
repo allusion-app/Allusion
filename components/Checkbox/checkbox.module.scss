@@ -1,5 +1,3 @@
-@import '~resources/style/colors.scss';
-
 .checkbox {
   -webkit-appearance: none;
   appearance: none;
@@ -8,13 +6,13 @@
   vertical-align: bottom;
   margin-right: 0.5rem;
   transition: background-color 0.3s;
-  border: 2px solid var(--stroke-color, $gray3);
+  border: 2px solid var(--stroke-color);
   border-radius: 12.25%;
   padding: 0.125rem;
 
   &:checked {
-    background-color: var(--primary-color, $blue1);
-    border-color: var(--primary-color, $blue1);
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
 
     &:hover {
       filter: saturate(200%);
@@ -42,7 +40,7 @@
 
   &:focus {
     outline: none;
-    border-color: var(--focus-color, $blue-trans1);
+    border-color: var(--focus-color);
   }
 }
 
@@ -57,13 +55,13 @@
     border-radius: 50%;
     mask-image: none;
     -webkit-mask-image: none;
-    background-color: var(--stroke-color, $gray3);
+    background-color: var(--stroke-color);
     transform: translateX(0);
     transition: transform 0.4s;
   }
 
   &:focus::before {
-    background-color: var(--focus-color, $blue-trans1);
+    background-color: var(--focus-color);
   }
 
   &:checked::before {

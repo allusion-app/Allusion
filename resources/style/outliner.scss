@@ -82,7 +82,8 @@ main,
   // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
   .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal):not(.bp3-disabled) {
     // .bp3-multi-select .bp3-minimal {
-    background: $light-gray1-trans;
+    // background: $light-gray1-trans;
+    background: $dark-gray1-trans;
     color: $light-gray2;
   }
   .bp3-input.bp3-minimal {
@@ -96,6 +97,7 @@ main,
 
   button.bp3-intent-primary {
     background: $light-gray0-trans !important;
+    // background: $dark-gray0-trans !important;
   }
 }
 
@@ -108,13 +110,14 @@ main,
       box-shadow: none !important;
     }
 
-    &.bp3-fill:not([class*='bp3-intent-primary']) {
-      border: 1.3px solid $light-gray5-trans !important;
-      color: #495057;
-      background: none;
-    }
+    /* Breaks stykling buttns search forms */
+    // &.bp3-fill:not([class*='bp3-intent-primary']) {
+    //   border: 1.3px solid $light-gray5-trans !important;
+    //   color: #495057;
+    //   ackground: none;
+    // }
 
-    &:hover {
+    &:not(.btn-blank):hover {
       background-color: $dark-gray3;
       color: $light-gray5;
     }
@@ -127,6 +130,7 @@ main,
       &.bp3-fill:not([class*='bp3-intent-primary']),
       &.bp3-button:not([class*='bp3-intent-primary']) {
         background: $light-gray5-trans;
+        // background: $dark-gray5-trans;
         color: $light-gray1 !important;
       }
       .custom-icon {
@@ -134,6 +138,7 @@ main,
       }
       &:hover {
         background-color: $light-gray6-trans !important;
+        // background-color: $dark-gray2;
         color: $light-gray5;
       }
     }
@@ -142,7 +147,8 @@ main,
 
 .bp3-overlay
   .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
-  background: $light-gray1-trans;
+  // background: $light-gray1-trans; /* Not sure what items use this  > buttons none intent*/
+  background: $dark-gray1-trans;
   color: $light-gray6;
 }
 
@@ -177,63 +183,36 @@ main,
   }
 }
 
-.bp3-light {
-  background-color: $light-gray2;
-}
-
 #tree-footer {
   flex: 1;
   min-height: 16px;
 }
 
-.bp3-control-group {
-  padding: 0.25rem 0;
-}
-
-.bp3-input {
-  padding: 0 0.5rem;
-  border-radius: 6px;
-}
-
-.bp3-input:focus,
-.bp3-input.bp3-active {
-  box-shadow: 0 0 0 1.5px $blue1;
-  // box-shadow: none !important;
-}
-
-.tagLabel {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#watched-folders {
-  padding-left: 0;
-  margin: 0;
-  div > span:first-child {
-    padding: 0.25rem 0.05rem;
-    margin-left: 0.5rem;
+.tags-tree {
+  .searched {
+    // TODO: Use a color without alpha values...
+    --foreground-color: #{$blue-trans2};
+    --background-color: #{$blue-trans2};
+    --focus-color: #{$blue-trans2};
+    --highlight-background-color: #{$blue-trans2};
+    color: $light-gray4;
   }
-  > ul {
-    margin: 0;
+
+  .after-icon {
+    cursor: pointer;
+    display: none;
   }
-  > li {
-    list-style-type: none;
-    button {
-      background: none;
-      // width: fit-content !important;
-      padding: 0 1rem;
-      padding-right: 0;
-      justify-content: left;
-      width: 100%;
-      border-radius: 0;
-    }
-    > span {
-      width: calc(100% - 30px);
-      display: inline-block;
-      height: 30px;
-      display: flex;
-      align-items: center;
+
+  .tree-content-label:hover > .after-icon {
+    display: unset;
+  }
+
+  &.selected {
+    --selection-background-color: transparent;
+    --selection-font-color: var(--primary-color);
+
+    .after-icon {
+      display: unset;
     }
   }
 }
@@ -241,8 +220,8 @@ main,
 .tree-content-label {
   display: flex;
   align-items: center;
-  width: 100%;
   min-height: 1.75rem;
+  width: 100%;
 
   &[data-dnd-target='true'] {
     border-bottom: 2px solid $blue1;
@@ -263,25 +242,16 @@ main,
 
   > .after-icon {
     margin-left: 0.25rem;
-    width: 1rem;
-    height: 1rem;
-    mask-image: url(~resources/icons/select-all-round.svg);
-    -webkit-mask-image: url(~resources/icons/select-all-round.svg);
-    cursor: pointer;
-
-    &.searched {
-      background-color: currentColor;
-      mask-image: url(~resources/icons/search.svg);
-      -webkit-mask-image: url(~resources/icons/search.svg);
-    }
   }
 
-  &:hover > .after-icon {
-    background-color: currentColor;
-  }
-
-  > input,
-  > div {
+  > div,
+  input {
+    display: flex;
+    align-items: center;
+    height: 1.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     width: 100%;
   }
 }

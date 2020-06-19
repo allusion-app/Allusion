@@ -3,9 +3,9 @@
 .app-theme {
   --primary-color: #{$blue1};
   --stroke-color: #{$gray3};
-  --selection-background-color: #007bf53f;
+  --selection-background-color: #{$blue-trans2};
   --selection-font-color: white;
-  --treeitem-indentation: 1rem;
+  --treeitem-identation: 1rem;
   --treeitem-offset: 1rem;
 }
 

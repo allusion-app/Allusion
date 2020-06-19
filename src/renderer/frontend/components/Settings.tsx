@@ -89,7 +89,7 @@ const Settings = observer(() => {
     // Reset thumbnail paths for those that already have one
     fileStore.fileList.forEach((f) => {
       if (f.thumbnailPath) {
-        f.setThumbnailPath(getThumbnailPath(f.path, newDir));
+        f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
       }
     });
   }, [fileStore.fileList, uiStore]);
@@ -105,23 +105,23 @@ const Settings = observer(() => {
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup
           inline
-          value={uiStore.view.thumbnailSize}
+          value={uiStore.thumbnailSize}
           onChange={() => undefined}
           name="Thumbnail size"
         >
-          <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
-          <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
-          <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
+          <Radio label="Small" value="small" onClick={uiStore.setThumbnailSmall} />
+          <Radio label="Medium" value="medium" onClick={uiStore.setThumbnailMedium} />
+          <Radio label="Large" value="large" onClick={uiStore.setThumbnailLarge} />
         </RadioGroup>
 
         <RadioGroup
           inline
-          value={uiStore.view.thumbnailShape}
+          value={uiStore.thumbnailShape}
           onChange={() => undefined}
           name="Thumbnail shape"
         >
-          <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
-          <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
+          <Radio label="Square" value="square" onClick={uiStore.setThumbnailSquare} />
+          <Radio label="Letterbox" value="letterbox" onClick={uiStore.setThumbnailLetterbox} />
         </RadioGroup>
 
         <Switch

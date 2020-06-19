@@ -11,15 +11,15 @@ import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 import DropOverlay from './components/DropOverlay';
-import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
+import { AdvancedSearchDialog } from './containers/Outliner/SearchPanel';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
 
-const SPLASH_SCREEN_TIME = 700;
+const SPLASH_SCREEN_TIME = 1400;
 
 export const AppToaster = Toaster.create({
-  position: Position.BOTTOM_RIGHT,
+  position: Position.TOP,
   className: 'toaster',
 });
 

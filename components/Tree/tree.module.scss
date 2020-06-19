@@ -1,8 +1,6 @@
-@import '~resources/style/colors.scss';
-
-// Removes bullet points automatically.
 .tree,
 .tree .group {
+  list-style: none;
   margin: 0;
   padding: 0;
 }
@@ -19,10 +17,10 @@
 
 .tree_item {
   padding: 0;
-  background-color: var(--background-color, transparent);
+  background-color: var(--background-color);
 
   &[aria-level='1'] {
-    background-color: var(--foreground-color, transparent);
+    background-color: var(--foreground-color);
   }
 
   > .label {
@@ -30,15 +28,13 @@
     display: flex;
     align-items: center;
     border-left: 2px solid transparent;
-    padding-left: calc(
-      var(--level) * var(--treeitem-identation, 1rem) + var(--treeitem-offset, 1rem)
-    );
+    padding-left: calc(var(--level) * var(--treeitem-identation) + var(--treeitem-offset));
     padding-right: 0.25rem;
 
     &:hover {
-      background-color: var(--highlight-background-color, $light-gray4);
-      border-color: var(--highlight-font-color, black);
-      color: var(--highlight-font-color, black);
+      background-color: var(--highlight-background-color);
+      border-color: var(--highlight-font-color);
+      color: var(--highlight-font-color);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
   }
@@ -48,20 +44,20 @@
   }
 
   &[aria-selected='true'] > .label {
-    color: var(--selection-font-color, white);
-    background-color: var(--selection-background-color, #007bf53f);
+    color: var(--selection-font-color);
+    background-color: var(--selection-background-color);
   }
 
   &:focus {
     outline: none;
 
     &[aria-selected='true'] > .label {
-      background-color: var(--selection-background-color, #007bf53f);
+      background-color: var(--selection-background-color);
     }
 
     > .label {
-      background-color: var(--focus-color, $light-gray4);
-      border-color: var(--primary-color, $blue1);
+      background-color: var(--focus-color);
+      border-color: var(--primary-color);
     }
   }
 }
@@ -71,7 +67,7 @@
   height: 1rem;
   flex-shrink: 0;
   cursor: pointer;
-  background-color: var(--caret-color, black);
+  background-color: var(--caret-color);
   mask-image: url(~resources/icons/arrow-down.svg);
   -webkit-mask-image: url(~resources/icons/arrow-down.svg);
   mask-repeat: no-repeat;

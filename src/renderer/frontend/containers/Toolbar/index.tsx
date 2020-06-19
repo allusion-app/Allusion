@@ -9,10 +9,9 @@ import ContentToolbar from './ContentToolbar';
 // Tooltip info
 export const enum ToolbarTooltips {
   Add = 'Toggle Add Panel',
-  Tag = 'Toggle Tag Panel',
   Outliner = 'Toggle Outliner',
   Search = 'Toggle Search Panel',
-  Media = 'Number of files using selected tag(s)',
+  Media = 'Number of files in library',
   Select = 'Selects or deselects all images',
   TagFiles = 'Quick add or delete tags to selection',
   Delete = 'Delete selection from library',
@@ -32,11 +31,11 @@ const OutlinerToolbar = observer(() => {
     <section id="outliner-toolbar">
       <ButtonGroup minimal>
         <Button
-          icon={IconSet.TAG}
+          icon={IconSet.OUTLINER}
           onClick={uiStore.toggleOutliner}
           intent={uiStore.isOutlinerOpen ? 'primary' : 'none'}
           className="tooltip"
-          data-right={ToolbarTooltips.Tag}
+          data-right={ToolbarTooltips.Outliner}
         />
         <Button
           icon={IconSet.INFO}
@@ -58,29 +57,26 @@ const OutlinerToolbar = observer(() => {
   );
 });
 
-
 interface IInspectorToolbar {
   isInspectorOpen: boolean;
   toggleInspector: () => void;
   toggleSettings: () => void;
 }
 
-const InspectorToolbar = observer(
-  ({ toggleSettings }: IInspectorToolbar) => {
-    return (
-      <section id="inspector-toolbar">
-        <ButtonGroup minimal>
-          <Button
-            icon={IconSet.SETTINGS}
-            onClick={toggleSettings}
-            className="tooltip"
-            data-left={ToolbarTooltips.Settings}
-          />
-        </ButtonGroup>
-      </section>
-    );
-  },
-);
+const InspectorToolbar = observer(({ toggleSettings }: IInspectorToolbar) => {
+  return (
+    <section id="inspector-toolbar">
+      <ButtonGroup minimal>
+        <Button
+          icon={IconSet.SETTINGS}
+          onClick={toggleSettings}
+          className="tooltip"
+          data-left={ToolbarTooltips.Settings}
+        />
+      </ButtonGroup>
+    </section>
+  );
+});
 
 const Toolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -88,7 +84,7 @@ const Toolbar = observer(() => {
   return (
     <div id="toolbar">
       <OutlinerToolbar />
-      {!Boolean(uiStore.isToolbarVertical) && <ContentToolbar /> }
+      {!Boolean(uiStore.isToolbarVertical) && <ContentToolbar />}
       <InspectorToolbar
         isInspectorOpen={uiStore.isInspectorOpen}
         toggleInspector={uiStore.toggleInspector}

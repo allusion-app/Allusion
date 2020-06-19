@@ -5,9 +5,10 @@ import { SketchPicker, ColorResult } from 'react-color';
 import { observer } from 'mobx-react-lite';
 import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { formatTagCountText } from 'src/renderer/frontend/utils';
-import { ActionType, Action, IExpansionState } from './TagsTree';
+import { Action, Factory } from './StateReducer';
+import { IExpansionState } from '..';
 import { ID } from 'src/renderer/entities/ID';
-import UiStore from 'src/renderer/frontend/UiStore';
+import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 
 interface IColorOptions {
@@ -130,7 +131,7 @@ export const TagContextMenu = ({ id, color, isSelected, uiStore, dispatch }: ITa
   return (
     <Menu>
       <EditMenu
-        rename={() => dispatch({ type: ActionType.SetEditableNode, payload: id })}
+        rename={() => dispatch(Factory.enableEditing(id))}
         delete={() => uiStore.openOutlinerTagRemover(isSelected ? 'selected' : id)}
         color={color}
         setColor={(color) => uiStore.colorSelectedTagsAndCollections(id, color)}
@@ -197,10 +198,7 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
             .addTag('New Tag')
             .then((tag) => {
               nodeData.addTag(tag.id);
-              dispatch({
-                type: ActionType.InsertNode,
-                payload: { parent: nodeData.id, node: tag.id },
-              });
+              dispatch(Factory.insertNode(nodeData.id, tag.id));
             })
             .catch((err) => console.log('Could not create tag', err))
         }
@@ -213,10 +211,7 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
             .addTagCollection('New Collection')
             .then((collection) => {
               nodeData.addCollection(collection.id);
-              dispatch({
-                type: ActionType.InsertNode,
-                payload: { parent: nodeData.id, node: collection.id },
-              });
+              dispatch(Factory.insertNode(nodeData.id, collection.id));
             })
             .catch((err) => console.log('Could not create collection', err))
         }
@@ -224,7 +219,7 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         icon={IconSet.TAG_ADD_COLLECTION}
       />
       <EditMenu
-        rename={() => dispatch({ type: ActionType.SetEditableNode, payload: nodeData.id })}
+        rename={() => dispatch(Factory.enableEditing(nodeData.id))}
         delete={() =>
           uiStore.openOutlinerTagRemover(nodeData.isSelected ? 'selected' : nodeData.id)
         }
@@ -234,22 +229,12 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
       />
       <Divider />
       <MenuItem
-        onClick={() =>
-          dispatch({
-            type: ActionType.SetExpansion,
-            payload: expandSubCollection(nodeData, expansion),
-          })
-        }
+        onClick={() => dispatch(Factory.setExpansion(expandSubCollection(nodeData, expansion)))}
         text="Expand"
         icon={IconSet.ITEM_EXPAND}
       />
       <MenuItem
-        onClick={() =>
-          dispatch({
-            type: ActionType.SetExpansion,
-            payload: collapseSubCollection(nodeData, expansion),
-          })
-        }
+        onClick={() => dispatch(Factory.setExpansion(collapseSubCollection(nodeData, expansion)))}
         text="Collapse"
         icon={IconSet.ITEM_COLLAPS}
       />

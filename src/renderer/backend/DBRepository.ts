@@ -25,7 +25,7 @@ export interface IDBVersioningConfig {
  * A function that should be called before using the database.
  * It initializes the object stores
  */
-export const dbInit = (configs: IDBVersioningConfig[], dbName: string) => {
+export const dbInit = (configs: IDBVersioningConfig[], dbName: string): Dexie => {
   const db = new Dexie(dbName);
 
   // Initialize for each DB version: https://dexie.org/docs/Tutorial/Design#database-versioning
@@ -41,7 +41,7 @@ export const dbInit = (configs: IDBVersioningConfig[], dbName: string) => {
   return db;
 };
 
-export const dbDelete = (dbName: string) => {
+export const dbDelete = (dbName: string): void => {
   Dexie.delete(dbName);
 };
 
@@ -106,7 +106,7 @@ export default class BaseRepository<T extends IResource> {
     return item;
   }
 
-  public async createMany(items: T[]) {
+  public async createMany(items: T[]): Promise<T[]> {
     await this.collection.bulkAdd(items);
     return items;
   }
@@ -213,8 +213,8 @@ export default class BaseRepository<T extends IResource> {
       // not contains
       return crit.value.length === 0
         ? col.and((val: any) => val[crit.key as string].length !== 0)
-        : col.and(
-            (val: any) => crit.value.every((item) => val[crit.key as string].indexOf(item) === -1),
+        : col.and((val: any) =>
+            crit.value.every((item) => val[crit.key as string].indexOf(item) === -1),
           );
     }
   }

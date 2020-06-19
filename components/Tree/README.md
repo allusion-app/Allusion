@@ -2,6 +2,8 @@
 
 ## Properties
 
+WIP
+
 ## Features
 
 Many navigation and accessibility features are provided out of the box.
@@ -26,7 +28,7 @@ Many navigation and accessibility features are provided out of the box.
   - #### End
     - Moves focus to the last node that can be focused without expanding any nodes that are closed.
   - #### Enter
-    - Default action for node. By default toggles the expand state of a node.
+    - Default action for node.
   - #### Space
     - Toggles the selection state of the focused node.
   - #### Shift + Up Arrow
@@ -52,10 +54,6 @@ There are several terms that convey the same idea. This small overview explains 
 
 ### Open Questions and Missing Features
 
-- [ ] Drag and Drop: `onDrag` or pass the values level, posInSet and setSize to the render function and let the user implement for custom component?
-- [ ] custom reducer for selection and expansion
-- [ ] `onClick`
-- [ ] `onEnter`
 - [ ] Type ahead (optional)
 
 ### Test Suite
@@ -65,5 +63,3 @@ While working on the initial prototype, there were many subtle bugs. The behavio
 #### Tests
 
 - [ ] keyboard navigation
-- [ ] selection
-- [ ] drag and drop

@@ -8,17 +8,17 @@
 .text,
 .number {
   height: 1.5rem;
-  border: 2px solid var(--stroke-color, $gray3);
+  border: 2px solid var(--stroke-color);
   border-radius: 0.25em;
   padding: 0em 0.5em;
 
   &:hover {
-    border-color: var(--highlight-font-color, $blue-trans1);
+    border-color: var(--highlight-font-color);
   }
 
   &:focus {
     outline: none;
-    border-color: var(--primary-color, $blue1);
+    border-color: var(--primary-color);
   }
 
   &:read-only {
@@ -26,7 +26,7 @@
   }
 
   &::placeholder {
-    color: var(--stroke-color, $gray3);
+    color: var(--stroke-color);
     opacity: none;
   }
 
