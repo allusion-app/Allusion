@@ -10,6 +10,7 @@ import { IExpansionState } from '..';
 import { ID } from 'src/renderer/entities/ID';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
+import { ClientTag } from 'src/renderer/entities/Tag';
 
 interface IColorOptions {
   label: string;
@@ -116,14 +117,13 @@ const SearchMenu = (props: ISearchMenuProps) => {
 };
 
 interface ITagMenuProps {
-  id: ID;
-  color: string;
-  isSelected: boolean;
+  nodeData: ClientTag;
   uiStore: UiStore;
   dispatch: React.Dispatch<Action>;
 }
 
-export const TagContextMenu = ({ id, color, isSelected, uiStore, dispatch }: ITagMenuProps) => {
+export const TagContextMenu = ({ nodeData, uiStore, dispatch }: ITagMenuProps) => {
+  const { id, isSelected, color } = nodeData;
   const { tags, collections } = uiStore.getTagContextItems(id);
   let contextText = formatTagCountText(Math.max(0, tags.length - 1), collections.length);
   contextText = contextText && ` (${contextText})`;
@@ -132,7 +132,7 @@ export const TagContextMenu = ({ id, color, isSelected, uiStore, dispatch }: ITa
     <Menu>
       <EditMenu
         rename={() => dispatch(Factory.enableEditing(id))}
-        delete={() => uiStore.openOutlinerTagRemover(isSelected ? 'selected' : id)}
+        delete={() => dispatch(Factory.confirmDeletion(nodeData))}
         color={color}
         setColor={(color) => uiStore.colorSelectedTagsAndCollections(id, color)}
         contextText={contextText}
@@ -220,9 +220,7 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
       />
       <EditMenu
         rename={() => dispatch(Factory.enableEditing(nodeData.id))}
-        delete={() =>
-          uiStore.openOutlinerTagRemover(nodeData.isSelected ? 'selected' : nodeData.id)
-        }
+        delete={() => dispatch(Factory.confirmDeletion(nodeData))}
         color={nodeData.color}
         setColor={(color: string) => uiStore.colorSelectedTagsAndCollections(nodeData.id, color)}
         contextText={contextText}

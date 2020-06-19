@@ -9,7 +9,6 @@ import {
   Menu,
   MenuItem,
   Classes,
-  Alert,
   Dialog,
   Label,
   ContextMenu,
@@ -32,6 +31,7 @@ import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
 import { IExpansionState } from '.';
 import LocationRecoveryDialog from '../../components/LocationRecoveryDialog';
 import { CustomKeyDict } from './index';
+import { LocationRemoval } from './MessageBox';
 
 // Tooltip info
 const enum Tooltip {
@@ -87,44 +87,6 @@ const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalPr
         </div>
       </div>
     </Dialog>
-  );
-};
-
-type ILocationRemovalAlertProps = ILocationConfigModalProps;
-
-const LocationRemovalAlert = ({ dir, handleClose, theme }: ILocationRemovalAlertProps) => {
-  const { locationStore } = useContext(StoreContext);
-  const handleRemove = useCallback(() => {
-    if (dir) {
-      locationStore.removeDirectory(dir.id);
-      handleClose();
-    }
-  }, [dir, handleClose, locationStore]);
-
-  if (!dir) return <> </>;
-
-  return (
-    <Alert
-      isOpen={Boolean(dir)}
-      cancelButtonText="Cancel"
-      confirmButtonText="Delete"
-      icon={IconSet.DELETE}
-      intent="danger"
-      onCancel={handleClose}
-      onConfirm={handleRemove}
-      canEscapeKeyCancel
-      canOutsideClickCancel
-      className={theme}
-    >
-      <div id="deleteFile">
-        <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
-        <p>
-          Remove {`"${Path.basename(dir.path)}"`} from your locations?
-          <br />
-          This will remove all files it contains from Allusion.
-        </p>
-      </div>
-    </Alert>
   );
 };
 
@@ -547,12 +509,10 @@ const LocationsPanel = () => {
       </Collapse>
 
       <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} theme={theme} />
-      <LocationRemovalAlert
-        dir={locationRemoverOpen}
-        handleClose={closeLocationRemover}
-        theme={theme}
-      />
       <LocationRecoveryDialog onDelete={setLocationRemoverOpen} />
+      {locationRemoverOpen && (
+        <LocationRemoval theme={theme} object={locationRemoverOpen} close={closeLocationRemover} />
+      )}
     </div>
   );
 };
