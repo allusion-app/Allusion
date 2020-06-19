@@ -855,8 +855,7 @@ nav .bp3-divider {
 }
 
 .bp3-menu-item,
-.bp3-portal #fileTag:only-child,
-.bp3-portal #deleteFile:only-child > * {
+.bp3-portal #fileTag:only-child {
   padding: 0.25rem 0.25rem;
 }
 

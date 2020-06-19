@@ -9,7 +9,6 @@ import {
   Menu,
   MenuItem,
   Classes,
-  Alert,
   Dialog,
   Label,
   ContextMenu,
@@ -32,6 +31,7 @@ import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
 import { IExpansionState } from '.';
 import LocationRecoveryDialog from '../../components/LocationRecoveryDialog';
 import { CustomKeyDict } from './index';
+import { LocationRemoval } from './MessageBox';
 
 // Tooltip info
 const enum Tooltip {
@@ -40,11 +40,12 @@ const enum Tooltip {
 }
 
 interface ILocationConfigModalProps {
+  theme: string;
   dir: ClientLocation | undefined;
   handleClose: () => void;
 }
 
-const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) => {
+const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalProps) => {
   if (!dir) return <> </>;
   return (
     <Dialog
@@ -56,7 +57,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
       icon={IconSet.FOLDER_CLOSE}
       isOpen={Boolean(dir)}
       onClose={handleClose}
-      className={Classes.DARK}
+      className={theme}
     >
       <div className={Classes.DIALOG_BODY}>
         <Observer>
@@ -86,47 +87,6 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
         </div>
       </div>
     </Dialog>
-  );
-};
-
-interface ILocationRemovalAlertProps {
-  dir: ClientLocation | undefined;
-  handleClose: () => void;
-}
-
-const LocationRemovalAlert = ({ dir, handleClose }: ILocationRemovalAlertProps) => {
-  const { locationStore } = useContext(StoreContext);
-  const handleRemove = useCallback(() => {
-    if (dir) {
-      locationStore.removeDirectory(dir.id);
-      handleClose();
-    }
-  }, [dir, handleClose, locationStore]);
-
-  if (!dir) return <> </>;
-
-  return (
-    <Alert
-      isOpen={Boolean(dir)}
-      cancelButtonText="Cancel"
-      confirmButtonText="Delete"
-      icon={IconSet.DELETE}
-      intent="danger"
-      onCancel={handleClose}
-      onConfirm={handleRemove}
-      canEscapeKeyCancel
-      canOutsideClickCancel
-      className={Classes.DARK}
-    >
-      <div className="bp3-dark" id="deleteFile">
-        <h4 className="bp3-heading inpectorHeading">Confirm delete</h4>
-        <p>
-          Remove {`"${Path.basename(dir.path)}"`} from your locations?
-          <br />
-          This will remove all files it contains from Allusion.
-        </p>
-      </div>
-    </Alert>
   );
 };
 
@@ -441,13 +401,13 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
 });
 
 const LocationsPanel = () => {
-  const { locationStore } = useContext(StoreContext);
+  const { locationStore, uiStore } = useContext(StoreContext);
+  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+
   const [locationConfigOpen, setLocationConfigOpen] = useState<ClientLocation | undefined>(
     undefined,
   );
-  const [locationRemoverOpen, setLocationRemoverOpen] = useState<ClientLocation | undefined>(
-    undefined,
-  );
+  const [deletableLocation, setDeletableLocation] = useState<ClientLocation | undefined>(undefined);
   const [locationTreeKey, setLocationTreeKey] = useState(new Date());
   const [isCollapsed, setCollapsed] = useState(false);
 
@@ -460,7 +420,7 @@ const LocationsPanel = () => {
   }, [locationConfigOpen, locationStore]);
 
   const closeLocationRemover = useCallback(() => {
-    setLocationRemoverOpen(undefined);
+    setDeletableLocation(undefined);
     // Initialize the location in case it was newly added
     if (locationConfigOpen && !locationConfigOpen.isInitialized) {
       locationStore.initializeLocation(locationConfigOpen);
@@ -541,14 +501,16 @@ const LocationsPanel = () => {
       <Collapse isOpen={!isCollapsed}>
         <LocationsTree
           lastRefresh={locationTreeKey.toString()}
-          onDelete={setLocationRemoverOpen}
+          onDelete={setDeletableLocation}
           onConfig={setLocationConfigOpen}
         />
       </Collapse>
 
-      <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
-      <LocationRemovalAlert dir={locationRemoverOpen} handleClose={closeLocationRemover} />
-      <LocationRecoveryDialog onDelete={setLocationRemoverOpen} />
+      <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} theme={theme} />
+      <LocationRecoveryDialog onDelete={setDeletableLocation} />
+      {deletableLocation && (
+        <LocationRemoval theme={theme} object={deletableLocation} onClose={closeLocationRemover} />
+      )}
     </div>
   );
 };

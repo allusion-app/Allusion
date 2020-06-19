@@ -111,7 +111,6 @@ class UiStore {
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
-  @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
   @observable isLocationRecoveryOpen: ID | null = null;
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
@@ -246,14 +245,6 @@ class UiStore {
 
   @action.bound closeToolbarTagSelector() {
     this.isToolbarTagSelectorOpen = false;
-  }
-
-  @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
-    this.isOutlinerTagRemoverOpen = val || 'selected';
-  }
-
-  @action.bound closeOutlinerTagRemover() {
-    this.isOutlinerTagRemoverOpen = null;
   }
 
   @action.bound openLocationRecovery(locationId: ID) {
