@@ -1,15 +1,7 @@
 import React, { useContext, useEffect, useReducer, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
-import {
-  FormGroup,
-  Button,
-  Dialog,
-  ControlGroup,
-  NumericInput,
-  HTMLSelect,
-  InputGroup,
-} from '@blueprintjs/core';
+import { FormGroup, Button, Dialog, ControlGroup } from '@blueprintjs/core';
 
 import {
   NumberOperators,
@@ -21,6 +13,7 @@ import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from 'src/renderer/frontend/utils';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
+import { Select, NumberInput, TextInput } from 'components';
 import TagSelector from 'src/renderer/frontend/components/TagSelector';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ID } from 'src/renderer/entities/ID';
@@ -66,13 +59,13 @@ const KeyOptions = [
 ];
 
 const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => (
-  <HTMLSelect
+  <Select
     autoFocus
     onChange={(e) => dispatch(Factory.setKey(id, e.target.value as CriteriaKey))}
     value={keyValue}
   >
     {KeyOptions}
-  </HTMLSelect>
+  </Select>
 );
 
 interface IOperatorSelector extends IKeySelector {
@@ -106,12 +99,12 @@ const getOperatorOptions = (key: CriteriaKey) => {
 };
 
 const OperatorSelector = ({ id, keyValue, operator, dispatch }: IOperatorSelector) => (
-  <HTMLSelect
+  <Select
     onChange={(e) => dispatch(Factory.setOperator(id, e.target.value as CriteriaOperator))}
     defaultValue={operator}
   >
     {getOperatorOptions(keyValue)}
-  </HTMLSelect>
+  </Select>
 );
 
 interface IValueInput<V extends CriteriaValue = CriteriaValue> extends IKeySelector {
@@ -147,20 +140,20 @@ const ExtensionOptions = IMG_EXTENSIONS.map((ext) => (
 ));
 
 const ExtensionCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<string>, 'keyValue'>) => (
-  <HTMLSelect onChange={(e) => dispatch(Factory.setValue(id, e.target.value))} defaultValue={value}>
+  <Select onChange={(e) => dispatch(Factory.setValue(id, e.target.value))} defaultValue={value}>
     {ExtensionOptions}
-  </HTMLSelect>
+  </Select>
 );
 
 const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
   if (keyValue === 'name' || keyValue === 'absolutePath') {
     return (
-      <InputGroup
+      <TextInput
         key={keyValue}
         autoFocus
         placeholder="Enter some text..."
         defaultValue={value as string}
-        onBlur={(e) => dispatch(Factory.setValue(id, e.target.value))}
+        setText={(value) => dispatch(Factory.setValue(id, value))}
       />
     );
   } else if (keyValue === 'tags') {
@@ -169,12 +162,11 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
     return <ExtensionCriteriaItem id={id} value={value as string} dispatch={dispatch} />;
   } else if (keyValue === 'size') {
     return (
-      <NumericInput
+      <NumberInput
         autoFocus
         placeholder="Enter a number..."
         defaultValue={value as number}
-        onValueChange={(value) => dispatch(Factory.setValue(id, value))}
-        buttonPosition="none"
+        setValue={(value) => dispatch(Factory.setValue(id, value))}
       />
     );
   } else if (keyValue === 'dateAdded') {
@@ -297,7 +289,9 @@ const SearchForm = ({
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+  const themeClass = `app-theme ${
+    uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light'
+  } light header-dark`;
 
   return (
     <Dialog
@@ -305,7 +299,7 @@ export const AdvancedSearchDialog = observer(() => {
       onClose={uiStore.toggleAdvancedSearch}
       icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      className={`${themeClass} light header-dark`}
+      className={themeClass}
       canEscapeKeyClose={true}
       canOutsideClickClose={true}
     >
