@@ -46,7 +46,7 @@ export type CriteriaField =
 
 const Default: { [key: string]: CriteriaField } = {
   name: { id: 'name', key: 'name', operator: 'contains', value: '' },
-  path: { id: 'absolutePath', key: 'absolutePath', operator: 'contains', value: '' },
+  absolutePath: { id: 'absolutePath', key: 'absolutePath', operator: 'contains', value: '' },
   tags: { id: 'tags', key: 'tags', operator: 'contains', value: undefined },
   extension: {
     id: 'extension',
@@ -136,7 +136,13 @@ export function reducer(state: State, action: Action): State {
 
     case Flag.Key: {
       const index = state.items.findIndex((i) => i.id === action.data.id);
+      const oldItem = state.items[index];
       state.items[index] = { ...Default[action.data.value], id: action.data.id };
+      // Keep the text value and operator when switching between name and path
+      if ([oldItem.key, state.items[index].key].every((key) => ['name', 'absolutePath'].includes(key))) {
+        state.items[index].value = oldItem.value;
+        state.items[index].operator = oldItem.operator;
+      }
       return { ...state };
     }
 

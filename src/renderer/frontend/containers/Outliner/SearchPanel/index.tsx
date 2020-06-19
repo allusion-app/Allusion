@@ -9,6 +9,8 @@ import {
   NumericInput,
   HTMLSelect,
   InputGroup,
+  Switch,
+  ButtonGroup,
 } from '@blueprintjs/core';
 
 import {
@@ -38,6 +40,8 @@ import {
   TagValue,
 } from './StateReducer';
 
+import './search.scss';
+
 interface IKeySelector {
   id: ID;
   dispatch: React.Dispatch<Action>;
@@ -51,7 +55,7 @@ const KeyOptions = [
   <option key="name" value="name">
     File name
   </option>,
-  <option key="path" value="path">
+  <option key="absolutePath" value="absolutePath">
     File path
   </option>,
   <option key="extension" value="extension">
@@ -226,13 +230,15 @@ const CriteriaItem = observer(({ criteria, dispatch, removable }: ICriteriaItemP
   );
 });
 
-const SearchForm = ({
+const SearchForm = observer(({
   uiStore: {
     searchCriteriaList,
     openQuickSearch,
     replaceSearchCriterias,
     clearSearchCriteriaList,
     closeAdvancedSearch,
+    searchMatchAny,
+    toggleSearchMatchAny,
   },
 }: {
   uiStore: UiStore;
@@ -272,8 +278,27 @@ const SearchForm = ({
 
       <Button text="Add" icon={IconSet.ADD} onClick={add} minimal className="btn-blank" />
 
-      <div>
-        <div id="actions-bar" className="bp3-alert-footer">
+      <div id="actions-bar">
+
+        <Switch
+          inline
+          label="Match"
+          innerLabel="All"
+          innerLabelChecked="Any"
+          alignIndicator="right"
+          // disabled={state.items.length <= 1}
+          checked={searchMatchAny}
+          onChange={toggleSearchMatchAny}
+        />
+
+        <ButtonGroup>
+          <Button
+            text="Reset"
+            onClick={reset}
+            disabled={state.items.length === 0}
+            icon={IconSet.CLOSE}
+            fill
+          />
           <Button
             intent="primary"
             text="Search"
@@ -282,18 +307,11 @@ const SearchForm = ({
             icon={IconSet.SEARCH}
             fill
           />
-          <Button
-            text="Reset"
-            onClick={reset}
-            disabled={state.items.length === 0}
-            icon={IconSet.CLOSE}
-            fill
-          />
-        </div>
+        </ButtonGroup>
       </div>
     </div>
   );
-};
+});
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);

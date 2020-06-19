@@ -1,0 +1,54 @@
+#search-form {
+
+  .bp3-popover-target {
+    width: 100%;
+  }
+
+  .criteria {
+    display: flex;
+    margin-bottom: 0.25rem;
+
+    .bp3-control-group {
+      padding: 0px;
+    }
+
+    .add-remove {
+      flex-grow: 0;
+      margin-left: 8px;
+
+      button {
+        min-width: 15px;
+        min-height: 15px;
+        width: 15px;
+        height: 15px;
+        line-height: 0;
+        padding: 0;
+        font-size: 16px;
+      }
+
+      button:hover * {
+        line-height: 0;
+      }
+    }
+
+    .remove {
+      flex-grow: 0;
+      margin-left: 8px;
+
+      line-height: 0;
+      padding: 0;
+      font-size: 16px;
+      width: 15px;
+      min-width: 15px;
+    }
+  }
+  .bp3-popover-wrapper,
+  .bp3-tag-input-values {
+    // input {
+    max-width: 200px;
+  }
+
+  #actions-bar {
+    float: right;
+  }
+}
