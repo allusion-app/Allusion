@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, Tray, screen } from 'electron';
+import { app, BrowserWindow, Menu, Tray, screen, nativeTheme } from 'electron';
 
 import AppIcon from '../../resources/logo/favicon_512x512.png';
 import TrayIcon from '../../resources/logo/logomark_256.png';
@@ -324,5 +324,7 @@ MainMessenger.onSendPreviewFiles((msg) => {
     previewWindow.focus();
   }
 });
+
+MainMessenger.onSetTheme((msg) => nativeTheme.themeSource = msg.theme);
 
 MainMessenger.onGetUserPicturesPath();

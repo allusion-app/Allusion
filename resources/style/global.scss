@@ -281,39 +281,33 @@ img {
   width: 10px;
 }
 
-/* Track */
-::-webkit-scrollbar-track {
-  background-color: $dark-gray3;
-}
-.bp3-popover-backdrop {
-  background: rgba(16, 22, 26, 0); //Set 2 zero for now
-}
-.bp3-popover-content,
-.bp3-drawer,
-.bp3-overlay {
+/* ////////// Scroll bar (Track and handle) ////////// */
+.bp3-light {
   ::-webkit-scrollbar-track {
     background-color: $light-gray4;
   }
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background-color: $dark-gray5;
-}
-.bp3-popover-content,
-.bp3-drawer,
-.bp3-overlay {
   ::-webkit-scrollbar-thumb {
     background-color: $light-gray2;
   }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: $light-gray1;
+  }
 }
 
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background-color: $dark-gray0;
+.bp3-dark {
+  ::-webkit-scrollbar-track {
+    background-color: $dark-gray3;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: $dark-gray5;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: $dark-gray0;
+  }
 }
-.bp3-popover-content ::-webkit-scrollbar-thumb:hover {
-  background-color: $light-gray1;
+
+.bp3-popover-backdrop {
+  background: rgba(16, 22, 26, 0); //Set 2 zero for now
 }
 
 ///////////////////////////////// Custom Hover tooltip /////////////////////////////////

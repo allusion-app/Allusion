@@ -274,6 +274,7 @@ class UiStore {
 
   @action.bound toggleTheme() {
     this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
+    RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' });
   }
   @action.bound toggleDevtools() {
     remote.getCurrentWebContents().toggleDevTools();
