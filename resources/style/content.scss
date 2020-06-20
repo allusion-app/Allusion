@@ -127,6 +127,16 @@
     width: var(--thumbnail-size);
     height: var(--thumbnail-size);
 
+    background: var(--foreground-color);
+    background-image: url(~resources/images/radial-dark.gif);
+    background-size: 12%;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+
+    &:hover {
+      background: none !important;
+    }
+
     .placeholder {
       width: 100%;
       height: 100%;

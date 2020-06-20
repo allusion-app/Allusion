@@ -1225,14 +1225,20 @@ main {
     padding-right: 24rem;
   }
   .bp3-button {
-    background: rgba(0, 0, 0, 0) !important;
+    background:unset !important;
+    color: #f5f8fa !important;
+    .bp3-icon {
+      color: #f5f8fa !important;
+    }
   }
 }
 .bp3-toast {
-  border-radius: 5px;
-}
-.bp3-toast[class*='bp3-intent-'] {
+  color: #f5f8fa ;
   background: $blue1;
+  border-radius: 5px;
+  &[class*='bp3-intent-warning'] {
+    background-color: $danger;
+  }
 }
 
 .bp3-toast[class*='bp3-intent-'] .bp3-button:hover {

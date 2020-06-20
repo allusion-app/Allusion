@@ -30,11 +30,11 @@
     align-items: center;
     border-left: 2px solid transparent;
     padding-left: calc(var(--level) * var(--treeitem-identation) + var(--treeitem-offset));
-    padding-right: 0.25rem;
+    padding-right: 0.6rem;
 
-    &:hover {
+    &:hover, &:hover [class*='custom-icon']  {
       background-color: var(--highlight-background-color);
-      border-color: var(--highlight-font-color);
+      border-color: var(--primary-color);
       color: var(--highlight-font-color);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -47,6 +47,9 @@
   &[aria-selected='true'] > .label {
     color: var(--selection-font-color);
     background-color: var(--selection-background-color);
+    &[class*='custom-icon'] {
+      color: var(--selection-font-color);
+    }
   }
 
   &:focus {

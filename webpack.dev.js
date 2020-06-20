@@ -34,7 +34,7 @@ let mainConfig = {
         },
       },
       {
-        test: /\.(jpg|png|ico|icns)$/,
+        test: /\.(jpg|png|gif|ico|icns)$/,
         loader: 'file-loader',
         options: {
           name: '[path][name].[ext]',
@@ -110,7 +110,7 @@ let rendererConfig = {
         ],
       },
       {
-        test: /\.(jpg|png|ico|icns)$/,
+        test: /\.(jpg|png|gif|ico|icns)$/,
         loader: 'file-loader',
         options: {
           name: '[path][name].[ext]',
