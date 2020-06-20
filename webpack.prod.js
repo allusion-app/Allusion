@@ -13,7 +13,7 @@ let mainConfig = {
   target: 'electron-main',
   output: {
     filename: 'main.bundle.js',
-    path: __dirname + '/dist',
+    path: __dirname + '/build',
   },
   node: {
     __dirname: false,
@@ -56,7 +56,7 @@ let rendererConfig = {
   target: 'electron-renderer',
   output: {
     filename: 'renderer.bundle.js',
-    path: __dirname + '/dist',
+    path: __dirname + '/build',
   },
   node: {
     __dirname: false,
