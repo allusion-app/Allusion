@@ -284,7 +284,7 @@ const TreeLeaf = observer(
 
     return (
       <li
-        className={`${className} ${style.tree_item}`}
+        className={`${className} ${style['tree-item']}`}
         aria-level={level}
         aria-setsize={size}
         aria-posinset={pos}
@@ -293,7 +293,7 @@ const TreeLeaf = observer(
         role="treeitem"
         tabIndex={-1}
       >
-        <div className={style.label}>
+        <div className={style['tree-item-label']}>
           {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
         </div>
       </li>
@@ -365,7 +365,7 @@ const TreeBranch = observer(
 
     return (
       <li
-        className={`${className} ${style.tree_item}`}
+        className={`${className} ${style['tree-item']}`}
         role="treeitem"
         tabIndex={-1}
         aria-expanded={expanded}
@@ -375,20 +375,23 @@ const TreeBranch = observer(
         aria-posinset={pos}
         onKeyDown={handleKeyDown}
       >
-        <div className={style.label}>
+        <div className={style['tree-item-label']}>
           <div
-            className={style.default_caret}
+            className={style['tree-item-caret']}
             aria-pressed={expanded}
             aria-label="Expand"
             onClick={handleToggle}
           />
           {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
         </div>
-        <div className={style.group_transition} style={{ maxHeight: expanded ? undefined : 0 }}>
+        <div
+          className={style['tree-group-transition']}
+          style={{ maxHeight: expanded ? undefined : 0 }}
+        >
           {(branches.length > 0 || leaves.length > 0) && (
             <ul
               style={{ '--level': level } as React.CSSProperties}
-              className={style.group}
+              className={style['tree-group']}
               role="group"
               ref={group}
             >
