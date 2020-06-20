@@ -80,4 +80,6 @@ jobs:
         run: yarn install
 
       - name: Build app
+        with:
+          github_token: ${{ secrets.github_token }}
         run: yarn package
