@@ -92,13 +92,12 @@ const GalleryItem = observer(
 
     useEffect(() => {
       // This will check whether a thumbnail exists, generate it if needed
-      ensureThumbnail(file, uiStore.thumbnailDirectory)
-        .then((exists) => {
-          if (!exists) {
-            setThumbnailReady(false);
-            setThumbnailGenerating(true);
-          }
-        });
+      ensureThumbnail(file, uiStore.thumbnailDirectory).then((exists) => {
+        if (!exists) {
+          setThumbnailReady(false);
+          setThumbnailGenerating(true);
+        }
+      });
     }, [file, uiStore.thumbnailDirectory]);
 
     // The thumbnailPath of an image is always set, but may not exist yet.
@@ -131,22 +130,19 @@ const GalleryItem = observer(
         onDrop={handleDrop}
       >
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
-          {
-            isThumbnailReady ? (
-              // Show image when it has been loaded
-              <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
-            ) : isThumbnailGenerating ? (
-              // If it's being generated, show a placeholder (skeleton loader)
-              <div className={`placeholder ${Classes.SKELETON}`} />
-            ) : (
-              // Show an error it it could not be loaded
-              <span className="image-error">
-                <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>
-                {' '}
-                <br /> Could not load image
-              </span>
-            )
-          }
+          {isThumbnailReady ? (
+            // Show image when it has been loaded
+            <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
+          ) : isThumbnailGenerating ? (
+            // If it's being generated, show a placeholder (skeleton loader)
+            <div className={`placeholder ${Classes.SKELETON}`} />
+          ) : (
+            // Show an error it it could not be loaded
+            <span className="image-error">
+              <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
+              <br /> Could not load image
+            </span>
+          )}
         </div>
         {showDetails && (
           <>

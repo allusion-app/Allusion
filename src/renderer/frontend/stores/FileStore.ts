@@ -296,7 +296,7 @@ class FileStore {
         numUntaggedFiles++;
       }
     }
-    runInAction(() => this.numUntaggedFiles = numUntaggedFiles);
+    runInAction(() => (this.numUntaggedFiles = numUntaggedFiles));
 
     // Set the files
     const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
@@ -330,7 +330,9 @@ class FileStore {
       );
       const clientFiles = brokenFiles.map((f) => new ClientFile(this, f, true));
       clientFiles.forEach((f) =>
-        f.setThumbnailPath(getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory)),
+        f.setThumbnailPath(
+          getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory),
+        ),
       );
       this.replaceFileList(clientFiles);
     } catch (err) {

@@ -131,12 +131,11 @@ const GridGallery = observer(
     useEffect(() => {
       const onKeyDown = (e: KeyboardEvent) => {
         // Up and down cursor keys are used in the tag selector list, so ignore these events when it is open
-        if (uiStore.isToolbarTagSelectorOpen) return;
-
-        let index = lastSelectionIndex.current;
-        if (index === undefined) {
+        if (uiStore.isToolbarTagSelectorOpen || lastSelectionIndex.current === undefined) {
           return;
         }
+
+        let index = lastSelectionIndex.current;
         if (e.key === 'ArrowUp' && index >= numColumns) {
           index -= numColumns;
         } else if (
