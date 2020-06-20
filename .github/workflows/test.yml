@@ -28,6 +28,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 10
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - name: Cache node modules
         uses: actions/cache@v2
@@ -59,6 +62,10 @@ jobs:
         with:
           node-version: 10
           github_token: ${{ secrets.github_token }}
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - name: Cache node modules
         uses: actions/cache@v2
