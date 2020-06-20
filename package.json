@@ -5,13 +5,13 @@
   "description": "A tool for managing your visual library",
   "main": "build/main.bundle.js",
   "scripts": {
-    "development": "rimraf build && webpack --watch --config ./webpack.dev.js --progress --colors",
-    "dev": "yarn development",
+    "dev": "rimraf build && webpack --watch --config ./webpack.dev.js --progress --colors",
     "production": "rimraf build && webpack --config ./webpack.prod.js",
     "start": "electron ./build/main.bundle.js",
     "lint": "eslint src/**/*{ts,tsx} -f codeframe",
     "test": "jest",
-    "build": "yarn production && ncp ./resources/logo ./build/icons",
+    "package": "yarn build && electron-builder",
+    "build": "rimraf dist && yarn production && ncp ./resources/logo ./build/icons",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
   },
@@ -37,14 +37,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RvanderLaan/VisualLibrary.git"
+    "url": "git+https://github.com/allusion-app/Allusion.git"
   },
   "author": "Allusion-App",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/RvanderLaan/VisualLibrary/issues"
+    "url": "https://github.com/allusion-app/Allusion/issues"
   },
-  "homepage": "https://github.com/RvanderLaan/VisualLibrary#readme",
+  "homepage": "https://github.com/allusion-app/Allusion#readme",
   "devDependencies": {
     "@svgr/webpack": "^5.4.0",
     "@types/chrome": "^0.0.86",
