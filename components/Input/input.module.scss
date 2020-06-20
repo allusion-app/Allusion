@@ -9,8 +9,8 @@
 .number {
   height: 1.75rem;
   border: 2px solid var(--stroke-color);
-  border-radius: 0.25em;
-  padding: 0em 0.5em;
+  border-radius: var(--border-radius-small);
+  padding: 0 0.5rem;
 
   &:hover {
     border-color: var(--highlight-font-color);

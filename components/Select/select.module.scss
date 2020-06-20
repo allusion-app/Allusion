@@ -1,17 +1,16 @@
 .select {
-  height: 1.5rem;
+  height: 1.75rem;
   width: 200px;
-  min-width: max-content;
+  min-width: 5rem;
   position: relative;
 
   > select {
     -webkit-appearance: none;
     appearance: none;
-    box-sizing: unset;
     line-height: normal;
     border: 2px solid var(--stroke-color);
-    border-radius: 0.25em;
-    padding: 0 0.5rem;
+    border-radius: var(--border-radius-small);
+    padding: 0 1.75rem 0 0.5rem;
     height: 100%;
     width: 100%;
     overflow: hidden;
@@ -43,7 +42,7 @@
   &::after {
     content: '';
     top: 25%;
-    right: -0.5rem;
+    right: 0.5rem;
     position: absolute;
     pointer-events: none;
     width: 1rem;

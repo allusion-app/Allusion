@@ -46,7 +46,7 @@ pre {
     font-family: unset;
     background: $dark-gray8-trans;
     padding: 6px;
-    border-radius: 6px;
+    border-radius: var(--border-radius-medium);
   }
 }
 
@@ -307,7 +307,7 @@ img {
   color: white;
   z-index: auto;
   // white-space: nowrap;
-  border-radius: 5px;
+  border-radius: var(--border-radius-medium);
   box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
   opacity: 0;
   visibility: hidden;
@@ -337,7 +337,7 @@ img {
   color: white;
   z-index: auto;
   // white-space: nowrap;
-  border-radius: 5px;
+  border-radius: var(--border-radius-medium);
   box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
   opacity: 0;
   visibility: hidden;

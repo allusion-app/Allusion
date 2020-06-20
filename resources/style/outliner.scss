@@ -46,7 +46,6 @@ nav {
   }
 }
 
-// #search-form,
 #import {
   margin: 0.5em 1rem;
   outline: none;
@@ -59,7 +58,6 @@ nav {
 
 ///////////////////////////////// Import /////////////////////////////////
 #import,
-// #search-form,
 main,
 .error-boundary,
 .inspectorOpen {
@@ -101,6 +99,7 @@ main,
   }
 }
 
+///////////////////////////////// Search Panel /////////////////////////////////
 #search-form,
 .bp3-overlay {
   button {
@@ -125,22 +124,49 @@ main,
   .bp3-input button:hover {
     background-color: transparent !important;
   }
-  .add-remove {
-    button {
-      &.bp3-fill:not([class*='bp3-intent-primary']),
-      &.bp3-button:not([class*='bp3-intent-primary']) {
-        background: $light-gray5-trans;
-        // background: $dark-gray5-trans;
-        color: $light-gray1 !important;
+}
+
+#search-form {
+  .criteria {
+    display: flex;
+    margin-bottom: 0.25rem;
+
+    > * {
+      margin-right: 0.25rem;
+    }
+
+    > :first-child > select {
+      border-radius: var(--border-radius-small) 0 0 var(--border-radius-small);
+    }
+
+    > :nth-child(2),
+    > :nth-child(3) {
+      > select {
+        border-radius: 0;
       }
-      .custom-icon {
-        color: $dark-gray4;
-      }
-      &:hover {
-        background-color: $light-gray6-trans !important;
-        // background-color: $dark-gray2;
-        color: $light-gray5;
-      }
+      border-radius: 0;
+    }
+
+    > :last-child {
+      border-radius: 0 var(--border-radius-small) var(--border-radius-small) 0;
+      margin-right: 0;
+    }
+
+    .remove {
+      flex-grow: 0;
+      min-height: 1.75rem;
+      line-height: 0;
+      padding: 0;
+      font-size: 1rem;
+      min-width: 1rem;
+    }
+  }
+
+  #actions-bar {
+    float: right;
+
+    button .bp3-icon {
+      color: white !important;
     }
   }
 }
@@ -244,11 +270,15 @@ main,
     margin-left: 0.25rem;
   }
 
-  > div,
-  input {
+  > div {
+    width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  > input {
     width: 100%;
+    border-radius: 0 var(--border-radius-small) var(--border-radius-small) 0;
   }
 }

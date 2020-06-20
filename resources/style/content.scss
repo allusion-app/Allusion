@@ -1,7 +1,7 @@
 ///////////////////////////////// Content area /////////////////////////////////
 .quick-search {
   background: $dark-gray0;
-  border-radius: 6px;
+  border-radius: var(--border-radius-medium);
   position: sticky;
   width: calc(100% - 0.75rem);
   padding: 0 0.25rem;
@@ -22,7 +22,7 @@
 
   .bp3-button-group {
     .bp3-button {
-      border-radius: 6px;
+      border-radius: var(--border-radius-medium);
       // background: rgba(1, 1, 1, .1) !important;
       background: none !important;
     }
@@ -106,7 +106,7 @@
   display: inline-flex;
   position: relative;
   overflow: hidden;
-  border-radius: 0.25rem;
+  border-radius: var(--border-radius-small);
   // margin: 0.4rem;
   .image-error {
     display: flex;
@@ -167,7 +167,7 @@
 
   &[data-dnd-target='true'] .img-wrapper {
     background: $yellow1;
-    border-radius: 0.25rem;
+    border-radius: var(--border-radius-small);
 
     img {
       transform: scale(0.95);
@@ -215,12 +215,12 @@
 
   &.selected .img-wrapper {
     background: $blue1;
-    border-radius: 0.25rem;
+    border-radius: var(--border-radius-small);
   }
 
   &[data-dnd-target='true'] .img-wrapper {
     background: $yellow1;
-    border-radius: 0.25rem;
+    border-radius: var(--border-radius-small);
 
     img {
       transform: scale(0.9);
@@ -240,7 +240,7 @@
     left: 0rem;
     top: 0rem;
     margin-left: 0;
-    border-radius: 0.25rem;
+    border-radius: var(--border-radius-small);
   }
 
   span > * {
@@ -301,7 +301,7 @@
     left: 0rem;
     top: 0rem;
     margin-left: 0;
-    border-radius: 0.25rem;
+    border-radius: var(--border-radius-small);
   }
 
   &[data-dnd-target='true'] img {
