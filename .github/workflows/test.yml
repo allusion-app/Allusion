@@ -45,5 +45,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 10
+          github_token: ${{ secrets.github_token }}
       - run: yarn install
       - run: yarn package
