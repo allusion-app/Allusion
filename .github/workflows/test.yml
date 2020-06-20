@@ -80,6 +80,6 @@ jobs:
         run: yarn install
 
       - name: Build app
+        uses: samuelmeuli/action-electron-builder@v1
         with:
           github_token: ${{ secrets.github_token }}
-        run: yarn package
