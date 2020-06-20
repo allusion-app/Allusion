@@ -1,0 +1,48 @@
+# This is the config for the github actions that test commits and builds
+name: Build/test
+
+on:
+  # Test all commits to master
+  push:
+    branches:
+      - master
+  # Only test pull requests to master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Test Code
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v1
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+        run: yarn install
+        run: yarn test
+    
+  build:
+    # Release action already runs the build script
+    if: github.ref != 'refs/heads/master'
+    name: Test Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v1
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+        run: yarn package
