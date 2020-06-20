@@ -8,9 +8,6 @@ export default {
   title: 'Tree',
   // Our exports that end in "Data" are not stories.
   excludeStories: /.*Data$/,
-  decorators: [
-    (storyFn: () => React.ReactNode) => <div className="app-theme bp3-light">{storyFn()}</div>,
-  ],
 };
 
 const isExpanded = (nodeData: string, treeData: any): boolean => treeData.expansion[nodeData];

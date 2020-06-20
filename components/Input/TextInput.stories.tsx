@@ -5,9 +5,6 @@ import { TextInput } from 'components';
 export default {
   component: TextInput,
   title: 'Input/Text',
-  decorators: [
-    (storyFn: () => React.ReactNode) => <div className="app-theme bp3-light">{storyFn()}</div>,
-  ],
 };
 
 export const Default = () => {

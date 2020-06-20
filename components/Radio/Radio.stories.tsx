@@ -5,9 +5,6 @@ import { Radio, RadioGroup } from 'components';
 export default {
   component: Radio,
   title: 'Radio',
-  decorators: [
-    (storyFn: () => React.ReactNode) => <div className="app-theme bp3-light">{storyFn()}</div>,
-  ],
 };
 
 export const Default = () => {
