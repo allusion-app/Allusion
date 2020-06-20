@@ -1,17 +1,11 @@
 # This is the config for the github actions that creates new releases
-# Could also have one that builds the app for pull requests, could just have a linux build for that
 name: Build/release
 
 on:
   # Create a release for pushes to master
   push:
     branches:
-    - master
-  # For testing purposes, also for this PR
-  pull_request:
-    branches:
-    - master
-
+      - master
 
 jobs:
   release:
