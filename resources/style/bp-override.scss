@@ -204,18 +204,6 @@
   margin-bottom: 20vh;
 }
 
-#search-form {
-  .bp3-popover-target {
-    width: 100%;
-  }
-
-  .bp3-popover-wrapper,
-  .bp3-tag-input-values {
-    // input {
-    max-width: 200px;
-  }
-}
-
 #system-tags {
   .bp3-button-text {
     margin-right: auto;
@@ -226,26 +214,6 @@
   padding: 8px 0;
   max-height: 100px;
   overflow-y: auto;
-}
-
-#search-form .bp3-multi-select > *:nth-child(2) {
-  position: absolute;
-  right: 0 !important;
-}
-
-.bp3-control-group {
-  .bp3-input {
-    border-radius: var(--border-radius-medium) !important;
-    width: 275px !important;
-  }
-  > div,
-  > span {
-    max-width: 150px !important;
-    width: 150px !important;
-  }
-  > *:nth-child(3) {
-    max-width: 275px !important;
-  }
 }
 
 .bp3-dark {
@@ -1112,20 +1080,6 @@ li .bp3-menu-item {
 .bp3-drawer:not(.bp3-position-top):not(.bp3-position-bottom):not(.bp3-position-left):not(.bp3-position-right):not(.bp3-vertical) {
   min-width: var(--inspector-width);
   width: 22rem;
-}
-
-// Search panel
-#search-form,
-main {
-  .bp3-button-group.bp3-vertical > {
-    .bp3-button:not(:first-child) {
-      border-radius: 0 0 var(--border-radius-medium) var(--border-radius-medium) !important;
-    }
-
-    .bp3-button:not(:last-child) {
-      border-radius: var(--border-radius-medium) var(--border-radius-medium) 0 0 !important;
-    }
-  }
 }
 
 // Toaster

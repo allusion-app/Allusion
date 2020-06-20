@@ -84,9 +84,7 @@ main,
     background: $dark-gray1-trans;
     color: $light-gray2;
   }
-  .bp3-input.bp3-minimal {
-    background: none !important;
-  }
+
   .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
   .bp3-button:not([class*='bp3-intent-warning']):not([class*='bp3-intent-danger']):not(.bp3-disabled) {
     // .bp3-icon > svg:not([fill]) {
@@ -121,22 +119,29 @@ main,
       color: $light-gray5;
     }
   }
-  .bp3-input button:hover {
-    background-color: transparent !important;
-  }
 }
 
 #search-form {
+  .bp3-popover-target {
+    width: 100%;
+  }
+
   .criteria {
     display: flex;
     margin-bottom: 0.25rem;
 
     > * {
-      margin-right: 0.25rem;
+      margin-right: 0.375rem;
     }
 
     > :first-child > select {
       border-radius: var(--border-radius-small) 0 0 var(--border-radius-small);
+    }
+
+    > :first-child,
+    > :nth-child(2) {
+      width: 150px;
+      flex-grow: 0;
     }
 
     > :nth-child(2),

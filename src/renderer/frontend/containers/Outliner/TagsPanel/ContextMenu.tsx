@@ -123,31 +123,30 @@ interface ITagMenuProps {
 }
 
 export const TagContextMenu = ({ nodeData, uiStore, dispatch }: ITagMenuProps) => {
-  const { id, isSelected, color } = nodeData;
-  const { tags, collections } = uiStore.getTagContextItems(id);
+  const { tags, collections } = uiStore.getTagContextItems(nodeData.id);
   let contextText = formatTagCountText(Math.max(0, tags.length - 1), collections.length);
   contextText = contextText && ` (${contextText})`;
 
   return (
     <Menu>
       <EditMenu
-        rename={() => dispatch(Factory.enableEditing(id))}
+        rename={() => dispatch(Factory.enableEditing(nodeData.id))}
         delete={() => dispatch(Factory.confirmDeletion(nodeData))}
-        color={color}
-        setColor={(color) => uiStore.colorSelectedTagsAndCollections(id, color)}
+        color={nodeData.color}
+        setColor={(color) => uiStore.colorSelectedTagsAndCollections(nodeData.id, color)}
         contextText={contextText}
       />
       <Divider />
       <SearchMenu
         addSearch={() =>
-          isSelected
+          nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', id))
+            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
         }
         replaceSearch={() =>
-          isSelected
+          nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', id))
+            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
         }
       />
     </Menu>

@@ -164,6 +164,7 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
     return (
       <NumberInput
         autoFocus
+        min={0}
         placeholder="Enter a number..."
         defaultValue={value as number}
         setValue={(value) => dispatch(Factory.setValue(id, value))}
