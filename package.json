@@ -11,7 +11,8 @@
     "lint": "eslint src/**/*{ts,tsx} -f codeframe",
     "test": "jest",
     "package": "yarn build && electron-builder",
-    "build": "rimraf dist && yarn production && ncp ./resources/logo ./build/icons",
+    "logo": "ncp ./resources/logo/allusion-logomark.icns ./build/icon.icns && ncp ./resources/logo/logomark_256.ico ./build/icon.ico",
+    "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
   },
@@ -31,6 +32,7 @@
       "category": "Graphics"
     },
     "files": [
+      "!node_modules",
       "build/**/*",
       "package.json"
     ]
