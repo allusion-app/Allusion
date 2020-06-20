@@ -28,7 +28,7 @@ const thumbnailWorker = new ThumbnailWorker({ type: 'module' });
 
 // Generates thumbnail if not yet exists. Will set file.thumbnailPath when it exists.
 export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
-  const thumbnailPath = file.thumbnailPath;
+  const thumbnailPath = file.thumbnailPath.split('?v=1')[0]; // remove ?v=1 that might have been added by the useWorkerListener down below
   const thumbnailExists = await fse.pathExists(thumbnailPath);
   if (!thumbnailExists) {
     const msg: IThumbnailMessage = {
@@ -39,6 +39,7 @@ export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
     };
     thumbnailWorker.postMessage(msg);
   }
+  return thumbnailExists;
 }
 
 // Listens and processes events from the Workers. Should only be used once in the entire app
@@ -60,8 +61,8 @@ export const useWorkerListener = () => {
       const { fileId } = err;
       const clientFile = fileStore.fileList.find((f) => f.id === fileId);
       if (clientFile) {
-        // Load normal image as fallback
-        clientFile.setThumbnailPath(clientFile.absolutePath);
+        // Load normal image as fallback, with v=1 to indicate it has changed
+        clientFile.setThumbnailPath(`${clientFile.absolutePath}?v=1`);
       }
     };
     return () => thumbnailWorker.terminate();
