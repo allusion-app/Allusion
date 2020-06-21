@@ -124,16 +124,19 @@ const GalleryItem = observer(
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
           {
             isImageLoaded ? (
-              <img src={imagePath} onError={handleImageError} /> // Show image when it has been loaded
-            ) : imageError ? (
-              <span className="image-error">
+                <img src={imagePath} onError={handleImageError}/> // Show image when it has been loaded
+              ) : imageError ? (
+                <span className="image-error">
                 <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
                 <br /> Could not load image
               </span> // Show an error it it could not be loaded
             ) : (
-              <div className={`placeholder ${Classes.SKELETON}`} />
-            ) // Else show a placeholder
-          }
+              <div className={`placeholder ${Classes.SKELETON}`} />// Else show a placeholder
+              // NEEDS WORK > extra hanle for while generating thumbs. Also check GIF vs CSS anim
+              // Cant check it properly
+              // <span className="donut-loading"></span> 
+              ) 
+            }
         </div>
         {showDetails && (
           <>

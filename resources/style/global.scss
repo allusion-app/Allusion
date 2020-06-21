@@ -39,6 +39,7 @@ body {
 .bp3-dark,
 .bp3-light {
   --primary-color: #{$blue1};
+  --primary-color-rgb: 0,122,245;
   --stroke-color: #{$gray3};
   --selection-background-color: #007bf53f;
   --selection-font-color: white;
