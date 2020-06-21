@@ -146,7 +146,7 @@
     img {
       // This is to demanding on processor
       // transition: all 0.1s ease-in-out;
-      // background: var(--foreground-color);
+      background: var(--foreground-color);
       width: var(--thumbnail-size);
       height: var(--thumbnail-size);
       // object-fit: cover;
