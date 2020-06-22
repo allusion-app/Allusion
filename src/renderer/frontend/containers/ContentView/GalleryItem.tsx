@@ -84,29 +84,37 @@ const GalleryItem = observer(
       onDoubleClick,
     ]);
 
-    const [isImageLoaded, setImageLoaded] = useState(false);
-    const [imageError, setImageError] = useState();
+    // Initially, we assume the thumbnail exists
+    const [isThumbnailReady, setThumbnailReady] = useState(true);
+    const [isThumbnailGenerating, setThumbnailGenerating] = useState(false);
 
     const imagePath = uiStore.isSlideMode ? file.absolutePath : file.thumbnailPath;
 
     useEffect(() => {
-      // First check whether a thumbnail exists, generate it if needed
-      ensureThumbnail(file, uiStore.thumbnailDirectory);
+      // This will check whether a thumbnail exists, generate it if needed
+      ensureThumbnail(file, uiStore.thumbnailDirectory).then((exists) => {
+        if (!exists) {
+          setThumbnailReady(false);
+          setThumbnailGenerating(true);
+        }
+      });
     }, [file, uiStore.thumbnailDirectory]);
 
+    // The thumbnailPath of an image is always set, but may not exist yet.
+    // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
+    // which we detect here to know the thumbnail is ready
     useEffect(() => {
-      if (imagePath) {
-        setImageLoaded(true);
-      } else {
-        setImageLoaded(false);
+      if (imagePath.endsWith('?v=1')) {
+        setThumbnailReady(true);
+        setThumbnailGenerating(false);
       }
     }, [imagePath]);
 
+    // When the thumbnail cannot be loaded, display an error
     const handleImageError = useCallback(
       (err: any) => {
         console.log('Could not load image:', imagePath, err);
-        setImageError(err);
-        setImageLoaded(false);
+        setThumbnailReady(false);
       },
       [imagePath],
     );
@@ -122,19 +130,20 @@ const GalleryItem = observer(
         onDrop={handleDrop}
       >
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
-          {
-            isImageLoaded ? (
-                <img src={imagePath} onError={handleImageError}/> // Show image when it has been loaded
-              ) : imageError ? (
-                <span className="image-error">
-                <span className="bp3-icon custom-icon-32">{IconSet.DB_ERROR}</span>{' '}
-                <br /> Could not load image
-              </span> // Show an error it it could not be loaded
-            ) : (
-              <div className={`placeholder ${Classes.SKELETON}`} />// Else show a placeholder
-              ) 
-            }
-            {/* <span className="donut-loading"></span>  
+          {isThumbnailReady ? (
+            // Show image when it has been loaded
+            <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
+          ) : isThumbnailGenerating ? (
+            // If it's being generated, show a placeholder (skeleton loader)
+            <div className={`placeholder ${Classes.SKELETON}`} />
+          ) : (
+            // Show an error it it could not be loaded
+            <span className="image-error">
+              <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
+              <br /> Could not load image
+            </span>
+          )}
+           {/* <span className="donut-loading"></span>  
                 NEEDS WORK > extra hanle for while generating thumbs. Also check GIF vs CSS anim
                 Cant check it properly*/}
         </div>

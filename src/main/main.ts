@@ -7,6 +7,7 @@ import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';
 import { MainMessenger } from '../Messaging';
+import { autoUpdater } from 'electron-updater';
 
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
@@ -252,6 +253,8 @@ function createPreviewWindow() {
 initialize = () => {
   createWindow();
   createPreviewWindow();
+
+  autoUpdater.checkForUpdatesAndNotify();
 };
 
 // This method will be called when Electron has finished

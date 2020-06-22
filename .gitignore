@@ -2,15 +2,14 @@
 node_modules/
 
 # Build directory
-dist/
+build/
 
 # Release directory
+dist/
 release/
 
 # IDEs
 .idea/
-
-release/
 
 # OSX > NAS drive folder info, local folder info & icon
 ._.DS_Store
