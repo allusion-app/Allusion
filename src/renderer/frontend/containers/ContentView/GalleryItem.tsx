@@ -135,7 +135,8 @@ const GalleryItem = observer(
             <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
           ) : isThumbnailGenerating ? (
             // If it's being generated, show a placeholder (skeleton loader)
-            <div className={`placeholder ${Classes.SKELETON}`} />
+            // <div className={`placeholder ${Classes.SKELETON}`} />
+            <div className="donut-loading" /> 
           ) : (
             // Show an error it it could not be loaded
             <span className="image-error">
