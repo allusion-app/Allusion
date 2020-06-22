@@ -127,16 +127,16 @@ const GalleryItem = observer(
                 <img src={imagePath} onError={handleImageError}/> // Show image when it has been loaded
               ) : imageError ? (
                 <span className="image-error">
-                <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
+                <span className="bp3-icon custom-icon-32">{IconSet.DB_ERROR}</span>{' '}
                 <br /> Could not load image
               </span> // Show an error it it could not be loaded
             ) : (
               <div className={`placeholder ${Classes.SKELETON}`} />// Else show a placeholder
-              // NEEDS WORK > extra hanle for while generating thumbs. Also check GIF vs CSS anim
-              // Cant check it properly
-              // <span className="donut-loading"></span> 
               ) 
             }
+            {/* <span className="donut-loading"></span>  
+                NEEDS WORK > extra hanle for while generating thumbs. Also check GIF vs CSS anim
+                Cant check it properly*/}
         </div>
         {showDetails && (
           <>

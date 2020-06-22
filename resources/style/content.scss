@@ -116,6 +116,7 @@
     text-align: center;
     height: 100%;
     width: 100%;
+    background: var(--foreground-color);
   }
   .h4 {
     grid-area: title;
@@ -196,6 +197,7 @@
     padding: 0.4em 0.4rem 0.15rem 0.4rem;
     position: absolute;
     bottom: 0;
+    background: none;
     > * {
       margin: 0.25em;
     }
