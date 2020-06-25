@@ -5,8 +5,8 @@ import React, {
   useEffect,
   useRef,
   useLayoutEffect,
-  useMemo,
   CSSProperties,
+  useState,
 } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ID } from '../../src/renderer/entities/ID';
@@ -257,6 +257,8 @@ interface ITreeNode extends INodeData {
 type ILeaf = ITreeNode;
 
 interface IBranch extends ITreeNode {
+  ancestorVisible: boolean;
+  overScan: number;
   isExpanded: (nodeData: any, treeData: any) => boolean;
   toggleExpansion: (nodeData: any, treeData: any) => void;
   branches: ITreeBranch[];
@@ -312,6 +314,8 @@ const resizeObserver = new ResizeObserver((entries) => {
 
 const TreeBranch = observer(
   ({
+    ancestorVisible,
+    overScan,
     branches,
     leaves,
     label: Label,
@@ -328,15 +332,13 @@ const TreeBranch = observer(
     className = '',
   }: IBranch) => {
     const group = useRef<HTMLUListElement | null>(null);
-    const expanded = useMemo(() => isExpanded(nodeData, treeData) ?? false, [
-      isExpanded,
-      nodeData,
-      treeData,
-    ]);
+    const expanded = isExpanded(nodeData, treeData) ?? false;
+    const [slice, setSlice] = useState<number | undefined>(expanded ? undefined : -overScan);
     useLayoutEffect(() => {
       const node = group.current;
       if (node) {
         if (expanded) {
+          setSlice(undefined);
           resizeObserver.observe(node);
         } else {
           // This is probably more performant but if the animation gets janky, this line should be removed.
@@ -363,6 +365,16 @@ const TreeBranch = observer(
       [onBranchKeyDown, nodeData, treeData],
     );
 
+    const handleTransitionEnd = useCallback(
+      (event) => {
+        if (!expanded) {
+          event.stopPropagation();
+          setSlice(-overScan);
+        }
+      },
+      [expanded, overScan],
+    );
+
     return (
       <li
         className={`${className} ${style['tree-item']}`}
@@ -387,17 +399,20 @@ const TreeBranch = observer(
         <div
           className={style['tree-group-transition']}
           style={{ maxHeight: expanded ? undefined : 0 }}
+          onTransitionEnd={handleTransitionEnd}
         >
-          {(branches.length > 0 || leaves.length > 0) && (
+          {ancestorVisible && (
             <ul
               style={{ '--level': level } as React.CSSProperties}
               className={style['tree-group']}
               role="group"
               ref={group}
             >
-              {branches.map((b, i) => (
+              {branches.slice(slice).map((b, i) => (
                 <TreeBranch
                   {...b}
+                  ancestorVisible={expanded}
+                  overScan={overScan}
                   key={b.id}
                   level={level + 1}
                   size={branches.length + leaves.length}
@@ -408,7 +423,7 @@ const TreeBranch = observer(
                   treeData={treeData}
                 />
               ))}
-              {leaves.map((l, i) => (
+              {leaves.slice(slice).map((l, i) => (
                 <TreeLeaf
                   {...l}
                   key={l.id}
@@ -470,6 +485,16 @@ export interface ITree {
    * powerful.
    */
   treeData: any;
+  /**
+   * Number of pre-rendered items
+   *
+   * This component uses simple performance optimizations to keep overall
+   * memory usage low. Only expanded and visible parent nodes render their
+   * children. However, in order to preserve smooth a expansion animation, some
+   * children are pre-rendered. The default is 2 and can be set to a
+   * non-negative number through this property.
+   */
+  overScan?: number;
 }
 
 export interface ITreeLabel {
@@ -527,6 +552,7 @@ const Tree = ({
   onBranchKeyDown,
   onLeafKeyDown,
   toggleExpansion,
+  overScan = 2,
 }: ITree) => {
   const tree = useRef<HTMLUListElement | null>(null);
 
@@ -554,6 +580,8 @@ const Tree = ({
       {branches.map((b, i) => (
         <TreeBranch
           {...b}
+          ancestorVisible
+          overScan={overScan}
           key={b.id}
           level={1}
           size={branches.length + leaves.length}
