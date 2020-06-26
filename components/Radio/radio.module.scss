@@ -4,7 +4,6 @@
   width: 1.25rem;
   height: 1.25rem;
   vertical-align: text-bottom;
-  margin-right: 0.5rem;
   transition: background-color 0.3s;
   border: 2px solid var(--stroke-color);
   border-radius: 50%;
@@ -44,17 +43,23 @@
   }
 }
 
-.radio_group {
+.radio-group {
   margin: 0;
   border: none;
   padding: 0 0 0.5rem;
 
   legend {
     display: block;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
 
   label {
-    padding-inline-end: 1rem;
+    display: flex;
+  }
+}
+
+.radio-group-inline {
+  label {
+    display: inline-flex;
   }
 }

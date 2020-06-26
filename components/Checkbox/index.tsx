@@ -10,12 +10,13 @@ interface ICheckbox extends React.InputHTMLAttributes<HTMLInputElement> {
 const Switch = (props: ICheckbox) => {
   const { label, className, ...p } = props;
   return (
-    <label className={input.label}>
+    <label className={input['input-label']}>
       <input
         className={`${input.input} ${style.checkbox} ${style.toggle} ${className ?? ''}`}
         {...p}
         type="checkbox"
       />
+      <span className={input['input-label-spacer']} />
       {label}
     </label>
   );
@@ -24,12 +25,13 @@ const Switch = (props: ICheckbox) => {
 const Checkbox = (props: ICheckbox) => {
   const { label, className, ...p } = props;
   return (
-    <label className={style.label}>
+    <label className={input['input-label']}>
       <input
         className={`${input.input} ${style.checkbox} ${className ?? ''}`}
         {...p}
         type="checkbox"
       />
+      <span className={input['input-label-spacer']} />
       {label}
     </label>
   );

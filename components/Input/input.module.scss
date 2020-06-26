@@ -72,8 +72,12 @@
   }
 }
 
-// TODO: Global CSS?
-.label {
-  display: var(--display, block);
-  margin-bottom: 0.5rem;
+.input-label {
+  display: inline-flex;
+  margin: 0.5rem;
+
+  > .input-label-spacer {
+    width: 0.5rem;
+    visibility: hidden;
+  }
 }

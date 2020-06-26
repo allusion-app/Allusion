@@ -3,13 +3,13 @@ import { observer } from 'mobx-react-lite';
 import { Drawer, Classes, Button, Callout, H4, FormGroup, KeyCombo } from '@blueprintjs/core';
 import { Switch, Radio, RadioGroup } from 'components';
 
-import StoreContext from '../contexts/StoreContext';
+import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { ClearDbButton } from './ErrorBoundary';
+import { ClearDbButton } from 'src/renderer/frontend/components/ErrorBoundary';
 import { remote } from 'electron';
-import { moveThumbnailDir } from '../ThumbnailGeneration';
-import { getThumbnailPath, isDirEmpty } from '../utils';
-import { RendererMessenger } from '../../../Messaging';
+import { moveThumbnailDir } from 'src/renderer/frontend/ThumbnailGeneration';
+import { getThumbnailPath, isDirEmpty } from 'src/renderer/frontend/utils';
+import { RendererMessenger } from 'src/Messaging';
 
 // Window state
 const WINDOW_STORAGE_KEY = 'Allusion_Window';

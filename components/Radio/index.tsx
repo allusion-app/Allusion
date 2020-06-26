@@ -10,8 +10,9 @@ interface IRadio extends React.InputHTMLAttributes<HTMLInputElement> {
 const Radio = (props: IRadio) => {
   const { label, className, ...p } = props;
   return (
-    <label className={input.label}>
+    <label className={input['input-label']}>
       <input className={`${input.input} ${style.radio} ${className ?? ''}`} {...p} type="radio" />
+      <span className={input['input-label-spacer']} />
       {label}
     </label>
   );
@@ -27,8 +28,9 @@ interface IRadioGroup extends React.InputHTMLAttributes<HTMLInputElement> {
 const Group = ({ name, disabled, value, children, onChange, className, inline }: IRadioGroup) => {
   return (
     <fieldset
-      style={inline ? ({ '--display': 'inline-block' } as React.CSSProperties) : undefined}
-      className={`${style.radio_group} ${className ?? ''}`}
+      className={`${style['radio-group']} ${inline ? style['radio-group-inline'] : ''} ${
+        className ?? ''
+      }`}
     >
       <legend>{name}</legend>
       {children.map(({ props }) => (

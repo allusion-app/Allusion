@@ -9,7 +9,7 @@ import Toolbar from './containers/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
-import Settings from './components/Settings';
+import Settings from './containers/Settings';
 import DropOverlay from './components/DropOverlay';
 import { AdvancedSearchDialog } from './containers/Outliner/SearchPanel';
 import { useWorkerListener } from './ThumbnailGeneration';
