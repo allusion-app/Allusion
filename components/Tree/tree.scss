@@ -32,8 +32,13 @@
     padding-left: calc(var(--level) * var(--treeitem-identation) + var(--treeitem-offset));
     padding-right: 0.6rem;
 
-    &:hover, &:hover [class*='custom-icon']  {
+    &:hover {
       background-color: var(--highlight-background-color);
+      border-color: var(--primary-color);
+      color: var(--highlight-font-color);
+      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    &:hover [class*='custom-icon']  {
       border-color: var(--primary-color);
       color: var(--highlight-font-color);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
