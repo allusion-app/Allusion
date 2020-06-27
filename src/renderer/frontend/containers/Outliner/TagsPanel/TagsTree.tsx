@@ -168,6 +168,12 @@ const Tag = observer((props: ITagProps) => {
 
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      if (DragItem.isSelected) {
+        uiStore.moveSelectedTagItems(nodeData.id);
+        const dataSet = event.currentTarget.dataset;
+        delete dataSet[DnDAttribute.Target];
+        return;
+      }
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
         event.dataTransfer.dropEffect = 'none';
         const id = event.dataTransfer.getData(DnDType.Tag);
@@ -180,7 +186,7 @@ const Tag = observer((props: ITagProps) => {
         delete dataSet[DnDAttribute.Target];
       }
     },
-    [nodeData.parent, pos, uiStore.rootStore.tagStore],
+    [nodeData.id, nodeData.parent, pos, uiStore],
   );
 
   const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
@@ -300,6 +306,8 @@ const Collection = observer((props: ICollectionProps) => {
     (event: React.DragEvent<HTMLDivElement>) => {
       if (DragItem.isSelected) {
         uiStore.moveSelectedTagItems(nodeData.id);
+        const dataSet = event.currentTarget.dataset;
+        delete dataSet[DnDAttribute.Target];
         return;
       }
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
@@ -670,6 +678,8 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
     (event: React.DragEvent<HTMLDivElement>) => {
       if (DragItem.isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_COLLECTION_ID);
+        const dataSet = event.currentTarget.dataset;
+        delete dataSet[DnDAttribute.Target];
         return;
       }
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
