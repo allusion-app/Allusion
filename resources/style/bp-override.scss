@@ -268,7 +268,7 @@ form,
       padding: 0;
       font-size: 16px;
       width: 15px;
-      min-width: 15px;
+      // min-width: 15px;
     }
   }
   .bp3-popover-wrapper,
@@ -297,18 +297,20 @@ form,
 
 .bp3-control-group {
   .bp3-input {
-    border-radius: 6px !important;
+    // border-radius: 6px !important;
     width: 275px !important;
   }
   > div,
   > span {
-    margin-right: 6px !important;
-    border-radius: 6px !important;
+    // margin-right: 6px !important;
+    // border-radius: 6px !important;
+    border-right: 1px solid rgba(var(--light-gray1-rgb), 0.5);
     max-width: 150px !important;
     width: 150px !important;
   }
   > *:nth-child(3) {
     max-width: 275px !important;
+    border-right: none !important;
   }
   > *:last-child {
     width: 10px !important;
