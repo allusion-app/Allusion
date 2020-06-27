@@ -3,6 +3,10 @@
     width: 100%;
   }
 
+  #actions-bar {
+    float: right;
+  }
+
   .criteria {
     display: flex;
     margin-bottom: 0.25rem;
@@ -41,13 +45,10 @@
       min-width: 15px;
     }
   }
+
   .bp3-popover-wrapper,
   .bp3-tag-input-values {
     // input {
     max-width: 200px;
-  }
-
-  #actions-bar {
-    float: right;
   }
 }

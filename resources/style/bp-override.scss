@@ -1129,7 +1129,8 @@ li .bp3-menu-item {
   }
 }
 
-.bp3-drawer .bp3-intent-warning .custom-icon {
+.bp3-drawer .bp3-intent-warning .custom-icon,
+#actions-bar button .bp3-icon {
   color: white !important;
 }
 
