@@ -6,7 +6,7 @@ import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
 import { SearchCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
-import { getThumbnailPath, debounce, needsThumbnail } from '../utils';
+import { getThumbnailPath, debounce, needsThumbnail, promiseAllLimit } from '../utils';
 import { ClientTag } from '../../entities/Tag';
 import { FileOrder } from '../../backend/DBRepository';
 import { ClientLocation } from '../../entities/Location';
@@ -220,7 +220,12 @@ class FileStore {
   }
 
   getFileLocation(file: IFile): ClientLocation {
-    return this.rootStore.locationStore.get(file.locationId)!;
+    const location = this.rootStore.locationStore.get(file.locationId);
+    if (!location) {
+      console.warn('Location of file was not found! This should never happen!', file);
+      return this.rootStore.locationStore.getDefaultLocation();
+    }
+    return location;
   }
 
   recoverPersistentPreferences() {
@@ -250,44 +255,48 @@ class FileStore {
   }
 
   @action.bound private async updateFromBackend(backendFiles: IFile[]) {
-    // removing manually invalid files
-    // watching files would be better to remove invalid files
-    // files could also have moved, removing them may be undesired then
-
-    // Todo: instead of removing invalid files, add them to an MissingFiles list and prompt to the user?
-    // (maybe fetch all files, not only the ones passed given as arguments here)
-
-    // TODO: Checking existence for all files adds delays when loading many files at once
-    // The check is already done on startup anyways
-    // Check is also done when image is displayed
     const locationIds = this.rootStore.locationStore.locationList.map((l) => l.id);
-    const existenceChecker = await Promise.all(
-      backendFiles.map(async (backendFile) => {
+
+    // For every new file coming in, either re-use the existing client file if it exists,
+    // or construct a new client file
+    const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
+
+    // Check existence of new files asynchronously, no need to wait until they can be showed
+    // we can simply check whether they exist after they start rendering
+    const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
+      if (clientFile.isBroken === undefined) {
         try {
-          await fs.access(backendFile.absolutePath, fs.constants.F_OK);
+          await fs.access(clientFile.absolutePath, fs.constants.F_OK);
+          clientFile.setBroken(false);
         } catch (err) {
+          clientFile.setBroken(true);
+
+          // Old approach: keeping it commented out for now
           // Remove file from client only - keep in DB in case it will be recovered later
           // TODO: Store missing date so it can be automatically removed after some time?
-          // TODO: We do want these files to show, so they can be shown as missing to the user
-          const clientFile = this.get(backendFile.id);
-          if (clientFile) {
-            clientFile.dispose();
-            this.fileList.remove(clientFile);
-          }
-          return false;
+          // if (clientFile) {
+          //   clientFile.dispose();
+          //   this.fileList.remove(clientFile);
+          // }
         }
+      }
 
-        // Check if file belongs to a location; shouldn't be needed, but useful for during development
-        if (!locationIds.includes(backendFile.locationId)) {
-          console.warn(
-            'Found a file that does not belong to any location! Will still show up',
-            backendFile,
-          );
-          return false;
-        }
-        return true;
-      }),
-    );
+      // TODO: DEBUG CHECK. Remove this when going out for release version
+      // Check if file belongs to a location; shouldn't be needed, but useful for during development
+      if (!locationIds.includes(clientFile.locationId)) {
+        console.warn(
+          'DEBUG: Found a file that does not belong to any location! Will still show up. SHOULD NEVER HAPPEN',
+          clientFile,
+        );
+      }
+    });
+
+    // Run the existence check with at most N checks in parallel
+    // TODO: Should make N configurage, or determine based on the system/disk performance
+    const N = 50;
+    promiseAllLimit(existenceCheckPromises, N)
+      .then(() => console.log('Processed existence checker!'))
+      .catch((e) => console.error('An error occured during existance checkiong!', e));
 
     // Re-count the number of untagged files
     let numUntaggedFiles = 0;
@@ -298,21 +307,20 @@ class FileStore {
     }
     runInAction(() => (this.numUntaggedFiles = numUntaggedFiles));
 
-    // Set the files
-    const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
-
-    if (this.fileList.length === 0) {
-      this.addFiles(this.filesFromBackend(existingBackendFiles));
-      return;
-    }
-
-    if (existingBackendFiles.length === 0) {
+    if (backendFiles.length === 0) {
       return this.clearFileList();
     }
 
-    return this.replaceFileList(this.filesFromBackend(existingBackendFiles));
+    // Dispose of Client files that are not re-used
+    for (const file of this.fileList) {
+      if (!reusedStatus.has(file.id)) {
+        file.dispose();
+      }
+    }
+    return this.replaceFileList(newClientFiles);
   }
 
+  // TODO: This is not used at the moment. Should remove it if that's still the case when this PR goes in
   @action.bound async fetchBrokenFiles() {
     try {
       const { orderBy, fileOrder } = this;
@@ -328,7 +336,7 @@ class FileStore {
           }
         }),
       );
-      const clientFiles = brokenFiles.map((f) => new ClientFile(this, f, true));
+      const clientFiles = brokenFiles.map((f) => new ClientFile(this, f));
       clientFiles.forEach((f) =>
         f.setThumbnailPath(
           getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory),
@@ -348,8 +356,26 @@ class FileStore {
     this.fileList.push(...files);
   }
 
-  @action.bound private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
-    return backendFiles.map((file) => {
+  /**
+   *
+   * @param backendFiles
+   * @returns A list of Client files, and a set of keys that was reused from the existing fileList
+   */
+  @action.bound private filesFromBackend(backendFiles: IFile[]): [ClientFile[], Set<ID>] {
+    const reusedStatus = new Set<ID>();
+    const clientFiles = backendFiles.map((file) => {
+      // Might already exist!
+      const existingFile = this.get(file.id);
+      if (existingFile) {
+        reusedStatus.add(file.id);
+        return existingFile;
+      }
+
+      // Otherwise, create new one.
+      // TODO: Maybe better performance by always keeping the same pool of client files,
+      // and just replacing their properties instead of creating new objects
+      // But that's micro optimization...
+
       const f = new ClientFile(this, file);
       // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
       // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
@@ -358,6 +384,7 @@ class FileStore {
         : file.absolutePath;
       return f;
     });
+    return [clientFiles, reusedStatus];
   }
 
   @action.bound private async removeThumbnail(file: ClientFile) {

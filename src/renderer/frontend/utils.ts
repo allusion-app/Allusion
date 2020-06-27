@@ -15,7 +15,7 @@ export function debounce<F extends (...args: any) => any>(func: F, wait: number 
   }
 
   // conversion through any necessary as it wont satisfy criteria otherwise
-  return (function(this: any, ...args: any[]) {
+  return (function (this: any, ...args: any[]) {
     clearTimeout(timeoutID);
 
     timeoutID = window.setTimeout(() => func.apply(this, args), wait);
@@ -57,7 +57,7 @@ export const promiseAllBatch = async <T>(batchSize = 50, proms: Promise<T>[]) =>
     res.push(...(await Promise.all(proms.slice(i, i + batchSize))));
   }
   return res;
-}
+};
 
 /**
  * Like Promise.all, but only runs N promises in parallel
@@ -65,23 +65,56 @@ export const promiseAllBatch = async <T>(batchSize = 50, proms: Promise<T>[]) =>
  * @param n The amount of promises to run in parallel
  * @param list The promises to run
  */
-export const promiseAllLimit = async <T>(n: number, list: (() => Promise<T>)[]) => {
-  const head = list.slice(0, n)
-  const tail = list.slice(n)
-  const result: T[] = []
-  const execute = async (promise: () => Promise<T>, i: number, runNext: () => Promise<void>) => {
-    result[i] = await promise()
-    await runNext()
+export function promiseAllLimit<T>(
+  collection: Array<() => Promise<T>>,
+  n: number = 100,
+): Promise<T[]> {
+  let i = 0;
+  let jobsLeft = collection.length;
+  const outcome: T[] = [];
+  let rejected = false;
+  // create a new promise and capture reference to resolve and reject to avoid nesting of code
+  let resolve: (o: T[]) => void, reject: (e: Error) => void;
+  const pendingPromise: Promise<T[]> = new Promise(function (res, rej) {
+    resolve = res;
+    reject = rej;
+  });
+
+  // execute the j'th thunk
+  function runJob(j: number) {
+    collection[j]()
+      .then((result) => {
+        if (rejected) {
+          return; // no op!
+        }
+        jobsLeft--;
+        outcome[j] = result;
+        if (jobsLeft <= 0) {
+          resolve(outcome);
+        } else if (i < collection.length) {
+          runJob(i);
+          i++;
+        } else {
+          return; // nothing to do here.
+        }
+      })
+      .catch((e) => {
+        if (rejected) {
+          return; // no op!
+        }
+        rejected = true;
+        reject(e);
+        return;
+      });
   }
-  const runNext = async () => {
-    const i = list.length - tail.length
-    const promise = tail.shift()
-    if (promise !== undefined) {
-      await execute(promise, i, runNext)
-    }
+
+  // bootstrap, while handling cases where the length of the given array is smaller than maxConcurrent jobs
+  while (i < Math.min(collection.length, n)) {
+    runJob(i);
+    i++;
   }
-  await Promise.all(head.map((promise, i) => execute(promise, i, runNext)))
-  return result
+
+  return pendingPromise;
 }
 
 ///////////////////////////////
@@ -129,7 +162,7 @@ const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
 
 export const formatDateTime = (d: Date) => {
   return DateTimeFormat.formatToParts(d)
-    .map(({ type, value }) => type === 'literal' && value === ', ' ? ' ' : value)
+    .map(({ type, value }) => (type === 'literal' && value === ', ' ? ' ' : value))
     .reduce((str, part) => str + part);
 };
 
