@@ -398,6 +398,9 @@ form .bp3-icon {
       color: $light-gray4;
     }
   }
+  .bp3-input:focus {
+    border-radius: 0 6px 6px 0 !important;
+  }
 }
 .bp3-dark {
   #inspector,
