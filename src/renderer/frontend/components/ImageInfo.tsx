@@ -4,6 +4,8 @@ import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
 import { formatDateTime } from '../utils';
+import { Callout, NonIdealState, ButtonGroup, Button } from '@blueprintjs/core';
+import IconSet from 'components/Icons';
 
 const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   const [fileStats, setFileStats] = useState<fse.Stats | undefined>(undefined);
@@ -56,22 +58,45 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   );
 
   return (
-    <section id="fileInfo">
-      {fileInfoList.map(({ key, value }) => [
-        <small key={`fileInfoKey-${key}`} className="bp3-label">
-          {key}
-        </small>,
-        <div key={`fileInfoValue-${key}`} className="fileInfoValue bp3-button-text">
-          {value}
-        </div>,
-      ])}
+    <>
+      <section id="fileInfo">
+        {fileInfoList.map(({ key, value }) => [
+          <small key={`fileInfoKey-${key}`} className="bp3-label">
+            {key}
+          </small>,
+          <div key={`fileInfoValue-${key}`} className="fileInfoValue bp3-button-text">
+            {value || '-'}
+          </div>,
+        ])}
+      </section>
 
-      {error && (
-        <p>
-          Error: {error.name} <br /> {error.message}
-        </p>
-      )}
-    </section>
+      {error &&
+        (error.message?.includes('no such file') ? (
+          <NonIdealState
+            icon={<span className="bp3-icon custom-icon custom-icon-64">{IconSet.DB_ERROR}</span>}
+            // className="height-auto"
+            description={
+              <p>
+                This image could not be found.
+                <br />
+                Would you like to remove it from Allusion,
+                <br />
+                or merge with another entry?
+              </p>
+            }
+            action={
+              <ButtonGroup>
+                <Button text="Remove" intent="danger" />
+                <Button text="Merge" intent="warning" />
+              </ButtonGroup>
+            }
+          />
+        ) : (
+          <Callout intent="warning" title="An error has occured">
+            Error: {error.name} <br /> {error.message}
+          </Callout>
+        ))}
+    </>
   );
 });
 

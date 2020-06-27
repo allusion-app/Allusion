@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes } from '@blueprintjs/core';
+import {
+  Tag,
+  ContextMenuTarget,
+  Menu,
+  MenuItem,
+  H4,
+  Classes,
+  Icon,
+  Tooltip,
+} from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -130,7 +139,6 @@ const GalleryItem = observer(
         onDrop={handleDrop}
       >
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
-          {file.isBroken && 'BROKEN!'}
           {isThumbnailReady ? (
             // Show image when it has been loaded
             <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
@@ -143,6 +151,13 @@ const GalleryItem = observer(
               <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
               <br /> Could not load image
             </span>
+          )}
+          {file.isBroken && (
+            <div className="broken-overlay">
+              <Tooltip content="This image could not be found.">
+                <Icon intent="warning" icon="heart-broken" color="orange" iconSize={24} />
+              </Tooltip>
+            </div>
           )}
         </div>
         {showDetails && (
