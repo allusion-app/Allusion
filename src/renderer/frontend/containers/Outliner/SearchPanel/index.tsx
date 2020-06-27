@@ -229,8 +229,8 @@ const CriteriaItem = observer(({ criteria, dispatch, removable }: ICriteriaItemP
   );
 });
 
-const SearchForm = observer(
-  ({
+const SearchForm = observer((props: { uiStore: UiStore }) => {
+  const {
     uiStore: {
       searchCriteriaList,
       openQuickSearch,
@@ -240,77 +240,74 @@ const SearchForm = observer(
       searchMatchAny,
       toggleSearchMatchAny,
     },
-  }: {
-    uiStore: UiStore;
-  }) => {
-    const [state, dispatch] = useReducer(reducer, {
-      items: searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : defaultState(),
-    });
+  } = props;
+  const [state, dispatch] = useReducer(reducer, {
+    items: searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : defaultState(),
+  });
 
-    useEffect(() => {
-      openQuickSearch();
-    }, [openQuickSearch]);
+  useEffect(() => {
+    openQuickSearch();
+  }, [openQuickSearch]);
 
-    const add = useCallback(() => dispatch(Factory.addQuery()), []);
+  const add = useCallback(() => dispatch(Factory.addQuery()), []);
 
-    const search = useCallback(() => {
-      replaceSearchCriterias(state.items.map(intoCriteria));
-      closeAdvancedSearch();
-    }, [closeAdvancedSearch, replaceSearchCriterias, state.items]);
+  const search = useCallback(() => {
+    replaceSearchCriterias(state.items.map(intoCriteria));
+    closeAdvancedSearch();
+  }, [closeAdvancedSearch, replaceSearchCriterias, state.items]);
 
-    const reset = useCallback(() => {
-      clearSearchCriteriaList();
-      dispatch(Factory.resetSearch());
-    }, [clearSearchCriteriaList]);
+  const reset = useCallback(() => {
+    clearSearchCriteriaList();
+    dispatch(Factory.resetSearch());
+  }, [clearSearchCriteriaList]);
 
-    return (
-      <div id="search-form">
-        <FormGroup>
-          {state.items.map((crit) => (
-            <CriteriaItem
-              key={crit.id}
-              criteria={crit}
-              dispatch={dispatch}
-              removable={state.items.length !== 1}
-            />
-          ))}
-        </FormGroup>
-
-        <Button text="Add" icon={IconSet.ADD} onClick={add} minimal className="btn-blank" />
-
-        <div id="actions-bar">
-          <Switch
-            inline
-            label="Match"
-            innerLabel="All"
-            innerLabelChecked="Any"
-            alignIndicator="right"
-            checked={searchMatchAny}
-            onChange={toggleSearchMatchAny}
+  return (
+    <div id="search-form">
+      <FormGroup>
+        {state.items.map((crit) => (
+          <CriteriaItem
+            key={crit.id}
+            criteria={crit}
+            dispatch={dispatch}
+            removable={state.items.length !== 1}
           />
+        ))}
+      </FormGroup>
 
-          <ButtonGroup>
-            <Button
-              text="Reset"
-              onClick={reset}
-              disabled={state.items.length === 0}
-              icon={IconSet.CLOSE}
-              fill
-            />
-            <Button
-              intent="primary"
-              text="Search"
-              onClick={search}
-              disabled={state.items.length === 0}
-              icon={IconSet.SEARCH}
-              fill
-            />
-          </ButtonGroup>
-        </div>
+      <Button text="Add" icon={IconSet.ADD} onClick={add} minimal className="btn-blank" />
+
+      <div id="actions-bar">
+        <Switch
+          inline
+          label="Match"
+          innerLabel="All"
+          innerLabelChecked="Any"
+          alignIndicator="right"
+          checked={searchMatchAny}
+          onChange={toggleSearchMatchAny}
+        />
+
+        <ButtonGroup>
+          <Button
+            text="Reset"
+            onClick={reset}
+            disabled={state.items.length === 0}
+            icon={IconSet.CLOSE}
+            fill
+          />
+          <Button
+            intent="primary"
+            text="Search"
+            onClick={search}
+            disabled={state.items.length === 0}
+            icon={IconSet.SEARCH}
+            fill
+          />
+        </ButtonGroup>
       </div>
-    );
-  },
-);
+    </div>
+  );
+});
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
