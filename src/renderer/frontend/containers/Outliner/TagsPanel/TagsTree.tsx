@@ -277,11 +277,12 @@ const Collection = observer((props: ICollectionProps) => {
         (t) => t === DnDType.Tag || t === DnDType.Collection,
         (t) => {
           if (t === DnDType.Collection) {
-            return (
-              !uiStore.rootStore.tagCollectionStore
-                .get(DragItem.id)
-                ?.containsSubCollection(nodeData.id) || false
-            );
+            const draggedCollection = uiStore.rootStore.tagCollectionStore.get(DragItem.id);
+            if (draggedCollection) {
+              // An ancestor cannot be a descendant!
+              return !draggedCollection.containsSubCollection(nodeData.id);
+            }
+            return false;
           }
           return true;
         },
@@ -292,15 +293,7 @@ const Collection = observer((props: ICollectionProps) => {
           }
         },
       ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      dispatch,
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      expansion[nodeData.id],
-      nodeData.id,
-      nodeData.isSelected,
-      uiStore.rootStore.tagCollectionStore,
-    ],
+    [dispatch, expansion, nodeData.id, nodeData.isSelected, uiStore.rootStore.tagCollectionStore],
   );
 
   const handleDrop = useCallback(
@@ -321,7 +314,7 @@ const Collection = observer((props: ICollectionProps) => {
         event.dataTransfer.dropEffect = 'none';
         const id = event.dataTransfer.getData(DnDType.Collection);
         const collection = uiStore.rootStore.tagCollectionStore.get(id);
-        if (collection && !nodeData.containsSubCollection(collection.id)) {
+        if (collection && !collection.containsSubCollection(nodeData.id)) {
           nodeData.insertCollection(collection);
         }
         delete event.currentTarget.dataset[DnDAttribute.Target];
@@ -530,7 +523,6 @@ const rangeSelection = (
   uiStore.clearTagSelection();
   let isSelecting: { value: boolean } | undefined = undefined;
   const selectRange = (node: ClientTagCollection | ClientTag) => {
-    console.log(node.name);
     if (node.id === lastSelection || node.id === nodeData.id) {
       if (isSelecting === undefined) {
         isSelecting = { value: true };
