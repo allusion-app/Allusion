@@ -18,7 +18,6 @@ interface IColorOptions {
 }
 
 const defaultColorOptions: IColorOptions[] = [
-  { label: 'Default', value: '' },
   { label: 'Eminence', value: '#5f3292' },
   { label: 'Indigo', value: '#5642A6' },
   { label: 'Blue Ribbon', value: '#143ef1' },
@@ -52,16 +51,32 @@ const ColorPickerMenu = observer(
         text={`Color${contextText}`}
         icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
       >
+        <MenuItem
+          key="none"
+          text="None"
+          onClick={() => onChange('')}
+          icon={
+            <Icon icon={selectedColor === '' ? 'tick-circle' : 'circle'} color={defaultColor} />
+          }
+        />
+        <MenuItem
+          key="inherit"
+          text="Inherit"
+          onClick={() => onChange('inherit')}
+          icon={
+            <Icon
+              icon={selectedColor === 'inherit' ? 'tick-circle' : 'circle'}
+              color={defaultColor} // Rainbow gradient?
+            />
+          }
+        />
         {defaultColorOptions.map(({ label, value }) => (
           <MenuItem
             key={label}
             text={label}
             onClick={() => onChange(value)}
             icon={
-              <Icon
-                icon={selectedColor === value ? 'tick-circle' : value ? 'full-circle' : 'circle'}
-                color={value || defaultColor}
-              />
+              <Icon icon={selectedColor === value ? 'tick-circle' : 'full-circle'} color={value} />
             }
           />
         ))}
@@ -70,9 +85,7 @@ const ColorPickerMenu = observer(
             color={selectedColor || defaultColor}
             onChangeComplete={handlePickCustomColor}
             disableAlpha
-            presetColors={defaultColorOptions
-              .filter((opt) => Boolean(opt.value))
-              .map((opt) => opt.value)}
+            presetColors={defaultColorOptions.map((opt) => opt.value)}
           />
         </MenuItem>
       </MenuItem>
@@ -133,7 +146,13 @@ export const TagContextMenu = ({ nodeData, uiStore, dispatch }: ITagMenuProps) =
         rename={() => dispatch(Factory.enableEditing(nodeData.id))}
         delete={() => dispatch(Factory.confirmDeletion(nodeData))}
         color={nodeData.color}
-        setColor={(color) => uiStore.colorSelectedTagsAndCollections(nodeData.id, color)}
+        setColor={(color: string) => {
+          if (nodeData.isSelected) {
+            uiStore.colorSelectedTagsAndCollections(nodeData.id, color);
+          } else {
+            nodeData.setColor(color);
+          }
+        }}
         contextText={contextText}
       />
       <Divider />
@@ -221,7 +240,13 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         rename={() => dispatch(Factory.enableEditing(nodeData.id))}
         delete={() => dispatch(Factory.confirmDeletion(nodeData))}
         color={nodeData.color}
-        setColor={(color: string) => uiStore.colorSelectedTagsAndCollections(nodeData.id, color)}
+        setColor={(color: string) => {
+          if (nodeData.isSelected) {
+            uiStore.colorSelectedTagsAndCollections(nodeData.id, color);
+          } else {
+            nodeData.setColor(color);
+          }
+        }}
         contextText={contextText}
       />
       <Divider />

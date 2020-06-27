@@ -216,7 +216,7 @@ const Tag = observer((props: ITagProps) => {
       <Label
         text={nodeData.name}
         setText={nodeData.rename}
-        color={nodeData.color}
+        color={nodeData.viewColor}
         icon={IconSet.TAG}
         isEditing={isEditing}
         onSubmit={submit}
@@ -367,7 +367,7 @@ const Collection = observer((props: ICollectionProps) => {
       <Label
         text={nodeData.name}
         setText={nodeData.rename}
-        color={nodeData.color}
+        color={nodeData.viewColor}
         icon={expansion[nodeData.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP}
         isEditing={isEditing}
         onSubmit={submit}
