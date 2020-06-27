@@ -150,9 +150,15 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
-      this.rootStore.uiStore.closeQuickSearch();
+      const { uiStore } = this.rootStore;
+      uiStore.closeQuickSearch();
       const criteria = new ClientArraySearchCriteria('tags', []).serialize();
-      const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
+      const fetchedFiles = await this.backend.searchFiles(
+        criteria,
+        this.orderBy,
+        this.fileOrder,
+        uiStore.searchMatchAny,
+      );
       this.updateFromBackend(fetchedFiles);
       this.setContentUntagged();
     } catch (err) {
@@ -162,6 +168,7 @@ class FileStore {
 
   @action.bound
   async fetchFilesByQuery() {
+    const { uiStore } = this.rootStore;
     const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) => c.serialize());
     if (criteria.length === 0) {
       return this.fetchAllFiles();
@@ -171,6 +178,7 @@ class FileStore {
         criteria as [SearchCriteria<IFile>],
         this.orderBy,
         this.fileOrder,
+        uiStore.searchMatchAny,
       );
       this.updateFromBackend(fetchedFiles);
       this.setContentQuery();
