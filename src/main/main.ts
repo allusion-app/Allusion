@@ -7,6 +7,7 @@ import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';
 import { MainMessenger } from '../Messaging';
+import { autoUpdater } from 'electron-updater';
 
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
@@ -127,7 +128,7 @@ function createWindow() {
         label: 'Actual Size',
         accelerator: 'CommandOrControl+0',
         click: (_, browserWindow) => {
-          browserWindow.webContents.setZoomFactor(1);
+          browserWindow.webContents.zoomFactor = 1;
         },
       },
       {
@@ -135,14 +136,14 @@ function createWindow() {
         // TODO: Fix by using custom solution...
         accelerator: 'CommandOrControl+=',
         click: (_, browserWindow) => {
-          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() + 0.1);
+          browserWindow.webContents.zoomFactor += 0.1;
         },
       },
       {
         label: 'Zoom Out',
         accelerator: 'CommandOrControl+-',
         click: (_, browserWindow) => {
-          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() - 0.1);
+          browserWindow.webContents.zoomFactor -= 0.1;
         },
       },
       { type: 'separator' },
@@ -252,6 +253,8 @@ function createPreviewWindow() {
 initialize = () => {
   createWindow();
   createPreviewWindow();
+
+  autoUpdater.checkForUpdatesAndNotify();
 };
 
 // This method will be called when Electron has finished

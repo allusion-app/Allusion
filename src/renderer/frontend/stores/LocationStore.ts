@@ -246,6 +246,7 @@ class LocationStore {
         onClick: () => alert('TODO: Should also support cancelling here')
       }
     }, toastKey);
+    // TODO: Should use a promise pool for this
     const files = await Promise.all(
       filePaths.map(path => this.pathToIFile(path, loc.id, loc.tagsToAdd.toJS())));
 

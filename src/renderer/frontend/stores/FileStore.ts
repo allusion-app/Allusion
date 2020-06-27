@@ -1,4 +1,4 @@
-import { action, observable, computed, observe } from 'mobx';
+import { action, observable, computed, observe, runInAction } from 'mobx';
 import fs from 'fs-extra';
 
 import Backend from '../../backend/Backend';
@@ -260,6 +260,9 @@ class FileStore {
     // Todo: instead of removing invalid files, add them to an MissingFiles list and prompt to the user?
     // (maybe fetch all files, not only the ones passed given as arguments here)
 
+    // TODO: Checking existence for all files adds delays when loading many files at once
+    // The check is already done on startup anyways
+    // Check is also done when image is displayed
     const locationIds = this.rootStore.locationStore.locationList.map((l) => l.id);
     const existenceChecker = await Promise.all(
       backendFiles.map(async (backendFile) => {
@@ -268,11 +271,9 @@ class FileStore {
         } catch (err) {
           // Remove file from client only - keep in DB in case it will be recovered later
           // TODO: Store missing date so it can be automatically removed after some time?
+          // TODO: We do want these files to show, so they can be shown as missing to the user
           const clientFile = this.get(backendFile.id);
           if (clientFile) {
-            if (clientFile.tags.length === 0) {
-              this.decrementNumUntaggedFiles();
-            }
             clientFile.dispose();
             this.fileList.remove(clientFile);
           }
@@ -291,6 +292,16 @@ class FileStore {
       }),
     );
 
+    // Re-count the number of untagged files
+    let numUntaggedFiles = 0;
+    for (const f of backendFiles) {
+      if (f.tags.length === 0) {
+        numUntaggedFiles++;
+      }
+    }
+    runInAction(() => (this.numUntaggedFiles = numUntaggedFiles));
+
+    // Set the files
     const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
 
     if (this.fileList.length === 0) {
@@ -322,7 +333,9 @@ class FileStore {
       );
       const clientFiles = brokenFiles.map((f) => new ClientFile(this, f, true));
       clientFiles.forEach((f) =>
-        f.setThumbnailPath(getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory)),
+        f.setThumbnailPath(
+          getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory),
+        ),
       );
       this.replaceFileList(clientFiles);
     } catch (err) {
