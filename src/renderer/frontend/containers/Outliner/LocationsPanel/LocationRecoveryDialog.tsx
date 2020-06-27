@@ -4,12 +4,12 @@ import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 import Path from 'path';
 import React, { useCallback, useContext, useState } from 'react';
-import { IMG_EXTENSIONS } from '../../entities/File';
-import { ClientLocation } from '../../entities/Location';
-import StoreContext from '../contexts/StoreContext';
-import LocationStore from '../stores/LocationStore';
+import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
+import { ClientLocation } from 'src/renderer/entities/Location';
+import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
+import LocationStore from 'src/renderer/frontend/stores/LocationStore';
 import IconSet from 'components/Icons';
-import { AppToaster } from '../App';
+import { AppToaster } from 'src/renderer/frontend/App';
 
 interface IMatch {
   locationImageCount: number;

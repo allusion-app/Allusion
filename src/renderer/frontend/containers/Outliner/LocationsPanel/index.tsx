@@ -14,24 +14,24 @@ import {
   ContextMenu,
 } from '@blueprintjs/core';
 
-import StoreContext from '../../contexts/StoreContext';
+import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
 import {
   ClientLocation,
   DEFAULT_LOCATION_ID,
   IDirectoryTreeItem,
-} from '../../../entities/Location';
-import { ClientStringSearchCriteria } from '../../../entities/SearchCriteria';
-import { IFile } from '../../../entities/File';
-import MultiTagSelector from '../../components/MultiTagSelector';
-import { AppToaster } from '../../App';
-import UiStore, { FileSearchCriteria } from '../../stores/UiStore';
+} from 'src/renderer/entities/Location';
+import { ClientStringSearchCriteria } from 'src/renderer/entities/SearchCriteria';
+import { IFile } from 'src/renderer/entities/File';
+import MultiTagSelector from 'src/renderer/frontend/components/MultiTagSelector';
+import { AppToaster } from 'src/renderer/frontend/App';
+import UiStore, { FileSearchCriteria } from 'src/renderer/frontend/stores/UiStore';
 import { Tree } from 'components';
 import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
-import { IExpansionState } from '.';
-import LocationRecoveryDialog from '../../components/LocationRecoveryDialog';
-import { CustomKeyDict } from './index';
-import { LocationRemoval } from './MessageBox';
+import { IExpansionState } from '..';
+import LocationRecoveryDialog from './LocationRecoveryDialog';
+import { CustomKeyDict } from '../index';
+import { LocationRemoval } from '../MessageBox';
 
 // Tooltip info
 const enum Tooltip {
