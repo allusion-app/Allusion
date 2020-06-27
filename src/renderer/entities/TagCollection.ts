@@ -53,9 +53,9 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
 
   @computed get viewColor(): string {
     if (this.id === ROOT_TAG_COLLECTION_ID) {
-      return this.color;
+      return '';
     }
-    return this.color || this.parent.viewColor;
+    return this.color === 'inherit' ? this.parent.viewColor : this.color;
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */

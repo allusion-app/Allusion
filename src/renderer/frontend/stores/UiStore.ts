@@ -402,7 +402,12 @@ class UiStore {
 
   @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
     const ctx = this.getTagContextItems(activeElementId);
-    ctx.collections.forEach((col) => col.setColor(color));
+    const colorCollection = (collection: ClientTagCollection) => {
+      collection.setColor(color);
+      collection.clientTags.forEach((tag) => tag.setColor(color));
+      collection.clientSubCollections.forEach(colorCollection);
+    };
+    ctx.collections.forEach(colorCollection);
     ctx.tags.forEach((tag) => tag.setColor(color));
   }
 
