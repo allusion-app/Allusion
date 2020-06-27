@@ -130,6 +130,7 @@ const GalleryItem = observer(
         onDrop={handleDrop}
       >
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
+          {file.isBroken && 'BROKEN!'}
           {isThumbnailReady ? (
             // Show image when it has been loaded
             <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />

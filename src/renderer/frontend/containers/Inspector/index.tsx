@@ -1,5 +1,4 @@
-import React, { useContext, useState, useCallback, useMemo } from 'react';
-import fs from 'fs';
+import React, { useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import path from 'path';
 import { observer } from 'mobx-react-lite';
 
@@ -81,6 +80,8 @@ const Inspector = observer(() => {
   let headerText;
   let headerSubtext;
 
+  useEffect;
+
   if (selectedFiles.length === 0) {
     headerText = 'No image selected';
   } else if (selectedFiles.length === 1) {
@@ -96,11 +97,10 @@ const Inspector = observer(() => {
       />
     );
     headerText = path.basename(singleFile.absolutePath);
-    headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.absolutePath).size)}`;
+    headerSubtext = `${ext} image - ${getBytes(singleFile.size)}}`;
   } else {
     // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
     // TODO: This will crash the app if the image can't be found - same for the other case a few lines earlier
-    const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.absolutePath).size, 0);
 
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
     // TODO: Would be nice to hover over an image and that all images before that get opacity 0.1
@@ -116,7 +116,7 @@ const Inspector = observer(() => {
       <Carousel items={selectedFiles} />
     );
     headerText = `${selectedFiles[0].name} and ${selectedFiles.length - 1} more`;
-    headerSubtext = getBytes(size);
+    headerSubtext = getBytes(selectedFiles.reduce((acc, f) => acc + f.size, 0));
   }
 
   if (selectedFiles.length > 0) {
