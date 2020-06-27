@@ -383,7 +383,7 @@ const Collection = observer((props: ICollectionProps) => {
         <span
           onClick={handleSelect}
           className={`after-icon ${nodeData.isEmpty ? Classes.DISABLED : ''}`}
-          data-left={nodeData.isEmpty ? 'You cannot select empty classes.' : undefined}
+          data-left={nodeData.isEmpty ? 'Can\'t select empty collection' : undefined}
         >
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </span>
