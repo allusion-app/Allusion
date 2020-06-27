@@ -131,13 +131,16 @@ export default class BaseRepository<T extends IResource> {
     return items;
   }
 
-  private async _find({ criteria }: IDbQueryRequest<T>, conjunction: SearchConjunction = 'and'): Promise<Dexie.Collection<T, string>> {
+  private async _find(
+    { criteria }: IDbQueryRequest<T>,
+    conjunction: SearchConjunction = 'and',
+  ): Promise<Dexie.Collection<T, string>> {
     // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
     // Unfortunately doesn't work out of the box.
     // It's one of the things they are working on, looks much better: https://github.com/dfahlander/Dexie.js/issues/427
     // We'll have to mostly rely on naive filter function (lambdas)
 
-    const criteriaList = Array.isArray(criteria) ? criteria : [criteria]
+    const criteriaList = Array.isArray(criteria) ? criteria : [criteria];
     if (conjunction === 'or') {
       // OR: We can only chain ORs if all filters can be "where" functions - else we do an ugly .some() check on every document
 
@@ -174,9 +177,8 @@ export default class BaseRepository<T extends IResource> {
     const where = this.collection.where(firstCrit.key as string);
     let table = where.equals(firstCrit.value);
     const whereOrFilter = this._filterWhere(where, firstCrit);
-    table = typeof whereOrFilter !== 'function'
-      ? whereOrFilter
-      : this.collection.filter(whereOrFilter);
+    table =
+      typeof whereOrFilter !== 'function' ? whereOrFilter : this.collection.filter(whereOrFilter);
 
     // Then just chain a loop of and() calls, not sure if more efficient than doing filter(t => crits.every(...))
     for (const crit of otherCrits) {
@@ -237,19 +239,18 @@ export default class BaseRepository<T extends IResource> {
       // Check whether to search for empty arrays (e.g. no tags)
       return crit.value.length === 0
         ? (val: T): boolean => (val as any)[crit.key as string].length === 0
-        : (val: T): boolean => crit.value.some((item) => (val as any)[crit.key as string].indexOf(item) !== -1);
+        : (val: T): boolean =>
+            crit.value.some((item) => (val as any)[crit.key as string].indexOf(item) !== -1);
     } else {
       // not contains
       return crit.value.length === 0
         ? (val: T): boolean => (val as any)[crit.key as string].length !== 0
-        : (val: T): boolean => crit.value.every((item) => (val as any)[crit.key as string].indexOf(item) === -1);
+        : (val: T): boolean =>
+            crit.value.every((item) => (val as any)[crit.key as string].indexOf(item) === -1);
     }
   }
 
-  private _filterStringWhere(
-    where: Dexie.WhereClause<T, string>,
-    crit: IStringSearchCriteria<T>,
-  ) {
+  private _filterStringWhere(where: Dexie.WhereClause<T, string>, crit: IStringSearchCriteria<T>) {
     type DbStringOperator = 'equalsIgnoreCase' | 'startsWithIgnoreCase';
     const funcName = ((operator: StringOperatorType): DbStringOperator | undefined => {
       switch (operator) {
@@ -296,10 +297,7 @@ export default class BaseRepository<T extends IResource> {
     return getFilterFunc(crit.operator);
   }
 
-  private _filterNumberWhere(
-    where: Dexie.WhereClause<T, string>,
-    crit: INumberSearchCriteria<T>,
-  ) {
+  private _filterNumberWhere(where: Dexie.WhereClause<T, string>, crit: INumberSearchCriteria<T>) {
     type DbNumberOperator =
       | 'equals'
       | 'notEqual'

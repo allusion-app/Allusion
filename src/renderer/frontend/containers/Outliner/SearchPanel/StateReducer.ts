@@ -136,12 +136,13 @@ export function reducer(state: State, action: Action): State {
 
     case Flag.Key: {
       const index = state.items.findIndex((i) => i.id === action.data.id);
-      const oldItem = state.items[index];
-      state.items[index] = { ...Default[action.data.value], id: action.data.id };
+      const oldKey = state.items[index].key;
       // Keep the text value and operator when switching between name and path
-      if ([oldItem.key, state.items[index].key].every((key) => ['name', 'absolutePath'].includes(key))) {
-        state.items[index].value = oldItem.value;
-        state.items[index].operator = oldItem.operator;
+      if ([oldKey, action.data.value].every((key) => ['name', 'absolutePath'].includes(key))) {
+        state.items[index] = { ...state.items[index], id: action.data.id };
+        state.items[index].key = action.data.value;
+      } else {
+        state.items[index] = { ...Default[action.data.value], id: action.data.id };
       }
       return { ...state };
     }

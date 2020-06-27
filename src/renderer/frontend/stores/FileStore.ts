@@ -153,7 +153,12 @@ class FileStore {
       const { uiStore } = this.rootStore;
       uiStore.closeQuickSearch();
       const criteria = new ClientArraySearchCriteria('tags', []).serialize();
-      const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder, uiStore.searchMatchAny);
+      const fetchedFiles = await this.backend.searchFiles(
+        criteria,
+        this.orderBy,
+        this.fileOrder,
+        uiStore.searchMatchAny,
+      );
       this.updateFromBackend(fetchedFiles);
       this.setContentUntagged();
     } catch (err) {
