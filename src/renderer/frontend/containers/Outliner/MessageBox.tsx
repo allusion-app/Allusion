@@ -91,7 +91,7 @@ export const TagRemoval = (props: IRemovalProps<ClientTag | ClientTagCollection>
           <p>{text}</p>
           {tagsToRemove.length > 0 && (
             <div id="tag-remove-overview">
-              <p>Currently selected tags</p>
+              <p>To be deleted tags:</p>
               {tagsToRemove.map((tag) => (
                 <span key={tag.id}>
                   <Tag intent="primary">{tag.name}</Tag>{' '}
