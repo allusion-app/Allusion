@@ -81,18 +81,24 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
       .filter((t) => t !== undefined) as ClientTag[];
   }
 
-  @computed get isEmpty(): boolean {
-    return this.tags.length === 0 && this.clientSubCollections.every((subCol) => subCol.isEmpty);
+  /**
+   * Returns whether this collection has any content.
+   *
+   * A collection is empty if it has no tags and all its descendants also do
+   * not have tags.
+   */
+  @computed get hasContent(): boolean {
+    return this.tags.length > 0 || this.clientSubCollections.some((subCol) => subCol.hasContent);
   }
 
   @computed get isSelected(): boolean {
     // If this collection is empty, act like it's selected when its parent is selected
-    if (this.id !== ROOT_TAG_COLLECTION_ID && this.isEmpty) {
+    if (this.id !== ROOT_TAG_COLLECTION_ID && !this.hasContent) {
       return this.parent.isSelected;
     }
     // Else check through children recursively
     // Todo: Not sure how costly this is. Seems fine.
-    const nonEmptySubCollections = this.clientSubCollections.filter((subCol) => !subCol.isEmpty);
+    const nonEmptySubCollections = this.clientSubCollections.filter((subCol) => subCol.hasContent);
     return (
       (this.tags.length > 0 || nonEmptySubCollections.length > 0) &&
       !this.tags.some((tag) => !this.store.isTagSelected(tag)) &&
