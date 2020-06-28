@@ -127,12 +127,18 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
     this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
   }
 
-  @action.bound insertCollection(collection: ClientTagCollection, at = 0): void {
-    collection.parent.subCollections.remove(collection.id);
-    this.subCollections.splice(at, 0, collection.id);
+  @action.bound insertCollection(col: ClientTagCollection, at = 0): void {
+    if (col.parent === this && this.subCollections.findIndex((c) => c === col.id) < at) {
+      at -= 1;
+    }
+    col.parent.subCollections.remove(col.id);
+    this.subCollections.splice(at, 0, col.id);
   }
 
   @action.bound insertTag(tag: ClientTag, at = 0): void {
+    if (tag.parent === this && this.tags.findIndex((t) => t === tag.id) < at) {
+      at -= 1;
+    }
     tag.parent.tags.remove(tag.id);
     this.tags.splice(at, 0, tag.id);
   }

@@ -224,7 +224,18 @@ main,
   width: 100%;
 
   &[data-dnd-target='true'] {
-    border-bottom: 2px solid $blue1;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+  }
+
+  &[data-dnd-target-top='true'] {
+    color: var(--primary-color);
+    border-top: 2px solid var(--primary-color);
+  }
+
+  &[data-dnd-target-bottom='true'] {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
   }
 
   &[data-dnd-source='true'] {
