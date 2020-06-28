@@ -9,6 +9,8 @@ import {
   NumericInput,
   HTMLSelect,
   InputGroup,
+  Switch,
+  ButtonGroup,
 } from '@blueprintjs/core';
 
 import {
@@ -38,6 +40,8 @@ import {
   TagValue,
 } from './StateReducer';
 
+import './search.scss';
+
 interface IKeySelector {
   id: ID;
   dispatch: React.Dispatch<Action>;
@@ -51,7 +55,7 @@ const KeyOptions = [
   <option key="name" value="name">
     File name
   </option>,
-  <option key="path" value="path">
+  <option key="absolutePath" value="absolutePath">
     File path
   </option>,
   <option key="extension" value="extension">
@@ -156,7 +160,6 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
   if (keyValue === 'name' || keyValue === 'absolutePath') {
     return (
       <InputGroup
-        key={keyValue}
         autoFocus
         placeholder="Enter some text..."
         defaultValue={value as string}
@@ -226,17 +229,18 @@ const CriteriaItem = observer(({ criteria, dispatch, removable }: ICriteriaItemP
   );
 });
 
-const SearchForm = ({
-  uiStore: {
-    searchCriteriaList,
-    openQuickSearch,
-    replaceSearchCriterias,
-    clearSearchCriteriaList,
-    closeAdvancedSearch,
-  },
-}: {
-  uiStore: UiStore;
-}) => {
+const SearchForm = observer((props: { uiStore: UiStore }) => {
+  const {
+    uiStore: {
+      searchCriteriaList,
+      openQuickSearch,
+      replaceSearchCriterias,
+      clearSearchCriteriaList,
+      closeAdvancedSearch,
+      searchMatchAny,
+      toggleSearchMatchAny,
+    },
+  } = props;
   const [state, dispatch] = useReducer(reducer, {
     items: searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : defaultState(),
   });
@@ -270,10 +274,29 @@ const SearchForm = ({
         ))}
       </FormGroup>
 
-      <Button text="Add" icon={IconSet.ADD} onClick={add} minimal className="btn-blank" />
+      <div id="functions-bar">    
+        <Button text="Add" icon={IconSet.ADD} onClick={add} className="" />
+        <Switch
+          inline
+          large
+          label="Match"
+          innerLabel="All"
+          innerLabelChecked="Any"
+          alignIndicator="right"
+          checked={searchMatchAny}
+          onChange={toggleSearchMatchAny}
+        />
+      </div>
 
-      <div>
-        <div id="actions-bar" className="bp3-alert-footer">
+      <div id="actions-bar">
+        <ButtonGroup>
+          <Button
+            text="Reset"
+            onClick={reset}
+            disabled={state.items.length === 0}
+            icon={IconSet.CLOSE}
+            fill
+          />
           <Button
             intent="primary"
             text="Search"
@@ -282,18 +305,11 @@ const SearchForm = ({
             icon={IconSet.SEARCH}
             fill
           />
-          <Button
-            text="Reset"
-            onClick={reset}
-            disabled={state.items.length === 0}
-            icon={IconSet.CLOSE}
-            fill
-          />
-        </div>
+        </ButtonGroup>
       </div>
     </div>
   );
-};
+});
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);

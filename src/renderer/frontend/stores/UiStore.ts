@@ -116,6 +116,7 @@ class UiStore {
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
+  @observable searchMatchAny = false;
   @observable method: ViewMethod = 'grid';
   @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
@@ -304,6 +305,10 @@ class UiStore {
 
   @action.bound closeAdvancedSearch() {
     this.isAdvancedSearchOpen = false;
+  }
+
+  @action.bound toggleSearchMatchAny() {
+    this.searchMatchAny = !this.searchMatchAny;
   }
 
   @action.bound toggleToolbarVertical() {

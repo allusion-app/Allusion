@@ -210,72 +210,21 @@ form,
 
 .bp3-dark {
   #preview-toolbar .bp3-control {
-    color: $light-gray1 !important;
+    color: $light-gray6;
   }
 
   .bp3-control {
     color: $dark-gray4;
   }
+  .bp3-control-indicator-child:nth-child(2) {
+    color: $light-gray3;
+  }
 }
 
-// Advanced search & Dialogs > Move off center
+// Size and positioning of dialog modals (moved off-center)
 .bp3-dialog {
   width: 650px !important;
   margin-bottom: 20vh;
-}
-
-#search-form {
-  .bp3-popover-target {
-    width: 100%;
-  }
-
-  #actions-bar {
-    float: right;
-  }
-
-  .criteria {
-    display: flex;
-    margin-bottom: 0.25rem;
-
-    .bp3-control-group {
-      padding: 0px;
-    }
-
-    .add-remove {
-      flex-grow: 0;
-      margin-left: 8px;
-
-      button {
-        min-width: 15px;
-        min-height: 15px;
-        width: 15px;
-        height: 15px;
-        line-height: 0;
-        padding: 0;
-        font-size: 16px;
-      }
-
-      button:hover * {
-        line-height: 0;
-      }
-    }
-
-    .remove {
-      flex-grow: 0;
-      margin-left: 8px;
-
-      line-height: 0;
-      padding: 0;
-      font-size: 16px;
-      width: 15px;
-      // min-width: 15px;
-    }
-  }
-  .bp3-popover-wrapper,
-  .bp3-tag-input-values {
-    // input {
-    max-width: 200px;
-  }
 }
 
 #system-tags {
@@ -304,7 +253,7 @@ form,
   > span {
     // margin-right: 6px !important;
     // border-radius: 6px !important;
-    border-right: 1px solid rgba(var(--light-gray1-rgb), 0.5);
+    border-right: 1px solid rgba(var(--light-gray1-rgb), 0.75);
     max-width: 150px !important;
     width: 150px !important;
   }
@@ -1189,7 +1138,8 @@ li .bp3-menu-item {
 }
 
 .bp3-drawer .bp3-intent-warning .custom-icon,
-#actions-bar button .bp3-icon {
+#actions-bar button .bp3-icon,
+#functions-bar button .bp3-icon {
   color: white !important;
 }
 
