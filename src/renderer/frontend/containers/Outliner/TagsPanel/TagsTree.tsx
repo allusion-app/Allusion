@@ -395,8 +395,8 @@ const Collection = observer((props: ICollectionProps) => {
       {!isEditing && (
         <span
           onClick={handleSelect}
-          className={`after-icon ${nodeData.isEmpty ? Classes.DISABLED : ''}`}
-          data-left={nodeData.isEmpty ? 'You cannot select empty classes.' : undefined}
+          className={`after-icon ${nodeData.hasContent ? '' : Classes.DISABLED}`}
+          data-left={nodeData.hasContent ? undefined : 'Collection has no content.'}
         >
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </span>
@@ -765,7 +765,7 @@ const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
       </div>
 
       <Collapse isOpen={!isCollapsed}>
-        {root.isEmpty ? (
+        {root.subCollections.length === 0 && root.tags.length === 0 ? (
           <div className="tree-content-label" style={{ padding: '0.25rem' }}>
             <span className="pre-icon">{IconSet.INFO}</span>
             No tags or collections created yet
