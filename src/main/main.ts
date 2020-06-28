@@ -128,7 +128,7 @@ function createWindow() {
         label: 'Actual Size',
         accelerator: 'CommandOrControl+0',
         click: (_, browserWindow) => {
-          browserWindow.webContents.setZoomFactor(1);
+          browserWindow.webContents.zoomFactor = 1;
         },
       },
       {
@@ -136,14 +136,14 @@ function createWindow() {
         // TODO: Fix by using custom solution...
         accelerator: 'CommandOrControl+=',
         click: (_, browserWindow) => {
-          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() + 0.1);
+          browserWindow.webContents.zoomFactor += 0.1;
         },
       },
       {
         label: 'Zoom Out',
         accelerator: 'CommandOrControl+-',
         click: (_, browserWindow) => {
-          browserWindow.webContents.setZoomFactor(browserWindow.webContents.getZoomFactor() - 0.1);
+          browserWindow.webContents.zoomFactor -= 0.1;
         },
       },
       { type: 'separator' },

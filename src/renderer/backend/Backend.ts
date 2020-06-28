@@ -69,9 +69,10 @@ export default class Backend {
     criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
     order: keyof IFile,
     fileOrder: FileOrder,
+    matchAny?: boolean,
   ): Promise<IFile[]> {
-    console.log('Backend: Searching files...', criteria);
-    return this.fileRepository.find({ criteria, order, fileOrder });
+    console.log('Backend: Searching files...', criteria, { matchAny });
+    return this.fileRepository.find({ criteria, order, fileOrder, matchAny });
   }
 
   async createTag(tag: ITag): Promise<ITag> {
