@@ -57,26 +57,32 @@ class LocationStore {
     for (let i = 0; i < locations.length; i++) {
       const loc = locations[i];
 
-      AppToaster.show({
-        // icon: '',
-        intent: 'none',
-        message: `Looking for new images... [${i + 1} / ${locations.length}]`,
-        timeout: 0,
-      }, progressToastKey);
+      AppToaster.show(
+        {
+          // icon: '',
+          intent: 'none',
+          message: `Looking for new images... [${i + 1} / ${locations.length}]`,
+          timeout: 0,
+        },
+        progressToastKey,
+      );
 
       // Find all files in this location
       const filePaths = await loc.init();
 
       if (loc.isBroken) {
-        AppToaster.show({
-          intent: 'warning',
-          message: `Cannot find Location "${loc.name}"`,
-          action: {
-            text: 'Recover',
-            onClick: () => this.rootStore.uiStore.openLocationRecovery(loc.id),
+        AppToaster.show(
+          {
+            intent: 'warning',
+            message: `Cannot find Location "${loc.name}"`,
+            action: {
+              text: 'Recover',
+              onClick: () => this.rootStore.uiStore.openLocationRecovery(loc.id),
+            },
+            timeout: 0,
           },
-          timeout: 0,
-        }, `missing-loc-${loc.id}`); // a key such that the toast can be dismissed automatically on recovery
+          `missing-loc-${loc.id}`,
+        ); // a key such that the toast can be dismissed automatically on recovery
         continue;
       }
 
@@ -86,45 +92,54 @@ class LocationStore {
 
       // Find all files that have been created (those on disk but not in DB)
       // TODO: Can be optimized: Sort dbFiles, so the includes check can be a binary search
-      const createdPaths = filePaths.filter(path => !dbFiles.find(dbFile => dbFile.absolutePath === path));
+      const createdPaths = filePaths.filter(
+        (path) => !dbFiles.find((dbFile) => dbFile.absolutePath === path),
+      );
       const createdFiles = await Promise.all(
-        createdPaths.map((path) => this.pathToIFile(path, loc.id, loc.tagsToAdd.toJS())));
+        createdPaths.map((path) => this.pathToIFile(path, loc.id, loc.tagsToAdd.toJS())),
+      );
 
       // Find all files that have been removed (those in DB but not on disk)
-      const missingFiles = dbFiles.filter(file => !filePaths.includes(file.absolutePath));
+      const missingFiles = dbFiles.filter((file) => !filePaths.includes(file.absolutePath));
 
       // Find matches between removed and created images (different name/path but same characteristics)
       // TODO: Should we also do cross-location matching?
-      const matches = missingFiles.map(
-        mf => createdFiles.find(
-          cf => (
-            mf.width === cf.width &&
-            mf.height === cf.height &&
-            mf.size === cf.size
-          )));
+      const matches = missingFiles.map((mf) =>
+        createdFiles.find(
+          (cf) => mf.width === cf.width && mf.height === cf.height && mf.size === cf.size,
+        ),
+      );
 
-      const foundMatches = matches.filter(m => m !== undefined);
+      const foundMatches = matches.filter((m) => m !== undefined);
       if (foundMatches.length > 0) {
-        console.log(`DEBUG: Found ${foundMatches.length} renamed/moved files in location ${loc.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`);
+        console.log(
+          `DEBUG: Found ${foundMatches.length} renamed/moved files in location ${loc.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
+        );
         // These files have been renamed -> update backend file to retain tags
         // TODO: remove thumbnail as well (clean-up needed, since the path changed)
-        await Promise.all(matches.map((match, missingFilesIndex) => !match ? undefined :
-          this.backend.saveFile({
-            ...missingFiles[missingFilesIndex],
-            absolutePath: match.absolutePath,
-            relativePath: match.relativePath,
-          }),
-        ));
+        await Promise.all(
+          matches.map((match, missingFilesIndex) =>
+            !match
+              ? undefined
+              : this.backend.saveFile({
+                  ...missingFiles[missingFilesIndex],
+                  absolutePath: match.absolutePath,
+                  relativePath: match.relativePath,
+                }),
+          ),
+        );
       }
 
       // For createdFiles without a match, insert them in the DB as new files
-      const newFiles = createdFiles.filter(cf => !matches.includes(cf));
+      const newFiles = createdFiles.filter((cf) => !matches.includes(cf));
       await this.backend.createFilesFromPath(loc.path, newFiles);
 
       // For dbFiles without a match, mark them as missing (decided not to permanently delete them)
-      const deletedFiles = matches.map((match, i) => !match ? missingFiles[i] : undefined);
+      const deletedFiles = matches.map((match, i) => (!match ? missingFiles[i] : undefined));
       if (deletedFiles.length > 0) {
-        console.log(`DEBUG: Found ${deletedFiles.length} removed files in location ${loc.name}. This will be shown as 'broken' images and will have to be removed manually in the Recovery panel`);
+        console.log(
+          `DEBUG: Found ${deletedFiles.length} removed files in location ${loc.name}. This will be shown as 'broken' images and will have to be removed manually in the Recovery panel`,
+        );
         // They'll be marked as broken after being fetched. The user will have to manually remove them then, no need to update with isBroken
         // await Promise.all(deletedFiles.map(f => this.backend.saveFile({ ...f, isBroken: true });
       }
@@ -135,14 +150,17 @@ class LocationStore {
     }
 
     if (foundNewFiles) {
-      AppToaster.show({
-        message: 'New images detected!',
-        intent: 'success',
-        action: {
-          text: 'Refresh',
-          onClick: this.rootStore.fileStore.refetch,
-        }
-      }, progressToastKey);
+      AppToaster.show(
+        {
+          message: 'New images detected!',
+          intent: 'success',
+          action: {
+            text: 'Refresh',
+            onClick: this.rootStore.fileStore.refetch,
+          },
+        },
+        progressToastKey,
+      );
     } else {
       AppToaster.dismiss(progressToastKey);
     }
@@ -179,8 +197,8 @@ class LocationStore {
     // First, update the absolute path of all files from this location
     const locFiles = await this.findLocationFiles(location.id);
     await Promise.all(
-      locFiles.map(
-        f => this.backend.saveFile({
+      locFiles.map((f) =>
+        this.backend.saveFile({
           ...f,
           absolutePath: SysPath.join(newPath, f.relativePath),
         }),
@@ -228,40 +246,53 @@ class LocationStore {
   @action.bound async initializeLocation(loc: ClientLocation) {
     const toastKey = `initialize-${loc.id}`;
 
-    AppToaster.show({
-      message: 'Finding all images...',
-      timeout: 0,
-      action: {
-        text: 'Cancel',
-        onClick: () => alert('TODO: Cancel image loading, e.g. when picking the system root. Should show popup warning with "importing will start when reloading the application. If this is not desired, remove the location')
-      }
-    }, toastKey);
+    AppToaster.show(
+      {
+        message: 'Finding all images...',
+        timeout: 0,
+        action: {
+          text: 'Cancel',
+          onClick: () =>
+            alert(
+              'TODO: Cancel image loading, e.g. when picking the system root. Should show popup warning with "importing will start when reloading the application. If this is not desired, remove the location',
+            ),
+        },
+      },
+      toastKey,
+    );
     const filePaths = await loc.init();
 
-    AppToaster.show({
-      message: 'Gathering image metadata...',
-      timeout: 0,
-      action: {
-        text: 'Cancel',
-        onClick: () => alert('TODO: Should also support cancelling here')
-      }
-    }, toastKey);
+    AppToaster.show(
+      {
+        message: 'Gathering image metadata...',
+        timeout: 0,
+        action: {
+          text: 'Cancel',
+          onClick: () => alert('TODO: Should also support cancelling here'),
+        },
+      },
+      toastKey,
+    );
     // TODO: Should use a promise pool for this
     const files = await Promise.all(
-      filePaths.map(path => this.pathToIFile(path, loc.id, loc.tagsToAdd.toJS())));
+      filePaths.map((path) => this.pathToIFile(path, loc.id, loc.tagsToAdd.toJS())),
+    );
 
     AppToaster.show({ message: 'Updating database...', timeout: 0 }, toastKey);
     await this.backend.createFilesFromPath(loc.path, files);
 
-    AppToaster.show({
-      message: `Location "${loc.name}" is ready!`,
-      intent: 'success',
-      timeout: 0,
-      action: {
-        text: 'Refresh',
-        onClick: this.rootStore.fileStore.refetch,
-      }
-    }, toastKey);
+    AppToaster.show(
+      {
+        message: `Location "${loc.name}" is ready!`,
+        intent: 'success',
+        timeout: 0,
+        action: {
+          text: 'Refresh',
+          onClick: this.rootStore.fileStore.refetch,
+        },
+      },
+      toastKey,
+    );
   }
 
   @action.bound async removeDirectory(id: ID) {
@@ -271,7 +302,7 @@ class LocationStore {
       return;
     }
 
-    const filesToRemove = await this.findLocationFiles(id)
+    const filesToRemove = await this.findLocationFiles(id);
     await this.rootStore.fileStore.removeFilesById(filesToRemove.map((f) => f.id));
 
     // Remove location locally

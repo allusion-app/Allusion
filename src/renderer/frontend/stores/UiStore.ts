@@ -488,7 +488,7 @@ class UiStore {
   /**
    * @param targetId Where to move the selection to
    */
-  @action.bound async moveSelectedTagItems(id: ID) {
+  @action.bound moveSelectedTagItems(id: ID) {
     const { tagStore, tagCollectionStore } = this.rootStore;
 
     const target = tagStore.get(id) || tagCollectionStore.get(id);

@@ -166,8 +166,7 @@ class FileStore {
     }
   }
 
-  @action.bound
-  async fetchFilesByQuery() {
+  @action.bound async fetchFilesByQuery() {
     const { uiStore } = this.rootStore;
     const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) => c.serialize());
     if (criteria.length === 0) {
