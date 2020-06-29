@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useReducer } from 'react';
+import React, { useMemo, useState, useCallback, useReducer, useContext } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { ContextMenu, Collapse, Button, H4, Icon, InputGroup, Classes } from '@blueprintjs/core';
@@ -35,6 +35,9 @@ import {
 import { formatTagCountText } from 'src/renderer/frontend/utils';
 import { IExpansionState } from '..';
 import { Action, State, Factory, reducer } from './StateReducer';
+import TagStore from 'src/renderer/frontend/stores/TagStore';
+import TagCollectionStore from 'src/renderer/frontend/stores/TagCollectionStore';
+import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 
 interface ILabelProps {
   /** SVG element */
@@ -86,7 +89,6 @@ const Label = (props: ILabelProps) => (
 
 interface ITagProps {
   nodeData: ClientTag;
-  uiStore: UiStore;
   dispatch: React.Dispatch<Action>;
   isEditing: boolean;
   submit: (target: EventTarget & HTMLInputElement) => void;
@@ -135,12 +137,17 @@ const toggleQuery = (nodeData: ClientTagCollection | ClientTag, uiStore: UiStore
 };
 
 const Tag = observer((props: ITagProps) => {
-  const { nodeData, uiStore, dispatch, isEditing, submit, pos, select } = props;
+  const { nodeData, dispatch, isEditing, submit, pos, select } = props;
+  const { tagStore, uiStore } = useContext(StoreContext);
+
   const handleContextMenu = useCallback(
     (e) =>
       ContextMenu.show(
         <TagContextMenu dispatch={dispatch} nodeData={nodeData} uiStore={uiStore} />,
-        { left: e.clientX, top: e.clientY },
+        {
+          left: e.clientX,
+          top: e.clientY,
+        },
       ),
     [dispatch, nodeData, uiStore],
   );
@@ -179,7 +186,7 @@ const Tag = observer((props: ITagProps) => {
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
         event.dataTransfer.dropEffect = 'none';
         const id = event.dataTransfer.getData(DnDType.Tag);
-        const tag = uiStore.rootStore.tagStore.get(id);
+        const tag = tagStore.get(id);
         if (tag) {
           const index = pos - nodeData.parent.subCollections.length - 1; // 'pos' does not start from 0!
           nodeData.parent.insertTag(
@@ -192,7 +199,7 @@ const Tag = observer((props: ITagProps) => {
         delete dataSet[DnDAttribute.Target + 'Bottom'];
       }
     },
-    [nodeData.id, nodeData.parent, pos, uiStore],
+    [nodeData.id, nodeData.parent, pos, tagStore, uiStore],
   );
 
   const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
@@ -249,7 +256,8 @@ interface ICollectionProps extends Omit<ITagProps, 'nodeData'> {
 }
 
 const Collection = observer((props: ICollectionProps) => {
-  const { nodeData, dispatch, expansion, isEditing, submit, pos, uiStore, select } = props;
+  const { nodeData, dispatch, expansion, isEditing, submit, pos, select } = props;
+  const { tagCollectionStore, tagStore, uiStore } = useContext(StoreContext);
 
   const handleContextMenu = useCallback(
     (e) =>
@@ -259,11 +267,13 @@ const Collection = observer((props: ICollectionProps) => {
           expansion={expansion}
           nodeData={nodeData}
           pos={pos}
+          tagCollectionStore={tagCollectionStore}
+          tagStore={tagStore}
           uiStore={uiStore}
         />,
         { left: e.clientX, top: e.clientY },
       ),
-    [dispatch, expansion, nodeData, pos, uiStore],
+    [dispatch, expansion, nodeData, pos, tagCollectionStore, tagStore, uiStore],
   );
 
   const handleDragStart = useCallback(
@@ -289,7 +299,7 @@ const Collection = observer((props: ICollectionProps) => {
         (t) => t === DnDType.Tag || t === DnDType.Collection,
         (t) => {
           if (t === DnDType.Collection) {
-            const draggedCollection = uiStore.rootStore.tagCollectionStore.get(DragItem.id);
+            const draggedCollection = tagCollectionStore.get(DragItem.id);
             if (draggedCollection) {
               // An ancestor cannot be a descendant!
               return !draggedCollection.containsSubCollection(nodeData.id);
@@ -305,7 +315,7 @@ const Collection = observer((props: ICollectionProps) => {
           }
         },
       ),
-    [dispatch, expansion, nodeData.id, nodeData.isSelected, uiStore.rootStore.tagCollectionStore],
+    [dispatch, expansion, nodeData.id, nodeData.isSelected, tagCollectionStore],
   );
 
   const handleDrop = useCallback(
@@ -321,7 +331,7 @@ const Collection = observer((props: ICollectionProps) => {
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
         event.dataTransfer.dropEffect = 'none';
         const id = event.dataTransfer.getData(DnDType.Tag);
-        const tag = uiStore.rootStore.tagStore.get(id);
+        const tag = tagStore.get(id);
         if (tag) {
           nodeData.insertTag(tag);
         }
@@ -331,7 +341,7 @@ const Collection = observer((props: ICollectionProps) => {
       } else if (event.dataTransfer.types.includes(DnDType.Collection)) {
         event.dataTransfer.dropEffect = 'none';
         const id = event.dataTransfer.getData(DnDType.Collection);
-        const collection = uiStore.rootStore.tagCollectionStore.get(id);
+        const collection = tagCollectionStore.get(id);
         if (collection && !collection.containsSubCollection(nodeData.id)) {
           if (dataSet[DnDAttribute.Target]) {
             nodeData.insertCollection(collection);
@@ -346,7 +356,7 @@ const Collection = observer((props: ICollectionProps) => {
         delete dataSet[DnDAttribute.Target + 'Bottom'];
       }
     },
-    [nodeData, pos, uiStore],
+    [nodeData, pos, tagCollectionStore, tagStore, uiStore],
   );
 
   const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
@@ -425,7 +435,6 @@ const TagLabel = (
     dispatch={treeData.dispatch}
     isEditing={treeData.state.editableNode === nodeData.id}
     submit={treeData.submit}
-    uiStore={treeData.uiStore}
     pos={pos}
     select={treeData.select}
   />
@@ -445,7 +454,6 @@ const CollectionLabel = (
     isEditing={treeData.state.editableNode === nodeData.id}
     submit={treeData.submit}
     pos={pos}
-    uiStore={treeData.uiStore}
     select={treeData.select}
   />
 );
@@ -610,11 +618,12 @@ const mapCollection = (collection: ClientTagCollection): ITreeBranch => {
 
 interface ITagsTreeProps {
   root: ClientTagCollection;
+  tagCollectionStore: TagCollectionStore;
+  tagStore: TagStore;
   uiStore: UiStore;
 }
 
-const TagsTree = observer(({ root, uiStore }: ITagsTreeProps) => {
-  const { tagStore, tagCollectionStore } = uiStore.rootStore;
+const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITagsTreeProps) => {
   const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   const [state, dispatch] = useReducer(reducer, {
