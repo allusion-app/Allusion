@@ -111,7 +111,6 @@ class UiStore {
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
-  @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
   @observable isLocationRecoveryOpen: ID | null = null;
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
@@ -247,14 +246,6 @@ class UiStore {
 
   @action.bound closeToolbarTagSelector() {
     this.isToolbarTagSelectorOpen = false;
-  }
-
-  @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
-    this.isOutlinerTagRemoverOpen = val || 'selected';
-  }
-
-  @action.bound closeOutlinerTagRemover() {
-    this.isOutlinerTagRemoverOpen = null;
   }
 
   @action.bound openLocationRecovery(locationId: ID) {
@@ -413,9 +404,14 @@ class UiStore {
     }
   }
 
-  @action.bound async colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
+  @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
     const ctx = this.getTagContextItems(activeElementId);
-    ctx.collections.forEach((col) => col.setColor(color));
+    const colorCollection = (collection: ClientTagCollection) => {
+      collection.setColor(color);
+      collection.clientTags.forEach((tag) => tag.setColor(color));
+      collection.clientSubCollections.forEach(colorCollection);
+    };
+    ctx.collections.forEach(colorCollection);
     ctx.tags.forEach((tag) => tag.setColor(color));
   }
 

@@ -295,14 +295,10 @@ class LocationStore {
     );
   }
 
-  @action.bound async removeDirectory(id: ID) {
-    const watchedDir = this.locationList.find((dir) => dir.id === id);
-    if (!watchedDir) {
-      console.log('Cannot remove watched directory: ID not found', id);
-      return;
-    }
+  @action.bound async removeDirectory(watchedDir: ClientLocation) {
+    watchedDir.dispose();
 
-    const filesToRemove = await this.findLocationFiles(id);
+    const filesToRemove = await this.findLocationFiles(watchedDir.id);
     await this.rootStore.fileStore.removeFilesById(filesToRemove.map((f) => f.id));
 
     // Remove location locally

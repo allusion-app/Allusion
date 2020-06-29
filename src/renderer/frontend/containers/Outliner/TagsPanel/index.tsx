@@ -16,7 +16,7 @@ const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
   const { fileStore, tagCollectionStore, uiStore } = rootStore;
 
   return (
-    <div tabIndex={0}>
+    <>
       <TagsTree root={tagCollectionStore.getRootCollection()} uiStore={uiStore} />
 
       <div className="bp3-divider" />
@@ -51,20 +51,21 @@ const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
           />
         </ButtonGroup>
       </div>
-    </div>
+    </>
   );
 });
 
 @HotkeysTarget
 class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
-    return <TagsPanel rootStore={this.props.rootStore} />;
+    return (
+      <div tabIndex={0}>
+        <TagsPanel rootStore={this.props.rootStore} />
+      </div>
+    );
   }
   selectAllTags = () => {
     this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());
-  };
-  openTagRemover = () => {
-    this.props.rootStore.uiStore.openOutlinerTagRemover();
   };
   renderHotkeys() {
     const { uiStore } = this.props.rootStore;
@@ -81,12 +82,6 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
           combo={hotkeyMap.deselectAll}
           label="Deselect all tags in the outliner"
           onKeyDown={uiStore.clearTagSelection}
-          group="Outliner"
-        />
-        <Hotkey
-          combo={hotkeyMap.deleteSelection}
-          label="Delete the selected tags and collections"
-          onKeyDown={this.openTagRemover}
           group="Outliner"
         />
       </Hotkeys>

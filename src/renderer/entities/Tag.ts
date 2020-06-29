@@ -57,7 +57,7 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   @computed get viewColor(): string {
-    return this.color || this.parent.viewColor;
+    return this.color === 'inherit' ? this.parent.viewColor : this.color;
   }
 
   @computed get isSearched(): boolean {

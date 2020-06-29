@@ -801,8 +801,7 @@ nav .bp3-divider {
 }
 
 .bp3-menu-item,
-.bp3-portal #fileTag:only-child,
-.bp3-portal #deleteFile:only-child > * {
+.bp3-portal #fileTag:only-child {
   padding: 0.25rem 0.25rem;
 }
 
@@ -841,7 +840,6 @@ li .bp3-menu-item {
 }
 
 // Icons
-.bp3-dark .bp3-icon:not(.bp3-icon-small-cross),
 .bp3-dark .bp3-button:not([class*='-primary']) .bp3-icon,
 .bp3-dark .bp3-button:not([class*='-active']) .bp3-icon,
 .bp3-dark .bp3-button:not([class*='bp3-intent-']) .bp3-icon-standard,

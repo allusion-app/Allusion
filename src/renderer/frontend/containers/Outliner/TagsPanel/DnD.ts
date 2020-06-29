@@ -64,7 +64,7 @@ export function onDragOver(
   sideEffect?: () => void,
 ) {
   const dropTarget = event.currentTarget;
-  const isSource = event.currentTarget.dataset[DnDAttribute.Source] === 'true';
+  const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
   if (isSource || (DragItem.isSelected && isSelected)) {
     return;
   }
@@ -74,7 +74,19 @@ export function onDragOver(
     event.dataTransfer.dropEffect = dropEffect;
     event.preventDefault();
     event.stopPropagation();
-    dropTarget.dataset[DnDAttribute.Target] = 'true';
+    delete dropTarget.dataset[DnDAttribute.Target];
+    delete dropTarget.dataset[DnDAttribute.Target + 'Top'];
+    delete dropTarget.dataset[DnDAttribute.Target + 'Bottom'];
+    const posY = event.clientY;
+    const rect = dropTarget.getBoundingClientRect();
+    const [top, bottom] = [rect.top + 8, rect.bottom - 8];
+    if (posY <= top) {
+      dropTarget.dataset[DnDAttribute.Target + 'Top'] = 'true';
+    } else if (posY >= bottom) {
+      dropTarget.dataset[DnDAttribute.Target + 'Bottom'] = 'true';
+    } else {
+      dropTarget.dataset[DnDAttribute.Target] = 'true';
+    }
     sideEffect?.();
   }
 }
@@ -85,6 +97,8 @@ function onDragLeave(event: React.DragEvent<HTMLDivElement>, accept: (t: string)
     event.preventDefault();
     event.stopPropagation();
     delete event.currentTarget.dataset[DnDAttribute.Target];
+    delete event.currentTarget.dataset[DnDAttribute.Target + 'Top'];
+    delete event.currentTarget.dataset[DnDAttribute.Target + 'Bottom'];
   }
 }
 

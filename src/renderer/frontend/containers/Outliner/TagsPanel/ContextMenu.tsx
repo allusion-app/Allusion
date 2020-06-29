@@ -10,6 +10,7 @@ import { IExpansionState } from '..';
 import { ID } from 'src/renderer/entities/ID';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
+import { ClientTag } from 'src/renderer/entities/Tag';
 
 interface IColorOptions {
   label: string;
@@ -17,7 +18,6 @@ interface IColorOptions {
 }
 
 const defaultColorOptions: IColorOptions[] = [
-  { label: 'Default', value: '' },
   { label: 'Eminence', value: '#5f3292' },
   { label: 'Indigo', value: '#5642A6' },
   { label: 'Blue Ribbon', value: '#143ef1' },
@@ -51,16 +51,32 @@ const ColorPickerMenu = observer(
         text={`Color${contextText}`}
         icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
       >
+        <MenuItem
+          key="none"
+          text="None"
+          onClick={() => onChange('')}
+          icon={
+            <Icon icon={selectedColor === '' ? 'tick-circle' : 'circle'} color={defaultColor} />
+          }
+        />
+        <MenuItem
+          key="inherit"
+          text="Inherit"
+          onClick={() => onChange('inherit')}
+          icon={
+            <Icon
+              icon={selectedColor === 'inherit' ? 'tick-circle' : 'circle'}
+              color={defaultColor} // Rainbow gradient?
+            />
+          }
+        />
         {defaultColorOptions.map(({ label, value }) => (
           <MenuItem
             key={label}
             text={label}
             onClick={() => onChange(value)}
             icon={
-              <Icon
-                icon={selectedColor === value ? 'tick-circle' : value ? 'full-circle' : 'circle'}
-                color={value || defaultColor}
-              />
+              <Icon icon={selectedColor === value ? 'tick-circle' : 'full-circle'} color={value} />
             }
           />
         ))}
@@ -69,9 +85,7 @@ const ColorPickerMenu = observer(
             color={selectedColor || defaultColor}
             onChangeComplete={handlePickCustomColor}
             disableAlpha
-            presetColors={defaultColorOptions
-              .filter((opt) => Boolean(opt.value))
-              .map((opt) => opt.value)}
+            presetColors={defaultColorOptions.map((opt) => opt.value)}
           />
         </MenuItem>
       </MenuItem>
@@ -116,38 +130,42 @@ const SearchMenu = (props: ISearchMenuProps) => {
 };
 
 interface ITagMenuProps {
-  id: ID;
-  color: string;
-  isSelected: boolean;
+  nodeData: ClientTag;
   uiStore: UiStore;
   dispatch: React.Dispatch<Action>;
 }
 
-export const TagContextMenu = ({ id, color, isSelected, uiStore, dispatch }: ITagMenuProps) => {
-  const { tags, collections } = uiStore.getTagContextItems(id);
+export const TagContextMenu = ({ nodeData, uiStore, dispatch }: ITagMenuProps) => {
+  const { tags, collections } = uiStore.getTagContextItems(nodeData.id);
   let contextText = formatTagCountText(Math.max(0, tags.length - 1), collections.length);
   contextText = contextText && ` (${contextText})`;
 
   return (
     <Menu>
       <EditMenu
-        rename={() => dispatch(Factory.enableEditing(id))}
-        delete={() => uiStore.openOutlinerTagRemover(isSelected ? 'selected' : id)}
-        color={color}
-        setColor={(color) => uiStore.colorSelectedTagsAndCollections(id, color)}
+        rename={() => dispatch(Factory.enableEditing(nodeData.id))}
+        delete={() => dispatch(Factory.confirmDeletion(nodeData))}
+        color={nodeData.color}
+        setColor={(color: string) => {
+          if (nodeData.isSelected) {
+            uiStore.colorSelectedTagsAndCollections(nodeData.id, color);
+          } else {
+            nodeData.setColor(color);
+          }
+        }}
         contextText={contextText}
       />
       <Divider />
       <SearchMenu
         addSearch={() =>
-          isSelected
+          nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', id))
+            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
         }
         replaceSearch={() =>
-          isSelected
+          nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', id))
+            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
         }
       />
     </Menu>
@@ -220,11 +238,15 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
       />
       <EditMenu
         rename={() => dispatch(Factory.enableEditing(nodeData.id))}
-        delete={() =>
-          uiStore.openOutlinerTagRemover(nodeData.isSelected ? 'selected' : nodeData.id)
-        }
+        delete={() => dispatch(Factory.confirmDeletion(nodeData))}
         color={nodeData.color}
-        setColor={(color: string) => uiStore.colorSelectedTagsAndCollections(nodeData.id, color)}
+        setColor={(color: string) => {
+          if (nodeData.isSelected) {
+            uiStore.colorSelectedTagsAndCollections(nodeData.id, color);
+          } else {
+            nodeData.setColor(color);
+          }
+        }}
         contextText={contextText}
       />
       <Divider />
