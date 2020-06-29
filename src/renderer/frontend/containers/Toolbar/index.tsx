@@ -84,7 +84,7 @@ const Toolbar = observer(() => {
   return (
     <div id="toolbar">
       <OutlinerToolbar />
-      {!Boolean(uiStore.isToolbarVertical) && <ContentToolbar />}
+      {!uiStore.isToolbarVertical && <ContentToolbar />}
       <InspectorToolbar
         isInspectorOpen={uiStore.isInspectorOpen}
         toggleInspector={uiStore.toggleInspector}

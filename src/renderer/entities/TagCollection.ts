@@ -129,8 +129,8 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
     this.color = color;
   }
 
-  @action removeTag(tag: ClientTag | ID): void {
-    this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
+  @action removeTag(tag: ID): void {
+    this.tags.remove(tag);
   }
 
   @action.bound insertCollection(col: ClientTagCollection, at = 0): void {
