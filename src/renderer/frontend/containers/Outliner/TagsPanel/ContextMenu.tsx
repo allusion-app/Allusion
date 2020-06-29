@@ -8,9 +8,11 @@ import { formatTagCountText } from 'src/renderer/frontend/utils';
 import { Action, Factory } from './StateReducer';
 import { IExpansionState } from '..';
 import { ID } from 'src/renderer/entities/ID';
-import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
+import UiStore from 'src/renderer/frontend/stores/UiStore';
+import TagCollectionStore from 'src/renderer/frontend/stores/TagCollectionStore';
+import TagStore from 'src/renderer/frontend/stores/TagStore';
 
 interface IColorOptions {
   label: string;
@@ -129,13 +131,13 @@ const SearchMenu = (props: ISearchMenuProps) => {
   );
 };
 
-interface ITagMenuProps {
-  nodeData: ClientTag;
+interface IMenuProps<T> {
+  nodeData: T;
   uiStore: UiStore;
   dispatch: React.Dispatch<Action>;
 }
 
-export const TagContextMenu = ({ nodeData, uiStore, dispatch }: ITagMenuProps) => {
+export const TagContextMenu = ({ nodeData, dispatch, uiStore }: IMenuProps<ClientTag>) => {
   const { tags, collections } = uiStore.getTagContextItems(nodeData.id);
   let contextText = formatTagCountText(Math.max(0, tags.length - 1), collections.length);
   contextText = contextText && ` (${contextText})`;
@@ -194,18 +196,16 @@ const collapseSubCollection = (
   return expansion;
 };
 
-interface ICollectionMenuProps {
-  nodeData: ClientTagCollection;
+interface ICollectionMenuProps extends IMenuProps<ClientTagCollection> {
+  tagCollectionStore: TagCollectionStore;
+  tagStore: TagStore;
   expansion: IExpansionState;
-  uiStore: UiStore;
-  dispatch: React.Dispatch<Action>;
   pos: number;
 }
 
 export const CollectionContextMenu = (props: ICollectionMenuProps) => {
-  const { nodeData, dispatch, expansion, pos, uiStore } = props;
+  const { nodeData, dispatch, expansion, pos, tagCollectionStore, tagStore, uiStore } = props;
   const { tags, collections } = uiStore.getTagContextItems(nodeData.id);
-  const { tagStore, tagCollectionStore } = uiStore.rootStore;
   let contextText = formatTagCountText(tags.length, Math.max(0, collections.length - 1));
   contextText = contextText && ` (${contextText})`;
   return (

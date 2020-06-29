@@ -13,11 +13,16 @@ const enum Tooltip {
 }
 
 const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
-  const { fileStore, tagCollectionStore, uiStore } = rootStore;
+  const { fileStore, tagCollectionStore, tagStore, uiStore } = rootStore;
 
   return (
     <>
-      <TagsTree root={tagCollectionStore.getRootCollection()} uiStore={uiStore} />
+      <TagsTree
+        root={tagCollectionStore.getRootCollection()}
+        uiStore={uiStore}
+        tagCollectionStore={tagCollectionStore}
+        tagStore={tagStore}
+      />
 
       <div className="bp3-divider" />
 
