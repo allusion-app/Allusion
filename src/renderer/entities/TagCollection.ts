@@ -53,9 +53,9 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
 
   @computed get viewColor(): string {
     if (this.id === ROOT_TAG_COLLECTION_ID) {
-      return this.color;
+      return '';
     }
-    return this.color || this.parent.viewColor;
+    return this.color === 'inherit' ? this.parent.viewColor : this.color;
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
@@ -81,18 +81,24 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
       .filter((t) => t !== undefined) as ClientTag[];
   }
 
-  @computed get isEmpty(): boolean {
-    return this.tags.length === 0 && this.clientSubCollections.every((subCol) => subCol.isEmpty);
+  /**
+   * Returns whether this collection has any content.
+   *
+   * A collection is empty if it has no tags and all its descendants also do
+   * not have tags.
+   */
+  @computed get hasContent(): boolean {
+    return this.tags.length > 0 || this.clientSubCollections.some((subCol) => subCol.hasContent);
   }
 
   @computed get isSelected(): boolean {
     // If this collection is empty, act like it's selected when its parent is selected
-    if (this.id !== ROOT_TAG_COLLECTION_ID && this.isEmpty) {
+    if (this.id !== ROOT_TAG_COLLECTION_ID && !this.hasContent) {
       return this.parent.isSelected;
     }
     // Else check through children recursively
     // Todo: Not sure how costly this is. Seems fine.
-    const nonEmptySubCollections = this.clientSubCollections.filter((subCol) => !subCol.isEmpty);
+    const nonEmptySubCollections = this.clientSubCollections.filter((subCol) => subCol.hasContent);
     return (
       (this.tags.length > 0 || nonEmptySubCollections.length > 0) &&
       !this.tags.some((tag) => !this.store.isTagSelected(tag)) &&
@@ -123,16 +129,22 @@ export class ClientTagCollection implements ISerializable<ITagCollection> {
     this.color = color;
   }
 
-  @action removeTag(tag: ClientTag | ID): void {
-    this.tags.remove(tag instanceof ClientTag ? tag.id : tag);
+  @action removeTag(tag: ID): void {
+    this.tags.remove(tag);
   }
 
-  @action.bound insertCollection(collection: ClientTagCollection, at = 0): void {
-    collection.parent.subCollections.remove(collection.id);
-    this.subCollections.splice(at, 0, collection.id);
+  @action.bound insertCollection(col: ClientTagCollection, at = 0): void {
+    if (col.parent === this && this.subCollections.findIndex((c) => c === col.id) < at) {
+      at -= 1;
+    }
+    col.parent.subCollections.remove(col.id);
+    this.subCollections.splice(at, 0, col.id);
   }
 
   @action.bound insertTag(tag: ClientTag, at = 0): void {
+    if (tag.parent === this && this.tags.findIndex((t) => t === tag.id) < at) {
+      at -= 1;
+    }
     tag.parent.tags.remove(tag.id);
     this.tags.splice(at, 0, tag.id);
   }

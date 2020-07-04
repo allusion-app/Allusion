@@ -218,64 +218,10 @@ form,
   }
 }
 
-// Advanced search & Dialogs > Move off center
+// Size and positioning of dialog modals (moved off-center)
 .bp3-dialog {
   width: 650px !important;
   margin-bottom: 20vh;
-}
-
-#search-form {
-  .bp3-popover-target {
-    width: 100%;
-  }
-
-  #actions-bar {
-    float: right;
-  }
-
-  .criteria {
-    display: flex;
-    margin-bottom: 0.25rem;
-
-    .bp3-control-group {
-      padding: 0px;
-    }
-
-    .add-remove {
-      flex-grow: 0;
-      margin-left: 8px;
-
-      button {
-        min-width: 15px;
-        min-height: 15px;
-        width: 15px;
-        height: 15px;
-        line-height: 0;
-        padding: 0;
-        font-size: 16px;
-      }
-
-      button:hover * {
-        line-height: 0;
-      }
-    }
-
-    .remove {
-      flex-grow: 0;
-      margin-left: 8px;
-
-      line-height: 0;
-      padding: 0;
-      font-size: 16px;
-      width: 15px;
-      min-width: 15px;
-    }
-  }
-  .bp3-popover-wrapper,
-  .bp3-tag-input-values {
-    // input {
-    max-width: 200px;
-  }
 }
 
 #system-tags {
@@ -855,8 +801,7 @@ nav .bp3-divider {
 }
 
 .bp3-menu-item,
-.bp3-portal #fileTag:only-child,
-.bp3-portal #deleteFile:only-child > * {
+.bp3-portal #fileTag:only-child {
   padding: 0.25rem 0.25rem;
 }
 
@@ -895,7 +840,6 @@ li .bp3-menu-item {
 }
 
 // Icons
-.bp3-dark .bp3-icon:not(.bp3-icon-small-cross),
 .bp3-dark .bp3-button:not([class*='-primary']) .bp3-icon,
 .bp3-dark .bp3-button:not([class*='-active']) .bp3-icon,
 .bp3-dark .bp3-button:not([class*='bp3-intent-']) .bp3-icon-standard,

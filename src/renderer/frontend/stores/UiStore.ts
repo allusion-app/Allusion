@@ -111,11 +111,11 @@ class UiStore {
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
-  @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
   @observable isLocationRecoveryOpen: ID | null = null;
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
+  @observable searchMatchAny = false;
   @observable method: ViewMethod = 'grid';
   @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
@@ -248,14 +248,6 @@ class UiStore {
     this.isToolbarTagSelectorOpen = false;
   }
 
-  @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
-    this.isOutlinerTagRemoverOpen = val || 'selected';
-  }
-
-  @action.bound closeOutlinerTagRemover() {
-    this.isOutlinerTagRemoverOpen = null;
-  }
-
   @action.bound openLocationRecovery(locationId: ID) {
     this.isLocationRecoveryOpen = locationId;
   }
@@ -304,6 +296,10 @@ class UiStore {
 
   @action.bound closeAdvancedSearch() {
     this.isAdvancedSearchOpen = false;
+  }
+
+  @action.bound toggleSearchMatchAny() {
+    this.searchMatchAny = !this.searchMatchAny;
   }
 
   @action.bound toggleToolbarVertical() {
@@ -408,9 +404,14 @@ class UiStore {
     }
   }
 
-  @action.bound async colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
+  @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
     const ctx = this.getTagContextItems(activeElementId);
-    ctx.collections.forEach((col) => col.setColor(color));
+    const colorCollection = (collection: ClientTagCollection) => {
+      collection.setColor(color);
+      collection.clientTags.forEach((tag) => tag.setColor(color));
+      collection.clientSubCollections.forEach(colorCollection);
+    };
+    ctx.collections.forEach(colorCollection);
     ctx.tags.forEach((tag) => tag.setColor(color));
   }
 
@@ -483,7 +484,7 @@ class UiStore {
   /**
    * @param targetId Where to move the selection to
    */
-  @action.bound async moveSelectedTagItems(id: ID) {
+  @action.bound moveSelectedTagItems(id: ID) {
     const { tagStore, tagCollectionStore } = this.rootStore;
 
     const target = tagStore.get(id) || tagCollectionStore.get(id);
