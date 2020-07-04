@@ -110,10 +110,13 @@ class LocationStore {
         ),
       );
 
+      console.log('missing', missingFiles, 'created', createdFiles, 'matches', matches);
+
       const foundMatches = matches.filter((m) => m !== undefined);
       if (foundMatches.length > 0) {
         console.log(
           `DEBUG: Found ${foundMatches.length} renamed/moved files in location ${loc.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
+          foundMatches,
         );
         // These files have been renamed -> update backend file to retain tags
         // TODO: remove thumbnail as well (clean-up needed, since the path changed)
@@ -139,6 +142,7 @@ class LocationStore {
       if (deletedFiles.length > 0) {
         console.log(
           `DEBUG: Found ${deletedFiles.length} removed files in location ${loc.name}. This will be shown as 'broken' images and will have to be removed manually in the Recovery panel`,
+          deletedFiles,
         );
         // They'll be marked as broken after being fetched. The user will have to manually remove them then, no need to update with isBroken
         // await Promise.all(deletedFiles.map(f => this.backend.saveFile({ ...f, isBroken: true });

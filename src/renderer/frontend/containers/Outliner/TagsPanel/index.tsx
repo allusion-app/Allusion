@@ -54,6 +54,14 @@ const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
             fill
             data-right={Tooltip.Untagged}
           />
+          <Button
+            text={`Missing (${fileStore.numMissingFiles})`}
+            icon="heart-broken"
+            onClick={fileStore.fetchMissingFiles}
+            active={fileStore.showsMissingContent}
+            fill
+            // data-right={Tooltip.Untagged}
+          />
         </ButtonGroup>
       </div>
     </>

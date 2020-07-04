@@ -70,6 +70,13 @@ const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
   }
 };
 
+export const MissingImageFallback = () => (
+  <>
+    <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span> <br /> Could
+    not load image
+  </>
+);
+
 const GalleryItem = observer(
   ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
     const { uiStore } = useContext(StoreContext);
@@ -148,14 +155,23 @@ const GalleryItem = observer(
           ) : (
             // Show an error it it could not be loaded
             <span className="image-error">
-              <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
-              <br /> Could not load image
+              <MissingImageFallback />
             </span>
           )}
           {file.isBroken && (
             <div className="broken-overlay">
               <Tooltip content="This image could not be found.">
-                <Icon intent="warning" icon="heart-broken" color="orange" iconSize={24} />
+                <Icon
+                  intent="warning"
+                  icon="heart-broken"
+                  color="orange"
+                  iconSize={24}
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent image click event
+                    uiStore.selectFile(file, true);
+                    uiStore.toggleToolbarFileRemover();
+                  }}
+                />
               </Tooltip>
             </div>
           )}

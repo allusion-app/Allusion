@@ -669,6 +669,10 @@ button:has(.bp3-intent-danger) {
   box-shadow: none;
 }
 
+.bp3-alert {
+  max-width: 550px; // default is 400, quite narrow
+}
+
 .bp3-popover.bp3-dark,
 .bp3-popover.bp3-light,
 .bp3-dark .bp3-submenu.bp3-popover > .bp3-popover-content,

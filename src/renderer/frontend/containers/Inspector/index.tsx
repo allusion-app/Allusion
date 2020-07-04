@@ -7,6 +7,9 @@ import ImageInfo from '../../components/ImageInfo';
 import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
 import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
+import IconSet from 'components/Icons';
+import { Icon } from '@blueprintjs/core';
+import { MissingImageFallback } from '../ContentView/GalleryItem';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
@@ -60,11 +63,16 @@ const Carousel = ({ items }: { items: ClientFile[] }) => {
               // }${index === maxItems - 1 ? ' item-exit' : ''
             }`}
           >
-            {/* TODO: Thumbnail path is not always resolved atm, working on that in another branch */}
-            <img
-              src={file.thumbnailPath}
-              onClick={() => setScrollIndex(scrollIndex - maxItems + 1 + index)}
-            />
+            {!file.isBroken ? (
+              <img
+                src={file.thumbnailPath}
+                onClick={() => setScrollIndex(scrollIndex - maxItems + 1 + index)}
+              />
+            ) : (
+              <div style={{ textAlign: 'center' }}>
+                <MissingImageFallback />
+              </div>
+            )}
           </div>
         ),
       )}
@@ -80,8 +88,6 @@ const Inspector = observer(() => {
   let headerText;
   let headerSubtext;
 
-  useEffect;
-
   if (selectedFiles.length === 0) {
     headerText = 'No image selected';
   } else if (selectedFiles.length === 1) {
@@ -89,32 +95,25 @@ const Inspector = observer(() => {
     const ext = singleFile.absolutePath
       .substr(singleFile.absolutePath.lastIndexOf('.') + 1)
       .toUpperCase();
-    selectionPreview = (
+    selectionPreview = !singleFile.isBroken ? (
       <img
         src={singleFile.absolutePath}
         style={{ cursor: uiStore.isSlideMode ? undefined : 'zoom-in' }}
         onClick={uiStore.enableSlideMode}
       />
+    ) : (
+      <div style={{ textAlign: 'center' }}>
+        <MissingImageFallback />
+      </div>
     );
     headerText = path.basename(singleFile.absolutePath);
     headerSubtext = `${ext} image - ${getBytes(singleFile.size)}}`;
   } else {
-    // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
-    // TODO: This will crash the app if the image can't be found - same for the other case a few lines earlier
-
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
     // TODO: Would be nice to hover over an image and that all images before that get opacity 0.1
     // Or their transform is adjusted so they're more spread apart or something
     // TODO: Maybe a dropshadow?
-    selectionPreview = (
-      // <figure id="stack" className="stack-queue">
-      //   {/* Show a stack of the first 5 images (with some css magic - the 5 limit is also hard coded in there) */}
-      //   {selectedFiles.slice(0, 5).map((file) => (
-      //     <img src={file.thumbnailPath} key={file.id} />
-      //   ))}
-      // </figure>
-      <Carousel items={selectedFiles} />
-    );
+    selectionPreview = <Carousel items={selectedFiles} />;
     headerText = `${selectedFiles[0].name} and ${selectedFiles.length - 1} more`;
     headerSubtext = getBytes(selectedFiles.reduce((acc, f) => acc + f.size, 0));
   }

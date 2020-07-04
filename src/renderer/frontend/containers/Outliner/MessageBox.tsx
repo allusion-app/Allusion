@@ -1,10 +1,12 @@
-import React, { useContext } from 'react';
-import { Alert, Tag } from '@blueprintjs/core';
+import React, { useContext, useCallback } from 'react';
+import { Alert, Tag, Callout, H4 } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
 import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from '../../contexts/StoreContext';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
+import { ClientFile } from 'src/renderer/entities/File';
+import { formatDateTime } from '../../utils';
 
 interface IConfirmationProps {
   theme?: string;
@@ -111,5 +113,61 @@ export const TagRemoval = (props: IRemovalProps<ClientTag | ClientTagCollection>
         props.onClose();
       }}
     ></Confirmation>
+  );
+};
+
+export const FileRemoval = (
+  props: IRemovalProps<ClientFile[]> & Pick<IConfirmationProps, 'isOpen'>,
+) => {
+  const { fileStore } = useContext(StoreContext);
+  const { object: files } = props;
+
+  const handleConfirm = useCallback(() => {
+    fileStore.removeFilesById(files.map((f) => f.id));
+    props.onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    fileStore,
+    props,
+    files,
+    files.length,
+    // Update callback when last selected file changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    files[files.length - 1]?.id,
+  ]);
+
+  return (
+    <Confirmation
+      theme={props.theme}
+      icon={IconSet.DELETE}
+      isOpen={props.isOpen}
+      confirmButtonText="Delete"
+      title="Confirm delete"
+      onCancel={props.onClose}
+      onConfirm={handleConfirm}
+      body={
+        <>
+          <p>
+            Remove {files.length} missing image{files.length > 1 ? 's' : ''} from your library?
+          </p>
+          <span style={{ maxHeight: '200px' }}>
+            <ul>
+              {files.map((f) => (
+                <li key={f.id}>
+                  {f.absolutePath}, imported {formatDateTime(f.dateAdded)}
+                </li>
+              ))}
+            </ul>
+          </span>
+          <Callout icon={IconSet.INFO}>
+            <H4 className="bp3-heading inspectorHeading">Tip: Merging</H4>
+            <p>
+              In case of duplicate entries, you can also merge a missing image with another image in
+              your library through the inspector, in order to not lose any metadata.
+            </p>
+          </Callout>
+        </>
+      }
+    />
   );
 };

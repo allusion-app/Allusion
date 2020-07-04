@@ -50,6 +50,7 @@ export type OperatorType =
   | StringOperatorType
   | BinaryOperatorType;
 
+// FFR: Boolean keys are not supported in IndexedDB/Dexie - must store booleans as 0/1
 interface IBaseSearchCriteria<T> {
   key: keyof T;
   valueType: 'number' | 'date' | 'string' | 'array';

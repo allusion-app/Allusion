@@ -1,13 +1,15 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useContext } from 'react';
 import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
 import { formatDateTime } from '../utils';
-import { Callout, NonIdealState, ButtonGroup, Button } from '@blueprintjs/core';
+import { Callout, NonIdealState, ButtonGroup, Button, Card } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
+import StoreContext from '../contexts/StoreContext';
 
 const ImageInfo = observer(({ file }: { file: ClientFile }) => {
+  const { uiStore } = useContext(StoreContext);
   const [fileStats, setFileStats] = useState<fse.Stats | undefined>(undefined);
   const [error, setError] = useState<Error | undefined>(undefined);
   const [resolution, setResolution] = useState<string>('...');
@@ -72,25 +74,24 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
 
       {error &&
         (error.message?.includes('no such file') ? (
-          <NonIdealState
-            icon={<span className="bp3-icon custom-icon custom-icon-64">{IconSet.DB_ERROR}</span>}
-            // className="height-auto"
-            description={
-              <p>
-                This image could not be found.
-                <br />
-                Would you like to remove it from Allusion,
-                <br />
-                or merge with another entry?
-              </p>
-            }
-            action={
-              <ButtonGroup>
-                <Button text="Remove" intent="danger" />
-                <Button text="Merge" intent="warning" />
-              </ButtonGroup>
-            }
-          />
+          <Card style={{ margin: '8px', width: 'calc(100% - 16px)' }}>
+            <p>
+              This image could not be found.
+              <br />
+              Would you like to remove it from Allusion, or merge with another entry?
+            </p>
+            <ButtonGroup>
+              <Button
+                text="Remove"
+                intent="danger"
+                onClick={() => {
+                  uiStore.selectFile(file, true);
+                  uiStore.toggleToolbarFileRemover();
+                }}
+              />
+              <Button text="Merge" intent="warning" />
+            </ButtonGroup>
+          </Card>
         ) : (
           <Callout intent="warning" title="An error has occured">
             Error: {error.name} <br /> {error.message}

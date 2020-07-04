@@ -7,8 +7,9 @@ import { ClientFile, IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
 import { useMemo, useContext } from 'react';
-import { ViewMethod } from '../../stores/UiStore';
+import UiStore, { ViewMethod } from '../../stores/UiStore';
 import StoreContext from '../../contexts/StoreContext';
+import { FileRemoval } from '../Outliner/MessageBox';
 
 /* Library info. Todo: Show entire library count instead of current fileList */
 const LibraryInfo = observer(({ fileCount }: { fileCount: number }) => (
@@ -61,6 +62,35 @@ const TagFilesPopover = observer(
     </Popover>
   ),
 );
+
+interface IRemoveFilesPopoverProps {
+  hidden?: boolean;
+  disabled?: boolean;
+}
+const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverProps) => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <>
+      {hidden ? null : (
+        <Button
+          icon={IconSet.DELETE}
+          disabled={disabled}
+          onClick={uiStore.toggleToolbarFileRemover}
+          className="tooltip"
+          data-right={ToolbarTooltips.Delete}
+          // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
+          intent="warning"
+        />
+      )}
+      <FileRemoval
+        isOpen={uiStore.isToolbarFileRemoverOpen}
+        onClose={uiStore.toggleToolbarFileRemover}
+        theme={uiStore.theme}
+        object={uiStore.clientFileSelection}
+      />
+    </>
+  );
+});
 
 interface IFileFilter {
   fileOrder: FileOrder;
@@ -194,6 +224,13 @@ const ContentToolbar = observer(({ className }: { className?: string }) => {
               close={uiStore.closeToolbarTagSelector}
               toggle={uiStore.toggleToolbarTagSelector}
             />
+
+            {/* Only show option to remove selected files in toolbar when viewing missing files */}
+            <RemoveFilesPopover
+              hidden={fileStore.content !== 'missing'}
+              disabled={uiStore.fileSelection.length === 0}
+            />
+
             <FileFilter
               fileOrder={fileStore.fileOrder}
               orderBy={fileStore.orderBy}

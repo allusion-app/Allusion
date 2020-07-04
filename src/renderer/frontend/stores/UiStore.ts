@@ -123,6 +123,8 @@ class UiStore {
   @observable thumbnailSize: ViewThumbnailSize = 'medium';
   @observable thumbnailShape: ViewThumbnailShape = 'square';
 
+  @observable isToolbarFileRemoverOpen: boolean = false;
+
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
   readonly fileSelection = observable<ID>([]);
@@ -246,6 +248,10 @@ class UiStore {
 
   @action.bound closeToolbarTagSelector() {
     this.isToolbarTagSelectorOpen = false;
+  }
+
+  @action.bound toggleToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = !this.isToolbarFileRemoverOpen;
   }
 
   @action.bound openLocationRecovery(locationId: ID) {

@@ -162,6 +162,12 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @action.bound setBroken(state: boolean): void {
+    // TODO: This might not work. It'll increment it every time a broken file is fetched
+    // if (this.isBroken && !state) {
+    //   this.store.incrementNumMissingFiles();
+    // } else if (!this.isBroken && state) {
+    //   this.store.decrementNumMissingFiles();
+    // }
     this.isBroken = state;
   }
 

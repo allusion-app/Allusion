@@ -11,7 +11,7 @@ import {
 import { observer, useObserver } from 'mobx-react-lite';
 
 import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
-import GalleryItem from './GalleryItem';
+import GalleryItem, { MissingImageFallback } from './GalleryItem';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
 import IconSet from 'components/Icons';
@@ -110,12 +110,12 @@ const GridGallery = observer(
 
     // Scroll to a file when selecting it
     const latestSelectedFile =
-      lastSelectionIndex.current &&
+      typeof lastSelectionIndex.current === 'number' &&
       lastSelectionIndex.current < fileList.length &&
       fileList[lastSelectionIndex.current].id;
     useEffect(() => {
       const index = fileList.findIndex((f) => f.id === latestSelectedFile);
-      if (latestSelectedFile && index >= 0) {
+      if (index >= 0) {
         handleScrollTo(index);
       }
     }, [latestSelectedFile, handleScrollTo, fileList, forceUpdateObj]);
@@ -388,7 +388,18 @@ const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayou
 
   const file = fileList[uiStore.firstItem];
 
-  return (
+  return file.isBroken ? (
+    <div
+      style={{
+        width: `${contentRect.width}px`,
+        height: `${contentRect.height}px`,
+        textAlign: 'center',
+        marginTop: `${contentRect.height / 3}px`,
+      }}
+    >
+      <MissingImageFallback />
+    </div>
+  ) : (
     <ZoomableImage
       src={file.absolutePath}
       contentRect={contentRect}

@@ -150,7 +150,7 @@
     transition: all 0.2s ease;
     opacity: 1;
 
-    img {
+    > * {
       // object-fit: contain;
       // width: 100%;
       // display:block;
@@ -171,7 +171,7 @@
         // height: calc(8px + 4px * #{$i});
         // opacity: calc(0.5 + 0.1 * #{$i});
 
-        > img {
+        > * {
           transform: scale(calc(0.5 + 0.1 * #{$i})) translateY(calc(32px * #{$i} - 64px));
           // z-index: calc(5 - #{$i});
           filter: brightness(calc(0.4 + 0.1 * #{$i}));
