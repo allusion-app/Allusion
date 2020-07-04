@@ -8,6 +8,7 @@ import {
 import RootStore from './RootStore';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
+import { ClientCollectionSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -35,26 +36,16 @@ class TagCollectionStore {
     return col;
   }
 
-  @action.bound async removeTagCollection(tagCol: ClientTagCollection) {
-    // Remove save handler
-    tagCol.dispose();
+  /** Removes tag collection and all its descendant */
+  @action.bound async removeTagCollection(col: ClientTagCollection) {
+    // Prevent saving changes in database
+    col.autoSave = false;
+    // Remove descendants of this tag collection to prevent parent missing waring
+    await Promise.all(col.clientSubCollections.map(this.removeTagCollection));
+    await Promise.all(col.clientTags.map((tag) => tag.delete()));
 
-    // Remove collection from state
-    this.tagCollectionList.remove(tagCol);
-
-    // Remove collection from other collections (where it is a subcollection)
-    this.tagCollectionList.forEach((col) => col.subCollections.remove(tagCol.id));
-
-    // Remove sub-collections of this collection from state
-    await Promise.all(
-      tagCol.clientSubCollections.map((subCol) => this.removeTagCollection(subCol)),
-    );
-
-    // Remove tags in this collection
-    await Promise.all(tagCol.clientTags.map((tag) => tag.delete()));
-
-    // Remove collection from DB
-    await this.backend.removeTagCollection(tagCol);
+    // Removes collection from frontend and backend
+    return this.delete(col);
   }
 
   /** Find and remove missing tags from files */
@@ -82,11 +73,29 @@ class TagCollectionStore {
     return this.rootStore.tagStore.isSelected(tag);
   }
 
+  isSearched(collectionId: ID): boolean {
+    return this.rootStore.uiStore.searchCriteriaList.some(
+      (c) => c instanceof ClientCollectionSearchCriteria && c.collectionId === collectionId,
+    );
+  }
+
   save(collection: ITagCollection) {
     this.backend.saveTagCollection(collection);
   }
 
-  @action.bound private async loadTagCollections() {
+  /**
+   * Removes collection from frontend and backend
+   *
+   * See the documentation of `ClientTag.delete` for more information.
+   */
+  @action private async delete(col: ClientTagCollection) {
+    col.dispose();
+    this.tagCollectionList.remove(col);
+    this.tagCollectionList.forEach((col) => col.subCollections.remove(col.id));
+    return this.backend.removeTagCollection(col);
+  }
+
+  @action private async loadTagCollections() {
     try {
       const fetchedTagCollections = await this.backend.fetchTagCollections();
       fetchedTagCollections.forEach((tagCol) => this.updateFromBackend(tagCol));
@@ -95,7 +104,7 @@ class TagCollectionStore {
     }
   }
 
-  @action.bound private updateFromBackend(backendTagCol: ITagCollection) {
+  @action private updateFromBackend(backendTagCol: ITagCollection) {
     const tagCol = this.get(backendTagCol.id);
     // In case a tag collection was added to the server from another client or session
     if (!tagCol) {

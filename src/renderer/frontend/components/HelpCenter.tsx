@@ -2,9 +2,9 @@ import { Classes, Drawer, IPanelProps, PanelStack, Button, ButtonGroup } from '@
 import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useContext, useRef, useEffect } from 'react';
 import StoreContext from '../contexts/StoreContext';
-import IconSet from './Icons';
+import IconSet from 'components/Icons';
 
-import Logo from '../../resources/logo/favicon_512x512.png';
+import Logo from 'resources/logo/favicon_512x512.png';
 // TODO: Put images in /resources/helpcenter/ or somewhere like that
 
 interface ISection {
@@ -44,7 +44,7 @@ const sections: ISection[] = [
   },
   {
     title: 'Library Setup',
-    icon: IconSet.LOCATIONS,
+    icon: IconSet.META_INFO,
     subSections: [
       {
         title: 'Getting Started',
@@ -64,7 +64,7 @@ const sections: ISection[] = [
         content: (
           <>
             <p>
-              In Allusion, the primary way of adding images to your library is the use of
+              {`In Allusion, the primary way of adding images to your library is the use of
               "Locations". A location in this context is a link to a folder on your computer. This
               means that all images in that folder as well as any subfolders will be automatically
               loaded once it is added to your list of locations. The benefit of this system is that
@@ -72,14 +72,14 @@ const sections: ISection[] = [
               tediously import images manually from various places. To add more images, simply place
               them into the linked folder, and they will show up in Allusion. Similarly, by removing
               images from a linked folder, the images will be removed from your library. In
-              Allusion, such a linked folder is called a location.
+              Allusion, such a linked folder is called a location.`}
             </p>
             <p>
-              To add a new location, open the outliner and hover with your mouse over the location's
+              {`To add a new location, open the outliner and hover with your mouse over the location's
               header. You will see a small plus icon to the right. Once you click the icon, go ahead
               and browse the folder that contains images. Confirm your selection and select your
               location preferences in the following popup. Once you confirm, your images will show
-              up in the content area.
+              up in the content area.`}
             </p>
             <p>
               To remove a location, open the outliner and right click on a location. A context menu
@@ -189,14 +189,14 @@ const sections: ISection[] = [
         content: (
           <>
             <p>
-              The advanced search can be opened by pressing on the icon on the far left side of the
+              {`The advanced search can be opened by pressing on the icon on the far left side of the
               quick search bar. In the popup you are able to create as many search criteria as you
               wish by listing them up. Each row in the interface represents one criteria and
               consists of three input fields. First select the type of information you want to look
               for. You can search for tags, collections but also file size, file format, etc. You
               can then select an operator such as "equals", "greater than", "includes" etc. Finally
               you can enter a value which will be searched for. Adding multiple criteria will again
-              help you narrow down a search result.
+              help you narrow down a search result.`}
             </p>
           </>
         ),
@@ -228,11 +228,11 @@ const sections: ISection[] = [
         content: (
           <>
             <p>
-              Each image carries a lot of information with it such as the file name, url,
+              {`Each image carries a lot of information with it such as the file name, url,
               dimensions, etc. Such information can be viewed through the inspector. The inspector
               is a panel that can be accessed by pressing the information icon on the far right of
               the toolbar, or by right-clicking an image and selecting "Inspect". This panel will
-              allow you to see such information as well as a list of tags the image was assigned to.
+              allow you to see such information as well as a list of tags the image was assigned to.`}
             </p>
           </>
         ),

@@ -4,6 +4,7 @@ import { ClientTag, ITag } from '../../entities/Tag';
 import RootStore from './RootStore';
 import { ID } from '../../entities/ID';
 import { ClientTagCollection } from '../../entities/TagCollection';
+import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -41,6 +42,12 @@ class TagStore {
     return this.rootStore.uiStore.tagSelection.includes(tag);
   }
 
+  isSearched(tag: ID): boolean {
+    return this.rootStore.uiStore.searchCriteriaList.some(
+      (c) => c instanceof ClientIDSearchCriteria && c.value.includes(tag),
+    );
+  }
+
   save(tag: ITag) {
     this.backend.saveTag(tag);
   }
@@ -53,27 +60,31 @@ class TagStore {
   }
 
   @action.bound async removeTag(tag: ClientTag) {
-    tag.dispose();
+    // Mark tag object for garbage collection
+    const id = await this.delete(tag);
 
-    // Remove tag from state
-    this.tagList.splice(this.tagList.indexOf(tag), 1);
-
-    // Remove tag from selection
-    this.rootStore.uiStore.deselectTag(tag.id);
-
-    // Remove tag from files
-    this.rootStore.fileStore.fileList
-      .filter((f) => f.tags.includes(tag.id))
-      .forEach((f) => f.removeTag(tag.id));
-
-    // Remove tag from collections
-    this.rootStore.tagCollectionStore.tagCollectionList.forEach((col) => col.removeTag(tag.id));
-
-    // Remove tag from DB
-    await this.backend.removeTag(tag);
+    // Remove tag id reference from other observable objects
+    this.rootStore.uiStore.deselectTag(id);
+    this.rootStore.fileStore.fileList.forEach((f) => f.removeTag(id));
+    this.rootStore.tagCollectionStore.tagCollectionList.forEach((col) => col.removeTag(id));
   }
 
-  @action.bound private loadTags() {
+  /**
+   * Removes tag from frontend and backend
+   *
+   * Calling this ensures that the object will be marked for garbage collection.
+   * That's why it is important that the object is not referenced directly.
+   * However, computed values are fine because they depend on the ID which is a
+   * primitive value and therefore not tracked.
+   * */
+  @action private async delete(tag: ClientTag): Promise<ID> {
+    tag.dispose();
+    this.tagList.remove(tag);
+    await this.backend.removeTag(tag);
+    return tag.id;
+  }
+
+  @action private loadTags() {
     this.backend
       .fetchTags()
       .then((fetchedTags) => {
@@ -82,7 +93,7 @@ class TagStore {
       .catch((err) => console.log('Could not load tags', err));
   }
 
-  @action.bound private updateFromBackend(backendTag: ITag) {
+  @action private updateFromBackend(backendTag: ITag) {
     const tag = this.get(backendTag.id);
     // In case a tag was added to the server from another client or session
     if (!tag) {

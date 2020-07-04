@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { Button, TagInput } from '@blueprintjs/core';
 import { CSSTransition } from 'react-transition-group';
 import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import { ClientTag } from '../../../entities/Tag';
 import {
   ClientIDSearchCriteria,
@@ -70,7 +70,7 @@ const QuickSearchList = ({
       onTagSelect={handleSelectTag}
       onTagDeselect={handleDeselectTag}
       onClearSelection={uiStore.clearSearchCriteriaList}
-      autoFocus
+      autoFocus={!uiStore.isAdvancedSearchOpen} // don't auto focus with advanced search open; focus is needed there instead
       tagIntent="primary"
       onKeyDown={handleCloseSearch}
       showClearButton={false}

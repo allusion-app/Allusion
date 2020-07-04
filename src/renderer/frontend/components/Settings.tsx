@@ -1,20 +1,20 @@
-import React, { useContext, useEffect, useState, useCallback } from 'react';
+import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Drawer,
   Classes,
-  Switch,
   Button,
   Callout,
   H4,
-  RadioGroup,
-  Radio,
   FormGroup,
   KeyCombo,
+  Switch,
+  Radio,
+  RadioGroup,
 } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
-import IconSet from './Icons';
+import IconSet from 'components/Icons';
 import { ClearDbButton } from './ErrorBoundary';
 import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
@@ -31,22 +31,14 @@ const toggleFullScreen = () => {
   setFullScreen(!isFullScreen());
 };
 
+const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setClipServerEnabled({ isClipServerRunning: event.target.checked });
+
+const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });
+
 const Settings = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
-
-  const [isClipServerRunning, setClipServerRunning] = useState(false);
-  const [isRunningInBackground, setRunningInBackground] = useState(false);
-  const [importPath, setImportPath] = useState(locationStore.importDirectory);
-
-  const toggleClipServer = useCallback(() => {
-    RendererMessenger.setClipServerEnabled({ isClipServerRunning: !isClipServerRunning });
-    setClipServerRunning(!isClipServerRunning);
-  }, [setClipServerRunning, isClipServerRunning]);
-
-  const toggleRunInBackground = useCallback(() => {
-    RendererMessenger.setRunInBackground({ isRunInBackground: !isRunningInBackground });
-    setRunningInBackground(!isRunningInBackground);
-  }, [setRunningInBackground, isRunningInBackground]);
 
   const browseImportDir = useCallback(() => {
     const dirs = remote.dialog.showOpenDialogSync({
@@ -59,12 +51,11 @@ const Settings = observer(() => {
 
     const chosenDir = dirs[0];
     locationStore.setDefaultLocation(chosenDir);
-    setImportPath(chosenDir);
 
     // Todo: Provide option to move/copy the files in that directory (?)
     // Since the import dir could also contain non-allusion files, not sure if a good idea
     // But then there should be support for re-importing manually copied files
-  }, [setImportPath, locationStore]);
+  }, [locationStore]);
 
   useEffect(() => {
     // Load last window state
@@ -79,8 +70,6 @@ const Settings = observer(() => {
         console.log('Cannot load persistent preferences', e);
       }
     }
-    setClipServerRunning(RendererMessenger.getIsClipServerEnabled());
-    setRunningInBackground(RendererMessenger.getIsRunningInBackground());
   }, []);
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
@@ -110,7 +99,7 @@ const Settings = observer(() => {
     // Reset thumbnail paths for those that already have one
     fileStore.fileList.forEach((f) => {
       if (f.thumbnailPath) {
-        f.setThumbnailPath(getThumbnailPath(f.path, newDir));
+        f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
       }
     });
   }, [fileStore.fileList, uiStore]);
@@ -125,24 +114,24 @@ const Settings = observer(() => {
     >
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup
-          selectedValue={uiStore.view.thumbnailSize}
+          inline
+          selectedValue={uiStore.thumbnailSize}
           onChange={() => undefined}
           label="Thumbnail size"
-          inline
         >
-          <Radio label="Small" value="small" onClick={uiStore.view.setThumbnailSmall} />
-          <Radio label="Medium" value="medium" onClick={uiStore.view.setThumbnailMedium} />
-          <Radio label="Large" value="large" onClick={uiStore.view.setThumbnailLarge} />
+          <Radio label="Small" value="small" onClick={uiStore.setThumbnailSmall} />
+          <Radio label="Medium" value="medium" onClick={uiStore.setThumbnailMedium} />
+          <Radio label="Large" value="large" onClick={uiStore.setThumbnailLarge} />
         </RadioGroup>
 
         <RadioGroup
-          selectedValue={uiStore.view.thumbnailShape}
+          inline
+          selectedValue={uiStore.thumbnailShape}
           onChange={() => undefined}
           label="Thumbnail shape"
-          inline
         >
-          <Radio label="Square" value="square" onClick={uiStore.view.setThumbnailSquare} />
-          <Radio label="Letterbox" value="letterbox" onClick={uiStore.view.setThumbnailLetterbox} />
+          <Radio label="Square" value="square" onClick={uiStore.setThumbnailSquare} />
+          <Radio label="Letterbox" value="letterbox" onClick={uiStore.setThumbnailLetterbox} />
         </RadioGroup>
 
         <Switch
@@ -150,6 +139,13 @@ const Settings = observer(() => {
           onChange={toggleFullScreen}
           label="Full screen"
         />
+
+        <Switch
+          checked={uiStore.isToolbarVertical}
+          onChange={uiStore.toggleToolbarVertical}
+          label="Vertical toolbar"
+        />
+
         <Switch
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
@@ -157,12 +153,13 @@ const Settings = observer(() => {
         />
 
         <Switch
-          checked={isRunningInBackground}
+          defaultChecked={RendererMessenger.getIsRunningInBackground()}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
+
         <Switch
-          checked={isClipServerRunning}
+          defaultChecked={RendererMessenger.getIsClipServerEnabled()}
           onChange={toggleClipServer}
           label="Browser extension support"
         />
@@ -198,7 +195,7 @@ const Settings = observer(() => {
               id="importPathInput"
               onClick={browseImportDir}
             >
-              {importPath}
+              {locationStore.importDirectory}
             </span>
           </label>
         </FormGroup>

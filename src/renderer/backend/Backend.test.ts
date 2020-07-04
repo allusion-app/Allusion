@@ -16,7 +16,8 @@ const mockTag: ITag = {
 };
 
 const mockFile: IFile = {
-  path: 'c:/test file.jpg',
+  absolutePath: 'c:/test file.jpg',
+  relativePath: 'test file.jpg',
   locationId: 'Default location',
   name: 'test file.jpg',
   size: 42,

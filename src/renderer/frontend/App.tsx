@@ -12,16 +12,15 @@ import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
 import HelpCenter from './components/HelpCenter';
 import DropOverlay from './components/DropOverlay';
-import { AdvancedSearchDialog } from './containers/Outliner/SearchForm';
+import { AdvancedSearchDialog } from './containers/Outliner/SearchPanel';
 import { useWorkerListener } from './ThumbnailGeneration';
-import { DragLayer } from './containers/Outliner/TagPanel';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
 
-const SPLASH_SCREEN_TIME = 700;
+const SPLASH_SCREEN_TIME = 1400;
 
 export const AppToaster = Toaster.create({
-  position: Position.BOTTOM_RIGHT,
+  position: Position.TOP,
   className: 'toaster',
 });
 
@@ -38,7 +37,7 @@ const App = observer(() => {
 
     // Prevent scrolling with Space, instead used to open preview window
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !(e.target instanceof HTMLInputElement)) {
+      if (e.key === ' ' && !(e.target instanceof HTMLInputElement)) {
         e.preventDefault();
       }
     });
@@ -50,32 +49,33 @@ const App = observer(() => {
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
+  const sidebarClass = uiStore.isToolbarVertical ? 'vertical-toolbar' : '';
+
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div id="layoutContainer" className={`${themeClass}`}>
-        <ErrorBoundary>
-          <GlobalHotkeys>
-            <Toolbar />
+      <div className={sidebarClass}>
+        <div id="layoutContainer" className={themeClass}>
+          <ErrorBoundary>
+            <GlobalHotkeys>
+              <Toolbar />
 
-            <Outliner />
+              <Outliner />
 
-            <ContentView />
+              <ContentView />
 
-            <Inspector />
+              <Inspector />
 
-            <Settings />
+              <Settings />
 
-            <HelpCenter />
+              <HelpCenter />
 
-            <AdvancedSearchDialog />
+              <AdvancedSearchDialog />
 
-            <WelcomeDialog />
-
-            {/* Overlay for showing custom drag previews */}
-            <DragLayer />
-          </GlobalHotkeys>
-        </ErrorBoundary>
+              <WelcomeDialog />
+            </GlobalHotkeys>
+          </ErrorBoundary>
+        </div>
       </div>
     </DropOverlay>
   );

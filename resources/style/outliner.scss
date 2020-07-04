@@ -1,0 +1,278 @@
+///////////////////////////////// Outliner /////////////////////////////////
+nav {
+  grid-area: outliner;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  flex-shrink: 0;
+  width: 0;
+  min-width: 0;
+  transition: min-width 0.2s $pt-transition-ease2;
+
+  // Putt 2 buttons at bottom
+  // display: flex;
+  // flex-direction: column;
+
+  &.outlinerOpen {
+    min-width: var(--outliner-width);
+    width: 16rem;
+    // overflow-x: visible !important;
+    z-index: 1;
+
+    button.bp3-button.bp3-minimal {
+      opacity: 0;
+      border-radius: 0;
+      margin-bottom: 1px;
+      border-bottom: 1px solid #ffffff00;
+      transition: 0.2s $pt-transition-ease2;
+    }
+  }
+
+  // > * {
+  //   // Don't squash content of nav during parent transition
+  //   // BReaks with buttons
+  //   // width: 16rem;
+  // }
+
+  .bp3-dark {
+    background: $dark-gray1;
+  }
+
+  &.outlinerOpen #import {
+    overflow: visible !important;
+  }
+
+  .bp3-heading {
+    margin: 0.5em 1rem;
+  }
+}
+
+// #search-form,
+#import {
+  margin: 0.5em 1rem;
+  outline: none;
+}
+
+// .outlinerOpen button.bp3-button.bp3-minimal {
+//   opacity: 0;
+//   transition: .2s cubic-bezier(0.4, 0.0, 0.2, 1);
+// }
+
+///////////////////////////////// Import /////////////////////////////////
+#import,
+// #search-form,
+main,
+.error-boundary,
+.inspectorOpen {
+  // .error-boundary
+  > button,
+  .button.bp3-fill,
+  button.bp3-button.bp3-fill,
+  .bp3-non-ideal-state button.bp3-button,
+  .bp3-button:not([class*='bp3-intent-']):not(.bp3-disabled) {
+    color: $light-gray2;
+  }
+
+  > button,
+  .button.bp3-fill,
+  .bp3-non-ideal-state button.bp3-button {
+    margin-bottom: 0.5rem;
+  }
+
+  button.bp3-fill,
+  // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
+  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal):not(.bp3-disabled) {
+    // .bp3-multi-select .bp3-minimal {
+    // background: $light-gray1-trans;
+    background: $dark-gray1-trans;
+    color: $light-gray2;
+  }
+  .bp3-input.bp3-minimal {
+    background: none !important;
+  }
+  .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
+  .bp3-button:not([class*='bp3-intent-warning']):not([class*='bp3-intent-danger']):not(.bp3-disabled) {
+    // .bp3-icon > svg:not([fill]) {
+    color: $light-gray3;
+  }
+
+  button.bp3-intent-primary {
+    background: $light-gray0-trans !important;
+    // background: $dark-gray0-trans !important;
+  }
+}
+
+#search-form,
+.bp3-overlay {
+  button {
+    &.bp3-intent-primary {
+      background: $blue1;
+      color: $light-gray4;
+      box-shadow: none !important;
+    }
+
+    /* Breaks stykling buttns search forms */
+    // &.bp3-fill:not([class*='bp3-intent-primary']) {
+    //   border: 1.3px solid $light-gray5-trans !important;
+    //   color: #495057;
+    //   ackground: none;
+    // }
+
+    &:not(.btn-blank):hover {
+      background-color: $dark-gray3;
+      color: $light-gray5;
+    }
+  }
+  .bp3-input button:hover {
+    background-color: transparent !important;
+  }
+  .add-remove {
+    button {
+      &.bp3-fill:not([class*='bp3-intent-primary']),
+      &.bp3-button:not([class*='bp3-intent-primary']) {
+        background: $light-gray5-trans;
+        // background: $dark-gray5-trans;
+        color: $light-gray1 !important;
+      }
+      .custom-icon {
+        color: $dark-gray4;
+      }
+      &:hover {
+        background-color: $light-gray6-trans !important;
+        // background-color: $dark-gray2;
+        color: $light-gray5;
+      }
+    }
+  }
+}
+
+.bp3-overlay
+  .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
+  // background: $light-gray1-trans; /* Not sure what items use this  > buttons none intent*/
+  background: $dark-gray1-trans;
+  color: $light-gray6;
+}
+
+///////////////////////////////// Tag hierarchy /////////////////////////////////
+.outliner-header-wrapper {
+  display: flex;
+  min-height: 39px;
+  background: transparent !important;
+  cursor: pointer;
+  padding-right: 2px;
+
+  h4 {
+    margin-left: 10px;
+    margin-right: auto;
+    // caret icon
+    > .bp3-icon {
+      margin-right: 4px;
+      margin-bottom: 2px;
+      margin-left: 4px;
+    }
+  }
+}
+
+#outliner {
+  // Show y scrollbar when there's loads of tags or location list items
+  overflow: hidden auto !important;
+  border-left: 1px solid $dark-gray0;
+  border-right: 1px solid $dark-gray0;
+
+  > div:hover .outliner-header-wrapper:not(last-child) > * {
+    opacity: 1;
+  }
+}
+
+#tree-footer {
+  flex: 1;
+  min-height: 16px;
+}
+
+.tags-tree {
+  .searched {
+    // TODO: Use a color without alpha values...
+    --foreground-color: #{$blue-trans2};
+    --background-color: #{$blue-trans2};
+    --focus-color: #{$blue-trans2};
+    --highlight-background-color: #{$blue-trans2};
+    color: $light-gray4;
+  }
+
+  .after-icon {
+    cursor: pointer;
+    display: none;
+  }
+
+  .tree-content-label:hover > .after-icon {
+    display: unset;
+  }
+
+  &.selected {
+    --selection-background-color: transparent;
+    --selection-font-color: var(--primary-color);
+
+    .after-icon {
+      display: unset;
+    }
+  }
+}
+
+.tree-content-label {
+  display: flex;
+  align-items: center;
+  min-height: 1.75rem;
+  width: 100%;
+
+  &[data-dnd-target='true'] {
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+  }
+
+  &[data-dnd-target-top='true'] {
+    color: var(--primary-color);
+    border-top: 2px solid var(--primary-color);
+  }
+
+  &[data-dnd-target-bottom='true'] {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+  }
+
+  &[data-dnd-source='true'] {
+    opacity: 0.25;
+  }
+
+  > .pre-icon,
+  > .after-icon {
+    flex-shrink: 0;
+  }
+
+  > .pre-icon {
+    margin-right: 0.25rem;
+  }
+
+  > .after-icon {
+    margin-left: 0.25rem;
+  }
+
+  > div {
+    display: flex;
+    align-items: center;
+    height: 1.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+
+    > .bp3-input {
+      height: 100%;
+      width: 100%;
+
+      &:focus,
+      &.bp3-active {
+        box-shadow: none !important;
+        border: 1.5px solid $blue1;
+      }
+    }
+  }
+}

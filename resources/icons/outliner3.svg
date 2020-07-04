@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>locations</title>
+  <g>
+    <path d="M10,17H20a2,2,0,0,1,2,2h0a2,2,0,0,1-2,2H10a2,2,0,0,1-2-2H8A2,2,0,0,1,10,17Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M10,10H20a2,2,0,0,1,2,2h0a2,2,0,0,1-2,2H10a2,2,0,0,1-2-2H8A2,2,0,0,1,10,10Z" fill="#222221" fill-rule="evenodd"/>
+    <path d="M10,3H20a2,2,0,0,1,2,2h0a2,2,0,0,1-2,2H10A2,2,0,0,1,8,5H8A2,2,0,0,1,10,3Z" fill="#222221" fill-rule="evenodd"/>
+    <circle cx="4" cy="5" r="2" fill="#222221"/>
+    <circle cx="4" cy="12" r="2" fill="#222221"/>
+    <circle cx="4" cy="19" r="2" fill="#222221"/>
+  </g>
+</svg>

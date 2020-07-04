@@ -56,15 +56,19 @@ export class ClientTag implements ISerializable<ITag> {
     return this.store.isSelected(this.id);
   }
 
-  @computed get viewColor() {
-    return this.color || this.parent.viewColor;
+  @computed get viewColor(): string {
+    return this.color === 'inherit' ? this.parent.viewColor : this.color;
   }
 
-  @action.bound rename(name: string) {
+  @computed get isSearched(): boolean {
+    return this.store.isSearched(this.id);
+  }
+
+  @action.bound rename(name: string): void {
     this.name = name;
   }
 
-  @action.bound setColor(color: string) {
+  @action.bound setColor(color: string): void {
     this.color = color;
   }
 
@@ -97,11 +101,11 @@ export class ClientTag implements ISerializable<ITag> {
     };
   }
 
-  async delete() {
+  async delete(): Promise<void> {
     return this.store.removeTag(this);
   }
 
-  dispose() {
+  dispose(): void {
     // clean up the observer
     this.saveHandler();
   }
