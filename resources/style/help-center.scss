@@ -1,10 +1,11 @@
 ///////////////////////////////// Help Center /////////////////////////////////
-#help-center-drawer {
+#help-center {
   .bp3-panel-stack {
     height: 100%;
   }
 
   .bp3-panel-stack-view {
+    margin: 0;
     border: none;
     position: unset;
     background-color: unset !important;
@@ -17,25 +18,17 @@
       color: $blue1;
 
       .bp3-icon {
-        color: $blue1;
-      }
-
-      &:hover {
-        background-color: unset !important;
+        color: inherit;
       }
     }
   }
 
-  .page-content {
-    height: 100%;
+  .bp3-button-group {
+    float: right;
+  }
 
-    .bp3-button-group {
-      float: right;
-    }
-
-    button {
-      min-width: 75px;
-    }
+  button {
+    min-width: 75px;
   }
 
   .bp3-text-overflow-ellipsis {
@@ -49,7 +42,7 @@
   }
 }
 
-.helpCenterHome {
+.help-center-home {
   > header {
     text-align: center;
   }

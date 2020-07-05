@@ -280,7 +280,7 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
   }, [section, subSectionIndex]);
 
   return (
-    <div className="page-content" ref={parentRef}>
+    <div ref={parentRef}>
       {section.subSections.map((subSec) => (
         <div key={subSec.title}>
           <h2>{subSec.title}</h2>
@@ -313,7 +313,7 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
 
 const HelpCenterHome = (props: IPanelProps) => {
   return (
-    <div className="helpCenterHome">
+    <div className="help-center-home">
       <header>
         <h2>Learn Allusion</h2>
         <p>Some documents to get you started</p>
@@ -368,7 +368,7 @@ const HelpCenter = observer(() => {
       onClose={uiStore.toggleHelpCenter}
       title="Help Center"
     >
-      <div className={Classes.DRAWER_BODY} id="help-center-drawer">
+      <div className={Classes.DRAWER_BODY} id="help-center">
         <PanelStack
           initialPanel={{
             component: HelpCenterHome,
