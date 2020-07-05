@@ -406,7 +406,7 @@ const Collection = observer((props: ICollectionProps) => {
         <span
           onClick={handleSelect}
           className={`after-icon ${nodeData.hasContent ? '' : Classes.DISABLED}`}
-          data-left={nodeData.hasContent ? undefined : 'Collection has no content.'}
+          data-left={nodeData.hasContent ? undefined : 'Cannot select empty collection.'}
         >
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </span>

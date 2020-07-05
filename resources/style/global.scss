@@ -39,6 +39,9 @@ body {
 .bp3-dark,
 .bp3-light {
   --primary-color: #{$blue1};
+  --primary-color-rgb: 0,122,245;
+  --dark-gray4-rgb: 73, 80, 87;
+  --light-gray1-rgb: 156, 161, 166;
   --stroke-color: #{$gray3};
   --selection-background-color: #007bf53f;
   --selection-font-color: white;
@@ -487,7 +490,7 @@ img {
 }
 
 // --outliner-width
-@media (max-width: 20em) {
+@media (max-width: 15em) {
   #inspector {
     display: none;
   }
@@ -593,7 +596,7 @@ img {
 }
 
 #zoomableImage {
-  height: 100vh;
+  height: calc(100vh - 2.4rem); // Minus toolbarheight
   display: flex;
   flex-direction: column;
 
