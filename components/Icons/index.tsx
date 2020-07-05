@@ -80,6 +80,7 @@ import VIEW_LIST from 'resources/icons/view-list.svg';
 import VIEW_MASON from 'resources/icons/view-mason.svg';
 import VIEW_PRESENT from 'resources/icons/view-present.svg';
 import WARNING_FILL from 'resources/icons/warning-fill.svg';
+import WARNING_BROKEN_LINK from 'resources/icons/warning-broken-link.svg';
 import WARNING from 'resources/icons/warning.svg';
 
 const toSvg = (src: any) => (
@@ -158,6 +159,7 @@ const IconSet = {
   VIEW_MASON: toSvg(VIEW_MASON),
   VIEW_PRESENT: toSvg(VIEW_PRESENT),
   WARNING_FILL: toSvg(WARNING_FILL),
+  WARNING_BROKEN_LING: toSvg(WARNING_BROKEN_LINK),
   WARNING: toSvg(WARNING),
 };
 
