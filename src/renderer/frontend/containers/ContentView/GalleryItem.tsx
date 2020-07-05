@@ -57,7 +57,7 @@ const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
     event.dataTransfer.dropEffect = 'none';
     event.preventDefault();
     event.stopPropagation();
-    delete event.currentTarget.dataset[DnDAttribute.Target];
+    event.currentTarget.dataset[DnDAttribute.Target] = 'false';
   }
 };
 
@@ -72,7 +72,7 @@ const GalleryItem = observer(
           const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType.Tag));
           ctx.tags.forEach((tag) => file.addTag(tag.id));
           ctx.collections.forEach((col) => col.getTagsRecursively().forEach(file.addTag));
-          delete event.currentTarget.dataset[DnDAttribute.Target];
+          event.currentTarget.dataset[DnDAttribute.Target] = 'false';
         }
       },
       [file, uiStore],
