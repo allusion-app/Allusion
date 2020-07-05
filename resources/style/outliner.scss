@@ -104,52 +104,24 @@ main,
 #search-form,
 .bp3-overlay {
   button {
+    background: $dark-gray1-trans;
+    color: $light-gray6;
+
     &.bp3-intent-primary {
       background: $blue1;
       color: $light-gray4;
       box-shadow: none !important;
     }
 
-    /* Breaks stykling buttns search forms */
-    // &.bp3-fill:not([class*='bp3-intent-primary']) {
-    //   border: 1.3px solid $light-gray5-trans !important;
-    //   color: #495057;
-    //   ackground: none;
-    // }
-
-    &:not(.btn-blank):hover {
+    &:not(.bp3-minimal):hover {
       background-color: $dark-gray3;
       color: $light-gray5;
     }
   }
+
   .bp3-input button:hover {
     background-color: transparent !important;
   }
-  .add-remove {
-    button {
-      &.bp3-fill:not([class*='bp3-intent-primary']),
-      &.bp3-button:not([class*='bp3-intent-primary']) {
-        background: $light-gray5-trans;
-        // background: $dark-gray5-trans;
-        color: $light-gray1 !important;
-      }
-      .custom-icon {
-        color: $dark-gray4;
-      }
-      &:hover {
-        background-color: $light-gray6-trans !important;
-        // background-color: $dark-gray2;
-        color: $light-gray5;
-      }
-    }
-  }
-}
-
-.bp3-overlay
-  .bp3-button:not([class*='bp3-intent-']):not(.bp3-dialog-close-button):not(.bp3-minimal) {
-  // background: $light-gray1-trans; /* Not sure what items use this  > buttons none intent*/
-  background: $dark-gray1-trans;
-  color: $light-gray6;
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
@@ -226,16 +198,16 @@ main,
   &[data-dnd-target='true'] {
     color: var(--primary-color);
     border: 2px solid var(--primary-color);
-  }
 
-  &[data-dnd-target-top='true'] {
-    color: var(--primary-color);
-    border-top: 2px solid var(--primary-color);
-  }
+    &.top {
+      border: none;
+      border-top: 2px solid var(--primary-color);
+    }
 
-  &[data-dnd-target-bottom='true'] {
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--primary-color);
+    &.bottom {
+      border: none;
+      border-bottom: 2px solid var(--primary-color);
+    }
   }
 
   &[data-dnd-source='true'] {
