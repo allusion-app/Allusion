@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes } from '@blueprintjs/core';
+import { Tag, ContextMenuTarget, Menu, MenuItem, H4 } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -134,9 +134,8 @@ const GalleryItem = observer(
             // Show image when it has been loaded
             <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
           ) : isThumbnailGenerating ? (
-            // If it's being generated, show a placeholder (skeleton loader)
-            // <div className={`placeholder ${Classes.SKELETON}`} />
-            <div className="donut-loading" /> 
+            // If it's being generated, show a placeholder
+            <div className="donut-loading" />
           ) : (
             // Show an error it it could not be loaded
             <span className="image-error">
@@ -144,9 +143,6 @@ const GalleryItem = observer(
               <br /> Could not load image
             </span>
           )}
-           {/* <span className="donut-loading"></span>  
-                NEEDS WORK > extra hanle for while generating thumbs. Also check GIF vs CSS anim
-                Cant check it properly*/}
         </div>
         {showDetails && (
           <>

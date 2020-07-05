@@ -23,9 +23,7 @@
   &[aria-level='1'] {
     background-color: var(--foreground-color);
   }
-  // .bp3-icon.custom-icon {
-  //   color: inherit !important;
-  // }
+
   > .label {
     min-height: 1.5rem;
     display: flex;
@@ -40,7 +38,8 @@
       color: var(--highlight-font-color);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    &:hover [class*='custom-icon']  {
+
+    &:hover [class*='custom-icon'] {
       border-color: var(--primary-color);
       color: var(--highlight-font-color);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -55,9 +54,9 @@
     color: var(--selection-font-color);
     background-color: var(--selection-background-color);
 
+    // TODO: This shouldn't be necessary after the style refactor.
     [class*='custom-icon'] {
       color: var(--selection-font-color);
-
     }
   }
 

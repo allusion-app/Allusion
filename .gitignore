@@ -6,7 +6,6 @@ build/
 
 # Release directory
 dist/
-release/
 
 # IDEs
 .idea/
