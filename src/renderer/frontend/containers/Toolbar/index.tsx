@@ -21,7 +21,7 @@ export const enum ToolbarTooltips {
   Filter = 'Filter view content panel',
   Inspector = 'Toggle Inspector',
   Settings = 'Toggle Settings',
-  HelpCenter = 'Toggle HelpCenter',
+  HelpCenter = 'Toggle Help Center',
   Back = 'Back to Content panel',
   Preview = 'Open selected images in a preview window',
 }

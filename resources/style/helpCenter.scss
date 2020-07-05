@@ -1,120 +1,113 @@
 ///////////////////////////////// Help Center /////////////////////////////////
 #help-center-drawer {
-
   .bp3-panel-stack {
     height: 100%;
   }
 
   .bp3-panel-stack-view {
-    // position: relative;
-    background-color: transparent;
-    color: $dark-gray4;
-
+    border: none;
+    position: unset;
+    background-color: unset !important;
   }
 
   .bp3-panel-stack-header {
-    box-shadow: 0 1px 0 $pt-divider-black;
-    margin-bottom: 1em;
+    box-shadow: none;
 
-    .bp3-heading {
-      font-size: large;
-    }
+    .bp3-panel-stack-header-back {
+      color: $blue1;
 
-    .bp3-button-text {
-      color: $light-gray2;
+      .bp3-icon {
+        color: $blue1;
+      }
+
+      &:hover {
+        background-color: unset !important;
+      }
     }
   }
 
-  .pageContent {
-    overflow-y: auto;
-    
-    padding-right: 12px;
-    text-align: justify;
+  .page-content {
+    height: 100%;
+
+    .bp3-button-group {
+      float: right;
+    }
+
+    button {
+      min-width: 75px;
+    }
   }
 
-  .bp3-text-overflow-ellipsis { // blueprint cuts of the header by default...
+  .bp3-text-overflow-ellipsis {
+    // blueprint cuts of the header by default...
     overflow: inherit;
   }
 
   img {
     // Width of the help center panel
-    max-width: 320px;
+    max-width: 100%;
   }
 }
-  
-.helpCenterHome {
-  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 
-  .opening {
+.helpCenterHome {
+  > header {
     text-align: center;
   }
 
-  .navigation {
+  nav {
+    width: 100%;
     background-color: #d4d5d7;
-    border-radius: 4px;
-    margin-bottom: 24px;
+    border-radius: 0.25rem;
     overflow: hidden;
   }
 
-  .navigation li:hover {
+  section > header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+
+    .bp3-icon {
+      margin-right: 0.5rem;
+    }
+
+    &::after {
+      width: 1em;
+      height: 1em;
+      content: '';
+      transform: rotateZ(-90deg);
+      mask-image: url(~resources/icons/arrow-down.svg);
+      -webkit-mask-image: url(~resources/icons/arrow-down.svg);
+      background-color: currentColor;
+    }
+  }
+
+  header,
+  li {
+    padding: 0.5rem;
+  }
+
+  li:hover {
     text-decoration: underline;
     cursor: pointer;
   }
 
   ul {
     list-style: none;
-    margin: 0px;
-    padding: 0px;
-  }
-
-  .navigation > ul > li {
-    color: $dark-gray4;
-    font-size: 14px;
-    font-weight: bold;
-    padding: 8px 12px;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .navigation > ul > ul > li {
-    color: $dark-gray4;
-    background-color: #e6e7e9;
-    font-size: 14px;
-    font-weight: normal;
-    padding: 8px 12px;
-  }
-
-  .panelHeader {
-    margin: 18px 0;
-    border-bottom: 2px solid #d4d5d7;
-    padding-bottom: 9px;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  h1 {
-    color: $dark-gray4;
-    font-size: 18px;
-    font-weight: bold;
     margin: 0;
+    padding: 0 0.5rem;
+    background-color: #e6e7e9;
   }
 
   h2 {
-    color: #0073e5;
-    font-size: 16px;
-    font-weight: bold;
-    margin: 4px 0;
+    color: $blue1;
+    font-size: medium;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
   }
 
   p {
-    color: $dark-gray4;
-    font-size: 14px;
-    font-weight: normal;
-    margin-top: 0;
-    margin-bottom: 14px;
     line-height: 1.5;
   }
 }

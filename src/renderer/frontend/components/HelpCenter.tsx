@@ -16,7 +16,7 @@ interface ISection {
 const sections: ISection[] = [
   {
     title: 'About Allusion',
-    icon: 'Icon',
+    icon: IconSet.LOGO,
     subSections: [
       {
         title: 'What is Allusion',
@@ -268,50 +268,42 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
 
   const parentRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to subsection when a subSectionIndex is passed as a prop. Scroll to top if not passed
-  const subSectionRefs = useRef(
-    section.subSections.map(() => React.createRef<HTMLHeadingElement>()),
-  );
   useEffect(() => {
-    console.log(parentRef.current);
     if (parentRef.current) {
       if (subSectionIndex !== undefined) {
-        const ref = subSectionRefs.current[subSectionIndex];
-        parentRef.current.scrollTo(0, (ref.current?.offsetTop || 0) - 50);
+        const child = parentRef.current.children[subSectionIndex];
+        child.scrollIntoView();
       } else {
-        parentRef.current.scrollTo(0, 0);
+        parentRef.current.parentElement?.scrollIntoView();
       }
     }
   }, [section, subSectionIndex]);
 
   return (
-    <div className="pageContent" ref={parentRef}>
-      {section.subSections.map((subSec, subSectionIndex) => (
+    <div className="page-content" ref={parentRef}>
+      {section.subSections.map((subSec) => (
         <div key={subSec.title}>
-          <h2 ref={subSectionRefs.current[subSectionIndex]}>{subSec.title}</h2>
+          <h2>{subSec.title}</h2>
           {subSec.content}
         </div>
       ))}
       <br />
       <ButtonGroup>
         <Button intent="primary" onClick={closePanel}>
-          Back
+          Previous
         </Button>
         {nextSection && (
           <Button
             intent="primary"
-            onClick={() => {
-              // Close and open a new panel, with a delay to get the sweet animation
-              closePanel();
-              // wrap the openPanel in a setTimeout (e.g. 300ms) for an animation. But feels nicer without
+            onClick={() =>
               openPanel({
                 title: nextSection.title,
                 component: SectionPanel,
                 props: { section: nextSection },
-              });
-            }}
+              })
+            }
           >
-            Next: {nextSection.title}
+            Next
           </Button>
         )}
       </ButtonGroup>
@@ -322,67 +314,65 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
 const HelpCenterHome = (props: IPanelProps) => {
   return (
     <div className="helpCenterHome">
-      <div className="opening">
+      <header>
         <h2>Learn Allusion</h2>
         <p>Some documents to get you started</p>
-      </div>
-      <div className="navigation">
-        <ul>
-          {sections.map((section) => (
-            <React.Fragment key={section.title}>
-              <li
-                onClick={() =>
-                  props.openPanel({
-                    title: section.title,
-                    component: SectionPanel,
-                    props: { section },
-                  })
-                }
-              >
-                <span>{section.title}</span>
-                <span>{section.icon}</span>
-              </li>
-              <ul>
-                {section.subSections.map((subSec, subSectionIndex) => (
-                  <li
-                    key={subSec.title}
-                    onClick={() =>
-                      props.openPanel({
-                        title: section.title,
-                        component: SectionPanel,
-                        props: { section, subSectionIndex },
-                      })
-                    }
-                  >
-                    {subSec.title}
-                  </li>
-                ))}
-              </ul>
-            </React.Fragment>
-          ))}
-        </ul>
-      </div>
+      </header>
+      <nav>
+        {sections.map((section) => (
+          <section key={section.title}>
+            <header
+              onClick={() =>
+                props.openPanel({
+                  title: section.title,
+                  component: SectionPanel,
+                  props: { section },
+                })
+              }
+            >
+              <span>
+                {section.icon}
+                {section.title}
+              </span>
+            </header>
+            <ul>
+              {section.subSections.map((subSec, subSectionIndex) => (
+                <li
+                  key={subSec.title}
+                  onClick={() =>
+                    props.openPanel({
+                      title: section.title,
+                      component: SectionPanel,
+                      props: { section, subSectionIndex },
+                    })
+                  }
+                >
+                  {subSec.title}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </nav>
     </div>
   );
 };
 
 const HelpCenter = observer(() => {
   const { uiStore } = useContext(StoreContext);
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
     <Drawer
       isOpen={uiStore.isHelpCenterOpen}
-      // icon={IconSet.OPEN_EXTERNAL}
+      icon={IconSet.OPEN_EXTERNAL}
       onClose={uiStore.toggleHelpCenter}
-      // title="HelpCenter"
-      className={themeClass}
+      title="Help Center"
     >
       <div className={Classes.DRAWER_BODY} id="help-center-drawer">
         <PanelStack
           initialPanel={{
             component: HelpCenterHome,
-            title: 'Help Center',
+            title: 'Overview',
           }}
         />
       </div>
