@@ -89,7 +89,7 @@ class TagCollectionStore {
     const id = col.id;
     col.dispose();
     await this.backend.removeTagCollection(col);
-    this.tagCollectionList.remove(col);
+    runInAction(() => this.tagCollectionList.remove(col));
     return id;
   }
 
