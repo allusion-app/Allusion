@@ -13,7 +13,8 @@
 
 .group_transition {
   overflow: hidden;
-  transition: max-height 100ms ease-out;
+  height: 100%;
+  transition: height 100ms ease-out;
 }
 
 .tree_item {
@@ -46,8 +47,12 @@
     }
   }
 
-  &[aria-expanded='false'] > .group_transition > .group {
-    transform: translateY(-100%);
+  &[aria-expanded='false'] > .group_transition {
+    height: 0;
+
+    > .group {
+      transform: translateY(-100%);
+    }
   }
 
   &[aria-selected='true'] > .label {
