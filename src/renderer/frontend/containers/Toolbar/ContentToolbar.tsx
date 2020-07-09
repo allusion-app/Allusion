@@ -44,18 +44,23 @@ interface ITagFilesPopoverProps {
   isOpen: boolean;
   close: () => void;
   toggle: () => void;
+  hidden?: boolean;
 }
 
 const TagFilesPopover = observer(
-  ({ disabled, files, isOpen, close, toggle }: ITagFilesPopoverProps) => (
+  ({ disabled, files, isOpen, close, toggle, hidden }: ITagFilesPopoverProps) => (
     <Popover minimal isOpen={isOpen} onClose={close}>
-      <Button
-        icon={IconSet.TAG}
-        disabled={disabled}
-        onClick={toggle}
-        className="tooltip"
-        data-right={ToolbarTooltips.TagFiles}
-      />
+      {hidden ? (
+        <></>
+      ) : (
+        <Button
+          icon={IconSet.TAG}
+          disabled={disabled}
+          onClick={toggle}
+          className="tooltip"
+          data-right={ToolbarTooltips.TagFiles}
+        />
+      )}
       <div className="popoverContent">
         <FileTags files={files} autoFocus />
       </div>
@@ -217,12 +222,15 @@ const ContentToolbar = observer(({ className }: { className?: string }) => {
               toggleSelection={handleToggleSelect}
               selectionCount={fileSelection.length}
             />
+
+            {/* Only show when not viewing missing files (so it is replaced by the Delete button) */}
             <TagFilesPopover
               files={uiStore.clientFileSelection}
               disabled={fileSelection.length <= 0 || fileStore.fileList.length <= 0}
               isOpen={uiStore.isToolbarTagSelectorOpen}
               close={uiStore.closeToolbarTagSelector}
               toggle={uiStore.toggleToolbarTagSelector}
+              hidden={fileStore.content === 'missing'}
             />
 
             {/* Only show option to remove selected files in toolbar when viewing missing files */}

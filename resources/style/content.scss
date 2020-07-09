@@ -166,6 +166,18 @@
       transition: 0.2s $pt-transition-ease2;
       // transform: scale(1);
       // transition: 0.2s $pt-transition-ease2;
+
+      &.broken-with-thumbnail {
+        // Indicate missing image by making it B&W and a little darker
+        filter: saturate(0) brightness(0.8);
+      }
+    }
+
+    &:hover {
+      img.broken-with-thumbnail {
+        // Restore saturation and brightness on hover
+        filter: saturate(1) brightness(1);
+      }
     }
   }
 

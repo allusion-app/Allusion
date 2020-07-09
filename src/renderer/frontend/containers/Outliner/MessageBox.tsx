@@ -159,13 +159,6 @@ export const FileRemoval = (
               ))}
             </ul>
           </span>
-          <Callout icon={IconSet.INFO}>
-            <H4 className="bp3-heading inspectorHeading">Tip: Merging</H4>
-            <p>
-              In case of duplicate entries, you can also merge a missing image with another image in
-              your library through the inspector, in order to not lose any metadata.
-            </p>
-          </Callout>
         </>
       }
     />

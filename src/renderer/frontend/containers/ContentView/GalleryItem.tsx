@@ -111,7 +111,10 @@ const GalleryItem = observer(
       ensureThumbnail(file, uiStore.thumbnailDirectory).then((exists) => {
         if (!exists) {
           setThumbnailReady(false);
-          setThumbnailGenerating(true);
+          if (!file.isBroken) {
+            // can't genarate thumbnail if img doesn't exist
+            setThumbnailGenerating(true);
+          }
         }
       });
     }, [file, uiStore.thumbnailDirectory]);
@@ -148,7 +151,12 @@ const GalleryItem = observer(
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
           {isThumbnailReady ? (
             // Show image when it has been loaded
-            <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
+            <img
+              src={imagePath}
+              onError={handleImageError}
+              className={`bp3-skeleton ${file.isBroken ? 'broken-with-thumbnail' : ''}`}
+              alt=""
+            />
           ) : isThumbnailGenerating ? (
             // If it's being generated, show a placeholder (skeleton loader)
             <div className={`placeholder ${Classes.SKELETON}`} />

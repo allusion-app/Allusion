@@ -78,7 +78,7 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
             <p>
               This image could not be found.
               <br />
-              Would you like to remove it from Allusion, or merge with another entry?
+              Would you like to remove it from your library?
             </p>
             <ButtonGroup>
               <Button
@@ -89,7 +89,6 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
                   uiStore.toggleToolbarFileRemover();
                 }}
               />
-              <Button text="Merge" intent="warning" />
             </ButtonGroup>
           </Card>
         ) : (
