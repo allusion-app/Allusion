@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell, ipcRenderer } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { useDrop } from 'react-dnd';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes } from '@blueprintjs/core';
+import { Tag, ContextMenuTarget, Menu, MenuItem, H4 } from '@blueprintjs/core';
 import urlLib from 'url';
 import fse from 'fs-extra';
 
@@ -14,6 +13,7 @@ import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/Stor
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
+import { RendererMessenger } from 'src/Messaging';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -122,46 +122,27 @@ const GalleryItem = observer(
       [imagePath],
     );
 
-    const handleDragStart = useCallback(async (e: React.DragEvent<HTMLImageElement>) => {
-      if (!e.dataTransfer) return;
-      // Set a flag so that we can ignore the drag event in the DragOverlay
-      e.dataTransfer.setData('text/allusion-ignore', '');
-      (window as any).internalDragStart = new Date();
+    const handleDragStart = useCallback(
+      async (e: React.DragEvent<HTMLImageElement>) => {
+        // If file is selected, add all selected items to the drag event, for exporting e.g. to your file explorer or programs like PureRef
+        // Creating an event in the main process turned out to be the most robust, did many experiments with drag event content types.
+        // Creating a drag event with multiple images did not work correctly from the browser side (e.g. only limited to thumbnails, not full images)
+        if (isSelected && uiStore.fileSelection.length > 1) {
+          e.preventDefault();
+          RendererMessenger.startDragExport({
+            absolutePaths: uiStore.clientFileSelection.map((f) => f.absolutePath),
+          });
+        } else {
+          RendererMessenger.startDragExport({ absolutePaths: [file.absolutePath] });
+        }
 
-      // If file is selected, add all selected items to the drag event
-      if (isSelected && uiStore.fileSelection.length > 1) {
-        const selectedImgsAsHtml = uiStore.clientFileSelection.map((f) => `<img src="${urlLib.pathToFileURL(f.absolutePath)}" />`).join('\n ');
-        e.dataTransfer.setData('text/html', selectedImgsAsHtml);
-        e.dataTransfer.setData('text/uri-list', uiStore.clientFileSelection.map((f) => urlLib.pathToFileURL(f.absolutePath)).join('\r\n'));
-
-        e.preventDefault();
-        ipcRenderer.send('ondragstart', uiStore.clientFileSelection.map((f) => f.absolutePath));
-
-        // uiStore.clientFileSelection.forEach((f) => e.dataTransfer.items.add(new File([], f.absolutePath)))
-      } else {
-        // Add the full-res image to the drag event (instead of thumbnail)
-        e.dataTransfer.setData('text/html', `<img src="${urlLib.pathToFileURL(file.absolutePath)}" />`);
-        e.dataTransfer.setData('text/uri-list', urlLib.pathToFileURL(file.absolutePath).toString());
-
-        e.preventDefault();
-        ipcRenderer.send('ondragstart', file.absolutePath);
-
-        const imgEl = new Image();
-        imgEl.src = file.absolutePath;
-        e.dataTransfer.setDragImage(imgEl, 0, 0);
-
-        const buffer = fse.readFileSync(file.absolutePath);
-        const fileItem = new File([buffer], file.name, { lastModified: new Date().getTime() });
-        e.dataTransfer.items.add(fileItem);
-      }
-
-      // console.log(new File([], file.absolutePath));
-
-      // console.log(e.dataTransfer.types.map(t => ({ [t]: e.dataTransfer.getData(t)})));
-      // console.log(e.dataTransfer.files);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [file, isSelected, uiStore.fileSelection, uiStore.fileSelection.length]);
+        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+        // So we can store the date when the event starts... Hacky but it works :)
+        (window as any).internalDragStart = new Date();
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [file, isSelected, uiStore.fileSelection, uiStore.fileSelection.length],
+    );
 
     // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
     // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
@@ -173,10 +154,15 @@ const GalleryItem = observer(
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
+        <div
+          onClick={handleClickImg}
+          className="img-wrapper"
+          onDoubleClick={handleDoubleClickImg}
+          onDragStart={handleDragStart}
+        >
           {isThumbnailReady ? (
             // Show image when it has been loaded
-            <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" onDragStart={handleDragStart} />
+            <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
           ) : isThumbnailGenerating ? (
             // If it's being generated, show a placeholder
             <div className="donut-loading" />
@@ -235,8 +221,8 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
 /** Wrapper that adds a context menu (with right click) */
 @ContextMenuTarget
 class GalleryItemWithContextMenu extends React.PureComponent<
-IGalleryItemProps,
-{ isContextMenuOpen: boolean; _isMounted: boolean }
+  IGalleryItemProps,
+  { isContextMenuOpen: boolean; _isMounted: boolean }
 > {
   state = {
     isContextMenuOpen: false,

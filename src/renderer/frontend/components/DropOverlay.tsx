@@ -140,7 +140,6 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
 
   const handleDropStart = useCallback(
     async (e: React.DragEvent) => {
-      if (checkedDrop) console.log('not checking');
       // We only have to check once, until drag leave
       if (checkedDrop) return;
       setCheckedDrop(true);
@@ -148,20 +147,17 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
       e.dataTransfer.dropEffect = 'copy';
       let allowDrop = e.dataTransfer.types.some((t) => ALLOWED_DROP_TYPES.includes(t));
 
-      // console.log(e.dataTransfer, e.eventPhase, e.isTrusted, e.nativeEvent, e.target, e.type, e.relatedTarget, e.dataTransfer.types, e.dataTransfer.types.map((t) => ({[t]: e.dataTransfer.getData(t)})))
-
       // Detect whether the drag event came from within Allusion
       // FIXME: Yes, this is hacky. But... The native drag event does not allow you to specify any metadata, just a list of files...
       const w = window as any;
-      const isInternalEvent = w.internalDragStart && (new Date().getTime() - (w.internalDragStart as Date)?.getTime() < 300);
-
-      console.log('isInternalEvent', isInternalEvent)
+      const isInternalEvent =
+        w.internalDragStart &&
+        new Date().getTime() - (w.internalDragStart as Date)?.getTime() < 300;
 
       // Don't show drop overlay when dragging an image from inside of allusion
       if (e.dataTransfer.types.includes('text/allusion-ignore') || isInternalEvent) {
         e.dataTransfer.dropEffect = 'none';
         allowDrop = false;
-        console.log('ignoring new event');
       } else if (e.dataTransfer.types.includes('Files')) {
         e.dataTransfer.dropEffect = 'link';
         allowDrop = false;
@@ -182,7 +178,6 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
   );
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    console.log('DRAG LEAVE')
     // Only trigger if dragging outside itself or its children
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsDropping(false);
@@ -190,65 +185,66 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     }
   }, []);
 
-  const handleDrop = useCallback(async (e: React.DragEvent, tag?: ClientTag) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDrop = useCallback(
+    async (e: React.DragEvent, tag?: ClientTag) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    const dropData = await getDropData(e);
-    try {
-      for (const dataItem of dropData) {
-        let fileData: IStoreFileMessage | undefined;
+      const dropData = await getDropData(e);
+      try {
+        for (const dataItem of dropData) {
+          let fileData: IStoreFileMessage | undefined;
 
-        // Copy file into the default import location
-        // Reusing the same code for importing through the web extension
-        // Store file -> detected by watching the directory -> import
-        if (dataItem instanceof File) {
-          const file = await fse.readFile(dataItem.path);
-          fileData = {
-            filenameWithExt: path.basename(dataItem.path),
-            imgBase64: new Buffer(file).toString('base64'),
-          };
-        } else if (typeof dataItem === 'string') {
-          // It's probably a URL, so we can download it to get the image data
-          const { imgBase64, blob } = await imageAsBase64(dataItem);
-          const extension = blob.type.split('/')[1];
-          const filename = getFilenameFromUrl(dataItem, 'image');
-          const filenameWithExt = IMG_EXTENSIONS.some((ext) => filename.endsWith(ext))
-            ? filename
-            : `${filename}.${extension}`;
-          fileData = { imgBase64, filenameWithExt };
-        }
-        if (fileData) {
-          const { imgBase64, filenameWithExt } = fileData;
+          // Copy file into the default import location
+          // Reusing the same code for importing through the web extension
+          // Store file -> detected by watching the directory -> import
+          if (dataItem instanceof File) {
+            const file = await fse.readFile(dataItem.path);
+            fileData = {
+              filenameWithExt: path.basename(dataItem.path),
+              imgBase64: new Buffer(file).toString('base64'),
+            };
+          } else if (typeof dataItem === 'string') {
+            // It's probably a URL, so we can download it to get the image data
+            const { imgBase64, blob } = await imageAsBase64(dataItem);
+            const extension = blob.type.split('/')[1];
+            const filename = getFilenameFromUrl(dataItem, 'image');
+            const filenameWithExt = IMG_EXTENSIONS.some((ext) => filename.endsWith(ext))
+              ? filename
+              : `${filename}.${extension}`;
+            fileData = { imgBase64, filenameWithExt };
+          }
+          if (fileData) {
+            const { imgBase64, filenameWithExt } = fileData;
 
-          let rejected = false;
-          const timeout = setTimeout(() => {
-            rejected = true;
-            console.error('Could not store dropped image in backend');
-          }, 5000);
+            let rejected = false;
+            const timeout = setTimeout(() => {
+              rejected = true;
+              console.error('Could not store dropped image in backend');
+            }, 5000);
 
-          // Send base64 file to main process, get back filename where it is stored
-          const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
+            // Send base64 file to main process, get back filename where it is stored
+            const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
 
-          if (!rejected) {
-            clearTimeout(timeout);
-            console.log('Imported file', reply.downloadPath);
+            if (!rejected) {
+              clearTimeout(timeout);
+              console.log('Imported file', reply.downloadPath);
 
-            // Add tag if needed
-            const clientFile = await fileStore.addFile(reply.downloadPath, DEFAULT_LOCATION_ID);
-            if (clientFile && tag) {
-              clientFile.addTag(tag.id);
+              // Add tag if needed
+              const clientFile = await fileStore.addFile(reply.downloadPath, DEFAULT_LOCATION_ID);
+              if (clientFile && tag) {
+                clientFile.addTag(tag.id);
+              }
             }
           }
         }
+      } catch (e) {
+        console.log('Error while importing dropped file:', e);
+      } finally {
+        setIsDropping(false);
+        setCheckedDrop(false);
       }
-    } catch (e) {
-      console.log('Error while importing dropped file:', e);
-    } finally {    
-      setIsDropping(false);
-      setCheckedDrop(false);
-    }
-  },
+    },
     [fileStore],
   );
 
@@ -266,7 +262,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
           <Card
             elevation={4}
             className="drop-overlay-content"
-          // todo: blue background when dropping over
+            // todo: blue background when dropping over
           >
             <H4 className="bp3-heading inpectorHeading">Drop import</H4>
             <p>Drag onto a tag to immediately tag it or anywhere to import it untagged</p>

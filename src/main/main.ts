@@ -281,8 +281,8 @@ app.on('activate', () => {
   }
 });
 
-// Messaging ///////////////////////////////
-////////////////////////////////////////////
+// Messaging: Sending and receiving messages between the main and renderer process //
+/////////////////////////////////////////////////////////////////////////////////////
 MainMessenger.onSetDownloadPath(({ dir }) => clipServer!.setDownloadPath(dir));
 MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
 MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
@@ -325,20 +325,18 @@ MainMessenger.onSendPreviewFiles((msg) => {
   }
 });
 
-MainMessenger.onGetUserPicturesPath();
-
-ipcMain.on('ondragstart', (e: any, path: string | string[]) => {
-  if (typeof path === 'string') {
-    e.sender.startDrag({
-      file: path,
-      icon: nativeImage.createFromPath(path).resize({ width: 200 }) || AppIcon,
-      type: 'text/allusion-ignore',
-      
-    })
-  } else if (path.length > 0) {
-    e.sender.startDrag({
-      files: path,
-      icon: nativeImage.createFromPath(path[0]).resize({ width: 200 }) || AppIcon,
-    })
+MainMessenger.onDragExport(({ absolutePaths }) => {
+  if (!mainWindow) return;
+  if (absolutePaths.length > 0) {
+    mainWindow.webContents.startDrag({
+      files: absolutePaths,
+      // Just show the first image as a thumbnail for now
+      // TODO: Show some indication that multiple images are dragged, would be cool to show a stack of the first few of them
+      // also, this will show really big icons for narrow images, should take into account their aspect ratio
+      icon: nativeImage.createFromPath(absolutePaths[0]).resize({ width: 200 }) || AppIcon,
+    } as any) // need to "any" this since the types are not correct: the files field is allowed but not according to TypeScript
   }
 });
+
+MainMessenger.onGetUserPicturesPath();
+

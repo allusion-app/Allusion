@@ -135,6 +135,10 @@
     // background-repeat: no-repeat;
     // background-position: 50% 50%;
 
+    
+    // Allow dragging of images to elsewhere (drag-export)
+    -webkit-user-drag: element;
+
     &:hover {
       background: none !important;
     }
@@ -160,8 +164,6 @@
       // transform: scale(1);
       // transition: 0.2s $pt-transition-ease2;
 
-      // Allow dragging of images to elsewhere
-      -webkit-user-drag: element;
     }
   }
 
