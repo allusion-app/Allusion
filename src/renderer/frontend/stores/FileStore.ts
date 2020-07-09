@@ -127,6 +127,12 @@ class FileStore {
         await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
         await this.backend.removeFiles(filesToRemove);
       }
+      runInAction(() =>
+        filesToRemove.forEach((f) => {
+          if (f.isBroken) this.numMissingFiles--;
+          if (f.tags.length === 0) this.numUntaggedFiles--;
+        }),
+      );
     } catch (err) {
       console.error('Could not remove files', err);
     }
