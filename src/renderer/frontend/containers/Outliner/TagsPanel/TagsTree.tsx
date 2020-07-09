@@ -178,9 +178,9 @@ const Tag = observer((props: ITagProps) => {
       const dataSet = event.currentTarget.dataset;
       if (DragItem.isSelected) {
         uiStore.moveSelectedTagItems(nodeData.id);
-        delete dataSet[DnDAttribute.Target];
-        delete dataSet[DnDAttribute.Target + 'Top'];
-        delete dataSet[DnDAttribute.Target + 'Bottom'];
+        dataSet[DnDAttribute.Target] = 'false';
+        event.currentTarget.classList.remove('top');
+        event.currentTarget.classList.remove('bottom');
         return;
       }
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
@@ -188,15 +188,13 @@ const Tag = observer((props: ITagProps) => {
         const id = event.dataTransfer.getData(DnDType.Tag);
         const tag = tagStore.get(id);
         if (tag) {
-          const index = pos - nodeData.parent.subCollections.length - 1; // 'pos' does not start from 0!
-          nodeData.parent.insertTag(
-            tag,
-            dataSet[DnDAttribute.Target + 'Bottom'] ? index + 1 : index,
-          );
+          let index = pos - nodeData.parent.subCollections.length - 1; // 'pos' does not start from 0!
+          index = event.currentTarget.classList.contains('bottom') ? index + 1 : index;
+          nodeData.parent.insertTag(tag, index);
         }
-        delete dataSet[DnDAttribute.Target];
-        delete dataSet[DnDAttribute.Target + 'Top'];
-        delete dataSet[DnDAttribute.Target + 'Bottom'];
+        dataSet[DnDAttribute.Target] = 'false';
+        event.currentTarget.classList.remove('top');
+        event.currentTarget.classList.remove('bottom');
       }
     },
     [nodeData.id, nodeData.parent, pos, tagStore, uiStore],
@@ -323,9 +321,9 @@ const Collection = observer((props: ICollectionProps) => {
       const dataSet = event.currentTarget.dataset;
       if (DragItem.isSelected) {
         uiStore.moveSelectedTagItems(nodeData.id);
-        delete dataSet[DnDAttribute.Target];
-        delete dataSet[DnDAttribute.Target + 'Top'];
-        delete dataSet[DnDAttribute.Target + 'Bottom'];
+        dataSet[DnDAttribute.Target] = 'false';
+        event.currentTarget.classList.remove('top');
+        event.currentTarget.classList.remove('bottom');
         return;
       }
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
@@ -335,25 +333,25 @@ const Collection = observer((props: ICollectionProps) => {
         if (tag) {
           nodeData.insertTag(tag);
         }
-        delete dataSet[DnDAttribute.Target];
-        delete dataSet[DnDAttribute.Target + 'Top'];
-        delete dataSet[DnDAttribute.Target + 'Bottom'];
+        dataSet[DnDAttribute.Target] = 'false';
+        event.currentTarget.classList.remove('top');
+        event.currentTarget.classList.remove('bottom');
       } else if (event.dataTransfer.types.includes(DnDType.Collection)) {
         event.dataTransfer.dropEffect = 'none';
         const id = event.dataTransfer.getData(DnDType.Collection);
         const collection = tagCollectionStore.get(id);
         if (collection && !collection.containsSubCollection(nodeData.id)) {
-          if (dataSet[DnDAttribute.Target]) {
-            nodeData.insertCollection(collection);
-          } else if (dataSet[DnDAttribute.Target + 'Top']) {
+          if (event.currentTarget.classList.contains('top')) {
             nodeData.parent.insertCollection(collection, pos - 1); // 'pos' does not start from 0!
-          } else {
+          } else if (event.currentTarget.classList.contains('bottom')) {
             nodeData.parent.insertCollection(collection, pos);
+          } else {
+            nodeData.insertCollection(collection);
           }
         }
-        delete dataSet[DnDAttribute.Target];
-        delete dataSet[DnDAttribute.Target + 'Top'];
-        delete dataSet[DnDAttribute.Target + 'Bottom'];
+        dataSet[DnDAttribute.Target] = 'false';
+        event.currentTarget.classList.remove('top');
+        event.currentTarget.classList.remove('bottom');
       }
     },
     [nodeData, pos, tagCollectionStore, tagStore, uiStore],
@@ -406,7 +404,7 @@ const Collection = observer((props: ICollectionProps) => {
         <span
           onClick={handleSelect}
           className={`after-icon ${nodeData.hasContent ? '' : Classes.DISABLED}`}
-          data-left={nodeData.hasContent ? undefined : 'Collection has no content.'}
+          data-left={nodeData.hasContent ? undefined : 'Cannot select empty collection.'}
         >
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </span>
@@ -703,10 +701,10 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
 
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      const dataSet = event.currentTarget.dataset;
       if (DragItem.isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_COLLECTION_ID);
-        const dataSet = event.currentTarget.dataset;
-        delete dataSet[DnDAttribute.Target];
+        dataSet[DnDAttribute.Target] = 'false';
         return;
       }
       if (event.dataTransfer.types.includes(DnDType.Tag)) {
@@ -716,7 +714,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
         if (tag) {
           root.insertTag(tag);
         }
-        delete event.currentTarget.dataset[DnDAttribute.Target];
+        dataSet[DnDAttribute.Target] = 'false';
       } else if (event.dataTransfer.types.includes(DnDType.Collection)) {
         event.dataTransfer.dropEffect = 'none';
         const data = event.dataTransfer.getData(DnDType.Collection);
@@ -724,7 +722,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
         if (collection) {
           root.insertCollection(collection);
         }
-        delete event.currentTarget.dataset[DnDAttribute.Target];
+        dataSet[DnDAttribute.Target] = 'false';
       }
     },
     [root, tagCollectionStore, tagStore, uiStore],

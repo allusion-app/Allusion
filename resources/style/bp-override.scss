@@ -210,11 +210,14 @@ form,
 
 .bp3-dark {
   #preview-toolbar .bp3-control {
-    color: $light-gray1 !important;
+    color: $light-gray6;
   }
 
   .bp3-control {
     color: $dark-gray4;
+  }
+  .bp3-control-indicator-child:nth-child(2) {
+    color: $light-gray3;
   }
 }
 
@@ -243,18 +246,20 @@ form,
 
 .bp3-control-group {
   .bp3-input {
-    border-radius: 6px !important;
+    // border-radius: 6px !important;
     width: 275px !important;
   }
   > div,
   > span {
-    margin-right: 6px !important;
-    border-radius: 6px !important;
+    // margin-right: 6px !important;
+    // border-radius: 6px !important;
+    border-right: 1px solid rgba(var(--light-gray1-rgb), 0.75);
     max-width: 150px !important;
     width: 150px !important;
   }
   > *:nth-child(3) {
     max-width: 275px !important;
+    border-right: none !important;
   }
   > *:last-child {
     width: 10px !important;
@@ -341,6 +346,9 @@ form .bp3-icon {
     .bp3-input-ghost::placeholder {
       color: $light-gray4;
     }
+  }
+  .bp3-input:focus {
+    border-radius: 0 6px 6px 0 !important;
   }
 }
 .bp3-dark {
@@ -1132,7 +1140,8 @@ li .bp3-menu-item {
 }
 
 .bp3-drawer .bp3-intent-warning .custom-icon,
-#actions-bar button .bp3-icon {
+#actions-bar button .bp3-icon,
+#functions-bar button .bp3-icon {
   color: white !important;
 }
 
@@ -1173,14 +1182,20 @@ main {
     padding-right: 24rem;
   }
   .bp3-button {
-    background: rgba(0, 0, 0, 0) !important;
+    background:unset !important;
+    color: #f5f8fa !important;
+    .bp3-icon {
+      color: #f5f8fa !important;
+    }
   }
 }
 .bp3-toast {
-  border-radius: 5px;
-}
-.bp3-toast[class*='bp3-intent-'] {
+  color: #f5f8fa ;
   background: $blue1;
+  border-radius: 5px;
+  &[class*='bp3-intent-warning'] {
+    background-color: $danger;
+  }
 }
 
 .bp3-toast[class*='bp3-intent-'] .bp3-button:hover {

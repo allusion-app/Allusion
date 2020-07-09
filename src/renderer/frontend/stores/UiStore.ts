@@ -26,6 +26,7 @@ interface IHotkeyMap {
   // Inspector actions
   toggleInspector: string;
   toggleSettings: string;
+  toggleHelpCenter: string;
 
   // Toolbar actions (these should only be active when the content area is focused)
   openTagSelector: string;
@@ -51,6 +52,7 @@ const defaultHotkeyMap: IHotkeyMap = {
   replaceQuery: 'r',
   openTagSelector: 't',
   toggleSettings: 's',
+  toggleHelpCenter: 'h',
   deleteSelection: 'del',
   selectAll: 'mod + a',
   deselectAll: 'mod + d',
@@ -110,6 +112,7 @@ class UiStore {
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
+  @observable isHelpCenterOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
   @observable isLocationRecoveryOpen: ID | null = null;
   @observable isPreviewOpen: boolean = false;
@@ -236,6 +239,10 @@ class UiStore {
 
   @action.bound toggleSettings() {
     this.isSettingsOpen = !this.isSettingsOpen;
+  }
+
+  @action.bound toggleHelpCenter() {
+    this.isHelpCenterOpen = !this.isHelpCenterOpen;
   }
 
   @action.bound toggleToolbarTagSelector() {

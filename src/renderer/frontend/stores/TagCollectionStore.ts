@@ -1,4 +1,4 @@
-import { action, IObservableArray, observable } from 'mobx';
+import { action, IObservableArray, observable, runInAction } from 'mobx';
 import Backend from '../../backend/Backend';
 import {
   ClientTagCollection,
@@ -38,14 +38,13 @@ class TagCollectionStore {
 
   /** Removes tag collection and all its descendant */
   @action.bound async removeTagCollection(col: ClientTagCollection) {
-    // Prevent saving changes in database
-    col.autoSave = false;
     // Remove descendants of this tag collection to prevent parent missing waring
     await Promise.all(col.clientSubCollections.map(this.removeTagCollection));
     await Promise.all(col.clientTags.map((tag) => tag.delete()));
 
     // Removes collection from frontend and backend
-    return this.delete(col);
+    const id = await this.delete(col);
+    runInAction(() => this.tagCollectionList.forEach((c) => c.subCollections.remove(id)));
   }
 
   /** Find and remove missing tags from files */
@@ -85,14 +84,13 @@ class TagCollectionStore {
 
   /**
    * Removes collection from frontend and backend
-   *
-   * See the documentation of `ClientTag.delete` for more information.
    */
-  @action private async delete(col: ClientTagCollection) {
+  @action private async delete(col: ClientTagCollection): Promise<ID> {
+    const id = col.id;
     col.dispose();
-    this.tagCollectionList.remove(col);
-    this.tagCollectionList.forEach((col) => col.subCollections.remove(col.id));
-    return this.backend.removeTagCollection(col);
+    await this.backend.removeTagCollection(col);
+    runInAction(() => this.tagCollectionList.remove(col));
+    return id;
   }
 
   @action private async loadTagCollections() {

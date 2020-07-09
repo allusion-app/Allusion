@@ -303,15 +303,6 @@ const TreeLeaf = observer(
   },
 );
 
-const resizeObserver = new ResizeObserver((entries) => {
-  for (const entry of entries) {
-    const container = (entry.target as HTMLElement).parentElement;
-    if (container) {
-      container.style.maxHeight = entry.contentRect.height + 'px';
-    }
-  }
-});
-
 const TreeBranch = observer(
   ({
     ancestorVisible,
@@ -331,27 +322,20 @@ const TreeBranch = observer(
     onLeafKeyDown,
     className = '',
   }: IBranch) => {
-    const group = useRef<HTMLUListElement | null>(null);
+    const transition = useRef<HTMLDivElement | null>(null);
     const expanded = isExpanded(nodeData, treeData) ?? false;
-    const [slice, setSlice] = useState<number | undefined>(expanded ? undefined : -overScan);
+    const [end, setEnd] = useState<number | undefined>(expanded ? undefined : overScan);
+
+    // TODO: Try transitionrun/transitionstart instead on ul element.
     useLayoutEffect(() => {
-      const node = group.current;
-      if (node) {
+      if (transition.current) {
         if (expanded) {
-          setSlice(undefined);
-          resizeObserver.observe(node);
+          setEnd(undefined);
+          transition.current.style.maxHeight = '';
         } else {
-          // This is probably more performant but if the animation gets janky, this line should be removed.
-          resizeObserver.unobserve(node);
-          node.parentElement!.style.maxHeight = '0px';
+          transition.current.style.maxHeight = transition.current.clientHeight + 'px';
         }
       }
-
-      return () => {
-        if (node) {
-          resizeObserver.unobserve(node);
-        }
-      };
     }, [expanded]);
 
     const handleToggle = useCallback(() => toggleExpansion(nodeData, treeData), [
@@ -366,13 +350,13 @@ const TreeBranch = observer(
     );
 
     const handleTransitionEnd = useCallback(
-      (event) => {
-        if (!expanded) {
+      (event: React.TransitionEvent) => {
+        if (event.currentTarget.parentElement!.clientHeight === 0) {
           event.stopPropagation();
-          setSlice(-overScan);
+          setEnd(overScan);
         }
       },
-      [expanded, overScan],
+      [overScan],
     );
 
     return (
@@ -396,34 +380,31 @@ const TreeBranch = observer(
           />
           {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
         </div>
-        <div
-          className="group_transition"
-          style={{ maxHeight: expanded ? undefined : 0 }}
-          onTransitionEnd={handleTransitionEnd}
-        >
-          {ancestorVisible && (
-            <ul
-              style={{ '--level': level } as React.CSSProperties}
-              role="group"
-              className="group"
-              ref={group}
-            >
-              {branches.slice(slice).map((b, i) => (
-                <TreeBranch
-                  {...b}
-                  ancestorVisible={expanded}
-                  overScan={overScan}
-                  key={b.id}
-                  level={level + 1}
-                  size={branches.length + leaves.length}
-                  pos={i + 1}
-                  toggleExpansion={toggleExpansion}
-                  onBranchKeyDown={onBranchKeyDown}
-                  onLeafKeyDown={onLeafKeyDown}
-                  treeData={treeData}
-                />
-              ))}
-              {leaves.slice(slice).map((l, i) => (
+        <div className="group_transition" style={{ maxHeight: 0 }} ref={transition}>
+          <ul
+            style={{ '--level': level } as React.CSSProperties}
+            role="group"
+            className="group"
+            onTransitionEnd={handleTransitionEnd}
+          >
+            {branches.slice(0, ancestorVisible ? end : 0).map((b, i) => (
+              <TreeBranch
+                {...b}
+                ancestorVisible={expanded}
+                overScan={overScan}
+                key={b.id}
+                level={level + 1}
+                size={branches.length + leaves.length}
+                pos={i + 1}
+                toggleExpansion={toggleExpansion}
+                onBranchKeyDown={onBranchKeyDown}
+                onLeafKeyDown={onLeafKeyDown}
+                treeData={treeData}
+              />
+            ))}
+            {leaves
+              .slice(0, ancestorVisible ? end && Math.max(end - branches.length, 0) : 0)
+              .map((l, i) => (
                 <TreeLeaf
                   {...l}
                   key={l.id}
@@ -434,8 +415,7 @@ const TreeBranch = observer(
                   treeData={treeData}
                 />
               ))}
-            </ul>
-          )}
+          </ul>
         </div>
       </li>
     );

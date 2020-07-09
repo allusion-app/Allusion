@@ -10,6 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
 import Settings from './components/Settings';
+import HelpCenter from './components/HelpCenter';
 import DropOverlay from './components/DropOverlay';
 import { AdvancedSearchDialog } from './containers/Outliner/SearchPanel';
 import { useWorkerListener } from './ThumbnailGeneration';
@@ -66,6 +67,8 @@ const App = observer(() => {
               <Inspector />
 
               <Settings />
+
+              <HelpCenter />
 
               <AdvancedSearchDialog />
 

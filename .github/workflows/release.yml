@@ -2,10 +2,10 @@
 name: Build/release
 
 on:
-  # Create a release for pushes to master
+  # Create a release for tag pushes starting with 'v'
   push:
-    branches:
-      - master
+    tags:
+      - v*
 
 jobs:
   release:

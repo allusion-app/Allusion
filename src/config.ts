@@ -9,7 +9,7 @@ export function isDev() {
 // Randomly chosen, hopefully no conflicts with other apps/services
 export const SERVER_PORT = 5454;
 
-export const githubUrl = 'https://github.com/RvanderLaan/VisualLibrary';
+export const githubUrl = 'https://github.com/allusion-app/VisualLibrary';
 
 export const RECURSIVE_DIR_WATCH_DEPTH = 8;
 

@@ -116,6 +116,7 @@
     text-align: center;
     height: 100%;
     width: 100%;
+    background: var(--foreground-color);
   }
   .h4 {
     grid-area: title;
@@ -126,6 +127,17 @@
 
     width: var(--thumbnail-size);
     height: var(--thumbnail-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    // background-image: url(~resources/images/dots-dark.gif);
+    // background-size: 12%;
+    // background-repeat: no-repeat;
+    // background-position: 50% 50%;
+
+    &:hover {
+      background: none !important;
+    }
 
     .placeholder {
       width: 100%;
@@ -155,6 +167,7 @@
     img {
       // This is to demanding on processor
       // transition: all 0.1s ease-in-out;
+      background: var(--foreground-color);
       width: var(--thumbnail-size);
       height: var(--thumbnail-size);
       // object-fit: cover;
@@ -216,6 +229,7 @@
     padding: 0.4em 0.4rem 0.15rem 0.4rem;
     position: absolute;
     bottom: 0;
+    background: none;
     > * {
       margin: 0.25em;
     }
@@ -229,6 +243,22 @@
   }
 }
 
+// THUMBNAIL LOADER
+.donut-loading {
+  width: 2rem;
+  height: 2rem;
+  margin: 2rem;
+  border-radius: 50%;
+  border: 0.3rem solid rgba(var(--dark-gray4-rgb), 0.2);
+  border-top-color: rgba(var(--dark-gray4-rgb), 0.7);
+  animation: 1.5s spin infinite linear;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 /////////////////////// View methods //////////////////////////////////
 .list .thumbnail {
   width: auto;
