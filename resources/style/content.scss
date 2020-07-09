@@ -8,6 +8,7 @@
   top: 0.2rem;
   z-index: 999;
   display: flex;
+  overflow-y: hidden;
 
   border-bottom: 2px solid $black;
   box-shadow: $pt-dark-elevation-shadow-2;
@@ -54,14 +55,14 @@
 }
 .quick-search-enter-active {
   max-height: 100px;
-  transition: max-height 0.2s;
+  transition: max-height 200ms;
 }
 .quick-search-exit {
   max-height: 100px;
 }
 .quick-search-exit-active {
   max-height: 0px;
-  transition: max-height 0.2s;
+  transition: max-height 200ms;
 }
 .quick-search-exit-done {
   max-height: 0px;

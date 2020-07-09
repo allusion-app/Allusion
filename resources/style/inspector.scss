@@ -3,18 +3,32 @@
   grid-area: inspector;
   overflow: auto;
   flex-shrink: 0;
-  width: 0;
-  min-width: 0;
-  transition: min-width 0.2s $pt-transition-ease2;
+  max-width:  var(--inspector-width);
+  overflow-x: hidden;
 
-  &.inspectorOpen {
+  // Sidebar CSS transition
+  &.sliding-sidebar-enter {
+    min-width: 0rem;
+    width: 0rem;
+  }
+  &.sliding-sidebar-enter-active {
     min-width: var(--inspector-width);
-    width: 24rem;
+    width: var(--inspector-width);
+    transition: all 200ms ease-in-out;
+  }
+  &.sliding-sidebar-exit {
+    min-width: var(--inspector-width);
+    width: var(--inspector-width);
+  }
+  &.sliding-sidebar-exit-active {
+    min-width: 0rem;
+    width: 0rem;
+    transition: all 200ms ease-in-out;
   }
 
   > * {
     // Don't squash content of aside during parent transition
-    width: 24rem;
+    width: var(--inspector-width);
   }
 
   > section {
