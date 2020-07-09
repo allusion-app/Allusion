@@ -10,16 +10,14 @@ import { Button } from '@blueprintjs/core';
 import FileStore from '../../stores/FileStore';
 import { ClientTagCollection } from '../../../entities/TagCollection';
 import TagStore from '../../stores/TagStore';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import RootStore from '../../stores/RootStore';
 import { IMG_EXTENSIONS } from '../../../entities/File';
 import { DEFAULT_LOCATION_ID } from '../../../entities/Location';
 
-export const imgExtensions = ['gif', 'png', 'jpg', 'jpeg'];
-
 const chooseFiles = async (fileStore: FileStore) => {
   const files = remote.dialog.showOpenDialogSync({
-    filters: [{ name: 'Images', extensions: imgExtensions }],
+    filters: [{ name: 'Images', extensions: [...IMG_EXTENSIONS] }],
     properties: ['openFile', 'multiSelections'],
   });
 

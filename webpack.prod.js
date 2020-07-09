@@ -3,6 +3,7 @@
 // scripts are loaded and all required files to run the application are
 // neatly put into the build directory.
 
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
@@ -12,7 +13,7 @@ let mainConfig = {
   target: 'electron-main',
   output: {
     filename: 'main.bundle.js',
-    path: __dirname + '/dist',
+    path: __dirname + '/build',
   },
   node: {
     __dirname: false,
@@ -32,7 +33,7 @@ let mainConfig = {
         },
       },
       {
-        test: /\.(jpg|png|ico|icns)$/,
+        test: /\.(jpg|png|gif|ico|icns)$/,
         loader: 'file-loader',
         options: {
           name: '[path][name].[ext]',
@@ -55,7 +56,7 @@ let rendererConfig = {
   target: 'electron-renderer',
   output: {
     filename: 'renderer.bundle.js',
-    path: __dirname + '/dist',
+    path: __dirname + '/build',
   },
   node: {
     __dirname: false,
@@ -63,6 +64,11 @@ let rendererConfig = {
   },
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
+    alias: {
+      components: path.resolve(__dirname, 'components/'),
+      resources: path.resolve(__dirname, 'resources/'),
+      src: path.resolve(__dirname, 'src/'),
+    },
   },
   module: {
     rules: [
@@ -83,10 +89,33 @@ let rendererConfig = {
       },
       {
         test: /\.(scss|css)$/,
-        use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
+        exclude: /\.module\.scss$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       },
       {
-        test: /\.(jpg|png|ico|icns)$/,
+        test: /\.module.(scss|css)$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              esModule: true,
+            },
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              esModule: true,
+              modules: {
+                // Use real class name, hash only added when needed
+                localIdentName: '[local]_[hash:base64:5]',
+              },
+            },
+          },
+          'sass-loader',
+        ],
+      },
+      {
+        test: /\.(jpg|png|gif|ico|icns)$/,
         loader: 'file-loader',
         options: {
           name: '[path][name].[ext]',
@@ -122,6 +151,7 @@ let rendererConfig = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './src/renderer/index.html'),
     }),
+    new MiniCssExtractPlugin({ filename: '[name].[hash].css', chunkFilename: '[id].[hash].css' }),
   ],
 };
 

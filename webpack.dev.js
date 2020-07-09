@@ -14,7 +14,7 @@ let mainConfig = {
   target: 'electron-main',
   output: {
     filename: 'main.bundle.js',
-    path: __dirname + '/dist',
+    path: __dirname + '/build',
   },
   node: {
     __dirname: false,
@@ -34,7 +34,7 @@ let mainConfig = {
         },
       },
       {
-        test: /\.(jpg|png|ico|icns)$/,
+        test: /\.(jpg|png|gif|ico|icns)$/,
         loader: 'file-loader',
         options: {
           name: '[path][name].[ext]',
@@ -58,7 +58,7 @@ let rendererConfig = {
   target: 'electron-renderer',
   output: {
     filename: 'renderer.bundle.js',
-    path: __dirname + '/dist',
+    path: __dirname + '/build',
   },
   node: {
     __dirname: false,
@@ -66,6 +66,11 @@ let rendererConfig = {
   },
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
+    alias: {
+      components: path.resolve(__dirname, 'components/'),
+      resources: path.resolve(__dirname, 'resources/'),
+      src: path.resolve(__dirname, 'src/'),
+    },
   },
   module: {
     rules: [
@@ -84,10 +89,28 @@ let rendererConfig = {
       },
       {
         test: /\.(scss|css)$/,
+        exclude: /\.module\.scss$/,
         use: ['style-loader', 'css-loader?sourceMap', 'sass-loader?sourceMap'],
       },
       {
-        test: /\.(jpg|png|ico|icns)$/,
+        test: /\.module.(scss|css)$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true,
+              modules: {
+                // Use real class name, hash only added when needed
+                localIdentName: '[local]_[hash:base64:5]' ,
+              },
+            },
+          },
+          'sass-loader?sourceMap',
+        ],
+      },
+      {
+        test: /\.(jpg|png|gif|ico|icns)$/,
         loader: 'file-loader',
         options: {
           name: '[path][name].[ext]',

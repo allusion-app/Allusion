@@ -7,9 +7,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { remote } from 'electron';
 
-import HTML5Backend from 'react-dnd-html5-backend';
-import { DndProvider } from 'react-dnd';
-
 // Import the styles here to let Webpack know to include them
 // in the HTML file
 import './style.scss';
@@ -28,7 +25,7 @@ import { DEFAULT_LOCATION_ID } from './entities/Location';
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
 const params = new URLSearchParams(window.location.search.slice(1));
-const isPreviewWindow = params.get('preview') === 'true';
+export const IS_PREVIEW_WINDOW = params.get('preview') === 'true';
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
@@ -37,25 +34,25 @@ backend
   .init()
   .then(async () => {
     console.log('Backend has been initialized!');
-    await rootStore.init(!isPreviewWindow);
+    await rootStore.init(!IS_PREVIEW_WINDOW);
     RendererMessenger.initialized();
   })
   .catch((err) => console.log('Could not initialize backend!', err));
 
-if (isPreviewWindow) {
+if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory }) => {
-    rootStore.uiStore.view.setFirstItem(0);
+    rootStore.uiStore.setFirstItem(0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
-    rootStore.uiStore.view.enableSlideMode();
+    rootStore.uiStore.enableSlideMode();
     rootStore.fileStore.fetchFilesByIDs(ids);
   });
 
   // Close preview with space
   window.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.code === 'Space' || e.code === 'Escape') {
+    if (e.key === ' ' || e.key === 'Escape') {
       rootStore.uiStore.clearFileSelection();
       rootStore.fileStore.clearFileList();
-      rootStore.uiStore.view.enableSlideMode();
+      rootStore.uiStore.enableSlideMode();
 
       // remove focus from element so closing preview with spacebar does not trigger any ui elements
       if (document.activeElement && document.activeElement instanceof HTMLElement) {
@@ -70,7 +67,7 @@ if (isPreviewWindow) {
   rootStore.fileStore.fileList.observe(({ object: list }) => {
     if (list.length > 0) {
       const file = list[0];
-      document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
+      document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.absolutePath}`;
     }
   });
 
@@ -79,7 +76,7 @@ if (isPreviewWindow) {
     if (list.length > 0) {
       const file = rootStore.fileStore.get(list[0]);
       if (file) {
-        document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.path}`;
+        document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.absolutePath}`;
       }
     }
   });
@@ -101,11 +98,9 @@ if (isPreviewWindow) {
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application
 ReactDOM.render(
-  <DndProvider backend={HTML5Backend}>
-    <StoreContext.Provider value={rootStore}>
-      {isPreviewWindow ? <PreviewApp /> : <App />}
-    </StoreContext.Provider>
-  </DndProvider>,
+  <StoreContext.Provider value={rootStore}>
+    {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
+  </StoreContext.Provider>,
   document.getElementById('app'),
 );
 
@@ -115,7 +110,7 @@ ReactDOM.render(
  * @param tagNames The names of the tags
  */
 async function addTagsToFile(filePath: string, tagNames: string[]) {
-  const clientFile = rootStore.fileStore.fileList.find((file) => file.path === filePath);
+  const clientFile = rootStore.fileStore.fileList.find((file) => file.absolutePath === filePath);
   if (clientFile) {
     const tagIds = await Promise.all(
       tagNames.map(async (tagName) => {

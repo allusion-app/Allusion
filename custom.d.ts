@@ -1,4 +1,4 @@
-// Allow importing of svg files
+declare module '*.scss';
 declare module '*.svg' {
   import React = require('react');
   export const ReactComponent: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
@@ -6,6 +6,10 @@ declare module '*.svg' {
   export default src;
 }
 declare module '*.png' {
+  const content: any;
+  export default content;
+}
+declare module '*.gif' {
   const content: any;
   export default content;
 }

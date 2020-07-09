@@ -1,7 +1,7 @@
 import React from 'react';
-import { SVG } from './Icons';
+import { SVG } from 'components/Icons';
 
-import PreloadIcon from '../../resources/icons/preload.svg';
+import PreloadIcon from 'resources/icons/preload.svg';
 
 // Using inline style since css file might not have been loaded
 const splashScreenStyles: React.CSSProperties = {
@@ -11,6 +11,7 @@ const splashScreenStyles: React.CSSProperties = {
   width: '200p',
   textAlign: 'center',
   color: '#f5f8fa',
+  zIndex: 2,
 };
 
 const textStyles: React.CSSProperties = {
@@ -23,6 +24,7 @@ const textStyles: React.CSSProperties = {
 };
 
 const SplashScreen = () => (
+  <>
   <div style={splashScreenStyles}>
     <svg style={{ width: 0 }}>
       <defs>
@@ -58,6 +60,9 @@ const SplashScreen = () => (
       Allusion
     </p>
   </div>
+    <div className={'grad'}></div>
+    <div className={'splash'}></div>
+    </>
 );
 
 export default SplashScreen;

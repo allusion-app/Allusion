@@ -1,0 +1,90 @@
+///////////////////////////////// Welcome Dialog /////////////////////////////////
+// .bp3-dialog.bp3-dark,
+// .bp3-dark .bp3-dialog {
+//   box-shadow: none !important;
+// }
+
+label.bp3-label .bp3-input {
+  display: flex !important; // fix tag input > center vertical
+}
+
+.welcomedialog {
+  background: rgba(0, 0, 0, 0) !important;
+  p {
+    text-align: center;
+    margin: 30px auto;
+    line-height: 1.6;
+  }
+  .bp3-dialog-body {
+    z-index: 2;
+  }
+  // .bp3-file-upload-input,
+  // .bp3-tree {
+  //   text-align: left;
+  // }
+  .bp3-file-upload-input {
+    background: $dark-gray8-trans !important;
+    // color: $pt-text-color;
+    color: $pt-dark-text-color !important;
+  }
+
+  .bp3-dialog-footer {
+    margin-top: 40px;
+    z-index: 2;
+  }
+
+  h3 {
+    color: $blue1;
+    text-align: center;
+    font-size: 32px;
+    font-weight: 300;
+    margin-bottom: 40px;
+  }
+  .logo-welcome {
+    background-image: url(~resources/logo/allusion-logomark-white.svg);
+    background-size: contain;
+    width: 90px;
+    height: 90px;
+    margin: auto;
+    display: block;
+    margin-bottom: 60px;
+  }
+  .welcome {
+    background-image: url(~resources/images/welcome-bg-16-9.png);
+    background-position: center;
+    background-position-x: left;
+    background-size: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 0;
+  }
+}
+
+.grad,
+.welcomedialog.grad {
+  background: rgba(20, 24, 26, 0.5);
+  background: url(~resources/images/noise.png),
+    -webkit-gradient(linear, 0% 80%, 0% 20%, from(#14181ae5), to(#14181a00));
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 1;
+}
+.splash {
+  background-image: url(~resources/images/welcome-bg-16-9-low.jpg);
+  background-position: center;
+  background-position-x: left;
+  background-size: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 0;
+}

@@ -1,4 +1,4 @@
-import { action, observable, computed, observe } from 'mobx';
+import { action, observable, computed, observe, runInAction } from 'mobx';
 import fs from 'fs-extra';
 
 import Backend from '../../backend/Backend';
@@ -6,9 +6,10 @@ import { ClientFile, IFile } from '../../entities/File';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
 import { SearchCriteria, ClientArraySearchCriteria } from '../../entities/SearchCriteria';
-import { getThumbnailPath, debounce } from '../utils';
+import { getThumbnailPath, debounce, needsThumbnail } from '../utils';
 import { ClientTag } from '../../entities/Tag';
 import { FileOrder } from '../../backend/DBRepository';
+import { ClientLocation } from '../../entities/Location';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
 
@@ -19,6 +20,8 @@ export type ViewContent = 'query' | 'all' | 'untagged';
 
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
+
+  // TODO: Also maintain a dictionary of ID -> ClientFile for quick access and getting all IDs using Object.keys
 
   /** The origin of the current files that are shown */
   @observable content: ViewContent = 'all';
@@ -80,10 +83,12 @@ class FileStore {
   }
 
   @action.bound async addFile(path: string, locationId: ID, dateAdded: Date = new Date()) {
+    const loc = this.rootStore.locationStore.get(locationId)!;
     const file = new ClientFile(this, {
       id: generateId(),
       locationId,
-      path,
+      absolutePath: path,
+      relativePath: path.replace(loc.path, ''),
       dateAdded: dateAdded,
       dateModified: new Date(),
       tags: [],
@@ -134,6 +139,7 @@ class FileStore {
 
   @action.bound async fetchAllFiles() {
     try {
+      this.rootStore.uiStore.closeQuickSearch();
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
       this.updateFromBackend(fetchedFiles);
       this.setContentAll();
@@ -144,8 +150,15 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
+      const { uiStore } = this.rootStore;
+      uiStore.closeQuickSearch();
       const criteria = new ClientArraySearchCriteria('tags', []).serialize();
-      const fetchedFiles = await this.backend.searchFiles(criteria, this.orderBy, this.fileOrder);
+      const fetchedFiles = await this.backend.searchFiles(
+        criteria,
+        this.orderBy,
+        this.fileOrder,
+        uiStore.searchMatchAny,
+      );
       this.updateFromBackend(fetchedFiles);
       this.setContentUntagged();
     } catch (err) {
@@ -153,8 +166,8 @@ class FileStore {
     }
   }
 
-  @action.bound
-  async fetchFilesByQuery() {
+  @action.bound async fetchFilesByQuery() {
+    const { uiStore } = this.rootStore;
     const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) => c.serialize());
     if (criteria.length === 0) {
       return this.fetchAllFiles();
@@ -164,6 +177,7 @@ class FileStore {
         criteria as [SearchCriteria<IFile>],
         this.orderBy,
         this.fileOrder,
+        uiStore.searchMatchAny,
       );
       this.updateFromBackend(fetchedFiles);
       this.setContentQuery();
@@ -212,6 +226,10 @@ class FileStore {
     this.backend.saveFile(file);
   }
 
+  getFileLocation(file: IFile): ClientLocation {
+    return this.rootStore.locationStore.get(file.locationId)!;
+  }
+
   recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
     if (prefsString) {
@@ -246,19 +264,20 @@ class FileStore {
     // Todo: instead of removing invalid files, add them to an MissingFiles list and prompt to the user?
     // (maybe fetch all files, not only the ones passed given as arguments here)
 
+    // TODO: Checking existence for all files adds delays when loading many files at once
+    // The check is already done on startup anyways
+    // Check is also done when image is displayed
     const locationIds = this.rootStore.locationStore.locationList.map((l) => l.id);
     const existenceChecker = await Promise.all(
       backendFiles.map(async (backendFile) => {
         try {
-          await fs.access(backendFile.path, fs.constants.F_OK);
+          await fs.access(backendFile.absolutePath, fs.constants.F_OK);
         } catch (err) {
           // Remove file from client only - keep in DB in case it will be recovered later
           // TODO: Store missing date so it can be automatically removed after some time?
+          // TODO: We do want these files to show, so they can be shown as missing to the user
           const clientFile = this.get(backendFile.id);
           if (clientFile) {
-            if (clientFile.tags.length === 0) {
-              this.decrementNumUntaggedFiles();
-            }
             clientFile.dispose();
             this.fileList.remove(clientFile);
           }
@@ -277,6 +296,16 @@ class FileStore {
       }),
     );
 
+    // Re-count the number of untagged files
+    let numUntaggedFiles = 0;
+    for (const f of backendFiles) {
+      if (f.tags.length === 0) {
+        numUntaggedFiles++;
+      }
+    }
+    runInAction(() => (this.numUntaggedFiles = numUntaggedFiles));
+
+    // Set the files
     const existingBackendFiles = backendFiles.filter((_, i) => existenceChecker[i]);
 
     if (this.fileList.length === 0) {
@@ -299,7 +328,7 @@ class FileStore {
       const brokenFiles = await Promise.all(
         backendFiles.filter(async (backendFile) => {
           try {
-            await fs.access(backendFile.path, fs.constants.F_OK);
+            await fs.access(backendFile.absolutePath, fs.constants.F_OK);
             return false;
           } catch (err) {
             return true;
@@ -308,7 +337,9 @@ class FileStore {
       );
       const clientFiles = brokenFiles.map((f) => new ClientFile(this, f, true));
       clientFiles.forEach((f) =>
-        f.setThumbnailPath(getThumbnailPath(f.path, this.rootStore.uiStore.thumbnailDirectory)),
+        f.setThumbnailPath(
+          getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory),
+        ),
       );
       this.replaceFileList(clientFiles);
     } catch (err) {
@@ -325,11 +356,19 @@ class FileStore {
   }
 
   @action.bound private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
-    return backendFiles.map((file) => new ClientFile(this, file));
+    return backendFiles.map((file) => {
+      const f = new ClientFile(this, file);
+      // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
+      // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
+      f.thumbnailPath = needsThumbnail(file.width, file.height)
+        ? getThumbnailPath(file.absolutePath, this.rootStore.uiStore.thumbnailDirectory)
+        : file.absolutePath;
+      return f;
+    });
   }
 
   @action.bound private async removeThumbnail(file: ClientFile) {
-    const thumbDir = getThumbnailPath(file.path, this.rootStore.uiStore.thumbnailDirectory);
+    const thumbDir = getThumbnailPath(file.absolutePath, this.rootStore.uiStore.thumbnailDirectory);
     if (await fs.pathExists(thumbDir)) {
       await fs.remove(thumbDir);
     }

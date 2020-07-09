@@ -8,10 +8,10 @@ import fse from 'fs-extra';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
-import IconSet from '../../components/Icons';
+import IconSet from 'components/Icons';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
-import { DragAndDropType } from '../Outliner/TagPanel';
+import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 
@@ -43,27 +43,43 @@ interface IGalleryItemProps extends IRootStoreProp {
   isSelected: boolean;
   onClick: (file: ClientFile, e: React.MouseEvent) => void;
   onDoubleClick?: (file: ClientFile, e: React.MouseEvent) => void;
-  onDrop: (item: any, file: ClientFile) => void;
   showDetails?: boolean;
 }
 
+const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+  if (event.dataTransfer.types.includes(DnDType.Tag)) {
+    event.dataTransfer.dropEffect = 'link';
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.dataset[DnDAttribute.Target] = 'true';
+  }
+};
+
+const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+  if (event.dataTransfer.types.includes(DnDType.Tag)) {
+    event.dataTransfer.dropEffect = 'none';
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.dataset[DnDAttribute.Target] = 'false';
+  }
+};
+
 const GalleryItem = observer(
-  ({ file, isSelected, onClick, onDoubleClick, onDrop, showDetails }: IGalleryItemProps) => {
+  ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
     const { uiStore } = useContext(StoreContext);
 
-    const [{ isOver, canDrop }, galleryItemDrop] = useDrop({
-      accept: DragAndDropType.Tag,
-      drop: (_, monitor) => onDrop(monitor.getItem(), file),
-      canDrop: () => true,
-      collect: (monitor) => ({
-        isOver: monitor.isOver(),
-        canDrop: monitor.canDrop(),
-      }),
-    });
-
-    const selectedStyle = isSelected ? 'selected' : '';
-    const dropStyle = canDrop ? ' droppable' : ' undroppable';
-    const className = `thumbnail ${selectedStyle} ${isOver ? dropStyle : ''}`;
+    const handleDrop = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        if (event.dataTransfer.types.includes(DnDType.Tag)) {
+          event.dataTransfer.dropEffect = 'none';
+          const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType.Tag));
+          ctx.tags.forEach((tag) => file.addTag(tag.id));
+          ctx.collections.forEach((col) => col.getTagsRecursively().forEach(file.addTag));
+          event.currentTarget.dataset[DnDAttribute.Target] = 'false';
+        }
+      },
+      [file, uiStore],
+    );
 
     const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
     const handleDoubleClickImg = useCallback((e) => onDoubleClick && onDoubleClick(file, e), [
@@ -71,29 +87,37 @@ const GalleryItem = observer(
       onDoubleClick,
     ]);
 
-    const [isImageLoaded, setImageLoaded] = useState(false);
-    const [imageError, setImageError] = useState();
+    // Initially, we assume the thumbnail exists
+    const [isThumbnailReady, setThumbnailReady] = useState(true);
+    const [isThumbnailGenerating, setThumbnailGenerating] = useState(false);
 
-    const imagePath = uiStore.view.isSlideMode ? file.path : file.thumbnailPath;
+    const imagePath = uiStore.isSlideMode ? file.absolutePath : file.thumbnailPath;
 
     useEffect(() => {
-      // First check whether a thumbnail exists, generate it if needed
-      ensureThumbnail(file, uiStore.thumbnailDirectory);
+      // This will check whether a thumbnail exists, generate it if needed
+      ensureThumbnail(file, uiStore.thumbnailDirectory).then((exists) => {
+        if (!exists) {
+          setThumbnailReady(false);
+          setThumbnailGenerating(true);
+        }
+      });
     }, [file, uiStore.thumbnailDirectory]);
 
+    // The thumbnailPath of an image is always set, but may not exist yet.
+    // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
+    // which we detect here to know the thumbnail is ready
     useEffect(() => {
-      if (imagePath) {
-        setImageLoaded(true);
-      } else {
-        setImageLoaded(false);
+      if (imagePath.endsWith('?v=1')) {
+        setThumbnailReady(true);
+        setThumbnailGenerating(false);
       }
     }, [imagePath]);
 
+    // When the thumbnail cannot be loaded, display an error
     const handleImageError = useCallback(
       (err: any) => {
         console.log('Could not load image:', imagePath, err);
-        setImageError(err);
-        setImageLoaded(false);
+        setThumbnailReady(false);
       },
       [imagePath],
     );
@@ -106,32 +130,32 @@ const GalleryItem = observer(
 
       // If file is selected, add all selected items to the drag event
       if (isSelected && uiStore.fileSelection.length > 1) {
-        const selectedImgsAsHtml = uiStore.clientFileSelection.map((f) => `<img src="${urlLib.pathToFileURL(f.path)}" />`).join('\n ');
+        const selectedImgsAsHtml = uiStore.clientFileSelection.map((f) => `<img src="${urlLib.pathToFileURL(f.absolutePath)}" />`).join('\n ');
         e.dataTransfer.setData('text/html', selectedImgsAsHtml);
-        e.dataTransfer.setData('text/uri-list', uiStore.clientFileSelection.map((f) => urlLib.pathToFileURL(f.path)).join('\r\n'));
+        e.dataTransfer.setData('text/uri-list', uiStore.clientFileSelection.map((f) => urlLib.pathToFileURL(f.absolutePath)).join('\r\n'));
 
         e.preventDefault();
-        ipcRenderer.send('ondragstart', uiStore.clientFileSelection.map((f) => f.path));
+        ipcRenderer.send('ondragstart', uiStore.clientFileSelection.map((f) => f.absolutePath));
 
-        // uiStore.clientFileSelection.forEach((f) => e.dataTransfer.items.add(new File([], f.path)))
+        // uiStore.clientFileSelection.forEach((f) => e.dataTransfer.items.add(new File([], f.absolutePath)))
       } else {
         // Add the full-res image to the drag event (instead of thumbnail)
-        e.dataTransfer.setData('text/html', `<img src="${urlLib.pathToFileURL(file.path)}" />`);
-        e.dataTransfer.setData('text/uri-list', urlLib.pathToFileURL(file.path).toString());
+        e.dataTransfer.setData('text/html', `<img src="${urlLib.pathToFileURL(file.absolutePath)}" />`);
+        e.dataTransfer.setData('text/uri-list', urlLib.pathToFileURL(file.absolutePath).toString());
 
         e.preventDefault();
-        ipcRenderer.send('ondragstart', file.path);
+        ipcRenderer.send('ondragstart', file.absolutePath);
 
         const imgEl = new Image();
-        imgEl.src = file.path;
+        imgEl.src = file.absolutePath;
         e.dataTransfer.setDragImage(imgEl, 0, 0);
 
-        const buffer = fse.readFileSync(file.path);
+        const buffer = fse.readFileSync(file.absolutePath);
         const fileItem = new File([buffer], file.name, { lastModified: new Date().getTime() });
         e.dataTransfer.items.add(fileItem);
       }
 
-      // console.log(new File([], file.path));
+      // console.log(new File([], file.absolutePath));
 
       // console.log(e.dataTransfer.types.map(t => ({ [t]: e.dataTransfer.getData(t)})));
       // console.log(e.dataTransfer.files);
@@ -143,19 +167,26 @@ const GalleryItem = observer(
     // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
     return (
-      <div ref={galleryItemDrop} className={className}>
+      <div
+        className={`thumbnail ${isSelected ? 'selected' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
-          {isImageLoaded ? (
-            <img src={imagePath} onError={handleImageError} onDragStart={handleDragStart} /> // Show image when it has been loaded
-          ) : imageError ? (
-            <span className="image-error">
-              <span className="bp3-icon custom-icon custom-icon-32">{IconSet.DB_ERROR}</span> <br />{' '}
-              Could not load image
-            </span> // Show an error it it could not be loaded
+          {isThumbnailReady ? (
+            // Show image when it has been loaded
+            <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" onDragStart={handleDragStart} />
+          ) : isThumbnailGenerating ? (
+            // If it's being generated, show a placeholder
+            <div className="donut-loading" />
           ) : (
-                <div className={Classes.SKELETON} />
-              ) // Else show a placeholder
-          }
+            // Show an error it it could not be loaded
+            <span className="image-error">
+              <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
+              <br /> Could not load image
+            </span>
+          )}
         </div>
         {showDetails && (
           <>
@@ -175,8 +206,10 @@ const GalleryItem = observer(
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore } = rootStore;
-  const handleOpen = useCallback(() => shell.openItem(file.path), [file.path]);
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.path), [file.path]);
+  const handleOpen = useCallback(() => shell.openItem(file.absolutePath), [file.absolutePath]);
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.absolutePath), [
+    file.absolutePath,
+  ]);
   const handleInspect = useCallback(() => {
     uiStore.clearFileSelection();
     uiStore.selectFile(file);
@@ -226,7 +259,7 @@ IGalleryItemProps,
     return (
       // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
       <span className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <GalleryItem {...this.props} onDrop={this.props.onDrop} />
+        <GalleryItem {...this.props} />
       </span>
     );
   }
@@ -256,4 +289,37 @@ IGalleryItemProps,
   };
 }
 
-export default observer(withRootstore(GalleryItemWithContextMenu));
+// A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
+const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryItemProps) => {
+  // TODO: List gallery styling
+  // useEffect(() => {
+  //   // First check whether a thumbnail exists, generate it if needed
+  //   ensureThumbnail(file, uiStore.thumbnailDirectory);
+  // }, [file, uiStore.thumbnailDirectory]);
+
+  return (
+    <div className={`thumbnail ${isSelected ? 'selected' : ''}`}>
+      <div className="img-wrapper">
+        <img src={file.thumbnailPath} alt="" className="bp3-skeleton" />
+      </div>
+      {showDetails && (
+        <>
+          <H4>{file.name}</H4>
+          <ImageInfo file={file} />
+        </>
+      )}
+      <span className="thumbnailTags placeholder bp3-skeleton" />
+    </div>
+  );
+});
+
+const DelayedGalleryItem = (props: IGalleryItemProps) => {
+  const [showSimple, setShowSimple] = useState(true);
+  useEffect(() => {
+    const timeout = setTimeout(() => setShowSimple(false), 300);
+    return () => clearTimeout(timeout);
+  });
+  return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItemWithContextMenu {...props} />;
+};
+
+export default observer(withRootstore(DelayedGalleryItem));

@@ -1,4 +1,4 @@
-import { IReactionDisposer, reaction, computed, observable, action } from 'mobx';
+import { IReactionDisposer, reaction, computed, observable, action, runInAction } from 'mobx';
 import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
@@ -9,6 +9,7 @@ import { IMG_EXTENSIONS } from './File';
 import { ClientTag } from './Tag';
 import { RECURSIVE_DIR_WATCH_DEPTH } from '../../config';
 import { AppToaster } from '../frontend/App';
+import IconSet from 'components/Icons';
 
 export const DEFAULT_LOCATION_ID: ID = 'default-location';
 
@@ -64,10 +65,14 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   readonly tagsToAdd = observable<ID>([]);
 
-  @computed get clientTagsToAdd() {
+  @computed get clientTagsToAdd(): ClientTag[] {
     return this.tagsToAdd
       .map((id) => this.store.rootStore.tagStore.get(id))
       .filter((t) => t !== undefined) as ClientTag[];
+  }
+
+  @computed get name(): string {
+    return SysPath.basename(this.path);
   }
 
   constructor(
@@ -93,13 +98,13 @@ export class ClientLocation implements ISerializable<ILocation> {
     }
   }
 
-  @action.bound async init() {
+  @action.bound async init(): Promise<string[]> {
     this.isInitialized = true;
     const pathExists = await fse.pathExists(this.path);
     if (pathExists) {
       return this.watchDirectory(this.path);
     } else {
-      this.isBroken = true;
+      runInAction(() => (this.isBroken = true));
       return [];
     }
   }
@@ -113,15 +118,23 @@ export class ClientLocation implements ISerializable<ILocation> {
     };
   }
 
-  @action.bound addTag(tag: ClientTag) {
+  @action changePath(newPath: string): void {
+    this.store.changeLocationPath(this, newPath);
+  }
+
+  @action unBreak(): void {
+    this.isBroken = false;
+  }
+
+  @action.bound addTag(tag: ClientTag): void {
     this.tagsToAdd.push(tag.id);
   }
 
-  @action.bound removeTag(tag: ClientTag) {
+  @action.bound removeTag(tag: ClientTag): void {
     this.tagsToAdd.remove(tag.id);
   }
 
-  @action.bound clearTags() {
+  @action.bound clearTags(): void {
     this.tagsToAdd.clear();
   }
 
@@ -137,7 +150,7 @@ export class ClientLocation implements ISerializable<ILocation> {
   // if we decide to store relative paths for files, no need to relocate individual files
   // }
 
-  async checkIfBroken() {
+  async checkIfBroken(): Promise<boolean> {
     if (this.isBroken) {
       return true;
     } else {
@@ -180,8 +193,7 @@ export class ClientLocation implements ISerializable<ILocation> {
                   intent: 'primary',
                   timeout: 0,
                   action: {
-                    text: 'Refresh',
-                    icon: 'refresh',
+                    icon: IconSet.RELOAD,
                     onClick: this.store.rootStore.fileStore.refetch,
                   },
                 },
@@ -204,7 +216,7 @@ export class ClientLocation implements ISerializable<ILocation> {
         .on('unlink', (path: string) => {
           console.log(`Location "${SysPath.basename(this.path)}": File ${path} has been removed.`);
           const fileStore = this.store.rootStore.fileStore;
-          const clientFile = fileStore.fileList.find((f) => f.path === path);
+          const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
           if (clientFile) {
             fileStore.hideFile(clientFile);
           }
@@ -224,5 +236,14 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
     return getDirectoryTree(this.path);
+  }
+
+  async delete(): Promise<void> {
+    this.store.removeDirectory(this);
+  }
+
+  dispose(): void {
+    // clean up the observer
+    this.saveHandler();
   }
 }

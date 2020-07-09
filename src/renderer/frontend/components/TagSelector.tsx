@@ -3,10 +3,10 @@ import { Icon, Intent, MenuItem } from '@blueprintjs/core';
 import { ItemPredicate, ItemRenderer, Suggest } from '@blueprintjs/select';
 import { observer } from 'mobx-react-lite';
 
-import { ClientTag } from '../../entities/Tag';
-import { ClientTagCollection } from '../../entities/TagCollection';
+import { ClientTag } from 'src/renderer/entities/Tag';
+import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import StoreContext from '../contexts/StoreContext';
-import IconSet from './Icons';
+import IconSet from 'components/Icons';
 
 const TagSelect = Suggest.ofType<ClientTag | ClientTagCollection>();
 
@@ -98,9 +98,7 @@ const TagSelector = ({
         <Icon icon={IconSet.TAG_GROUP} iconSize={12} color={tag.viewColor} />
       ) : tag.viewColor ? (
         <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
-      ) : (
-        undefined
-      );
+      ) : undefined;
       return (
         <MenuItem
           active={modifiers.active}
@@ -135,7 +133,12 @@ const TagSelector = ({
 
   // Focus on the input element with an Effect whe the focusObject changes and autoFocus is requested
   const inputRef = useRef<HTMLInputElement>(null) as MutableRefObject<HTMLInputElement | null>;
-  const setRef = useCallback((ref: HTMLInputElement | null) => { inputRef.current = ref }, [inputRef]);
+  const setRef = useCallback(
+    (ref: HTMLInputElement | null) => {
+      inputRef.current = ref;
+    },
+    [inputRef],
+  );
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {

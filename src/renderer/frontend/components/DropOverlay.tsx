@@ -5,7 +5,6 @@ import { observer } from 'mobx-react-lite';
 import fse from 'fs-extra';
 import path from 'path';
 
-import { imgExtensions } from '../containers/Outliner/ImportForm';
 import { ClientTag } from '../../entities/Tag';
 import { timeoutPromise } from '../utils';
 import { IMG_EXTENSIONS } from '../../entities/File';
@@ -19,7 +18,7 @@ const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 async function testImage(url: string, timeout: number = 2000): Promise<boolean> {
   try {
     const blob = await timeoutPromise(timeout, fetch(url));
-    return imgExtensions.some((ext) => blob.type.endsWith(ext));
+    return IMG_EXTENSIONS.some((ext) => blob.type.endsWith(ext));
   } catch (e) {
     return false;
   }
@@ -89,7 +88,7 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
         return true;
       } else {
         // Check if the URL has an image extension, or perform a network request
-        if (imgExtensions.some((ext) => item.toLowerCase().indexOf(`.${ext}`) !== -1)) {
+        if (IMG_EXTENSIONS.some((ext) => item.toLowerCase().indexOf(`.${ext}`) !== -1)) {
           return true;
         } else {
           return testImage(item);
@@ -214,7 +213,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
           const { imgBase64, blob } = await imageAsBase64(dataItem);
           const extension = blob.type.split('/')[1];
           const filename = getFilenameFromUrl(dataItem, 'image');
-          const filenameWithExt = imgExtensions.some((ext) => filename.endsWith(ext))
+          const filenameWithExt = IMG_EXTENSIONS.some((ext) => filename.endsWith(ext))
             ? filename
             : `${filename}.${extension}`;
           fileData = { imgBase64, filenameWithExt };

@@ -1,0 +1,101 @@
+// Removes bullet points automatically.
+.tree,
+.tree .group {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.group {
+  transition: transform 100ms ease-out;
+  transform: translateY(0);
+}
+
+.group_transition {
+  overflow: hidden;
+  height: 100%;
+  transition: height 100ms ease-out;
+}
+
+.tree_item {
+  padding: 0;
+  background-color: var(--background-color);
+
+  &[aria-level='1'] {
+    background-color: var(--foreground-color);
+  }
+
+  > .label {
+    min-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    border-left: 2px solid transparent;
+    padding-left: calc(var(--level) * var(--treeitem-identation) + var(--treeitem-offset));
+    padding-right: 0.6rem;
+
+    &:hover {
+      background-color: var(--highlight-background-color);
+      border-color: var(--primary-color);
+      color: var(--highlight-font-color);
+      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    &:hover [class*='custom-icon'] {
+      border-color: var(--primary-color);
+      color: var(--highlight-font-color);
+      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  &[aria-expanded='false'] > .group_transition {
+    height: 0;
+
+    > .group {
+      transform: translateY(-100%);
+    }
+  }
+
+  &[aria-selected='true'] > .label {
+    color: var(--selection-font-color);
+    background-color: var(--selection-background-color);
+
+    // TODO: This shouldn't be necessary after the style refactor.
+    [class*='custom-icon'] {
+      color: var(--selection-font-color);
+    }
+  }
+
+  &:focus {
+    outline: none;
+
+    &[aria-selected='true'] > .label {
+      background-color: var(--selection-background-color);
+    }
+
+    > .label {
+      background-color: var(--focus-color);
+      border-color: var(--primary-color);
+    }
+  }
+}
+
+.default_caret {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  background-color: var(--caret-color);
+  mask-image: url(~resources/icons/arrow-down.svg);
+  -webkit-mask-image: url(~resources/icons/arrow-down.svg);
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-size: 0.75rem;
+  -webkit-mask-size: 0.75rem;
+  transition: transform 100ms ease-out;
+
+  &[aria-pressed='false'] {
+    transform: rotateZ(-90deg);
+  }
+}

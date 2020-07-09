@@ -13,7 +13,7 @@ interface IGlobalHotkeysProps {
  * to the corresponding components. Those need a 'groups' property
  */
 @HotkeysTarget
-export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRootStoreProp, {}> {
+export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRootStoreProp> {
   render() {
     return <>{this.props.children}</>;
   }
@@ -44,6 +44,14 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           onKeyDown={uiStore.toggleSettings}
           preventDefault
         />
+
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.toggleHelpCenter}
+          label="Opens the helpcenter tab in right sidebar"
+          onKeyDown={uiStore.toggleHelpCenter}
+          preventDefault
+        />
         <Hotkey
           global={true}
           combo={hotkeyMap.replaceQuery}
@@ -64,19 +72,19 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           global={true}
           combo={hotkeyMap.viewList}
           label="Sets view to list mode"
-          onKeyDown={uiStore.view.setMethodList}
+          onKeyDown={uiStore.setMethodList}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewGrid}
           label="Sets view to grid mode"
-          onKeyDown={uiStore.view.setMethodGrid}
+          onKeyDown={uiStore.setMethodGrid}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewSlide}
           label="Sets view to slide mode"
-          onKeyDown={uiStore.view.toggleSlideMode}
+          onKeyDown={uiStore.toggleSlideMode}
         />
         <Hotkey
           global={true}
@@ -97,6 +105,7 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Opens a preview window for the selected files"
           onKeyDown={uiStore.openPreviewWindow}
         />
+        {/* How about other keys like arrow keys for selecting items */}
       </Hotkeys>
     );
   }

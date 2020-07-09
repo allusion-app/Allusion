@@ -1,0 +1,70 @@
+///////////////////////////////// Outliner /////////////////////////////////
+#toolbar {
+  grid-area: toolbar;
+  width: 100vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0.5rem;
+  z-index: 1000;
+  border-bottom: 2px solid $dark-gray0;
+  border-left: 1px solid $dark-gray0;
+  border-right: 1px solid $dark-gray0;
+
+  // Turn of event for show media items
+  #media {
+    pointer-events: none;
+    white-space: nowrap;
+    > * {
+      cursor: default;
+      pointer-events: auto;
+    }
+  }
+
+  .custom-icon {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+
+  .spacer {
+    width: 8rem;
+    background: red;
+    height: 1rem;
+  }
+
+  #main-toolbar {
+    display: flex;
+    justify-content: space-between;
+    width: calc(100vw - 40rem);
+    left: 16rem;
+    position: absolute;
+  }
+}
+
+.toolb-center {
+  justify-content: center !important;
+}
+#preview-toolbar {
+  // For frameless app
+  // margin-left: 4rem;
+  // margin-top: .25rem;
+  display: flex;
+  align-items: baseline;
+}
+
+#main-toolbar.separated {
+  // Intended for when the main (content) toolbar is separate from the rest of the toolbar
+  display: flex;
+  flex-direction: row;
+  padding: 0 0.5rem;
+  height: 2.4rem;
+  justify-content: space-between;
+  background: $dark-gray1;
+  border-bottom: 2px solid $dark-gray0;
+  border-left: 1px solid $dark-gray0;
+  border-right: 2px solid $dark-gray0;
+
+  .bp3-button {
+    background: transparent !important;
+  }
+}

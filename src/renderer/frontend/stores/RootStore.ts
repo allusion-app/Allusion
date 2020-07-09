@@ -1,7 +1,7 @@
 import Backend from '../../backend/Backend';
 import FileStore from './FileStore';
 import TagStore from './TagStore';
-import UiStore from '../UiStore';
+import UiStore from './UiStore';
 import TagCollectionStore from './TagCollectionStore';
 import LocationStore from './LocationStore';
 
@@ -43,7 +43,9 @@ class RootStore {
   }
 
   async init(autoLoadFiles: boolean) {
-    await this.locationStore.init(autoLoadFiles);
+    // The location store is not required to be finished with loading before showing the rest
+    // So it does not need to be awaited
+    this.locationStore.init(autoLoadFiles);
     await Promise.all([
       this.tagStore.init(),
       this.tagCollectionStore.init(),

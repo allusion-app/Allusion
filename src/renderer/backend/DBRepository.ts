@@ -25,7 +25,7 @@ export interface IDBVersioningConfig {
  * A function that should be called before using the database.
  * It initializes the object stores
  */
-export const dbInit = (configs: IDBVersioningConfig[], dbName: string) => {
+export const dbInit = (configs: IDBVersioningConfig[], dbName: string): Dexie => {
   const db = new Dexie(dbName);
 
   // Initialize for each DB version: https://dexie.org/docs/Tutorial/Design#database-versioning
@@ -41,7 +41,7 @@ export const dbInit = (configs: IDBVersioningConfig[], dbName: string) => {
   return db;
 };
 
-export const dbDelete = (dbName: string) => {
+export const dbDelete = (dbName: string): void => {
   Dexie.delete(dbName);
 };
 
@@ -55,8 +55,10 @@ export interface IDbRequest<T> {
 
 export interface IDbQueryRequest<T> extends IDbRequest<T> {
   criteria: SearchCriteria<T> | [SearchCriteria<T>];
-  // matchAny: boolean;
+  matchAny?: boolean;
 }
+
+export type SearchConjunction = 'and' | 'or';
 
 /**
  * A class that manages data retrieval and updating with a database.
@@ -87,7 +89,7 @@ export default class BaseRepository<T extends IResource> {
 
   public async find(req: IDbQueryRequest<T>): Promise<T[]> {
     const { count, order, fileOrder } = req;
-    let table = await this._find(req);
+    let table = await this._find(req, req.matchAny ? 'or' : 'and');
     table = fileOrder === 'DESC' ? table.reverse() : table;
     table = count ? table.limit(count) : table;
     return order ? table.sortBy(order as string) : table.toArray();
@@ -97,7 +99,7 @@ export default class BaseRepository<T extends IResource> {
     if (!queryRequest) {
       return this.collection.count();
     }
-    const table = await this._find(queryRequest);
+    const table = await this._find(queryRequest, queryRequest.matchAny ? 'or' : 'and');
     return table.count();
   }
 
@@ -106,7 +108,7 @@ export default class BaseRepository<T extends IResource> {
     return item;
   }
 
-  public async createMany(items: T[]) {
+  public async createMany(items: T[]): Promise<T[]> {
     await this.collection.bulkAdd(items);
     return items;
   }
@@ -129,100 +131,126 @@ export default class BaseRepository<T extends IResource> {
     return items;
   }
 
-  private async _find({ criteria }: IDbQueryRequest<T>): Promise<Dexie.Collection<T, string>> {
+  private async _find(
+    { criteria }: IDbQueryRequest<T>,
+    conjunction: SearchConjunction = 'and',
+  ): Promise<Dexie.Collection<T, string>> {
     // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
     // Unfortunately doesn't work out of the box.
     // It's one of the things they are working on, looks much better: https://github.com/dfahlander/Dexie.js/issues/427
-    // But for now, separate first where from the rest...
-    const [firstCrit, ...otherCrits] = Array.isArray(criteria) ? criteria : [criteria];
+    // We'll have to mostly rely on naive filter function (lambdas)
 
-    const where = this.collection.where(firstCrit.key as string);
+    const criteriaList = Array.isArray(criteria) ? criteria : [criteria];
+    if (conjunction === 'or') {
+      // OR: We can only chain ORs if all filters can be "where" functions - else we do an ugly .some() check on every document
 
-    // Now we have to map our criteria to something that Dexie understands
-    let table = where.equals(firstCrit.value);
-    switch (firstCrit.valueType) {
-      case 'array':
-        table = this._filterArrayInitial(where, firstCrit as IArraySearchCriteria<T>);
-        break;
-      case 'string':
-        table = this._filterStringInitial(where, firstCrit as IStringSearchCriteria<T>);
-        break;
-      case 'number':
-        table = this._filterNumberInitial(where, firstCrit as INumberSearchCriteria<T>);
-        break;
-      case 'date':
-        table = this._filterDateInitial(where, firstCrit as IDateSearchCriteria<T>);
-        break;
-    }
+      let allWheres = true;
+      let table: Dexie.Collection<T, string> | undefined = undefined;
+      for (const crit of criteriaList) {
+        const where = !table
+          ? this.collection.where(crit.key as string)
+          : table.or(crit.key as string);
+        const tableOrFilter = this._filterWhere(where, crit);
 
-    // const matchFuncName = matchAny ? 'or' : 'and';
-
-    // Todo: OR can only be done in a like initial criteria, but that doesn't support all of our operators
-    // Other option is to do a filter and check all criteria within the callback
-
-    // Filter for the rest of the queries
-    for (const crit of otherCrits as Array<SearchCriteria<T>>) {
-      switch (crit.valueType) {
-        case 'array':
-          table = this._filterArray(table, crit as IArraySearchCriteria<T>);
+        if (typeof tableOrFilter === 'function') {
+          allWheres = false;
           break;
-        case 'string':
-          table = this._filterString(table, crit as IStringSearchCriteria<T>);
-          break;
-        case 'number':
-          table = this._filterNumber(table, crit as INumberSearchCriteria<T>);
-          break;
-        case 'date':
-          table = this._filterDate(table, crit as IDateSearchCriteria<T>);
-          break;
+        } else {
+          table = tableOrFilter;
+        }
+      }
+
+      if (allWheres && table) {
+        return table;
+      } else {
+        const critLambdas = criteriaList.map((crit) => this._filterLambda(crit));
+        return this.collection.filter((t) => critLambdas.some((lambda) => lambda(t)));
       }
     }
 
+    // AND: We can get some efficiency for ANDS by separating the first crit from the rest...
+    // Dexie can use a fast "where" search for the initial search
+    // For consecutive "and" conjunctions, a lambda function must be used
+    // Since not all operators we need are supported by "where" filters, _filterWhere can also return a lambda.
+    const [firstCrit, ...otherCrits] = criteriaList;
+
+    const where = this.collection.where(firstCrit.key as string);
+    let table = where.equals(firstCrit.value);
+    const whereOrFilter = this._filterWhere(where, firstCrit);
+    table =
+      typeof whereOrFilter !== 'function' ? whereOrFilter : this.collection.filter(whereOrFilter);
+
+    // Then just chain a loop of and() calls, not sure if more efficient than doing filter(t => crits.every(...))
+    for (const crit of otherCrits) {
+      table = table.and(this._filterLambda(crit));
+    }
     return table;
   }
 
   ///////////////////////////////
   ////// FILTERING METHODS //////
   ///////////////////////////////
-  // There are 'initial' and normal filter functions, since only the first criteria
-  // can use the IndexedDB search functionality, the others need to be performed as filters
+  // There are 'where' and 'lambda filter functions:
+  // - where: For filtering by a single criteria and for 'or' conjunctions, Dexie exposes indexeddb-accelerated functions.
+  //          Since some of our search operations are not supported by Dexie, some _where functions return a lambda.
+  // - lambda: For 'and' conjunctions, a naive filter function (lambda) must be used.
 
-  private _filterArrayInitial(where: Dexie.WhereClause<T, string>, crit: IArraySearchCriteria<T>) {
+  private _filterWhere(where: Dexie.WhereClause<T, string>, crit: SearchCriteria<T>) {
+    switch (crit.valueType) {
+      case 'array':
+        return this._filterArrayWhere(where, crit as IArraySearchCriteria<T>);
+      case 'string':
+        return this._filterStringWhere(where, crit as IStringSearchCriteria<T>);
+      case 'number':
+        return this._filterNumberWhere(where, crit as INumberSearchCriteria<T>);
+      case 'date':
+        return this._filterDateWhere(where, crit as IDateSearchCriteria<T>);
+    }
+  }
+
+  private _filterLambda(crit: SearchCriteria<T>) {
+    switch (crit.valueType) {
+      case 'array':
+        return this._filterArrayLambda(crit as IArraySearchCriteria<T>);
+      case 'string':
+        return this._filterStringLambda(crit as IStringSearchCriteria<T>);
+      case 'number':
+        return this._filterNumberLambda(crit as INumberSearchCriteria<T>);
+      case 'date':
+        return this._filterDateLambda(crit as IDateSearchCriteria<T>);
+    }
+  }
+
+  private _filterArrayWhere(where: Dexie.WhereClause<T, string>, crit: IArraySearchCriteria<T>) {
     // Querying array props: https://dexie.org/docs/MultiEntry-Index
     // Check whether to search for empty arrays (e.g. no tags)
     if (crit.value.length === 0) {
       return crit.operator === 'contains'
-        ? this.collection.filter((val: any) => val[crit.key as string].length === 0)
-        : this.collection.filter((val: any) => val[crit.key as string].length !== 0);
+        ? (val: T): boolean => (val as any)[crit.key as string].length === 0
+        : (val: T): boolean => (val as any)[crit.key as string].length !== 0;
     } else {
-      // not contains
       const idsFuncName = crit.operator === 'contains' ? 'anyOf' : 'noneOf';
       return where[idsFuncName](crit.value).distinct();
     }
   }
 
-  private _filterArray(col: Dexie.Collection<T, string>, crit: IArraySearchCriteria<T>) {
+  private _filterArrayLambda(crit: IArraySearchCriteria<T>) {
     if (crit.operator === 'contains') {
       // Check whether to search for empty arrays (e.g. no tags)
       return crit.value.length === 0
-        ? col.and((val: any) => val[crit.key as string].length === 0)
-        : col.and((val: any) =>
-            crit.value.some((item) => val[crit.key as string].indexOf(item) !== -1),
-          );
+        ? (val: T): boolean => (val as any)[crit.key as string].length === 0
+        : (val: T): boolean =>
+            crit.value.some((item) => (val as any)[crit.key as string].indexOf(item) !== -1);
     } else {
       // not contains
       return crit.value.length === 0
-        ? col.and((val: any) => val[crit.key as string].length !== 0)
-        : col.and(
-            (val: any) => !crit.value.some((item) => val[crit.key as string].indexOf(item) !== -1),
-          );
+        ? (val: T): boolean => (val as any)[crit.key as string].length !== 0
+        : (val: T): boolean =>
+            crit.value.every((item) => (val as any)[crit.key as string].indexOf(item) === -1);
     }
   }
 
-  private _filterStringInitial(
-    where: Dexie.WhereClause<T, string>,
-    crit: IStringSearchCriteria<T>,
-  ) {
+  private _filterStringWhere(where: Dexie.WhereClause<T, string>, crit: IStringSearchCriteria<T>) {
     type DbStringOperator = 'equalsIgnoreCase' | 'startsWithIgnoreCase';
     const funcName = ((operator: StringOperatorType): DbStringOperator | undefined => {
       switch (operator) {
@@ -237,15 +265,12 @@ export default class BaseRepository<T extends IResource> {
 
     if (!funcName) {
       // Use normal string filter as fallback for functions not supported by the DB
-      return this._filterString(undefined, crit);
+      return this._filterStringLambda(crit);
     }
     return where[funcName](crit.value);
   }
 
-  private _filterString(
-    col: Dexie.Collection<T, string> | undefined,
-    crit: IStringSearchCriteria<T>,
-  ) {
+  private _filterStringLambda(crit: IStringSearchCriteria<T>) {
     const { key, value } = crit as IStringSearchCriteria<T>;
     const valLow = value.toLowerCase();
 
@@ -269,17 +294,10 @@ export default class BaseRepository<T extends IResource> {
       }
     };
 
-    const filterFunc = getFilterFunc(crit.operator);
-    if (col) {
-      return col.and(filterFunc);
-    }
-    return this.collection.filter(filterFunc);
+    return getFilterFunc(crit.operator);
   }
 
-  private _filterNumberInitial(
-    where: Dexie.WhereClause<T, string>,
-    crit: INumberSearchCriteria<T>,
-  ) {
+  private _filterNumberWhere(where: Dexie.WhereClause<T, string>, crit: INumberSearchCriteria<T>) {
     type DbNumberOperator =
       | 'equals'
       | 'notEqual'
@@ -313,10 +331,7 @@ export default class BaseRepository<T extends IResource> {
     return where[funcName](crit.value);
   }
 
-  private _filterNumber(
-    col: Dexie.Collection<T, string> | undefined,
-    crit: INumberSearchCriteria<T>,
-  ) {
+  private _filterNumberLambda(crit: INumberSearchCriteria<T>) {
     const { key, value } = crit;
 
     const getFilterFunc = (operator: NumberOperatorType) => {
@@ -339,14 +354,10 @@ export default class BaseRepository<T extends IResource> {
       }
     };
 
-    const filterFunc = getFilterFunc(crit.operator);
-    if (col) {
-      return col.and(filterFunc);
-    }
-    return this.collection.filter(filterFunc);
+    return getFilterFunc(crit.operator);
   }
 
-  private _filterDateInitial(where: Dexie.WhereClause<T, string>, crit: IDateSearchCriteria<T>) {
+  private _filterDateWhere(where: Dexie.WhereClause<T, string>, crit: IDateSearchCriteria<T>) {
     const dateStart = new Date(crit.value);
     dateStart.setHours(0, 0, 0);
     const dateEnd = new Date(crit.value);
@@ -372,12 +383,12 @@ export default class BaseRepository<T extends IResource> {
 
     if (!col) {
       // Use fallback
-      return this._filterDate(undefined, crit);
+      return this._filterDateLambda(crit);
     }
     return col;
   }
 
-  private _filterDate(col: Dexie.Collection<T, string> | undefined, crit: IDateSearchCriteria<T>) {
+  private _filterDateLambda(crit: IDateSearchCriteria<T>) {
     const { key } = crit;
     const start = new Date(crit.value);
     start.setHours(0, 0, 0);
@@ -404,10 +415,6 @@ export default class BaseRepository<T extends IResource> {
       }
     };
 
-    const filterFunc = getFilterFunc(crit.operator);
-    if (col) {
-      return col.and(filterFunc);
-    }
-    return this.collection.filter(filterFunc);
+    return getFilterFunc(crit.operator);
   }
 }
