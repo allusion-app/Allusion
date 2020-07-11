@@ -3,35 +3,19 @@
   grid-area: inspector;
   overflow: auto;
   flex-shrink: 0;
-  max-width:  var(--inspector-width);
+  max-width: var(--inspector-width);
   overflow-x: hidden;
+  transition: max-width 200ms ease-in-out;
 
   // Sidebar CSS transition
-  &.sliding-sidebar-enter {
-    min-width: 0rem;
-    width: 0rem;
-  }
-  &.sliding-sidebar-enter-active {
-    min-width: var(--inspector-width);
-    width: var(--inspector-width);
-    transition: all 200ms ease-in-out;
-  }
-  &.sliding-sidebar-exit {
-    min-width: var(--inspector-width);
-    width: var(--inspector-width);
-  }
+  &.sliding-sidebar-enter,
   &.sliding-sidebar-exit-active {
-    min-width: 0rem;
-    width: 0rem;
-    transition: all 200ms ease-in-out;
-  }
-
-  > * {
-    // Don't squash content of aside during parent transition
-    width: var(--inspector-width);
+    max-width: 0;
   }
 
   > section {
+    // Don't squash content of aside during parent transition
+    width: var(--inspector-width);
     border-bottom: 2px solid #14181a;
     padding: 1em;
   }

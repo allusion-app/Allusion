@@ -4,12 +4,13 @@
   border-radius: 6px;
   position: sticky;
   width: calc(100% - 0.75rem);
+  height: 100%;
   padding: 0 0.25rem;
   top: 0.2rem;
   z-index: 999;
   display: flex;
   overflow-y: hidden;
-
+  transition: max-height 200ms ease-in-out;
   border-bottom: 2px solid $black;
   box-shadow: $pt-dark-elevation-shadow-2;
 
@@ -51,21 +52,16 @@
 }
 
 .quick-search-enter {
-  max-height: 0px;
+  max-height: 0;
 }
 .quick-search-enter-active {
-  max-height: 100px;
-  transition: max-height 200ms;
+  max-height: var(--toolbar-height);
 }
 .quick-search-exit {
-  max-height: 100px;
+  max-height: var(--toolbar-height);
 }
 .quick-search-exit-active {
-  max-height: 0px;
-  transition: max-height 200ms;
-}
-.quick-search-exit-done {
-  max-height: 0px;
+  max-height: 0;
 }
 
 .gallery-content {

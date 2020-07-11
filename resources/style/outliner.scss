@@ -4,28 +4,20 @@ nav {
   overflow-y: scroll;
   overflow-x: hidden;
   flex-shrink: 0;
+  transition: max-width 200ms ease-in-out;
 
   // Sidebar CSS transition
-  &.sliding-sidebar {
-    overflow-x: hidden;
-  }
   &.sliding-sidebar-enter {
-    min-width: 0rem;
-    width: 0rem;
+    max-width: 0;
   }
   &.sliding-sidebar-enter-active {
-    min-width: var(--outliner-width);
-    width: var(--outliner-width);
-    transition: all 200ms ease-in-out;
+    max-width: var(--outliner-width);
   }
   &.sliding-sidebar-exit {
-    min-width: var(--outliner-width);
-    width: var(--outliner-width);
+    max-width: var(--outliner-width);
   }
   &.sliding-sidebar-exit-active {
-    min-width: 0rem;
-    width: 0rem;
-    transition: all 200ms ease-in-out;
+    max-width: 0;
   }
 
   > * {
