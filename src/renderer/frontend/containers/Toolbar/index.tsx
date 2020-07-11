@@ -59,41 +59,30 @@ const OutlinerToolbar = observer(() => {
 });
 
 interface IInspectorToolbar {
-  isInspectorOpen: boolean;
-  toggleInspector: () => void;
   toggleSettings: () => void;
   toggleHelpCenter: () => void;
 }
 
-const InspectorToolbar = observer(
-  ({ isInspectorOpen, toggleInspector, toggleSettings, toggleHelpCenter }: IInspectorToolbar) => {
-    return (
-      <section id="inspector-toolbar">
-        <ButtonGroup minimal>
-          <Button
-            icon={IconSet.INFO}
-            onClick={toggleInspector}
-            intent={isInspectorOpen ? 'primary' : 'none'}
-            className="tooltip"
-            data-left={ToolbarTooltips.Inspector}
-          />
-          <Button
-            icon={IconSet.SETTINGS}
-            onClick={toggleSettings}
-            className="tooltip"
-            data-left={ToolbarTooltips.Settings}
-          />
-          <Button
-            icon={IconSet.OPEN_EXTERNAL}
-            onClick={toggleHelpCenter}
-            className="tooltip"
-            data-left={ToolbarTooltips.HelpCenter}
-          />
-        </ButtonGroup>
-      </section>
-    );
-  },
-);
+const InspectorToolbar = observer(({ toggleSettings, toggleHelpCenter }: IInspectorToolbar) => {
+  return (
+    <section id="inspector-toolbar">
+      <ButtonGroup minimal>
+        <Button
+          icon={IconSet.SETTINGS}
+          onClick={toggleSettings}
+          className="tooltip"
+          data-left={ToolbarTooltips.Settings}
+        />
+        <Button
+          icon={IconSet.OPEN_EXTERNAL}
+          onClick={toggleHelpCenter}
+          className="tooltip"
+          data-left={ToolbarTooltips.HelpCenter}
+        />
+      </ButtonGroup>
+    </section>
+  );
+});
 
 const Toolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -103,8 +92,6 @@ const Toolbar = observer(() => {
       <OutlinerToolbar />
       {!uiStore.isToolbarVertical && <ContentToolbar />}
       <InspectorToolbar
-        isInspectorOpen={uiStore.isInspectorOpen}
-        toggleInspector={uiStore.toggleInspector}
         toggleSettings={uiStore.toggleSettings}
         toggleHelpCenter={uiStore.toggleHelpCenter}
       />
