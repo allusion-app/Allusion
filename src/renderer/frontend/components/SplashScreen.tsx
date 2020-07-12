@@ -54,7 +54,7 @@ const SplashScreen = () => (
       </defs>
     </svg>
 
-    <SVG src={PreloadIcon} style={{ fill: 'url(#yellow-blue)', width: '48px', height: '48px' }} />
+    <SVG src={PreloadIcon} style={{ fill: 'url(#yellow-blue)', width: '48px', height: '36px' }} />
 
     <p style={textStyles} className="preloader">
       Allusion

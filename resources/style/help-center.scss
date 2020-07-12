@@ -10,12 +10,25 @@
     position: unset;
     background-color: unset !important;
   }
-
+  .stack-paragraph {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  /* Dont think "overview" needs to be shown */
+  .bp3-panel-stack-pop .bp3-panel-stack-header {
+    visibility: hidden;
+    display: none;
+  }
   .bp3-panel-stack-header {
     box-shadow: none;
 
     .bp3-panel-stack-header-back {
       color: $blue1;
+
+      .sticky {
+        position: fixed;
+        top: 1rem;
+      }  
 
       .bp3-icon {
         color: inherit;
@@ -39,6 +52,18 @@
   img {
     // Width of the help center panel
     max-width: 100%;
+    border-radius: .75rem;
+    margin-top:1rem;
+    margin-bottom:1rem;
+  }
+  .centered {
+    max-width: 80%;
+    margin: 2rem auto;
+    display: flex;
+  }
+  p {
+    margin-bottom: 1.2rem;
+    line-height: 1.4;
   }
 }
 
@@ -49,7 +74,7 @@
 
   nav {
     width: 100%;
-    background-color: #d4d5d7;
+    background-color: $light-gray3;/* #d4d5d7; */
     border-radius: 0.25rem;
     overflow: hidden;
   }
@@ -76,26 +101,40 @@
     }
   }
 
-  header,
-  li {
+  header {
     padding: 0.5rem;
+    &:hover, 
+    &:hover .custom-icon {
+      color: $blue1;
+      text-decoration: none;
+      transition: all 0.2s $pt-transition-ease2;
+    }
   }
-
-  li:hover {
-    text-decoration: underline;
-    cursor: pointer;
+  li {
+    padding: 0.2rem 1.5rem;
+    &:hover {
+      color: $blue1;
+      text-decoration: none;
+      transition: all 0.2s $pt-transition-ease2;
+      // text-decoration: underline;
+      cursor: pointer;
+    }
   }
 
   ul {
+    &:first-child, 
+    &:last-child {
+      padding: .25rem .5rem;
+    }
     list-style: none;
     margin: 0;
     padding: 0 0.5rem;
-    background-color: #e6e7e9;
+    background-color: $light-gray4;/* #e6e7e9; */
   }
 
   h2 {
     color: $blue1;
-    font-size: medium;
+    font-size: large;
     margin-top: 0;
     margin-bottom: 0.25rem;
   }

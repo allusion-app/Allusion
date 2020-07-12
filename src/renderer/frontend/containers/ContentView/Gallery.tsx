@@ -16,15 +16,25 @@ import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
 import IconSet from 'components/Icons';
 import { throttle } from '../../utils';
-import { Rectangle } from 'electron';
+import { Rectangle, remote } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
 import useDebounce from '../../hooks/useDebounce';
 
+// https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
+// const { screen } = remote; 
+// const { width } = screen.getPrimaryDisplay().workAreaSize;
+// const CELL_SMALL = (width / 10) - 16;
+// const CELL_MEDIUM = (width / 6) - 8;
+// const CELL_LARGE = (width / 4) - 8;
+// // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
+// const CELL_SIZE_SMALL = CELL_SMALL - 2;
+// const CELL_SIZE_MEDIUM = CELL_MEDIUM - 2;
+// const CELL_SIZE_LARGE = CELL_LARGE - 2;
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-const CELL_SIZE_SMALL = 160 - 2;
-const CELL_SIZE_MEDIUM = 260 - 2;
-const CELL_SIZE_LARGE = 360 - 2;
+const CELL_SIZE_SMALL = 90;
+const CELL_SIZE_MEDIUM = 190;
+const CELL_SIZE_LARGE = 290;
 
 function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {

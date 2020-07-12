@@ -111,7 +111,6 @@ const NUM_STEPS = 3;
 const WelcomeDialog = () => {
   const { uiStore, locationStore, fileStore } = useContext(StoreContext);
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-
   const [showDialog, setShowDialog] = useState(false);
   const handleClose = useCallback(async () => {
     await locationStore.init(true);

@@ -71,20 +71,13 @@ const InspectorToolbar = observer(
       <section id="inspector-toolbar">
         <ButtonGroup minimal>
           <Button
-            icon={IconSet.INFO}
-            onClick={toggleInspector}
-            intent={isInspectorOpen ? 'primary' : 'none'}
-            className="tooltip"
-            data-left={ToolbarTooltips.Inspector}
-          />
-          <Button
             icon={IconSet.SETTINGS}
             onClick={toggleSettings}
             className="tooltip"
             data-left={ToolbarTooltips.Settings}
           />
           <Button
-            icon={IconSet.OPEN_EXTERNAL}
+            icon={IconSet.HELPCENTER}
             onClick={toggleHelpCenter}
             className="tooltip"
             data-left={ToolbarTooltips.HelpCenter}

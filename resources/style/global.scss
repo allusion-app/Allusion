@@ -32,6 +32,7 @@ body {
   --toolbar-height: 2.4rem;
   --content-area-height: calc(100vh - var(--toolbar-height));
   --thumbnail-size: 250px;
+  --thumbnail-margin: .25rem;
   height: 100%;
 }
 
@@ -98,13 +99,15 @@ pre {
 }
 .vertical-toolbar #toolbar {
   grid-area: toolbar;
-  width: 2.8rem !important;
+  width: var(--toolbar-width);
+  // width: 2.8rem !important;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 0.25rem 0;
+  padding: 2rem 0 .25rem 0;
+  // padding: 0.25rem 0;
   z-index: 1000;
   #outliner-toolbar > div,
   #main-toolbar > div,
@@ -149,10 +152,16 @@ pre {
 }
 
 .vertical-toolbar {
+  .outliner-header-wrapper {
+    margin-top: 1.7rem;
+}
   #toolbar {
     .bp3-button:empty::before,
     .bp3-button > :first-child {
       margin: 0;
+    }
+    #outliner {
+      margin-top: var(--toolbar-height);
     }
     #outliner-toolbar,
     #inspector-toolbar {

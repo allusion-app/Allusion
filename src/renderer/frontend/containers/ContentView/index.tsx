@@ -11,16 +11,18 @@ import { IS_PREVIEW_WINDOW } from 'src/renderer/renderer';
 @HotkeysTarget
 class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
+    // const outlinerOpen = this.props.rootStore.uiStore.isOutlinerOpen === true ? 'outlineropen' : '';
+
     return (
       <main tabIndex={1}>
         <Observer>
           {() =>
             !IS_PREVIEW_WINDOW && this.props.rootStore.uiStore.isToolbarVertical ? (
-              <ContentToolbar className="separated" />
+                <ContentToolbar className={`separated ${this.props.rootStore.uiStore.isOutlinerOpen ? '' : 'outlineropen'}`} />
             ) : (
               <></>
             )
-          }
+            }
         </Observer>
         <Searchbar />
         <Gallery />

@@ -142,6 +142,7 @@ const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) 
 const ContentToolbar = observer(({ className }: { className?: string }) => {
   const { uiStore, fileStore } = useContext(StoreContext);
   const { fileSelection } = uiStore;
+  
   // If everything is selected, deselect all. Else, select all
   const handleToggleSelect = () =>
     fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
@@ -152,6 +153,7 @@ const ContentToolbar = observer(({ className }: { className?: string }) => {
 
   return (
     <section id="main-toolbar" className={className}>
+    {/* // <section id="main-toolbar" className={outlinerOpen}> */}
       {uiStore.isSlideMode ? (
         <ButtonGroup minimal>
           {/* Slide mode */}
