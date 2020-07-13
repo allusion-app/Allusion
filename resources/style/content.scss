@@ -1,6 +1,6 @@
 ///////////////////////////////// Content area /////////////////////////////////
 .quick-search {
-  background: $dark-gray0;
+  background-color: $dark-gray0;
   border-radius: 6px;
   position: sticky;
   width: calc(100% - 0.75rem);
@@ -100,7 +100,6 @@
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
   height: var(--thumbnail-size);
-  display: inline-flex;
   position: relative;
   overflow: hidden;
 
@@ -112,7 +111,7 @@
     text-align: center;
     height: 100%;
     width: 100%;
-    background: var(--foreground-color);
+    background-color: var(--foreground-color);
   }
 
   .h4 {
@@ -159,16 +158,19 @@
       }
     }
 
+    > :first-child {
+      clip-path: inset(0);
+      transition: clip-path 0.2s $pt-transition-ease2, filter 0.2s $pt-transition-ease2;
+    }
+
     img {
-      background: var(--foreground-color);
+      background-color: var(--foreground-color);
       width: var(--thumbnail-size);
       height: var(--thumbnail-size);
       cursor: pointer;
       margin-left: auto;
       margin-right: auto;
       display: block;
-      clip-path: inset(0);
-      transition: clip-path 0.2s $pt-transition-ease2, filter 0.2s $pt-transition-ease2;
 
       // Indicate missing image by making it B&W and darker
       &.broken-with-thumbnail {
@@ -178,9 +180,9 @@
   }
 
   &.selected .img-wrapper {
-    background: $blue1;
+    background-color: $blue1;
 
-    img {
+    > :first-child {
       clip-path: inset(0.5rem round 0.125rem);
     }
   }
@@ -200,28 +202,24 @@
     }
   }
 
-  .thumbnailTags {
-    grid-area: tags;
-
-    // This is to demanding on process
-    // transition: height 0.1s ease-in-out;
-    width: 100%;
-    height: auto;
-    padding: 0.4em 0.4rem 0.15rem 0.4rem;
-    position: absolute;
-    bottom: 0;
-    background: none;
-    > * {
-      margin: 0.25em;
-    }
-  }
-
-  &:hover .thumbnailTags {
-    background-color: rgba(0, 0, 0, 0.25);
-  }
-
   #fileInfo {
     grid-area: info;
+  }
+}
+
+.thumbnailTags {
+  grid-area: tags;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+
+  > * {
+    margin: 0.25em;
+  }
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.25);
+    overflow-y: auto;
   }
 }
 
@@ -256,12 +254,9 @@
   }
 
   .thumbnailTags {
-    display: block;
-    position: relative;
-    background: none !important;
-    padding: 0.2rem 0.2rem 0.4rem 0;
+    position: unset;
+    align-self: end;
     margin-left: -0.2rem;
-    align-self: start;
   }
 
   .bp3-heading {
@@ -275,11 +270,8 @@
 
 .list div div > .list-item-even {
   background-color: rgba(102, 102, 102, 0.045);
-  // padding: .3rem 0
 }
-// .list div div > .list-item-uneven {
-// padding: .3rem 0
-// }
+
 .thumbnail-small.list {
   .bp3-heading {
     font-size: 16px;
@@ -289,31 +281,25 @@
     grid-row-gap: 0.02rem;
     line-height: 1rem;
   }
-  .thumbnailTags {
-    padding-top: 0;
-    align-self: end;
-  }
 }
 
 .grid .thumbnail {
   width: var(--thumbnail-size);
 
-  &[data-dnd-target='true'] .thumbnailTags {
-    display: block;
+  &[data-dnd-target='true'] .thumbnailTags:hover {
     max-height: var(--thumbnail-size);
     overflow-y: hidden; // prevent scrolling while dropping
   }
 
   .thumbnailTags {
-    transition: max-height 0.25s $pt-transition-ease2;
     max-height: 2.8em;
-  }
 
-  &:hover .thumbnailTags {
-    max-height: var(--thumbnail-size);
-    overflow-y: auto;
+    &:hover {
+      max-height: var(--thumbnail-size);
+    }
   }
 }
+
 // Fix for temp placeholder masonry smiley
 .masonry {
   position: relative !important;
