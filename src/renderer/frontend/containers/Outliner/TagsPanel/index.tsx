@@ -41,15 +41,9 @@ const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
             data-right={Tooltip.AllImages}
           />
           <Button
-            text={`Untagged (${fileStore.numUntaggedFiles})`}
+            text="Untagged"
             icon={IconSet.TAG_BLANCO}
-            rightIcon={
-              fileStore.showsUntaggedContent ? (
-                <Icon icon={IconSet.PREVIEW} />
-              ) : fileStore.numUntaggedFiles > 0 ? (
-                <Icon icon={IconSet.WARNING} />
-              ) : null
-            }
+            rightIcon={fileStore.showsUntaggedContent ? <Icon icon={IconSet.PREVIEW} /> : null}
             onClick={fileStore.fetchUntaggedFiles}
             active={fileStore.showsUntaggedContent}
             fill
@@ -57,8 +51,9 @@ const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
           />
           {fileStore.numMissingFiles > 0 && (
             <Button
-              text={`Missing (${fileStore.numMissingFiles})`}
-              icon="heart-broken"
+              text="Missing"
+              icon={IconSet.WARNING_BROKEN_LINK}
+              rightIcon={fileStore.showsMissingContent ? <Icon icon={IconSet.PREVIEW} /> : null}
               onClick={fileStore.fetchMissingFiles}
               active={fileStore.showsMissingContent}
               fill

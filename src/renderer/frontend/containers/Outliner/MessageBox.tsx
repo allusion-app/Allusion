@@ -1,5 +1,5 @@
 import React, { useContext, useCallback } from 'react';
-import { Alert, Tag, Callout, H4 } from '@blueprintjs/core';
+import { Alert, Tag } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
 import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from '../../contexts/StoreContext';

@@ -7,7 +7,7 @@ import { ClientFile, IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
 import { useMemo, useContext } from 'react';
-import UiStore, { ViewMethod } from '../../stores/UiStore';
+import { ViewMethod } from '../../stores/UiStore';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from '../Outliner/MessageBox';
 
@@ -74,6 +74,7 @@ interface IRemoveFilesPopoverProps {
 }
 const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverProps) => {
   const { uiStore } = useContext(StoreContext);
+  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
   return (
     <>
       {hidden ? null : (
@@ -90,7 +91,7 @@ const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverPr
       <FileRemoval
         isOpen={uiStore.isToolbarFileRemoverOpen}
         onClose={uiStore.toggleToolbarFileRemover}
-        theme={uiStore.theme}
+        theme={theme}
         object={uiStore.clientFileSelection}
       />
     </>

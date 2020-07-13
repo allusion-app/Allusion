@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Tooltip, Icon } from '@blueprintjs/core';
+import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Tooltip } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -160,17 +160,15 @@ const GalleryItem = observer(
           {file.isBroken && (
             <div className="broken-overlay">
               <Tooltip content="This image could not be found.">
-                <Icon
-                  intent="warning"
-                  icon="heart-broken"
-                  color="orange"
-                  iconSize={24}
+                <span
                   onClick={(e) => {
                     e.stopPropagation(); // prevent image click event
                     uiStore.selectFile(file, true);
                     uiStore.toggleToolbarFileRemover();
                   }}
-                />
+                >
+                  {IconSet.WARNING_BROKEN_LINK}
+                </span>
               </Tooltip>
             </div>
           )}
