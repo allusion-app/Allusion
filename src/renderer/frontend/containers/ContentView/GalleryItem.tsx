@@ -187,7 +187,7 @@ const GalleryItem = observer(
 );
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
-  const { uiStore } = rootStore;
+  const { uiStore, fileStore } = rootStore;
   const handleOpen = useCallback(() => shell.openItem(file.absolutePath), [file.absolutePath]);
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.absolutePath), [
     file.absolutePath,
@@ -200,6 +200,20 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
     }
   }, [file, uiStore]);
 
+  if (file.isBroken) {
+    return (
+      <Menu>
+        <MenuItem
+          onClick={fileStore.fetchMissingFiles}
+          text="Open Recovery Panel"
+          icon={IconSet.WARNING_BROKEN_LINK}
+          disabled={fileStore.showsMissingContent}
+        />
+        <MenuItem onClick={uiStore.toggleToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+      </Menu>
+    );
+  }
+
   return (
     <Menu>
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
@@ -209,7 +223,6 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
         icon={IconSet.FOLDER_CLOSE}
       />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-      {/* <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} /> */}
     </Menu>
   );
 };
