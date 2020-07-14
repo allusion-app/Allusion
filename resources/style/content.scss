@@ -103,17 +103,6 @@
   position: relative;
   overflow: hidden;
 
-  .image-error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    height: 100%;
-    width: 100%;
-    background-color: var(--foreground-color);
-  }
-
   .h4 {
     grid-area: title;
   }
@@ -205,6 +194,16 @@
   #fileInfo {
     grid-area: info;
   }
+}
+
+.image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  background-color: var(--foreground-color);
 }
 
 .thumbnailTags {
@@ -303,32 +302,4 @@
 // Fix for temp placeholder masonry smiley
 .masonry {
   position: relative !important;
-}
-
-.slide .thumbnail {
-  height: calc(100vh - 4rem) !important;
-  width: 100% !important;
-  margin: 0.4rem 0;
-
-  img {
-    height: 95% !important;
-    width: 95% !important;
-    transform: translateX(-50%) translateY(-50%);
-    position: absolute;
-    object-fit: contain;
-    top: 49%;
-    left: 50%;
-  }
-
-  &.selected img {
-    transform: translateX(-50%) translateY(-50%) scale(0.9);
-  }
-}
-
-.thumb-square:not(.slide) img {
-  object-fit: cover;
-}
-
-.thumb-letterbox:not(.slide) img {
-  object-fit: contain;
 }

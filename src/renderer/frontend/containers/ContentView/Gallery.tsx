@@ -389,16 +389,12 @@ const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayou
   const file = fileList[uiStore.firstItem];
 
   return file.isBroken ? (
-    <div
+    <MissingImageFallback
       style={{
         width: `${contentRect.width}px`,
         height: `${contentRect.height}px`,
-        textAlign: 'center',
-        marginTop: `${contentRect.height / 3}px`,
       }}
-    >
-      <MissingImageFallback />
-    </div>
+    />
   ) : (
     <ZoomableImage
       src={file.absolutePath}

@@ -61,11 +61,10 @@ const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
   }
 };
 
-export const MissingImageFallback = () => (
-  <>
-    <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span> <br /> Could
-    not load image
-  </>
+export const MissingImageFallback = ({ style }: { style?: React.CSSProperties }) => (
+  <div style={style} className="image-error custom-icon-128">
+    {IconSet.DB_ERROR}Could not load image
+  </div>
 );
 
 const GalleryItem = observer(
@@ -153,9 +152,7 @@ const GalleryItem = observer(
             <div className="donut-loading" />
           ) : (
             // Show an error it it could not be loaded
-            <span className="image-error">
-              <MissingImageFallback />
-            </span>
+            <MissingImageFallback />
           )}
           {file.isBroken && (
             <div className="broken-overlay">

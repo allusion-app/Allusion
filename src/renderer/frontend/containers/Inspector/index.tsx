@@ -53,24 +53,14 @@ const Carousel = ({ items }: { items: ClientFile[] }) => {
       {/* Show a stack of the first N images (or fewer) */}
       {paddedItems.slice(scrollIndex, scrollIndex + maxItems).map((file, index) =>
         !file ? null : (
-          <div
-            key={file.id}
-            className={`item child-${
-              index
-              // TODO: Could add in and out transition, but you'd also need to know the scroll direction for that
-              // }${index === 0 ? ' item-enter' : ''
-              // }${index === maxItems - 1 ? ' item-exit' : ''
-            }`}
-          >
+          <div key={file.id} className={`item child-${index}`}>
             {!file.isBroken ? (
               <img
                 src={file.thumbnailPath}
                 onClick={() => setScrollIndex(scrollIndex - maxItems + 1 + index)}
               />
             ) : (
-              <div style={{ textAlign: 'center' }}>
-                <MissingImageFallback />
-              </div>
+              <MissingImageFallback />
             )}
           </div>
         ),
@@ -101,9 +91,7 @@ const Inspector = observer(() => {
         onClick={uiStore.enableSlideMode}
       />
     ) : (
-      <div style={{ textAlign: 'center' }}>
-        <MissingImageFallback />
-      </div>
+      <MissingImageFallback />
     );
     headerText = path.basename(singleFile.absolutePath);
     headerSubtext = `${ext} image - ${getBytes(singleFile.size)}}`;
