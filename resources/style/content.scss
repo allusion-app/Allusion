@@ -303,3 +303,11 @@
 .masonry {
   position: relative !important;
 }
+
+.thumb-square:not(.slide) img {
+  object-fit: cover;
+}
+
+.thumb-letterbox:not(.slide) img {
+  object-fit: contain;
+}
