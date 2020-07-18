@@ -16,7 +16,7 @@
   > section {
     // Don't squash content of aside during parent transition
     width: var(--inspector-width);
-    border-bottom: 2px solid #14181a;
+    border-bottom: 2px solid var(--background-seperator-color);
     padding: 1em;
   }
 

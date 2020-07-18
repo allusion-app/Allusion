@@ -253,7 +253,7 @@ form,
   > span {
     // margin-right: 6px !important;
     // border-radius: 6px !important;
-    border-right: 1px solid rgba(var(--light-gray1-rgb), 0.75);
+    border-right: 1px solid rgba(var(--background-seperator-color), 0.75); // Note: SASS accepts hex values in rgba()
     max-width: 150px !important;
     width: 150px !important;
   }

@@ -30,6 +30,7 @@ body {
   --outliner-width: 16em;
   --inspector-width: 24em;
   --toolbar-height: 2.4rem;
+  --quick-searchbar-height: 2.4rem;
   --content-area-height: calc(100vh - var(--toolbar-height));
   --thumbnail-size: 250px;
   height: 100%;
@@ -55,8 +56,13 @@ body {
   --highlight-background-color: #{$dark-gray3};
   --highlight-font-color: white;
   --caret-color: #{$light-gray1};
-  --foreground-color: #{$dark-gray1};
-  --background-color: #{$dark-gray0};
+
+  // The background color of elements inside of panels
+  --foreground-color: #{$dark-gray3};
+  // Background color of the main panels
+  --background-color: #{$dark-gray1}; // dark-gray0 or 1?
+  // The separator (border) color of the main panels
+  --background-seperator-color: #{$dark-gray0};
 }
 
 // Light Theme
@@ -65,8 +71,13 @@ body {
   --highlight-background-color: #{$light-gray4};
   --highlight-font-color: #{$black};
   --caret-color: #{$dark-gray1};
+
+  // The (background) color of elements inside of panels
   --foreground-color: #{$light-gray5};
-  --background-color: #{$light-gray3};
+  // Background color of the main panels
+  --background-color: #{$light-gray3}; // light-gray5 ?
+  // The separator (border) color of the main panels
+  --background-seperator-color: #{$light-gray1}; // light-gray3?
 }
 
 // Override standard CSS attributes
@@ -112,7 +123,7 @@ pre {
     text-align: center;
     align-content: center;
   }
-  border-right: 1px solid $dark-gray0;
+  border-right: 1px solid var(--background-seperator-color);
   .bp3-button {
     max-width: 30px;
   }
@@ -293,7 +304,7 @@ img {
     background-color: $light-gray2;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background-color: $light-gray1;
+    background-color: $light-gray5;
   }
 }
 
@@ -305,7 +316,7 @@ img {
     background-color: $dark-gray5;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background-color: $dark-gray0;
+    background-color: $dark-gray6;
   }
 }
 
@@ -375,26 +386,35 @@ img {
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this
 // Dark
-.bp3-dark {
-  #toolbar,
-  #inspector,
-  nav,
-  #outliner {
-    background-color: $dark-gray1;
-  }
-  background-color: $dark-gray1;
-}
+// .bp3-dark {
+//   #toolbar,
+//   #inspector,
+//   nav,
+//   #outliner {
+//     background-color: $dark-gray1;
+//   }
+//   background-color: $dark-gray1;
+// }
+// .bp3-light,
+// .bp3-dark,
+// #toolbar,
+// #inspector,
+// nav,
+// #outliner {
+//   background-color: $background-color;
+// }
 
-// Light
-.bp3-light {
-  #toolbar,
-  #inspector,
-  nav,
-  #outliner {
-    background-color: $light-gray5 !important;
-  }
-  background-color: $light-gray5 !important;
-}
+
+// // Light
+// .bp3-light {
+//   #toolbar,
+//   #inspector,
+//   nav,
+//   #outliner {
+//     background-color: $light-gray5;
+//   }
+//   background-color: $light-gray5;
+// }
 
 ///////////////////////////////// Media Queries /////////////////////////////////
 @media (min-width: 1601px) {
