@@ -1,4 +1,4 @@
-import { action, IObservableArray, observable } from 'mobx';
+import { action, IObservableArray, observable, runInAction } from 'mobx';
 import Backend from '../../backend/Backend';
 import { ClientTag, ITag } from '../../entities/Tag';
 import RootStore from './RootStore';
@@ -71,17 +71,13 @@ class TagStore {
 
   /**
    * Removes tag from frontend and backend
-   *
-   * Calling this ensures that the object will be marked for garbage collection.
-   * That's why it is important that the object is not referenced directly.
-   * However, computed values are fine because they depend on the ID which is a
-   * primitive value and therefore not tracked.
-   * */
+   */
   @action private async delete(tag: ClientTag): Promise<ID> {
+    const id = tag.id;
     tag.dispose();
-    this.tagList.remove(tag);
     await this.backend.removeTag(tag);
-    return tag.id;
+    runInAction(() => this.tagList.remove(tag));
+    return id;
   }
 
   @action private loadTags() {

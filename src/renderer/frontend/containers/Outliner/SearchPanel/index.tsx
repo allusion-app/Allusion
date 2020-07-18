@@ -274,11 +274,11 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
         ))}
       </FormGroup>
 
-      <Button text="Add" icon={IconSet.ADD} onClick={add} minimal className="btn-blank" />
-
-      <div id="actions-bar">
+      <div id="functions-bar">
+        <Button text="Add" icon={IconSet.ADD} onClick={add} className="" />
         <Switch
           inline
+          large
           label="Match"
           innerLabel="All"
           innerLabelChecked="Any"
@@ -286,7 +286,9 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
           checked={searchMatchAny}
           onChange={toggleSearchMatchAny}
         />
+      </div>
 
+      <div id="actions-bar">
         <ButtonGroup>
           <Button
             text="Reset"

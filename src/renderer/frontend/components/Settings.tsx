@@ -72,8 +72,6 @@ const Settings = observer(() => {
     }
   }, []);
 
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-
   const browseThumbnailDirectory = useCallback(async () => {
     const dirs = remote.dialog.showOpenDialogSync({
       properties: ['openDirectory'],
@@ -110,7 +108,6 @@ const Settings = observer(() => {
       icon={IconSet.SETTINGS}
       onClose={uiStore.toggleSettings}
       title="Settings"
-      className={themeClass}
     >
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup

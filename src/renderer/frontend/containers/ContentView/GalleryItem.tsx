@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Classes } from '@blueprintjs/core';
+import { Tag, ContextMenuTarget, Menu, MenuItem, H4 } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -57,7 +57,7 @@ const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
     event.dataTransfer.dropEffect = 'none';
     event.preventDefault();
     event.stopPropagation();
-    delete event.currentTarget.dataset[DnDAttribute.Target];
+    event.currentTarget.dataset[DnDAttribute.Target] = 'false';
   }
 };
 
@@ -72,7 +72,7 @@ const GalleryItem = observer(
           const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType.Tag));
           ctx.tags.forEach((tag) => file.addTag(tag.id));
           ctx.collections.forEach((col) => col.getTagsRecursively().forEach(file.addTag));
-          delete event.currentTarget.dataset[DnDAttribute.Target];
+          event.currentTarget.dataset[DnDAttribute.Target] = 'false';
         }
       },
       [file, uiStore],
@@ -134,8 +134,8 @@ const GalleryItem = observer(
             // Show image when it has been loaded
             <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
           ) : isThumbnailGenerating ? (
-            // If it's being generated, show a placeholder (skeleton loader)
-            <div className={`placeholder ${Classes.SKELETON}`} />
+            // If it's being generated, show a placeholder
+            <div className="donut-loading" />
           ) : (
             // Show an error it it could not be loaded
             <span className="image-error">

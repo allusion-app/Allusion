@@ -70,9 +70,22 @@ $blue5: #48aff0 !important;
 $blue1-unimportant: #007af5;
 $dark-gray5-unimportant: #3e3e3e;
 
+// Issues with SASS?
+// $blue1-rgb: rgba(0,122,245);
+// $blue1-rgba-9: rgba(0,122,245,.9);
+// $blue1-rgba-8: rgba(0,122,245,.8);
+// $blue1-rgba-7: rgba(0,122,245,.7);
+// $blue1-rgba-6: rgba(0,122,245,.6);
+// $blue1-rgba-5: rgba(0,122,245,.5);
+// $blue1-rgba-4: rgba(0,122,245,.4);
+// $blue1-rgba-3: rgba(0,122,245,.3);
+// $blue1-rgba-2: rgba(0,122,245,.2);
+// $blue1-rgba-1: rgba(0,122,245,.1);
+
 $blue-trans1: #007af555 !important;
 $blue-trans2: #007bf531 !important;
 $blue-trans3: #007af512 !important;
 $blue-trans4: #007af50d !important;
 
 $yellow1: #f7ea3a !important;
+$danger: #db3737 !important;

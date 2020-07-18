@@ -21,6 +21,7 @@ export const enum ToolbarTooltips {
   Filter = 'Filter view content panel',
   Inspector = 'Toggle Inspector',
   Settings = 'Toggle Settings',
+  HelpCenter = 'Toggle Help Center',
   Back = 'Back to Content panel',
   Preview = 'Open selected images in a preview window',
 }
@@ -58,12 +59,11 @@ const OutlinerToolbar = observer(() => {
 });
 
 interface IInspectorToolbar {
-  isInspectorOpen: boolean;
-  toggleInspector: () => void;
   toggleSettings: () => void;
+  toggleHelpCenter: () => void;
 }
 
-const InspectorToolbar = observer(({ toggleSettings }: IInspectorToolbar) => {
+const InspectorToolbar = observer(({ toggleSettings, toggleHelpCenter }: IInspectorToolbar) => {
   return (
     <section id="inspector-toolbar">
       <ButtonGroup minimal>
@@ -72,6 +72,12 @@ const InspectorToolbar = observer(({ toggleSettings }: IInspectorToolbar) => {
           onClick={toggleSettings}
           className="tooltip"
           data-left={ToolbarTooltips.Settings}
+        />
+        <Button
+          icon={IconSet.OPEN_EXTERNAL}
+          onClick={toggleHelpCenter}
+          className="tooltip"
+          data-left={ToolbarTooltips.HelpCenter}
         />
       </ButtonGroup>
     </section>
@@ -86,9 +92,8 @@ const Toolbar = observer(() => {
       <OutlinerToolbar />
       {!uiStore.isToolbarVertical && <ContentToolbar />}
       <InspectorToolbar
-        isInspectorOpen={uiStore.isInspectorOpen}
-        toggleInspector={uiStore.toggleInspector}
         toggleSettings={uiStore.toggleSettings}
+        toggleHelpCenter={uiStore.toggleHelpCenter}
       />
     </div>
   );

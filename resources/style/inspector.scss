@@ -3,21 +3,19 @@
   grid-area: inspector;
   overflow: auto;
   flex-shrink: 0;
-  width: 0;
-  min-width: 0;
-  transition: min-width 0.2s $pt-transition-ease2;
+  max-width: var(--inspector-width);
+  overflow-x: hidden;
+  transition: max-width 200ms ease-in-out;
 
-  &.inspectorOpen {
-    min-width: var(--inspector-width);
-    width: 24rem;
-  }
-
-  > * {
-    // Don't squash content of aside during parent transition
-    width: 24rem;
+  // Sidebar CSS transition
+  &.sliding-sidebar-enter,
+  &.sliding-sidebar-exit-active {
+    max-width: 0;
   }
 
   > section {
+    // Don't squash content of aside during parent transition
+    width: var(--inspector-width);
     border-bottom: 2px solid #14181a;
     padding: 1em;
   }

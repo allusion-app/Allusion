@@ -44,6 +44,14 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           onKeyDown={uiStore.toggleSettings}
           preventDefault
         />
+
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.toggleHelpCenter}
+          label="Opens the helpcenter tab in right sidebar"
+          onKeyDown={uiStore.toggleHelpCenter}
+          preventDefault
+        />
         <Hotkey
           global={true}
           combo={hotkeyMap.replaceQuery}

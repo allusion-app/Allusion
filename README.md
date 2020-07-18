@@ -11,7 +11,7 @@ This requires you to have [NodeJS](https://nodejs.org/en/download/) and a packag
 Then run the following commands to get started:
 
 1. Run `yarn install` to install or update all necessary dependencies.
-2. Run `yarn run dev` to build the project files to the `/build` directory. This will keep running to immediately build changed files when they are updated.
+2. Run `yarn dev` to build the project files to the `/build` directory. This will keep running to immediately build changed files when they are updated.
 3. In a second terminal, run `yarn start` to start the application. Refresh the window after modifying a file to load the updated build files.
 
 ### Releasing
