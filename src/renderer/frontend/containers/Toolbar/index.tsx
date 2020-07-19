@@ -1,10 +1,14 @@
-import React, { useContext } from 'react';
+import React, { useContext, useCallback, useEffect, useState } from 'react';
 import { Button, ButtonGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
 import ContentToolbar from './ContentToolbar';
+import { BrowserWindow, webContents, remote } from 'electron';
+
+
+const isMac = process.platform === 'darwin';
 
 // Tooltip info
 export const enum ToolbarTooltips {
@@ -84,17 +88,67 @@ const InspectorToolbar = observer(({ toggleSettings, toggleHelpCenter }: IInspec
   );
 });
 
+const WindowsButtonCodes = {
+  Minimize: <>&#xE921;</>,
+  Maximize: <>&#xE922;</>,
+  Restore: <>&#xE923;</>,
+  Close: <>&#xE8BB;</>,
+}
+
+const WindowsSystemButtons = () => {
+  const [isMaximized, setMaximized] = useState(remote.getCurrentWindow().isMaximized());
+  useEffect(() => {
+    remote.getCurrentWindow().on('maximize', () => setMaximized(true));
+    remote.getCurrentWindow().on('unmaximize', () => setMaximized(false));
+  }, []);
+
+  const handleMinimize = useCallback(() => remote.getCurrentWindow().minimize(), []);
+  const handleMaximize = useCallback(() => {
+    if (remote.getCurrentWindow().isMaximized()) {
+      remote.getCurrentWindow().restore();
+      setMaximized(false);
+    } else {
+      remote.getCurrentWindow().maximize(),
+      setMaximized(true);
+    }
+  }, []);
+  const handleClose = useCallback(() => remote.getCurrentWindow().close(), []);
+  return (
+    <ButtonGroup className="windows-system-buttons" minimal>
+      <Button
+        className="minimize"
+        text={WindowsButtonCodes.Minimize}
+        onClick={handleMinimize}
+      />
+      <Button
+        className="maximize"
+        text={isMaximized ? WindowsButtonCodes.Restore : WindowsButtonCodes.Maximize}
+        onClick={handleMaximize}
+      />
+      <Button
+        className="close"
+        text={WindowsButtonCodes.Close}
+        onClick={handleClose}
+      />
+    </ButtonGroup>
+  )
+};
+
 const Toolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   return (
-    <div id="toolbar">
+    <div id="toolbar" className={isMac ? 'mac-toolbar' : 'windows-toolbar'}>
       <OutlinerToolbar />
       {!uiStore.isToolbarVertical && <ContentToolbar />}
       <InspectorToolbar
         toggleSettings={uiStore.toggleSettings}
         toggleHelpCenter={uiStore.toggleHelpCenter}
       />
+      {!isMac && <WindowsSystemButtons />}
+
+      {/* Invisible region in order to still resize the window by dragging from the top when not maximized */}
+      {!remote.getCurrentWindow().isMaximized() && <div className="resizer" />}
     </div>
   );
 });

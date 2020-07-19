@@ -162,6 +162,11 @@ main,
   > div:hover .outliner-header-wrapper:not(last-child) > * {
     opacity: 1;
   }
+
+  // Tab header
+  .bp3-tab-list {
+    margin-left: 10px;
+  }
 }
 
 #tree-footer {

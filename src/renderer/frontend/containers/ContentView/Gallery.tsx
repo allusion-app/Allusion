@@ -181,22 +181,29 @@ const GridGallery = observer(
         }),
       [handleClick, handleDoubleClick, numColumns, uiStore.fileSelection],
     );
+
+    const contentWidth = numColumns * cellSize;
+    const padding = (contentRect.width - contentWidth) / 2;
+
     return (
-      <FixedSizeGrid
-        columnCount={numColumns}
-        columnWidth={cellSize}
-        height={contentRect.height}
-        rowCount={numRows}
-        rowHeight={cellSize}
-        width={contentRect.width}
-        itemData={fileList}
-        itemKey={handleItemKey}
-        overscanRowCount={2}
-        children={Cell}
-        onScroll={handleScroll}
-        initialScrollTop={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
-        ref={ref}
-      />
+      // Center the grid:
+      <div style={{ paddingLeft: `${padding}px` }}>
+        <FixedSizeGrid
+          columnCount={numColumns}
+          columnWidth={cellSize}
+          height={contentRect.height}
+          rowCount={numRows}
+          rowHeight={cellSize}
+          width={contentRect.width - padding}
+          itemData={fileList}
+          itemKey={handleItemKey}
+          overscanRowCount={2}
+          children={Cell}
+          onScroll={handleScroll}
+          initialScrollTop={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
+          ref={ref}
+        />
+      </div>
     );
   },
 );

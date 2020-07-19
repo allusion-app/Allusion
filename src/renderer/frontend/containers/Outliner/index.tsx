@@ -8,6 +8,8 @@ import LocationsPanel from './LocationsPanel';
 import { SearchKeyDict } from 'src/renderer/entities/SearchCriteria';
 import { IFile } from 'src/renderer/entities/File';
 import { CSSTransition } from 'react-transition-group';
+import { Tabs, Tab, ButtonGroup, Button, Icon } from '@blueprintjs/core';
+import IconSet from 'components/Icons';
 
 /**
  * Enum variant with associated data for Action enums
@@ -36,6 +38,51 @@ export type IExpansionState = { [key: string]: boolean };
 
 export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path' };
 
+// Tooltip info
+const enum Tooltip {
+  AllImages = 'View all images in library',
+  Untagged = 'View all untagged images',
+}
+
+const SystemTags = () => {
+  const { fileStore } = useContext(StoreContext);
+  return (
+    <>
+      <div id="system-tags">
+        <div className="bp3-divider" />
+        <ButtonGroup vertical minimal fill>
+          <Button
+            text="All Images"
+            icon={IconSet.MEDIA}
+            rightIcon={
+              fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
+            }
+            onClick={fileStore.fetchAllFiles}
+            active={fileStore.showsAllContent}
+            fill
+            data-right={Tooltip.AllImages}
+          />
+          <Button
+            text={`Untagged (${fileStore.numUntaggedFiles})`}
+            icon={IconSet.TAG_BLANCO}
+            rightIcon={
+              fileStore.showsUntaggedContent ? (
+                <Icon icon={IconSet.PREVIEW} />
+              ) : fileStore.numUntaggedFiles > 0 ? (
+                <Icon icon={IconSet.WARNING} />
+              ) : null
+            }
+            onClick={fileStore.fetchUntaggedFiles}
+            active={fileStore.showsUntaggedContent}
+            fill
+            data-right={Tooltip.Untagged}
+          />
+        </ButtonGroup>
+      </div>
+    </>
+  );
+};
+
 const Outliner = () => {
   const rootStore = useContext(StoreContext);
   const { uiStore } = rootStore;
@@ -43,10 +90,19 @@ const Outliner = () => {
   // Todo: Use https://blueprintjs.com/docs/#core/components/tabs
   return (
     // Note: timeout needs to equal the transition time in CSS
-    <CSSTransition in={uiStore.isOutlinerOpen} classNames="sliding-sidebar" timeout={200} unmountOnExit>
+    <CSSTransition
+      in={uiStore.isOutlinerOpen}
+      classNames="sliding-sidebar"
+      timeout={200}
+      unmountOnExit
+    >
       <nav id="outliner">
-        <LocationsPanel />
-        <TagsPanel />
+        <Tabs id="outliner-tabs">
+          <Tab id="tags" title="Tags" panel={<TagsPanel />} />
+          <Tab id="locations" title="Locations" panel={<LocationsPanel />} />
+        </Tabs>
+        {/* TODO: SystemTags should be inside of each tab, at the bottom, so that the tab headers stay at the top when scrolling */}
+        <SystemTags />
       </nav>
     </CSSTransition>
   );

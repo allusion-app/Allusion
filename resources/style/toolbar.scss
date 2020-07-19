@@ -11,6 +11,35 @@
   border-left: 1px solid $dark-gray0;
   border-right: 1px solid $dark-gray0;
 
+  // Since the toolbar is acting as the frame, it should be draggable to move the window around
+  -webkit-app-region: drag;
+  // Invisible region in order to still resize the window by dragging from the top when not maximized
+  .resizer {
+    -webkit-app-region: no-drag;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 4px;
+  }
+
+  // But all of the buttons should not be draggable, else not clickable
+  .bp3-button {
+    -webkit-app-region: none;
+  }
+
+  &.mac-toolbar {
+    // The region on the top left is replaced with system buttons by Electron/OSX
+    padding-left: 5rem;
+  }
+
+  .windows-system-buttons {
+    // The font for windows system icons
+    font-family: "Segoe MDL2 Assets";
+    .close:hover {
+      border-bottom: 2px solid $danger;
+    }
+  }
+
   // Turn of event for show media items
   #media {
     pointer-events: none;

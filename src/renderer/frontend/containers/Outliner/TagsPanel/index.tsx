@@ -6,14 +6,8 @@ import IconSet from 'components/Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 
-// Tooltip info
-const enum Tooltip {
-  AllImages = 'View all images in library',
-  Untagged = 'View all untagged images',
-}
-
 const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
-  const { fileStore, tagCollectionStore, tagStore, uiStore } = rootStore;
+  const { tagCollectionStore, tagStore, uiStore } = rootStore;
 
   return (
     <>
@@ -23,39 +17,6 @@ const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
         tagCollectionStore={tagCollectionStore}
         tagStore={tagStore}
       />
-
-      <div className="bp3-divider" />
-
-      <div id="system-tags">
-        <ButtonGroup vertical minimal fill>
-          <Button
-            text="All Images"
-            icon={IconSet.MEDIA}
-            rightIcon={
-              fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
-            }
-            onClick={fileStore.fetchAllFiles}
-            active={fileStore.showsAllContent}
-            fill
-            data-right={Tooltip.AllImages}
-          />
-          <Button
-            text={`Untagged (${fileStore.numUntaggedFiles})`}
-            icon={IconSet.TAG_BLANCO}
-            rightIcon={
-              fileStore.showsUntaggedContent ? (
-                <Icon icon={IconSet.PREVIEW} />
-              ) : fileStore.numUntaggedFiles > 0 ? (
-                <Icon icon={IconSet.WARNING} />
-              ) : null
-            }
-            onClick={fileStore.fetchUntaggedFiles}
-            active={fileStore.showsUntaggedContent}
-            fill
-            data-right={Tooltip.Untagged}
-          />
-        </ButtonGroup>
-      </div>
     </>
   );
 });
