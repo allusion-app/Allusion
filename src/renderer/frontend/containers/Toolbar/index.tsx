@@ -42,6 +42,31 @@ const OutlinerToolbar = observer(() => {
           className="tooltip"
           data-right={ToolbarTooltips.Outliner}
         />
+        {/* <Button
+          icon={IconSet.INFO}
+          onClick={uiStore.toggleInspector}
+          intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
+          className="tooltip"
+          data-right={ToolbarTooltips.Inspector}
+        /> */}
+        {/* <Button
+          icon={IconSet.PREVIEW}
+          onClick={uiStore.openPreviewWindow}
+          intent={uiStore.isPreviewOpen ? 'primary' : 'none'}
+          className="tooltip"
+          data-right={`${ToolbarTooltips.Preview} (${uiStore.hotkeyMap.openPreviewWindow})`}
+          disabled={uiStore.fileSelection.length === 0}
+        /> */}
+      </ButtonGroup>
+    </section>
+  );
+});
+
+const InspectorToolbar = observer(({ isMaximized }: { isMaximized: boolean }) => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <section id="inspector-toolbar">
+      <ButtonGroup minimal>
         <Button
           icon={IconSet.INFO}
           onClick={uiStore.toggleInspector}
@@ -50,40 +75,20 @@ const OutlinerToolbar = observer(() => {
           data-right={ToolbarTooltips.Inspector}
         />
         <Button
-          icon={IconSet.PREVIEW}
-          onClick={uiStore.openPreviewWindow}
-          intent={uiStore.isPreviewOpen ? 'primary' : 'none'}
-          className="tooltip"
-          data-right={`${ToolbarTooltips.Preview} (${uiStore.hotkeyMap.openPreviewWindow})`}
-          disabled={uiStore.fileSelection.length === 0}
-        />
-      </ButtonGroup>
-    </section>
-  );
-});
-
-interface IInspectorToolbar {
-  toggleSettings: () => void;
-  toggleHelpCenter: () => void;
-}
-
-const InspectorToolbar = observer(({ toggleSettings, toggleHelpCenter }: IInspectorToolbar) => {
-  return (
-    <section id="inspector-toolbar">
-      <ButtonGroup minimal>
-        <Button
-          icon={IconSet.SETTINGS}
-          onClick={toggleSettings}
-          className="tooltip"
-          data-left={ToolbarTooltips.Settings}
-        />
-        <Button
           icon={IconSet.OPEN_EXTERNAL}
-          onClick={toggleHelpCenter}
+          onClick={uiStore.toggleHelpCenter}
           className="tooltip"
           data-left={ToolbarTooltips.HelpCenter}
         />
+        <Button
+          icon={IconSet.SETTINGS}
+          onClick={uiStore.toggleSettings}
+          className="tooltip"
+          data-left={ToolbarTooltips.Settings}
+        />
       </ButtonGroup>
+
+      {!isMac && <WindowsSystemButtons isMaximized={isMaximized} />}
     </section>
   );
 });
@@ -95,23 +100,12 @@ const WindowsButtonCodes = {
   Close: <>&#xE8BB;</>,
 }
 
-const WindowsSystemButtons = () => {
-  const [isMaximized, setMaximized] = useState(remote.getCurrentWindow().isMaximized());
-  useEffect(() => {
-    remote.getCurrentWindow().on('maximize', () => setMaximized(true));
-    remote.getCurrentWindow().on('unmaximize', () => setMaximized(false));
-  }, []);
-
+const WindowsSystemButtons = ({ isMaximized }: { isMaximized: boolean }) => {
   const handleMinimize = useCallback(() => remote.getCurrentWindow().minimize(), []);
-  const handleMaximize = useCallback(() => {
-    if (remote.getCurrentWindow().isMaximized()) {
-      remote.getCurrentWindow().restore();
-      setMaximized(false);
-    } else {
-      remote.getCurrentWindow().maximize(),
-      setMaximized(true);
-    }
-  }, []);
+  const handleMaximize = useCallback(() => isMaximized
+      ? remote.getCurrentWindow().restore()
+      : remote.getCurrentWindow().maximize(),
+    [isMaximized]);
   const handleClose = useCallback(() => remote.getCurrentWindow().close(), []);
   return (
     <ButtonGroup className="windows-system-buttons" minimal>
@@ -137,18 +131,23 @@ const WindowsSystemButtons = () => {
 const Toolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
+  const [isMaximized, setMaximized] = useState(remote.getCurrentWindow().isMaximized());
+  useEffect(() => {
+    remote.getCurrentWindow().on('maximize', () => setMaximized(true));
+    remote.getCurrentWindow().on('unmaximize', () => setMaximized(false));
+  }, []);
+
   return (
     <div id="toolbar" className={isMac ? 'mac-toolbar' : 'windows-toolbar'}>
       <OutlinerToolbar />
-      {!uiStore.isToolbarVertical && <ContentToolbar />}
-      <InspectorToolbar
-        toggleSettings={uiStore.toggleSettings}
-        toggleHelpCenter={uiStore.toggleHelpCenter}
-      />
-      {!isMac && <WindowsSystemButtons />}
 
-      {/* Invisible region in order to still resize the window by dragging from the top when not maximized */}
-      {!remote.getCurrentWindow().isMaximized() && <div className="resizer" />}
+      {!uiStore.isToolbarVertical && <ContentToolbar />}
+
+      <InspectorToolbar isMaximized={isMaximized} />
+
+
+      {/* Invisible region for dragging/resizing the window at the top */}
+      {!isMaximized && <div className="resizer" />}
     </div>
   );
 });

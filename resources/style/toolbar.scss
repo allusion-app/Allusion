@@ -32,11 +32,28 @@
     padding-left: 5rem;
   }
 
+
   .windows-system-buttons {
     // The font for windows system icons
     font-family: "Segoe MDL2 Assets";
     .close:hover {
       border-bottom: 2px solid $danger;
+    }
+  }
+
+  #inspector-toolbar {
+    width: var(--inspector-width) !important;
+    padding-left: 0.5em;
+    // Ensure that on windows, the 
+    display: flex;
+    // On mac, align inspector items to the right
+    justify-content: end;
+  }
+  
+  &.windows-toolbar {
+    #inspector-toolbar {
+      // On windows, align system buttons to the right, but inspector buttons to the left, with space in between
+      justify-content: space-between;
     }
   }
 

@@ -135,19 +135,6 @@ pre {
   // margin: 0 auto;
 }
 
-// Toolbar items
-#toolbar #main-toolbar {
-  // Only for vertical Toolbar
-  // .bp3-button:empty::before,
-  // .bp3-button > :first-child {
-  //     margin: 0 !important;
-  // }
-  #outliner-toolbar,
-  #inspector-toolbar {
-    width: var(--toolbar-width) !important;
-  }
-}
-
 .vertical-toolbar {
   #toolbar {
     .bp3-button:empty::before,
