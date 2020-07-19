@@ -6,13 +6,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 0.5rem;
-  z-index: 1000;
+  z-index: 10;
 
-  background-color: var(--foreground-color);
+  background-color: var(--background-color);
   
-  border-bottom: 2px solid var(--background-seperator-color);
-  border-left: 1px solid var(--background-seperator-color);
-  border-right: 1px solid var(--background-seperator-color);
+  border-bottom: 2px solid var(--background-separator-color);
+  border-left: 1px solid var(--background-separator-color);
+  border-right: 1px solid var(--background-separator-color);
   // .bp3-dark & {
   //   border-bottom: 2px solid $dark-gray0;
   //   border-left: 1px solid $dark-gray0;

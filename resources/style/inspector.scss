@@ -6,6 +6,8 @@
   max-width: var(--inspector-width);
   overflow-x: hidden;
   transition: max-width 200ms ease-in-out;
+  
+  background-color: var(--background-color);
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter,
@@ -16,7 +18,7 @@
   > section {
     // Don't squash content of aside during parent transition
     width: var(--inspector-width);
-    border-bottom: 2px solid var(--background-seperator-color);
+    border-bottom: 2px solid var(--background-separator-color);
     padding: 1em;
   }
 

@@ -108,6 +108,7 @@ const Settings = observer(() => {
       icon={IconSet.SETTINGS}
       onClose={uiStore.toggleSettings}
       title="Settings"
+      className="settings"
     >
       <div className={Classes.DRAWER_BODY}>
         <RadioGroup
@@ -215,7 +216,7 @@ const Settings = observer(() => {
         <Callout icon={IconSet.INFO}>
           <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
           <p>
-            Did you know there are hotkeys?
+            Did you know there are hotkeys available in most panels?
             <br />
             Press&nbsp;
             <KeyCombo combo="mod+k" />

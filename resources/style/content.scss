@@ -1,16 +1,16 @@
 ///////////////////////////////// Content area /////////////////////////////////
 .quick-search {
-  background: var(--foreground-color);
-  border-radius: 6px;
+  background-color: var(--background-color);
+  // border-radius: 6px;
   position: sticky;
-  width: calc(100% - 0.75rem);
+  width: calc(100%); // - 0.75rem
   height: 100%;
   padding: 0 0.25rem;
   top: 0.2rem;
-  z-index: 999;
+  z-index: 9;
   display: flex;
   overflow-y: hidden;
-  border-bottom: 2px solid var(--background-seperator-color);
+  border-bottom: 2px solid var(--background-separator-color);
   box-shadow: $pt-dark-elevation-shadow-2;
   
   transition: max-height 200ms ease-in-out;

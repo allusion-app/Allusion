@@ -253,7 +253,7 @@ form,
   > span {
     // margin-right: 6px !important;
     // border-radius: 6px !important;
-    border-right: 1px solid rgba(var(--background-seperator-color), 0.75); // Note: SASS accepts hex values in rgba()
+    border-right: 1px solid rgba(var(--background-separator-color), 0.75); // Note: SASS accepts hex values in rgba()
     max-width: 150px !important;
     width: 150px !important;
   }
@@ -936,10 +936,10 @@ li .bp3-menu-item {
   }
 
   .bp3-button.bp3-active {
-    color: #007af5 !important;
+    color: $blue1;
 
     .custom-icon {
-      color: #007af5 !important;
+      color: $blue1;
     }
   }
 }
@@ -1069,7 +1069,7 @@ li .bp3-menu-item {
   background-color: $blue1-unimportant;
 }
 .bp3-tag-input .bp3-tag.bp3-active {
-  outline: #007af5 solid 2px;
+  outline: $blue1 solid 2px;
   outline-offset: 1px;
 }
 
@@ -1141,10 +1141,10 @@ li .bp3-menu-item {
   color: white !important;
 }
 
-.bp3-drawer:not(.bp3-position-top):not(.bp3-position-bottom):not(.bp3-position-left):not(.bp3-position-right):not(.bp3-vertical) {
-  min-width: var(--inspector-width);
-  width: 22rem;
-}
+// .bp3-drawer:not(.bp3-position-top):not(.bp3-position-bottom):not(.bp3-position-left):not(.bp3-position-right):not(.bp3-vertical) {
+//   min-width: var(--inspector-width);
+//   width: 22rem;
+// }
 
 // Search panel
 #search-form,
@@ -1169,7 +1169,7 @@ main {
 
 // Toaster
 .toaster {
-  z-index: 1001;
+  z-index: 11;
   margin-top: 2rem;
   .outlinerOpen {
     padding-left: 16rem;
