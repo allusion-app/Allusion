@@ -7,6 +7,7 @@ import TagsPanel from './TagsPanel';
 import LocationsPanel from './LocationsPanel';
 import { SearchKeyDict } from 'src/renderer/entities/SearchCriteria';
 import { IFile } from 'src/renderer/entities/File';
+import { CSSTransition } from 'react-transition-group';
 
 /**
  * Enum variant with associated data for Action enums
@@ -41,10 +42,13 @@ const Outliner = () => {
 
   // Todo: Use https://blueprintjs.com/docs/#core/components/tabs
   return (
-    <nav id="outliner" className={`${uiStore.isOutlinerOpen ? 'outlinerOpen' : ''}`}>
-      <LocationsPanel />
-      <TagsPanel />
-    </nav>
+    // Note: timeout needs to equal the transition time in CSS
+    <CSSTransition in={uiStore.isOutlinerOpen} classNames="sliding-sidebar" timeout={200} unmountOnExit>
+      <nav id="outliner">
+        <LocationsPanel />
+        <TagsPanel />
+      </nav>
+    </CSSTransition>
   );
 };
 

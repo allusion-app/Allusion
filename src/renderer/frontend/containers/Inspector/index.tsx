@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback, useMemo } from 'react';
+import React, { useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import fs from 'fs';
 import path from 'path';
 import { observer } from 'mobx-react-lite';
@@ -8,6 +8,7 @@ import ImageInfo from '../../components/ImageInfo';
 import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
 import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
+import { CSSTransition } from 'react-transition-group';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytes = (bytes: number) => {
@@ -119,9 +120,11 @@ const Inspector = observer(() => {
     headerSubtext = getBytes(size);
   }
 
+  let content: ReactNode;
+
   if (selectedFiles.length > 0) {
-    return (
-      <aside id="inspector" className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+    content = (
+      <>
         <section id="filePreview">{selectionPreview}</section>
 
         <section id="fileOverview">
@@ -135,18 +138,26 @@ const Inspector = observer(() => {
           <MultiFileInfo files={selectedFiles} />
         )}
         <FileTags files={selectedFiles} />
-      </aside>
+      </>
     );
   } else {
-    return (
-      <aside id="inspector" className={`${uiStore.isInspectorOpen ? 'inspectorOpen' : ''}`}>
+    content= (
+      <>
         <section id="filePreview" />
         <section id="fileOverview">
           <div className="inpectorHeading">{headerText}</div>
         </section>
-      </aside>
+      </>
     );
   }
+  return (
+    // Note: timeout needs to equal the transition time in CSS
+    <CSSTransition in={uiStore.isInspectorOpen} classNames="sliding-sidebar" timeout={200} unmountOnExit>
+      <aside id="inspector">
+        {content}
+      </aside>
+    </CSSTransition>
+  )
 });
 
 export default Inspector;
