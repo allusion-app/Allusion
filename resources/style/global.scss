@@ -32,7 +32,7 @@ body {
   --toolbar-height: 2.4rem;
   --content-area-height: calc(100vh - var(--toolbar-height));
   --thumbnail-size: 250px;
-  --thumbnail-margin: .25rem;
+  --thumbnail-margin: 0.25rem;
   height: 100%;
 }
 
@@ -40,7 +40,7 @@ body {
 .bp3-dark,
 .bp3-light {
   --primary-color: #{$blue1};
-  --primary-color-rgb: 0,122,245;
+  --primary-color-rgb: 0, 122, 245;
   --dark-gray4-rgb: 73, 80, 87;
   --light-gray1-rgb: 156, 161, 166;
   --stroke-color: #{$gray3};
@@ -106,8 +106,7 @@ pre {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem 0 .25rem 0;
-  // padding: 0.25rem 0;
+  padding: 0.25rem 0; /* 2rem 0 .25rem 0; frameless WIP */
   z-index: 1000;
   #outliner-toolbar > div,
   #main-toolbar > div,
@@ -152,9 +151,12 @@ pre {
 }
 
 .vertical-toolbar {
-  .outliner-header-wrapper {
-    margin-top: 1.7rem;
-}
+  // .outliner-header-wrapper {
+  //   margin-top: 1.7rem; framelss WIP
+  // }
+  .outliner-header-wrapper:nth-child() {
+    margin-top: .5rem;
+  }
   #toolbar {
     .bp3-button:empty::before,
     .bp3-button > :first-child {
