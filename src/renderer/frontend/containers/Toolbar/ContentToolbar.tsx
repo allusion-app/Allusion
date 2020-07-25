@@ -176,17 +176,19 @@ const ContentToolbar = observer(({ className }: { className?: string }) => {
               data-right={ToolbarTooltips.Search}
             />
 
-            <LibraryInfo fileCount={fileStore.fileList.length} />
+            {/* Disabled for now, library info doesn't add much and takes up precious space */}
+            {/* <LibraryInfo fileCount={fileStore.fileList.length} /> */}
           </ButtonGroup>
 
           <ButtonGroup minimal>
-            <FileSelection
+            {/* Also doesn't add much (like the LibraryInfo) */}
+            {/* <FileSelection
               allFilesSelected={
                 fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
               }
               toggleSelection={handleToggleSelect}
               selectionCount={fileSelection.length}
-            />
+            /> */}
             <TagFilesPopover
               files={uiStore.clientFileSelection}
               disabled={fileSelection.length <= 0 || fileStore.fileList.length <= 0}

@@ -34,21 +34,21 @@ const OutlinerToolbar = observer(() => {
         <Button
           icon={IconSet.OUTLINER}
           onClick={uiStore.toggleOutliner}
-          intent={uiStore.isOutlinerOpen ? 'primary' : 'none'}
+          active={uiStore.isOutlinerOpen}
           className="tooltip"
           data-right={ToolbarTooltips.Outliner}
         />
         <Button
           icon={IconSet.INFO}
           onClick={uiStore.toggleInspector}
-          intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
+          active={uiStore.isInspectorOpen}
           className="tooltip"
           data-right={ToolbarTooltips.Inspector}
         />
         <Button
           icon={IconSet.PREVIEW}
           onClick={uiStore.openPreviewWindow}
-          intent={uiStore.isPreviewOpen ? 'primary' : 'none'}
+          active={uiStore.isPreviewOpen}
           className="tooltip"
           data-right={`${ToolbarTooltips.Preview} (${uiStore.hotkeyMap.openPreviewWindow})`}
           disabled={uiStore.fileSelection.length === 0}

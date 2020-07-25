@@ -21,9 +21,6 @@ body {
   overflow: hidden;
   font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
-  .bp3-light {
-    color: $light-gray1;
-  }
 }
 
 #app {
@@ -53,9 +50,13 @@ body {
 // Dark Theme
 .bp3-dark {
   --focus-color: #{$dark-gray3};
-  --highlight-background-color: #{$dark-gray3};
+  --highlight-background-color: #{$dark-gray3}; // dark-gray5?
   --highlight-font-color: white;
   --caret-color: #{$light-gray1};
+
+  // Text/icon color
+  color: $pt-dark-text-color;
+  --text-muted-color: $pt-dark-text-color-muted;
 
   // The background color of elements inside of panels
   --foreground-color: #{$dark-gray3};
@@ -63,6 +64,7 @@ body {
   --background-color: #{$dark-gray1}; // dark-gray0 or 1?
   // The separator (border) color of the main panels
   --background-separator-color: #{$dark-gray0};
+  
 }
 
 // Light Theme
@@ -71,13 +73,17 @@ body {
   --highlight-background-color: #{$light-gray4};
   --highlight-font-color: #{$black};
   --caret-color: #{$dark-gray1};
+  
+  // Text/icon color
+  color: $pt-text-color;
+  --text-muted-color: $pt-text-color-muted;
 
   // The (background) color of elements inside of panels
   --foreground-color: #{$light-gray5};
   // Background color of the main panels
-  --background-color: #{$light-gray3}; // light-gray5 ?
+  --background-color: #{$light-gray4}; // light-gray5 ?
   // The separator (border) color of the main panels
-  --background-separator-color: #{$light-gray1}; // light-gray3?
+  --background-separator-color: #{$light-gray3}; // light-gray1?
 }
 
 // Override standard CSS attributes
@@ -245,12 +251,7 @@ main {
     'toolbar toolbar toolbar'
     'outliner main inspector';
 
-  &.bp3-dark {
-    background: $dark-gray0;
-  }
-  &.bp3-light {
-    background: $light-gray5;
-  }
+  background-color: var(--background-separator-color);
 }
 
 // Global component layout
@@ -283,7 +284,6 @@ main {
 // Disable default outline on focused elements (e.g. clicked buttons)
 :focus {
   outline: none !important;
-  // background: rgba(255, 255, 255, 0.05) !important;
 }
 // Don't allow images to be dragged from within the app
 img {

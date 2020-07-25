@@ -52,7 +52,7 @@
   }
 
   small.bp3-label {
-    color: $light-gray1;
+    color: --var(--text-muted-color);
     opacity: 0.7;
   }
 }

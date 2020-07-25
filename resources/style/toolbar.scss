@@ -24,6 +24,29 @@
   //   border-right: 1px solid $light-gray3;
   // }
 
+  .toggle-button {
+    color: $blue1;
+  }
+
+  // The toggle buttons (e.g. grid/list view mode): For Blueprint buttons in a minimal ButtonGroup
+  .bp3-button-group.bp3-minimal .bp3-button {
+    border-radius: 0;
+
+    // Add a blue line below the button when hovering
+    &:hover {
+      border-bottom: 2px solid $blue1;
+      background: transparent;
+      padding-bottom: 3px; // to ensure the button does not move when the border is added
+    }
+    
+    &.bp3-active {
+      background: transparent;
+      .bp3-icon {
+        color: $blue1;
+      }
+    }
+  }
+
   // Turn of event for show media items
   #media {
     pointer-events: none;

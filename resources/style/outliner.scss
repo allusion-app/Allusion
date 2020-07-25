@@ -36,22 +36,38 @@ nav {
     transition: 0.2s $pt-transition-ease2;
   }
 
-  // > * {
-  //   // Don't squash content of nav during parent transition
-  //   // BReaks with buttons
-  //   // width: 16rem;
-  // }
-
-  .bp3-dark {
-    background: $dark-gray1;
-  }
-
-  &.outlinerOpen #import {
-    overflow: visible !important;
-  }
-
   .bp3-heading {
     margin: 0.5em 1rem;
+  }
+
+  // The "system tags": The buttons for "All images / untagged images"
+  #system-tags {
+    padding-left: 4px;
+    .bp3-button {
+      border-radius: 0;
+      padding: 5px 10px;
+
+      // Outline content so that the content is on the left and the 2nd button is pushed to the right
+      justify-content: flex-start;
+      .bp3-button-text {
+        margin-right: auto;
+      }
+
+      // Add a blue line below the button when hovering
+      &:hover {
+        border-left: 2px solid $blue1;
+        background: transparent;
+        padding-left: 8px; // to ensure the button does not move when the border is added
+      }
+      
+      &.bp3-active {
+        background: transparent;
+        color: $blue1;
+        .bp3-icon {
+          color: $blue1;
+        }
+      }
+    }
   }
 }
 
@@ -78,7 +94,7 @@ main,
   button.bp3-button.bp3-fill,
   .bp3-non-ideal-state button.bp3-button,
   .bp3-button:not([class*='bp3-intent-']):not(.bp3-disabled) {
-    color: $light-gray2;
+    color: $gray3;
   }
 
   > button,
@@ -93,7 +109,7 @@ main,
     // .bp3-multi-select .bp3-minimal {
     // background: $light-gray1-trans;
     background: $dark-gray1-trans;
-    color: $light-gray2;
+    color: $gray3;
   }
   .bp3-input.bp3-minimal {
     background: none !important;

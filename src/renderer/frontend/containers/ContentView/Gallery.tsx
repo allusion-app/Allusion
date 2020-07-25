@@ -88,7 +88,7 @@ const GridGallery = observer(
     const cellSize = getThumbnailSize(uiStore.thumbnailSize);
 
     // Debounce the numColums so it doesn't constantly update when the panel width changes (sidebar toggling or window resize)
-    const numColumns = useDebounce(Math.floor(contentRect.width / cellSize), 100);
+    const numColumns = useDebounce(Math.floor(contentRect.width / cellSize), 210);
     const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
     const ref = useRef<FixedSizeGrid>(null);

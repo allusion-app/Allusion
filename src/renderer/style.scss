@@ -1,5 +1,8 @@
 /* Blueprint's styling */
 @import '~normalize.css';
+// Custom color scheme: Imported before Blueprint's stuff to override their colors
+@import '~resources/style/colors.scss';
+
 @import '~@blueprintjs/core/src/blueprint.scss';
 @import '~@blueprintjs/select/lib/css/blueprint-select.css';
 @import '~@blueprintjs/datetime/lib/css/blueprint-datetime.css';
@@ -8,7 +11,6 @@
 // Custom variables
 $sidebar-width: 18em;
 
-@import '~resources/style/colors.scss'; // Custom color scheme
 @import '~resources/style/global.scss'; // Global styles, layout, media queries and miscellanious CSS
 // @import '~resources/style/bp-override.scss'; // Overriding Blueprint component style - disabled for now, moving the messy styles we need into the corresponding panel/component
 

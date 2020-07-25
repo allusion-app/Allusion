@@ -1,13 +1,13 @@
 // Adjustment Colors
 $black: #050505 !default;
 
-$dark-gray0: #14181a !important;
-$dark-gray1: #1f2224 !important;
-$dark-gray2: #2a2d30 !important;
-$dark-gray3: #232729 !important;
+$dark-gray0: #14181a !default;
+$dark-gray1: #1f2224 !default;
+$dark-gray2: #2a2d30 !default;
+$dark-gray3: #232729 !default;
 $dark-gray4: #495057 !default;
-$dark-gray5: #3e3e3e !important; // #5c6064
-$dark-gray6: #7d8991 !important;
+$dark-gray5: #3e3e3e !default; // #5c6064
+$dark-gray6: #7d8991 !default;
 
 $dark-gray0-trans: #14181ae1 !default;
 $dark-gray1-trans: #3e3e3eb8 !default;
@@ -20,32 +20,19 @@ $dark-gray7-trans: #2e313320 !default;
 $dark-gray8-trans: #686f7330 !default;
 $dark-gray9-trans: #2b2c2d80 !default;
 
-$dark-wgray1: #181818 !important;
-$dark-wgray2: #252525 !important;
-$dark-wgray3: #282828 !important;
-$dark-wgray4: #495057 !important;
-$dark-wgray5: #3e3e3e !important;
-$dark-wgray6: #182026 !important;
-
-$gray1: #5c7080 !important;
-$gray2: #738694 !important;
-$gray3: #8a9ba8 !important;
-$gray4: #a7b6c2 !important;
-$gray5: #bfccd6 !important;
+$gray1: #5c7080 !default;
+$gray2: #738694 !default;
+$gray3: #8a9ba8 !default;
+$gray4: #a7b6c2 !default;
+$gray5: #bfccd6 !default;
 
 $light-gray1: #9ca1a6; // Main icons & text //95999d  8c9195; //#8f9ca6; // TODO: Why is 1 lighter than 2?
-$light-gray2: #868d91 !important; // #b1b7bb
-$light-gray3: #dde1e4 !important; // #d1d1d1 #e1e8ed
-$light-gray4: #ebf1f5 !important;
-$light-gray5: #f7f9fa !important; //#f5f8fa;
-$light-gray6: #f5f8fa !important;
-
-$light-wgray1: #919191;
-$light-wgray2: #adadad !important;
-$light-wgray3: #d1d1d1 !important; //#e1e8ed
-$light-wgray4: #ebf1f5 !important;
-$light-wgray5: #f7f9fa !important; //#f5f8fa;
-$light-wgray6: #f5f8fa !important;
+                         // These should be purely _color definitions_. The text & icon colors can be tweaked below
+$light-gray2: #b1b7bb !default; // #
+$light-gray3: #dde1e4 !default; // #d1d1d1 #e1e8ed
+$light-gray4: #ebf1f5 !default;
+$light-gray5: #f7f9fa !default; //#f5f8fa;
+$light-gray6: #f5f8fa !default;
 
 $white: #ffffff !default;
 
@@ -59,12 +46,12 @@ $light-gray6-trans: #13131330 !default;
 
 // Core colors
 
-$blue0: #007acc !important;
-$blue1: #007af5 !important;
-$blue2: #1d64c0 !important;
-$blue3: #3593f1 !important;
-$blue4: #4c9ef0 !important;
-$blue5: #48aff0 !important;
+$blue0: #007acc !default;
+$blue1: #007af5 !default;
+$blue2: #1d64c0 !default;
+$blue3: #3593f1 !default;
+$blue4: #4c9ef0 !default;
+$blue5: #48aff0 !default;
 
 // Not important, so that it can be overwritten by inline style
 $blue1-unimportant: #007af5;
@@ -89,3 +76,50 @@ $blue-trans4: #007af50d !important;
 
 $yellow1: #f7ea3a !important;
 $danger: #db3737 !important;
+
+// Override of Blueprint's _color-aliases file
+// Commented out the ones we don't necessarily have to change
+// TODO: Move to _variables.scss_, along with the theme-specific CSS variables
+//    Proposal: This is the primary source of variables, the CSS variables per theme are just for our convience
+//    In that way, the colors used in Blueprint and our custom components is identical
+/////////////////////////////////////////////////////////////////////
+$pt-intent-primary: $blue3 !default;
+// $pt-intent-success: $green3 !default;
+// $pt-intent-warning: $orange3 !default;
+// $pt-intent-danger: $red3 !default;
+
+$pt-app-background-color: $light-gray5 !default;
+$pt-dark-app-background-color: $dark-gray3 !default;
+
+// $pt-outline-color: rgba($blue3, 0.6);
+
+$pt-text-color: $dark-gray1 !default;
+$pt-text-color-muted: $gray1 !default;
+// $pt-text-color-disabled: rgba($pt-text-color-muted, 0.6) !default;
+$pt-heading-color: $pt-text-color !default;
+// $pt-link-color: $blue2 !default;
+$pt-dark-text-color: $light-gray1 !default;
+// $pt-dark-text-color-muted: $gray4 !default;
+// $pt-dark-text-color-disabled: rgba($pt-dark-text-color-muted, 0.6) !default;
+$pt-dark-heading-color: $pt-dark-text-color !default;
+// $pt-dark-link-color: $blue5 !default;
+// Default text selection color using #7dbcff
+// $pt-text-selection-color: rgba(125, 188, 255, 0.6) !default;
+
+// $pt-icon-color: $pt-text-color-muted !default;
+// $pt-icon-color-hover: $pt-text-color !default;
+// $pt-icon-color-disabled: $pt-text-color-disabled !default;
+// $pt-icon-color-selected: $pt-intent-primary !default;
+// $pt-dark-icon-color: $pt-dark-text-color-muted !default;
+// $pt-dark-icon-color-hover: $pt-dark-text-color !default;
+// $pt-dark-icon-color-disabled: $pt-dark-text-color-disabled !default;
+// $pt-dark-icon-color-selected: $pt-intent-primary !default;
+
+// $pt-divider-black: rgba($black, 0.15) !default;
+// $pt-dark-divider-black: rgba($black, 0.4) !default;
+// $pt-dark-divider-white: rgba($white, 0.15) !default;
+
+// $pt-code-text-color: $pt-text-color-muted !default;
+// $pt-dark-code-text-color: $pt-dark-text-color-muted !default;
+// $pt-code-background-color: rgba($white, 0.7) !default;
+// $pt-dark-code-background-color: rgba($black, 0.3) !default;
