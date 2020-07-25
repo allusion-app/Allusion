@@ -21,6 +21,8 @@ import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
 import useDebounce from '../../hooks/useDebounce';
 
+// WIP > better general thumbsize. See if we kind find better size ratio for different screensize. 
+// We'll have less loss of space perhaps
 // https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
 // const { screen } = remote; 
 // const { width } = screen.getPrimaryDisplay().workAreaSize;
@@ -32,9 +34,9 @@ import useDebounce from '../../hooks/useDebounce';
 // const CELL_SIZE_MEDIUM = CELL_MEDIUM - 2;
 // const CELL_SIZE_LARGE = CELL_LARGE - 2;
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-const CELL_SIZE_SMALL = 90;
-const CELL_SIZE_MEDIUM = 190;
-const CELL_SIZE_LARGE = 290;
+const CELL_SIZE_SMALL = 160 - 2;
+const CELL_SIZE_MEDIUM = 260 - 2;
+const CELL_SIZE_LARGE = 360 - 2;
 
 function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {

@@ -1,8 +1,8 @@
 import { app, BrowserWindow, Menu, Tray, screen } from 'electron';
 
-import AppIcon from '../../resources/logo/favicon_512x512.png';
-import TrayIcon from '../../resources/logo/logomark_256.png';
-import TrayIconMac from '../../resources/logo/logomark_light@2x.png';
+import AppIcon from '../../resources/logo/allusion-logo-fc-512x512.png';
+import TrayIcon from '../../resources/logo/allusion-logomark-fc-256x256.png';
+import TrayIconMac from '../../resources/logo/allusiom-logomark-ver-white@2x.png';
 import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';
@@ -82,10 +82,11 @@ function createWindow() {
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#14181a',
-    // title: 'Allusion - Your Visual Library',
-    titleBarStyle: 'hiddenInset',
+    title: 'Allusion - Your Visual Library',
+    // titleBarStyle: 'hiddenInset',
+    // titleBarStyle: 'customButtonsOnHover',
     // titleBarStyle: 'hidden',
-    frame: false,
+    // frame: false,
   });
 
   // Create our menu entries so that we can use MAC shortcuts

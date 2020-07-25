@@ -84,23 +84,25 @@
   }
 }
 
+// WIP > better general thumbsize. See if we kind find better size ratio for different screensize. 
+// We'll have less loss of space perhaps
 .thumbnail-small {
   /* --thumbnail-size: calc(100vw / 10); */
   /* --thumbnail-size: calc(calc(100vw / 10) - calc(10 * var(--thumbnail-margin))); */
-  --thumbnail-size: 82px;
-  /* --thumbnail-size: 150px; */
+  // --thumbnail-size: 82px;
+  --thumbnail-size: 150px;
 }
 .thumbnail-medium {
   /* --thumbnail-size: calc(100vw / 6); */
   /* --thumbnail-size: calc(calc(100vw / 6) - calc(6 * var(--thumbnail-margin))); */
-  --thumbnail-size: 182px;
-  /* --thumbnail-size: 250px; */
+  // --thumbnail-size: 182px;
+  --thumbnail-size: 250px;
 }
 .thumbnail-large {
   /* --thumbnail-size: calc(100vw / 4); */
   /* --thumbnail-size: calc(calc(100vw / 4) - calc(4 * var(--thumbnail-margin))); */
-  --thumbnail-size: 282px;
-  /* --thumbnail-size: 350px; */
+  // --thumbnail-size: 282px;
+  --thumbnail-size: 350px;
 }
 .galleryItem {
   padding: 0.3rem 0 0 0;
