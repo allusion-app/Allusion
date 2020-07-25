@@ -1,15 +1,15 @@
-import React, { useContext } from 'react';
-import { observer } from 'mobx-react-lite';
-
-import StoreContext from '../../contexts/StoreContext';
-
-import TagsPanel from './TagsPanel';
-import LocationsPanel from './LocationsPanel';
-import { SearchKeyDict } from 'src/renderer/entities/SearchCriteria';
-import { IFile } from 'src/renderer/entities/File';
-import { CSSTransition } from 'react-transition-group';
-import { Tabs, Tab, ButtonGroup, Button, Icon } from '@blueprintjs/core';
+import { Button, ButtonGroup, Icon } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
+import { observer } from 'mobx-react-lite';
+import React, { useContext } from 'react';
+import { CSSTransition } from 'react-transition-group';
+import { IFile } from 'src/renderer/entities/File';
+import { SearchKeyDict } from 'src/renderer/entities/SearchCriteria';
+import StoreContext from '../../contexts/StoreContext';
+import LocationsPanel from './LocationsPanel';
+import TagsPanel from './TagsPanel';
+
+
 
 /**
  * Enum variant with associated data for Action enums
@@ -97,10 +97,15 @@ const Outliner = () => {
       unmountOnExit
     >
       <nav id="outliner">
-        <Tabs id="outliner-tabs">
+        {/* Placholder for tabbed outliner */}
+        {/* <Tabs id="outliner-tabs">
           <Tab id="tags" title="Tags" panel={<TagsPanel />} />
           <Tab id="locations" title="Locations" panel={<LocationsPanel />} />
-        </Tabs>
+        </Tabs> */}
+
+        <TagsPanel />
+        <LocationsPanel />
+
         {/* TODO: SystemTags should be inside of each tab, at the bottom, so that the tab headers stay at the top when scrolling */}
         <SystemTags />
       </nav>
