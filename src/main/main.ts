@@ -2,7 +2,7 @@ import { app, BrowserWindow, Menu, Tray, screen } from 'electron';
 
 import AppIcon from '../../resources/logo/allusion-logo-fc-512x512.png';
 import TrayIcon from '../../resources/logo/allusion-logomark-fc-256x256.png';
-import TrayIconMac from '../../resources/logo/allusiom-logomark-ver-white@2x.png';
+import TrayIconMac from '../../resources/logo/allusion-logomark-white@2x.png';
 import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';

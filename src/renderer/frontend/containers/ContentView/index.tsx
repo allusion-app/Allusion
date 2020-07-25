@@ -18,7 +18,8 @@ class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp> {
         <Observer>
           {() =>
             !IS_PREVIEW_WINDOW && this.props.rootStore.uiStore.isToolbarVertical ? (
-                <ContentToolbar className={`separated ${this.props.rootStore.uiStore.isOutlinerOpen ? '' : 'outlineropen'}`} />
+                // <ContentToolbar className={`separated ${this.props.rootStore.uiStore.isOutlinerOpen ? '' : 'outlineropen'}`} /> frameless WIP
+                <ContentToolbar className={`separated`} />
             ) : (
               <></>
             )
