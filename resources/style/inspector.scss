@@ -8,7 +8,15 @@
   transition: max-width 200ms ease-in-out;
 
   // Sidebar CSS transition
-  &.sliding-sidebar-enter,
+  &.sliding-sidebar-enter {
+    max-width: 0;
+  }
+  &.sliding-sidebar-enter-active {
+    max-width: var(--outliner-width);
+  }
+  &.sliding-sidebar-exit {
+    max-width: var(--outliner-width);
+  }
   &.sliding-sidebar-exit-active {
     max-width: 0;
   }
