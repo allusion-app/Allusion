@@ -890,7 +890,7 @@ li .bp3-menu-item {
   border-bottom: 2px solid $blue1;
   border-radius: 0;
   padding-bottom: 3px;
-  transition: all 0.2s $pt-transition-ease2;
+  transition: all 0.2s $pt-transition-cubic2;
 }
 
 //Sidebar override
@@ -927,7 +927,7 @@ li .bp3-menu-item {
     padding-left: 8px;
     border-left: 2px solid $blue1;
     // padding-left: 2px;
-    transition: all 0.2s $pt-transition-ease2;
+    transition: all 0.2s $pt-transition-cubic2;
   }
 
   .bp3-button:not(last-child):hover,
@@ -947,7 +947,7 @@ li .bp3-menu-item {
 
 .bp3-tag-input-values .bp3-button.bp3-minimal:hover:hover {
   padding-bottom: 2px;
-  transition: all 0.2s $pt-transition-ease2;
+  transition: all 0.2s $pt-transition-cubic2;
 }
 
 .bp3-button:hover .bp3-button-text,
@@ -957,7 +957,7 @@ li .bp3-menu-item {
   line-height: 1.15;
   // padding-top: 2px; {
   // padding-top: 2px;
-  // transition: all 0.2s $pt-transition-ease2;
+  // transition: all 0.2s $pt-transition-cubic2;
 }
 
 .bp3-dark .bp3-button-group.bp3-minimal .bp3-button.bp3-intent-primary {
@@ -1030,7 +1030,7 @@ li .bp3-menu-item {
     // opacity: .85;
     background: $dark-gray5;
     // background: $blue1-unimportant;
-    transition: all 0.1s $pt-transition-ease2;
+    transition: all 0.1s $pt-transition-cubic2;
   }
 }
 

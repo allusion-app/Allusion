@@ -4,13 +4,10 @@
   border-radius: 6px;
   position: sticky;
   width: calc(100% - 0.75rem);
-  min-height: var(--toolbar-height);
   padding: 0 0.25rem;
   top: 0.2rem;
   z-index: 999;
   display: flex;
-  overflow-y: hidden;
-  transition: max-height 200ms ease-in-out;
   border-bottom: 2px solid $black;
   box-shadow: $pt-dark-elevation-shadow-2;
 
@@ -52,19 +49,22 @@
 }
 
 .quick-search-enter {
-  max-height: 0;
+  max-height: 0px;
 }
 .quick-search-enter-active {
-  max-height: var(--toolbar-height);
+  max-height: 100px;
+  transition: max-height 0.2s;
 }
 .quick-search-exit {
-  min-height: var(--toolbar-height);
   max-height: 100px;
 }
 .quick-search-exit-active {
-  max-height: 0;
+  max-height: 0px;
+  transition: max-height 0.2s;
 }
-
+.quick-search-exit-done {
+  max-height: 0px;
+}
 .gallery-content {
   flex: 1;
   max-height: 100%;
@@ -165,9 +165,9 @@
       margin-right: auto;
       display: block;
       transform-origin: center;
-      transition: 0.2s $pt-transition-ease2;
+      transition: 0.2s $pt-transition-cubic2;
       // transform: scale(1);
-      // transition: 0.2s $pt-transition-ease2;
+      // transition: 0.2s $pt-transition-cubic2;
     }
   }
 
@@ -176,7 +176,7 @@
 
     img {
       transform: scale(0.9);
-      // transition: 0.2s $pt-transition-ease2;
+      // transition: 0.2s $pt-transition-cubic2;
     }
   }
 
@@ -352,7 +352,7 @@
     overflow-y: hidden;
   }
   .thumbnailTags {
-    transition: 0.25s $pt-transition-ease2;
+    transition: 0.25s $pt-transition-cubic2;
     max-height: 2.8em;
   }
   &:hover .thumbnailTags {

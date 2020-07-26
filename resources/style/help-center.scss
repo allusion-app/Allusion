@@ -107,7 +107,7 @@
     &:hover .custom-icon {
       color: $blue1;
       text-decoration: none;
-      transition: all 0.2s $pt-transition-ease2;
+      transition: all 0.2s $pt-transition-cubic2;
     }
   }
   li {
@@ -115,7 +115,7 @@
     &:hover {
       color: $blue1;
       text-decoration: none;
-      transition: all 0.2s $pt-transition-ease2;
+      transition: all 0.2s $pt-transition-cubic2;
       // text-decoration: underline;
       cursor: pointer;
     }
