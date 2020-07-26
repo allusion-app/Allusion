@@ -4,7 +4,7 @@
   border-radius: 6px;
   position: sticky;
   width: calc(100% - 0.75rem);
-  height: 100%;
+  min-height: var(--toolbar-height);
   padding: 0 0.25rem;
   top: 0.2rem;
   z-index: 999;
@@ -58,7 +58,8 @@
   max-height: var(--toolbar-height);
 }
 .quick-search-exit {
-  max-height: var(--toolbar-height);
+  min-height: var(--toolbar-height);
+  max-height: 100px;
 }
 .quick-search-exit-active {
   max-height: 0;
