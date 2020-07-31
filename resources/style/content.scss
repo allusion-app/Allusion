@@ -49,26 +49,32 @@
 }
 
 .quick-search-enter {
-  max-height: 0px;
+  max-height: 0;
 }
+
 .quick-search-enter-active {
-  max-height: 100px;
+  max-height: var(--toolbar-height);
   transition: max-height 0.2s;
+  overflow: hidden;
 }
+
 .quick-search-exit {
-  max-height: 100px;
+  max-height: var(--toolbar-height);
 }
+
 .quick-search-exit-active {
-  max-height: 0px;
+  max-height: 0;
   transition: max-height 0.2s;
+  overflow: hidden;
 }
+
 .quick-search-exit-done {
-  max-height: 0px;
+  max-height: 0;
 }
+
 .gallery-content {
   flex: 1;
   max-height: 100%;
-
   margin-left: 8px;
 }
 
@@ -82,7 +88,7 @@
   }
 }
 
-// WIP > better general thumbsize. See if we kind find better size ratio for different screensize. 
+// WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
 .thumbnail-small {
   /* --thumbnail-size: calc(100vw / 10); */
@@ -108,41 +114,24 @@
 
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
-  // This is to demanding on processor
-  // transition: all 0.1s ease-in-out;
-  width: var(--thumbnail-size);
   height: var(--thumbnail-size);
-  display: inline-flex;
   position: relative;
   overflow: hidden;
-  border-radius: 0.25rem;
-  // margin: 0.4rem;
-  .image-error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    height: 100%;
-    width: 100%;
-    background: var(--foreground-color);
-  }
+
   .h4 {
     grid-area: title;
   }
 
   .img-wrapper {
     grid-area: image;
-
     width: var(--thumbnail-size);
     height: var(--thumbnail-size);
     display: flex;
     justify-content: center;
     align-items: center;
-    // background-image: url(~resources/images/dots-dark.gif);
-    // background-size: 12%;
-    // background-repeat: no-repeat;
-    // background-position: 50% 50%;
+    border-radius: 0.25rem;
+    // Allow dragging of images to elsewhere (drag-export)
+    -webkit-user-drag: element;
 
     &:hover {
       background: none !important;
@@ -153,30 +142,27 @@
       height: 100%;
     }
 
+    > :first-child {
+      clip-path: inset(0);
+      transition: clip-path 0.2s $pt-transition-cubic2, filter 0.2s $pt-transition-cubic2;
+    }
+
     img {
-      // This is to demanding on processor
-      // transition: all 0.1s ease-in-out;
       background: var(--foreground-color);
       width: var(--thumbnail-size);
       height: var(--thumbnail-size);
-      // object-fit: cover;
       cursor: pointer;
       margin-left: auto;
       margin-right: auto;
       display: block;
-      transform-origin: center;
-      transition: 0.2s $pt-transition-cubic2;
-      // transform: scale(1);
-      // transition: 0.2s $pt-transition-cubic2;
     }
   }
 
-  &.selected {
+  &.selected .img-wrapper {
     background: $blue1;
 
-    img {
-      transform: scale(0.9);
-      // transition: 0.2s $pt-transition-cubic2;
+    > :first-child {
+      clip-path: inset(0.5rem round 0.125rem);
     }
   }
 
@@ -189,18 +175,14 @@
 
   &[data-dnd-target='true'] .img-wrapper {
     background: $yellow1;
-    border-radius: 0.25rem;
 
     img {
-      transform: scale(0.95);
+      clip-path: inset(0.5rem round 0.125rem);
     }
   }
 
   .thumbnailTags {
     grid-area: tags;
-
-    // This is to demanding on process
-    // transition: height 0.1s ease-in-out;
     width: 100%;
     height: auto;
     padding: 0.4em 0.4rem 0.15rem 0.4rem;
@@ -218,6 +200,17 @@
   #fileInfo {
     grid-area: info;
   }
+}
+
+.image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+  background: var(--foreground-color);
 }
 
 // THUMBNAIL LOADER
@@ -239,48 +232,13 @@
 /////////////////////// View methods //////////////////////////////////
 .list .thumbnail {
   width: auto;
-  // height: 100%;
-  // margin-left: 0.4rem;
-  // margin-right: 0.4rem;
-
   display: grid;
   grid-column-gap: 1.5em;
-  grid-template-columns: auto 1fr;
-  // grid-template-rows:    auto 1fr;
+  grid-template-columns: min-content 1fr;
   grid-template-areas:
     'image title'
     'image info'
     'image tags';
-
-  &.selected .img-wrapper {
-    background: $blue1;
-    border-radius: 0.25rem;
-  }
-
-  &[data-dnd-target='true'] .img-wrapper {
-    background: $yellow1;
-    border-radius: 0.25rem;
-
-    img {
-      transform: scale(0.9);
-    }
-  }
-
-  &.selected {
-    background: none !important;
-  }
-
-  &.selected img {
-    transform: scale(0.9);
-  }
-
-  img {
-    position: absolute;
-    left: 0rem;
-    top: 0rem;
-    margin-left: 0;
-    border-radius: 0.25rem;
-  }
 
   span > * {
     text-align: left !important;
@@ -305,11 +263,8 @@
 }
 .list div div > .list-item-even {
   background-color: rgba(102, 102, 102, 0.045);
-  // padding: .3rem 0
 }
-// .list div div > .list-item-uneven {
-// padding: .3rem 0
-// }
+
 .thumbnail-small.list {
   .bp3-heading {
     font-size: 16px;
@@ -327,25 +282,6 @@
 
 .grid .thumbnail {
   width: var(--thumbnail-size);
-  height: var(--thumbnail-size);
-
-  &.selected {
-    background: $blue1;
-  }
-
-  img {
-    width: var(--thumbnail-size);
-    height: var(--thumbnail-size);
-    position: absolute;
-    left: 0rem;
-    top: 0rem;
-    margin-left: 0;
-    border-radius: 0.25rem;
-  }
-
-  &[data-dnd-target='true'] img {
-    transform: scale(0.9);
-  }
 
   &[data-dnd-target='true'] .thumbnailTags {
     display: block;
@@ -364,36 +300,10 @@
     max-height: var(--thumbnail-size);
     overflow: hidden; // can't scroll while dropping
   }
-
-  // display: flex;
-  // span:nth-child(3) {
-  //   z-index: -1;
-  //   background: red !important;
-  // }
 }
 // Fix for temp placeholder masonry smiley
 .masonry {
   position: relative !important;
-}
-
-.slide .thumbnail {
-  height: calc(100vh - 4rem) !important;
-  width: 100% !important;
-  margin: 0.4rem 0;
-
-  img {
-    height: 95% !important;
-    width: 95% !important;
-    transform: translateX(-50%) translateY(-50%);
-    position: absolute;
-    object-fit: contain;
-    top: 49%;
-    left: 50%;
-  }
-
-  &.selected img {
-    transform: translateX(-50%) translateY(-50%) scale(0.9);
-  }
 }
 
 .thumb-square:not(.slide) img {
