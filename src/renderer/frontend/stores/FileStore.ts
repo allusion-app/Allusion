@@ -111,6 +111,7 @@ class FileStore {
     file.dispose();
     this.rootStore.uiStore.deselectFile(file);
     this.fileList.remove(file);
+    this.incrementNumMissingFiles();
     if (file.tags.length === 0) {
       this.decrementNumUntaggedFiles();
     }
