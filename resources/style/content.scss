@@ -99,12 +99,9 @@
 
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
-  width: var(--thumbnail-size);
   height: var(--thumbnail-size);
-  display: inline-flex;
   position: relative;
   overflow: hidden;
-  border-radius: 0.25rem;
 
   .h4 {
     grid-area: title;
@@ -117,7 +114,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-
+    border-radius: 0.25rem;
     // Allow dragging of images to elsewhere (drag-export)
     -webkit-user-drag: element;
 
@@ -130,6 +127,11 @@
       height: 100%;
     }
 
+    > :first-child {
+      clip-path: inset(0);
+      transition: clip-path 0.2s $pt-transition-ease2, filter 0.2s $pt-transition-ease2;
+    }
+
     img {
       background: var(--foreground-color);
       width: var(--thumbnail-size);
@@ -138,16 +140,14 @@
       margin-left: auto;
       margin-right: auto;
       display: block;
-      transform-origin: center;
-      transition: 0.2s $pt-transition-ease2;
     }
   }
 
-  &.selected {
+  &.selected .img-wrapper {
     background: $blue1;
 
-    img {
-      transform: scale(0.9);
+    > :first-child {
+      clip-path: inset(0.5rem round 0.125rem);
     }
   }
 
@@ -160,10 +160,9 @@
 
   &[data-dnd-target='true'] .img-wrapper {
     background: $yellow1;
-    border-radius: 0.25rem;
 
     img {
-      transform: scale(0.95);
+      clip-path: inset(0.5rem round 0.125rem);
     }
   }
 
@@ -220,41 +219,11 @@
   width: auto;
   display: grid;
   grid-column-gap: 1.5em;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: min-content 1fr;
   grid-template-areas:
     'image title'
     'image info'
     'image tags';
-
-  &.selected .img-wrapper {
-    background: $blue1;
-    border-radius: 0.25rem;
-  }
-
-  &[data-dnd-target='true'] .img-wrapper {
-    background: $yellow1;
-    border-radius: 0.25rem;
-
-    img {
-      transform: scale(0.9);
-    }
-  }
-
-  &.selected {
-    background: none !important;
-  }
-
-  &.selected img {
-    transform: scale(0.9);
-  }
-
-  img {
-    position: absolute;
-    left: 0rem;
-    top: 0rem;
-    margin-left: 0;
-    border-radius: 0.25rem;
-  }
 
   span > * {
     text-align: left !important;
@@ -298,25 +267,6 @@
 
 .grid .thumbnail {
   width: var(--thumbnail-size);
-  height: var(--thumbnail-size);
-
-  &.selected {
-    background: $blue1;
-  }
-
-  img {
-    width: var(--thumbnail-size);
-    height: var(--thumbnail-size);
-    position: absolute;
-    left: 0rem;
-    top: 0rem;
-    margin-left: 0;
-    border-radius: 0.25rem;
-  }
-
-  &[data-dnd-target='true'] img {
-    transform: scale(0.9);
-  }
 
   &[data-dnd-target='true'] .thumbnailTags {
     display: block;
@@ -339,26 +289,6 @@
 // Fix for temp placeholder masonry smiley
 .masonry {
   position: relative !important;
-}
-
-.slide .thumbnail {
-  height: calc(100vh - 4rem) !important;
-  width: 100% !important;
-  margin: 0.4rem 0;
-
-  img {
-    height: 95% !important;
-    width: 95% !important;
-    transform: translateX(-50%) translateY(-50%);
-    position: absolute;
-    object-fit: contain;
-    top: 49%;
-    left: 50%;
-  }
-
-  &.selected img {
-    transform: translateX(-50%) translateY(-50%) scale(0.9);
-  }
 }
 
 .thumb-square:not(.slide) img {
