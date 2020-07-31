@@ -28,7 +28,7 @@
       .sticky {
         position: fixed;
         top: 1rem;
-      }  
+      }
 
       .bp3-icon {
         color: inherit;
@@ -52,9 +52,9 @@
   img {
     // Width of the help center panel
     max-width: 100%;
-    border-radius: .75rem;
-    margin-top:1rem;
-    margin-bottom:1rem;
+    border-radius: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
   }
   .centered {
     max-width: 80%;
@@ -74,7 +74,7 @@
 
   nav {
     width: 100%;
-    background-color: $light-gray3;/* #d4d5d7; */
+    background-color: $light-gray3; /* #d4d5d7; */
     border-radius: 0.25rem;
     overflow: hidden;
   }
@@ -99,37 +99,33 @@
       -webkit-mask-image: url(~resources/icons/arrow-down.svg);
       background-color: currentColor;
     }
+
+    &:hover,
+    &:hover .custom-icon {
+      color: $blue1;
+      transition: color 0.2s $pt-transition-cubic2;
+    }
   }
 
   header {
     padding: 0.5rem;
-    &:hover, 
-    &:hover .custom-icon {
-      color: $blue1;
-      text-decoration: none;
-      transition: all 0.2s $pt-transition-cubic2;
-    }
   }
+
   li {
     padding: 0.2rem 1.5rem;
+
     &:hover {
       color: $blue1;
-      text-decoration: none;
-      transition: all 0.2s $pt-transition-cubic2;
-      // text-decoration: underline;
+      transition: color 0.2s $pt-transition-cubic2;
       cursor: pointer;
     }
   }
 
   ul {
-    &:first-child, 
-    &:last-child {
-      padding: .25rem .5rem;
-    }
+    padding: 0.25rem 0.5rem;
     list-style: none;
     margin: 0;
-    padding: 0 0.5rem;
-    background-color: $light-gray4;/* #e6e7e9; */
+    background-color: $light-gray4; /* #e6e7e9; */
   }
 
   h2 {

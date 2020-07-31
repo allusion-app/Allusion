@@ -25,9 +25,9 @@ const sections: ISection[] = [
             <img className="centered" src={Logo_About} alt="Logo" />
             <p>
               <strong>
-              Allusion is a tool designed to help artists organize their visual library. It is very
-              common for creative people to use reference images throughout their projects.
-            </strong>
+                Allusion is a tool designed to help artists organize their visual library. It is
+                very common for creative people to use reference images throughout their projects.
+              </strong>
             </p>
             <p>
               Finding such images has become relatively easy through the use of internet technology.
