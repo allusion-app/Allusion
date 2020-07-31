@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
-import { shell } from 'electron';
+import { shell, ipcRenderer } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { Tag, ContextMenuTarget, Menu, MenuItem, H4 } from '@blueprintjs/core';
+import urlLib from 'url';
+import fse from 'fs-extra';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -11,6 +13,7 @@ import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/Stor
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
+import { RendererMessenger } from 'src/Messaging';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -119,6 +122,28 @@ const GalleryItem = observer(
       [imagePath],
     );
 
+    const handleDragStart = useCallback(
+      async (e: React.DragEvent<HTMLImageElement>) => {
+        // If file is selected, add all selected items to the drag event, for exporting e.g. to your file explorer or programs like PureRef
+        // Creating an event in the main process turned out to be the most robust, did many experiments with drag event content types.
+        // Creating a drag event with multiple images did not work correctly from the browser side (e.g. only limited to thumbnails, not full images)
+        if (isSelected && uiStore.fileSelection.length > 1) {
+          e.preventDefault();
+          RendererMessenger.startDragExport({
+            absolutePaths: uiStore.clientFileSelection.map((f) => f.absolutePath),
+          });
+        } else {
+          RendererMessenger.startDragExport({ absolutePaths: [file.absolutePath] });
+        }
+
+        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+        // So we can store the date when the event starts... Hacky but it works :)
+        (window as any).internalDragStart = new Date();
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [file, isSelected, uiStore.fileSelection, uiStore.fileSelection.length],
+    );
+
     // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
     // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
@@ -129,7 +154,12 @@ const GalleryItem = observer(
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
+        <div
+          onClick={handleClickImg}
+          className="img-wrapper"
+          onDoubleClick={handleDoubleClickImg}
+          onDragStart={handleDragStart}
+        >
           {isThumbnailReady ? (
             // Show image when it has been loaded
             <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
