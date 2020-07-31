@@ -4,27 +4,36 @@ nav {
   overflow-y: scroll;
   overflow-x: hidden;
   flex-shrink: 0;
-  width: 0;
-  min-width: 0;
-  transition: min-width 0.2s $pt-transition-ease2;
+  transition: max-width 200ms ease-in-out;
 
-  // Putt 2 buttons at bottom
-  // display: flex;
-  // flex-direction: column;
+  // Sidebar CSS transition
+  &.sliding-sidebar-enter {
+    max-width: 0;
+  }
+  &.sliding-sidebar-enter-active {
+    max-width: var(--outliner-width);
+  }
+  &.sliding-sidebar-exit {
+    max-width: var(--outliner-width);
+  }
+  &.sliding-sidebar-exit-active {
+    max-width: 0;
+  }
 
-  &.outlinerOpen {
-    min-width: var(--outliner-width);
-    width: 16rem;
-    // overflow-x: visible !important;
-    z-index: 1;
+  > * {
+    // Don't squash content during parent transition
+    width: var(--outliner-width);
+  }
 
-    button.bp3-button.bp3-minimal {
-      opacity: 0;
-      border-radius: 0;
-      margin-bottom: 1px;
-      border-bottom: 1px solid #ffffff00;
-      transition: 0.2s $pt-transition-ease2;
-    }
+  // overflow-x: visible !important;
+  z-index: 1;
+
+  button.bp3-button.bp3-minimal {
+    opacity: 0;
+    border-radius: 0;
+    margin-bottom: 1px;
+    border-bottom: 1px solid #ffffff00;
+    transition: 0.2s $pt-transition-ease2;
   }
 
   // > * {
