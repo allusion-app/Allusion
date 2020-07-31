@@ -12,10 +12,10 @@
     max-width: 0;
   }
   &.sliding-sidebar-enter-active {
-    max-width: var(--outliner-width);
+    max-width: var(--inspector-width);
   }
   &.sliding-sidebar-exit {
-    max-width: var(--outliner-width);
+    max-width: var(--inspector-width);
   }
   &.sliding-sidebar-exit-active {
     max-width: 0;
