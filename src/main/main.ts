@@ -308,7 +308,13 @@ MainMessenger.onStoreFile(({ filenameWithExt, imgBase64 }) =>
 // Forward files from the main window to the preview window
 MainMessenger.onSendPreviewFiles((msg) => {
   // Create preview window if needed, and send the files selected in the primary window
-  if (!previewWindow) {
+  if (!previewWindow || previewWindow.isDestroyed()) {
+
+    // The Window object might've been destroyed if it was hidden for too long -> Recreate it
+    if (previewWindow?.isDestroyed()) {
+      console.warn('Preview window was destroyed! Attemping to recreate...');
+    }
+
     previewWindow = createPreviewWindow();
     MainMessenger.onceInitialized().then(() => {
       if (previewWindow) {
@@ -317,7 +323,6 @@ MainMessenger.onSendPreviewFiles((msg) => {
     });
   } else {
     MainMessenger.sendPreviewFiles(previewWindow.webContents, msg);
-
     if (!previewWindow.isVisible()) {
       previewWindow.show();
     }
