@@ -1,7 +1,7 @@
 // Styling to match Allusion Mockups
-$pt-transition-ease: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
-$pt-transition-ease2: cubic-bezier(0.4, 0, 0.2, 1) !default;
-$pt-transition-ease3: cubic-bezier(0.4, 0, 0.2, 1) 0.8s !default;
+$pt-transition-cubic1: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
+$pt-transition-cubic2: cubic-bezier(0.4, 0, 0.2, 1) !default;
+$pt-transition-cubic2-delay: cubic-bezier(0.4, 0, 0.2, 1) 0.8s !default;
 $pt-transition-ease-bounce: cubic-bezier(0.54, 1.12, 0.38, 1.11) !default;
 $pt-transition-duration: 100ms !default;
 
@@ -32,6 +32,7 @@ body {
   --toolbar-height: 2.4rem;
   --content-area-height: calc(100vh - var(--toolbar-height));
   --thumbnail-size: 250px;
+  --thumbnail-margin: 0.25rem;
   height: 100%;
 }
 
@@ -98,13 +99,14 @@ pre {
 }
 .vertical-toolbar #toolbar {
   grid-area: toolbar;
-  width: 2.8rem !important;
+  width: var(--toolbar-width);
+  // width: 2.8rem !important;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 0.25rem 0;
+  padding: 0.25rem 0; /* 2rem 0 .25rem 0; frameless WIP */
   z-index: 1000;
   #outliner-toolbar > div,
   #main-toolbar > div,
@@ -149,10 +151,19 @@ pre {
 }
 
 .vertical-toolbar {
+  // .outliner-header-wrapper {
+  //   margin-top: 1.7rem; framelss WIP
+  // }
+  .outliner-header-wrapper:nth-child() {
+    margin-top: .5rem;
+  }
   #toolbar {
     .bp3-button:empty::before,
     .bp3-button > :first-child {
       margin: 0;
+    }
+    #outliner {
+      margin-top: var(--toolbar-height);
     }
     #outliner-toolbar,
     #inspector-toolbar {
@@ -350,7 +361,7 @@ img {
 [data-right]:hover:after,
 [data-left]:hover:after {
   opacity: 1;
-  transition: all 0.2s $pt-transition-ease3; // Tooltip needs delay!
+  transition: all 0.2s $pt-transition-cubic2-delay; // Tooltip needs delay!
   visibility: visible;
   position: absolute;
   z-index: 1000;

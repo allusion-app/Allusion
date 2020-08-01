@@ -42,12 +42,15 @@ import FOLDER_STRUCTURE from 'resources/icons/folder-structure.svg';
 import FORM_DROP from 'resources/icons/form-drop.svg';
 import GITHUB from 'resources/icons/github.svg';
 import IMPORT from 'resources/icons/import.svg';
+import HELPCENTER from 'resources/icons/helpcenter.svg';
 import INFO from 'resources/icons/info.svg';
 import ITEM_COLLAPS from 'resources/icons/item-collaps.svg';
 import ITEM_EXPAND from 'resources/icons/item-expand.svg';
 import ITEM_MOVE_DOWN from 'resources/icons/item-move-down.svg';
 import ITEM_MOVE_UP from 'resources/icons/item-move-up.svg';
-import LOGO from 'resources/logo/logomark_light.svg';
+import LOGO from 'resources/logo/allusion-logomark-white.svg';
+import LOGOMARK_BLACK from 'resources/logo/allusion-logo-ver-fc-black.svg';
+import LOGOMARK_WHITE from 'resources/logo/allusion-logo-ver-fc-white.svg';
 import MEDIA from 'resources/icons/media.svg';
 import META_INFO from 'resources/icons/meta-info.svg';
 import META_INFO_2 from 'resources/icons/meta-info-2.svg';
@@ -121,6 +124,7 @@ const IconSet = {
   FORM_DROP: toSvg(FORM_DROP),
   GITHUB: toSvg(GITHUB),
   IMPORT: toSvg(IMPORT),
+  HELPCENTER: toSvg(HELPCENTER),
   INFO: toSvg(INFO),
   ITEM_COLLAPS: toSvg(ITEM_COLLAPS),
   ITEM_EXPAND: toSvg(ITEM_EXPAND),
@@ -128,6 +132,8 @@ const IconSet = {
   ITEM_MOVE_UP: toSvg(ITEM_MOVE_UP),
   OUTLINER: toSvg(OUTLINER),
   LOGO: toSvg(LOGO),
+  LOGO_MARK_BLACK: toSvg(LOGOMARK_BLACK),
+  LOGO_MARK_WHITE: toSvg(LOGOMARK_WHITE),
   MEDIA: toSvg(MEDIA),
   META_INFO: toSvg(META_INFO),
   META_INFO_2: toSvg(META_INFO_2),

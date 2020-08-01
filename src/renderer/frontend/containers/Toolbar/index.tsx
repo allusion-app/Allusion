@@ -74,7 +74,7 @@ const InspectorToolbar = observer(({ toggleSettings, toggleHelpCenter }: IInspec
           data-left={ToolbarTooltips.Settings}
         />
         <Button
-          icon={IconSet.OPEN_EXTERNAL}
+          icon={IconSet.HELPCENTER}
           onClick={toggleHelpCenter}
           className="tooltip"
           data-left={ToolbarTooltips.HelpCenter}

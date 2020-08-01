@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
-import { shell, ipcRenderer } from 'electron';
+import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { Tag, ContextMenuTarget, Menu, MenuItem, H4 } from '@blueprintjs/core';
-import urlLib from 'url';
-import fse from 'fs-extra';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
