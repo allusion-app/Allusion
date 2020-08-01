@@ -126,29 +126,6 @@ main,
   }
 }
 
-#search-form,
-.bp3-overlay {
-  button {
-    background: $dark-gray1-trans;
-    color: $light-gray6;
-
-    &.bp3-intent-primary {
-      background: $blue1;
-      color: $light-gray4;
-      box-shadow: none !important;
-    }
-
-    &:not(.bp3-minimal):hover {
-      background-color: $dark-gray3;
-      color: $light-gray5;
-    }
-  }
-
-  .bp3-input button:hover {
-    background-color: transparent !important;
-  }
-}
-
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
 .outliner-header-wrapper {
   display: flex;

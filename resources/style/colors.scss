@@ -1,6 +1,8 @@
 // Adjustment Colors
 $black: #050505 !default;
 
+// TODO: These colors should all remain in descending brightness values, it messes up Blueprint's theme
+// And it's confusing to use
 $dark-gray0: #14181a !default;
 $dark-gray1: #1f2224 !default;
 $dark-gray2: #2a2d30 !default;
@@ -123,3 +125,10 @@ $pt-dark-heading-color: $pt-dark-text-color !default;
 // $pt-dark-code-text-color: $pt-dark-text-color-muted !default;
 // $pt-code-background-color: rgba($white, 0.7) !default;
 // $pt-dark-code-background-color: rgba($black, 0.3) !default;
+
+
+// Other overrides
+/////////////////////////////////
+// Menu: _common.scss
+// $menu-background-color
+$dark-menu-background-color: $dark-gray2 !default; // Note: This override (and likely most others) shouldn't be needed if we set up the colors properly

@@ -196,8 +196,7 @@
 // File tag (kind of global style)
 #fileTag .bp3-popover-target,
 #inspector .bp3-popover-target {
-  display: inline-block;
-  flex-grow: 1;
+  width: 100%;
 }
 
 // .bp3-popover-content #fileTag .bp3-popover-target:nth-child(1),
