@@ -5,8 +5,7 @@ import { observer } from 'mobx-react-lite';
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
 import ContentToolbar from './ContentToolbar';
-import { BrowserWindow, webContents, remote } from 'electron';
-
+import { remote } from 'electron';
 
 const isMac = process.platform === 'darwin';
 
@@ -75,7 +74,7 @@ const InspectorToolbar = observer(({ isMaximized }: { isMaximized: boolean }) =>
           data-right={ToolbarTooltips.Inspector}
         />
         <Button
-          icon={IconSet.OPEN_EXTERNAL}
+          icon={IconSet.HELPCENTER}
           onClick={uiStore.toggleHelpCenter}
           className="tooltip"
           data-left={ToolbarTooltips.HelpCenter}
@@ -98,34 +97,27 @@ const WindowsButtonCodes = {
   Maximize: <>&#xE922;</>,
   Restore: <>&#xE923;</>,
   Close: <>&#xE8BB;</>,
-}
+};
 
 const WindowsSystemButtons = ({ isMaximized }: { isMaximized: boolean }) => {
   const handleMinimize = useCallback(() => remote.getCurrentWindow().minimize(), []);
-  const handleMaximize = useCallback(() => isMaximized
-      ? remote.getCurrentWindow().restore()
-      : remote.getCurrentWindow().maximize(),
-    [isMaximized]);
+  const handleMaximize = useCallback(
+    () =>
+      isMaximized ? remote.getCurrentWindow().restore() : remote.getCurrentWindow().maximize(),
+    [isMaximized],
+  );
   const handleClose = useCallback(() => remote.getCurrentWindow().close(), []);
   return (
     <ButtonGroup className="windows-system-buttons" minimal>
-      <Button
-        className="minimize"
-        text={WindowsButtonCodes.Minimize}
-        onClick={handleMinimize}
-      />
+      <Button className="minimize" text={WindowsButtonCodes.Minimize} onClick={handleMinimize} />
       <Button
         className="maximize"
         text={isMaximized ? WindowsButtonCodes.Restore : WindowsButtonCodes.Maximize}
         onClick={handleMaximize}
       />
-      <Button
-        className="close"
-        text={WindowsButtonCodes.Close}
-        onClick={handleClose}
-      />
+      <Button className="close" text={WindowsButtonCodes.Close} onClick={handleClose} />
     </ButtonGroup>
-  )
+  );
 };
 
 const Toolbar = observer(() => {
@@ -144,7 +136,6 @@ const Toolbar = observer(() => {
       {!uiStore.isToolbarVertical && <ContentToolbar />}
 
       <InspectorToolbar isMaximized={isMaximized} />
-
 
       {/* Invisible region for dragging/resizing the window at the top */}
       {!isMaximized && <div className="resizer" />}

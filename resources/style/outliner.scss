@@ -4,7 +4,7 @@ nav {
   overflow-y: scroll;
   overflow-x: hidden;
   flex-shrink: 0;
-  transition: max-width 200ms ease-in-out;
+  transition: max-width 200ms $pt-transition-cubic2;
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter {
@@ -33,7 +33,7 @@ nav {
     border-radius: 0;
     margin-bottom: 1px;
     border-bottom: 1px solid #ffffff00;
-    transition: 0.2s $pt-transition-ease2;
+    transition: 0.2s $pt-transition-cubic2;
   }
 
   // > * {

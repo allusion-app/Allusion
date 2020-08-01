@@ -1,8 +1,8 @@
-import { app, BrowserWindow, Menu, Tray, screen } from 'electron';
+import { app, BrowserWindow, Menu, Tray, screen, ipcMain, IpcMessageEvent, nativeImage } from 'electron';
 
-import AppIcon from '../../resources/logo/favicon_512x512.png';
-import TrayIcon from '../../resources/logo/logomark_256.png';
-import TrayIconMac from '../../resources/logo/logomark_light@2x.png';
+import AppIcon from '../../resources/logo/allusion-logo-fc-512x512.png';
+import TrayIcon from '../../resources/logo/allusion-logomark-fc-256x256.png';
+import TrayIconMac from '../../resources/logo/allusion-logomark-white@2x.png';
 import { isDev } from '../config';
 import ClipServer, { IImportItem } from './clipServer';
 import { ITag } from '../renderer/entities/Tag';
@@ -84,6 +84,10 @@ function createWindow() {
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#14181a',
     title: 'Allusion - Your Visual Library',
+    // titleBarStyle: 'hiddenInset',
+    // titleBarStyle: 'customButtonsOnHover',
+    // titleBarStyle: 'hidden',
+    // frame: false,
   });
 
   // Create our menu entries so that we can use MAC shortcuts
@@ -282,8 +286,8 @@ app.on('activate', () => {
   }
 });
 
-// Messaging ///////////////////////////////
-////////////////////////////////////////////
+// Messaging: Sending and receiving messages between the main and renderer process //
+/////////////////////////////////////////////////////////////////////////////////////
 MainMessenger.onSetDownloadPath(({ dir }) => clipServer!.setDownloadPath(dir));
 MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
 MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
@@ -326,4 +330,18 @@ MainMessenger.onSendPreviewFiles((msg) => {
   }
 });
 
+MainMessenger.onDragExport(({ absolutePaths }) => {
+  if (!mainWindow) return;
+  if (absolutePaths.length > 0) {
+    mainWindow.webContents.startDrag({
+      files: absolutePaths,
+      // Just show the first image as a thumbnail for now
+      // TODO: Show some indication that multiple images are dragged, would be cool to show a stack of the first few of them
+      // also, this will show really big icons for narrow images, should take into account their aspect ratio
+      icon: nativeImage.createFromPath(absolutePaths[0]).resize({ width: 200 }) || AppIcon,
+    } as any) // need to "any" this since the types are not correct: the files field is allowed but not according to TypeScript
+  }
+});
+
 MainMessenger.onGetUserPicturesPath();
+

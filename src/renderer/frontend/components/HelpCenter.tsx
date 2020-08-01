@@ -4,7 +4,7 @@ import React, { ReactNode, useContext, useRef, useEffect } from 'react';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
 
-import Logo from 'resources/logo/favicon_512x512.png';
+import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
 // TODO: Put images in /resources/helpcenter/ or somewhere like that
 
 interface ISection {
@@ -22,10 +22,12 @@ const sections: ISection[] = [
         title: 'What is Allusion',
         content: (
           <>
-            <img src={Logo} alt="Logo" />
+            <img className="centered" src={Logo_About} alt="Logo" />
             <p>
-              Allusion is a tool designed to help artists organize their visual library. It is very
-              common for creative people to use reference images throughout their projects.
+              <strong>
+                Allusion is a tool designed to help artists organize their visual library. It is
+                very common for creative people to use reference images throughout their projects.
+              </strong>
             </p>
             <p>
               Finding such images has become relatively easy through the use of internet technology.
@@ -282,7 +284,7 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
   return (
     <div ref={parentRef}>
       {section.subSections.map((subSec) => (
-        <div key={subSec.title}>
+        <div className="stack-paragraph" key={subSec.title}>
           <h2>{subSec.title}</h2>
           {subSec.content}
         </div>
@@ -364,7 +366,7 @@ const HelpCenter = observer(() => {
   return (
     <Drawer
       isOpen={uiStore.isHelpCenterOpen}
-      icon={IconSet.OPEN_EXTERNAL}
+      icon={IconSet.HELPCENTER}
       onClose={uiStore.toggleHelpCenter}
       title="Help Center"
     >

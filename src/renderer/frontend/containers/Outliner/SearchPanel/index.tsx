@@ -274,7 +274,7 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
         ))}
       </FormGroup>
 
-      <div id="functions-bar">    
+      <div id="functions-bar">
         <Button text="Add" icon={IconSet.ADD} onClick={add} className="" />
         <Switch
           inline
