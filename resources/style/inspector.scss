@@ -5,12 +5,20 @@
   flex-shrink: 0;
   max-width: var(--inspector-width);
   overflow-x: hidden;
-  transition: max-width 200ms ease-in-out;
+  transition: max-width 200ms ease-in-out; // 120ms $pt-transition-cubic2
   
   background-color: var(--background-color);
 
   // Sidebar CSS transition
-  &.sliding-sidebar-enter,
+  &.sliding-sidebar-enter {
+    max-width: 0;
+  }
+  &.sliding-sidebar-enter-active {
+    max-width: var(--inspector-width);
+  }
+  &.sliding-sidebar-exit {
+    max-width: var(--inspector-width);
+  }
   &.sliding-sidebar-exit-active {
     max-width: 0;
   }

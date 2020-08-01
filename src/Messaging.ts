@@ -48,6 +48,12 @@ export interface IPreviewFilesMessage {
   thumbnailDirectory: string;
 }
 
+/////////////// Drag n drop export ///////////////
+export const DRAG_EXPORT = 'DRAG_EXPORT';
+export interface IDragExportMessage {
+  absolutePaths: string[];
+}
+
 //////////////////// Settings ////////////////////
 export const IS_CLIP_SERVER_RUNNING = 'IS_CLIP_SERVER_RUNNING';
 export const SET_CLIP_SERVER_ENABLED = 'SET_CLIP_SERVER_ENABLED';
@@ -121,6 +127,10 @@ export class RendererMessenger {
     return new Promise<IStoreFileReplyMessage>((resolve) =>
       ipcRenderer.once(STORE_FILE_REPLY, (_, msg: IStoreFileReplyMessage) => resolve(msg)),
     );
+  };
+
+  static startDragExport = (msg: IDragExportMessage) => {
+    ipcRenderer.send(DRAG_EXPORT, msg);
   };
 
   static onImportExternalImage = (cb: (msg: IImportExternalImageMessage) => void): IpcRenderer => {
@@ -214,6 +224,10 @@ export class MainMessenger {
       const downloadPath = await getDownloadPath(msg);
       e.sender.send(STORE_FILE_REPLY, { downloadPath } as IStoreFileReplyMessage);
     });
+  };
+
+  static onDragExport = (cb: (msg: IDragExportMessage) => void): IpcMain => {
+    return ipcMain.on(DRAG_EXPORT, (_, msg: IDragExportMessage) => cb(msg));
   };
 
   static onGetUserPicturesPath = (): IpcMain => {
