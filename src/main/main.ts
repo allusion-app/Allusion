@@ -1,6 +1,6 @@
 import { app, BrowserWindow, Menu, Tray, screen, ipcMain, IpcMessageEvent, nativeImage } from 'electron';
 
-import AppIcon from '../../resources/logo/allusion-logo-fc-512x512.png';
+import AppIcon from '../../resources/logo/allusion-logomark-fc-512x512.png';
 import TrayIcon from '../../resources/logo/allusion-logomark-fc-256x256.png';
 import TrayIconMac from '../../resources/logo/allusion-logomark-white@2x.png';
 import { isDev } from '../config';
