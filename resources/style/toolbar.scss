@@ -56,7 +56,7 @@
   // Intended for when the main (content) toolbar is separate from the rest of the toolbar
   display: flex;
   flex-direction: row;
-  padding: 0 .5rem;
+  padding: 0 0.5rem;
   height: 2.4rem;
   justify-content: space-between;
   background: $dark-gray1;
@@ -64,7 +64,7 @@
   border-left: 1px solid $dark-gray0;
   border-right: 2px solid $dark-gray0;
   &.outlineropen {
-    padding: 0 .5rem 0 2rem;
+    padding: 0 0.5rem 0 2rem;
   }
   .bp3-button {
     background: transparent !important;
