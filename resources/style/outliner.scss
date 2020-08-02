@@ -39,10 +39,6 @@
   .bp3-dark {
     background: $dark-gray1;
   }
-
-  .bp3-heading {
-    margin: 0.5em 1rem;
-  }
 }
 
 // #search-form,
@@ -125,8 +121,8 @@ main,
   cursor: pointer;
   padding-right: 2px;
 
-  h4 {
-    margin-left: 10px;
+  .bp3-heading {
+    margin: 0.5em 1rem;
     margin-right: auto;
     // caret icon
     > .bp3-icon {
