@@ -16,15 +16,15 @@ import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
 import IconSet from 'components/Icons';
 import { throttle } from '../../utils';
-import { Rectangle, remote } from 'electron';
+import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
 import useDebounce from '../../hooks/useDebounce';
 
-// WIP > better general thumbsize. See if we kind find better size ratio for different screensize. 
+// WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
 // https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
-// const { screen } = remote; 
+// const { screen } = remote;
 // const { width } = screen.getPrimaryDisplay().workAreaSize;
 // const CELL_SMALL = (width / 10) - 16;
 // const CELL_MEDIUM = (width / 6) - 8;
@@ -194,28 +194,22 @@ const GridGallery = observer(
       [handleClick, handleDoubleClick, numColumns, uiStore.fileSelection],
     );
 
-    const contentWidth = numColumns * cellSize;
-    const padding = (contentRect.width - contentWidth) / 2;
-
     return (
-      // Center the grid:
-      <div style={{ paddingLeft: `${padding}px` }}>
-        <FixedSizeGrid
-          columnCount={numColumns}
-          columnWidth={cellSize}
-          height={contentRect.height}
-          rowCount={numRows}
-          rowHeight={cellSize}
-          width={contentRect.width - padding}
-          itemData={fileList}
-          itemKey={handleItemKey}
-          overscanRowCount={2}
-          children={Cell}
-          onScroll={handleScroll}
-          initialScrollTop={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
-          ref={ref}
-        />
-      </div>
+      <FixedSizeGrid
+        columnCount={numColumns}
+        columnWidth={cellSize}
+        height={contentRect.height}
+        rowCount={numRows}
+        rowHeight={cellSize}
+        width={contentRect.width}
+        itemData={fileList}
+        itemKey={handleItemKey}
+        overscanRowCount={2}
+        children={Cell}
+        onScroll={handleScroll}
+        initialScrollTop={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
+        ref={ref}
+      />
     );
   },
 );

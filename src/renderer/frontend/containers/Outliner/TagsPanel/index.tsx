@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { Hotkey, Hotkeys, Button, Icon, ButtonGroup, HotkeysTarget } from '@blueprintjs/core';
+import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import IconSet from 'components/Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 
@@ -10,14 +9,12 @@ const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
   const { tagCollectionStore, tagStore, uiStore } = rootStore;
 
   return (
-    <>
-      <TagsTree
-        root={tagCollectionStore.getRootCollection()}
-        uiStore={uiStore}
-        tagCollectionStore={tagCollectionStore}
-        tagStore={tagStore}
-      />
-    </>
+    <TagsTree
+      root={tagCollectionStore.getRootCollection()}
+      uiStore={uiStore}
+      tagCollectionStore={tagCollectionStore}
+      tagStore={tagStore}
+    />
   );
 });
 

@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, Icon } from '@blueprintjs/core';
+import { Button, ButtonGroup, Icon, Divider } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
 import { observer } from 'mobx-react-lite';
 import React, { useContext } from 'react';
@@ -8,8 +8,6 @@ import { SearchKeyDict } from 'src/renderer/entities/SearchCriteria';
 import StoreContext from '../../contexts/StoreContext';
 import LocationsPanel from './LocationsPanel';
 import TagsPanel from './TagsPanel';
-
-
 
 /**
  * Enum variant with associated data for Action enums
@@ -44,44 +42,35 @@ const enum Tooltip {
   Untagged = 'View all untagged images',
 }
 
-const SystemTags = () => {
+const SystemTags = observer(() => {
   const { fileStore } = useContext(StoreContext);
   return (
-    <>
-      <div id="system-tags">
-        <div className="bp3-divider" />
-        <ButtonGroup vertical minimal fill>
-          <Button
-            text="All Images"
-            icon={IconSet.MEDIA}
-            rightIcon={
-              fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
-            }
-            onClick={fileStore.fetchAllFiles}
-            active={fileStore.showsAllContent}
-            fill
-            data-right={Tooltip.AllImages}
-          />
-          <Button
-            text={`Untagged (${fileStore.numUntaggedFiles})`}
-            icon={IconSet.TAG_BLANCO}
-            rightIcon={
-              fileStore.showsUntaggedContent ? (
-                <Icon icon={IconSet.PREVIEW} />
-              ) : fileStore.numUntaggedFiles > 0 ? (
-                <Icon icon={IconSet.WARNING} />
-              ) : null
-            }
-            onClick={fileStore.fetchUntaggedFiles}
-            active={fileStore.showsUntaggedContent}
-            fill
-            data-right={Tooltip.Untagged}
-          />
-        </ButtonGroup>
-      </div>
-    </>
+    <ButtonGroup id="system-tags" vertical minimal fill>
+      <Button
+        text="All Images"
+        icon={IconSet.MEDIA}
+        rightIcon={
+          fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
+        }
+        onClick={fileStore.fetchAllFiles}
+        active={fileStore.showsAllContent}
+        fill
+        data-right={Tooltip.AllImages}
+      />
+      <Button
+        text={`Untagged (${fileStore.numUntaggedFiles})`}
+        icon={IconSet.TAG_BLANCO}
+        rightIcon={
+          fileStore.showsUntaggedContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
+        }
+        onClick={fileStore.fetchUntaggedFiles}
+        active={fileStore.showsUntaggedContent}
+        fill
+        data-right={Tooltip.Untagged}
+      />
+    </ButtonGroup>
   );
-};
+});
 
 const Outliner = () => {
   const rootStore = useContext(StoreContext);
@@ -97,16 +86,9 @@ const Outliner = () => {
       unmountOnExit
     >
       <nav id="outliner">
-        {/* Placholder for tabbed outliner */}
-        {/* <Tabs id="outliner-tabs">
-          <Tab id="tags" title="Tags" panel={<TagsPanel />} />
-          <Tab id="locations" title="Locations" panel={<LocationsPanel />} />
-        </Tabs> */}
-
-        <TagsPanel />
         <LocationsPanel />
-
-        {/* TODO: SystemTags should be inside of each tab, at the bottom, so that the tab headers stay at the top when scrolling */}
+        <TagsPanel />
+        <Divider />
         <SystemTags />
       </nav>
     </CSSTransition>

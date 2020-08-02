@@ -19,6 +19,8 @@ import WelcomeDialog from './components/WelcomeDialog';
 
 const SPLASH_SCREEN_TIME = 1400;
 
+const isMac = process.platform === 'darwin';
+
 export const AppToaster = Toaster.create({
   position: Position.TOP,
   className: 'toaster',
@@ -54,11 +56,14 @@ const App = observer(() => {
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div className={sidebarClass}>
+      <div
+        style={isMac ? ({ '--window-system-buttons-width': 0 } as React.CSSProperties) : undefined}
+        className={sidebarClass}
+      >
         <div id="layoutContainer" className={themeClass}>
           <ErrorBoundary>
             <GlobalHotkeys>
-              <Toolbar />
+              <Toolbar isMac={isMac} />
 
               <Outliner />
 
