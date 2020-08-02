@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
@@ -34,17 +34,22 @@ import useDebounce from '../../hooks/useDebounce';
 // const CELL_SIZE_MEDIUM = CELL_MEDIUM - 2;
 // const CELL_SIZE_LARGE = CELL_LARGE - 2;
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-const CELL_SIZE_SMALL = 160 - 2;
-const CELL_SIZE_MEDIUM = 260 - 2;
-const CELL_SIZE_LARGE = 360 - 2;
+// TODO: Use computed styles to access the CSS variables
+const PADDING = 8;
+const CELL_SIZE_SMALL = 150 + PADDING;
+const CELL_SIZE_MEDIUM = 250 + PADDING;
+const CELL_SIZE_LARGE = 350 + PADDING;
+// Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
+// can fit into one row.
+const SHRINK_FACTOR = 0.9;
 
 function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {
-    return CELL_SIZE_SMALL;
+    return [CELL_SIZE_SMALL * SHRINK_FACTOR, CELL_SIZE_SMALL];
   } else if (sizeType === 'medium') {
-    return CELL_SIZE_MEDIUM;
+    return [CELL_SIZE_MEDIUM * SHRINK_FACTOR, CELL_SIZE_MEDIUM];
   }
-  return CELL_SIZE_LARGE;
+  return [CELL_SIZE_LARGE * SHRINK_FACTOR, CELL_SIZE_LARGE];
 }
 
 interface IGalleryLayoutProps {
@@ -97,13 +102,27 @@ const GridGallery = observer(
     handleFileSelect,
     lastSelectionIndex,
   }: IGalleryLayoutProps) => {
-    const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+    const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
 
     // Debounce the numColums so it doesn't constantly update when the panel width changes (sidebar toggling or window resize)
-    const numColumns = useDebounce(Math.floor(contentRect.width / cellSize), 100);
+    const numColumns = useDebounce(Math.floor(contentRect.width / minSize), 100);
     const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
+    const cellSize = useMemo(() => {
+      let result = Math.trunc(contentRect.width / numColumns);
+      if (isNaN(result) || !isFinite(result)) {
+        result = minSize;
+      }
+      return Math.min(result, maxSize);
+    }, [contentRect.width, maxSize, minSize, numColumns]);
 
     const ref = useRef<FixedSizeGrid>(null);
+    const outerRef = useRef<HTMLElement>();
+
+    useEffect(() => {
+      if (outerRef.current) {
+        outerRef.current.style.setProperty('--thumbnail-size', cellSize - PADDING + 'px');
+      }
+    }, [cellSize]);
 
     const handleScrollTo = useCallback(
       (i: number) => {
@@ -209,6 +228,7 @@ const GridGallery = observer(
         onScroll={handleScroll}
         initialScrollTop={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
         ref={ref}
+        outerRef={outerRef}
       />
     );
   },
@@ -223,7 +243,7 @@ const ListGallery = observer(
     handleDoubleClick,
     lastSelectionIndex,
   }: IGalleryLayoutProps) => {
-    const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+    const [, cellSize] = getThumbnailSize(uiStore.thumbnailSize);
     const ref = useRef<FixedSizeList>(null);
 
     const handleScrollTo = useCallback((i: number) => {
