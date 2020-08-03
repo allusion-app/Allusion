@@ -1,10 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useContext, useCallback, useEffect, useState } from 'react';
 import { Button, ButtonGroup } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
 import ContentToolbar from './ContentToolbar';
+import { remote } from 'electron';
 
 // Tooltip info
 export const enum ToolbarTooltips {
@@ -38,7 +39,7 @@ const OutlinerToolbar = observer(() => {
           className="tooltip"
           data-right={ToolbarTooltips.Outliner}
         />
-        <Button
+        {/* <Button
           icon={IconSet.INFO}
           onClick={uiStore.toggleInspector}
           active={uiStore.isInspectorOpen}
@@ -52,49 +53,96 @@ const OutlinerToolbar = observer(() => {
           className="tooltip"
           data-right={`${ToolbarTooltips.Preview} (${uiStore.hotkeyMap.openPreviewWindow})`}
           disabled={uiStore.fileSelection.length === 0}
-        />
+        /> */}
       </ButtonGroup>
     </section>
   );
 });
 
-interface IInspectorToolbar {
-  toggleSettings: () => void;
-  toggleHelpCenter: () => void;
-}
-
-const InspectorToolbar = observer(({ toggleSettings, toggleHelpCenter }: IInspectorToolbar) => {
+const InspectorToolbar = observer(() => {
+  const { uiStore } = useContext(StoreContext);
   return (
-    <section id="inspector-toolbar">
-      <ButtonGroup minimal>
-        <Button
-          icon={IconSet.SETTINGS}
-          onClick={toggleSettings}
-          className="tooltip"
-          data-left={ToolbarTooltips.Settings}
-        />
-        <Button
-          icon={IconSet.HELPCENTER}
-          onClick={toggleHelpCenter}
-          className="tooltip"
-          data-left={ToolbarTooltips.HelpCenter}
-        />
-      </ButtonGroup>
-    </section>
+    <ButtonGroup id="inspector-toolbar" minimal>
+      <Button
+        icon={IconSet.INFO}
+        onClick={uiStore.toggleInspector}
+        intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
+        className="tooltip"
+        data-right={ToolbarTooltips.Inspector}
+      />
+      <Button
+        icon={IconSet.HELPCENTER}
+        onClick={uiStore.toggleHelpCenter}
+        className="tooltip"
+        data-left={ToolbarTooltips.HelpCenter}
+      />
+      <Button
+        icon={IconSet.SETTINGS}
+        onClick={uiStore.toggleSettings}
+        className="tooltip"
+        data-left={ToolbarTooltips.Settings}
+      />
+    </ButtonGroup>
   );
 });
 
-const Toolbar = observer(() => {
+const WindowsButtonCodes = {
+  Minimize: <>&#xE921;</>,
+  Maximize: <>&#xE922;</>,
+  Restore: <>&#xE923;</>,
+  Close: <>&#xE8BB;</>,
+};
+
+const WindowsSystemButtons = ({ isMaximized }: { isMaximized: boolean }) => {
+  const handleMinimize = useCallback(() => remote.getCurrentWindow().minimize(), []);
+  const handleMaximize = useCallback(
+    () =>
+      isMaximized ? remote.getCurrentWindow().restore() : remote.getCurrentWindow().maximize(),
+    [isMaximized],
+  );
+  const handleClose = useCallback(() => remote.getCurrentWindow().close(), []);
+  return (
+    <ButtonGroup id="window-system-buttons" minimal>
+      <Button className="minimize" text={WindowsButtonCodes.Minimize} onClick={handleMinimize} />
+      <Button
+        className="maximize"
+        text={isMaximized ? WindowsButtonCodes.Restore : WindowsButtonCodes.Maximize}
+        onClick={handleMaximize}
+      />
+      <Button className="close" text={WindowsButtonCodes.Close} onClick={handleClose} />
+    </ButtonGroup>
+  );
+};
+
+const WindowDecoration = ({ isMac }: { isMac: boolean }) => {
+  const [isMaximized, setMaximized] = useState(remote.getCurrentWindow().isMaximized());
+  useEffect(() => {
+    remote.getCurrentWindow().on('maximize', () => setMaximized(true));
+    remote.getCurrentWindow().on('unmaximize', () => setMaximized(false));
+  }, []);
+
+  return (
+    <>
+      {/* Invisible region for dragging/resizing the window at the top */}
+      {!isMaximized && <div id="window-resize-area" />}
+
+      {!isMac && <WindowsSystemButtons isMaximized={isMaximized} />}
+    </>
+  );
+};
+
+const Toolbar = observer(({ isMac }: { isMac: boolean }) => {
   const { uiStore } = useContext(StoreContext);
 
   return (
-    <div id="toolbar">
+    <div id="toolbar" className={isMac ? 'mac-toolbar' : 'windows-toolbar'}>
       <OutlinerToolbar />
+
       {!uiStore.isToolbarVertical && <ContentToolbar />}
-      <InspectorToolbar
-        toggleSettings={uiStore.toggleSettings}
-        toggleHelpCenter={uiStore.toggleHelpCenter}
-      />
+
+      <InspectorToolbar />
+
+      <WindowDecoration isMac={isMac} />
     </div>
   );
 });

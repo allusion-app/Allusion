@@ -1,40 +1,29 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 #toolbar {
   grid-area: toolbar;
-  width: 100vw;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  gap: 1rem;
   padding: 0 0.5rem;
-  z-index: 10;
-
-  background-color: var(--background-color);
-  
   border-bottom: 2px solid var(--background-separator-color);
   border-left: 1px solid var(--background-separator-color);
   border-right: 1px solid var(--background-separator-color);
 
-  .toggle-button {
-    color: $blue1;
+  // Since the toolbar is acting as the frame, it should be draggable to move the window around
+  -webkit-app-region: drag;
+  // But all of the buttons should not be draggable, else not clickable
+  button {
+    -webkit-app-region: none;
   }
 
-  // The toggle buttons (e.g. grid/list view mode): For Blueprint buttons in a minimal ButtonGroup
-  .bp3-button-group.bp3-minimal .bp3-button {
-    border-radius: 0;
+  &.mac-toolbar {
+    // The region on the top left is replaced with system buttons by Electron/OSX
+    grid-template-columns: var(--mac-system-buttons-width) var(--outliner-width) 1fr min-content;
+    grid-template-areas: '. outliner-toolbar main-toolbar inspector-toolbar';
+  }
 
-    // Add a blue line below the button when hovering
-    &:hover {
-      border-bottom: 2px solid $blue1;
-      background: transparent;
-      padding-bottom: 3px; // to ensure the button does not move when the border is added
-    }
-    
-    &.bp3-active {
-      background: transparent;
-      .bp3-icon {
-        color: $blue1;
-      }
-    }
+  &.windows-toolbar {
+    grid-template-columns: var(--outliner-width) 1fr min-content var(--window-system-buttons-width);
+    grid-template-areas: 'outliner-toolbar main-toolbar inspector-toolbar .';
   }
 
   // Turn of event for show media items
@@ -51,46 +40,112 @@
     width: 1rem !important;
     height: 1rem !important;
   }
-
-  .spacer {
-    width: 8rem;
-    height: 1rem;
-  }
-
-  #main-toolbar {
-    display: flex;
-    justify-content: space-between;
-    width: calc(100vw - 40rem);
-    left: 16rem;
-    position: absolute;
-  }
 }
 
-.toolb-center {
-  justify-content: center !important;
-}
-#preview-toolbar {
+#preview #toolbar {
   // For frameless app
   // margin-left: 4rem;
   // margin-top: .25rem;
   display: flex;
-  align-items: baseline;
+  align-items: center;
 }
 
-#main-toolbar.separated {
-  // Intended for when the main (content) toolbar is separate from the rest of the toolbar
+#main-toolbar {
+  grid-area: main-toolbar;
   display: flex;
-  flex-direction: row;
-  padding: 0 0.5rem;
+  justify-content: space-evenly;
+}
+
+#outliner-toolbar {
+  grid-area: outliner-toolbar;
+}
+
+#inspector-toolbar {
+  grid-area: inspector-toolbar;
+}
+
+#window-system-buttons {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--window-system-buttons-width);
   height: 2.4rem;
-  justify-content: space-between;
-  border-bottom: 2px solid $dark-gray0;
-  border-left: 1px solid $dark-gray0;
-  border-right: 2px solid $dark-gray0;
-  &.outlineropen {
-    padding: 0 0.5rem 0 2rem;
+  padding-bottom: 2px;
+  // The font for windows system icons
+  font-family: 'Segoe MDL2 Assets';
+  .close:hover {
+    border-bottom: 2px solid $danger;
   }
-  .bp3-button {
-    background: transparent !important;
+
+  button {
+    width: 2.5rem;
+    font-size: 0.675rem;
+  }
+}
+
+// Invisible region in order to still resize the window by dragging from the top when not maximized
+#window-resize-area {
+  -webkit-app-region: no-drag;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+}
+
+.vertical-toolbar {
+  #toolbar {
+    width: var(--toolbar-height);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-right: 1px solid $dark-gray0;
+
+    #outliner {
+      margin-top: var(--toolbar-height);
+    }
+
+    #outliner-toolbar,
+    #inspector-toolbar {
+      flex-direction: column;
+    }
+  }
+
+  #main-toolbar {
+    height: var(--toolbar-height);
+    background-color: var(--foreground-color);
+    border-bottom: 2px solid $dark-gray0;
+    border-left: 1px solid $dark-gray0;
+    justify-content: space-between;
+
+    .bp3-button {
+      background: transparent;
+    }
+
+    // Since the toolbar is acting as the frame, it should be draggable to move the window around
+    -webkit-app-region: drag;
+    // But all of the buttons should not be draggable, else not clickable
+    button {
+      -webkit-app-region: none;
+    }
+
+    &::before,
+    &::after {
+      content: '';
+      display: block;
+      -webkit-app-region: none;
+      height: var(--toolbar-height);
+    }
+
+    &::before {
+      width: calc(var(--mac-system-buttons-width) - var(--toolbar-height));
+    }
+
+    &::after {
+      width: var(--window-system-buttons-width);
+    }
   }
 }

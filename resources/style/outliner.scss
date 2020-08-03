@@ -1,5 +1,5 @@
 ///////////////////////////////// Outliner /////////////////////////////////
-nav {
+#outliner {
   grid-area: outliner;
   overflow-y: scroll;
   overflow-x: hidden;
@@ -22,7 +22,7 @@ nav {
 
   > * {
     // Don't squash content during parent transition
-    width: var(--outliner-width);
+    min-width: var(--outliner-width);
   }
 
   // overflow-x: visible !important;
@@ -35,40 +35,6 @@ nav {
     border-bottom: 1px solid #ffffff00;
     transition: 0.2s $pt-transition-cubic2;
   }
-
-  .bp3-heading {
-    margin: 0.5em 1rem;
-  }
-
-  // The "system tags": The buttons for "All images / untagged images"
-  #system-tags {
-    padding-left: 4px;
-    .bp3-button {
-      border-radius: 0;
-      padding: 5px 10px;
-
-      // Outline content so that the content is on the left and the 2nd button is pushed to the right
-      justify-content: flex-start;
-      .bp3-button-text {
-        margin-right: auto;
-      }
-
-      // Add a blue line below the button when hovering
-      &:hover {
-        border-left: 2px solid $blue1;
-        background: transparent;
-        padding-left: 8px; // to ensure the button does not move when the border is added
-      }
-      
-      &.bp3-active {
-        background: transparent;
-        color: $blue1;
-        .bp3-icon {
-          color: $blue1;
-        }
-      }
-    }
-  }
 }
 
 // #search-form,
@@ -77,17 +43,11 @@ nav {
   outline: none;
 }
 
-// .outlinerOpen button.bp3-button.bp3-minimal {
-//   opacity: 0;
-//   transition: .2s cubic-bezier(0.4, 0.0, 0.2, 1);
-// }
-
 ///////////////////////////////// Import /////////////////////////////////
 #import,
 // #search-form,
 main,
-.error-boundary,
-.inspectorOpen {
+.error-boundary {
   // .error-boundary
   > button,
   .button.bp3-fill,
@@ -134,8 +94,8 @@ main,
   cursor: pointer;
   padding-right: 2px;
 
-  h4 {
-    margin-left: 10px;
+  .bp3-heading {
+    margin: 0.5em 1rem;
     margin-right: auto;
     // caret icon
     > .bp3-icon {

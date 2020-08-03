@@ -127,7 +127,6 @@
 
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
-  height: var(--thumbnail-size);
   position: relative;
   overflow: hidden;
 
@@ -135,44 +134,8 @@
     grid-area: title;
   }
 
-  .img-wrapper {
-    grid-area: image;
-    width: var(--thumbnail-size);
-    height: var(--thumbnail-size);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 0.25rem;
-    // Allow dragging of images to elsewhere (drag-export)
-    -webkit-user-drag: element;
-
-    &:hover {
-      background: none !important;
-    }
-
-    .placeholder {
-      width: 100%;
-      height: 100%;
-    }
-
-    > :first-child {
-      clip-path: inset(0);
-      transition: clip-path 0.2s $pt-transition-cubic2, filter 0.2s $pt-transition-cubic2;
-    }
-
-    img {
-      background: var(--foreground-color);
-      width: var(--thumbnail-size);
-      height: var(--thumbnail-size);
-      cursor: pointer;
-      margin-left: auto;
-      margin-right: auto;
-      display: block;
-    }
-  }
-
-  &.selected .img-wrapper {
-    background: $blue1;
+  &[aria-selected='true'] .thumbnail-img {
+    background-color: $blue1;
 
     > :first-child {
       clip-path: inset(0.5rem round 0.125rem);
@@ -186,7 +149,7 @@
     outline-style: solid;
   }
 
-  &[data-dnd-target='true'] .img-wrapper {
+  &[data-dnd-target='true'] .thumbnail-img {
     background: $yellow1;
 
     img {
@@ -194,24 +157,57 @@
     }
   }
 
-  .thumbnailTags {
-    grid-area: tags;
-    width: 100%;
-    height: auto;
-    padding: 0.4em 0.4rem 0.15rem 0.4rem;
-    position: absolute;
-    bottom: 0;
-    background: none;
-    > * {
-      margin: 0.25em;
-    }
-  }
-  &:hover .thumbnailTags {
+  &:hover .thumbnail-tags {
     background-color: rgba(0, 0, 0, 0.25);
   }
 
   #fileInfo {
     grid-area: info;
+  }
+}
+
+.thumbnail-img {
+  grid-area: image;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
+  border-radius: 0.25rem;
+  // Allow dragging of images to elsewhere (drag-export)
+  -webkit-user-drag: element;
+
+  &:hover {
+    background: none !important;
+  }
+
+  .placeholder {
+    width: 100%;
+    height: 100%;
+  }
+
+  img {
+    background-color: var(--foreground-color);
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    clip-path: inset(0);
+    transition-property: clip-path, filter;
+    transition-duration: 0.2s;
+    transition-timing-function: $pt-transition-cubic2;
+  }
+}
+
+.thumbnail-tags {
+  grid-area: tags;
+  width: 100%;
+  height: auto;
+  padding: 0.4em 0.4rem 0.15rem 0.4rem;
+  position: absolute;
+  bottom: 0;
+  background: none;
+  > * {
+    margin: 0.25em;
   }
 }
 
@@ -244,7 +240,6 @@
 }
 /////////////////////// View methods //////////////////////////////////
 .list .thumbnail {
-  width: auto;
   display: grid;
   grid-column-gap: 1.5em;
   grid-template-columns: min-content 1fr;
@@ -257,7 +252,7 @@
     text-align: left !important;
   }
 
-  .thumbnailTags {
+  .thumbnail-tags {
     display: block;
     position: relative;
     background: none !important;
@@ -274,6 +269,7 @@
     align-self: end;
   }
 }
+
 .list div div > .list-item-even {
   background-color: rgba(102, 102, 102, 0.045);
 }
@@ -287,29 +283,27 @@
     grid-row-gap: 0.02rem;
     line-height: 1rem;
   }
-  .thumbnailTags {
+  .thumbnail-tags {
     padding-top: 0;
     align-self: end;
   }
 }
 
 .grid .thumbnail {
-  width: var(--thumbnail-size);
-
-  &[data-dnd-target='true'] .thumbnailTags {
+  &[data-dnd-target='true'] .thumbnail-tags {
     display: block;
     overflow-y: hidden;
   }
-  .thumbnailTags {
+  .thumbnail-tags {
     transition: 0.25s $pt-transition-cubic2;
     max-height: 2.8em;
   }
-  &:hover .thumbnailTags {
+  &:hover .thumbnail-tags {
     max-height: var(--thumbnail-size);
     overflow-y: auto;
     overflow-x: hidden;
   }
-  &[data-dnd-target='true'] .thumbnailTags {
+  &[data-dnd-target='true'] .thumbnail-tags {
     max-height: var(--thumbnail-size);
     overflow: hidden; // can't scroll while dropping
   }

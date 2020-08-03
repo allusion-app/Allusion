@@ -208,16 +208,13 @@ form,
   }
 }
 
-.bp3-dark {
-  #preview-toolbar .bp3-control {
-    color: $light-gray6;
+#preview #toolbar {
+  .bp3-button {
+    padding: 0;
+    height: 100%;
   }
-
-  .bp3-control {
-    color: $dark-gray4;
-  }
-  .bp3-control-indicator-child:nth-child(2) {
-    color: $light-gray3;
+  .bp3-switch {
+    margin: 0;
   }
 }
 
@@ -225,12 +222,6 @@ form,
 .bp3-dialog {
   width: 650px !important;
   margin-bottom: 20vh;
-}
-
-#system-tags {
-  .bp3-button-text {
-    margin-right: auto;
-  }
 }
 
 #tag-remove-overview {
@@ -747,7 +738,7 @@ button:has(.bp3-intent-danger) {
   background: none !important;
 }
 
-nav .bp3-divider {
+#outliner .bp3-divider {
   margin: 1rem;
 }
 
@@ -908,16 +899,14 @@ li .bp3-menu-item {
 }
 
 #system-tags {
-  padding-left: 4px !important;
+  height: unset;
 
   .bp3-button {
-    justify-content: flex-start;
+    margin: 0;
   }
 
-  button.bp3-button {
-    // width: fit-content;
-    border-radius: 0;
-    /* border-bottom: none; */
+  .bp3-button-text {
+    margin-right: auto;
   }
 
   .bp3-button:hover {
@@ -925,19 +914,11 @@ li .bp3-menu-item {
     padding-bottom: 5px;
     padding-left: 8px;
     border-left: 2px solid $blue1;
-    // padding-left: 2px;
-    transition: all 0.2s $pt-transition-cubic2;
+    transition: color 0.2s $pt-transition-cubic2, border 0.2s $pt-transition-cubic2;
   }
 
-  .bp3-button:not(last-child):hover,
-  .bp3-button:not(last-child) {
-    margin-bottom: 0px !important;
-    // margin-top: 0px !important;
-  }
-
-  .bp3-button.bp3-active {
+  .bp3-active {
     color: $blue1;
-
     .custom-icon {
       color: $blue1;
     }
@@ -1035,7 +1016,7 @@ li .bp3-menu-item {
 
 .drop-overlay-content {
   .tag-drag-drop {
-    &.bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
+    &.bp3-tag.bp3-minimal {
       background: $blue1;
       color: $light-gray4;
       &.bp3-intent-primary {
@@ -1065,15 +1046,13 @@ li .bp3-menu-item {
     }
   }
 }
-.inspectorOpen .bp3-tag.bp3-minimal:not([class*='bp3-intent-']) {
-  background-color: $blue1-unimportant;
-}
+
 .bp3-tag-input .bp3-tag.bp3-active {
   outline: $blue1 solid 2px;
   outline-offset: 1px;
 }
 
-.bp3-portal #fileTag .bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
+.bp3-portal #fileTag .bp3-tag.bp3-minimal {
   background-color: $blue1-unimportant;
 }
 
@@ -1085,7 +1064,7 @@ li .bp3-menu-item {
 
 .bp3-portal #fileTag,
 .bp3-dialog {
-  .bp3-tag.bp3-minimal:not([class*='inspectorOpen']) {
+  .bp3-tag.bp3-minimal {
     background-color: $blue1-unimportant;
     color: $light-gray4;
   }
@@ -1171,12 +1150,6 @@ main {
 .toaster {
   z-index: 11;
   margin-top: 2rem;
-  .outlinerOpen {
-    padding-left: 16rem;
-  }
-  .inspectorOpen {
-    padding-right: 24rem;
-  }
   .bp3-button {
     background: unset !important;
     color: #f5f8fa !important;

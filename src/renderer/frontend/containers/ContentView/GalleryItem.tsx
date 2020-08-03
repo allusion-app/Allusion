@@ -29,7 +29,7 @@ interface IThumbnailTags {
 }
 
 const ThumbnailTags = observer(({ tags, onClick, onDoubleClick }: IThumbnailTags) => (
-  <span className="thumbnailTags" onClick={onClick} onDoubleClick={onDoubleClick}>
+  <span className="thumbnail-tags" onClick={onClick} onDoubleClick={onDoubleClick}>
     {tags.map((tag) => (
       <ThumbnailTag key={tag.id} name={tag.name} color={tag.viewColor} />
     ))}
@@ -147,14 +147,15 @@ const GalleryItem = observer(
 
     return (
       <div
-        className={`thumbnail ${isSelected ? 'selected' : ''}`}
+        className="thumbnail"
+        aria-selected={isSelected}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div
           onClick={handleClickImg}
-          className="img-wrapper"
+          className="thumbnail-img"
           onDoubleClick={handleDoubleClickImg}
           onDragStart={handleDragStart}
         >
@@ -282,8 +283,8 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
   // }, [file, uiStore.thumbnailDirectory]);
 
   return (
-    <div className={`thumbnail ${isSelected ? 'selected' : ''}`}>
-      <div className="img-wrapper">
+    <div className="thumbnail" aria-selected={isSelected}>
+      <div className="thumbnail-img">
         <img src={file.thumbnailPath} alt="" className="bp3-skeleton" />
       </div>
       {showDetails && (
@@ -292,7 +293,7 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
           <ImageInfo file={file} />
         </>
       )}
-      <span className="thumbnailTags placeholder bp3-skeleton" />
+      <span className="thumbnail-tags placeholder bp3-skeleton" />
     </div>
   );
 });
