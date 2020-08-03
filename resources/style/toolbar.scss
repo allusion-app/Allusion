@@ -18,7 +18,7 @@
 
   &.mac-toolbar {
     // The region on the top left is replaced with system buttons by Electron/OSX
-    grid-template-columns: 5rem var(--outliner-width) 1fr min-content;
+    grid-template-columns: var(--mac-system-buttons-width) var(--outliner-width) 1fr min-content;
     grid-template-areas: '. outliner-toolbar main-toolbar inspector-toolbar';
   }
 
@@ -53,10 +53,8 @@
 
 #main-toolbar {
   grid-area: main-toolbar;
-  display: grid;
-  gap: 2rem;
-  grid-template-columns: 1fr 1fr 1fr;
-  justify-items: center;
+  display: flex;
+  justify-content: space-evenly;
 }
 
 #outliner-toolbar {
@@ -119,10 +117,10 @@
 
 .vertical-toolbar #main-toolbar {
   height: var(--toolbar-height);
-  max-width: calc(100% - var(--window-system-buttons-width));
   background: var(--foreground-color);
   border-bottom: 2px solid $dark-gray0;
   border-left: 1px solid $dark-gray0;
+  justify-content: space-between;
 
   .bp3-button {
     background: transparent;
@@ -134,9 +132,20 @@
   button {
     -webkit-app-region: none;
   }
-}
 
-.vertical-toolbar #window-system-buttons {
-  background: var(--foreground-color);
-  border-bottom: 2px solid $dark-gray0;
+  &::before,
+  &::after {
+    content: '';
+    display: block;
+    -webkit-app-region: none;
+    height: var(--toolbar-height);
+  }
+
+  &::before {
+    width: calc(var(--mac-system-buttons-width) - var(--toolbar-height));
+  }
+
+  &::after {
+    width: var(--window-system-buttons-width);
+  }
 }

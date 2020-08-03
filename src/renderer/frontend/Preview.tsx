@@ -28,9 +28,9 @@ const PreviewApp = observer(() => {
   );
 
   return (
-    <div id="layoutContainer" className={themeClass} style={{ height: '100%' }}>
+    <div id="layout-container" className={themeClass} style={{ height: '100%' }}>
       <ErrorBoundary>
-        <div id="toolbar" style={{ height: '2.4rem' }}>
+        <div id="toolbar">
           <section id="preview-toolbar">
             <Button
               icon={IconSet.ARROW_LEFT}
