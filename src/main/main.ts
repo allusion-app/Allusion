@@ -72,7 +72,8 @@ function createWindow() {
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
     // Fixed it by adding a margin-top to the body and giving html background color so it blends in
     // But new issue arissed in fullscreen than
-    // titleBarStyle: 'hiddenInset',
+    titleBarStyle: 'hiddenInset',
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
