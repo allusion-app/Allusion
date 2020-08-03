@@ -531,42 +531,41 @@ button:has(.bp3-intent-danger) {
 }
 
 // Controls
-// .bp3-dark {
-  .bp3-control {
-    & input ~ .bp3-control-indicator,
-    &.bp3-radio .bp3-control-indicator {
-      background: rgba(16, 22, 26, 0.5);
-      box-shadow: none;
-    }
-    input:checked ~ .bp3-control-indicator,
-    &:hover input:checked ~ .bp3-control-indicator {
-      box-shadow: 0 0 1px #007af5, 0 0 0 rgba(0, 0, 0, 0);
-      border: none;
-      background: $blue1;
-    }
-    input:focus ~ .bp3-control-indicator {
-      outline: none;
-    }
-    &:hover .bp3-control-indicator {
-      background: rgba(16, 22, 26, 0.5);
-    }
-    &.bp3-switch:hover input ~ .bp3-control-indicator,
-    &.bp3-radio:hover .bp3-control-indicator {
-      background: rgba(16, 22, 26, 0.7);
-      border: none;
-      box-shadow: none;
-      // transition: background-color 100ms cubic-bezier(0.4, 1, 0.75, 0.9);
-      transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-  }
-  .bp3-file-upload-input::after {
-    background-color: #3e3e3eb8;
+.bp3-control {
+  & input ~ .bp3-control-indicator,
+  &.bp3-radio .bp3-control-indicator {
+    background: rgba(16, 22, 26, 0.5);
     box-shadow: none;
-    background-image: none;
-    color: #f5f8fa;
-    border: none !important;
   }
-// }
+  input:checked ~ .bp3-control-indicator,
+  &:hover input:checked ~ .bp3-control-indicator {
+    box-shadow: 0 0 1px #007af5, 0 0 0 rgba(0, 0, 0, 0);
+    border: none;
+    background: $blue1;
+  }
+  input:focus ~ .bp3-control-indicator {
+    outline: none;
+  }
+  &:hover .bp3-control-indicator {
+    background: rgba(16, 22, 26, 0.5);
+  }
+  &.bp3-switch:hover input ~ .bp3-control-indicator,
+  &.bp3-radio:hover .bp3-control-indicator {
+    background: rgba(16, 22, 26, 0.7);
+    border: none;
+    box-shadow: none;
+    // transition: background-color 100ms cubic-bezier(0.4, 1, 0.75, 0.9);
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+.bp3-file-upload-input::after {
+  background-color: #3e3e3eb8;
+  box-shadow: none;
+  background-image: none;
+  color: #f5f8fa;
+  border: none !important;
+}
+
 // Dropdowns
 .bp3-dark .bp3-html-select select,
 .bp3-dark .bp3-select select {
@@ -1179,7 +1178,7 @@ main {
     padding-right: 24rem;
   }
   .bp3-button {
-    background:unset !important;
+    background: unset !important;
     color: #f5f8fa !important;
     .bp3-icon {
       color: #f5f8fa !important;
@@ -1187,7 +1186,7 @@ main {
   }
 }
 .bp3-toast {
-  color: #f5f8fa ;
+  color: #f5f8fa;
   background: $blue1;
   border-radius: 5px;
   &[class*='bp3-intent-warning'] {

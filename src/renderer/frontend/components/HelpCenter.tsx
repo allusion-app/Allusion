@@ -377,7 +377,6 @@ const HelpCenter = observer(() => {
             component: HelpCenterHome,
             title: 'Overview',
           }}
-          // showPanelHeader={false} /* should hide on home panel */
         />
       </div>
     </Drawer>
