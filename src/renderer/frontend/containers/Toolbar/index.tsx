@@ -97,14 +97,25 @@ const WindowsSystemButtons = ({ isMaximized }: { isMaximized: boolean }) => {
   );
 };
 
-const Toolbar = observer(({ isMac }: { isMac: boolean }) => {
-  const { uiStore } = useContext(StoreContext);
-
+const WindowDecoration = ({ isMac }: { isMac: boolean }) => {
   const [isMaximized, setMaximized] = useState(remote.getCurrentWindow().isMaximized());
   useEffect(() => {
     remote.getCurrentWindow().on('maximize', () => setMaximized(true));
     remote.getCurrentWindow().on('unmaximize', () => setMaximized(false));
   }, []);
+
+  return (
+    <>
+      {/* Invisible region for dragging/resizing the window at the top */}
+      {!isMaximized && <div id="window-resize-area" />}
+
+      {!isMac && <WindowsSystemButtons isMaximized={isMaximized} />}
+    </>
+  );
+};
+
+const Toolbar = observer(({ isMac }: { isMac: boolean }) => {
+  const { uiStore } = useContext(StoreContext);
 
   return (
     <div id="toolbar" className={isMac ? 'mac-toolbar' : 'windows-toolbar'}>
@@ -114,10 +125,7 @@ const Toolbar = observer(({ isMac }: { isMac: boolean }) => {
 
       <InspectorToolbar />
 
-      {/* Invisible region for dragging/resizing the window at the top */}
-      {!isMaximized && <div id="window-resize-area" />}
-
-      {!isMac && <WindowsSystemButtons isMaximized={isMaximized} />}
+      <WindowDecoration isMac={isMac} />
     </div>
   );
 });

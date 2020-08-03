@@ -1,7 +1,6 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 #toolbar {
   grid-area: toolbar;
-  width: 100vw;
   display: grid;
   gap: 1rem;
   padding: 0 0.5rem;
@@ -43,12 +42,12 @@
   }
 }
 
-#preview-toolbar {
+#preview #toolbar {
   // For frameless app
   // margin-left: 4rem;
   // margin-top: .25rem;
   display: flex;
-  align-items: baseline;
+  align-items: center;
 }
 
 #main-toolbar {
@@ -94,58 +93,59 @@
   height: 4px;
 }
 
-.vertical-toolbar #toolbar {
-  grid-area: toolbar;
-  width: var(--toolbar-height);
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-right: 1px solid $dark-gray0;
-
-  #outliner {
-    margin-top: var(--toolbar-height);
-  }
-
-  #outliner-toolbar,
-  #inspector-toolbar {
+.vertical-toolbar {
+  #toolbar {
+    width: var(--toolbar-height);
+    height: 100vh;
+    display: flex;
     flex-direction: column;
-  }
-}
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-right: 1px solid $dark-gray0;
 
-.vertical-toolbar #main-toolbar {
-  height: var(--toolbar-height);
-  background: var(--foreground-color);
-  border-bottom: 2px solid $dark-gray0;
-  border-left: 1px solid $dark-gray0;
-  justify-content: space-between;
+    #outliner {
+      margin-top: var(--toolbar-height);
+    }
 
-  .bp3-button {
-    background: transparent;
-  }
-
-  // Since the toolbar is acting as the frame, it should be draggable to move the window around
-  -webkit-app-region: drag;
-  // But all of the buttons should not be draggable, else not clickable
-  button {
-    -webkit-app-region: none;
+    #outliner-toolbar,
+    #inspector-toolbar {
+      flex-direction: column;
+    }
   }
 
-  &::before,
-  &::after {
-    content: '';
-    display: block;
-    -webkit-app-region: none;
+  #main-toolbar {
     height: var(--toolbar-height);
-  }
+    background-color: var(--foreground-color);
+    border-bottom: 2px solid $dark-gray0;
+    border-left: 1px solid $dark-gray0;
+    justify-content: space-between;
 
-  &::before {
-    width: calc(var(--mac-system-buttons-width) - var(--toolbar-height));
-  }
+    .bp3-button {
+      background: transparent;
+    }
 
-  &::after {
-    width: var(--window-system-buttons-width);
+    // Since the toolbar is acting as the frame, it should be draggable to move the window around
+    -webkit-app-region: drag;
+    // But all of the buttons should not be draggable, else not clickable
+    button {
+      -webkit-app-region: none;
+    }
+
+    &::before,
+    &::after {
+      content: '';
+      display: block;
+      -webkit-app-region: none;
+      height: var(--toolbar-height);
+    }
+
+    &::before {
+      width: calc(var(--mac-system-buttons-width) - var(--toolbar-height));
+    }
+
+    &::after {
+      width: var(--window-system-buttons-width);
+    }
   }
 }

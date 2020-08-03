@@ -52,35 +52,32 @@ const App = observer(() => {
     return <SplashScreen />;
   }
 
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-
-  const sidebarClass = uiStore.isToolbarVertical ? 'vertical-toolbar' : '';
+  let themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+  themeClass = uiStore.isToolbarVertical ? `${themeClass} vertical-toolbar` : themeClass;
 
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div style={operatingSystemStyles} className={sidebarClass}>
-        <div id="layout-container" className={themeClass}>
-          <ErrorBoundary>
-            <GlobalHotkeys>
-              <Toolbar isMac={isMac} />
+      <div id="layout-container" style={operatingSystemStyles} className={themeClass}>
+        <ErrorBoundary>
+          <GlobalHotkeys>
+            <Toolbar isMac={isMac} />
 
-              <Outliner />
+            <Outliner />
 
-              <ContentView />
+            <ContentView />
 
-              <Inspector />
+            <Inspector />
 
-              <Settings />
+            <Settings />
 
-              <HelpCenter />
+            <HelpCenter />
 
-              <AdvancedSearchDialog />
+            <AdvancedSearchDialog />
 
-              <WelcomeDialog />
-            </GlobalHotkeys>
-          </ErrorBoundary>
-        </div>
+            <WelcomeDialog />
+          </GlobalHotkeys>
+        </ErrorBoundary>
       </div>
     </DropOverlay>
   );

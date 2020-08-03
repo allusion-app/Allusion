@@ -208,16 +208,13 @@ form,
   }
 }
 
-.bp3-dark {
-  #preview-toolbar .bp3-control {
-    color: $light-gray6;
+#preview #toolbar {
+  .bp3-button {
+    padding: 0;
+    height: 100%;
   }
-
-  .bp3-control {
-    color: $dark-gray4;
-  }
-  .bp3-control-indicator-child:nth-child(2) {
-    color: $light-gray3;
+  .bp3-switch {
+    margin: 0;
   }
 }
 

@@ -30,12 +30,21 @@ body {
   --outliner-width: 16em;
   --inspector-width: 24em;
   --toolbar-height: 2.4rem;
-  --content-area-height: calc(100vh - var(--toolbar-height));
   --thumbnail-size: 250px;
   --thumbnail-margin: 0.25rem;
   --mac-system-buttons-width: 5rem;
   --window-system-buttons-width: 7.5rem;
-  height: 100%;
+  height: 100vh;
+}
+
+#preview {
+  --toolbar-height: 2.4rem;
+  display: grid;
+  grid-template-areas:
+    'toolbar'
+    'main';
+  grid-template-rows: 2.4rem 1fr;
+  height: 100vh;
 }
 
 // Default Theme
@@ -87,14 +96,8 @@ pre {
   }
 }
 
-// Test with vertical sidenav
-.vertical-toolbar {
+#layout-container.vertical-toolbar {
   --toolbar-height: 2.4rem;
-  --content-area-height: 100vh;
-  height: 100%;
-}
-
-.vertical-toolbar #layout-container {
   display: grid;
   grid-template-columns: var(--toolbar-height) min-content 1fr min-content;
   grid-template-areas:
@@ -145,8 +148,9 @@ main {
 }
 
 #layout-container {
+  height: 100vh;
   display: grid;
-  grid-template-rows: var(--toolbar-height) var(--content-area-height);
+  grid-template-rows: var(--toolbar-height) 1fr;
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
     'toolbar toolbar toolbar'
@@ -299,25 +303,11 @@ img {
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this
 // Dark
-.bp3-dark {
-  #toolbar,
-  #inspector,
-  nav,
-  #outliner {
-    background-color: $dark-gray1;
-  }
-  background-color: $dark-gray1;
-}
 
-// Light
-.bp3-light {
-  #toolbar,
-  #inspector,
-  nav,
-  #outliner {
-    background-color: $light-gray5 !important;
-  }
-  background-color: $light-gray5 !important;
+#toolbar,
+#inspector,
+#outliner {
+  background-color: var(--foreground-color);
 }
 
 ///////////////////////////////// Media Queries /////////////////////////////////
