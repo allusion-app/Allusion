@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
@@ -86,6 +86,16 @@ function getLayoutComponent(
   }
 }
 
+function get_column_layout(width: number, minSize: number, maxSize: number) {
+  const numColumns = Math.trunc(width / minSize);
+  let cellSize = Math.trunc(width / numColumns);
+  if (isNaN(cellSize) || !isFinite(cellSize)) {
+    cellSize = minSize;
+  }
+  cellSize = Math.min(cellSize, maxSize);
+  return [numColumns, cellSize];
+}
+
 /** Generates a unique key for an element in the fileList */
 const getItemKey = (index: number, data: ClientFile[]): string => {
   const file = index < data.length ? data[index] : null;
@@ -105,15 +115,11 @@ const GridGallery = observer(
     const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
 
     // Debounce the numColums so it doesn't constantly update when the panel width changes (sidebar toggling or window resize)
-    const numColumns = useDebounce(Math.floor(contentRect.width / minSize), 100);
+    const [numColumns, cellSize] = useDebounce(
+      get_column_layout(contentRect.width, minSize, maxSize),
+      50,
+    );
     const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
-    const cellSize = useMemo(() => {
-      let result = Math.trunc(contentRect.width / numColumns);
-      if (isNaN(result) || !isFinite(result)) {
-        result = minSize;
-      }
-      return Math.min(result, maxSize);
-    }, [contentRect.width, maxSize, minSize, numColumns]);
 
     const ref = useRef<FixedSizeGrid>(null);
     const outerRef = useRef<HTMLElement>();
