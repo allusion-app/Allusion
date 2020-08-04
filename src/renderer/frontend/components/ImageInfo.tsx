@@ -4,8 +4,7 @@ import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
 import { formatDateTime } from '../utils';
-import { Callout, NonIdealState, ButtonGroup, Button, Card } from '@blueprintjs/core';
-import IconSet from 'components/Icons';
+import { Callout, ButtonGroup, Button, Card } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 
 const ImageInfo = observer(({ file }: { file: ClientFile }) => {

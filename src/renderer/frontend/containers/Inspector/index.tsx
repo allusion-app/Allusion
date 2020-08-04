@@ -94,7 +94,7 @@ const Inspector = observer(() => {
       <MissingImageFallback />
     );
     headerText = path.basename(singleFile.absolutePath);
-    headerSubtext = `${ext} image - ${getBytes(singleFile.size)}}`;
+    headerSubtext = `${ext} image - ${getBytes(singleFile.size)}`;
   } else {
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
     // TODO: Would be nice to hover over an image and that all images before that get opacity 0.1
