@@ -33,6 +33,8 @@ const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | nu
 
   // Todo: Take into account rotation. Can be found with https://www.npmjs.com/package/node-exiftool
 
+  // TODO: Could maybe use https://www.electronjs.org/docs/api/native-image#imageresizeoptions
+
   ctx2D.drawImage(img, 0, 0, width, height);
 
   const thumbBlob = await canvas.convertToBlob({ type: `image/${thumbnailType}`, quality: 0.75 });

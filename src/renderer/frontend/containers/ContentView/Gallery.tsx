@@ -21,18 +21,35 @@ import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
 import useDebounce from '../../hooks/useDebounce';
 
+// WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
+// We'll have less loss of space perhaps
+// https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
+// const { screen } = remote;
+// const { width } = screen.getPrimaryDisplay().workAreaSize;
+// const CELL_SMALL = (width / 10) - 16;
+// const CELL_MEDIUM = (width / 6) - 8;
+// const CELL_LARGE = (width / 4) - 8;
+// // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
+// const CELL_SIZE_SMALL = CELL_SMALL - 2;
+// const CELL_SIZE_MEDIUM = CELL_MEDIUM - 2;
+// const CELL_SIZE_LARGE = CELL_LARGE - 2;
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-const CELL_SIZE_SMALL = 160 - 2;
-const CELL_SIZE_MEDIUM = 260 - 2;
-const CELL_SIZE_LARGE = 360 - 2;
+// TODO: Use computed styles to access the CSS variables
+const PADDING = 8;
+const CELL_SIZE_SMALL = 150 + PADDING;
+const CELL_SIZE_MEDIUM = 250 + PADDING;
+const CELL_SIZE_LARGE = 350 + PADDING;
+// Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
+// can fit into one row.
+const SHRINK_FACTOR = 0.9;
 
 function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {
-    return CELL_SIZE_SMALL;
+    return [CELL_SIZE_SMALL * SHRINK_FACTOR, CELL_SIZE_SMALL];
   } else if (sizeType === 'medium') {
-    return CELL_SIZE_MEDIUM;
+    return [CELL_SIZE_MEDIUM * SHRINK_FACTOR, CELL_SIZE_MEDIUM];
   }
-  return CELL_SIZE_LARGE;
+  return [CELL_SIZE_LARGE * SHRINK_FACTOR, CELL_SIZE_LARGE];
 }
 
 interface IGalleryLayoutProps {
@@ -69,6 +86,16 @@ function getLayoutComponent(
   }
 }
 
+function get_column_layout(width: number, minSize: number, maxSize: number) {
+  const numColumns = Math.trunc(width / minSize);
+  let cellSize = Math.trunc(width / numColumns);
+  if (isNaN(cellSize) || !isFinite(cellSize)) {
+    cellSize = minSize;
+  }
+  cellSize = Math.min(cellSize, maxSize);
+  return [numColumns, cellSize];
+}
+
 /** Generates a unique key for an element in the fileList */
 const getItemKey = (index: number, data: ClientFile[]): string => {
   const file = index < data.length ? data[index] : null;
@@ -85,13 +112,23 @@ const GridGallery = observer(
     handleFileSelect,
     lastSelectionIndex,
   }: IGalleryLayoutProps) => {
-    const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+    const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
 
     // Debounce the numColums so it doesn't constantly update when the panel width changes (sidebar toggling or window resize)
-    const numColumns = useDebounce(Math.floor(contentRect.width / cellSize), 100);
+    const [numColumns, cellSize] = useDebounce(
+      get_column_layout(contentRect.width, minSize, maxSize),
+      50,
+    );
     const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
     const ref = useRef<FixedSizeGrid>(null);
+    const outerRef = useRef<HTMLElement>();
+
+    useEffect(() => {
+      if (outerRef.current) {
+        outerRef.current.style.setProperty('--thumbnail-size', cellSize - PADDING + 'px');
+      }
+    }, [cellSize]);
 
     const handleScrollTo = useCallback(
       (i: number) => {
@@ -181,6 +218,7 @@ const GridGallery = observer(
         }),
       [handleClick, handleDoubleClick, numColumns, uiStore.fileSelection],
     );
+
     return (
       <FixedSizeGrid
         columnCount={numColumns}
@@ -196,6 +234,7 @@ const GridGallery = observer(
         onScroll={handleScroll}
         initialScrollTop={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
         ref={ref}
+        outerRef={outerRef}
       />
     );
   },
@@ -210,7 +249,7 @@ const ListGallery = observer(
     handleDoubleClick,
     lastSelectionIndex,
   }: IGalleryLayoutProps) => {
-    const cellSize = getThumbnailSize(uiStore.thumbnailSize);
+    const [, cellSize] = getThumbnailSize(uiStore.thumbnailSize);
     const ref = useRef<FixedSizeList>(null);
 
     const handleScrollTo = useCallback((i: number) => {

@@ -1,6 +1,6 @@
 ///////////////////////////////// Content area /////////////////////////////////
 .quick-search {
-  background-color: $dark-gray0;
+  background: $dark-gray0;
   border-radius: 6px;
   position: sticky;
   width: calc(100% - 0.75rem);
@@ -8,7 +8,6 @@
   top: 0.2rem;
   z-index: 999;
   display: flex;
-  transition: max-height 200ms ease-in-out;
   border-bottom: 2px solid $black;
   box-shadow: $pt-dark-elevation-shadow-2;
 
@@ -52,25 +51,26 @@
 .quick-search-enter {
   max-height: 0;
 }
-
 .quick-search-enter-active {
   max-height: var(--toolbar-height);
+  transition: max-height 0.2s;
   overflow: hidden;
 }
-
 .quick-search-exit {
   max-height: var(--toolbar-height);
 }
-
 .quick-search-exit-active {
   max-height: 0;
+  transition: max-height 0.2s;
   overflow: hidden;
+}
+.quick-search-exit-done {
+  max-height: 0;
 }
 
 .gallery-content {
   flex: 1;
   max-height: 100%;
-
   margin-left: 8px;
 }
 
@@ -84,13 +84,24 @@
   }
 }
 
+// WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
+// We'll have less loss of space perhaps
 .thumbnail-small {
+  /* --thumbnail-size: calc(100vw / 10); */
+  /* --thumbnail-size: calc(calc(100vw / 10) - calc(10 * var(--thumbnail-margin))); */
+  // --thumbnail-size: 82px;
   --thumbnail-size: 150px;
 }
 .thumbnail-medium {
+  /* --thumbnail-size: calc(100vw / 6); */
+  /* --thumbnail-size: calc(calc(100vw / 6) - calc(6 * var(--thumbnail-margin))); */
+  // --thumbnail-size: 182px;
   --thumbnail-size: 250px;
 }
 .thumbnail-large {
+  /* --thumbnail-size: calc(100vw / 4); */
+  /* --thumbnail-size: calc(calc(100vw / 4) - calc(4 * var(--thumbnail-margin))); */
+  // --thumbnail-size: 282px;
   --thumbnail-size: 350px;
 }
 .galleryItem {
@@ -99,7 +110,6 @@
 
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
-  height: var(--thumbnail-size);
   position: relative;
   overflow: hidden;
 
@@ -107,68 +117,7 @@
     grid-area: title;
   }
 
-  .img-wrapper {
-    grid-area: image;
-    width: var(--thumbnail-size);
-    height: var(--thumbnail-size);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 0.25rem;
-
-    &:hover img.broken-with-thumbnail {
-      filter: none;
-    }
-
-    .placeholder {
-      width: 100%;
-      height: 100%;
-    }
-
-    .broken-overlay {
-      cursor: pointer;
-      position: absolute;
-      padding: 0.25rem;
-      width: 2.25rem;
-      height: 2.25rem;
-      top: 0.5rem;
-      left: calc(var(--thumbnail-size) - 2.75rem);
-      border-radius: 50%;
-      background-color: orange;
-      color: white;
-
-      svg {
-        width: 1.75rem !important;
-        height: 1.75rem !important;
-      }
-
-      &:hover {
-        background-color: black;
-      }
-    }
-
-    > :first-child {
-      clip-path: inset(0);
-      transition: clip-path 0.2s $pt-transition-ease2, filter 0.2s $pt-transition-ease2;
-    }
-
-    img {
-      background-color: var(--foreground-color);
-      width: var(--thumbnail-size);
-      height: var(--thumbnail-size);
-      cursor: pointer;
-      margin-left: auto;
-      margin-right: auto;
-      display: block;
-
-      // Indicate missing image by making it B&W and darker
-      &.broken-with-thumbnail {
-        filter: saturate(0) brightness(0.6);
-      }
-    }
-  }
-
-  &.selected .img-wrapper {
+  &[aria-selected='true'] .thumbnail-img {
     background-color: $blue1;
 
     > :first-child {
@@ -183,16 +132,87 @@
     outline-style: solid;
   }
 
-  &[data-dnd-target='true'] .img-wrapper {
-    background-color: $yellow1;
+  &[data-dnd-target='true'] .thumbnail-img {
+    background: $yellow1;
 
     img {
       clip-path: inset(0.5rem round 0.125rem);
     }
   }
 
+  &:hover .thumbnail-tags {
+    background-color: rgba(0, 0, 0, 0.25);
+  }
+
   #fileInfo {
     grid-area: info;
+  }
+}
+
+.thumbnail-img {
+  grid-area: image;
+  width: var(--thumbnail-size);
+  height: var(--thumbnail-size);
+  border-radius: 0.25rem;
+  // Allow dragging of images to elsewhere (drag-export)
+  -webkit-user-drag: element;
+
+  &:hover {
+    background: none !important;
+  }
+
+  .placeholder {
+    width: 100%;
+    height: 100%;
+  }
+
+  .broken-overlay {
+    cursor: pointer;
+    position: absolute;
+    padding: 0.25rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    top: 0.5rem;
+    left: calc(var(--thumbnail-size) - 2.75rem);
+    border-radius: 50%;
+    background-color: orange;
+    color: white;
+
+    svg {
+      width: 1.75rem !important;
+      height: 1.75rem !important;
+    }
+
+    &:hover {
+      background-color: black;
+    }
+  }
+
+  img {
+    background-color: var(--foreground-color);
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    clip-path: inset(0);
+    transition-property: clip-path, filter;
+    transition-duration: 0.2s;
+    transition-timing-function: $pt-transition-cubic2;
+  }
+}
+
+.thumbnail-tags {
+  grid-area: tags;
+  width: 100%;
+  height: auto;
+  padding: 0.4em 0.4rem 0.15rem 0.4rem;
+  position: absolute;
+  bottom: 0;
+  background: none;
+  > * {
+    margin: 0.25em;
   }
 }
 
@@ -201,25 +221,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
   height: 100%;
   width: 100%;
-  background-color: var(--foreground-color);
-}
-
-.thumbnailTags {
-  grid-area: tags;
-  width: 100%;
-  position: absolute;
-  bottom: 0;
-
-  > * {
-    margin: 0.25em;
-  }
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.25);
-    overflow-y: auto;
-  }
+  background: var(--foreground-color);
 }
 
 // THUMBNAIL LOADER
@@ -252,10 +257,13 @@
     text-align: left !important;
   }
 
-  .thumbnailTags {
-    position: unset;
-    align-self: end;
+  .thumbnail-tags {
+    display: block;
+    position: relative;
+    background: none !important;
+    padding: 0.2rem 0.2rem 0.4rem 0;
     margin-left: -0.2rem;
+    align-self: start;
   }
 
   .bp3-heading {
@@ -280,25 +288,31 @@
     grid-row-gap: 0.02rem;
     line-height: 1rem;
   }
+  .thumbnail-tags {
+    padding-top: 0;
+    align-self: end;
+  }
 }
 
 .grid .thumbnail {
-  width: var(--thumbnail-size);
-
-  &[data-dnd-target='true'] .thumbnailTags:hover {
-    max-height: var(--thumbnail-size);
-    overflow-y: hidden; // prevent scrolling while dropping
+  &[data-dnd-target='true'] .thumbnail-tags {
+    display: block;
+    overflow-y: hidden;
   }
-
-  .thumbnailTags {
+  .thumbnail-tags {
+    transition: 0.25s $pt-transition-cubic2;
     max-height: 2.8em;
-
-    &:hover {
-      max-height: var(--thumbnail-size);
-    }
+  }
+  &:hover .thumbnail-tags {
+    max-height: var(--thumbnail-size);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  &[data-dnd-target='true'] .thumbnail-tags {
+    max-height: var(--thumbnail-size);
+    overflow: hidden; // can't scroll while dropping
   }
 }
-
 // Fix for temp placeholder masonry smiley
 .masonry {
   position: relative !important;
@@ -307,7 +321,6 @@
 .thumb-square:not(.slide) img {
   object-fit: cover;
 }
-
 .thumb-letterbox:not(.slide) img {
   object-fit: contain;
 }

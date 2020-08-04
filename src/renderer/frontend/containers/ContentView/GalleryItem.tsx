@@ -11,6 +11,7 @@ import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/Stor
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
+import { RendererMessenger } from 'src/Messaging';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -28,7 +29,7 @@ interface IThumbnailTags {
 }
 
 const ThumbnailTags = observer(({ tags, onClick, onDoubleClick }: IThumbnailTags) => (
-  <span className="thumbnailTags" onClick={onClick} onDoubleClick={onDoubleClick}>
+  <span className="thumbnail-tags" onClick={onClick} onDoubleClick={onDoubleClick}>
     {tags.map((tag) => (
       <ThumbnailTag key={tag.id} name={tag.name} color={tag.viewColor} />
     ))}
@@ -128,17 +129,45 @@ const GalleryItem = observer(
       [imagePath],
     );
 
+    const handleDragStart = useCallback(
+      async (e: React.DragEvent<HTMLImageElement>) => {
+        // If file is selected, add all selected items to the drag event, for exporting e.g. to your file explorer or programs like PureRef
+        // Creating an event in the main process turned out to be the most robust, did many experiments with drag event content types.
+        // Creating a drag event with multiple images did not work correctly from the browser side (e.g. only limited to thumbnails, not full images)
+        if (isSelected && uiStore.fileSelection.length > 1) {
+          e.preventDefault();
+          RendererMessenger.startDragExport({
+            absolutePaths: uiStore.clientFileSelection.map((f) => f.absolutePath),
+          });
+        } else {
+          RendererMessenger.startDragExport({ absolutePaths: [file.absolutePath] });
+        }
+
+        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+        // So we can store the date when the event starts... Hacky but it works :)
+        (window as any).internalDragStart = new Date();
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [file, isSelected, uiStore.fileSelection, uiStore.fileSelection.length],
+    );
+
     // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
     // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
     return (
       <div
-        className={`thumbnail ${isSelected ? 'selected' : ''}`}
+        className="thumbnail"
+        aria-selected={isSelected}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div onClick={handleClickImg} className="img-wrapper" onDoubleClick={handleDoubleClickImg}>
+        <div
+          onClick={handleClickImg}
+          className="thumbnail-img"
+          onDoubleClick={handleDoubleClickImg}
+          onDragStart={handleDragStart}
+        >
           {isThumbnailReady ? (
             // Show image when it has been loaded
             <img
@@ -293,8 +322,8 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
   // }, [file, uiStore.thumbnailDirectory]);
 
   return (
-    <div className={`thumbnail ${isSelected ? 'selected' : ''}`}>
-      <div className="img-wrapper">
+    <div className="thumbnail" aria-selected={isSelected}>
+      <div className="thumbnail-img">
         <img src={file.thumbnailPath} alt="" className="bp3-skeleton" />
       </div>
       {showDetails && (
@@ -303,7 +332,7 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
           <ImageInfo file={file} />
         </>
       )}
-      <span className="thumbnailTags placeholder bp3-skeleton" />
+      <span className="thumbnail-tags placeholder bp3-skeleton" />
     </div>
   );
 });

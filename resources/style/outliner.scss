@@ -1,10 +1,10 @@
 ///////////////////////////////// Outliner /////////////////////////////////
-nav {
+#outliner {
   grid-area: outliner;
   overflow-y: scroll;
   overflow-x: hidden;
   flex-shrink: 0;
-  transition: max-width 200ms ease-in-out;
+  transition: max-width 200ms $pt-transition-cubic2;
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter {
@@ -22,7 +22,7 @@ nav {
 
   > * {
     // Don't squash content during parent transition
-    width: var(--outliner-width);
+    min-width: var(--outliner-width);
   }
 
   // overflow-x: visible !important;
@@ -33,25 +33,11 @@ nav {
     border-radius: 0;
     margin-bottom: 1px;
     border-bottom: 1px solid #ffffff00;
-    transition: 0.2s $pt-transition-ease2;
+    transition: 0.2s $pt-transition-cubic2;
   }
-
-  // > * {
-  //   // Don't squash content of nav during parent transition
-  //   // BReaks with buttons
-  //   // width: 16rem;
-  // }
 
   .bp3-dark {
     background: $dark-gray1;
-  }
-
-  &.outlinerOpen #import {
-    overflow: visible !important;
-  }
-
-  .bp3-heading {
-    margin: 0.5em 1rem;
   }
 }
 
@@ -61,17 +47,11 @@ nav {
   outline: none;
 }
 
-// .outlinerOpen button.bp3-button.bp3-minimal {
-//   opacity: 0;
-//   transition: .2s cubic-bezier(0.4, 0.0, 0.2, 1);
-// }
-
 ///////////////////////////////// Import /////////////////////////////////
 #import,
 // #search-form,
 main,
-.error-boundary,
-.inspectorOpen {
+.error-boundary {
   // .error-boundary
   > button,
   .button.bp3-fill,
@@ -141,8 +121,8 @@ main,
   cursor: pointer;
   padding-right: 2px;
 
-  h4 {
-    margin-left: 10px;
+  .bp3-heading {
+    margin: 0.5em 1rem;
     margin-right: auto;
     // caret icon
     > .bp3-icon {

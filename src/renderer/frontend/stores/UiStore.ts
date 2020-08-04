@@ -287,20 +287,20 @@ class UiStore {
     remote.getCurrentWindow().reload();
   }
 
-  @action.bound toggleQuickSearch() {
+  @action.bound async toggleQuickSearch() {
     if (this.isQuickSearchOpen) {
-      this.clearSearchCriteriaList();
+      return this.closeQuickSearch();
     }
-    this.isQuickSearchOpen = !this.isQuickSearchOpen;
+    this.openQuickSearch();
   }
 
   @action.bound toggleAdvancedSearch() {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
   }
 
-  @action.bound closeQuickSearch() {
-    this.clearSearchCriteriaList();
+  @action.bound async closeQuickSearch() {
     this.isQuickSearchOpen = false;
+    return this.clearSearchCriteriaList();
   }
 
   @action.bound openQuickSearch() {

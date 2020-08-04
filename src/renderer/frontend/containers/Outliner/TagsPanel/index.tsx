@@ -1,68 +1,20 @@
 import React from 'react';
 
-import { Hotkey, Hotkeys, Button, Icon, ButtonGroup, HotkeysTarget } from '@blueprintjs/core';
+import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import IconSet from 'components/Icons';
 import { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 
-// Tooltip info
-const enum Tooltip {
-  AllImages = 'View all images in library',
-  Untagged = 'View all untagged images',
-  Missing = 'View missing images on your system',
-}
-
 const TagsPanel = observer(({ rootStore }: IRootStoreProp) => {
-  const { fileStore, tagCollectionStore, tagStore, uiStore } = rootStore;
+  const { tagCollectionStore, tagStore, uiStore } = rootStore;
 
   return (
-    <>
-      <TagsTree
-        root={tagCollectionStore.getRootCollection()}
-        uiStore={uiStore}
-        tagCollectionStore={tagCollectionStore}
-        tagStore={tagStore}
-      />
-
-      <div className="bp3-divider" />
-
-      <div id="system-tags">
-        <ButtonGroup vertical minimal fill>
-          <Button
-            text="All Images"
-            icon={IconSet.MEDIA}
-            rightIcon={
-              fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
-            }
-            onClick={fileStore.fetchAllFiles}
-            active={fileStore.showsAllContent}
-            fill
-            data-right={Tooltip.AllImages}
-          />
-          <Button
-            text="Untagged"
-            icon={IconSet.TAG_BLANCO}
-            rightIcon={fileStore.showsUntaggedContent ? <Icon icon={IconSet.PREVIEW} /> : null}
-            onClick={fileStore.fetchUntaggedFiles}
-            active={fileStore.showsUntaggedContent}
-            fill
-            data-right={Tooltip.Untagged}
-          />
-          {fileStore.numMissingFiles > 0 && (
-            <Button
-              text="Missing"
-              icon={IconSet.WARNING_BROKEN_LINK}
-              rightIcon={fileStore.showsMissingContent ? <Icon icon={IconSet.PREVIEW} /> : null}
-              onClick={fileStore.fetchMissingFiles}
-              active={fileStore.showsMissingContent}
-              fill
-              data-right={Tooltip.Missing}
-            />
-          )}
-        </ButtonGroup>
-      </div>
-    </>
+    <TagsTree
+      root={tagCollectionStore.getRootCollection()}
+      uiStore={uiStore}
+      tagCollectionStore={tagCollectionStore}
+      tagStore={tagStore}
+    />
   );
 });
 

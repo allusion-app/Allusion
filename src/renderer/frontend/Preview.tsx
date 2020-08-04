@@ -28,28 +28,26 @@ const PreviewApp = observer(() => {
   );
 
   return (
-    <div id="layoutContainer" className={themeClass} style={{ height: '100%' }}>
+    <div id="preview" className={themeClass}>
       <ErrorBoundary>
-        <div id="toolbar" style={{ height: '2.4rem' }}>
-          <section id="preview-toolbar">
-            <Button
-              icon={IconSet.ARROW_LEFT}
-              onClick={handleLeftButton}
-              minimal
-              disabled={uiStore.firstItem === 0}
-            />
-            <Button
-              icon={IconSet.ARROW_RIGHT}
-              onClick={handleRightButton}
-              minimal
-              disabled={uiStore.firstItem === fileStore.fileList.length - 1}
-            />
-            <Switch
-              label="Overview"
-              onChange={uiStore.toggleSlideMode}
-              checked={!uiStore.isSlideMode}
-            />
-          </section>
+        <div id="toolbar">
+          <Button
+            icon={IconSet.ARROW_LEFT}
+            onClick={handleLeftButton}
+            minimal
+            disabled={uiStore.firstItem === 0}
+          />
+          <Button
+            icon={IconSet.ARROW_RIGHT}
+            onClick={handleRightButton}
+            minimal
+            disabled={uiStore.firstItem === fileStore.fileList.length - 1}
+          />
+          <Switch
+            label="Overview"
+            onChange={uiStore.toggleSlideMode}
+            checked={!uiStore.isSlideMode}
+          />
         </div>
 
         <ContentView />
