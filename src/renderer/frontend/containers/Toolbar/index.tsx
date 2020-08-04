@@ -30,32 +30,15 @@ export const enum ToolbarTooltips {
 const OutlinerToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <section id="outliner-toolbar">
-      <ButtonGroup minimal>
-        <Button
-          icon={IconSet.OUTLINER}
-          onClick={uiStore.toggleOutliner}
-          active={uiStore.isOutlinerOpen}
-          className="tooltip"
-          data-right={ToolbarTooltips.Outliner}
-        />
-        {/* <Button
-          icon={IconSet.INFO}
-          onClick={uiStore.toggleInspector}
-          active={uiStore.isInspectorOpen}
-          className="tooltip"
-          data-right={ToolbarTooltips.Inspector}
-        />
-        <Button
-          icon={IconSet.PREVIEW}
-          onClick={uiStore.openPreviewWindow}
-          active={uiStore.isPreviewOpen}
-          className="tooltip"
-          data-right={`${ToolbarTooltips.Preview} (${uiStore.hotkeyMap.openPreviewWindow})`}
-          disabled={uiStore.fileSelection.length === 0}
-        /> */}
-      </ButtonGroup>
-    </section>
+    <ButtonGroup id="outliner-toolbar" minimal>
+      <Button
+        icon={IconSet.OUTLINER}
+        onClick={uiStore.toggleOutliner}
+        active={uiStore.isOutlinerOpen}
+        className="tooltip"
+        data-right={ToolbarTooltips.Outliner}
+      />
+    </ButtonGroup>
   );
 });
 

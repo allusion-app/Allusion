@@ -5,6 +5,7 @@
   overflow-x: hidden;
   flex-shrink: 0;
   transition: max-width 200ms $pt-transition-cubic2;
+  z-index: 1;
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter {
@@ -23,66 +24,6 @@
   > * {
     // Don't squash content during parent transition
     min-width: var(--outliner-width);
-  }
-
-  // overflow-x: visible !important;
-  z-index: 1;
-
-  button.bp3-button.bp3-minimal {
-    opacity: 0;
-    border-radius: 0;
-    margin-bottom: 1px;
-    border-bottom: 1px solid #ffffff00;
-    transition: 0.2s $pt-transition-cubic2;
-  }
-}
-
-// #search-form,
-#import {
-  margin: 0.5em 1rem;
-  outline: none;
-}
-
-///////////////////////////////// Import /////////////////////////////////
-#import,
-// #search-form,
-main,
-.error-boundary {
-  // .error-boundary
-  > button,
-  .button.bp3-fill,
-  button.bp3-button.bp3-fill,
-  .bp3-non-ideal-state button.bp3-button,
-  .bp3-button:not([class*='bp3-intent-']):not(.bp3-disabled) {
-    color: $gray3;
-  }
-
-  > button,
-  .button.bp3-fill,
-  .bp3-non-ideal-state button.bp3-button {
-    margin-bottom: 0.5rem;
-  }
-
-  button.bp3-fill,
-  // .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*="bp3-intent-warning"]):not([class*="bp3-intent-danger"]):not([class*="bp3-intent-primary"]):not([title]):not(.bp3-dialog-close-button):not(.bp3-minimal):not(.bp3-disabled) {
-    // .bp3-multi-select .bp3-minimal {
-    // background: $light-gray1-trans;
-    background: $dark-gray1-trans;
-    color: $gray3;
-  }
-  .bp3-input.bp3-minimal {
-    background: none !important;
-  }
-  .bp3-non-ideal-state button.bp3-button:not(.bp3-intent-primary),
-  .bp3-button:not([class*='bp3-intent-warning']):not([class*='bp3-intent-danger']):not(.bp3-disabled) {
-    // .bp3-icon > svg:not([fill]) {
-    color: $light-gray3;
-  }
-
-  button.bp3-intent-primary {
-    background: $light-gray0-trans !important;
-    // background: $dark-gray0-trans !important;
   }
 }
 
@@ -104,17 +45,25 @@ main,
       margin-left: 4px;
     }
   }
+
+  .bp3-button {
+    opacity: 0;
+  }
 }
 
 #outliner {
   // Show y scrollbar when there's loads of tags or location list items
   overflow: hidden auto !important;
-  background-color: var(--background-color);
   border-left: 1px solid var(--background-separator-color);
   border-right: 1px solid var(--background-separator-color);
 
   > div:hover .outliner-header-wrapper:not(last-child) > * {
     opacity: 1;
+  }
+
+  .bp3-divider {
+    margin: 1rem;
+    border-color: var(--background-color);
   }
 }
 
@@ -208,6 +157,28 @@ main,
         box-shadow: none !important;
         border: 1.5px solid $blue1;
       }
+    }
+  }
+}
+
+#system-tags {
+  .bp3-button {
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .bp3-button-text {
+    margin-right: auto;
+  }
+
+  .bp3-button:hover {
+    border-left: 2px solid var(--primary-color);
+  }
+
+  .bp3-active {
+    color: $blue1;
+    .custom-icon {
+      color: $blue1;
     }
   }
 }

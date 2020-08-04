@@ -73,7 +73,7 @@ body {
   // The background color of elements inside of panels
   --foreground-color: #{$dark-gray3};
   // Background color of the main panels
-  --background-color: #{$dark-gray1}; // dark-gray0 or 1?
+  --background-color: #{$dark-gray0}; // dark-gray0 or 1?
   // The separator (border) color of the main panels
   --background-separator-color: #{$dark-gray0};
 }
@@ -92,7 +92,7 @@ body {
   // The (background) color of elements inside of panels
   --foreground-color: #{$light-gray5};
   // Background color of the main panels
-  --background-color: #{$light-gray4}; // light-gray5 ?
+  --background-color: #{$light-gray3}; // light-gray5 ?
   // The separator (border) color of the main panels
   --background-separator-color: #{$light-gray3}; // light-gray1?
 }
@@ -172,7 +172,7 @@ main {
     'toolbar toolbar toolbar'
     'outliner main inspector';
 
-  background-color: var(--background-separator-color);
+  background-color: var(--background-color);
 }
 
 // Global component layout
@@ -306,35 +306,10 @@ img {
 ///////////////////////////////// Theme Colours /////////////////////////////////
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this
-// Dark
-// .bp3-dark {
-//   #toolbar,
-//   #inspector,
-//   nav,
-//   #outliner {
-//     background-color: $dark-gray1;
-//   }
-//   background-color: $dark-gray1;
-// }
-// .bp3-light,
-// .bp3-dark,
-// #toolbar,
-// #inspector,
-// nav,
-// #outliner {
-//   background-color: $background-color;
-// }
-
-// // Light
-// .bp3-light {
-//   #toolbar,
-//   #inspector,
-//   nav,
-//   #outliner {
-//     background-color: $light-gray5;
-//   }
-//   background-color: $light-gray5;
-// }
+#preview,
+#layout-container {
+  background-color: var(--background-color);
+}
 
 #toolbar,
 #inspector,

@@ -12,7 +12,7 @@
   overflow-y: hidden;
   border-bottom: 2px solid var(--background-separator-color);
   box-shadow: $pt-dark-elevation-shadow-2;
-  
+
   transition: max-height 200ms ease-in-out;
   max-height: var(--quick-searchbar-height);
   &.quick-search-enter {
@@ -28,7 +28,7 @@
     max-height: 0;
   }
 
-  button.bp3-button {
+  .bp3-button {
     width: 30px;
     height: 30px;
     margin: auto;
@@ -173,10 +173,6 @@
   border-radius: 0.25rem;
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
-
-  &:hover {
-    background: none !important;
-  }
 
   .placeholder {
     width: 100%;

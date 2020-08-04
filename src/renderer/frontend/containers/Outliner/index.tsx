@@ -1,5 +1,3 @@
-import { Button, ButtonGroup, Icon, Divider } from '@blueprintjs/core';
-import IconSet from 'components/Icons';
 import { observer } from 'mobx-react-lite';
 import React, { useContext } from 'react';
 import { CSSTransition } from 'react-transition-group';
@@ -36,42 +34,6 @@ export type IExpansionState = { [key: string]: boolean };
 
 export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path' };
 
-// Tooltip info
-const enum Tooltip {
-  AllImages = 'View all images in library',
-  Untagged = 'View all untagged images',
-}
-
-const SystemTags = observer(() => {
-  const { fileStore } = useContext(StoreContext);
-  return (
-    <ButtonGroup id="system-tags" vertical minimal fill>
-      <Button
-        text="All Images"
-        icon={IconSet.MEDIA}
-        rightIcon={
-          fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
-        }
-        onClick={fileStore.fetchAllFiles}
-        active={fileStore.showsAllContent}
-        fill
-        data-right={Tooltip.AllImages}
-      />
-      <Button
-        text={`Untagged (${fileStore.numUntaggedFiles})`}
-        icon={IconSet.TAG_BLANCO}
-        rightIcon={
-          fileStore.showsUntaggedContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
-        }
-        onClick={fileStore.fetchUntaggedFiles}
-        active={fileStore.showsUntaggedContent}
-        fill
-        data-right={Tooltip.Untagged}
-      />
-    </ButtonGroup>
-  );
-});
-
 const Outliner = () => {
   const rootStore = useContext(StoreContext);
   const { uiStore } = rootStore;
@@ -88,8 +50,6 @@ const Outliner = () => {
       <nav id="outliner">
         <LocationsPanel />
         <TagsPanel />
-        <Divider />
-        <SystemTags />
       </nav>
     </CSSTransition>
   );
