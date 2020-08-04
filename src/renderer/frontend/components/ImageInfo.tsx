@@ -1,16 +1,12 @@
-import React, { useEffect, useState, useMemo, useContext } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
 import { formatDateTime } from '../utils';
-import { Callout, ButtonGroup, Button, Card } from '@blueprintjs/core';
-import StoreContext from '../contexts/StoreContext';
 
 const ImageInfo = observer(({ file }: { file: ClientFile }) => {
-  const { uiStore } = useContext(StoreContext);
   const [fileStats, setFileStats] = useState<fse.Stats | undefined>(undefined);
-  const [error, setError] = useState<Error | undefined>(undefined);
   const [resolution, setResolution] = useState<string>('...');
 
   // Look up file info when file changes
@@ -19,12 +15,12 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
     fse
       .stat(file.absolutePath)
       .then((stats) => isMounted && setFileStats(stats))
-      .catch((err) => setError(err));
+      .catch(() => isMounted && setFileStats(undefined));
     const img = new Image();
 
     img.onload = () => {
       if (isMounted) {
-        setResolution(`${img.width}x${img.height}`);
+        setResolution(`${img.width} x ${img.height}`);
       }
     };
     img.src = file.absolutePath;
@@ -59,43 +55,16 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   );
 
   return (
-    <>
-      <section className="file-info">
-        {fileInfoList.map(({ key, value }) => [
-          <small key={`key-${key}`} className="file-info-key bp3-label">
-            {key}
-          </small>,
-          <div key={`value-${key}`} className="file-info-value bp3-button-text">
-            {value || '-'}
-          </div>,
-        ])}
-      </section>
-
-      {error &&
-        (error.message?.includes('no such file') ? (
-          <Card style={{ margin: '8px', width: 'calc(100% - 16px)' }}>
-            <p>
-              This image could not be found.
-              <br />
-              Would you like to remove it from your library?
-            </p>
-            <ButtonGroup>
-              <Button
-                text="Remove"
-                intent="danger"
-                onClick={() => {
-                  uiStore.selectFile(file, true);
-                  uiStore.toggleToolbarFileRemover();
-                }}
-              />
-            </ButtonGroup>
-          </Card>
-        ) : (
-          <Callout intent="warning" title="An error has occured">
-            Error: {error.name} <br /> {error.message}
-          </Callout>
-        ))}
-    </>
+    <section className="file-info">
+      {fileInfoList.map(({ key, value }) => [
+        <small key={`key-${key}`} className="file-info-key bp3-label">
+          {key}
+        </small>,
+        <div key={`value-${key}`} className="file-info-value bp3-button-text">
+          {value || '-'}
+        </div>,
+      ])}
+    </section>
   );
 });
 

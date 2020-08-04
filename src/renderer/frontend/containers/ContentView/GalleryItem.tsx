@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Tooltip } from '@blueprintjs/core';
+import {
+  Tag,
+  ContextMenuTarget,
+  Menu,
+  MenuItem,
+  H4,
+  Tooltip,
+  Card,
+  Button,
+  ButtonGroup,
+} from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -12,6 +22,7 @@ import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
+import UiStore from '../../stores/UiStore';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -35,6 +46,53 @@ const ThumbnailTags = observer(({ tags, onClick, onDoubleClick }: IThumbnailTags
     ))}
   </span>
 ));
+
+interface IThumbnailDecoration {
+  showDetails?: boolean;
+  file: ClientFile;
+  uiStore: UiStore;
+  tags: JSX.Element;
+}
+
+// TODO: ThumbnailDecoration
+const ThumbnailDecoration = observer(
+  ({ showDetails, file, uiStore, tags }: IThumbnailDecoration) => {
+    if (file.isBroken) {
+      return (
+        <Card>
+          <p>
+            This file {file.name} could not be found.
+            <br />
+            <br />
+            Would you like to remove it from your library?
+          </p>
+          <ButtonGroup>
+            <Button
+              text="Remove"
+              intent="danger"
+              onClick={() => {
+                uiStore.selectFile(file, true);
+                uiStore.toggleToolbarFileRemover();
+              }}
+            />
+          </ButtonGroup>
+        </Card>
+      );
+    } else {
+      return (
+        <>
+          {showDetails && (
+            <>
+              <H4>{file.filename}</H4>
+              <ImageInfo file={file} />
+            </>
+          )}
+          {tags}
+        </>
+      );
+    }
+  },
+);
 
 interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;
@@ -199,16 +257,17 @@ const GalleryItem = observer(
             </div>
           )}
         </div>
-        {showDetails && (
-          <>
-            <H4>{file.filename}</H4>
-            <ImageInfo file={file} />
-          </>
-        )}
-        <ThumbnailTags
-          tags={file.clientTags}
-          onClick={handleClickImg}
-          onDoubleClick={handleDoubleClickImg}
+        <ThumbnailDecoration
+          showDetails={showDetails}
+          file={file}
+          uiStore={uiStore}
+          tags={
+            <ThumbnailTags
+              tags={file.clientTags}
+              onClick={handleClickImg}
+              onDoubleClick={handleDoubleClickImg}
+            />
+          }
         />
       </div>
     );
@@ -315,12 +374,6 @@ class GalleryItemWithContextMenu extends React.PureComponent<
 
 // A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
 const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryItemProps) => {
-  // TODO: List gallery styling
-  // useEffect(() => {
-  //   // First check whether a thumbnail exists, generate it if needed
-  //   ensureThumbnail(file, uiStore.thumbnailDirectory);
-  // }, [file, uiStore.thumbnailDirectory]);
-
   return (
     <div className="thumbnail" aria-selected={isSelected}>
       <div className="thumbnail-img">
