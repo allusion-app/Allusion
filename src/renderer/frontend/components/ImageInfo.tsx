@@ -60,12 +60,12 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
 
   return (
     <>
-      <section id="fileInfo">
+      <section className="file-info">
         {fileInfoList.map(({ key, value }) => [
-          <small key={`fileInfoKey-${key}`} className="bp3-label">
+          <small key={`key-${key}`} className="file-info-key bp3-label">
             {key}
           </small>,
-          <div key={`fileInfoValue-${key}`} className="fileInfoValue bp3-button-text">
+          <div key={`value-${key}`} className="file-info-value bp3-button-text">
             {value || '-'}
           </div>,
         ])}

@@ -300,9 +300,8 @@
     font-size: 16px;
     align-self: start;
   }
-  #fileInfo {
-    grid-row-gap: 0.02rem;
-    line-height: 1rem;
+  .file-info {
+    grid-row-gap: 0;
   }
   .thumbnail-tags {
     padding-top: 0;

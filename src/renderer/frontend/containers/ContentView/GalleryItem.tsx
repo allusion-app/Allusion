@@ -201,7 +201,7 @@ const GalleryItem = observer(
         </div>
         {showDetails && (
           <>
-            <H4>{file.name}</H4>
+            <H4>{file.filename}</H4>
             <ImageInfo file={file} />
           </>
         )}
@@ -328,7 +328,7 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
       </div>
       {showDetails && (
         <>
-          <H4>{file.name}</H4>
+          <H4>{file.filename}</H4>
           <ImageInfo file={file} />
         </>
       )}
