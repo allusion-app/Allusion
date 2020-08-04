@@ -1,17 +1,29 @@
 ///////////////////////////////// Content area /////////////////////////////////
 .quick-search {
-  background: $dark-gray0;
-  border-radius: 6px;
+  background-color: var(--background-color);
   position: sticky;
-  width: calc(100% - 0.75rem);
   padding: 0 0.25rem;
   top: 0.2rem;
-  z-index: 999;
+  z-index: 9;
   display: flex;
-  border-bottom: 2px solid $black;
+  border-bottom: 2px solid var(--background-separator-color);
   box-shadow: $pt-dark-elevation-shadow-2;
+  transition: max-height 200ms ease-in-out;
 
-  button.bp3-button {
+  &.quick-search-enter {
+    max-height: 0;
+  }
+  &.quick-search-enter-active {
+    max-height: var(--quick-searchbar-height);
+  }
+  &.quick-search-exit {
+    max-height: var(--quick-searchbar-height);
+  }
+  &.quick-search-exit-active {
+    max-height: 0;
+  }
+
+  .bp3-button {
     width: 30px;
     height: 30px;
     margin: auto;
@@ -22,7 +34,6 @@
   .bp3-button-group {
     .bp3-button {
       border-radius: 6px;
-      // background: rgba(1, 1, 1, .1) !important;
       background: none !important;
     }
 
@@ -143,9 +154,18 @@
   &:hover .thumbnail-tags {
     background-color: rgba(0, 0, 0, 0.25);
   }
+}
 
-  #fileInfo {
-    grid-area: info;
+.thumbnail-tags {
+  grid-area: tags;
+  width: 100%;
+  height: auto;
+  padding: 0.4em 0.4rem 0.15rem 0.4rem;
+  position: absolute;
+  bottom: 0;
+  background: none;
+  > * {
+    margin: 0.25em;
   }
 }
 
@@ -156,10 +176,6 @@
   border-radius: 0.25rem;
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
-
-  &:hover {
-    background: none !important;
-  }
 
   .placeholder {
     width: 100%;

@@ -29,7 +29,7 @@ const FileSelection = observer(
     <Button
       rightIcon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
       onClick={toggle}
-      intent={allFilesSelected ? 'primary' : 'none'}
+      active={allFilesSelected}
       className="tooltip"
       data-right={ToolbarTooltips.Select}
     >
@@ -213,7 +213,7 @@ const ContentToolbar = observer(() => {
           <Button
             icon={IconSet.SEARCH}
             onClick={uiStore.toggleQuickSearch}
-            intent={uiStore.isQuickSearchOpen ? 'primary' : 'none'}
+            active={uiStore.isQuickSearchOpen}
             className="tooltip"
             data-right={ToolbarTooltips.Search}
           />
@@ -244,29 +244,6 @@ const ContentToolbar = observer(() => {
             disabled={uiStore.fileSelection.length === 0}
           />
 
-          <FileFilter
-            fileOrder={fileStore.fileOrder}
-            orderBy={fileStore.orderBy}
-            orderFilesBy={fileStore.orderFilesBy}
-            switchFileOrder={fileStore.switchFileOrder}
-          />
-        </ButtonGroup>
-
-        <ButtonGroup minimal>
-          <FileSelection
-            allFilesSelected={
-              fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
-            }
-            toggleSelection={handleToggleSelect}
-            selectionCount={fileSelection.length}
-          />
-          <TagFilesPopover
-            files={uiStore.clientFileSelection}
-            disabled={fileSelection.length <= 0 || fileStore.fileList.length <= 0}
-            isOpen={uiStore.isToolbarTagSelectorOpen}
-            close={uiStore.closeToolbarTagSelector}
-            toggle={uiStore.toggleToolbarTagSelector}
-          />
           <FileFilter
             fileOrder={fileStore.fileOrder}
             orderBy={fileStore.orderBy}

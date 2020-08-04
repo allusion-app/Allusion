@@ -8,33 +8,29 @@ $pt-transition-duration: 100ms !default;
 // Page layout
 html {
   height: 100%;
-  // margin-top: 24px;
-  background: $dark-gray0;
   -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background: $dark-gray0;
   margin: 0px;
   width: 100%;
   height: 100%;
   overflow: hidden;
   font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
-  .bp3-light {
-    color: $light-gray1;
-  }
 }
 
 #app {
   --outliner-width: 18em;
   --inspector-width: 24em;
   --toolbar-height: 2.4rem;
+  --quick-searchbar-height: 2.4rem;
   --thumbnail-size: 250px;
   --thumbnail-margin: 0.25rem;
   --mac-system-buttons-width: 5rem;
   --window-system-buttons-width: 7.5rem;
   height: 100vh;
+  background: $dark-gray0;
 }
 
 #preview {
@@ -64,11 +60,20 @@ body {
 // Dark Theme
 .bp3-dark {
   --focus-color: #{$dark-gray3};
-  --highlight-background-color: #{$dark-gray3};
+  --highlight-background-color: #{$dark-gray3}; // dark-gray5?
   --highlight-font-color: white;
   --caret-color: #{$light-gray1};
-  --foreground-color: #{$dark-gray1};
-  --background-color: #{$dark-gray0};
+
+  // Text/icon color
+  color: $pt-dark-text-color;
+  --text-muted-color: $pt-dark-text-color-muted;
+
+  // The background color of elements inside of panels
+  --foreground-color: #{$dark-gray3};
+  // Background color of the main panels
+  --background-color: #{$dark-gray0}; // dark-gray0 or 1?
+  // The separator (border) color of the main panels
+  --background-separator-color: #{$dark-gray0};
 }
 
 // Light Theme
@@ -77,15 +82,23 @@ body {
   --highlight-background-color: #{$light-gray4};
   --highlight-font-color: #{$black};
   --caret-color: #{$dark-gray1};
+
+  // Text/icon color
+  color: $pt-text-color;
+  --text-muted-color: $pt-text-color-muted;
+
+  // The (background) color of elements inside of panels
   --foreground-color: #{$light-gray5};
-  --background-color: #{$light-gray3};
+  // Background color of the main panels
+  --background-color: #{$light-gray3}; // light-gray5 ?
+  // The separator (border) color of the main panels
+  --background-separator-color: #{$light-gray3}; // light-gray1?
 }
 
 // Override standard CSS attributes
 pre {
   word-wrap: break-word;
   white-space: initial;
-  // margin: 2px;
 }
 .bp3-dark {
   pre {
@@ -103,34 +116,6 @@ pre {
   grid-template-areas:
     'toolbar outliner main inspector'
     'toolbar outliner main inspector';
-}
-
-.sidenav #toolbar {
-  width: 2rem !important;
-  height: 100vh;
-  display: flex !important;
-}
-
-.sidenav #outliner {
-  left: 2rem;
-  position: relative;
-}
-
-.sidenav #outliner {
-  left: 2rem;
-  top: 0 rem;
-  position: absolute;
-}
-
-// .sidenav main {
-/* position: absolute; */
-/* top: 0; */
-// }
-
-.sidenav #inspector {
-  grid-area: inspector;
-  /* top: 0; */
-  /* position: absolute; */
 }
 
 .preloader {
@@ -156,12 +141,7 @@ main {
     'toolbar toolbar toolbar'
     'outliner main inspector';
 
-  &.bp3-dark {
-    background: $dark-gray0;
-  }
-  &.bp3-light {
-    background: $light-gray5;
-  }
+  background-color: var(--background-color);
 }
 
 // Global component layout
@@ -194,7 +174,6 @@ main {
 // Disable default outline on focused elements (e.g. clicked buttons)
 :focus {
   outline: none !important;
-  // background: rgba(255, 255, 255, 0.05) !important;
 }
 // Don't allow images to be dragged from within the app
 img {
@@ -206,39 +185,33 @@ img {
   width: 10px;
 }
 
-/* Track */
-::-webkit-scrollbar-track {
-  background-color: $dark-gray3;
-}
-.bp3-popover-backdrop {
-  background: rgba(16, 22, 26, 0); //Set 2 zero for now
-}
-.bp3-popover-content,
-.bp3-drawer,
-.bp3-overlay {
+/* ////////// Scroll bar (Track and handle) ////////// */
+.bp3-light {
   ::-webkit-scrollbar-track {
     background-color: $light-gray4;
   }
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background-color: $dark-gray5;
-}
-.bp3-popover-content,
-.bp3-drawer,
-.bp3-overlay {
   ::-webkit-scrollbar-thumb {
     background-color: $light-gray2;
   }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: $light-gray5;
+  }
 }
 
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background-color: $dark-gray0;
+.bp3-dark {
+  ::-webkit-scrollbar-track {
+    background-color: $dark-gray3;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: $dark-gray5;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: $dark-gray6;
+  }
 }
-.bp3-popover-content ::-webkit-scrollbar-thumb:hover {
-  background-color: $light-gray1;
+
+.bp3-popover-backdrop {
+  background: rgba(16, 22, 26, 0); //Set 2 zero for now
 }
 
 ///////////////////////////////// Custom Hover tooltip /////////////////////////////////
@@ -262,7 +235,6 @@ img {
   background: $blue1;
   color: white;
   z-index: auto;
-  // white-space: nowrap;
   border-radius: 5px;
   box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
   opacity: 0;
@@ -275,7 +247,7 @@ img {
   transition: all 0.2s $pt-transition-cubic2-delay; // Tooltip needs delay!
   visibility: visible;
   position: absolute;
-  z-index: 1000;
+  z-index: 10;
 }
 [data-left]:after {
   content: attr(data-left);
@@ -302,7 +274,10 @@ img {
 ///////////////////////////////// Theme Colours /////////////////////////////////
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this
-// Dark
+#preview,
+#layout-container {
+  background-color: var(--background-color);
+}
 
 #toolbar,
 #inspector,
@@ -408,12 +383,8 @@ img {
   align-items: center;
 }
 .drop-overlay-content {
-  // top: 0;
-  // left: calc(50vw - 200px);
   margin: auto calc(50% - 200px);
-  // margin: 15vh 0;
   width: 400px;
-  // position: absolute;
   padding: 20px !important;
 
   .quick-tags {
@@ -502,10 +473,6 @@ img {
         color: #ffffffc7;
         filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
       }
-      // & > svg {
-      //   display: table-cell;
-      //   vertical-align: middle;
-      // }
 
       > span {
         position: absolute;

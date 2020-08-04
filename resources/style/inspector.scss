@@ -5,7 +5,7 @@
   flex-shrink: 0;
   max-width: var(--inspector-width);
   overflow-x: hidden;
-  transition: max-width 120ms $pt-transition-cubic2;
+  transition: max-width 200ms ease-in-out; // 120ms $pt-transition-cubic2
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter {
@@ -24,7 +24,7 @@
   > section {
     // Don't squash content of aside during parent transition
     width: var(--inspector-width);
-    border-bottom: 2px solid #14181a;
+    border-bottom: 2px solid var(--background-separator-color);
     padding: 1em;
   }
 
@@ -58,7 +58,7 @@
   }
 
   small.bp3-label {
-    color: $light-gray1;
+    color: --var(--text-muted-color);
     opacity: 0.7;
   }
 }
@@ -194,8 +194,7 @@
 // File tag (kind of global style)
 #fileTag .bp3-popover-target,
 #inspector .bp3-popover-target {
-  display: inline-block;
-  flex-grow: 1;
+  width: 100%;
 }
 
 // .bp3-popover-content #fileTag .bp3-popover-target:nth-child(1),

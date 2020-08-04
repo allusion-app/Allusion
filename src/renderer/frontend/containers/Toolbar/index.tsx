@@ -34,7 +34,7 @@ const OutlinerToolbar = observer(() => {
       <Button
         icon={IconSet.OUTLINER}
         onClick={uiStore.toggleOutliner}
-        intent={uiStore.isOutlinerOpen ? 'primary' : 'none'}
+        active={uiStore.isOutlinerOpen}
         className="tooltip"
         data-right={ToolbarTooltips.Outliner}
       />
