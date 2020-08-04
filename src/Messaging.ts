@@ -61,6 +61,11 @@ export interface IClipServerEnabledMessage {
   isClipServerRunning: boolean;
 }
 
+export const SET_THEME = 'SET_THEME';
+export interface IThemeMessage {
+  theme: 'light' | 'dark';
+}
+
 export const IS_RUNNING_IN_BACKGROUND = 'IS_RUN_IN_BACKGROUND';
 export const SET_RUN_IN_BACKGROUND = 'SET_RUN_IN_BACKGROUND';
 export interface IRunInBackgroundMessage {
@@ -107,6 +112,11 @@ export class RendererMessenger {
   static setClipServerEnabled = (msg: IClipServerEnabledMessage) => {
     ipcRenderer.send(SET_CLIP_SERVER_ENABLED, msg);
   };
+
+  static setTheme = (msg: IThemeMessage) => {
+    ipcRenderer.send(SET_THEME, msg);
+  };
+
 
   static setRunInBackground = (msg: IRunInBackgroundMessage) => {
     ipcRenderer.send(SET_RUN_IN_BACKGROUND, msg);
@@ -164,6 +174,10 @@ export class MainMessenger {
 
   static onSetClipServerEnabled = (cb: (msg: IClipServerEnabledMessage) => void): IpcMain => {
     return ipcMain.on(SET_CLIP_SERVER_ENABLED, (_, msg: IClipServerEnabledMessage) => cb(msg));
+  };
+
+  static onSetTheme = (cb: (msg: IThemeMessage) => void): IpcMain => {
+    return ipcMain.on(SET_THEME, (_, msg: IThemeMessage) => cb(msg));
   };
 
   static onSetRunningInBackground = (cb: (msg: IRunInBackgroundMessage) => void): IpcMain => {

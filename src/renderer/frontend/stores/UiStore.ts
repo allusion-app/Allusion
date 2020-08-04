@@ -273,6 +273,7 @@ class UiStore {
 
   @action.bound toggleTheme() {
     this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
+    RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' });
   }
   @action.bound toggleDevtools() {
     remote.getCurrentWebContents().toggleDevTools();
@@ -281,7 +282,7 @@ class UiStore {
     remote.getCurrentWindow().reload();
   }
 
-  @action.bound async toggleQuickSearch() {
+  @action.bound toggleQuickSearch() {
     if (this.isQuickSearchOpen) {
       return this.closeQuickSearch();
     }
@@ -292,7 +293,7 @@ class UiStore {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
   }
 
-  @action.bound async closeQuickSearch() {
+  @action.bound closeQuickSearch() {
     this.isQuickSearchOpen = false;
     return this.clearSearchCriteriaList();
   }
@@ -510,24 +511,24 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
-  @action.bound async clearSearchCriteriaList() {
+  @action.bound clearSearchCriteriaList() {
     if (this.searchCriteriaList.length > 0) {
       this.searchCriteriaList.clear();
       this.viewAllContent();
     }
   }
 
-  @action.bound async addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+  @action.bound addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
     this.searchCriteriaList.push(query);
     this.viewQueryContent();
   }
 
-  @action.bound async addSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  @action.bound addSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
     this.searchCriteriaList.push(...queries);
     this.viewQueryContent();
   }
 
-  @action.bound async removeSearchCriteria(query: FileSearchCriteria) {
+  @action.bound removeSearchCriteria(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
     if (this.searchCriteriaList.length > 0) {
       this.viewQueryContent();
@@ -536,11 +537,11 @@ class UiStore {
     }
   }
 
-  @action.bound async replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+  @action.bound replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
     this.replaceSearchCriterias([query]);
   }
 
-  @action.bound async replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  @action.bound replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
     this.searchCriteriaList.replace(queries);
     if (this.searchCriteriaList.length > 0) {
       this.viewQueryContent();
@@ -549,7 +550,7 @@ class UiStore {
     }
   }
 
-  @action.bound async removeSearchCriteriaByIndex(i: number) {
+  @action.bound removeSearchCriteriaByIndex(i: number) {
     this.searchCriteriaList.splice(i, 1);
     if (this.searchCriteriaList.length > 0) {
       this.viewQueryContent();

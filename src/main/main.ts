@@ -1,13 +1,12 @@
-import { app, BrowserWindow, Menu, Tray, screen, ipcMain, IpcMessageEvent, nativeImage } from 'electron';
-
+import { app, BrowserWindow, Menu, nativeImage, nativeTheme, screen, Tray } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import AppIcon from '../../resources/logo/allusion-logomark-fc-512x512.png';
 import TrayIcon from '../../resources/logo/allusion-logomark-fc-256x256.png';
 import TrayIconMac from '../../resources/logo/allusion-logomark-white@2x.png';
 import { isDev } from '../config';
-import ClipServer, { IImportItem } from './clipServer';
-import { ITag } from '../renderer/entities/Tag';
 import { MainMessenger } from '../Messaging';
-import { autoUpdater } from 'electron-updater';
+import { ITag } from '../renderer/entities/Tag';
+import ClipServer, { IImportItem } from './clipServer';
 
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
@@ -313,7 +312,12 @@ MainMessenger.onStoreFile(({ filenameWithExt, imgBase64 }) =>
 // Forward files from the main window to the preview window
 MainMessenger.onSendPreviewFiles((msg) => {
   // Create preview window if needed, and send the files selected in the primary window
-  if (!previewWindow) {
+  if (!previewWindow || previewWindow.isDestroyed()) {
+    // The Window object might've been destroyed if it was hidden for too long -> Recreate it
+    if (previewWindow?.isDestroyed()) {
+      console.warn('Preview window was destroyed! Attemping to recreate...');
+    }
+
     previewWindow = createPreviewWindow();
     MainMessenger.onceInitialized().then(() => {
       if (previewWindow) {
@@ -322,13 +326,14 @@ MainMessenger.onSendPreviewFiles((msg) => {
     });
   } else {
     MainMessenger.sendPreviewFiles(previewWindow.webContents, msg);
-
     if (!previewWindow.isVisible()) {
       previewWindow.show();
     }
     previewWindow.focus();
   }
 });
+
+MainMessenger.onSetTheme((msg) => (nativeTheme.themeSource = msg.theme));
 
 MainMessenger.onDragExport(({ absolutePaths }) => {
   if (!mainWindow) return;
@@ -339,9 +344,8 @@ MainMessenger.onDragExport(({ absolutePaths }) => {
       // TODO: Show some indication that multiple images are dragged, would be cool to show a stack of the first few of them
       // also, this will show really big icons for narrow images, should take into account their aspect ratio
       icon: nativeImage.createFromPath(absolutePaths[0]).resize({ width: 200 }) || AppIcon,
-    } as any) // need to "any" this since the types are not correct: the files field is allowed but not according to TypeScript
+    } as any); // need to "any" this since the types are not correct: the files field is allowed but not according to TypeScript
   }
 });
 
 MainMessenger.onGetUserPicturesPath();
-

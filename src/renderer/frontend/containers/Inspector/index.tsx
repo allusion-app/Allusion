@@ -9,9 +9,10 @@ import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
 import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
 import { CSSTransition } from 'react-transition-group';
+import { H5, H6 } from '@blueprintjs/core';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-const getBytes = (bytes: number) => {
+const getBytesHumanReadable = (bytes: number) => {
   if (bytes <= 0) {
     return '0 Bytes';
   }
@@ -79,11 +80,11 @@ const Inspector = observer(() => {
   const selectedFiles = uiStore.clientFileSelection;
 
   let selectionPreview;
-  let headerText;
+  let headerElem;
   let headerSubtext;
 
   if (selectedFiles.length === 0) {
-    headerText = 'No image selected';
+    headerElem = <H6 muted><i>No image selected</i></H6>;
   } else if (selectedFiles.length === 1) {
     const singleFile = selectedFiles[0];
     const ext = singleFile.absolutePath
@@ -96,8 +97,8 @@ const Inspector = observer(() => {
         onClick={uiStore.enableSlideMode}
       />
     );
-    headerText = path.basename(singleFile.absolutePath);
-    headerSubtext = `${ext} image - ${getBytes(fs.statSync(singleFile.absolutePath).size)}`;
+    headerElem = <H5>{path.basename(singleFile.absolutePath)}</H5>;
+    headerSubtext = `${ext} image - ${getBytesHumanReadable(fs.statSync(singleFile.absolutePath).size)}`;
   } else {
     // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
     // TODO: This will crash the app if the image can't be found - same for the other case a few lines earlier
@@ -116,8 +117,8 @@ const Inspector = observer(() => {
       // </figure>
       <Carousel items={selectedFiles} />
     );
-    headerText = `${selectedFiles[0].name} and ${selectedFiles.length - 1} more`;
-    headerSubtext = getBytes(size);
+    headerElem = <H5>{`${selectedFiles[0].name} and ${selectedFiles.length - 1} more`}</H5>;
+    headerSubtext = getBytesHumanReadable(size);
   }
 
   let content: ReactNode;
@@ -128,7 +129,7 @@ const Inspector = observer(() => {
         <section id="filePreview">{selectionPreview}</section>
 
         <section id="fileOverview">
-          <div className="inpectorHeading">{headerText}</div>
+          {headerElem}
           <small>{headerSubtext}</small>
         </section>
 
@@ -145,7 +146,7 @@ const Inspector = observer(() => {
       <>
         <section id="filePreview" />
         <section id="fileOverview">
-          <div className="inpectorHeading">{headerText}</div>
+          <div className="inpectorHeading">{headerElem}</div>
         </section>
       </>
     );

@@ -11,11 +11,11 @@ import { ViewMethod } from '../../stores/UiStore';
 import StoreContext from '../../contexts/StoreContext';
 
 /* Library info. Todo: Show entire library count instead of current fileList */
-const LibraryInfo = observer(({ fileCount }: { fileCount: number }) => (
-  <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={ToolbarTooltips.Media}>
-    {fileCount}
-  </Button>
-));
+// const LibraryInfo = observer(({ fileCount }: { fileCount: number }) => (
+//   <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={ToolbarTooltips.Media}>
+//     {fileCount}
+//   </Button>
+// ));
 
 interface IFileSelection {
   allFilesSelected: boolean;
@@ -182,7 +182,7 @@ const ContentToolbar = observer(() => {
             data-right={ToolbarTooltips.Search}
           />
 
-          <LibraryInfo fileCount={fileStore.fileList.length} />
+          {/* <LibraryInfo fileCount={fileStore.fileList.length} /> */}
         </ButtonGroup>
 
         <ButtonGroup minimal>

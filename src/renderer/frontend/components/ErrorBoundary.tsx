@@ -26,7 +26,6 @@ export const ClearDbButton = (props: IButtonProps & { position?: Position }) => 
         {...props}
         intent="danger"
         icon={IconSet.CLEAR_DATABASE}
-        style={{ width: 'max-content' }}
       >
         Clear database
       </Button>

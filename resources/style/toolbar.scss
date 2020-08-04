@@ -4,9 +4,9 @@
   display: grid;
   gap: 1rem;
   padding: 0 0.5rem;
-  border-bottom: 2px solid $dark-gray0;
-  border-left: 1px solid $dark-gray0;
-  border-right: 1px solid $dark-gray0;
+  border-bottom: 2px solid var(--background-separator-color);
+  border-left: 1px solid var(--background-separator-color);
+  border-right: 1px solid var(--background-separator-color);
 
   // Since the toolbar is acting as the frame, it should be draggable to move the window around
   -webkit-app-region: drag;
@@ -48,6 +48,14 @@
   // margin-top: .25rem;
   display: flex;
   align-items: center;
+
+  .bp3-button {
+    padding: 0;
+    height: 100%;
+  }
+  .bp3-switch {
+    margin: 0;
+  }
 }
 
 #main-toolbar {
@@ -102,11 +110,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 0;
-    border-right: 1px solid $dark-gray0;
-
-    #outliner {
-      margin-top: var(--toolbar-height);
-    }
+    border-right: 1px solid var(--background-separator-color);
 
     #outliner-toolbar,
     #inspector-toolbar {
@@ -114,16 +118,16 @@
     }
   }
 
+  #inspector {
+    padding-top: var(--toolbar-height);
+  }
+
   #main-toolbar {
     height: var(--toolbar-height);
     background-color: var(--foreground-color);
-    border-bottom: 2px solid $dark-gray0;
-    border-left: 1px solid $dark-gray0;
+    border-bottom: 2px solid var(--background-separator-color);
+    border-left: 1px solid var(--background-separator-color);
     justify-content: space-between;
-
-    .bp3-button {
-      background: transparent;
-    }
 
     // Since the toolbar is acting as the frame, it should be draggable to move the window around
     -webkit-app-region: drag;
