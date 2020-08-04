@@ -1,20 +1,15 @@
 ///////////////////////////////// Content area /////////////////////////////////
 .quick-search {
   background-color: var(--background-color);
-  // border-radius: 6px;
   position: sticky;
-  width: calc(100%); // - 0.75rem
-  height: 100%;
   padding: 0 0.25rem;
   top: 0.2rem;
   z-index: 9;
   display: flex;
-  overflow-y: hidden;
   border-bottom: 2px solid var(--background-separator-color);
   box-shadow: $pt-dark-elevation-shadow-2;
-
   transition: max-height 200ms ease-in-out;
-  max-height: var(--quick-searchbar-height);
+
   &.quick-search-enter {
     max-height: 0;
   }
@@ -39,7 +34,6 @@
   .bp3-button-group {
     .bp3-button {
       border-radius: 6px;
-      // background: rgba(1, 1, 1, .1) !important;
       background: none !important;
     }
 
