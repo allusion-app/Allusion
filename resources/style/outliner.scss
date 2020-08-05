@@ -1,11 +1,13 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 #outliner {
   grid-area: outliner;
-  overflow-y: scroll;
-  overflow-x: hidden;
+  // Show y scrollbar when there's loads of tags or location list items
+  overflow: hidden auto;
   flex-shrink: 0;
   transition: max-width 200ms $pt-transition-cubic2;
   z-index: 1;
+  border-left: 1px solid var(--background-separator-color);
+  border-right: 1px solid var(--background-separator-color);
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter {
@@ -24,6 +26,15 @@
   > * {
     // Don't squash content during parent transition
     min-width: var(--outliner-width);
+  }
+
+  > div:hover .outliner-header-wrapper:not(last-child) > * {
+    opacity: 1;
+  }
+
+  .bp3-divider {
+    margin: 1rem;
+    border-color: var(--background-color);
   }
 }
 
@@ -48,22 +59,6 @@
 
   .bp3-button {
     opacity: 0;
-  }
-}
-
-#outliner {
-  // Show y scrollbar when there's loads of tags or location list items
-  overflow: hidden auto !important;
-  border-left: 1px solid var(--background-separator-color);
-  border-right: 1px solid var(--background-separator-color);
-
-  > div:hover .outliner-header-wrapper:not(last-child) > * {
-    opacity: 1;
-  }
-
-  .bp3-divider {
-    margin: 1rem;
-    border-color: var(--background-color);
   }
 }
 
@@ -180,5 +175,24 @@
     .custom-icon {
       color: $blue1;
     }
+  }
+}
+
+.bp3-alert {
+  max-width: 550px; // default is 400, quite narrow
+}
+
+.bp3-alert-contents {
+  min-height: 100px;
+
+  > strong {
+    display: block;
+    font-size: medium;
+    margin-bottom: 1rem;
+  }
+
+  > p,
+  strong {
+    line-height: 1.5em;
   }
 }

@@ -51,9 +51,7 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
     isOpen={true}
     confirmButtonText="Delete"
     title={`Are you sure you want to delete the location "${props.object.name}"?`}
-    information={
-      'This will permanently remove the location and all files contained in it from Allusion.'
-    }
+    information="This will permanently remove the location and all files contained in it from Allusion."
     onCancel={props.onClose}
     onConfirm={async () => {
       await props.object.delete();

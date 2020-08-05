@@ -26,24 +26,6 @@
     grid-template-areas: 'outliner-toolbar main-toolbar inspector-toolbar .';
   }
 
-  // Since the toolbar is acting as the frame, it should be draggable to move the window around
-  -webkit-app-region: drag;
-  // But all of the buttons should not be draggable, else not clickable
-  button {
-    -webkit-app-region: none;
-  }
-
-  &.mac-toolbar {
-    // The region on the top left is replaced with system buttons by Electron/OSX
-    grid-template-columns: var(--mac-system-buttons-width) var(--outliner-width) 1fr min-content;
-    grid-template-areas: '. outliner-toolbar main-toolbar inspector-toolbar';
-  }
-
-  &.windows-toolbar {
-    grid-template-columns: var(--outliner-width) 1fr min-content var(--window-system-buttons-width);
-    grid-template-areas: 'outliner-toolbar main-toolbar inspector-toolbar .';
-  }
-
   // Turn of event for show media items
   #media {
     pointer-events: none;

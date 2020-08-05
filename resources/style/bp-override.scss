@@ -578,25 +578,6 @@ button:has(.bp3-intent-danger) {
   box-shadow: none;
 }
 
-.bp3-alert {
-  max-width: 550px; // default is 400, quite narrow
-}
-
-.bp3-alert-contents {
-  min-height: 100px;
-
-  > strong {
-    display: block;
-    font-size: medium;
-    margin-bottom: 1rem;
-  }
-
-  > p,
-  strong {
-    line-height: 1.5em;
-  }
-}
-
 .bp3-popover.bp3-dark,
 .bp3-popover.bp3-light,
 .bp3-dark .bp3-submenu.bp3-popover > .bp3-popover-content,

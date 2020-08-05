@@ -54,18 +54,13 @@ interface IThumbnailDecoration {
   tags: JSX.Element;
 }
 
-// TODO: ThumbnailDecoration
 const ThumbnailDecoration = observer(
   ({ showDetails, file, uiStore, tags }: IThumbnailDecoration) => {
-    if (file.isBroken) {
+    if (file.isBroken && showDetails) {
       return (
         <Card>
-          <p>
-            This file {file.name} could not be found.
-            <br />
-            <br />
-            Would you like to remove it from your library?
-          </p>
+          <p>The file {file.name} could not be found.</p>
+          <p>Would you like to remove it from your library?</p>
           <ButtonGroup>
             <Button
               text="Remove"
@@ -222,18 +217,13 @@ const GalleryItem = observer(
       >
         <div
           onClick={handleClickImg}
-          className="thumbnail-img"
+          className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
           onDoubleClick={handleDoubleClickImg}
           onDragStart={handleDragStart}
         >
           {isThumbnailReady ? (
             // Show image when it has been loaded
-            <img
-              src={imagePath}
-              onError={handleImageError}
-              className={`bp3-skeleton ${file.isBroken ? 'broken-with-thumbnail' : ''}`}
-              alt=""
-            />
+            <img src={imagePath} onError={handleImageError} alt="" />
           ) : isThumbnailGenerating ? (
             // If it's being generated, show a placeholder
             <div className="donut-loading" />
@@ -241,8 +231,8 @@ const GalleryItem = observer(
             // Show an error it it could not be loaded
             <MissingImageFallback />
           )}
-          {file.isBroken && (
-            <div className="broken-overlay">
+          {file.isBroken && !showDetails && (
+            <div className="thumbnail-broken-overlay">
               <Tooltip content="This image could not be found.">
                 <span
                   onClick={(e) => {
