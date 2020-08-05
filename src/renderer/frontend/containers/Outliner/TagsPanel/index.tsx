@@ -18,6 +18,7 @@ import IconSet from 'components/Icons';
 const enum Tooltip {
   AllImages = 'View all images in library',
   Untagged = 'View all untagged images',
+  Missing = 'View missing images on your system',
 }
 
 const SystemTags = observer(() => {
@@ -46,6 +47,19 @@ const SystemTags = observer(() => {
         fill
         data-right={Tooltip.Untagged}
       />
+      {fileStore.numMissingFiles > 0 && (
+        <Button
+          text={`Missing (${fileStore.numMissingFiles})`}
+          icon={IconSet.WARNING_BROKEN_LINK}
+          rightIcon={
+            fileStore.showsMissingContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
+          }
+          onClick={fileStore.fetchMissingFiles}
+          active={fileStore.showsMissingContent}
+          fill
+          data-right={Tooltip.Missing}
+        />
+      )}
     </ButtonGroup>
   );
 });

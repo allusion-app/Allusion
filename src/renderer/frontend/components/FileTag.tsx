@@ -23,6 +23,7 @@ const Single = observer(({ file, autoFocus }: { file: ClientFile; autoFocus?: bo
 
   return (
     <MultiTagSelector
+      disabled={file.isBroken}
       selectedItems={file.clientTags}
       onClearSelection={file.removeAllTags}
       onTagDeselect={(tag) => file.removeTag(tag.id)}

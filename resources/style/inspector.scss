@@ -21,7 +21,7 @@
     max-width: 0;
   }
 
-  > section {
+  > * {
     // Don't squash content of aside during parent transition
     width: var(--inspector-width);
     border-bottom: 2px solid var(--background-separator-color);
@@ -31,21 +31,14 @@
   .inpectorHeading {
     font-weight: bold;
   }
-
-  #filePreview {
-    border-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  #fileOverview {
-    text-align: left;
-  }
 }
 
 // File info
-#fileInfo {
+.file-info {
+  grid-area: info;
   display: grid;
   align-self: center;
+  align-items: baseline;
   grid-template-columns: auto 1fr;
   grid-column-gap: 1rem;
   grid-row-gap: 0.25rem;
@@ -56,68 +49,28 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
-  small.bp3-label {
-    color: --var(--text-muted-color);
-    opacity: 0.7;
-  }
 }
 
-.fileInfoValue {
+.file-info-key {
+  color: var(--text-muted-color);
+  opacity: 0.7;
+}
+
+.file-info-value {
   text-align: left;
 }
 
-#filePreview > img {
-  // padding: 0.3em;
-  // background-color: #333333;
-  width: 100%;
-  max-height: calc(var(--inspector-width) - 2em);
-  object-fit: contain;
-}
-
-#filePreview > #stack {
+.inspector-figure {
   margin: 0;
-  width: 100%;
-  max-height: calc(var(--inspector-width) - 2em);
-  overflow: hidden;
 
-  img {
-    max-width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    transition: all 0.3s;
-
-    &:last-child {
-      position: relative;
-    }
-  }
-
-  &.stack-queue {
-    transform: scale(0.9);
-    padding-top: 50px;
-    margin-top: 50px;
-
-    > img {
-      transform-origin: 50% -50%;
-
-      @for $i from 0 through 5 {
-        &:nth-child(#{$i}) {
-          transform: scale(calc(1 - 0.1 * #{$i}));
-          z-index: calc(5 - #{$i});
-        }
-      }
-
-      &:hover {
-        // transform: scale(1);
-        // z-index: -1;
-        opacity: 0.1;
-      }
-    }
+  > img {
+    width: 100%;
+    max-height: calc(var(--inspector-width) - 2em);
+    object-fit: contain;
   }
 }
 
-#filePreview > #carousel {
+#carousel {
   overflow: hidden;
   margin: 0;
   height: 400px;
@@ -147,21 +100,12 @@
     animation: highlight-fade-remove 0.2s ease;
   }
 
-  // display: flex;
-  // align-items: center;
-  // justify-content: center;
-
   > div {
     width: 100%;
     transition: all 0.2s ease;
     opacity: 1;
 
-    img {
-      // object-fit: contain;
-      // width: 100%;
-      // display:block;
-      // margin-left:auto;
-      // margin-right:auto;
+    > * {
       width: 100%;
       box-shadow: $pt-dark-elevation-shadow-2;
       transform-origin: center;
@@ -172,14 +116,10 @@
 
     @for $i from 0 through 10 {
       &.child-#{$i} {
-        height: 0px; //16px;
-        // margin-top: -16px;
-        // height: calc(8px + 4px * #{$i});
-        // opacity: calc(0.5 + 0.1 * #{$i});
+        height: 0px;
 
-        > img {
+        > * {
           transform: scale(calc(0.5 + 0.1 * #{$i})) translateY(calc(32px * #{$i} - 64px));
-          // z-index: calc(5 - #{$i});
           filter: brightness(calc(0.4 + 0.1 * #{$i}));
 
           &:hover {
@@ -197,17 +137,11 @@
   width: 100%;
 }
 
-// .bp3-popover-content #fileTag .bp3-popover-target:nth-child(1),
-// .bp3-dialog .bp3-popover-target:nth-child(1) {
-//   background-color: $light-gray4;
-// }
-
 #fileTag .bp3-tag {
   margin-bottom: 5px;
   margin-right: 5px;
 }
 
 .bp3-tag-remove:hover {
-  // transition: background-color 100ms cubic-bezier(0.4, 1, 0.75, 0.9);
   transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }

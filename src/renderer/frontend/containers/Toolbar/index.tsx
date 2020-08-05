@@ -15,7 +15,7 @@ export const enum ToolbarTooltips {
   Media = 'Number of files in library',
   Select = 'Selects or deselects all images',
   TagFiles = 'Quick add or delete tags to selection',
-  Delete = 'Delete selection from library',
+  Delete = 'Delete selected missing images from library',
   View = 'Change view content panel',
   ViewGrid = 'Change view to Grid',
   ViewList = 'Change view List',

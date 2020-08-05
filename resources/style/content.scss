@@ -154,9 +154,18 @@
   &:hover .thumbnail-tags {
     background-color: rgba(0, 0, 0, 0.25);
   }
+}
 
-  #fileInfo {
-    grid-area: info;
+.thumbnail-tags {
+  grid-area: tags;
+  width: 100%;
+  height: auto;
+  padding: 0.4em 0.4rem 0.15rem 0.4rem;
+  position: absolute;
+  bottom: 0;
+  background: none;
+  > * {
+    margin: 0.25em;
   }
 }
 
@@ -167,24 +176,49 @@
   border-radius: 0.25rem;
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
+  overflow: hidden;
 
   .placeholder {
     width: 100%;
     height: 100%;
   }
 
-  img {
+  > :first-child {
     background-color: var(--foreground-color);
+    clip-path: inset(0);
+    transition: clip-path 0.2s $pt-transition-cubic2;
+  }
+
+  > img {
     width: 100%;
     height: 100%;
     cursor: pointer;
     margin-left: auto;
     margin-right: auto;
     display: block;
-    clip-path: inset(0);
-    transition-property: clip-path, filter;
-    transition-duration: 0.2s;
-    transition-timing-function: $pt-transition-cubic2;
+  }
+}
+
+.thumbnail-broken {
+  > img,
+  > .image-error {
+    filter: saturate(0) brightness(0.25);
+  }
+}
+
+.thumbnail-broken-overlay {
+  cursor: pointer;
+  position: absolute;
+  padding: 0.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  top: 0.5rem;
+  left: calc(var(--thumbnail-size) - 3rem);
+  color: $danger;
+
+  svg {
+    width: 2rem !important;
+    height: 2rem !important;
   }
 }
 
@@ -209,7 +243,6 @@
   text-align: center;
   height: 100%;
   width: 100%;
-  background: var(--foreground-color);
 }
 
 // THUMBNAIL LOADER
@@ -269,9 +302,8 @@
     font-size: 16px;
     align-self: start;
   }
-  #fileInfo {
-    grid-row-gap: 0.02rem;
-    line-height: 1rem;
+  .file-info {
+    grid-row-gap: 0;
   }
   .thumbnail-tags {
     padding-top: 0;

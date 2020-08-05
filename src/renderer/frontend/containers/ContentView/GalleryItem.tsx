@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4 } from '@blueprintjs/core';
+import {
+  Tag,
+  ContextMenuTarget,
+  Menu,
+  MenuItem,
+  H4,
+  Tooltip,
+  Card,
+  Button,
+  ButtonGroup,
+} from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -12,6 +22,7 @@ import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
+import UiStore from '../../stores/UiStore';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -35,6 +46,48 @@ const ThumbnailTags = observer(({ tags, onClick, onDoubleClick }: IThumbnailTags
     ))}
   </span>
 ));
+
+interface IThumbnailDecoration {
+  showDetails?: boolean;
+  file: ClientFile;
+  uiStore: UiStore;
+  tags: JSX.Element;
+}
+
+const ThumbnailDecoration = observer(
+  ({ showDetails, file, uiStore, tags }: IThumbnailDecoration) => {
+    if (file.isBroken && showDetails) {
+      return (
+        <Card>
+          <p>The file {file.name} could not be found.</p>
+          <p>Would you like to remove it from your library?</p>
+          <ButtonGroup>
+            <Button
+              text="Remove"
+              intent="danger"
+              onClick={() => {
+                uiStore.selectFile(file, true);
+                uiStore.toggleToolbarFileRemover();
+              }}
+            />
+          </ButtonGroup>
+        </Card>
+      );
+    } else {
+      return (
+        <>
+          {showDetails && (
+            <>
+              <H4>{file.filename}</H4>
+              <ImageInfo file={file} />
+            </>
+          )}
+          {tags}
+        </>
+      );
+    }
+  },
+);
 
 interface IGalleryItemProps extends IRootStoreProp {
   file: ClientFile;
@@ -61,6 +114,12 @@ const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
     event.currentTarget.dataset[DnDAttribute.Target] = 'false';
   }
 };
+
+export const MissingImageFallback = ({ style }: { style?: React.CSSProperties }) => (
+  <div style={style} className="image-error custom-icon-128">
+    {IconSet.DB_ERROR}Could not load image
+  </div>
+);
 
 const GalleryItem = observer(
   ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
@@ -96,7 +155,10 @@ const GalleryItem = observer(
       ensureThumbnail(file, uiStore.thumbnailDirectory).then((exists) => {
         if (!exists) {
           setThumbnailReady(false);
-          setThumbnailGenerating(true);
+          if (!file.isBroken) {
+            // can't genarate thumbnail if img doesn't exist
+            setThumbnailGenerating(true);
+          }
         }
       });
     }, [file, uiStore.thumbnailDirectory]);
@@ -155,34 +217,47 @@ const GalleryItem = observer(
       >
         <div
           onClick={handleClickImg}
-          className="thumbnail-img"
+          className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
           onDoubleClick={handleDoubleClickImg}
           onDragStart={handleDragStart}
         >
           {isThumbnailReady ? (
             // Show image when it has been loaded
-            <img src={imagePath} onError={handleImageError} className="bp3-skeleton" alt="" />
+            <img src={imagePath} onError={handleImageError} alt="" />
           ) : isThumbnailGenerating ? (
             // If it's being generated, show a placeholder
             <div className="donut-loading" />
           ) : (
             // Show an error it it could not be loaded
-            <span className="image-error">
-              <span className="bp3-icon custom-icon custom-icon-128">{IconSet.DB_ERROR}</span>{' '}
-              <br /> Could not load image
-            </span>
+            <MissingImageFallback />
+          )}
+          {file.isBroken && !showDetails && (
+            <div className="thumbnail-broken-overlay">
+              <Tooltip content="This image could not be found.">
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent image click event
+                    uiStore.selectFile(file, true);
+                    uiStore.toggleToolbarFileRemover();
+                  }}
+                >
+                  {IconSet.WARNING_BROKEN_LINK}
+                </span>
+              </Tooltip>
+            </div>
           )}
         </div>
-        {showDetails && (
-          <>
-            <H4>{file.name}</H4>
-            <ImageInfo file={file} />
-          </>
-        )}
-        <ThumbnailTags
-          tags={file.clientTags}
-          onClick={handleClickImg}
-          onDoubleClick={handleDoubleClickImg}
+        <ThumbnailDecoration
+          showDetails={showDetails}
+          file={file}
+          uiStore={uiStore}
+          tags={
+            <ThumbnailTags
+              tags={file.clientTags}
+              onClick={handleClickImg}
+              onDoubleClick={handleDoubleClickImg}
+            />
+          }
         />
       </div>
     );
@@ -190,7 +265,7 @@ const GalleryItem = observer(
 );
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
-  const { uiStore } = rootStore;
+  const { uiStore, fileStore } = rootStore;
   const handleOpen = useCallback(() => shell.openItem(file.absolutePath), [file.absolutePath]);
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.absolutePath), [
     file.absolutePath,
@@ -203,6 +278,20 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
     }
   }, [file, uiStore]);
 
+  if (file.isBroken) {
+    return (
+      <Menu>
+        <MenuItem
+          onClick={fileStore.fetchMissingFiles}
+          text="Open Recovery Panel"
+          icon={IconSet.WARNING_BROKEN_LINK}
+          disabled={fileStore.showsMissingContent}
+        />
+        <MenuItem onClick={uiStore.toggleToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+      </Menu>
+    );
+  }
+
   return (
     <Menu>
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
@@ -212,7 +301,6 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
         icon={IconSet.FOLDER_CLOSE}
       />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-      {/* <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} /> */}
     </Menu>
   );
 };
@@ -276,12 +364,6 @@ class GalleryItemWithContextMenu extends React.PureComponent<
 
 // A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
 const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryItemProps) => {
-  // TODO: List gallery styling
-  // useEffect(() => {
-  //   // First check whether a thumbnail exists, generate it if needed
-  //   ensureThumbnail(file, uiStore.thumbnailDirectory);
-  // }, [file, uiStore.thumbnailDirectory]);
-
   return (
     <div className="thumbnail" aria-selected={isSelected}>
       <div className="thumbnail-img">
@@ -289,7 +371,7 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
       </div>
       {showDetails && (
         <>
-          <H4>{file.name}</H4>
+          <H4>{file.filename}</H4>
           <ImageInfo file={file} />
         </>
       )}

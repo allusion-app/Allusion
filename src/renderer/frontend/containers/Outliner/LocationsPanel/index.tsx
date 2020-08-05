@@ -222,6 +222,25 @@ const LocationTreeContextMenu = ({
   const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
   const openConfigDialog = useCallback(() => location && onConfig(location), [location, onConfig]);
 
+  if (location.isBroken) {
+    return (
+      <Menu>
+        <MenuItem
+          text="Open Recovery Panel"
+          onClick={() => uiStore.openLocationRecovery(location.id)}
+          icon={IconSet.WARNING_BROKEN_LINK}
+          disabled={location.id === DEFAULT_LOCATION_ID}
+        />
+        <MenuItem
+          text="Delete"
+          onClick={openDeleteDialog}
+          icon={IconSet.DELETE}
+          disabled={location.id === DEFAULT_LOCATION_ID}
+        />
+      </Menu>
+    );
+  }
+
   return (
     <Menu>
       <MenuItem text="Configure" onClick={openConfigDialog} icon={IconSet.SETTINGS} />

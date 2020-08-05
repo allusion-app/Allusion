@@ -1,28 +1,26 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import fs from 'fs';
+import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
 import { formatDateTime } from '../utils';
 
 const ImageInfo = observer(({ file }: { file: ClientFile }) => {
-  const [fileStats, setFileStats] = useState<fs.Stats | undefined>(undefined);
-  const [error, setError] = useState<Error | undefined>(undefined);
+  const [fileStats, setFileStats] = useState<fse.Stats | undefined>(undefined);
   const [resolution, setResolution] = useState<string>('...');
 
   // Look up file info when file changes
   useEffect(() => {
     let isMounted = true;
-    fs.stat(file.absolutePath, (err, stats) => {
-      if (isMounted) {
-        err ? setError(err) : setFileStats(stats);
-      }
-    });
+    fse
+      .stat(file.absolutePath)
+      .then((stats) => isMounted && setFileStats(stats))
+      .catch(() => isMounted && setFileStats(undefined));
     const img = new Image();
 
     img.onload = () => {
       if (isMounted) {
-        setResolution(`${img.width}x${img.height}`);
+        setResolution(`${img.width} x ${img.height}`);
       }
     };
     img.src = file.absolutePath;
@@ -57,21 +55,15 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
   );
 
   return (
-    <section id="fileInfo">
+    <section className="file-info">
       {fileInfoList.map(({ key, value }) => [
-        <small key={`fileInfoKey-${key}`} className="bp3-label">
+        <small key={`key-${key}`} className="file-info-key bp3-label">
           {key}
         </small>,
-        <div key={`fileInfoValue-${key}`} className="fileInfoValue bp3-button-text">
-          {value}
+        <div key={`value-${key}`} className="file-info-value bp3-button-text">
+          {value || '-'}
         </div>,
       ])}
-
-      {error && (
-        <p>
-          Error: {error.name} <br /> {error.message}
-        </p>
-      )}
     </section>
   );
 });

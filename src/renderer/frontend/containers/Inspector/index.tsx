@@ -1,6 +1,5 @@
 import React, { useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import fs from 'fs';
-import path from 'path';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
@@ -9,7 +8,8 @@ import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
 import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
 import { CSSTransition } from 'react-transition-group';
-import { H5, H6 } from '@blueprintjs/core';
+import { H5 } from '@blueprintjs/core';
+import { MissingImageFallback } from '../ContentView/GalleryItem';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 const getBytesHumanReadable = (bytes: number) => {
@@ -21,11 +21,7 @@ const getBytesHumanReadable = (bytes: number) => {
 };
 
 const MultiFileInfo = observer(({ files }: { files: ClientFile[] }) => {
-  return (
-    <section>
-      <p>Selected {files.length} files</p>
-    </section>
-  );
+  return <section>Selected {files.length} files</section>;
 });
 
 const Carousel = ({ items }: { items: ClientFile[] }) => {
@@ -75,90 +71,91 @@ const Carousel = ({ items }: { items: ClientFile[] }) => {
   );
 };
 
+interface IContainer {
+  children: React.ReactNode;
+}
+
+const Container = observer(({ children }: IContainer) => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <CSSTransition
+      in={uiStore.isInspectorOpen}
+      classNames="sliding-sidebar"
+      // Note: timeout needs to equal the transition time in CSS
+      timeout={200}
+      unmountOnExit
+    >
+      <aside id="inspector">{children}</aside>
+    </CSSTransition>
+  );
+});
+
 const Inspector = observer(() => {
   const { uiStore } = useContext(StoreContext);
   const selectedFiles = uiStore.clientFileSelection;
 
-  let selectionPreview;
-  let headerElem;
-  let headerSubtext;
-
   if (selectedFiles.length === 0) {
-    headerElem = <H6 muted><i>No image selected</i></H6>;
-  } else if (selectedFiles.length === 1) {
+    return (
+      <Container>
+        <H5>
+          <i>No image selected</i>
+        </H5>
+      </Container>
+    );
+  }
+
+  let selectionPreview;
+  let title;
+  let subTitle;
+
+  if (selectedFiles.length === 1) {
     const singleFile = selectedFiles[0];
-    const ext = singleFile.absolutePath
-      .substr(singleFile.absolutePath.lastIndexOf('.') + 1)
-      .toUpperCase();
-    selectionPreview = (
+    selectionPreview = singleFile.isBroken ? (
+      <MissingImageFallback />
+    ) : (
       <img
         src={singleFile.absolutePath}
         style={{ cursor: uiStore.isSlideMode ? undefined : 'zoom-in' }}
         onClick={uiStore.enableSlideMode}
       />
     );
-    headerElem = <H5>{path.basename(singleFile.absolutePath)}</H5>;
-    headerSubtext = `${ext} image - ${getBytesHumanReadable(fs.statSync(singleFile.absolutePath).size)}`;
+    title = singleFile.filename;
+    try {
+      const size = getBytesHumanReadable(fs.statSync(singleFile.absolutePath).size);
+      subTitle = `${singleFile.extension.toUpperCase()} image - ${size}`;
+    } catch (err) {
+      console.warn(err);
+    }
   } else {
-    // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
-    // TODO: This will crash the app if the image can't be found - same for the other case a few lines earlier
-    const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.absolutePath).size, 0);
-
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
-    // TODO: Would be nice to hover over an image and that all images before that get opacity 0.1
-    // Or their transform is adjusted so they're more spread apart or something
-    // TODO: Maybe a dropshadow?
-    selectionPreview = (
-      // <figure id="stack" className="stack-queue">
-      //   {/* Show a stack of the first 5 images (with some css magic - the 5 limit is also hard coded in there) */}
-      //   {selectedFiles.slice(0, 5).map((file) => (
-      //     <img src={file.thumbnailPath} key={file.id} />
-      //   ))}
-      // </figure>
-      <Carousel items={selectedFiles} />
-    );
-    headerElem = <H5>{`${selectedFiles[0].name} and ${selectedFiles.length - 1} more`}</H5>;
-    headerSubtext = getBytesHumanReadable(size);
+    selectionPreview = <Carousel items={selectedFiles} />;
+    title = `${selectedFiles[0].filename} and ${selectedFiles.length - 1} more`;
+    try {
+      // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
+      const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.absolutePath).size, 0);
+      subTitle = getBytesHumanReadable(size);
+    } catch (error) {
+      console.warn(error);
+    }
   }
 
-  let content: ReactNode;
-
-  if (selectedFiles.length > 0) {
-    content = (
-      <>
-        <section id="filePreview">{selectionPreview}</section>
-
-        <section id="fileOverview">
-          {headerElem}
-          <small>{headerSubtext}</small>
-        </section>
-
-        {selectedFiles.length === 1 ? (
-          <ImageInfo file={selectedFiles[0]} />
-        ) : (
-          <MultiFileInfo files={selectedFiles} />
-        )}
-        <FileTags files={selectedFiles} />
-      </>
-    );
-  } else {
-    content= (
-      <>
-        <section id="filePreview" />
-        <section id="fileOverview">
-          <div className="inpectorHeading">{headerElem}</div>
-        </section>
-      </>
-    );
-  }
   return (
-    // Note: timeout needs to equal the transition time in CSS
-    <CSSTransition in={uiStore.isInspectorOpen} classNames="sliding-sidebar" timeout={200} unmountOnExit>
-      <aside id="inspector">
-        {content}
-      </aside>
-    </CSSTransition>
-  )
+    <Container>
+      <figure className="inspector-figure">
+        {selectionPreview}
+        <figcaption>
+          <H5>{title}</H5>
+          {subTitle && <small>{subTitle}</small>}
+        </figcaption>
+      </figure>
+      {selectedFiles.length === 1 ? (
+        <ImageInfo file={selectedFiles[0]} />
+      ) : (
+        <MultiFileInfo files={selectedFiles} />
+      )}
+      <FileTags files={selectedFiles} />
+    </Container>
+  );
 });
 
 export default Inspector;

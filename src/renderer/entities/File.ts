@@ -82,9 +82,10 @@ export class ClientFile implements ISerializable<IFile> {
 
   @observable thumbnailPath: string = '';
 
-  @observable isBroken: boolean;
+  // Is undefined until existence check has been completed
+  @observable isBroken?: boolean;
 
-  constructor(store: FileStore, fileProps: IFile, isBroken: boolean = false) {
+  constructor(store: FileStore, fileProps: IFile) {
     this.store = store;
 
     this.id = fileProps.id;
@@ -97,7 +98,6 @@ export class ClientFile implements ISerializable<IFile> {
     this.dateModified = fileProps.dateModified;
     this.name = fileProps.name;
     this.extension = fileProps.extension;
-    this.isBroken = isBroken;
 
     const location = store.getFileLocation(this);
     this.absolutePath = systemPath.join(location.path, this.relativePath);
@@ -159,6 +159,10 @@ export class ClientFile implements ISerializable<IFile> {
       this.store.incrementNumUntaggedFiles();
     }
     this.tags.clear();
+  }
+
+  @action.bound setBroken(state: boolean): void {
+    this.isBroken = state;
   }
 
   serialize(): IFile {
