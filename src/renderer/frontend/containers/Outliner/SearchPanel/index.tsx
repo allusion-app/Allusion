@@ -11,6 +11,7 @@ import {
   InputGroup,
   Switch,
   ButtonGroup,
+  Classes,
 } from '@blueprintjs/core';
 
 import {
@@ -263,49 +264,53 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
 
   return (
     <div id="search-form">
-      <FormGroup>
-        {state.items.map((crit) => (
-          <CriteriaItem
-            key={crit.id}
-            criteria={crit}
-            dispatch={dispatch}
-            removable={state.items.length !== 1}
-          />
-        ))}
-      </FormGroup>
-
-      <div id="functions-bar">
-        <Button text="Add" icon={IconSet.ADD} onClick={add} className="" />
-        <Switch
-          inline
-          large
-          label="Match"
-          innerLabel="All"
-          innerLabelChecked="Any"
-          alignIndicator="right"
-          checked={searchMatchAny}
-          onChange={toggleSearchMatchAny}
-        />
+      <div className={Classes.DIALOG_BODY}>
+        <FormGroup>
+          {state.items.map((crit) => (
+            <CriteriaItem
+              key={crit.id}
+              criteria={crit}
+              dispatch={dispatch}
+              removable={state.items.length !== 1}
+            />
+          ))}
+        </FormGroup>
       </div>
 
-      <div id="actions-bar">
-        <ButtonGroup>
-          <Button
-            text="Reset"
-            onClick={reset}
-            disabled={state.items.length === 0}
-            icon={IconSet.CLOSE}
-            fill
+      <div className={Classes.DIALOG_FOOTER}>
+        <div id="functions-bar">
+          <Button text="Add" icon={IconSet.ADD} onClick={add} className="" />
+          <Switch
+            inline
+            large
+            label="Match"
+            innerLabel="All"
+            innerLabelChecked="Any"
+            alignIndicator="right"
+            checked={searchMatchAny}
+            onChange={toggleSearchMatchAny}
           />
-          <Button
-            intent="primary"
-            text="Search"
-            onClick={search}
-            disabled={state.items.length === 0}
-            icon={IconSet.SEARCH}
-            fill
-          />
-        </ButtonGroup>
+        </div>
+
+        <div id="actions-bar">
+          <ButtonGroup>
+            <Button
+              text="Reset"
+              onClick={reset}
+              disabled={state.items.length === 0}
+              icon={IconSet.CLOSE}
+              fill
+            />
+            <Button
+              intent="primary"
+              text="Search"
+              onClick={search}
+              disabled={state.items.length === 0}
+              icon={IconSet.SEARCH}
+              fill
+            />
+          </ButtonGroup>
+        </div>
       </div>
     </div>
   );
@@ -321,7 +326,7 @@ export const AdvancedSearchDialog = observer(() => {
       onClose={uiStore.toggleAdvancedSearch}
       icon={IconSet.SEARCH_EXTENDED}
       title="Advanced Search"
-      className={`${themeClass} light header-dark`}
+      className={`${themeClass} light header-dark search-dialog`}
       canEscapeKeyClose={true}
       canOutsideClickClose={true}
     >
