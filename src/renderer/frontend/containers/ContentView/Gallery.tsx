@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, MutableRefObject } from 'react';
 import { ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
@@ -20,6 +20,14 @@ import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
 import useDebounce from '../../hooks/useDebounce';
+import {
+  usePositioner,
+  useMasonry,
+  useResizeObserver,
+  useScrollToIndex,
+  PositionerItem,
+} from 'masonic';
+import useScroller from '../../hooks/useScroller';
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
@@ -53,6 +61,7 @@ function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
 }
 
 interface IGalleryLayoutProps {
+  containerRef: React.MutableRefObject<HTMLDivElement | null>;
   contentRect: Rectangle;
   fileList: ClientFile[];
   uiStore: UiStore;
@@ -77,8 +86,8 @@ function getLayoutComponent(
   switch (viewMethod) {
     case 'grid':
       return <GridGallery {...props} />;
-    // case 'masonry':
-    //   return <MasonryGallery {...props} />;
+    case 'masonry':
+      return <MasonryGallery {...props} />;
     case 'list':
       return <ListGallery {...props} />;
     default:
@@ -155,7 +164,8 @@ const GridGallery = observer(
       if (index >= 0) {
         handleScrollTo(index);
       }
-    }, [latestSelectedFile, handleScrollTo, fileList, forceUpdateObj]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [forceUpdateObj]); // others are intentionally ignored, else scroll is performed e.g. on window resize too
 
     // Store what the first item in view is in the UiStore
     const handleScroll = useCallback(
@@ -320,30 +330,171 @@ const ListGallery = observer(
   },
 );
 
-export const MasonryGallery = observer(({}: IGalleryLayoutProps) => {
-  const Styles: any = {
-    textAlign: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    height: '65%',
-  };
+interface MasonryCardProps {
+  data: ClientFile;
+  width: number;
+  index: number;
+}
 
-  return (
-    <div style={Styles}>
-      {' '}
-      <span className="custom-icon-64" style={{ marginBottom: '1rem' }}>
-        {IconSet.DB_ERROR}
-      </span>
-      <p>This view is currently not supported</p>
-    </div>
-  );
-  {
-    /* // tslint:disable-next-line */
-  }
-});
+export const MasonryGallery = observer(
+  ({
+    contentRect,
+    fileList,
+    uiStore,
+    handleClick,
+    handleDoubleClick,
+    containerRef,
+    lastSelectionIndex,
+    handleFileSelect,
+  }: IGalleryLayoutProps) => {
+    const [, columnWidth] = getThumbnailSize(uiStore.thumbnailSize);
+
+    const positioner = usePositioner({
+      width: contentRect.width,
+      columnWidth,
+      columnGutter: 8,
+    });
+    const resizeObserver = useResizeObserver(positioner);
+    const { scrollTop, isScrolling } = useScroller(containerRef);
+
+    const scrollToIndex = useScrollToIndex(positioner, {
+      element: containerRef,
+      height: contentRect.height,
+      offset: contentRect.y,
+      align: 'center',
+    });
+
+    useEffect(() => {
+      // Scroll to last visible item on mount (e.g. when openening/closing slide view)
+      scrollToIndex(uiStore.firstItem);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [scrollToIndex]);
+
+    useEffect(() => {
+      // Store the first item in view. Just an estimate, it's hard to find the real value
+      uiStore.setFirstItem(positioner.columnCount * Math.round(scrollTop / columnWidth));
+    }, [columnWidth, positioner.columnCount, scrollTop, uiStore]);
+
+    const handleScrollIntoView = useCallback(
+      (scrollTopPos: number, itemHeight: number) => {
+        const scrollTop = containerRef.current?.scrollTop || 0; // using ref instead of existing scrollTop to avoid needless updates
+        const containerHeight = containerRef.current?.clientHeight || 0;
+        if (scrollTopPos < scrollTop) {
+          containerRef.current?.scrollTo({ top: scrollTopPos });
+        } else if (scrollTopPos > scrollTop + containerHeight - itemHeight) {
+          containerRef.current?.scrollTo({ top: scrollTopPos - containerHeight + itemHeight });
+        }
+      },
+      [containerRef],
+    );
+
+    // force an update with an observable obj since no rerender is triggered when a Ref value updates (lastSelectionIndex)
+    const forceUpdateObj = uiStore.fileSelection.length === 0 ? null : uiStore.fileSelection[0];
+
+    // Scroll to a file when selecting it
+    useEffect(() => {
+      const index = lastSelectionIndex.current;
+      if (index !== undefined && index >= 0) {
+        const pos = positioner.get(index);
+        if (pos) {
+          handleScrollIntoView(pos.top, pos.height);
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [forceUpdateObj]); // others are intentionally ignored, else scroll is performed e.g. on window resize too
+
+    // Arrow keys need different behavior for masonry: Image order is not same as in list
+    // TODO: Could also change the left/right behavior, but meh
+    useEffect(() => {
+      const onKeyDown = (e: KeyboardEvent) => {
+        // Up and down cursor keys are used in the tag selector list, so ignore these events when it is open
+        if (uiStore.isToolbarTagSelectorOpen || lastSelectionIndex.current === undefined) {
+          return;
+        }
+
+        // Find the upper/lower image by looking at positions of nearby items in the list
+        const curIndex = lastSelectionIndex.current;
+        const numColumns = positioner.columnCount;
+        const curCard = positioner.get(lastSelectionIndex.current);
+        const offset = 3 * numColumns; // search space of N rows up and down
+        const nearbyCards = [...new Array(2 * offset)].map((_, i) =>
+          positioner.get(curIndex - offset + i),
+        );
+
+        let index = lastSelectionIndex.current;
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const upperCards = nearbyCards.filter(
+            (c) => c && c.column === curCard?.column && c.top < curCard?.top,
+          );
+          if (upperCards.length > 0) {
+            const upperIndex = nearbyCards.indexOf(upperCards[upperCards.length - 1]);
+            index = curIndex + upperIndex - offset;
+          }
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const lowerCards = nearbyCards.filter(
+            (c) => c && c.column === curCard?.column && c.top > curCard?.top,
+          );
+          if (lowerCards.length > 0) {
+            const upperIndex = nearbyCards.indexOf(lowerCards[0]);
+            index = curIndex + upperIndex - offset;
+          }
+        } else {
+          return;
+        }
+        if (index !== lastSelectionIndex.current) {
+          handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+        }
+      };
+
+      const throttledKeyDown = throttle(onKeyDown, 50);
+      window.addEventListener('keydown', throttledKeyDown);
+      return () => window.removeEventListener('keydown', throttledKeyDown);
+    }, [fileList, uiStore, handleFileSelect, lastSelectionIndex, positioner]);
+
+    const MasonryCard: React.FunctionComponent<MasonryCardProps> = useCallback(
+      ({ index, width }) =>
+        useObserver(() => {
+          const file = fileList[index];
+          // TODO: Could probably immensly improve performance by making use of pre-computed image dimensions
+          // but it doesn't appear to be supported by Masonic
+
+          const height = width * (file.height / file.width || 1);
+          // TODO: Should introduce max-height for images, since very narrow images don't really work in this set-up
+          // const maxAspectRatio = 1; // this also needs to be changed in CSS for the .masonry thumbnail class
+          // const actualHeight = Math.min(height, maxAspectRatio * width);
+          return (
+            // Note: No actual need to specify the dimensions in style here, but I thought it might help all of the size observers
+            <div className="galleryItem" style={{ width, height }}>
+              <GalleryItem
+                file={file}
+                isSelected={uiStore.fileSelection.includes(file.id)}
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
+              />
+            </div>
+          );
+        }),
+      [fileList, handleClick, handleDoubleClick, uiStore.fileSelection],
+    );
+
+    const getItemKey = useCallback((file: ClientFile) => file.id, []);
+
+    return useMasonry<ClientFile>({
+      items: fileList,
+      itemKey: getItemKey,
+      positioner,
+      height: contentRect.height,
+      scrollTop,
+      isScrolling,
+      resizeObserver,
+      // How many window heights to pre-render
+      overscanBy: 3,
+      render: MasonryCard,
+    });
+  },
+);
 
 const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayoutProps) => {
   // Go to the first selected image on load
@@ -446,6 +597,7 @@ const SlideGallery = observer(({ fileList, uiStore, contentRect }: IGalleryLayou
 
 const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
   const { fileList } = fileStore;
+  const containerRef = useRef<HTMLDivElement>(null);
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
   const handleResize = useCallback((entries: IResizeEntry[]) => {
     const { contentRect: rect, target } = entries[0];
@@ -581,6 +733,9 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
           selectionModeOn ? 'gallerySelectionMode' : ''
         } ${uiStore.thumbnailShape === 'square' ? 'thumb-square' : 'thumb-letterbox'}`}
         onClick={handleBackgroundClick}
+        ref={containerRef}
+        // Temp fix for masonry: Needs to be re-initialized when file list changes
+        key={fileList.length}
       >
         {getLayoutComponent(uiStore.method, uiStore.isSlideMode, {
           contentRect,
@@ -590,6 +745,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
           handleDoubleClick,
           handleFileSelect,
           lastSelectionIndex,
+          containerRef,
         })}
       </div>
     </ResizeSensor>

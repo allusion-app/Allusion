@@ -153,9 +153,10 @@ interface ILayoutOptions {
   method: ViewMethod;
   viewGrid: () => void;
   viewList: () => void;
+  viewMasonry: () => void;
 }
 
-const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) => (
+const LayoutOptions = observer(({ method, viewGrid, viewList, viewMasonry }: ILayoutOptions) => (
   <ButtonGroup minimal>
     <Button
       onClick={viewList}
@@ -170,6 +171,13 @@ const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) 
       active={method === 'grid'}
       className="tooltip"
       data-right={ToolbarTooltips.ViewGrid}
+    />
+    <Button
+      onClick={viewMasonry}
+      icon={IconSet.VIEW_MASON}
+      active={method === 'masonry'}
+      className="tooltip"
+      data-right={ToolbarTooltips.ViewMasonry}
     />
   </ButtonGroup>
 ));
@@ -256,6 +264,7 @@ const ContentToolbar = observer(() => {
           method={uiStore.method}
           viewGrid={uiStore.setMethodGrid}
           viewList={uiStore.setMethodList}
+          viewMasonry={uiStore.setMethodMasonry}
         />
       </div>
     );

@@ -83,6 +83,12 @@
   flex: 1;
   max-height: 100%;
   margin-left: 8px;
+
+  &.masonry {
+    // Scrolling for Masonry gallery component behaves differently
+    position: relative;
+    overflow-y: auto;
+  }
 }
 
 .gallery-content:not(.slide) {
@@ -115,7 +121,7 @@
   // --thumbnail-size: 282px;
   --thumbnail-size: 350px;
 }
-.galleryItem {
+.grid .galleryItem {
   padding: 0.3rem 0 0 0;
 }
 
@@ -154,6 +160,13 @@
   &:hover .thumbnail-tags {
     background-color: rgba(0, 0, 0, 0.25);
   }
+
+  // Disable blueprint skeleton animation for better performance
+  .#{$ns}-skeleton {
+    border-color: $dark-gray3 !important;
+    border-radius: 0.25rem;
+    animation: none !important;
+  }
 }
 
 .thumbnail-tags {
@@ -169,10 +182,21 @@
   }
 }
 
-.thumbnail-img {
-  grid-area: image;
+.grid .thumbnail-img,
+.list .thumbnail-img {
   width: var(--thumbnail-size);
   height: var(--thumbnail-size);
+}
+
+.masonry {
+  .thumbnail-img {
+    width: 100%;
+  }
+}
+
+.thumbnail-img {
+  grid-area: image;
+
   border-radius: 0.25rem;
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
@@ -329,10 +353,6 @@
     max-height: var(--thumbnail-size);
     overflow: hidden; // can't scroll while dropping
   }
-}
-// Fix for temp placeholder masonry smiley
-.masonry {
-  position: relative !important;
 }
 
 .thumb-square:not(.slide) img {

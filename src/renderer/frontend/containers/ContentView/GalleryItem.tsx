@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useContext, memo } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import {
@@ -362,6 +362,10 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   };
 }
 
+const noop = () => {
+  /* Intentionally left empty */
+};
+
 // A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
 const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryItemProps) => {
   return (
@@ -375,7 +379,8 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
           <ImageInfo file={file} />
         </>
       )}
-      <span className="thumbnail-tags placeholder bp3-skeleton" />
+      {/* <span className="thumbnail-tags placeholder bp3-skeleton" /> */}
+      <ThumbnailTags tags={file.clientTags} onClick={noop} onDoubleClick={noop} />
     </div>
   );
 });
@@ -383,10 +388,12 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
 const DelayedGalleryItem = (props: IGalleryItemProps) => {
   const [showSimple, setShowSimple] = useState(true);
   useEffect(() => {
+    // TODO: Cleaner to do this check for all elements at once, not individually
+    // -> render the SimpleGalleryItem while scrolling, the other when otherwise
     const timeout = setTimeout(() => setShowSimple(false), 300);
     return () => clearTimeout(timeout);
-  });
+  }, [props.file.id]);
   return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItemWithContextMenu {...props} />;
 };
 
-export default observer(withRootstore(DelayedGalleryItem));
+export default observer(withRootstore(memo(DelayedGalleryItem)));

@@ -13,7 +13,7 @@ import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
-export type ViewMethod = 'list' | 'grid';
+export type ViewMethod = 'list' | 'grid' | 'masonry';
 export type ViewThumbnailSize = 'small' | 'medium' | 'large';
 export type ViewThumbnailShape = 'square' | 'letterbox';
 export const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -192,6 +192,10 @@ class UiStore {
 
   @action.bound setMethodGrid() {
     this.setMethod('grid');
+  }
+
+  @action.bound setMethodMasonry() {
+    this.setMethod('masonry');
   }
 
   @action.bound enableSlideMode() {
