@@ -1,23 +1,32 @@
-import { action, observable, computed } from 'mobx';
-import { remote, ipcRenderer } from 'electron';
+import path from 'path';
+import fse from 'fs-extra';
+import { action, observable, computed, observe } from 'mobx';
+import { remote } from 'electron';
 
 import RootStore from './RootStore';
 import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
 import { ClientTag } from '../../entities/Tag';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import { ClientBaseCriteria, ClientIDSearchCriteria } from '../../entities/SearchCriteria';
+import { RendererMessenger } from '../../../Messaging';
+import { debounce } from '../utils';
+
+export type FileSearchCriteria = ClientBaseCriteria<IFile>;
+export type ViewMethod = 'list' | 'grid';
+export type ViewThumbnailSize = 'small' | 'medium' | 'large';
+export type ViewThumbnailShape = 'square' | 'letterbox';
+export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 interface IHotkeyMap {
   // Outerliner actions
   toggleOutliner: string;
-  openOutlinerImport: string;
-  openOutlinerTags: string;
-  openOutlinerSearch: string;
   replaceQuery: string;
 
   // Inspector actions
   toggleInspector: string;
   toggleSettings: string;
+  toggleHelpCenter: string;
 
   // Toolbar actions (these should only be active when the content area is focused)
   openTagSelector: string;
@@ -26,8 +35,11 @@ interface IHotkeyMap {
   deselectAll: string;
   viewList: string;
   viewGrid: string;
-  viewMason: string;
+  // viewMason: string;
   viewSlide: string;
+  quickSearch: string;
+  advancedSearch: string;
+  closeSearch: string;
 
   // Other
   openPreviewWindow: string;
@@ -37,39 +49,23 @@ interface IHotkeyMap {
 const defaultHotkeyMap: IHotkeyMap = {
   toggleOutliner: '1',
   toggleInspector: '2',
-  openOutlinerImport: 'shift + 1',
-  openOutlinerTags: 'shift + 2',
-  openOutlinerSearch: 'shift + 3',
   replaceQuery: 'r',
   openTagSelector: 't',
   toggleSettings: 's',
+  toggleHelpCenter: 'h',
   deleteSelection: 'del',
   selectAll: 'mod + a',
   deselectAll: 'mod + d',
   viewList: 'alt + 1',
   viewGrid: 'alt + 2',
-  viewMason: 'alt + 3',
-  viewSlide: 'alt + 4',
+  // TODO: Add masonry layout
+  // viewMason: 'alt + 3',
+  viewSlide: 'alt + 3',
+  quickSearch: 'mod + f',
+  advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
+  closeSearch: 'escape',
 };
-
-type SearchQueryAction = 'include' | 'exclude';
-type SearchQueryOperator = 'and' | 'or';
-interface ISearchQuery {
-  action: SearchQueryAction;
-  /** Operator between previous query and this query */
-  operator: SearchQueryOperator;
-}
-
-export interface ITagSearchQuery extends ISearchQuery {
-  value: ID[];
-}
-// interface IFilenameSearchQuery extends ISearchQuery {
-//   value: string;
-// }
-// interface IFilenameSearchQuery extends ISearchQuery {
-//   value: string;
-// }
 
 /**
  * From: https://mobx.js.org/best/store.html
@@ -89,7 +85,17 @@ export interface ITagSearchQuery extends ISearchQuery {
  *  - State of a global overlay
  */
 
-export type ViewMethod = 'list' | 'grid' | 'mason' | 'slide';
+/** These fields are stored and recovered when the application opens up */
+const PersistentPreferenceFields: Array<keyof UiStore> = [
+  'theme',
+  'isOutlinerOpen',
+  'isInspectorOpen',
+  'thumbnailDirectory',
+  'isToolbarVertical',
+  'method',
+  'thumbnailSize',
+  'thumbnailShape',
+];
 
 class UiStore {
   rootStore: RootStore;
@@ -99,63 +105,248 @@ class UiStore {
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
-  // FullScreen
-  @observable isFullScreen: boolean = false;
+  // Sidebar
+  @observable isToolbarVertical: boolean = true;
 
   // UI
-  @observable outlinerPage: 'IMPORT' | 'TAGS' | 'SEARCH' = 'TAGS';
   @observable isOutlinerOpen: boolean = true;
-  @observable isInspectorOpen: boolean = true;
+  @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
+  @observable isHelpCenterOpen: boolean = false;
   @observable isToolbarTagSelectorOpen: boolean = false;
+  @observable isLocationRecoveryOpen: ID | null = null;
   @observable isPreviewOpen: boolean = false;
-  @observable isToolbarFileRemoverOpen: boolean = false;
-  @observable isOutlinerTagRemoverOpen: 'selection' | ID | null = null;
-
-  // VIEW
-  @observable viewMethod: ViewMethod = 'grid';
+  @observable isQuickSearchOpen: boolean = false;
+  @observable isAdvancedSearchOpen: boolean = false;
+  @observable searchMatchAny = false;
+  @observable method: ViewMethod = 'grid';
+  @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
-  @observable firstIndexInView: number = 0;
-  /** The origin of the current files that are shown */
-  @observable viewContent: 'query' | 'all' | 'untagged' = 'all';
-  @observable thumbnailSize: 'small' | 'medium' | 'large' = 'medium';
+  @observable firstItem: number = 0;
+  @observable thumbnailSize: ViewThumbnailSize = 'medium';
+  @observable thumbnailShape: ViewThumbnailShape = 'square';
 
-  // Content
-  @observable fileOrder: keyof IFile = 'dateAdded';
-  @observable fileOrderDescending = true;
-  @observable fileLayout: 'LIST' | 'GRID' | 'MASONRY' | 'SLIDE' = 'GRID';
+  @observable isToolbarFileRemoverOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
   readonly fileSelection = observable<ID>([]);
   readonly tagSelection = observable<ID>([]);
 
-  readonly searchQueryList = observable<ISearchQuery>([]);
+  readonly searchCriteriaList = observable<FileSearchCriteria>([]);
+
+  @observable thumbnailDirectory: string = '';
 
   @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
 
-  @computed get clientFileSelection(): ClientFile[] {
-    return this.fileSelection.map((id) =>
-      this.rootStore.fileStore.fileList.find((f) => f.id === id),
-    ) as ClientFile[];
-  }
-
-  @computed get clientTagSelection(): ClientTag[] {
-    return this.tagSelection.map((id) =>
-      this.rootStore.tagStore.tagList.find((t) => t.id === id),
-    ) as ClientTag[];
-  }
-
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
+
+    // Store preferences immediately when anything is changed
+    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
+    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+  }
+
+  @action.bound init() {
+    this.isInitialized = true;
+  }
+
+  /////////////////// UI Actions ///////////////////
+  @computed get isList(): boolean {
+    return this.method === 'list';
+  }
+
+  @computed get isGrid(): boolean {
+    return this.method === 'grid';
+  }
+
+  @action.bound setThumbnailSmall() {
+    this.setThumbnailSize('small');
+  }
+
+  @action.bound setThumbnailMedium() {
+    this.setThumbnailSize('medium');
+  }
+
+  @action.bound setThumbnailLarge() {
+    this.setThumbnailSize('large');
+  }
+
+  @action.bound setThumbnailSquare() {
+    this.setThumbnailShape('square');
+  }
+
+  @action.bound setThumbnailLetterbox() {
+    this.setThumbnailShape('letterbox');
+  }
+
+  @action.bound setFirstItem(index: number = 0) {
+    if (isFinite(index)) {
+      this.firstItem = index;
+    }
+  }
+
+  @action.bound setMethodList() {
+    this.setMethod('list');
+  }
+
+  @action.bound setMethodGrid() {
+    this.setMethod('grid');
+  }
+
+  @action.bound enableSlideMode() {
+    this.isSlideMode = true;
+  }
+
+  @action.bound disableSlideMode() {
+    this.isSlideMode = false;
+  }
+
+  @action.bound toggleSlideMode() {
+    this.isSlideMode = !this.isSlideMode;
+  }
+
+  @action.bound openOutliner() {
+    this.setIsOutlinerOpen(true);
+  }
+
+  @action.bound toggleOutliner() {
+    this.setIsOutlinerOpen(!this.isOutlinerOpen);
+  }
+
+  @action.bound openPreviewWindow() {
+    // Don't open when no files have been selected
+    if (this.fileSelection.length === 0) {
+      return;
+    }
+
+    RendererMessenger.sendPreviewFiles({
+      ids: this.fileSelection.toJS(),
+      thumbnailDirectory: this.thumbnailDirectory,
+    });
+
+    this.isPreviewOpen = true;
+
+    // remove focus from element so closing preview with spacebar does not trigger any ui elements
+    if (document.activeElement && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  }
+
+  @action.bound toggleInspector() {
+    this.setIsInspectorOpen(!this.isInspectorOpen);
+  }
+
+  @action.bound toggleSettings() {
+    this.isSettingsOpen = !this.isSettingsOpen;
+  }
+
+  @action.bound toggleHelpCenter() {
+    this.isHelpCenterOpen = !this.isHelpCenterOpen;
+  }
+
+  @action.bound toggleToolbarTagSelector() {
+    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
+  }
+
+  @action.bound openToolbarTagSelector() {
+    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0;
+  }
+
+  @action.bound closeToolbarTagSelector() {
+    this.isToolbarTagSelectorOpen = false;
+  }
+
+  @action.bound toggleToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = !this.isToolbarFileRemoverOpen;
+  }
+
+  @action.bound openLocationRecovery(locationId: ID) {
+    this.isLocationRecoveryOpen = locationId;
+  }
+
+  @action.bound closeLocationRecovery() {
+    this.isLocationRecoveryOpen = null;
+  }
+
+  @action.bound closePreviewWindow() {
+    this.isPreviewOpen = false;
+  }
+
+  @action.bound setThumbnailDirectory(dir: string = '') {
+    this.thumbnailDirectory = dir;
+  }
+
+  @action.bound toggleTheme() {
+    this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
+    RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' });
+  }
+  @action.bound toggleDevtools() {
+    remote.getCurrentWebContents().toggleDevTools();
+  }
+  @action.bound reload() {
+    remote.getCurrentWindow().reload();
+  }
+
+  @action.bound toggleQuickSearch() {
+    if (this.isQuickSearchOpen) {
+      return this.closeQuickSearch();
+    }
+    this.openQuickSearch();
+  }
+
+  @action.bound toggleAdvancedSearch() {
+    this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
+  }
+
+  @action.bound closeQuickSearch() {
+    this.isQuickSearchOpen = false;
+    this.clearSearchCriteriaList();
+  }
+
+  @action.bound openQuickSearch() {
+    this.isQuickSearchOpen = true;
+  }
+
+  @action.bound closeAdvancedSearch() {
+    this.isAdvancedSearchOpen = false;
+  }
+
+  @action.bound toggleSearchMatchAny() {
+    this.searchMatchAny = !this.searchMatchAny;
+  }
+
+  @action.bound toggleToolbarVertical() {
+    this.setToolbarVertical(!this.isToolbarVertical);
   }
 
   /////////////////// Selection actions ///////////////////
+  @computed get clientFileSelection(): ClientFile[] {
+    return this.fileSelection
+      .map((id) => this.rootStore.fileStore.get(id))
+      .filter((f) => f !== undefined) as ClientFile[];
+  }
+
+  @computed get clientTagSelection(): ClientTag[] {
+    return this.tagSelection
+      .map((id) => this.rootStore.tagStore.get(id))
+      .filter((t) => t !== undefined) as ClientTag[];
+  }
+
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
     if (clear) {
-      this.fileSelection.clear();
+      this.clearFileSelection();
     }
-    this.fileSelection.push(file.id);
+    if (!this.fileSelection.includes(file.id)) {
+      this.fileSelection.push(file.id);
+    }
+  }
+
+  @action.bound selectFiles(files: ID[], clear?: boolean) {
+    if (clear) {
+      this.clearFileSelection();
+    }
+    this.fileSelection.push(...files.filter((id) => !this.fileSelection.includes(id)));
   }
 
   @action.bound deselectFile(file: ClientFile) {
@@ -167,26 +358,20 @@ class UiStore {
   }
 
   @action.bound selectAllFiles() {
-    this.fileSelection.clear();
-    this.fileSelection.push(
-      ...this.rootStore.fileStore.fileList.map((f) => f.id),
-    );
-  }
-
-  @action.bound deselectAllFiles() {
-    this.fileSelection.clear();
+    this.clearFileSelection();
+    this.fileSelection.push(...this.rootStore.fileStore.fileList.map((f) => f.id));
   }
 
   @action.bound selectTag(tag: ClientTag, clear?: boolean) {
     if (clear) {
-      this.tagSelection.clear();
+      this.clearTagSelection();
     }
     this.tagSelection.push(tag.id);
   }
 
   @action.bound selectTags(tags: ClientTag[] | ID[], clear?: boolean) {
     if (clear) {
-      this.tagSelection.clear();
+      this.clearTagSelection();
     }
     if (tags.length === 0) {
       return;
@@ -195,11 +380,10 @@ class UiStore {
       this.tagSelection.push(
         ...(tags as ClientTag[])
           .filter((t) => !this.tagSelection.includes(t.id))
-          .map((tag: ClientTag) => tag.id));
+          .map((tag: ClientTag) => tag.id),
+      );
     } else {
-      this.tagSelection.push(
-        ...(tags as ID[])
-          .filter((t) => !this.tagSelection.includes(t)));
+      this.tagSelection.push(...(tags as ID[]).filter((t) => !this.tagSelection.includes(t)));
     }
   }
 
@@ -222,75 +406,27 @@ class UiStore {
     this.tagSelection.clear();
   }
 
-  @action.bound setFileOrder(prop: keyof IFile) {
-    this.fileOrder = prop;
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
-  }
-
-  @action.bound setFileOrderDescending(descending: boolean) {
-    this.fileOrderDescending = descending;
-    this.rootStore.fileStore.fetchFilesByTagIDs(this.tagSelection.toJS());
-  }
-
   @action.bound async removeSelectedTagsAndCollections() {
-    const { tagStore, tagCollectionStore } = this.rootStore;
     const ctx = this.getTagContextItems();
     for (const col of ctx.collections) {
       if (col.id !== ROOT_TAG_COLLECTION_ID) {
-        await tagCollectionStore.removeTagCollection(col);
+        await col.delete();
       }
     }
     for (const tag of ctx.tags) {
-      await tagStore.removeTag(tag);
+      await tag.delete();
     }
   }
 
-  @action.bound async moveTag(tag: ClientTag | ID, target: ClientTag | ClientTagCollection, insertAtStart?: boolean) {
-    if (!(tag instanceof ClientTag)) {
-      const clientTag = this.rootStore.tagStore.tagList.find((t) => t.id === tag);
-      if (clientTag) {
-        tag = clientTag;
-      } else {
-        throw new Error('Cannot find tag to move ' + tag);
-      }
-    }
-
-    tag.parent.tags.remove(tag.id);
-
-    if (target instanceof ClientTag) {
-      const targetCol = target.parent;
-      const insertionIndex = targetCol.tags.indexOf(target.id);
-      // Insert the moved tag to the position of the current tag where it was dropped
-      targetCol.tags.splice(insertionIndex, 0, tag.id);
-    } else {
-      if (insertAtStart) {
-        target.tags.splice(0, 0, tag.id);
-      } else {
-        target.tags.push(tag.id);
-      }
-    }
-  }
-
-  @action.bound async moveCollection(
-    col: ClientTagCollection | ID, target: ClientTagCollection,
-    insertAtStart?: boolean,
-  ) {
-    if (!(col instanceof ClientTagCollection)) {
-      const clientCol = this.rootStore.tagCollectionStore.tagCollectionList.find((c) => c.id === col);
-      if (clientCol) {
-        col = clientCol;
-      } else {
-        throw new Error('Cannot find collection to move ' + col);
-      }
-    }
-
-    col.parent.subCollections.remove(col.id);
-
-    if (insertAtStart) {
-      target.subCollections.splice(0, 0, col.id);
-    } else {
-      target.subCollections.push(col.id);
-    }
+  @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
+    const ctx = this.getTagContextItems(activeElementId);
+    const colorCollection = (collection: ClientTagCollection) => {
+      collection.setColor(color);
+      collection.clientTags.forEach((tag) => tag.setColor(color));
+      collection.clientSubCollections.forEach(colorCollection);
+    };
+    ctx.collections.forEach(colorCollection);
+    ctx.tags.forEach((tag) => tag.setColor(color));
   }
 
   /**
@@ -311,7 +447,7 @@ class UiStore {
 
     // If an id is given, check whether it belongs to a tag or collection
     if (activeItemId) {
-      const selectedTag = tagStore.tagList.find((t) => t.id === activeItemId);
+      const selectedTag = tagStore.get(activeItemId);
       if (selectedTag) {
         if (selectedTag.isSelected) {
           isContextTheSelection = true;
@@ -319,7 +455,7 @@ class UiStore {
           contextTags.push(selectedTag);
         }
       } else {
-        const selectedCol = tagCollectionStore.tagCollectionList.find((c) => c.id === activeItemId);
+        const selectedCol = tagCollectionStore.get(activeItemId);
         if (selectedCol) {
           if (selectedCol.isSelected) {
             isContextTheSelection = true;
@@ -341,15 +477,15 @@ class UiStore {
       }
 
       // Only include selected collections of which their parent is not selected
-      const selectedColsNotInSelectedCols = selectedCols.filter(
-        (col) => !selectedCols.some(
-          (parent) => parent.subCollections.includes(col.id)));
+      const selectedColsNotInSelectedCols = selectedCols.filter((col) =>
+        selectedCols.every((parent) => !parent.subCollections.includes(col.id)),
+      );
       contextCols.push(...selectedColsNotInSelectedCols);
 
       // Only include the selected tags that are not in a selected collection
-      const selectedTagsNotInSelectedCols = this.clientTagSelection
-        .filter((t) => !selectedCols.some(
-          (col) => col.tags.includes(t.id)));
+      const selectedTagsNotInSelectedCols = this.clientTagSelection.filter((t) =>
+        selectedCols.every((col) => !col.tags.includes(t.id)),
+      );
       contextTags.push(...selectedTagsNotInSelectedCols);
     }
 
@@ -360,15 +496,12 @@ class UiStore {
   }
 
   /**
-   * @param target Where to move the selection to
-   * @param insertAtStart Whether to insert at the start, or the end
+   * @param targetId Where to move the selection to
    */
-  @action.bound async moveSelectedTagsAndCollections(targetId: ID, insertAtStart?: boolean) {
+  @action.bound moveSelectedTagItems(id: ID) {
     const { tagStore, tagCollectionStore } = this.rootStore;
 
-    const target = tagStore.tagList.find((tag) => tag.id === targetId)
-      || tagCollectionStore.tagCollectionList.find((col) => col.id === targetId);
-
+    const target = tagStore.get(id) || tagCollectionStore.get(id);
     if (!target) {
       throw new Error('Invalid target to move to');
     }
@@ -378,193 +511,149 @@ class UiStore {
     // Find all tags + collections in the current context (all selected items)
     const ctx = this.getTagContextItems();
 
-    // Move collections
-    for (const col of ctx.collections) {
-      const parent = col.parent;
-      parent.subCollections.remove(col.id);
-      if (insertAtStart) {
-        targetCol.subCollections.splice(0, 0, col.id);
-      } else {
-        targetCol.subCollections.push(col.id);
-      }
-    }
-
-    for (const tag of ctx.tags) {
-      const parent = tag.parent;
-      parent.removeTag(tag.id);
-      // Find where to insert the moved tag
-      if (target instanceof ClientTag) {
-        const insertionIndex = targetCol.tags.indexOf(target.id);
-        // Insert the moved tag to the position of the current tag where it was dropped
-        targetCol.tags.splice(insertionIndex, 0, tag.id);
-      } else {
-        if (insertAtStart) {
-          targetCol.tags.splice(0, 0, tag.id);
-        } else {
-          targetCol.tags.push(tag.id);
-        }
-      }
-    }
+    // Move tags and collections
+    ctx.collections.forEach((col) => targetCol.insertCollection(col));
+    ctx.tags.forEach((tag) => targetCol.insertTag(tag));
   }
 
   /////////////////// Search Actions ///////////////////
-  @action.bound async clearSearchQueryList() {
-    this.searchQueryList.clear();
-    await this.viewContentAll();
-  }
-
-  @action.bound async addSearchQuery(query: ISearchQuery) {
-    this.searchQueryList.push(query);
-    await this.rootStore.fileStore.fetchFilesByQuery();
-    this.cleanFileSelection();
-    this.viewContent = 'query';
-  }
-
-  @action.bound async removeSearchQuery(query: ISearchQuery) {
-    this.searchQueryList.remove(query);
-    await this.rootStore.fileStore.fetchFilesByQuery();
-    this.cleanFileSelection();
-  }
-
-  @action.bound addTagsToQuery(ids: ID[]) {
-    this.addSearchQuery({
-      action: 'include',
-      operator: 'or',
-      value: ids,
-    } as ITagSearchQuery);
-  }
-
-  @action.bound replaceQuery(ids: ID[]) {
-    this.searchQueryList.clear();
-    this.addTagsToQuery(ids);
-  }
-
-  @action.bound replaceQueryWithSelection() {
-    this.replaceQuery(this.tagSelection.toJS());
-  }
-
-  /////////////////// UI Actions ///////////////////
-  @action.bound toggleOutliner() {
-    this.isOutlinerOpen = !this.isOutlinerOpen;
-  }
-
-  @action.bound openOutlinerImport() {
-    this.outlinerPage = 'IMPORT';
-    this.viewContentUntagged();
-  }
-  @action.bound openOutlinerTags() {
-    this.outlinerPage = 'TAGS';
-    this.viewContentAll();
-  }
-  @action.bound openOutlinerSearch() {
-    this.outlinerPage = 'SEARCH';
-    this.viewContentQuery();
-  }
-
-  @action.bound openPreviewWindow() {
-    ipcRenderer.send('sendPreviewFiles', this.fileSelection.toJS());
-    this.isPreviewOpen = true;
-  }
-
-  // VIEW
-  @action.bound viewList() {
-    this.viewMethod = 'list';
-  }
-  @action.bound viewGrid() {
-    this.viewMethod = 'grid';
-  }
-  @action.bound viewMason() {
-    this.viewMethod = 'mason';
-  }
-  @action.bound viewSlide() {
-    this.viewMethod = 'slide';
-  }
-
-  @action.bound viewContentAll() {
-    this.tagSelection.clear();
-    this.rootStore.fileStore.fetchAllFiles();
-    this.viewContent = 'all';
-    this.cleanFileSelection();
-  }
-  @action.bound viewContentUntagged() {
-    this.tagSelection.clear();
-    this.rootStore.fileStore.fetchUntaggedFiles();
-    this.viewContent = 'untagged';
-    this.cleanFileSelection();
-  }
-  @action.bound viewContentQuery() {
-    this.tagSelection.clear();
-    this.rootStore.fileStore.fetchFilesByQuery();
-    this.viewContent = 'query';
-    this.cleanFileSelection();
-  }
-
-  @action.bound setFirstIndexInView(index: number) {
-    if (isFinite(index)) {
-      this.firstIndexInView = index;
+  @action.bound clearSearchCriteriaList() {
+    if (this.searchCriteriaList.length > 0) {
+      this.searchCriteriaList.clear();
+      this.viewAllContent();
     }
   }
 
-  @action.bound toggleInspector() {
-    this.isInspectorOpen = !this.isInspectorOpen;
-  }
-  @action.bound toggleSettings() {
-    this.isSettingsOpen = !this.isSettingsOpen;
-  }
-  @action.bound toggleTheme() {
-    this.theme = this.theme === 'DARK' ? 'LIGHT' : 'DARK';
+  @action.bound addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+    this.searchCriteriaList.push(query);
+    this.viewQueryContent();
   }
 
-  @action.bound toggleToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen =
-      this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
-  }
-  @action.bound openToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0;
-  }
-  @action.bound closeToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = false;
+  @action.bound addSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+    this.searchCriteriaList.push(...queries);
+    this.viewQueryContent();
   }
 
-  @action.bound toggleToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen =
-      this.fileSelection.length > 0 && !this.isToolbarFileRemoverOpen;
-  }
-  @action.bound openToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = true;
-  }
-  @action.bound closeToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = false;
+  @action.bound removeSearchCriteria(query: FileSearchCriteria) {
+    this.searchCriteriaList.remove(query);
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
+    }
   }
 
-  @action.bound openOutlinerTagRemover(val?: 'selected' | ID) {
-    this.isOutlinerTagRemoverOpen = val || 'selected';
-  }
-  @action.bound closeOutlinerTagRemover() {
-    this.isOutlinerTagRemoverOpen = null;
+  @action.bound replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+    this.replaceSearchCriterias([query]);
   }
 
-  @action.bound toggleDevtools() {
-    remote.getCurrentWebContents().toggleDevTools();
+  @action.bound replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+    this.searchCriteriaList.replace(queries);
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
+    }
   }
-  @action.bound reload() {
-    remote.getCurrentWindow().reload();
+
+  @action.bound removeSearchCriteriaByIndex(i: number) {
+    this.searchCriteriaList.splice(i, 1);
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
+    }
   }
-  @action.bound toggleFullScreen() {
-    this.isFullScreen = !this.isFullScreen;
-    remote.getCurrentWindow().setFullScreen(this.isFullScreen);
+
+  @action.bound replaceCriteriaWithTagSelection() {
+    this.replaceSearchCriterias(
+      this.tagSelection.map((id) => new ClientIDSearchCriteria('tags', id)),
+    );
+    this.clearTagSelection();
+  }
+
+  @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
+    const index = this.searchCriteriaList.indexOf(oldCrit);
+    if (index !== -1) {
+      this.searchCriteriaList[index] = crit;
+      this.viewQueryContent();
+    }
+  }
+
+  // Storing preferences
+  recoverPersistentPreferences() {
+    const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
+    if (prefsString) {
+      try {
+        const prefs = JSON.parse(prefsString);
+        this.setTheme(prefs.theme);
+        this.setToolbarVertical(prefs.isToolbarVertical);
+        this.setIsOutlinerOpen(prefs.isOutlinerOpen);
+        this.setIsInspectorOpen(prefs.isInspectorOpen);
+        this.setThumbnailDirectory(prefs.thumbnailDirectory);
+        this.setMethod(prefs.method);
+        this.setThumbnailSize(prefs.thumbnailSize);
+        this.setThumbnailShape(prefs.thumbnailShape);
+      } catch (e) {
+        console.log('Cannot parse persistent preferences', e);
+      }
+    }
+
+    // Set default thumbnail directory in case none was specified
+    if (!this.thumbnailDirectory) {
+      this.setThumbnailDirectory(path.join(remote.app.getPath('userData'), 'thumbnails'));
+      fse.ensureDirSync(this.thumbnailDirectory);
+    }
+  }
+
+  storePersistentPreferences() {
+    const prefs: any = {};
+    for (const field of PersistentPreferenceFields) {
+      prefs[field] = this[field];
+    }
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
   }
 
   /////////////////// Helper methods ///////////////////
-  /**
-   * Deselect files that are not tagged with any tag in the current tag selection
-   */
-  private cleanFileSelection() {
-    for (const file of this.clientFileSelection) {
-      if (!file.tags.some((t) => this.tagSelection.includes(t))) {
-        this.deselectFile(file);
-      }
-    }
+  @action clearSelection() {
+    this.tagSelection.clear();
+    this.fileSelection.clear();
+  }
+
+  @action private viewAllContent() {
+    this.rootStore.fileStore.fetchAllFiles();
+  }
+
+  @action private viewQueryContent() {
+    this.rootStore.fileStore.fetchFilesByQuery();
+  }
+
+  @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
+    this.theme = theme;
+  }
+
+  @action private setIsOutlinerOpen(value: boolean = true) {
+    this.isOutlinerOpen = value;
+  }
+
+  @action private setIsInspectorOpen(value: boolean = false) {
+    this.isInspectorOpen = value;
+  }
+
+  @action private setToolbarVertical(val: boolean) {
+    this.isToolbarVertical = val;
+  }
+
+  @action private setMethod(method: ViewMethod = 'grid') {
+    this.method = method;
+  }
+
+  @action private setThumbnailSize(size: ViewThumbnailSize = 'medium') {
+    this.thumbnailSize = size;
+  }
+
+  @action private setThumbnailShape(shape: ViewThumbnailShape) {
+    this.thumbnailShape = shape;
   }
 }
 

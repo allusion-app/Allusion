@@ -1,0 +1,147 @@
+///////////////////////////////// Inspector /////////////////////////////////
+#inspector {
+  grid-area: inspector;
+  overflow: auto;
+  flex-shrink: 0;
+  max-width: var(--inspector-width);
+  overflow-x: hidden;
+  transition: max-width 200ms ease-in-out; // 120ms $pt-transition-cubic2
+
+  // Sidebar CSS transition
+  &.sliding-sidebar-enter {
+    max-width: 0;
+  }
+  &.sliding-sidebar-enter-active {
+    max-width: var(--inspector-width);
+  }
+  &.sliding-sidebar-exit {
+    max-width: var(--inspector-width);
+  }
+  &.sliding-sidebar-exit-active {
+    max-width: 0;
+  }
+
+  > * {
+    // Don't squash content of aside during parent transition
+    width: var(--inspector-width);
+    border-bottom: 2px solid var(--background-separator-color);
+    padding: 1em;
+  }
+
+  .inpectorHeading {
+    font-weight: bold;
+  }
+}
+
+// File info
+.file-info {
+  grid-area: info;
+  display: grid;
+  align-self: center;
+  align-items: baseline;
+  grid-template-columns: auto 1fr;
+  grid-column-gap: 1rem;
+  grid-row-gap: 0.25rem;
+  height: fit-content;
+
+  > div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.file-info-key {
+  color: var(--text-muted-color);
+  opacity: 0.7;
+}
+
+.file-info-value {
+  text-align: left;
+}
+
+.inspector-figure {
+  margin: 0;
+
+  > img {
+    width: 100%;
+    max-height: calc(var(--inspector-width) - 2em);
+    object-fit: contain;
+  }
+}
+
+#carousel {
+  overflow: hidden;
+  margin: 0;
+  height: 400px;
+  max-height: 400px;
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  .item-enter {
+    animation: highlight-green-fade 0.2s ease;
+  }
+
+  @keyframes fade-out {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  .item-exit {
+    animation: highlight-fade-remove 0.2s ease;
+  }
+
+  > div {
+    width: 100%;
+    transition: all 0.2s ease;
+    opacity: 1;
+
+    > * {
+      width: 100%;
+      box-shadow: $pt-dark-elevation-shadow-2;
+      transform-origin: center;
+      transition: all 0.2s ease;
+
+      // TODO: Try making all images quare, to avoid having to deal with different aspect ratios
+    }
+
+    @for $i from 0 through 10 {
+      &.child-#{$i} {
+        height: 0px;
+
+        > * {
+          transform: scale(calc(0.5 + 0.1 * #{$i})) translateY(calc(32px * #{$i} - 64px));
+          filter: brightness(calc(0.4 + 0.1 * #{$i}));
+
+          &:hover {
+            filter: brightness(calc(0.5 + 0.1 * #{$i}));
+          }
+        }
+      }
+    }
+  }
+}
+
+// File tag (kind of global style)
+#fileTag .bp3-popover-target,
+#inspector .bp3-popover-target {
+  width: 100%;
+}
+
+#fileTag .bp3-tag {
+  margin-bottom: 5px;
+  margin-right: 5px;
+}
+
+.bp3-tag-remove:hover {
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}

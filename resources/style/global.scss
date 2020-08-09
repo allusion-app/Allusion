@@ -1,0 +1,532 @@
+// Styling to match Allusion Mockups
+$pt-transition-cubic1: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
+$pt-transition-cubic2: cubic-bezier(0.4, 0, 0.2, 1) !default;
+$pt-transition-cubic2-delay: cubic-bezier(0.4, 0, 0.2, 1) 0.8s !default;
+$pt-transition-ease-bounce: cubic-bezier(0.54, 1.12, 0.38, 1.11) !default;
+$pt-transition-duration: 100ms !default;
+
+// Page layout
+html {
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
+}
+
+#app {
+  --outliner-width: 18em;
+  --inspector-width: 24em;
+  --toolbar-height: 2.4rem;
+  --quick-searchbar-height: 2.4rem;
+  --thumbnail-size: 250px;
+  --thumbnail-margin: 0.25rem;
+  --mac-system-buttons-width: 5rem;
+  --window-system-buttons-width: 7.5rem;
+  height: 100vh;
+  background: $dark-gray0;
+}
+
+#preview {
+  --toolbar-height: 2.4rem;
+  display: grid;
+  grid-template-areas:
+    'toolbar'
+    'main';
+  grid-template-rows: 2.4rem 1fr;
+  height: 100vh;
+}
+
+// Default Theme
+.bp3-dark,
+.bp3-light {
+  --primary-color: #{$blue1};
+  --primary-color-rgb: 0, 122, 245;
+  --dark-gray4-rgb: 73, 80, 87;
+  --light-gray1-rgb: 156, 161, 166;
+  --stroke-color: #{$gray3};
+  --selection-background-color: #007bf53f;
+  --selection-font-color: white;
+  --treeitem-identation: 1rem;
+  --treeitem-offset: 1rem;
+}
+
+// Dark Theme
+.bp3-dark {
+  --focus-color: #{$dark-gray3};
+  --highlight-background-color: #{$dark-gray3}; // dark-gray5?
+  --highlight-font-color: white;
+  --caret-color: #{$light-gray1};
+
+  // Text/icon color
+  color: $pt-dark-text-color;
+  --text-muted-color: $pt-dark-text-color-muted;
+
+  // The background color of elements inside of panels
+  --foreground-color: #{$dark-gray3};
+  // Background color of the main panels
+  --background-color: #{$dark-gray0}; // dark-gray0 or 1?
+  // The separator (border) color of the main panels
+  --background-separator-color: #{$dark-gray0};
+}
+
+// Light Theme
+.bp3-light {
+  --focus-color: #{$light-gray4};
+  --highlight-background-color: #{$light-gray4};
+  --highlight-font-color: #{$black};
+  --caret-color: #{$dark-gray1};
+
+  // Text/icon color
+  color: $pt-text-color;
+  --text-muted-color: $pt-text-color-muted;
+
+  // The (background) color of elements inside of panels
+  --foreground-color: #{$light-gray5};
+  // Background color of the main panels
+  --background-color: #{$light-gray3}; // light-gray5 ?
+  // The separator (border) color of the main panels
+  --background-separator-color: #{$light-gray3}; // light-gray1?
+}
+
+// Override standard CSS attributes
+pre {
+  word-wrap: break-word;
+  white-space: initial;
+}
+.bp3-dark {
+  pre {
+    font-family: unset;
+    background: $dark-gray8-trans;
+    padding: 6px;
+    border-radius: 6px;
+  }
+}
+
+#layout-container.vertical-toolbar {
+  --toolbar-height: 2.4rem;
+  display: grid;
+  grid-template-columns: var(--toolbar-height) min-content 1fr min-content;
+  grid-template-areas:
+    'toolbar outliner main inspector'
+    'toolbar outliner main inspector';
+}
+
+.preloader {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  grid-area: main;
+  display: flex;
+  flex-flow: column;
+}
+
+#layout-container {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: var(--toolbar-height) 1fr;
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'outliner main inspector';
+
+  background-color: var(--background-color);
+}
+
+// Global component layout
+.popoverContent {
+  padding: 0.5em;
+  max-width: 32em;
+  #tag .custom-icon {
+    margin-top: 0;
+    margin-right: 20px;
+    font-size: 40px;
+  }
+  #fileTag {
+    padding: 0.75rem !important;
+  }
+}
+.contextMenuTarget {
+  outline-color: $pt-intent-primary;
+  outline-width: 2px;
+  outline-offset: -2px;
+  outline-style: solid;
+}
+
+// Default browser CSS overrides
+/* Prevent text selection in all HTML elements for more native feel */
+*,
+*::after,
+*::before {
+  -webkit-user-select: none;
+}
+// Disable default outline on focused elements (e.g. clicked buttons)
+:focus {
+  outline: none !important;
+}
+// Don't allow images to be dragged from within the app
+img {
+  -webkit-user-drag: none;
+}
+
+// Custom scrollbar style
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* ////////// Scroll bar (Track and handle) ////////// */
+.bp3-light {
+  ::-webkit-scrollbar-track {
+    background-color: $light-gray4;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: $light-gray2;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: $light-gray5;
+  }
+}
+
+.bp3-dark {
+  ::-webkit-scrollbar-track {
+    background-color: $dark-gray3;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: $dark-gray5;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: $dark-gray6;
+  }
+}
+
+.bp3-popover-backdrop {
+  background: rgba(16, 22, 26, 0); //Set 2 zero for now
+}
+
+///////////////////////////////// Custom Hover tooltip /////////////////////////////////
+[data-right],
+[data-left] {
+  position: relative !important;
+  z-index: auto;
+}
+[data-right]:after {
+  content: attr(data-right);
+  position: absolute !important;
+  max-width: 600px !important;
+  min-width: max-content;
+  left: 1rem;
+  top: 0.25rem; //Fix for z-index issue
+  margin-left: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: left;
+  line-height: 1.5;
+  padding: 0.55rem 0.8rem;
+  background: $blue1;
+  color: white;
+  z-index: auto;
+  border-radius: 5px;
+  box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+[data-right]:hover:after,
+[data-left]:hover:after {
+  opacity: 1;
+  transition: all 0.2s $pt-transition-cubic2-delay; // Tooltip needs delay!
+  visibility: visible;
+  position: absolute;
+  z-index: 10;
+}
+[data-left]:after {
+  content: attr(data-left);
+  position: absolute !important;
+  max-width: 600px !important;
+  min-width: max-content;
+  right: 1rem;
+  top: 1rem;
+  margin-left: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: left;
+  line-height: 1.5;
+  padding: 0.55rem 0.8rem;
+  background: $blue1;
+  color: white;
+  z-index: auto;
+  // white-space: nowrap;
+  border-radius: 5px;
+  box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
+  opacity: 0;
+  visibility: hidden;
+}
+
+///////////////////////////////// Theme Colours /////////////////////////////////
+// Todo: The nice thing about variables is that we can change them depending on the theme,
+// instead of switching colors around like this
+#preview,
+#layout-container {
+  background-color: var(--background-color);
+}
+
+#toolbar,
+#inspector,
+#outliner {
+  background-color: var(--foreground-color);
+}
+
+///////////////////////////////// Media Queries /////////////////////////////////
+@media (min-width: 1601px) {
+  .grid.thumbnail,
+  .grid.thumbnail img,
+  .list.thumbnail img {
+    width: 350px !important;
+    height: 350px !important;
+  }
+}
+@media (min-width: 1281px) {
+  .grid.thumbnail,
+  .grid.thumbnail img,
+  .list.thumbnail img {
+    width: 260px !important;
+    height: 260px !important;
+  }
+}
+@media (max-width: 1280px) {
+  .grid.thumbnail,
+  .grid.thumbnail img,
+  .list.thumbnail img {
+    width: 225px !important;
+    height: 225px !important;
+  }
+}
+@media (max-width: 960px) {
+  #toolbar {
+    &.mac-toolbar {
+      grid-template-columns: var(--mac-system-buttons-width) min-content 1fr min-content !important;
+    }
+    &.windows-toolbar {
+      grid-template-columns: min-content 1fr min-content var(--window-system-buttons-width) !important;
+    }
+  }
+
+  .grid.thumbnail,
+  .grid.thumbnail img,
+  .list.thumbnail img {
+    width: 150px !important;
+    height: 150px !important;
+  }
+}
+
+@media (max-width: 540px) {
+  #app {
+    --toolbar-height: 4.8rem;
+  }
+
+  #toolbar {
+    gap: 0 !important;
+    grid-template-rows: 1fr 1fr;
+    &.mac-toolbar {
+      grid-template-columns: var(--mac-system-buttons-width) 1fr min-content !important;
+      grid-template-areas:
+        '. outliner-toolbar inspector-toolbar'
+        'main-toolbar main-toolbar main-toolbar' !important;
+    }
+    &.windows-toolbar {
+      grid-template-columns: 1fr min-content var(--window-system-buttons-width) !important;
+      grid-template-areas:
+        'outliner-toolbar inspector-toolbar .'
+        'main-toolbar main-toolbar main-toolbar' !important;
+    }
+  }
+  #main-toolbar {
+    justify-content: space-between !important;
+  }
+
+  .slide.thumbnail {
+    height: calc(50vh - 4.8rem) !important;
+  }
+}
+
+///////////////////////////////// Misc /////////////////////////////////
+// Error boundary (when app crashes)
+.error-boundary {
+  grid-area: main;
+
+  .bp3-non-ideal-state > * {
+    max-width: 500px;
+  }
+
+  .message {
+    text-align: left;
+    width: 800px;
+    max-width: 800px;
+  }
+}
+
+// Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
+.custom-icon * {
+  fill: currentColor;
+}
+.bp3-overlay-content {
+  display: flex;
+  align-items: center;
+}
+.drop-overlay-content {
+  margin: auto calc(50% - 200px);
+  width: 400px;
+  padding: 20px !important;
+
+  .quick-tags {
+    text-align: center;
+    margin-top: 20px !important;
+  }
+}
+
+.bp3-icon-eye {
+  cursor: none;
+}
+.custom-icon-128 > * {
+  height: 8rem !important;
+  width: 8rem !important;
+}
+.custom-icon-64 > * {
+  height: 4rem !important;
+  width: 4rem !important;
+}
+.custom-icon-14 > * {
+  height: 0.875rem !important;
+  width: 0.875rem !important;
+  display: block;
+}
+
+.bp3-alert .custom-icon,
+.custom-icon-32 > * {
+  height: 2rem !important;
+  width: 2rem !important;
+}
+
+.fillWidth {
+  width: 100%;
+}
+
+#zoomableSlideImage {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    transition: width 0.1s ease-in-out, height 0.1s ease-in-out;
+    vertical-align: middle;
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+
+    &.no-drag {
+      // No transform transition when dragging, since also applies to zoom (scale) otherwise
+      transition: transform 0.1s ease-in-out;
+    }
+  }
+}
+
+#zoomableImage {
+  height: calc(100vh - 2.4rem); // Minus toolbarheight
+  display: flex;
+  flex-direction: column;
+
+  img {
+    animation: fade 0.25s cubic-bezier(0.65, 0.05, 0.36, 1);
+  }
+
+  > div {
+    flex: auto;
+    position: relative;
+
+    .sideButton {
+      top: 0;
+      opacity: 0;
+      height: 100%;
+      width: 48px;
+      transition: opacity 0.2s ease-in-out;
+      position: absolute;
+
+      > svg {
+        position: absolute;
+        height: 36px !important;
+        width: 36px !important;
+        margin-top: -24px;
+        top: 50%;
+        color: #ffffffc7;
+        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
+      }
+
+      > span {
+        position: absolute;
+        height: 48px;
+        margin-top: -24px;
+        top: 50%;
+        color: white;
+        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
+      }
+    }
+
+    .sideButton:hover {
+      opacity: 1;
+    }
+
+    #backButton {
+      top: 0;
+      position: absolute;
+    }
+  }
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.color-black {
+  color: black;
+  transition: color 0.2s ease;
+}
+
+.color-white {
+  color: white;
+  transition: color 0.2s ease;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ellipsis-left {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
+}

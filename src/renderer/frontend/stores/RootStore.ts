@@ -3,14 +3,14 @@ import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from './UiStore';
 import TagCollectionStore from './TagCollectionStore';
-import { ipcRenderer } from 'electron';
+import LocationStore from './LocationStore';
 
-// import { configure } from 'mobx';
+import { configure } from 'mobx';
 
 // This will throw exceptions whenver we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
 // https://mobx.js.org/refguide/action.html
-// configure({ enforceActions: 'observed' });
+configure({ enforceActions: 'observed' });
 
 /**
  * From: https://mobx.js.org/best/store.html
@@ -23,32 +23,36 @@ import { ipcRenderer } from 'electron';
  * 3. Makes complex unit tests easy as you just have to instantiate a root store.
  */
 class RootStore {
-  backend: Backend;
-
   public tagStore: TagStore;
   public tagCollectionStore: TagCollectionStore;
   public fileStore: FileStore;
+  public locationStore: LocationStore;
   public uiStore: UiStore;
+
+  private backend: Backend;
 
   constructor(backend: Backend) {
     this.backend = backend;
     this.tagStore = new TagStore(backend, this);
     this.tagCollectionStore = new TagCollectionStore(backend, this);
     this.fileStore = new FileStore(backend, this);
+    this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);
 
     this.clearDatabase = this.clearDatabase.bind(this);
   }
 
   async init(autoLoadFiles: boolean) {
+    // The location store is not required to be finished with loading before showing the rest
+    // So it does not need to be awaited
+    this.locationStore.init(autoLoadFiles);
     await Promise.all([
       this.tagStore.init(),
       this.tagCollectionStore.init(),
       this.fileStore.init(autoLoadFiles),
     ]);
-
-    this.uiStore.isInitialized = true;
-    ipcRenderer.send('initialized');
+    // Upon loading data, initialize UI state.
+    this.uiStore.init();
   }
 
   async clearDatabase() {

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import RootStore from '../stores/RootStore';
 
 /**
@@ -22,13 +22,13 @@ export interface IRootStoreProp {
  * const myComponentWithRootStore = withRootStore(myComponent);
  * Now myComponent is passed the rootStore as a prop.
  */
-export const withRootstore = <P extends IRootStoreProp>(
-  WrappedComponent: React.ComponentType<P>,
-) => (
-  props: Pick<P, Exclude<keyof P, keyof IRootStoreProp>>,
-) => {
-  const rootStore = useContext(StoreContext);
-  return <WrappedComponent rootStore={rootStore} {...props as P} />;
-};
+export const withRootstore = <P extends IRootStoreProp>(WrappedComponent: React.ComponentType<P>) =>
+  function rootStoreHoc(props: Pick<P, Exclude<keyof P, keyof IRootStoreProp>>) {
+    return (
+      <StoreContext.Consumer>
+        {(rootStore) => <WrappedComponent {...(props as P)} rootStore={rootStore} />}
+      </StoreContext.Consumer>
+    );
+  };
 
 export default StoreContext;

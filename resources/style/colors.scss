@@ -1,0 +1,134 @@
+// Adjustment Colors
+$black: #050505 !default;
+
+// TODO: These colors should all remain in descending brightness values, it messes up Blueprint's theme
+// And it's confusing to use
+$dark-gray0: #14181a !default;
+$dark-gray1: #1f2224 !default;
+$dark-gray2: #2a2d30 !default;
+$dark-gray3: #232729 !default;
+$dark-gray4: #495057 !default;
+$dark-gray5: #3e3e3e !default; // #5c6064
+$dark-gray6: #7d8991 !default;
+
+$dark-gray0-trans: #14181ae1 !default;
+$dark-gray1-trans: #3e3e3eb8 !default;
+$dark-gray2-trans: #5e5d5dc2 !default;
+$dark-gray3-trans: #7c7c7cc2 !default;
+$dark-gray4-trans: #7c7c7c6e !default;
+$dark-gray5-trans: #7c7c7c30 !default;
+$dark-gray6-trans: #14181a05 !default;
+$dark-gray7-trans: #2e313320 !default;
+$dark-gray8-trans: #686f7330 !default;
+$dark-gray9-trans: #2b2c2d80 !default;
+
+$gray1: #5c7080 !default;
+$gray2: #738694 !default;
+$gray3: #8a9ba8 !default;
+$gray4: #a7b6c2 !default;
+$gray5: #bfccd6 !default;
+
+$light-gray1: #9ca1a6; // Main icons & text //95999d  8c9195; //#8f9ca6; // TODO: Why is 1 lighter than 2?
+                         // These should be purely _color definitions_. The text & icon colors can be tweaked below
+$light-gray2: #b1b7bb !default; // #
+$light-gray3: #dde1e4 !default; // #d1d1d1 #e1e8ed
+$light-gray4: #ebf1f5 !default;
+$light-gray5: #f7f9fa !default; //#f5f8fa;
+$light-gray6: #f5f8fa !default;
+
+$white: #ffffff !default;
+
+$light-gray0-trans: #505050e1 !default;
+$light-gray1-trans: #3e3e3eb8 !default;
+$light-gray2-trans: #5e5d5dc2 !default;
+$light-gray3-trans: #7c7c7cc2 !default;
+$light-gray4-trans: #7c7c7c6e !default;
+$light-gray5-trans: #7c7c7c30 !default;
+$light-gray6-trans: #13131330 !default;
+
+// Core colors
+
+$blue0: #007acc !default;
+$blue1: #007af5 !default;
+$blue2: #1d64c0 !default;
+$blue3: #3593f1 !default;
+$blue4: #4c9ef0 !default;
+$blue5: #48aff0 !default;
+
+// Not important, so that it can be overwritten by inline style
+$blue1-unimportant: #007af5;
+$dark-gray5-unimportant: #3e3e3e;
+
+// Issues with SASS?
+// $blue1-rgb: rgba(0,122,245);
+// $blue1-rgba-9: rgba(0,122,245,.9);
+// $blue1-rgba-8: rgba(0,122,245,.8);
+// $blue1-rgba-7: rgba(0,122,245,.7);
+// $blue1-rgba-6: rgba(0,122,245,.6);
+// $blue1-rgba-5: rgba(0,122,245,.5);
+// $blue1-rgba-4: rgba(0,122,245,.4);
+// $blue1-rgba-3: rgba(0,122,245,.3);
+// $blue1-rgba-2: rgba(0,122,245,.2);
+// $blue1-rgba-1: rgba(0,122,245,.1);
+
+$blue-trans1: #007af555 !important;
+$blue-trans2: #007bf531 !important;
+$blue-trans3: #007af512 !important;
+$blue-trans4: #007af50d !important;
+
+$yellow1: #f7ea3a !important;
+$danger: #db3737 !important;
+
+// Override of Blueprint's _color-aliases file
+// Commented out the ones we don't necessarily have to change
+// TODO: Move to _variables.scss_, along with the theme-specific CSS variables
+//    Proposal: This is the primary source of variables, the CSS variables per theme are just for our convience
+//    In that way, the colors used in Blueprint and our custom components is identical
+/////////////////////////////////////////////////////////////////////
+$pt-intent-primary: $blue3 !default;
+// $pt-intent-success: $green3 !default;
+// $pt-intent-warning: $orange3 !default;
+// $pt-intent-danger: $red3 !default;
+
+$pt-app-background-color: $light-gray5 !default;
+$pt-dark-app-background-color: $dark-gray3 !default;
+
+// $pt-outline-color: rgba($blue3, 0.6);
+
+$pt-text-color: $dark-gray1 !default;
+$pt-text-color-muted: $gray1 !default;
+// $pt-text-color-disabled: rgba($pt-text-color-muted, 0.6) !default;
+$pt-heading-color: $pt-text-color !default;
+// $pt-link-color: $blue2 !default;
+$pt-dark-text-color: $light-gray1 !default;
+// $pt-dark-text-color-muted: $gray4 !default;
+// $pt-dark-text-color-disabled: rgba($pt-dark-text-color-muted, 0.6) !default;
+$pt-dark-heading-color: $pt-dark-text-color !default;
+// $pt-dark-link-color: $blue5 !default;
+// Default text selection color using #7dbcff
+// $pt-text-selection-color: rgba(125, 188, 255, 0.6) !default;
+
+// $pt-icon-color: $pt-text-color-muted !default;
+// $pt-icon-color-hover: $pt-text-color !default;
+// $pt-icon-color-disabled: $pt-text-color-disabled !default;
+// $pt-icon-color-selected: $pt-intent-primary !default;
+// $pt-dark-icon-color: $pt-dark-text-color-muted !default;
+// $pt-dark-icon-color-hover: $pt-dark-text-color !default;
+// $pt-dark-icon-color-disabled: $pt-dark-text-color-disabled !default;
+// $pt-dark-icon-color-selected: $pt-intent-primary !default;
+
+// $pt-divider-black: rgba($black, 0.15) !default;
+// $pt-dark-divider-black: rgba($black, 0.4) !default;
+// $pt-dark-divider-white: rgba($white, 0.15) !default;
+
+// $pt-code-text-color: $pt-text-color-muted !default;
+// $pt-dark-code-text-color: $pt-dark-text-color-muted !default;
+// $pt-code-background-color: rgba($white, 0.7) !default;
+// $pt-dark-code-background-color: rgba($black, 0.3) !default;
+
+
+// Other overrides
+/////////////////////////////////
+// Menu: _common.scss
+// $menu-background-color
+$dark-menu-background-color: $dark-gray2 !default; // Note: This override (and likely most others) shouldn't be needed if we set up the colors properly

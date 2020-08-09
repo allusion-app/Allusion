@@ -1,22 +1,22 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": { "*": ["types/*"] },
+    "baseUrl": "./",
+    "paths": {
+      "components/*": ["components/*"],
+      "resources/*": ["resources/*"],
+      "src/*": ["src/*"]
+    },
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
     "module": "ESNext",
     "sourceMap": true,
     "outDir": "dist",
     "target": "es5",
-    "lib": ["dom", "esnext"],
+    "lib": ["dom", "esnext", "webworker"],
     "moduleResolution": "node",
     "experimentalDecorators": true,
-    "noUnusedLocals": true,
-    "strict": true,
+    "strict": true
   },
-  "include": [
-    "src/**/*",
-    "custom.d.ts",
-    "types/*.d.ts"
-  ]
+  "include": ["components/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts"],
+  "exclude": ["node_modules", "dist", "resources"]
 }

@@ -1,9 +1,11 @@
-import { DbFile, IFile } from '../entities/File';
+import { IFile } from '../entities/File';
 import { ID } from '../entities/ID';
-import { DbTag, ITag } from '../entities/Tag';
+import { ITag } from '../entities/Tag';
 import { dbConfig, DB_NAME } from './config';
-import DBRepository, { dbInit, dbDelete } from './DBRepository';
-import { ITagCollection, DbTagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
+import DBRepository, { dbInit, dbDelete, FileOrder } from './DBRepository';
+import { ITagCollection, ROOT_TAG_COLLECTION_ID } from '../entities/TagCollection';
+import { ILocation } from '../entities/Location';
+import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -15,6 +17,7 @@ export default class Backend {
   private fileRepository: DBRepository<IFile>;
   private tagRepository: DBRepository<ITag>;
   private tagCollectionRepository: DBRepository<ITagCollection>;
+  private locationRepository: DBRepository<ILocation>;
 
   constructor() {
     // Initialize database tables
@@ -22,16 +25,23 @@ export default class Backend {
     this.fileRepository = new DBRepository('files', db);
     this.tagRepository = new DBRepository('tags', db);
     this.tagCollectionRepository = new DBRepository('tagCollections', db);
+    this.locationRepository = new DBRepository('locations', db);
   }
 
-  async init() {
+  async init(): Promise<void> {
     // Create a root 'Hierarchy' collection if it does not exist
     const colCount = await this.tagCollectionRepository.count();
     if (colCount === 0) {
-      await this.createTagCollection(ROOT_TAG_COLLECTION_ID, 'Hierarchy');
+      await this.createTagCollection({
+        id: ROOT_TAG_COLLECTION_ID,
+        name: 'Hierarchy',
+        description: '',
+        dateAdded: new Date(),
+        subCollections: [],
+        tags: [],
+        color: '',
+      });
     }
-
-    // Here we could start indexing, or checking for changed files
   }
 
   async fetchTags(): Promise<ITag[]> {
@@ -44,9 +54,9 @@ export default class Backend {
     return this.tagCollectionRepository.getAll({});
   }
 
-  async fetchFiles(order: keyof IFile, descending: boolean): Promise<IFile[]> {
+  async fetchFiles(order: keyof IFile, fileOrder: FileOrder): Promise<IFile[]> {
     console.log('Backend: Fetching files...');
-    return this.fileRepository.getAll({ order, descending });
+    return this.fileRepository.getAll({ order, fileOrder });
   }
 
   async fetchFilesByID(ids: ID[]): Promise<IFile[]> {
@@ -55,24 +65,29 @@ export default class Backend {
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
-  async searchFiles(tags: ID[], order: keyof IFile, descending: boolean): Promise<IFile[]> {
-    console.log('Backend: Searching files...', tags);
-    return this.fileRepository.find({ queryField: 'tags', query: tags, order, descending });
+  async searchFiles(
+    criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
+    order: keyof IFile,
+    fileOrder: FileOrder,
+    matchAny?: boolean,
+  ): Promise<IFile[]> {
+    console.log('Backend: Searching files...', criteria, { matchAny });
+    return this.fileRepository.find({ criteria, order, fileOrder, matchAny });
   }
 
-  async createTag(id: ID, name: string, description?: string) {
-    console.log('Backend: Creating tag...', id, name, description);
-    return await this.tagRepository.create(new DbTag(id, name, description));
+  async createTag(tag: ITag): Promise<ITag> {
+    console.log('Backend: Creating tag...', tag);
+    return await this.tagRepository.create(tag);
   }
 
-  async createTagCollection(id: ID, name: string, description?: string) {
-    console.log('Backend: Creating tag collection...', id, name, description);
-    return this.tagCollectionRepository.create(new DbTagCollection(id, name, description));
+  async createTagCollection(collection: ITagCollection): Promise<ITagCollection> {
+    console.log('Backend: Creating tag collection...', collection);
+    return this.tagCollectionRepository.create(collection);
   }
 
-  async createFile(file: IFile) {
+  async createFile(file: IFile): Promise<IFile> {
     console.log('Backend: Creating file...', file);
-    return await this.fileRepository.create(new DbFile(file));
+    return await this.fileRepository.create(file);
   }
 
   async saveTag(tag: ITag): Promise<ITag> {
@@ -90,11 +105,13 @@ export default class Backend {
     return await this.fileRepository.update(file);
   }
 
-  async removeTag(tag: ITag) {
+  async removeTag(tag: ITag): Promise<void> {
     console.log('Removing tag...', tag);
     // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
-    const filesWithTag = await this.fileRepository.find({ queryField: 'tags', query: tag.id });
+    const filesWithTag = await this.fileRepository.find({
+      criteria: { key: 'tags', value: tag.id, operator: 'contains', valueType: 'array' },
+    });
     // Remove tag from files
     filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
     // Update files in db
@@ -103,11 +120,12 @@ export default class Backend {
     await this.tagRepository.remove(tag);
   }
 
-  async removeTagCollection(tagCollection: ITagCollection) {
+  async removeTagCollection(tagCollection: ITagCollection): Promise<void> {
     console.log('Removing tag collection...', tagCollection);
     // Get all sub collections
     const subCollections = await Promise.all(
-      tagCollection.subCollections.map((col) => this.tagCollectionRepository.get(col)));
+      tagCollection.subCollections.map((col) => this.tagCollectionRepository.get(col)),
+    );
     // Remove subcollections
     await Promise.all(subCollections.map((col) => col && this.removeTagCollection(col)));
     // Get all tags
@@ -118,22 +136,61 @@ export default class Backend {
     await this.tagCollectionRepository.remove(tagCollection);
   }
 
-  async removeFile(file: IFile) {
+  async removeFile(file: IFile): Promise<void> {
     console.log('Removing file...', file);
     await this.fileRepository.remove(file);
   }
 
-  async removeFiles(files: IFile[]) {
+  async removeFiles(files: IFile[]): Promise<void> {
     console.log('Removing files...', files);
     await this.fileRepository.removeMany(files);
   }
 
-  async getNumUntaggedFiles() {
+  async getNumUntaggedFiles(): Promise<number> {
     console.log('Get number of untagged files...');
-    return this.fileRepository.count({ queryField: 'tags', query: [] });
+    return this.fileRepository.count({
+      criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' },
+    });
   }
 
-  async clearDatabase() {
+  async getWatchedDirectories(order: keyof ILocation, fileOrder: FileOrder): Promise<ILocation[]> {
+    console.log('Backend: Getting watched directories...');
+    return this.locationRepository.getAll({ order, fileOrder });
+  }
+
+  async createLocation(dir: ILocation): Promise<ILocation> {
+    console.log('Backend: Creating watched directory...');
+    return this.locationRepository.create(dir);
+  }
+
+  async saveLocation(dir: ILocation): Promise<ILocation> {
+    console.log('Backend: Saving watched directory...', dir);
+    return await this.locationRepository.update(dir);
+  }
+
+  async removeLocation(dir: ILocation): Promise<void> {
+    console.log('Backend: Removing watched directory...');
+    return this.locationRepository.remove(dir);
+  }
+
+  // Creates many files at once, and checks for duplicates in the path they are in
+  async createFilesFromPath(path: string, files: IFile[]): Promise<IFile[]> {
+    console.log('Backend: Creating files...', path, files);
+    // Search for file paths that start with 'path', so those can be filtered out
+    const criteria: IStringSearchCriteria<IFile> = {
+      valueType: 'string',
+      operator: 'contains', // Fixme: should be startWith, but doesn't work for some reason :/ 'path' is not an index for 'files' collection?!
+      key: 'absolutePath',
+      value: path,
+    };
+    const existingFilesInPath: IFile[] = await this.fileRepository.find({ criteria });
+    const newFiles = files.filter((file) =>
+      existingFilesInPath.every((f) => f.absolutePath !== file.absolutePath),
+    );
+    return this.fileRepository.createMany(newFiles);
+  }
+
+  async clearDatabase(): Promise<void> {
     console.log('Clearing database...');
     return dbDelete(DB_NAME);
   }

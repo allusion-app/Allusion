@@ -1,5 +1,5 @@
 import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
-import * as React from 'react';
+import React, { useContext } from 'react';
 import StoreContext, { IRootStoreProp } from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 
@@ -13,7 +13,7 @@ interface IGlobalHotkeysProps {
  * to the corresponding components. Those need a 'groups' property
  */
 @HotkeysTarget
-export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRootStoreProp, {}> {
+export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRootStoreProp> {
   render() {
     return <>{this.props.children}</>;
   }
@@ -37,37 +37,27 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           onKeyDown={uiStore.toggleInspector}
         />
 
-        {/* Toggle outliner tabs */}
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.openOutlinerImport}
-          label="Opens the import tab in the outliner (left sidebar)"
-          onKeyDown={uiStore.openOutlinerImport}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.openOutlinerTags}
-          label="Opens the tag tab in the outliner (left sidebar)"
-          onKeyDown={uiStore.openOutlinerTags}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.openOutlinerSearch}
-          label="Opens the search tab in the outliner (left sidebar)"
-          onKeyDown={uiStore.openOutlinerSearch}
-          preventDefault
-        />
         <Hotkey
           global={true}
           combo={hotkeyMap.toggleSettings}
           label="Opens the settings tab in right sidebar"
           onKeyDown={uiStore.toggleSettings}
+          preventDefault
+        />
+
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.toggleHelpCenter}
+          label="Opens the helpcenter tab in right sidebar"
+          onKeyDown={uiStore.toggleHelpCenter}
+          preventDefault
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.replaceQuery}
           label="Replaces the search query with the selected tags"
-          onKeyDown={uiStore.replaceQueryWithSelection}
+          onKeyDown={uiStore.replaceCriteriaWithTagSelection}
+          preventDefault
         />
 
         {/* Toolbar actions */}
@@ -82,25 +72,31 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           global={true}
           combo={hotkeyMap.viewList}
           label="Sets view to list mode"
-          onKeyDown={uiStore.viewList}
+          onKeyDown={uiStore.setMethodList}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewGrid}
-          label="Sets view to Grid mode"
-          onKeyDown={uiStore.viewGrid}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.viewMason}
-          label="Sets view to mason mode"
-          onKeyDown={uiStore.viewMason}
+          label="Sets view to grid mode"
+          onKeyDown={uiStore.setMethodGrid}
         />
         <Hotkey
           global={true}
           combo={hotkeyMap.viewSlide}
           label="Sets view to slide mode"
-          onKeyDown={uiStore.viewSlide}
+          onKeyDown={uiStore.toggleSlideMode}
+        />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.quickSearch}
+          label="Toggle quick search"
+          onKeyDown={uiStore.toggleQuickSearch}
+        />
+        <Hotkey
+          global={true}
+          combo={hotkeyMap.advancedSearch}
+          label="Toggle advanced search"
+          onKeyDown={uiStore.toggleAdvancedSearch}
         />
 
         <Hotkey
@@ -109,13 +105,14 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           label="Opens a preview window for the selected files"
           onKeyDown={uiStore.openPreviewWindow}
         />
+        {/* How about other keys like arrow keys for selecting items */}
       </Hotkeys>
     );
   }
 }
 
 const GlobalHotkeysWrapper = observer((props: IGlobalHotkeysProps) => {
-  const rootStore = React.useContext(StoreContext);
+  const rootStore = useContext(StoreContext);
   return <GlobalHotkeys {...props} rootStore={rootStore} />;
 });
 

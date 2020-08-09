@@ -1,0 +1,7 @@
+{
+  "eslint.validate": [
+    "typescript",
+    "typescriptreact"
+  ],
+  "editor.formatOnSave": true
+}

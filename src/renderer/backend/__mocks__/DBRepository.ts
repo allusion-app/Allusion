@@ -1,11 +1,11 @@
-import { IIdentifiable, ID } from '../../entities/ID';
+import { IResource, ID } from '../../entities/ID';
 
 export const dbInit = jest.fn();
 
 /**
  * A Database implementation for testing purposes
  */
-export default class InMemoryDbRepository<T extends IIdentifiable> {
+export default class InMemoryDbRepository<T extends IResource> {
   /** A dictionairy containing all database entries in memory */
   items: T[] = [];
 
@@ -13,15 +13,14 @@ export default class InMemoryDbRepository<T extends IIdentifiable> {
     return this.items.find((obj) => obj.id === id) as T;
   }
 
-  async getAll({ count, order, descending }: any) {
+  async getAll({ count }: any) {
     return this.items.slice(0, count);
   }
 
-  async find({ queryField, query, count, order, descending }: any) {
+  async find({ queryField, query, count }: any) {
     return this.items
       .filter((obj: any) =>
-        queryField in obj
-        && Array.isArray(obj[queryField])
+        queryField in obj && Array.isArray(obj[queryField])
           ? (obj[queryField] as any).includes(query)
           : obj[queryField] === query,
       )

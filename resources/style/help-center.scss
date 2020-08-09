@@ -1,0 +1,141 @@
+///////////////////////////////// Help Center /////////////////////////////////
+#help-center {
+  .bp3-panel-stack {
+    height: 100%;
+  }
+
+  .bp3-panel-stack-view {
+    margin: 0;
+    border: none;
+    position: unset;
+    background-color: unset !important;
+  }
+  .stack-paragraph {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  /* Dont think "overview" needs to be shown */
+  .bp3-panel-stack-pop .bp3-panel-stack-header {
+    visibility: hidden;
+    display: none;
+  }
+  .bp3-panel-stack-header {
+    box-shadow: none;
+
+    .bp3-panel-stack-header-back {
+      color: $blue1;
+
+      .sticky {
+        position: fixed;
+        top: 1rem;
+      }
+
+      .bp3-icon {
+        color: inherit;
+      }
+    }
+  }
+
+  .bp3-button-group {
+    float: right;
+  }
+
+  button {
+    min-width: 75px;
+  }
+
+  .bp3-text-overflow-ellipsis {
+    // blueprint cuts of the header by default...
+    overflow: inherit;
+  }
+
+  img {
+    // Width of the help center panel
+    max-width: 100%;
+    border-radius: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  .centered {
+    max-width: 80%;
+    margin: 2rem auto;
+    display: flex;
+  }
+  p {
+    margin-bottom: 1.2rem;
+    line-height: 1.4;
+  }
+}
+
+.help-center-home {
+  > header {
+    text-align: center;
+  }
+
+  nav {
+    width: 100%;
+    background-color: $light-gray3; /* #d4d5d7; */
+    border-radius: 0.25rem;
+    overflow: hidden;
+  }
+
+  section > header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+
+    .bp3-icon {
+      margin-right: 0.5rem;
+    }
+
+    &::after {
+      width: 1em;
+      height: 1em;
+      content: '';
+      transform: rotateZ(-90deg);
+      mask-image: url(~resources/icons/arrow-down.svg);
+      -webkit-mask-image: url(~resources/icons/arrow-down.svg);
+      background-color: currentColor;
+    }
+
+    &:hover,
+    &:hover .custom-icon {
+      color: $blue1;
+      transition: color 0.2s $pt-transition-cubic2;
+    }
+  }
+
+  header {
+    padding: 0.5rem;
+  }
+
+  li {
+    padding: 0.2rem 1.5rem;
+
+    &:hover {
+      color: $blue1;
+      transition: color 0.2s $pt-transition-cubic2;
+      cursor: pointer;
+    }
+  }
+
+  ul {
+    padding: 0.25rem 0.5rem;
+    list-style: none;
+    margin: 0;
+    background-color: $light-gray4; /* #e6e7e9; */
+  }
+
+  h2 {
+    color: $blue1;
+    font-size: large;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+  }
+
+  p {
+    line-height: 1.5;
+  }
+}

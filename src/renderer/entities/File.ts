@@ -1,52 +1,38 @@
-import {
-  IReactionDisposer,
-  observable,
-  reaction,
-  computed,
-  toJS,
-  action,
-} from 'mobx';
+import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import Path from 'path';
 import fse from 'fs-extra';
 import systemPath from 'path';
 
+import { promisify } from 'util';
+import ImageSize from 'image-size';
+const sizeOf = promisify(ImageSize.imageSize);
+
 import FileStore from '../frontend/stores/FileStore';
-import { ID, IIdentifiable, ISerializable } from './ID';
+import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
-/* Generic properties of a File in our application (usually an image) */
-export interface IFile extends IIdentifiable {
-  id: ID;
-  path: string;
-  tags: ID[];
-  dateAdded: Date;
-  size: number;
+export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
+export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
-  // Duplicate data; also in path. Used for DB queries
-  name: string;
+/** Retrieved file meta data information */
+interface IMetaData {
+  name: string; // Duplicate data; also in path. Used for DB queries
   extension: string; // in lowercase, without the dot
+  size: number;
+  width: number;
+  height: number;
 }
 
 /* A File as it is represented in the Database */
-export class DbFile implements IFile {
-  public id: ID;
-  public path: string;
-  public tags: ID[];
-  public dateAdded: Date;
-  public size: number;
-
-  public name: string;
-  public extension: string;
-
-  constructor({ id, path, tags, dateAdded, size, name, extension }: IFile) {
-    this.id = id;
-    this.path = path;
-    this.tags = tags;
-    this.dateAdded = dateAdded;
-    this.size = size;
-    this.name = name;
-    this.extension = extension;
-  }
+export interface IFile extends IMetaData, IResource {
+  locationId: ID;
+  // Relative path from location
+  relativePath: string;
+  absolutePath: string;
+  tags: ID[];
+  dateAdded: Date;
+  dateModified: Date;
 }
 
 /**
@@ -54,15 +40,26 @@ export class DbFile implements IFile {
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientFile implements IFile, ISerializable<DbFile> {
-
+export class ClientFile implements ISerializable<IFile> {
   /** Should be called when after constructing a file before sending it to the backend. */
-  static async getMetaData(path: string) {
+  static async getMetaData(path: string): Promise<IMetaData> {
     const stats = await fse.stat(path);
+    let dimensions: ISizeCalculationResult | undefined;
+    try {
+      dimensions = await sizeOf(path);
+    } catch (e) {
+      if (!dimensions) {
+        console.error('Could not find dimensions for ', path);
+      }
+      // TODO: Remove image? Probably unsupported file type
+    }
+
     return {
       name: systemPath.basename(path),
-      extension: systemPath.extname(path).toLowerCase(),
+      extension: systemPath.extname(path).slice(1).toLowerCase(),
       size: stats.size,
+      width: (dimensions && dimensions.width) || 0,
+      height: (dimensions && dimensions.height) || 0,
     };
   }
 
@@ -71,22 +68,39 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
   autoSave = true;
 
   readonly id: ID;
-  readonly dateAdded: Date;
-  readonly path: string;
+  readonly locationId: ID;
+  readonly relativePath: string;
+  readonly absolutePath: string;
   readonly tags = observable<ID>([]);
   readonly size: number;
+  readonly width: number;
+  readonly height: number;
+  readonly dateAdded: Date;
+  readonly dateModified: Date;
   readonly name: string;
   readonly extension: string;
+
+  @observable thumbnailPath: string = '';
+
+  // Is undefined until existence check has been completed
+  @observable isBroken?: boolean;
 
   constructor(store: FileStore, fileProps: IFile) {
     this.store = store;
 
     this.id = fileProps.id;
-    this.path = fileProps.path;
-    this.dateAdded = fileProps.dateAdded;
+    this.locationId = fileProps.locationId;
+    this.relativePath = fileProps.relativePath;
     this.size = fileProps.size;
+    this.width = fileProps.width;
+    this.height = fileProps.height;
+    this.dateAdded = fileProps.dateAdded;
+    this.dateModified = fileProps.dateModified;
     this.name = fileProps.name;
     this.extension = fileProps.extension;
+
+    const location = store.getFileLocation(this);
+    this.absolutePath = systemPath.join(location.path, this.relativePath);
 
     this.tags.push(...fileProps.tags);
 
@@ -98,36 +112,29 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       (file) => {
         if (this.autoSave) {
           // Remove reactive properties, since observable props are not accepted in the backend
-          const jsFile = toJS<IFile>(file);
-          this.store.backend.saveFile(jsFile);
+          this.store.save(file);
         }
       },
     );
   }
 
-  serialize(): IFile {
-    return {
-      id: this.id,
-      path: this.path,
-      tags: this.tags.toJS(), // removes observable properties from observable array
-      dateAdded: this.dateAdded,
-      size: this.size,
-      name: this.name,
-      extension: this.extension,
-    };
-  }
-
   @computed get filename(): string {
-    const base = Path.basename(this.path);
+    const base = Path.basename(this.relativePath);
     return base.substr(0, base.lastIndexOf('.'));
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get clientTags(): ClientTag[] {
-    return this.tags.map((id) => this.store.rootStore.tagStore.tagList.find((t) => t.id === id)) as ClientTag[];
+    return this.tags
+      .map((id) => this.store.getTag(id))
+      .filter((t) => t !== undefined) as ClientTag[];
   }
 
-  @action.bound addTag(tag: ID) {
+  @action.bound setThumbnailPath(thumbnailPath: string): void {
+    this.thumbnailPath = thumbnailPath;
+  }
+
+  @action.bound addTag(tag: ID): void {
     if (this.tags.length === 0) {
       this.store.decrementNumUntaggedFiles();
     }
@@ -136,7 +143,8 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       this.tags.push(tag);
     }
   }
-  @action.bound removeTag(tag: ID) {
+
+  @action.bound removeTag(tag: ID): void {
     if (this.tags.includes(tag)) {
       if (this.tags.length === 1) {
         this.store.incrementNumUntaggedFiles();
@@ -145,14 +153,36 @@ export class ClientFile implements IFile, ISerializable<DbFile> {
       this.tags.remove(tag);
     }
   }
-  @action.bound removeAllTags() {
+
+  @action.bound removeAllTags(): void {
     if (this.tags.length !== 0) {
       this.store.incrementNumUntaggedFiles();
     }
     this.tags.clear();
   }
 
-  dispose() {
+  @action.bound setBroken(state: boolean): void {
+    this.isBroken = state;
+  }
+
+  serialize(): IFile {
+    return {
+      id: this.id,
+      locationId: this.locationId,
+      relativePath: this.relativePath,
+      absolutePath: this.absolutePath,
+      tags: this.tags.toJS(), // removes observable properties from observable array
+      size: this.size,
+      width: this.width,
+      height: this.height,
+      dateAdded: this.dateAdded,
+      dateModified: this.dateModified,
+      name: this.name,
+      extension: this.extension,
+    };
+  }
+
+  dispose(): void {
     // clean up the observer
     this.saveHandler();
   }
