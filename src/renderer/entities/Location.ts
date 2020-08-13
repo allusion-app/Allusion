@@ -220,7 +220,6 @@ export class ClientLocation implements ISerializable<ILocation> {
           if (clientFile) {
             fileStore.hideFile(clientFile);
           }
-          this.store.rootStore.fileStore.removeFilesById;
         })
         .on('ready', () => {
           this.isReady = true;
