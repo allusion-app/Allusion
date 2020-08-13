@@ -1,7 +1,6 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import Path from 'path';
 import fse from 'fs-extra';
-import systemPath from 'path';
 
 import { promisify } from 'util';
 import ImageSize from 'image-size';
@@ -24,6 +23,28 @@ interface IMetaData {
   height: number;
 }
 
+/** Should be called when after constructing a file before sending it to the backend. */
+export const getMetaData = async (path: string): Promise<IMetaData> => {
+  const stats = await fse.stat(path);
+  let dimensions: ISizeCalculationResult | undefined;
+  try {
+    dimensions = await sizeOf(path);
+  } catch (e) {
+    if (!dimensions) {
+      console.error('Could not find dimensions for ', path);
+    }
+    // TODO: Remove image? Probably unsupported file type
+  }
+
+  return {
+    name: Path.basename(path),
+    extension: Path.extname(path).slice(1).toLowerCase(),
+    size: stats.size,
+    width: (dimensions && dimensions.width) || 0,
+    height: (dimensions && dimensions.height) || 0,
+  };
+};
+
 /* A File as it is represented in the Database */
 export interface IFile extends IMetaData, IResource {
   locationId: ID;
@@ -41,31 +62,9 @@ export interface IFile extends IMetaData, IResource {
  * update the entity in the backend.
  */
 export class ClientFile implements ISerializable<IFile> {
-  /** Should be called when after constructing a file before sending it to the backend. */
-  static async getMetaData(path: string): Promise<IMetaData> {
-    const stats = await fse.stat(path);
-    let dimensions: ISizeCalculationResult | undefined;
-    try {
-      dimensions = await sizeOf(path);
-    } catch (e) {
-      if (!dimensions) {
-        console.error('Could not find dimensions for ', path);
-      }
-      // TODO: Remove image? Probably unsupported file type
-    }
-
-    return {
-      name: systemPath.basename(path),
-      extension: systemPath.extname(path).slice(1).toLowerCase(),
-      size: stats.size,
-      width: (dimensions && dimensions.width) || 0,
-      height: (dimensions && dimensions.height) || 0,
-    };
-  }
-
-  store: FileStore;
-  saveHandler: IReactionDisposer;
-  autoSave = true;
+  private store: FileStore;
+  private saveHandler: IReactionDisposer;
+  private autoSave = true;
 
   readonly id: ID;
   readonly locationId: ID;
@@ -100,7 +99,7 @@ export class ClientFile implements ISerializable<IFile> {
     this.extension = fileProps.extension;
 
     const location = store.getFileLocation(this);
-    this.absolutePath = systemPath.join(location.path, this.relativePath);
+    this.absolutePath = Path.join(location.path, this.relativePath);
 
     this.tags.push(...fileProps.tags);
 
@@ -135,6 +134,10 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @action.bound addTag(tag: ID): void {
+    if (this.isBroken) {
+      return;
+    }
+
     if (this.tags.length === 0) {
       this.store.decrementNumUntaggedFiles();
     }
@@ -163,6 +166,7 @@ export class ClientFile implements ISerializable<IFile> {
 
   @action.bound setBroken(state: boolean): void {
     this.isBroken = state;
+    this.autoSave = !this.isBroken;
   }
 
   serialize(): IFile {

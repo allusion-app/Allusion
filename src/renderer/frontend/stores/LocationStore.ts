@@ -5,7 +5,7 @@ import Backend from '../../backend/Backend';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
 import { ClientLocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
-import { IFile, ClientFile } from '../../entities/File';
+import { IFile, getMetaData } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
 import { AppToaster } from '../App';
@@ -233,7 +233,7 @@ class LocationStore {
       tags: tagsToAdd || [],
       dateAdded: new Date(),
       dateModified: new Date(),
-      ...(await ClientFile.getMetaData(path)),
+      ...(await getMetaData(path)),
     };
   }
 
@@ -303,13 +303,13 @@ class LocationStore {
     watchedDir.dispose();
 
     const filesToRemove = await this.findLocationFiles(watchedDir.id);
-    await this.rootStore.fileStore.removeFilesById(filesToRemove.map((f) => f.id));
+    await this.rootStore.fileStore.removeFilesFromDB(filesToRemove.map((f) => f.id));
 
     // Remove location locally
     runInAction(() => this.locationList.remove(watchedDir));
 
     // Remove location from DB through backend
-    await this.backend.removeLocation(watchedDir);
+    return this.backend.removeLocation(watchedDir);
   }
 
   @action.bound private addLocation(location: ClientLocation) {
