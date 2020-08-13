@@ -220,6 +220,19 @@ export class ClientLocation implements ISerializable<ILocation> {
           if (clientFile) {
             fileStore.hideFile(clientFile);
           }
+
+          AppToaster.show(
+            {
+              message: 'Some images have gone missing!',
+              intent: 'warning',
+              timeout: 0,
+              action: {
+                icon: IconSet.WARNING_BROKEN_LINK,
+                onClick: this.store.rootStore.fileStore.fetchMissingFiles,
+              },
+            },
+            'missing',
+          );
         })
         .on('ready', () => {
           this.isReady = true;

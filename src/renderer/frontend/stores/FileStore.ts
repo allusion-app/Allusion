@@ -143,6 +143,8 @@ class FileStore {
       this.fetchUntaggedFiles();
     } else if (this.showsQueryContent) {
       this.fetchFilesByQuery();
+    } else if (this.showsMissingContent) {
+      this.fetchMissingFiles();
     }
   }
 
