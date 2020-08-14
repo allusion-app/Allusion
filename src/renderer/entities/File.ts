@@ -98,7 +98,7 @@ export class ClientFile implements ISerializable<IFile> {
     this.name = fileProps.name;
     this.extension = fileProps.extension;
 
-    const location = store.getFileLocation(this);
+    const location = store.getFileLocation(this.locationId);
     this.absolutePath = Path.join(location.path, this.relativePath);
 
     this.tags.push(...fileProps.tags);

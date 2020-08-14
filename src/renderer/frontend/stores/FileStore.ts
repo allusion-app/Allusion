@@ -106,7 +106,14 @@ class FileStore {
     return file;
   }
 
-  /** Client-only remove: Hides a file */
+  /**
+   * Marks file as missing
+   *
+   * Marking a file as missing will remove the file from the FileStore stats and
+   * automatically 'freezes' the object. Freezing means that changes made to a
+   * file will not be saved in the database.
+   * @param file
+   */
   @action.bound hideFile(file: ClientFile) {
     file.setBroken(true);
     this.rootStore.uiStore.deselectFile(file);
@@ -116,7 +123,7 @@ class FileStore {
     }
   }
 
-  @action.bound async removeFilesFromDB(ids: ID[]) {
+  @action.bound async removeFiles(ids: ID[]) {
     const filesToRemove = ids
       .map((id) => this.get(id))
       .filter((f) => f !== undefined) as ClientFile[];
@@ -178,6 +185,49 @@ class FileStore {
     }
   }
 
+  @action.bound async fetchMissingFiles() {
+    try {
+      const {
+        orderBy,
+        fileOrder,
+        rootStore: { uiStore },
+      } = this;
+
+      uiStore.closeQuickSearch();
+      this.setContent('missing');
+
+      // Fetch all files, then check their existence and only show the missing ones
+      // Similar to {@link updateFromBackend}, but the existence check needs to be awaited before we can show the images
+      const backendFiles = await this.backend.fetchFiles(orderBy, fileOrder);
+
+      // For every new file coming in, either re-use the existing client file if it exists,
+      // or construct a new client file
+      const newClientFiles = this.filesFromBackend(backendFiles);
+
+      // We don't store whether files are missing (since they might change at any time)
+      // So we have to check all files and check their existence them here
+      const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
+        try {
+          await fs.access(clientFile.absolutePath, fs.constants.F_OK);
+          clientFile.setBroken(false);
+        } catch (err) {
+          clientFile.setBroken(true);
+        }
+      });
+
+      const N = 50; // TODO: same here as in fetchFromBackend: number of concurrent checks should be system dependent
+      await promiseAllLimit(existenceCheckPromises, N);
+      const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
+
+      runInAction(() => {
+        this.numMissingFiles = missingClientFiles.length;
+        this.fileList.replace(missingClientFiles);
+      });
+    } catch (err) {
+      console.error('Could not load broken files', err);
+    }
+  }
+
   @action.bound async fetchFilesByQuery() {
     const { uiStore } = this.rootStore;
     const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) => c.serialize());
@@ -236,10 +286,10 @@ class FileStore {
     this.backend.saveFile(file);
   }
 
-  getFileLocation(file: IFile): ClientLocation {
-    const location = this.rootStore.locationStore.get(file.locationId);
+  getFileLocation(locationId: ID): ClientLocation {
+    const location = this.rootStore.locationStore.get(locationId);
     if (!location) {
-      console.warn('Location of file was not found! This should never happen!', file);
+      console.warn('Location of file was not found! This should never happen!', locationId);
       return this.rootStore.locationStore.getDefaultLocation();
     }
     return location;
@@ -266,15 +316,14 @@ class FileStore {
     localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
   }
 
-  @action.bound private async loadFiles() {
+  @action private async loadFiles() {
     const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
     return this.updateFromBackend(fetchedFiles);
   }
 
-  @action.bound private async updateFromBackend(backendFiles: IFile[]) {
+  @action private async updateFromBackend(backendFiles: IFile[]) {
     if (backendFiles.length === 0) {
-      this.fileList.clear();
-      return;
+      return this.clearFileList();
     }
 
     const locationIds = this.rootStore.locationStore.locationList.map((l) => l.id);
@@ -317,58 +366,15 @@ class FileStore {
     runInAction(() => this.fileList.replace(newClientFiles));
   }
 
-  @action.bound async fetchMissingFiles() {
-    try {
-      const {
-        orderBy,
-        fileOrder,
-        rootStore: { uiStore },
-      } = this;
-
-      uiStore.closeQuickSearch();
-      this.setContent('missing');
-
-      // Fetch all files, then check their existence and only show the missing ones
-      // Similar to {@link updateFromBackend}, but the existence check needs to be awaited before we can show the images
-      const backendFiles = await this.backend.fetchFiles(orderBy, fileOrder);
-
-      // For every new file coming in, either re-use the existing client file if it exists,
-      // or construct a new client file
-      const newClientFiles = this.filesFromBackend(backendFiles);
-
-      // We don't store whether files are missing (since they might change at any time)
-      // So we have to check all files and check their existence them here
-      const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
-        try {
-          await fs.access(clientFile.absolutePath, fs.constants.F_OK);
-          clientFile.setBroken(false);
-        } catch (err) {
-          clientFile.setBroken(true);
-        }
-      });
-
-      const N = 50; // TODO: same here as in fetchFromBackend: number of concurrent checks should be system dependent
-      await promiseAllLimit(existenceCheckPromises, N);
-      const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
-
-      runInAction(() => {
-        this.numMissingFiles = missingClientFiles.length;
-        this.fileList.replace(missingClientFiles);
-      });
-    } catch (err) {
-      console.error('Could not load broken files', err);
-    }
-  }
-
   /**
    *
    * @param backendFiles
    * @returns A list of Client files, and a set of keys that was reused from the existing fileList
    */
   @action private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
-    return backendFiles.map((file) => {
+    return backendFiles.map((f) => {
       // Might already exist!
-      const existingFile = this.get(file.id);
+      const existingFile = this.get(f.id);
       if (existingFile) {
         return existingFile;
       }
@@ -378,13 +384,13 @@ class FileStore {
       // and just replacing their properties instead of creating new objects
       // But that's micro optimization...
 
-      const f = new ClientFile(this, file);
+      const file = new ClientFile(this, f);
       // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
       // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
-      f.thumbnailPath = needsThumbnail(file.width, file.height)
-        ? getThumbnailPath(file.absolutePath, this.rootStore.uiStore.thumbnailDirectory)
-        : file.absolutePath;
-      return f;
+      file.thumbnailPath = needsThumbnail(f.width, f.height)
+        ? getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory)
+        : f.absolutePath;
+      return file;
     });
   }
 

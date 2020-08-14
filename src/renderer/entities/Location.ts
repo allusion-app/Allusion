@@ -53,17 +53,43 @@ async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
 }
 
 export class ClientLocation implements ISerializable<ILocation> {
-  saveHandler: IReactionDisposer;
-  watcher?: FSWatcher;
-  autoSave = true;
+  private store: LocationStore;
+  private saveHandler: IReactionDisposer;
+  private autoSave = true;
+
+  private watcher?: FSWatcher;
   // whether initialization has started or has been completed
   @observable isInitialized = false;
   // Whether the initial scan has been completed, and new/removed files are being watched
-  isReady = false;
+  private isReady = false;
   // true when the path no longer exists (broken link)
   @observable isBroken = false;
 
   readonly tagsToAdd = observable<ID>([]);
+
+  constructor(
+    store: LocationStore,
+    public id: ID,
+    public path: string,
+    public dateAdded: Date,
+    tagsToAdd?: ID[],
+  ) {
+    this.store = store;
+    // observe all changes to observable fields
+    this.saveHandler = reaction(
+      // We need to explicitly define which values this reaction should react to
+      () => this.serialize(),
+      // Then update the entity in the database
+      (dir) => {
+        if (this.autoSave) {
+          this.store.save(dir);
+        }
+      },
+    );
+    if (tagsToAdd) {
+      this.addTags(tagsToAdd);
+    }
+  }
 
   @computed get clientTagsToAdd(): ClientTag[] {
     return this.tagsToAdd
@@ -73,29 +99,6 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   @computed get name(): string {
     return SysPath.basename(this.path);
-  }
-
-  constructor(
-    public store: LocationStore,
-    public id: ID,
-    public path: string,
-    public dateAdded: Date,
-    tagsToAdd?: ID[],
-  ) {
-    // observe all changes to observable fields
-    this.saveHandler = reaction(
-      // We need to explicitly define which values this reaction should react to
-      () => this.serialize(),
-      // Then update the entity in the database
-      (dir) => {
-        if (this.autoSave) {
-          this.store.backend.saveLocation(dir);
-        }
-      },
-    );
-    if (tagsToAdd) {
-      this.addTags(tagsToAdd);
-    }
   }
 
   @action.bound async init(): Promise<string[]> {
@@ -142,14 +145,6 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.tagsToAdd.push(...tags);
   }
 
-  // async relocate(newPath: string) {
-  // TODO: Check if all files can be found. If not, notify user, else, update all files in db from this location
-  // locationFiles = ...
-  // locationFiles.forEach((f) => f.path = )?
-
-  // if we decide to store relative paths for files, no need to relocate individual files
-  // }
-
   async checkIfBroken(): Promise<boolean> {
     if (this.isBroken) {
       return true;
@@ -161,6 +156,19 @@ export class ClientLocation implements ISerializable<ILocation> {
       }
     }
     return false;
+  }
+
+  async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
+    return getDirectoryTree(this.path);
+  }
+
+  async delete(): Promise<void> {
+    this.store.removeDirectory(this);
+  }
+
+  dispose(): void {
+    // clean up the observer
+    this.saveHandler();
   }
 
   private watchDirectory(inputPath: string): Promise<string[]> {
@@ -201,12 +209,7 @@ export class ClientLocation implements ISerializable<ILocation> {
               );
 
               // Add to backend
-              const fileToStore = await this.store.pathToIFile(
-                path,
-                this.id,
-                this.tagsToAdd.toJS(),
-              );
-              this.store.backend.createFilesFromPath(path, [fileToStore]);
+              this.store.createFileFromPath(path, this);
             } else {
               initialFiles.push(path);
             }
@@ -244,18 +247,5 @@ export class ClientLocation implements ISerializable<ILocation> {
           resolve(initialFiles);
         });
     });
-  }
-
-  async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
-    return getDirectoryTree(this.path);
-  }
-
-  async delete(): Promise<void> {
-    this.store.removeDirectory(this);
-  }
-
-  dispose(): void {
-    // clean up the observer
-    this.saveHandler();
   }
 }

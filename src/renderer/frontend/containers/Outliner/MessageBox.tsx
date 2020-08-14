@@ -121,9 +121,7 @@ export const FileRemoval = (
       }?`}
       information="Deleting files will permanently remove them from Allusion. If you just accidentially moved files (to the trash bin), you can recover them by moving them back to their previous location and refresh Allusion."
       onCancel={props.onClose}
-      onConfirm={() =>
-        fileStore.removeFilesFromDB(files.map((f) => f.id)).then(() => props.onClose())
-      }
+      onConfirm={() => fileStore.removeFiles(files.map((f) => f.id)).then(() => props.onClose())}
     />
   );
 };
