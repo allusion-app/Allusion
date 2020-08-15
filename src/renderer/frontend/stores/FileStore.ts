@@ -332,6 +332,7 @@ class FileStore {
 
   @action private async updateFromBackend(backendFiles: IFile[]) {
     if (backendFiles.length === 0) {
+      this.rootStore.uiStore.clearFileSelection();
       return this.clearFileList();
     }
 
@@ -385,7 +386,8 @@ class FileStore {
       this.rebuildIndex();
 
       // Remove files from selection that are not in the file list anymore
-      for (const selectedFileId of this.rootStore.uiStore.fileSelection.values()) {
+      const { fileSelection } = this.rootStore.uiStore;
+      for (const selectedFileId of fileSelection.values()) {
         if (!this._index.has(selectedFileId)) {
           this.rootStore.uiStore.fileSelection.delete(selectedFileId);
         }
