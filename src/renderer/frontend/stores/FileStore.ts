@@ -21,7 +21,7 @@ export type ViewContent = 'query' | 'all' | 'untagged' | 'missing';
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
   /** A map of file ID to its index in the file list, for quick lookups by ID */
-  readonly _index = new Map<ID, number>();
+  private readonly _index = new Map<ID, number>();
 
   /** The origin of the current files that are shown */
   @observable content: ViewContent = 'all';
@@ -226,6 +226,8 @@ class FileStore {
       runInAction(() => {
         this.numMissingFiles = missingClientFiles.length;
         this.fileList.replace(missingClientFiles);
+        this.rebuildIndex();
+        this.cleanFileSelection();
       });
     } catch (err) {
       console.error('Could not load broken files', err);
@@ -333,6 +335,7 @@ class FileStore {
   @action private async updateFromBackend(backendFiles: IFile[]) {
     if (backendFiles.length === 0) {
       this.rootStore.uiStore.clearFileSelection();
+      this._index.clear();
       return this.clearFileList();
     }
 
@@ -386,12 +389,7 @@ class FileStore {
       this.rebuildIndex();
 
       // Remove files from selection that are not in the file list anymore
-      const { fileSelection } = this.rootStore.uiStore;
-      for (const selectedFileId of fileSelection.values()) {
-        if (!this._index.has(selectedFileId)) {
-          this.rootStore.uiStore.fileSelection.delete(selectedFileId);
-        }
-      }
+      this.cleanFileSelection();
     });
   }
 
@@ -399,6 +397,16 @@ class FileStore {
     this._index.clear();
     for (let i = 0; i < this.fileList.length; i++) {
       this._index.set(this.fileList[i].id, i);
+    }
+  }
+
+  /** Remove files from selection that are not in the file list anymore */
+  cleanFileSelection() {
+    const { fileSelection } = this.rootStore.uiStore;
+    for (const selectedFileId of fileSelection.values()) {
+      if (!this._index.has(selectedFileId)) {
+        this.rootStore.uiStore.fileSelection.delete(selectedFileId);
+      }
     }
   }
 
