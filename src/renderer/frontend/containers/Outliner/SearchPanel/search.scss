@@ -1,28 +1,48 @@
+.search-dialog {
+  width: 650px;
+  margin-bottom: 20vh;
+}
+
 #search-form {
   .bp3-popover-target {
     width: 100%;
   }
 
-  #actions-bar {
+  .bp3-dialog-footer {
     margin-top: 1rem;
-    float: right;
-  }
-  #functions-bar {
-    margin-top: 1rem;
-    display: inline-flex;
-    float: left;
-    > * {
-      margin-right: 1rem;
-      margin-top: auto;
-      margin-bottom: auto;
+
+    #functions-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    #actions-bar {
+      float: right;
     }
   }
+
   .criteria {
     display: flex;
     margin-bottom: 0.25rem;
 
-    .bp3-control-group {
-      padding: 0px;
+    // Criteria field alignment (fixed width)
+    padding: 0px;
+    .bp3-input {
+      width: 275px !important;
+    }
+    > div,
+    > span {
+      border-right: 1px solid rgba(var(--background-separator-color), 0.75); // Note: SASS accepts hex values in rgba()
+      max-width: 150px !important;
+      width: 150px !important;
+    }
+    > *:nth-child(3) {
+      max-width: 275px !important;
+      border-right: none !important;
+    }
+    > *:last-child {
+      width: 10px !important;
     }
 
     .add-remove {

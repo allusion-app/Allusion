@@ -49,21 +49,23 @@ const InspectorToolbar = observer(() => {
       <Button
         icon={IconSet.INFO}
         onClick={uiStore.toggleInspector}
-        intent={uiStore.isInspectorOpen ? 'primary' : 'none'}
-        className="tooltip"
+        active={uiStore.isInspectorOpen}
+        className="tooltip toggleButton"
         data-right={ToolbarTooltips.Inspector}
       />
       <Button
         icon={IconSet.HELPCENTER}
         onClick={uiStore.toggleHelpCenter}
-        className="tooltip"
+        className="tooltip toggleButton"
         data-left={ToolbarTooltips.HelpCenter}
+        active={uiStore.isHelpCenterOpen}
       />
       <Button
         icon={IconSet.SETTINGS}
         onClick={uiStore.toggleSettings}
-        className="tooltip"
+        className="tooltip toggleButton"
         data-left={ToolbarTooltips.Settings}
+        active={uiStore.isSettingsOpen}
       />
     </ButtonGroup>
   );
