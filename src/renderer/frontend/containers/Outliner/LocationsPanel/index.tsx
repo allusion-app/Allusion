@@ -51,7 +51,7 @@ const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalPr
     <Dialog
       title={
         <span className="ellipsis" title={dir.path}>
-          Location: {Path.basename(dir.path)}
+          Location: {dir.name}
         </span>
       }
       icon={IconSet.FOLDER_CLOSE}
@@ -68,6 +68,7 @@ const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalPr
               <Label>
                 <p>Tags to add</p>
                 <MultiTagSelector
+                  disabled={dir.isBroken}
                   selectedItems={dir.clientTagsToAdd}
                   onTagSelect={dir.addTag}
                   onTagDeselect={dir.removeTag}
