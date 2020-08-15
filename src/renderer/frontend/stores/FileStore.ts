@@ -20,8 +20,8 @@ export type ViewContent = 'query' | 'all' | 'untagged' | 'missing';
 
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
-
-  // TODO: Also maintain a dictionary of ID -> ClientFile for quick access and getting all IDs using Object.keys
+  /** A map of file ID to its index in the file list, for quick lookups by ID */
+  readonly _index = new Map<ID, number>();
 
   /** The origin of the current files that are shown */
   @observable content: ViewContent = 'all';
@@ -274,7 +274,7 @@ class FileStore {
   }
 
   get(id: ID): ClientFile | undefined {
-    return this.fileList.find((f) => f.id === id);
+    return this.fileList[this._index.get(id)!];
   }
 
   getTag(tag: ID): ClientTag | undefined {
@@ -360,10 +360,22 @@ class FileStore {
 
     // Run the existence check with at most N checks in parallel
     // TODO: Should make N configurage, or determine based on the system/disk performance
+    // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
     const N = 50;
-    await promiseAllLimit(existenceCheckPromises, N);
+    promiseAllLimit(existenceCheckPromises, N).catch((e) =>
+      console.error('An error occured during existance checking!', e),
+    );
 
-    runInAction(() => this.fileList.replace(newClientFiles));
+    runInAction(() => {
+      // Update the file list
+      this.fileList.replace(newClientFiles);
+
+      // Rebuild index
+      this._index.clear();
+      for (let i = 0; i < newClientFiles.length; i++) {
+        this._index.set(newClientFiles[i].id, i);
+      }
+    });
   }
 
   /**
