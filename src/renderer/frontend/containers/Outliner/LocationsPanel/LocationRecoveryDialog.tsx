@@ -117,8 +117,6 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
   const location = locationStore.get(isLocationRecoveryOpen);
   if (!location) return <></>;
 
-  const { path } = location;
-
   const noRecovery = status && status.matchCount === 0;
   const fullRecovery = status && !noRecovery && status.locationImageCount === status.matchCount;
   const partialRecovery = status && !noRecovery && status.matchCount < status.locationImageCount;
@@ -127,8 +125,8 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
   return (
     <Dialog
       title={
-        <span className="ellipsis" title={path}>
-          Location &quot;{Path.basename(path)}&quot; could not be found
+        <span className="ellipsis" title={location.path}>
+          Location &quot;{location.name}&quot; could not be found
         </span>
       }
       icon={IconSet.FOLDER_CLOSE}
@@ -139,13 +137,13 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
       <div className={Classes.DIALOG_BODY}>
         {!status ? (
           <span>
-            <p>The location {Path.basename(path)} could not be found on your system.</p>
+            <p>The location {location.name} could not be found on your system.</p>
             <p>
               If it has been moved to a different directory, you can relocate the location by
               choosing its new path to recover information Allusion has stored about your images
             </p>
             <p>Original path:</p>
-            <pre>{path}</pre>
+            <pre>{location.path}</pre>
           </span>
         ) : (
           <span>

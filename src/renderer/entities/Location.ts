@@ -201,7 +201,7 @@ export class ClientLocation implements ISerializable<ILocation> {
         })
         .on('change', (path: string) => console.log(`File ${path} has been changed`))
         .on('unlink', (path: string) => {
-          console.log(`Location "${SysPath.basename(this.path)}": File ${path} has been removed.`);
+          console.log(`Location "${this.name}": File ${path} has been removed.`);
           const fileStore = this.store.rootStore.fileStore;
           const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
           if (clientFile) {
@@ -223,10 +223,7 @@ export class ClientLocation implements ISerializable<ILocation> {
         })
         .on('ready', () => {
           this.isReady = true;
-          console.log(
-            `Location "${SysPath.basename(this.path)}" ready. Detected files:`,
-            initialFiles.length,
-          );
+          console.log(`Location "${this.name}" ready. Detected files:`, initialFiles.length);
           // Todo: Compare this in DB, add new files and mark missing files as missing
           resolve(initialFiles);
         });

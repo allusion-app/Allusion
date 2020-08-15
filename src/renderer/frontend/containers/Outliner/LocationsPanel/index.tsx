@@ -51,7 +51,7 @@ const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalPr
     <Dialog
       title={
         <span className="ellipsis" title={dir.path}>
-          Location: {Path.basename(dir.path)}
+          Location: {dir.name}
         </span>
       }
       icon={IconSet.FOLDER_CLOSE}
