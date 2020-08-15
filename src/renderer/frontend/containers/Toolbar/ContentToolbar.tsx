@@ -90,7 +90,7 @@ const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverPr
         isOpen={uiStore.isToolbarFileRemoverOpen}
         onClose={uiStore.toggleToolbarFileRemover}
         theme={theme}
-        object={uiStore.clientFileSelection}
+        object={uiStore.isToolbarFileRemoverOpen ? uiStore.clientFileSelection : []}
       />
     </>
   );
@@ -196,10 +196,10 @@ const ContentToolbar = observer(() => {
 
   // If everything is selected, deselect all. Else, select all
   const handleToggleSelect = () =>
-    fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
+    fileSelection.size > 0 && fileSelection.size === fileStore.fileList.length
       ? uiStore.clearFileSelection()
       : uiStore.selectFiles(
-          fileStore.fileList.map((f) => f.id).filter((f) => !fileSelection.includes(f)),
+          fileStore.fileList.map((f) => f.id).filter((f) => !fileSelection.has(f)),
         );
 
   if (uiStore.isSlideMode) {
@@ -220,16 +220,16 @@ const ContentToolbar = observer(() => {
         <ButtonGroup minimal>
           <FileSelection
             allFilesSelected={
-              fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
+              fileSelection.size > 0 && fileSelection.size === fileStore.fileList.length
             }
             toggleSelection={handleToggleSelect}
-            selectionCount={fileSelection.length}
+            selectionCount={fileSelection.size}
           />
 
           {/* Only show when not viewing missing files (so it is replaced by the Delete button) */}
           <TagFilesPopover
-            files={uiStore.clientFileSelection}
-            disabled={fileSelection.length <= 0 || fileStore.fileList.length <= 0}
+            files={uiStore.isToolbarTagSelectorOpen ? uiStore.clientFileSelection : []}
+            disabled={fileSelection.size <= 0 || fileStore.fileList.length <= 0}
             isOpen={uiStore.isToolbarTagSelectorOpen}
             close={uiStore.closeToolbarTagSelector}
             toggle={uiStore.toggleToolbarTagSelector}
@@ -239,7 +239,7 @@ const ContentToolbar = observer(() => {
           {/* Only show option to remove selected files in toolbar when viewing missing files */}
           <RemoveFilesPopover
             hidden={fileStore.content !== 'missing'}
-            disabled={uiStore.fileSelection.length === 0}
+            disabled={uiStore.fileSelection.size === 0}
           />
 
           <FileFilter

@@ -101,6 +101,7 @@ class FileStore {
     });
     // The function caller is responsible for handling errors.
     await this.backend.createFile(file.serialize());
+    this._index.set(file.id, this.fileList.length);
     runInAction(() => this.fileList.push(file));
     this.incrementNumUntaggedFiles();
     return file;
@@ -136,6 +137,9 @@ class FileStore {
           this.rootStore.uiStore.deselectFile(f);
           this.fileList.remove(f);
           this.decrementNumMissingFiles();
+
+          // File indices changed -> Rebuild index
+          this.rebuildIndex();
         });
       });
     } catch (err) {
@@ -178,7 +182,7 @@ class FileStore {
         this.fileOrder,
         uiStore.searchMatchAny,
       );
-      this.updateFromBackend(fetchedFiles);
+      await this.updateFromBackend(fetchedFiles);
       this.setContentUntagged();
     } catch (err) {
       console.error('Could not load all files', err);
@@ -271,10 +275,15 @@ class FileStore {
   // Removes all items from fileList
   @action.bound clearFileList() {
     this.fileList.clear();
+    this._index.clear();
   }
 
   get(id: ID): ClientFile | undefined {
-    return this.fileList[this._index.get(id)!];
+    return this._index.has(id) ? this.fileList[this._index.get(id)!] : undefined;
+  }
+
+  getIndex(id: ID): number {
+    return this._index.get(id) ?? -1;
   }
 
   getTag(tag: ID): ClientTag | undefined {
@@ -332,6 +341,8 @@ class FileStore {
     // or construct a new client file
     const newClientFiles = this.filesFromBackend(backendFiles);
 
+    // TODO: What happened to dispose()ing the old files? Pretty sure that'll cause a memory leak
+
     // Check existence of new files asynchronously, no need to wait until they can be showed
     // we can simply check whether they exist after they start rendering
     const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
@@ -363,7 +374,7 @@ class FileStore {
     // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
     const N = 50;
     promiseAllLimit(existenceCheckPromises, N).catch((e) =>
-      console.error('An error occured during existance checking!', e),
+      console.error('An error occured during existence checking!', e),
     );
 
     runInAction(() => {
@@ -371,11 +382,22 @@ class FileStore {
       this.fileList.replace(newClientFiles);
 
       // Rebuild index
-      this._index.clear();
-      for (let i = 0; i < newClientFiles.length; i++) {
-        this._index.set(newClientFiles[i].id, i);
+      this.rebuildIndex();
+
+      // Remove files from selection that are not in the file list anymore
+      for (const selectedFileId of this.rootStore.uiStore.fileSelection.values()) {
+        if (!this._index.has(selectedFileId)) {
+          this.rootStore.uiStore.fileSelection.delete(selectedFileId);
+        }
       }
     });
+  }
+
+  rebuildIndex() {
+    this._index.clear();
+    for (let i = 0; i < this.fileList.length; i++) {
+      this._index.set(this.fileList[i].id, i);
+    }
   }
 
   /**

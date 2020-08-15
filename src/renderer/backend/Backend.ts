@@ -146,6 +146,17 @@ export default class Backend {
     await this.fileRepository.removeMany(files);
   }
 
+  async countFiles(
+    criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
+    matchAny?: boolean,
+  ): Promise<number> {
+    console.log('Get number of files...', criteria, matchAny);
+    return this.fileRepository.count({
+      criteria,
+      matchAny,
+    });
+  }
+
   async getWatchedDirectories(order: keyof ILocation, fileOrder: FileOrder): Promise<ILocation[]> {
     console.log('Backend: Getting watched directories...');
     return this.locationRepository.getAll({ order, fileOrder });
