@@ -50,20 +50,20 @@ const InspectorToolbar = observer(() => {
         icon={IconSet.INFO}
         onClick={uiStore.toggleInspector}
         active={uiStore.isInspectorOpen}
-        className="tooltip toggleButton"
+        className="tooltip"
         data-right={ToolbarTooltips.Inspector}
       />
       <Button
         icon={IconSet.HELPCENTER}
         onClick={uiStore.toggleHelpCenter}
-        className="tooltip toggleButton"
+        className="tooltip"
         data-left={ToolbarTooltips.HelpCenter}
         active={uiStore.isHelpCenterOpen}
       />
       <Button
         icon={IconSet.SETTINGS}
         onClick={uiStore.toggleSettings}
-        className="tooltip toggleButton"
+        className="tooltip"
         data-left={ToolbarTooltips.Settings}
         active={uiStore.isSettingsOpen}
       />

@@ -61,9 +61,7 @@ const TagFilesPopover = observer(
           data-right={ToolbarTooltips.TagFiles}
         />
       )}
-      <div className="popoverContent">
-        <FileTags files={files} autoFocus />
-      </div>
+      <FileTags files={files} autoFocus />
     </Popover>
   ),
 );

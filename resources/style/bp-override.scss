@@ -136,7 +136,7 @@
   color: $light-gray1 !important;
 }
 
-.bp3-popover-content #fileTag,
+.bp3-popover-content .file-tag,
 #search-form {
   .bp3-tag-input.bp3-active {
     color: #f5f8fa !important;
@@ -560,7 +560,7 @@ button:has(.bp3-intent-danger) {
 // Menus
 .bp3-dark,
 .bp3-light {
-  #fileTag .bp3-heading.inpectorHeading,
+  .file-tag .bp3-heading.inpectorHeading,
   .bp3-drawer-header .bp3-heading,
   &.header-dark .bp3-heading {
     line-height: 19px;
@@ -600,7 +600,7 @@ button:has(.bp3-intent-danger) {
 .bp3-menu,
 .bp3-popover.bp3-dark .bp3-popover-content,
 .bp3-dark .bp3-popover .bp3-popover-content,
-.bp3-popover-content .fileTag,
+.bp3-popover-content .file-tag,
 .bp3-popover-content,
 .bp3-popover .bp3-popover-content {
   margin: 0;
@@ -696,11 +696,11 @@ button:has(.bp3-intent-danger) {
 }
 
 .bp3-menu-item,
-.bp3-portal #fileTag:only-child {
+.bp3-portal .file-tag:only-child {
   padding: 0.25rem 0.25rem;
 }
 
-#inspector #fileTag > *,
+#inspector .file-tag > *,
 #inspector .inpectorHeading {
   word-break: break-word;
   padding: 0.25rem 0rem;
@@ -913,7 +913,7 @@ li .bp3-menu-item {
   outline-offset: 1px;
 }
 
-.bp3-portal #fileTag .bp3-tag.bp3-minimal {
+.bp3-portal .file-tag .bp3-tag.bp3-minimal {
   background-color: $blue1-unimportant;
 }
 
@@ -923,7 +923,7 @@ li .bp3-menu-item {
   outline-offset: 0;
 }
 
-.bp3-portal #fileTag,
+.bp3-portal .file-tag,
 .bp3-dialog {
   .bp3-tag.bp3-minimal {
     background-color: $blue1-unimportant;

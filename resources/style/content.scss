@@ -156,19 +156,6 @@
   }
 }
 
-.thumbnail-tags {
-  grid-area: tags;
-  width: 100%;
-  height: auto;
-  padding: 0.4em 0.4rem 0.15rem 0.4rem;
-  position: absolute;
-  bottom: 0;
-  background: none;
-  > * {
-    margin: 0.25em;
-  }
-}
-
 .thumbnail-img {
   grid-area: image;
   width: var(--thumbnail-size);
@@ -224,12 +211,10 @@
 
 .thumbnail-tags {
   grid-area: tags;
-  width: 100%;
-  height: auto;
+  display: block;
   padding: 0.4em 0.4rem 0.15rem 0.4rem;
   position: absolute;
   bottom: 0;
-  background: none;
   > * {
     margin: 0.25em;
   }
@@ -276,19 +261,13 @@
   }
 
   .thumbnail-tags {
-    display: block;
     position: relative;
-    background: none !important;
-    padding: 0.2rem 0.2rem 0.4rem 0;
+    padding: 0;
     margin-left: -0.2rem;
-    align-self: start;
   }
 
   .bp3-heading {
-    margin-top: 0.25rem;
-    padding-top: 0.25rem;
-    padding-bottom: 0;
-    margin-bottom: 0;
+    margin: 0;
     align-self: end;
   }
 }
@@ -300,31 +279,29 @@
 .thumbnail-small.list {
   .bp3-heading {
     font-size: 16px;
-    align-self: start;
   }
   .file-info {
     grid-row-gap: 0;
   }
-  .thumbnail-tags {
-    padding-top: 0;
-    align-self: end;
-  }
 }
 
 .grid .thumbnail {
-  &[data-dnd-target='true'] .thumbnail-tags {
-    display: block;
-    overflow-y: hidden;
-  }
   .thumbnail-tags {
     transition: 0.25s $pt-transition-cubic2;
     max-height: 2.8em;
+    width: var(--thumbnail-size);
   }
+
+  &[data-dnd-target='true'] .thumbnail-tags {
+    overflow-y: hidden;
+  }
+
   &:hover .thumbnail-tags {
     max-height: var(--thumbnail-size);
     overflow-y: auto;
     overflow-x: hidden;
   }
+
   &[data-dnd-target='true'] .thumbnail-tags {
     max-height: var(--thumbnail-size);
     overflow: hidden; // can't scroll while dropping
