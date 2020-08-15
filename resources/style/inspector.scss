@@ -3,7 +3,6 @@
   grid-area: inspector;
   overflow: auto;
   flex-shrink: 0;
-  max-width: var(--inspector-width);
   overflow-x: hidden;
   transition: max-width 200ms ease-in-out; // 120ms $pt-transition-cubic2
 
