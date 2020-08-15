@@ -146,13 +146,6 @@ export default class Backend {
     await this.fileRepository.removeMany(files);
   }
 
-  async getNumUntaggedFiles(): Promise<number> {
-    console.log('Get number of untagged files...');
-    return this.fileRepository.count({
-      criteria: { key: 'tags', value: [], valueType: 'array', operator: 'contains' },
-    });
-  }
-
   async getWatchedDirectories(order: keyof ILocation, fileOrder: FileOrder): Promise<ILocation[]> {
     console.log('Backend: Getting watched directories...');
     return this.locationRepository.getAll({ order, fileOrder });

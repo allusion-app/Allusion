@@ -53,17 +53,43 @@ async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
 }
 
 export class ClientLocation implements ISerializable<ILocation> {
-  saveHandler: IReactionDisposer;
-  watcher?: FSWatcher;
-  autoSave = true;
+  private store: LocationStore;
+  private saveHandler: IReactionDisposer;
+  private autoSave = true;
+
+  private watcher?: FSWatcher;
+  // Whether the initial scan has been completed, and new/removed files are being watched
+  private isReady = false;
   // whether initialization has started or has been completed
   @observable isInitialized = false;
-  // Whether the initial scan has been completed, and new/removed files are being watched
-  isReady = false;
   // true when the path no longer exists (broken link)
   @observable isBroken = false;
 
   readonly tagsToAdd = observable<ID>([]);
+
+  constructor(
+    store: LocationStore,
+    public id: ID,
+    public path: string,
+    public dateAdded: Date = new Date(),
+    tagsToAdd?: ID[],
+  ) {
+    this.store = store;
+    // observe all changes to observable fields
+    this.saveHandler = reaction(
+      // We need to explicitly define which values this reaction should react to
+      () => this.serialize(),
+      // Then update the entity in the database
+      (dir) => {
+        if (this.autoSave) {
+          this.store.save(dir);
+        }
+      },
+    );
+    if (tagsToAdd) {
+      runInAction(() => this.tagsToAdd.push(...tagsToAdd));
+    }
+  }
 
   @computed get clientTagsToAdd(): ClientTag[] {
     return this.tagsToAdd
@@ -75,36 +101,13 @@ export class ClientLocation implements ISerializable<ILocation> {
     return SysPath.basename(this.path);
   }
 
-  constructor(
-    public store: LocationStore,
-    public id: ID,
-    public path: string,
-    public dateAdded: Date,
-    tagsToAdd?: ID[],
-  ) {
-    // observe all changes to observable fields
-    this.saveHandler = reaction(
-      // We need to explicitly define which values this reaction should react to
-      () => this.serialize(),
-      // Then update the entity in the database
-      (dir) => {
-        if (this.autoSave) {
-          this.store.backend.saveLocation(dir);
-        }
-      },
-    );
-    if (tagsToAdd) {
-      this.addTags(tagsToAdd);
-    }
-  }
-
   @action.bound async init(): Promise<string[]> {
     this.isInitialized = true;
     const pathExists = await fse.pathExists(this.path);
     if (pathExists) {
       return this.watchDirectory(this.path);
     } else {
-      runInAction(() => (this.isBroken = true));
+      this.setBroken(true);
       return [];
     }
   }
@@ -122,8 +125,9 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.store.changeLocationPath(this, newPath);
   }
 
-  @action unBreak(): void {
-    this.isBroken = false;
+  @action.bound setBroken(state: boolean): void {
+    this.isBroken = state;
+    this.autoSave = !this.isBroken;
   }
 
   @action.bound addTag(tag: ClientTag): void {
@@ -138,29 +142,17 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.tagsToAdd.clear();
   }
 
-  @action.bound private addTags(tags: ID[]) {
-    this.tagsToAdd.push(...tags);
+  async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
+    return getDirectoryTree(this.path);
   }
 
-  // async relocate(newPath: string) {
-  // TODO: Check if all files can be found. If not, notify user, else, update all files in db from this location
-  // locationFiles = ...
-  // locationFiles.forEach((f) => f.path = )?
+  async delete(): Promise<void> {
+    this.store.removeDirectory(this);
+  }
 
-  // if we decide to store relative paths for files, no need to relocate individual files
-  // }
-
-  async checkIfBroken(): Promise<boolean> {
-    if (this.isBroken) {
-      return true;
-    } else {
-      const pathExists = await fse.pathExists(this.path);
-      if (!pathExists) {
-        this.isBroken = true;
-        return true;
-      }
-    }
-    return false;
+  dispose(): void {
+    // clean up the observer
+    this.saveHandler();
   }
 
   private watchDirectory(inputPath: string): Promise<string[]> {
@@ -201,12 +193,7 @@ export class ClientLocation implements ISerializable<ILocation> {
               );
 
               // Add to backend
-              const fileToStore = await this.store.pathToIFile(
-                path,
-                this.id,
-                this.tagsToAdd.toJS(),
-              );
-              this.store.backend.createFilesFromPath(path, [fileToStore]);
+              this.store.createFileFromPath(path, this);
             } else {
               initialFiles.push(path);
             }
@@ -214,36 +201,32 @@ export class ClientLocation implements ISerializable<ILocation> {
         })
         .on('change', (path: string) => console.log(`File ${path} has been changed`))
         .on('unlink', (path: string) => {
-          console.log(`Location "${SysPath.basename(this.path)}": File ${path} has been removed.`);
+          console.log(`Location "${this.name}": File ${path} has been removed.`);
           const fileStore = this.store.rootStore.fileStore;
           const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
           if (clientFile) {
             fileStore.hideFile(clientFile);
           }
-          this.store.rootStore.fileStore.removeFilesById;
+
+          AppToaster.show(
+            {
+              message: 'Some images have gone missing!',
+              intent: 'warning',
+              timeout: 0,
+              action: {
+                icon: IconSet.WARNING_BROKEN_LINK,
+                onClick: this.store.rootStore.fileStore.fetchMissingFiles,
+              },
+            },
+            'missing',
+          );
         })
         .on('ready', () => {
           this.isReady = true;
-          console.log(
-            `Location "${SysPath.basename(this.path)}" ready. Detected files:`,
-            initialFiles.length,
-          );
+          console.log(`Location "${this.name}" ready. Detected files:`, initialFiles.length);
           // Todo: Compare this in DB, add new files and mark missing files as missing
           resolve(initialFiles);
         });
     });
-  }
-
-  async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
-    return getDirectoryTree(this.path);
-  }
-
-  async delete(): Promise<void> {
-    this.store.removeDirectory(this);
-  }
-
-  dispose(): void {
-    // clean up the observer
-    this.saveHandler();
   }
 }
