@@ -173,7 +173,7 @@ class LocationStore {
     return this.locationList.find((loc) => loc.id === locationId);
   }
 
-  @action.bound getDefaultLocation() {
+  @action.bound getDefaultLocation(): ClientLocation {
     const defaultLocation = this.get(DEFAULT_LOCATION_ID);
     if (!defaultLocation) {
       throw new Error('Default location not found. This should not happen!');
@@ -185,9 +185,7 @@ class LocationStore {
     const loc = this.get(DEFAULT_LOCATION_ID);
     if (!loc) {
       console.warn('Default location not found. This should only happen on first launch!');
-      const l = new ClientLocation(this, DEFAULT_LOCATION_ID, dir, new Date());
-      await this.backend.createLocation(l.serialize());
-      this.addLocation(l);
+      this.addLocation(DEFAULT_LOCATION_ID, dir);
       return;
     }
     loc.path = dir;
@@ -212,8 +210,8 @@ class LocationStore {
       // Then, update the path of the location
       location.path = newPath;
       this.save(location.serialize());
-      location.isBroken = false;
     });
+    location.setBroken(false);
 
     // Refetch files in case some were from this location and could not be found before
     this.rootStore.fileStore.refetch();
@@ -222,12 +220,8 @@ class LocationStore {
     AppToaster.dismiss(`missing-loc-${location.id}`);
   }
 
-  @action.bound async addDirectory(path: string, tags: string[] = [], dateAdded = new Date()) {
-    const clientDir = new ClientLocation(this, generateId(), path, dateAdded, tags);
-    this.addLocation(clientDir);
-    // The function caller is responsible for handling errors.
-    await this.backend.createLocation(clientDir.serialize());
-    return clientDir;
+  @action.bound async addDirectory(path: string): Promise<ClientLocation> {
+    return this.addLocation(generateId(), path);
   }
 
   /** Imports all files from a location into the FileStore */
@@ -287,11 +281,11 @@ class LocationStore {
     const filesToRemove = await this.findLocationFiles(watchedDir.id);
     await this.rootStore.fileStore.removeFiles(filesToRemove.map((f) => f.id));
 
+    // Remove location from DB through backend
+    await this.backend.removeLocation(watchedDir);
+
     // Remove location locally
     runInAction(() => this.locationList.remove(watchedDir));
-
-    // Remove location from DB through backend
-    return this.backend.removeLocation(watchedDir);
   }
 
   async createFileFromPath(path: string, location: ClientLocation) {
@@ -306,13 +300,16 @@ class LocationStore {
   /**
    * Fetches the files belonging to a location
    */
-  async findLocationFiles(locationId: ID) {
+  async findLocationFiles(locationId: ID): Promise<IFile[]> {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
     return this.backend.searchFiles(crit, 'id', 'ASC');
   }
 
-  @action private addLocation(location: ClientLocation) {
-    this.locationList.push(location);
+  @action private async addLocation(id: ID, path: string): Promise<ClientLocation> {
+    const location = new ClientLocation(this, id, path);
+    await this.backend.createLocation(location.serialize());
+    runInAction(() => this.locationList.push(location));
+    return location;
   }
 
   private async pathToIFile(path: string, loc: ClientLocation): Promise<IFile> {

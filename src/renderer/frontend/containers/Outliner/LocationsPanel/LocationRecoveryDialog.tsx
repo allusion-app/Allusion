@@ -100,7 +100,7 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
 
     if (exists) {
       uiStore.closeLocationRecovery();
-      location.unBreak();
+      location.setBroken(false);
       if (!location.isInitialized) {
         locationStore.initializeLocation(location);
       } else {

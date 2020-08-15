@@ -58,10 +58,10 @@ export class ClientLocation implements ISerializable<ILocation> {
   private autoSave = true;
 
   private watcher?: FSWatcher;
-  // whether initialization has started or has been completed
-  @observable isInitialized = false;
   // Whether the initial scan has been completed, and new/removed files are being watched
   private isReady = false;
+  // whether initialization has started or has been completed
+  @observable isInitialized = false;
   // true when the path no longer exists (broken link)
   @observable isBroken = false;
 
@@ -71,7 +71,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     store: LocationStore,
     public id: ID,
     public path: string,
-    public dateAdded: Date,
+    public dateAdded: Date = new Date(),
     tagsToAdd?: ID[],
   ) {
     this.store = store;
@@ -87,7 +87,7 @@ export class ClientLocation implements ISerializable<ILocation> {
       },
     );
     if (tagsToAdd) {
-      this.addTags(tagsToAdd);
+      runInAction(() => this.tagsToAdd.push(...tagsToAdd));
     }
   }
 
@@ -107,7 +107,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     if (pathExists) {
       return this.watchDirectory(this.path);
     } else {
-      runInAction(() => (this.isBroken = true));
+      this.setBroken(true);
       return [];
     }
   }
@@ -125,8 +125,9 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.store.changeLocationPath(this, newPath);
   }
 
-  @action unBreak(): void {
-    this.isBroken = false;
+  @action.bound setBroken(state: boolean): void {
+    this.isBroken = state;
+    this.autoSave = !this.isBroken;
   }
 
   @action.bound addTag(tag: ClientTag): void {
@@ -139,23 +140,6 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   @action.bound clearTags(): void {
     this.tagsToAdd.clear();
-  }
-
-  @action.bound private addTags(tags: ID[]) {
-    this.tagsToAdd.push(...tags);
-  }
-
-  async checkIfBroken(): Promise<boolean> {
-    if (this.isBroken) {
-      return true;
-    } else {
-      const pathExists = await fse.pathExists(this.path);
-      if (!pathExists) {
-        this.isBroken = true;
-        return true;
-      }
-    }
-    return false;
   }
 
   async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {

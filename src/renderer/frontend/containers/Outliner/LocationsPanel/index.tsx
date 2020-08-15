@@ -68,6 +68,7 @@ const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalPr
               <Label>
                 <p>Tags to add</p>
                 <MultiTagSelector
+                  disabled={dir.isBroken}
                   selectedItems={dir.clientTagsToAdd}
                   onTagSelect={dir.addTag}
                   onTagDeselect={dir.removeTag}

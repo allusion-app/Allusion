@@ -281,18 +281,18 @@ class FileStore {
     return this.rootStore.tagStore.get(tag);
   }
 
+  getLocation(location: ID): ClientLocation {
+    const loc = this.rootStore.locationStore.get(location);
+    if (!loc) {
+      console.warn('Location of file was not found! This should never happen!', location);
+      return this.rootStore.locationStore.getDefaultLocation();
+    }
+    return loc;
+  }
+
   save(file: IFile) {
     file.dateModified = new Date();
     this.backend.saveFile(file);
-  }
-
-  getFileLocation(locationId: ID): ClientLocation {
-    const location = this.rootStore.locationStore.get(locationId);
-    if (!location) {
-      console.warn('Location of file was not found! This should never happen!', locationId);
-      return this.rootStore.locationStore.getDefaultLocation();
-    }
-    return location;
   }
 
   recoverPersistentPreferences() {

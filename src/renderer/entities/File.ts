@@ -24,7 +24,7 @@ interface IMetaData {
 }
 
 /** Should be called when after constructing a file before sending it to the backend. */
-export const getMetaData = async (path: string): Promise<IMetaData> => {
+export async function getMetaData(path: string): Promise<IMetaData> {
   const stats = await fse.stat(path);
   let dimensions: ISizeCalculationResult | undefined;
   try {
@@ -43,7 +43,7 @@ export const getMetaData = async (path: string): Promise<IMetaData> => {
     width: (dimensions && dimensions.width) || 0,
     height: (dimensions && dimensions.height) || 0,
   };
-};
+}
 
 /* A File as it is represented in the Database */
 export interface IFile extends IMetaData, IResource {
@@ -98,7 +98,7 @@ export class ClientFile implements ISerializable<IFile> {
     this.name = fileProps.name;
     this.extension = fileProps.extension;
 
-    const location = store.getFileLocation(this.locationId);
+    const location = store.getLocation(this.locationId);
     this.absolutePath = Path.join(location.path, this.relativePath);
 
     this.tags.push(...fileProps.tags);
@@ -134,10 +134,6 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @action.bound addTag(tag: ID): void {
-    if (this.isBroken) {
-      return;
-    }
-
     if (this.tags.length === 0) {
       this.store.decrementNumUntaggedFiles();
     }
