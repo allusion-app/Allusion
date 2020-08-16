@@ -22,11 +22,7 @@ export const ClearDbButton = (props: IButtonProps & { position?: Position }) => 
 
   return (
     <Popover position={props.position} targetClassName={props.fill ? 'fillWidth' : ''}>
-      <Button
-        {...props}
-        intent="danger"
-        icon={IconSet.CLEAR_DATABASE}
-      >
+      <Button {...props} intent="danger" icon={IconSet.CLEAR_DATABASE}>
         Clear database
       </Button>
       <div style={{ padding: '8px', maxWidth: '400px' }}>

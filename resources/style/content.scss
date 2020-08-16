@@ -124,8 +124,10 @@
   position: relative;
   overflow: hidden;
 
-  .h4 {
+  h4 {
     grid-area: title;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   &[aria-selected='true'] .thumbnail-img {
@@ -230,6 +232,7 @@
 
 // THUMBNAIL LOADER
 .donut-loading {
+  display: inline-block;
   width: 50%;
   height: 50%;
   margin: 25%;

@@ -54,7 +54,7 @@ interface ITagFilesPopoverProps {
 
 const TagFilesPopover = observer(
   ({ disabled, files, isOpen, close, toggle, hidden }: ITagFilesPopoverProps) => (
-    <Popover minimal isOpen={isOpen} onClose={close}>
+    <Popover minimal usePortal={false} isOpen={isOpen} onClose={close}>
       {hidden ? (
         <></>
       ) : (
@@ -142,13 +142,9 @@ const FileFilter = observer(
     }, [fileOrder, orderBy, switchFileOrder, orderFilesBy]);
 
     return (
-      <Popover
-        minimal
-        target={
-          <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={ToolbarTooltips.Filter} />
-        }
-        content={sortMenu}
-      />
+      <Popover minimal usePortal={false} content={sortMenu}>
+        <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={ToolbarTooltips.Filter} />
+      </Popover>
     );
   },
 );
@@ -180,6 +176,7 @@ const SlideModeToolbar = observer(() => {
   return (
     <ToolbarGroup id="main-toolbar">
       <ToolbarButton
+        showLabel="always"
         icon={IconSet.ARROW_LEFT}
         onClick={uiStore.disableSlideMode}
         label="Return"

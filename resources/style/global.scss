@@ -316,7 +316,7 @@ img {
     --toolbar-height: 4.8rem;
   }
 
-  #toolbar {
+  #layout-container:not(.vertical-toolbar) > #toolbar {
     display: grid;
     gap: 0;
     grid-template-rows: 1fr 1fr;
@@ -326,6 +326,7 @@ img {
       'main-toolbar main-toolbar';
 
     &.mac-toolbar {
+      padding: 0;
       grid-template-columns: var(--mac-system-buttons-width) 1fr min-content;
       grid-template-areas:
         '. outliner-toolbar inspector-toolbar'

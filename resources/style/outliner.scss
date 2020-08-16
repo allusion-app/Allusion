@@ -2,7 +2,7 @@
 #outliner {
   grid-area: outliner;
   // Show y scrollbar when there's loads of tags or location list items
-  overflow: hidden auto;
+  overflow-x: hidden;
   flex-shrink: 0;
   transition: max-width 200ms $pt-transition-cubic2;
   z-index: 1;

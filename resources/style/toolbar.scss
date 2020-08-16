@@ -13,11 +13,7 @@
   }
 
   &.mac-toolbar {
-    // The region on the top left is replaced with system buttons by Electron/OSX
-    grid-template-columns: var(--mac-system-buttons-width) var(--outliner-width) 1fr var(
-        --inspector-width
-      );
-    grid-template-areas: '. outliner-toolbar main-toolbar inspector-toolbar';
+    padding-left: var(--mac-system-buttons-width);
   }
 
   // Turn of event for show media items
@@ -32,12 +28,6 @@
 }
 
 #preview #toolbar {
-  // For frameless app
-  // margin-left: 4rem;
-  // margin-top: .25rem;
-  display: flex;
-  align-items: center;
-
   .bp3-button {
     padding: 0;
     height: 100%;
@@ -50,10 +40,10 @@
 #main-toolbar {
   grid-area: main-toolbar;
   justify-content: center;
-}
 
-.bp3-popover-content .file-tag {
-  padding: 1em;
+  .bp3-popover-content .file-tag {
+    padding: 1em;
+  }
 }
 
 #outliner-toolbar {
