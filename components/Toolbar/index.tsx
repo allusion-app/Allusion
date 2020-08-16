@@ -1,6 +1,7 @@
 import './toolbar.scss';
 import React from 'react';
 import { Tooltip } from '@blueprintjs/core';
+import { observer } from 'mobx-react-lite';
 
 interface IToolbar {
   children: React.ReactNode;
@@ -27,102 +28,119 @@ const Toolbar = (props: IToolbar) => {
 
 export default Toolbar;
 
-interface IToolbarButton {
+interface IBaseButton {
   label: string;
   icon: JSX.Element;
   onClick?: () => void;
+  showLabel?: 'always' | 'never';
+  tooltip?: string;
+}
+
+interface IToolbarButton extends IBaseButton {
   role?: string;
   disabled?: boolean;
   pressed?: boolean;
   checked?: boolean;
-  tooltip?: string;
 }
 
-export const ToolbarButton = (props: IToolbarButton) => {
-  const { onClick, icon, label, role, pressed, checked, disabled, tooltip } = props;
-  const content = (
-    <span className="toolbar-button-content">
-      <span className="toolbar-button-icon" aria-hidden="true">
-        {icon}
+export const ToolbarButton = observer(
+  ({
+    onClick,
+    icon,
+    label,
+    role,
+    pressed,
+    checked,
+    disabled,
+    tooltip,
+    showLabel,
+  }: IToolbarButton) => {
+    const content = (
+      <span className="toolbar-button-content">
+        <span className="toolbar-button-icon" aria-hidden="true">
+          {icon}
+        </span>
+        <span className={`toolbar-button-label ${showLabel ?? ''}`}>{label}</span>
       </span>
-      <span className="toolbar-button-label">{label}</span>
-    </span>
-  );
-  return (
-    <button
-      className="toolbar-button"
-      onClick={onClick}
-      role={role}
-      aria-pressed={pressed}
-      aria-checked={checked}
-      aria-disabled={disabled}
-      tabIndex={-1}
-    >
-      {tooltip ? <Tooltip content={tooltip}>{content}</Tooltip> : content}
-    </button>
-  );
-};
+    );
+    return (
+      <button
+        className="toolbar-button"
+        onClick={onClick}
+        role={role}
+        aria-pressed={pressed}
+        aria-checked={checked}
+        aria-disabled={disabled}
+        tabIndex={-1}
+      >
+        {tooltip ? (
+          <Tooltip content={tooltip} usePortal={false} hoverOpenDelay={500}>
+            {content}
+          </Tooltip>
+        ) : (
+          content
+        )}
+      </button>
+    );
+  },
+);
 
-interface IToolbarGroup {
+interface IBaseGroup {
   children: React.ReactNode;
+  showLabel?: 'always' | 'never';
+}
+
+interface IToolbarGroup extends IBaseGroup {
   id?: string;
   label?: string;
   role?: string;
 }
 
-export const ToolbarGroup = (props: IToolbarGroup) => {
-  const { id, label, children, role } = props;
+export const ToolbarGroup = observer((props: IToolbarGroup) => {
+  const { id, label, children, role, showLabel } = props;
   return (
-    <div id={id} className="toolbar-group" role={role} aria-label={label}>
+    <div id={id} className={`toolbar-group ${showLabel ?? ''}`} role={role} aria-label={label}>
       {children}
     </div>
   );
-};
+});
 
-interface IToolbarToggleButton {
-  label: string;
-  icon: JSX.Element;
-  onClick: () => void;
+interface IToolbarToggleButton extends IBaseButton {
   pressed: boolean;
-  tooltip?: string;
 }
 
 export const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { pressed, onClick, icon, label, tooltip } = props;
+  const { pressed, onClick, icon, label, tooltip, showLabel } = props;
   return (
     <ToolbarButton
       pressed={pressed}
       onClick={onClick}
       icon={icon}
       label={label}
+      showLabel={showLabel}
       tooltip={tooltip}
     />
   );
 };
 
-interface IToolbarSegment {
-  children: React.ReactNode;
+interface IToolbarSegment extends IBaseGroup {
   label: string;
 }
 
-export const ToolbarSegment = ({ label, children }: IToolbarSegment) => {
+export const ToolbarSegment = ({ label, children, showLabel }: IToolbarSegment) => {
   return (
-    <div className="toolbar-group" role="radiogroup" aria-label={label}>
+    <ToolbarGroup role="radiogroup" label={label} showLabel={showLabel}>
       {children}
-    </div>
+    </ToolbarGroup>
   );
 };
 
-interface IToolbarSegmentButton extends IToolbarButton {
-  label: string;
-  icon: JSX.Element;
-  onClick: () => void;
+interface IToolbarSegmentButton extends IBaseButton {
   checked: boolean;
-  tooltip?: string;
 }
 
 export const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
-  const { checked, onClick, icon, label, tooltip } = props;
+  const { checked, onClick, icon, label, tooltip, showLabel } = props;
   return (
     <ToolbarButton
       role="radio"
@@ -131,6 +149,7 @@ export const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
       icon={icon}
       label={label}
       tooltip={tooltip}
+      showLabel={showLabel}
     />
   );
 };

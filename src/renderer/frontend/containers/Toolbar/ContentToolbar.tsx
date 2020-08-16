@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Popover, Icon, Menu, MenuItem } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
@@ -33,6 +33,7 @@ interface IFileSelection {
 const FileSelection = observer(
   ({ allFilesSelected, toggleSelection: toggle, selectionCount }: IFileSelection) => (
     <ToolbarToggleButton
+      showLabel="always"
       icon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
       onClick={toggle}
       pressed={allFilesSelected}
@@ -193,12 +194,15 @@ const ContentToolbar = observer(() => {
   const { fileSelection } = uiStore;
 
   // If everything is selected, deselect all. Else, select all
-  const handleToggleSelect = () =>
-    fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
-      ? uiStore.clearFileSelection()
-      : uiStore.selectFiles(
-          fileStore.fileList.map((f) => f.id).filter((f) => !fileSelection.includes(f)),
-        );
+  const handleToggleSelect = useCallback(
+    () =>
+      fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
+        ? uiStore.clearFileSelection()
+        : uiStore.selectFiles(
+            fileStore.fileList.map((f) => f.id).filter((f) => !fileSelection.includes(f)),
+          ),
+    [fileSelection, fileStore.fileList, uiStore],
+  );
 
   if (uiStore.isSlideMode) {
     return <SlideModeToolbar />;

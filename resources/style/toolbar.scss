@@ -1,9 +1,6 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 #toolbar {
   grid-area: toolbar;
-  display: grid;
-  gap: 1rem;
-  padding: 0 0.5rem;
   border-bottom: 2px solid var(--background-separator-color);
   border-left: 1px solid var(--background-separator-color);
   border-right: 1px solid var(--background-separator-color);
@@ -15,12 +12,11 @@
     -webkit-app-region: none;
   }
 
-  grid-template-columns: var(--outliner-width) 1fr min-content;
-  grid-template-areas: 'outliner-toolbar main-toolbar inspector-toolbar';
-
   &.mac-toolbar {
     // The region on the top left is replaced with system buttons by Electron/OSX
-    grid-template-columns: var(--mac-system-buttons-width) var(--outliner-width) 1fr min-content;
+    grid-template-columns: var(--mac-system-buttons-width) var(--outliner-width) 1fr var(
+        --inspector-width
+      );
     grid-template-areas: '. outliner-toolbar main-toolbar inspector-toolbar';
   }
 
@@ -53,8 +49,7 @@
 
 #main-toolbar {
   grid-area: main-toolbar;
-  display: flex;
-  justify-content: space-evenly;
+  justify-content: center;
 }
 
 .bp3-popover-content .file-tag {
@@ -85,41 +80,30 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
+    padding: 0.25rem 0;
     border-right: 1px solid var(--background-separator-color);
-
-    #outliner-toolbar,
-    #inspector-toolbar {
-      flex-direction: column;
-    }
   }
 
   #inspector {
     padding-top: var(--toolbar-height);
   }
 
+  #inspector-toolbar {
+    flex-direction: column;
+  }
+
   #main-toolbar {
+    margin: 0;
     height: var(--toolbar-height);
     background-color: var(--foreground-color);
     border-bottom: 2px solid var(--background-separator-color);
     border-left: 1px solid var(--background-separator-color);
-    justify-content: space-between;
 
     // Since the toolbar is acting as the frame, it should be draggable to move the window around
     -webkit-app-region: drag;
     // But all of the buttons should not be draggable, else not clickable
     button {
       -webkit-app-region: none;
-    }
-
-    &::before {
-      content: '';
-      display: block;
-      -webkit-app-region: none;
-      height: var(--toolbar-height);
-      width: calc(var(--mac-system-buttons-width) - var(--toolbar-height));
     }
   }
 }

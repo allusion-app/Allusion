@@ -296,11 +296,11 @@ img {
   }
 }
 @media (max-width: 960px) {
-  #toolbar {
-    grid-template-columns: min-content 1fr min-content !important;
-    &.mac-toolbar {
-      grid-template-columns: var(--mac-system-buttons-width) min-content 1fr min-content !important;
-    }
+  .toolbar-button-label:not(.always) {
+    margin: 0;
+    text-indent: -100vw;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .grid.thumbnail,
@@ -312,28 +312,35 @@ img {
 }
 
 @media (max-width: 540px) {
-  #app {
+  #layout-container {
     --toolbar-height: 4.8rem;
   }
 
   #toolbar {
-    gap: 0 !important;
+    display: grid;
+    gap: 0;
     grid-template-rows: 1fr 1fr;
-
-    grid-template-columns: 1fr min-content !important;
+    grid-template-columns: 1fr min-content;
     grid-template-areas:
       'outliner-toolbar inspector-toolbar'
-      'main-toolbar main-toolbar' !important;
+      'main-toolbar main-toolbar';
 
     &.mac-toolbar {
-      grid-template-columns: var(--mac-system-buttons-width) 1fr min-content !important;
+      grid-template-columns: var(--mac-system-buttons-width) 1fr min-content;
       grid-template-areas:
         '. outliner-toolbar inspector-toolbar'
-        'main-toolbar main-toolbar main-toolbar' !important;
+        'main-toolbar main-toolbar main-toolbar';
+    }
+
+    #main-toolbar {
+      justify-content: space-between;
     }
   }
+
   #main-toolbar {
-    justify-content: space-between !important;
+    > .toolbar-group {
+      margin: 0;
+    }
   }
 
   .slide.thumbnail {

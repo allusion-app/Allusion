@@ -1,5 +1,14 @@
+/*
+  WARNING: Do not hide overflow in a container!
+
+  This will cut off the tooltip. If it is necessary remove the usePortal,
+  property from the Tooltip component in ToolbarButton. 
+*/
 .toolbar[role='toolbar'] {
+  display: flex;
   height: var(--toolbar-height);
+  align-items: center;
+  justify-content: space-between;
 }
 
 .toolbar-group {
@@ -57,10 +66,30 @@
   min-height: 2.25rem;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 0.25rem;
 }
 
 .toolbar-button-icon,
-.toolbar-button-label {
+.toolbar-button-label,
+.toolbar-button-label.always,
+.toolbar-group.always .toolbar-button-label:not(.never) {
   margin: 0.25rem;
+}
+
+// Hide text without removing it from screen readers:
+// https://stackoverflow.com/questions/12783419/hide-text-with-css-best-practice
+.toolbar-button-label.never,
+.toolbar-group.never .toolbar-button-label:not(.always) {
+  margin: 0;
+  text-indent: -100vw;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.toolbar-button-label.always,
+.toolbar-group.always .toolbar-button-label:not(.never) {
+  text-indent: unset;
+  white-space: unset;
+  overflow: unset;
 }

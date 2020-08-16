@@ -32,6 +32,7 @@ const OutlinerToolbar = observer(() => {
   return (
     <ToolbarGroup id="outliner-toolbar">
       <ToolbarToggleButton
+        showLabel="never"
         icon={IconSet.OUTLINER}
         onClick={uiStore.toggleOutliner}
         pressed={uiStore.isOutlinerOpen}
@@ -45,7 +46,10 @@ const OutlinerToolbar = observer(() => {
 const InspectorToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ToolbarGroup id="inspector-toolbar">
+    <ToolbarGroup
+      showLabel={uiStore.isToolbarVertical ? 'never' : undefined}
+      id="inspector-toolbar"
+    >
       <ToolbarToggleButton
         icon={IconSet.INFO}
         onClick={uiStore.toggleInspector}
