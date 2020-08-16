@@ -1,13 +1,19 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { Button, Popover, Icon, ButtonGroup, Menu, MenuItem } from '@blueprintjs/core';
+import { Popover, Icon, Menu, MenuItem } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
 import { ToolbarTooltips } from '.';
+import {
+  ToolbarButton,
+  ToolbarGroup,
+  ToolbarSegment,
+  ToolbarSegmentButton,
+  ToolbarToggleButton,
+} from 'components';
 import { ClientFile, IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
 import { useMemo, useContext } from 'react';
-import { ViewMethod } from '../../stores/UiStore';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from '../Outliner/MessageBox';
 
@@ -26,15 +32,13 @@ interface IFileSelection {
 
 const FileSelection = observer(
   ({ allFilesSelected, toggleSelection: toggle, selectionCount }: IFileSelection) => (
-    <Button
-      rightIcon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
+    <ToolbarToggleButton
+      icon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
       onClick={toggle}
-      active={allFilesSelected}
-      className="tooltip"
-      data-right={ToolbarTooltips.Select}
-    >
-      {selectionCount}
-    </Button>
+      pressed={allFilesSelected}
+      label={`${selectionCount}`}
+      tooltip={ToolbarTooltips.Select}
+    />
   ),
 );
 
@@ -53,12 +57,12 @@ const TagFilesPopover = observer(
       {hidden ? (
         <></>
       ) : (
-        <Button
+        <ToolbarButton
           icon={IconSet.TAG}
           disabled={disabled}
           onClick={toggle}
-          className="tooltip"
-          data-right={ToolbarTooltips.TagFiles}
+          label="Tag"
+          tooltip={ToolbarTooltips.TagFiles}
         />
       )}
       <FileTags files={files} autoFocus />
@@ -70,20 +74,21 @@ interface IRemoveFilesPopoverProps {
   hidden?: boolean;
   disabled?: boolean;
 }
+
 const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverProps) => {
   const { uiStore } = useContext(StoreContext);
   const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
   return (
     <>
       {hidden ? null : (
-        <Button
+        <ToolbarButton
           icon={IconSet.DELETE}
           disabled={disabled}
           onClick={uiStore.toggleToolbarFileRemover}
-          className="tooltip"
-          data-right={ToolbarTooltips.Delete}
+          label="Delete"
+          tooltip={ToolbarTooltips.Delete}
           // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
-          intent="warning"
+          // intent="warning"
         />
       )}
       <FileRemoval
@@ -139,7 +144,7 @@ const FileFilter = observer(
       <Popover
         minimal
         target={
-          <Button icon={IconSet.FILTER} className="tooltip" data-right={ToolbarTooltips.Filter} />
+          <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={ToolbarTooltips.Filter} />
         }
         content={sortMenu}
       />
@@ -147,46 +152,39 @@ const FileFilter = observer(
   },
 );
 
-interface ILayoutOptions {
-  method: ViewMethod;
-  viewGrid: () => void;
-  viewList: () => void;
-}
-
-const LayoutOptions = observer(({ method, viewGrid, viewList }: ILayoutOptions) => (
-  <ButtonGroup minimal>
-    <Button
-      onClick={viewList}
-      icon={IconSet.VIEW_LIST}
-      active={method === 'list'}
-      className="tooltip"
-      data-right={ToolbarTooltips.ViewList}
-    />
-    <Button
-      onClick={viewGrid}
-      icon={IconSet.VIEW_GRID}
-      active={method === 'grid'}
-      className="tooltip"
-      data-right={ToolbarTooltips.ViewGrid}
-    />
-  </ButtonGroup>
-));
+const LayoutOptions = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <ToolbarSegment label="View">
+      <ToolbarSegmentButton
+        onClick={uiStore.setMethodList}
+        icon={IconSet.VIEW_LIST}
+        checked={uiStore.isList}
+        label="List"
+        tooltip={ToolbarTooltips.ViewList}
+      />
+      <ToolbarSegmentButton
+        onClick={uiStore.setMethodGrid}
+        icon={IconSet.VIEW_GRID}
+        checked={uiStore.isGrid}
+        label="Grid"
+        tooltip={ToolbarTooltips.ViewGrid}
+      />
+    </ToolbarSegment>
+  );
+});
 
 const SlideModeToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ButtonGroup id="main-toolbar" minimal>
-      {/* Slide mode */}
-      <Button
+    <ToolbarGroup id="main-toolbar">
+      <ToolbarButton
         icon={IconSet.ARROW_LEFT}
         onClick={uiStore.disableSlideMode}
-        intent="primary"
-        className="tooltip"
-        data-right={ToolbarTooltips.Back}
-      >
-        Return
-      </Button>
-    </ButtonGroup>
+        label="Return"
+        tooltip={ToolbarTooltips.Back}
+      />
+    </ToolbarGroup>
   );
 });
 
@@ -206,18 +204,16 @@ const ContentToolbar = observer(() => {
     return <SlideModeToolbar />;
   } else {
     return (
-      <div id="main-toolbar">
-        <ButtonGroup minimal>
-          <Button
-            icon={IconSet.SEARCH}
-            onClick={uiStore.toggleQuickSearch}
-            active={uiStore.isQuickSearchOpen}
-            className="tooltip"
-            data-right={ToolbarTooltips.Search}
-          />
-        </ButtonGroup>
+      <ToolbarGroup id="main-toolbar">
+        <ToolbarToggleButton
+          icon={IconSet.SEARCH}
+          onClick={uiStore.toggleQuickSearch}
+          pressed={uiStore.isQuickSearchOpen}
+          label="Search"
+          tooltip={ToolbarTooltips.Search}
+        />
 
-        <ButtonGroup minimal>
+        <ToolbarGroup>
           <FileSelection
             allFilesSelected={
               fileSelection.length > 0 && fileSelection.length === fileStore.fileList.length
@@ -248,14 +244,10 @@ const ContentToolbar = observer(() => {
             orderFilesBy={fileStore.orderFilesBy}
             switchFileOrder={fileStore.switchFileOrder}
           />
-        </ButtonGroup>
+        </ToolbarGroup>
 
-        <LayoutOptions
-          method={uiStore.method}
-          viewGrid={uiStore.setMethodGrid}
-          viewList={uiStore.setMethodList}
-        />
-      </div>
+        <LayoutOptions />
+      </ToolbarGroup>
     );
   }
 });

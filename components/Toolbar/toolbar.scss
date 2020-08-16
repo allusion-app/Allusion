@@ -1,0 +1,66 @@
+.toolbar[role='toolbar'] {
+  height: var(--toolbar-height);
+}
+
+.toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  margin: 0rem 1rem;
+}
+
+.toolbar-group[role='radiogroup'] .toolbar-button {
+  &:first-child {
+    border-bottom-left-radius: 0.25rem;
+    border-top-left-radius: 0.25rem;
+  }
+
+  &:last-child {
+    border-bottom-right-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+  }
+}
+
+.toolbar-button {
+  padding: 0;
+  color: currentColor;
+  background-color: unset;
+  border: none;
+
+  &:hover {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-font-color);
+  }
+
+  &[aria-checked='true'] {
+    background-color: var(--primary-color);
+    color: white;
+  }
+
+  &[aria-pressed='true'] {
+    .toolbar-button-content {
+      min-height: 2.125rem;
+      padding-bottom: 0.125rem;
+    }
+    border-bottom: 0.125rem solid var(--primary-color);
+    color: var(--primary-color);
+  }
+
+  &[aria-disabled='true'] {
+    color: unset;
+    cursor: not-allowed;
+  }
+}
+
+.toolbar-button-content {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem;
+}
+
+.toolbar-button-icon,
+.toolbar-button-label {
+  margin: 0.25rem;
+}

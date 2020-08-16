@@ -24,7 +24,7 @@ body {
 #app {
   --outliner-width: 18em;
   --inspector-width: 24em;
-  --toolbar-height: 2.4rem;
+  --toolbar-height: 3rem;
   --quick-searchbar-height: 2.4rem;
   --thumbnail-size: 250px;
   --thumbnail-margin: 0.25rem;
@@ -36,12 +36,12 @@ body {
 
 // Global specific styles for the preview window
 #preview {
-  --toolbar-height: 2.4rem;
+  --toolbar-height: 3rem;
   display: grid;
   grid-template-areas:
     'toolbar'
     'main';
-  grid-template-rows: 2.4rem 1fr;
+  grid-template-rows: 3rem 1fr;
   height: 100vh;
 }
 
@@ -59,7 +59,7 @@ body {
 // Dark Theme
 .bp3-dark {
   --focus-color: #{$dark-gray3};
-  --highlight-background-color: #{$dark-gray3}; // dark-gray5?
+  --highlight-background-color: #{$dark-gray4}; // dark-gray5?
   --highlight-font-color: white;
   --caret-color: #{$light-gray1};
 
@@ -109,7 +109,7 @@ pre {
 }
 
 #layout-container.vertical-toolbar {
-  --toolbar-height: 2.4rem;
+  --toolbar-height: 3rem;
   display: grid;
   grid-template-columns: var(--toolbar-height) min-content 1fr min-content;
   grid-template-areas:

@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
+import { Toolbar as Commandbar, ToolbarToggleButton, ToolbarGroup } from 'components';
 import ContentToolbar from './ContentToolbar';
 import { remote } from 'electron';
 
@@ -30,44 +31,44 @@ export const enum ToolbarTooltips {
 const OutlinerToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ButtonGroup id="outliner-toolbar" minimal>
-      <Button
+    <ToolbarGroup id="outliner-toolbar">
+      <ToolbarToggleButton
         icon={IconSet.OUTLINER}
         onClick={uiStore.toggleOutliner}
-        active={uiStore.isOutlinerOpen}
-        className="tooltip"
-        data-right={ToolbarTooltips.Outliner}
+        pressed={uiStore.isOutlinerOpen}
+        label="Outliner"
+        tooltip={ToolbarTooltips.Outliner}
       />
-    </ButtonGroup>
+    </ToolbarGroup>
   );
 });
 
 const InspectorToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ButtonGroup id="inspector-toolbar" minimal>
-      <Button
+    <ToolbarGroup id="inspector-toolbar">
+      <ToolbarToggleButton
         icon={IconSet.INFO}
         onClick={uiStore.toggleInspector}
-        active={uiStore.isInspectorOpen}
-        className="tooltip"
-        data-right={ToolbarTooltips.Inspector}
+        pressed={uiStore.isInspectorOpen}
+        label="Inspector"
+        tooltip={ToolbarTooltips.Inspector}
       />
-      <Button
+      <ToolbarToggleButton
         icon={IconSet.HELPCENTER}
         onClick={uiStore.toggleHelpCenter}
-        className="tooltip"
-        data-left={ToolbarTooltips.HelpCenter}
-        active={uiStore.isHelpCenterOpen}
+        pressed={uiStore.isHelpCenterOpen}
+        label="Help Center"
+        tooltip={ToolbarTooltips.HelpCenter}
       />
-      <Button
+      <ToolbarToggleButton
         icon={IconSet.SETTINGS}
         onClick={uiStore.toggleSettings}
-        className="tooltip"
-        data-left={ToolbarTooltips.Settings}
-        active={uiStore.isSettingsOpen}
+        pressed={uiStore.isSettingsOpen}
+        label="Settings"
+        tooltip={ToolbarTooltips.Settings}
       />
-    </ButtonGroup>
+    </ToolbarGroup>
   );
 });
 
@@ -120,7 +121,12 @@ const Toolbar = observer(({ isMac }: { isMac: boolean }) => {
   const { uiStore } = useContext(StoreContext);
 
   return (
-    <div id="toolbar" className={isMac ? 'mac-toolbar' : 'windows-toolbar'}>
+    <Commandbar
+      id="toolbar"
+      className={isMac ? 'mac-toolbar' : 'windows-toolbar'}
+      label="App Command Bar"
+      controls="layout-container"
+    >
       <OutlinerToolbar />
 
       {!uiStore.isToolbarVertical && <ContentToolbar />}
@@ -128,7 +134,7 @@ const Toolbar = observer(({ isMac }: { isMac: boolean }) => {
       <InspectorToolbar />
 
       <WindowDecoration isMac={isMac} />
-    </div>
+    </Commandbar>
   );
 });
 

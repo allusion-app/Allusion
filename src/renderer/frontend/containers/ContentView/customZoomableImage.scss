@@ -22,7 +22,7 @@
 }
 
 #zoomableImage {
-  height: calc(100vh - 2.4rem); // Minus toolbarheight
+  height: calc(100vh - var(--toolbar-height)); // Minus toolbarheight
   display: flex;
   flex-direction: column;
 
