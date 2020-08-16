@@ -1,5 +1,4 @@
-import React, { useContext, useCallback, useEffect, useState } from 'react';
-import { Button, ButtonGroup } from '@blueprintjs/core';
+import React, { useContext, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
@@ -72,58 +71,29 @@ const InspectorToolbar = observer(() => {
   );
 });
 
-const WindowsButtonCodes = {
-  Minimize: <>&#xE921;</>,
-  Maximize: <>&#xE922;</>,
-  Restore: <>&#xE923;</>,
-  Close: <>&#xE8BB;</>,
-};
-
-const WindowsSystemButtons = ({ isMaximized }: { isMaximized: boolean }) => {
-  const handleMinimize = useCallback(() => remote.getCurrentWindow().minimize(), []);
-  const handleMaximize = useCallback(
-    () =>
-      isMaximized ? remote.getCurrentWindow().restore() : remote.getCurrentWindow().maximize(),
-    [isMaximized],
-  );
-  const handleClose = useCallback(() => remote.getCurrentWindow().close(), []);
-  return (
-    <ButtonGroup id="window-system-buttons" minimal>
-      <Button className="minimize" text={WindowsButtonCodes.Minimize} onClick={handleMinimize} />
-      <Button
-        className="maximize"
-        text={isMaximized ? WindowsButtonCodes.Restore : WindowsButtonCodes.Maximize}
-        onClick={handleMaximize}
-      />
-      <Button className="close" text={WindowsButtonCodes.Close} onClick={handleClose} />
-    </ButtonGroup>
-  );
-};
-
-const WindowDecoration = ({ isMac }: { isMac: boolean }) => {
+const WindowDecoration = () => {
   const [isMaximized, setMaximized] = useState(remote.getCurrentWindow().isMaximized());
   useEffect(() => {
     remote.getCurrentWindow().on('maximize', () => setMaximized(true));
     remote.getCurrentWindow().on('unmaximize', () => setMaximized(false));
   }, []);
 
-  return (
-    <>
-      {/* Invisible region for dragging/resizing the window at the top */}
-      {!isMaximized && <div id="window-resize-area" />}
-
-      {!isMac && <WindowsSystemButtons isMaximized={isMaximized} />}
-    </>
-  );
+  if (!isMaximized) {
+    return <div id="window-resize-area" />;
+  } else {
+    return null;
+  }
 };
 
-const Toolbar = observer(({ isMac }: { isMac: boolean }) => {
+const isMac = process.platform === 'darwin';
+
+const Toolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   return (
     <Commandbar
       id="toolbar"
-      className={isMac ? 'mac-toolbar' : 'windows-toolbar'}
+      className={isMac ? 'mac-toolbar' : undefined}
       label="App Command Bar"
       controls="layout-container"
     >
@@ -133,7 +103,7 @@ const Toolbar = observer(({ isMac }: { isMac: boolean }) => {
 
       <InspectorToolbar />
 
-      <WindowDecoration isMac={isMac} />
+      {isMac && <WindowDecoration />}
     </Commandbar>
   );
 });

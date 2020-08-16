@@ -15,15 +15,13 @@
     -webkit-app-region: none;
   }
 
+  grid-template-columns: var(--outliner-width) 1fr min-content;
+  grid-template-areas: 'outliner-toolbar main-toolbar inspector-toolbar';
+
   &.mac-toolbar {
     // The region on the top left is replaced with system buttons by Electron/OSX
     grid-template-columns: var(--mac-system-buttons-width) var(--outliner-width) 1fr min-content;
     grid-template-areas: '. outliner-toolbar main-toolbar inspector-toolbar';
-  }
-
-  &.windows-toolbar {
-    grid-template-columns: var(--outliner-width) 1fr min-content var(--window-system-buttons-width);
-    grid-template-areas: 'outliner-toolbar main-toolbar inspector-toolbar .';
   }
 
   // Turn of event for show media items
@@ -33,30 +31,6 @@
     > * {
       cursor: default;
       pointer-events: auto;
-    }
-  }
-
-  .custom-icon {
-    width: 1rem !important;
-    height: 1rem !important;
-  }
-
-  // The toggle buttons (e.g. grid/list view mode): For Blueprint buttons in a minimal ButtonGroup
-  .bp3-button-group.bp3-minimal .bp3-button {
-    border-radius: 0;
-
-    // Add a blue line below the button when hovering
-    &:hover {
-      border-bottom: 2px solid $blue1;
-      background: transparent;
-      padding-bottom: 3px; // to ensure the button does not move when the border is added
-    }
-
-    &.bp3-active {
-      background: transparent;
-      .bp3-icon {
-        color: $blue1;
-      }
     }
   }
 }
@@ -93,25 +67,6 @@
 
 #inspector-toolbar {
   grid-area: inspector-toolbar;
-}
-
-#window-system-buttons {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: var(--window-system-buttons-width);
-  height: 3rem;
-  padding-bottom: 2px;
-  // The font for windows system icons
-  font-family: 'Segoe MDL2 Assets';
-  .close:hover {
-    border-bottom: 2px solid $danger;
-  }
-
-  button {
-    width: 2.5rem;
-    font-size: 0.675rem;
-  }
 }
 
 // Invisible region in order to still resize the window by dragging from the top when not maximized
@@ -159,20 +114,12 @@
       -webkit-app-region: none;
     }
 
-    &::before,
-    &::after {
+    &::before {
       content: '';
       display: block;
       -webkit-app-region: none;
       height: var(--toolbar-height);
-    }
-
-    &::before {
       width: calc(var(--mac-system-buttons-width) - var(--toolbar-height));
-    }
-
-    &::after {
-      width: var(--window-system-buttons-width);
     }
   }
 }
