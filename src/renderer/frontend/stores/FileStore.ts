@@ -161,11 +161,15 @@ class FileStore {
 
   @action.bound async fetchAllFiles() {
     try {
+      console.time('fetchAllFiles');
       this.rootStore.uiStore.closeQuickSearch();
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
+      console.timeLog('fetchAllFiles', 'Fetched');
       await this.updateFromBackend(fetchedFiles);
+      console.timeLog('fetchAllFiles', 'Updated');
       this.setContentAll();
       this.updateStats();
+      console.timeEnd('fetchAllFiles');
     } catch (err) {
       console.error('Could not load all files', err);
     }
@@ -173,17 +177,24 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
+      console.time('fetchUntaggedFiles');
       const { uiStore } = this.rootStore;
       uiStore.closeQuickSearch();
       const criteria = new ClientArraySearchCriteria('tags', []).serialize();
+
       const fetchedFiles = await this.backend.searchFiles(
         criteria,
         this.orderBy,
         this.fileOrder,
         uiStore.searchMatchAny,
       );
+      console.timeLog('fetchUntaggedFiles', 'Fetched');
+
       await this.updateFromBackend(fetchedFiles);
       this.setContentUntagged();
+      console.timeLog('fetchUntaggedFiles', 'Updated');
+
+      console.timeEnd('fetchUntaggedFiles');
     } catch (err) {
       console.error('Could not load all files', err);
     }
