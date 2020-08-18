@@ -68,7 +68,7 @@ const SystemTags = observer(() => {
 class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
     return (
-      <div tabIndex={0}>
+      <div>
         <Observer>
           {() => {
             const { tagCollectionStore, tagStore, uiStore } = this.props.rootStore;

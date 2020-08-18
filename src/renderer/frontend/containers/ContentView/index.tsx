@@ -12,7 +12,7 @@ import { IS_PREVIEW_WINDOW } from 'src/renderer/renderer';
 class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
     return (
-      <main tabIndex={1}>
+      <main>
         <Observer>
           {() =>
             !IS_PREVIEW_WINDOW && this.props.rootStore.uiStore.isToolbarVertical ? (

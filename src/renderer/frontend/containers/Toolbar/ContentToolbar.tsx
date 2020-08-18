@@ -54,7 +54,7 @@ interface ITagFilesPopoverProps {
 
 const TagFilesPopover = observer(
   ({ disabled, files, isOpen, close, toggle, hidden }: ITagFilesPopoverProps) => (
-    <Popover minimal usePortal={false} isOpen={isOpen} onClose={close}>
+    <Popover minimal openOnTargetFocus={false} usePortal={false} isOpen={isOpen} onClose={close}>
       {hidden ? (
         <></>
       ) : (
@@ -142,7 +142,7 @@ const FileFilter = observer(
     }, [fileOrder, orderBy, switchFileOrder, orderFilesBy]);
 
     return (
-      <Popover minimal usePortal={false} content={sortMenu}>
+      <Popover minimal openOnTargetFocus={false} usePortal={false} content={sortMenu}>
         <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={ToolbarTooltips.Filter} />
       </Popover>
     );
