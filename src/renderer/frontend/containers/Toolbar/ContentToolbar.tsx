@@ -17,13 +17,6 @@ import { useMemo, useContext } from 'react';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from '../Outliner/MessageBox';
 
-/* Library info. Todo: Show entire library count instead of current fileList */
-// const LibraryInfo = observer(({ fileCount }: { fileCount: number }) => (
-//   <Button id="media" icon={IconSet.MEDIA} className="tooltip" data-right={ToolbarTooltips.Media}>
-//     {fileCount}
-//   </Button>
-// ));
-
 interface IFileSelection {
   allFilesSelected: boolean;
   toggleSelection: () => void;

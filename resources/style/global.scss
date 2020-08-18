@@ -199,63 +199,6 @@ img {
   background: rgba(16, 22, 26, 0); //Set 2 zero for now
 }
 
-///////////////////////////////// Custom Hover tooltip /////////////////////////////////
-[data-right],
-[data-left] {
-  position: relative !important;
-  z-index: auto;
-}
-[data-right]:after {
-  content: attr(data-right);
-  position: absolute !important;
-  max-width: 600px !important;
-  min-width: max-content;
-  left: 1rem;
-  top: 0.25rem; //Fix for z-index issue
-  margin-left: 1.5rem;
-  margin-top: 1.5rem;
-  text-align: left;
-  line-height: 1.5;
-  padding: 0.55rem 0.8rem;
-  background: $blue1;
-  color: white;
-  z-index: auto;
-  border-radius: 5px;
-  box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-[data-right]:hover:after,
-[data-left]:hover:after {
-  opacity: 1;
-  transition: all 0.2s $pt-transition-cubic2-delay; // Tooltip needs delay!
-  visibility: visible;
-  position: absolute;
-  z-index: 10;
-}
-[data-left]:after {
-  content: attr(data-left);
-  position: absolute !important;
-  max-width: 600px !important;
-  min-width: max-content;
-  right: 1rem;
-  top: 1rem;
-  margin-left: 1.5rem;
-  margin-top: 1.5rem;
-  text-align: left;
-  line-height: 1.5;
-  padding: 0.55rem 0.8rem;
-  background: $blue1;
-  color: white;
-  z-index: auto;
-  // white-space: nowrap;
-  border-radius: 5px;
-  box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
-  opacity: 0;
-  visibility: hidden;
-}
-
 ///////////////////////////////// Theme Colours /////////////////////////////////
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this

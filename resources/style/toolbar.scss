@@ -15,26 +15,6 @@
   &.mac-toolbar {
     padding-left: var(--mac-system-buttons-width);
   }
-
-  // Turn of event for show media items
-  #media {
-    pointer-events: none;
-    white-space: nowrap;
-    > * {
-      cursor: default;
-      pointer-events: auto;
-    }
-  }
-}
-
-#preview #toolbar {
-  .bp3-button {
-    padding: 0;
-    height: 100%;
-  }
-  .bp3-switch {
-    margin: 0;
-  }
 }
 
 #main-toolbar {
@@ -66,9 +46,6 @@
 
 .vertical-toolbar {
   #toolbar {
-    width: var(--toolbar-height);
-    height: 100vh;
-    display: flex;
     flex-direction: column;
     padding: 0.25rem 0;
     border-right: 1px solid var(--background-separator-color);

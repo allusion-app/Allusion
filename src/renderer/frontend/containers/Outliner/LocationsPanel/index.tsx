@@ -1,6 +1,5 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { remote, shell } from 'electron';
-import Path from 'path';
 import { observer, Observer } from 'mobx-react-lite';
 import {
   Button,
@@ -26,7 +25,7 @@ import { IFile } from 'src/renderer/entities/File';
 import MultiTagSelector from 'src/renderer/frontend/components/MultiTagSelector';
 import { AppToaster } from 'src/renderer/frontend/App';
 import UiStore, { FileSearchCriteria } from 'src/renderer/frontend/stores/UiStore';
-import { Tree } from 'components';
+import { Tree, Toolbar, ToolbarButton } from 'components';
 import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
 import { IExpansionState } from '..';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
@@ -36,7 +35,7 @@ import { LocationRemoval } from '../MessageBox';
 // Tooltip info
 const enum Tooltip {
   Location = 'Add New Location',
-  Refresh = 'Refresh directories',
+  Refresh = 'Refresh Directories',
 }
 
 interface ILocationConfigModalProps {
@@ -408,7 +407,7 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
 
   return (
     <Tree
-      autoFocus
+      id="location-list"
       multiSelect
       branches={branches}
       leaves={[]}
@@ -503,20 +502,22 @@ const LocationsPanel = () => {
           </span>
           Locations
         </H4>
-        <Button
-          minimal
-          icon={IconSet.FOLDER_CLOSE_ADD}
-          onClick={handleChooseWatchedDir}
-          className="tooltip"
-          data-left={Tooltip.Location}
-        />
-        <Button
-          minimal
-          icon={IconSet.RELOAD}
-          onClick={() => setLocationTreeKey(new Date())}
-          className="tooltip"
-          data-left={Tooltip.Refresh}
-        />
+        <Toolbar controls="location-list">
+          <ToolbarButton
+            showLabel="never"
+            icon={IconSet.FOLDER_CLOSE}
+            label="New Location"
+            onClick={handleChooseWatchedDir}
+            tooltip={Tooltip.Location}
+          />
+          <ToolbarButton
+            showLabel="never"
+            icon={IconSet.RELOAD}
+            label="Refresh"
+            onClick={() => setLocationTreeKey(new Date())}
+            tooltip={Tooltip.Refresh}
+          />
+        </Toolbar>
       </div>
       <Collapse isOpen={!isCollapsed}>
         <LocationsTree

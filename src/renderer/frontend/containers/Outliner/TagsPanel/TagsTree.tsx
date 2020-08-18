@@ -1,9 +1,9 @@
 import React, { useMemo, useState, useCallback, useReducer, useContext } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { ContextMenu, Collapse, Button, H4, Icon, InputGroup, Classes } from '@blueprintjs/core';
+import { ContextMenu, Collapse, H4, Icon, InputGroup } from '@blueprintjs/core';
 
-import { Tree } from 'components';
+import { Tree, Toolbar, ToolbarButton } from 'components';
 import IconSet from 'components/Icons';
 import {
   ITreeBranch,
@@ -240,9 +240,9 @@ const Tag = observer((props: ITagProps) => {
         onClick={handleQuickQuery}
       />
       {!isEditing && (
-        <span onClick={handleSelect} className="after-icon">
+        <button onClick={handleSelect} className="after-icon">
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
-        </span>
+        </button>
       )}
     </div>
   );
@@ -401,13 +401,9 @@ const Collection = observer((props: ICollectionProps) => {
         onClick={handleQuickQuery}
       />
       {!isEditing && (
-        <span
-          onClick={handleSelect}
-          className={`after-icon ${nodeData.hasContent ? '' : Classes.DISABLED}`}
-          data-left={nodeData.hasContent ? undefined : 'Cannot select empty collection.'}
-        >
+        <button disabled={!nodeData.hasContent} onClick={handleSelect} className="after-icon">
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
-        </span>
+        </button>
       )}
     </div>
   );
@@ -743,32 +739,34 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
           <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
           Tags
         </H4>
-        {uiStore.tagSelection.length > 0 ? (
-          <Button
-            minimal
-            icon={IconSet.CLOSE}
-            onClick={uiStore.clearTagSelection}
-            className="tooltip"
-            data-left="Clear Selection"
-          />
-        ) : (
-          <>
-            <Button
-              minimal
-              icon={IconSet.TAG_ADD}
-              onClick={handleRootAddTag}
-              className="tooltip"
-              data-left="New Tag"
+        <Toolbar controls="tag-hierarchy">
+          {uiStore.tagSelection.length > 0 ? (
+            <ToolbarButton
+              showLabel="never"
+              icon={IconSet.CLOSE}
+              label="Clear"
+              onClick={uiStore.clearTagSelection}
+              tooltip="Clear Selection"
             />
-            <Button
-              minimal
-              icon={IconSet.TAG_ADD_COLLECTION}
-              onClick={handleAddRootCollection}
-              className="tooltip"
-              data-left="New Collection"
-            />
-          </>
-        )}
+          ) : (
+            <>
+              <ToolbarButton
+                showLabel="never"
+                icon={IconSet.TAG_ADD}
+                label="New Tag"
+                onClick={handleRootAddTag}
+                tooltip="Add New Tag"
+              />
+              <ToolbarButton
+                showLabel="never"
+                icon={IconSet.TAG_ADD_COLLECTION}
+                label="New Collection"
+                onClick={handleAddRootCollection}
+                tooltip="Add New Collection"
+              />
+            </>
+          )}
+        </Toolbar>
       </div>
 
       <Collapse isOpen={!isCollapsed}>
@@ -779,7 +777,8 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
           </div>
         ) : (
           <Tree
-            className={`tags-tree ${uiStore.tagSelection.length > 0 ? 'selected' : ''}`}
+            id="tag-hierarchy"
+            className={uiStore.tagSelection.length > 0 ? 'selected' : undefined}
             multiSelect
             branches={branches.get()}
             leaves={leaves.get()}

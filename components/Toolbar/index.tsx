@@ -8,7 +8,8 @@ interface IToolbar {
   children: React.ReactNode;
   id?: string;
   className?: string;
-  label: string;
+  label?: string;
+  labelledBy?: string;
   controls: string;
 }
 
@@ -56,7 +57,7 @@ const handleToolbarFocus = (e: React.FocusEvent<HTMLElement>) => {
 };
 
 const Toolbar = (props: IToolbar) => {
-  const { children, id, className, label, controls } = props;
+  const { children, id, className, label, labelledBy, controls } = props;
   const toolbar = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -72,6 +73,7 @@ const Toolbar = (props: IToolbar) => {
       id={id}
       className={`toolbar ${className ?? ''}`}
       aria-label={label}
+      aria-labbeledby={labelledBy}
       aria-controls={controls}
       onFocus={handleToolbarFocus}
       onKeyDown={handleToolbarKeyDown}
@@ -86,7 +88,7 @@ export default Toolbar;
 interface IBaseButton {
   label: string;
   icon: JSX.Element;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent) => void;
   showLabel?: 'always' | 'never';
   tooltip?: string;
 }

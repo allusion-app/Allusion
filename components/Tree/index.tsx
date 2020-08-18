@@ -425,9 +425,7 @@ const TreeBranch = observer(
 // --- Public API ---
 
 export interface ITree {
-  /** Focuses the first tree item on mount and also when a node is added to an
-   * empty tree */
-  autoFocus?: boolean;
+  id?: string;
   /** Element id of the tree view used for the aria-labelledby attribute */
   labelledBy?: string;
   /** Sets the aria-multiselectable attribute */
@@ -522,7 +520,7 @@ const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
 };
 
 const Tree = ({
-  autoFocus,
+  id,
   className = '',
   multiSelect,
   labelledBy,
@@ -539,15 +537,13 @@ const Tree = ({
   useEffect(() => {
     if (tree.current?.firstElementChild) {
       tree.current.firstElementChild.setAttribute('tabIndex', '0');
-      if (autoFocus) {
-        (tree.current.firstElementChild as HTMLElement).focus();
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [branches.length > 0 || leaves.length > 0, autoFocus]);
+  }, [branches.length > 0 || leaves.length > 0]);
 
   return (
     <ul
+      id={id}
       style={{ '--level': 0 } as CSSProperties}
       className={`tree ${className}`}
       ref={tree}
