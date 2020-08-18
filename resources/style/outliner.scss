@@ -3,10 +3,8 @@
   grid-area: outliner;
   // Show y scrollbar when there's loads of tags or location list items
   overflow-x: hidden;
-  flex-shrink: 0;
   transition: max-width 200ms $pt-transition-cubic2;
   border-left: 1px solid var(--background-separator-color);
-  border-right: 1px solid var(--background-separator-color);
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter {
@@ -24,7 +22,7 @@
 
   > * {
     // Don't squash content during parent transition
-    min-width: var(--outliner-width);
+    width: var(--outliner-width);
   }
 
   > div:hover .outliner-header-wrapper .toolbar {
@@ -141,7 +139,6 @@
 
     &:disabled {
       cursor: not-allowed;
-      color: var(--text-muted-color);
     }
   }
 
