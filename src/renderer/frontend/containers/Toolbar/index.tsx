@@ -100,6 +100,7 @@ const Toolbar = observer(() => {
       className={isMac ? 'mac-toolbar' : undefined}
       label="App Command Bar"
       controls="layout-container"
+      orientation={uiStore.isToolbarVertical ? 'vertical' : undefined}
     >
       <OutlinerToolbar />
 

@@ -46,17 +46,12 @@
 
 .vertical-toolbar {
   #toolbar {
-    flex-direction: column;
     padding: 0.25rem 0;
     border-right: 1px solid var(--background-separator-color);
   }
 
   #inspector {
     padding-top: var(--toolbar-height);
-  }
-
-  #inspector-toolbar {
-    flex-direction: column;
   }
 
   #main-toolbar {
