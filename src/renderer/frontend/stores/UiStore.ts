@@ -324,15 +324,11 @@ class UiStore {
   /////////////////// Selection actions ///////////////////
   /** Note: This is a relatively expensive operation for large file lists. Use with care! Currently evaluated every rerender :( */
   @computed get clientFileSelection(): ClientFile[] {
-    return Array.from(this.fileSelection).map((id) =>
-      this.rootStore.fileStore.get(id),
-    ) as ClientFile[];
+    return Array.from(this.fileSelection, (id) => this.rootStore.fileStore.get(id)) as ClientFile[];
   }
 
   @computed get clientTagSelection(): ClientTag[] {
-    return Array.from(this.tagSelection).map((id) =>
-      this.rootStore.tagStore.get(id),
-    ) as ClientTag[];
+    return Array.from(this.tagSelection, (id) => this.rootStore.tagStore.get(id)) as ClientTag[];
   }
 
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
@@ -563,7 +559,7 @@ class UiStore {
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceSearchCriterias(
-      Array.from(this.tagSelection).map((id) => new ClientIDSearchCriteria('tags', id)),
+      Array.from(this.tagSelection, (id) => new ClientIDSearchCriteria('tags', id)),
     );
     this.clearTagSelection();
   }

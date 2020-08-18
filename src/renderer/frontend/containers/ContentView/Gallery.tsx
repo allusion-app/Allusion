@@ -156,7 +156,7 @@ const GridGallery = observer(
     useEffect(() => {
       if (latestSelectedFile) {
         const index = fileStore.getIndex(latestSelectedFile);
-        if (index >= 0) {
+        if (index !== undefined && index >= 0) {
           handleScrollTo(index);
         }
       }
@@ -276,7 +276,7 @@ const ListGallery = observer(
     useEffect(() => {
       if (latestSelectedFile) {
         const index = fileStore.getIndex(latestSelectedFile);
-        if (latestSelectedFile && index >= 0) {
+        if (latestSelectedFile && index !== undefined && index >= 0) {
           handleScrollTo(index);
         }
       }
@@ -478,6 +478,10 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
   const handleFileSelect = useCallback(
     (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => {
       const i = fileStore.getIndex(selectedFile.id);
+      if (i === undefined) {
+        return;
+      }
+
       const isSelected = uiStore.fileSelection.has(selectedFile.id);
       const singleSelected = isSelected && uiStore.fileSelection.size === 1;
 

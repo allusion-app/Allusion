@@ -198,9 +198,7 @@ const ContentToolbar = observer(() => {
   const handleToggleSelect = () =>
     fileSelection.size > 0 && fileSelection.size === fileStore.fileList.length
       ? uiStore.clearFileSelection()
-      : uiStore.selectFiles(
-          fileStore.fileList.map((f) => f.id).filter((f) => !fileSelection.has(f)),
-        );
+      : uiStore.selectAllFiles();
 
   if (uiStore.isSlideMode) {
     return <SlideModeToolbar />;
@@ -229,7 +227,7 @@ const ContentToolbar = observer(() => {
           {/* Only show when not viewing missing files (so it is replaced by the Delete button) */}
           <TagFilesPopover
             files={uiStore.isToolbarTagSelectorOpen ? uiStore.clientFileSelection : []}
-            disabled={fileSelection.size <= 0 || fileStore.fileList.length <= 0}
+            disabled={fileSelection.size === 0 || fileStore.fileList.length === 0}
             isOpen={uiStore.isToolbarTagSelectorOpen}
             close={uiStore.closeToolbarTagSelector}
             toggle={uiStore.toggleToolbarTagSelector}
