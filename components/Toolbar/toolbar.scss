@@ -32,8 +32,6 @@
 
 .toolbar-item:focus {
   box-shadow: 0 0 0 0.125rem var(--highlight-font-color);
-  // prevents outline from being overlapped by sibling elements
-  z-index: 0;
 }
 
 .toolbar:last-child {

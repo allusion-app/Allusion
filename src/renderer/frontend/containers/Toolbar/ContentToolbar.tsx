@@ -206,13 +206,15 @@ const ContentToolbar = observer(() => {
   } else {
     return (
       <ToolbarGroup id="main-toolbar">
-        <ToolbarToggleButton
-          icon={IconSet.SEARCH}
-          onClick={uiStore.toggleQuickSearch}
-          pressed={uiStore.isQuickSearchOpen}
-          label="Search"
-          tooltip={ToolbarTooltips.Search}
-        />
+        <ToolbarGroup>
+          <ToolbarToggleButton
+            icon={IconSet.SEARCH}
+            onClick={uiStore.toggleQuickSearch}
+            pressed={uiStore.isQuickSearchOpen}
+            label="Search"
+            tooltip={ToolbarTooltips.Search}
+          />
+        </ToolbarGroup>
 
         <ToolbarGroup>
           <FileSelection
