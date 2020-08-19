@@ -20,8 +20,8 @@ export type ViewContent = 'query' | 'all' | 'untagged' | 'missing';
 
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
-
-  // TODO: Also maintain a dictionary of ID -> ClientFile for quick access and getting all IDs using Object.keys
+  /** A map of file ID to its index in the file list, for quick lookups by ID */
+  private readonly index = new Map<ID, number>();
 
   /** The origin of the current files that are shown */
   @observable content: ViewContent = 'all';
@@ -101,6 +101,7 @@ class FileStore {
     });
     // The function caller is responsible for handling errors.
     await this.backend.createFile(file.serialize());
+    this.index.set(file.id, this.fileList.length);
     runInAction(() => this.fileList.push(file));
     this.incrementNumUntaggedFiles();
     return file;
@@ -136,6 +137,9 @@ class FileStore {
           this.rootStore.uiStore.deselectFile(f);
           this.fileList.remove(f);
           this.decrementNumMissingFiles();
+
+          // File indices changed -> Rebuild index
+          this.rebuildIndex();
         });
       });
     } catch (err) {
@@ -178,7 +182,7 @@ class FileStore {
         this.fileOrder,
         uiStore.searchMatchAny,
       );
-      this.updateFromBackend(fetchedFiles);
+      await this.updateFromBackend(fetchedFiles);
       this.setContentUntagged();
     } catch (err) {
       console.error('Could not load all files', err);
@@ -202,7 +206,14 @@ class FileStore {
 
       // For every new file coming in, either re-use the existing client file if it exists,
       // or construct a new client file
-      const newClientFiles = this.filesFromBackend(backendFiles);
+      const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
+
+      // Dispose of unused files
+      for (const oldFile of this.fileList) {
+        if (!reusedStatus.has(oldFile.id)) {
+          oldFile.dispose();
+        }
+      }
 
       // We don't store whether files are missing (since they might change at any time)
       // So we have to check all files and check their existence them here
@@ -222,6 +233,8 @@ class FileStore {
       runInAction(() => {
         this.numMissingFiles = missingClientFiles.length;
         this.fileList.replace(missingClientFiles);
+        this.rebuildIndex();
+        this.cleanFileSelection();
       });
     } catch (err) {
       console.error('Could not load broken files', err);
@@ -271,10 +284,16 @@ class FileStore {
   // Removes all items from fileList
   @action.bound clearFileList() {
     this.fileList.clear();
+    this.index.clear();
   }
 
   get(id: ID): ClientFile | undefined {
-    return this.fileList.find((f) => f.id === id);
+    const fileIndex = this.index.get(id);
+    return fileIndex !== undefined ? this.fileList[fileIndex] : undefined;
+  }
+
+  getIndex(id: ID): number | undefined {
+    return this.index.get(id);
   }
 
   getTag(tag: ID): ClientTag | undefined {
@@ -323,6 +342,7 @@ class FileStore {
 
   @action private async updateFromBackend(backendFiles: IFile[]) {
     if (backendFiles.length === 0) {
+      this.rootStore.uiStore.clearFileSelection();
       return this.clearFileList();
     }
 
@@ -330,7 +350,14 @@ class FileStore {
 
     // For every new file coming in, either re-use the existing client file if it exists,
     // or construct a new client file
-    const newClientFiles = this.filesFromBackend(backendFiles);
+    const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
+
+    // Dispose of Client files that are not re-used
+    for (const file of this.fileList) {
+      if (!reusedStatus.has(file.id)) {
+        file.dispose();
+      }
+    }
 
     // Check existence of new files asynchronously, no need to wait until they can be showed
     // we can simply check whether they exist after they start rendering
@@ -360,10 +387,39 @@ class FileStore {
 
     // Run the existence check with at most N checks in parallel
     // TODO: Should make N configurage, or determine based on the system/disk performance
+    // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
     const N = 50;
-    await promiseAllLimit(existenceCheckPromises, N);
+    promiseAllLimit(existenceCheckPromises, N).catch((e) =>
+      console.error('An error occured during existence checking!', e),
+    );
 
-    runInAction(() => this.fileList.replace(newClientFiles));
+    runInAction(() => {
+      // Update the file list
+      this.fileList.replace(newClientFiles);
+
+      // Rebuild index
+      this.rebuildIndex();
+
+      // Remove files from selection that are not in the file list anymore
+      this.cleanFileSelection();
+    });
+  }
+
+  rebuildIndex() {
+    this.index.clear();
+    for (let i = 0; i < this.fileList.length; i++) {
+      this.index.set(this.fileList[i].id, i);
+    }
+  }
+
+  /** Remove files from selection that are not in the file list anymore */
+  cleanFileSelection() {
+    const { fileSelection } = this.rootStore.uiStore;
+    for (const selectedFileId of fileSelection.values()) {
+      if (!this.index.has(selectedFileId)) {
+        this.rootStore.uiStore.fileSelection.delete(selectedFileId);
+      }
+    }
   }
 
   /**
@@ -371,11 +427,14 @@ class FileStore {
    * @param backendFiles
    * @returns A list of Client files, and a set of keys that was reused from the existing fileList
    */
-  @action private filesFromBackend(backendFiles: IFile[]): ClientFile[] {
-    return backendFiles.map((f) => {
+  @action private filesFromBackend(backendFiles: IFile[]): [ClientFile[], Set<ID>] {
+    const reusedStatus = new Set<ID>();
+
+    const clientFiles = backendFiles.map((f) => {
       // Might already exist!
       const existingFile = this.get(f.id);
       if (existingFile) {
+        reusedStatus.add(existingFile.id);
         return existingFile;
       }
 
@@ -392,6 +451,8 @@ class FileStore {
         : f.absolutePath;
       return file;
     });
+
+    return [clientFiles, reusedStatus];
   }
 
   @action private async removeThumbnail(file: ClientFile) {

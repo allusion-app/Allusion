@@ -39,7 +39,7 @@ class TagStore {
   }
 
   isSelected(tag: ID): boolean {
-    return this.rootStore.uiStore.tagSelection.includes(tag);
+    return this.rootStore.uiStore.tagSelection.has(tag);
   }
 
   isSearched(tag: ID): boolean {

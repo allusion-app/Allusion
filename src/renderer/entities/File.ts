@@ -78,6 +78,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly dateModified: Date;
   readonly name: string;
   readonly extension: string;
+  readonly filename: string;
 
   @observable thumbnailPath: string = '';
 
@@ -101,6 +102,9 @@ export class ClientFile implements ISerializable<IFile> {
     const location = store.getLocation(this.locationId);
     this.absolutePath = Path.join(location.path, this.relativePath);
 
+    const base = Path.basename(this.relativePath);
+    this.filename = base.substr(0, base.lastIndexOf('.'));
+
     this.tags.push(...fileProps.tags);
 
     // observe all changes to observable fields
@@ -115,11 +119,6 @@ export class ClientFile implements ISerializable<IFile> {
         }
       },
     );
-  }
-
-  @computed get filename(): string {
-    const base = Path.basename(this.relativePath);
-    return base.substr(0, base.lastIndexOf('.'));
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */

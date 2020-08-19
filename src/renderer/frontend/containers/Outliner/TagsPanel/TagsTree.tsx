@@ -743,7 +743,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
           <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
           Tags
         </H4>
-        {uiStore.tagSelection.length > 0 ? (
+        {uiStore.tagSelection.size > 0 ? (
           <Button
             minimal
             icon={IconSet.CLOSE}
@@ -779,7 +779,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
           </div>
         ) : (
           <Tree
-            className={`tags-tree ${uiStore.tagSelection.length > 0 ? 'selected' : ''}`}
+            className={`tags-tree ${uiStore.tagSelection.size > 0 ? 'selected' : ''}`}
             multiSelect
             branches={branches.get()}
             leaves={leaves.get()}
