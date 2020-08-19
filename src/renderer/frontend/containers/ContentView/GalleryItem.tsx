@@ -371,9 +371,9 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
         <>
           <H4>{file.filename}</H4>
           <ImageInfo file={file} />
+          <span className="thumbnail-tags" />
         </>
       )}
-      <span className="thumbnail-tags" />
     </div>
   );
 });

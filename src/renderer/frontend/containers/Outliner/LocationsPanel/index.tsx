@@ -264,6 +264,8 @@ const SubLocation = observer(
             <DirectoryMenu path={nodeData.fullPath} uiStore={treeData.uiStore} />
           </Menu>,
           { left: event.clientX, top: event.clientY },
+          undefined,
+          treeData.uiStore.theme === 'DARK',
         );
       },
       [nodeData.fullPath, treeData.uiStore],
@@ -306,6 +308,8 @@ const Location = observer(
             onDelete={treeData.delete}
           />,
           { left: event.clientX, top: event.clientY },
+          undefined,
+          treeData.uiStore.theme === 'DARK',
         );
       },
       [nodeData, treeData.config, treeData.delete, treeData.uiStore],

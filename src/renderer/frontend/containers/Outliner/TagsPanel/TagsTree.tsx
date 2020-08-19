@@ -148,6 +148,8 @@ const Tag = observer((props: ITagProps) => {
           left: e.clientX,
           top: e.clientY,
         },
+        undefined,
+        uiStore.theme === 'DARK',
       ),
     [dispatch, nodeData, uiStore],
   );
@@ -270,6 +272,8 @@ const Collection = observer((props: ICollectionProps) => {
           uiStore={uiStore}
         />,
         { left: e.clientX, top: e.clientY },
+        undefined,
+        uiStore.theme === 'DARK',
       ),
     [dispatch, expansion, nodeData, pos, tagCollectionStore, tagStore, uiStore],
   );
