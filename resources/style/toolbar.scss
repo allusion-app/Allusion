@@ -1,9 +1,7 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 #toolbar {
   grid-area: toolbar;
-  border-bottom: 2px solid var(--background-separator-color);
-  border-left: 1px solid var(--background-separator-color);
-  border-right: 1px solid var(--background-separator-color);
+  margin: 0 1px;
 
   // Since the toolbar is acting as the frame, it should be draggable to move the window around
   -webkit-app-region: drag;
@@ -13,7 +11,14 @@
   }
 
   &.mac-toolbar {
+    // The region on the top left is replaced with system buttons by Electron/OSX
     padding-left: var(--mac-system-buttons-width);
+  }
+}
+
+#preview #toolbar {
+  .bp3-switch {
+    margin: 0;
   }
 }
 
@@ -45,21 +50,14 @@
 }
 
 .vertical-toolbar {
-  #toolbar {
-    padding: 0.25rem 0;
-    border-right: 1px solid var(--background-separator-color);
-  }
-
-  #inspector {
-    padding-top: var(--toolbar-height);
+  #outliner-toolbar {
+    margin-top: 0.25rem;
   }
 
   #main-toolbar {
-    margin: 0;
-    height: var(--toolbar-height);
+    grid-area: main-toolbar;
+    margin: 0 1px;
     background-color: var(--foreground-color);
-    border-bottom: 2px solid var(--background-separator-color);
-    border-left: 1px solid var(--background-separator-color);
 
     // Since the toolbar is acting as the frame, it should be draggable to move the window around
     -webkit-app-region: drag;

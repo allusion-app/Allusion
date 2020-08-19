@@ -1,10 +1,10 @@
 ///////////////////////////////// Inspector /////////////////////////////////
 #inspector {
   grid-area: inspector;
-  flex-shrink: 0;
   width: var(--inspector-width);
   overflow-x: hidden;
   transition: max-width 200ms ease-in-out; // 120ms $pt-transition-cubic2
+  margin-right: 1px;
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter {

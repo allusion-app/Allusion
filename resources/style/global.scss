@@ -40,7 +40,7 @@ body {
   grid-template-areas:
     'toolbar'
     'main';
-  grid-template-rows: 3rem 1fr;
+  grid-template-rows: var(--toolbar-height) 1fr;
   height: 100vh;
 }
 
@@ -107,12 +107,22 @@ pre {
   }
 }
 
+#layout-container {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: var(--toolbar-height) 1fr;
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'outliner main inspector';
+  row-gap: 2px;
+}
+
 #layout-container.vertical-toolbar {
   --toolbar-height: 3rem;
-  display: grid;
   grid-template-columns: var(--toolbar-height) min-content 1fr min-content;
   grid-template-areas:
-    'toolbar outliner main inspector'
+    'toolbar main-toolbar main-toolbar main-toolbar'
     'toolbar outliner main inspector';
 }
 
@@ -128,18 +138,6 @@ main {
   grid-area: main;
   display: flex;
   flex-flow: column;
-}
-
-#layout-container {
-  height: 100vh;
-  display: grid;
-  grid-template-rows: var(--toolbar-height) 1fr;
-  grid-template-columns: min-content 1fr min-content;
-  grid-template-areas:
-    'toolbar toolbar toolbar'
-    'outliner main inspector';
-
-  background-color: var(--background-color);
 }
 
 .contextMenuTarget {

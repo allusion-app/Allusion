@@ -79,13 +79,12 @@
   max-height: 0;
 }
 
-.gallery-content {
+#gallery-content {
   flex: 1;
-  max-height: 100%;
   margin-left: 8px;
 }
 
-.gallery-content:not(.slide) {
+#gallery-content:not(.slide) {
   > div {
     // Fix for height cut-off when the quick search bar is open
     position: absolute !important;
@@ -115,14 +114,12 @@
   // --thumbnail-size: 282px;
   --thumbnail-size: 350px;
 }
-.galleryItem {
-  padding: 0.3rem 0 0 0;
-}
 
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
   position: relative;
   overflow: hidden;
+  padding: 4px 0;
 
   h4 {
     grid-area: title;
@@ -317,10 +314,10 @@
   position: relative !important;
 }
 
-.thumb-square:not(.slide) img {
+.thumbnail-square:not(.slide) img {
   object-fit: cover;
 }
-.thumb-letterbox:not(.slide) img {
+.thumbnail-letterbox:not(.slide) img {
   object-fit: contain;
 }
 

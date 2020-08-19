@@ -4,24 +4,12 @@ import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 import { IRootStoreProp, withRootstore } from '../../contexts/StoreContext';
 import Gallery from './Gallery';
 import Searchbar from './Searchbar';
-import ContentToolbar from '../Toolbar/ContentToolbar';
-import { Observer } from 'mobx-react-lite';
-import { IS_PREVIEW_WINDOW } from 'src/renderer/renderer';
 
 @HotkeysTarget
 class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
     return (
       <main>
-        <Observer>
-          {() =>
-            !IS_PREVIEW_WINDOW && this.props.rootStore.uiStore.isToolbarVertical ? (
-              <ContentToolbar />
-            ) : (
-              <></>
-            )
-          }
-        </Observer>
         <Searchbar />
         <Gallery />
       </main>

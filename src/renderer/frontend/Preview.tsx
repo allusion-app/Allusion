@@ -31,7 +31,7 @@ const PreviewApp = observer(() => {
   return (
     <div id="preview" className={themeClass}>
       <ErrorBoundary>
-        <Toolbar id="toolbar" label="Preview Toolbar" controls="">
+        <Toolbar id="toolbar" label="Preview Command Bar" controls="gallery">
           <ToolbarGroup>
             <ToolbarButton
               showLabel="never"

@@ -1,9 +1,3 @@
-/*
-  WARNING: Do not hide overflow in a container!
-
-  This will cut off the tooltip. If it is necessary remove the usePortal,
-  property from the Tooltip component in ToolbarButton. 
-*/
 .toolbar[role='toolbar'] {
   display: flex;
   min-height: 2.25rem;
