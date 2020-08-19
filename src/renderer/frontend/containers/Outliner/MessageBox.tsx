@@ -53,7 +53,10 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
     title={`Are you sure you want to delete the location "${props.object.name}"?`}
     information="This will permanently remove the location and all files contained in it from Allusion."
     onCancel={props.onClose}
-    onConfirm={() => props.object.delete().then(() => props.onClose())}
+    onConfirm={() => {
+      props.onClose();
+      props.object.delete();
+    }}
   ></Confirmation>
 );
 
@@ -94,12 +97,10 @@ export const TagRemoval = (props: IRemovalProps<ClientTag | ClientTagCollection>
         )
       }
       onCancel={props.onClose}
-      onConfirm={() =>
-        (object.isSelected
-          ? uiStore.removeSelectedTagsAndCollections()
-          : props.object.delete()
-        ).then(() => props.onClose())
-      }
+      onConfirm={() => {
+        props.onClose();
+        object.isSelected ? uiStore.removeSelectedTagsAndCollections() : props.object.delete();
+      }}
     ></Confirmation>
   );
 };
@@ -121,7 +122,10 @@ export const FileRemoval = (
       }?`}
       information="Deleting files will permanently remove them from Allusion. If you just accidentially moved files (to the trash bin), you can recover them by moving them back to their previous location and refresh Allusion."
       onCancel={props.onClose}
-      onConfirm={() => fileStore.removeFiles(files.map((f) => f.id)).then(() => props.onClose())}
+      onConfirm={() => {
+        props.onClose();
+        fileStore.removeFiles(files.map((f) => f.id));
+      }}
     />
   );
 };
