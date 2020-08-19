@@ -97,7 +97,9 @@
 
   .toolbar-button[aria-pressed='true'] {
     .toolbar-button-content {
-      padding: 0;
+      min-height: 2.25rem;
+      min-width: 2.125rem;
+      padding: 0.25rem;
       padding-left: 0.125rem;
     }
     border: none;

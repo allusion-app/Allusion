@@ -81,7 +81,7 @@
 
 #gallery-content {
   flex: 1;
-  margin-left: 8px;
+  margin-left: 6px;
 }
 
 #gallery-content:not(.slide) {
@@ -118,7 +118,6 @@
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
   position: relative;
-  overflow: hidden;
   padding: 4px 0;
 
   h4 {
@@ -150,6 +149,11 @@
       clip-path: inset(0.5rem round 0.125rem);
     }
   }
+
+  &:hover .thumbnail-tags {
+    max-height: var(--thumbnail-size);
+    overflow-y: auto;
+  }
 }
 
 .thumbnail-img {
@@ -159,17 +163,11 @@
   border-radius: 0.25rem;
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
-  overflow: hidden;
-
-  .placeholder {
-    width: 100%;
-    height: 100%;
-  }
+  background-color: var(--foreground-color);
 
   > img,
   > .image-error {
-    background-color: var(--foreground-color);
-    clip-path: inset(0);
+    clip-path: inset(0 round 0.25rem);
     transition: clip-path 0.2s $pt-transition-cubic2;
   }
 
@@ -211,7 +209,9 @@
   display: block;
   padding: 0.4em 0.4rem 0.15rem 0.4rem;
   position: absolute;
-  bottom: 0;
+  bottom: 4px;
+  overflow: hidden;
+
   > * {
     margin: 0.25em;
   }
@@ -234,7 +234,7 @@
   height: 50%;
   margin: 25%;
   border-radius: 50%;
-  border: 0.5rem solid var(--foreground-color);
+  border: 0.5rem solid var(--background-color);
   border-top-color: var(--primary-color);
   animation: 1.5s spin infinite linear;
 }
@@ -253,13 +253,14 @@
     'image title'
     'image info'
     'image tags';
+  height: calc(var(--thumbnail-size) + 16px);
 
   span > * {
     text-align: left !important;
   }
 
   .thumbnail-tags {
-    position: relative;
+    position: unset;
     padding: 0;
     margin-left: -0.2rem;
   }
@@ -281,27 +282,22 @@
   .file-info {
     grid-row-gap: 0;
   }
+  .thumbnail-tags {
+    margin-bottom: 4px;
+  }
 }
 
 .grid .thumbnail {
   &:hover .thumbnail-tags {
+    max-height: var(--thumbnail-size);
     background-color: rgba(0, 0, 0, 0.25);
   }
 
   .thumbnail-tags {
+    border-radius: 0 0 0.25rem 0.25rem;
     transition: 0.25s $pt-transition-cubic2;
     max-height: 2.8em;
     width: var(--thumbnail-size);
-  }
-
-  &[data-dnd-target='true'] .thumbnail-tags {
-    overflow-y: hidden;
-  }
-
-  &:hover .thumbnail-tags {
-    max-height: var(--thumbnail-size);
-    overflow-y: auto;
-    overflow-x: hidden;
   }
 
   &[data-dnd-target='true'] .thumbnail-tags {
@@ -365,11 +361,6 @@
 
     .sideButton:hover {
       opacity: 1;
-    }
-
-    #backButton {
-      top: 0;
-      position: absolute;
     }
   }
 }

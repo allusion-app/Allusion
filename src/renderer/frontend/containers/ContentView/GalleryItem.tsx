@@ -366,16 +366,14 @@ class GalleryItemWithContextMenu extends React.PureComponent<
 const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryItemProps) => {
   return (
     <div className="thumbnail" aria-selected={isSelected}>
-      <div className="thumbnail-img">
-        <img src={file.thumbnailPath} alt="" className="bp3-skeleton" />
-      </div>
+      <div className="thumbnail-img" />
       {showDetails && (
         <>
           <H4>{file.filename}</H4>
           <ImageInfo file={file} />
         </>
       )}
-      <span className="thumbnail-tags placeholder bp3-skeleton" />
+      <span className="thumbnail-tags" />
     </div>
   );
 });

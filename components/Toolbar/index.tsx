@@ -84,7 +84,7 @@ const Toolbar = (props: IToolbar) => {
       id={id}
       className={`toolbar ${className ?? ''}`}
       aria-label={label}
-      aria-labbeledby={labelledBy}
+      aria-labelledby={labelledBy}
       aria-controls={controls}
       aria-orientation={orientation}
       onFocus={handleToolbarFocus}
@@ -147,7 +147,7 @@ export const ToolbarButton = observer(
             content={tooltip}
             usePortal={false}
             openOnTargetFocus={false}
-            hoverOpenDelay={500}
+            hoverOpenDelay={1000}
           >
             {content}
           </Tooltip>
