@@ -343,7 +343,6 @@ class FileStore {
   @action private async updateFromBackend(backendFiles: IFile[]) {
     if (backendFiles.length === 0) {
       this.rootStore.uiStore.clearFileSelection();
-      this.index.clear();
       return this.clearFileList();
     }
 

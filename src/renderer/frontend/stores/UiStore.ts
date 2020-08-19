@@ -345,7 +345,7 @@ class UiStore {
     fileIDs.forEach((id) => this.fileSelection.add(id));
   }
 
-  @action.bound deselectFile(file: IFile) {
+  @action.bound deselectFile(file: ClientFile) {
     this.fileSelection.delete(file.id);
   }
 
