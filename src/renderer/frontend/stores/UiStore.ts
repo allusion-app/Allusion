@@ -130,8 +130,9 @@ class UiStore {
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
-  readonly fileSelection = observable<ID>([]);
-  readonly tagSelection = observable<ID>([]);
+  // Sets are however more suitable: An ID should only be present once, and it has quicker lookup performance
+  readonly fileSelection = observable<ID>(new Set<ID>());
+  readonly tagSelection = observable<ID>(new Set<ID>());
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
@@ -216,12 +217,12 @@ class UiStore {
 
   @action.bound openPreviewWindow() {
     // Don't open when no files have been selected
-    if (this.fileSelection.length === 0) {
+    if (this.fileSelection.size === 0) {
       return;
     }
 
     RendererMessenger.sendPreviewFiles({
-      ids: this.fileSelection.toJS(),
+      ids: Array.from(this.fileSelection.toJS()),
       thumbnailDirectory: this.thumbnailDirectory,
     });
 
@@ -246,11 +247,11 @@ class UiStore {
   }
 
   @action.bound toggleToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0 && !this.isToolbarTagSelectorOpen;
+    this.isToolbarTagSelectorOpen = this.fileSelection.size > 0 && !this.isToolbarTagSelectorOpen;
   }
 
   @action.bound openToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.length > 0;
+    this.isToolbarTagSelectorOpen = this.fileSelection.size > 0;
   }
 
   @action.bound closeToolbarTagSelector() {
@@ -321,36 +322,31 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
+  /** Note: This is a relatively expensive operation for large file lists. Use with care! Currently evaluated every rerender :( */
   @computed get clientFileSelection(): ClientFile[] {
-    return this.fileSelection
-      .map((id) => this.rootStore.fileStore.get(id))
-      .filter((f) => f !== undefined) as ClientFile[];
+    return Array.from(this.fileSelection, (id) => this.rootStore.fileStore.get(id)) as ClientFile[];
   }
 
   @computed get clientTagSelection(): ClientTag[] {
-    return this.tagSelection
-      .map((id) => this.rootStore.tagStore.get(id))
-      .filter((t) => t !== undefined) as ClientTag[];
+    return Array.from(this.tagSelection, (id) => this.rootStore.tagStore.get(id)) as ClientTag[];
   }
 
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
     if (clear) {
       this.clearFileSelection();
     }
-    if (!this.fileSelection.includes(file.id)) {
-      this.fileSelection.push(file.id);
-    }
+    this.fileSelection.add(file.id);
   }
 
-  @action.bound selectFiles(files: ID[], clear?: boolean) {
+  @action.bound selectFiles(fileIDs: ID[], clear?: boolean) {
     if (clear) {
       this.clearFileSelection();
     }
-    this.fileSelection.push(...files.filter((id) => !this.fileSelection.includes(id)));
+    fileIDs.forEach((id) => this.fileSelection.add(id));
   }
 
   @action.bound deselectFile(file: ClientFile) {
-    this.fileSelection.remove(file.id);
+    this.fileSelection.delete(file.id);
   }
 
   @action.bound clearFileSelection() {
@@ -359,14 +355,14 @@ class UiStore {
 
   @action.bound selectAllFiles() {
     this.clearFileSelection();
-    this.fileSelection.push(...this.rootStore.fileStore.fileList.map((f) => f.id));
+    this.rootStore.fileStore.fileList.forEach((f) => this.fileSelection.add(f.id));
   }
 
   @action.bound selectTag(tag: ClientTag, clear?: boolean) {
     if (clear) {
       this.clearTagSelection();
     }
-    this.tagSelection.push(tag.id);
+    this.tagSelection.add(tag.id);
   }
 
   @action.bound selectTags(tags: ClientTag[] | ID[], clear?: boolean) {
@@ -377,13 +373,9 @@ class UiStore {
       return;
     }
     if (tags[0] instanceof ClientTag) {
-      this.tagSelection.push(
-        ...(tags as ClientTag[])
-          .filter((t) => !this.tagSelection.includes(t.id))
-          .map((tag: ClientTag) => tag.id),
-      );
+      (tags as ClientTag[]).forEach((tag: ClientTag) => this.tagSelection.add(tag.id));
     } else {
-      this.tagSelection.push(...(tags as ID[]).filter((t) => !this.tagSelection.includes(t)));
+      (tags as ID[]).forEach((id) => this.tagSelection.add(id));
     }
   }
 
@@ -392,14 +384,14 @@ class UiStore {
       return;
     }
     if (tags[0] instanceof ClientTag) {
-      (tags as ClientTag[]).forEach((tag) => this.tagSelection.remove(tag.id));
+      (tags as ClientTag[]).forEach((tag) => this.tagSelection.delete(tag.id));
     } else {
-      (tags as ID[]).forEach((tag) => this.tagSelection.remove(tag));
+      (tags as ID[]).forEach((tag) => this.tagSelection.delete(tag));
     }
   }
 
   @action.bound deselectTag(tag: ClientTag | ID) {
-    this.tagSelection.remove(tag instanceof ClientTag ? tag.id : tag);
+    this.tagSelection.delete(tag instanceof ClientTag ? tag.id : tag);
   }
 
   @action.bound clearTagSelection() {
@@ -567,7 +559,7 @@ class UiStore {
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceSearchCriterias(
-      this.tagSelection.map((id) => new ClientIDSearchCriteria('tags', id)),
+      Array.from(this.tagSelection, (id) => new ClientIDSearchCriteria('tags', id)),
     );
     this.clearTagSelection();
   }
@@ -618,6 +610,10 @@ class UiStore {
   @action clearSelection() {
     this.tagSelection.clear();
     this.fileSelection.clear();
+  }
+
+  getFirstSelectedFileId(): ID {
+    return this.fileSelection.values().next().value;
   }
 
   @action private viewAllContent() {

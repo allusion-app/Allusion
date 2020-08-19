@@ -740,7 +740,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
           Tags
         </H4>
         <Toolbar controls="tag-hierarchy">
-          {uiStore.tagSelection.length > 0 ? (
+          {uiStore.tagSelection.size > 0 ? (
             <ToolbarButton
               showLabel="never"
               icon={IconSet.CLOSE}
@@ -777,9 +777,9 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
           </div>
         ) : (
           <Tree
-            id="tag-hierarchy"
-            className={uiStore.tagSelection.length > 0 ? 'selected' : undefined}
             multiSelect
+            id="tag-hierarchy"
+            className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
             branches={branches.get()}
             leaves={leaves.get()}
             treeData={treeData}

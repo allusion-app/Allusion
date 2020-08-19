@@ -8,7 +8,7 @@ import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
 import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
 import { CSSTransition } from 'react-transition-group';
-import { H5 } from '@blueprintjs/core';
+import { H5, H6 } from '@blueprintjs/core';
 import { MissingImageFallback } from '../ContentView/GalleryItem';
 
 const sufixes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -72,7 +72,7 @@ const Carousel = ({ items }: { items: ClientFile[] }) => {
 };
 
 interface IContainer {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 const Container = observer(({ children }: IContainer) => {
@@ -91,25 +91,25 @@ const Container = observer(({ children }: IContainer) => {
 });
 
 const Inspector = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  const selectedFiles = uiStore.clientFileSelection;
+  const { uiStore, fileStore } = useContext(StoreContext);
+  const selectedFiles = uiStore.fileSelection;
 
-  if (selectedFiles.length === 0) {
+  if (selectedFiles.size === 0) {
     return (
       <Container>
-        <H5>
+        <H6>
           <i>No image selected</i>
-        </H5>
+        </H6>
       </Container>
     );
   }
 
-  let selectionPreview;
-  let title;
-  let subTitle;
+  let selectionPreview: ReactNode;
+  let title: string | undefined;
+  let subTitle: string | undefined;
 
-  if (selectedFiles.length === 1) {
-    const singleFile = selectedFiles[0];
+  if (selectedFiles.size === 1) {
+    const singleFile = fileStore.get(uiStore.getFirstSelectedFileId())!;
     selectionPreview = singleFile.isBroken ? (
       <MissingImageFallback />
     ) : (
@@ -126,13 +126,17 @@ const Inspector = observer(() => {
     } catch (err) {
       console.warn(err);
     }
-  } else {
+  } else if (selectedFiles.size > 1) {
+    const selectedClientFiles = uiStore.clientFileSelection;
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
-    selectionPreview = <Carousel items={selectedFiles} />;
-    title = `${selectedFiles[0].filename} and ${selectedFiles.length - 1} more`;
+    selectionPreview = <Carousel items={selectedClientFiles} />;
+    title = `${selectedClientFiles[0].filename} and ${selectedFiles.size - 1} more`;
     try {
       // Todo: fs.stat (not sync) is preferred, but it seems to execute instantly... good enough for now
-      const size = selectedFiles.reduce((sum, f) => sum + fs.statSync(f.absolutePath).size, 0);
+      const size = selectedClientFiles.reduce(
+        (sum, f) => sum + fs.statSync(f.absolutePath).size,
+        0,
+      );
       subTitle = getBytesHumanReadable(size);
     } catch (error) {
       console.warn(error);
@@ -148,12 +152,12 @@ const Inspector = observer(() => {
           {subTitle && <small>{subTitle}</small>}
         </figcaption>
       </figure>
-      {selectedFiles.length === 1 ? (
-        <ImageInfo file={selectedFiles[0]} />
+      {selectedFiles.size === 1 ? (
+        <ImageInfo file={fileStore.get(uiStore.getFirstSelectedFileId())!} />
       ) : (
-        <MultiFileInfo files={selectedFiles} />
+        <MultiFileInfo files={uiStore.clientFileSelection} />
       )}
-      <FileTags files={selectedFiles} />
+      <FileTags files={uiStore.clientFileSelection} />
     </Container>
   );
 });

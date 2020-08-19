@@ -51,29 +51,29 @@ export const useWorkerListener = () => {
   useEffect(() => {
     thumbnailWorker.onmessage = (e: { data: IThumbnailMessageResponse }) => {
       const { fileId, thumbnailPath } = e.data;
-      const clientFile = fileStore.fileList.find((f) => f.id === fileId);
+      const clientFile = fileStore.get(fileId);
       if (clientFile) {
         // update the thumbnail path so that the image will reload, as it did not exist before
         clientFile.setThumbnailPath(`${thumbnailPath}?v=1`);
       }
     };
 
-    thumbnailWorker.onerror = (err: { fileId: ID, error: Error }) => {
+    thumbnailWorker.onerror = (err: { fileId: ID; error: Error }) => {
       console.log('Could not generate thumbnail', err);
       const { fileId } = err;
-      const clientFile = fileStore.fileList.find((f) => f.id === fileId);
+      const clientFile = fileStore.get(fileId);
       if (clientFile) {
         // Load normal image as fallback, with v=1 to indicate it has changed
         clientFile.setThumbnailPath(`${clientFile.absolutePath}?v=1`);
       }
     };
     return () => thumbnailWorker.terminate();
-  }, [fileStore.fileList]);
+  }, [fileStore]);
 };
 
 // Moves all thumbnail files from one directory to another
 export const moveThumbnailDir = async (sourceDir: string, targetDir: string) => {
-  if (!await fse.pathExists(sourceDir) || !await fse.pathExists(targetDir)) {
+  if (!(await fse.pathExists(sourceDir)) || !(await fse.pathExists(targetDir))) {
     console.log('Source or target directory does not exist for moving thumbnails');
     return;
   }

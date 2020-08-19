@@ -6,6 +6,7 @@
       "resources/*": ["resources/*"],
       "src/*": ["src/*"]
     },
+    "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
     "module": "ESNext",
