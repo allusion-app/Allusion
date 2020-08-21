@@ -46,18 +46,24 @@ const Carousel = ({ items }: { items: ClientFile[] }) => {
   );
 
   return (
-    <div id="carousel" onWheel={handleWheel}>
+    <div
+      role="region"
+      className="carousel"
+      aria-roledescription="carousel"
+      aria-label="Gallery Selection"
+      aria-live="polite"
+      onWheel={handleWheel}
+    >
       {/* Show a stack of the first N images (or fewer) */}
       {paddedItems.slice(scrollIndex, scrollIndex + maxItems).map((file, index) =>
         !file ? null : (
           <div
             key={file.id}
-            className={`item child-${
-              index
-              // TODO: Could add in and out transition, but you'd also need to know the scroll direction for that
-              // }${index === 0 ? ' item-enter' : ''
-              // }${index === maxItems - 1 ? ' item-exit' : ''
-            }`}
+            // TODO: Could add in and out transition, but you'd also need to know the scroll direction for that
+            className={`carousel-slide child-${index}`}
+            role="group"
+            aria-roledescription="slide"
+            aria-label={`${scrollIndex + index + 1} of ${items.length}`}
           >
             {/* TODO: Thumbnail path is not always resolved atm, working on that in another branch */}
             <img
@@ -105,7 +111,7 @@ const Inspector = observer(() => {
   }
 
   let selectionPreview: ReactNode;
-  let title: string | undefined;
+  let title: string;
   let subTitle: string | undefined;
 
   if (selectedFiles.size === 1) {
@@ -126,7 +132,7 @@ const Inspector = observer(() => {
     } catch (err) {
       console.warn(err);
     }
-  } else if (selectedFiles.size > 1) {
+  } else {
     const selectedClientFiles = uiStore.clientFileSelection;
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
     selectionPreview = <Carousel items={selectedClientFiles} />;

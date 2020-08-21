@@ -70,61 +70,37 @@
   }
 }
 
-#carousel {
+.carousel {
   overflow: hidden;
   margin: 0;
-  height: 400px;
-  max-height: 400px;
+  height: var(--inspector-width);
+}
 
-  @keyframes fade-in {
-    0% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-  .item-enter {
-    animation: highlight-green-fade 0.2s ease;
-  }
+.carousel-slide {
+  width: 100%;
 
-  @keyframes fade-out {
-    0% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
-  .item-exit {
-    animation: highlight-fade-remove 0.2s ease;
-  }
-
-  > div {
+  > img {
     width: 100%;
-    transition: all 0.2s ease;
-    opacity: 1;
+    max-height: var(--inspector-width);
+    box-shadow: $pt-dark-elevation-shadow-2;
+    transform-origin: center;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+    transition-property: transform, filter;
+    object-fit: cover;
+    // TODO: Try making all images quare, to avoid having to deal with different aspect ratios
+  }
 
-    > * {
-      width: 100%;
-      box-shadow: $pt-dark-elevation-shadow-2;
-      transform-origin: center;
-      transition: all 0.2s ease;
+  @for $i from 0 through 10 {
+    &.child-#{$i} {
+      height: 0px;
 
-      // TODO: Try making all images quare, to avoid having to deal with different aspect ratios
-    }
+      > img {
+        transform: scale(calc(0.5 + 0.1 * #{$i})) translateY(calc(32px * #{$i} - 64px));
+        filter: brightness(calc(0.4 + 0.1 * #{$i}));
 
-    @for $i from 0 through 10 {
-      &.child-#{$i} {
-        height: 0px;
-
-        > * {
-          transform: scale(calc(0.5 + 0.1 * #{$i})) translateY(calc(32px * #{$i} - 64px));
-          filter: brightness(calc(0.4 + 0.1 * #{$i}));
-
-          &:hover {
-            filter: brightness(calc(0.5 + 0.1 * #{$i}));
-          }
+        &:hover {
+          filter: brightness(calc(0.5 + 0.1 * #{$i}));
         }
       }
     }
