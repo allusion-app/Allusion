@@ -24,24 +24,23 @@ body {
 #app {
   --outliner-width: 18em;
   --inspector-width: 24em;
-  --toolbar-height: 2.4rem;
+  --toolbar-height: 3rem;
   --quick-searchbar-height: 2.4rem;
   --thumbnail-size: 250px;
   --thumbnail-margin: 0.25rem;
   --mac-system-buttons-width: 5rem;
-  --window-system-buttons-width: 7.5rem;
   height: 100vh;
   background: $dark-gray0;
 }
 
 // Global specific styles for the preview window
 #preview {
-  --toolbar-height: 2.4rem;
+  --toolbar-height: 3rem;
   display: grid;
   grid-template-areas:
     'toolbar'
     'main';
-  grid-template-rows: 2.4rem 1fr;
+  grid-template-rows: var(--toolbar-height) 1fr;
   height: 100vh;
 }
 
@@ -59,7 +58,7 @@ body {
 // Dark Theme
 .bp3-dark {
   --focus-color: #{$dark-gray3};
-  --highlight-background-color: #{$dark-gray3}; // dark-gray5?
+  --highlight-background-color: #{$dark-gray4}; // dark-gray5?
   --highlight-font-color: white;
   --caret-color: #{$light-gray1};
 
@@ -108,12 +107,22 @@ pre {
   }
 }
 
-#layout-container.vertical-toolbar {
-  --toolbar-height: 2.4rem;
+#layout-container {
+  height: 100vh;
   display: grid;
+  grid-template-rows: var(--toolbar-height) 1fr;
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'outliner main inspector';
+  row-gap: 2px;
+}
+
+#layout-container.vertical-toolbar {
+  --toolbar-height: 3rem;
   grid-template-columns: var(--toolbar-height) min-content 1fr min-content;
   grid-template-areas:
-    'toolbar outliner main inspector'
+    'toolbar main-toolbar main-toolbar main-toolbar'
     'toolbar outliner main inspector';
 }
 
@@ -129,18 +138,6 @@ main {
   grid-area: main;
   display: flex;
   flex-flow: column;
-}
-
-#layout-container {
-  height: 100vh;
-  display: grid;
-  grid-template-rows: var(--toolbar-height) 1fr;
-  grid-template-columns: min-content 1fr min-content;
-  grid-template-areas:
-    'toolbar toolbar toolbar'
-    'outliner main inspector';
-
-  background-color: var(--background-color);
 }
 
 .contextMenuTarget {
@@ -200,63 +197,6 @@ img {
   background: rgba(16, 22, 26, 0); //Set 2 zero for now
 }
 
-///////////////////////////////// Custom Hover tooltip /////////////////////////////////
-[data-right],
-[data-left] {
-  position: relative !important;
-  z-index: auto;
-}
-[data-right]:after {
-  content: attr(data-right);
-  position: absolute !important;
-  max-width: 600px !important;
-  min-width: max-content;
-  left: 1rem;
-  top: 0.25rem; //Fix for z-index issue
-  margin-left: 1.5rem;
-  margin-top: 1.5rem;
-  text-align: left;
-  line-height: 1.5;
-  padding: 0.55rem 0.8rem;
-  background: $blue1;
-  color: white;
-  z-index: auto;
-  border-radius: 5px;
-  box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-[data-right]:hover:after,
-[data-left]:hover:after {
-  opacity: 1;
-  transition: all 0.2s $pt-transition-cubic2-delay; // Tooltip needs delay!
-  visibility: visible;
-  position: absolute;
-  z-index: 10;
-}
-[data-left]:after {
-  content: attr(data-left);
-  position: absolute !important;
-  max-width: 600px !important;
-  min-width: max-content;
-  right: 1rem;
-  top: 1rem;
-  margin-left: 1.5rem;
-  margin-top: 1.5rem;
-  text-align: left;
-  line-height: 1.5;
-  padding: 0.55rem 0.8rem;
-  background: $blue1;
-  color: white;
-  z-index: auto;
-  // white-space: nowrap;
-  border-radius: 5px;
-  box-shadow: 0 30px 90px 0px #14181a, 0px 0px 0px 0px #14181a !important;
-  opacity: 0;
-  visibility: hidden;
-}
-
 ///////////////////////////////// Theme Colours /////////////////////////////////
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this
@@ -297,13 +237,11 @@ img {
   }
 }
 @media (max-width: 960px) {
-  #toolbar {
-    &.mac-toolbar {
-      grid-template-columns: var(--mac-system-buttons-width) min-content 1fr min-content !important;
-    }
-    &.windows-toolbar {
-      grid-template-columns: min-content 1fr min-content var(--window-system-buttons-width) !important;
-    }
+  .toolbar-button-label:not(.always) {
+    margin: 0;
+    text-indent: -100vw;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .grid.thumbnail,
@@ -315,28 +253,36 @@ img {
 }
 
 @media (max-width: 540px) {
-  #app {
+  #layout-container {
     --toolbar-height: 4.8rem;
   }
 
-  #toolbar {
-    gap: 0 !important;
+  #layout-container:not(.vertical-toolbar) > #toolbar {
+    display: grid;
+    gap: 0;
     grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr min-content;
+    grid-template-areas:
+      'outliner-toolbar inspector-toolbar'
+      'main-toolbar main-toolbar';
+
     &.mac-toolbar {
-      grid-template-columns: var(--mac-system-buttons-width) 1fr min-content !important;
+      padding: 0;
+      grid-template-columns: var(--mac-system-buttons-width) 1fr min-content;
       grid-template-areas:
         '. outliner-toolbar inspector-toolbar'
-        'main-toolbar main-toolbar main-toolbar' !important;
+        'main-toolbar main-toolbar main-toolbar';
     }
-    &.windows-toolbar {
-      grid-template-columns: 1fr min-content var(--window-system-buttons-width) !important;
-      grid-template-areas:
-        'outliner-toolbar inspector-toolbar .'
-        'main-toolbar main-toolbar main-toolbar' !important;
+
+    #main-toolbar {
+      justify-content: space-between;
     }
   }
+
   #main-toolbar {
-    justify-content: space-between !important;
+    > .toolbar-group {
+      margin: 0;
+    }
   }
 
   .slide.thumbnail {

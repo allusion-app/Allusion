@@ -211,7 +211,7 @@ const GridGallery = observer(
             return <div />;
           }
           return (
-            <div style={style} className="galleryItem">
+            <div style={style}>
               <GalleryItem
                 file={file}
                 isSelected={uiStore.fileSelection.has(file.id)}
@@ -470,8 +470,6 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
 
   const { makeSelection, lastSelectionIndex } = useSelectionCursor();
 
-  const selectionModeOn = uiStore.fileSelection.size > 0;
-
   const handleBackgroundClick = useCallback(() => uiStore.clearFileSelection(), [uiStore]);
 
   // useComputed to listen to fileSelection changes
@@ -595,9 +593,8 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
   return (
     <ResizeSensor onResize={handleResize}>
       <div
-        className={`gallery-content thumbnail-${uiStore.thumbnailSize} ${uiStore.method} ${
-          selectionModeOn ? 'gallerySelectionMode' : ''
-        } ${uiStore.thumbnailShape === 'square' ? 'thumb-square' : 'thumb-letterbox'}`}
+        id="gallery-content"
+        className={`thumbnail-${uiStore.thumbnailSize} ${uiStore.method} thumbnail-${uiStore.thumbnailShape}`}
         onClick={handleBackgroundClick}
       >
         {getLayoutComponent(uiStore.method, uiStore.isSlideMode, {

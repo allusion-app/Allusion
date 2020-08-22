@@ -2,12 +2,9 @@
 #outliner {
   grid-area: outliner;
   // Show y scrollbar when there's loads of tags or location list items
-  overflow: hidden auto;
-  flex-shrink: 0;
+  overflow-x: hidden;
   transition: max-width 200ms $pt-transition-cubic2;
-  z-index: 1;
-  border-left: 1px solid var(--background-separator-color);
-  border-right: 1px solid var(--background-separator-color);
+  margin-left: 1px;
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter {
@@ -25,10 +22,10 @@
 
   > * {
     // Don't squash content during parent transition
-    min-width: var(--outliner-width);
+    width: var(--outliner-width);
   }
 
-  > div:hover .outliner-header-wrapper:not(last-child) > * {
+  > div:hover .outliner-header-wrapper .toolbar {
     opacity: 1;
   }
 
@@ -41,8 +38,6 @@
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
 .outliner-header-wrapper {
   display: flex;
-  min-height: 39px;
-  background: transparent !important;
   cursor: pointer;
   padding-right: 2px;
 
@@ -57,8 +52,12 @@
     }
   }
 
-  .bp3-button {
+  .toolbar {
     opacity: 0;
+  }
+
+  .toolbar:focus-within {
+    opacity: 1;
   }
 }
 
@@ -67,7 +66,7 @@
   min-height: 16px;
 }
 
-.tags-tree {
+#tag-hierarchy {
   .searched {
     // TODO: Use a color without alpha values...
     --foreground-color: #{$blue-trans2};
@@ -78,7 +77,6 @@
   }
 
   .after-icon {
-    cursor: pointer;
     display: none;
   }
 
@@ -131,7 +129,17 @@
   }
 
   > .after-icon {
+    cursor: pointer;
     margin-left: 0.25rem;
+    // Remove button style
+    color: currentColor;
+    background-color: unset;
+    border: none;
+    padding: 0;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
   }
 
   > div {

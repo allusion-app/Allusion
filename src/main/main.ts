@@ -72,7 +72,7 @@ function createWindow() {
     // Fixed it by adding a margin-top to the body and giving html background color so it blends in
     // But new issue arissed in fullscreen than
     titleBarStyle: 'hiddenInset',
-    frame: false,
+    frame: !isMac,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
@@ -82,21 +82,18 @@ function createWindow() {
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#14181a',
-    title: 'Allusion - Your Visual Library',
-    // titleBarStyle: 'hiddenInset',
-    // titleBarStyle: 'customButtonsOnHover',
-    // titleBarStyle: 'hidden',
-    // frame: false,
+    title: 'Allusion',
   });
 
-  // Create our menu entries so that we can use MAC shortcuts
-  const menuBar: Electron.MenuItemConstructorOptions[] = [];
+  let menu = null;
 
   // Mac App menu - used for styling so shortcuts work
   // https://livebook.manning.com/book/cross-platform-desktop-applications/chapter-9/78
-  if (process.platform === 'darwin') {
+  if (isMac || isDev()) {
+    // Create our menu entries so that we can use MAC shortcuts
+    const menuBar: Electron.MenuItemConstructorOptions[] = [];
+
     menuBar.push({
-      // label: app.getName(),
       label: 'Allusion',
       submenu: [
         { role: 'about' },
@@ -114,65 +111,66 @@ function createWindow() {
         },
       ],
     });
+
+    menuBar.push({
+      label: 'Edit',
+      submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
+    });
+
+    menuBar.push({
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { role: 'toggleDevTools' },
+        { type: 'separator' },
+        {
+          label: 'Actual Size',
+          accelerator: 'CommandOrControl+0',
+          click: (_, browserWindow) => {
+            browserWindow.webContents.zoomFactor = 1;
+          },
+        },
+        {
+          label: 'Zoom In',
+          // TODO: Fix by using custom solution...
+          accelerator: 'CommandOrControl+=',
+          click: (_, browserWindow) => {
+            browserWindow.webContents.zoomFactor += 0.1;
+          },
+        },
+        {
+          label: 'Zoom Out',
+          accelerator: 'CommandOrControl+-',
+          click: (_, browserWindow) => {
+            browserWindow.webContents.zoomFactor -= 0.1;
+          },
+        },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+      ],
+    });
+
+    menuBar.push({
+      label: 'Help',
+      submenu: [
+        {
+          label: 'Show Keyboard Shortcuts',
+          accelerator: 'CommandOrControl+K',
+          click: (_, browserWindow) => {
+            browserWindow.webContents.sendInputEvent({
+              type: 'keyDown',
+              isTrusted: true,
+              keyCode: '?',
+            } as any);
+          },
+        },
+      ],
+    });
+
+    menu = Menu.buildFromTemplate(menuBar);
   }
-
-  menuBar.push({
-    label: 'Edit',
-    submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
-  });
-
-  menuBar.push({
-    label: 'View',
-    submenu: [
-      { role: 'reload' },
-      { role: 'forceReload' },
-      { role: 'toggleDevTools' },
-      { type: 'separator' },
-      {
-        label: 'Actual Size',
-        accelerator: 'CommandOrControl+0',
-        click: (_, browserWindow) => {
-          browserWindow.webContents.zoomFactor = 1;
-        },
-      },
-      {
-        label: 'Zoom In',
-        // TODO: Fix by using custom solution...
-        accelerator: 'CommandOrControl+=',
-        click: (_, browserWindow) => {
-          browserWindow.webContents.zoomFactor += 0.1;
-        },
-      },
-      {
-        label: 'Zoom Out',
-        accelerator: 'CommandOrControl+-',
-        click: (_, browserWindow) => {
-          browserWindow.webContents.zoomFactor -= 0.1;
-        },
-      },
-      { type: 'separator' },
-      { role: 'togglefullscreen' },
-    ],
-  });
-
-  menuBar.push({
-    label: 'Help',
-    submenu: [
-      {
-        label: 'Show Keyboard Shortcuts',
-        accelerator: 'CommandOrControl+K',
-        click: (_, browserWindow) => {
-          browserWindow.webContents.sendInputEvent({
-            type: 'keyDown',
-            isTrusted: true,
-            keyCode: '?',
-          } as any);
-        },
-      },
-    ],
-  });
-
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menuBar));
+  Menu.setApplicationMenu(menu);
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);

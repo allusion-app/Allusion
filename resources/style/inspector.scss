@@ -1,11 +1,10 @@
 ///////////////////////////////// Inspector /////////////////////////////////
 #inspector {
   grid-area: inspector;
-  overflow: auto;
-  flex-shrink: 0;
   width: var(--inspector-width);
   overflow-x: hidden;
   transition: max-width 200ms ease-in-out; // 120ms $pt-transition-cubic2
+  margin-right: 1px;
 
   // Sidebar CSS transition
   &.sliding-sidebar-enter {
@@ -42,13 +41,12 @@
   grid-template-columns: auto 1fr;
   grid-column-gap: 1rem;
   grid-row-gap: 0.25rem;
-  height: fit-content;
+}
 
-  > div {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.file-info-key,
+.file-info-value {
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .file-info-key {

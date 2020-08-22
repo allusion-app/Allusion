@@ -6,6 +6,7 @@ import Outliner from './containers/Outliner';
 import StoreContext from './contexts/StoreContext';
 import Inspector from './containers/Inspector';
 import Toolbar from './containers/Toolbar';
+import ContentToolbar from './containers/Toolbar/ContentToolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
@@ -18,11 +19,6 @@ import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './components/WelcomeDialog';
 
 const SPLASH_SCREEN_TIME = 1400;
-
-const isMac = process.platform === 'darwin';
-const operatingSystemStyles = isMac
-  ? ({ '--window-system-buttons-width': 0 } as React.CSSProperties)
-  : ({ '--mac-system-buttons-width': 0 } as React.CSSProperties);
 
 export const AppToaster = Toaster.create({
   position: Position.TOP,
@@ -58,10 +54,12 @@ const App = observer(() => {
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div id="layout-container" style={operatingSystemStyles} className={themeClass}>
+      <div id="layout-container" className={themeClass}>
         <ErrorBoundary>
           <GlobalHotkeys>
-            <Toolbar isMac={isMac} />
+            {uiStore.isToolbarVertical ? <ContentToolbar /> : <></>}
+
+            <Toolbar />
 
             <Outliner />
 

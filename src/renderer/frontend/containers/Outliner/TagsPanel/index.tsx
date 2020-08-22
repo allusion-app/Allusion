@@ -8,6 +8,7 @@ import {
   Button,
   Icon,
   Divider,
+  Tooltip,
 } from '@blueprintjs/core';
 import { observer, Observer } from 'mobx-react-lite';
 import StoreContext, { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
@@ -15,7 +16,7 @@ import TagsTree from './TagsTree';
 import IconSet from 'components/Icons';
 
 // Tooltip info
-const enum Tooltip {
+const enum TooltipInfo {
   AllImages = 'View all images in library',
   Untagged = 'View all untagged images',
   Missing = 'View missing images on your system',
@@ -25,40 +26,45 @@ const SystemTags = observer(() => {
   const { fileStore } = useContext(StoreContext);
   return (
     <ButtonGroup id="system-tags" vertical minimal fill>
-      <Button
-        text="All Images"
-        icon={IconSet.MEDIA}
-        rightIcon={
-          fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
-        }
-        onClick={fileStore.fetchAllFiles}
-        active={fileStore.showsAllContent}
-        fill
-        data-right={Tooltip.AllImages}
-      />
-      <Button
-        text={`Untagged (${fileStore.numUntaggedFiles})`}
-        icon={IconSet.TAG_BLANCO}
-        rightIcon={
-          fileStore.showsUntaggedContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
-        }
-        onClick={fileStore.fetchUntaggedFiles}
-        active={fileStore.showsUntaggedContent}
-        fill
-        data-right={Tooltip.Untagged}
-      />
-      {fileStore.numMissingFiles > 0 && (
+      <Tooltip usePortal={false} openOnTargetFocus={false} content={TooltipInfo.AllImages}>
         <Button
-          text={`Missing (${fileStore.numMissingFiles})`}
-          icon={IconSet.WARNING_BROKEN_LINK}
+          text="All Images"
+          icon={IconSet.MEDIA}
           rightIcon={
-            fileStore.showsMissingContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
+            fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
           }
-          onClick={fileStore.fetchMissingFiles}
-          active={fileStore.showsMissingContent}
+          onClick={fileStore.fetchAllFiles}
+          active={fileStore.showsAllContent}
           fill
-          data-right={Tooltip.Missing}
         />
+      </Tooltip>
+      <Tooltip usePortal={false} openOnTargetFocus={false} content={TooltipInfo.Untagged}>
+        <Button
+          text={`Untagged (${fileStore.numUntaggedFiles})`}
+          icon={IconSet.TAG_BLANCO}
+          rightIcon={
+            fileStore.showsUntaggedContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
+          }
+          onClick={fileStore.fetchUntaggedFiles}
+          active={fileStore.showsUntaggedContent}
+          fill
+        />
+      </Tooltip>
+      {fileStore.numMissingFiles > 0 && (
+        <Tooltip usePortal={false} openOnTargetFocus={false} content={TooltipInfo.Missing}>
+          <Button
+            text={`Missing (${fileStore.numMissingFiles})`}
+            icon={IconSet.WARNING_BROKEN_LINK}
+            rightIcon={
+              fileStore.showsMissingContent ? (
+                <Icon intent="primary" icon={IconSet.PREVIEW} />
+              ) : null
+            }
+            onClick={fileStore.fetchMissingFiles}
+            active={fileStore.showsMissingContent}
+            fill
+          />
+        </Tooltip>
       )}
     </ButtonGroup>
   );
@@ -68,7 +74,7 @@ const SystemTags = observer(() => {
 class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
     return (
-      <div tabIndex={0}>
+      <div>
         <Observer>
           {() => {
             const { tagCollectionStore, tagStore, uiStore } = this.props.rootStore;

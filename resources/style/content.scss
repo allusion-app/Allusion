@@ -79,13 +79,12 @@
   max-height: 0;
 }
 
-.gallery-content {
+#gallery-content {
   flex: 1;
-  max-height: 100%;
-  margin-left: 8px;
+  margin-left: 6px;
 }
 
-.gallery-content:not(.slide) {
+#gallery-content:not(.slide) {
   > div {
     // Fix for height cut-off when the quick search bar is open
     position: absolute !important;
@@ -115,23 +114,23 @@
   // --thumbnail-size: 282px;
   --thumbnail-size: 350px;
 }
-.galleryItem {
-  padding: 0.3rem 0 0 0;
-}
 
 /////////////////////// Thumbnail //////////////////////////////////
 .thumbnail {
   position: relative;
-  overflow: hidden;
+  padding: 4px 0;
 
-  .h4 {
+  h4 {
     grid-area: title;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   &[aria-selected='true'] .thumbnail-img {
     background-color: $blue1;
 
-    > :first-child {
+    > img,
+    > .image-error {
       clip-path: inset(0.5rem round 0.125rem);
     }
   }
@@ -152,7 +151,8 @@
   }
 
   &:hover .thumbnail-tags {
-    background-color: rgba(0, 0, 0, 0.25);
+    max-height: var(--thumbnail-size);
+    overflow-y: auto;
   }
 }
 
@@ -163,16 +163,11 @@
   border-radius: 0.25rem;
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
-  overflow: hidden;
+  background-color: var(--foreground-color);
 
-  .placeholder {
-    width: 100%;
-    height: 100%;
-  }
-
-  > :first-child {
-    background-color: var(--foreground-color);
-    clip-path: inset(0);
+  > img,
+  > .image-error {
+    clip-path: inset(0 round 0.25rem);
     transition: clip-path 0.2s $pt-transition-cubic2;
   }
 
@@ -214,7 +209,9 @@
   display: block;
   padding: 0.4em 0.4rem 0.15rem 0.4rem;
   position: absolute;
-  bottom: 0;
+  bottom: 4px;
+  overflow: hidden;
+
   > * {
     margin: 0.25em;
   }
@@ -232,12 +229,13 @@
 
 // THUMBNAIL LOADER
 .donut-loading {
-  width: 2rem;
-  height: 2rem;
-  margin: 2rem;
+  display: inline-block;
+  width: 50%;
+  height: 50%;
+  margin: 25%;
   border-radius: 50%;
-  border: 0.3rem solid rgba(var(--foreground-color), 0.2);
-  border-top-color: rgba(var(--foreground-color), 0.7);
+  border: 0.5rem solid var(--background-color);
+  border-top-color: var(--primary-color);
   animation: 1.5s spin infinite linear;
 }
 
@@ -255,13 +253,14 @@
     'image title'
     'image info'
     'image tags';
+  height: calc(var(--thumbnail-size) + 16px);
 
   span > * {
     text-align: left !important;
   }
 
   .thumbnail-tags {
-    position: relative;
+    position: unset;
     padding: 0;
     margin-left: -0.2rem;
   }
@@ -283,23 +282,22 @@
   .file-info {
     grid-row-gap: 0;
   }
+  .thumbnail-tags {
+    margin-bottom: 4px;
+  }
 }
 
 .grid .thumbnail {
+  &:hover .thumbnail-tags {
+    max-height: var(--thumbnail-size);
+    background-color: rgba(0, 0, 0, 0.25);
+  }
+
   .thumbnail-tags {
+    border-radius: 0 0 0.25rem 0.25rem;
     transition: 0.25s $pt-transition-cubic2;
     max-height: 2.8em;
     width: var(--thumbnail-size);
-  }
-
-  &[data-dnd-target='true'] .thumbnail-tags {
-    overflow-y: hidden;
-  }
-
-  &:hover .thumbnail-tags {
-    max-height: var(--thumbnail-size);
-    overflow-y: auto;
-    overflow-x: hidden;
   }
 
   &[data-dnd-target='true'] .thumbnail-tags {
@@ -312,10 +310,10 @@
   position: relative !important;
 }
 
-.thumb-square:not(.slide) img {
+.thumbnail-square:not(.slide) img {
   object-fit: cover;
 }
-.thumb-letterbox:not(.slide) img {
+.thumbnail-letterbox:not(.slide) img {
   object-fit: contain;
 }
 
@@ -363,11 +361,6 @@
 
     .sideButton:hover {
       opacity: 1;
-    }
-
-    #backButton {
-      top: 0;
-      position: absolute;
     }
   }
 }

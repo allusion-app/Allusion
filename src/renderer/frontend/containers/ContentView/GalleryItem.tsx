@@ -367,15 +367,15 @@ const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryI
   return (
     <div className="thumbnail" aria-selected={isSelected}>
       <div className="thumbnail-img">
-        <img src={file.thumbnailPath} alt="" className="bp3-skeleton" />
+        <img src={file.thumbnailPath} alt="" />
       </div>
       {showDetails && (
         <>
           <H4>{file.filename}</H4>
           <ImageInfo file={file} />
+          <span className="thumbnail-tags" />
         </>
       )}
-      <span className="thumbnail-tags placeholder bp3-skeleton" />
     </div>
   );
 });
