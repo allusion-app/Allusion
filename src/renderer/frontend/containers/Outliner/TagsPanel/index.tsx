@@ -1,19 +1,11 @@
 import React, { useContext } from 'react';
 
-import {
-  Hotkey,
-  Hotkeys,
-  HotkeysTarget,
-  ButtonGroup,
-  Button,
-  Icon,
-  Divider,
-  Tooltip,
-} from '@blueprintjs/core';
+import { Hotkey, Hotkeys, HotkeysTarget, Divider } from '@blueprintjs/core';
 import { observer, Observer } from 'mobx-react-lite';
 import StoreContext, { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 import IconSet from 'components/Icons';
+import { Toolbar, ToolbarToggleButton } from 'components';
 
 // Tooltip info
 const enum TooltipInfo {
@@ -25,48 +17,34 @@ const enum TooltipInfo {
 const SystemTags = observer(() => {
   const { fileStore } = useContext(StoreContext);
   return (
-    <ButtonGroup id="system-tags" vertical minimal fill>
-      <Tooltip usePortal={false} openOnTargetFocus={false} content={TooltipInfo.AllImages}>
-        <Button
-          text="All Images"
-          icon={IconSet.MEDIA}
-          rightIcon={
-            fileStore.showsAllContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
-          }
-          onClick={fileStore.fetchAllFiles}
-          active={fileStore.showsAllContent}
-          fill
-        />
-      </Tooltip>
-      <Tooltip usePortal={false} openOnTargetFocus={false} content={TooltipInfo.Untagged}>
-        <Button
-          text={`Untagged (${fileStore.numUntaggedFiles})`}
-          icon={IconSet.TAG_BLANCO}
-          rightIcon={
-            fileStore.showsUntaggedContent ? <Icon intent="primary" icon={IconSet.PREVIEW} /> : null
-          }
-          onClick={fileStore.fetchUntaggedFiles}
-          active={fileStore.showsUntaggedContent}
-          fill
-        />
-      </Tooltip>
+    <Toolbar id="system-tags" label="System Tags" controls="gallery-content">
+      <ToolbarToggleButton
+        showLabel="always"
+        label={`${fileStore.fileList.length}`}
+        icon={IconSet.MEDIA}
+        onClick={fileStore.fetchAllFiles}
+        pressed={fileStore.showsAllContent}
+        tooltip={TooltipInfo.AllImages}
+      />
+      <ToolbarToggleButton
+        showLabel="always"
+        label={`${fileStore.numUntaggedFiles}`}
+        icon={IconSet.TAG_BLANCO}
+        onClick={fileStore.fetchUntaggedFiles}
+        pressed={fileStore.showsUntaggedContent}
+        tooltip={TooltipInfo.Untagged}
+      />
       {fileStore.numMissingFiles > 0 && (
-        <Tooltip usePortal={false} openOnTargetFocus={false} content={TooltipInfo.Missing}>
-          <Button
-            text={`Missing (${fileStore.numMissingFiles})`}
-            icon={IconSet.WARNING_BROKEN_LINK}
-            rightIcon={
-              fileStore.showsMissingContent ? (
-                <Icon intent="primary" icon={IconSet.PREVIEW} />
-              ) : null
-            }
-            onClick={fileStore.fetchMissingFiles}
-            active={fileStore.showsMissingContent}
-            fill
-          />
-        </Tooltip>
+        <ToolbarToggleButton
+          showLabel="always"
+          label={`${fileStore.numMissingFiles}`}
+          icon={IconSet.WARNING_BROKEN_LINK}
+          onClick={fileStore.fetchMissingFiles}
+          pressed={fileStore.showsMissingContent}
+          tooltip={TooltipInfo.Missing}
+        />
       )}
-    </ButtonGroup>
+    </Toolbar>
   );
 });
 

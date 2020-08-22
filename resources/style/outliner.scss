@@ -165,27 +165,7 @@
 }
 
 #system-tags {
-  .bp3-button {
-    margin: 0;
-    border-radius: 0;
-  }
-
-  .bp3-button-text {
-    margin-right: auto;
-  }
-
-  .bp3-button:hover {
-    border-left: 2px solid var(--primary-color);
-  }
-
-  .bp3-active {
-    color: $blue1;
-    background: transparent;
-
-    .custom-icon {
-      color: $blue1;
-    }
-  }
+  justify-content: space-evenly;
 }
 
 .bp3-alert {
