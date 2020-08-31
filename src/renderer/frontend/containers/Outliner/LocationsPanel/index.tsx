@@ -532,7 +532,7 @@ const LocationsPanel = () => {
       </Collapse>
 
       <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} theme={theme} />
-      <LocationRecoveryDialog onDelete={setDeletableLocation} />
+      <LocationRecoveryDialog />
       {deletableLocation && (
         <LocationRemoval theme={theme} object={deletableLocation} onClose={closeLocationRemover} />
       )}
