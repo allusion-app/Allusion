@@ -3,14 +3,12 @@ import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
   FormGroup,
-  Button,
   Dialog,
   ControlGroup,
   NumericInput,
   HTMLSelect,
   InputGroup,
   Switch,
-  ButtonGroup,
   Classes,
 } from '@blueprintjs/core';
 
@@ -24,6 +22,7 @@ import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from 'src/renderer/frontend/utils';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
+import { Button, ButtonGroup } from 'components';
 import TagSelector from 'src/renderer/frontend/components/TagSelector';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ID } from 'src/renderer/entities/ID';
@@ -221,10 +220,10 @@ const CriteriaItem = observer(({ criteria, dispatch, removable }: ICriteriaItemP
         dispatch={dispatch}
       />
       <Button
-        text="-"
+        label="-"
         onClick={() => dispatch(Factory.removeQuery(criteria.id))}
         disabled={!removable}
-        className="remove"
+        styling="filled"
       />
     </ControlGroup>
   );
@@ -271,7 +270,7 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
               key={crit.id}
               criteria={crit}
               dispatch={dispatch}
-              removable={state.items.length !== 1}
+              removable={state.items.length > 1}
             />
           ))}
         </FormGroup>
@@ -279,7 +278,7 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
 
       <div className={Classes.DIALOG_FOOTER}>
         <div id="functions-bar">
-          <Button text="Add" icon={IconSet.ADD} onClick={add} className="" />
+          <Button label="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
           <Switch
             inline
             large
@@ -292,25 +291,10 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
           />
         </div>
 
-        <div id="actions-bar">
-          <ButtonGroup>
-            <Button
-              text="Reset"
-              onClick={reset}
-              disabled={state.items.length === 0}
-              icon={IconSet.CLOSE}
-              fill
-            />
-            <Button
-              intent="primary"
-              text="Search"
-              onClick={search}
-              disabled={state.items.length === 0}
-              icon={IconSet.SEARCH}
-              fill
-            />
-          </ButtonGroup>
-        </div>
+        <ButtonGroup id="actions-bar">
+          <Button label="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
+          <Button label="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
+        </ButtonGroup>
       </div>
     </div>
   );

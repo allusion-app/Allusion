@@ -1,6 +1,7 @@
 .search-dialog {
   width: 650px;
   margin-bottom: 20vh;
+  background-color: var(--foreground-color);
 }
 
 #search-form {
@@ -41,38 +42,14 @@
       max-width: 275px !important;
       border-right: none !important;
     }
-    > *:last-child {
-      width: 10px !important;
-    }
 
-    .add-remove {
+    > .btn:last-child {
       flex-grow: 0;
       margin-left: 8px;
-
-      button {
-        min-width: 15px;
-        min-height: 15px;
-        width: 15px;
-        height: 15px;
-        line-height: 0;
-        padding: 0;
-        font-size: 16px;
-      }
-
-      button:hover * {
-        line-height: 0;
-      }
-    }
-
-    .remove {
-      flex-grow: 0;
-      margin-left: 8px;
-
       line-height: 0;
-      padding: 0;
       font-size: 16px;
-      width: 15px;
-      // min-width: 15px;
+      max-width: 32px;
+      min-height: 24px;
     }
   }
 

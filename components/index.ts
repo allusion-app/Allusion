@@ -6,8 +6,11 @@ import Toolbar, {
   ToolbarSegmentButton,
   ToolbarToggleButton,
 } from './Toolbar/index';
+import { Button, ButtonGroup } from './Button/index';
 
 export {
+  Button,
+  ButtonGroup,
   Tree,
   ToolbarButton,
   ToolbarGroup,
