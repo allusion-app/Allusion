@@ -21,7 +21,12 @@ export const ClearDbButton = (props: IButtonProps & { position?: Position }) => 
   const rootStore = useContext(StoreContext);
 
   return (
-    <Popover position={props.position} targetClassName={props.fill ? 'fillWidth' : ''}>
+    <Popover
+      position={props.position}
+      targetClassName={props.fill ? 'fillWidth' : ''}
+      // Portal doesn't work in new window https://github.com/palantir/blueprint/issues/3248
+      usePortal={false}
+    >
       <Button {...props} intent="danger" icon={IconSet.CLEAR_DATABASE}>
         Clear database
       </Button>

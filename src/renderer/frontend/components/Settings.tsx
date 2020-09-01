@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useCallback } from 'react';
+import React, { useContext, useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Drawer,
@@ -11,6 +11,7 @@ import {
   Switch,
   Radio,
   RadioGroup,
+  Divider,
 } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
@@ -20,6 +21,9 @@ import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
+import RootStore from '../stores/RootStore';
+import ReactDOM from 'react-dom';
+import PopupWindow from './PopupWindow';
 
 // Window state
 const WINDOW_STORAGE_KEY = 'Allusion_Window';
@@ -37,7 +41,7 @@ const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
 const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
   RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });
 
-const Settings = observer(() => {
+const SettingsForm = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
   const browseImportDir = useCallback(() => {
@@ -103,14 +107,8 @@ const Settings = observer(() => {
   }, [fileStore.fileList, uiStore]);
 
   return (
-    <Drawer
-      isOpen={uiStore.isSettingsOpen}
-      icon={IconSet.SETTINGS}
-      onClose={uiStore.toggleSettings}
-      title="Settings"
-      className="settings"
-    >
-      <div className={Classes.DRAWER_BODY}>
+    <div className="settings-form">
+      <div className="column">
         <RadioGroup
           inline
           selectedValue={uiStore.thumbnailSize}
@@ -131,7 +129,8 @@ const Settings = observer(() => {
           <Radio label="Square" value="square" onClick={uiStore.setThumbnailSquare} />
           <Radio label="Letterbox" value="letterbox" onClick={uiStore.setThumbnailLetterbox} />
         </RadioGroup>
-
+      </div>
+      <div className="column">
         <Switch
           defaultChecked={remote.getCurrentWindow().isFullScreen()}
           onChange={toggleFullScreen}
@@ -161,8 +160,11 @@ const Settings = observer(() => {
           onChange={toggleClipServer}
           label="Browser extension support"
         />
+      </div>
 
-        <div className="bp3-divider" />
+      <Divider />
+
+      <div>
         {/* Todo: Add support to toggle this */}
         {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
         <FormGroup label="Thumbnail directory">
@@ -197,9 +199,11 @@ const Settings = observer(() => {
             </span>
           </label>
         </FormGroup>
+      </div>
 
-        <div className="bp3-divider" />
+      <Divider />
 
+      <div>
         <ClearDbButton fill position="bottom-left" />
 
         <Button
@@ -210,22 +214,58 @@ const Settings = observer(() => {
         >
           Toggle DevTools
         </Button>
+      </div>
 
-        <br />
+      <br />
 
-        <Callout icon={IconSet.INFO}>
-          <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
-          <p>
-            Did you know there are hotkeys available in most panels?
-            <br />
-            Press&nbsp;
-            <KeyCombo combo="mod+k" />
-            &nbsp;to see them.
-          </p>
-        </Callout>
+      <Callout icon={IconSet.INFO}>
+        <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
+        <p>
+          Did you know there are hotkeys available in most panels?
+          <br />
+          Press&nbsp;
+          <KeyCombo combo="mod+k" />
+          &nbsp;to see them.
+        </p>
+      </Callout>
+    </div>
+  );
+});
+
+export const SettingsDrawer = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <Drawer
+      isOpen={uiStore.isSettingsOpen}
+      icon={IconSet.SETTINGS}
+      onClose={uiStore.toggleSettings}
+      title="Settings"
+      className="settings-drawer"
+    >
+      <div className={Classes.DRAWER_BODY}>
+        <SettingsForm />
       </div>
     </Drawer>
   );
 });
 
-export default Settings;
+export const SettingsWindow: React.FC = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+
+  if (!uiStore.isSettingsOpen) {
+    return null;
+  }
+
+  return (
+    <>
+      {/* <SettingsDrawer /> */}
+      <PopupWindow onClose={uiStore.closeSettings} windowName="settings">
+        <div id="settings-window" className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
+          <SettingsForm />
+        </div>
+      </PopupWindow>
+    </>
+  );
+});
+
+export default SettingsWindow;
