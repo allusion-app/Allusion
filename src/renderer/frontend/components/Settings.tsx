@@ -259,7 +259,12 @@ export const SettingsWindow: React.FC = observer(() => {
   return (
     <>
       {/* <SettingsDrawer /> */}
-      <PopupWindow onClose={uiStore.closeSettings} windowName="settings">
+      <PopupWindow
+        onClose={uiStore.closeSettings}
+        windowName="settings"
+        closeOnEscape
+        additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
+      >
         <div id="settings-window" className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
           <SettingsForm />
         </div>

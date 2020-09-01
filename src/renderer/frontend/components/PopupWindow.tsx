@@ -4,6 +4,8 @@ import ReactDOM from 'react-dom';
 interface IPopupWindowProps {
   onClose?: () => void;
   windowName?: string;
+  closeOnEscape?: boolean;
+  additionalCloseKey?: string;
 }
 
 function copyStyles(sourceDoc: Document, targetDoc: Document) {
@@ -47,6 +49,14 @@ const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
     externalWindow.addEventListener('beforeunload', () => {
       props.onClose?.();
     });
+
+    if (props.closeOnEscape) {
+      externalWindow.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || e.key === props.additionalCloseKey) {
+          props.onClose?.();
+        }
+      });
+    }
 
     return function cleanup() {
       externalWindow?.close();
