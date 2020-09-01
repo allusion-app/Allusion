@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup } from '@blueprintjs/core';
+import { ResizeSensor, IResizeEntry, NonIdealState } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
   FixedSizeList,
@@ -15,6 +15,7 @@ import GalleryItem, { MissingImageFallback } from './GalleryItem';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
 import IconSet from 'components/Icons';
+import { Button, ButtonGroup } from 'components';
 import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
@@ -548,7 +549,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
     let title = 'No images';
     let description = 'Images can be added from the outliner';
     let action = (
-      <Button onClick={uiStore.toggleOutliner} text="Toggle outliner" intent="primary" />
+      <Button onClick={uiStore.toggleOutliner} label="Toggle outliner" styling="outlined" />
     );
     if (fileStore.showsQueryContent) {
       description = 'Try searching for something else.';
@@ -556,17 +557,23 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
       title = 'No images found';
       action = (
         <ButtonGroup>
-          <Button text="All images" icon={IconSet.MEDIA} onClick={fileStore.fetchAllFiles} />
           <Button
-            text="Untagged"
-            icon={IconSet.TAG_BLANCO}
-            onClick={fileStore.fetchUntaggedFiles}
+            label="All images"
+            icon={IconSet.MEDIA}
+            onClick={fileStore.fetchAllFiles}
+            styling="outlined"
           />
           <Button
-            text="Search"
+            label="Untagged"
+            icon={IconSet.TAG_BLANCO}
+            onClick={fileStore.fetchUntaggedFiles}
+            styling="outlined"
+          />
+          <Button
+            label="Search"
             icon={IconSet.SEARCH}
             onClick={uiStore.openQuickSearch}
-            intent="primary"
+            styling="outlined"
           />
         </ButtonGroup>
       );
@@ -576,12 +583,17 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
       title = 'No untagged images';
       action = (
         <ButtonGroup>
-          <Button text="All Images" icon={IconSet.MEDIA} onClick={fileStore.fetchAllFiles} />
           <Button
-            text="Search"
+            label="All Images"
+            icon={IconSet.MEDIA}
+            onClick={fileStore.fetchAllFiles}
+            styling="outlined"
+          />
+          <Button
+            label="Search"
             icon={IconSet.SEARCH}
             onClick={uiStore.openQuickSearch}
-            intent="primary"
+            styling="outlined"
           />
         </ButtonGroup>
       );

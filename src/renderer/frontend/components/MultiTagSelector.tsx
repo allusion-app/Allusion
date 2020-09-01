@@ -1,12 +1,13 @@
 import React, { useContext, useMemo, useCallback, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { Button, MenuItem, Intent, Icon, ITagProps } from '@blueprintjs/core';
+import { MenuItem, Intent, Icon, ITagProps } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
+import { IconButton } from 'components';
 import { getClassForBackground } from '../utils';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 
@@ -30,7 +31,12 @@ const renderCreateTagOption = (
   />
 );
 
-const filterTag: ItemPredicate<ClientTag | ClientTagCollection> = (query, tag, index, exactMatch) => {
+const filterTag: ItemPredicate<ClientTag | ClientTagCollection> = (
+  query,
+  tag,
+  index,
+  exactMatch,
+) => {
   const normalizedName = tag.name.toLowerCase();
   const normalizedQuery = query.toLowerCase();
 
@@ -104,21 +110,17 @@ const MultiTagSelector = ({
   const handleDeselect = useCallback(
     (_: string, index: number) => {
       const item = selectedItems[index];
-     item instanceof ClientTag
-      ? onTagDeselect(item, index)
-      : onTagColDeselect && onTagColDeselect(item, index);
-    }, [onTagDeselect, onTagColDeselect, selectedItems],
+      item instanceof ClientTag
+        ? onTagDeselect(item, index)
+        : onTagColDeselect && onTagColDeselect(item, index);
+    },
+    [onTagDeselect, onTagColDeselect, selectedItems],
   );
 
   // Todo: Might need a confirmation pop over
   const ClearButton = useMemo(
-    () =>
-      selectedItems.length > 0 ? (
-        <Button icon={IconSet.CLOSE} minimal={true} onClick={onClearSelection} />
-      ) : (
-        undefined
-      ),
-    [onClearSelection, selectedItems.length],
+    () => <IconButton icon={IconSet.CLOSE} onClick={onClearSelection} label="Close" />,
+    [onClearSelection],
   );
 
   const SearchTagItem = useCallback<ItemRenderer<ClientTag | ClientTagCollection>>(
@@ -129,13 +131,11 @@ const MultiTagSelector = ({
       const isSelected = selectedItems.includes(tag);
       const isCol = tag instanceof ClientTagCollection;
 
-      const rightIcon = isCol
-        ? <Icon icon={IconSet.TAG_GROUP} iconSize={12} color={tag.viewColor} />
-        : (
-          tag.viewColor
-            ? <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
-            : undefined
-        );
+      const rightIcon = isCol ? (
+        <Icon icon={IconSet.TAG_GROUP} iconSize={12} color={tag.viewColor} />
+      ) : tag.viewColor ? (
+        <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
+      ) : undefined;
       return (
         <MenuItem
           active={modifiers.active}
@@ -156,11 +156,7 @@ const MultiTagSelector = ({
     if (!tag) return <span>???</span>;
     const colClass = tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white';
     const text = tagLabel ? tagLabel(tag) : tag.name;
-    return (
-      <span className={colClass}>
-        {text}
-      </span>
-    );
+    return <span className={colClass}>{text}</span>;
   };
 
   // Only used for visualization in the selector, an actual ClientTag is created onSelect
@@ -170,12 +166,12 @@ const MultiTagSelector = ({
   );
 
   const maybeCreateNewItemFromQuery = onTagCreation ? createNewTag : undefined;
-  const maybeCreateNewItemRenderer = onTagCreation
-    ? renderCreateTagOption
-    : undefined;
+  const maybeCreateNewItemRenderer = onTagCreation ? renderCreateTagOption : undefined;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const setInputRef = useCallback((input: HTMLInputElement | null) => inputRef.current = input, [inputRef]);
+  const setInputRef = useCallback((input: HTMLInputElement | null) => (inputRef.current = input), [
+    inputRef,
+  ]);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
@@ -185,17 +181,21 @@ const MultiTagSelector = ({
 
   const items = useMemo(() => {
     if (!includeCollections) return tagStore.tagList;
-    const collectionsWithoutRoot = tagCollectionStore.tagCollectionList
-      .filter(col => col.id !== ROOT_TAG_COLLECTION_ID)
+    const collectionsWithoutRoot = tagCollectionStore.tagCollectionList.filter(
+      (col) => col.id !== ROOT_TAG_COLLECTION_ID,
+    );
     return [...tagStore.tagList, ...collectionsWithoutRoot];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [includeCollections, tagStore.tagList.length, tagCollectionStore.tagCollectionList.length]);
 
-  const getTagProps = useCallback((_: any, index: number): ITagProps => ({
-    minimal: true,
-    // Todo: Style doesn't update until focusing the tagInput
-    style: { backgroundColor: selectedItems[index]?.viewColor },
-  }), [selectedItems]);
+  const getTagProps = useCallback(
+    (_: any, index: number): ITagProps => ({
+      minimal: true,
+      // Todo: Style doesn't update until focusing the tagInput
+      style: { backgroundColor: selectedItems[index]?.viewColor },
+    }),
+    [selectedItems],
+  );
 
   return (
     <TagMultiSelect

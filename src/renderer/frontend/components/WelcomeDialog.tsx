@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Dialog, Classes, Button, FormGroup } from '@blueprintjs/core';
+import { Dialog, Classes, FormGroup } from '@blueprintjs/core';
 import path from 'path';
 import fse from 'fs-extra';
 
 import IconSet from 'components/Icons';
+import { Button, ButtonGroup } from 'components';
 import LocationsPanel from '../containers/Outliner/LocationsPanel';
 import { remote } from 'electron';
 import StoreContext from '../contexts/StoreContext';
@@ -176,12 +177,14 @@ const WelcomeDialog = () => {
 
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button onClick={handleClose} disabled={step === 0}>
-            Skip
-          </Button>
-          <Button intent="primary" onClick={handleNextStep}>
-            {step !== NUM_STEPS - 1 ? 'Next' : 'Start'}
-          </Button>
+          <ButtonGroup>
+            <Button onClick={handleClose} disabled={step === 0} label="Skip" styling="outlined" />
+            <Button
+              styling="filled"
+              onClick={handleNextStep}
+              label={step !== NUM_STEPS - 1 ? 'Next' : 'Start'}
+            />
+          </ButtonGroup>
         </div>
       </div>
       <div className={'grad'}></div>

@@ -1,8 +1,9 @@
-import { Classes, Drawer, IPanelProps, PanelStack, Button, ButtonGroup } from '@blueprintjs/core';
+import { Classes, Drawer, IPanelProps, PanelStack } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useContext, useRef, useEffect } from 'react';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
+import { Button, ButtonGroup } from 'components';
 
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
 // TODO: Put images in /resources/helpcenter/ or somewhere like that
@@ -291,12 +292,10 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
       ))}
       <br />
       <ButtonGroup>
-        <Button intent="primary" onClick={closePanel}>
-          Previous
-        </Button>
+        <Button styling="outlined" onClick={closePanel} label="Previous" />
         {nextSection && (
           <Button
-            intent="primary"
+            styling="outlined"
             onClick={() =>
               openPanel({
                 title: nextSection.title,
@@ -304,9 +303,8 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
                 props: { section: nextSection },
               })
             }
-          >
-            Next
-          </Button>
+            label="Next"
+          />
         )}
       </ButtonGroup>
     </div>

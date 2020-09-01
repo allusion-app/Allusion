@@ -14,18 +14,18 @@ const Button = observer(({ label, icon, onClick, styling = 'minimal', disabled }
   return (
     <button className={`btn btn-${styling}`} onClick={onClick} disabled={disabled}>
       {icon && (
-        <span className="btn-icon" aria-hidden="true">
+        <span className="btn-content-icon" aria-hidden="true">
           {icon}
         </span>
       )}
-      <span className="btn-label">{label}</span>
+      <span className="btn-content-label">{label}</span>
     </button>
   );
 });
 
 interface IButtonGroup {
   id?: string;
-  children: React.ReactElement[];
+  children: (React.ReactElement | undefined)[] | React.ReactElement;
 }
 
 const ButtonGroup = observer(({ id, children }: IButtonGroup) => {
@@ -36,4 +36,22 @@ const ButtonGroup = observer(({ id, children }: IButtonGroup) => {
   );
 });
 
-export { Button, ButtonGroup };
+interface IIconButton {
+  label: string;
+  icon: JSX.Element;
+  onClick: (event: React.MouseEvent) => void;
+  disabled?: boolean;
+}
+
+const IconButton = observer(({ label, icon, onClick, disabled }: IIconButton) => {
+  return (
+    <button className="btn btn-icon" onClick={onClick} disabled={disabled}>
+      <span className="btn-content-icon" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="btn-content-label hidden">{label}</span>
+    </button>
+  );
+});
+
+export { Button, ButtonGroup, IconButton };

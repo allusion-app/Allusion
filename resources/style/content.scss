@@ -2,11 +2,10 @@
 .quick-search {
   background-color: var(--background-color);
   position: sticky;
-  padding: 0 0.25rem;
+  padding: 0.25rem;
   top: 0.2rem;
   z-index: 9;
   display: flex;
-  border-bottom: 2px solid var(--background-separator-color);
   box-shadow: $pt-dark-elevation-shadow-2;
   transition: max-height 200ms ease-in-out;
 
@@ -23,39 +22,16 @@
     max-height: 0;
   }
 
-  .bp3-button {
-    width: 30px;
-    height: 30px;
-    margin: auto;
-    margin-top: 2px;
-    background: none !important;
-  }
+  > .bp3-popover-wrapper:nth-child(2) {
+    flex-grow: 1;
 
-  .bp3-button-group {
-    .bp3-button {
-      border-radius: 6px;
-      background: none !important;
-    }
-
-    .bp3-intent-primary {
-      background: $blue1;
+    > .bp3-popover-target {
+      width: 100%;
     }
   }
 
-  .bp3-popover-wrapper,
-  #criteria-list {
-    padding: 4px;
-    padding-top: 2px;
-    padding-bottom: 2px;
-  }
-
-  #criteria-list {
-    width: 100%;
-  }
-
-  .bp3-popover-target,
-  .bp3-popover-wrapper {
-    width: 100%;
+  .bp3-input {
+    min-height: 2rem;
   }
 }
 

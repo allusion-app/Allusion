@@ -1,21 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import {
-  Tag,
-  ContextMenuTarget,
-  Menu,
-  MenuItem,
-  H4,
-  Tooltip,
-  Card,
-  Button,
-  ButtonGroup,
-} from '@blueprintjs/core';
+import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Tooltip, Card } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
 import IconSet from 'components/Icons';
+import { Button, ButtonGroup } from 'components';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
@@ -63,8 +54,8 @@ const ThumbnailDecoration = observer(
           <p>Would you like to remove it from your library?</p>
           <ButtonGroup>
             <Button
-              text="Remove"
-              intent="danger"
+              label="Remove"
+              styling="outlined"
               onClick={() => {
                 uiStore.selectFile(file, true);
                 uiStore.toggleToolbarFileRemover();

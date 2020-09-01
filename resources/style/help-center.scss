@@ -9,7 +9,9 @@
     border: none;
     position: unset;
     background-color: unset !important;
+    overflow-x: hidden;
   }
+
   .stack-paragraph {
     margin-top: 2rem;
     margin-bottom: 2rem;
@@ -36,7 +38,7 @@
     }
   }
 
-  .bp3-button-group {
+  .btn-group {
     float: right;
   }
 

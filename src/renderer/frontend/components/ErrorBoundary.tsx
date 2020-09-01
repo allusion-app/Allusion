@@ -1,50 +1,36 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { remote, shell } from 'electron';
-import {
-  Button,
-  NonIdealState,
-  ButtonGroup,
-  EditableText,
-  Popover,
-  H5,
-  Classes,
-  Position,
-} from '@blueprintjs/core';
+import { NonIdealState, EditableText, Popover, H5 } from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
 import IconSet from 'components/Icons';
+import { Button, ButtonGroup } from 'components';
 
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';
-import { IButtonProps } from '@blueprintjs/core/lib/esm/components/button/abstractButton';
 
-export const ClearDbButton = (props: IButtonProps & { position?: Position }) => {
+export const ClearDbButton = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const rootStore = useContext(StoreContext);
 
   return (
-    <Popover position={props.position} targetClassName={props.fill ? 'fillWidth' : ''}>
-      <Button {...props} intent="danger" icon={IconSet.CLEAR_DATABASE}>
-        Clear database
-      </Button>
-      <div style={{ padding: '8px', maxWidth: '400px' }}>
-        <H5>Confirm</H5>
-        <p>Are you sure you want to clear the database?</p>
+    <Popover isOpen={isOpen}>
+      <Button
+        styling="outlined"
+        icon={IconSet.CLEAR_DATABASE}
+        label="Clear Database"
+        onClick={() => setIsOpen(!isOpen)}
+      />
+      <div style={{ padding: '8px', maxWidth: '45ch' }}>
+        <H5>Are you sure you want to clear the database?</H5>
         <p>
-          This is intended to be a last resort, as all imported images and created tags you will be
+          This is intended as a last resort. All imported images and created tags will be
           permanently removed.
         </p>
-        <p>No images on your system will be deleted.</p>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 15 }}>
-          <Button className={Classes.POPOVER_DISMISS} style={{ marginRight: 10 }}>
-            Cancel
-          </Button>
-          <Button
-            intent="danger"
-            className={Classes.POPOVER_DISMISS}
-            onClick={rootStore.clearDatabase}
-          >
-            Clear
-          </Button>
-        </div>
+        <p>This will not delete your images on your system!</p>
+        <ButtonGroup>
+          <Button styling="outlined" onClick={rootStore.clearDatabase} label="Clear" />
+          <Button styling="outlined" label="Cancel" onClick={() => setIsOpen(false)} />
+        </ButtonGroup>
       </div>
     </Popover>
   );
@@ -125,20 +111,25 @@ ${this.state.error}
             description="You can try one of the following options or contact the maintainers"
             action={
               <ButtonGroup>
-                <Button onClick={this.reloadApplication} intent="primary" icon={IconSet.RELOAD}>
-                  Reload
-                </Button>
+                <Button
+                  onClick={this.reloadApplication}
+                  styling="outlined"
+                  icon={IconSet.RELOAD}
+                  label="Reload"
+                />
                 <Button
                   onClick={this.viewInspector}
-                  intent="warning"
+                  styling="outlined"
                   icon={IconSet.CHROME_DEVTOOLS}
-                >
-                  View in DevTools
-                </Button>
-                <ClearDbButton position="bottom" />
-                <Button onClick={this.openIssueURL} icon={IconSet.GITHUB}>
-                  Create issue
-                </Button>
+                  label="View in DevTools"
+                />
+                <ClearDbButton />
+                <Button
+                  styling="outlined"
+                  onClick={this.openIssueURL}
+                  icon={IconSet.GITHUB}
+                  label="Create Issue"
+                />
               </ButtonGroup>
             }
           >

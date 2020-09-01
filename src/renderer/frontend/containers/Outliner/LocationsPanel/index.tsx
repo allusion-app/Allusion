@@ -2,7 +2,6 @@ import React, { useContext, useCallback, useState, useEffect, useMemo } from 're
 import { remote, shell } from 'electron';
 import { observer, Observer } from 'mobx-react-lite';
 import {
-  Button,
   H4,
   Collapse,
   Menu,
@@ -15,6 +14,7 @@ import {
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
+import { Button } from 'components';
 import {
   ClientLocation,
   DEFAULT_LOCATION_ID,
@@ -81,9 +81,11 @@ const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalPr
 
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button onClick={handleClose} intent="primary">
-            {dir.isInitialized ? 'Close' : 'Confirm'}
-          </Button>
+          <Button
+            onClick={handleClose}
+            styling="outlined"
+            label={dir.isInitialized ? 'Close' : 'Confirm'}
+          />
         </div>
       </div>
     </Dialog>

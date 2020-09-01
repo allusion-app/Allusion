@@ -1,9 +1,10 @@
 import React, { useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Button, TagInput } from '@blueprintjs/core';
+import { TagInput, Tooltip } from '@blueprintjs/core';
 import { CSSTransition } from 'react-transition-group';
 import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
+import { IconButton } from 'components';
 import { ClientTag } from '../../../entities/Tag';
 import {
   ClientIDSearchCriteria,
@@ -107,16 +108,14 @@ const CriteriaList = ({
   };
 
   return (
-    <div id="criteria-list">
-      <TagInput
-        values={criterias}
-        onRemove={(_, i) => removeCriteriaByIndex(i)}
-        inputProps={{ disabled: true, onMouseUp: toggleAdvancedSearch }}
-        onKeyDown={preventTyping}
-        tagProps={{ minimal: true, intent: 'primary', onClick: handleTagClick, interactive: true }}
-        fill
-      />
-    </div>
+    <TagInput
+      values={criterias}
+      onRemove={(_, i) => removeCriteriaByIndex(i)}
+      inputProps={{ disabled: true, onMouseUp: toggleAdvancedSearch }}
+      onKeyDown={preventTyping}
+      tagProps={{ minimal: true, intent: 'primary', onClick: handleTagClick, interactive: true }}
+      fill
+    />
   );
 };
 
@@ -161,12 +160,17 @@ export const Searchbar = observer(() => {
   return (
     <CSSTransition in={isQuickSearchOpen} classNames="quick-search" timeout={200} unmountOnExit>
       <div className="quick-search">
-        <Button
-          minimal
-          icon={IconSet.SEARCH_EXTENDED}
-          onClick={toggleAdvancedSearch}
-          title="Advanced search"
-        />
+        <Tooltip
+          content="Open Advanced Search (Ctrl + Shift + F)"
+          openOnTargetFocus={false}
+          hoverOpenDelay={2000}
+        >
+          <IconButton
+            icon={IconSet.SEARCH_EXTENDED}
+            onClick={toggleAdvancedSearch}
+            label="Advanced Search"
+          />
+        </Tooltip>
         {isQuickSearch ? (
           <QuickSearchList rootStore={rootStore} />
         ) : (
@@ -176,7 +180,13 @@ export const Searchbar = observer(() => {
             removeCriteriaByIndex={removeSearchCriteriaByIndex}
           />
         )}
-        <Button minimal icon={IconSet.CLOSE} onClick={closeQuickSearch} title="Close (Escape)" />
+        <Tooltip
+          content="Close and clear Searchbar (Escape)"
+          openOnTargetFocus={false}
+          hoverOpenDelay={2000}
+        >
+          <IconButton icon={IconSet.CLOSE} onClick={closeQuickSearch} label="Close" />
+        </Tooltip>
       </div>
     </CSSTransition>
   );

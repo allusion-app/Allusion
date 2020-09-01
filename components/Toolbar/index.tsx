@@ -147,7 +147,7 @@ export const ToolbarButton = observer(
             content={tooltip}
             usePortal={false}
             openOnTargetFocus={false}
-            hoverOpenDelay={1000}
+            hoverOpenDelay={1500}
           >
             {content}
           </Tooltip>

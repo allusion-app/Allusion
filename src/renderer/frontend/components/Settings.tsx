@@ -3,7 +3,6 @@ import { observer } from 'mobx-react-lite';
 import {
   Drawer,
   Classes,
-  Button,
   Callout,
   H4,
   FormGroup,
@@ -15,6 +14,7 @@ import {
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
+import { Button, ButtonGroup } from 'components';
 import { ClearDbButton } from './ErrorBoundary';
 import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
@@ -200,16 +200,15 @@ const Settings = observer(() => {
 
         <div className="bp3-divider" />
 
-        <ClearDbButton fill position="bottom-left" />
-
-        <Button
-          onClick={uiStore.toggleDevtools}
-          intent="warning"
-          icon={IconSet.CHROME_DEVTOOLS}
-          fill
-        >
-          Toggle DevTools
-        </Button>
+        <ButtonGroup>
+          <ClearDbButton />
+          <Button
+            onClick={uiStore.toggleDevtools}
+            styling="outlined"
+            icon={IconSet.CHROME_DEVTOOLS}
+            label="Toggle DevTools"
+          />
+        </ButtonGroup>
 
         <br />
 
