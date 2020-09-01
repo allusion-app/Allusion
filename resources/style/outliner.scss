@@ -1,6 +1,8 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 #outliner {
   grid-area: outliner;
+  display: flex;
+  flex-direction: column;
   // Show y scrollbar when there's loads of tags or location list items
   overflow-x: hidden;
   transition: max-width 200ms $pt-transition-cubic2;
@@ -19,19 +21,30 @@
   &.sliding-sidebar-exit-active {
     max-width: 0;
   }
+}
 
-  > * {
-    // Don't squash content during parent transition
-    width: var(--outliner-width);
-  }
+#outliner-content,
+#system-tags {
+  // Don't squash content during parent transition
+  width: var(--outliner-width);
+}
 
-  > div:hover .outliner-header-wrapper .toolbar {
+#outliner-content {
+  // Show y scrollbar when there's loads of tags or location list items
+  overflow-x: hidden;
+  flex-grow: 1;
+
+  &:hover .outliner-header-wrapper .toolbar {
     opacity: 1;
   }
+}
 
-  .bp3-divider {
-    margin: 1rem;
-    border-color: var(--background-color);
+#system-tags {
+  flex-shrink: 0;
+  justify-content: unset;
+
+  > .toolbar-item {
+    margin: 0 0.5rem;
   }
 }
 
@@ -162,10 +175,6 @@
       }
     }
   }
-}
-
-#system-tags {
-  justify-content: space-evenly;
 }
 
 .bp3-alert {

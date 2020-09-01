@@ -5,7 +5,7 @@ import { IFile } from 'src/renderer/entities/File';
 import { SearchKeyDict } from 'src/renderer/entities/SearchCriteria';
 import StoreContext from '../../contexts/StoreContext';
 import LocationsPanel from './LocationsPanel';
-import TagsPanel from './TagsPanel';
+import TagsPanel, { SystemTags } from './TagsPanel';
 
 /**
  * Enum variant with associated data for Action enums
@@ -48,8 +48,11 @@ const Outliner = () => {
       unmountOnExit
     >
       <nav id="outliner">
-        <LocationsPanel />
-        <TagsPanel />
+        <div id="outliner-content">
+          <LocationsPanel />
+          <TagsPanel />
+        </div>
+        <SystemTags />
       </nav>
     </CSSTransition>
   );

@@ -45,11 +45,7 @@
   }
 
   &[aria-pressed='true'] {
-    .toolbar-button-content {
-      min-height: 2.125rem;
-      padding-bottom: 0.125rem;
-    }
-    border-bottom: 0.125rem solid var(--primary-color);
+    font-weight: 700;
     color: var(--primary-color);
   }
 
@@ -94,17 +90,6 @@
 
 .toolbar[aria-orientation='vertical'] {
   flex-direction: column;
-
-  .toolbar-button[aria-pressed='true'] {
-    .toolbar-button-content {
-      min-height: 2.25rem;
-      min-width: 2.125rem;
-      padding: 0.25rem;
-      padding-left: 0.125rem;
-    }
-    border: none;
-    border-left: 0.125rem solid var(--primary-color);
-  }
 }
 
 .toolbar-group[aria-orientation='vertical'] {

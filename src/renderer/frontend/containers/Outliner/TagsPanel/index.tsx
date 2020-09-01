@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 
-import { Hotkey, Hotkeys, HotkeysTarget, Divider } from '@blueprintjs/core';
+import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 import { observer, Observer } from 'mobx-react-lite';
 import StoreContext, { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
@@ -14,7 +14,7 @@ const enum TooltipInfo {
   Missing = 'View missing images on your system',
 }
 
-const SystemTags = observer(() => {
+export const SystemTags = observer(() => {
   const { fileStore } = useContext(StoreContext);
   return (
     <Toolbar id="system-tags" label="System Tags" controls="gallery-content">
@@ -38,7 +38,7 @@ const SystemTags = observer(() => {
         <ToolbarToggleButton
           showLabel="always"
           label={`${fileStore.numMissingFiles}`}
-          icon={IconSet.WARNING_BROKEN_LINK}
+          icon={IconSet.WARNING_FILL}
           onClick={fileStore.fetchMissingFiles}
           pressed={fileStore.showsMissingContent}
           tooltip={TooltipInfo.Missing}
@@ -66,8 +66,6 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
             );
           }}
         </Observer>
-        <Divider />
-        <SystemTags />
       </div>
     );
   }
