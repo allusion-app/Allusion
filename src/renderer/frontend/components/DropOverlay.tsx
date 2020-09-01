@@ -264,7 +264,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
             className="drop-overlay-content"
             // todo: blue background when dropping over
           >
-            <H4 className="bp3-heading inpectorHeading">Drop import</H4>
+            <H4>Drop import</H4>
             <p>Drag onto a tag to immediately tag it or anywhere to import it untagged</p>
 
             {/* <H4 className="bp3-heading inpectorHeading">Drop anywhere to import</H4>
