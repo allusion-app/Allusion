@@ -15,7 +15,7 @@ import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
 import { useMemo, useContext } from 'react';
 import StoreContext from '../../contexts/StoreContext';
-import { FileRemoval } from '../Outliner/MessageBox';
+import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 
 interface IFileSelection {
   allFilesSelected: boolean;
@@ -30,7 +30,7 @@ const FileSelection = observer(
       icon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
       onClick={toggle}
       pressed={allFilesSelected}
-      label={`${selectionCount}`}
+      label={selectionCount}
       tooltip={ToolbarTooltips.Select}
     />
   ),
@@ -86,7 +86,6 @@ const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverPr
         />
       )}
       <FileRemoval
-        isOpen={uiStore.isToolbarFileRemoverOpen}
         onClose={uiStore.toggleToolbarFileRemover}
         theme={theme}
         object={uiStore.isToolbarFileRemoverOpen ? uiStore.clientFileSelection : []}

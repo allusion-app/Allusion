@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React from 'react';
 
 interface IButton {
-  label: string;
+  label: React.ReactText;
   icon?: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
   styling?: 'minimal' | 'outlined' | 'filled';
@@ -25,12 +25,13 @@ const Button = observer(({ label, icon, onClick, styling = 'minimal', disabled }
 
 interface IButtonGroup {
   id?: string;
+  className?: string;
   children: (React.ReactElement | undefined)[] | React.ReactElement;
 }
 
-const ButtonGroup = observer(({ id, children }: IButtonGroup) => {
+const ButtonGroup = observer(({ id, children, className = '' }: IButtonGroup) => {
   return (
-    <div id={id} className="btn-group">
+    <div id={id} className={`btn-group ${className}`}>
       {children}
     </div>
   );

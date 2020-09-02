@@ -11,7 +11,7 @@ import {
   createBranchOnKeyDown,
   createLeafOnKeyDown,
 } from 'components/Tree';
-import { TagRemoval } from '../MessageBox';
+import { TagRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import {
   ClientIDSearchCriteria,
   ClientCollectionSearchCriteria,

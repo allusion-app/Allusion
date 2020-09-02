@@ -30,7 +30,7 @@ import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
 import { IExpansionState } from '..';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { CustomKeyDict } from '../index';
-import { LocationRemoval } from '../MessageBox';
+import { LocationRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 
 // Tooltip info
 const enum Tooltip {

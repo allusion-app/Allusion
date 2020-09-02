@@ -20,7 +20,7 @@ export const SystemTags = observer(() => {
     <Toolbar id="system-tags" label="System Tags" controls="gallery-content">
       <ToolbarToggleButton
         showLabel="always"
-        label={`${fileStore.fileList.length}`}
+        label={fileStore.fileList.length}
         icon={IconSet.MEDIA}
         onClick={fileStore.fetchAllFiles}
         pressed={fileStore.showsAllContent}
@@ -28,7 +28,7 @@ export const SystemTags = observer(() => {
       />
       <ToolbarToggleButton
         showLabel="always"
-        label={`${fileStore.numUntaggedFiles}`}
+        label={fileStore.numUntaggedFiles}
         icon={IconSet.TAG_BLANCO}
         onClick={fileStore.fetchUntaggedFiles}
         pressed={fileStore.showsUntaggedContent}
@@ -37,7 +37,7 @@ export const SystemTags = observer(() => {
       {fileStore.numMissingFiles > 0 && (
         <ToolbarToggleButton
           showLabel="always"
-          label={`${fileStore.numMissingFiles}`}
+          label={fileStore.numMissingFiles}
           icon={IconSet.WARNING_FILL}
           onClick={fileStore.fetchMissingFiles}
           pressed={fileStore.showsMissingContent}

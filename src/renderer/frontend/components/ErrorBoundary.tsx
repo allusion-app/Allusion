@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { remote, shell } from 'electron';
-import { NonIdealState, EditableText, Popover, H5 } from '@blueprintjs/core';
+import { NonIdealState, EditableText, Popover } from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup } from 'components';
+import { Button, ButtonGroup, DialogActions, DialogButton } from 'components';
 
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';
@@ -21,16 +21,21 @@ export const ClearDbButton = () => {
         onClick={() => setIsOpen(!isOpen)}
       />
       <div style={{ padding: '8px', maxWidth: '45ch' }}>
-        <H5>Are you sure you want to clear the database?</H5>
-        <p>
-          This is intended as a last resort. All imported images and created tags will be
-          permanently removed.
-        </p>
-        <p>This will not delete your images on your system!</p>
-        <ButtonGroup>
-          <Button styling="outlined" onClick={rootStore.clearDatabase} label="Clear" />
-          <Button styling="outlined" label="Cancel" onClick={() => setIsOpen(false)} />
-        </ButtonGroup>
+        <h2 className="dialog-label">Are you sure you want to clear the database?</h2>
+        <div className="dialog-information">
+          <p>
+            This is intended as a last resort. All imported images and created tags will be
+            permanently removed.
+          </p>
+          <p>This will not delete your images on your system!</p>
+        </div>
+        <DialogActions
+          closeButtonText="Cancel"
+          primaryButtonText="Clear"
+          onClick={(button) =>
+            button === DialogButton.CloseButton ? setIsOpen(false) : rootStore.clearDatabase()
+          }
+        />
       </div>
     </Popover>
   );

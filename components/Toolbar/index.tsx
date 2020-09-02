@@ -98,7 +98,7 @@ const Toolbar = (props: IToolbar) => {
 export default Toolbar;
 
 interface IBaseButton {
-  label: string;
+  label: React.ReactText;
   icon: JSX.Element;
   onClick?: (event: React.MouseEvent) => void;
   showLabel?: 'always' | 'never';
