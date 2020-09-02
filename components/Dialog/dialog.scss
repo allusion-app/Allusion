@@ -23,10 +23,10 @@
 
 .dialog-icon {
   grid-area: dialog-icon;
-  padding: 0.5rem;
   color: var(--primary-color);
 
   > .custom-icon {
+    margin: 0.5rem;
     width: 2.5rem !important;
     height: 2.5rem !important;
   }
