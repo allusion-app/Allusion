@@ -86,9 +86,7 @@ import WARNING_FILL from 'resources/icons/warning-fill.svg';
 import WARNING_BROKEN_LINK from 'resources/icons/warning-broken-link.svg';
 import WARNING from 'resources/icons/warning.svg';
 
-const toSvg = (src: any) => (
-  <SVG src={src} className="bp3-icon custom-icon" style={{ width: '16px', height: '16px' }} />
-);
+const toSvg = (src: any) => <SVG src={src} className="custom-icon" />;
 
 const IconSet = {
   ADD_TAG_FILL: toSvg(ADD_TAG_FILL),

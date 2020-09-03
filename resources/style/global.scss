@@ -253,30 +253,8 @@ img {
 }
 
 @media (max-width: 540px) {
-  #layout-container {
-    --toolbar-height: 4.8rem;
-  }
-
-  #layout-container:not(.vertical-toolbar) > #toolbar {
-    display: grid;
-    gap: 0;
-    grid-template-rows: 1fr 1fr;
-    grid-template-columns: 1fr min-content;
-    grid-template-areas:
-      'outliner-toolbar inspector-toolbar'
-      'main-toolbar main-toolbar';
-
-    &.mac-toolbar {
-      padding: 0;
-      grid-template-columns: var(--mac-system-buttons-width) 1fr min-content;
-      grid-template-areas:
-        '. outliner-toolbar inspector-toolbar'
-        'main-toolbar main-toolbar main-toolbar';
-    }
-
-    #main-toolbar {
-      justify-content: space-between;
-    }
+  #layout-container:not(.vertical-toolbar) > #toolbar .toolbar-group {
+    margin: 0;
   }
 
   #main-toolbar {
@@ -307,9 +285,29 @@ img {
 }
 
 // Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
-.custom-icon * {
-  fill: currentColor;
+.custom-icon {
+  width: 1rem;
+  height: 1rem;
+  margin: 0.125rem;
+
+  * {
+    fill: currentColor;
+  }
 }
+.custom-icon-128 > * {
+  height: 8rem;
+  width: 8rem;
+}
+.custom-icon-64 > * {
+  height: 4rem;
+  width: 4rem;
+}
+.custom-icon-14 > * {
+  height: 0.875rem;
+  width: 0.875rem;
+  display: block;
+}
+
 .bp3-overlay-content {
   display: flex;
   align-items: center;
@@ -328,20 +326,6 @@ img {
 .bp3-icon-eye {
   cursor: none;
 }
-.custom-icon-128 > * {
-  height: 8rem !important;
-  width: 8rem !important;
-}
-.custom-icon-64 > * {
-  height: 4rem !important;
-  width: 4rem !important;
-}
-.custom-icon-14 > * {
-  height: 0.875rem !important;
-  width: 0.875rem !important;
-  display: block;
-}
-
 .bp3-alert .custom-icon,
 .custom-icon-32 > * {
   height: 2rem !important;

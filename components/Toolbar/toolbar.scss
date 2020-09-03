@@ -68,7 +68,8 @@
 .toolbar-button-label,
 .toolbar-button-label.always,
 .toolbar-group.always .toolbar-button-label:not(.never) {
-  margin: 0.25rem;
+  display: inline-flex;
+  margin: 0.125rem;
 }
 
 // Hide text without removing it from screen readers:

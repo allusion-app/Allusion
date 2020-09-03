@@ -330,10 +330,8 @@ const HelpCenterHome = (props: IPanelProps) => {
                 })
               }
             >
-              <span>
-                {section.icon}
-                {section.title}
-              </span>
+              {section.icon}
+              {section.title}
             </header>
             <ul>
               {section.subSections.map((subSec, subSectionIndex) => (

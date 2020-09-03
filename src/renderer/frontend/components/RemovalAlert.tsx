@@ -108,7 +108,7 @@ export const FileRemoval = (props: IRemovalProps<ClientFile[]>) => {
       title={`Are you sure you want to delete ${files.length} missing file${
         files.length > 1 ? 's' : ''
       }?`}
-      information="Deleting files will permanently remove them from Allusion. If you just accidentially moved files, you can recover them by moving them back to their previous location."
+      information="Deleting files will permanently remove them from Allusion. Accidentially moved files can be recovered by returning them to their previous location."
       onCancel={props.onClose}
       onConfirm={() => {
         props.onClose();

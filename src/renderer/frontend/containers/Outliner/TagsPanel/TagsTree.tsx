@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback, useReducer, useContext } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { ContextMenu, Collapse, H4, Icon, InputGroup } from '@blueprintjs/core';
+import { ContextMenu, Collapse, H4, InputGroup } from '@blueprintjs/core';
 
 import { Tree, Toolbar, ToolbarButton } from 'components';
 import IconSet from 'components/Icons';
@@ -54,9 +54,7 @@ interface ILabelProps {
 
 const Label = (props: ILabelProps) => (
   <>
-    <span className="pre-icon" style={{ color: props.color }}>
-      {props.icon}
-    </span>
+    <span style={{ color: props.color, display: 'inline-flex' }}>{props.icon}</span>
     {props.isEditing ? (
       <InputGroup
         autoFocus
@@ -739,9 +737,8 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
         onDragLeave={handleDragOverAndLeave}
         onDrop={handleDrop}
       >
-        <H4 className="bp3-heading" onClick={() => setIsCollapsed(!isCollapsed)}>
-          <Icon icon={isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} />
-          Tags
+        <H4 onClick={() => setIsCollapsed(!isCollapsed)}>
+          {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}Tags
         </H4>
         <Toolbar controls="tag-hierarchy">
           {uiStore.tagSelection.size > 0 ? (

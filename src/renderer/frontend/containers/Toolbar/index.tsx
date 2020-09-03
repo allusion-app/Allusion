@@ -3,12 +3,18 @@ import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { Toolbar as Commandbar, ToolbarToggleButton, ToolbarGroup } from 'components';
+import {
+  Toolbar as Commandbar,
+  ToolbarToggleButton,
+  ToolbarGroup,
+  ToolbarButton,
+} from 'components';
 import ContentToolbar from './ContentToolbar';
 import { remote } from 'electron';
+import { Popover, Menu, MenuItem, KeyCombo } from '@blueprintjs/core';
 
 // Tooltip info
-export const enum ToolbarTooltips {
+export const enum Tooltip {
   Add = 'Toggle Add Panel',
   Outliner = 'Toggle Outliner',
   Search = 'Toggle Search Panel',
@@ -17,12 +23,7 @@ export const enum ToolbarTooltips {
   TagFiles = 'Quick add or delete tags to selection',
   Delete = 'Delete selected missing images from library',
   View = 'Change view content panel',
-  ViewGrid = 'Change view to Grid',
-  ViewList = 'Change view List',
   Filter = 'Filter view content panel',
-  Inspector = 'Toggle Inspector',
-  Settings = 'Toggle Settings',
-  HelpCenter = 'Toggle Help Center',
   Back = 'Back to Content panel',
   Preview = 'Open selected images in a preview window',
 }
@@ -37,7 +38,7 @@ const OutlinerToolbar = observer(() => {
         onClick={uiStore.toggleOutliner}
         pressed={uiStore.isOutlinerOpen}
         label="Outliner"
-        tooltip={ToolbarTooltips.Outliner}
+        tooltip={Tooltip.Outliner}
       />
     </ToolbarGroup>
   );
@@ -45,32 +46,35 @@ const OutlinerToolbar = observer(() => {
 
 const InspectorToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
+
   return (
-    <ToolbarGroup
-      showLabel={uiStore.isToolbarVertical ? 'never' : undefined}
-      id="inspector-toolbar"
-    >
-      <ToolbarToggleButton
-        icon={IconSet.INFO}
-        onClick={uiStore.toggleInspector}
-        pressed={uiStore.isInspectorOpen}
-        label="Inspector"
-        tooltip={ToolbarTooltips.Inspector}
-      />
-      <ToolbarToggleButton
-        icon={IconSet.HELPCENTER}
-        onClick={uiStore.toggleHelpCenter}
-        pressed={uiStore.isHelpCenterOpen}
-        label="Help Center"
-        tooltip={ToolbarTooltips.HelpCenter}
-      />
-      <ToolbarToggleButton
-        icon={IconSet.SETTINGS}
-        onClick={uiStore.toggleSettings}
-        pressed={uiStore.isSettingsOpen}
-        label="Settings"
-        tooltip={ToolbarTooltips.Settings}
-      />
+    <ToolbarGroup id="inspector-toolbar">
+      <Popover minimal openOnTargetFocus={false}>
+        <ToolbarButton showLabel="never" icon={IconSet.MORE} label="More" tooltip="See more" />
+        <Menu>
+          <MenuItem
+            icon={IconSet.INFO}
+            onClick={uiStore.toggleInspector}
+            active={uiStore.isInspectorOpen}
+            text="Inspector"
+            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleInspector} />}
+          />
+          <MenuItem
+            icon={IconSet.HELPCENTER}
+            onClick={uiStore.toggleHelpCenter}
+            active={uiStore.isHelpCenterOpen}
+            text="Help Center"
+            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleHelpCenter} />}
+          />
+          <MenuItem
+            icon={IconSet.SETTINGS}
+            onClick={uiStore.toggleSettings}
+            active={uiStore.isSettingsOpen}
+            text="Settings"
+            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleSettings} />}
+          />
+        </Menu>
+      </Popover>
     </ToolbarGroup>
   );
 });

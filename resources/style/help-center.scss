@@ -32,7 +32,7 @@
         top: 1rem;
       }
 
-      .bp3-icon {
+      .custom-icon {
         color: inherit;
       }
     }
@@ -88,7 +88,7 @@
     font-weight: bold;
     cursor: pointer;
 
-    .bp3-icon {
+    .custom-icon {
       margin-right: 0.5rem;
     }
 
@@ -100,6 +100,7 @@
       mask-image: url(~resources/icons/arrow-down.svg);
       -webkit-mask-image: url(~resources/icons/arrow-down.svg);
       background-color: currentColor;
+      margin-left: auto;
     }
 
     &:hover,

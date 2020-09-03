@@ -289,9 +289,7 @@ const SubLocation = observer(
 
     return (
       <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
-        <span className="pre-icon">
-          {treeData.expansion[nodeData.fullPath] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
-        </span>
+        {treeData.expansion[nodeData.fullPath] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
         {nodeData.name}
       </div>
     );
@@ -329,19 +327,14 @@ const Location = observer(
 
     return (
       <div className="tree-content-label" onContextMenu={handleContextMenu}>
-        <span className="pre-icon">
-          {nodeData.id === DEFAULT_LOCATION_ID
-            ? IconSet.IMPORT
-            : treeData.expansion[nodeData.id]
-            ? IconSet.FOLDER_OPEN
-            : IconSet.FOLDER_CLOSE}
-        </span>
+        {nodeData.id === DEFAULT_LOCATION_ID
+          ? IconSet.IMPORT
+          : treeData.expansion[nodeData.id]
+          ? IconSet.FOLDER_OPEN
+          : IconSet.FOLDER_CLOSE}
         <div onClick={handleClick}>{nodeData.name}</div>
         {nodeData.isBroken && (
-          <span
-            className="after-icon"
-            onClick={() => treeData.uiStore.openLocationRecovery(nodeData.id)}
-          >
+          <span onClick={() => treeData.uiStore.openLocationRecovery(nodeData.id)}>
             {IconSet.WARNING}
           </span>
         )}
@@ -502,11 +495,8 @@ const LocationsPanel = () => {
   return (
     <div>
       <div className="outliner-header-wrapper">
-        <H4 className="bp3-heading" onClick={() => setCollapsed(!isCollapsed)}>
-          <span className="bp3-icon custom-icon custom-icon-14">
-            {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}
-          </span>
-          Locations
+        <H4 onClick={() => setCollapsed(!isCollapsed)}>
+          {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}Locations
         </H4>
         <Toolbar controls="location-list">
           <ToolbarButton

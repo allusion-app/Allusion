@@ -545,7 +545,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
   // Also take into account scrolling when dragging while selecting
 
   if (fileList.length === 0) {
-    let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
+    let icon = IconSet.MEDIA;
     let title = 'No images';
     let description = 'Images can be added from the outliner';
     let action = (
@@ -553,7 +553,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
     );
     if (fileStore.showsQueryContent) {
       description = 'Try searching for something else.';
-      icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
+      icon = IconSet.SEARCH;
       title = 'No images found';
       action = (
         <ButtonGroup>
@@ -578,7 +578,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
         </ButtonGroup>
       );
     } else if (fileStore.showsUntaggedContent) {
-      icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
+      icon = IconSet.TAG;
       description = 'All images have been tagged. Nice work!';
       title = 'No untagged images';
       action = (
@@ -599,7 +599,14 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
       );
     }
 
-    return <NonIdealState icon={icon} title={title} description={description} action={action} />;
+    return (
+      <NonIdealState
+        icon={<span className="custom-icon-64">{icon}</span>}
+        title={title}
+        description={description}
+        action={action}
+      />
+    );
   }
 
   return (

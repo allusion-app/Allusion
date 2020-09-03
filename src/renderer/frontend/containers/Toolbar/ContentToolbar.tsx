@@ -1,15 +1,9 @@
 import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Popover, Icon, Menu, MenuItem } from '@blueprintjs/core';
+import { Popover, Icon, Menu, MenuItem, KeyCombo } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
-import { ToolbarTooltips } from '.';
-import {
-  ToolbarButton,
-  ToolbarGroup,
-  ToolbarSegment,
-  ToolbarSegmentButton,
-  ToolbarToggleButton,
-} from 'components';
+import { Tooltip } from '.';
+import { ToolbarButton, ToolbarGroup, ToolbarToggleButton } from 'components';
 import { ClientFile, IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
@@ -31,7 +25,7 @@ const FileSelection = observer(
       onClick={toggle}
       pressed={allFilesSelected}
       label={selectionCount}
-      tooltip={ToolbarTooltips.Select}
+      tooltip={Tooltip.Select}
     />
   ),
 );
@@ -56,7 +50,7 @@ const TagFilesPopover = observer(
           disabled={disabled}
           onClick={toggle}
           label="Tag"
-          tooltip={ToolbarTooltips.TagFiles}
+          tooltip={Tooltip.TagFiles}
         />
       )}
       <FileTags files={files} autoFocus />
@@ -80,7 +74,7 @@ const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverPr
           disabled={disabled}
           onClick={uiStore.toggleToolbarFileRemover}
           label="Delete"
-          tooltip={ToolbarTooltips.Delete}
+          tooltip={Tooltip.Delete}
           // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
           // intent="warning"
         />
@@ -135,7 +129,7 @@ const FileFilter = observer(
 
     return (
       <Popover minimal openOnTargetFocus={false} usePortal={false} content={sortMenu}>
-        <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={ToolbarTooltips.Filter} />
+        <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={Tooltip.Filter} />
       </Popover>
     );
   },
@@ -144,22 +138,28 @@ const FileFilter = observer(
 const LayoutOptions = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ToolbarSegment label="View">
-      <ToolbarSegmentButton
-        onClick={uiStore.setMethodList}
-        icon={IconSet.VIEW_LIST}
-        checked={uiStore.isList}
-        label="List"
-        tooltip={ToolbarTooltips.ViewList}
-      />
-      <ToolbarSegmentButton
-        onClick={uiStore.setMethodGrid}
-        icon={IconSet.VIEW_GRID}
-        checked={uiStore.isGrid}
-        label="Grid"
-        tooltip={ToolbarTooltips.ViewGrid}
-      />
-    </ToolbarSegment>
+    <ToolbarGroup>
+      <Popover minimal openOnTargetFocus={false} usePortal={false}>
+        <ToolbarButton icon={IconSet.THUMB_BG} label="View" tooltip={Tooltip.View} />
+        <Menu>
+          <MenuItem
+            icon={IconSet.VIEW_LIST}
+            onClick={uiStore.setMethodList}
+            active={uiStore.isList}
+            text="List View"
+            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
+          />
+          <MenuItem
+            icon={IconSet.VIEW_GRID}
+            onClick={uiStore.setMethodGrid}
+            active={uiStore.isGrid}
+            text="Grid View"
+            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
+          />
+          <MenuItem disabled icon={IconSet.VIEW_MASON} text="Masonry View (WIP)" />
+        </Menu>
+      </Popover>
+    </ToolbarGroup>
   );
 });
 
@@ -172,7 +172,7 @@ const SlideModeToolbar = observer(() => {
         icon={IconSet.ARROW_LEFT}
         onClick={uiStore.disableSlideMode}
         label="Return"
-        tooltip={ToolbarTooltips.Back}
+        tooltip={Tooltip.Back}
       />
     </ToolbarGroup>
   );
@@ -202,7 +202,7 @@ const ContentToolbar = observer(() => {
             onClick={uiStore.toggleQuickSearch}
             pressed={uiStore.isQuickSearchOpen}
             label="Search"
-            tooltip={ToolbarTooltips.Search}
+            tooltip={Tooltip.Search}
           />
         </ToolbarGroup>
 

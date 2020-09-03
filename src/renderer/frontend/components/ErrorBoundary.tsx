@@ -111,7 +111,7 @@ ${this.state.error}
       return (
         <div className="error-boundary">
           <NonIdealState
-            icon={<span className="bp3-icon custom-icon custom-icon-64">{IconSet.DB_ERROR}</span>}
+            icon={<span className="custom-icon-64">{IconSet.DB_ERROR}</span>}
             title="Something went wrong."
             description="You can try one of the following options or contact the maintainers"
             action={

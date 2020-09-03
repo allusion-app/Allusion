@@ -26,12 +26,12 @@
   }
 
   > .label {
-    min-height: 1.5rem;
+    min-height: 2rem;
     display: flex;
     align-items: center;
     border-left: 2px solid transparent;
     padding-left: calc(var(--level) * var(--treeitem-identation) + var(--treeitem-offset));
-    padding-right: 0.6rem;
+    padding-right: 0.5rem;
 
     &:hover {
       background-color: var(--highlight-background-color);
@@ -40,7 +40,7 @@
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    &:hover [class*='custom-icon'] {
+    &:hover .custom-icon {
       border-color: var(--primary-color);
       color: var(--highlight-font-color);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -59,8 +59,7 @@
     color: var(--selection-font-color);
     background-color: var(--selection-background-color);
 
-    // TODO: This shouldn't be necessary after the style refactor.
-    [class*='custom-icon'] {
+    .custom-icon {
       color: var(--selection-font-color);
     }
   }
@@ -80,20 +79,15 @@
 }
 
 .default_caret {
-  width: 1rem;
-  height: 1rem;
+  width: 1em;
+  height: 1em;
   flex-shrink: 0;
   cursor: pointer;
   background-color: var(--caret-color);
   mask-image: url(~resources/icons/arrow-down.svg);
   -webkit-mask-image: url(~resources/icons/arrow-down.svg);
-  mask-repeat: no-repeat;
-  -webkit-mask-repeat: no-repeat;
-  mask-position: center;
-  -webkit-mask-position: center;
-  mask-size: 0.75rem;
-  -webkit-mask-size: 0.75rem;
   transition: transform 100ms ease-out;
+  margin-right: 0.25em;
 
   &[aria-pressed='false'] {
     transform: rotateZ(-90deg);
