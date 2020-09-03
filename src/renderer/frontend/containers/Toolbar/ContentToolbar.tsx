@@ -40,11 +40,12 @@ interface ITagFilesPopoverProps {
 }
 
 const TagFilesPopover = observer(
-  ({ disabled, files, isOpen, close, toggle, hidden }: ITagFilesPopoverProps) => (
-    <Popover minimal openOnTargetFocus={false} usePortal={false} isOpen={isOpen} onClose={close}>
-      {hidden ? (
-        <></>
-      ) : (
+  ({ disabled, files, isOpen, close, toggle, hidden }: ITagFilesPopoverProps) => {
+    if (hidden) {
+      return null;
+    }
+    return (
+      <Popover minimal openOnTargetFocus={false} usePortal={false} isOpen={isOpen} onClose={close}>
         <ToolbarButton
           icon={IconSet.TAG}
           disabled={disabled}
@@ -52,10 +53,10 @@ const TagFilesPopover = observer(
           label="Tag"
           tooltip={Tooltip.TagFiles}
         />
-      )}
-      <FileTags files={files} autoFocus />
-    </Popover>
-  ),
+        <FileTags files={files} autoFocus />
+      </Popover>
+    );
+  },
 );
 
 interface IRemoveFilesPopoverProps {
@@ -65,23 +66,26 @@ interface IRemoveFilesPopoverProps {
 
 const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverProps) => {
   const { uiStore } = useContext(StoreContext);
-  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+  if (hidden) {
+    return null;
+  }
   return (
     <>
-      {hidden ? null : (
-        <ToolbarButton
-          icon={IconSet.DELETE}
-          disabled={disabled}
-          onClick={uiStore.toggleToolbarFileRemover}
-          label="Delete"
-          tooltip={Tooltip.Delete}
-          // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
-          // intent="warning"
-        />
-      )}
+      <ToolbarButton
+        icon={IconSet.DELETE}
+        disabled={disabled}
+        onClick={uiStore.toggleToolbarFileRemover}
+        label="Delete"
+        tooltip={Tooltip.Delete}
+        // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
+        // intent="warning"
+      />
       <FileRemoval
-        onClose={uiStore.toggleToolbarFileRemover}
-        theme={theme}
+        onClose={() => {
+          if (uiStore.isToolbarFileRemoverOpen) {
+            uiStore.toggleToolbarFileRemover();
+          }
+        }}
         object={uiStore.isToolbarFileRemoverOpen ? uiStore.clientFileSelection : []}
       />
     </>

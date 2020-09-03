@@ -1,6 +1,5 @@
 import './dialog.scss';
-import React from 'react';
-import { Overlay } from '@blueprintjs/core';
+import React, { useEffect, useRef } from 'react';
 import { Button, ButtonGroup } from 'components';
 import { observer } from 'mobx-react-lite';
 
@@ -15,38 +14,49 @@ interface IAlert extends IDialogActions {
 }
 
 const Alert = observer((props: IAlert) => {
+  const { isOpen, onClick, title, information, view, icon } = props;
+  const alert = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const element = alert.current;
+    const handleClose = () => onClick(DialogButton.CloseButton);
+    element?.addEventListener('close', handleClose);
+
+    return () => element?.removeEventListener('close', handleClose);
+  }, [onClick]);
+
+  useEffect(() => {
+    if (alert.current) {
+      isOpen ? alert.current.showModal() : alert.current.close();
+    }
+  }, [isOpen]);
+
   return (
-    <Overlay
-      isOpen={props.isOpen}
-      hasBackdrop={false}
-      onClose={() => props.onClick(DialogButton.CloseButton)}
+    <dialog
+      ref={alert}
+      role="alertdialog"
+      aria-labelledby="dialog-label"
+      aria-describedby="dialog-information"
+      className={props.className}
     >
-      <div className="dialog-container">
-        <div
-          role="alertdialog"
-          aria-modal="true"
-          aria-label="dialog-label"
-          aria-describedby="dialog-information"
-          className={props.className}
-        >
-          <span className="dialog-icon">{props.icon}</span>
-          <h2 id="dialog-label" className="dialog-label">
-            {props.title}
-          </h2>
-          <div id="dialog-information" className="dialog-information">
-            <p>{props.information}</p>
-            {props.view}
-          </div>
-          <DialogActions
-            closeButtonText={props.closeButtonText}
-            secondaryButtonText={props.secondaryButtonText}
-            primaryButtonText={props.primaryButtonText}
-            defaultButton={props.defaultButton}
-            onClick={props.onClick}
-          />
+      <div className="dialog-content">
+        <span className="dialog-icon">{icon}</span>
+        <h2 id="dialog-label" className="dialog-label">
+          {title}
+        </h2>
+        <div id="dialog-information" className="dialog-information">
+          <p>{information}</p>
+          {view}
         </div>
+        <DialogActions
+          closeButtonText={props.closeButtonText}
+          secondaryButtonText={props.secondaryButtonText}
+          primaryButtonText={props.primaryButtonText}
+          defaultButton={props.defaultButton}
+          onClick={onClick}
+        />
       </div>
-    </Overlay>
+    </dialog>
   );
 });
 

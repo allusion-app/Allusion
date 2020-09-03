@@ -526,7 +526,7 @@ const LocationsPanel = () => {
       <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} theme={theme} />
       <LocationRecoveryDialog />
       {deletableLocation && (
-        <LocationRemoval theme={theme} object={deletableLocation} onClose={closeLocationRemover} />
+        <LocationRemoval object={deletableLocation} onClose={closeLocationRemover} />
       )}
     </div>
   );

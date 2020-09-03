@@ -620,8 +620,6 @@ interface ITagsTreeProps {
 }
 
 const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITagsTreeProps) => {
-  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-
   const [state, dispatch] = useReducer(reducer, {
     expansion: {},
     editableNode: undefined,
@@ -802,7 +800,6 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
 
       {state.deletableNode && (
         <TagRemoval
-          theme={theme}
           object={state.deletableNode}
           onClose={() => dispatch(Factory.abortDeletion())}
         />

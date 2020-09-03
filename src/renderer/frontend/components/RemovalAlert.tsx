@@ -9,7 +9,6 @@ import { ClientFile } from 'src/renderer/entities/File';
 import { Alert, DialogButton } from 'components';
 
 interface IRemovalAlertProps {
-  theme: string;
   isOpen: boolean;
   onCancel: () => void;
   onConfirm: () => void;
@@ -18,31 +17,33 @@ interface IRemovalAlertProps {
   body?: React.ReactNode;
 }
 
-const RemovalAlert = (props: IRemovalAlertProps) => (
-  <Alert
-    className={props.theme}
-    isOpen={props.isOpen}
-    title={props.title}
-    information={props.information}
-    icon={IconSet.WARNING}
-    closeButtonText="Cancel"
-    primaryButtonText="Delete"
-    defaultButton={DialogButton.PrimaryButton}
-    onClick={(button) =>
-      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
-    }
-  />
-);
+const RemovalAlert = (props: IRemovalAlertProps) => {
+  const { uiStore } = useContext(StoreContext);
+  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+  return (
+    <Alert
+      className={theme}
+      isOpen={props.isOpen}
+      title={props.title}
+      information={props.information}
+      icon={IconSet.WARNING}
+      closeButtonText="Cancel"
+      primaryButtonText="Delete"
+      defaultButton={DialogButton.PrimaryButton}
+      onClick={(button) =>
+        button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
+      }
+    />
+  );
+};
 
 interface IRemovalProps<T> {
-  theme: string;
   object: T;
   onClose: () => void;
 }
 
 export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
   <RemovalAlert
-    theme={props.theme}
     isOpen={true}
     title={`Are you sure you want to delete the location "${props.object.name}"?`}
     information="This will permanently remove the location and all files contained in it from Allusion."
@@ -72,7 +73,6 @@ export const TagRemoval = (props: IRemovalProps<ClientTag | ClientTagCollection>
 
   return (
     <RemovalAlert
-      theme={props.theme}
       isOpen={true}
       title={text}
       information="Deleting tags or collections will permanently remove them from Allusion."
@@ -103,7 +103,6 @@ export const FileRemoval = (props: IRemovalProps<ClientFile[]>) => {
 
   return (
     <RemovalAlert
-      theme={props.theme}
       isOpen={uiStore.isToolbarFileRemoverOpen}
       title={`Are you sure you want to delete ${files.length} missing file${
         files.length > 1 ? 's' : ''
