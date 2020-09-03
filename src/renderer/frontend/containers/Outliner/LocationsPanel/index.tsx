@@ -30,15 +30,14 @@ const enum Tooltip {
 }
 
 interface ILocationConfigModalProps {
-  theme: string;
   dir: ClientLocation | undefined;
   handleClose: () => void;
 }
 
-const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalProps) => {
+const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) => {
   if (!dir) return <> </>;
   return (
-    <Dialog open={Boolean(dir)} onClose={handleClose} className={theme}>
+    <Dialog labelledby="dialog-label" describedby="dialog-information" open onClose={handleClose}>
       <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
       <h2 id="dialog-label" className="dialog-label">
         Location: {dir.name}
@@ -396,8 +395,7 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
 });
 
 const LocationsPanel = () => {
-  const { locationStore, uiStore } = useContext(StoreContext);
-  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
+  const { locationStore } = useContext(StoreContext);
 
   const [locationConfigOpen, setLocationConfigOpen] = useState<ClientLocation | undefined>(
     undefined,
@@ -500,7 +498,7 @@ const LocationsPanel = () => {
         />
       </Collapse>
 
-      <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} theme={theme} />
+      <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
       <LocationRecoveryDialog />
       {deletableLocation && (
         <LocationRemoval object={deletableLocation} onClose={closeLocationRemover} />

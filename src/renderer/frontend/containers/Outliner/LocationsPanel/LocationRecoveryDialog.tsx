@@ -1,4 +1,4 @@
-import { Callout, Classes, Dialog } from '@blueprintjs/core';
+import { Callout } from '@blueprintjs/core';
 import { remote } from 'electron';
 import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
@@ -9,7 +9,7 @@ import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import LocationStore from 'src/renderer/frontend/stores/LocationStore';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup } from 'components';
+import { Button, ButtonGroup, Dialog } from 'components';
 import { AppToaster } from 'src/renderer/frontend/App';
 
 interface IMatch {
@@ -150,11 +150,15 @@ const RecoveryActions = observer(
     switch (status) {
       case Status.Ok:
         // TODO: Refetch on close?
-        return <Button styling="outlined" onClick={uiStore.closeLocationRecovery} label="Close" />;
+        return (
+          <ButtonGroup className="dialog-actions">
+            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} label="Close" />
+          </ButtonGroup>
+        );
 
       case Status.InvalidPath:
         return (
-          <ButtonGroup>
+          <ButtonGroup className="dialog-actions">
             <Button styling="filled" onClick={locate} label="Locate" />
             {/* Re-scan option, e.g. for when you mount a drive */}
             <Button styling="outlined" onClick={rescan} label="Re-Scan" />
@@ -163,25 +167,32 @@ const RecoveryActions = observer(
         );
 
       case Status.NoMatches:
-        return <Button styling="outlined" onClick={retry} label="Retry" />;
+        return (
+          <ButtonGroup className="dialog-actions">
+            <Button styling="outlined" onClick={retry} label="Retry" />
+          </ButtonGroup>
+        );
 
       case Status.PartialRecovery:
         return (
-          <ButtonGroup>
+          <ButtonGroup className="dialog-actions">
             <Button styling="outlined" onClick={retry} label="Retry" />
             <Button styling="outlined" onClick={save} label="Recover" />
           </ButtonGroup>
         );
 
       default:
-        return <Button styling="outlined" onClick={uiStore.closeLocationRecovery} label="Close" />;
+        return (
+          <ButtonGroup className="dialog-actions">
+            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} label="Close" />
+          </ButtonGroup>
+        );
     }
   },
 );
 
 const LocationRecoveryDialog = () => {
   const { uiStore, locationStore, fileStore } = useContext(StoreContext);
-  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
   const { isLocationRecoveryOpen } = uiStore;
 
   const [match, setMatch] = useState<IMatch>();
@@ -238,34 +249,28 @@ const LocationRecoveryDialog = () => {
 
   return (
     <Dialog
-      title={
-        <span className="ellipsis" title={location.path}>
-          Location &quot;{location.name}&quot; could not be found
-        </span>
-      }
-      icon={IconSet.FOLDER_CLOSE}
-      isOpen={Boolean(location)}
+      open={Boolean(location)}
+      labelledby="dialog-label"
+      describedby="dialog-information"
       onClose={uiStore.closeLocationRecovery}
-      className={theme}
     >
-      <div className={Classes.DIALOG_BODY}>
+      <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
+      <h2 id="dialog-label" className="dialog-label">
+        Location &quot;{location.name}&quot; could not be found
+      </h2>
+      <div id="dialog-information" className="dialog-information">
         <RecoveryInfo location={location} status={status} match={match} />
       </div>
-
-      <div className={Classes.DIALOG_FOOTER}>
-        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <RecoveryActions
-            status={status}
-            locate={handleLocate}
-            rescan={handleRescan}
-            retry={() => setMatch(undefined)}
-            save={() => {
-              handleChangeLocationPath(location, pickedDir!);
-              uiStore.closeLocationRecovery();
-            }}
-          />
-        </div>
-      </div>
+      <RecoveryActions
+        status={status}
+        locate={handleLocate}
+        rescan={handleRescan}
+        retry={() => setMatch(undefined)}
+        save={() => {
+          handleChangeLocationPath(location, pickedDir!);
+          uiStore.closeLocationRecovery();
+        }}
+      />
     </Dialog>
   );
 };

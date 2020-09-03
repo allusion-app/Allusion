@@ -1,26 +1,6 @@
-.search-dialog {
-  width: 650px;
-  margin-bottom: 20vh;
-  background-color: var(--foreground-color);
-}
-
 #search-form {
   .bp3-popover-target {
     width: 100%;
-  }
-
-  .bp3-dialog-footer {
-    margin-top: 1rem;
-
-    #functions-bar {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-    }
-
-    #actions-bar {
-      float: right;
-    }
   }
 
   .criteria {
@@ -30,7 +10,7 @@
     // Criteria field alignment (fixed width)
     padding: 0px;
     .bp3-input {
-      width: 275px !important;
+      width: 300px !important;
     }
     > div,
     > span {
@@ -39,7 +19,7 @@
       width: 150px !important;
     }
     > *:nth-child(3) {
-      max-width: 275px !important;
+      max-width: 325px !important;
       border-right: none !important;
     }
 
@@ -57,5 +37,14 @@
   .bp3-tag-input-values {
     // input {
     max-width: 200px;
+  }
+}
+
+#functions-bar {
+  display: flex;
+  justify-content: space-between;
+
+  > .bp3-control {
+    margin: 0;
   }
 }

@@ -3,13 +3,11 @@ import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
   FormGroup,
-  Dialog,
   ControlGroup,
   NumericInput,
   HTMLSelect,
   InputGroup,
   Switch,
-  Classes,
 } from '@blueprintjs/core';
 
 import {
@@ -22,7 +20,7 @@ import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from 'src/renderer/frontend/utils';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup } from 'components';
+import { Button, ButtonGroup, Dialog } from 'components';
 import TagSelector from 'src/renderer/frontend/components/TagSelector';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ID } from 'src/renderer/entities/ID';
@@ -262,8 +260,8 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
   }, [clearSearchCriteriaList]);
 
   return (
-    <div id="search-form">
-      <div className={Classes.DIALOG_BODY}>
+    <>
+      <div id="search-form" className="dialog-information">
         <FormGroup>
           {state.items.map((crit) => (
             <CriteriaItem
@@ -274,9 +272,6 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
             />
           ))}
         </FormGroup>
-      </div>
-
-      <div className={Classes.DIALOG_FOOTER}>
         <div id="functions-bar">
           <Button label="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
           <Switch
@@ -290,30 +285,30 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
             onChange={toggleSearchMatchAny}
           />
         </div>
-
-        <ButtonGroup id="actions-bar">
-          <Button label="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
-          <Button label="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
-        </ButtonGroup>
       </div>
-    </div>
+
+      <ButtonGroup className="dialog-actions">
+        <Button label="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
+        <Button label="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
+      </ButtonGroup>
+    </>
   );
 });
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
     <Dialog
-      isOpen={uiStore.isAdvancedSearchOpen}
-      onClose={uiStore.toggleAdvancedSearch}
-      icon={IconSet.SEARCH_EXTENDED}
-      title="Advanced Search"
-      className={`${themeClass} light header-dark search-dialog`}
-      canEscapeKeyClose={true}
-      canOutsideClickClose={true}
+      open={uiStore.isAdvancedSearchOpen}
+      onClose={uiStore.closeAdvancedSearch}
+      labelledby="dialog-label"
+      describedby="search-form"
     >
+      <span className="dialog-icon">{IconSet.SEARCH_EXTENDED}</span>
+      <h2 id="dialog-label" className="dialog-label">
+        Advanced Search
+      </h2>
       <SearchForm uiStore={uiStore} />
     </Dialog>
   );

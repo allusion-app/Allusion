@@ -4,6 +4,7 @@ dialog {
   border: none;
   border-radius: 0.25rem;
   box-shadow: 0px 3px 10px 5px rgba(0, 0, 0, 0.35);
+  color: var(--text-muted-color);
   margin-top: calc(3 * var(--toolbar-height));
   opacity: 0.9;
   padding: 1rem 1rem 0.5rem;

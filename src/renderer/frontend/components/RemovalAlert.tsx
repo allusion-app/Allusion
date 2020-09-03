@@ -17,26 +17,21 @@ interface IRemovalAlertProps {
   body?: React.ReactNode;
 }
 
-const RemovalAlert = (props: IRemovalAlertProps) => {
-  const { uiStore } = useContext(StoreContext);
-  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-  return (
-    <Alert
-      className={theme}
-      open={props.open}
-      title={props.title}
-      information={props.information}
-      view={props.body}
-      icon={IconSet.WARNING}
-      closeButtonText="Cancel"
-      primaryButtonText="Delete"
-      defaultButton={DialogButton.PrimaryButton}
-      onClick={(button) =>
-        button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
-      }
-    />
-  );
-};
+const RemovalAlert = (props: IRemovalAlertProps) => (
+  <Alert
+    open={props.open}
+    title={props.title}
+    information={props.information}
+    view={props.body}
+    icon={IconSet.WARNING}
+    closeButtonText="Cancel"
+    primaryButtonText="Delete"
+    defaultButton={DialogButton.PrimaryButton}
+    onClick={(button) =>
+      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
+    }
+  />
+);
 
 interface IRemovalProps<T> {
   object: T;
