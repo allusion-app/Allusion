@@ -3,8 +3,48 @@ import React, { useEffect, useRef } from 'react';
 import { Button, ButtonGroup } from 'components';
 import { observer } from 'mobx-react-lite';
 
+interface IDialog {
+  open: boolean;
+  role?: string;
+  labelledby?: string;
+  describedby?: string;
+  children: React.ReactNode;
+  className?: string;
+  onClose: (event: Event) => void;
+}
+
+const Dialog = observer((props: IDialog) => {
+  const { open, children, onClose } = props;
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const element = dialog.current;
+    element?.addEventListener('close', onClose);
+
+    return () => element?.removeEventListener('close', onClose);
+  }, [onClose]);
+
+  useEffect(() => {
+    if (dialog.current) {
+      open ? dialog.current.showModal() : dialog.current.close();
+    }
+  }, [open]);
+
+  return (
+    <dialog
+      ref={dialog}
+      role={props.role}
+      aria-labelledby={props.labelledby}
+      aria-describedby={props.describedby}
+      className={props.className}
+    >
+      <div className="dialog-content">{children}</div>
+    </dialog>
+  );
+});
+
 interface IAlert extends IDialogActions {
-  isOpen: boolean;
+  open: boolean;
   title: React.ReactChild;
   icon?: JSX.Element;
   information: string;
@@ -14,49 +54,33 @@ interface IAlert extends IDialogActions {
 }
 
 const Alert = observer((props: IAlert) => {
-  const { isOpen, onClick, title, information, view, icon } = props;
-  const alert = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const element = alert.current;
-    const handleClose = () => onClick(DialogButton.CloseButton);
-    element?.addEventListener('close', handleClose);
-
-    return () => element?.removeEventListener('close', handleClose);
-  }, [onClick]);
-
-  useEffect(() => {
-    if (alert.current) {
-      isOpen ? alert.current.showModal() : alert.current.close();
-    }
-  }, [isOpen]);
+  const { open, onClick, title, information, view, icon } = props;
 
   return (
-    <dialog
-      ref={alert}
+    <Dialog
+      open={open}
       role="alertdialog"
-      aria-labelledby="dialog-label"
-      aria-describedby="dialog-information"
+      labelledby="dialog-label"
+      describedby="dialog-information"
       className={props.className}
+      onClose={() => onClick(DialogButton.CloseButton)}
     >
-      <div className="dialog-content">
-        <span className="dialog-icon">{icon}</span>
-        <h2 id="dialog-label" className="dialog-label">
-          {title}
-        </h2>
-        <div id="dialog-information" className="dialog-information">
-          <p>{information}</p>
-          {view}
-        </div>
-        <DialogActions
-          closeButtonText={props.closeButtonText}
-          secondaryButtonText={props.secondaryButtonText}
-          primaryButtonText={props.primaryButtonText}
-          defaultButton={props.defaultButton}
-          onClick={onClick}
-        />
+      <span className="dialog-icon">{icon}</span>
+      <h2 id="dialog-label" className="dialog-label">
+        {title}
+      </h2>
+      <div id="dialog-information" className="dialog-information">
+        <p>{information}</p>
+        {view}
       </div>
-    </dialog>
+      <DialogActions
+        closeButtonText={props.closeButtonText}
+        secondaryButtonText={props.secondaryButtonText}
+        primaryButtonText={props.primaryButtonText}
+        defaultButton={props.defaultButton}
+        onClick={onClick}
+      />
+    </Dialog>
   );
 });
 
@@ -100,4 +124,4 @@ const DialogActions = observer((props: IDialogActions) => {
   );
 });
 
-export { Alert, DialogButton, DialogActions };
+export { Alert, Dialog, DialogButton, DialogActions };

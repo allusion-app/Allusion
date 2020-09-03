@@ -7,10 +7,11 @@ import Toolbar, {
   ToolbarToggleButton,
 } from './Toolbar/index';
 import { Button, ButtonGroup, IconButton } from './Button/index';
-import { Alert, DialogButton, DialogActions } from './Dialog/index';
+import { Alert, Dialog, DialogButton, DialogActions } from './Dialog/index';
 
 export {
   Alert,
+  Dialog,
   DialogButton,
   DialogActions,
   Button,

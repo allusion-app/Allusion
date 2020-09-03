@@ -67,7 +67,16 @@ interface IRemoveFilesPopoverProps {
 const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverProps) => {
   const { uiStore } = useContext(StoreContext);
   if (hidden) {
-    return null;
+    return (
+      <FileRemoval
+        onClose={() => {
+          if (uiStore.isToolbarFileRemoverOpen) {
+            uiStore.toggleToolbarFileRemover();
+          }
+        }}
+        object={uiStore.isToolbarFileRemoverOpen ? uiStore.clientFileSelection : []}
+      />
+    );
   }
   return (
     <>

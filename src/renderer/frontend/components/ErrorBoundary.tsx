@@ -20,7 +20,7 @@ export const ClearDbButton = () => {
         label="Clear Database"
         onClick={() => setIsOpen(!isOpen)}
       />
-      <div style={{ padding: '8px', maxWidth: '45ch' }}>
+      <div className="dialog-content" style={{ padding: '8px', maxWidth: '45ch' }}>
         <h2 className="dialog-label">Are you sure you want to clear the database?</h2>
         <div className="dialog-information">
           <p>

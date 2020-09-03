@@ -1,20 +1,11 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { remote, shell } from 'electron';
 import { observer, Observer } from 'mobx-react-lite';
-import {
-  H4,
-  Collapse,
-  Menu,
-  MenuItem,
-  Classes,
-  Dialog,
-  Label,
-  ContextMenu,
-} from '@blueprintjs/core';
+import { H4, Collapse, Menu, MenuItem, Label, ContextMenu } from '@blueprintjs/core';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { Button } from 'components';
+import { DialogActions, Dialog } from 'components';
 import {
   ClientLocation,
   DEFAULT_LOCATION_ID,
@@ -47,47 +38,33 @@ interface ILocationConfigModalProps {
 const LocationConfigModal = ({ dir, handleClose, theme }: ILocationConfigModalProps) => {
   if (!dir) return <> </>;
   return (
-    <Dialog
-      title={
-        <span className="ellipsis" title={dir.path}>
-          Location: {dir.name}
-        </span>
-      }
-      icon={IconSet.FOLDER_CLOSE}
-      isOpen={Boolean(dir)}
-      onClose={handleClose}
-      className={theme}
-    >
-      <div className={Classes.DIALOG_BODY}>
-        <Observer>
-          {() => (
-            <>
-              <p>Path:</p>
-              <pre>{dir.path}</pre>
-              <Label>
-                <p>Tags to add</p>
-                <MultiTagSelector
-                  disabled={dir.isBroken}
-                  selectedItems={dir.clientTagsToAdd}
-                  onTagSelect={dir.addTag}
-                  onTagDeselect={dir.removeTag}
-                  onClearSelection={dir.clearTags}
-                />
-              </Label>
-            </>
-          )}
-        </Observer>
-      </div>
-
-      <div className={Classes.DIALOG_FOOTER}>
-        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button
-            onClick={handleClose}
-            styling="outlined"
-            label={dir.isInitialized ? 'Close' : 'Confirm'}
-          />
-        </div>
-      </div>
+    <Dialog open={Boolean(dir)} onClose={handleClose} className={theme}>
+      <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
+      <h2 id="dialog-label" className="dialog-label">
+        Location: {dir.name}
+      </h2>
+      <Observer>
+        {() => (
+          <div id="dialog-information" className="dialog-information">
+            <p>Path:</p>
+            <pre>{dir.path}</pre>
+            <Label>
+              <p>Tags to add</p>
+              <MultiTagSelector
+                disabled={dir.isBroken}
+                selectedItems={dir.clientTagsToAdd}
+                onTagSelect={dir.addTag}
+                onTagDeselect={dir.removeTag}
+                onClearSelection={dir.clearTags}
+              />
+            </Label>
+          </div>
+        )}
+      </Observer>
+      <DialogActions
+        closeButtonText={dir.isInitialized ? 'Close' : 'Confirm'}
+        onClick={handleClose}
+      />
     </Dialog>
   );
 };

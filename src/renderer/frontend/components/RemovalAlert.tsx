@@ -9,7 +9,7 @@ import { ClientFile } from 'src/renderer/entities/File';
 import { Alert, DialogButton } from 'components';
 
 interface IRemovalAlertProps {
-  isOpen: boolean;
+  open: boolean;
   onCancel: () => void;
   onConfirm: () => void;
   title: string;
@@ -23,7 +23,7 @@ const RemovalAlert = (props: IRemovalAlertProps) => {
   return (
     <Alert
       className={theme}
-      isOpen={props.isOpen}
+      open={props.open}
       title={props.title}
       information={props.information}
       view={props.body}
@@ -45,7 +45,7 @@ interface IRemovalProps<T> {
 
 export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
   <RemovalAlert
-    isOpen={true}
+    open
     title={`Are you sure you want to delete the location "${props.object.name}"?`}
     information="This will permanently remove the location and all files contained in it from Allusion."
     onCancel={props.onClose}
@@ -74,7 +74,7 @@ export const TagRemoval = (props: IRemovalProps<ClientTag | ClientTagCollection>
 
   return (
     <RemovalAlert
-      isOpen={true}
+      open
       title={text}
       information="Deleting tags or collections will permanently remove them from Allusion."
       body={
@@ -104,7 +104,7 @@ export const FileRemoval = (props: IRemovalProps<ClientFile[]>) => {
 
   return (
     <RemovalAlert
-      isOpen={uiStore.isToolbarFileRemoverOpen}
+      open={uiStore.isToolbarFileRemoverOpen}
       title={`Are you sure you want to delete ${files.length} missing file${
         files.length > 1 ? 's' : ''
       }?`}
