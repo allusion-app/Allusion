@@ -26,6 +26,7 @@ const RemovalAlert = (props: IRemovalAlertProps) => {
       isOpen={props.isOpen}
       title={props.title}
       information={props.information}
+      view={props.body}
       icon={IconSet.WARNING}
       closeButtonText="Cancel"
       primaryButtonText="Delete"

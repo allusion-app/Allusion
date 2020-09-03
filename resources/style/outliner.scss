@@ -175,21 +175,6 @@
   }
 }
 
-.bp3-alert {
-  max-width: 550px; // default is 400, quite narrow
-}
-
-.bp3-alert-contents {
-  min-height: 100px;
-
-  > strong {
-    display: block;
-    font-size: medium;
-    margin-bottom: 1rem;
-  }
-
-  > p,
-  strong {
-    line-height: 1.5em;
-  }
+#tag-remove-overview {
+  margin-bottom: 0.5rem;
 }

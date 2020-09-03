@@ -1,7 +1,10 @@
 dialog {
+  backdrop-filter: blur(10px);
   background-color: var(--foreground-color);
+  border: none;
   border-radius: 0.25rem;
   box-shadow: 0px 3px 10px 5px rgba(0, 0, 0, 0.35);
+  opacity: 0.9;
   padding: 1rem 1rem 0.5rem;
   top: calc(2 * var(--toolbar-height));
   z-index: 1;
@@ -15,8 +18,7 @@ dialog {
   display: grid;
   width: 50ch;
   grid-template: 'dialog-icon dialog-label' 'dialog-icon dialog-information' 'dialog-actions dialog-actions';
-  opacity: 0.9;
-  backdrop-filter: blur(10px);
+  row-gap: 0.5rem;
 }
 
 .dialog-icon {
@@ -34,9 +36,9 @@ dialog {
 .dialog-label {
   grid-area: dialog-label;
   font-size: medium;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--primary-color);
-  margin-top: 0;
+  margin: 0;
 }
 
 .dialog-information {

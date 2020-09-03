@@ -302,6 +302,12 @@ img {
   height: 4rem;
   width: 4rem;
 }
+
+.custom-icon-32 > * {
+  height: 2rem;
+  width: 2rem;
+}
+
 .custom-icon-14 > * {
   height: 0.875rem;
   width: 0.875rem;
@@ -325,11 +331,6 @@ img {
 
 .bp3-icon-eye {
   cursor: none;
-}
-.bp3-alert .custom-icon,
-.custom-icon-32 > * {
-  height: 2rem !important;
-  width: 2rem !important;
 }
 
 @keyframes fade {

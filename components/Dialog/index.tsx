@@ -8,7 +8,7 @@ interface IAlert extends IDialogActions {
   title: React.ReactChild;
   icon?: JSX.Element;
   information: string;
-  view?: JSX.Element;
+  view?: React.ReactNode;
   className?: string;
   // onSuppression?: () => void;
 }
