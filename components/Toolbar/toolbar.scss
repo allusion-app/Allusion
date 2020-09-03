@@ -40,8 +40,8 @@
   }
 
   &[aria-checked='true'] {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: currentColor;
+    color: var(--background-color);
   }
 
   &[aria-pressed='true'] {
