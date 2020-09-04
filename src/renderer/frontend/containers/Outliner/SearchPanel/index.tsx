@@ -288,7 +288,7 @@ export const AdvancedSearchDialog = observer(() => {
   return (
     <Dialog
       open={uiStore.isAdvancedSearchOpen}
-      onClose={uiStore.closeAdvancedSearch}
+      onCancel={uiStore.closeAdvancedSearch}
       labelledby="dialog-label"
       describedby="search-form"
     >

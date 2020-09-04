@@ -248,12 +248,7 @@ const LocationRecoveryDialog = () => {
   };
 
   return (
-    <Dialog
-      open={Boolean(location)}
-      labelledby="dialog-label"
-      describedby="dialog-information"
-      onClose={uiStore.closeLocationRecovery}
-    >
+    <Dialog open={Boolean(location)} labelledby="dialog-label" describedby="dialog-information">
       <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
       <h2 id="dialog-label" className="dialog-label">
         Location &quot;{location.name}&quot; could not be found

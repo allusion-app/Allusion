@@ -11,8 +11,13 @@ interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   onClose?: (event: Event) => void;
+  /** If no event listener is provided for the cancel event, by default closing
+   *  with the Escape key will be disabled. This is to ensure that no error is
+   * thrown when HTMLDialogElement.showModal() is called.  */
   onCancel?: (event: Event) => void;
 }
+
+const preventClosingOnEscape = (e: Event) => e.preventDefault();
 
 const Dialog = observer((props: IDialog) => {
   const {
@@ -22,7 +27,7 @@ const Dialog = observer((props: IDialog) => {
     describedby,
     className,
     onClose,
-    onCancel,
+    onCancel = preventClosingOnEscape,
     children,
     ...p
   } = props;
@@ -34,17 +39,13 @@ const Dialog = observer((props: IDialog) => {
     if (onClose) {
       element?.addEventListener('close', onClose);
     }
-    if (onCancel) {
-      element?.addEventListener('cancel', onCancel);
-    }
+    element?.addEventListener('cancel', onCancel);
 
     return () => {
       if (onClose) {
         element?.removeEventListener('close', onClose);
       }
-      if (onCancel) {
-        element?.removeEventListener('close', onCancel);
-      }
+      element?.removeEventListener('close', onCancel);
     };
   }, [onClose, onCancel]);
 
@@ -89,7 +90,6 @@ const Alert = observer((props: IAlert) => {
       labelledby="dialog-label"
       describedby="dialog-information"
       className={props.className}
-      onClose={() => onClick(DialogButton.CloseButton)}
     >
       <span className="dialog-icon">{icon}</span>
       <h2 id="dialog-label" className="dialog-label">
