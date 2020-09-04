@@ -1,27 +1,38 @@
 import React, { useState, useCallback, useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Dialog, Classes, FormGroup } from '@blueprintjs/core';
+import { Classes, FormGroup } from '@blueprintjs/core';
 import path from 'path';
 import fse from 'fs-extra';
 
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup } from 'components';
+import { Button, ButtonGroup, Dialog } from 'components';
 import LocationsPanel from '../containers/Outliner/LocationsPanel';
 import { remote } from 'electron';
 import StoreContext from '../contexts/StoreContext';
 import { RendererMessenger } from '../../../Messaging';
 import { DEFAULT_LOCATION_ID } from '../../entities/Location';
 
-const WelcomeStep = () => {
+const Step = (props: { title: string; children: React.ReactNode }) => {
   return (
     <>
-      <span className="logo-welcome"></span>
-      <h3>Organising made simple</h3>
+      <div className="dialog-icon"></div>
+      <h2 id="welcome-title" className="dialog-label">
+        {props.title}
+      </h2>
+      <div id="welcome-step" className="dialog-information">
+        {props.children}
+      </div>
+    </>
+  );
+};
+
+const WelcomeStep = () => {
+  return (
+    <Step title="Organising made simple">
       <p>
         Allusion is a tool designed to help you organize your <strong>Visual Library</strong>, so
         you can easily retrieve relevant images throughout your creative process.
       </p>
-    </>
+    </Step>
   );
 };
 
@@ -46,9 +57,7 @@ const SetupImportDirStep = ({
   }, [importLocation, setImportLocation]);
 
   return (
-    <>
-      <span className="logo-welcome"></span>
-      <h3>Import location</h3>
+    <Step title="Setup Import Location">
       {/*
        * Add files by
        * - Adding a location - files added to that folder will automatically show up in Allusion
@@ -82,36 +91,31 @@ const SetupImportDirStep = ({
           </span>
         </label>
       </FormGroup>
-    </>
+    </Step>
   );
 };
 
 const InitialLocationsStep = () => {
   return (
-    <>
-      <span className="logo-welcome"></span>
-      <h3>Import images</h3>
+    <Step title="Import Images">
       <p>Do you have any images directories that you would like to add to your Locations folder?</p>
-
       <LocationsPanel />
-    </>
+    </Step>
   );
 };
 
 const IntroStep = () => {
   return (
-    <>
-      <span className="logo-welcome"></span>
-      <h3>Import images</h3>
+    <Step title="Welcome Tour">
       <p>Woud you like a quick tour to familiarize yourself with Allusion?</p>
-    </>
+    </Step>
   );
 };
+
 const NUM_STEPS = 3;
 
 const WelcomeDialog = () => {
   const { uiStore, locationStore, fileStore } = useContext(StoreContext);
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
   const [showDialog, setShowDialog] = useState(false);
 
   const handleClose = useCallback(async () => {
@@ -154,41 +158,28 @@ const WelcomeDialog = () => {
 
   return (
     <Dialog
-      isOpen={showDialog}
-      onClose={handleClose}
-      icon={IconSet.TAG}
-      title="Welcome to Allusion"
-      canOutsideClickClose={false}
-      canEscapeKeyClose={false}
-      className={`${themeClass} welcomedialog`}
-      isCloseButtonShown={false}
+      open={showDialog}
+      labelledby="welcome-title"
+      describedby="welcome-step"
+      className={`bp3-${uiStore.theme.toLowerCase()} allusion-splash-background welcomedialog`}
     >
-      <div className={Classes.DIALOG_BODY}>
-        {step === 0 && <WelcomeStep />}
-        {step === 1 && (
-          <SetupImportDirStep
-            importLocation={importLocation}
-            setImportLocation={setImportLocation}
-          />
-        )}
-        {step === 2 && <InitialLocationsStep />}
-        {step === 3 && <IntroStep />}
-      </div>
+      {step === 0 && <WelcomeStep />}
+      {step === 1 && (
+        <SetupImportDirStep importLocation={importLocation} setImportLocation={setImportLocation} />
+      )}
+      {step === 2 && <InitialLocationsStep />}
+      {step === 3 && <IntroStep />}
 
-      <div className={Classes.DIALOG_FOOTER}>
-        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <ButtonGroup>
-            <Button onClick={handleClose} disabled={step === 0} label="Skip" styling="outlined" />
-            <Button
-              styling="filled"
-              onClick={handleNextStep}
-              label={step !== NUM_STEPS - 1 ? 'Next' : 'Start'}
-            />
-          </ButtonGroup>
-        </div>
+      <div className="dialog-footer">
+        <ButtonGroup className="dialog-actions">
+          <Button onClick={handleClose} disabled={step === 0} label="Skip" styling="outlined" />
+          <Button
+            styling="filled"
+            onClick={handleNextStep}
+            label={step !== NUM_STEPS - 1 ? 'Next' : 'Start'}
+          />
+        </ButtonGroup>
       </div>
-      <div className={'grad'}></div>
-      <div className={'welcome'}></div>
     </Dialog>
   );
 };
