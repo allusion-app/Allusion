@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useReducer, useCallback } from 'react';
+import React, { useContext, useReducer, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
 import {
@@ -231,7 +231,6 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
   const {
     uiStore: {
       searchCriteriaList,
-      openQuickSearch,
       replaceSearchCriterias,
       clearSearchCriteriaList,
       closeAdvancedSearch,
@@ -242,10 +241,6 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
   const [state, dispatch] = useReducer(reducer, {
     items: searchCriteriaList.length > 0 ? searchCriteriaList.map(fromCriteria) : defaultState(),
   });
-
-  useEffect(() => {
-    openQuickSearch();
-  }, [openQuickSearch]);
 
   const add = useCallback(() => dispatch(Factory.addQuery()), []);
 
