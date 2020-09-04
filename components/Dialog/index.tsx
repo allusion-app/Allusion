@@ -3,26 +3,50 @@ import React, { useEffect, useRef } from 'react';
 import { Button, ButtonGroup } from 'components';
 import { observer } from 'mobx-react-lite';
 
-interface IDialog {
+interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   open: boolean;
   role?: string;
   labelledby?: string;
   describedby?: string;
   children: React.ReactNode;
   className?: string;
-  onClose: (event: Event) => void;
+  onClose?: (event: Event) => void;
+  onCancel?: (event: Event) => void;
 }
 
 const Dialog = observer((props: IDialog) => {
-  const { open, children, onClose } = props;
+  const {
+    open,
+    role,
+    labelledby,
+    describedby,
+    className,
+    onClose,
+    onCancel,
+    children,
+    ...p
+  } = props;
+
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const element = dialog.current;
-    element?.addEventListener('close', onClose);
+    if (onClose) {
+      element?.addEventListener('close', onClose);
+    }
+    if (onCancel) {
+      element?.addEventListener('cancel', onCancel);
+    }
 
-    return () => element?.removeEventListener('close', onClose);
-  }, [onClose]);
+    return () => {
+      if (onClose) {
+        element?.removeEventListener('close', onClose);
+      }
+      if (onCancel) {
+        element?.removeEventListener('close', onCancel);
+      }
+    };
+  }, [onClose, onCancel]);
 
   useEffect(() => {
     if (dialog.current) {
@@ -33,12 +57,14 @@ const Dialog = observer((props: IDialog) => {
   return (
     <dialog
       ref={dialog}
-      role={props.role}
-      aria-labelledby={props.labelledby}
-      aria-describedby={props.describedby}
-      className={props.className}
+      role={role}
+      aria-labelledby={labelledby}
+      aria-describedby={describedby}
+      className={className}
     >
-      <div className="dialog-content">{children}</div>
+      <div {...p} className="dialog-content">
+        {children}
+      </div>
     </dialog>
   );
 });

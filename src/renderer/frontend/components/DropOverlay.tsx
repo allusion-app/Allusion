@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useContext } from 'react';
-import { Card, Overlay, H4, Tag } from '@blueprintjs/core';
+import { Tag } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 import fse from 'fs-extra';
@@ -10,6 +10,8 @@ import { timeoutPromise } from '../utils';
 import { IMG_EXTENSIONS } from '../../entities/File';
 import { RendererMessenger, IStoreFileMessage } from '../../../Messaging';
 import { DEFAULT_LOCATION_ID } from '../../entities/Location';
+import { Dialog } from 'components';
+import IconSet from 'components/Icons';
 
 const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
@@ -100,17 +102,26 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
   return imageItems;
 }
 
+const preventDragEvent = (e: React.DragEvent) => {
+  e.stopPropagation();
+  e.preventDefault();
+};
+
 interface IQuickTagProps {
   tag: ClientTag;
   onDropOnTag: (e: React.DragEvent, tag?: ClientTag) => void;
 }
+
 const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
   const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [
     onDropOnTag,
     tag,
   ]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const handleDragOver = useCallback(() => setIsDraggingOver(true), []);
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    preventDragEvent(e);
+    setIsDraggingOver(true);
+  }, []);
   const handleDragLeave = useCallback(() => setIsDraggingOver(false), []);
 
   return (
@@ -132,14 +143,14 @@ const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
  * for easy importing
  */
 const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChild[] }) => {
-  const { tagStore, fileStore } = useContext(StoreContext);
+  const { tagStore, fileStore, uiStore } = useContext(StoreContext);
 
   const [isDropping, setIsDropping] = useState<boolean>(false);
 
   const [checkedDrop, setCheckedDrop] = useState(false);
 
   const handleDropStart = useCallback(
-    async (e: React.DragEvent) => {
+    (e: React.DragEvent) => {
       // We only have to check once, until drag leave
       if (checkedDrop) return;
       setCheckedDrop(true);
@@ -169,7 +180,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
           }
         }
       }
-      e.preventDefault();
+      preventDragEvent(e);
       if (isDropping !== allowDrop) {
         setIsDropping(allowDrop);
       }
@@ -177,19 +188,25 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
     [isDropping, checkedDrop],
   );
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    // Only trigger if dragging outside itself or its children
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsDropping(false);
-      setCheckedDrop(false);
-    }
+  const closeFileDropper = useCallback((e: React.DragEvent) => {
+    preventDragEvent(e);
+    setIsDropping(false);
+    setCheckedDrop(false);
   }, []);
+
+  const handleDragLeave = useCallback(
+    (e: React.DragEvent) => {
+      // Only trigger if dragging outside itself or its children
+      if (!e.currentTarget.lastElementChild!.contains(e.relatedTarget as Node)) {
+        closeFileDropper(e);
+      }
+    },
+    [closeFileDropper],
+  );
 
   const handleDrop = useCallback(
     async (e: React.DragEvent, tag?: ClientTag) => {
-      e.preventDefault();
-      e.stopPropagation();
-
+      e.persist();
       const dropData = await getDropData(e);
       try {
         for (const dataItem of dropData) {
@@ -241,44 +258,39 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
       } catch (e) {
         console.log('Error while importing dropped file:', e);
       } finally {
-        setIsDropping(false);
-        setCheckedDrop(false);
+        closeFileDropper(e);
       }
     },
-    [fileStore],
+    [closeFileDropper, fileStore],
   );
 
   return (
-    <div onDragEnter={handleDropStart}>
+    <div
+      onDragEnter={handleDropStart}
+      onDragLeave={handleDragLeave}
+      onDragOver={preventDragEvent}
+      onDrop={closeFileDropper}
+    >
       {children}
-      {/* TODO: Blue-ish backdrop */}
-      <Overlay isOpen={isDropping} canEscapeKeyClose={false}>
-        <div
-          onDragLeave={handleDragLeave}
-          onDragExit={handleDragLeave}
-          style={{ width: '100%', height: '100%' }}
-          onDrop={handleDrop}
-        >
-          <Card
-            elevation={4}
-            className="drop-overlay-content"
-            // todo: blue background when dropping over
-          >
-            <H4>Drop import</H4>
-            <p>Drag onto a tag to immediately tag it or anywhere to import it untagged</p>
-
-            {/* <H4 className="bp3-heading inpectorHeading">Drop anywhere to import</H4>
-            <p>Or drag onto a tag to immediately tag it</p> */}
-
-            {/* TODO: Sort by frequency, or alphabetically? */}
-            <div className="quick-tags">
-              {tagStore.tagList.map((tag) => (
-                <QuickTag tag={tag} onDropOnTag={handleDrop} key={tag.id} />
-              ))}
-            </div>
-          </Card>
+      <Dialog
+        open={isDropping}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`bp3-${uiStore.theme.toLowerCase()} file-dropper-overlay`}
+      >
+        <span className="dialog-icon">{IconSet.IMPORT}</span>
+        <h2 id="dialog-label" className="dialog-label">
+          Drop Import
+        </h2>
+        <div id="dialog-information" className="dialog-information">
+          <p>Drag onto a tag to immediately tag it or anywhere to import it untagged</p>
+          <div className="quick-tags">
+            {tagStore.tagList.map((tag) => (
+              <QuickTag tag={tag} onDropOnTag={handleDrop} key={tag.id} />
+            ))}
+          </div>
         </div>
-      </Overlay>
+      </Dialog>
     </div>
   );
 };

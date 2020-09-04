@@ -314,14 +314,16 @@ img {
   display: block;
 }
 
-.bp3-overlay-content {
-  display: flex;
-  align-items: center;
-}
-.drop-overlay-content {
-  margin: auto calc(50% - 200px);
-  width: 400px;
-  padding: 20px !important;
+.file-dropper-overlay {
+  margin: auto;
+
+  &::backdrop {
+    background-color: $blue-trans1;
+  }
+
+  > .dialog-content {
+    width: 400px;
+  }
 
   .quick-tags {
     text-align: center;
@@ -353,18 +355,4 @@ img {
 .color-white {
   color: white;
   transition: color 0.2s ease;
-}
-
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ellipsis-left {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  direction: rtl;
-  text-align: left;
 }

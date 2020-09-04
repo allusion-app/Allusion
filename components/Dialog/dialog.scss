@@ -7,7 +7,7 @@ dialog {
   color: var(--text-muted-color);
   margin-top: 10vh;
   opacity: 0.9;
-  padding: 1rem 1rem 0.5rem;
+  padding: 0;
   top: 0;
   bottom: 0;
   z-index: 1;
@@ -23,6 +23,7 @@ dialog {
   grid-template-columns: min-content 1fr;
   grid-template-rows: min-content 1fr min-content;
   max-height: 80vh;
+  padding: 1rem 1rem 0.5rem;
   row-gap: 0.5rem;
   width: 85ch;
 }
