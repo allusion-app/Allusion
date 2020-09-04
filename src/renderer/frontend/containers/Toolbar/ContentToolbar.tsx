@@ -69,11 +69,7 @@ const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverPr
   if (hidden) {
     return (
       <FileRemoval
-        onClose={() => {
-          if (uiStore.isToolbarFileRemoverOpen) {
-            uiStore.toggleToolbarFileRemover();
-          }
-        }}
+        onClose={uiStore.closeToolbarFileRemover}
         object={uiStore.isToolbarFileRemoverOpen ? uiStore.clientFileSelection : []}
       />
     );
@@ -83,18 +79,14 @@ const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverPr
       <ToolbarButton
         icon={IconSet.DELETE}
         disabled={disabled}
-        onClick={uiStore.toggleToolbarFileRemover}
+        onClick={uiStore.openToolbarFileRemover}
         label="Delete"
         tooltip={Tooltip.Delete}
         // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
         // intent="warning"
       />
       <FileRemoval
-        onClose={() => {
-          if (uiStore.isToolbarFileRemoverOpen) {
-            uiStore.toggleToolbarFileRemover();
-          }
-        }}
+        onClose={uiStore.closeToolbarFileRemover}
         object={uiStore.isToolbarFileRemoverOpen ? uiStore.clientFileSelection : []}
       />
     </>

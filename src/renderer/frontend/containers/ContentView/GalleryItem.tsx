@@ -58,7 +58,7 @@ const ThumbnailDecoration = observer(
               styling="outlined"
               onClick={() => {
                 uiStore.selectFile(file, true);
-                uiStore.toggleToolbarFileRemover();
+                uiStore.openToolbarFileRemover();
               }}
             />
           </ButtonGroup>
@@ -229,7 +229,7 @@ const GalleryItem = observer(
                   onClick={(e) => {
                     e.stopPropagation(); // prevent image click event
                     uiStore.selectFile(file, true);
-                    uiStore.toggleToolbarFileRemover();
+                    uiStore.openToolbarFileRemover();
                   }}
                 >
                   {IconSet.WARNING_BROKEN_LINK}
@@ -278,7 +278,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
           icon={IconSet.WARNING_BROKEN_LINK}
           disabled={fileStore.showsMissingContent}
         />
-        <MenuItem onClick={uiStore.toggleToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+        <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
       </Menu>
     );
   }

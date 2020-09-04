@@ -258,8 +258,12 @@ class UiStore {
     this.isToolbarTagSelectorOpen = false;
   }
 
-  @action.bound toggleToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = !this.isToolbarFileRemoverOpen;
+  @action.bound openToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = true;
+  }
+
+  @action.bound closeToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = false;
   }
 
   @action.bound openLocationRecovery(locationId: ID) {
