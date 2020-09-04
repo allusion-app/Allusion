@@ -60,10 +60,12 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
           </div>
         )}
       </Observer>
-      <DialogActions
-        closeButtonText={dir.isInitialized ? 'Close' : 'Confirm'}
-        onClick={handleClose}
-      />
+      <div className="dialog-footer">
+        <DialogActions
+          closeButtonText={dir.isInitialized ? 'Close' : 'Confirm'}
+          onClick={handleClose}
+        />
+      </div>
     </Dialog>
   );
 };

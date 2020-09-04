@@ -29,13 +29,15 @@ export const ClearDbButton = () => {
           </p>
           <p>This will not delete your images on your system!</p>
         </div>
-        <DialogActions
-          closeButtonText="Cancel"
-          primaryButtonText="Clear"
-          onClick={(button) =>
-            button === DialogButton.CloseButton ? setIsOpen(false) : rootStore.clearDatabase()
-          }
-        />
+        <div className="dialog-footer">
+          <DialogActions
+            closeButtonText="Cancel"
+            primaryButtonText="Clear"
+            onClick={(button) =>
+              button === DialogButton.CloseButton ? setIsOpen(false) : rootStore.clearDatabase()
+            }
+          />
+        </div>
       </div>
     </Popover>
   );

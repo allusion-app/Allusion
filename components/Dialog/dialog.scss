@@ -5,7 +5,7 @@ dialog {
   border-radius: 0.25rem;
   box-shadow: 0px 3px 10px 5px rgba(0, 0, 0, 0.35);
   color: var(--text-muted-color);
-  margin-top: calc(3 * var(--toolbar-height));
+  margin-top: 10vh;
   opacity: 0.9;
   padding: 1rem 1rem 0.5rem;
   top: 0;
@@ -19,29 +19,31 @@ dialog {
 
 .dialog-content {
   display: grid;
-  grid-template: 'dialog-icon dialog-label' 'dialog-information dialog-information' 'dialog-actions dialog-actions';
+  grid-template: 'dialog-icon dialog-label' 'dialog-information dialog-information' 'dialog-footer dialog-footer';
   grid-template-columns: min-content 1fr;
+  grid-template-rows: min-content 1fr min-content;
+  max-height: 80vh;
   row-gap: 0.5rem;
   width: 85ch;
 }
 
 dialog[role='alertdialog'] {
   > .dialog-content {
-    grid-template: 'dialog-icon dialog-label' 'dialog-icon dialog-information' 'dialog-actions dialog-actions';
+    grid-template: 'dialog-icon dialog-label' 'dialog-icon dialog-information' 'dialog-footer dialog-footer';
     width: 50ch;
   }
 
   .dialog-icon > .custom-icon {
     margin: 0;
     margin-right: 0.5rem;
-    width: 2.5rem;
     height: 2.5rem;
+    width: 2.5rem;
   }
 }
 
 .dialog-icon {
-  grid-area: dialog-icon;
   color: var(--primary-color);
+  grid-area: dialog-icon;
 
   > .custom-icon {
     margin-right: 0.5rem;
@@ -49,15 +51,20 @@ dialog[role='alertdialog'] {
 }
 
 .dialog-label {
-  grid-area: dialog-label;
+  color: var(--primary-color);
   font-size: medium;
   font-weight: 700;
-  color: var(--primary-color);
+  grid-area: dialog-label;
   margin: 0;
 }
 
 .dialog-information {
   grid-area: dialog-information;
+  overflow: hidden auto;
+}
+
+.dialog-footer {
+  grid-area: dialog-footer;
 }
 
 .dialog-actions {

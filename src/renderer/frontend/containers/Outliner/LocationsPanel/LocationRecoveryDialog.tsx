@@ -261,16 +261,18 @@ const LocationRecoveryDialog = () => {
       <div id="dialog-information" className="dialog-information">
         <RecoveryInfo location={location} status={status} match={match} />
       </div>
-      <RecoveryActions
-        status={status}
-        locate={handleLocate}
-        rescan={handleRescan}
-        retry={() => setMatch(undefined)}
-        save={() => {
-          handleChangeLocationPath(location, pickedDir!);
-          uiStore.closeLocationRecovery();
-        }}
-      />
+      <div className="footer">
+        <RecoveryActions
+          status={status}
+          locate={handleLocate}
+          rescan={handleRescan}
+          retry={() => setMatch(undefined)}
+          save={() => {
+            handleChangeLocationPath(location, pickedDir!);
+            uiStore.closeLocationRecovery();
+          }}
+        />
+      </div>
     </Dialog>
   );
 };

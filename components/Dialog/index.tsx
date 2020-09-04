@@ -73,13 +73,15 @@ const Alert = observer((props: IAlert) => {
         <p>{information}</p>
         {view}
       </div>
-      <DialogActions
-        closeButtonText={props.closeButtonText}
-        secondaryButtonText={props.secondaryButtonText}
-        primaryButtonText={props.primaryButtonText}
-        defaultButton={props.defaultButton}
-        onClick={onClick}
-      />
+      <div className="dialog-footer">
+        <DialogActions
+          closeButtonText={props.closeButtonText}
+          secondaryButtonText={props.secondaryButtonText}
+          primaryButtonText={props.primaryButtonText}
+          defaultButton={props.defaultButton}
+          onClick={onClick}
+        />
+      </div>
     </Dialog>
   );
 });

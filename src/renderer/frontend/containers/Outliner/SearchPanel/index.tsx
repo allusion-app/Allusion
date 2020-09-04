@@ -1,14 +1,7 @@
 import React, { useContext, useReducer, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { DateInput } from '@blueprintjs/datetime';
-import {
-  FormGroup,
-  ControlGroup,
-  NumericInput,
-  HTMLSelect,
-  InputGroup,
-  Switch,
-} from '@blueprintjs/core';
+import { ControlGroup, NumericInput, HTMLSelect, InputGroup, Switch } from '@blueprintjs/core';
 
 import {
   NumberOperators,
@@ -256,17 +249,17 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
 
   return (
     <>
-      <div id="search-form" className="dialog-information">
-        <FormGroup>
-          {state.items.map((crit) => (
-            <CriteriaItem
-              key={crit.id}
-              criteria={crit}
-              dispatch={dispatch}
-              removable={state.items.length > 1}
-            />
-          ))}
-        </FormGroup>
+      <form id="search-form" className="dialog-information">
+        {state.items.map((crit) => (
+          <CriteriaItem
+            key={crit.id}
+            criteria={crit}
+            dispatch={dispatch}
+            removable={state.items.length > 1}
+          />
+        ))}
+      </form>
+      <div className="dialog-footer">
         <div id="functions-bar">
           <Button label="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
           <Switch
@@ -280,12 +273,11 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
             onChange={toggleSearchMatchAny}
           />
         </div>
+        <ButtonGroup className="dialog-actions">
+          <Button label="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
+          <Button label="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
+        </ButtonGroup>
       </div>
-
-      <ButtonGroup className="dialog-actions">
-        <Button label="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
-        <Button label="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
-      </ButtonGroup>
     </>
   );
 });
