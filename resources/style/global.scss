@@ -63,8 +63,8 @@ body {
   --caret-color: #{$light-gray1};
 
   // Text/icon color
-  color: $pt-dark-text-color;
-  --text-muted-color: $pt-dark-text-color-muted;
+  color: hsl(0, 0%, 75%);
+  --text-muted-color: hsl(0, 0%, 60%);
 
   // The background color of elements inside of panels
   --foreground-color: #{$dark-gray3};
@@ -82,8 +82,8 @@ body {
   --caret-color: #{$dark-gray1};
 
   // Text/icon color
-  color: $pt-text-color;
-  --text-muted-color: $pt-text-color-muted;
+  color: hsl(0, 0%, 25%);
+  --text-muted-color: hsl(0, 0%, 40%);
 
   // The (background) color of elements inside of panels
   --foreground-color: #{$light-gray5};
