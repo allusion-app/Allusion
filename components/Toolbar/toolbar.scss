@@ -45,7 +45,9 @@
   }
 
   &[aria-pressed='true'] {
-    font-weight: 700;
+    .toolbar-button-label {
+      font-weight: 700;
+    }
     color: var(--primary-color);
   }
 

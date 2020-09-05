@@ -139,12 +139,6 @@ const Settings = observer(() => {
         />
 
         <Switch
-          checked={uiStore.isToolbarVertical}
-          onChange={uiStore.toggleToolbarVertical}
-          label="Vertical toolbar"
-        />
-
-        <Switch
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
           label="Dark theme"

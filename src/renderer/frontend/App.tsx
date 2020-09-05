@@ -6,7 +6,6 @@ import Outliner from './containers/Outliner';
 import StoreContext from './contexts/StoreContext';
 import Inspector from './containers/Inspector';
 import Toolbar from './containers/Toolbar';
-import ContentToolbar from './containers/Toolbar/ContentToolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
@@ -48,8 +47,7 @@ const App = observer(() => {
     return <SplashScreen />;
   }
 
-  let themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-  themeClass = uiStore.isToolbarVertical ? `${themeClass} vertical-toolbar` : themeClass;
+  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
     // Overlay that shows up when dragging files/images over the application
@@ -57,8 +55,6 @@ const App = observer(() => {
       <div id="layout-container" className={themeClass}>
         <ErrorBoundary>
           <GlobalHotkeys>
-            {uiStore.isToolbarVertical ? <ContentToolbar /> : <></>}
-
             <Toolbar />
 
             <Outliner />

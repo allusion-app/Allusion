@@ -3,8 +3,8 @@ import { observer } from 'mobx-react-lite';
 import { Popover, Icon, Menu, MenuItem, KeyCombo } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
 import { Tooltip } from '.';
-import { ToolbarButton, ToolbarGroup, ToolbarToggleButton } from 'components';
-import { ClientFile, IFile } from '../../../entities/File';
+import { ToolbarButton, ToolbarToggleButton } from 'components';
+import { IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
 import { useMemo, useContext } from 'react';
@@ -30,55 +30,13 @@ const FileSelection = observer(
   ),
 );
 
-interface ITagFilesPopoverProps {
-  disabled: boolean;
-  files: ClientFile[];
-  isOpen: boolean;
-  close: () => void;
-  toggle: () => void;
-  hidden?: boolean;
-}
-
-const TagFilesPopover = observer(
-  ({ disabled, files, isOpen, close, toggle, hidden }: ITagFilesPopoverProps) => {
-    if (hidden) {
-      return null;
-    }
-    return (
-      <Popover minimal openOnTargetFocus={false} usePortal={false} isOpen={isOpen} onClose={close}>
-        <ToolbarButton
-          icon={IconSet.TAG}
-          disabled={disabled}
-          onClick={toggle}
-          label="Tag"
-          tooltip={Tooltip.TagFiles}
-        />
-        <FileTags files={files} autoFocus />
-      </Popover>
-    );
-  },
-);
-
-interface IRemoveFilesPopoverProps {
-  hidden?: boolean;
-  disabled?: boolean;
-}
-
-const RemoveFilesPopover = observer(({ hidden, disabled }: IRemoveFilesPopoverProps) => {
+const RemoveFilesPopover = observer(() => {
   const { uiStore } = useContext(StoreContext);
-  if (hidden) {
-    return (
-      <FileRemoval
-        onClose={uiStore.closeToolbarFileRemover}
-        object={uiStore.isToolbarFileRemoverOpen ? uiStore.clientFileSelection : []}
-      />
-    );
-  }
   return (
     <>
       <ToolbarButton
         icon={IconSet.DELETE}
-        disabled={disabled}
+        disabled={uiStore.fileSelection.size === 0}
         onClick={uiStore.openToolbarFileRemover}
         label="Delete"
         tooltip={Tooltip.Delete}
@@ -143,43 +101,38 @@ const FileFilter = observer(
 const LayoutOptions = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ToolbarGroup>
-      <Popover minimal openOnTargetFocus={false} usePortal={false}>
-        <ToolbarButton icon={IconSet.THUMB_BG} label="View" tooltip={Tooltip.View} />
-        <Menu>
-          <MenuItem
-            icon={IconSet.VIEW_LIST}
-            onClick={uiStore.setMethodList}
-            active={uiStore.isList}
-            text="List View"
-            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
-          />
-          <MenuItem
-            icon={IconSet.VIEW_GRID}
-            onClick={uiStore.setMethodGrid}
-            active={uiStore.isGrid}
-            text="Grid View"
-            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
-          />
-          <MenuItem disabled icon={IconSet.VIEW_MASON} text="Masonry View (WIP)" />
-        </Menu>
-      </Popover>
-    </ToolbarGroup>
+    <Popover minimal openOnTargetFocus={false} usePortal={false}>
+      <ToolbarButton icon={IconSet.THUMB_BG} label="View" tooltip={Tooltip.View} />
+      <Menu>
+        <MenuItem
+          icon={IconSet.VIEW_LIST}
+          onClick={uiStore.setMethodList}
+          active={uiStore.isList}
+          text="List View"
+          labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
+        />
+        <MenuItem
+          icon={IconSet.VIEW_GRID}
+          onClick={uiStore.setMethodGrid}
+          active={uiStore.isGrid}
+          text="Grid View"
+          labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
+        />
+      </Menu>
+    </Popover>
   );
 });
 
 const SlideModeToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ToolbarGroup id="main-toolbar">
-      <ToolbarButton
-        showLabel="always"
-        icon={IconSet.ARROW_LEFT}
-        onClick={uiStore.disableSlideMode}
-        label="Return"
-        tooltip={Tooltip.Back}
-      />
-    </ToolbarGroup>
+    <ToolbarButton
+      showLabel="always"
+      icon={IconSet.ARROW_LEFT}
+      onClick={uiStore.disableSlideMode}
+      label="Return"
+      tooltip={Tooltip.Back}
+    />
   );
 });
 
@@ -200,52 +153,40 @@ const ContentToolbar = observer(() => {
     return <SlideModeToolbar />;
   } else {
     return (
-      <ToolbarGroup id="main-toolbar">
-        <ToolbarGroup>
-          <ToolbarToggleButton
-            icon={IconSet.SEARCH}
-            onClick={uiStore.toggleQuickSearch}
-            pressed={uiStore.isQuickSearchOpen}
-            label="Search"
-            tooltip={Tooltip.Search}
-          />
-        </ToolbarGroup>
+      <>
+        <FileSelection
+          allFilesSelected={
+            fileSelection.size > 0 && fileSelection.size === fileStore.fileList.length
+          }
+          toggleSelection={handleToggleSelect}
+          selectionCount={fileSelection.size}
+        />
 
-        <ToolbarGroup>
-          <FileSelection
-            allFilesSelected={
-              fileSelection.size > 0 && fileSelection.size === fileStore.fileList.length
-            }
-            toggleSelection={handleToggleSelect}
-            selectionCount={fileSelection.size}
-          />
+        {fileStore.content === 'missing' ? (
+          // Only show option to remove selected files in toolbar when viewing missing files */}
+          <RemoveFilesPopover />
+        ) : (
+          // Only show when not viewing missing files (so it is replaced by the Delete button)
+          <FileTags files={fileSelection.size > 0 ? uiStore.clientFileSelection : []} />
+        )}
 
-          {/* Only show when not viewing missing files (so it is replaced by the Delete button) */}
-          <TagFilesPopover
-            files={uiStore.isToolbarTagSelectorOpen ? uiStore.clientFileSelection : []}
-            disabled={fileSelection.size === 0 || fileStore.fileList.length === 0}
-            isOpen={uiStore.isToolbarTagSelectorOpen}
-            close={uiStore.closeToolbarTagSelector}
-            toggle={uiStore.toggleToolbarTagSelector}
-            hidden={fileStore.content === 'missing'}
-          />
-
-          {/* Only show option to remove selected files in toolbar when viewing missing files */}
-          <RemoveFilesPopover
-            hidden={fileStore.content !== 'missing'}
-            disabled={uiStore.fileSelection.size === 0}
-          />
-
-          <FileFilter
-            fileOrder={fileStore.fileOrder}
-            orderBy={fileStore.orderBy}
-            orderFilesBy={fileStore.orderFilesBy}
-            switchFileOrder={fileStore.switchFileOrder}
-          />
-        </ToolbarGroup>
+        <FileFilter
+          fileOrder={fileStore.fileOrder}
+          orderBy={fileStore.orderBy}
+          orderFilesBy={fileStore.orderFilesBy}
+          switchFileOrder={fileStore.switchFileOrder}
+        />
 
         <LayoutOptions />
-      </ToolbarGroup>
+
+        <ToolbarToggleButton
+          icon={IconSet.SEARCH}
+          onClick={uiStore.toggleQuickSearch}
+          pressed={uiStore.isQuickSearchOpen}
+          label="Search"
+          tooltip={Tooltip.Search}
+        />
+      </>
     );
   }
 });

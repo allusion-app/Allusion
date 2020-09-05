@@ -119,14 +119,6 @@ pre {
   row-gap: 2px;
 }
 
-#layout-container.vertical-toolbar {
-  --toolbar-height: 3rem;
-  grid-template-columns: var(--toolbar-height) min-content 1fr min-content;
-  grid-template-areas:
-    'toolbar main-toolbar main-toolbar main-toolbar'
-    'toolbar outliner main inspector';
-}
-
 .preloader {
   font-size: 18px;
   font-weight: 700;
@@ -254,16 +246,6 @@ img {
 }
 
 @media (max-width: 540px) {
-  #layout-container:not(.vertical-toolbar) > #toolbar .toolbar-group {
-    margin: 0;
-  }
-
-  #main-toolbar {
-    > .toolbar-group {
-      margin: 0;
-    }
-  }
-
   .slide.thumbnail {
     height: calc(50vh - 4.8rem) !important;
   }

@@ -114,7 +114,7 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
 
 const GalleryItem = observer(
   ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
-    const { uiStore } = useContext(StoreContext);
+    const { uiStore, fileStore } = useContext(StoreContext);
 
     const handleDrop = useCallback(
       (event: React.DragEvent<HTMLDivElement>) => {
@@ -228,8 +228,8 @@ const GalleryItem = observer(
                 <span
                   onClick={(e) => {
                     e.stopPropagation(); // prevent image click event
+                    fileStore.fetchMissingFiles();
                     uiStore.selectFile(file, true);
-                    uiStore.openToolbarFileRemover();
                   }}
                 >
                   {IconSet.WARNING_BROKEN_LINK}

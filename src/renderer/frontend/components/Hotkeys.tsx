@@ -63,13 +63,6 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
         {/* Toolbar actions */}
         <Hotkey
           global={true}
-          combo={hotkeyMap.openTagSelector}
-          label="Opens the tag selector (toolbar)"
-          onKeyDown={uiStore.toggleToolbarTagSelector}
-          preventDefault
-        />
-        <Hotkey
-          global={true}
           combo={hotkeyMap.viewList}
           label="Sets view to list mode"
           onKeyDown={uiStore.setMethodList}

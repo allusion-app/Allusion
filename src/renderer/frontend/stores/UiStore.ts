@@ -29,7 +29,6 @@ interface IHotkeyMap {
   toggleHelpCenter: string;
 
   // Toolbar actions (these should only be active when the content area is focused)
-  openTagSelector: string;
   deleteSelection: string;
   selectAll: string;
   deselectAll: string;
@@ -50,7 +49,6 @@ const defaultHotkeyMap: IHotkeyMap = {
   toggleOutliner: '1',
   toggleInspector: '2',
   replaceQuery: 'r',
-  openTagSelector: 't',
   toggleSettings: 's',
   toggleHelpCenter: 'h',
   deleteSelection: 'del',
@@ -91,7 +89,6 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'isOutlinerOpen',
   'isInspectorOpen',
   'thumbnailDirectory',
-  'isToolbarVertical',
   'method',
   'thumbnailSize',
   'thumbnailShape',
@@ -105,15 +102,11 @@ class UiStore {
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
-  // Sidebar
-  @observable isToolbarVertical: boolean = true;
-
   // UI
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
   @observable isHelpCenterOpen: boolean = false;
-  @observable isToolbarTagSelectorOpen: boolean = false;
   @observable isLocationRecoveryOpen: ID | null = null;
   @observable isPreviewOpen: boolean = false;
   @observable isQuickSearchOpen: boolean = false;
@@ -246,18 +239,6 @@ class UiStore {
     this.isHelpCenterOpen = !this.isHelpCenterOpen;
   }
 
-  @action.bound toggleToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.size > 0 && !this.isToolbarTagSelectorOpen;
-  }
-
-  @action.bound openToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.size > 0;
-  }
-
-  @action.bound closeToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = false;
-  }
-
   @action.bound openToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = true;
   }
@@ -319,10 +300,6 @@ class UiStore {
 
   @action.bound toggleSearchMatchAny() {
     this.searchMatchAny = !this.searchMatchAny;
-  }
-
-  @action.bound toggleToolbarVertical() {
-    this.setToolbarVertical(!this.isToolbarVertical);
   }
 
   /////////////////// Selection actions ///////////////////
@@ -583,7 +560,6 @@ class UiStore {
       try {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
-        this.setToolbarVertical(prefs.isToolbarVertical);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.setIsInspectorOpen(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
@@ -638,10 +614,6 @@ class UiStore {
 
   @action private setIsInspectorOpen(value: boolean = false) {
     this.isInspectorOpen = value;
-  }
-
-  @action private setToolbarVertical(val: boolean) {
-    this.isToolbarVertical = val;
   }
 
   @action private setMethod(method: ViewMethod = 'grid') {
