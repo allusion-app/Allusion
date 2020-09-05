@@ -111,36 +111,45 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateModified', icon: IconSet.FILTER_DATE, text: 'Date modified' },
 ];
 
-const FileFilter = observer(
-  ({ fileOrder, orderBy, orderFilesBy, switchFileOrder }: IFileFilter) => {
-    // Render variables
-    const sortMenu = useMemo(() => {
-      const orderIcon = (
-        <Icon icon={fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
-      );
-      return (
-        <Menu>
-          {sortMenuData.map(({ prop, icon, text }) => (
-            <MenuItem
-              key={prop}
-              icon={icon}
-              text={text}
-              active={orderBy === prop}
-              labelElement={orderBy === prop && orderIcon}
-              onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
-            />
-          ))}
-        </Menu>
-      );
-    }, [fileOrder, orderBy, switchFileOrder, orderFilesBy]);
+export const SortMenuItems = ({
+  fileOrder,
+  orderBy,
+  orderFilesBy,
+  switchFileOrder,
+}: IFileFilter) => {
+  const orderIcon = <Icon icon={fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />;
+  return (
+    <>
+      {sortMenuData.map(({ prop, icon, text }) => (
+        <MenuItem
+          key={prop}
+          icon={icon}
+          text={text}
+          active={orderBy === prop}
+          labelElement={orderBy === prop && orderIcon}
+          onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
+        />
+      ))}
+    </>
+  );
+};
 
-    return (
-      <Popover minimal openOnTargetFocus={false} usePortal={false} content={sortMenu}>
-        <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={ToolbarTooltips.Filter} />
-      </Popover>
-    );
-  },
-);
+const FileFilter = observer((props: IFileFilter) => {
+  return (
+    <Popover
+      minimal
+      openOnTargetFocus={false}
+      usePortal={false}
+      content={
+        <Menu>
+          <SortMenuItems {...props} />
+        </Menu>
+      }
+    >
+      <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={ToolbarTooltips.Filter} />
+    </Popover>
+  );
+});
 
 const LayoutOptions = observer(() => {
   const { uiStore } = useContext(StoreContext);

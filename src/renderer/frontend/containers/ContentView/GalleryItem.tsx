@@ -11,6 +11,7 @@ import {
   Card,
   Button,
   ButtonGroup,
+  MenuDivider,
 } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
@@ -23,6 +24,8 @@ import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
 import UiStore from '../../stores/UiStore';
+import { SortMenuItems } from '../Toolbar/ContentToolbar';
+import FileStore from '../../stores/FileStore';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -264,8 +267,48 @@ const GalleryItem = observer(
   },
 );
 
+export const GeneralGalleryContextMenuItems = ({
+  uiStore,
+  fileStore,
+}: {
+  uiStore: UiStore;
+  fileStore: FileStore;
+}) => (
+  <>
+    <MenuItem icon="layout" text="View method...">
+      <MenuItem
+        onClick={uiStore.setMethodList}
+        icon={IconSet.VIEW_LIST}
+        active={uiStore.isList}
+        text="List"
+      />
+      <MenuItem
+        onClick={uiStore.setMethodGrid}
+        icon={IconSet.VIEW_GRID}
+        active={uiStore.isGrid}
+        text="Grid"
+      />
+      <MenuItem icon="lock" text="Masonry" disabled />
+    </MenuItem>
+    <MenuItem icon="sort" text="Sort by...">
+      <SortMenuItems
+        fileOrder={fileStore.fileOrder}
+        orderBy={fileStore.orderBy}
+        orderFilesBy={fileStore.orderFilesBy}
+        switchFileOrder={fileStore.switchFileOrder}
+      />
+    </MenuItem>
+  </>
+);
+
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore, fileStore } = rootStore;
+  const handlePreviewWindow = useCallback(() => {
+    if (!uiStore.fileSelection.has(file.id)) {
+      uiStore.selectFile(file, true);
+    }
+    uiStore.openPreviewWindow();
+  }, [file, uiStore]);
   const handleOpen = useCallback(() => shell.openItem(file.absolutePath), [file.absolutePath]);
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.absolutePath), [
     file.absolutePath,
@@ -288,19 +331,31 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
           disabled={fileStore.showsMissingContent}
         />
         <MenuItem onClick={uiStore.toggleToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+        <MenuDivider />
+        <GeneralGalleryContextMenuItems uiStore={uiStore} fileStore={fileStore} />
       </Menu>
     );
   }
 
   return (
     <Menu>
+      <MenuItem
+        onClick={handlePreviewWindow}
+        text="Open In Preview Window"
+        icon={IconSet.PREVIEW}
+      />
+      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
+
+      <MenuDivider />
+      <GeneralGalleryContextMenuItems uiStore={uiStore} fileStore={fileStore} />
+      <MenuDivider />
+
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
       <MenuItem
         onClick={handleOpenFileExplorer}
         text="Reveal in File Browser"
         icon={IconSet.FOLDER_CLOSE}
       />
-      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
     </Menu>
   );
 };
@@ -338,15 +393,6 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   }
 
   renderContextMenu() {
-    const {
-      file,
-      rootStore: { uiStore },
-    } = this.props;
-    // If the selection does not contain this item, replace the selection with this item
-    if (!uiStore.fileSelection.has(file.id)) {
-      this.props.rootStore.uiStore.selectFile(file, true);
-    }
-
     this.updateState({ isContextMenuOpen: true });
     return <GalleryItemContextMenu file={this.props.file} rootStore={this.props.rootStore} />;
   }
