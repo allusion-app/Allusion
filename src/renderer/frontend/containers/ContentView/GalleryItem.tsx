@@ -218,38 +218,40 @@ const GalleryItem = observer(
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div
-          onClick={handleClickImg}
-          className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
-          onDoubleClick={handleDoubleClickImg}
-          onDragStart={handleDragStart}
-        >
-          {isThumbnailReady ? (
-            // Show image when it has been loaded
-            <img src={imagePath} onError={handleImageError} alt="" />
-          ) : isThumbnailGenerating ? (
-            // If it's being generated, show a placeholder
-            <div className="donut-loading" />
-          ) : (
-            // Show an error it it could not be loaded
-            <MissingImageFallback />
-          )}
-          {file.isBroken && !showDetails && (
-            <div className="thumbnail-broken-overlay">
-              <Tooltip content="This image could not be found.">
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation(); // prevent image click event
-                    uiStore.selectFile(file, true);
-                    uiStore.toggleToolbarFileRemover();
-                  }}
-                >
-                  {IconSet.WARNING_BROKEN_LINK}
-                </span>
-              </Tooltip>
-            </div>
-          )}
-        </div>
+        <Tooltip content={file.name} hoverOpenDelay={1000}>
+          <div
+            onClick={handleClickImg}
+            className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
+            onDoubleClick={handleDoubleClickImg}
+            onDragStart={handleDragStart}
+          >
+            {isThumbnailReady ? (
+              // Show image when it has been loaded
+              <img src={imagePath} onError={handleImageError} alt="" />
+            ) : isThumbnailGenerating ? (
+              // If it's being generated, show a placeholder
+              <div className="donut-loading" />
+            ) : (
+              // Show an error it it could not be loaded
+              <MissingImageFallback />
+            )}
+            {file.isBroken && !showDetails && (
+              <div className="thumbnail-broken-overlay">
+                <Tooltip content="This image could not be found.">
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent image click event
+                      uiStore.selectFile(file, true);
+                      uiStore.toggleToolbarFileRemover();
+                    }}
+                  >
+                    {IconSet.WARNING_BROKEN_LINK}
+                  </span>
+                </Tooltip>
+              </div>
+            )}
+          </div>
+        </Tooltip>
         <ThumbnailDecoration
           showDetails={showDetails}
           file={file}
@@ -303,6 +305,10 @@ export const GeneralGalleryContextMenuItems = ({
 
 const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
   const { uiStore, fileStore } = rootStore;
+  const handleViewFullSize = useCallback(() => {
+    uiStore.selectFile(file, true);
+    uiStore.toggleSlideMode();
+  }, [file, uiStore]);
   const handlePreviewWindow = useCallback(() => {
     if (!uiStore.fileSelection.has(file.id)) {
       uiStore.selectFile(file, true);
@@ -339,6 +345,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
 
   return (
     <Menu>
+      <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.PREVIEW} />
       <MenuItem
         onClick={handlePreviewWindow}
         text="Open In Preview Window"
