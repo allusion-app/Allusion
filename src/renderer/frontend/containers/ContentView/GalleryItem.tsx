@@ -275,7 +275,7 @@ export const GeneralGalleryContextMenuItems = ({
   fileStore: FileStore;
 }) => (
   <>
-    <MenuItem icon="layout" text="View method...">
+    <MenuItem icon={IconSet.VIEW_GRID} text="View method...">
       <MenuItem
         onClick={uiStore.setMethodList}
         icon={IconSet.VIEW_LIST}
@@ -290,7 +290,7 @@ export const GeneralGalleryContextMenuItems = ({
       />
       <MenuItem icon="lock" text="Masonry" disabled />
     </MenuItem>
-    <MenuItem icon="sort" text="Sort by...">
+    <MenuItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
       <SortMenuItems
         fileOrder={fileStore.fileOrder}
         orderBy={fileStore.orderBy}

@@ -146,7 +146,11 @@ const FileFilter = observer((props: IFileFilter) => {
         </Menu>
       }
     >
-      <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={ToolbarTooltips.Filter} />
+      <ToolbarButton
+        icon={IconSet.FILTER_NAME_DOWN}
+        label="Sort"
+        tooltip={ToolbarTooltips.Filter}
+      />
     </Popover>
   );
 });
