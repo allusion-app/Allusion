@@ -37,14 +37,9 @@ interface ILocationConfigModalProps {
 const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) => {
   if (!dir) return <> </>;
   return (
-    <Dialog
-      labelledby="dialog-heading"
-      describedby="dialog-information"
-      open
-      onCancel={handleClose}
-    >
+    <Dialog labelledby="dialog-title" describedby="dialog-information" open onCancel={handleClose}>
       <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
-      <h2 id="dialog-heading" className="dialog-heading">
+      <h2 id="dialog-title" className="dialog-title">
         Location: {dir.name}
       </h2>
       <Observer>

@@ -15,7 +15,7 @@ const Step = (props: { title: string; children: React.ReactNode }) => {
   return (
     <>
       <div className="dialog-icon"></div>
-      <h2 id="welcome-title" className="dialog-label">
+      <h2 id="welcome-title" className="dialog-title">
         {props.title}
       </h2>
       <div id="welcome-step" className="dialog-information">

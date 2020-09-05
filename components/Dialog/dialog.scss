@@ -18,7 +18,7 @@ dialog {
 
 .dialog-content {
   display: grid;
-  grid-template: 'dialog-icon dialog-heading' 'dialog-information dialog-information' 'dialog-footer dialog-footer';
+  grid-template: 'dialog-icon dialog-title' 'dialog-information dialog-information' 'dialog-footer dialog-footer';
   grid-template-columns: min-content 1fr;
   grid-template-rows: min-content 1fr min-content;
   max-height: 80vh;
@@ -29,7 +29,7 @@ dialog {
 
 dialog[role='alertdialog'] {
   > .dialog-content {
-    grid-template: 'dialog-icon dialog-heading' 'dialog-icon dialog-information' 'dialog-footer dialog-footer';
+    grid-template: 'dialog-icon dialog-title' 'dialog-icon dialog-information' 'dialog-footer dialog-footer';
     width: 50ch;
   }
 
@@ -50,11 +50,11 @@ dialog[role='alertdialog'] {
   }
 }
 
-.dialog-heading {
+.dialog-title {
   color: var(--primary-color);
   font-size: medium;
   font-weight: 700;
-  grid-area: dialog-heading;
+  grid-area: dialog-title;
   margin: 0;
 }
 

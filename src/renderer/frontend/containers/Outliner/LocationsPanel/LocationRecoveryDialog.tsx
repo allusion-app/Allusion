@@ -248,9 +248,9 @@ const LocationRecoveryDialog = () => {
   };
 
   return (
-    <Dialog open={Boolean(location)} labelledby="dialog-heading" describedby="dialog-information">
+    <Dialog open={Boolean(location)} labelledby="dialog-title" describedby="dialog-information">
       <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
-      <h2 id="dialog-heading" className="dialog-heading">
+      <h2 id="dialog-title" className="dialog-title">
         Location &quot;{location.name}&quot; could not be found
       </h2>
       <div id="dialog-information" className="dialog-information">

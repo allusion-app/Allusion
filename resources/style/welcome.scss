@@ -15,13 +15,13 @@
   > .dialog-content {
     grid-template-areas:
       'dialog-icon dialog-icon'
-      'dialog-heading dialog-heading'
+      'dialog-title dialog-title'
       'dialog-information dialog-information'
       'dialog-footer dialog-footer';
     margin: auto;
   }
 
-  .dialog-heading {
+  .dialog-title {
     text-align: center;
     font-size: 32px;
     font-weight: 300;

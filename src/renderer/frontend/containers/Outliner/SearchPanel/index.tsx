@@ -289,11 +289,11 @@ export const AdvancedSearchDialog = observer(() => {
     <Dialog
       open={uiStore.isAdvancedSearchOpen}
       onCancel={uiStore.closeAdvancedSearch}
-      labelledby="dialog-heading"
+      labelledby="dialog-title"
       describedby="search-form"
     >
       <span className="dialog-icon">{IconSet.SEARCH_EXTENDED}</span>
-      <h2 id="dialog-heading" className="dialog-heading">
+      <h2 id="dialog-title" className="dialog-title">
         Advanced Search
       </h2>
       <SearchForm uiStore={uiStore} />

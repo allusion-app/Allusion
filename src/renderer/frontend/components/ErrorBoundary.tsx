@@ -21,7 +21,7 @@ export const ClearDbButton = () => {
         onClick={() => setIsOpen(!isOpen)}
       />
       <div className="dialog-content" style={{ padding: '8px', maxWidth: '45ch' }}>
-        <h2 className="dialog-heading">Are you sure you want to clear the database?</h2>
+        <h2 className="dialog-title">Are you sure you want to clear the database?</h2>
         <div className="dialog-information">
           <p>
             This is intended as a last resort. All imported images and created tags will be
