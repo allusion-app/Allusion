@@ -345,7 +345,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
 
   return (
     <Menu>
-      <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.PREVIEW} />
+      <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon="zoom-in" />
       <MenuItem
         onClick={handlePreviewWindow}
         text="Open In Preview Window"
