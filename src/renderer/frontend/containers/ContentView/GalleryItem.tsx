@@ -54,7 +54,7 @@ const ThumbnailDecoration = observer(
           <p>Would you like to remove it from your library?</p>
           <ButtonGroup>
             <Button
-              label="Remove"
+              text="Remove"
               styling="outlined"
               onClick={() => {
                 uiStore.selectFile(file, true);

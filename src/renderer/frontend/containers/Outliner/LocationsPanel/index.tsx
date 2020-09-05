@@ -479,14 +479,14 @@ const LocationsPanel = () => {
           <ToolbarButton
             showLabel="never"
             icon={IconSet.FOLDER_CLOSE_ADD}
-            label="New Location"
+            text="New Location"
             onClick={handleChooseWatchedDir}
             tooltip={Tooltip.Location}
           />
           <ToolbarButton
             showLabel="never"
             icon={IconSet.RELOAD}
-            label="Refresh"
+            text="Refresh"
             onClick={() => setLocationTreeKey(new Date())}
             tooltip={Tooltip.Refresh}
           />

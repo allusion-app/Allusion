@@ -168,7 +168,7 @@ export const Searchbar = observer(() => {
           <IconButton
             icon={IconSet.SEARCH_EXTENDED}
             onClick={toggleAdvancedSearch}
-            label="Advanced Search"
+            text="Advanced Search"
           />
         </Tooltip>
         {isQuickSearch ? (
@@ -185,7 +185,7 @@ export const Searchbar = observer(() => {
           openOnTargetFocus={false}
           hoverOpenDelay={2000}
         >
-          <IconButton icon={IconSet.CLOSE} onClick={closeQuickSearch} label="Close" />
+          <IconButton icon={IconSet.CLOSE} onClick={closeQuickSearch} text="Close" />
         </Tooltip>
       </div>
     </CSSTransition>

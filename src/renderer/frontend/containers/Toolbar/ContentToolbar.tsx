@@ -24,7 +24,7 @@ const FileSelection = observer(
       icon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
       onClick={toggle}
       pressed={allFilesSelected}
-      label={selectionCount}
+      text={selectionCount}
       tooltip={Tooltip.Select}
     />
   ),
@@ -38,7 +38,7 @@ const RemoveFilesPopover = observer(() => {
         icon={IconSet.DELETE}
         disabled={uiStore.fileSelection.size === 0}
         onClick={uiStore.openToolbarFileRemover}
-        label="Delete"
+        text="Delete"
         tooltip={Tooltip.Delete}
         // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
         // intent="warning"
@@ -92,7 +92,7 @@ const FileFilter = observer(
 
     return (
       <Popover minimal openOnTargetFocus={false} usePortal={false} content={sortMenu}>
-        <ToolbarButton icon={IconSet.FILTER} label="Filter" tooltip={Tooltip.Filter} />
+        <ToolbarButton icon={IconSet.FILTER} text="Filter" tooltip={Tooltip.Filter} />
       </Popover>
     );
   },
@@ -102,7 +102,7 @@ const LayoutOptions = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
     <Popover minimal openOnTargetFocus={false} usePortal={false}>
-      <ToolbarButton icon={IconSet.THUMB_BG} label="View" tooltip={Tooltip.View} />
+      <ToolbarButton icon={IconSet.THUMB_BG} text="View" tooltip={Tooltip.View} />
       <Menu>
         <MenuItem
           icon={IconSet.VIEW_LIST}
@@ -130,7 +130,7 @@ const SlideModeToolbar = observer(() => {
       showLabel="always"
       icon={IconSet.ARROW_LEFT}
       onClick={uiStore.disableSlideMode}
-      label="Return"
+      text="Return"
       tooltip={Tooltip.Back}
     />
   );
@@ -183,7 +183,7 @@ const ContentToolbar = observer(() => {
           icon={IconSet.SEARCH}
           onClick={uiStore.toggleQuickSearch}
           pressed={uiStore.isQuickSearchOpen}
-          label="Search"
+          text="Search"
           tooltip={Tooltip.Search}
         />
       </>

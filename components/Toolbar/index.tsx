@@ -96,7 +96,7 @@ const Toolbar = (props: IToolbar) => {
 };
 
 interface IBaseButton {
-  label: React.ReactText;
+  text: React.ReactText;
   icon: JSX.Element;
   onClick?: (event: React.MouseEvent) => void;
   showLabel?: 'always' | 'never';
@@ -114,7 +114,7 @@ const ToolbarButton = observer(
   ({
     onClick,
     icon,
-    label,
+    text,
     role,
     pressed,
     checked,
@@ -127,7 +127,7 @@ const ToolbarButton = observer(
         <span className="toolbar-button-icon" aria-hidden="true">
           {icon}
         </span>
-        <span className={`toolbar-button-label ${showLabel ?? ''}`}>{label}</span>
+        <span className={`toolbar-button-label ${showLabel ?? ''}`}>{text}</span>
       </span>
     );
     return (
@@ -220,13 +220,13 @@ interface IToolbarToggleButton extends IBaseButton {
 }
 
 const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { pressed, onClick, icon, label, tooltip, showLabel } = props;
+  const { pressed, onClick, icon, text, tooltip, showLabel } = props;
   return (
     <ToolbarButton
       pressed={pressed}
       onClick={onClick}
       icon={icon}
-      label={label}
+      text={text}
       showLabel={showLabel}
       tooltip={tooltip}
     />
@@ -274,14 +274,14 @@ interface IToolbarSegmentButton extends IBaseButton {
 }
 
 const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
-  const { checked, onClick, icon, label, tooltip, showLabel } = props;
+  const { checked, onClick, icon, text, tooltip, showLabel } = props;
   return (
     <ToolbarButton
       role="radio"
       checked={checked}
       onClick={onClick}
       icon={icon}
-      label={label}
+      text={text}
       tooltip={tooltip}
       showLabel={showLabel}
     />

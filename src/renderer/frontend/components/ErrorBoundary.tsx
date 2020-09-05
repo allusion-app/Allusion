@@ -17,7 +17,7 @@ export const ClearDbButton = () => {
       <Button
         styling="outlined"
         icon={IconSet.CLEAR_DATABASE}
-        label="Clear Database"
+        text="Clear Database"
         onClick={() => setIsOpen(!isOpen)}
       />
       <div className="dialog-content" style={{ padding: '8px', maxWidth: '45ch' }}>
@@ -122,20 +122,20 @@ ${this.state.error}
                   onClick={this.reloadApplication}
                   styling="outlined"
                   icon={IconSet.RELOAD}
-                  label="Reload"
+                  text="Reload"
                 />
                 <Button
                   onClick={this.viewInspector}
                   styling="outlined"
                   icon={IconSet.CHROME_DEVTOOLS}
-                  label="View in DevTools"
+                  text="View in DevTools"
                 />
                 <ClearDbButton />
                 <Button
                   styling="outlined"
                   onClick={this.openIssueURL}
                   icon={IconSet.GITHUB}
-                  label="Create Issue"
+                  text="Create Issue"
                 />
               </ButtonGroup>
             }

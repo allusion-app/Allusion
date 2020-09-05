@@ -54,14 +54,14 @@ const Toolbar = observer(() => {
         icon={IconSet.OUTLINER}
         onClick={uiStore.toggleOutliner}
         pressed={uiStore.isOutlinerOpen}
-        label="Outliner"
+        text="Outliner"
         tooltip={Tooltip.Outliner}
       />
 
       <ContentToolbar />
 
       <Popover minimal openOnTargetFocus={false}>
-        <ToolbarButton showLabel="never" icon={IconSet.MORE} label="More" tooltip="See more" />
+        <ToolbarButton showLabel="never" icon={IconSet.MORE} text="More" tooltip="See more" />
         <Menu>
           <MenuItem
             icon={IconSet.INFO}

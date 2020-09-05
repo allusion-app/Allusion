@@ -152,39 +152,39 @@ const RecoveryActions = observer(
         // TODO: Refetch on close?
         return (
           <ButtonGroup className="dialog-actions">
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} label="Close" />
+            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
           </ButtonGroup>
         );
 
       case Status.InvalidPath:
         return (
           <ButtonGroup className="dialog-actions">
-            <Button styling="filled" onClick={locate} label="Locate" />
+            <Button styling="filled" onClick={locate} text="Locate" />
             {/* Re-scan option, e.g. for when you mount a drive */}
-            <Button styling="outlined" onClick={rescan} label="Re-Scan" />
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} label="Cancel" />
+            <Button styling="outlined" onClick={rescan} text="Re-Scan" />
+            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Cancel" />
           </ButtonGroup>
         );
 
       case Status.NoMatches:
         return (
           <ButtonGroup className="dialog-actions">
-            <Button styling="outlined" onClick={retry} label="Retry" />
+            <Button styling="outlined" onClick={retry} text="Retry" />
           </ButtonGroup>
         );
 
       case Status.PartialRecovery:
         return (
           <ButtonGroup className="dialog-actions">
-            <Button styling="outlined" onClick={retry} label="Retry" />
-            <Button styling="outlined" onClick={save} label="Recover" />
+            <Button styling="outlined" onClick={retry} text="Retry" />
+            <Button styling="outlined" onClick={save} text="Recover" />
           </ButtonGroup>
         );
 
       default:
         return (
           <ButtonGroup className="dialog-actions">
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} label="Close" />
+            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
           </ButtonGroup>
         );
     }

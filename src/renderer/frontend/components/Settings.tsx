@@ -200,7 +200,7 @@ const Settings = observer(() => {
             onClick={uiStore.toggleDevtools}
             styling="outlined"
             icon={IconSet.CHROME_DEVTOOLS}
-            label="Toggle DevTools"
+            text="Toggle DevTools"
           />
         </ButtonGroup>
 

@@ -119,7 +119,7 @@ const MultiTagSelector = ({
 
   // Todo: Might need a confirmation pop over
   const ClearButton = useMemo(
-    () => <IconButton icon={IconSet.CLOSE} onClick={onClearSelection} label="Close" />,
+    () => <IconButton icon={IconSet.CLOSE} onClick={onClearSelection} text="Close" />,
     [onClearSelection],
   );
 

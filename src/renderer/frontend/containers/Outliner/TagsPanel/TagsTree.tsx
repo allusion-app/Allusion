@@ -743,7 +743,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
             <ToolbarButton
               showLabel="never"
               icon={IconSet.CLOSE}
-              label="Clear"
+              text="Clear"
               onClick={uiStore.clearTagSelection}
               tooltip="Clear Selection"
             />
@@ -752,14 +752,14 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
               <ToolbarButton
                 showLabel="never"
                 icon={IconSet.TAG_ADD}
-                label="New Tag"
+                text="New Tag"
                 onClick={handleRootAddTag}
                 tooltip="Add New Tag"
               />
               <ToolbarButton
                 showLabel="never"
                 icon={IconSet.TAG_ADD_COLLECTION}
-                label="New Collection"
+                text="New Collection"
                 onClick={handleAddRootCollection}
                 tooltip="Add New Collection"
               />

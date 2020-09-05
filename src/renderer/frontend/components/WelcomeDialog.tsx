@@ -172,11 +172,11 @@ const WelcomeDialog = () => {
 
       <div className="dialog-footer">
         <ButtonGroup className="dialog-actions">
-          <Button onClick={handleClose} disabled={step === 0} label="Skip" styling="outlined" />
+          <Button onClick={handleClose} disabled={step === 0} text="Skip" styling="outlined" />
           <Button
             styling="filled"
             onClick={handleNextStep}
-            label={step !== NUM_STEPS - 1 ? 'Next' : 'Start'}
+            text={step !== NUM_STEPS - 1 ? 'Next' : 'Start'}
           />
         </ButtonGroup>
       </div>

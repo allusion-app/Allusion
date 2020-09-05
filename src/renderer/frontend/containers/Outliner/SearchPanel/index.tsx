@@ -211,7 +211,7 @@ const CriteriaItem = observer(({ criteria, dispatch, removable }: ICriteriaItemP
         dispatch={dispatch}
       />
       <Button
-        label="-"
+        text="-"
         onClick={() => dispatch(Factory.removeQuery(criteria.id))}
         disabled={!removable}
         styling="filled"
@@ -261,7 +261,7 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
       </form>
       <div className="dialog-footer">
         <div id="functions-bar">
-          <Button label="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
+          <Button text="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
           <Switch
             inline
             large
@@ -274,8 +274,8 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
           />
         </div>
         <ButtonGroup className="dialog-actions">
-          <Button label="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
-          <Button label="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
+          <Button text="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
+          <Button text="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
         </ButtonGroup>
       </div>
     </>

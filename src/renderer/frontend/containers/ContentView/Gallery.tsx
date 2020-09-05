@@ -549,7 +549,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
     let title = 'No images';
     let description = 'Images can be added from the outliner';
     let action = (
-      <Button onClick={uiStore.toggleOutliner} label="Toggle outliner" styling="outlined" />
+      <Button onClick={uiStore.toggleOutliner} text="Toggle outliner" styling="outlined" />
     );
     if (fileStore.showsQueryContent) {
       description = 'Try searching for something else.';
@@ -558,19 +558,19 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
       action = (
         <ButtonGroup>
           <Button
-            label="All images"
+            text="All images"
             icon={IconSet.MEDIA}
             onClick={fileStore.fetchAllFiles}
             styling="outlined"
           />
           <Button
-            label="Untagged"
+            text="Untagged"
             icon={IconSet.TAG_BLANCO}
             onClick={fileStore.fetchUntaggedFiles}
             styling="outlined"
           />
           <Button
-            label="Search"
+            text="Search"
             icon={IconSet.SEARCH}
             onClick={uiStore.openQuickSearch}
             styling="outlined"
@@ -584,13 +584,13 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
       action = (
         <ButtonGroup>
           <Button
-            label="All Images"
+            text="All Images"
             icon={IconSet.MEDIA}
             onClick={fileStore.fetchAllFiles}
             styling="outlined"
           />
           <Button
-            label="Search"
+            text="Search"
             icon={IconSet.SEARCH}
             onClick={uiStore.openQuickSearch}
             styling="outlined"

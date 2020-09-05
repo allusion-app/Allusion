@@ -36,14 +36,14 @@ const PreviewApp = observer(() => {
             <ToolbarButton
               showLabel="never"
               icon={IconSet.ARROW_LEFT}
-              label="Previous Image"
+              text="Previous Image"
               onClick={handleLeftButton}
               disabled={uiStore.firstItem === 0}
             />
             <ToolbarButton
               showLabel="never"
               icon={IconSet.ARROW_RIGHT}
-              label="Next Image"
+              text="Next Image"
               onClick={handleRightButton}
               disabled={uiStore.firstItem === fileStore.fileList.length - 1}
             />

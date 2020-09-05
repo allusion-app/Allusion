@@ -135,20 +135,20 @@ const DialogActions = observer((props: IDialogActions) => {
       {props.primaryButtonText ? (
         <Button
           styling={props.defaultButton === DialogButton.PrimaryButton ? 'filled' : 'outlined'}
-          label={props.primaryButtonText}
+          text={props.primaryButtonText}
           onClick={() => props.onClick(DialogButton.PrimaryButton)}
         />
       ) : undefined}
       {props.secondaryButtonText ? (
         <Button
           styling={props.defaultButton === DialogButton.SecondaryButton ? 'filled' : 'outlined'}
-          label={props.secondaryButtonText}
+          text={props.secondaryButtonText}
           onClick={() => props.onClick(DialogButton.SecondaryButton)}
         />
       ) : undefined}
       <Button
         styling={props.defaultButton === DialogButton.CloseButton ? 'filled' : 'outlined'}
-        label={props.closeButtonText}
+        text={props.closeButtonText}
         onClick={() => props.onClick(DialogButton.CloseButton)}
       />
     </ButtonGroup>

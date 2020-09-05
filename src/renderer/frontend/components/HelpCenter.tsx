@@ -292,7 +292,7 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
       ))}
       <br />
       <ButtonGroup>
-        <Button styling="outlined" onClick={closePanel} label="Previous" />
+        <Button styling="outlined" onClick={closePanel} text="Previous" />
         {nextSection && (
           <Button
             styling="outlined"
@@ -303,7 +303,7 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
                 props: { section: nextSection },
               })
             }
-            label="Next"
+            text="Next"
           />
         )}
       </ButtonGroup>
