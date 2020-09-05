@@ -1,5 +1,6 @@
 import { action, observable, runInAction } from 'mobx';
 import SysPath from 'path';
+import React from 'react';
 
 import Backend from '../../backend/Backend';
 import RootStore from './RootStore';
@@ -9,6 +10,8 @@ import { IFile, getMetaData } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
 import { AppToaster } from '../App';
+import { ProgressBar } from '@blueprintjs/core';
+import { promiseAllLimit, timeoutPromise, timeout } from '../utils';
 
 class LocationStore {
   private backend: Backend;
@@ -228,35 +231,62 @@ class LocationStore {
   @action.bound async initializeLocation(loc: ClientLocation) {
     const toastKey = `initialize-${loc.id}`;
 
+    let isCancelled = false;
+    const handleCancelled = () => {
+      console.log('clicked cancel');
+      isCancelled = true;
+      this.removeDirectory(loc);
+    };
+
     AppToaster.show(
       {
         message: 'Finding all images...',
         timeout: 0,
+        className: 'toast-without-dismiss',
         action: {
           text: 'Cancel',
-          onClick: () =>
-            alert(
-              'TODO: Cancel image loading, e.g. when picking the system root. Should show popup warning with "importing will start when reloading the application. If this is not desired, remove the location',
-            ),
+          onClick: handleCancelled,
         },
       },
       toastKey,
     );
-    const filePaths = await loc.init();
+    const filePaths = await loc.init(() => isCancelled);
 
-    AppToaster.show(
-      {
-        message: 'Gathering image metadata...',
-        timeout: 0,
-        action: {
-          text: 'Cancel',
-          onClick: () => alert('TODO: Should also support cancelling here'),
+    if (isCancelled) {
+      return;
+    }
+
+    const showProgressToaster = (progress: number) =>
+      !isCancelled &&
+      AppToaster.show(
+        {
+          // message: 'Gathering image metadata...',
+          message: <ProgressBar intent="primary" value={progress} />,
+          timeout: 0,
+          className: 'toast-without-dismiss',
+          action: {
+            text: 'Cancel',
+            onClick: handleCancelled,
+          },
         },
-      },
-      toastKey,
+        toastKey,
+      );
+
+    showProgressToaster(0);
+
+    // Load file meta info, with only N jobs in parallel and a progress + cancel callback
+    // TODO: Should make N configurable, or determine based on the system/disk performance
+    const N = 50;
+    const files = await promiseAllLimit(
+      filePaths.map((path) => async () => {
+        const f = await this.pathToIFile(path, loc);
+        // await timeout(1000); // artificial timeout to see the progress bar a little longer
+        return f;
+      }),
+      N,
+      showProgressToaster,
+      () => isCancelled,
     );
-    // TODO: Should use a promise pool for this
-    const files = await Promise.all(filePaths.map((path) => this.pathToIFile(path, loc)));
 
     AppToaster.show({ message: 'Updating database...', timeout: 0 }, toastKey);
     await this.backend.createFilesFromPath(loc.path, files);

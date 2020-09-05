@@ -21,7 +21,7 @@ import WelcomeDialog from './components/WelcomeDialog';
 const SPLASH_SCREEN_TIME = 1400;
 
 export const AppToaster = Toaster.create({
-  position: Position.TOP,
+  position: Position.BOTTOM_RIGHT,
   className: 'toaster',
 });
 
