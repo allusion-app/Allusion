@@ -23,7 +23,7 @@ const textStyles: React.CSSProperties = {
 };
 
 const SplashScreen = () => (
-  <div className="allusion-splash-background splash">
+  <div className="bp3-dark allusion-splash-background splash">
     <div style={splashScreenStyles}>
       <svg style={{ width: 0 }}>
         <defs>

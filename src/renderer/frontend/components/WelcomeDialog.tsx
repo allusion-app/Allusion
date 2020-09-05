@@ -161,7 +161,7 @@ const WelcomeDialog = () => {
       open={showDialog}
       labelledby="welcome-title"
       describedby="welcome-step"
-      className="bp3-dark allusion-splash-background welcomedialog"
+      className="bp3-dark allusion-splash-background welcome-dialog"
     >
       {step === 0 && <WelcomeStep />}
       {step === 1 && (
