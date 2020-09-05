@@ -115,7 +115,7 @@ const IntroStep = () => {
 const NUM_STEPS = 3;
 
 const WelcomeDialog = () => {
-  const { uiStore, locationStore, fileStore } = useContext(StoreContext);
+  const { locationStore, fileStore } = useContext(StoreContext);
   const [showDialog, setShowDialog] = useState(false);
 
   const handleClose = useCallback(async () => {
@@ -161,7 +161,7 @@ const WelcomeDialog = () => {
       open={showDialog}
       labelledby="welcome-title"
       describedby="welcome-step"
-      className={`bp3-${uiStore.theme.toLowerCase()} allusion-splash-background welcomedialog`}
+      className="bp3-dark allusion-splash-background welcomedialog"
     >
       {step === 0 && <WelcomeStep />}
       {step === 1 && (

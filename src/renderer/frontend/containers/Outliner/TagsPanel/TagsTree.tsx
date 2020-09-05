@@ -735,9 +735,9 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
         onDragLeave={handleDragOverAndLeave}
         onDrop={handleDrop}
       >
-        <H4 onClick={() => setIsCollapsed(!isCollapsed)}>
+        <h2 onClick={() => setIsCollapsed(!isCollapsed)}>
           {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}Tags
-        </H4>
+        </h2>
         <Toolbar controls="tag-hierarchy">
           {uiStore.tagSelection.size > 0 ? (
             <ToolbarButton

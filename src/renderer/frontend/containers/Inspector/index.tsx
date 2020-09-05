@@ -89,7 +89,7 @@ const Inspector = observer(() => {
     return (
       <Container>
         <section>
-          <header className="inspector-heading">No image selected</header>
+          <h2 className="inspector-heading">No image selected</h2>
         </section>
       </Container>
     );
@@ -115,9 +115,9 @@ const Inspector = observer(() => {
 
   return (
     <Container>
-      <section className="inspector-preview">{selectionPreview}</section>
+      <div className="inspector-preview">{selectionPreview}</div>
       <section>
-        <header className="inspector-heading">Information</header>
+        <h2 className="inspector-heading">Information</h2>
         {selectedFiles.size === 1 ? (
           <ImageInfo file={fileStore.get(uiStore.getFirstSelectedFileId())!} />
         ) : (
@@ -125,7 +125,7 @@ const Inspector = observer(() => {
         )}
       </section>
       <section>
-        <header className="inspector-heading">Tags</header>
+        <h2 className="inspector-heading">Tags</h2>
         <FileTags files={uiStore.clientFileSelection} />
       </section>
     </Container>

@@ -52,7 +52,7 @@
   }
 }
 
-.splash {
+.allusion-splash-background.splash {
   width: 100vw;
   height: 100vh;
 
@@ -85,6 +85,7 @@
 
   // Gradient overlay and noise texture
   &::after {
+    background: #222;
     background: url(~resources/images/noise.png),
       -webkit-gradient(linear, 0% 80%, 0% 20%, from(#14181ae5), to(#14181a00));
     z-index: 1;
@@ -92,6 +93,7 @@
 
   // Background image
   &::before {
+    background: #222;
     background-position: center;
     background-position-x: left;
     background-size: 100%;

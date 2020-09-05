@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { remote, shell } from 'electron';
 import { observer, Observer } from 'mobx-react-lite';
-import { H4, Collapse, Menu, MenuItem, Label, ContextMenu } from '@blueprintjs/core';
+import { Collapse, Menu, MenuItem, Label, ContextMenu } from '@blueprintjs/core';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
@@ -472,9 +472,9 @@ const LocationsPanel = () => {
   return (
     <div>
       <div className="outliner-header-wrapper">
-        <H4 onClick={() => setCollapsed(!isCollapsed)}>
+        <h2 onClick={() => setCollapsed(!isCollapsed)}>
           {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}Locations
-        </H4>
+        </h2>
         <Toolbar controls="location-list">
           <ToolbarButton
             showLabel="never"
