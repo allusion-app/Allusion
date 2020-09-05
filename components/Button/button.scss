@@ -50,12 +50,12 @@
 }
 
 .btn-content-icon,
-.btn-content-label {
+.btn-content-text {
   display: inline-flex;
   margin: 0.125rem;
 }
 
-.btn-content-label.hidden {
+.btn-content-text.hidden {
   margin: 0;
   text-indent: -100vw;
   white-space: nowrap;

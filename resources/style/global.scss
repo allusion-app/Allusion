@@ -230,7 +230,7 @@ img {
   }
 }
 @media (max-width: 960px) {
-  .toolbar-button-label:not(.always) {
+  .toolbar-button-text:not(.always) {
     margin: 0;
     text-indent: -100vw;
     white-space: nowrap;

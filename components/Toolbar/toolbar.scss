@@ -45,7 +45,7 @@
   }
 
   &[aria-pressed='true'] {
-    .toolbar-button-label {
+    .toolbar-button-text {
       font-weight: 700;
     }
     color: var(--primary-color);
@@ -67,25 +67,25 @@
 }
 
 .toolbar-button-icon,
-.toolbar-button-label,
-.toolbar-button-label.always,
-.toolbar-group.always .toolbar-button-label:not(.never) {
+.toolbar-button-text,
+.toolbar-button-text.always,
+.toolbar-group.always .toolbar-button-text:not(.never) {
   display: inline-flex;
   margin: 0.125rem;
 }
 
 // Hide text without removing it from screen readers:
 // https://stackoverflow.com/questions/12783419/hide-text-with-css-best-practice
-.toolbar-button-label.never,
-.toolbar-group.never .toolbar-button-label:not(.always) {
+.toolbar-button-text.never,
+.toolbar-group.never .toolbar-button-text:not(.always) {
   margin: 0;
   text-indent: -100vw;
   white-space: nowrap;
   overflow: hidden;
 }
 
-.toolbar-button-label.always,
-.toolbar-group.always .toolbar-button-label:not(.never) {
+.toolbar-button-text.always,
+.toolbar-group.always .toolbar-button-text:not(.never) {
   text-indent: unset;
   white-space: unset;
   overflow: unset;

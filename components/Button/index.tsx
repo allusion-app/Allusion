@@ -18,7 +18,7 @@ const Button = observer(({ text, icon, onClick, styling = 'minimal', disabled }:
           {icon}
         </span>
       )}
-      <span className="btn-content-label">{text}</span>
+      <span className="btn-content-text">{text}</span>
     </button>
   );
 });
@@ -50,7 +50,7 @@ const IconButton = observer(({ text, icon, onClick, disabled }: IIconButton) => 
       <span className="btn-content-icon" aria-hidden="true">
         {icon}
       </span>
-      <span className="btn-content-label hidden">{text}</span>
+      <span className="btn-content-text hidden">{text}</span>
     </button>
   );
 });

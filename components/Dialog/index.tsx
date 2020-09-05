@@ -90,12 +90,12 @@ const Alert = observer((props: IAlert) => {
     <Dialog
       open={open}
       role="alertdialog"
-      labelledby="dialog-label"
+      labelledby="dialog-heading"
       describedby="dialog-information"
       className={props.className}
     >
       <span className="dialog-icon">{icon}</span>
-      <h2 id="dialog-label" className="dialog-label">
+      <h2 id="dialog-heading" className="dialog-heading">
         {title}
       </h2>
       <div id="dialog-information" className="dialog-information">

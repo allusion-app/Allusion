@@ -127,7 +127,7 @@ const ToolbarButton = observer(
         <span className="toolbar-button-icon" aria-hidden="true">
           {icon}
         </span>
-        <span className={`toolbar-button-label ${showLabel ?? ''}`}>{text}</span>
+        <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
       </span>
     );
     return (

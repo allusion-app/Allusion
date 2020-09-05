@@ -279,7 +279,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
         className={`bp3-${uiStore.theme.toLowerCase()} file-dropper-overlay`}
       >
         <span className="dialog-icon">{IconSet.IMPORT}</span>
-        <h2 id="dialog-label" className="dialog-label">
+        <h2 id="dialog-heading" className="dialog-heading">
           Drop Import
         </h2>
         <div id="dialog-information" className="dialog-information">
