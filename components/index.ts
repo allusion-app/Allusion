@@ -1,5 +1,6 @@
 import Tree from './Tree/index';
-import Toolbar, {
+import {
+  Toolbar,
   ToolbarButton,
   ToolbarGroup,
   ToolbarSegment,
@@ -7,7 +8,7 @@ import Toolbar, {
   ToolbarToggleButton,
 } from './Toolbar/index';
 import { Button, ButtonGroup, IconButton } from './Button/index';
-import { Alert, Dialog, DialogButton, DialogActions } from './Dialog/index';
+import { Alert, Dialog, DialogButton, DialogActions, Popover } from './Dialog/index';
 
 export {
   Alert,
@@ -17,6 +18,7 @@ export {
   Button,
   ButtonGroup,
   IconButton,
+  Popover,
   Tree,
   ToolbarButton,
   ToolbarGroup,

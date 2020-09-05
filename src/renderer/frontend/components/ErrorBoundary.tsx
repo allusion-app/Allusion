@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { remote, shell } from 'electron';
-import { NonIdealState, EditableText, Popover } from '@blueprintjs/core';
+import { NonIdealState, EditableText } from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, DialogActions, DialogButton } from 'components';
+import { Button, ButtonGroup, DialogActions, DialogButton, Popover } from 'components';
 
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';
@@ -13,7 +13,7 @@ export const ClearDbButton = () => {
   const rootStore = useContext(StoreContext);
 
   return (
-    <Popover isOpen={isOpen}>
+    <Popover open={isOpen}>
       <Button
         styling="outlined"
         icon={IconSet.CLEAR_DATABASE}

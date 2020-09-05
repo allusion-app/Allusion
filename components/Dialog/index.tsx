@@ -6,6 +6,7 @@ import { observer } from 'mobx-react-lite';
 interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   open: boolean;
   role?: string;
+  label?: string;
   labelledby?: string;
   describedby?: string;
   children: React.ReactNode;
@@ -23,6 +24,7 @@ const Dialog = observer((props: IDialog) => {
   const {
     open,
     role,
+    label,
     labelledby,
     describedby,
     className,
@@ -59,6 +61,7 @@ const Dialog = observer((props: IDialog) => {
     <dialog
       ref={dialog}
       role={role}
+      aria-label={label}
       aria-labelledby={labelledby}
       aria-describedby={describedby}
       className={className}
@@ -152,4 +155,59 @@ const DialogActions = observer((props: IDialogActions) => {
   );
 });
 
-export { Alert, Dialog, DialogButton, DialogActions };
+interface IPopover {
+  open: boolean;
+  label?: string;
+  labelledby?: string;
+  describedby?: string;
+  /** The popover trigger and content is passed as a tuple: `[trigger, content]`. */
+  children: [React.ReactElement<HTMLElement>, React.ReactElement<HTMLElement>];
+  className?: string;
+  onClose?: (event: Event) => void;
+  onCancel?: (event: Event) => void;
+}
+
+const Popover = observer((props: IPopover) => {
+  const { open, label, labelledby, describedby, className, onClose, onCancel, children } = props;
+  const [trigger, content] = children;
+
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const element = dialog.current;
+    if (onClose) {
+      element?.addEventListener('close', onClose);
+    }
+    if (onCancel) {
+      element?.addEventListener('cancel', onCancel);
+    }
+
+    return () => {
+      if (onClose) {
+        element?.removeEventListener('close', onClose);
+      }
+      if (onCancel) {
+        element?.removeEventListener('close', onCancel);
+      }
+    };
+  }, [onClose, onCancel]);
+
+  return (
+    <>
+      {trigger}
+      <dialog
+        open={open}
+        // data-popover
+        ref={dialog}
+        aria-label={label}
+        aria-labelledby={labelledby}
+        aria-describedby={describedby}
+        className={className}
+      >
+        {content}
+      </dialog>
+    </>
+  );
+});
+
+export { Alert, Dialog, DialogButton, DialogActions, Popover };

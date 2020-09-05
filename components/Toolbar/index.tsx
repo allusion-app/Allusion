@@ -95,8 +95,6 @@ const Toolbar = (props: IToolbar) => {
   );
 };
 
-export default Toolbar;
-
 interface IBaseButton {
   label: React.ReactText;
   icon: JSX.Element;
@@ -112,7 +110,7 @@ interface IToolbarButton extends IBaseButton {
   checked?: boolean;
 }
 
-export const ToolbarButton = observer(
+const ToolbarButton = observer(
   ({
     onClick,
     icon,
@@ -202,7 +200,7 @@ const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   }
 };
 
-export const ToolbarGroup = observer((props: IToolbarGroup) => {
+const ToolbarGroup = observer((props: IToolbarGroup) => {
   const { id, label, children, role, showLabel, onKeyDown = handleGroupKeyDown } = props;
   return (
     <div
@@ -221,7 +219,7 @@ interface IToolbarToggleButton extends IBaseButton {
   pressed: boolean;
 }
 
-export const ToolbarToggleButton = (props: IToolbarToggleButton) => {
+const ToolbarToggleButton = (props: IToolbarToggleButton) => {
   const { pressed, onClick, icon, label, tooltip, showLabel } = props;
   return (
     <ToolbarButton
@@ -258,7 +256,7 @@ const handleSegmentKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   }
 };
 
-export const ToolbarSegment = ({ label, children, showLabel }: IToolbarSegment) => {
+const ToolbarSegment = ({ label, children, showLabel }: IToolbarSegment) => {
   return (
     <ToolbarGroup
       role="radiogroup"
@@ -275,7 +273,7 @@ interface IToolbarSegmentButton extends IBaseButton {
   checked: boolean;
 }
 
-export const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
+const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
   const { checked, onClick, icon, label, tooltip, showLabel } = props;
   return (
     <ToolbarButton
@@ -288,4 +286,13 @@ export const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
       showLabel={showLabel}
     />
   );
+};
+
+export {
+  Toolbar,
+  ToolbarGroup,
+  ToolbarButton,
+  ToolbarToggleButton,
+  ToolbarSegment,
+  ToolbarSegmentButton,
 };
