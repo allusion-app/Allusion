@@ -326,6 +326,15 @@ const handleKeyDown = (e: React.KeyboardEvent) => {
   }
 };
 
+const handleFlyoutBlur = (e: React.FocusEvent) => {
+  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+    const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
+    if (dialog.open) {
+      dialog.close();
+    }
+  }
+};
+
 interface IToolbarMenuButton extends IBaseButton {
   controls: string;
   children: React.ReactNode;
@@ -338,7 +347,7 @@ const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div onKeyDown={handleKeyDown}>
+    <span onKeyDown={handleKeyDown} onBlur={handleFlyoutBlur}>
       <Flyout
         open={isOpen}
         onClose={() => setIsOpen(false)}
@@ -359,7 +368,7 @@ const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
       >
         {props.children}
       </Flyout>
-    </div>
+    </span>
   );
 });
 
