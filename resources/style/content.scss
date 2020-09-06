@@ -2,13 +2,8 @@
 #gallery-content {
   flex: 1;
   margin-left: 6px;
-}
 
-#gallery-content:not(.slide) {
   > div {
-    // Fix for height cut-off when the quick search bar is open
-    position: absolute !important;
-
     // No horizontal scrollbar
     overflow-x: hidden !important;
   }
