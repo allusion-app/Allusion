@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback, useReducer, useContext } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { ContextMenu, Collapse, H4, InputGroup } from '@blueprintjs/core';
+import { ContextMenu, Collapse, InputGroup } from '@blueprintjs/core';
 
 import { Tree, Toolbar, ToolbarButton } from 'components';
 import IconSet from 'components/Icons';
