@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import './toolbar.scss';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Tooltip } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
+import { Flyout } from 'components/Dialog';
 
 interface IToolbar {
   children: React.ReactNode;
   id?: string;
   className?: string;
   label?: string;
-  labelledBy?: string;
+  labelledby?: string;
   controls: string;
   orientation?: 'horizontal' | 'vertical';
 }
@@ -57,7 +58,7 @@ const handleToolbarFocus = (e: React.FocusEvent<HTMLElement>) => {
 };
 
 const Toolbar = (props: IToolbar) => {
-  const { children, id, className, label, labelledBy, controls, orientation } = props;
+  const { children, id, className, label, labelledby, controls, orientation } = props;
   const toolbar = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -84,7 +85,7 @@ const Toolbar = (props: IToolbar) => {
       id={id}
       className={`toolbar ${className ?? ''}`}
       aria-label={label}
-      aria-labelledby={labelledBy}
+      aria-labelledby={labelledby}
       aria-controls={controls}
       aria-orientation={orientation}
       onFocus={handleToolbarFocus}
@@ -96,6 +97,7 @@ const Toolbar = (props: IToolbar) => {
 };
 
 interface IBaseButton {
+  id?: string;
   text: React.ReactText;
   icon: JSX.Element;
   onClick?: (event: React.MouseEvent) => void;
@@ -108,10 +110,14 @@ interface IToolbarButton extends IBaseButton {
   disabled?: boolean;
   pressed?: boolean;
   checked?: boolean;
+  expanded?: boolean;
+  controls?: string;
+  haspopup?: boolean;
 }
 
-const ToolbarButton = observer(
-  ({
+const ToolbarButton = observer((props: IToolbarButton) => {
+  const {
+    id,
     onClick,
     icon,
     text,
@@ -121,41 +127,47 @@ const ToolbarButton = observer(
     disabled,
     tooltip,
     showLabel,
-  }: IToolbarButton) => {
-    const content = (
-      <span className="toolbar-button-content">
-        <span className="toolbar-button-icon" aria-hidden="true">
-          {icon}
-        </span>
-        <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
+    expanded,
+    controls,
+    haspopup,
+  } = props;
+  const content = (
+    <span className="toolbar-button-content">
+      <span className="toolbar-button-icon" aria-hidden>
+        {icon}
       </span>
-    );
-    return (
-      <button
-        className="toolbar-item toolbar-button"
-        onClick={onClick}
-        role={role}
-        aria-pressed={pressed}
-        aria-checked={checked}
-        aria-disabled={disabled}
-        tabIndex={-1}
-      >
-        {tooltip ? (
-          <Tooltip
-            content={tooltip}
-            usePortal={false}
-            openOnTargetFocus={false}
-            hoverOpenDelay={1500}
-          >
-            {content}
-          </Tooltip>
-        ) : (
-          content
-        )}
-      </button>
-    );
-  },
-);
+      <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
+    </span>
+  );
+  return (
+    <button
+      id={id}
+      className="toolbar-item toolbar-button"
+      onClick={disabled ? undefined : onClick}
+      role={role}
+      aria-pressed={pressed}
+      aria-checked={checked}
+      aria-disabled={disabled}
+      aria-controls={controls}
+      aria-haspopup={haspopup}
+      aria-expanded={expanded}
+      tabIndex={-1}
+    >
+      {tooltip ? (
+        <Tooltip
+          content={tooltip}
+          usePortal={false}
+          openOnTargetFocus={false}
+          hoverOpenDelay={1500}
+        >
+          {content}
+        </Tooltip>
+      ) : (
+        content
+      )}
+    </button>
+  );
+});
 
 interface IBaseGroup {
   children: React.ReactNode;
@@ -220,9 +232,10 @@ interface IToolbarToggleButton extends IBaseButton {
 }
 
 const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { pressed, onClick, icon, text, tooltip, showLabel } = props;
+  const { id, pressed, onClick, icon, text, tooltip, showLabel } = props;
   return (
     <ToolbarButton
+      id={id}
       pressed={pressed}
       onClick={onClick}
       icon={icon}
@@ -274,9 +287,10 @@ interface IToolbarSegmentButton extends IBaseButton {
 }
 
 const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
-  const { checked, onClick, icon, text, tooltip, showLabel } = props;
+  const { id, checked, onClick, icon, text, tooltip, showLabel } = props;
   return (
     <ToolbarButton
+      id={id}
       role="radio"
       checked={checked}
       onClick={onClick}
@@ -288,11 +302,73 @@ const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
   );
 };
 
+const handleKeyDown = (e: React.KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter': {
+      const item = e.currentTarget.querySelector('dialog [tabindex="0"]:focus') as HTMLElement;
+      if (item) {
+        e.stopPropagation();
+        item.click();
+        e.currentTarget.querySelector('button')?.focus();
+        e.currentTarget.querySelector('dialog')?.close();
+      }
+      break;
+    }
+
+    case 'Escape':
+      e.stopPropagation();
+      e.currentTarget.querySelector('button')?.focus();
+      e.currentTarget.querySelector('dialog')?.close();
+      break;
+
+    default:
+      break;
+  }
+};
+
+interface IToolbarMenuButton extends IBaseButton {
+  controls: string;
+  children: React.ReactNode;
+  disabled?: boolean;
+  /** @default menu */
+  role?: 'menu' | 'group';
+}
+
+const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div onKeyDown={handleKeyDown}>
+      <Flyout
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        target={
+          <ToolbarButton
+            id={props.id}
+            icon={props.icon}
+            text={props.text}
+            disabled={props.disabled}
+            showLabel={props.showLabel}
+            tooltip={props.tooltip}
+            onClick={() => setIsOpen(!isOpen)}
+            expanded={isOpen}
+            controls={props.controls}
+            haspopup
+          />
+        }
+      >
+        {props.children}
+      </Flyout>
+    </div>
+  );
+});
+
 export {
   Toolbar,
   ToolbarGroup,
   ToolbarButton,
-  ToolbarToggleButton,
+  ToolbarMenuButton,
   ToolbarSegment,
   ToolbarSegmentButton,
+  ToolbarToggleButton,
 };

@@ -1,0 +1,49 @@
+.menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 20ch;
+}
+
+.menuitem {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  margin: 0.25rem 0;
+
+  &:hover {
+    color: var(--highlight-font-color);
+    background: var(--highlight-background-color);
+  }
+}
+
+.menuitem[role='menuitemradio'][aria-checked='true'] {
+  color: white;
+  background: var(--primary-color);
+}
+
+.menuitem[role='menuitemcheckbox'][aria-checked='true'] {
+  .menuitem-icon {
+    background: currentColor;
+    mask-image: url(~resources/icons/checkmark.svg);
+    -webkit-mask-image: url(~resources/icons/checkmark.svg);
+  }
+}
+
+.menuitem-icon,
+.menuitem-accelerator {
+  display: inline-flex;
+  pointer-events: none;
+  align-items: center;
+}
+
+.menuitem-icon {
+  margin-right: 0.75rem;
+}
+
+.menuitem-accelerator {
+  min-width: 4rem;
+  flex-grow: 1;
+  justify-content: flex-end;
+}

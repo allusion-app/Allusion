@@ -3,10 +3,17 @@ import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { Toolbar as Commandbar, ToolbarToggleButton, ToolbarButton } from 'components';
+import {
+  Toolbar as Commandbar,
+  ToolbarToggleButton,
+  ToolbarMenuButton,
+  MenuFlyout,
+  MenuItem,
+  MenuCheckboxItem,
+} from 'components';
 import ContentToolbar from './ContentToolbar';
 import { remote } from 'electron';
-import { Popover, Menu, MenuItem, KeyCombo } from '@blueprintjs/core';
+import { KeyCombo } from '@blueprintjs/core';
 
 // Tooltip info
 export const enum Tooltip {
@@ -60,32 +67,35 @@ const Toolbar = observer(() => {
 
       <ContentToolbar />
 
-      <Popover minimal openOnTargetFocus={false}>
-        <ToolbarButton showLabel="never" icon={IconSet.MORE} text="More" tooltip="See more" />
-        <Menu>
-          <MenuItem
-            icon={IconSet.INFO}
+      <ToolbarMenuButton
+        showLabel="never"
+        icon={IconSet.MORE}
+        text="More"
+        tooltip="See more"
+        id="__secondary-menu"
+        controls="__secondary-menu-options"
+      >
+        <MenuFlyout id="__secondary-menu-options" labelledby="__secondary-menu">
+          <MenuCheckboxItem
             onClick={uiStore.toggleInspector}
-            active={uiStore.isInspectorOpen}
-            text="Inspector"
-            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleInspector} />}
+            checked={uiStore.isInspectorOpen}
+            text="Show Inspector"
+            accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleInspector} />}
           />
           <MenuItem
             icon={IconSet.HELPCENTER}
             onClick={uiStore.toggleHelpCenter}
-            active={uiStore.isHelpCenterOpen}
             text="Help Center"
-            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleHelpCenter} />}
+            accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleHelpCenter} />}
           />
           <MenuItem
             icon={IconSet.SETTINGS}
             onClick={uiStore.toggleSettings}
-            active={uiStore.isSettingsOpen}
             text="Settings"
-            labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleSettings} />}
+            accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleSettings} />}
           />
-        </Menu>
-      </Popover>
+        </MenuFlyout>
+      </ToolbarMenuButton>
 
       {isMac && <WindowDecoration />}
     </Commandbar>

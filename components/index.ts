@@ -3,12 +3,14 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarGroup,
+  ToolbarMenuButton,
   ToolbarSegment,
   ToolbarSegmentButton,
   ToolbarToggleButton,
 } from './Toolbar/index';
 import { Button, ButtonGroup, IconButton } from './Button/index';
-import { Alert, Dialog, DialogButton, DialogActions, Popover } from './Dialog/index';
+import { Alert, Dialog, DialogButton, DialogActions, Flyout } from './Dialog/index';
+import { MenuCheckboxItem, MenuFlyout, MenuItem, MenuRadioItem } from './Menu/index';
 
 export {
   Alert,
@@ -18,10 +20,15 @@ export {
   Button,
   ButtonGroup,
   IconButton,
-  Popover,
+  MenuCheckboxItem,
+  MenuFlyout,
+  MenuItem,
+  MenuRadioItem,
+  Flyout,
   Tree,
   ToolbarButton,
   ToolbarGroup,
+  ToolbarMenuButton,
   ToolbarSegment,
   ToolbarSegmentButton,
   ToolbarToggleButton,

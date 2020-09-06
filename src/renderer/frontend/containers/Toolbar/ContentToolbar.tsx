@@ -1,13 +1,19 @@
 import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Popover, Icon, Menu, MenuItem, KeyCombo } from '@blueprintjs/core';
+import { KeyCombo } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
 import { Tooltip } from '.';
-import { ToolbarButton, ToolbarToggleButton } from 'components';
+import {
+  ToolbarButton,
+  ToolbarToggleButton,
+  ToolbarMenuButton,
+  MenuFlyout,
+  MenuRadioItem,
+} from 'components';
 import { IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
-import { useMemo, useContext } from 'react';
+import { useContext } from 'react';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 
@@ -67,59 +73,62 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateModified', icon: IconSet.FILTER_DATE, text: 'Date modified' },
 ];
 
-const FileFilter = observer(
-  ({ fileOrder, orderBy, orderFilesBy, switchFileOrder }: IFileFilter) => {
-    // Render variables
-    const sortMenu = useMemo(() => {
-      const orderIcon = (
-        <Icon icon={fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
-      );
-      return (
-        <Menu>
-          {sortMenuData.map(({ prop, icon, text }) => (
-            <MenuItem
-              key={prop}
-              icon={icon}
-              text={text}
-              active={orderBy === prop}
-              labelElement={orderBy === prop && orderIcon}
-              onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
-            />
-          ))}
-        </Menu>
-      );
-    }, [fileOrder, orderBy, switchFileOrder, orderFilesBy]);
-
-    return (
-      <Popover minimal openOnTargetFocus={false} usePortal={false} content={sortMenu}>
-        <ToolbarButton icon={IconSet.FILTER} text="Filter" tooltip={Tooltip.Filter} />
-      </Popover>
-    );
-  },
-);
+const FileFilter = observer(() => {
+  const {
+    fileStore: { fileOrder, orderBy, orderFilesBy, switchFileOrder },
+  } = useContext(StoreContext);
+  const orderIcon = fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
+  return (
+    <ToolbarMenuButton
+      icon={IconSet.FILTER}
+      text="Filter"
+      tooltip={Tooltip.Filter}
+      id="__sort-menu"
+      controls="__sort-options"
+    >
+      <MenuFlyout id="__sort-options" labelledby="__sort-menu" role="group">
+        {sortMenuData.map(({ prop, icon, text }) => (
+          <MenuRadioItem
+            key={prop}
+            icon={icon}
+            text={text}
+            checked={orderBy === prop}
+            accelerator={orderBy === prop ? orderIcon : undefined}
+            onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
+          />
+        ))}
+      </MenuFlyout>
+    </ToolbarMenuButton>
+  );
+});
 
 const LayoutOptions = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <Popover minimal openOnTargetFocus={false} usePortal={false}>
-      <ToolbarButton icon={IconSet.THUMB_BG} text="View" tooltip={Tooltip.View} />
-      <Menu>
-        <MenuItem
+    <ToolbarMenuButton
+      icon={IconSet.THUMB_BG}
+      text="View"
+      tooltip={Tooltip.View}
+      id="__layout-menu"
+      controls="__layout-options"
+    >
+      <MenuFlyout id="__layout-options" labelledby="__layout-menu" role="group">
+        <MenuRadioItem
           icon={IconSet.VIEW_LIST}
           onClick={uiStore.setMethodList}
-          active={uiStore.isList}
+          checked={uiStore.isList}
           text="List View"
-          labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
+          accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
         />
-        <MenuItem
+        <MenuRadioItem
           icon={IconSet.VIEW_GRID}
           onClick={uiStore.setMethodGrid}
-          active={uiStore.isGrid}
+          checked={uiStore.isGrid}
           text="Grid View"
-          labelElement={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
+          accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
         />
-      </Menu>
-    </Popover>
+      </MenuFlyout>
+    </ToolbarMenuButton>
   );
 });
 
@@ -170,12 +179,7 @@ const ContentToolbar = observer(() => {
           <FileTags files={fileSelection.size > 0 ? uiStore.clientFileSelection : []} />
         )}
 
-        <FileFilter
-          fileOrder={fileStore.fileOrder}
-          orderBy={fileStore.orderBy}
-          orderFilesBy={fileStore.orderFilesBy}
-          switchFileOrder={fileStore.switchFileOrder}
-        />
+        <FileFilter />
 
         <LayoutOptions />
 

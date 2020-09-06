@@ -240,7 +240,7 @@ const Tag = observer((props: ITagProps) => {
         onClick={handleQuickQuery}
       />
       {!isEditing && (
-        <button onClick={handleSelect} className="after-icon">
+        <button onClick={handleSelect} className="btn-minimal after-icon">
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </button>
       )}

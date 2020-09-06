@@ -3,7 +3,7 @@ import { remote, shell } from 'electron';
 import { NonIdealState, EditableText } from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, DialogActions, DialogButton, Popover } from 'components';
+import { Button, ButtonGroup, DialogActions, DialogButton, Flyout } from 'components';
 
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';
@@ -13,13 +13,17 @@ export const ClearDbButton = () => {
   const rootStore = useContext(StoreContext);
 
   return (
-    <Popover open={isOpen}>
-      <Button
-        styling="outlined"
-        icon={IconSet.CLEAR_DATABASE}
-        text="Clear Database"
-        onClick={() => setIsOpen(!isOpen)}
-      />
+    <Flyout
+      open={isOpen}
+      target={
+        <Button
+          styling="outlined"
+          icon={IconSet.CLEAR_DATABASE}
+          text="Clear Database"
+          onClick={() => setIsOpen(!isOpen)}
+        />
+      }
+    >
       <div className="dialog-content" style={{ padding: '8px', maxWidth: '45ch' }}>
         <h2 className="dialog-title">Are you sure you want to clear the database?</h2>
         <div className="dialog-information">
@@ -39,7 +43,7 @@ export const ClearDbButton = () => {
           />
         </div>
       </div>
-    </Popover>
+    </Flyout>
   );
 };
 

@@ -155,23 +155,48 @@ const DialogActions = observer((props: IDialogActions) => {
   );
 });
 
-interface IPopover {
+interface IFlyout {
   open: boolean;
   label?: string;
   labelledby?: string;
   describedby?: string;
-  /** The popover trigger and content is passed as a tuple: `[trigger, content]`. */
-  children: [React.ReactElement<HTMLElement>, React.ReactElement<HTMLElement>];
+  target: React.ReactElement<HTMLElement>;
+  /** The popover content. */
+  children: React.ReactNode;
   className?: string;
   onClose?: (event: Event) => void;
+  /** If no event listener is provided for the cancel event, by default closing
+   *  with the Escape key will be disabled. This is to ensure that the passed
+   * state valid.  */
   onCancel?: (event: Event) => void;
 }
 
-const Popover = observer((props: IPopover) => {
-  const { open, label, labelledby, describedby, className, onClose, onCancel, children } = props;
-  const [trigger, content] = children;
+const Flyout = observer((props: IFlyout) => {
+  const {
+    open,
+    label,
+    labelledby,
+    describedby,
+    className,
+    onClose,
+    onCancel = preventClosingOnEscape,
+    target,
+    children,
+  } = props;
 
   const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (dialog.current && open) {
+      const first =
+        dialog.current.querySelector('[tabindex="0"]') ??
+        dialog.current.querySelector('[tabindex="-1"]');
+      if (first) {
+        (first as HTMLElement).tabIndex = 0;
+        (first as HTMLElement).focus();
+      }
+    }
+  }, [open]);
 
   useEffect(() => {
     const element = dialog.current;
@@ -194,7 +219,7 @@ const Popover = observer((props: IPopover) => {
 
   return (
     <>
-      {trigger}
+      {target}
       <dialog
         open={open}
         // data-popover
@@ -204,10 +229,10 @@ const Popover = observer((props: IPopover) => {
         aria-describedby={describedby}
         className={className}
       >
-        {content}
+        {children}
       </dialog>
     </>
   );
 });
 
-export { Alert, Dialog, DialogButton, DialogActions, Popover };
+export { Alert, Dialog, DialogButton, DialogActions, Flyout };

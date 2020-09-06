@@ -66,6 +66,10 @@
   padding: 0.25rem;
 }
 
+.toolbar-button-icon {
+  pointer-events: none;
+}
+
 .toolbar-button-icon,
 .toolbar-button-text,
 .toolbar-button-text.always,
