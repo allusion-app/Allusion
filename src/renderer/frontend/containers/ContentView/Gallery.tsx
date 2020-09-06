@@ -569,12 +569,6 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
             onClick={fileStore.fetchUntaggedFiles}
             styling="outlined"
           />
-          <Button
-            text="Search"
-            icon={IconSet.SEARCH}
-            onClick={uiStore.openQuickSearch}
-            styling="outlined"
-          />
         </ButtonGroup>
       );
     } else if (fileStore.showsUntaggedContent) {
@@ -582,20 +576,12 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
       description = 'All images have been tagged. Nice work!';
       title = 'No untagged images';
       action = (
-        <ButtonGroup>
-          <Button
-            text="All Images"
-            icon={IconSet.MEDIA}
-            onClick={fileStore.fetchAllFiles}
-            styling="outlined"
-          />
-          <Button
-            text="Search"
-            icon={IconSet.SEARCH}
-            onClick={uiStore.openQuickSearch}
-            styling="outlined"
-          />
-        </ButtonGroup>
+        <Button
+          text="All Images"
+          icon={IconSet.MEDIA}
+          onClick={fileStore.fetchAllFiles}
+          styling="outlined"
+        />
       );
     }
 

@@ -161,7 +161,7 @@ class FileStore {
 
   @action.bound async fetchAllFiles() {
     try {
-      this.rootStore.uiStore.closeQuickSearch();
+      this.rootStore.uiStore.clearSearchCriteriaList();
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
       await this.updateFromBackend(fetchedFiles);
       this.setContentAll();
@@ -174,7 +174,7 @@ class FileStore {
   @action.bound async fetchUntaggedFiles() {
     try {
       const { uiStore } = this.rootStore;
-      uiStore.closeQuickSearch();
+      uiStore.clearSearchCriteriaList();
       const criteria = new ClientArraySearchCriteria('tags', []).serialize();
       const fetchedFiles = await this.backend.searchFiles(
         criteria,
@@ -197,7 +197,7 @@ class FileStore {
         rootStore: { uiStore },
       } = this;
 
-      uiStore.closeQuickSearch();
+      uiStore.clearSearchCriteriaList();
       this.setContent('missing');
 
       // Fetch all files, then check their existence and only show the missing ones

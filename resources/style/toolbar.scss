@@ -1,4 +1,4 @@
-///////////////////////////////// Outliner /////////////////////////////////
+///////////////////////////////// Toolbar /////////////////////////////////
 #toolbar {
   grid-area: toolbar;
   margin: 0 1px;
@@ -31,4 +31,14 @@
   left: 0;
   width: 100%;
   height: 4px;
+}
+
+.quick-search {
+  padding: 0.25rem;
+  display: flex;
+  min-height: var(--quick-searchbar-height);
+
+  .bp3-input {
+    min-height: 2rem;
+  }
 }

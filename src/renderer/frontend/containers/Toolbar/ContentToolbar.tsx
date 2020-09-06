@@ -16,6 +16,7 @@ import { FileOrder } from '../../../backend/DBRepository';
 import { useContext } from 'react';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
+import Searchbar from '../ContentView/Searchbar';
 
 interface IFileSelection {
   allFilesSelected: boolean;
@@ -183,13 +184,7 @@ const ContentToolbar = observer(() => {
 
         <LayoutOptions />
 
-        <ToolbarToggleButton
-          icon={IconSet.SEARCH}
-          onClick={uiStore.toggleQuickSearch}
-          pressed={uiStore.isQuickSearchOpen}
-          text="Search"
-          tooltip={Tooltip.Search}
-        />
+        <Searchbar />
       </>
     );
   }

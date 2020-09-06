@@ -36,9 +36,7 @@ interface IHotkeyMap {
   viewGrid: string;
   // viewMason: string;
   viewSlide: string;
-  quickSearch: string;
   advancedSearch: string;
-  closeSearch: string;
 
   // Other
   openPreviewWindow: string;
@@ -59,10 +57,8 @@ const defaultHotkeyMap: IHotkeyMap = {
   // TODO: Add masonry layout
   // viewMason: 'alt + 3',
   viewSlide: 'alt + 3',
-  quickSearch: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
-  closeSearch: 'escape',
 };
 
 /**
@@ -109,7 +105,6 @@ class UiStore {
   @observable isHelpCenterOpen: boolean = false;
   @observable isLocationRecoveryOpen: ID | null = null;
   @observable isPreviewOpen: boolean = false;
-  @observable isQuickSearchOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
   @observable searchMatchAny = false;
   @observable method: ViewMethod = 'grid';
@@ -274,24 +269,8 @@ class UiStore {
     remote.getCurrentWindow().reload();
   }
 
-  @action.bound toggleQuickSearch() {
-    if (this.isQuickSearchOpen) {
-      return this.closeQuickSearch();
-    }
-    this.openQuickSearch();
-  }
-
   @action.bound toggleAdvancedSearch() {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
-  }
-
-  @action.bound closeQuickSearch() {
-    this.isQuickSearchOpen = false;
-    this.clearSearchCriteriaList();
-  }
-
-  @action.bound openQuickSearch() {
-    this.isQuickSearchOpen = true;
   }
 
   @action.bound closeAdvancedSearch() {

@@ -81,12 +81,6 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
         />
         <Hotkey
           global={true}
-          combo={hotkeyMap.quickSearch}
-          label="Toggle quick search"
-          onKeyDown={uiStore.toggleQuickSearch}
-        />
-        <Hotkey
-          global={true}
           combo={hotkeyMap.advancedSearch}
           label="Toggle advanced search"
           onKeyDown={uiStore.toggleAdvancedSearch}

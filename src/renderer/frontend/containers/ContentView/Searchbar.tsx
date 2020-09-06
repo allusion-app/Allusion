@@ -1,7 +1,6 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { TagInput, Tooltip } from '@blueprintjs/core';
-import { CSSTransition } from 'react-transition-group';
 import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
 import { IconButton } from 'components';
@@ -57,14 +56,6 @@ const QuickSearchList = ({
     }
   };
 
-  const handleCloseSearch = (e: React.KeyboardEvent) => {
-    if (e.key.toLowerCase() === uiStore.hotkeyMap.closeSearch) {
-      e.preventDefault();
-      // Prevent react update on unmounted component while searchbar is closing
-      uiStore.closeQuickSearch();
-    }
-  };
-
   return (
     <MultiTagSelector
       selectedItems={selectedItems}
@@ -73,7 +64,6 @@ const QuickSearchList = ({
       onClearSelection={uiStore.clearSearchCriteriaList}
       autoFocus={!uiStore.isAdvancedSearchOpen} // don't auto focus with advanced search open; focus is needed there instead
       tagIntent="primary"
-      onKeyDown={handleCloseSearch}
       showClearButton={false}
       includeCollections
       onTagColDeselect={handleDeselectCol}
@@ -123,10 +113,8 @@ export const Searchbar = observer(() => {
   const rootStore = useContext(StoreContext);
   const {
     uiStore: {
-      isQuickSearchOpen,
       searchCriteriaList,
-      openQuickSearch,
-      closeQuickSearch,
+      clearSearchCriteriaList,
       toggleAdvancedSearch,
       removeSearchCriteriaByIndex,
     },
@@ -138,13 +126,6 @@ export const Searchbar = observer(() => {
   const isQuickSearch =
     searchCriteriaList.length === 0 ||
     searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
-
-  // Open searchbar on adding queries
-  useEffect(() => {
-    if (searchCriteriaList.length > 0 && !isQuickSearchOpen) {
-      openQuickSearch();
-    }
-  }, [isQuickSearchOpen, openQuickSearch, searchCriteriaList.length]);
 
   const criterias = searchCriteriaList.map((c) => {
     const label = c.toString();
@@ -158,37 +139,37 @@ export const Searchbar = observer(() => {
   });
 
   return (
-    <CSSTransition in={isQuickSearchOpen} classNames="quick-search" timeout={200} unmountOnExit>
-      <div className="quick-search">
-        <Tooltip
-          content="Open Advanced Search (Ctrl + Shift + F)"
-          openOnTargetFocus={false}
-          hoverOpenDelay={2000}
-        >
-          <IconButton
-            icon={IconSet.SEARCH_EXTENDED}
-            onClick={toggleAdvancedSearch}
-            text="Advanced Search"
-          />
-        </Tooltip>
-        {isQuickSearch ? (
-          <QuickSearchList rootStore={rootStore} />
-        ) : (
-          <CriteriaList
-            criterias={criterias}
-            toggleAdvancedSearch={toggleAdvancedSearch}
-            removeCriteriaByIndex={removeSearchCriteriaByIndex}
-          />
-        )}
-        <Tooltip
-          content="Close and clear Searchbar (Escape)"
-          openOnTargetFocus={false}
-          hoverOpenDelay={2000}
-        >
-          <IconButton icon={IconSet.CLOSE} onClick={closeQuickSearch} text="Close" />
-        </Tooltip>
-      </div>
-    </CSSTransition>
+    <div className="quick-search">
+      <Tooltip
+        content="Open Advanced Search (Ctrl + Shift + F)"
+        openOnTargetFocus={false}
+        hoverOpenDelay={1500}
+        usePortal={false}
+      >
+        <IconButton
+          icon={IconSet.SEARCH_EXTENDED}
+          onClick={toggleAdvancedSearch}
+          text="Advanced Search"
+        />
+      </Tooltip>
+      {isQuickSearch ? (
+        <QuickSearchList rootStore={rootStore} />
+      ) : (
+        <CriteriaList
+          criterias={criterias}
+          toggleAdvancedSearch={toggleAdvancedSearch}
+          removeCriteriaByIndex={removeSearchCriteriaByIndex}
+        />
+      )}
+      <Tooltip
+        content="Clear Search"
+        openOnTargetFocus={false}
+        hoverOpenDelay={1500}
+        usePortal={false}
+      >
+        <IconButton icon={IconSet.CLOSE} onClick={clearSearchCriteriaList} text="Close" />
+      </Tooltip>
+    </div>
   );
 });
 
