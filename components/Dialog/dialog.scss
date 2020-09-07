@@ -16,9 +16,15 @@ dialog {
     animation: appear 0.1s linear;
   }
 
-  &[data-flyout] {
+  &[data-flyout],
+  &[data-tooltip] {
     animation: none;
     margin: 0;
+    opacity: unset;
+  }
+
+  &[data-tooltip] {
+    pointer-events: none;
   }
 }
 
@@ -80,6 +86,11 @@ dialog[role='alertdialog'] {
   .btn {
     min-width: 100px;
   }
+}
+
+.tooltip {
+  display: inline-flex;
+  margin: 0.25rem 0.5rem;
 }
 
 @keyframes appear {

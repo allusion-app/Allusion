@@ -32,7 +32,7 @@ const FileSelection = observer(
       onClick={toggle}
       pressed={allFilesSelected}
       text={selectionCount}
-      // tooltip={Tooltip.Select}
+      tooltip={Tooltip.Select}
     />
   ),
 );
@@ -46,7 +46,7 @@ const RemoveFilesPopover = observer(() => {
         disabled={uiStore.fileSelection.size === 0}
         onClick={uiStore.openToolbarFileRemover}
         text="Delete"
-        // tooltip={Tooltip.Delete}
+        tooltip={Tooltip.Delete}
         // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
         // intent="warning"
       />
@@ -83,7 +83,7 @@ const FileFilter = observer(() => {
     <ToolbarMenuButton
       icon={IconSet.FILTER}
       text="Filter"
-      // tooltip={Tooltip.Filter}
+      tooltip={Tooltip.Filter}
       id="__sort-menu"
       controls="__sort-options"
     >
@@ -109,7 +109,7 @@ const LayoutOptions = observer(() => {
     <ToolbarMenuButton
       icon={IconSet.THUMB_BG}
       text="View"
-      // tooltip={Tooltip.View}
+      tooltip={Tooltip.View}
       id="__layout-menu"
       controls="__layout-options"
     >
@@ -141,7 +141,7 @@ const SlideModeToolbar = observer(() => {
       icon={IconSet.ARROW_LEFT}
       onClick={uiStore.disableSlideMode}
       text="Return"
-      // tooltip={Tooltip.Back}
+      tooltip={Tooltip.Back}
     />
   );
 });

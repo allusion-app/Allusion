@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
-import { TagInput, Tooltip } from '@blueprintjs/core';
+import { TagInput } from '@blueprintjs/core';
 import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { IconButton } from 'components';
+import { IconButton, Tooltip } from 'components';
 import { ClientTag } from '../../../entities/Tag';
 import {
   ClientIDSearchCriteria,
@@ -140,12 +140,7 @@ export const Searchbar = observer(() => {
 
   return (
     <div className="quick-search">
-      <Tooltip
-        content="Open Advanced Search (Ctrl + Shift + F)"
-        openOnTargetFocus={false}
-        hoverOpenDelay={1500}
-        usePortal={false}
-      >
+      <Tooltip content="Open Advanced Search (Ctrl + Shift + F)" hoverDelay={1500}>
         <IconButton
           icon={IconSet.SEARCH_EXTENDED}
           onClick={toggleAdvancedSearch}
@@ -161,12 +156,7 @@ export const Searchbar = observer(() => {
           removeCriteriaByIndex={removeSearchCriteriaByIndex}
         />
       )}
-      <Tooltip
-        content="Clear Search"
-        openOnTargetFocus={false}
-        hoverOpenDelay={1500}
-        usePortal={false}
-      >
+      <Tooltip content="Clear Search" hoverDelay={1500}>
         <IconButton icon={IconSet.CLOSE} onClick={clearSearchCriteriaList} text="Close" />
       </Tooltip>
     </div>

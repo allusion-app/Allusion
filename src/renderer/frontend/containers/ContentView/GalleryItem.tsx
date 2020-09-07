@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Tooltip, Card } from '@blueprintjs/core';
+import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Card } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup } from 'components';
+import { Button, ButtonGroup, Tooltip } from 'components';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
@@ -223,19 +223,20 @@ const GalleryItem = observer(
             <MissingImageFallback />
           )}
           {file.isBroken && !showDetails && (
-            <div className="thumbnail-broken-overlay">
-              <Tooltip content="This image could not be found.">
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation(); // prevent image click event
-                    fileStore.fetchMissingFiles();
-                    uiStore.selectFile(file, true);
-                  }}
-                >
-                  {IconSet.WARNING_BROKEN_LINK}
-                </span>
-              </Tooltip>
-            </div>
+            <Tooltip
+              content="This image could not be found."
+              targetClass="thumbnail-broken-overlay"
+            >
+              <span
+                onClick={(e) => {
+                  e.stopPropagation(); // prevent image click event
+                  fileStore.fetchMissingFiles();
+                  uiStore.selectFile(file, true);
+                }}
+              >
+                {IconSet.WARNING_BROKEN_LINK}
+              </span>
+            </Tooltip>
           )}
         </div>
         <ThumbnailDecoration

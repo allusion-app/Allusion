@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import './toolbar.scss';
 import React, { useEffect, useRef, useState } from 'react';
-import { Tooltip } from '@blueprintjs/core';
+import { Tooltip } from '../Dialog/index';
 import { observer } from 'mobx-react-lite';
 import { Flyout } from 'components/Dialog';
 
@@ -132,12 +132,12 @@ const ToolbarButton = observer((props: IToolbarButton) => {
     haspopup,
   } = props;
   const content = (
-    <span className="toolbar-button-content">
+    <>
       <span className="toolbar-button-icon" aria-hidden>
         {icon}
       </span>
       <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
-    </span>
+    </>
   );
   return (
     <button
@@ -154,16 +154,11 @@ const ToolbarButton = observer((props: IToolbarButton) => {
       tabIndex={-1}
     >
       {tooltip ? (
-        <Tooltip
-          content={tooltip}
-          usePortal={false}
-          openOnTargetFocus={false}
-          hoverOpenDelay={1500}
-        >
+        <Tooltip content={tooltip} hoverDelay={1500} targetClass="toolbar-button-content">
           {content}
         </Tooltip>
       ) : (
-        content
+        <span className="toolbar-button-content">{content}</span>
       )}
     </button>
   );

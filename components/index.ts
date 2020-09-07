@@ -9,7 +9,7 @@ import {
   ToolbarToggleButton,
 } from './Toolbar/index';
 import { Button, ButtonGroup, IconButton } from './Button/index';
-import { Alert, Dialog, DialogButton, DialogActions, Flyout } from './Dialog/index';
+import { Alert, Dialog, DialogButton, DialogActions, Flyout, Tooltip } from './Dialog/index';
 import { MenuCheckboxItem, MenuFlyout, MenuItem, MenuRadioItem } from './Menu/index';
 
 export {
@@ -33,4 +33,5 @@ export {
   ToolbarSegmentButton,
   ToolbarToggleButton,
   Toolbar,
+  Tooltip,
 };

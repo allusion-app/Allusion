@@ -1,5 +1,5 @@
 import './dialog.scss';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button, ButtonGroup } from 'components';
 import { observer } from 'mobx-react-lite';
 import { usePopper } from 'react-popper';
@@ -163,6 +163,7 @@ const popperOptions = {
       options: {
         // Prevents dialogs from moving elements to the side
         boundary: document.body,
+        padding: 8,
       },
     },
   ],
@@ -198,12 +199,12 @@ const Flyout = observer((props: IFlyout) => {
   } = props;
 
   const dialog = useRef<HTMLDialogElement>(null);
-  const trigger = useRef<Element>();
+  const trigger = useRef<HTMLElement>();
 
   // On mount find target element
   useEffect(() => {
     if (dialog.current && dialog.current.previousElementSibling) {
-      trigger.current = dialog.current.previousElementSibling;
+      trigger.current = dialog.current.previousElementSibling as HTMLElement;
     }
   }, []);
 
@@ -235,7 +236,7 @@ const Flyout = observer((props: IFlyout) => {
         element?.removeEventListener('close', onClose);
       }
       if (onCancel) {
-        element?.removeEventListener('close', onCancel);
+        element?.removeEventListener('cancel', onCancel);
       }
     };
   }, [onClose, onCancel]);
@@ -262,4 +263,61 @@ const Flyout = observer((props: IFlyout) => {
   );
 });
 
-export { Alert, Dialog, DialogButton, DialogActions, Flyout };
+interface ITooltip {
+  content: React.ReactNode;
+  children: React.ReactNode;
+  /** @default 100 */
+  hoverDelay?: number;
+  targetClass?: string;
+}
+
+const Tooltip = observer(({ content, children, hoverDelay = 100, targetClass }: ITooltip) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const timerID = useRef<number>();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    // Clear timer on removing component
+    return () => {
+      if (timerID.current) {
+        clearTimeout(timerID.current);
+        timerID.current = undefined;
+      }
+    };
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
+  }, [hoverDelay]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (timerID.current) {
+      clearTimeout(timerID.current);
+      timerID.current = undefined;
+    }
+    setIsOpen(false);
+  }, []);
+
+  const { styles, attributes } = usePopper(trigger.current, dialog.current, popperOptions);
+
+  return (
+    <>
+      <span
+        ref={trigger}
+        className={targetClass}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {children}
+      </span>
+      <dialog style={styles.popper} {...attributes.popper} open={isOpen} data-tooltip ref={dialog}>
+        <span role="tooltip" className="tooltip">
+          {content}
+        </span>
+      </dialog>
+    </>
+  );
+});
+
+export { Alert, Dialog, DialogButton, DialogActions, Flyout, Tooltip };
