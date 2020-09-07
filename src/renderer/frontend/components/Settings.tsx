@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
-  Drawer,
   Classes,
   Callout,
   H4,
@@ -221,23 +220,6 @@ const SettingsForm = observer(() => {
   );
 });
 
-export const SettingsDrawer = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  return (
-    <Drawer
-      isOpen={uiStore.isSettingsOpen}
-      icon={IconSet.SETTINGS}
-      onClose={uiStore.toggleSettings}
-      title="Settings"
-      className="settings-drawer"
-    >
-      <div className={Classes.DRAWER_BODY}>
-        <SettingsForm />
-      </div>
-    </Drawer>
-  );
-});
-
 export const SettingsWindow: React.FC = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
@@ -246,19 +228,16 @@ export const SettingsWindow: React.FC = observer(() => {
   }
 
   return (
-    <>
-      {/* <SettingsDrawer /> */}
-      <PopupWindow
-        onClose={uiStore.closeSettings}
-        windowName="settings"
-        closeOnEscape
-        additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
-      >
-        <div id="settings-window" className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
-          <SettingsForm />
-        </div>
-      </PopupWindow>
-    </>
+    <PopupWindow
+      onClose={uiStore.closeSettings}
+      windowName="settings"
+      closeOnEscape
+      additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
+    >
+      <div id="settings-window" className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
+        <SettingsForm />
+      </div>
+    </PopupWindow>
   );
 });
 
