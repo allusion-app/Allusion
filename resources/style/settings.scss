@@ -1,4 +1,4 @@
-.settings {
+.settings-drawer {
   max-width: 22rem;
   padding: 1rem;
   overflow-y: auto;
@@ -15,9 +15,25 @@
   .bp3-drawer-body {
     overflow: unset;
   }
+}
 
+.settings-form {
   // For the hotkeys tip
   .bp3-key-combo {
     display: inline;
   }
+
+  // Might be nice to have something like this for layouting things https://rebassjs.org/reflexbox/
+
+  .column {
+    display: inline-block;
+    width: 50%;
+  }
+}
+
+#settings-window {
+  background-color: var(--background-color);
+  transition: all 100ms ease-in-out; // aw yeahh
+  padding: 1em;
+  height: 100%;
 }

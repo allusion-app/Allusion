@@ -3,7 +3,8 @@
  * From https://github.com/electron/electron/issues/7714#issuecomment-255835799
  */
 export function isDev() {
-  return process.mainModule ? process.mainModule.filename.indexOf('app.asar') === -1 : false;
+  // This arg is passed in the `yarn start` script (package.json)
+  return process.argv[2] == '--dev';
 }
 
 // Randomly chosen, hopefully no conflicts with other apps/services

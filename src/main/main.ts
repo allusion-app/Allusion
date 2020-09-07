@@ -76,6 +76,9 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
+      // window.open should open a normal window like in a browser, not an electron BrowserWindowProxy
+      nativeWindowOpen: true,
+      nodeIntegrationInSubFrames: true,
     },
     width,
     height,
@@ -83,7 +86,34 @@ function createWindow() {
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#14181a',
     title: 'Allusion',
+    show: false,
   });
+  mainWindow.on('ready-to-show', () => mainWindow?.show());
+
+  // Customize new window opening
+  // https://www.electronjs.org/docs/api/window-open
+  mainWindow.webContents.on(
+    'new-window',
+    (event, url, frameName, disposition, options, additionalFeatures) => {
+      if (frameName === 'settings') {
+        event.preventDefault();
+        // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
+        const additionalOptions: Electron.BrowserWindowConstructorOptions = {
+          modal: true,
+          parent: mainWindow!,
+          width: 600,
+          height: 570,
+          title: 'Settings • Allusion',
+          resizable: false,
+        };
+        Object.assign(options, additionalOptions);
+        const settingsWindow = new BrowserWindow(options);
+        settingsWindow.center(); // the "center" option doesn't work :/
+        settingsWindow.setMenu(null); // no toolbar needed
+        (event as any).newGuest = settingsWindow;
+      }
+    },
+  );
 
   let menu = null;
 
@@ -128,7 +158,7 @@ function createWindow() {
           label: 'Actual Size',
           accelerator: 'CommandOrControl+0',
           click: (_, browserWindow) => {
-            browserWindow.webContents.zoomFactor = 1;
+            browserWindow!.webContents.zoomFactor = 1;
           },
         },
         {
@@ -136,14 +166,14 @@ function createWindow() {
           // TODO: Fix by using custom solution...
           accelerator: 'CommandOrControl+=',
           click: (_, browserWindow) => {
-            browserWindow.webContents.zoomFactor += 0.1;
+            browserWindow!.webContents.zoomFactor += 0.1;
           },
         },
         {
           label: 'Zoom Out',
           accelerator: 'CommandOrControl+-',
           click: (_, browserWindow) => {
-            browserWindow.webContents.zoomFactor -= 0.1;
+            browserWindow!.webContents.zoomFactor -= 0.1;
           },
         },
         { type: 'separator' },
@@ -158,7 +188,7 @@ function createWindow() {
           label: 'Show Keyboard Shortcuts',
           accelerator: 'CommandOrControl+K',
           click: (_, browserWindow) => {
-            browserWindow.webContents.sendInputEvent({
+            browserWindow!.webContents.sendInputEvent({
               type: 'keyDown',
               isTrusted: true,
               keyCode: '?',
@@ -331,6 +361,7 @@ MainMessenger.onSendPreviewFiles((msg) => {
   }
 });
 
+// TODO: Should set this on startup: E.g. Choosing light theme, but having a dark system theme, will be incorrect after restart
 MainMessenger.onSetTheme((msg) => (nativeTheme.themeSource = msg.theme));
 
 MainMessenger.onDragExport(({ absolutePaths }) => {

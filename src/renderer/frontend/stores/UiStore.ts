@@ -230,6 +230,10 @@ class UiStore {
     this.isSettingsOpen = !this.isSettingsOpen;
   }
 
+  @action.bound closeSettings() {
+    this.isSettingsOpen = false;
+  }
+
   @action.bound toggleHelpCenter() {
     this.isHelpCenterOpen = !this.isHelpCenterOpen;
   }

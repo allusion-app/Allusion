@@ -107,7 +107,7 @@ export const FileRemoval = (props: IRemovalProps<ClientFile[]>) => {
       onCancel={props.onClose}
       onConfirm={() => {
         props.onClose();
-        fileStore.removeFiles(files.map((f) => f.id));
+        fileStore.removeFiles(files.filter((f) => f.isBroken).map((f) => f.id));
       }}
     />
   );

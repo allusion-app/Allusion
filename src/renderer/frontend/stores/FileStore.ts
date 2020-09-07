@@ -386,7 +386,7 @@ class FileStore {
     });
 
     // Run the existence check with at most N checks in parallel
-    // TODO: Should make N configurage, or determine based on the system/disk performance
+    // TODO: Should make N configurable, or determine based on the system/disk performance
     // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
     const N = 50;
     promiseAllLimit(existenceCheckPromises, N).catch((e) =>

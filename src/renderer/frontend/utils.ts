@@ -43,6 +43,8 @@ export const timeoutPromise = <T>(timeMS: number, promise: Promise<T>): Promise<
   });
 };
 
+export const timeout = <T>(timeMS: number) => new Promise((resolve) => setTimeout(resolve, timeMS));
+
 ///////////////////////////////
 //////// Promise utils ////////
 ///////////////////////////////
@@ -64,10 +66,14 @@ export const promiseAllBatch = async <T>(batchSize = 50, proms: Promise<T>[]) =>
  * https://gist.github.com/jcouyang/632709f30e12a7879a73e9e132c0d56b
  * @param n The amount of promises to run in parallel
  * @param list The promises to run
+ * @param progressCallback Returns the progress as a value between 0 and 1
+ * @param cancel A callback function that, when returning true, can cancel any new promises from being awaited
  */
 export function promiseAllLimit<T>(
   collection: Array<() => Promise<T>>,
   n: number = 100,
+  progressCallback?: (progress: number) => void,
+  cancel?: () => boolean,
 ): Promise<T[]> {
   let i = 0;
   let jobsLeft = collection.length;
@@ -89,6 +95,14 @@ export function promiseAllLimit<T>(
         }
         jobsLeft--;
         outcome[j] = result;
+
+        progressCallback?.(1 - jobsLeft / collection.length);
+        if (cancel?.()) {
+          rejected = true;
+          console.log('CANCELLING!');
+          return;
+        }
+
         if (jobsLeft <= 0) {
           resolve(outcome);
         } else if (i < collection.length) {

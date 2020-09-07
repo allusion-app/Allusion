@@ -12,7 +12,6 @@ import {
 } from 'components';
 import { IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
-import { FileOrder } from '../../../backend/DBRepository';
 import { useContext } from 'react';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
@@ -58,13 +57,6 @@ const RemoveFilesPopover = observer(() => {
   );
 });
 
-interface IFileFilter {
-  fileOrder: FileOrder;
-  orderBy: keyof IFile;
-  orderFilesBy: (prop: keyof IFile) => void;
-  switchFileOrder: () => void;
-}
-
 const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }> = [
   // { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
   { prop: 'name', icon: IconSet.FILTER_NAME_UP, text: 'Name' },
@@ -74,7 +66,7 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateModified', icon: IconSet.FILTER_DATE, text: 'Date modified' },
 ];
 
-const FileFilter = observer(() => {
+export const SortMenuItems = observer(() => {
   const {
     fileStore: { fileOrder, orderBy, orderFilesBy, switchFileOrder },
   } = useContext(StoreContext);
@@ -180,7 +172,7 @@ const ContentToolbar = observer(() => {
           <FileTags files={fileSelection.size > 0 ? uiStore.clientFileSelection : []} />
         )}
 
-        <FileFilter />
+        <SortMenuItems />
 
         <LayoutOptions />
 

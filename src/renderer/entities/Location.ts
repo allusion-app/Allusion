@@ -101,11 +101,11 @@ export class ClientLocation implements ISerializable<ILocation> {
     return SysPath.basename(this.path);
   }
 
-  @action.bound async init(): Promise<string[]> {
+  @action.bound async init(cancel?: () => boolean): Promise<string[]> {
     this.isInitialized = true;
     const pathExists = await fse.pathExists(this.path);
     if (pathExists) {
-      return this.watchDirectory(this.path);
+      return this.watchDirectory(this.path, cancel);
     } else {
       this.setBroken(true);
       return [];
@@ -147,7 +147,8 @@ export class ClientLocation implements ISerializable<ILocation> {
   }
 
   async delete(): Promise<void> {
-    this.store.removeDirectory(this);
+    await this.store.removeDirectory(this);
+    this.store.rootStore.fileStore.refetch();
   }
 
   dispose(): void {
@@ -155,7 +156,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.saveHandler();
   }
 
-  private watchDirectory(inputPath: string): Promise<string[]> {
+  private watchDirectory(inputPath: string, cancel?: () => boolean): Promise<string[]> {
     // Watch for folder changes
     this.watcher = chokidar.watch(inputPath, {
       depth: RECURSIVE_DIR_WATCH_DEPTH,
@@ -174,6 +175,10 @@ export class ClientLocation implements ISerializable<ILocation> {
     return new Promise<string[]>((resolve) => {
       watcher
         .on('add', async (path: string) => {
+          if (cancel?.()) {
+            console.log('Cancelling file watching');
+            await watcher.close();
+          }
           if (IMG_EXTENSIONS.some((ext) => SysPath.extname(path).endsWith(ext))) {
             // Todo: ignore dot files/dirs?
             if (this.isReady) {
@@ -226,6 +231,23 @@ export class ClientLocation implements ISerializable<ILocation> {
           console.log(`Location "${this.name}" ready. Detected files:`, initialFiles.length);
           // Todo: Compare this in DB, add new files and mark missing files as missing
           resolve(initialFiles);
+        })
+        .on('error', (error: Error) => {
+          console.error('Location watch error:', error);
+          AppToaster.show(
+            {
+              message: `An error has occured while ${
+                this.isReady ? 'watching' : 'initializing'
+              } location "${this.name}".`,
+              intent: 'danger',
+              timeout: 0,
+              action: {
+                icon: IconSet.DELETE,
+                onClick: () => this.store.removeDirectory(this),
+              },
+            },
+            'location-error',
+          );
         });
     });
   }

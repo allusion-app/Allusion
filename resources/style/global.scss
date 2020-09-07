@@ -321,6 +321,12 @@ img {
   cursor: none;
 }
 
+.toast-without-dismiss {
+  .bp3-button:last-child {
+    display: none;
+  }
+}
+
 @keyframes fade {
   0% {
     opacity: 0;
