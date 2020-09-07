@@ -15,6 +15,11 @@ dialog {
   &[open] {
     animation: appear 0.1s linear;
   }
+
+  &[data-flyout] {
+    animation: none;
+    margin: 0;
+  }
 }
 
 .dialog-content {

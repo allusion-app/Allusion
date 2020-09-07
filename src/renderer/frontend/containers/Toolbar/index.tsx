@@ -62,7 +62,7 @@ const Toolbar = observer(() => {
         onClick={uiStore.toggleOutliner}
         pressed={uiStore.isOutlinerOpen}
         text="Outliner"
-        tooltip={Tooltip.Outliner}
+        // tooltip={Tooltip.Outliner}
       />
 
       <ContentToolbar />
@@ -71,7 +71,7 @@ const Toolbar = observer(() => {
         showLabel="never"
         icon={IconSet.MORE}
         text="More"
-        tooltip="See more"
+        // tooltip="See more"
         id="__secondary-menu"
         controls="__secondary-menu-options"
       >

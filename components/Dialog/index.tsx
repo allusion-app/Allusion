@@ -2,6 +2,7 @@ import './dialog.scss';
 import React, { useEffect, useRef } from 'react';
 import { Button, ButtonGroup } from 'components';
 import { observer } from 'mobx-react-lite';
+import { usePopper } from 'react-popper';
 
 interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   open: boolean;
@@ -155,6 +156,18 @@ const DialogActions = observer((props: IDialogActions) => {
   );
 });
 
+const popperOptions = {
+  modifiers: [
+    {
+      name: 'preventOverflow',
+      options: {
+        // Prevents dialogs from moving elements to the side
+        boundary: document.body,
+      },
+    },
+  ],
+};
+
 interface IFlyout {
   open: boolean;
   label?: string;
@@ -185,7 +198,16 @@ const Flyout = observer((props: IFlyout) => {
   } = props;
 
   const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<Element>();
 
+  // On mount find target element
+  useEffect(() => {
+    if (dialog.current && dialog.current.previousElementSibling) {
+      trigger.current = dialog.current.previousElementSibling;
+    }
+  }, []);
+
+  // Focus first focusable element
   useEffect(() => {
     if (dialog.current && open) {
       const first =
@@ -198,6 +220,7 @@ const Flyout = observer((props: IFlyout) => {
     }
   }, [open]);
 
+  // Add event listeners because React does not have proper typings :)
   useEffect(() => {
     const element = dialog.current;
     if (onClose) {
@@ -217,12 +240,16 @@ const Flyout = observer((props: IFlyout) => {
     };
   }, [onClose, onCancel]);
 
+  const { styles, attributes } = usePopper(trigger.current, dialog.current, popperOptions);
+
   return (
     <>
       {target}
       <dialog
+        style={styles.popper}
+        {...attributes.popper}
         open={open}
-        // data-popover
+        data-flyout
         ref={dialog}
         aria-label={label}
         aria-labelledby={labelledby}

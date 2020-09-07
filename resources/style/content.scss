@@ -4,6 +4,10 @@
   margin-left: 6px;
 
   > div {
+    &:not(.slide) {
+      // WARNING: This fixes a lot of things, so do not delete it!
+      position: absolute !important;
+    }
     // No horizontal scrollbar
     overflow-x: hidden !important;
   }
