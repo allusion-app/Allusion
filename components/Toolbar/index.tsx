@@ -132,12 +132,12 @@ const ToolbarButton = observer((props: IToolbarButton) => {
     haspopup,
   } = props;
   const content = (
-    <>
+    <span className="toolbar-button-content">
       <span className="toolbar-button-icon" aria-hidden>
         {icon}
       </span>
       <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
-    </>
+    </span>
   );
   return (
     <button
@@ -154,11 +154,11 @@ const ToolbarButton = observer((props: IToolbarButton) => {
       tabIndex={-1}
     >
       {tooltip ? (
-        <Tooltip content={tooltip} hoverDelay={1500} targetClass="toolbar-button-content">
+        <Tooltip content={tooltip} hoverDelay={1500}>
           {content}
         </Tooltip>
       ) : (
-        <span className="toolbar-button-content">{content}</span>
+        { content }
       )}
     </button>
   );

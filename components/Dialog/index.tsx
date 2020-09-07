@@ -265,27 +265,16 @@ const Flyout = observer((props: IFlyout) => {
 
 interface ITooltip {
   content: React.ReactNode;
-  children: React.ReactNode;
+  children: React.ReactElement<HTMLElement>;
   /** @default 100 */
   hoverDelay?: number;
-  targetClass?: string;
 }
 
-const Tooltip = observer(({ content, children, hoverDelay = 100, targetClass }: ITooltip) => {
+const Tooltip = observer(({ content, children, hoverDelay = 100 }: ITooltip) => {
   const [isOpen, setIsOpen] = useState(false);
   const timerID = useRef<number>();
   const dialog = useRef<HTMLDialogElement>(null);
-  const trigger = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    // Clear timer on removing component
-    return () => {
-      if (timerID.current) {
-        clearTimeout(timerID.current);
-        timerID.current = undefined;
-      }
-    };
-  }, []);
+  const trigger = useRef<HTMLElement>();
 
   const handleMouseEnter = useCallback(() => {
     timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
@@ -299,18 +288,29 @@ const Tooltip = observer(({ content, children, hoverDelay = 100, targetClass }: 
     setIsOpen(false);
   }, []);
 
+  useEffect(() => {
+    if (dialog.current && dialog.current.previousElementSibling) {
+      trigger.current = dialog.current.previousElementSibling as HTMLElement;
+      trigger.current.addEventListener('mouseenter', handleMouseEnter);
+      trigger.current.addEventListener('mouseleave', handleMouseLeave);
+    }
+
+    // Clear timer on removing component
+    return () => {
+      if (timerID.current) {
+        clearTimeout(timerID.current);
+        timerID.current = undefined;
+      }
+      trigger.current?.removeEventListener('mouseenter', handleMouseEnter);
+      trigger.current?.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [handleMouseEnter, handleMouseLeave]);
+
   const { styles, attributes } = usePopper(trigger.current, dialog.current, popperOptions);
 
   return (
     <>
-      <span
-        ref={trigger}
-        className={targetClass}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        {children}
-      </span>
+      {children}
       <dialog style={styles.popper} {...attributes.popper} open={isOpen} data-tooltip ref={dialog}>
         <span role="tooltip" className="tooltip">
           {content}
