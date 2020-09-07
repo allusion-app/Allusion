@@ -207,41 +207,37 @@ const GalleryItem = observer(
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <Tooltip content={file.name} hoverDelay={1000}>
-          <div
-            onClick={handleClickImg}
-            className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
-            onDoubleClick={handleDoubleClickImg}
-            onDragStart={handleDragStart}
-          >
-            {isThumbnailReady ? (
-              // Show image when it has been loaded
-              <img src={imagePath} onError={handleImageError} alt="" />
-            ) : isThumbnailGenerating ? (
-              // If it's being generated, show a placeholder
-              <div className="donut-loading" />
-            ) : (
-              // Show an error it it could not be loaded
-              <MissingImageFallback />
-            )}
-            {file.isBroken && !showDetails && (
-              <Tooltip
-                content="This image could not be found."
-                targetClass="thumbnail-broken-overlay"
+        <div
+          onClick={handleClickImg}
+          className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
+          onDoubleClick={handleDoubleClickImg}
+          onDragStart={handleDragStart}
+        >
+          {isThumbnailReady ? (
+            // Show image when it has been loaded
+            <img src={imagePath} onError={handleImageError} alt="" />
+          ) : isThumbnailGenerating ? (
+            // If it's being generated, show a placeholder
+            <div className="donut-loading" />
+          ) : (
+            // Show an error it it could not be loaded
+            <MissingImageFallback />
+          )}
+          {file.isBroken && !showDetails && (
+            <Tooltip content="This image could not be found.">
+              <span
+                className="thumbnail-broken-overlay"
+                onClick={(e) => {
+                  e.stopPropagation(); // prevent image click event
+                  fileStore.fetchMissingFiles();
+                  uiStore.selectFile(file, true);
+                }}
               >
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation(); // prevent image click event
-                    fileStore.fetchMissingFiles();
-                    uiStore.selectFile(file, true);
-                  }}
-                >
-                  {IconSet.WARNING_BROKEN_LINK}
-                </span>
-              </Tooltip>
-            )}
-          </div>
-        </Tooltip>
+                {IconSet.WARNING_BROKEN_LINK}
+              </span>
+            </Tooltip>
+          )}
+        </div>
         <ThumbnailDecoration
           showDetails={showDetails}
           file={file}
