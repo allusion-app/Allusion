@@ -20,10 +20,10 @@ dialog {
   &[data-tooltip] {
     animation: none;
     margin: 0;
-    opacity: unset;
   }
 
   &[data-tooltip] {
+    opacity: unset;
     pointer-events: none;
   }
 }
