@@ -158,7 +158,7 @@ const ToolbarButton = observer((props: IToolbarButton) => {
           {content}
         </Tooltip>
       ) : (
-        { content }
+        content
       )}
     </button>
   );
