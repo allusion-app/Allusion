@@ -23,9 +23,9 @@ const refocus = (previousTarget: Element, nextTarget: HTMLElement) => {
   setTabFocus(nextTarget);
 };
 
-const isGroup = (element: Element | null) => element?.getAttribute('role') === 'group';
+const isGroup = (element: Element | null) => element?.matches('[role="group"]');
 
-const isExpanded = (element: Element | null) => element?.getAttribute('aria-expanded') === 'true';
+const isExpanded = (element: Element | null) => element?.matches('[aria-expanded="true"]');
 
 const getParent = (element: Element): HTMLElement | null =>
   isGroup(element.parentElement) ? element.parentElement!.parentElement!.parentElement : null;
@@ -131,12 +131,12 @@ export const createLeafOnKeyDown = (
 };
 
 const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
-  if (event.target instanceof Element && event.target.getAttribute('role') !== 'treeitem') {
+  if (event.target instanceof Element && !event.target.matches('[role="treeitem"]')) {
     return;
   }
   switch (event.key) {
     case 'Home': {
-      const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');
+      const prev = event.currentTarget.querySelector('[role="treeitem"][tabindex="0"]');
       setTabFocus(event.currentTarget.firstElementChild as HTMLElement);
       if (prev) {
         prev.setAttribute('tabIndex', '-1');
@@ -145,7 +145,7 @@ const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
     }
 
     case 'End': {
-      const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');
+      const prev = event.currentTarget.querySelector('[role="treeitem"][tabindex="0"]');
       setTabFocus(event.currentTarget.lastElementChild as HTMLElement);
       if (prev) {
         prev.setAttribute('tabIndex', '-1');
@@ -506,7 +506,7 @@ export interface ITreeBranch extends ITreeLeaf {
 }
 
 const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
-  if (event.target.getAttribute('role') !== 'treeitem') {
+  if (!event.target.matches('[role="treeitem"]')) {
     return;
   }
   const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');

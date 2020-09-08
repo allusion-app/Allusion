@@ -9,19 +9,15 @@ const setTabFocus = (element: HTMLElement) => {
   element.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
 };
 
-const refocus = (previousTarget: Element, nextTarget: HTMLElement) => {
-  previousTarget.setAttribute('tabIndex', '-1');
-  setTabFocus(nextTarget);
-};
-
 const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
-  if (!event.target.getAttribute('role')?.startsWith('menuitem')) {
+  if (!event.target.matches('[role^="menuitem"]')) {
     return;
   }
-  const prev = event.currentTarget.querySelector('li[role^="menuitem"][tabindex="0"]');
+  const prev = event.currentTarget.querySelector('[role^="menuitem"][tabindex="0"]');
   if (prev) {
     if (event.target !== prev) {
-      refocus(prev as HTMLElement, event.target);
+      prev.setAttribute('tabIndex', '-1');
+      setTabFocus(event.target);
     }
   } else {
     setTabFocus(event.target);

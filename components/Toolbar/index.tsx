@@ -18,7 +18,7 @@ interface IToolbar {
 const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const current = e.currentTarget;
   const target = (e.target as HTMLElement).closest('.toolbar > *')!;
-  const isVertical = current.getAttribute('aria-orientation') === 'vertical';
+  const isVertical = current.matches('[aria-orientation="vertical"]');
 
   if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     return;
@@ -178,7 +178,7 @@ interface IToolbarGroup extends IBaseGroup {
 
 const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const target = (e.target as HTMLElement).closest('.toolbar-group > *')!;
-  const isVertical = e.currentTarget.getAttribute('aria-orientation') === 'vertical';
+  const isVertical = e.currentTarget.matches('[aria-orientation="vertical"]');
 
   if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     return;
@@ -247,7 +247,7 @@ interface IToolbarSegment extends IBaseGroup {
 
 const handleSegmentKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const target = e.target as HTMLElement;
-  const isVertical = e.currentTarget.getAttribute('aria-orientation') === 'vertical';
+  const isVertical = e.currentTarget.matches('[aria-orientation="vertical"]');
   let item;
   if (e.key === 'ArrowLeft' || (isVertical && e.key === 'ArrowUp')) {
     item = target.previousElementSibling;
