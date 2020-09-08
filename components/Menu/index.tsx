@@ -41,21 +41,19 @@ interface IMenu {
   role?: 'menu' | 'group';
 }
 
-const Menu = observer(({ id, children, label, labelledby, role = 'menu' }: IMenu) => {
-  return (
-    <ul
-      id={id}
-      role={role}
-      aria-label={label}
-      aria-labelledby={labelledby}
-      className="menu"
-      onClick={handleClick}
-      onFocus={handleFocus}
-    >
-      {children}
-    </ul>
-  );
-});
+const Menu = observer(({ id, children, label, labelledby, role = 'menu' }: IMenu) => (
+  <ul
+    id={id}
+    role={role}
+    aria-label={label}
+    aria-labelledby={labelledby}
+    className="menu"
+    onClick={handleClick}
+    onFocus={handleFocus}
+  >
+    {children}
+  </ul>
+));
 
 /** Does not support sub menus yet */
 interface IMenuItem {
@@ -66,11 +64,34 @@ interface IMenuItem {
   disabled?: boolean;
 }
 
-const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenuItem) => {
-  return (
+const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenuItem) => (
+  <li
+    className="menuitem"
+    role="menuitem"
+    tabIndex={-1}
+    onClick={disabled ? undefined : onClick}
+    aria-disabled={disabled}
+  >
+    <span className="menuitem-icon" aria-hidden>
+      {icon}
+    </span>
+    {text}
+    <span className="menuitem-accelerator custom-icon" aria-hidden>
+      {accelerator}
+    </span>
+  </li>
+));
+
+interface IMenuRadioItem extends IMenuItem {
+  checked: boolean;
+}
+
+const MenuRadioItem = observer(
+  ({ text, icon, checked, onClick, accelerator, disabled }: IMenuRadioItem) => (
     <li
       className="menuitem"
-      role="menuitem"
+      role="menuitemradio"
+      aria-checked={checked}
       tabIndex={-1}
       onClick={disabled ? undefined : onClick}
       aria-disabled={disabled}
@@ -83,57 +104,28 @@ const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenu
         {accelerator}
       </span>
     </li>
-  );
-});
-
-interface IMenuRadioItem extends IMenuItem {
-  checked: boolean;
-}
-
-const MenuRadioItem = observer(
-  ({ text, icon, checked, onClick, accelerator, disabled }: IMenuRadioItem) => {
-    return (
-      <li
-        className="menuitem"
-        role="menuitemradio"
-        aria-checked={checked}
-        tabIndex={-1}
-        onClick={disabled ? undefined : onClick}
-        aria-disabled={disabled}
-      >
-        <span className="menuitem-icon" aria-hidden>
-          {icon}
-        </span>
-        {text}
-        <span className="menuitem-accelerator custom-icon" aria-hidden>
-          {accelerator}
-        </span>
-      </li>
-    );
-  },
+  ),
 );
 
 type IMenuCheckboxItem = Omit<IMenuRadioItem, 'icon'>;
 
 const MenuCheckboxItem = observer(
-  ({ text, checked, onClick, accelerator, disabled }: IMenuCheckboxItem) => {
-    return (
-      <li
-        className="menuitem"
-        role="menuitemcheckbox"
-        aria-checked={checked}
-        tabIndex={-1}
-        onClick={disabled ? undefined : onClick}
-        aria-disabled={disabled}
-      >
-        <span className="menuitem-icon custom-icon" aria-hidden></span>
-        {text}
-        <span className="menuitem-accelerator custom-icon" aria-hidden>
-          {accelerator}
-        </span>
-      </li>
-    );
-  },
+  ({ text, checked, onClick, accelerator, disabled }: IMenuCheckboxItem) => (
+    <li
+      className="menuitem"
+      role="menuitemcheckbox"
+      aria-checked={checked}
+      tabIndex={-1}
+      onClick={disabled ? undefined : onClick}
+      aria-disabled={disabled}
+    >
+      <span className="menuitem-icon custom-icon" aria-hidden></span>
+      {text}
+      <span className="menuitem-accelerator custom-icon" aria-hidden>
+        {accelerator}
+      </span>
+    </li>
+  ),
 );
 
 const MenuDivider = () => <li role="separator" className="menu-separator"></li>;

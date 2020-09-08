@@ -771,7 +771,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
       <Collapse isOpen={!isCollapsed}>
         {root.subCollections.length === 0 && root.tags.length === 0 ? (
           <div className="tree-content-label" style={{ padding: '0.25rem' }}>
-            <span className="pre-icon">{IconSet.INFO}</span>
+            <span>{IconSet.INFO}</span>
             No tags or collections created yet
           </div>
         ) : (

@@ -343,7 +343,6 @@ export const MasonryGallery = observer(({}: IGalleryLayoutProps) => {
 
   return (
     <div style={Styles}>
-      {' '}
       <span className="custom-icon-64" style={{ marginBottom: '1rem' }}>
         {IconSet.DB_ERROR}
       </span>

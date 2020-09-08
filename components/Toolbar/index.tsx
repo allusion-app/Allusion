@@ -342,7 +342,7 @@ const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <span onKeyDown={handleKeyDown} onBlur={handleFlyoutBlur}>
+    <div onKeyDown={handleKeyDown} onBlur={handleFlyoutBlur}>
       <Flyout
         open={isOpen}
         onClose={() => setIsOpen(false)}
@@ -363,7 +363,7 @@ const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
       >
         {props.children}
       </Flyout>
-    </span>
+    </div>
   );
 });
 

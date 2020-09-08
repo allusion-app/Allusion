@@ -363,9 +363,9 @@ class GalleryItemWithContextMenu extends React.PureComponent<
   render() {
     return (
       // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
-      <span className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
+      <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
         <GalleryItem {...this.props} />
-      </span>
+      </div>
     );
   }
 

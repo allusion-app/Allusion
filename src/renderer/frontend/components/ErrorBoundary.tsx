@@ -15,6 +15,7 @@ export const ClearDbButton = () => {
   return (
     <Flyout
       open={isOpen}
+      placement="top"
       target={
         <Button
           styling="outlined"

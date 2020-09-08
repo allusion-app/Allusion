@@ -155,9 +155,18 @@ const Tooltip = observer((props: ITooltip) => {
     options: { fallbackPlacements, allowedAutoPlacements },
   });
 
+  const { styles, attributes, forceUpdate } = usePopper(
+    trigger.current,
+    dialog.current,
+    options.current,
+  );
+
   const handleMouseEnter = useCallback(() => {
-    timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
-  }, [hoverDelay]);
+    timerID.current = (setTimeout(() => {
+      setIsOpen(true);
+      forceUpdate?.();
+    }, hoverDelay) as unknown) as number;
+  }, [hoverDelay, forceUpdate]);
 
   const handleMouseLeave = useCallback(() => {
     if (timerID.current) {
@@ -185,15 +194,13 @@ const Tooltip = observer((props: ITooltip) => {
     };
   }, [handleMouseEnter, handleMouseLeave]);
 
-  const { styles, attributes } = usePopper(trigger.current, dialog.current, options.current);
-
   return (
     <>
       {children}
       <dialog style={styles.popper} {...attributes.popper} open={isOpen} data-tooltip ref={dialog}>
-        <span role="tooltip" className="tooltip">
+        <div role="tooltip" className="tooltip">
           {content}
-        </span>
+        </div>
       </dialog>
     </>
   );
