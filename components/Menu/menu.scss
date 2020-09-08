@@ -53,6 +53,12 @@ a.menuitem {
   display: inline-flex;
   pointer-events: none;
   align-items: center;
+  height: 1rem;
+  width: 1rem;
+
+  .custom-icon {
+    margin: 0;
+  }
 
   * {
     pointer-events: none;
@@ -64,7 +70,7 @@ a.menuitem {
 }
 
 .menuitem-accelerator {
-  min-width: 4rem;
+  margin-left: 3.5rem;
   flex-grow: 1;
   justify-content: flex-end;
 }

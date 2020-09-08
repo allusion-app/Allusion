@@ -76,7 +76,7 @@ const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenu
       {icon}
     </span>
     {text}
-    <span className="menuitem-accelerator custom-icon" aria-hidden>
+    <span className="menuitem-accelerator" aria-hidden>
       {accelerator}
     </span>
   </li>
@@ -100,7 +100,7 @@ const MenuRadioItem = observer(
         {icon}
       </span>
       {text}
-      <span className="menuitem-accelerator custom-icon" aria-hidden>
+      <span className="menuitem-accelerator" aria-hidden>
         {accelerator}
       </span>
     </li>
@@ -119,9 +119,9 @@ const MenuCheckboxItem = observer(
       onClick={disabled ? undefined : onClick}
       aria-disabled={disabled}
     >
-      <span className="menuitem-icon custom-icon" aria-hidden></span>
+      <span className="menuitem-icon" aria-hidden></span>
       {text}
-      <span className="menuitem-accelerator custom-icon" aria-hidden>
+      <span className="menuitem-accelerator" aria-hidden>
         {accelerator}
       </span>
     </li>
@@ -183,7 +183,7 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
               {icon}
             </span>
             {text}
-            <span className="menuitem-accelerator custom-icon" aria-hidden>
+            <span className="menuitem-accelerator" aria-hidden>
               {IconSet.ARROW_RIGHT}
             </span>
           </a>
