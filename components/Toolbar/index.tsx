@@ -305,15 +305,17 @@ const handleKeyDown = (e: React.KeyboardEvent) => {
         e.stopPropagation();
         item.click();
         e.currentTarget.querySelector('button')?.focus();
-        e.currentTarget.querySelector('dialog')?.close();
       }
       break;
     }
 
     case 'Escape':
-      e.stopPropagation();
-      e.currentTarget.querySelector('button')?.focus();
-      e.currentTarget.querySelector('dialog')?.close();
+      const item = e.currentTarget.querySelector('dialog [tabindex="0"]:focus') as HTMLElement;
+      if (item) {
+        e.stopPropagation();
+        item.blur();
+        e.currentTarget.querySelector('button')?.focus();
+      }
       break;
 
     default:
@@ -346,6 +348,10 @@ const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
       <Flyout
         open={isOpen}
         onClose={() => setIsOpen(false)}
+        onCancel={() => {
+          console.log('CANCEL 2');
+          setIsOpen(false);
+        }}
         target={
           <ToolbarButton
             id={props.id}

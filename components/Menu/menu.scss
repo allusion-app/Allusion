@@ -19,7 +19,7 @@
 
   &:disabled {
     color: var(--text-muted-color);
-    pointer-events: none;
+    cursor: not-allowed;
   }
 }
 
@@ -27,6 +27,12 @@ a.menuitem {
   color: var(--text-color);
   text-decoration: none;
   pointer-events: none;
+}
+
+.menuitem:hover,
+.menu li[role='none']:hover {
+  color: var(--highlight-font-color);
+  background: var(--highlight-background-color);
 }
 
 .menuitem[role='menuitemradio'][aria-checked='true'] {

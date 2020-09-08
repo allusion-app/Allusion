@@ -152,7 +152,7 @@ const Tooltip = observer((props: ITooltip) => {
   const options = useRef({
     ...popperOptions,
     placement,
-    options: { fallbackPlacements, allowedAutoPlacements },
+    modifiers: [{ name: 'flips', options: { fallbackPlacements, allowedAutoPlacements } }],
   });
 
   const { styles, attributes, forceUpdate } = usePopper(
@@ -206,4 +206,79 @@ const Tooltip = observer((props: ITooltip) => {
   );
 });
 
-export { Flyout, Tooltip };
+interface IContextMenu {
+  open: boolean;
+  x: number;
+  y: number;
+  children: React.ReactElement;
+  onClose: (event: Event) => void;
+}
+
+const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) => {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const virtualElement = useRef({
+    getBoundingClientRect: () => ({
+      width: 0,
+      height: 0,
+      top: y,
+      right: x,
+      bottom: y,
+      left: x,
+    }),
+  });
+  const options = useRef({ ...popperOptions, placement: 'auto-start' as Placement });
+
+  const { styles, attributes, forceUpdate } = usePopper(
+    virtualElement.current,
+    dialog.current,
+    options.current,
+  );
+
+  // Add event listeners because React does not have proper typings :)
+  useEffect(() => {
+    const element = dialog.current;
+    element?.addEventListener('close', onClose);
+    const cancel = (e: Event) => e.preventDefault();
+    element?.addEventListener('cancel', cancel);
+
+    return () => {
+      element?.removeEventListener('close', onClose);
+      element?.removeEventListener('cancel', cancel);
+    };
+  }, [onClose]);
+
+  useEffect(() => {
+    virtualElement.current = {
+      getBoundingClientRect: () => ({
+        width: 0,
+        height: 0,
+        top: y,
+        right: x,
+        bottom: y,
+        left: x,
+      }),
+    };
+  }, [x, y]);
+
+  useEffect(() => {
+    if (dialog.current && open) {
+      forceUpdate?.();
+      // Focus first focusable element
+      const first =
+        dialog.current.querySelector('[tabindex="0"]') ??
+        dialog.current.querySelector('[tabindex="-1"]');
+      if (first) {
+        (first as HTMLElement).tabIndex = 0;
+        (first as HTMLElement).focus();
+      }
+    }
+  }, [open, forceUpdate]);
+
+  return (
+    <dialog style={styles.popper} {...attributes.popper} open={open} data-flyout ref={dialog}>
+      {children}
+    </dialog>
+  );
+});
+
+export { ContextMenu, Flyout, Tooltip };

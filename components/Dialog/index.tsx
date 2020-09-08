@@ -154,6 +154,6 @@ const DialogActions = observer((props: IDialogActions) => {
   );
 });
 
-import { Flyout, Tooltip } from './Flyout';
+import { ContextMenu, Flyout, Tooltip } from './Flyout';
 
-export { Alert, Dialog, DialogButton, DialogActions, Flyout, Tooltip };
+export { Alert, ContextMenu, Dialog, DialogButton, DialogActions, Flyout, Tooltip };

@@ -13,15 +13,11 @@ const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
   if (!event.target.matches('[role^="menuitem"]')) {
     return;
   }
-  const prev = event.currentTarget.querySelector('[role^="menuitem"][tabindex="0"]');
-  if (prev) {
-    if (event.target !== prev) {
-      prev.setAttribute('tabIndex', '-1');
-      setTabFocus(event.target);
-    }
-  } else {
-    setTabFocus(event.target);
+  const prev = event.currentTarget.querySelectorAll('[role^="menuitem"][tabindex="0"]');
+  if (prev.length > 0) {
+    prev.forEach((p) => p.setAttribute('tabIndex', '-1'));
   }
+  setTabFocus(event.target);
 };
 
 const handleClick = (e: React.MouseEvent) => {
@@ -130,15 +126,8 @@ const MenuCheckboxItem = observer(
 
 const MenuDivider = () => <li role="separator" className="menu-separator"></li>;
 
-const handleFlyoutBlur = (e: React.FocusEvent) => {
-  const { currentTarget: target, relatedTarget: nextTarget } = e;
-  if (!(target.matches('li[role="none"]') || target.contains(nextTarget as Node))) {
-    const dialog = target.lastElementChild as HTMLDialogElement;
-    if (dialog.open) {
-      dialog.close();
-    }
-  }
-};
+const handleFlyoutBlur = (e: React.FocusEvent) =>
+  (e.currentTarget.firstElementChild as HTMLAnchorElement).focus();
 
 interface ISubMenu {
   icon?: JSX.Element;
@@ -156,19 +145,22 @@ const subMenuPlacments = ['right-end', 'right'] as Placement[];
 const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISubMenu) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  const open = disabled ? undefined : () => setIsOpen(true);
+  const close = disabled ? undefined : () => setIsOpen(false);
+
   return (
     <li
       role="none"
-      onClick={() => setIsOpen(true)}
+      onClick={open}
+      onMouseEnter={open}
+      onMouseLeave={close}
       onBlur={handleFlyoutBlur}
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
     >
       <Flyout
         open={isOpen}
         placement="right-start"
         fallbackPlacements={subMenuPlacments}
-        onClose={() => setIsOpen(false)}
+        onClose={close}
         target={
           <a
             className="menuitem"
@@ -195,7 +187,7 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
           className="menu"
           onClick={handleClick}
           onFocus={handleFocus}
-          onMouseEnter={() => setIsOpen(true)}
+          onMouseEnter={open}
           onMouseLeave={(e) => {
             // Close sub menu only if the new target is not the menu item parent!
             if (!(e.relatedTarget as Element).matches('li[role="none"]')) {

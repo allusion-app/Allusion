@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useReducer } from 'react';
 import { ResizeSensor, IResizeEntry, NonIdealState } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
@@ -15,7 +15,7 @@ import GalleryItem, { MissingImageFallback } from './GalleryItem';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup } from 'components';
+import { Button, ButtonGroup, ContextMenu } from 'components';
 import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
@@ -66,6 +66,7 @@ interface IGalleryLayoutProps {
     selectRange: boolean,
   ) => void;
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
+  showContextMenu: React.Dispatch<Omit<IContextState, 'open'>>;
 }
 
 function getLayoutComponent(
@@ -113,6 +114,7 @@ const GridGallery = observer(
     handleDoubleClick,
     handleFileSelect,
     lastSelectionIndex,
+    showContextMenu,
   }: IGalleryLayoutProps) => {
     const { fileList } = fileStore;
     const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
@@ -218,11 +220,12 @@ const GridGallery = observer(
                 isSelected={uiStore.fileSelection.has(file.id)}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
+                showContextMenu={showContextMenu}
               />
             </div>
           );
         }),
-      [handleClick, handleDoubleClick, numColumns, uiStore.fileSelection],
+      [handleClick, handleDoubleClick, numColumns, showContextMenu, uiStore.fileSelection],
     );
 
     return (
@@ -254,6 +257,7 @@ const ListGallery = observer(
     handleClick,
     handleDoubleClick,
     lastSelectionIndex,
+    showContextMenu,
   }: IGalleryLayoutProps) => {
     const { fileList } = fileStore;
     const [, cellSize] = getThumbnailSize(uiStore.thumbnailSize);
@@ -304,12 +308,13 @@ const ListGallery = observer(
                 isSelected={uiStore.fileSelection.has(file.id)}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
+                showContextMenu={showContextMenu}
                 showDetails
               />
             </div>
           );
         }),
-      [handleClick, handleDoubleClick, uiStore.fileSelection],
+      [handleClick, handleDoubleClick, showContextMenu, uiStore.fileSelection],
     );
 
     return (
@@ -455,7 +460,32 @@ const SlideGallery = observer(({ fileStore, uiStore, contentRect }: IGalleryLayo
   );
 });
 
+interface IContextState {
+  open: boolean;
+  x: number;
+  y: number;
+  menu: JSX.Element | null;
+}
+
+const reducer = (state: any, action: Omit<IContextState, 'open'> | null): IContextState => {
+  if (action) {
+    return { ...state, open: true, menu: action.menu, x: action.x, y: action.y };
+  } else {
+    return { ...state, open: false, menu: null };
+  }
+};
+
+const handleFlyoutBlur = (e: React.FocusEvent) => {
+  if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) {
+    const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
+    if (dialog.open) {
+      dialog.close();
+    }
+  }
+};
+
 const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
+  const [contextState, dispatch] = useReducer(reducer, { open: false, x: 0, y: 0, menu: null });
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
   const handleResize = useCallback((entries: IResizeEntry[]) => {
@@ -543,6 +573,8 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
   // Also take into account scrolling when dragging while selecting
 
+  const closeContextMenu = useCallback(() => dispatch(null), []);
+
   if (fileList.length === 0) {
     let icon = IconSet.MEDIA;
     let title = 'No images';
@@ -600,6 +632,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
         id="gallery-content"
         className={`thumbnail-${uiStore.thumbnailSize} ${uiStore.method} thumbnail-${uiStore.thumbnailShape}`}
         onClick={handleBackgroundClick}
+        onBlur={handleFlyoutBlur}
       >
         {getLayoutComponent(uiStore.method, uiStore.isSlideMode, {
           contentRect,
@@ -609,7 +642,16 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
           handleDoubleClick,
           handleFileSelect,
           lastSelectionIndex,
+          showContextMenu: dispatch,
         })}
+        <ContextMenu
+          open={contextState.open}
+          x={contextState.x}
+          y={contextState.y}
+          onClose={closeContextMenu}
+        >
+          {contextState.menu ?? <span></span>}
+        </ContextMenu>
       </div>
     </ResizeSensor>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, ContextMenuTarget, H4, Card } from '@blueprintjs/core';
+import { Tag, H4, Card } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -15,7 +15,6 @@ import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
 import UiStore from '../../stores/UiStore';
 import { SortMenuItems, LayoutMenuItems } from '../Toolbar/ContentToolbar';
-import FileStore from '../../stores/FileStore';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -88,6 +87,11 @@ interface IGalleryItemProps extends IRootStoreProp {
   onClick: (file: ClientFile, e: React.MouseEvent) => void;
   onDoubleClick?: (file: ClientFile, e: React.MouseEvent) => void;
   showDetails?: boolean;
+  showContextMenu: React.Dispatch<{
+    x: number;
+    y: number;
+    menu: JSX.Element | null;
+  }>;
 }
 
 const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -115,7 +119,14 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
 );
 
 const GalleryItem = observer(
-  ({ file, isSelected, onClick, onDoubleClick, showDetails }: IGalleryItemProps) => {
+  ({
+    file,
+    isSelected,
+    onClick,
+    onDoubleClick,
+    showDetails,
+    showContextMenu,
+  }: IGalleryItemProps) => {
     const { uiStore, fileStore } = useContext(StoreContext);
 
     const handleDrop = useCallback(
@@ -200,6 +211,17 @@ const GalleryItem = observer(
     // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
     // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
+    const handleContextMenu = useCallback(
+      (e: React.MouseEvent) => {
+        showContextMenu({
+          x: e.clientX,
+          y: e.clientY,
+          menu: <GalleryItemContextMenu file={file} />,
+        });
+      },
+      [file, showContextMenu],
+    );
+
     return (
       <div
         className="thumbnail"
@@ -207,6 +229,7 @@ const GalleryItem = observer(
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onContextMenu={handleContextMenu}
       >
         <div
           onClick={handleClickImg}
@@ -256,25 +279,22 @@ const GalleryItem = observer(
   },
 );
 
-export const GeneralGalleryContextMenuItems = ({
-  uiStore,
-  fileStore,
-}: {
-  uiStore: UiStore;
-  fileStore: FileStore;
-}) => (
-  <>
-    <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
-      <LayoutMenuItems uiStore={uiStore} />
-    </SubMenu>
-    <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-      <SortMenuItems fileStore={fileStore} />
-    </SubMenu>
-  </>
-);
+export const GalleryContextMenuItems = () => {
+  const { uiStore, fileStore } = useContext(StoreContext);
+  return (
+    <>
+      <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
+        <LayoutMenuItems uiStore={uiStore} />
+      </SubMenu>
+      <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+        <SortMenuItems fileStore={fileStore} />
+      </SubMenu>
+    </>
+  );
+};
 
-const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRootStoreProp) => {
-  const { uiStore, fileStore } = rootStore;
+const GalleryItemContextMenu = ({ file }: { file: ClientFile }) => {
+  const { uiStore, fileStore } = useContext(StoreContext);
   const handleViewFullSize = useCallback(() => {
     uiStore.selectFile(file, true);
     uiStore.toggleSlideMode();
@@ -308,7 +328,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
         />
         <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
         <MenuDivider />
-        <GeneralGalleryContextMenuItems uiStore={uiStore} fileStore={fileStore} />
+        <GalleryContextMenuItems />
       </Menu>
     );
   }
@@ -324,7 +344,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
 
       <MenuDivider />
-      <GeneralGalleryContextMenuItems uiStore={uiStore} fileStore={fileStore} />
+      <GalleryContextMenuItems />
       <MenuDivider />
 
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
@@ -336,54 +356,6 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
     </Menu>
   );
 };
-
-/** Wrapper that adds a context menu (with right click) */
-@ContextMenuTarget
-class GalleryItemWithContextMenu extends React.PureComponent<
-  IGalleryItemProps,
-  { isContextMenuOpen: boolean; _isMounted: boolean }
-> {
-  state = {
-    isContextMenuOpen: false,
-    _isMounted: false,
-  };
-
-  constructor(props: IGalleryItemProps) {
-    super(props);
-  }
-
-  componentDidMount() {
-    this.setState({ ...this.state, _isMounted: true });
-  }
-
-  componentWillUnmount() {
-    this.setState({ ...this.state, _isMounted: false });
-  }
-
-  render() {
-    return (
-      // Context menu/root element must supports the "contextmenu" event and the onContextMenu prop
-      <div className={this.state.isContextMenuOpen ? 'contextMenuTarget' : ''}>
-        <GalleryItem {...this.props} />
-      </div>
-    );
-  }
-
-  renderContextMenu() {
-    this.updateState({ isContextMenuOpen: true });
-    return <GalleryItemContextMenu file={this.props.file} rootStore={this.props.rootStore} />;
-  }
-
-  onContextMenuClose = () => {
-    this.updateState({ isContextMenuOpen: false });
-  };
-
-  private updateState = (updatableProp: any) => {
-    if (this.state._isMounted) {
-      this.setState(updatableProp);
-    }
-  };
-}
 
 // A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
 const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryItemProps) => {
@@ -409,7 +381,7 @@ const DelayedGalleryItem = (props: IGalleryItemProps) => {
     const timeout = setTimeout(() => setShowSimple(false), 300);
     return () => clearTimeout(timeout);
   });
-  return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItemWithContextMenu {...props} />;
+  return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItem {...props} />;
 };
 
 export default observer(withRootstore(DelayedGalleryItem));
