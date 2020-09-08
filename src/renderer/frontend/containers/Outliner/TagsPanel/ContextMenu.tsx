@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import IconSet from 'components/Icons';
-import { MenuItem, Icon, Divider, Menu } from '@blueprintjs/core';
+import { Icon } from '@blueprintjs/core';
+import { MenuDivider, MenuItem, SubMenu, Menu } from 'components';
 import { SketchPicker, ColorResult } from 'react-color';
 import { observer } from 'mobx-react-lite';
 import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
@@ -49,7 +50,7 @@ const ColorPickerMenu = observer(
       [onChange],
     );
     return (
-      <MenuItem
+      <SubMenu
         text={`Color${contextText}`}
         icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
       >
@@ -82,15 +83,15 @@ const ColorPickerMenu = observer(
             }
           />
         ))}
-        <MenuItem text="Custom" icon={IconSet.COLOR}>
+        <SubMenu text="Custom" icon={IconSet.COLOR}>
           <SketchPicker
             color={selectedColor || defaultColor}
             onChangeComplete={handlePickCustomColor}
             disableAlpha
             presetColors={defaultColorOptions.map((opt) => opt.value)}
           />
-        </MenuItem>
-      </MenuItem>
+        </SubMenu>
+      </SubMenu>
     );
   },
 );
@@ -157,7 +158,7 @@ export const TagContextMenu = ({ nodeData, dispatch, uiStore }: IMenuProps<Clien
         }}
         contextText={contextText}
       />
-      <Divider />
+      <MenuDivider />
       <SearchMenu
         addSearch={() =>
           nodeData.isSelected
@@ -249,7 +250,7 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         }}
         contextText={contextText}
       />
-      <Divider />
+      <MenuDivider />
       <MenuItem
         onClick={() => dispatch(Factory.setExpansion(expandSubCollection(nodeData, expansion)))}
         text="Expand"
@@ -272,7 +273,7 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         icon={IconSet.ITEM_MOVE_DOWN}
         disabled={pos === nodeData.parent.subCollections.length}
       />
-      <Divider />
+      <MenuDivider />
       <SearchMenu
         addSearch={() =>
           nodeData.isSelected

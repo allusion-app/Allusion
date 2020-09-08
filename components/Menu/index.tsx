@@ -161,6 +161,10 @@ interface ISubMenu {
   role?: 'menu' | 'group';
 }
 
+import { Placement } from '@popperjs/core/lib/enums';
+
+const subMenuPlacments = ['right-end', 'right'] as Placement[];
+
 const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISubMenu) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -175,6 +179,7 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
       <Flyout
         open={isOpen}
         placement="right-start"
+        fallbackPlacements={subMenuPlacments}
         onClose={() => setIsOpen(false)}
         target={
           <a
