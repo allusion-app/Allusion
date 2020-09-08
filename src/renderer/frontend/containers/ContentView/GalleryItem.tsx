@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, ContextMenuTarget, Menu, MenuItem, H4, Card, MenuDivider } from '@blueprintjs/core';
+import { Tag, ContextMenuTarget, H4, Card } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Tooltip } from 'components';
+import { Button, ButtonGroup, Tooltip, Menu, MenuDivider, MenuItem, SubMenu } from 'components';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
@@ -14,7 +14,8 @@ import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
 import UiStore from '../../stores/UiStore';
-import { SortMenuItems } from '../Toolbar/ContentToolbar';
+import { SortMenuItems, LayoutMenuItems } from '../Toolbar/ContentToolbar';
+import FileStore from '../../stores/FileStore';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -255,26 +256,20 @@ const GalleryItem = observer(
   },
 );
 
-export const GeneralGalleryContextMenuItems = ({ uiStore }: { uiStore: UiStore }) => (
+export const GeneralGalleryContextMenuItems = ({
+  uiStore,
+  fileStore,
+}: {
+  uiStore: UiStore;
+  fileStore: FileStore;
+}) => (
   <>
-    <MenuItem icon={IconSet.VIEW_GRID} text="View method...">
-      <MenuItem
-        onClick={uiStore.setMethodList}
-        icon={IconSet.VIEW_LIST}
-        active={uiStore.isList}
-        text="List"
-      />
-      <MenuItem
-        onClick={uiStore.setMethodGrid}
-        icon={IconSet.VIEW_GRID}
-        active={uiStore.isGrid}
-        text="Grid"
-      />
-      <MenuItem icon="lock" text="Masonry" disabled />
-    </MenuItem>
-    <MenuItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-      <SortMenuItems />
-    </MenuItem>
+    <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
+      <LayoutMenuItems uiStore={uiStore} />
+    </SubMenu>
+    <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+      <SortMenuItems fileStore={fileStore} />
+    </SubMenu>
   </>
 );
 
@@ -313,14 +308,14 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
         />
         <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
         <MenuDivider />
-        <GeneralGalleryContextMenuItems uiStore={uiStore} />
+        <GeneralGalleryContextMenuItems uiStore={uiStore} fileStore={fileStore} />
       </Menu>
     );
   }
 
   return (
     <Menu>
-      <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon="zoom-in" />
+      <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.SEARCH} />
       <MenuItem
         onClick={handlePreviewWindow}
         text="Open In Preview Window"
@@ -329,7 +324,7 @@ const GalleryItemContextMenu = ({ file, rootStore }: { file: ClientFile } & IRoo
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
 
       <MenuDivider />
-      <GeneralGalleryContextMenuItems uiStore={uiStore} />
+      <GeneralGalleryContextMenuItems uiStore={uiStore} fileStore={fileStore} />
       <MenuDivider />
 
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />

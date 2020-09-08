@@ -7,7 +7,7 @@ import {
   Toolbar as Commandbar,
   ToolbarToggleButton,
   ToolbarMenuButton,
-  MenuFlyout,
+  Menu,
   MenuItem,
   MenuCheckboxItem,
 } from 'components';
@@ -75,7 +75,7 @@ const Toolbar = observer(() => {
         id="__secondary-menu"
         controls="__secondary-menu-options"
       >
-        <MenuFlyout id="__secondary-menu-options" labelledby="__secondary-menu">
+        <Menu id="__secondary-menu-options" labelledby="__secondary-menu">
           <MenuCheckboxItem
             onClick={uiStore.toggleInspector}
             checked={uiStore.isInspectorOpen}
@@ -94,7 +94,7 @@ const Toolbar = observer(() => {
             text="Settings"
             accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleSettings} />}
           />
-        </MenuFlyout>
+        </Menu>
       </ToolbarMenuButton>
 
       {isMac && <WindowDecoration />}

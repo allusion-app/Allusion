@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button, ButtonGroup } from 'components';
 import { observer } from 'mobx-react-lite';
 import { usePopper } from 'react-popper';
+import { Placement } from '@popperjs/core/lib/enums';
 
 interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   open: boolean;
@@ -183,6 +184,7 @@ interface IFlyout {
    *  with the Escape key will be disabled. This is to ensure that the passed
    * state valid.  */
   onCancel?: (event: Event) => void;
+  placement?: Placement;
 }
 
 const Flyout = observer((props: IFlyout) => {
@@ -196,10 +198,12 @@ const Flyout = observer((props: IFlyout) => {
     onCancel = preventClosingOnEscape,
     target,
     children,
+    placement,
   } = props;
 
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLElement>();
+  const options = useRef({ ...popperOptions, placement });
 
   // On mount find target element
   useEffect(() => {
@@ -241,7 +245,7 @@ const Flyout = observer((props: IFlyout) => {
     };
   }, [onClose, onCancel]);
 
-  const { styles, attributes } = usePopper(trigger.current, dialog.current, popperOptions);
+  const { styles, attributes } = usePopper(trigger.current, dialog.current, options.current);
 
   return (
     <>
@@ -268,13 +272,17 @@ interface ITooltip {
   children: React.ReactElement<HTMLElement>;
   /** @default 100 */
   hoverDelay?: number;
+  /** @default 'auto' */
+  placement?: Placement;
 }
 
-const Tooltip = observer(({ content, children, hoverDelay = 100 }: ITooltip) => {
+const Tooltip = observer((props: ITooltip) => {
+  const { content, children, hoverDelay = 100, placement = 'auto' } = props;
   const [isOpen, setIsOpen] = useState(false);
   const timerID = useRef<number>();
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLElement>();
+  const options = useRef({ ...popperOptions, placement });
 
   const handleMouseEnter = useCallback(() => {
     timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
@@ -306,7 +314,7 @@ const Tooltip = observer(({ content, children, hoverDelay = 100 }: ITooltip) => 
     };
   }, [handleMouseEnter, handleMouseLeave]);
 
-  const { styles, attributes } = usePopper(trigger.current, dialog.current, popperOptions);
+  const { styles, attributes } = usePopper(trigger.current, dialog.current, options.current);
 
   return (
     <>

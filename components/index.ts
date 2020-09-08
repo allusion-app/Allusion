@@ -10,7 +10,14 @@ import {
 } from './Toolbar/index';
 import { Button, ButtonGroup, IconButton } from './Button/index';
 import { Alert, Dialog, DialogButton, DialogActions, Flyout, Tooltip } from './Dialog/index';
-import { MenuCheckboxItem, MenuFlyout, MenuItem, MenuRadioItem } from './Menu/index';
+import {
+  Menu,
+  MenuCheckboxItem,
+  MenuDivider,
+  MenuItem,
+  MenuRadioItem,
+  SubMenu,
+} from './Menu/index';
 
 export {
   Alert,
@@ -20,11 +27,13 @@ export {
   Button,
   ButtonGroup,
   IconButton,
+  Menu,
   MenuCheckboxItem,
-  MenuFlyout,
+  MenuDivider,
   MenuItem,
   MenuRadioItem,
   Flyout,
+  SubMenu,
   Tree,
   ToolbarButton,
   ToolbarGroup,

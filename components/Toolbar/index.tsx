@@ -334,7 +334,7 @@ interface IToolbarMenuButton extends IBaseButton {
   controls: string;
   children: React.ReactNode;
   disabled?: boolean;
-  /** @default menu */
+  /** @default 'menu' */
   role?: 'menu' | 'group';
 }
 

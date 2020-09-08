@@ -7,7 +7,7 @@ import {
   ToolbarButton,
   ToolbarToggleButton,
   ToolbarMenuButton,
-  MenuFlyout,
+  Menu,
   MenuRadioItem,
 } from 'components';
 import { IFile } from '../../../entities/File';
@@ -16,6 +16,8 @@ import { useContext } from 'react';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import Searchbar from '../ContentView/Searchbar';
+import FileStore from '../../stores/FileStore';
+import UiStore from '../../stores/UiStore';
 
 interface IFileSelection {
   allFilesSelected: boolean;
@@ -66,64 +68,43 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateModified', icon: IconSet.FILTER_DATE, text: 'Date modified' },
 ];
 
-export const SortMenuItems = observer(() => {
-  const {
-    fileStore: { fileOrder, orderBy, orderFilesBy, switchFileOrder },
-  } = useContext(StoreContext);
+export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) => {
+  const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = fileStore;
   const orderIcon = fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
   return (
-    <ToolbarMenuButton
-      icon={IconSet.FILTER}
-      text="Filter"
-      tooltip={Tooltip.Filter}
-      id="__sort-menu"
-      controls="__sort-options"
-    >
-      <MenuFlyout id="__sort-options" labelledby="__sort-menu" role="group">
-        {sortMenuData.map(({ prop, icon, text }) => (
-          <MenuRadioItem
-            key={prop}
-            icon={icon}
-            text={text}
-            checked={orderBy === prop}
-            accelerator={orderBy === prop ? orderIcon : undefined}
-            onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
-          />
-        ))}
-      </MenuFlyout>
-    </ToolbarMenuButton>
+    <>
+      {sortMenuData.map(({ prop, icon, text }) => (
+        <MenuRadioItem
+          key={prop}
+          icon={icon}
+          text={text}
+          checked={orderBy === prop}
+          accelerator={orderBy === prop ? orderIcon : undefined}
+          onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
+        />
+      ))}
+    </>
   );
 });
 
-const LayoutOptions = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  return (
-    <ToolbarMenuButton
-      icon={IconSet.THUMB_BG}
-      text="View"
-      tooltip={Tooltip.View}
-      id="__layout-menu"
-      controls="__layout-options"
-    >
-      <MenuFlyout id="__layout-options" labelledby="__layout-menu" role="group">
-        <MenuRadioItem
-          icon={IconSet.VIEW_LIST}
-          onClick={uiStore.setMethodList}
-          checked={uiStore.isList}
-          text="List View"
-          accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
-        />
-        <MenuRadioItem
-          icon={IconSet.VIEW_GRID}
-          onClick={uiStore.setMethodGrid}
-          checked={uiStore.isGrid}
-          text="Grid View"
-          accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
-        />
-      </MenuFlyout>
-    </ToolbarMenuButton>
-  );
-});
+export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => (
+  <>
+    <MenuRadioItem
+      icon={IconSet.VIEW_LIST}
+      onClick={uiStore.setMethodList}
+      checked={uiStore.isList}
+      text="List View"
+      accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
+    />
+    <MenuRadioItem
+      icon={IconSet.VIEW_GRID}
+      onClick={uiStore.setMethodGrid}
+      checked={uiStore.isGrid}
+      text="Grid View"
+      accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
+    />
+  </>
+));
 
 const SlideModeToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -172,9 +153,29 @@ const ContentToolbar = observer(() => {
           <FileTags files={fileSelection.size > 0 ? uiStore.clientFileSelection : []} />
         )}
 
-        <SortMenuItems />
+        <ToolbarMenuButton
+          icon={IconSet.FILTER}
+          text="Filter"
+          tooltip={Tooltip.Filter}
+          id="__sort-menu"
+          controls="__sort-options"
+        >
+          <Menu id="__sort-options" labelledby="__sort-menu" role="group">
+            <SortMenuItems fileStore={fileStore} />
+          </Menu>
+        </ToolbarMenuButton>
 
-        <LayoutOptions />
+        <ToolbarMenuButton
+          icon={IconSet.THUMB_BG}
+          text="View"
+          tooltip={Tooltip.View}
+          id="__layout-menu"
+          controls="__layout-options"
+        >
+          <Menu id="__layout-options" labelledby="__layout-menu" role="group">
+            <LayoutMenuItems uiStore={uiStore} />
+          </Menu>
+        </ToolbarMenuButton>
 
         <Searchbar />
       </>
