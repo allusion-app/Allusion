@@ -4,6 +4,15 @@ import { observer } from 'mobx-react-lite';
 import IconSet from '../Icons';
 import { Flyout } from '../Dialog';
 
+const handleBlur = (e: React.FocusEvent) => {
+  if (
+    (e.relatedTarget as Element)?.closest('ul[data-submenu]') ||
+    e.target.closest('ul[data-submenu]')
+  ) {
+    e.stopPropagation();
+  }
+};
+
 const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
   if (!event.target.matches('[role^="menuitem"]')) {
     return;
@@ -18,6 +27,7 @@ const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
 
 const handleClick = (e: React.MouseEvent) => {
   if ((e.target as Element).matches('[role^="menuitem"]')) {
+    e.stopPropagation();
     const dialog = e.currentTarget.closest('dialog') as HTMLDialogElement;
     (dialog.previousElementSibling as HTMLElement)?.focus();
     dialog.close();
@@ -42,6 +52,7 @@ const Menu = observer(({ id, children, label, labelledby, role = 'menu' }: IMenu
     className="menu"
     onClick={handleClick}
     onFocus={handleFocus}
+    onBlur={handleBlur}
   >
     {children}
   </ul>
@@ -153,7 +164,6 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
   useEffect(() => {
     if (menu.current && isOpen) {
       const first = menu.current.querySelector('[role^="menuitem"]') as HTMLElement;
-      console.log(first);
       // The Menu component will handle setting the tab indices.
       first?.focus();
     }
@@ -193,6 +203,7 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
         }
       >
         <ul
+          data-submenu
           ref={menu}
           role={role}
           aria-label={text}

@@ -15,7 +15,8 @@ dialog {
   }
 
   &[data-flyout],
-  &[data-tooltip] {
+  &[data-tooltip],
+  &[data-contextmenu] {
     animation: none;
     margin: 0;
   }

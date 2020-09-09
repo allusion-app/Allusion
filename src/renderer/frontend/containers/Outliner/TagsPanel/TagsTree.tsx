@@ -398,7 +398,11 @@ const Collection = observer((props: ICollectionProps) => {
         onClick={handleQuickQuery}
       />
       {!isEditing && (
-        <button disabled={!nodeData.hasContent} onClick={handleSelect} className="after-icon">
+        <button
+          disabled={!nodeData.hasContent}
+          onClick={handleSelect}
+          className="btn-minimal after-icon"
+        >
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </button>
       )}

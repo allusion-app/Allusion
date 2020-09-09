@@ -265,7 +265,7 @@ const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) =
   }, [open, forceUpdate]);
 
   return (
-    <dialog style={styles.popper} {...attributes.popper} open={open} data-flyout ref={dialog}>
+    <dialog style={styles.popper} {...attributes.popper} open={open} data-contextmenu ref={dialog}>
       {children}
     </dialog>
   );

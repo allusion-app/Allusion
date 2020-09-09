@@ -24,6 +24,20 @@ export const AppToaster = Toaster.create({
   className: 'toaster',
 });
 
+const handleClick = (e: React.MouseEvent) => {
+  if (!(e.target instanceof HTMLElement && e.target.closest('dialog[open][data-contextmenu]'))) {
+    const dialogs = e.currentTarget.querySelectorAll('dialog[open][data-contextmenu]');
+    dialogs.forEach((d) => (d as HTMLDialogElement).close());
+  }
+};
+
+const handleBlur = (e: React.FocusEvent) => {
+  const dialog = e.target.closest('dialog[open][data-contextmenu]') as HTMLDialogElement;
+  if (dialog) {
+    dialog.close();
+  }
+};
+
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
@@ -52,7 +66,7 @@ const App = observer(() => {
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div id="layout-container" className={themeClass}>
+      <div id="layout-container" className={themeClass} onClick={handleClick} onBlur={handleBlur}>
         <ErrorBoundary>
           <GlobalHotkeys>
             <Outliner />

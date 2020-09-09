@@ -133,6 +133,7 @@
   overflow: hidden;
 
   > * {
+    pointer-events: none;
     margin: 0.25em;
   }
 }
