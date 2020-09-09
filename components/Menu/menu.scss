@@ -17,7 +17,7 @@
     background: var(--highlight-background-color);
   }
 
-  &:disabled {
+  &[aria-disabled='true'] {
     color: var(--text-muted-color);
     cursor: not-allowed;
   }
@@ -60,7 +60,7 @@ a.menuitem {
   pointer-events: none;
   align-items: center;
   height: 1rem;
-  width: 1rem;
+  min-width: 1rem;
 
   .custom-icon {
     margin: 0;
@@ -76,7 +76,7 @@ a.menuitem {
 }
 
 .menuitem-accelerator {
-  margin-left: 3.5rem;
+  margin-left: 3rem;
   flex-grow: 1;
   justify-content: flex-end;
 }
