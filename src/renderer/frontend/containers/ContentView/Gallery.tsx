@@ -10,18 +10,17 @@ import {
 } from 'react-window';
 import { observer, useObserver } from 'mobx-react-lite';
 
-import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
+import StoreContext from '../../contexts/StoreContext';
 import GalleryItem, { MissingImageFallback } from './GalleryItem';
-import UiStore, { ViewMethod } from '../../stores/UiStore';
+import { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, ContextMenu, SubMenu, Menu } from 'components';
+import { Button, ButtonGroup, ContextMenu, SubMenu, Menu, MenuDivider } from 'components';
 import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
 import useDebounce from '../../hooks/useDebounce';
-import FileStore from '../../stores/FileStore';
 import { LayoutMenuItems, SortMenuItems } from '../Toolbar/ContentToolbar';
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
@@ -57,8 +56,6 @@ function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
 
 interface IGalleryLayoutProps {
   contentRect: Rectangle;
-  uiStore: UiStore;
-  fileStore: FileStore;
   handleClick: (file: ClientFile, e: React.MouseEvent) => void;
   handleDoubleClick: (file: ClientFile, e: React.MouseEvent) => void;
   handleFileSelect: (
@@ -109,14 +106,13 @@ const getItemKey = (index: number, data: ClientFile[]): string => {
 const GridGallery = observer(
   ({
     contentRect,
-    uiStore,
-    fileStore,
     handleClick,
     handleDoubleClick,
     handleFileSelect,
     lastSelectionIndex,
     showContextMenu,
   }: IGalleryLayoutProps) => {
+    const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
     const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
 
@@ -218,7 +214,6 @@ const GridGallery = observer(
             <div style={style}>
               <GalleryItem
                 file={file}
-                isSelected={uiStore.fileSelection.has(file.id)}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
                 showContextMenu={showContextMenu}
@@ -226,7 +221,7 @@ const GridGallery = observer(
             </div>
           );
         }),
-      [handleClick, handleDoubleClick, numColumns, showContextMenu, uiStore.fileSelection],
+      [handleClick, handleDoubleClick, numColumns, showContextMenu],
     );
 
     return (
@@ -253,13 +248,12 @@ const GridGallery = observer(
 const ListGallery = observer(
   ({
     contentRect,
-    fileStore,
-    uiStore,
     handleClick,
     handleDoubleClick,
     lastSelectionIndex,
     showContextMenu,
   }: IGalleryLayoutProps) => {
+    const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
     const [, cellSize] = getThumbnailSize(uiStore.thumbnailSize);
     const ref = useRef<FixedSizeList>(null);
@@ -306,7 +300,6 @@ const ListGallery = observer(
             <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
               <GalleryItem
                 file={file}
-                isSelected={uiStore.fileSelection.has(file.id)}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
                 showContextMenu={showContextMenu}
@@ -315,7 +308,7 @@ const ListGallery = observer(
             </div>
           );
         }),
-      [handleClick, handleDoubleClick, showContextMenu, uiStore.fileSelection],
+      [handleClick, handleDoubleClick, showContextMenu],
     );
 
     return (
@@ -360,7 +353,8 @@ export const MasonryGallery = observer(({}: IGalleryLayoutProps) => {
   }
 });
 
-const SlideGallery = observer(({ fileStore, uiStore, contentRect }: IGalleryLayoutProps) => {
+const SlideGallery = observer(({ contentRect }: IGalleryLayoutProps) => {
+  const { fileStore, uiStore } = useContext(StoreContext);
   const { fileList } = fileStore;
   // Go to the first selected image on load
   useEffect(() => {
@@ -465,14 +459,13 @@ interface IContextState {
   open: boolean;
   x: number;
   y: number;
-  fileMenu: JSX.Element | null;
+  fileMenu: JSX.Element;
   externalMenu: JSX.Element | null;
 }
 
 const reducer = (state: any, action: Omit<IContextState, 'open'> | null): IContextState => {
   if (action) {
     return {
-      ...state,
       open: true,
       fileMenu: action.fileMenu,
       externalMenu: action.externalMenu,
@@ -480,7 +473,7 @@ const reducer = (state: any, action: Omit<IContextState, 'open'> | null): IConte
       y: action.y,
     };
   } else {
-    return { ...state, open: false, fileMenu: null, externalMenu: null };
+    return { ...state, open: false };
   }
 };
 
@@ -493,7 +486,11 @@ const handleFlyoutBlur = (e: React.FocusEvent) => {
   }
 };
 
-const GalleryContextMenuItems = () => {
+interface IGallerItemContextMenu extends IContextState {
+  onClose: (event: Event) => void;
+}
+
+const GalleryContextMenuItems = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
   return (
     <>
@@ -505,14 +502,26 @@ const GalleryContextMenuItems = () => {
       </SubMenu>
     </>
   );
-};
+});
 
-const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
+const GalleryItemContextMenu = observer((props: IGallerItemContextMenu) => (
+  <ContextMenu open={props.open} x={props.x} y={props.y} onClose={props.onClose}>
+    <Menu>
+      {props.fileMenu}
+      <MenuDivider key="divider" />
+      <GalleryContextMenuItems key="gallery-menu" />
+      {props.externalMenu}
+    </Menu>
+  </ContextMenu>
+));
+
+const Gallery = () => {
+  const { fileStore, uiStore } = useContext(StoreContext);
   const [contextState, dispatch] = useReducer(reducer, {
     open: false,
     x: 0,
     y: 0,
-    fileMenu: null,
+    fileMenu: <></>,
     externalMenu: null,
   });
   const { fileList } = fileStore;
@@ -528,8 +537,6 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
   }, []);
 
   const { makeSelection, lastSelectionIndex } = useSelectionCursor();
-
-  const handleBackgroundClick = useCallback(() => uiStore.clearFileSelection(), [uiStore]);
 
   // useComputed to listen to fileSelection changes
   const handleFileSelect = useCallback(
@@ -559,7 +566,7 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
     [fileStore, uiStore, makeSelection, fileList],
   );
 
-  const handleItemClick = useCallback(
+  const handleClick = useCallback(
     (clickedFile: ClientFile, e: React.MouseEvent) => {
       e.stopPropagation(); // avoid propogation to background
       handleFileSelect(clickedFile, e.ctrlKey || e.metaKey, e.shiftKey);
@@ -660,34 +667,28 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
       <div
         id="gallery-content"
         className={`thumbnail-${uiStore.thumbnailSize} ${uiStore.method} thumbnail-${uiStore.thumbnailShape}`}
-        onClick={handleBackgroundClick}
+        onClick={uiStore.clearFileSelection}
         onBlur={handleFlyoutBlur}
       >
         {getLayoutComponent(uiStore.method, uiStore.isSlideMode, {
           contentRect,
-          fileStore,
-          uiStore,
-          handleClick: handleItemClick,
+          handleClick,
           handleDoubleClick,
           handleFileSelect,
           lastSelectionIndex,
           showContextMenu: dispatch,
         })}
-        <ContextMenu
+        <GalleryItemContextMenu
           open={contextState.open}
           x={contextState.x}
           y={contextState.y}
           onClose={closeContextMenu}
-        >
-          <Menu>
-            {contextState.fileMenu}
-            <GalleryContextMenuItems key="gallery-menu" />
-            {contextState.externalMenu}
-          </Menu>
-        </ContextMenu>
+          fileMenu={contextState.fileMenu}
+          externalMenu={contextState.externalMenu}
+        />
       </div>
     </ResizeSensor>
   );
 };
 
-export default withRootstore(observer(Gallery));
+export default observer(Gallery);

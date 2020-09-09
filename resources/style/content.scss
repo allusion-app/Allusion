@@ -3,11 +3,12 @@
   flex: 1;
   margin-left: 6px;
 
+  &:not(.slide) > div {
+    // WARNING: This fixes a lot of things, so do not delete it!
+    position: absolute !important;
+  }
+
   > div {
-    &:not(.slide) {
-      // WARNING: This fixes a lot of things, so do not delete it!
-      position: absolute !important;
-    }
     // No horizontal scrollbar
     overflow-x: hidden !important;
   }

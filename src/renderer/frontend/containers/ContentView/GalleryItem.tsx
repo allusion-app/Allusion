@@ -8,7 +8,7 @@ import { ClientTag } from '../../../entities/Tag';
 import IconSet from 'components/Icons';
 import { Button, ButtonGroup, Tooltip, MenuDivider, MenuItem } from 'components';
 import ImageInfo from '../../components/ImageInfo';
-import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
+import StoreContext from '../../contexts/StoreContext';
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
@@ -80,16 +80,15 @@ const ThumbnailDecoration = observer(
   },
 );
 
-interface IGalleryItemProps extends IRootStoreProp {
+interface IGalleryItemProps {
   file: ClientFile;
-  isSelected: boolean;
   onClick: (file: ClientFile, e: React.MouseEvent) => void;
-  onDoubleClick?: (file: ClientFile, e: React.MouseEvent) => void;
+  onDoubleClick: (file: ClientFile, e: React.MouseEvent) => void;
   showDetails?: boolean;
   showContextMenu: React.Dispatch<{
     x: number;
     y: number;
-    fileMenu: JSX.Element | null;
+    fileMenu: JSX.Element;
     externalMenu: JSX.Element | null;
   }>;
 }
@@ -119,15 +118,9 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
 );
 
 const GalleryItem = observer(
-  ({
-    file,
-    isSelected,
-    onClick,
-    onDoubleClick,
-    showDetails,
-    showContextMenu,
-  }: IGalleryItemProps) => {
+  ({ file, onClick, onDoubleClick, showDetails, showContextMenu }: IGalleryItemProps) => {
     const { uiStore, fileStore } = useContext(StoreContext);
+    const isSelected = uiStore.fileSelection.has(file.id);
 
     const handleDrop = useCallback(
       (event: React.DragEvent<HTMLDivElement>) => {
@@ -143,10 +136,7 @@ const GalleryItem = observer(
     );
 
     const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
-    const handleDoubleClickImg = useCallback((e) => onDoubleClick && onDoubleClick(file, e), [
-      file,
-      onDoubleClick,
-    ]);
+    const handleDoubleClickImg = useCallback((e) => onDoubleClick(file, e), [file, onDoubleClick]);
 
     // Initially, we assume the thumbnail exists
     const [isThumbnailReady, setThumbnailReady] = useState(true);
@@ -291,7 +281,6 @@ const MissingFileMenuItems = () => {
         disabled={fileStore.showsMissingContent}
       />
       <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
-      <MenuDivider />
     </>
   );
 };
@@ -327,7 +316,6 @@ const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
         icon={IconSet.PREVIEW}
       />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-      <MenuDivider />
     </>
   );
 };
@@ -349,9 +337,9 @@ const ExternalAppMenuItems = ({ path }: { path: string }) => {
 };
 
 // A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
-const SimpleGalleryItem = observer(({ file, showDetails, isSelected }: IGalleryItemProps) => {
+const SimpleGalleryItem = observer(({ file, showDetails }: IGalleryItemProps) => {
   return (
-    <div className="thumbnail" aria-selected={isSelected}>
+    <div className="thumbnail">
       <div className="thumbnail-img">
         <img src={file.thumbnailPath} alt="" />
       </div>
@@ -375,4 +363,4 @@ const DelayedGalleryItem = (props: IGalleryItemProps) => {
   return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItem {...props} />;
 };
 
-export default observer(withRootstore(DelayedGalleryItem));
+export default observer(DelayedGalleryItem);

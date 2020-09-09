@@ -1,5 +1,5 @@
 import './menu.scss';
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import IconSet from '../Icons';
 import { Flyout } from '../Dialog';
@@ -145,8 +145,13 @@ const subMenuPlacments = ['right-end', 'right'] as Placement[];
 const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISubMenu) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const open = disabled ? undefined : () => setIsOpen(true);
-  const close = disabled ? undefined : () => setIsOpen(false);
+  const open = useMemo(() => (disabled ? undefined : () => setIsOpen(true)), [disabled]);
+  const close = useMemo(() => (disabled ? undefined : () => setIsOpen(false)), [disabled]);
+  const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLUListElement>) => {
+    if (!(e.relatedTarget as Element).matches('li[role="none"]')) {
+      setIsOpen(false);
+    }
+  }, []);
 
   return (
     <li
@@ -188,12 +193,7 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
           onClick={handleClick}
           onFocus={handleFocus}
           onMouseEnter={open}
-          onMouseLeave={(e) => {
-            // Close sub menu only if the new target is not the menu item parent!
-            if (!(e.relatedTarget as Element).matches('li[role="none"]')) {
-              setIsOpen(false);
-            }
-          }}
+          onMouseLeave={handleMouseLeave}
         >
           {children}
         </ul>
