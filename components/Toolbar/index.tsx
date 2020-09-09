@@ -334,6 +334,7 @@ const handleFlyoutBlur = (e: React.FocusEvent) => {
 
 interface IToolbarMenuButton extends IBaseButton {
   controls: string;
+  /** The element must be a Menu component otherwise focus will not work. */
   children: React.ReactNode;
   disabled?: boolean;
   /** @default 'menu' */
@@ -342,16 +343,23 @@ interface IToolbarMenuButton extends IBaseButton {
 
 const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
   const [isOpen, setIsOpen] = useState(false);
+  const container = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (container.current && isOpen) {
+      // Focus first focusable menu item
+      const first = container.current.querySelector('[role^="menuitem"]') as HTMLElement;
+      // The Menu component will handle setting the tab indices.
+      first?.focus();
+    }
+  }, [isOpen]);
 
   return (
-    <div onKeyDown={handleKeyDown} onBlur={handleFlyoutBlur}>
+    <div ref={container} onKeyDown={handleKeyDown} onBlur={handleFlyoutBlur}>
       <Flyout
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        onCancel={() => {
-          console.log('CANCEL 2');
-          setIsOpen(false);
-        }}
+        onCancel={() => setIsOpen(false)}
         target={
           <ToolbarButton
             id={props.id}

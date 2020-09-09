@@ -1,9 +1,9 @@
 import React, { useMemo, useState, useCallback, useReducer, useContext } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { ContextMenu, Collapse, InputGroup } from '@blueprintjs/core';
+import { Collapse, InputGroup } from '@blueprintjs/core';
 
-import { Tree, Toolbar, ToolbarButton } from 'components';
+import { Tree, Toolbar, ToolbarButton, ContextMenu } from 'components';
 import IconSet from 'components/Icons';
 import {
   ITreeBranch,
@@ -86,6 +86,7 @@ const Label = (props: ILabelProps) => (
 );
 
 interface ITagProps {
+  showContextMenu: React.Dispatch<Omit<IContextState, 'open'>>;
   nodeData: ClientTag;
   dispatch: React.Dispatch<Action>;
   isEditing: boolean;
@@ -135,21 +136,17 @@ const toggleQuery = (nodeData: ClientTagCollection | ClientTag, uiStore: UiStore
 };
 
 const Tag = observer((props: ITagProps) => {
-  const { nodeData, dispatch, isEditing, submit, pos, select } = props;
+  const { nodeData, dispatch, isEditing, submit, pos, select, showContextMenu } = props;
   const { tagStore, uiStore } = useContext(StoreContext);
 
   const handleContextMenu = useCallback(
     (e) =>
-      ContextMenu.show(
-        <TagContextMenu dispatch={dispatch} nodeData={nodeData} uiStore={uiStore} />,
-        {
-          left: e.clientX,
-          top: e.clientY,
-        },
-        undefined,
-        uiStore.theme === 'DARK',
-      ),
-    [dispatch, nodeData, uiStore],
+      showContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        menu: <TagContextMenu dispatch={dispatch} nodeData={nodeData} />,
+      }),
+    [dispatch, nodeData, showContextMenu],
   );
 
   const handleDragStart = useCallback(
@@ -254,26 +251,24 @@ interface ICollectionProps extends Omit<ITagProps, 'nodeData'> {
 }
 
 const Collection = observer((props: ICollectionProps) => {
-  const { nodeData, dispatch, expansion, isEditing, submit, pos, select } = props;
+  const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
   const { tagCollectionStore, tagStore, uiStore } = useContext(StoreContext);
 
   const handleContextMenu = useCallback(
     (e) =>
-      ContextMenu.show(
-        <CollectionContextMenu
-          dispatch={dispatch}
-          expansion={expansion}
-          nodeData={nodeData}
-          pos={pos}
-          tagCollectionStore={tagCollectionStore}
-          tagStore={tagStore}
-          uiStore={uiStore}
-        />,
-        { left: e.clientX, top: e.clientY },
-        undefined,
-        uiStore.theme === 'DARK',
-      ),
-    [dispatch, expansion, nodeData, pos, tagCollectionStore, tagStore, uiStore],
+      showContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        menu: (
+          <CollectionContextMenu
+            dispatch={dispatch}
+            expansion={expansion}
+            nodeData={nodeData}
+            pos={pos}
+          />
+        ),
+      }),
+    [dispatch, expansion, nodeData, pos, showContextMenu],
   );
 
   const handleDragStart = useCallback(
@@ -412,6 +407,7 @@ const Collection = observer((props: ICollectionProps) => {
 });
 
 interface ITreeData {
+  showContextMenu: React.Dispatch<Omit<IContextState, 'open'>>;
   state: State;
   dispatch: React.Dispatch<Action>;
   submit: (target: EventTarget & HTMLInputElement) => void;
@@ -427,6 +423,7 @@ const TagLabel = (
   pos: number,
 ) => (
   <Tag
+    showContextMenu={treeData.showContextMenu}
     nodeData={nodeData}
     dispatch={treeData.dispatch}
     isEditing={treeData.state.editableNode === nodeData.id}
@@ -444,6 +441,7 @@ const CollectionLabel = (
   pos: number,
 ) => (
   <Collection
+    showContextMenu={treeData.showContextMenu}
     nodeData={nodeData}
     dispatch={treeData.dispatch}
     expansion={treeData.state.expansion}
@@ -619,11 +617,37 @@ interface ITagsTreeProps {
   uiStore: UiStore;
 }
 
+interface IContextState {
+  open: boolean;
+  x: number;
+  y: number;
+  menu: JSX.Element;
+}
+
+const reducerMenu = (state: any, action: Omit<IContextState, 'open'> | null): IContextState => {
+  if (action) {
+    return {
+      open: true,
+      menu: action.menu,
+      x: action.x,
+      y: action.y,
+    };
+  } else {
+    return { ...state, open: false };
+  }
+};
+
 const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITagsTreeProps) => {
   const [state, dispatch] = useReducer(reducer, {
     expansion: {},
     editableNode: undefined,
     deletableNode: undefined,
+  });
+  const [contextState, dispatchMenu] = useReducer(reducerMenu, {
+    open: false,
+    x: 0,
+    y: 0,
+    menu: <></>,
   });
 
   const submit = useCallback((target: EventTarget & HTMLInputElement) => {
@@ -656,6 +680,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
 
   const treeData: ITreeData = useMemo(
     () => ({
+      showContextMenu: dispatchMenu,
       state,
       dispatch,
       uiStore,
@@ -804,6 +829,14 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
           onClose={() => dispatch(Factory.abortDeletion())}
         />
       )}
+      <ContextMenu
+        open={contextState.open}
+        x={contextState.x}
+        y={contextState.y}
+        onClose={() => dispatchMenu(null)}
+      >
+        {contextState.menu}
+      </ContextMenu>
     </>
   );
 });

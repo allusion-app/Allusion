@@ -78,13 +78,6 @@ const Flyout = observer((props: IFlyout) => {
   useEffect(() => {
     if (dialog.current && open) {
       forceUpdate?.();
-      const first =
-        dialog.current.querySelector('[tabindex="0"]') ??
-        dialog.current.querySelector('[tabindex="-1"]');
-      if (first) {
-        (first as HTMLElement).tabIndex = 0;
-        (first as HTMLElement).focus();
-      }
     }
   }, [open, forceUpdate]);
 
@@ -210,6 +203,7 @@ interface IContextMenu {
   open: boolean;
   x: number;
   y: number;
+  /** The element must be a Menu component otherwise focus will not work. */
   children: React.ReactElement;
   onClose: (event: Event) => void;
 }
@@ -263,14 +257,10 @@ const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) =
   useEffect(() => {
     if (dialog.current && open) {
       forceUpdate?.();
-      // Focus first focusable element
-      const first =
-        dialog.current.querySelector('[tabindex="0"]') ??
-        dialog.current.querySelector('[tabindex="-1"]');
-      if (first) {
-        (first as HTMLElement).tabIndex = 0;
-        (first as HTMLElement).focus();
-      }
+      // Focus first focusable menu item
+      const first = dialog.current.querySelector('[role^="menuitem"]') as HTMLElement;
+      // The Menu component will handle setting the tab indices.
+      first?.focus();
     }
   }, [open, forceUpdate]);
 

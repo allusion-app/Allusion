@@ -1,13 +1,8 @@
 import './menu.scss';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import IconSet from '../Icons';
 import { Flyout } from '../Dialog';
-
-const setTabFocus = (element: HTMLElement) => {
-  element.setAttribute('tabIndex', '0');
-  element.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
-};
 
 const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
   if (!event.target.matches('[role^="menuitem"]')) {
@@ -17,7 +12,8 @@ const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
   if (prev.length > 0) {
     prev.forEach((p) => p.setAttribute('tabIndex', '-1'));
   }
-  setTabFocus(event.target);
+  event.target.setAttribute('tabIndex', '0');
+  event.target.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
 };
 
 const handleClick = (e: React.MouseEvent) => {
@@ -144,6 +140,7 @@ const subMenuPlacments = ['right-end', 'right'] as Placement[];
 
 const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISubMenu) => {
   const [isOpen, setIsOpen] = useState(false);
+  const menu = useRef<HTMLUListElement>(null);
 
   const open = useMemo(() => (disabled ? undefined : () => setIsOpen(true)), [disabled]);
   const close = useMemo(() => (disabled ? undefined : () => setIsOpen(false)), [disabled]);
@@ -152,6 +149,15 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
       setIsOpen(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (menu.current && isOpen) {
+      const first = menu.current.querySelector('[role^="menuitem"]') as HTMLElement;
+      console.log(first);
+      // The Menu component will handle setting the tab indices.
+      first?.focus();
+    }
+  });
 
   return (
     <li
@@ -187,6 +193,7 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
         }
       >
         <ul
+          ref={menu}
           role={role}
           aria-label={text}
           className="menu"

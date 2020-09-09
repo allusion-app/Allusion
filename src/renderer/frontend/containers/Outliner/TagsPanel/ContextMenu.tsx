@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useContext } from 'react';
 import IconSet from 'components/Icons';
 import { Icon } from '@blueprintjs/core';
 import { MenuDivider, MenuItem, SubMenu, Menu } from 'components';
@@ -11,9 +11,7 @@ import { IExpansionState } from '..';
 import { ID } from 'src/renderer/entities/ID';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
-import UiStore from 'src/renderer/frontend/stores/UiStore';
-import TagCollectionStore from 'src/renderer/frontend/stores/TagCollectionStore';
-import TagStore from 'src/renderer/frontend/stores/TagStore';
+import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 
 interface IColorOptions {
   label: string;
@@ -134,11 +132,11 @@ const SearchMenu = (props: ISearchMenuProps) => {
 
 interface IMenuProps<T> {
   nodeData: T;
-  uiStore: UiStore;
   dispatch: React.Dispatch<Action>;
 }
 
-export const TagContextMenu = ({ nodeData, dispatch, uiStore }: IMenuProps<ClientTag>) => {
+export const TagContextMenu = ({ nodeData, dispatch }: IMenuProps<ClientTag>) => {
+  const { uiStore } = useContext(StoreContext);
   const { tags, collections } = uiStore.getTagContextItems(nodeData.id);
   let contextText = formatTagCountText(Math.max(0, tags.length - 1), collections.length);
   contextText = contextText && ` (${contextText})`;
@@ -198,14 +196,13 @@ const collapseSubCollection = (
 };
 
 interface ICollectionMenuProps extends IMenuProps<ClientTagCollection> {
-  tagCollectionStore: TagCollectionStore;
-  tagStore: TagStore;
   expansion: IExpansionState;
   pos: number;
 }
 
 export const CollectionContextMenu = (props: ICollectionMenuProps) => {
-  const { nodeData, dispatch, expansion, pos, tagCollectionStore, tagStore, uiStore } = props;
+  const { nodeData, dispatch, expansion, pos } = props;
+  const { tagCollectionStore, tagStore, uiStore } = useContext(StoreContext);
   const { tags, collections } = uiStore.getTagContextItems(nodeData.id);
   let contextText = formatTagCountText(tags.length, Math.max(0, collections.length - 1));
   contextText = contextText && ` (${contextText})`;
