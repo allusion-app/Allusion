@@ -6,7 +6,7 @@ import { Tag, H4, Card } from '@blueprintjs/core';
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Tooltip, Menu, MenuDivider, MenuItem, SubMenu } from 'components';
+import { Button, ButtonGroup, Tooltip, MenuDivider, MenuItem } from 'components';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
@@ -14,7 +14,6 @@ import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
 import UiStore from '../../stores/UiStore';
-import { SortMenuItems, LayoutMenuItems } from '../Toolbar/ContentToolbar';
 
 const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
   const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
@@ -90,7 +89,8 @@ interface IGalleryItemProps extends IRootStoreProp {
   showContextMenu: React.Dispatch<{
     x: number;
     y: number;
-    menu: JSX.Element | null;
+    fileMenu: JSX.Element | null;
+    externalMenu: JSX.Element | null;
   }>;
 }
 
@@ -216,7 +216,8 @@ const GalleryItem = observer(
         showContextMenu({
           x: e.clientX,
           y: e.clientY,
-          menu: <GalleryItemContextMenu file={file} />,
+          fileMenu: file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
+          externalMenu: file.isBroken ? null : <ExternalAppMenuItems path={file.absolutePath} />,
         });
       },
       [file, showContextMenu],
@@ -279,36 +280,36 @@ const GalleryItem = observer(
   },
 );
 
-export const GalleryContextMenuItems = () => {
+const MissingFileMenuItems = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
   return (
     <>
-      <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
-        <LayoutMenuItems uiStore={uiStore} />
-      </SubMenu>
-      <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-        <SortMenuItems fileStore={fileStore} />
-      </SubMenu>
+      <MenuItem
+        onClick={fileStore.fetchMissingFiles}
+        text="Open Recovery Panel"
+        icon={IconSet.WARNING_BROKEN_LINK}
+        disabled={fileStore.showsMissingContent}
+      />
+      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+      <MenuDivider />
     </>
   );
 };
 
-const GalleryItemContextMenu = ({ file }: { file: ClientFile }) => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+  const { uiStore } = useContext(StoreContext);
   const handleViewFullSize = useCallback(() => {
     uiStore.selectFile(file, true);
     uiStore.toggleSlideMode();
   }, [file, uiStore]);
+
   const handlePreviewWindow = useCallback(() => {
     if (!uiStore.fileSelection.has(file.id)) {
       uiStore.selectFile(file, true);
     }
     uiStore.openPreviewWindow();
   }, [file, uiStore]);
-  const handleOpen = useCallback(() => shell.openItem(file.absolutePath), [file.absolutePath]);
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(file.absolutePath), [
-    file.absolutePath,
-  ]);
+
   const handleInspect = useCallback(() => {
     uiStore.clearFileSelection();
     uiStore.selectFile(file);
@@ -317,24 +318,8 @@ const GalleryItemContextMenu = ({ file }: { file: ClientFile }) => {
     }
   }, [file, uiStore]);
 
-  if (file.isBroken) {
-    return (
-      <Menu>
-        <MenuItem
-          onClick={fileStore.fetchMissingFiles}
-          text="Open Recovery Panel"
-          icon={IconSet.WARNING_BROKEN_LINK}
-          disabled={fileStore.showsMissingContent}
-        />
-        <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
-        <MenuDivider />
-        <GalleryContextMenuItems />
-      </Menu>
-    );
-  }
-
   return (
-    <Menu>
+    <>
       <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.SEARCH} />
       <MenuItem
         onClick={handlePreviewWindow}
@@ -342,18 +327,24 @@ const GalleryItemContextMenu = ({ file }: { file: ClientFile }) => {
         icon={IconSet.PREVIEW}
       />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-
       <MenuDivider />
-      <GalleryContextMenuItems />
-      <MenuDivider />
+    </>
+  );
+};
 
+const ExternalAppMenuItems = ({ path }: { path: string }) => {
+  const handleOpen = useCallback(() => shell.openItem(path), [path]);
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
+  return (
+    <>
+      <MenuDivider />
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
       <MenuItem
         onClick={handleOpenFileExplorer}
         text="Reveal in File Browser"
         icon={IconSet.FOLDER_CLOSE}
       />
-    </Menu>
+    </>
   );
 };
 

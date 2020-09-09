@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useReducer } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useReducer, useContext } from 'react';
 import { ResizeSensor, IResizeEntry, NonIdealState } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
@@ -10,18 +10,19 @@ import {
 } from 'react-window';
 import { observer, useObserver } from 'mobx-react-lite';
 
-import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
+import StoreContext, { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
 import GalleryItem, { MissingImageFallback } from './GalleryItem';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, ContextMenu } from 'components';
+import { Button, ButtonGroup, ContextMenu, SubMenu, Menu } from 'components';
 import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
 import useDebounce from '../../hooks/useDebounce';
 import FileStore from '../../stores/FileStore';
+import { LayoutMenuItems, SortMenuItems } from '../Toolbar/ContentToolbar';
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
@@ -464,14 +465,22 @@ interface IContextState {
   open: boolean;
   x: number;
   y: number;
-  menu: JSX.Element | null;
+  fileMenu: JSX.Element | null;
+  externalMenu: JSX.Element | null;
 }
 
 const reducer = (state: any, action: Omit<IContextState, 'open'> | null): IContextState => {
   if (action) {
-    return { ...state, open: true, menu: action.menu, x: action.x, y: action.y };
+    return {
+      ...state,
+      open: true,
+      fileMenu: action.fileMenu,
+      externalMenu: action.externalMenu,
+      x: action.x,
+      y: action.y,
+    };
   } else {
-    return { ...state, open: false, menu: null };
+    return { ...state, open: false, fileMenu: null, externalMenu: null };
   }
 };
 
@@ -484,8 +493,28 @@ const handleFlyoutBlur = (e: React.FocusEvent) => {
   }
 };
 
+const GalleryContextMenuItems = () => {
+  const { uiStore, fileStore } = useContext(StoreContext);
+  return (
+    <>
+      <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
+        <LayoutMenuItems uiStore={uiStore} />
+      </SubMenu>
+      <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+        <SortMenuItems fileStore={fileStore} />
+      </SubMenu>
+    </>
+  );
+};
+
 const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
-  const [contextState, dispatch] = useReducer(reducer, { open: false, x: 0, y: 0, menu: null });
+  const [contextState, dispatch] = useReducer(reducer, {
+    open: false,
+    x: 0,
+    y: 0,
+    fileMenu: null,
+    externalMenu: null,
+  });
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
   const handleResize = useCallback((entries: IResizeEntry[]) => {
@@ -650,7 +679,11 @@ const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
           y={contextState.y}
           onClose={closeContextMenu}
         >
-          {contextState.menu ?? <span></span>}
+          <Menu>
+            {contextState.fileMenu}
+            <GalleryContextMenuItems key="gallery-menu" />
+            {contextState.externalMenu}
+          </Menu>
         </ContextMenu>
       </div>
     </ResizeSensor>
