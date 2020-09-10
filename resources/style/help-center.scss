@@ -1,4 +1,23 @@
 ///////////////////////////////// Help Center /////////////////////////////////
+.settings-drawer {
+  max-width: 60ch;
+  padding: 1rem;
+  overflow-y: auto;
+
+  .bp3-drawer-header,
+  .bp3-drawer-body,
+  .bp3-drawer-body .bp3-divider,
+  .bp3-dialog-header {
+    padding: 0 0 0.5rem 0;
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+
+  .bp3-drawer-body {
+    overflow: unset;
+  }
+}
+
 #help-center {
   .bp3-panel-stack {
     height: 100%;

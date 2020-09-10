@@ -365,7 +365,7 @@ const HelpCenter = observer(() => {
       icon={IconSet.HELPCENTER}
       onClose={uiStore.toggleHelpCenter}
       title="Help Center"
-      className="settings" // same class as settings panel, since we override the Drawer dimensions there nicely
+      className="settings-drawer" // same class as settings panel, since we override the Drawer dimensions there nicely
     >
       <div className={Classes.DRAWER_BODY} id="help-center">
         <PanelStack
