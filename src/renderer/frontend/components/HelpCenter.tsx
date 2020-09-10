@@ -320,19 +320,11 @@ const HelpCenterHome = (props: IPanelProps) => {
       </header>
       <nav>
         {sections.map((section) => (
-          <section key={section.title}>
-            <header
-              onClick={() =>
-                props.openPanel({
-                  title: section.title,
-                  component: SectionPanel,
-                  props: { section },
-                })
-              }
-            >
+          <details open key={section.title}>
+            <summary>
               {section.icon}
               {section.title}
-            </header>
+            </summary>
             <ul>
               {section.subSections.map((subSec, subSectionIndex) => (
                 <li
@@ -349,7 +341,7 @@ const HelpCenterHome = (props: IPanelProps) => {
                 </li>
               ))}
             </ul>
-          </section>
+          </details>
         ))}
       </nav>
     </div>
@@ -365,7 +357,7 @@ const HelpCenter = observer(() => {
       icon={IconSet.HELPCENTER}
       onClose={uiStore.toggleHelpCenter}
       title="Help Center"
-      className="settings-drawer" // same class as settings panel, since we override the Drawer dimensions there nicely
+      className="bp3-light help-center-drawer"
     >
       <div className={Classes.DRAWER_BODY} id="help-center">
         <PanelStack

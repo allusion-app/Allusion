@@ -1,5 +1,7 @@
 ///////////////////////////////// Help Center /////////////////////////////////
-.settings-drawer {
+.help-center-drawer {
+  color: var(--text-color) !important;
+  background: var(--foreground-color) !important;
   max-width: 60ch;
   padding: 1rem;
   overflow-y: auto;
@@ -8,6 +10,8 @@
   .bp3-drawer-body,
   .bp3-drawer-body .bp3-divider,
   .bp3-dialog-header {
+    color: var(--text-color) !important;
+    background: var(--foreground-color) !important;
     padding: 0 0 0.5rem 0;
     margin-bottom: 1rem;
     width: 100%;
@@ -24,10 +28,11 @@
   }
 
   .bp3-panel-stack-view {
+    color: var(--text-color) !important;
+    background: var(--foreground-color) !important;
     margin: 0;
     border: none;
     position: unset;
-    background-color: unset !important;
     overflow-x: hidden;
   }
 
@@ -35,25 +40,13 @@
     margin-top: 2rem;
     margin-bottom: 2rem;
   }
-  /* Dont think "overview" needs to be shown */
-  .bp3-panel-stack-pop .bp3-panel-stack-header {
-    visibility: hidden;
-    display: none;
-  }
+
   .bp3-panel-stack-header {
     box-shadow: none;
 
-    .bp3-panel-stack-header-back {
-      color: $blue1;
-
-      .sticky {
-        position: fixed;
-        top: 1rem;
-      }
-
-      .custom-icon {
-        color: inherit;
-      }
+    .bp3-panel-stack-header-back .sticky {
+      position: fixed;
+      top: 1rem;
     }
   }
 
@@ -91,70 +84,64 @@
 .help-center-home {
   > header {
     text-align: center;
+    padding: 0.5rem;
   }
 
   nav {
     width: 100%;
-    background-color: $light-gray3; /* #d4d5d7; */
     border-radius: 0.25rem;
     overflow: hidden;
   }
 
-  section > header {
+  details > summary {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     font-weight: bold;
     cursor: pointer;
+    list-style: none;
+    padding: 0.5rem;
 
-    .custom-icon {
-      margin-right: 0.5rem;
-    }
-
-    &::after {
-      width: 1em;
-      height: 1em;
-      content: '';
+    // If that stops to work, use ::before instead and set this to 'display: none'.
+    &::-webkit-details-marker {
+      appearance: none;
+      height: 1rem;
+      width: 1rem;
       transform: rotateZ(-90deg);
       mask-image: url(~resources/icons/arrow-down.svg);
       -webkit-mask-image: url(~resources/icons/arrow-down.svg);
       background-color: currentColor;
-      margin-left: auto;
     }
 
-    &:hover,
-    &:hover .custom-icon {
-      color: $blue1;
-      transition: color 0.2s $pt-transition-cubic2;
+    &::-webkit-details-marker,
+    .custom-icon {
+      margin-right: 0.5rem;
     }
   }
 
-  header {
-    padding: 0.5rem;
+  details[open] > summary::-webkit-details-marker {
+    transform: none;
+  }
+
+  ul {
+    padding: 0;
+    list-style: none;
+    margin: 0;
   }
 
   li {
-    padding: 0.2rem 1.5rem;
+    padding: 0.5rem 2rem;
 
     &:hover {
-      color: $blue1;
+      color: var(--primary-color);
       transition: color 0.2s $pt-transition-cubic2;
       cursor: pointer;
     }
   }
 
-  ul {
-    padding: 0.25rem 0.5rem;
-    list-style: none;
-    margin: 0;
-    background-color: $light-gray4; /* #e6e7e9; */
-  }
-
   h2 {
-    color: $blue1;
+    color: var(--primary-color);
     font-size: large;
-    margin-top: 0;
-    margin-bottom: 0.25rem;
+    margin-top: 0 0 0.25rem;
   }
 
   p {
