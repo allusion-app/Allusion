@@ -14,7 +14,6 @@
     }
     > div,
     > span {
-      border-right: 1px solid rgba(var(--background-separator-color), 0.75); // Note: SASS accepts hex values in rgba()
       max-width: 150px !important;
       width: 150px !important;
     }

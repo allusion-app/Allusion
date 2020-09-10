@@ -24,6 +24,8 @@ dialog {
   &[data-tooltip] {
     opacity: unset;
     pointer-events: none;
+    background: var(--primary-color);
+    color: white;
   }
 }
 
@@ -89,7 +91,7 @@ dialog[role='alertdialog'] {
 
 .tooltip {
   display: inline-flex;
-  margin: 0.25rem 0.5rem;
+  margin: 0.5rem 1rem;
 }
 
 @keyframes appear {

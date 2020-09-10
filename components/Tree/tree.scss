@@ -83,7 +83,7 @@
   height: 1rem;
   flex-shrink: 0;
   cursor: pointer;
-  background-color: var(--caret-color);
+  background-color: var(--text-color);
   mask-image: url(~resources/icons/arrow-down.svg);
   -webkit-mask-image: url(~resources/icons/arrow-down.svg);
   transition: transform 100ms ease-out;
