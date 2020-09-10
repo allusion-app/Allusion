@@ -85,12 +85,7 @@ interface IGalleryItemProps {
   onClick: (file: ClientFile, e: React.MouseEvent) => void;
   onDoubleClick: (file: ClientFile, e: React.MouseEvent) => void;
   showDetails?: boolean;
-  showContextMenu: React.Dispatch<{
-    x: number;
-    y: number;
-    fileMenu: JSX.Element;
-    externalMenu: JSX.Element | null;
-  }>;
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
 const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -203,12 +198,10 @@ const GalleryItem = observer(
 
     const handleContextMenu = useCallback(
       (e: React.MouseEvent) => {
-        showContextMenu({
-          x: e.clientX,
-          y: e.clientY,
-          fileMenu: file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
-          externalMenu: file.isBroken ? null : <ExternalAppMenuItems path={file.absolutePath} />,
-        });
+        showContextMenu(e.clientX, e.clientY, [
+          file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
+          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+        ]);
       },
       [file, showContextMenu],
     );

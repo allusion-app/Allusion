@@ -234,6 +234,7 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         text="New Collection"
         icon={IconSet.TAG_ADD_COLLECTION}
       />
+      <MenuDivider />
       <EditMenu
         rename={() => dispatch(Factory.enableEditing(nodeData.id))}
         delete={() => dispatch(Factory.confirmDeletion(nodeData))}

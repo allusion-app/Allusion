@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useReducer, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import { ResizeSensor, IResizeEntry, NonIdealState } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
@@ -22,6 +22,7 @@ import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
 import useDebounce from '../../hooks/useDebounce';
 import { LayoutMenuItems, SortMenuItems } from '../Toolbar/ContentToolbar';
+import useContextMenu from '../../hooks/useContextMenu';
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
@@ -64,7 +65,8 @@ interface IGalleryLayoutProps {
     selectRange: boolean,
   ) => void;
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
-  showContextMenu: React.Dispatch<Omit<IContextState, 'open'>>;
+  /** menu: [fileMenu, externalMenu] */
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
 function getLayoutComponent(
@@ -455,28 +457,6 @@ const SlideGallery = observer(({ contentRect }: IGalleryLayoutProps) => {
   );
 });
 
-interface IContextState {
-  open: boolean;
-  x: number;
-  y: number;
-  fileMenu: JSX.Element;
-  externalMenu: JSX.Element | null;
-}
-
-const reducer = (state: any, action: Omit<IContextState, 'open'> | null): IContextState => {
-  if (action) {
-    return {
-      open: true,
-      fileMenu: action.fileMenu,
-      externalMenu: action.externalMenu,
-      x: action.x,
-      y: action.y,
-    };
-  } else {
-    return { ...state, open: false };
-  }
-};
-
 const handleFlyoutBlur = (e: React.FocusEvent) => {
   if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) {
     const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
@@ -485,10 +465,6 @@ const handleFlyoutBlur = (e: React.FocusEvent) => {
     }
   }
 };
-
-interface IGallerItemContextMenu extends IContextState {
-  onClose: (event: Event) => void;
-}
 
 const GalleryContextMenuItems = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -504,26 +480,15 @@ const GalleryContextMenuItems = observer(() => {
   );
 });
 
-const GalleryItemContextMenu = observer((props: IGallerItemContextMenu) => (
-  <ContextMenu open={props.open} x={props.x} y={props.y} onClose={props.onClose}>
-    <Menu>
-      {props.fileMenu}
-      <MenuDivider key="divider" />
-      <GalleryContextMenuItems key="gallery-menu" />
-      {props.externalMenu}
-    </Menu>
-  </ContextMenu>
-));
-
 const Gallery = () => {
   const { fileStore, uiStore } = useContext(StoreContext);
-  const [contextState, dispatch] = useReducer(reducer, {
-    open: false,
-    x: 0,
-    y: 0,
-    fileMenu: <></>,
-    externalMenu: null,
-  });
+  const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
+  const {
+    open,
+    x,
+    y,
+    menu: [fileMenu, externalMenu],
+  } = contextState;
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
   const handleResize = useCallback((entries: IResizeEntry[]) => {
@@ -609,8 +574,6 @@ const Gallery = () => {
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
   // Also take into account scrolling when dragging while selecting
 
-  const closeContextMenu = useCallback(() => dispatch(null), []);
-
   if (fileList.length === 0) {
     let icon = IconSet.MEDIA;
     let title = 'No images';
@@ -676,16 +639,16 @@ const Gallery = () => {
           handleDoubleClick,
           handleFileSelect,
           lastSelectionIndex,
-          showContextMenu: dispatch,
+          showContextMenu: show,
         })}
-        <GalleryItemContextMenu
-          open={contextState.open}
-          x={contextState.x}
-          y={contextState.y}
-          onClose={closeContextMenu}
-          fileMenu={contextState.fileMenu}
-          externalMenu={contextState.externalMenu}
-        />
+        <ContextMenu key="contextmenu" open={open} x={x} y={y} onClose={hide}>
+          <Menu>
+            {fileMenu}
+            <MenuDivider key="divider" />
+            <GalleryContextMenuItems key="gallery-menu" />
+            {externalMenu}
+          </Menu>
+        </ContextMenu>
       </div>
     </ResizeSensor>
   );

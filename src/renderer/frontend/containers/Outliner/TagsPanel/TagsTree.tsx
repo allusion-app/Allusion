@@ -38,6 +38,7 @@ import { Action, State, Factory, reducer } from './StateReducer';
 import TagStore from 'src/renderer/frontend/stores/TagStore';
 import TagCollectionStore from 'src/renderer/frontend/stores/TagCollectionStore';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
+import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
 
 interface ILabelProps {
   /** SVG element */
@@ -86,7 +87,7 @@ const Label = (props: ILabelProps) => (
 );
 
 interface ITagProps {
-  showContextMenu: React.Dispatch<Omit<IContextState, 'open'>>;
+  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   nodeData: ClientTag;
   dispatch: React.Dispatch<Action>;
   isEditing: boolean;
@@ -141,11 +142,11 @@ const Tag = observer((props: ITagProps) => {
 
   const handleContextMenu = useCallback(
     (e) =>
-      showContextMenu({
-        x: e.clientX,
-        y: e.clientY,
-        menu: <TagContextMenu dispatch={dispatch} nodeData={nodeData} />,
-      }),
+      showContextMenu(
+        e.clientX,
+        e.clientY,
+        <TagContextMenu dispatch={dispatch} nodeData={nodeData} />,
+      ),
     [dispatch, nodeData, showContextMenu],
   );
 
@@ -256,18 +257,16 @@ const Collection = observer((props: ICollectionProps) => {
 
   const handleContextMenu = useCallback(
     (e) =>
-      showContextMenu({
-        x: e.clientX,
-        y: e.clientY,
-        menu: (
-          <CollectionContextMenu
-            dispatch={dispatch}
-            expansion={expansion}
-            nodeData={nodeData}
-            pos={pos}
-          />
-        ),
-      }),
+      showContextMenu(
+        e.clientX,
+        e.clientY,
+        <CollectionContextMenu
+          dispatch={dispatch}
+          expansion={expansion}
+          nodeData={nodeData}
+          pos={pos}
+        />,
+      ),
     [dispatch, expansion, nodeData, pos, showContextMenu],
   );
 
@@ -411,7 +410,7 @@ const Collection = observer((props: ICollectionProps) => {
 });
 
 interface ITreeData {
-  showContextMenu: React.Dispatch<Omit<IContextState, 'open'>>;
+  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   state: State;
   dispatch: React.Dispatch<Action>;
   submit: (target: EventTarget & HTMLInputElement) => void;
@@ -621,38 +620,13 @@ interface ITagsTreeProps {
   uiStore: UiStore;
 }
 
-interface IContextState {
-  open: boolean;
-  x: number;
-  y: number;
-  menu: JSX.Element;
-}
-
-const reducerMenu = (state: any, action: Omit<IContextState, 'open'> | null): IContextState => {
-  if (action) {
-    return {
-      open: true,
-      menu: action.menu,
-      x: action.x,
-      y: action.y,
-    };
-  } else {
-    return { ...state, open: false };
-  }
-};
-
 const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITagsTreeProps) => {
   const [state, dispatch] = useReducer(reducer, {
     expansion: {},
     editableNode: undefined,
     deletableNode: undefined,
   });
-  const [contextState, dispatchMenu] = useReducer(reducerMenu, {
-    open: false,
-    x: 0,
-    y: 0,
-    menu: <></>,
-  });
+  const [contextState, { show, hide }] = useContextMenu();
 
   const submit = useCallback((target: EventTarget & HTMLInputElement) => {
     target.focus();
@@ -684,14 +658,14 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
 
   const treeData: ITreeData = useMemo(
     () => ({
-      showContextMenu: dispatchMenu,
+      showContextMenu: show,
       state,
       dispatch,
       uiStore,
       submit,
       select,
     }),
-    [select, state, submit, uiStore],
+    [select, show, state, submit, uiStore],
   );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -833,12 +807,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
           onClose={() => dispatch(Factory.abortDeletion())}
         />
       )}
-      <ContextMenu
-        open={contextState.open}
-        x={contextState.x}
-        y={contextState.y}
-        onClose={() => dispatchMenu(null)}
-      >
+      <ContextMenu open={contextState.open} x={contextState.x} y={contextState.y} onClose={hide}>
         {contextState.menu}
       </ContextMenu>
     </>

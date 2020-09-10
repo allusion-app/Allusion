@@ -1,4 +1,4 @@
-import React, { useContext, useCallback, useState, useEffect, useMemo, useReducer } from 'react';
+import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { remote, shell } from 'electron';
 import { observer, Observer } from 'mobx-react-lite';
 import { Collapse, Label } from '@blueprintjs/core';
@@ -21,6 +21,7 @@ import { IExpansionState } from '..';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { CustomKeyDict } from '../index';
 import { LocationRemoval } from 'src/renderer/frontend/components/RemovalAlert';
+import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
 
 // Tooltip info
 const enum Tooltip {
@@ -70,7 +71,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
 };
 
 interface ITreeData {
-  showContextMenu: React.Dispatch<Omit<IContextState, 'open'>>;
+  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   expansion: IExpansionState;
   setExpansion: React.Dispatch<IExpansionState>;
   config: (location: ClientLocation) => void;
@@ -220,11 +221,7 @@ const SubLocation = observer(
     const { showContextMenu, expansion } = treeData;
     const handleContextMenu = useCallback(
       (e: React.MouseEvent) =>
-        showContextMenu({
-          x: e.clientX,
-          y: e.clientY,
-          menu: <DirectoryMenu path={nodeData.fullPath} />,
-        }),
+        showContextMenu(e.clientX, e.clientY, <DirectoryMenu path={nodeData.fullPath} />),
       [nodeData.fullPath, showContextMenu],
     );
 
@@ -253,13 +250,11 @@ const Location = observer(
     const { showContextMenu, expansion, config, delete: onDelete } = treeData;
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        showContextMenu({
-          x: event.clientX,
-          y: event.clientY,
-          menu: (
-            <LocationTreeContextMenu location={nodeData} onConfig={config} onDelete={onDelete} />
-          ),
-        });
+        showContextMenu(
+          event.clientX,
+          event.clientY,
+          <LocationTreeContextMenu location={nodeData} onConfig={config} onDelete={onDelete} />,
+        );
       },
       [nodeData, showContextMenu, config, onDelete],
     );
@@ -308,7 +303,7 @@ const LocationLabel = (nodeData: any, treeData: any) => (
 );
 
 interface ILocationTreeProps {
-  showContextMenu: React.Dispatch<Omit<IContextState, 'open'>>;
+  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   lastRefresh: string;
   onDelete: (loc: ClientLocation) => void;
   onConfig: (loc: ClientLocation) => void;
@@ -392,34 +387,9 @@ const LocationsTree = observer(
   },
 );
 
-interface IContextState {
-  open: boolean;
-  x: number;
-  y: number;
-  menu: JSX.Element;
-}
-
-const reducer = (state: any, action: Omit<IContextState, 'open'> | null): IContextState => {
-  if (action) {
-    return {
-      open: true,
-      menu: action.menu,
-      x: action.x,
-      y: action.y,
-    };
-  } else {
-    return { ...state, open: false };
-  }
-};
-
 const LocationsPanel = () => {
   const { locationStore } = useContext(StoreContext);
-  const [contextState, dispatch] = useReducer(reducer, {
-    open: false,
-    x: 0,
-    y: 0,
-    menu: <></>,
-  });
+  const [contextState, { show, hide }] = useContextMenu();
 
   const [locationConfigOpen, setLocationConfigOpen] = useState<ClientLocation | undefined>(
     undefined,
@@ -516,7 +486,7 @@ const LocationsPanel = () => {
       </div>
       <Collapse isOpen={!isCollapsed}>
         <LocationsTree
-          showContextMenu={dispatch}
+          showContextMenu={show}
           lastRefresh={locationTreeKey.toString()}
           onDelete={setDeletableLocation}
           onConfig={setLocationConfigOpen}
@@ -527,12 +497,7 @@ const LocationsPanel = () => {
       {deletableLocation && (
         <LocationRemoval object={deletableLocation} onClose={closeLocationRemover} />
       )}
-      <ContextMenu
-        open={contextState.open}
-        x={contextState.x}
-        y={contextState.y}
-        onClose={() => dispatch(null)}
-      >
+      <ContextMenu open={contextState.open} x={contextState.x} y={contextState.y} onClose={hide}>
         <Menu>{contextState.menu}</Menu>
       </ContextMenu>
     </div>
