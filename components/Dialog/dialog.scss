@@ -31,13 +31,28 @@ dialog {
 
 .dialog-content {
   display: grid;
-  grid-template: 'dialog-icon dialog-title' 'dialog-information dialog-information' 'dialog-footer dialog-footer';
-  grid-template-columns: min-content 1fr;
+  grid-template:
+    'dialog-icon dialog-title dialog-close'
+    'dialog-information dialog-information dialog-information'
+    'dialog-footer dialog-footer dialog-footer';
+  grid-template-columns: min-content 1fr min-content;
   grid-template-rows: min-content 1fr min-content;
   max-height: 80vh;
   padding: 1rem 1rem 0.5rem;
   row-gap: 0.5rem;
   width: 85ch;
+
+  > .btn-icon {
+    grid-area: dialog-close;
+    height: fit-content;
+    min-height: fit-content;
+    min-width: unset;
+
+    .custom-icon {
+      height: 0.75rem;
+      width: 0.75rem;
+    }
+  }
 }
 
 dialog[role='alertdialog'] {

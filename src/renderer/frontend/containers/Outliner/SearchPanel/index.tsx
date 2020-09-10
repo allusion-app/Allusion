@@ -13,7 +13,7 @@ import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { jsDateFormatter, camelCaseToSpaced } from 'src/renderer/frontend/utils';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Dialog } from 'components';
+import { Button, ButtonGroup, Dialog, IconButton } from 'components';
 import TagSelector from 'src/renderer/frontend/components/TagSelector';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ID } from 'src/renderer/entities/ID';
@@ -296,6 +296,7 @@ export const AdvancedSearchDialog = observer(() => {
       <h2 id="dialog-title" className="dialog-title">
         Advanced Search
       </h2>
+      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={uiStore.closeAdvancedSearch} />
       <SearchForm uiStore={uiStore} />
     </Dialog>
   );

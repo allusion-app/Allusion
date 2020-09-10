@@ -5,7 +5,7 @@ import { Collapse, Label } from '@blueprintjs/core';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { DialogActions, Dialog, MenuDivider } from 'components';
+import { DialogActions, Dialog, MenuDivider, IconButton } from 'components';
 import {
   ClientLocation,
   DEFAULT_LOCATION_ID,
@@ -42,6 +42,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
       <h2 id="dialog-title" className="dialog-title">
         Location: {dir.name}
       </h2>
+      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={handleClose} />
       <Observer>
         {() => (
           <div id="dialog-information" className="dialog-information">
