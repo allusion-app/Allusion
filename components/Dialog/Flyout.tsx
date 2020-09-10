@@ -220,7 +220,7 @@ const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) =
       left: x,
     }),
   });
-  const options = useRef({ ...popperOptions, placement: 'auto-start' as Placement });
+  const options = useRef({ ...popperOptions, placement: 'right-start' as Placement });
 
   const { styles, attributes, forceUpdate } = usePopper(
     virtualElement.current,

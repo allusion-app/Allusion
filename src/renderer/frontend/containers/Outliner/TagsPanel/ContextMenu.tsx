@@ -13,23 +13,18 @@ import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 
-interface IColorOptions {
-  label: string;
-  value: string;
-}
-
-const defaultColorOptions: IColorOptions[] = [
-  { label: 'Eminence', value: '#5f3292' },
-  { label: 'Indigo', value: '#5642A6' },
-  { label: 'Blue Ribbon', value: '#143ef1' },
-  { label: 'Azure Radiance', value: '#147df1' },
-  { label: 'Aquamarine', value: '#6cdfe3' },
-  { label: 'Aero Blue', value: '#bdfce4' },
-  { label: 'Golden Fizz', value: '#f7ea3a' },
-  { label: 'Goldenrod', value: '#fcd870' },
-  { label: 'Christineapprox', value: '#f36a0f' },
-  { label: 'Crimson', value: '#ec1335' },
-  { label: 'Razzmatazz', value: '#ec125f' },
+const defaultColorOptions = [
+  { title: 'Eminence', color: '#5f3292' },
+  { title: 'Indigo', color: '#5642A6' },
+  { title: 'Blue Ribbon', color: '#143ef1' },
+  { title: 'Azure Radiance', color: '#147df1' },
+  { title: 'Aquamarine', color: '#6cdfe3' },
+  { title: 'Aero Blue', color: '#bdfce4' },
+  { title: 'Golden Fizz', color: '#f7ea3a' },
+  { title: 'Goldenrod', color: '#fcd870' },
+  { title: 'Christineapprox', color: '#f36a0f' },
+  { title: 'Crimson', color: '#ec1335' },
+  { title: 'Razzmatazz', color: '#ec125f' },
 ];
 
 interface IColorPickerMenuProps {
@@ -41,12 +36,7 @@ interface IColorPickerMenuProps {
 const ColorPickerMenu = observer(
   ({ selectedColor, onChange, contextText }: IColorPickerMenuProps) => {
     const defaultColor = '#007af5';
-    const handlePickCustomColor = useCallback(
-      (res: ColorResult) => {
-        onChange(res.hex);
-      },
-      [onChange],
-    );
+    const handlePickCustomColor = useCallback((res: ColorResult) => onChange(res.hex), [onChange]);
     return (
       <SubMenu
         text={`Color${contextText}`}
@@ -71,22 +61,12 @@ const ColorPickerMenu = observer(
             />
           }
         />
-        {defaultColorOptions.map(({ label, value }) => (
-          <MenuItem
-            key={label}
-            text={label}
-            onClick={() => onChange(value)}
-            icon={
-              <Icon icon={selectedColor === value ? 'tick-circle' : 'full-circle'} color={value} />
-            }
-          />
-        ))}
         <SubMenu text="Custom" icon={IconSet.COLOR}>
           <SketchPicker
             color={selectedColor || defaultColor}
             onChangeComplete={handlePickCustomColor}
             disableAlpha
-            presetColors={defaultColorOptions.map((opt) => opt.value)}
+            presetColors={defaultColorOptions}
           />
         </SubMenu>
       </SubMenu>
@@ -249,6 +229,23 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         contextText={contextText}
       />
       <MenuDivider />
+      <SearchMenu
+        addSearch={() =>
+          nodeData.isSelected
+            ? uiStore.replaceCriteriaWithTagSelection()
+            : uiStore.addSearchCriterias(
+                nodeData.getTagsRecursively().map((c: ID) => new ClientIDSearchCriteria('tags', c)),
+              )
+        }
+        replaceSearch={() =>
+          nodeData.isSelected
+            ? uiStore.replaceCriteriaWithTagSelection()
+            : uiStore.replaceSearchCriterias(
+                nodeData.getTagsRecursively().map((c: ID) => new ClientIDSearchCriteria('tags', c)),
+              )
+        }
+      />
+      <MenuDivider />
       <MenuItem
         onClick={() => dispatch(Factory.setExpansion(expandSubCollection(nodeData, expansion)))}
         text="Expand"
@@ -270,23 +267,6 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         text="Move Down"
         icon={IconSet.ITEM_MOVE_DOWN}
         disabled={pos === nodeData.parent.subCollections.length}
-      />
-      <MenuDivider />
-      <SearchMenu
-        addSearch={() =>
-          nodeData.isSelected
-            ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.addSearchCriterias(
-                nodeData.getTagsRecursively().map((c: ID) => new ClientIDSearchCriteria('tags', c)),
-              )
-        }
-        replaceSearch={() =>
-          nodeData.isSelected
-            ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriterias(
-                nodeData.getTagsRecursively().map((c: ID) => new ClientIDSearchCriteria('tags', c)),
-              )
-        }
       />
     </Menu>
   );

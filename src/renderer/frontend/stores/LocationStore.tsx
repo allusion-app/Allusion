@@ -11,7 +11,7 @@ import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
 import { AppToaster } from '../App';
 import { ProgressBar } from '@blueprintjs/core';
-import { promiseAllLimit, timeoutPromise, timeout } from '../utils';
+import { promiseAllLimit } from '../utils';
 
 class LocationStore {
   private backend: Backend;
