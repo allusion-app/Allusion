@@ -27,11 +27,15 @@ const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
 
 const handleClick = (e: React.MouseEvent) => {
   if ((e.target as Element).matches('[role^="menuitem"]')) {
-    e.stopPropagation();
     const dialog = e.currentTarget.closest('dialog') as HTMLDialogElement;
     (dialog.previousElementSibling as HTMLElement)?.focus();
     dialog.close();
   }
+};
+
+const handleMenuClick = (e: React.MouseEvent) => {
+  e.stopPropagation();
+  handleClick(e);
 };
 
 interface IMenu {
@@ -50,7 +54,7 @@ const Menu = observer(({ id, children, label, labelledby, role = 'menu' }: IMenu
     aria-label={label}
     aria-labelledby={labelledby}
     className="menu"
-    onClick={handleClick}
+    onClick={handleMenuClick}
     onFocus={handleFocus}
     onBlur={handleBlur}
   >

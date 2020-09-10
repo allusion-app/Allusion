@@ -256,13 +256,19 @@ const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) =
 
   useEffect(() => {
     if (dialog.current && open) {
+      // CLose all other dialogs just in case.
+      document.querySelectorAll('dialog[open][data-contextmenu]').forEach((d) => {
+        if (d !== dialog.current) {
+          (d as HTMLDialogElement).close();
+        }
+      });
       forceUpdate?.();
       // Focus first focusable menu item
       const first = dialog.current.querySelector('[role^="menuitem"]') as HTMLElement;
       // The Menu component will handle setting the tab indices.
       first?.focus();
     }
-  }, [open, forceUpdate]);
+  }, [open, forceUpdate, x, y]);
 
   return (
     <dialog style={styles.popper} {...attributes.popper} open={open} data-contextmenu ref={dialog}>

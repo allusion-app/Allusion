@@ -31,13 +31,6 @@ const handleClick = (e: React.MouseEvent) => {
   }
 };
 
-const handleBlur = (e: React.FocusEvent) => {
-  const dialog = e.target.closest('dialog[open][data-contextmenu]') as HTMLDialogElement;
-  if (dialog) {
-    dialog.close();
-  }
-};
-
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
@@ -66,7 +59,7 @@ const App = observer(() => {
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div id="layout-container" className={themeClass} onClick={handleClick} onBlur={handleBlur}>
+      <div id="layout-container" className={themeClass} onClick={handleClick}>
         <ErrorBoundary>
           <GlobalHotkeys>
             <Outliner />
