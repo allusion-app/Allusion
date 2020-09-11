@@ -54,22 +54,14 @@ const Flyout = observer((props: IFlyout) => {
   } = props;
 
   const dialog = useRef<HTMLDialogElement>(null);
-  const trigger = useRef<HTMLElement>();
   const options = useRef({
     ...popperOptions,
     placement,
     modifiers: [{ name: 'flips', options: { fallbackPlacements, allowedAutoPlacements } }],
   });
 
-  // On mount find target element
-  useEffect(() => {
-    if (dialog.current && dialog.current.previousElementSibling) {
-      trigger.current = dialog.current.previousElementSibling as HTMLElement;
-    }
-  }, []);
-
   const { styles, attributes, forceUpdate } = usePopper(
-    trigger.current,
+    dialog.current?.previousElementSibling,
     dialog.current,
     options.current,
   );
@@ -141,7 +133,6 @@ const Tooltip = observer((props: ITooltip) => {
   const [isOpen, setIsOpen] = useState(false);
   const timerID = useRef<number>();
   const dialog = useRef<HTMLDialogElement>(null);
-  const trigger = useRef<HTMLElement>();
   const options = useRef({
     ...popperOptions,
     placement,
@@ -149,7 +140,7 @@ const Tooltip = observer((props: ITooltip) => {
   });
 
   const { styles, attributes, forceUpdate } = usePopper(
-    trigger.current,
+    dialog.current?.previousElementSibling,
     dialog.current,
     options.current,
   );
@@ -170,10 +161,11 @@ const Tooltip = observer((props: ITooltip) => {
   }, []);
 
   useEffect(() => {
+    let trigger: HTMLElement;
     if (dialog.current && dialog.current.previousElementSibling) {
-      trigger.current = dialog.current.previousElementSibling as HTMLElement;
-      trigger.current.addEventListener('mouseenter', handleMouseEnter);
-      trigger.current.addEventListener('mouseleave', handleMouseLeave);
+      trigger = dialog.current.previousElementSibling as HTMLElement;
+      trigger.addEventListener('mouseenter', handleMouseEnter);
+      trigger.addEventListener('mouseleave', handleMouseLeave);
     }
 
     // Clear timer on removing component
@@ -182,8 +174,8 @@ const Tooltip = observer((props: ITooltip) => {
         clearTimeout(timerID.current);
         timerID.current = undefined;
       }
-      trigger.current?.removeEventListener('mouseenter', handleMouseEnter);
-      trigger.current?.removeEventListener('mouseleave', handleMouseLeave);
+      trigger?.removeEventListener('mouseenter', handleMouseEnter);
+      trigger?.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, [handleMouseEnter, handleMouseLeave]);
 
@@ -210,16 +202,15 @@ interface IContextMenu {
 
 const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) => {
   const dialog = useRef<HTMLDialogElement>(null);
-  const virtualElement = useRef({
-    getBoundingClientRect: () => ({
-      width: 0,
-      height: 0,
-      top: y,
-      right: x,
-      bottom: y,
-      left: x,
-    }),
+  const boundingRect = useRef({
+    width: 0,
+    height: 0,
+    top: y,
+    right: x,
+    bottom: y,
+    left: x,
   });
+  const virtualElement = useRef({ getBoundingClientRect: () => boundingRect.current });
   const options = useRef({ ...popperOptions, placement: 'right-start' as Placement });
 
   const { styles, attributes, forceUpdate } = usePopper(
@@ -242,19 +233,6 @@ const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) =
   }, [onClose]);
 
   useEffect(() => {
-    virtualElement.current = {
-      getBoundingClientRect: () => ({
-        width: 0,
-        height: 0,
-        top: y,
-        right: x,
-        bottom: y,
-        left: x,
-      }),
-    };
-  }, [x, y]);
-
-  useEffect(() => {
     if (dialog.current && open) {
       // CLose all other dialogs just in case.
       document.querySelectorAll('dialog[open][data-contextmenu]').forEach((d) => {
@@ -262,6 +240,11 @@ const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) =
           (d as HTMLDialogElement).close();
         }
       });
+      const r = boundingRect.current;
+      r.top = y;
+      r.right = x;
+      r.bottom = y;
+      r.left = x;
       forceUpdate?.();
       // Focus first focusable menu item
       const first = dialog.current.querySelector('[role^="menuitem"]') as HTMLElement;
