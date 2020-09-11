@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback, useReducer, useContext } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { Collapse, InputGroup } from '@blueprintjs/core';
+import { Collapse } from '@blueprintjs/core';
 
 import { Tree, Toolbar, ToolbarButton, ContextMenu } from 'components';
 import IconSet from 'components/Icons';
@@ -57,8 +57,9 @@ const Label = (props: ILabelProps) => (
   <>
     <span style={{ color: props.color, display: 'inline-flex' }}>{props.icon}</span>
     {props.isEditing ? (
-      <InputGroup
+      <input
         autoFocus
+        type="text"
         placeholder="Enter a new name"
         defaultValue={props.text}
         onBlur={(e) => {

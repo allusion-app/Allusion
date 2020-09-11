@@ -5,37 +5,22 @@
 
   .criteria {
     display: flex;
-    margin-bottom: 0.25rem;
 
-    // Criteria field alignment (fixed width)
-    padding: 0px;
-    .bp3-input {
-      width: 275px !important;
-    }
-    > div,
-    > span {
-      max-width: 150px !important;
-      width: 150px !important;
-    }
-    > *:nth-child(3) {
-      max-width: 300px !important;
-      border-right: none !important;
+    > * {
+      flex-grow: 1;
     }
 
-    > .btn:last-child {
+    > select:not(:nth-child(3)) {
+      max-width: 25%;
+    }
+
+    > .btn {
       flex-grow: 0;
-      margin-left: 8px;
+      margin-left: 0.5rem;
       line-height: 0;
-      font-size: 16px;
-      max-width: 32px;
-      min-height: 24px;
+      font-size: 1rem;
+      max-width: 2rem;
     }
-  }
-
-  .bp3-popover-wrapper,
-  .bp3-tag-input-values {
-    // input {
-    max-width: 200px;
   }
 }
 

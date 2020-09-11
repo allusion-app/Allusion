@@ -1,6 +1,6 @@
 import React, { useContext, useReducer, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ControlGroup, NumericInput, HTMLSelect, InputGroup, Switch } from '@blueprintjs/core';
+import { Switch } from '@blueprintjs/core';
 
 import {
   NumberOperators,
@@ -60,13 +60,13 @@ const KeyOptions = [
 ];
 
 const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => (
-  <HTMLSelect
+  <select
     autoFocus
     onChange={(e) => dispatch(Factory.setKey(id, e.target.value as CriteriaKey))}
     value={keyValue}
   >
     {KeyOptions}
-  </HTMLSelect>
+  </select>
 );
 
 interface IOperatorSelector extends IKeySelector {
@@ -100,12 +100,12 @@ const getOperatorOptions = (key: CriteriaKey) => {
 };
 
 const OperatorSelector = ({ id, keyValue, operator, dispatch }: IOperatorSelector) => (
-  <HTMLSelect
+  <select
     onChange={(e) => dispatch(Factory.setOperator(id, e.target.value as CriteriaOperator))}
     defaultValue={operator}
   >
     {getOperatorOptions(keyValue)}
-  </HTMLSelect>
+  </select>
 );
 
 interface IValueInput<V extends CriteriaValue = CriteriaValue> extends IKeySelector {
@@ -141,16 +141,17 @@ const ExtensionOptions = IMG_EXTENSIONS.map((ext) => (
 ));
 
 const ExtensionCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<string>, 'keyValue'>) => (
-  <HTMLSelect onChange={(e) => dispatch(Factory.setValue(id, e.target.value))} defaultValue={value}>
+  <select onChange={(e) => dispatch(Factory.setValue(id, e.target.value))} defaultValue={value}>
     {ExtensionOptions}
-  </HTMLSelect>
+  </select>
 );
 
 const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
   if (keyValue === 'name' || keyValue === 'absolutePath') {
     return (
-      <InputGroup
+      <input
         autoFocus
+        type="text"
         placeholder="Enter some text..."
         defaultValue={value as string}
         onBlur={(e) => dispatch(Factory.setValue(id, e.target.value))}
@@ -162,17 +163,18 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
     return <ExtensionCriteriaItem id={id} value={value as string} dispatch={dispatch} />;
   } else if (keyValue === 'size') {
     return (
-      <NumericInput
+      <input
         autoFocus
-        placeholder="Enter a number..."
+        type="number"
+        placeholder="Enter a file size..."
         defaultValue={value as number}
-        onValueChange={(value) => dispatch(Factory.setValue(id, value))}
-        buttonPosition="none"
+        onChange={(e) => dispatch(Factory.setValue(id, e.target.valueAsNumber))}
       />
     );
   } else if (keyValue === 'dateAdded') {
     return (
       <input
+        autoFocus
         type="date"
         max={new Date().toISOString().substr(0, 10)}
         defaultValue={(value as Date).toISOString().substr(0, 10)}
@@ -196,28 +198,30 @@ interface ICriteriaItemProps {
 // The main Criteria component, finds whatever input fields for the key should be rendered
 const CriteriaItem = observer(({ criteria, dispatch, removable }: ICriteriaItemProps) => {
   return (
-    <ControlGroup fill className="criteria">
-      <KeySelector id={criteria.id} keyValue={criteria.key} dispatch={dispatch} />
-      <OperatorSelector
-        key={criteria.key}
-        id={criteria.id}
-        keyValue={criteria.key}
-        operator={criteria.operator}
-        dispatch={dispatch}
-      />
-      <ValueInput
-        id={criteria.id}
-        keyValue={criteria.key}
-        value={criteria.value}
-        dispatch={dispatch}
-      />
-      <Button
-        text="-"
-        onClick={() => dispatch(Factory.removeQuery(criteria.id))}
-        disabled={!removable}
-        styling="filled"
-      />
-    </ControlGroup>
+    <fieldset>
+      <div className="criteria">
+        <KeySelector id={criteria.id} keyValue={criteria.key} dispatch={dispatch} />
+        <OperatorSelector
+          key={criteria.key}
+          id={criteria.id}
+          keyValue={criteria.key}
+          operator={criteria.operator}
+          dispatch={dispatch}
+        />
+        <ValueInput
+          id={criteria.id}
+          keyValue={criteria.key}
+          value={criteria.value}
+          dispatch={dispatch}
+        />
+        <Button
+          text="-"
+          onClick={() => dispatch(Factory.removeQuery(criteria.id))}
+          disabled={!removable}
+          styling="filled"
+        />
+      </div>
+    </fieldset>
   );
 });
 

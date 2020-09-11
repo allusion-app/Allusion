@@ -1,16 +1,6 @@
 import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import {
-  Classes,
-  Callout,
-  H4,
-  FormGroup,
-  KeyCombo,
-  Switch,
-  Radio,
-  RadioGroup,
-  Divider,
-} from '@blueprintjs/core';
+import { Callout, H4, KeyCombo, Switch, Divider } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
@@ -106,26 +96,63 @@ const SettingsForm = observer(() => {
   return (
     <div className="settings-form">
       <div className="column">
-        <RadioGroup
-          inline
-          selectedValue={uiStore.thumbnailSize}
-          onChange={() => undefined}
-          label="Thumbnail size"
-        >
-          <Radio label="Small" value="small" onClick={uiStore.setThumbnailSmall} />
-          <Radio label="Medium" value="medium" onClick={uiStore.setThumbnailMedium} />
-          <Radio label="Large" value="large" onClick={uiStore.setThumbnailLarge} />
-        </RadioGroup>
+        <fieldset role="radiogroup">
+          <legend>Thumbnail Size</legend>
+          <label>
+            <input
+              type="radio"
+              checked={uiStore.thumbnailSize === 'small'}
+              name="Thumbnail Size"
+              value="small"
+              onChange={uiStore.setThumbnailSmall}
+            />
+            Small
+          </label>
+          <label>
+            <input
+              type="radio"
+              checked={uiStore.thumbnailSize === 'medium'}
+              name="Thumbnail Size"
+              value="medium"
+              onChange={uiStore.setThumbnailMedium}
+            />
+            Medium
+          </label>
+          <label>
+            <input
+              type="radio"
+              checked={uiStore.thumbnailSize === 'large'}
+              name="Thumbnail Size"
+              value="large"
+              onChange={uiStore.setThumbnailLarge}
+            />
+            Large
+          </label>
+        </fieldset>
 
-        <RadioGroup
-          inline
-          selectedValue={uiStore.thumbnailShape}
-          onChange={() => undefined}
-          label="Thumbnail shape"
-        >
-          <Radio label="Square" value="square" onClick={uiStore.setThumbnailSquare} />
-          <Radio label="Letterbox" value="letterbox" onClick={uiStore.setThumbnailLetterbox} />
-        </RadioGroup>
+        <fieldset role="radiogroup">
+          <legend>Thumbnail Shape</legend>
+          <label>
+            <input
+              type="radio"
+              checked={uiStore.thumbnailShape === 'square'}
+              name="Thumbnail Shape"
+              value="square"
+              onChange={uiStore.setThumbnailSquare}
+            />
+            Square
+          </label>
+          <label>
+            <input
+              type="radio"
+              checked={uiStore.thumbnailShape === 'letterbox'}
+              name="Thumbnail Shape"
+              value="letterbox"
+              onChange={uiStore.setThumbnailLetterbox}
+            />
+            Letterbox
+          </label>
+        </fieldset>
       </div>
       <div className="column">
         <Switch
@@ -158,38 +185,19 @@ const SettingsForm = observer(() => {
       <div>
         {/* Todo: Add support to toggle this */}
         {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
-        <FormGroup label="Thumbnail directory">
-          <label
-            className={`${Classes.FILL} ${Classes.FILE_INPUT} ${Classes.FILE_INPUT_HAS_SELECTION}`}
-            htmlFor="thumbnailPathInput"
-          >
-            {/* Where to import images you drop on the app or import through the browser extension */}
-            <span
-              className={Classes.FILE_UPLOAD_INPUT}
-              id="thumbnailPathInput"
-              onClick={browseThumbnailDirectory}
-              title={uiStore.thumbnailDirectory}
-            >
-              {uiStore.thumbnailDirectory}
-            </span>
-          </label>
-        </FormGroup>
+        <fieldset>
+          <legend>Thumbnail Directory</legend>
 
-        <FormGroup label="Import directory">
-          <label
-            className={`${Classes.FILL} ${Classes.FILE_INPUT} ${Classes.FILE_INPUT_HAS_SELECTION}`}
-            htmlFor="importPathInput"
-          >
-            {/* Where to import images you drop on the app or import through the browser extension */}
-            <span
-              className={Classes.FILE_UPLOAD_INPUT}
-              id="importPathInput"
-              onClick={browseImportDir}
-            >
-              {locationStore.importDirectory}
-            </span>
-          </label>
-        </FormGroup>
+          {/* Where to import images you drop on the app or import through the browser extension */}
+          <span title={uiStore.thumbnailDirectory}>{uiStore.thumbnailDirectory}</span>
+          <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
+        </fieldset>
+
+        <fieldset>
+          <legend>Import Directory</legend>
+          <span title={locationStore.importDirectory}>{locationStore.importDirectory}</span>
+          <Button styling="filled" text="Browse" onClick={browseImportDir} />
+        </fieldset>
       </div>
 
       <Divider />

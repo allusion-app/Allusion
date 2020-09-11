@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Classes, FormGroup } from '@blueprintjs/core';
 import path from 'path';
 import fse from 'fs-extra';
 
@@ -76,21 +75,11 @@ const SetupImportDirStep = ({
 
       {/* TODO: Maybe simplify text to: "Where would you like to store new images by default?" */}
 
-      <FormGroup>
-        <label
-          className={`${Classes.FILL} ${Classes.FILE_INPUT} ${Classes.FILE_INPUT_HAS_SELECTION}`}
-          htmlFor="importPathInput"
-        >
-          <span
-            className={Classes.FILE_UPLOAD_INPUT}
-            id="importPathInput"
-            onClick={browseImportDirectory}
-            title={importLocation}
-          >
-            {importLocation}
-          </span>
-        </label>
-      </FormGroup>
+      <fieldset>
+        <legend>Choose your default import location</legend>
+        <span title={importLocation}>{importLocation}</span>
+        <Button styling="filled" text="Browse" onClick={browseImportDirectory} />
+      </fieldset>
     </Step>
   );
 };

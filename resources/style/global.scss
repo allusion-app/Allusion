@@ -281,16 +281,13 @@ img {
   height: 4rem;
   width: 4rem;
 }
-
+.custom-icon-48 > * {
+  height: 3rem;
+  width: 3rem;
+}
 .custom-icon-32 > * {
   height: 2rem;
   width: 2rem;
-}
-
-.custom-icon-14 > * {
-  height: 0.875rem;
-  width: 0.875rem;
-  display: block;
 }
 
 .file-dropper-overlay {
@@ -308,10 +305,6 @@ img {
     text-align: center;
     margin-top: 20px !important;
   }
-}
-
-.bp3-icon-eye {
-  cursor: none;
 }
 
 .toast-without-dismiss {
