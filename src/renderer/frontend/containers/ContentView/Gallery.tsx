@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
-import { ResizeSensor, IResizeEntry, NonIdealState } from '@blueprintjs/core';
+import { NonIdealState } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
   FixedSizeList,
@@ -491,14 +491,31 @@ const Gallery = () => {
   } = contextState;
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
-  const handleResize = useCallback((entries: IResizeEntry[]) => {
-    const { contentRect: rect, target } = entries[0];
-    setContentRect({
-      width: rect.width,
-      height: rect.height,
-      x: (target as HTMLDivElement).offsetLeft,
-      y: (target as HTMLDivElement).offsetTop,
-    });
+
+  const resizeObserver = useRef(
+    new ResizeObserver((entries) => {
+      const { contentRect: rect, target } = entries[0];
+      setContentRect({
+        width: rect.width,
+        height: rect.height,
+        x: (target as HTMLDivElement).offsetLeft,
+        y: (target as HTMLDivElement).offsetTop,
+      });
+    }),
+  );
+
+  useEffect(() => {
+    const observer = resizeObserver.current;
+    const gallery = document.querySelector('#gallery-content');
+    if (gallery) {
+      observer.observe(gallery);
+    }
+
+    return () => {
+      if (gallery) {
+        observer.unobserve(gallery);
+      }
+    };
   }, []);
 
   const { makeSelection, lastSelectionIndex } = useSelectionCursor();
@@ -626,31 +643,29 @@ const Gallery = () => {
   }
 
   return (
-    <ResizeSensor onResize={handleResize}>
-      <div
-        id="gallery-content"
-        className={`thumbnail-${uiStore.thumbnailSize} ${uiStore.method} thumbnail-${uiStore.thumbnailShape}`}
-        onClick={uiStore.clearFileSelection}
-        onBlur={handleFlyoutBlur}
-      >
-        {getLayoutComponent(uiStore.method, uiStore.isSlideMode, {
-          contentRect,
-          handleClick,
-          handleDoubleClick,
-          handleFileSelect,
-          lastSelectionIndex,
-          showContextMenu: show,
-        })}
-        <ContextMenu key="contextmenu" open={open} x={x} y={y} onClose={hide}>
-          <Menu>
-            {fileMenu}
-            <MenuDivider key="divider" />
-            <GalleryContextMenuItems key="gallery-menu" />
-            {externalMenu}
-          </Menu>
-        </ContextMenu>
-      </div>
-    </ResizeSensor>
+    <div
+      id="gallery-content"
+      className={`thumbnail-${uiStore.thumbnailSize} ${uiStore.method} thumbnail-${uiStore.thumbnailShape}`}
+      onClick={uiStore.clearFileSelection}
+      onBlur={handleFlyoutBlur}
+    >
+      {getLayoutComponent(uiStore.method, uiStore.isSlideMode, {
+        contentRect,
+        handleClick,
+        handleDoubleClick,
+        handleFileSelect,
+        lastSelectionIndex,
+        showContextMenu: show,
+      })}
+      <ContextMenu key="contextmenu" open={open} x={x} y={y} onClose={hide}>
+        <Menu>
+          {fileMenu}
+          <MenuDivider key="divider" />
+          <GalleryContextMenuItems key="gallery-menu" />
+          {externalMenu}
+        </Menu>
+      </ContextMenu>
+    </div>
   );
 };
 
