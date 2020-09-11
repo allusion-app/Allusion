@@ -1,9 +1,9 @@
-import { Classes, Drawer, IPanelProps, PanelStack } from '@blueprintjs/core';
+import { IPanelProps, PanelStack } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useContext, useRef, useEffect } from 'react';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup } from 'components';
+import { Button, ButtonGroup, Dialog, IconButton } from 'components';
 
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
 // TODO: Put images in /resources/helpcenter/ or somewhere like that
@@ -352,14 +352,17 @@ const HelpCenter = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   return (
-    <Drawer
-      isOpen={uiStore.isHelpCenterOpen}
-      icon={IconSet.HELPCENTER}
-      onClose={uiStore.toggleHelpCenter}
-      title="Help Center"
+    <Dialog
+      open={uiStore.isHelpCenterOpen}
+      onCancel={uiStore.toggleHelpCenter}
       className="bp3-light help-center-drawer"
     >
-      <div className={Classes.DRAWER_BODY} id="help-center">
+      <span className="dialog-icon">{IconSet.HELPCENTER}</span>
+      <h2 id="dialog-title" className="dialog-title">
+        Help Center
+      </h2>
+      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={uiStore.toggleHelpCenter} />
+      <div id="help-center" className="dialog-information">
         <PanelStack
           initialPanel={{
             component: HelpCenterHome,
@@ -367,7 +370,7 @@ const HelpCenter = observer(() => {
           }}
         />
       </div>
-    </Drawer>
+    </Dialog>
   );
 });
 

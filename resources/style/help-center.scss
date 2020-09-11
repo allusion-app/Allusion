@@ -1,39 +1,25 @@
 ///////////////////////////////// Help Center /////////////////////////////////
 .help-center-drawer {
-  color: var(--text-color) !important;
-  background: var(--foreground-color) !important;
-  max-width: 60ch;
-  padding: 1rem;
-  overflow-y: auto;
+  margin: 0;
+  margin-left: auto;
+  height: 100vh;
+  border-radius: 0;
+  animation: none !important;
 
-  .bp3-drawer-header,
-  .bp3-drawer-body,
-  .bp3-drawer-body .bp3-divider,
-  .bp3-dialog-header {
-    color: var(--text-color) !important;
-    background: var(--foreground-color) !important;
-    padding: 0 0 0.5rem 0;
-    margin-bottom: 1rem;
-    width: 100%;
-  }
-
-  .bp3-drawer-body {
-    overflow: unset;
+  > .dialog-content {
+    max-width: 60ch;
+    max-height: unset;
+    height: 100%;
   }
 }
 
 #help-center {
-  .bp3-panel-stack {
-    height: 100%;
-  }
-
   .bp3-panel-stack-view {
     color: var(--text-color) !important;
     background: var(--foreground-color) !important;
     margin: 0;
     border: none;
-    position: unset;
-    overflow-x: hidden;
+    position: initial;
   }
 
   .stack-paragraph {
@@ -51,6 +37,7 @@
   }
 
   .btn-group {
+    margin: 0;
     float: right;
   }
 
