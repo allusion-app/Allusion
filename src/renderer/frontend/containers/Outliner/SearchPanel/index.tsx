@@ -1,6 +1,5 @@
 import React, { useContext, useReducer, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { DateInput } from '@blueprintjs/datetime';
 import { ControlGroup, NumericInput, HTMLSelect, InputGroup, Switch } from '@blueprintjs/core';
 
 import {
@@ -10,7 +9,7 @@ import {
   ArrayOperators,
 } from 'src/renderer/entities/SearchCriteria';
 import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
-import { jsDateFormatter, camelCaseToSpaced } from 'src/renderer/frontend/utils';
+import { camelCaseToSpaced } from 'src/renderer/frontend/utils';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
 import { Button, ButtonGroup, Dialog, IconButton } from 'components';
@@ -173,13 +172,15 @@ const ValueInput = ({ id, keyValue, value, dispatch }: IValueInput) => {
     );
   } else if (keyValue === 'dateAdded') {
     return (
-      <DateInput
-        defaultValue={value as Date}
-        onChange={(value) => dispatch(Factory.setValue(id, value))}
-        popoverProps={{ inheritDarkTheme: false, minimal: true, position: 'bottom' }}
-        canClearSelection={false}
-        maxDate={new Date()}
-        {...jsDateFormatter}
+      <input
+        type="date"
+        max={new Date().toISOString().substr(0, 10)}
+        defaultValue={(value as Date).toISOString().substr(0, 10)}
+        onChange={(e) => {
+          if (e.target.valueAsDate) {
+            dispatch(Factory.setValue(id, e.target.valueAsDate));
+          }
+        }}
       />
     );
   }
