@@ -1,23 +1,23 @@
 // Removes bullet points automatically.
-.tree,
-.tree .group {
+[role='tree'],
+[role='tree'] [role='group'] {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.group {
+[role='tree'] [role='group'] {
   transition: transform 100ms ease-out;
   transform: translateY(0);
 }
 
-.group_transition {
+[role='tree'] .transition {
   overflow: hidden;
   height: 100%;
   transition: height 100ms ease-out;
 }
 
-.tree_item {
+[role='treeitem'] {
   padding: 0;
   background-color: var(--background-color);
 
@@ -47,10 +47,10 @@
     }
   }
 
-  &[aria-expanded='false'] > .group_transition {
+  &[aria-expanded='false'] > .transition {
     height: 0;
 
-    > .group {
+    > [role='group'] {
       transform: translateY(-100%);
     }
   }
