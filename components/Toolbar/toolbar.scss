@@ -1,4 +1,4 @@
-.toolbar[role='toolbar'] {
+[role='toolbar'] {
   display: flex;
   min-height: 2.25rem;
   align-items: center;
@@ -12,7 +12,7 @@
   margin: 0 1rem;
 }
 
-.toolbar-group[role='radiogroup'] .toolbar-button {
+[role='toolbar'] [role='radiogroup'] .toolbar-button {
   &:first-child {
     border-bottom-left-radius: 0.25rem;
     border-top-left-radius: 0.25rem;
@@ -95,7 +95,7 @@
   overflow: unset;
 }
 
-.toolbar[aria-orientation='vertical'] {
+[role='toolbar'][aria-orientation='vertical'] {
   flex-direction: column;
 }
 

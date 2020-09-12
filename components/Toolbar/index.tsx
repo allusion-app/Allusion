@@ -26,19 +26,19 @@ const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   let item;
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
     item = target.previousElementSibling ?? current.lastElementChild!;
-    if (!item.classList.contains('toolbar-item')) {
+    if (!item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item:last-child')!;
     }
   } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
     item = target.nextElementSibling ?? current.querySelector('.toolbar-item');
-    if (item && !item.classList.contains('toolbar-item')) {
+    if (item && !item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item');
     }
   } else if (e.key === 'Home') {
     item = current.querySelector('.toolbar-item');
   } else if (e.key === 'End') {
     item = current.lastElementChild!;
-    if (!item.classList.contains('toolbar-item')) {
+    if (!item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item:last-child')!;
     }
   }
@@ -50,7 +50,7 @@ const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
 };
 
 const handleToolbarFocus = (e: React.FocusEvent<HTMLElement>) => {
-  if (e.target.classList.contains('toolbar-item')) {
+  if (e.target.matches('.toolbar-item')) {
     e.currentTarget.querySelector('.toolbar-item[tabindex="0"]')?.setAttribute('tabIndex', '-1');
     e.target.setAttribute('tabIndex', '0');
   }
@@ -82,7 +82,7 @@ const Toolbar = (props: IToolbar) => {
       ref={toolbar}
       role="toolbar"
       id={id}
-      className={`toolbar ${className ?? ''}`}
+      className={className}
       aria-label={label}
       aria-labelledby={labelledby}
       aria-controls={controls}
@@ -186,16 +186,16 @@ const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   let item;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
     item = target.nextElementSibling ?? target.parentElement!.nextElementSibling;
-    if (item && !item.classList.contains('toolbar-item')) {
+    if (item && !item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item');
     }
   } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
     item = target.previousElementSibling ?? target.parentElement!.previousElementSibling;
     if (item) {
-      if (item.classList.contains('toolbar-group')) {
+      if (item.matches('.toolbar-group')) {
         item = item.lastElementChild!;
       }
-      if (!item.classList.contains('toolbar-item')) {
+      if (!item.matches('.toolbar-item')) {
         item = item.querySelector('.toolbar-item:last-child');
       }
     }
