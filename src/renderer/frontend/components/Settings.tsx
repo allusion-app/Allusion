@@ -4,7 +4,7 @@ import { Callout, H4, KeyCombo, Switch, Divider } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup } from 'components';
+import { Button, ButtonGroup, Radio, RadioGroup } from 'components';
 import { ClearDbButton } from './ErrorBoundary';
 import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
@@ -96,63 +96,41 @@ const SettingsForm = observer(() => {
   return (
     <div className="settings-form">
       <div className="column">
-        <fieldset role="radiogroup">
-          <legend>Thumbnail Size</legend>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailSize === 'small'}
-              name="Thumbnail Size"
-              value="small"
-              onChange={uiStore.setThumbnailSmall}
-            />
-            Small
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailSize === 'medium'}
-              name="Thumbnail Size"
-              value="medium"
-              onChange={uiStore.setThumbnailMedium}
-            />
-            Medium
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailSize === 'large'}
-              name="Thumbnail Size"
-              value="large"
-              onChange={uiStore.setThumbnailLarge}
-            />
-            Large
-          </label>
-        </fieldset>
+        <RadioGroup name="Thumbnail Size">
+          <Radio
+            label="Small"
+            value="small"
+            checked={uiStore.thumbnailSize === 'small'}
+            onChange={uiStore.setThumbnailSmall}
+          />
+          <Radio
+            label="Medium"
+            value="medium"
+            checked={uiStore.thumbnailSize === 'medium'}
+            onChange={uiStore.setThumbnailMedium}
+          />
+          <Radio
+            label="Large"
+            value="large"
+            checked={uiStore.thumbnailSize === 'large'}
+            onChange={uiStore.setThumbnailLarge}
+          />
+        </RadioGroup>
 
-        <fieldset role="radiogroup">
-          <legend>Thumbnail Shape</legend>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailShape === 'square'}
-              name="Thumbnail Shape"
-              value="square"
-              onChange={uiStore.setThumbnailSquare}
-            />
-            Square
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailShape === 'letterbox'}
-              name="Thumbnail Shape"
-              value="letterbox"
-              onChange={uiStore.setThumbnailLetterbox}
-            />
-            Letterbox
-          </label>
-        </fieldset>
+        <RadioGroup name="Thumbnail Shape">
+          <Radio
+            label="Square"
+            checked={uiStore.thumbnailShape === 'square'}
+            value="square"
+            onChange={uiStore.setThumbnailSquare}
+          />
+          <Radio
+            label="Letterbox"
+            checked={uiStore.thumbnailShape === 'letterbox'}
+            value="letterbox"
+            onChange={uiStore.setThumbnailLetterbox}
+          />
+        </RadioGroup>
       </div>
       <div className="column">
         <Switch

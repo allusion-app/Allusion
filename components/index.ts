@@ -1,4 +1,4 @@
-import Tree from './Tree/index';
+import Tree from './Tree';
 import {
   Toolbar,
   ToolbarButton,
@@ -7,17 +7,9 @@ import {
   ToolbarSegment,
   ToolbarSegmentButton,
   ToolbarToggleButton,
-} from './Toolbar/index';
-import { Button, ButtonGroup, IconButton } from './Button/index';
-import {
-  Alert,
-  ContextMenu,
-  Dialog,
-  DialogButton,
-  DialogActions,
-  Flyout,
-  Tooltip,
-} from './Dialog/index';
+} from './Toolbar';
+import { Button, ButtonGroup, IconButton } from './Button';
+import { Alert, ContextMenu, Dialog, DialogButton, DialogActions, Flyout, Tooltip } from './Dialog';
 import {
   Menu,
   MenuCheckboxItem,
@@ -26,7 +18,8 @@ import {
   MenuRadioGroup,
   MenuRadioItem,
   SubMenu,
-} from './Menu/index';
+} from './Menu';
+import { Radio, RadioGroup } from './Radio';
 
 export {
   Alert,
@@ -44,6 +37,8 @@ export {
   MenuRadioGroup,
   MenuRadioItem,
   Flyout,
+  Radio,
+  RadioGroup,
   SubMenu,
   Tree,
   ToolbarButton,

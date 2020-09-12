@@ -38,9 +38,12 @@ const handleMenuClick = (e: React.MouseEvent) => {
   handleClick(e);
 };
 
+type MenuChild = React.ReactElement<IMenuRadioGroup | ISubMenu | IMenuItem>;
+type MenuChildren = MenuChild | MenuChild[];
+
 interface IMenu {
   id?: string;
-  children: React.ReactNode;
+  children: MenuChildren;
   label?: string;
   labelledby?: string;
 }
@@ -86,7 +89,7 @@ const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenu
 ));
 
 interface IMenuRadioGroup {
-  children: React.ReactNode;
+  children: React.ReactElement<IMenuRadioItem>[];
   label?: string;
 }
 
@@ -157,7 +160,7 @@ interface ISubMenu {
   icon?: JSX.Element;
   text: string;
   disabled?: boolean;
-  children: React.ReactNode;
+  children: MenuChildren;
 }
 
 import { Placement } from '@popperjs/core/lib/enums';
