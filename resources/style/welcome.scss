@@ -8,10 +8,6 @@
   width: 100vw;
   height: 100vh;
 
-  label.bp3-label .bp3-input {
-    display: flex !important; // fix tag input > center vertical
-  }
-
   > .dialog-content {
     grid-template-areas:
       'dialog-icon dialog-icon'

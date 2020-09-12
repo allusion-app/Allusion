@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import './toolbar.scss';
 import React, { useEffect, useRef, useState } from 'react';
-import { Tooltip } from '../Dialog/index';
+import { Tooltip, Flyout } from '../Dialog/index';
 import { observer } from 'mobx-react-lite';
-import { Flyout } from 'components/Dialog';
 
 interface IToolbar {
   children: React.ReactNode;
