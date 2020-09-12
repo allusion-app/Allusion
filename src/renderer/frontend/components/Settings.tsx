@@ -1,10 +1,10 @@
 import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Callout, H4, KeyCombo, Switch, Divider } from '@blueprintjs/core';
+import { Callout, H4, KeyCombo, Divider } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Radio, RadioGroup } from 'components';
+import { Button, ButtonGroup, Radio, RadioGroup, Toggle } from 'components';
 import { ClearDbButton } from './ErrorBoundary';
 import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
@@ -133,25 +133,25 @@ const SettingsForm = observer(() => {
         </RadioGroup>
       </div>
       <div className="column">
-        <Switch
+        <Toggle
           defaultChecked={remote.getCurrentWindow().isFullScreen()}
           onChange={toggleFullScreen}
           label="Full screen"
         />
 
-        <Switch
+        <Toggle
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
           label="Dark theme"
         />
 
-        <Switch
+        <Toggle
           defaultChecked={RendererMessenger.getIsRunningInBackground()}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
 
-        <Switch
+        <Toggle
           defaultChecked={RendererMessenger.getIsClipServerEnabled()}
           onChange={toggleClipServer}
           label="Browser extension support"

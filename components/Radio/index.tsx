@@ -8,11 +8,10 @@ interface IRadio {
   checked?: boolean;
   value: string;
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  disabled?: boolean;
 }
 
 const Radio = observer((props: IRadio) => {
-  const { label, value, defaultChecked, checked, disabled, onChange } = props;
+  const { label, value, defaultChecked, checked, onChange } = props;
   return (
     <label>
       <input
@@ -20,7 +19,6 @@ const Radio = observer((props: IRadio) => {
         value={value}
         defaultChecked={defaultChecked}
         checked={checked}
-        disabled={disabled}
         onChange={onChange}
       />
       {label}
@@ -43,9 +41,12 @@ const RadioGroup = observer(({ name, children }: IRadioGroup) => {
   }, [name, children.length]);
 
   return (
+    // CHROME BUG: Cannot set flex on fieldset, instead use the inner div as flex container!
     <fieldset ref={group} role="radiogroup">
-      <legend>{name}</legend>
-      {children}
+      <div>
+        <legend>{name}</legend>
+        {children}
+      </div>
     </fieldset>
   );
 });

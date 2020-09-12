@@ -1,6 +1,5 @@
 import React, { useContext, useReducer, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Switch } from '@blueprintjs/core';
 
 import {
   NumberOperators,
@@ -12,7 +11,7 @@ import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { camelCaseToSpaced } from 'src/renderer/frontend/utils';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Dialog, IconButton } from 'components';
+import { Button, ButtonGroup, Dialog, IconButton, RadioGroup, Radio } from 'components';
 import TagSelector from 'src/renderer/frontend/components/TagSelector';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ID } from 'src/renderer/entities/ID';
@@ -267,16 +266,20 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
       <div className="dialog-footer">
         <div id="functions-bar">
           <Button text="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
-          <Switch
-            inline
-            large
-            label="Match"
-            innerLabel="All"
-            innerLabelChecked="Any"
-            alignIndicator="right"
-            checked={searchMatchAny}
-            onChange={toggleSearchMatchAny}
-          />
+          <RadioGroup name="Match">
+            <Radio
+              label="Any"
+              value="any"
+              checked={searchMatchAny}
+              onChange={toggleSearchMatchAny}
+            />
+            <Radio
+              label="All"
+              value="all"
+              checked={!searchMatchAny}
+              onChange={toggleSearchMatchAny}
+            />
+          </RadioGroup>
         </div>
         <ButtonGroup className="dialog-actions">
           <Button text="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />

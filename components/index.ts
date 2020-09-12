@@ -20,9 +20,11 @@ import {
   SubMenu,
 } from './Menu';
 import { Radio, RadioGroup } from './Radio';
+import { Checkbox, Toggle } from './Checkbox';
 
 export {
   Alert,
+  Checkbox,
   ContextMenu,
   Dialog,
   DialogButton,
@@ -41,6 +43,7 @@ export {
   RadioGroup,
   SubMenu,
   Tree,
+  Toggle,
   ToolbarButton,
   ToolbarGroup,
   ToolbarMenuButton,

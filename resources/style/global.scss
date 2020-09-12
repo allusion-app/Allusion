@@ -27,6 +27,26 @@ body {
     'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
 }
 
+fieldset {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+// Override standard CSS attributes
+pre {
+  word-wrap: break-word;
+  white-space: initial;
+}
+.bp3-dark {
+  pre {
+    font-family: unset;
+    background: $dark-gray8-trans;
+    padding: 6px;
+    border-radius: 6px;
+  }
+}
+
 // Global specific styles for the main window
 #app {
   --outliner-width: 18em;
@@ -91,20 +111,6 @@ body {
   --foreground-color: #{$light-gray5};
   // Background color of the main panels
   --background-color: #{$light-gray3}; // light-gray5 ?
-}
-
-// Override standard CSS attributes
-pre {
-  word-wrap: break-word;
-  white-space: initial;
-}
-.bp3-dark {
-  pre {
-    font-family: unset;
-    background: $dark-gray8-trans;
-    padding: 6px;
-    border-radius: 6px;
-  }
 }
 
 #layout-container {
