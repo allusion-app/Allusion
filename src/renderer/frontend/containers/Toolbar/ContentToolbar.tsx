@@ -8,6 +8,7 @@ import {
   ToolbarToggleButton,
   ToolbarMenuButton,
   Menu,
+  MenuRadioGroup,
   MenuRadioItem,
 } from 'components';
 import { IFile } from '../../../entities/File';
@@ -72,7 +73,7 @@ export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) 
   const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = fileStore;
   const orderIcon = fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
   return (
-    <>
+    <MenuRadioGroup>
       {sortMenuData.map(({ prop, icon, text }) => (
         <MenuRadioItem
           key={prop}
@@ -83,12 +84,12 @@ export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) 
           onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
         />
       ))}
-    </>
+    </MenuRadioGroup>
   );
 });
 
 export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => (
-  <>
+  <MenuRadioGroup>
     <MenuRadioItem
       icon={IconSet.VIEW_LIST}
       onClick={uiStore.setMethodList}
@@ -103,7 +104,7 @@ export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => (
       text="Grid View"
       accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
     />
-  </>
+  </MenuRadioGroup>
 ));
 
 const SlideModeToolbar = observer(() => {
@@ -154,25 +155,27 @@ const ContentToolbar = observer(() => {
         )}
 
         <ToolbarMenuButton
+          showLabel="never"
           icon={IconSet.FILTER}
-          text="Filter"
+          text="Sort"
           tooltip={Tooltip.Filter}
           id="__sort-menu"
           controls="__sort-options"
         >
-          <Menu id="__sort-options" labelledby="__sort-menu" role="group">
+          <Menu id="__sort-options" labelledby="__sort-menu">
             <SortMenuItems fileStore={fileStore} />
           </Menu>
         </ToolbarMenuButton>
 
         <ToolbarMenuButton
+          showLabel="never"
           icon={IconSet.THUMB_BG}
           text="View"
           tooltip={Tooltip.View}
           id="__layout-menu"
           controls="__layout-options"
         >
-          <Menu id="__layout-options" labelledby="__layout-menu" role="group">
+          <Menu id="__layout-options" labelledby="__layout-menu">
             <LayoutMenuItems uiStore={uiStore} />
           </Menu>
         </ToolbarMenuButton>

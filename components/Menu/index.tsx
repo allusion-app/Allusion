@@ -6,8 +6,8 @@ import { Flyout } from '../Dialog';
 
 const handleBlur = (e: React.FocusEvent) => {
   if (
-    (e.relatedTarget as Element)?.closest('ul[data-submenu]') ||
-    e.target.closest('ul[data-submenu]')
+    (e.relatedTarget as Element)?.closest('[role="menu"][data-submenu]') ||
+    e.target.closest('[role="menu"][data-submenu]')
   ) {
     e.stopPropagation();
   }
@@ -26,7 +26,7 @@ const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
 };
 
 const handleClick = (e: React.MouseEvent) => {
-  if ((e.target as Element).matches('[role^="menuitem"]')) {
+  if ((e.target as Element).matches('li[role^="menuitem"]')) {
     const dialog = e.currentTarget.closest('dialog') as HTMLDialogElement;
     (dialog.previousElementSibling as HTMLElement)?.focus();
     dialog.close();
@@ -43,17 +43,14 @@ interface IMenu {
   children: React.ReactNode;
   label?: string;
   labelledby?: string;
-  /** @default 'menu' */
-  role?: 'menu' | 'group';
 }
 
-const Menu = observer(({ id, children, label, labelledby, role = 'menu' }: IMenu) => (
+const Menu = observer(({ id, children, label, labelledby }: IMenu) => (
   <ul
     id={id}
-    role={role}
+    role="menu"
     aria-label={label}
     aria-labelledby={labelledby}
-    className="menu"
     onClick={handleMenuClick}
     onFocus={handleFocus}
     onBlur={handleBlur}
@@ -73,7 +70,6 @@ interface IMenuItem {
 
 const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenuItem) => (
   <li
-    className="menuitem"
     role="menuitem"
     tabIndex={-1}
     onClick={disabled ? undefined : onClick}
@@ -89,6 +85,25 @@ const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenu
   </li>
 ));
 
+interface IMenuRadioGroup {
+  children: React.ReactNode;
+  label?: string;
+}
+
+const MenuRadioGroup = observer(({ children, label }: IMenuRadioGroup) => (
+  <li role="none">
+    <ul
+      role="group"
+      aria-label={label}
+      onClick={handleClick}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    >
+      {children}
+    </ul>
+  </li>
+));
+
 interface IMenuRadioItem extends IMenuItem {
   checked: boolean;
 }
@@ -96,7 +111,6 @@ interface IMenuRadioItem extends IMenuItem {
 const MenuRadioItem = observer(
   ({ text, icon, checked, onClick, accelerator, disabled }: IMenuRadioItem) => (
     <li
-      className="menuitem"
       role="menuitemradio"
       aria-checked={checked}
       tabIndex={-1}
@@ -119,7 +133,6 @@ type IMenuCheckboxItem = Omit<IMenuRadioItem, 'icon'>;
 const MenuCheckboxItem = observer(
   ({ text, checked, onClick, accelerator, disabled }: IMenuCheckboxItem) => (
     <li
-      className="menuitem"
       role="menuitemcheckbox"
       aria-checked={checked}
       tabIndex={-1}
@@ -145,15 +158,13 @@ interface ISubMenu {
   text: string;
   disabled?: boolean;
   children: React.ReactNode;
-  /** @default 'menu' */
-  role?: 'menu' | 'group';
 }
 
 import { Placement } from '@popperjs/core/lib/enums';
 
 const subMenuPlacments = ['right-end', 'right'] as Placement[];
 
-const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISubMenu) => {
+const SubMenu = observer(({ text, icon, disabled, children }: ISubMenu) => {
   const [isOpen, setIsOpen] = useState(false);
   const menu = useRef<HTMLUListElement>(null);
 
@@ -188,7 +199,6 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
         onClose={close}
         target={
           <a
-            className="menuitem"
             tabIndex={-1}
             role="menuitem"
             aria-haspopup
@@ -209,7 +219,7 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
         <ul
           data-submenu
           ref={menu}
-          role={role}
+          role="menu"
           aria-label={text}
           className="menu"
           onClick={handleClick}
@@ -224,4 +234,4 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
   );
 });
 
-export { Menu, MenuCheckboxItem, MenuDivider, MenuItem, MenuRadioItem, SubMenu };
+export { Menu, MenuCheckboxItem, MenuDivider, MenuItem, MenuRadioGroup, MenuRadioItem, SubMenu };

@@ -1,11 +1,12 @@
-.menu {
+[role='menu'],
+[role='menu'] [role='group'] {
   list-style: none;
   margin: 0;
   padding: 0;
   min-width: 20ch;
 }
 
-.menuitem {
+[role^='menuitem'] {
   display: flex;
   align-items: center;
   min-height: 2rem;
@@ -23,24 +24,22 @@
   }
 }
 
-a.menuitem {
+a[role='menuitem'] {
   color: var(--text-color);
   text-decoration: none;
-  pointer-events: none;
 }
 
-.menuitem:hover,
-.menu li[role='none']:hover {
+[role^='menuitem']:hover {
   color: var(--highlight-font-color);
   background: var(--highlight-background-color);
 }
 
-.menuitem[role='menuitemradio'][aria-checked='true'] {
+[role='menuitemradio'][aria-checked='true'] {
   color: white;
   background: var(--primary-color);
 }
 
-.menuitem[role='menuitemcheckbox'][aria-checked='true'] {
+[role='menuitemcheckbox'][aria-checked='true'] {
   .menuitem-icon {
     background: currentColor;
     mask-image: url(~resources/icons/checkmark.svg);
@@ -48,7 +47,7 @@ a.menuitem {
   }
 }
 
-.menu-separator[role='separator'] {
+[role='menu'] [role='separator'] {
   background: var(--text-muted-color);
   height: 1px;
   margin: 0.5rem 1rem;

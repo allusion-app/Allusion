@@ -23,6 +23,7 @@ import {
   MenuCheckboxItem,
   MenuDivider,
   MenuItem,
+  MenuRadioGroup,
   MenuRadioItem,
   SubMenu,
 } from './Menu/index';
@@ -40,6 +41,7 @@ export {
   MenuCheckboxItem,
   MenuDivider,
   MenuItem,
+  MenuRadioGroup,
   MenuRadioItem,
   Flyout,
   SubMenu,
