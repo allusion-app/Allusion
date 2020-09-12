@@ -82,8 +82,7 @@ const ThumbnailDecoration = observer(
 
 interface IGalleryItemProps {
   file: ClientFile;
-  onClick: (file: ClientFile, e: React.MouseEvent) => void;
-  onDoubleClick: (file: ClientFile, e: React.MouseEvent) => void;
+  select: (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   showDetails?: boolean;
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
@@ -113,7 +112,7 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
 );
 
 const GalleryItem = observer(
-  ({ file, onClick, onDoubleClick, showDetails, showContextMenu }: IGalleryItemProps) => {
+  ({ file, select, showDetails, showContextMenu }: IGalleryItemProps) => {
     const { uiStore, fileStore } = useContext(StoreContext);
     const isSelected = uiStore.fileSelection.has(file.id);
 
@@ -130,8 +129,19 @@ const GalleryItem = observer(
       [file, uiStore],
     );
 
-    const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
-    const handleDoubleClickImg = useCallback((e) => onDoubleClick(file, e), [file, onDoubleClick]);
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation(); // avoid propogation to background
+        select(file, e.ctrlKey || e.metaKey, e.shiftKey);
+      },
+      [file, select],
+    );
+
+    // Slide view when double clicking
+    const handleDoubleClick = useCallback(() => {
+      uiStore.selectFile(file, true);
+      uiStore.enableSlideMode();
+    }, [file, uiStore]);
 
     // Initially, we assume the thumbnail exists
     const [isThumbnailReady, setThumbnailReady] = useState(true);
@@ -216,9 +226,9 @@ const GalleryItem = observer(
         onContextMenu={handleContextMenu}
       >
         <div
-          onClick={handleClickImg}
+          onClick={handleClick}
           className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
-          onDoubleClick={handleDoubleClickImg}
+          onDoubleClick={handleDoubleClick}
           onDragStart={handleDragStart}
         >
           {isThumbnailReady ? (
@@ -253,8 +263,8 @@ const GalleryItem = observer(
           tags={
             <ThumbnailTags
               tags={file.clientTags}
-              onClick={handleClickImg}
-              onDoubleClick={handleDoubleClickImg}
+              onClick={handleClick}
+              onDoubleClick={handleDoubleClick}
             />
           }
         />

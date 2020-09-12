@@ -416,7 +416,6 @@ interface ITreeData {
   dispatch: React.Dispatch<Action>;
   submit: (target: EventTarget & HTMLInputElement) => void;
   select: (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => void;
-  uiStore: UiStore;
 }
 
 const TagLabel = (
@@ -464,7 +463,7 @@ const isExpanded = (nodeData: ClientTagCollection, treeData: ITreeData): boolean
 const toggleExpansion = (nodeData: ClientTagCollection, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));
 
-const toggleSelection = (nodeData: ClientTag | ClientTagCollection, { uiStore }: ITreeData) => {
+const toggleSelection = (uiStore: UiStore, nodeData: ClientTag | ClientTagCollection) => {
   if (nodeData instanceof ClientTag) {
     nodeData.isSelected ? uiStore.deselectTag(nodeData.id) : uiStore.selectTag(nodeData);
   } else {
@@ -490,6 +489,7 @@ const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
 };
 
 const customKeys = (
+  uiStore: UiStore,
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: ClientTag | ClientTagCollection,
   treeData: ITreeData,
@@ -508,7 +508,7 @@ const customKeys = (
 
     case 'Enter':
       event.stopPropagation();
-      toggleQuery(nodeData, treeData.uiStore);
+      toggleQuery(nodeData, uiStore);
       break;
 
     case 'Delete':
@@ -523,27 +523,6 @@ const customKeys = (
       break;
   }
 };
-
-const handleBranchOnKeyDown = (
-  event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: ClientTagCollection,
-  treeData: ITreeData,
-) =>
-  createBranchOnKeyDown(
-    event,
-    nodeData,
-    treeData,
-    isExpanded,
-    toggleSelection,
-    toggleExpansion,
-    customKeys,
-  );
-
-const handleLeafOnKeyDown = (
-  event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: ClientTag,
-  treeData: ITreeData,
-) => createLeafOnKeyDown(event, nodeData, treeData, toggleSelection, customKeys);
 
 // Range Selection from last selected node
 const rangeSelection = (
@@ -662,11 +641,10 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
       showContextMenu: show,
       state,
       dispatch,
-      uiStore,
       submit,
       select,
     }),
-    [select, show, state, submit, uiStore],
+    [select, show, state, submit],
   );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -726,6 +704,36 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
       }
     },
     [root, tagCollectionStore, tagStore, uiStore],
+  );
+
+  const handleBranchOnKeyDown = useCallback(
+    (
+      event: React.KeyboardEvent<HTMLLIElement>,
+      nodeData: ClientTagCollection,
+      treeData: ITreeData,
+    ) =>
+      createBranchOnKeyDown(
+        event,
+        nodeData,
+        treeData,
+        isExpanded,
+        toggleSelection.bind(null, uiStore),
+        toggleExpansion,
+        customKeys.bind(null, uiStore),
+      ),
+    [uiStore],
+  );
+
+  const handleLeafOnKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
+      createLeafOnKeyDown(
+        event,
+        nodeData,
+        treeData,
+        toggleSelection.bind(null, uiStore),
+        customKeys.bind(null, uiStore),
+      ),
+    [uiStore],
   );
 
   const leaves = computed(() => root.clientTags.map(mapLeaf));
