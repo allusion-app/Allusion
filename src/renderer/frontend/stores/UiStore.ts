@@ -18,7 +18,7 @@ export type ViewThumbnailSize = 'small' | 'medium' | 'large';
 export type ViewThumbnailShape = 'square' | 'letterbox';
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
-interface IHotkeyMap {
+export interface IHotkeyMap {
   // Outerliner actions
   toggleOutliner: string;
   replaceQuery: string;
@@ -43,7 +43,7 @@ interface IHotkeyMap {
 }
 
 // https://blueprintjs.com/docs/#core/components/hotkeys.dialog
-const defaultHotkeyMap: IHotkeyMap = {
+export const defaultHotkeyMap: IHotkeyMap = {
   toggleOutliner: '1',
   toggleInspector: '2',
   replaceQuery: 'r',
@@ -88,6 +88,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'method',
   'thumbnailSize',
   'thumbnailShape',
+  'hotkeyMap'
 ];
 
 class UiStore {
@@ -126,7 +127,7 @@ class UiStore {
 
   @observable thumbnailDirectory: string = '';
 
-  @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
+  @observable hotkeyMap = ({ ...defaultHotkeyMap });
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -536,6 +537,15 @@ class UiStore {
     }
   }
 
+  @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {
+    this.hotkeyMap[action] = combo;
+    // can't rely on the observer PersistentPreferenceFields, since it's an object
+    // Would be neater with a deepObserve, but this works as well:
+    this.storePersistentPreferences();
+
+    console.log(this.hotkeyMap)
+  }
+
   // Storing preferences
   recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
@@ -549,8 +559,11 @@ class UiStore {
         this.setMethod(prefs.method);
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);
+        Object.entries<string>(prefs.hotkeyMap)
+          .forEach(([k, v]) => this.hotkeyMap[k as keyof IHotkeyMap] = v);
+        console.log('recovered', prefs.hotkeyMap, this.hotkeyMap)
       } catch (e) {
-        console.log('Cannot parse persistent preferences', e);
+        console.error('Cannot parse persistent preferences', e);
       }
     }
 

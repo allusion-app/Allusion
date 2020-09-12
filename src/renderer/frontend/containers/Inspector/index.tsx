@@ -8,6 +8,7 @@ import { ClientFile } from '../../../entities/File';
 import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
 import { CSSTransition } from 'react-transition-group';
 import { MissingImageFallback } from '../ContentView/GalleryItem';
+import HotkeyMapper from '../../components/HotkeyMapper';
 
 const Carousel = ({ items }: { items: ClientFile[] }) => {
   // NOTE: maxItems is coupled to the CSS! Max is 10 atm (see inspector.scss)
@@ -90,6 +91,9 @@ const Inspector = observer(() => {
       <Container>
         <section>
           <h2 className="inspector-heading">No image selected</h2>
+
+          {/* Temporary */}
+          <HotkeyMapper />
         </section>
       </Container>
     );
