@@ -466,6 +466,7 @@ const Gallery = () => {
   } = contextState;
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
+  const container = useRef<HTMLDivElement>(null);
 
   const resizeObserver = useRef(
     new ResizeObserver((entries) => {
@@ -481,17 +482,11 @@ const Gallery = () => {
 
   useEffect(() => {
     const observer = resizeObserver.current;
-    const gallery = document.querySelector('#gallery-content');
-    if (gallery) {
-      observer.observe(gallery);
+    if (container.current) {
+      resizeObserver.current.observe(container.current);
     }
-
-    return () => {
-      if (gallery) {
-        observer.unobserve(gallery);
-      }
-    };
-  }, []);
+    return () => observer.disconnect();
+  }, [fileList.length]);
 
   const { makeSelection, lastSelectionIndex } = useSelectionCursor();
 
@@ -602,6 +597,7 @@ const Gallery = () => {
 
   return (
     <div
+      ref={container}
       id="gallery-content"
       className={`thumbnail-${uiStore.thumbnailSize} ${uiStore.method} thumbnail-${uiStore.thumbnailShape}`}
       onClick={uiStore.clearFileSelection}
