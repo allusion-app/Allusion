@@ -82,8 +82,8 @@ pre {
 // Dark Theme
 .bp3-dark {
   --focus-color: #{$dark-gray3};
-  --highlight-background-color: #{$dark-gray4}; // dark-gray5?
-  --highlight-font-color: white;
+  --hover-background: #{$dark-gray4}; // dark-gray5?
+  --hover-color: white;
 
   // Text/icon color
   --text-color: hsl(0, 0%, 75%);
@@ -99,8 +99,8 @@ pre {
 // Light Theme
 .bp3-light {
   --focus-color: #{$light-gray4};
-  --highlight-background-color: #{$light-gray4};
-  --highlight-font-color: #{$black};
+  --hover-background: #{$light-gray4};
+  --hover-color: #{$black};
 
   // Text/icon color
   --text-color: hsl(0, 0%, 25%);

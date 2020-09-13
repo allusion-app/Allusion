@@ -25,7 +25,7 @@
 }
 
 .toolbar-item:focus {
-  box-shadow: 0 0 0 0.125rem var(--highlight-font-color);
+  box-shadow: 0 0 0 0.125rem var(--hover-color);
 }
 
 .toolbar-button {
@@ -35,8 +35,8 @@
   border: none;
 
   &:hover {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-font-color);
+    background-color: var(--hover-background);
+    color: var(--hover-color);
   }
 
   &[aria-checked='true'] {

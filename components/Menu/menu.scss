@@ -14,8 +14,8 @@
   margin: 0.25rem 0;
 
   &:hover {
-    color: var(--highlight-font-color);
-    background: var(--highlight-background-color);
+    color: var(--hover-color);
+    background: var(--hover-background);
   }
 
   &[aria-disabled='true'] {
@@ -30,8 +30,8 @@ a[role='menuitem'] {
 }
 
 [role^='menuitem']:hover {
-  color: var(--highlight-font-color);
-  background: var(--highlight-background-color);
+  color: var(--hover-color);
+  background: var(--hover-background);
 }
 
 [role='menuitemradio'][aria-checked='true'] {

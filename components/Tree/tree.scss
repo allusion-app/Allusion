@@ -34,15 +34,15 @@
     padding-right: 0.5rem;
 
     &:hover {
-      background-color: var(--highlight-background-color);
+      background-color: var(--hover-background);
       border-color: var(--primary-color);
-      color: var(--highlight-font-color);
+      color: var(--hover-color);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     &:hover [class*='custom-icon'] {
       border-color: var(--primary-color);
-      color: var(--highlight-font-color);
+      color: var(--hover-color);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
   }
