@@ -111,7 +111,7 @@ interface IToolbarButton extends IBaseButton {
   checked?: boolean;
   expanded?: boolean;
   controls?: string;
-  haspopup?: boolean;
+  haspopup?: boolean | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog';
 }
 
 const ToolbarButton = observer((props: IToolbarButton) => {
@@ -370,7 +370,7 @@ const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
             onClick={() => setIsOpen(!isOpen)}
             expanded={isOpen}
             controls={props.controls}
-            haspopup
+            haspopup="menu"
           />
         }
       >

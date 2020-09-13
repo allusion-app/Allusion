@@ -204,7 +204,7 @@ const SubMenu = observer(({ text, icon, disabled, children }: ISubMenu) => {
           <a
             tabIndex={-1}
             role="menuitem"
-            aria-haspopup
+            aria-haspopup="menu"
             aria-expanded="false"
             aria-disabled={disabled}
             href="#"
