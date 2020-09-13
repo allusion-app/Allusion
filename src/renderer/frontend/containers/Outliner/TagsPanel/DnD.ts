@@ -1,5 +1,4 @@
 import { ID } from 'src/renderer/entities/ID';
-import { Classes } from '@blueprintjs/core';
 
 /** Data transfer types of TagsTree items. */
 export const enum DnDType {
@@ -23,9 +22,8 @@ export function handleDragEnd(event: React.DragEvent<HTMLDivElement>) {
   DragItem = { id: '', isSelected: false };
 }
 
-const PreviewTag = document.createElement('div');
-PreviewTag.classList.add(Classes.TAG);
-PreviewTag.classList.add(Classes.INTENT_PRIMARY);
+const PreviewTag = document.createElement('span');
+PreviewTag.classList.add('tag');
 PreviewTag.style.position = 'absolute';
 PreviewTag.style.top = '-100vh';
 document.body.appendChild(PreviewTag);

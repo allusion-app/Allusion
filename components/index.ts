@@ -21,6 +21,7 @@ import {
 } from './Menu';
 import { Radio, RadioGroup } from './Radio';
 import { Checkbox, Toggle } from './Checkbox';
+import { Tag } from './Tag';
 
 export {
   Alert,
@@ -42,6 +43,7 @@ export {
   Radio,
   RadioGroup,
   SubMenu,
+  Tag,
   Tree,
   Toggle,
   ToolbarButton,

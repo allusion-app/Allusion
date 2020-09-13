@@ -1,12 +1,11 @@
 import React, { useContext } from 'react';
-import { Tag } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
 import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from '../contexts/StoreContext';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import { ClientFile } from 'src/renderer/entities/File';
-import { Alert, DialogButton } from 'components';
+import { Alert, DialogButton, Tag } from 'components';
 
 interface IRemovalAlertProps {
   open: boolean;
@@ -77,9 +76,7 @@ export const TagRemoval = (props: IRemovalProps<ClientTag | ClientTagCollection>
           <div id="tag-remove-overview">
             <p>Selected Tags</p>
             {tagsToRemove.map((tag) => (
-              <span key={tag.id}>
-                <Tag intent="primary">{tag.name}</Tag>{' '}
-              </span>
+              <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
             ))}
           </div>
         )

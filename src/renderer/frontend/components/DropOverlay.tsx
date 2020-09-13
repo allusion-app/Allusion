@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useContext } from 'react';
-import { Tag } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 import fse from 'fs-extra';
@@ -10,7 +9,7 @@ import { timeoutPromise } from '../utils';
 import { IMG_EXTENSIONS } from '../../entities/File';
 import { RendererMessenger, IStoreFileMessage } from '../../../Messaging';
 import { DEFAULT_LOCATION_ID } from '../../entities/Location';
-import { Dialog } from 'components';
+import { Dialog, Tag } from 'components';
 import IconSet from 'components/Icons';
 
 const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
@@ -117,25 +116,8 @@ const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
     onDropOnTag,
     tag,
   ]);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    preventDragEvent(e);
-    setIsDraggingOver(true);
-  }, []);
-  const handleDragLeave = useCallback(() => setIsDraggingOver(false), []);
 
-  return (
-    <Tag
-      onDrop={handleDropOnTag}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      intent={isDraggingOver ? 'primary' : 'none'}
-      minimal
-      className="tag-drag-drop"
-    >
-      {tag.name}
-    </Tag>
-  );
+  return <Tag onDrop={handleDropOnTag} onDragOver={preventDragEvent} text={tag.name} />;
 };
 
 /**

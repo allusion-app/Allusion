@@ -1,28 +1,18 @@
-import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, H4, Card } from '@blueprintjs/core';
+import { H4, Card } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
 import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Tooltip, MenuDivider, MenuItem } from 'components';
+import { Button, ButtonGroup, Tooltip, MenuDivider, MenuItem, Tag } from 'components';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
-import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
 import UiStore from '../../stores/UiStore';
-
-const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
-  const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
-  return (
-    <Tag intent="primary" style={{ backgroundColor: color }}>
-      <span className={colClass}>{name}</span>
-    </Tag>
-  );
-};
 
 interface IThumbnailTags {
   tags: ClientTag[];
@@ -33,7 +23,7 @@ interface IThumbnailTags {
 const ThumbnailTags = observer(({ tags, onClick, onDoubleClick }: IThumbnailTags) => (
   <span className="thumbnail-tags" onClick={onClick} onDoubleClick={onDoubleClick}>
     {tags.map((tag) => (
-      <ThumbnailTag key={tag.id} name={tag.name} color={tag.viewColor} />
+      <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
     ))}
   </span>
 ));

@@ -270,11 +270,11 @@ export const getContrast = (hexcolor: string) => {
   return (r * 299 + g * 587 + b * 114) / 1000;
 };
 
-export const getClassForBackground = (backHex: string) => {
+export const getColorFromBackground = (backHex: string): 'black' | 'white' => {
   // const hsl = hexToHSL(backHex);
   // const [, sat, lum] = hsl;
-  // return lum < 50 || (lum < 60 && sat > 75) ? 'color-white' : 'color-black';
-  return getContrast(backHex) >= 128 ? 'color-black' : 'color-white';
+  // return lum < 50 || (lum < 60 && sat > 75) ? 'white' : 'black';
+  return getContrast(backHex) >= 128 ? 'black' : 'white';
 };
 
 ////////////////////
