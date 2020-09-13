@@ -102,15 +102,25 @@ function createWindow() {
           modal: true,
           parent: mainWindow!,
           width: 600,
-          height: 570,
+          height: 580,
           title: 'Settings • Allusion',
-          resizable: false,
+          // resizable: false,
         };
         Object.assign(options, additionalOptions);
         const settingsWindow = new BrowserWindow(options);
         settingsWindow.center(); // the "center" option doesn't work :/
         settingsWindow.setMenu(null); // no toolbar needed
         (event as any).newGuest = settingsWindow;
+
+        // if (isDev()) { // For when you need devtools in settings
+        //   settingsWindow.webContents.openDevTools();
+        // }
+
+        mainWindow?.webContents.once('will-navigate', () => {
+          if (!settingsWindow?.isDestroyed()) {
+            settingsWindow.close(); // close when main window is reloaded
+          }
+        });
       }
     },
   );

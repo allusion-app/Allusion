@@ -1,15 +1,15 @@
-import React, { useContext, useEffect, useCallback } from 'react';
-import { observer } from 'mobx-react-lite';
-import { Callout, H4, KeyCombo, Switch, Divider } from '@blueprintjs/core';
-
-import StoreContext from '../contexts/StoreContext';
-import IconSet from 'components/Icons';
+import { Divider, Switch } from '@blueprintjs/core';
 import { Button, ButtonGroup } from 'components';
-import { ClearDbButton } from './ErrorBoundary';
+import IconSet from 'components/Icons';
 import { remote } from 'electron';
+import { observer } from 'mobx-react-lite';
+import React, { useCallback, useContext, useEffect } from 'react';
+import { RendererMessenger } from '../../../Messaging';
+import StoreContext from '../contexts/StoreContext';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
-import { RendererMessenger } from '../../../Messaging';
+import { ClearDbButton } from './ErrorBoundary';
+import HotkeyMapper from './HotkeyMapper';
 import PopupWindow from './PopupWindow';
 
 // Window state
@@ -214,7 +214,7 @@ const SettingsForm = observer(() => {
 
       <br />
 
-      <Callout icon={IconSet.INFO}>
+      {/* <Callout icon={IconSet.INFO}>
         <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
         <p>
           Did you know there are hotkeys available in most panels?
@@ -223,7 +223,11 @@ const SettingsForm = observer(() => {
           <KeyCombo combo="mod+k" />
           &nbsp;to see them.
         </p>
-      </Callout>
+      </Callout> */}
+
+      <div style={{ maxHeight: '200px', overflowY: 'auto', fontSize: '11px' }}>
+        <HotkeyMapper />
+      </div>
     </div>
   );
 });

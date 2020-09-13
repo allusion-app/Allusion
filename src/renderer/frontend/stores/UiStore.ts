@@ -88,7 +88,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'method',
   'thumbnailSize',
   'thumbnailShape',
-  'hotkeyMap'
+  'hotkeyMap',
 ];
 
 class UiStore {
@@ -127,7 +127,7 @@ class UiStore {
 
   @observable thumbnailDirectory: string = '';
 
-  @observable hotkeyMap = ({ ...defaultHotkeyMap });
+  @observable hotkeyMap = { ...defaultHotkeyMap };
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -542,8 +542,6 @@ class UiStore {
     // can't rely on the observer PersistentPreferenceFields, since it's an object
     // Would be neater with a deepObserve, but this works as well:
     this.storePersistentPreferences();
-
-    console.log(this.hotkeyMap)
   }
 
   // Storing preferences
@@ -559,9 +557,10 @@ class UiStore {
         this.setMethod(prefs.method);
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);
-        Object.entries<string>(prefs.hotkeyMap)
-          .forEach(([k, v]) => this.hotkeyMap[k as keyof IHotkeyMap] = v);
-        console.log('recovered', prefs.hotkeyMap, this.hotkeyMap)
+        Object.entries<string>(prefs.hotkeyMap).forEach(
+          ([k, v]) => (this.hotkeyMap[k as keyof IHotkeyMap] = v),
+        );
+        console.log('recovered', prefs.hotkeyMap, this.hotkeyMap);
       } catch (e) {
         console.error('Cannot parse persistent preferences', e);
       }
