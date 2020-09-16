@@ -1,12 +1,11 @@
 import React, { useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { observer } from 'mobx-react-lite';
-
-import StoreContext from '../../contexts/StoreContext';
-import ImageInfo from '../../components/ImageInfo';
-import FileTags from '../../components/FileTag';
-import { ClientFile } from '../../../entities/File';
-import { clamp } from '../../utils';
 import { CSSTransition } from 'react-transition-group';
+import { ClientFile } from '../../../entities/File';
+import FileTags from '../../components/FileTag';
+import ImageInfo from '../../components/ImageInfo';
+import StoreContext from '../../contexts/StoreContext';
+import { clamp } from '../../utils';
 import { MissingImageFallback } from '../ContentView/GalleryItem';
 
 const Carousel = ({ items }: { items: ClientFile[] }) => {

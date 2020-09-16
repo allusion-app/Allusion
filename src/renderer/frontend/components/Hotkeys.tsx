@@ -40,9 +40,9 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
         <Hotkey
           global={true}
           combo={hotkeyMap.toggleSettings}
-          label="Opens the settings tab in right sidebar"
+          label="Opens the settings menu window"
           onKeyDown={uiStore.toggleSettings}
-          preventDefault
+          // preventDefault
         />
 
         <Hotkey

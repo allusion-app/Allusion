@@ -1,14 +1,13 @@
+import { remote } from 'electron';
 import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Callout, H4, KeyCombo, Divider } from '@blueprintjs/core';
-
 import StoreContext from '../contexts/StoreContext';
+import { RendererMessenger } from '../../../Messaging';
 import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'components';
-import { ClearDbButton } from '../components/ErrorBoundary';
-import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
-import { RendererMessenger } from '../../../Messaging';
+import { ClearDbButton } from '../components/ErrorBoundary';
+import HotkeyMapper from '../components/HotkeyMapper';
 import PopupWindow from '../components/PopupWindow';
 
 // Window state
@@ -157,7 +156,7 @@ const SettingsForm = observer(() => {
         />
       </div>
 
-      <Divider />
+      <hr />
 
       <div>
         {/* Todo: Add support to toggle this */}
@@ -177,7 +176,7 @@ const SettingsForm = observer(() => {
         </fieldset>
       </div>
 
-      <Divider />
+      <hr />
 
       <ButtonGroup>
         <ClearDbButton />
@@ -191,7 +190,7 @@ const SettingsForm = observer(() => {
 
       <br />
 
-      <Callout icon={IconSet.INFO}>
+      {/* <Callout icon={IconSet.INFO}>
         <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
         <p>
           Did you know there are hotkeys available in most panels?
@@ -200,7 +199,11 @@ const SettingsForm = observer(() => {
           <KeyCombo combo="mod+k" />
           &nbsp;to see them.
         </p>
-      </Callout>
+      </Callout> */}
+
+      <div style={{ maxHeight: '200px', overflowY: 'auto', fontSize: '11px' }}>
+        <HotkeyMapper />
+      </div>
     </div>
   );
 });
