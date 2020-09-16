@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import './toolbar.scss';
 import React, { useEffect, useRef, useState } from 'react';
-import { Tooltip } from '../Dialog/index';
+import { Tooltip, Flyout } from '../Dialog/index';
 import { observer } from 'mobx-react-lite';
-import { Flyout } from 'components/Dialog';
 
 interface IToolbar {
   children: React.ReactNode;
@@ -17,7 +16,7 @@ interface IToolbar {
 
 const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const current = e.currentTarget;
-  const target = (e.target as HTMLElement).closest('.toolbar > *')!;
+  const target = (e.target as HTMLElement).closest('[role="toolbar"] > *')!;
   const isVertical = current.matches('[aria-orientation="vertical"]');
 
   if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
@@ -27,19 +26,19 @@ const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   let item;
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
     item = target.previousElementSibling ?? current.lastElementChild!;
-    if (!item.classList.contains('toolbar-item')) {
+    if (!item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item:last-child')!;
     }
   } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
     item = target.nextElementSibling ?? current.querySelector('.toolbar-item');
-    if (item && !item.classList.contains('toolbar-item')) {
+    if (item && !item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item');
     }
   } else if (e.key === 'Home') {
     item = current.querySelector('.toolbar-item');
   } else if (e.key === 'End') {
     item = current.lastElementChild!;
-    if (!item.classList.contains('toolbar-item')) {
+    if (!item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item:last-child')!;
     }
   }
@@ -51,7 +50,7 @@ const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
 };
 
 const handleToolbarFocus = (e: React.FocusEvent<HTMLElement>) => {
-  if (e.target.classList.contains('toolbar-item')) {
+  if (e.target.matches('.toolbar-item')) {
     e.currentTarget.querySelector('.toolbar-item[tabindex="0"]')?.setAttribute('tabIndex', '-1');
     e.target.setAttribute('tabIndex', '0');
   }
@@ -83,7 +82,7 @@ const Toolbar = (props: IToolbar) => {
       ref={toolbar}
       role="toolbar"
       id={id}
-      className={`toolbar ${className ?? ''}`}
+      className={className}
       aria-label={label}
       aria-labelledby={labelledby}
       aria-controls={controls}
@@ -112,7 +111,7 @@ interface IToolbarButton extends IBaseButton {
   checked?: boolean;
   expanded?: boolean;
   controls?: string;
-  haspopup?: boolean;
+  haspopup?: boolean | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog';
 }
 
 const ToolbarButton = observer((props: IToolbarButton) => {
@@ -187,16 +186,16 @@ const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   let item;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
     item = target.nextElementSibling ?? target.parentElement!.nextElementSibling;
-    if (item && !item.classList.contains('toolbar-item')) {
+    if (item && !item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item');
     }
   } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
     item = target.previousElementSibling ?? target.parentElement!.previousElementSibling;
     if (item) {
-      if (item.classList.contains('toolbar-group')) {
+      if (item.matches('.toolbar-group')) {
         item = item.lastElementChild!;
       }
-      if (!item.classList.contains('toolbar-item')) {
+      if (!item.matches('.toolbar-item')) {
         item = item.querySelector('.toolbar-item:last-child');
       }
     }
@@ -371,7 +370,7 @@ const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
             onClick={() => setIsOpen(!isOpen)}
             expanded={isOpen}
             controls={props.controls}
-            haspopup
+            haspopup="menu"
           />
         }
       >

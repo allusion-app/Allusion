@@ -9,13 +9,13 @@ import Toolbar from './containers/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
-import SettingsWindow from './components/Settings';
+import SettingsWindow from './containers/Settings';
 import HelpCenter from './components/HelpCenter';
 import DropOverlay from './components/DropOverlay';
-import { AdvancedSearchDialog } from './containers/Outliner/SearchPanel';
+import AdvancedSearchDialog from './containers/AdvancedSearch';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { Toaster, Position } from '@blueprintjs/core';
-import WelcomeDialog from './components/WelcomeDialog';
+import WelcomeDialog from './containers/WelcomeDialog';
 
 const SPLASH_SCREEN_TIME = 1400;
 

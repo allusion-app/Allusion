@@ -17,12 +17,6 @@
   }
 }
 
-#preview #toolbar {
-  .bp3-switch {
-    margin: 0;
-  }
-}
-
 // Invisible region in order to still resize the window by dragging from the top when not maximized
 #window-resize-area {
   -webkit-app-region: no-drag;

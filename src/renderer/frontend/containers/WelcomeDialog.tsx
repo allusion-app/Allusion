@@ -3,8 +3,9 @@ import { observer } from 'mobx-react-lite';
 import path from 'path';
 import fse from 'fs-extra';
 
-import { Button, ButtonGroup, Dialog } from 'components';
-import LocationsPanel from '../containers/Outliner/LocationsPanel';
+import { Button, ButtonGroup } from 'components';
+import { Dialog } from 'components/popover';
+import LocationsPanel from './Outliner/LocationsPanel';
 import { remote } from 'electron';
 import StoreContext from '../contexts/StoreContext';
 import { RendererMessenger } from '../../../Messaging';

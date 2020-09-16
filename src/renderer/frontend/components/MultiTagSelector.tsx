@@ -6,9 +6,7 @@ import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
-import IconSet from 'components/Icons';
-import { IconButton } from 'components';
-import { getClassForBackground } from '../utils';
+import { IconButton, IconSet, Tag } from 'components';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag | ClientTagCollection>();
@@ -153,10 +151,10 @@ const MultiTagSelector = ({
   );
 
   const TagLabel = (tag: ClientTag | ClientTagCollection) => {
-    if (!tag) return <span>???</span>;
-    const colClass = tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white';
-    const text = tagLabel ? tagLabel(tag) : tag.name;
-    return <span className={colClass}>{text}</span>;
+    if (!tag) {
+      return <Tag text="..." />;
+    }
+    return <Tag text={tagLabel ? tagLabel(tag) : tag.name} color={tag.viewColor || undefined} />;
   };
 
   // Only used for visualization in the selector, an actual ClientTag is created onSelect

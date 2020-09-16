@@ -27,6 +27,26 @@ body {
     'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
 }
 
+fieldset {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+// Override standard CSS attributes
+pre {
+  word-wrap: break-word;
+  white-space: initial;
+}
+.bp3-dark {
+  pre {
+    font-family: unset;
+    background: $dark-gray8-trans;
+    padding: 6px;
+    border-radius: 6px;
+  }
+}
+
 // Global specific styles for the main window
 #app {
   --outliner-width: 18em;
@@ -62,8 +82,8 @@ body {
 // Dark Theme
 .bp3-dark {
   --focus-color: #{$dark-gray3};
-  --highlight-background-color: #{$dark-gray4}; // dark-gray5?
-  --highlight-font-color: white;
+  --hover-background: #{$dark-gray4}; // dark-gray5?
+  --hover-color: white;
 
   // Text/icon color
   --text-color: hsl(0, 0%, 75%);
@@ -79,8 +99,8 @@ body {
 // Light Theme
 .bp3-light {
   --focus-color: #{$light-gray4};
-  --highlight-background-color: #{$light-gray4};
-  --highlight-font-color: #{$black};
+  --hover-background: #{$light-gray4};
+  --hover-color: #{$black};
 
   // Text/icon color
   --text-color: hsl(0, 0%, 25%);
@@ -91,20 +111,6 @@ body {
   --foreground-color: #{$light-gray5};
   // Background color of the main panels
   --background-color: #{$light-gray3}; // light-gray5 ?
-}
-
-// Override standard CSS attributes
-pre {
-  word-wrap: break-word;
-  white-space: initial;
-}
-.bp3-dark {
-  pre {
-    font-family: unset;
-    background: $dark-gray8-trans;
-    padding: 6px;
-    border-radius: 6px;
-  }
 }
 
 #layout-container {
@@ -324,18 +330,4 @@ img {
   100% {
     opacity: 1;
   }
-}
-
-.color-black {
-  color: black;
-  transition: color 0.2s ease;
-}
-
-.color-white {
-  color: white;
-  transition: color 0.2s ease;
-}
-
-.inline {
-  display: inline;
 }

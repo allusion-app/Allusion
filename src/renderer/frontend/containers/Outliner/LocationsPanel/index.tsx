@@ -1,11 +1,9 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { remote, shell } from 'electron';
 import { observer, Observer } from 'mobx-react-lite';
-import { Collapse, Label } from '@blueprintjs/core';
+import { Collapse } from '@blueprintjs/core';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
-import IconSet from 'components/Icons';
-import { DialogActions, Dialog, MenuDivider, IconButton } from 'components';
 import {
   ClientLocation,
   DEFAULT_LOCATION_ID,
@@ -15,11 +13,12 @@ import { ClientStringSearchCriteria } from 'src/renderer/entities/SearchCriteria
 import { IFile } from 'src/renderer/entities/File';
 import MultiTagSelector from 'src/renderer/frontend/components/MultiTagSelector';
 import { AppToaster } from 'src/renderer/frontend/App';
-import { Tree, Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu } from 'components';
+import { IconButton, IconSet, Tree } from 'components';
+import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'components/menu';
+import { DialogActions, Dialog } from 'components/popover';
 import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
-import { IExpansionState } from '..';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
-import { CustomKeyDict } from '../index';
+import { CustomKeyDict, IExpansionState } from '../../types';
 import { LocationRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
 
@@ -48,8 +47,8 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
           <div id="dialog-information" className="dialog-information">
             <p>Path:</p>
             <pre>{dir.path}</pre>
-            <Label>
-              <p>Tags to add</p>
+            <label>
+              Tags to add
               <MultiTagSelector
                 disabled={dir.isBroken}
                 selectedItems={dir.clientTagsToAdd}
@@ -57,7 +56,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
                 onTagDeselect={dir.removeTag}
                 onClearSelection={dir.clearTags}
               />
-            </Label>
+            </label>
           </div>
         )}
       </Observer>

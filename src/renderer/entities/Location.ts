@@ -9,7 +9,7 @@ import { IMG_EXTENSIONS } from './File';
 import { ClientTag } from './Tag';
 import { RECURSIVE_DIR_WATCH_DEPTH } from '../../config';
 import { AppToaster } from '../frontend/App';
-import IconSet from 'components/Icons';
+import { IconSet } from 'components/Icons';
 
 export const DEFAULT_LOCATION_ID: ID = 'default-location';
 

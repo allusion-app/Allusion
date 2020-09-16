@@ -14,8 +14,8 @@ import StoreContext from '../../contexts/StoreContext';
 import GalleryItem, { MissingImageFallback } from './GalleryItem';
 import { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup, ContextMenu, SubMenu, Menu, MenuDivider } from 'components';
+import { Button, ButtonGroup, IconSet } from 'components';
+import { ContextMenu, SubMenu, Menu, MenuDivider } from 'components/menu';
 import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
@@ -57,13 +57,7 @@ function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
 
 interface IGalleryLayoutProps {
   contentRect: Rectangle;
-  handleClick: (file: ClientFile, e: React.MouseEvent) => void;
-  handleDoubleClick: (file: ClientFile, e: React.MouseEvent) => void;
-  handleFileSelect: (
-    selectedFile: ClientFile,
-    selectAdditive: boolean,
-    selectRange: boolean,
-  ) => void;
+  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
   /** menu: [fileMenu, externalMenu] */
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
@@ -106,14 +100,7 @@ const getItemKey = (index: number, data: ClientFile[]): string => {
 };
 
 const GridGallery = observer(
-  ({
-    contentRect,
-    handleClick,
-    handleDoubleClick,
-    handleFileSelect,
-    lastSelectionIndex,
-    showContextMenu,
-  }: IGalleryLayoutProps) => {
+  ({ contentRect, select, lastSelectionIndex, showContextMenu }: IGalleryLayoutProps) => {
     const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
     const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
@@ -191,13 +178,13 @@ const GridGallery = observer(
         } else {
           return;
         }
-        handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+        select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
       };
 
       const throttledKeyDown = throttle(onKeyDown, 50);
       window.addEventListener('keydown', throttledKeyDown);
       return () => window.removeEventListener('keydown', throttledKeyDown);
-    }, [fileList, uiStore, numColumns, handleFileSelect, lastSelectionIndex]);
+    }, [fileList, uiStore, numColumns, select, lastSelectionIndex]);
 
     const handleItemKey = useCallback(
       ({ columnIndex, rowIndex, data }) => getItemKey(rowIndex * numColumns + columnIndex, data),
@@ -214,16 +201,11 @@ const GridGallery = observer(
           }
           return (
             <div style={style}>
-              <GalleryItem
-                file={file}
-                onClick={handleClick}
-                onDoubleClick={handleDoubleClick}
-                showContextMenu={showContextMenu}
-              />
+              <GalleryItem file={file} select={select} showContextMenu={showContextMenu} />
             </div>
           );
         }),
-      [handleClick, handleDoubleClick, numColumns, showContextMenu],
+      [select, numColumns, showContextMenu],
     );
 
     return (
@@ -248,13 +230,7 @@ const GridGallery = observer(
 );
 
 const ListGallery = observer(
-  ({
-    contentRect,
-    handleClick,
-    handleDoubleClick,
-    lastSelectionIndex,
-    showContextMenu,
-  }: IGalleryLayoutProps) => {
+  ({ contentRect, select, lastSelectionIndex, showContextMenu }: IGalleryLayoutProps) => {
     const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
     const [, cellSize] = getThumbnailSize(uiStore.thumbnailSize);
@@ -302,15 +278,14 @@ const ListGallery = observer(
             <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
               <GalleryItem
                 file={file}
-                onClick={handleClick}
-                onDoubleClick={handleDoubleClick}
+                select={select}
                 showContextMenu={showContextMenu}
                 showDetails
               />
             </div>
           );
         }),
-      [handleClick, handleDoubleClick, showContextMenu],
+      [select, showContextMenu],
     );
 
     return (
@@ -491,6 +466,7 @@ const Gallery = () => {
   } = contextState;
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
+  const container = useRef<HTMLDivElement>(null);
 
   const resizeObserver = useRef(
     new ResizeObserver((entries) => {
@@ -506,17 +482,11 @@ const Gallery = () => {
 
   useEffect(() => {
     const observer = resizeObserver.current;
-    const gallery = document.querySelector('#gallery-content');
-    if (gallery) {
-      observer.observe(gallery);
+    if (container.current) {
+      resizeObserver.current.observe(container.current);
     }
-
-    return () => {
-      if (gallery) {
-        observer.unobserve(gallery);
-      }
-    };
-  }, []);
+    return () => observer.disconnect();
+  }, [fileList.length]);
 
   const { makeSelection, lastSelectionIndex } = useSelectionCursor();
 
@@ -546,23 +516,6 @@ const Gallery = () => {
       }
     },
     [fileStore, uiStore, makeSelection, fileList],
-  );
-
-  const handleClick = useCallback(
-    (clickedFile: ClientFile, e: React.MouseEvent) => {
-      e.stopPropagation(); // avoid propogation to background
-      handleFileSelect(clickedFile, e.ctrlKey || e.metaKey, e.shiftKey);
-    },
-    [handleFileSelect],
-  );
-
-  // Slide view when double clicking
-  const handleDoubleClick = useCallback(
-    (clickedFile: ClientFile) => {
-      uiStore.selectFile(clickedFile, true);
-      uiStore.enableSlideMode();
-    },
-    [uiStore],
   );
 
   useEffect(() => {
@@ -644,6 +597,7 @@ const Gallery = () => {
 
   return (
     <div
+      ref={container}
       id="gallery-content"
       className={`thumbnail-${uiStore.thumbnailSize} ${uiStore.method} thumbnail-${uiStore.thumbnailShape}`}
       onClick={uiStore.clearFileSelection}
@@ -651,9 +605,7 @@ const Gallery = () => {
     >
       {getLayoutComponent(uiStore.method, uiStore.isSlideMode, {
         contentRect,
-        handleClick,
-        handleDoubleClick,
-        handleFileSelect,
+        select: handleFileSelect,
         lastSelectionIndex,
         showContextMenu: show,
       })}

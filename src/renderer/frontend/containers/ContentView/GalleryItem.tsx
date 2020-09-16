@@ -1,28 +1,17 @@
-import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Tag, H4, Card } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Tooltip, MenuDivider, MenuItem } from 'components';
+import { Button, ButtonGroup, IconSet, Tag } from 'components';
+import { MenuDivider, MenuItem } from 'components/menu';
+import { Tooltip } from 'components/popover';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
-import { getClassForBackground } from '../../utils';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
-import UiStore from '../../stores/UiStore';
-
-const ThumbnailTag = ({ name, color }: { name: string; color: string }) => {
-  const colClass = useMemo(() => (color ? getClassForBackground(color) : 'color-white'), [color]);
-  return (
-    <Tag intent="primary" style={{ backgroundColor: color }}>
-      <span className={colClass}>{name}</span>
-    </Tag>
-  );
-};
 
 interface IThumbnailTags {
   tags: ClientTag[];
@@ -33,57 +22,58 @@ interface IThumbnailTags {
 const ThumbnailTags = observer(({ tags, onClick, onDoubleClick }: IThumbnailTags) => (
   <span className="thumbnail-tags" onClick={onClick} onDoubleClick={onDoubleClick}>
     {tags.map((tag) => (
-      <ThumbnailTag key={tag.id} name={tag.name} color={tag.viewColor} />
+      <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
     ))}
   </span>
 ));
 
-interface IThumbnailDecoration {
+const FileRecovery = observer(({ file }: { file: ClientFile }) => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <div>
+      <p>The file {file.name} could not be found.</p>
+      <p>Would you like to remove it from your library?</p>
+      <ButtonGroup>
+        <Button
+          text="Remove"
+          styling="outlined"
+          onClick={() => {
+            uiStore.selectFile(file, true);
+            uiStore.openToolbarFileRemover();
+          }}
+        />
+      </ButtonGroup>
+    </div>
+  );
+});
+
+interface IThumbnailDecoration extends Omit<IThumbnailTags, 'tags'> {
   showDetails?: boolean;
   file: ClientFile;
-  uiStore: UiStore;
-  tags: JSX.Element;
 }
 
 const ThumbnailDecoration = observer(
-  ({ showDetails, file, uiStore, tags }: IThumbnailDecoration) => {
+  ({ showDetails, file, onClick, onDoubleClick }: IThumbnailDecoration) => {
     if (file.isBroken && showDetails) {
-      return (
-        <Card>
-          <p>The file {file.name} could not be found.</p>
-          <p>Would you like to remove it from your library?</p>
-          <ButtonGroup>
-            <Button
-              text="Remove"
-              styling="outlined"
-              onClick={() => {
-                uiStore.selectFile(file, true);
-                uiStore.openToolbarFileRemover();
-              }}
-            />
-          </ButtonGroup>
-        </Card>
-      );
-    } else {
-      return (
-        <>
-          {showDetails && (
-            <>
-              <H4>{file.filename}</H4>
-              <ImageInfo file={file} />
-            </>
-          )}
-          {tags}
-        </>
-      );
+      return <FileRecovery file={file} />;
     }
+    return (
+      <>
+        {showDetails && (
+          <>
+            <h2>{file.filename}</h2>
+            <ImageInfo file={file} />
+          </>
+        )}
+        <ThumbnailTags tags={file.clientTags} onClick={onClick} onDoubleClick={onDoubleClick} />
+      </>
+    );
   },
 );
 
 interface IGalleryItemProps {
   file: ClientFile;
-  onClick: (file: ClientFile, e: React.MouseEvent) => void;
-  onDoubleClick: (file: ClientFile, e: React.MouseEvent) => void;
+  select: (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   showDetails?: boolean;
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
@@ -113,7 +103,7 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
 );
 
 const GalleryItem = observer(
-  ({ file, onClick, onDoubleClick, showDetails, showContextMenu }: IGalleryItemProps) => {
+  ({ file, select, showDetails, showContextMenu }: IGalleryItemProps) => {
     const { uiStore, fileStore } = useContext(StoreContext);
     const isSelected = uiStore.fileSelection.has(file.id);
 
@@ -130,8 +120,19 @@ const GalleryItem = observer(
       [file, uiStore],
     );
 
-    const handleClickImg = useCallback((e) => onClick(file, e), [file, onClick]);
-    const handleDoubleClickImg = useCallback((e) => onDoubleClick(file, e), [file, onDoubleClick]);
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation(); // avoid propogation to background
+        select(file, e.ctrlKey || e.metaKey, e.shiftKey);
+      },
+      [file, select],
+    );
+
+    // Slide view when double clicking
+    const handleDoubleClick = useCallback(() => {
+      uiStore.selectFile(file, true);
+      uiStore.enableSlideMode();
+    }, [file, uiStore]);
 
     // Initially, we assume the thumbnail exists
     const [isThumbnailReady, setThumbnailReady] = useState(true);
@@ -216,9 +217,9 @@ const GalleryItem = observer(
         onContextMenu={handleContextMenu}
       >
         <div
-          onClick={handleClickImg}
+          onClick={handleClick}
           className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
-          onDoubleClick={handleDoubleClickImg}
+          onDoubleClick={handleDoubleClick}
           onDragStart={handleDragStart}
         >
           {isThumbnailReady ? (
@@ -249,14 +250,8 @@ const GalleryItem = observer(
         <ThumbnailDecoration
           showDetails={showDetails}
           file={file}
-          uiStore={uiStore}
-          tags={
-            <ThumbnailTags
-              tags={file.clientTags}
-              onClick={handleClickImg}
-              onDoubleClick={handleDoubleClickImg}
-            />
-          }
+          onClick={handleClick}
+          onDoubleClick={handleDoubleClick}
         />
       </div>
     );
@@ -338,7 +333,7 @@ const SimpleGalleryItem = observer(({ file, showDetails }: IGalleryItemProps) =>
       </div>
       {showDetails && (
         <>
-          <H4>{file.filename}</H4>
+          <h2>{file.filename}</h2>
           <ImageInfo file={file} />
           <span className="thumbnail-tags" />
         </>

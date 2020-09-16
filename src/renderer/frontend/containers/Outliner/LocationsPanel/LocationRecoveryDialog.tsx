@@ -1,4 +1,3 @@
-import { Callout } from '@blueprintjs/core';
 import { remote } from 'electron';
 import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
@@ -8,8 +7,8 @@ import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import LocationStore from 'src/renderer/frontend/stores/LocationStore';
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Dialog } from 'components';
+import { Button, ButtonGroup, IconSet } from 'components';
+import { Dialog } from 'components/popover';
 import { AppToaster } from 'src/renderer/frontend/App';
 
 interface IMatch {
@@ -91,14 +90,12 @@ const RecoveryInfo = observer(({ location, status, match }: IRecoveryInfoProps) 
   switch (status) {
     case Status.Ok:
       return (
-        <Callout intent="success">
-          The location has been recovered, all files were found in the specified directory!
-        </Callout>
+        <div>The location has been recovered, all files were found in the specified directory!</div>
       );
 
     case Status.InvalidPath:
       return (
-        <span>
+        <div>
           <p>The location {location.name} could not be found on your system.</p>
           <p>
             If it has been moved to a different directory, you can relocate the location by choosing
@@ -106,26 +103,26 @@ const RecoveryInfo = observer(({ location, status, match }: IRecoveryInfoProps) 
           </p>
           <p>Original path:</p>
           <pre>{location.path}</pre>
-        </span>
+        </div>
       );
 
     case Status.NoMatches:
       return (
-        <Callout intent="danger">
+        <div>
           The location could not be recovered since no images of this location were found in the
           specified directory.
-        </Callout>
+        </div>
       );
 
     // TODO: Should also warn about new images in the folder that were not in the location before (status.directoryImageCount)
     case Status.PartialRecovery:
       if (match) {
         return (
-          <Callout intent="warning">
+          <div>
             Only {match.matchCount} out of {match.locationImageCount} images were found in the
             specified directory. By recovering the location, the missing files would be lost. Do you
             still want to recover the location using this directory?
-          </Callout>
+          </div>
         );
       }
       return null;

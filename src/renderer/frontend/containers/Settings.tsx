@@ -1,16 +1,14 @@
-import { Divider, Switch } from '@blueprintjs/core';
-import { Button, ButtonGroup } from 'components';
-import IconSet from 'components/Icons';
 import { remote } from 'electron';
+import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect } from 'react';
-import { RendererMessenger } from '../../../Messaging';
 import StoreContext from '../contexts/StoreContext';
+import { RendererMessenger } from '../../../Messaging';
+import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'components';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
-import { ClearDbButton } from './ErrorBoundary';
-import HotkeyMapper from './HotkeyMapper';
-import PopupWindow from './PopupWindow';
+import { ClearDbButton } from '../components/ErrorBoundary';
+import HotkeyMapper from '../components/HotkeyMapper';
+import PopupWindow from '../components/PopupWindow';
 
 // Window state
 const WINDOW_STORAGE_KEY = 'Allusion_Window';
@@ -96,91 +94,69 @@ const SettingsForm = observer(() => {
   return (
     <div className="settings-form">
       <div className="column">
-        <fieldset role="radiogroup">
-          <legend>Thumbnail Size</legend>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailSize === 'small'}
-              name="Thumbnail Size"
-              value="small"
-              onChange={uiStore.setThumbnailSmall}
-            />
-            Small
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailSize === 'medium'}
-              name="Thumbnail Size"
-              value="medium"
-              onChange={uiStore.setThumbnailMedium}
-            />
-            Medium
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailSize === 'large'}
-              name="Thumbnail Size"
-              value="large"
-              onChange={uiStore.setThumbnailLarge}
-            />
-            Large
-          </label>
-        </fieldset>
+        <RadioGroup name="Thumbnail Size">
+          <Radio
+            label="Small"
+            value="small"
+            checked={uiStore.thumbnailSize === 'small'}
+            onChange={uiStore.setThumbnailSmall}
+          />
+          <Radio
+            label="Medium"
+            value="medium"
+            checked={uiStore.thumbnailSize === 'medium'}
+            onChange={uiStore.setThumbnailMedium}
+          />
+          <Radio
+            label="Large"
+            value="large"
+            checked={uiStore.thumbnailSize === 'large'}
+            onChange={uiStore.setThumbnailLarge}
+          />
+        </RadioGroup>
 
-        <fieldset role="radiogroup">
-          <legend>Thumbnail Shape</legend>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailShape === 'square'}
-              name="Thumbnail Shape"
-              value="square"
-              onChange={uiStore.setThumbnailSquare}
-            />
-            Square
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={uiStore.thumbnailShape === 'letterbox'}
-              name="Thumbnail Shape"
-              value="letterbox"
-              onChange={uiStore.setThumbnailLetterbox}
-            />
-            Letterbox
-          </label>
-        </fieldset>
+        <RadioGroup name="Thumbnail Shape">
+          <Radio
+            label="Square"
+            checked={uiStore.thumbnailShape === 'square'}
+            value="square"
+            onChange={uiStore.setThumbnailSquare}
+          />
+          <Radio
+            label="Letterbox"
+            checked={uiStore.thumbnailShape === 'letterbox'}
+            value="letterbox"
+            onChange={uiStore.setThumbnailLetterbox}
+          />
+        </RadioGroup>
       </div>
       <div className="column">
-        <Switch
+        <Toggle
           defaultChecked={remote.getCurrentWindow().isFullScreen()}
           onChange={toggleFullScreen}
           label="Full screen"
         />
 
-        <Switch
+        <Toggle
           checked={uiStore.theme === 'DARK'}
           onChange={uiStore.toggleTheme}
           label="Dark theme"
         />
 
-        <Switch
+        <Toggle
           defaultChecked={RendererMessenger.getIsRunningInBackground()}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
 
-        <Switch
+        <Toggle
           defaultChecked={RendererMessenger.getIsClipServerEnabled()}
           onChange={toggleClipServer}
           label="Browser extension support"
         />
       </div>
 
-      <Divider />
+      <hr />
 
       <div>
         {/* Todo: Add support to toggle this */}
@@ -200,7 +176,7 @@ const SettingsForm = observer(() => {
         </fieldset>
       </div>
 
-      <Divider />
+      <hr />
 
       <ButtonGroup>
         <ClearDbButton />

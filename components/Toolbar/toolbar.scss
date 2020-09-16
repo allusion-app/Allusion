@@ -1,4 +1,4 @@
-.toolbar[role='toolbar'] {
+[role='toolbar'] {
   display: flex;
   min-height: 2.25rem;
   align-items: center;
@@ -12,7 +12,7 @@
   margin: 0 1rem;
 }
 
-.toolbar-group[role='radiogroup'] .toolbar-button {
+[role='toolbar'] [role='radiogroup'] .toolbar-button {
   &:first-child {
     border-bottom-left-radius: 0.25rem;
     border-top-left-radius: 0.25rem;
@@ -25,7 +25,7 @@
 }
 
 .toolbar-item:focus {
-  box-shadow: 0 0 0 0.125rem var(--highlight-font-color);
+  box-shadow: 0 0 0 0.125rem var(--hover-color);
 }
 
 .toolbar-button {
@@ -35,8 +35,8 @@
   border: none;
 
   &:hover {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-font-color);
+    background-color: var(--hover-background);
+    color: var(--hover-color);
   }
 
   &[aria-checked='true'] {
@@ -95,7 +95,7 @@
   overflow: unset;
 }
 
-.toolbar[aria-orientation='vertical'] {
+[role='toolbar'][aria-orientation='vertical'] {
   flex-direction: column;
 }
 

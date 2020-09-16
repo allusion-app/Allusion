@@ -10,7 +10,6 @@ import { IFile, getMetaData } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
 import { AppToaster } from '../App';
-import { ProgressBar } from '@blueprintjs/core';
 import { promiseAllLimit } from '../utils';
 
 class LocationStore {
@@ -261,7 +260,7 @@ class LocationStore {
       AppToaster.show(
         {
           // message: 'Gathering image metadata...',
-          message: <ProgressBar intent="primary" value={progress} />,
+          message: <progress value={progress} />,
           timeout: 0,
           className: 'toast-without-dismiss',
           action: {

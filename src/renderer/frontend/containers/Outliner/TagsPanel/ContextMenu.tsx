@@ -1,13 +1,13 @@
 import React, { useCallback, useContext } from 'react';
-import IconSet from 'components/Icons';
 import { Icon } from '@blueprintjs/core';
-import { MenuDivider, MenuItem, SubMenu, Menu } from 'components';
+import { IconSet } from 'components';
+import { MenuDivider, MenuItem, SubMenu, Menu } from 'components/menu';
 import { SketchPicker, ColorResult } from 'react-color';
 import { observer } from 'mobx-react-lite';
 import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { formatTagCountText } from 'src/renderer/frontend/utils';
 import { Action, Factory } from './StateReducer';
-import { IExpansionState } from '..';
+import { IExpansionState } from '../../types';
 import { ID } from 'src/renderer/entities/ID';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';

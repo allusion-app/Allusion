@@ -7,8 +7,7 @@ import {
   parseKeyCombo,
   Tooltip,
 } from '@blueprintjs/core';
-import { Button } from 'components/Button';
-import IconSet from 'components/Icons';
+import { Button, IconSet } from 'components';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useRef, useState } from 'react';
 import { AppToaster } from '../App';

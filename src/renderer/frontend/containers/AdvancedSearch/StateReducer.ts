@@ -1,4 +1,4 @@
-import { IAction, CustomKeyDict } from '..';
+import { IAction, CustomKeyDict } from '../types';
 import {
   StringOperatorType,
   ArrayOperatorType,

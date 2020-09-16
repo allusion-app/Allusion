@@ -1,13 +1,13 @@
 import './menu.scss';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import IconSet from '../Icons';
+import { IconSet } from '../Icons';
 import { Flyout } from '../Dialog';
 
 const handleBlur = (e: React.FocusEvent) => {
   if (
-    (e.relatedTarget as Element)?.closest('ul[data-submenu]') ||
-    e.target.closest('ul[data-submenu]')
+    (e.relatedTarget as Element)?.closest('[role="menu"][data-submenu]') ||
+    e.target.closest('[role="menu"][data-submenu]')
   ) {
     e.stopPropagation();
   }
@@ -26,7 +26,7 @@ const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
 };
 
 const handleClick = (e: React.MouseEvent) => {
-  if ((e.target as Element).matches('[role^="menuitem"]')) {
+  if ((e.target as Element).matches('li[role^="menuitem"]')) {
     const dialog = e.currentTarget.closest('dialog') as HTMLDialogElement;
     (dialog.previousElementSibling as HTMLElement)?.focus();
     dialog.close();
@@ -38,22 +38,22 @@ const handleMenuClick = (e: React.MouseEvent) => {
   handleClick(e);
 };
 
+type MenuChild = React.ReactElement<IMenuRadioGroup | ISubMenu | IMenuItem>;
+type MenuChildren = MenuChild | MenuChild[];
+
 interface IMenu {
   id?: string;
-  children: React.ReactNode;
+  children: MenuChildren;
   label?: string;
   labelledby?: string;
-  /** @default 'menu' */
-  role?: 'menu' | 'group';
 }
 
-const Menu = observer(({ id, children, label, labelledby, role = 'menu' }: IMenu) => (
+const Menu = observer(({ id, children, label, labelledby }: IMenu) => (
   <ul
     id={id}
-    role={role}
+    role="menu"
     aria-label={label}
     aria-labelledby={labelledby}
-    className="menu"
     onClick={handleMenuClick}
     onFocus={handleFocus}
     onBlur={handleBlur}
@@ -62,7 +62,6 @@ const Menu = observer(({ id, children, label, labelledby, role = 'menu' }: IMenu
   </ul>
 ));
 
-/** Does not support sub menus yet */
 interface IMenuItem {
   icon?: JSX.Element;
   text: string;
@@ -73,19 +72,37 @@ interface IMenuItem {
 
 const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenuItem) => (
   <li
-    className="menuitem"
     role="menuitem"
     tabIndex={-1}
     onClick={disabled ? undefined : onClick}
     aria-disabled={disabled}
   >
-    <span className="menuitem-icon" aria-hidden>
+    <span className="item-icon" aria-hidden>
       {icon}
     </span>
     {text}
-    <span className="menuitem-accelerator" aria-hidden>
+    <span className="item-accelerator" aria-hidden>
       {accelerator}
     </span>
+  </li>
+));
+
+interface IMenuRadioGroup {
+  children: React.ReactElement<IMenuRadioItem>[];
+  label?: string;
+}
+
+const MenuRadioGroup = observer(({ children, label }: IMenuRadioGroup) => (
+  <li role="none">
+    <ul
+      role="group"
+      aria-label={label}
+      onClick={handleClick}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    >
+      {children}
+    </ul>
   </li>
 ));
 
@@ -96,18 +113,17 @@ interface IMenuRadioItem extends IMenuItem {
 const MenuRadioItem = observer(
   ({ text, icon, checked, onClick, accelerator, disabled }: IMenuRadioItem) => (
     <li
-      className="menuitem"
       role="menuitemradio"
       aria-checked={checked}
       tabIndex={-1}
       onClick={disabled ? undefined : onClick}
       aria-disabled={disabled}
     >
-      <span className="menuitem-icon" aria-hidden>
+      <span className="item-icon" aria-hidden>
         {icon}
       </span>
       {text}
-      <span className="menuitem-accelerator" aria-hidden>
+      <span className="item-accelerator" aria-hidden>
         {accelerator}
       </span>
     </li>
@@ -119,16 +135,15 @@ type IMenuCheckboxItem = Omit<IMenuRadioItem, 'icon'>;
 const MenuCheckboxItem = observer(
   ({ text, checked, onClick, accelerator, disabled }: IMenuCheckboxItem) => (
     <li
-      className="menuitem"
       role="menuitemcheckbox"
       aria-checked={checked}
       tabIndex={-1}
       onClick={disabled ? undefined : onClick}
       aria-disabled={disabled}
     >
-      <span className="menuitem-icon" aria-hidden></span>
+      <span className="item-icon" aria-hidden></span>
       {text}
-      <span className="menuitem-accelerator" aria-hidden>
+      <span className="item-accelerator" aria-hidden>
         {accelerator}
       </span>
     </li>
@@ -144,16 +159,14 @@ interface ISubMenu {
   icon?: JSX.Element;
   text: string;
   disabled?: boolean;
-  children: React.ReactNode;
-  /** @default 'menu' */
-  role?: 'menu' | 'group';
+  children: MenuChildren;
 }
 
 import { Placement } from '@popperjs/core/lib/enums';
 
 const subMenuPlacments = ['right-end', 'right'] as Placement[];
 
-const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISubMenu) => {
+const SubMenu = observer(({ text, icon, disabled, children }: ISubMenu) => {
   const [isOpen, setIsOpen] = useState(false);
   const menu = useRef<HTMLUListElement>(null);
 
@@ -188,19 +201,18 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
         onClose={close}
         target={
           <a
-            className="menuitem"
             tabIndex={-1}
             role="menuitem"
-            aria-haspopup
+            aria-haspopup="menu"
             aria-expanded="false"
             aria-disabled={disabled}
             href="#"
           >
-            <span className="menuitem-icon" aria-hidden>
+            <span className="item-icon" aria-hidden>
               {icon}
             </span>
             {text}
-            <span className="menuitem-accelerator" aria-hidden>
+            <span className="item-accelerator" aria-hidden>
               {IconSet.ARROW_RIGHT}
             </span>
           </a>
@@ -209,7 +221,7 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
         <ul
           data-submenu
           ref={menu}
-          role={role}
+          role="menu"
           aria-label={text}
           className="menu"
           onClick={handleClick}
@@ -224,4 +236,4 @@ const SubMenu = observer(({ text, icon, disabled, children, role = 'menu' }: ISu
   );
 });
 
-export { Menu, MenuCheckboxItem, MenuDivider, MenuItem, MenuRadioItem, SubMenu };
+export { Menu, MenuCheckboxItem, MenuDivider, MenuItem, MenuRadioGroup, MenuRadioItem, SubMenu };

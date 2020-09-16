@@ -10,9 +10,6 @@ import { remote } from 'electron';
 // in the HTML file
 import './style.scss';
 
-// Custom Blueprint functionality overrides
-import './frontend/BpOverride';
-
 import Backend from './backend/Backend';
 import App from './frontend/App';
 import StoreContext from './frontend/contexts/StoreContext';

@@ -1,6 +1,5 @@
-import React, { useContext, useReducer, useCallback } from 'react';
+import React, { useContext, useReducer, useCallback, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Switch } from '@blueprintjs/core';
 
 import {
   NumberOperators,
@@ -11,11 +10,12 @@ import {
 import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { camelCaseToSpaced } from 'src/renderer/frontend/utils';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Dialog, IconButton } from 'components';
+import { Button, ButtonGroup, IconButton, IconSet, RadioGroup, Radio } from 'components';
+import { Dialog } from 'components/popover';
 import TagSelector from 'src/renderer/frontend/components/TagSelector';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ID } from 'src/renderer/entities/ID';
+import { ClientTag } from 'src/renderer/entities/Tag';
 import {
   reducer,
   Action,
@@ -114,22 +114,23 @@ interface IValueInput<V extends CriteriaValue = CriteriaValue> extends IKeySelec
 
 const TagCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<TagValue>, 'keyValue'>) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
-  const selectedItem =
+  const [selection, setSelection] = useState(
     value !== undefined
       ? 'tagId' in value
         ? tagStore.get(value.tagId)
         : tagCollectionStore.get(value.collectionId)
-      : undefined;
+      : undefined,
+  );
 
   return (
     <TagSelector
-      autoFocus
-      includeCollections
-      selectedItem={selectedItem}
-      onTagSelect={(t) => dispatch(Factory.setTag(id, t.id, t.name))}
-      onTagColSelect={(c) =>
-        dispatch(Factory.setCollection(id, c.id, c.getTagsRecursively(), c.name))
-      }
+      selection={selection}
+      onSelect={(t) => {
+        t instanceof ClientTag
+          ? dispatch(Factory.setTag(id, t.id, t.name))
+          : dispatch(Factory.setCollection(id, t.id, t.getTagsRecursively(), t.name));
+        setSelection(t);
+      }}
     />
   );
 };
@@ -267,16 +268,20 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
       <div className="dialog-footer">
         <div id="functions-bar">
           <Button text="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
-          <Switch
-            inline
-            large
-            label="Match"
-            innerLabel="All"
-            innerLabelChecked="Any"
-            alignIndicator="right"
-            checked={searchMatchAny}
-            onChange={toggleSearchMatchAny}
-          />
+          <RadioGroup name="Match">
+            <Radio
+              label="Any"
+              value="any"
+              checked={searchMatchAny}
+              onChange={toggleSearchMatchAny}
+            />
+            <Radio
+              label="All"
+              value="all"
+              checked={!searchMatchAny}
+              onChange={toggleSearchMatchAny}
+            />
+          </RadioGroup>
         </div>
         <ButtonGroup className="dialog-actions">
           <Button text="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
@@ -287,7 +292,7 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
   );
 });
 
-export const AdvancedSearchDialog = observer(() => {
+const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   return (
@@ -306,3 +311,5 @@ export const AdvancedSearchDialog = observer(() => {
     </Dialog>
   );
 });
+
+export default AdvancedSearchDialog;

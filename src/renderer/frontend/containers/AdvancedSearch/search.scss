@@ -28,7 +28,17 @@
   display: flex;
   justify-content: space-between;
 
-  > .bp3-control {
-    margin: 0;
+  > fieldset {
+    margin-bottom: 1rem;
+
+    > div {
+      display: flex;
+      align-items: center;
+
+      legend {
+        margin: 0;
+        margin-right: 1.5rem;
+      }
+    }
   }
 }

@@ -1,11 +1,11 @@
-import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
+import React, { useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { observer } from 'mobx-react-lite';
-import React, { ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import { CSSTransition } from 'react-transition-group';
 import { ClientFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
+import { clamp } from '../../utils';
 import { MissingImageFallback } from '../ContentView/GalleryItem';
 
 const Carousel = ({ items }: { items: ClientFile[] }) => {

@@ -2,8 +2,8 @@ import React, { useContext, useState } from 'react';
 import { remote, shell } from 'electron';
 import { NonIdealState, EditableText } from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup, DialogActions, DialogButton, Flyout } from 'components';
+import { Button, ButtonGroup, IconSet } from 'components';
+import { DialogActions, DialogButton, Flyout } from 'components/popover';
 
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';
