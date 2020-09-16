@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { remote, shell } from 'electron';
 import { observer, Observer } from 'mobx-react-lite';
-import { Collapse, Label } from '@blueprintjs/core';
+import { Collapse } from '@blueprintjs/core';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import {
@@ -48,8 +48,8 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
           <div id="dialog-information" className="dialog-information">
             <p>Path:</p>
             <pre>{dir.path}</pre>
-            <Label>
-              <p>Tags to add</p>
+            <label>
+              Tags to add
               <MultiTagSelector
                 disabled={dir.isBroken}
                 selectedItems={dir.clientTagsToAdd}
@@ -57,7 +57,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
                 onTagDeselect={dir.removeTag}
                 onClearSelection={dir.clearTags}
               />
-            </Label>
+            </label>
           </div>
         )}
       </Observer>

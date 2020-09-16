@@ -314,3 +314,13 @@ export const isDirEmpty = async (dir: string) => {
   const dirContents = await fse.readdir(dir);
   return dirContents.length === 0 || (dirContents.length === 1 && dirContents[0] === '.DS_Store');
 };
+
+export const clamp = (value: number, min: number, max: number): number => {
+  if (value > max) {
+    return max;
+  } else if (value < min) {
+    return min;
+  } else {
+    return value;
+  }
+};

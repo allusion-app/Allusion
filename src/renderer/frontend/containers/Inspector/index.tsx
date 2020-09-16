@@ -5,7 +5,7 @@ import StoreContext from '../../contexts/StoreContext';
 import ImageInfo from '../../components/ImageInfo';
 import FileTags from '../../components/FileTag';
 import { ClientFile } from '../../../entities/File';
-import { clamp } from '@blueprintjs/core/lib/esm/common/utils';
+import { clamp } from '../../utils';
 import { CSSTransition } from 'react-transition-group';
 import { MissingImageFallback } from '../ContentView/GalleryItem';
 
