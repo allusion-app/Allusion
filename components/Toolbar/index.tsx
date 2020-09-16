@@ -16,7 +16,7 @@ interface IToolbar {
 
 const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const current = e.currentTarget;
-  const target = (e.target as HTMLElement).closest('.toolbar > *')!;
+  const target = (e.target as HTMLElement).closest('[role="toolbar"] > *')!;
   const isVertical = current.matches('[aria-orientation="vertical"]');
 
   if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {

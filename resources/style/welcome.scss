@@ -10,10 +10,10 @@
 
   > .dialog-content {
     grid-template-areas:
-      'dialog-icon dialog-icon'
-      'dialog-title dialog-title'
-      'dialog-information dialog-information'
-      'dialog-footer dialog-footer';
+      'dialog-icon dialog-icon dialog-icon'
+      'dialog-title dialog-title dialog-title'
+      'dialog-information dialog-information dialog-information'
+      'dialog-footer dialog-footer dialog-footer';
     margin: auto;
   }
 
@@ -37,32 +37,20 @@
     margin: 1rem auto 2rem;
     line-height: 1.6;
   }
-
-  &::after,
-  &::before {
-    content: '';
-  }
-
-  &::before {
-    background-image: url(~resources/images/welcome-bg-16-9.png);
-  }
 }
 
-.allusion-splash-background.splash {
-  width: 100vw;
-  height: 100vh;
-
+.allusion-splash-background.splash,
+.welcome-dialog[open] {
   &::after,
   &::before {
     content: '';
-  }
-
-  &::before {
-    background-image: url(~resources/images/welcome-bg-16-9-low.jpg);
   }
 }
 
 .allusion-splash-background {
+  width: 100vw;
+  height: 100vh;
+
   // The content that should be on top must a child element.
   > * {
     z-index: 2;
@@ -90,6 +78,7 @@
   // Background image
   &::before {
     background: var(--background-color);
+    background: url(~resources/images/welcome-bg-16-9-low.jpg);
     background-position: center;
     background-position-x: left;
     background-size: 100%;
