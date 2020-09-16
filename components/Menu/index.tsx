@@ -62,7 +62,6 @@ const Menu = observer(({ id, children, label, labelledby }: IMenu) => (
   </ul>
 ));
 
-/** Does not support sub menus yet */
 interface IMenuItem {
   icon?: JSX.Element;
   text: string;
@@ -78,11 +77,11 @@ const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenu
     onClick={disabled ? undefined : onClick}
     aria-disabled={disabled}
   >
-    <span className="menuitem-icon" aria-hidden>
+    <span className="item-icon" aria-hidden>
       {icon}
     </span>
     {text}
-    <span className="menuitem-accelerator" aria-hidden>
+    <span className="item-accelerator" aria-hidden>
       {accelerator}
     </span>
   </li>
@@ -120,11 +119,11 @@ const MenuRadioItem = observer(
       onClick={disabled ? undefined : onClick}
       aria-disabled={disabled}
     >
-      <span className="menuitem-icon" aria-hidden>
+      <span className="item-icon" aria-hidden>
         {icon}
       </span>
       {text}
-      <span className="menuitem-accelerator" aria-hidden>
+      <span className="item-accelerator" aria-hidden>
         {accelerator}
       </span>
     </li>
@@ -142,9 +141,9 @@ const MenuCheckboxItem = observer(
       onClick={disabled ? undefined : onClick}
       aria-disabled={disabled}
     >
-      <span className="menuitem-icon" aria-hidden></span>
+      <span className="item-icon" aria-hidden></span>
       {text}
-      <span className="menuitem-accelerator" aria-hidden>
+      <span className="item-accelerator" aria-hidden>
         {accelerator}
       </span>
     </li>
@@ -209,11 +208,11 @@ const SubMenu = observer(({ text, icon, disabled, children }: ISubMenu) => {
             aria-disabled={disabled}
             href="#"
           >
-            <span className="menuitem-icon" aria-hidden>
+            <span className="item-icon" aria-hidden>
               {icon}
             </span>
             {text}
-            <span className="menuitem-accelerator" aria-hidden>
+            <span className="item-accelerator" aria-hidden>
               {IconSet.ARROW_RIGHT}
             </span>
           </a>

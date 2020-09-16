@@ -1,4 +1,4 @@
-import React, { useContext, useReducer, useCallback } from 'react';
+import React, { useContext, useReducer, useCallback, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import {
@@ -15,6 +15,7 @@ import { Dialog } from 'components/popover';
 import TagSelector from 'src/renderer/frontend/components/TagSelector';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ID } from 'src/renderer/entities/ID';
+import { ClientTag } from 'src/renderer/entities/Tag';
 import {
   reducer,
   Action,
@@ -113,22 +114,23 @@ interface IValueInput<V extends CriteriaValue = CriteriaValue> extends IKeySelec
 
 const TagCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<TagValue>, 'keyValue'>) => {
   const { tagStore, tagCollectionStore } = useContext(StoreContext);
-  const selectedItem =
+  const [selection, setSelection] = useState(
     value !== undefined
       ? 'tagId' in value
         ? tagStore.get(value.tagId)
         : tagCollectionStore.get(value.collectionId)
-      : undefined;
+      : undefined,
+  );
 
   return (
     <TagSelector
-      autoFocus
-      includeCollections
-      selectedItem={selectedItem}
-      onTagSelect={(t) => dispatch(Factory.setTag(id, t.id, t.name))}
-      onTagColSelect={(c) =>
-        dispatch(Factory.setCollection(id, c.id, c.getTagsRecursively(), c.name))
-      }
+      selection={selection}
+      onSelect={(t) => {
+        t instanceof ClientTag
+          ? dispatch(Factory.setTag(id, t.id, t.name))
+          : dispatch(Factory.setCollection(id, t.id, t.getTagsRecursively(), t.name));
+        setSelection(t);
+      }}
     />
   );
 };

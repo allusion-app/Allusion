@@ -4,6 +4,7 @@ import { Radio, RadioGroup } from './Radio';
 import { Checkbox, Toggle } from './Checkbox';
 import { Tag } from './Tag';
 import { IconSet, SVG } from './Icons';
+import { Listbox, Option } from './Combobox';
 
 export {
   Checkbox,
@@ -11,6 +12,8 @@ export {
   ButtonGroup,
   IconButton,
   IconSet,
+  Listbox,
+  Option,
   Radio,
   RadioGroup,
   SVG,
