@@ -17,9 +17,8 @@ import { IconButton, IconSet, Tree } from 'components';
 import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'components/menu';
 import { DialogActions, Dialog } from 'components/popover';
 import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
-import { IExpansionState } from '..';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
-import { CustomKeyDict } from '../index';
+import { CustomKeyDict, IExpansionState } from '../../types';
 import { LocationRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
 

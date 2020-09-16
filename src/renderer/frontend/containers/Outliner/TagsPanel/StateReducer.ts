@@ -1,5 +1,5 @@
 import { ID } from 'src/renderer/entities/ID';
-import { IAction, IExpansionState } from '..';
+import { IAction, IExpansionState } from '../../types';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 

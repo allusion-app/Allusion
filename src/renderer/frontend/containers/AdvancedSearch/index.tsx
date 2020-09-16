@@ -292,7 +292,7 @@ const SearchForm = observer((props: { uiStore: UiStore }) => {
   );
 });
 
-export const AdvancedSearchDialog = observer(() => {
+const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   return (
@@ -311,3 +311,5 @@ export const AdvancedSearchDialog = observer(() => {
     </Dialog>
   );
 });
+
+export default AdvancedSearchDialog;

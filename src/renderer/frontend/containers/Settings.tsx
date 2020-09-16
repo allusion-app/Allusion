@@ -4,12 +4,12 @@ import { Callout, H4, KeyCombo, Divider } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
 import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'components';
-import { ClearDbButton } from './ErrorBoundary';
+import { ClearDbButton } from '../components/ErrorBoundary';
 import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
-import PopupWindow from './PopupWindow';
+import PopupWindow from '../components/PopupWindow';
 
 // Window state
 const WINDOW_STORAGE_KEY = 'Allusion_Window';

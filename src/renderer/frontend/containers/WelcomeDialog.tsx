@@ -5,7 +5,7 @@ import fse from 'fs-extra';
 
 import { Button, ButtonGroup } from 'components';
 import { Dialog } from 'components/popover';
-import LocationsPanel from '../containers/Outliner/LocationsPanel';
+import LocationsPanel from './Outliner/LocationsPanel';
 import { remote } from 'electron';
 import StoreContext from '../contexts/StoreContext';
 import { RendererMessenger } from '../../../Messaging';

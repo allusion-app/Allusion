@@ -33,7 +33,7 @@ import {
   handleDragOverAndLeave,
 } from './DnD';
 import { formatTagCountText } from 'src/renderer/frontend/utils';
-import { IExpansionState } from '..';
+import { IExpansionState } from '../../types';
 import { Action, State, Factory, reducer } from './StateReducer';
 import TagStore from 'src/renderer/frontend/stores/TagStore';
 import TagCollectionStore from 'src/renderer/frontend/stores/TagCollectionStore';

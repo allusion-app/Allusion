@@ -16,7 +16,7 @@ import FileTags from '../../components/FileTag';
 import { useContext } from 'react';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
-import Searchbar from '../ContentView/Searchbar';
+import Searchbar from './Searchbar';
 import FileStore from '../../stores/FileStore';
 import UiStore from '../../stores/UiStore';
 
