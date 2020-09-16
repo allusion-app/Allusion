@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { KeyCombo } from '@blueprintjs/core';
-import IconSet from 'components/Icons';
 import { Tooltip } from '.';
+import { IconSet } from 'components';
 import {
   ToolbarButton,
   ToolbarToggleButton,
@@ -10,7 +10,7 @@ import {
   Menu,
   MenuRadioGroup,
   MenuRadioItem,
-} from 'components';
+} from 'components/menu';
 import { IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import { useContext } from 'react';

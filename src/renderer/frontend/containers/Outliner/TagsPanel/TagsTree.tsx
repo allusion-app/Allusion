@@ -3,8 +3,8 @@ import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { Collapse } from '@blueprintjs/core';
 
-import { Tree, Toolbar, ToolbarButton, ContextMenu } from 'components';
-import IconSet from 'components/Icons';
+import { IconSet, Tree } from 'components';
+import { Toolbar, ToolbarButton, ContextMenu } from 'components/menu';
 import {
   ITreeBranch,
   ITreeLeaf,

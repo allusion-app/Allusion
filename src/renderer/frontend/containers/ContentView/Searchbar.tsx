@@ -2,8 +2,8 @@ import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { TagInput } from '@blueprintjs/core';
 import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
-import IconSet from 'components/Icons';
-import { IconButton, Tooltip } from 'components';
+import { IconButton, IconSet } from 'components';
+import { Tooltip } from 'components/popover';
 import { ClientTag } from '../../../entities/Tag';
 import {
   ClientIDSearchCriteria,

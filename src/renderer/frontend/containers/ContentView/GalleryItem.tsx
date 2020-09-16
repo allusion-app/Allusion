@@ -5,8 +5,9 @@ import { H4, Card } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Tooltip, MenuDivider, MenuItem, Tag } from 'components';
+import { Button, ButtonGroup, IconSet, Tag } from 'components';
+import { MenuDivider, MenuItem } from 'components/menu';
+import { Tooltip } from 'components/popover';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';

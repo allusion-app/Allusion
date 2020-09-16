@@ -8,8 +8,8 @@ import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import LocationStore from 'src/renderer/frontend/stores/LocationStore';
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Dialog } from 'components';
+import { Button, ButtonGroup, IconSet } from 'components';
+import { Dialog } from 'components/popover';
 import { AppToaster } from 'src/renderer/frontend/App';
 
 interface IMatch {

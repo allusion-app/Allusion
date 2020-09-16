@@ -4,8 +4,6 @@ import { observer, Observer } from 'mobx-react-lite';
 import { Collapse, Label } from '@blueprintjs/core';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
-import IconSet from 'components/Icons';
-import { DialogActions, Dialog, MenuDivider, IconButton } from 'components';
 import {
   ClientLocation,
   DEFAULT_LOCATION_ID,
@@ -15,7 +13,9 @@ import { ClientStringSearchCriteria } from 'src/renderer/entities/SearchCriteria
 import { IFile } from 'src/renderer/entities/File';
 import MultiTagSelector from 'src/renderer/frontend/components/MultiTagSelector';
 import { AppToaster } from 'src/renderer/frontend/App';
-import { Tree, Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu } from 'components';
+import { IconButton, IconSet, Tree } from 'components';
+import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'components/menu';
+import { DialogActions, Dialog } from 'components/popover';
 import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
 import { IExpansionState } from '..';
 import LocationRecoveryDialog from './LocationRecoveryDialog';

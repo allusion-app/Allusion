@@ -4,7 +4,7 @@ interface ISVG extends React.SVGProps<SVGSVGElement> {
   src: any;
 }
 
-export const SVG = (props: ISVG) => {
+const SVG = (props: ISVG) => {
   const { src: SVG, ...p } = props;
   return <SVG {...p} />;
 };
@@ -167,4 +167,4 @@ const IconSet = {
   WARNING: toSvg(WARNING),
 };
 
-export default IconSet;
+export { IconSet, SVG };

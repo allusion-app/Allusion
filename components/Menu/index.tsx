@@ -1,7 +1,7 @@
 import './menu.scss';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-import IconSet from '../Icons';
+import { IconSet } from '../Icons';
 import { Flyout } from '../Dialog';
 
 const handleBlur = (e: React.FocusEvent) => {

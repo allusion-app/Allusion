@@ -6,7 +6,7 @@ import { observer } from 'mobx-react-lite';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import StoreContext from '../contexts/StoreContext';
-import IconSet from 'components/Icons';
+import { IconSet } from 'components';
 
 const TagSelect = Suggest.ofType<ClientTag | ClientTagCollection>();
 

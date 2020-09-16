@@ -4,8 +4,8 @@ import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
 import { observer, Observer } from 'mobx-react-lite';
 import StoreContext, { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
-import IconSet from 'components/Icons';
-import { Toolbar, ToolbarToggleButton } from 'components';
+import { IconSet } from 'components';
+import { Toolbar, ToolbarToggleButton } from 'components/menu';
 
 // Tooltip info
 const enum TooltipInfo {

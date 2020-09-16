@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
-import IconSet from 'components/Icons';
 import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from '../contexts/StoreContext';
 import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import { ClientFile } from 'src/renderer/entities/File';
-import { Alert, DialogButton, Tag } from 'components';
+import { Tag, IconSet } from 'components';
+import { Alert, DialogButton } from 'components/popover';
 
 interface IRemovalAlertProps {
   open: boolean;

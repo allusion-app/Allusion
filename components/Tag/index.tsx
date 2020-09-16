@@ -1,6 +1,6 @@
 import './tag.scss';
 import { IconButton } from 'components/Button';
-import IconSet from 'components/Icons';
+import { IconSet } from '../Icons';
 import { observer } from 'mobx-react-lite';
 import React, { useMemo } from 'react';
 import { getColorFromBackground } from 'src/renderer/frontend/utils';

@@ -3,7 +3,7 @@ import { Rectangle } from 'electron';
 
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import { observer } from 'mobx-react-lite';
-import IconSet from 'components/Icons';
+import { IconSet } from 'components';
 
 interface IZoomableImageProps {
   src: string;

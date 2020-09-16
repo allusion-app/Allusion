@@ -6,8 +6,7 @@ import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
 import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
-import IconSet from 'components/Icons';
-import { IconButton, Tag } from 'components';
+import { IconButton, IconSet, Tag } from 'components';
 import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 
 const TagMultiSelect = MultiSelect.ofType<ClientTag | ClientTagCollection>();

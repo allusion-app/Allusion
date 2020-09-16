@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
-import IconSet from 'components/Icons';
+import { IconSet } from 'components';
 import {
   Toolbar as Commandbar,
   ToolbarToggleButton,
@@ -10,7 +10,7 @@ import {
   Menu,
   MenuItem,
   MenuCheckboxItem,
-} from 'components';
+} from 'components/menu';
 import ContentToolbar from './ContentToolbar';
 import { remote } from 'electron';
 import { KeyCombo } from '@blueprintjs/core';

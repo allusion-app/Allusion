@@ -3,8 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { Callout, H4, KeyCombo, Divider } from '@blueprintjs/core';
 
 import StoreContext from '../contexts/StoreContext';
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Radio, RadioGroup, Toggle } from 'components';
+import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'components';
 import { ClearDbButton } from './ErrorBoundary';
 import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';

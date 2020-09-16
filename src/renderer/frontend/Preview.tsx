@@ -4,9 +4,9 @@ import { observer } from 'mobx-react-lite';
 import StoreContext from './contexts/StoreContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ContentView from './containers/ContentView';
-import IconSet from 'components/Icons';
 import { useWorkerListener } from './ThumbnailGeneration';
-import { Toolbar, ToolbarGroup, ToolbarButton, Toggle } from 'components';
+import { IconSet, Toggle } from 'components';
+import { Toolbar, ToolbarGroup, ToolbarButton } from 'components/menu';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);

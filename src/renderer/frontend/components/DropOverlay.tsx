@@ -9,8 +9,8 @@ import { timeoutPromise } from '../utils';
 import { IMG_EXTENSIONS } from '../../entities/File';
 import { RendererMessenger, IStoreFileMessage } from '../../../Messaging';
 import { DEFAULT_LOCATION_ID } from '../../entities/Location';
-import { Dialog, Tag } from 'components';
-import IconSet from 'components/Icons';
+import { Tag, IconSet } from 'components';
+import { Dialog } from 'components/popover';
 
 const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);

@@ -10,8 +10,8 @@ import {
 import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { camelCaseToSpaced } from 'src/renderer/frontend/utils';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
-import IconSet from 'components/Icons';
-import { Button, ButtonGroup, Dialog, IconButton, RadioGroup, Radio } from 'components';
+import { Button, ButtonGroup, IconButton, IconSet, RadioGroup, Radio } from 'components';
+import { Dialog } from 'components/popover';
 import TagSelector from 'src/renderer/frontend/components/TagSelector';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { ID } from 'src/renderer/entities/ID';
