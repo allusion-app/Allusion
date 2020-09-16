@@ -55,7 +55,7 @@ interface ILabelProps {
 
 const Label = (props: ILabelProps) => (
   <>
-    <span style={{ color: props.color, display: 'inline-flex' }}>{props.icon}</span>
+    <span style={{ color: props.color }}>{props.icon}</span>
     {props.isEditing ? (
       <input
         autoFocus
@@ -239,7 +239,7 @@ const Tag = observer((props: ITagProps) => {
         onClick={handleQuickQuery}
       />
       {!isEditing && (
-        <button onClick={handleSelect} className="btn-minimal after-icon">
+        <button onClick={handleSelect} className="btn-icon">
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </button>
       )}
@@ -398,11 +398,7 @@ const Collection = observer((props: ICollectionProps) => {
         onClick={handleQuickQuery}
       />
       {!isEditing && (
-        <button
-          disabled={!nodeData.hasContent}
-          onClick={handleSelect}
-          className="btn-minimal after-icon"
-        >
+        <button disabled={!nodeData.hasContent} onClick={handleSelect} className="btn-icon">
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </button>
       )}
@@ -783,7 +779,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
       <Collapse isOpen={!isCollapsed}>
         {root.subCollections.length === 0 && root.tags.length === 0 ? (
           <div className="tree-content-label" style={{ padding: '0.25rem' }}>
-            <span>{IconSet.INFO}</span>
+            {IconSet.INFO}
             No tags or collections created yet
           </div>
         ) : (
