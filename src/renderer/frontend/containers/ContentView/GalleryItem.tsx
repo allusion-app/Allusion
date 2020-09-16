@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { H4, Card } from '@blueprintjs/core';
 
 import { ClientFile } from '../../../entities/File';
 import { ClientTag } from '../../../entities/Tag';
@@ -13,7 +12,6 @@ import StoreContext from '../../contexts/StoreContext';
 import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
-import UiStore from '../../stores/UiStore';
 
 interface IThumbnailTags {
   tags: ClientTag[];
@@ -29,45 +27,47 @@ const ThumbnailTags = observer(({ tags, onClick, onDoubleClick }: IThumbnailTags
   </span>
 ));
 
-interface IThumbnailDecoration {
+const FileRecovery = observer(({ file }: { file: ClientFile }) => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <div>
+      <p>The file {file.name} could not be found.</p>
+      <p>Would you like to remove it from your library?</p>
+      <ButtonGroup>
+        <Button
+          text="Remove"
+          styling="outlined"
+          onClick={() => {
+            uiStore.selectFile(file, true);
+            uiStore.openToolbarFileRemover();
+          }}
+        />
+      </ButtonGroup>
+    </div>
+  );
+});
+
+interface IThumbnailDecoration extends Omit<IThumbnailTags, 'tags'> {
   showDetails?: boolean;
   file: ClientFile;
-  uiStore: UiStore;
-  tags: JSX.Element;
 }
 
 const ThumbnailDecoration = observer(
-  ({ showDetails, file, uiStore, tags }: IThumbnailDecoration) => {
+  ({ showDetails, file, onClick, onDoubleClick }: IThumbnailDecoration) => {
     if (file.isBroken && showDetails) {
-      return (
-        <Card>
-          <p>The file {file.name} could not be found.</p>
-          <p>Would you like to remove it from your library?</p>
-          <ButtonGroup>
-            <Button
-              text="Remove"
-              styling="outlined"
-              onClick={() => {
-                uiStore.selectFile(file, true);
-                uiStore.openToolbarFileRemover();
-              }}
-            />
-          </ButtonGroup>
-        </Card>
-      );
-    } else {
-      return (
-        <>
-          {showDetails && (
-            <>
-              <H4>{file.filename}</H4>
-              <ImageInfo file={file} />
-            </>
-          )}
-          {tags}
-        </>
-      );
+      return <FileRecovery file={file} />;
     }
+    return (
+      <>
+        {showDetails && (
+          <>
+            <h2>{file.filename}</h2>
+            <ImageInfo file={file} />
+          </>
+        )}
+        <ThumbnailTags tags={file.clientTags} onClick={onClick} onDoubleClick={onDoubleClick} />
+      </>
+    );
   },
 );
 
@@ -250,14 +250,8 @@ const GalleryItem = observer(
         <ThumbnailDecoration
           showDetails={showDetails}
           file={file}
-          uiStore={uiStore}
-          tags={
-            <ThumbnailTags
-              tags={file.clientTags}
-              onClick={handleClick}
-              onDoubleClick={handleDoubleClick}
-            />
-          }
+          onClick={handleClick}
+          onDoubleClick={handleDoubleClick}
         />
       </div>
     );
@@ -339,7 +333,7 @@ const SimpleGalleryItem = observer(({ file, showDetails }: IGalleryItemProps) =>
       </div>
       {showDetails && (
         <>
-          <H4>{file.filename}</H4>
+          <h2>{file.filename}</h2>
           <ImageInfo file={file} />
           <span className="thumbnail-tags" />
         </>

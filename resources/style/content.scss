@@ -40,10 +40,11 @@
   position: relative;
   padding: 4px 0;
 
-  h4 {
+  h2 {
     grid-area: title;
+    font-size: medium;
+    margin: 0;
     white-space: nowrap;
-    overflow: hidden;
   }
 
   &[aria-selected='true'] .thumbnail-img {
@@ -184,10 +185,10 @@
     position: unset;
     padding: 0;
     margin-left: -0.2rem;
+    min-height: 1.5rem;
   }
 
-  .bp3-heading {
-    margin: 0;
+  h2 {
     align-self: end;
   }
 }
@@ -197,9 +198,6 @@
 }
 
 .thumbnail-small.list {
-  .bp3-heading {
-    font-size: 16px;
-  }
   .file-info {
     grid-row-gap: 0;
   }
