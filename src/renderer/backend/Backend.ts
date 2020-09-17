@@ -77,7 +77,7 @@ export default class Backend {
 
   async createTag(tag: ITag): Promise<ITag> {
     console.log('Backend: Creating tag...', tag);
-    return await this.tagRepository.create(tag);
+    return this.tagRepository.create(tag);
   }
 
   async createTagCollection(collection: ITagCollection): Promise<ITagCollection> {
@@ -87,22 +87,22 @@ export default class Backend {
 
   async createFile(file: IFile): Promise<IFile> {
     console.log('Backend: Creating file...', file);
-    return await this.fileRepository.create(file);
+    return this.fileRepository.create(file);
   }
 
   async saveTag(tag: ITag): Promise<ITag> {
     console.log('Backend: Saving tag...', tag);
-    return await this.tagRepository.update(tag);
+    return this.tagRepository.update(tag);
   }
 
   async saveTagCollection(tagCollection: ITagCollection): Promise<ITagCollection> {
     console.log('Backend: Saving tag collection...', tagCollection);
-    return await this.tagCollectionRepository.update(tagCollection);
+    return this.tagCollectionRepository.update(tagCollection);
   }
 
   async saveFile(file: IFile): Promise<IFile> {
     console.log('Backend: Saving file...', file);
-    return await this.fileRepository.update(file);
+    return this.fileRepository.update(file);
   }
 
   async removeTag(tag: ITag): Promise<void> {
@@ -117,7 +117,7 @@ export default class Backend {
     // Update files in db
     await this.fileRepository.updateMany(filesWithTag);
     // Remove tag from db
-    await this.tagRepository.remove(tag);
+    return this.tagRepository.remove(tag);
   }
 
   async removeTagCollection(tagCollection: ITagCollection): Promise<void> {
@@ -133,17 +133,17 @@ export default class Backend {
     // Remove tags properly
     await Promise.all(tags.map((tag) => tag && this.removeTag(tag)));
     // Remove tag collection itself from db
-    await this.tagCollectionRepository.remove(tagCollection);
+    return this.tagCollectionRepository.remove(tagCollection);
   }
 
   async removeFile(file: IFile): Promise<void> {
     console.log('Removing file...', file);
-    await this.fileRepository.remove(file);
+    return this.fileRepository.remove(file);
   }
 
   async removeFiles(files: IFile[]): Promise<void> {
     console.log('Removing files...', files);
-    await this.fileRepository.removeMany(files);
+    return this.fileRepository.removeMany(files);
   }
 
   async countFiles(
@@ -169,7 +169,7 @@ export default class Backend {
 
   async saveLocation(dir: ILocation): Promise<ILocation> {
     console.log('Backend: Saving watched directory...', dir);
-    return await this.locationRepository.update(dir);
+    return this.locationRepository.update(dir);
   }
 
   async removeLocation(dir: ILocation): Promise<void> {
