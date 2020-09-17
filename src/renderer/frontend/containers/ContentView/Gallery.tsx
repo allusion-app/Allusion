@@ -20,7 +20,6 @@ import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
-import useDebounce from '../../hooks/useDebounce';
 import { LayoutMenuItems, SortMenuItems } from '../Toolbar/ContentToolbar';
 import useContextMenu from '../../hooks/useContextMenu';
 
@@ -83,7 +82,7 @@ function getLayoutComponent(
   }
 }
 
-function get_column_layout(width: number, minSize: number, maxSize: number) {
+function get_column_layout(width: number, minSize: number, maxSize: number): [number, number] {
   const numColumns = Math.trunc(width / minSize);
   let cellSize = Math.trunc(width / numColumns);
   if (isNaN(cellSize) || !isFinite(cellSize)) {
@@ -104,12 +103,18 @@ const GridGallery = observer(
     const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
     const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
+    const [[numColumns, cellSize], setDimensions] = useState([0, 0]);
 
-    // Debounce the numColums so it doesn't constantly update when the panel width changes (sidebar toggling or window resize)
-    const [numColumns, cellSize] = useDebounce(
-      get_column_layout(contentRect.width, minSize, maxSize),
-      50,
-    );
+    useEffect(() => {
+      const timeoutID = setTimeout(() => {
+        setDimensions(get_column_layout(contentRect.width, minSize, maxSize));
+      }, 50);
+
+      return () => {
+        clearTimeout(timeoutID);
+      };
+    }, [contentRect.width, maxSize, minSize]);
+
     const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
     const ref = useRef<FixedSizeGrid>(null);
