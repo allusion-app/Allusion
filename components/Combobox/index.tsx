@@ -1,4 +1,5 @@
 /** NOTE: Listbox and Option re-use the styles from menu.scss! */
+import './combobox.scss';
 import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Flyout } from '../Dialog';
@@ -88,26 +89,35 @@ const MultiAutoComplete = observer(
           setIsOpen(false);
         }}
       >
-        <span>
-          {selection.map((t) => (
-            <Tag key={t.id} text={tagLabel(t)} color={tagColor(t)} onRemove={() => onDeselect(t)} />
-          ))}
-        </span>
-        <IconButton icon={IconSet.CLOSE} text="Close" onClick={onClear} />
         <Flyout
           open={isOpen}
           placement="bottom"
           target={
-            <input
-              disabled={disabled}
-              type="text"
-              value={query}
-              aria-autocomplete="list"
-              onChange={(e) => {
-                setIsOpen(true);
-                setQuery(e.target.value);
-              }}
-            />
+            <div className="multiautocomplete-input">
+              <div>
+                <span>
+                  {selection.map((t) => (
+                    <Tag
+                      key={t.id}
+                      text={tagLabel(t)}
+                      color={tagColor(t)}
+                      onRemove={() => onDeselect(t)}
+                    />
+                  ))}
+                </span>
+                <input
+                  disabled={disabled}
+                  type="text"
+                  value={query}
+                  aria-autocomplete="list"
+                  onChange={(e) => {
+                    setIsOpen(true);
+                    setQuery(e.target.value);
+                  }}
+                />
+              </div>
+              <IconButton icon={IconSet.CLOSE} text="Close" onClick={onClear} />
+            </div>
           }
         >
           <Listbox>

@@ -1,0 +1,19 @@
+.multiautocomplete-input {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+
+  &:first-child {
+    min-height: 1.5rem;
+  }
+
+  > .btn-icon {
+    min-width: unset;
+    min-height: 1.5rem;
+
+    .custom-icon {
+      height: 1em;
+      width: 1em;
+    }
+  }
+}

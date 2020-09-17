@@ -97,12 +97,7 @@ const CriteriaList = ({
 export const Searchbar = observer(() => {
   const rootStore = useContext(StoreContext);
   const {
-    uiStore: {
-      searchCriteriaList,
-      clearSearchCriteriaList,
-      toggleAdvancedSearch,
-      removeSearchCriteriaByIndex,
-    },
+    uiStore: { searchCriteriaList, toggleAdvancedSearch, removeSearchCriteriaByIndex },
     tagStore,
   } = rootStore;
 
@@ -141,9 +136,6 @@ export const Searchbar = observer(() => {
           removeCriteriaByIndex={removeSearchCriteriaByIndex}
         />
       )}
-      <Tooltip content="Clear Search" hoverDelay={1500}>
-        <IconButton icon={IconSet.CLOSE} onClick={clearSearchCriteriaList} text="Close" />
-      </Tooltip>
     </div>
   );
 });
