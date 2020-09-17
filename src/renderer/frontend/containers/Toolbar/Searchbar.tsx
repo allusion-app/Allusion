@@ -1,15 +1,14 @@
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
-import { TagInput } from '@blueprintjs/core';
 import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
-import { IconButton, IconSet } from 'components';
+import { IconButton, IconSet, Tag } from 'components';
 import { Tooltip } from 'components/popover';
 import { ClientTag } from '../../../entities/Tag';
 import {
   ClientIDSearchCriteria,
   ClientCollectionSearchCriteria,
 } from '../../../entities/SearchCriteria';
-import MultiTagSelector from '../../components/MultiTagSelector';
+import { MultiTagColSelector } from '../../components/MultiTagSelector';
 import { ClientTagCollection } from '../../../entities/TagCollection';
 
 const QuickSearchList = ({
@@ -28,52 +27,44 @@ const QuickSearchList = ({
     }
   });
 
-  const handleSelectTag = (tag: ClientTag) => {
-    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', tag.id, tag.name));
-  };
-
-  const handleSelectCol = (col: ClientTagCollection) => {
-    uiStore.addSearchCriteria(
-      new ClientCollectionSearchCriteria(col.id, col.getTagsRecursively(), col.name),
-    );
-  };
-
-  const handleDeselectTag = (tag: ClientTag) => {
-    const crit = uiStore.searchCriteriaList.find(
-      (c) => c instanceof ClientIDSearchCriteria && c.value.includes(tag.id),
-    );
-    if (crit) {
-      uiStore.removeSearchCriteria(crit);
+  const handleSelect = (item: ClientTag | ClientTagCollection) => {
+    if (item instanceof ClientTag) {
+      return uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', item.id, item.name));
     }
+    uiStore.addSearchCriteria(
+      new ClientCollectionSearchCriteria(item.id, item.getTagsRecursively(), item.name),
+    );
   };
 
-  const handleDeselectCol = (col: ClientTagCollection) => {
-    const crit = uiStore.searchCriteriaList.find(
-      (c) => c instanceof ClientCollectionSearchCriteria && c.collectionId === col.id,
-    );
+  const handleDeselect = (item: ClientTag | ClientTagCollection) => {
+    let crit;
+    if (item instanceof ClientTag) {
+      crit = uiStore.searchCriteriaList.find(
+        (c) => c instanceof ClientIDSearchCriteria && c.value.includes(item.id),
+      );
+    } else {
+      crit = uiStore.searchCriteriaList.find(
+        (c) => c instanceof ClientCollectionSearchCriteria && c.collectionId === item.id,
+      );
+    }
+
     if (crit) {
       uiStore.removeSearchCriteria(crit);
     }
   };
 
   return (
-    <MultiTagSelector
-      selectedItems={selectedItems}
-      onTagSelect={handleSelectTag}
-      onTagDeselect={handleDeselectTag}
-      onClearSelection={uiStore.clearSearchCriteriaList}
-      autoFocus={!uiStore.isAdvancedSearchOpen} // don't auto focus with advanced search open; focus is needed there instead
-      tagIntent="primary"
-      showClearButton={false}
-      includeCollections
-      onTagColDeselect={handleDeselectCol}
-      onTagColSelect={handleSelectCol}
+    <MultiTagColSelector
+      selection={selectedItems}
+      onSelect={handleSelect}
+      onDeselect={handleDeselect}
+      onClear={uiStore.clearSearchCriteriaList}
     />
   );
 };
 
 interface ICriteriaList {
-  criterias: React.ReactNode[];
+  criterias: string[];
   removeCriteriaByIndex: (index: number) => void;
   toggleAdvancedSearch: () => void;
 }
@@ -83,29 +74,23 @@ const CriteriaList = ({
   toggleAdvancedSearch,
   removeCriteriaByIndex,
 }: ICriteriaList) => {
-  const preventTyping = (e: React.KeyboardEvent<HTMLElement>, i?: number) => {
-    // If it's not an event on an existing Tag element, ignore it
-    if (i === undefined && !e.ctrlKey) {
-      e.preventDefault();
-    }
-  };
-
-  // Open advanced search when clicking one of the criteria (but not their delete buttons)
-  const handleTagClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).tagName === 'SPAN') {
-      toggleAdvancedSearch();
-    }
-  };
+  // // Open advanced search when clicking one of the criteria (but not their delete buttons)
+  const handleTagClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        e.stopPropagation();
+        toggleAdvancedSearch();
+      }
+    },
+    [toggleAdvancedSearch],
+  );
 
   return (
-    <TagInput
-      values={criterias}
-      onRemove={(_, i) => removeCriteriaByIndex(i)}
-      inputProps={{ disabled: true, onMouseUp: toggleAdvancedSearch }}
-      onKeyDown={preventTyping}
-      tagProps={{ minimal: true, intent: 'primary', onClick: handleTagClick, interactive: true }}
-      fill
-    />
+    <div>
+      {criterias.map((c, i) => (
+        <Tag key={i} text={c} onClick={handleTagClick} onRemove={() => removeCriteriaByIndex(i)} />
+      ))}
+    </div>
   );
 };
 

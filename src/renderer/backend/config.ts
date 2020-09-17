@@ -4,7 +4,7 @@ import Dexie from 'dexie';
 import { ILocation } from '../entities/Location';
 
 // The name of the IndexedDB
-export const DB_NAME = 'Allusion2';
+export const DB_NAME = 'Allusion';
 
 // Schema based on https://dexie.org/docs/Version/Version.stores()#schema-syntax
 // Only for the indexes of the DB, not all fields

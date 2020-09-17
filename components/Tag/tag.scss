@@ -8,4 +8,16 @@
   font-size: small;
   margin: 0.125rem;
   white-space: nowrap;
+
+  .btn-icon {
+    min-width: 1em;
+    min-height: 1em;
+  }
+
+  .custom-icon {
+    margin: 0;
+    margin-left: 0.25rem;
+    height: 0.75em;
+    width: 0.75em;
+  }
 }

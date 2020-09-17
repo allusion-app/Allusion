@@ -1,6 +1,6 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { remote, shell } from 'electron';
-import { observer, Observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 import { Collapse } from '@blueprintjs/core';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
@@ -11,7 +11,7 @@ import {
 } from 'src/renderer/entities/Location';
 import { ClientStringSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { IFile } from 'src/renderer/entities/File';
-import MultiTagSelector from 'src/renderer/frontend/components/MultiTagSelector';
+import { MultiTagSelector } from 'src/renderer/frontend/components/MultiTagSelector';
 import { AppToaster } from 'src/renderer/frontend/App';
 import { IconButton, IconSet, Tree } from 'components';
 import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'components/menu';
@@ -33,8 +33,10 @@ interface ILocationConfigModalProps {
   handleClose: () => void;
 }
 
-const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) => {
-  if (!dir) return <> </>;
+const LocationConfigModal = observer(({ dir, handleClose }: ILocationConfigModalProps) => {
+  if (!dir) {
+    return null;
+  }
   return (
     <Dialog labelledby="dialog-title" describedby="dialog-information" open onCancel={handleClose}>
       <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
@@ -42,24 +44,20 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
         Location: {dir.name}
       </h2>
       <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={handleClose} />
-      <Observer>
-        {() => (
-          <div id="dialog-information" className="dialog-information">
-            <p>Path:</p>
-            <pre>{dir.path}</pre>
-            <label>
-              Tags to add
-              <MultiTagSelector
-                disabled={dir.isBroken}
-                selectedItems={dir.clientTagsToAdd}
-                onTagSelect={dir.addTag}
-                onTagDeselect={dir.removeTag}
-                onClearSelection={dir.clearTags}
-              />
-            </label>
-          </div>
-        )}
-      </Observer>
+      <div id="dialog-information" className="dialog-information">
+        <p>Path:</p>
+        <pre>{dir.path}</pre>
+        <label>
+          Tags to add
+          <MultiTagSelector
+            disabled={dir.isBroken}
+            selection={dir.clientTagsToAdd}
+            onSelect={dir.addTag}
+            onDeselect={dir.removeTag}
+            onClear={dir.clearTags}
+          />
+        </label>
+      </div>
       <div className="dialog-footer">
         <DialogActions
           closeButtonText={dir.isInitialized ? 'Close' : 'Confirm'}
@@ -68,7 +66,7 @@ const LocationConfigModal = ({ dir, handleClose }: ILocationConfigModalProps) =>
       </div>
     </Dialog>
   );
-};
+});
 
 interface ITreeData {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
