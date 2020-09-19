@@ -6,6 +6,7 @@ import IconSet from 'components/Icons';
 import { Toolbar as Commandbar, ToolbarToggleButton, ToolbarGroup } from 'components';
 import ContentToolbar from './ContentToolbar';
 import { remote } from 'electron';
+import { H4, Icon, H5, Popover, Menu, MenuItem, Divider } from '@blueprintjs/core';
 
 // Tooltip info
 export const enum ToolbarTooltips {
@@ -27,10 +28,71 @@ export const enum ToolbarTooltips {
   Preview = 'Open selected images in a preview window',
 }
 
+const LibraryPicker = () => {
+  const { locationStore, tagStore } = useContext(StoreContext);
+
+  const [isOpen, setOpen] = useState(false);
+
+  return (
+    <Popover
+      minimal
+      openOnTargetFocus={false}
+      onOpening={() => setOpen(true)}
+      onClose={() => setOpen(false)}
+      content={
+        <Menu>
+          <MenuItem
+            icon="book"
+            // active
+            text={
+              <div>
+                Your library
+                <br />
+                <span style={{ fontSize: '11px', color: 'grey' }}>
+                  Your personal visual library
+                </span>
+              </div>
+            }
+            multiline
+            labelElement={<Icon icon="tick" />}
+          />
+          <MenuItem
+            icon="folder-shared"
+            text={
+              <div>
+                Library of XYZ
+                <br />
+                <span style={{ fontSize: '11px', color: 'grey' }}>Read-only</span>
+              </div>
+            }
+            multiline
+            labelElement={<Icon icon="notifications" />}
+          />
+          <Divider />
+          <MenuItem text="Create new library" icon="add" />
+          <MenuItem text="Import from folder..." icon="import" />
+          <MenuItem text="Import from Dropbox..." icon="box" />
+          <MenuItem text="Import from Google Drive..." icon="drive-time" />
+        </Menu>
+      }
+    >
+      <div style={{ paddingRight: '32px' }}>
+        <H5 style={{ marginBottom: '0px', cursor: 'pointer' }}>
+          Your library <Icon icon={isOpen ? 'caret-down' : 'caret-right'} />
+        </H5>
+        <span style={{ fontSize: '11px', color: 'grey' }}>
+          {locationStore.locationList.length} Locations, {tagStore.tagList.length} Tags
+        </span>
+      </div>
+    </Popover>
+  );
+};
+
 const OutlinerToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
     <ToolbarGroup id="outliner-toolbar">
+      <LibraryPicker />
       <ToolbarToggleButton
         showLabel="never"
         icon={IconSet.OUTLINER}
