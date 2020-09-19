@@ -16,8 +16,6 @@ interface IZoomableImageProps {
 const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImageProps) => {
   const ignoreClick = useCallback((e: React.MouseEvent) => e.stopPropagation(), []);
 
-  console.log(contentRect.height);
-
   // Todo: Same context menu as GalleryItem
   return (
     <div onClick={ignoreClick} id="zoomableImage">
