@@ -63,12 +63,12 @@ const Multi = observer(({ files }: { files: ClientFile[] }) => {
   );
 });
 
-const FileTags = ({ files }: { files: ClientFile[] }) => {
+const FileTags = observer(({ files }: { files: ClientFile[] }) => {
   return (
     <div className="file-tag">
       {files.length === 1 ? <Single file={files[0]} /> : <Multi files={files} />}
     </div>
   );
-};
+});
 
 export default FileTags;
