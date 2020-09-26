@@ -8,10 +8,8 @@ import { formatTagCountText } from 'src/renderer/frontend/utils';
 import { Action, Factory } from './StateReducer';
 import { IExpansionState } from '..';
 import { ID } from 'src/renderer/entities/ID';
-import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
-import TagCollectionStore from 'src/renderer/frontend/stores/TagCollectionStore';
 import TagStore from 'src/renderer/frontend/stores/TagStore';
 
 interface IColorOptions {
@@ -138,8 +136,8 @@ interface IMenuProps<T> {
 }
 
 export const TagContextMenu = ({ nodeData, dispatch, uiStore }: IMenuProps<ClientTag>) => {
-  const { tags, collections } = uiStore.getTagContextItems(nodeData.id);
-  let contextText = formatTagCountText(Math.max(0, tags.length - 1), collections.length);
+  const { tags } = uiStore.getTagContextItems(nodeData.id);
+  let contextText = formatTagCountText(Math.max(0, tags.length - 1));
   contextText = contextText && ` (${contextText})`;
 
   return (
@@ -174,39 +172,32 @@ export const TagContextMenu = ({ nodeData, dispatch, uiStore }: IMenuProps<Clien
   );
 };
 
-const expandSubCollection = (
-  c: ClientTagCollection,
-  expansion: IExpansionState,
-): IExpansionState => {
-  c.clientSubCollections.forEach((subCol) => {
-    expandSubCollection(subCol, expansion);
+const expandTagCollection = (c: ClientTag, expansion: IExpansionState): IExpansionState => {
+  c.clientSubTags.forEach((subTag) => {
+    expandTagCollection(subTag, expansion);
   });
   expansion[c.id] = true;
   return expansion;
 };
 
-const collapseSubCollection = (
-  c: ClientTagCollection,
-  expansion: IExpansionState,
-): IExpansionState => {
-  c.clientSubCollections.forEach((subCol) => {
-    collapseSubCollection(subCol, expansion);
+const collapseTagCollection = (c: ClientTag, expansion: IExpansionState): IExpansionState => {
+  c.clientSubTags.forEach((subTag) => {
+    collapseTagCollection(subTag, expansion);
   });
   expansion[c.id] = false;
   return expansion;
 };
 
-interface ICollectionMenuProps extends IMenuProps<ClientTagCollection> {
-  tagCollectionStore: TagCollectionStore;
+interface ICollectionMenuProps extends IMenuProps<ClientTag> {
   tagStore: TagStore;
   expansion: IExpansionState;
   pos: number;
 }
 
 export const CollectionContextMenu = (props: ICollectionMenuProps) => {
-  const { nodeData, dispatch, expansion, pos, tagCollectionStore, tagStore, uiStore } = props;
-  const { tags, collections } = uiStore.getTagContextItems(nodeData.id);
-  let contextText = formatTagCountText(tags.length, Math.max(0, collections.length - 1));
+  const { nodeData, dispatch, expansion, pos, tagStore, uiStore } = props;
+  const { tags } = uiStore.getTagContextItems(nodeData.id);
+  let contextText = formatTagCountText(tags.length);
   contextText = contextText && ` (${contextText})`;
   return (
     <Menu>
@@ -223,19 +214,6 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         text="New Tag"
         icon={IconSet.TAG_ADD}
       />
-      <MenuItem
-        onClick={() =>
-          tagCollectionStore
-            .addTagCollection('New Collection')
-            .then((collection) => {
-              nodeData.addCollection(collection.id);
-              dispatch(Factory.insertNode(nodeData.id, collection.id));
-            })
-            .catch((err) => console.log('Could not create collection', err))
-        }
-        text="New Collection"
-        icon={IconSet.TAG_ADD_COLLECTION}
-      />
       <EditMenu
         rename={() => dispatch(Factory.enableEditing(nodeData.id))}
         delete={() => dispatch(Factory.confirmDeletion(nodeData))}
@@ -251,16 +229,16 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
       />
       <Divider />
       <MenuItem
-        onClick={() => dispatch(Factory.setExpansion(expandSubCollection(nodeData, expansion)))}
+        onClick={() => dispatch(Factory.setExpansion(expandTagCollection(nodeData, expansion)))}
         text="Expand"
         icon={IconSet.ITEM_EXPAND}
       />
       <MenuItem
-        onClick={() => dispatch(Factory.setExpansion(collapseSubCollection(nodeData, expansion)))}
+        onClick={() => dispatch(Factory.setExpansion(collapseTagCollection(nodeData, expansion)))}
         text="Collapse"
         icon={IconSet.ITEM_COLLAPS}
       />
-      <MenuItem
+      {/* <MenuItem
         onClick={() => nodeData.parent.insertCollection(nodeData, pos - 2)}
         text="Move Up"
         icon={IconSet.ITEM_MOVE_UP}
@@ -271,7 +249,7 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         text="Move Down"
         icon={IconSet.ITEM_MOVE_DOWN}
         disabled={pos === nodeData.parent.subCollections.length}
-      />
+      /> */}
       <Divider />
       <SearchMenu
         addSearch={() =>

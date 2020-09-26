@@ -134,12 +134,9 @@ export function promiseAllLimit<T>(
 ///////////////////////////////
 //// Text formatting utils ////
 ///////////////////////////////
-export const formatTagCountText = (numTags: number, numCols: number) => {
+export const formatTagCountText = (numTags: number) => {
   const extraTagsText = numTags ? `+${numTags} tag${numTags === 1 ? '' : 's'}` : '';
-  const extraColsText = numCols
-    ? `${extraTagsText && ', '}+${numCols} collection${numCols === 1 ? '' : 's'}`
-    : '';
-  return `${extraTagsText}${extraColsText}`;
+  return `${extraTagsText}`;
 };
 
 export const capitalize = (value: string) => {

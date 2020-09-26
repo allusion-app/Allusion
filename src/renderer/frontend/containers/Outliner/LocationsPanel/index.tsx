@@ -26,7 +26,7 @@ import MultiTagSelector from 'src/renderer/frontend/components/MultiTagSelector'
 import { AppToaster } from 'src/renderer/frontend/App';
 import UiStore, { FileSearchCriteria } from 'src/renderer/frontend/stores/UiStore';
 import { Tree, Toolbar, ToolbarButton } from 'components';
-import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
+import { ITreeItem, createBranchOnKeyDown } from 'components/Tree';
 import { IExpansionState } from '..';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { CustomKeyDict } from '../index';
@@ -352,12 +352,11 @@ const SubLocationLabel = (nodeData: any, treeData: any) => (
   <SubLocation nodeData={nodeData} treeData={treeData} />
 );
 
-const mapDirectory = (dir: IDirectoryTreeItem): ITreeBranch => ({
+const mapDirectory = (dir: IDirectoryTreeItem): ITreeItem => ({
   id: dir.fullPath,
   label: SubLocationLabel,
   nodeData: dir,
-  branches: dir.children.map(mapDirectory),
-  leaves: [],
+  children: dir.children.map(mapDirectory),
   isExpanded,
 });
 
@@ -378,12 +377,11 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
     () => ({ expansion, setExpansion, uiStore, delete: onDelete, config: onConfig }),
     [expansion, onConfig, onDelete, uiStore],
   );
-  const [branches, setBranches] = useState<ITreeBranch[]>(
+  const [branches, setBranches] = useState<ITreeItem[]>(
     locationStore.locationList.map((location) => ({
       id: location.id,
       label: LocationLabel,
-      branches: [],
-      leaves: [],
+      children: [],
       nodeData: location,
       isExpanded,
     })),
@@ -397,8 +395,7 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
         locationStore.locationList.map(async (location) => ({
           id: location.id,
           label: LocationLabel,
-          branches: (await location.getDirectoryTree()).map(mapDirectory),
-          leaves: [],
+          children: (await location.getDirectoryTree()).map(mapDirectory),
           nodeData: location,
           isExpanded,
         })),
@@ -413,8 +410,7 @@ const LocationsTree = observer(({ onDelete, onConfig, lastRefresh }: ILocationTr
     <Tree
       id="location-list"
       multiSelect
-      branches={branches}
-      leaves={[]}
+      children={branches}
       treeData={treeData}
       toggleExpansion={toggleExpansion}
       onBranchKeyDown={handleBranchKeyDown}

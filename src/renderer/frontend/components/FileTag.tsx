@@ -4,7 +4,6 @@ import { ClientFile } from '../../entities/File';
 import { observer } from 'mobx-react-lite';
 import MultiTagSelector from './MultiTagSelector';
 import StoreContext from '../contexts/StoreContext';
-import { ClientTagCollection } from '../../entities/TagCollection';
 
 interface IFileTagProps {
   files: ClientFile[];
@@ -12,12 +11,12 @@ interface IFileTagProps {
 }
 
 const Single = observer(({ file, autoFocus }: { file: ClientFile; autoFocus?: boolean }) => {
-  const { tagStore, tagCollectionStore } = useContext(StoreContext);
+  const { tagStore } = useContext(StoreContext);
 
   const handleCreate = async (name: string) => {
     const tag = await tagStore.addTag(name);
     // Add new tags to the root hierarchy by default
-    tagCollectionStore.getRootCollection().addTag(tag.id);
+    tagStore.getRootTag().addTag(tag.id);
     return tag;
   };
 
@@ -36,7 +35,7 @@ const Single = observer(({ file, autoFocus }: { file: ClientFile; autoFocus?: bo
 });
 
 const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
-  const { tagStore, tagCollectionStore } = useContext(StoreContext);
+  const { tagStore } = useContext(StoreContext);
 
   // Count how often tags are used
   const combinedTags: ClientTag[] = files.flatMap((f) => f.clientTags);
@@ -46,7 +45,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
   // Sort based on count
   const sortedTags = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
 
-  const tagLabel = (tag: ClientTag | ClientTagCollection) => {
+  const tagLabel = (tag: ClientTag) => {
     const match = sortedTags.find((pair) => pair[0] === tag);
     return `${tag.name} (${match ? match[1] : '?'})`;
   };
@@ -54,7 +53,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
   const handleCreate = async (name: string) => {
     const newTag = await tagStore.addTag(name);
     // Add new tags to the root hierarchy by default
-    tagCollectionStore.getRootCollection().addTag(newTag.id);
+    tagStore.getRootTag().addTag(newTag.id);
     return newTag;
   };
 

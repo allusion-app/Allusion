@@ -3,7 +3,6 @@ import { Alert, Tag } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
 import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from '../../contexts/StoreContext';
-import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import { ClientFile } from 'src/renderer/entities/File';
 
@@ -60,21 +59,17 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
   ></Confirmation>
 );
 
-export const TagRemoval = (props: IRemovalProps<ClientTag | ClientTagCollection>) => {
+export const TagRemoval = (props: IRemovalProps<ClientTag>) => {
   const { uiStore, tagStore } = useContext(StoreContext);
   const { object } = props;
   const tagsToRemove = object.isSelected
     ? uiStore.clientTagSelection
-    : object instanceof ClientTagCollection
-    ? (object
+    : (object
         .getTagsRecursively()
         .map((t) => tagStore.get(t))
-        .filter((t) => t !== undefined) as ClientTag[])
-    : [];
+        .filter((t) => t !== undefined) as ClientTag[]);
 
-  const text = `Are you sure you want to delete the ${
-    object instanceof ClientTagCollection ? 'collection' : 'tag'
-  } "${object.name}"?`;
+  const text = `Are you sure you want to delete the tag "${object.name}"?`;
 
   return (
     <Confirmation
@@ -99,7 +94,7 @@ export const TagRemoval = (props: IRemovalProps<ClientTag | ClientTagCollection>
       onCancel={props.onClose}
       onConfirm={() => {
         props.onClose();
-        object.isSelected ? uiStore.removeSelectedTagsAndCollections() : props.object.delete();
+        object.isSelected ? uiStore.removeSelectedTags() : props.object.delete();
       }}
     ></Confirmation>
   );

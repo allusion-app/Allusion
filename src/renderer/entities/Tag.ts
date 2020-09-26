@@ -1,7 +1,8 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import TagStore from '../frontend/stores/TagStore';
 import { generateId, ID, IResource, ISerializable } from './ID';
-import { ClientTagCollection } from './TagCollection';
+
+export const ROOT_TAG_ID = 'root';
 
 /* A Tag as it is represented in the Database */
 export interface ITag extends IResource {
@@ -10,6 +11,7 @@ export interface ITag extends IResource {
   description: string;
   dateAdded: Date;
   color: string;
+  subTags: ID[];
 }
 
 /**
@@ -27,7 +29,8 @@ export class ClientTag implements ISerializable<ITag> {
   @observable name: string;
   @observable description: string = '';
   @observable color: string = '';
-  // icon, color, (fileCount?)
+  readonly subTags = observable<ID>([]);
+  // icon, (fileCount?)
 
   constructor(store: TagStore, name: string = '', id = generateId()) {
     this.store = store;
@@ -48,7 +51,7 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
-  @computed get parent(): ClientTagCollection {
+  @computed get parent(): ClientTag {
     return this.store.getParent(this.id);
   }
 
@@ -64,12 +67,38 @@ export class ClientTag implements ISerializable<ITag> {
     return this.store.isSearched(this.id);
   }
 
+  /** Get actual tag collection objects based on the IDs retrieved from the backend */
+  @computed get clientSubTags(): ClientTag[] {
+    return this.subTags
+      .map((id) => this.store.get(id))
+      .filter((c) => c !== undefined) as ClientTag[];
+  }
+
   @action.bound rename(name: string): void {
     this.name = name;
   }
 
   @action.bound setColor(color: string): void {
     this.color = color;
+  }
+
+  @action.bound addTag(tag: ClientTag | ID): void {
+    const id = tag instanceof ClientTag ? tag.id : tag;
+    if (!this.subTags.includes(id)) {
+      this.subTags.push(id);
+    }
+  }
+
+  @action.bound insertSubTag(tag: ClientTag, at = 0): void {
+    if (tag.parent === this && this.subTags.findIndex((t) => t === tag.id) < at) {
+      at -= 1;
+    }
+    tag.parent.subTags.remove(tag.id);
+    this.subTags.splice(at, 0, tag.id);
+  }
+
+  @action removeSubTag(tag: ID): void {
+    this.subTags.remove(tag);
   }
 
   /**
@@ -85,6 +114,7 @@ export class ClientTag implements ISerializable<ITag> {
     this.description = backendTag.description;
     this.dateAdded = backendTag.dateAdded;
     this.color = backendTag.color;
+    this.subTags.push(...backendTag.subTags);
 
     this.autoSave = true;
 
@@ -98,7 +128,12 @@ export class ClientTag implements ISerializable<ITag> {
       description: this.description,
       dateAdded: this.dateAdded,
       color: this.color,
+      subTags: this.subTags.toJS(),
     };
+  }
+
+  getTagsRecursively(): ID[] {
+    return [this.id, ...this.clientSubTags.flatMap((c) => c.getTagsRecursively())];
   }
 
   async delete(): Promise<void> {

@@ -10,18 +10,15 @@ import {
   ClientCollectionSearchCriteria,
 } from '../../../entities/SearchCriteria';
 import MultiTagSelector from '../../components/MultiTagSelector';
-import { ClientTagCollection } from '../../../entities/TagCollection';
 
-const QuickSearchList = ({
-  rootStore: { uiStore, tagStore, tagCollectionStore },
-}: IRootStoreProp) => {
-  const selectedItems: (ClientTag | ClientTagCollection)[] = [];
+const QuickSearchList = ({ rootStore: { uiStore, tagStore } }: IRootStoreProp) => {
+  const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
     let item;
     if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
       item = tagStore.get(c.value[0]);
     } else if (c instanceof ClientCollectionSearchCriteria) {
-      item = tagCollectionStore.get(c.collectionId);
+      // item = tagCollectionStore.get(c.collectionId);
     }
     if (item) {
       selectedItems.push(item);
@@ -32,24 +29,9 @@ const QuickSearchList = ({
     uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', tag.id, tag.name));
   };
 
-  const handleSelectCol = (col: ClientTagCollection) => {
-    uiStore.addSearchCriteria(
-      new ClientCollectionSearchCriteria(col.id, col.getTagsRecursively(), col.name),
-    );
-  };
-
   const handleDeselectTag = (tag: ClientTag) => {
     const crit = uiStore.searchCriteriaList.find(
       (c) => c instanceof ClientIDSearchCriteria && c.value.includes(tag.id),
-    );
-    if (crit) {
-      uiStore.removeSearchCriteria(crit);
-    }
-  };
-
-  const handleDeselectCol = (col: ClientTagCollection) => {
-    const crit = uiStore.searchCriteriaList.find(
-      (c) => c instanceof ClientCollectionSearchCriteria && c.collectionId === col.id,
     );
     if (crit) {
       uiStore.removeSearchCriteria(crit);
@@ -75,8 +57,6 @@ const QuickSearchList = ({
       onKeyDown={handleCloseSearch}
       showClearButton={false}
       includeCollections
-      onTagColDeselect={handleDeselectCol}
-      onTagColSelect={handleSelectCol}
     />
   );
 };

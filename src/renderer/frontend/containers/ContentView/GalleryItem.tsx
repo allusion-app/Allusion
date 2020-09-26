@@ -133,8 +133,10 @@ const GalleryItem = observer(
         if (event.dataTransfer.types.includes(DnDType.Tag)) {
           event.dataTransfer.dropEffect = 'none';
           const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType.Tag));
-          ctx.tags.forEach((tag) => file.addTag(tag.id));
-          ctx.collections.forEach((col) => col.getTagsRecursively().forEach(file.addTag));
+          ctx.tags.forEach((tag) => {
+            file.addTag(tag.id);
+            tag.subTags.forEach(file.addTag);
+          });
           event.currentTarget.dataset[DnDAttribute.Target] = 'false';
         }
       },

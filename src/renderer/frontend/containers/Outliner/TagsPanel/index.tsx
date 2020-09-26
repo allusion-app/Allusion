@@ -55,15 +55,8 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
       <div>
         <Observer>
           {() => {
-            const { tagCollectionStore, tagStore, uiStore } = this.props.rootStore;
-            return (
-              <TagsTree
-                root={tagCollectionStore.getRootCollection()}
-                uiStore={uiStore}
-                tagCollectionStore={tagCollectionStore}
-                tagStore={tagStore}
-              />
-            );
+            const { tagStore, uiStore } = this.props.rootStore;
+            return <TagsTree root={tagStore.getRootTag()} uiStore={uiStore} tagStore={tagStore} />;
           }}
         </Observer>
         <Divider />

@@ -5,19 +5,13 @@ import { ContextMenu, Collapse, H4, Icon, InputGroup } from '@blueprintjs/core';
 
 import { Tree, Toolbar, ToolbarButton } from 'components';
 import IconSet from 'components/Icons';
-import {
-  ITreeBranch,
-  ITreeLeaf,
-  createBranchOnKeyDown,
-  createLeafOnKeyDown,
-} from 'components/Tree';
+import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'components/Tree';
 import { TagRemoval } from '../MessageBox';
 import {
   ClientIDSearchCriteria,
   ClientCollectionSearchCriteria,
 } from 'src/renderer/entities/SearchCriteria';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from 'src/renderer/entities/TagCollection';
-import { ClientTag } from 'src/renderer/entities/Tag';
+import { ClientTag, ROOT_TAG_ID } from 'src/renderer/entities/Tag';
 import { ID } from 'src/renderer/entities/ID';
 import UiStore, { FileSearchCriteria } from 'src/renderer/frontend/stores/UiStore';
 import { TagContextMenu, CollectionContextMenu } from './ContextMenu';
@@ -36,7 +30,6 @@ import { formatTagCountText } from 'src/renderer/frontend/utils';
 import { IExpansionState } from '..';
 import { Action, State, Factory, reducer } from './StateReducer';
 import TagStore from 'src/renderer/frontend/stores/TagStore';
-import TagCollectionStore from 'src/renderer/frontend/stores/TagCollectionStore';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 
 interface ILabelProps {
@@ -92,7 +85,7 @@ interface ITagProps {
   dispatch: React.Dispatch<Action>;
   isEditing: boolean;
   submit: (target: EventTarget & HTMLInputElement) => void;
-  select: (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => void;
+  select: (event: React.MouseEvent, nodeData: ClientTag) => void;
   pos: number;
 }
 
@@ -103,36 +96,20 @@ interface ITagProps {
  * query. Handling filter mode or replacing the search criteria list is up to
  * the component.
  */
-const toggleQuery = (nodeData: ClientTagCollection | ClientTag, uiStore: UiStore) => {
+const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
-    let alreadySearchedCrit: FileSearchCriteria | undefined;
-    if (nodeData instanceof ClientTagCollection) {
-      alreadySearchedCrit = uiStore.searchCriteriaList.find(
-        (c) => (c as ClientCollectionSearchCriteria)?.collectionId === nodeData.id,
-      );
-    } else {
-      alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
-        (c as ClientIDSearchCriteria<any>)?.value?.includes(nodeData.id),
-      );
-    }
+    const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
+      (c as ClientIDSearchCriteria<any>)?.value?.includes(nodeData.id),
+    );
+
     if (alreadySearchedCrit) {
       uiStore.replaceSearchCriterias(
         uiStore.searchCriteriaList.filter((c) => c !== alreadySearchedCrit),
       );
     }
   } else {
-    if (nodeData instanceof ClientTagCollection) {
-      uiStore.addSearchCriteria(
-        new ClientCollectionSearchCriteria(
-          nodeData.id,
-          nodeData.getTagsRecursively(),
-          nodeData.name,
-        ),
-      );
-    } else {
-      uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id));
-    }
+    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id));
   }
 };
 
@@ -159,7 +136,7 @@ const Tag = observer((props: ITagProps) => {
       let name = nodeData.name;
       if (nodeData.isSelected) {
         const ctx = uiStore.getTagContextItems(nodeData.id);
-        const extraText = formatTagCountText(ctx.tags.length - 1, ctx.collections.length);
+        const extraText = formatTagCountText(ctx.tags.length - 1);
         if (extraText.length > 0) {
           name = name + ` (${extraText})`;
         }
@@ -190,9 +167,9 @@ const Tag = observer((props: ITagProps) => {
         const id = event.dataTransfer.getData(DnDType.Tag);
         const tag = tagStore.get(id);
         if (tag) {
-          let index = pos - nodeData.parent.subCollections.length - 1; // 'pos' does not start from 0!
+          let index = pos - nodeData.parent.subTags.length - 1; // 'pos' does not start from 0!
           index = event.currentTarget.classList.contains('bottom') ? index + 1 : index;
-          nodeData.parent.insertTag(tag, index);
+          nodeData.parent.insertSubTag(tag, index);
         }
         dataSet[DnDAttribute.Target] = 'false';
         event.currentTarget.classList.remove('top');
@@ -251,13 +228,13 @@ const Tag = observer((props: ITagProps) => {
 });
 
 interface ICollectionProps extends Omit<ITagProps, 'nodeData'> {
-  nodeData: ClientTagCollection;
+  nodeData: ClientTag;
   expansion: IExpansionState;
 }
 
 const Collection = observer((props: ICollectionProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select } = props;
-  const { tagCollectionStore, tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useContext(StoreContext);
 
   const handleContextMenu = useCallback(
     (e) =>
@@ -267,7 +244,6 @@ const Collection = observer((props: ICollectionProps) => {
           expansion={expansion}
           nodeData={nodeData}
           pos={pos}
-          tagCollectionStore={tagCollectionStore}
           tagStore={tagStore}
           uiStore={uiStore}
         />,
@@ -275,7 +251,7 @@ const Collection = observer((props: ICollectionProps) => {
         undefined,
         uiStore.theme === 'DARK',
       ),
-    [dispatch, expansion, nodeData, pos, tagCollectionStore, tagStore, uiStore],
+    [dispatch, expansion, nodeData, pos, tagStore, uiStore],
   );
 
   const handleDragStart = useCallback(
@@ -283,7 +259,7 @@ const Collection = observer((props: ICollectionProps) => {
       let name = nodeData.name;
       if (nodeData.isSelected) {
         const ctx = uiStore.getTagContextItems(nodeData.id);
-        const extraText = formatTagCountText(ctx.tags.length, ctx.collections.length - 1);
+        const extraText = formatTagCountText(ctx.tags.length);
         if (extraText.length > 0) {
           name = name + `(${extraText})`;
         }
@@ -300,11 +276,11 @@ const Collection = observer((props: ICollectionProps) => {
         nodeData.isSelected,
         (t) => t === DnDType.Tag || t === DnDType.Collection,
         (t) => {
-          if (t === DnDType.Collection) {
-            const draggedCollection = tagCollectionStore.get(DragItem.id);
-            if (draggedCollection) {
+          if (t === DnDType.Tag) {
+            const draggedTag = tagStore.get(DragItem.id);
+            if (draggedTag) {
               // An ancestor cannot be a descendant!
-              return !draggedCollection.containsSubCollection(nodeData.id);
+              return !draggedTag.getTagsRecursively().includes(nodeData.id);
             }
             return false;
           }
@@ -317,7 +293,7 @@ const Collection = observer((props: ICollectionProps) => {
           }
         },
       ),
-    [dispatch, expansion, nodeData.id, nodeData.isSelected, tagCollectionStore],
+    [dispatch, expansion, nodeData.id, nodeData.isSelected],
   );
 
   const handleDrop = useCallback(
@@ -335,30 +311,30 @@ const Collection = observer((props: ICollectionProps) => {
         const id = event.dataTransfer.getData(DnDType.Tag);
         const tag = tagStore.get(id);
         if (tag) {
-          nodeData.insertTag(tag);
+          nodeData.insertSubTag(tag);
         }
         dataSet[DnDAttribute.Target] = 'false';
         event.currentTarget.classList.remove('top');
         event.currentTarget.classList.remove('bottom');
       } else if (event.dataTransfer.types.includes(DnDType.Collection)) {
-        event.dataTransfer.dropEffect = 'none';
-        const id = event.dataTransfer.getData(DnDType.Collection);
-        const collection = tagCollectionStore.get(id);
-        if (collection && !collection.containsSubCollection(nodeData.id)) {
-          if (event.currentTarget.classList.contains('top')) {
-            nodeData.parent.insertCollection(collection, pos - 1); // 'pos' does not start from 0!
-          } else if (event.currentTarget.classList.contains('bottom')) {
-            nodeData.parent.insertCollection(collection, pos);
-          } else {
-            nodeData.insertCollection(collection);
-          }
-        }
-        dataSet[DnDAttribute.Target] = 'false';
-        event.currentTarget.classList.remove('top');
-        event.currentTarget.classList.remove('bottom');
+        // event.dataTransfer.dropEffect = 'none';
+        // const id = event.dataTransfer.getData(DnDType.Collection);
+        // const collection = tagCollectionStore.get(id);
+        // if (collection && !collection.containsSubCollection(nodeData.id)) {
+        //   if (event.currentTarget.classList.contains('top')) {
+        //     nodeData.parent.insertCollection(collection, pos - 1); // 'pos' does not start from 0!
+        //   } else if (event.currentTarget.classList.contains('bottom')) {
+        //     nodeData.parent.insertCollection(collection, pos);
+        //   } else {
+        //     nodeData.insertCollection(collection);
+        //   }
+        // }
+        // dataSet[DnDAttribute.Target] = 'false';
+        // event.currentTarget.classList.remove('top');
+        // event.currentTarget.classList.remove('bottom');
       }
     },
-    [nodeData, pos, tagCollectionStore, tagStore, uiStore],
+    [nodeData, pos, tagStore, uiStore],
   );
 
   const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
@@ -405,7 +381,11 @@ const Collection = observer((props: ICollectionProps) => {
         onClick={handleQuickQuery}
       />
       {!isEditing && (
-        <button disabled={!nodeData.hasContent} onClick={handleSelect} className="after-icon">
+        <button
+          disabled={nodeData.subTags.length === 0}
+          onClick={handleSelect}
+          className="after-icon"
+        >
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </button>
       )}
@@ -417,7 +397,7 @@ interface ITreeData {
   state: State;
   dispatch: React.Dispatch<Action>;
   submit: (target: EventTarget & HTMLInputElement) => void;
-  select: (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => void;
+  select: (event: React.MouseEvent, nodeData: ClientTag) => void;
   uiStore: UiStore;
 }
 
@@ -439,7 +419,7 @@ const TagLabel = (
 );
 
 const CollectionLabel = (
-  nodeData: ClientTagCollection,
+  nodeData: ClientTag,
   treeData: ITreeData,
   _level: number,
   _size: number,
@@ -456,22 +436,18 @@ const CollectionLabel = (
   />
 );
 
-const isSelected = (nodeData: ClientTag | ClientTagCollection): boolean => nodeData.isSelected;
+const isSelected = (nodeData: ClientTag): boolean => nodeData.isSelected;
 
-const isExpanded = (nodeData: ClientTagCollection, treeData: ITreeData): boolean =>
+const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
   treeData.state.expansion[nodeData.id];
 
-const toggleExpansion = (nodeData: ClientTagCollection, treeData: ITreeData) =>
+const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));
 
-const toggleSelection = (nodeData: ClientTag | ClientTagCollection, { uiStore }: ITreeData) => {
-  if (nodeData instanceof ClientTag) {
-    nodeData.isSelected ? uiStore.deselectTag(nodeData.id) : uiStore.selectTag(nodeData);
-  } else {
-    nodeData.isSelected
-      ? uiStore.deselectTags(nodeData.getTagsRecursively())
-      : uiStore.selectTags(nodeData.getTagsRecursively());
-  }
+const toggleSelection = (nodeData: ClientTag, { uiStore }: ITreeData) => {
+  nodeData.isSelected
+    ? uiStore.deselectTags(nodeData.getTagsRecursively())
+    : uiStore.selectTags(nodeData.getTagsRecursively());
 };
 
 const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
@@ -491,7 +467,7 @@ const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
 
 const customKeys = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: ClientTag | ClientTagCollection,
+  nodeData: ClientTag,
   treeData: ITreeData,
 ) => {
   switch (event.key) {
@@ -526,7 +502,7 @@ const customKeys = (
 
 const handleBranchOnKeyDown = (
   event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: ClientTagCollection,
+  nodeData: ClientTag,
   treeData: ITreeData,
 ) =>
   createBranchOnKeyDown(
@@ -547,38 +523,29 @@ const handleLeafOnKeyDown = (
 
 // Range Selection from last selected node
 const rangeSelection = (
-  nodeData: ClientTagCollection | ClientTag,
+  nodeData: ClientTag,
   lastSelection: ID,
-  root: ClientTagCollection,
+  root: ClientTag,
   uiStore: UiStore,
 ): ID => {
   uiStore.clearTagSelection();
   let isSelecting: { value: boolean } | undefined = undefined;
-  const selectRange = (node: ClientTagCollection | ClientTag) => {
+  const selectRange = (node: ClientTag) => {
     if (node.id === lastSelection || node.id === nodeData.id) {
       if (isSelecting === undefined) {
         isSelecting = { value: true };
       } else {
-        node instanceof ClientTag
-          ? uiStore.selectTag(node)
-          : uiStore.selectTags(node.getTagsRecursively());
+        uiStore.selectTags(node.getTagsRecursively());
         isSelecting = { value: false };
         return nodeData.id;
       }
     }
 
-    if (node instanceof ClientTagCollection) {
+    if (node instanceof ClientTag) {
       // Pre-order Tree Traversal
-      for (const collection of node.clientSubCollections) {
+      for (const collection of node.clientSubTags) {
         if (isSelecting === undefined || isSelecting.value) {
           selectRange(collection);
-          continue;
-        }
-        return nodeData.id;
-      }
-      for (const tag of node.clientTags) {
-        if (isSelecting === undefined || isSelecting.value) {
-          selectRange(tag);
           continue;
         }
         return nodeData.id;
@@ -591,37 +558,33 @@ const rangeSelection = (
   return nodeData.id;
 };
 
-const mapLeaf = (tag: ClientTag): ITreeLeaf => {
-  return {
-    id: tag.id,
-    label: TagLabel,
-    nodeData: tag,
-    isSelected,
-    className: tag.isSearched ? 'searched' : undefined,
-  };
-};
+// const mapLeaf = (tag: ClientTag): ITreeLeaf => {
+//   return {
+//     id: tag.id,
+//     label: TagLabel,
+//     nodeData: tag,
+//     isSelected,
+//     className: tag.isSearched ? 'searched' : undefined,
+//   };
+// };
 
-const mapCollection = (collection: ClientTagCollection): ITreeBranch => {
-  return {
-    id: collection.id,
-    label: CollectionLabel,
-    branches: collection.clientSubCollections.map(mapCollection),
-    leaves: collection.clientTags.map(mapLeaf),
-    nodeData: collection,
-    isExpanded,
-    isSelected,
-    className: collection.isSearched ? 'searched' : undefined,
-  };
-};
+const mapTag = (collection: ClientTag): ITreeItem => ({
+  id: collection.id,
+  label: CollectionLabel,
+  children: collection.clientSubTags.map(mapTag),
+  nodeData: collection,
+  isExpanded,
+  isSelected,
+  className: collection.isSearched ? 'searched' : undefined,
+});
 
 interface ITagsTreeProps {
-  root: ClientTagCollection;
-  tagCollectionStore: TagCollectionStore;
+  root: ClientTag;
   tagStore: TagStore;
   uiStore: UiStore;
 }
 
-const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITagsTreeProps) => {
+const TagsTree = observer(({ root, tagStore, uiStore }: ITagsTreeProps) => {
   const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   const [state, dispatch] = useReducer(reducer, {
@@ -639,19 +602,17 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
   // Handles selection via click event
   const [lastSelection, setLastSelection] = useState<ID | undefined>(undefined);
   const select = useCallback(
-    (event: React.MouseEvent, nodeData: ClientTagCollection | ClientTag) => {
+    (event: React.MouseEvent, nodeData: ClientTag) => {
       if (event.shiftKey && lastSelection !== undefined && lastSelection !== nodeData.id) {
         setLastSelection(rangeSelection(nodeData, lastSelection, root, uiStore));
       } else {
         // Toggles selection state of a single node
         const nextLastSelection = nodeData.isSelected ? undefined : nodeData.id;
-        if (nodeData instanceof ClientTag) {
-          nodeData.isSelected ? uiStore.deselectTag(nodeData.id) : uiStore.selectTag(nodeData);
-        } else {
-          nodeData.isSelected
-            ? uiStore.deselectTags(nodeData.getTagsRecursively())
-            : uiStore.selectTags(nodeData.getTagsRecursively());
-        }
+
+        nodeData.isSelected
+          ? uiStore.deselectTags(nodeData.getTagsRecursively())
+          : uiStore.selectTags(nodeData.getTagsRecursively());
+
         setLastSelection(nextLastSelection);
       }
     },
@@ -685,25 +646,11 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
     [root, tagStore],
   );
 
-  const handleAddRootCollection = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      tagCollectionStore
-        .addTagCollection('New Collection')
-        .then((col) => {
-          root.addCollection(col.id);
-          dispatch(Factory.enableEditing(col.id));
-        })
-        .catch((err) => console.log('Could not create collection', err));
-    },
-    [root, tagCollectionStore],
-  );
-
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       const dataSet = event.currentTarget.dataset;
       if (DragItem.isSelected) {
-        uiStore.moveSelectedTagItems(ROOT_TAG_COLLECTION_ID);
+        uiStore.moveSelectedTagItems(ROOT_TAG_ID);
         dataSet[DnDAttribute.Target] = 'false';
         return;
       }
@@ -712,24 +659,18 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
         const data = event.dataTransfer.getData(DnDType.Tag);
         const tag = tagStore.get(data);
         if (tag) {
-          root.insertTag(tag);
+          root.insertSubTag(tag);
         }
         dataSet[DnDAttribute.Target] = 'false';
-      } else if (event.dataTransfer.types.includes(DnDType.Collection)) {
-        event.dataTransfer.dropEffect = 'none';
-        const data = event.dataTransfer.getData(DnDType.Collection);
-        const collection = tagCollectionStore.get(data);
-        if (collection) {
-          root.insertCollection(collection);
-        }
-        dataSet[DnDAttribute.Target] = 'false';
+      } else {
+        throw new Error('Unsupported DnD type!' + event.dataTransfer.types.toString());
       }
     },
-    [root, tagCollectionStore, tagStore, uiStore],
+    [root, tagStore, uiStore],
   );
 
-  const leaves = computed(() => root.clientTags.map(mapLeaf));
-  const branches = computed(() => root.clientSubCollections.map(mapCollection));
+  const children = computed(() => root.clientSubTags.map(mapTag));
+  // const branches = computed(() => root.clientSubCollections.map(mapCollection));
 
   return (
     <>
@@ -761,20 +702,13 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
                 onClick={handleRootAddTag}
                 tooltip="Add New Tag"
               />
-              <ToolbarButton
-                showLabel="never"
-                icon={IconSet.TAG_ADD_COLLECTION}
-                label="New Collection"
-                onClick={handleAddRootCollection}
-                tooltip="Add New Collection"
-              />
             </>
           )}
         </Toolbar>
       </div>
 
       <Collapse isOpen={!isCollapsed}>
-        {root.subCollections.length === 0 && root.tags.length === 0 ? (
+        {root.subTags.length === 0 ? (
           <div className="tree-content-label" style={{ padding: '0.25rem' }}>
             <span className="pre-icon">{IconSet.INFO}</span>
             No tags or collections created yet
@@ -784,8 +718,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
             multiSelect
             id="tag-hierarchy"
             className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
-            branches={branches.get()}
-            leaves={leaves.get()}
+            children={children.get()}
             treeData={treeData}
             toggleExpansion={toggleExpansion}
             onBranchKeyDown={handleBranchOnKeyDown}

@@ -120,7 +120,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
           return clientTag.id;
         } else {
           const newClientTag = await rootStore.tagStore.addTag(tagName);
-          rootStore.tagCollectionStore.getRootCollection().addTag(newClientTag);
+          rootStore.tagStore.getRootTag().addTag(newClientTag);
           return newClientTag.id;
         }
       }),

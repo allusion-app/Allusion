@@ -1,9 +1,8 @@
 import { action, IObservableArray, observable, runInAction } from 'mobx';
 import Backend from '../../backend/Backend';
-import { ClientTag, ITag } from '../../entities/Tag';
+import { ClientTag, ITag, ROOT_TAG_ID } from '../../entities/Tag';
 import RootStore from './RootStore';
 import { ID } from '../../entities/ID';
-import { ClientTagCollection } from '../../entities/TagCollection';
 import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 
 /**
@@ -28,14 +27,20 @@ class TagStore {
     return this.tagList.find((t) => t.id === tag);
   }
 
-  getParent(child: ID): ClientTagCollection {
-    const parent = this.rootStore.tagCollectionStore.tagCollectionList.find((col) =>
-      col.tags.includes(child),
-    );
+  getRootTag() {
+    const root = this.get(ROOT_TAG_ID);
+    if (!root) {
+      throw new Error('Root tag not found. This should not happen!');
+    }
+    return root;
+  }
+
+  getParent(child: ID): ClientTag {
+    const parent = this.tagList.find((col) => col.subTags.includes(child));
     if (!parent) {
       console.warn('Tag does not have a parent', this);
     }
-    return parent || this.rootStore.tagCollectionStore.getRootCollection();
+    return parent || this.rootStore.tagStore.getRootTag();
   }
 
   isSelected(tag: ID): boolean {
@@ -66,7 +71,7 @@ class TagStore {
     // Remove tag id reference from other observable objects
     this.rootStore.uiStore.deselectTag(id);
     this.rootStore.fileStore.fileList.forEach((f) => f.removeTag(id));
-    this.rootStore.tagCollectionStore.tagCollectionList.forEach((col) => col.removeTag(id));
+    this.rootStore.tagStore.tagList.forEach((tag) => tag.removeSubTag(id));
   }
 
   /**
