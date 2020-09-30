@@ -10,11 +10,21 @@
     display: inline-block;
     width: 50%;
   }
+
+  table {
+    width: 100%;
+    color: inherit;
+  }
+
+  td {
+    height: 2em;
+    vertical-align: top;
+  }
 }
 
 #settings-window {
-  background-color: var(--background-color);
-  transition: all 100ms ease-in-out; // aw yeahh
+  background-color: var(--foreground-color);
+  overflow-y: auto;
   padding: 1em;
   height: 100%;
 }

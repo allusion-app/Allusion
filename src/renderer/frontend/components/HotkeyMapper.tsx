@@ -1,50 +1,35 @@
-import {
-  Callout,
-  comboMatches,
-  getKeyComboString,
-  Icon,
-  KeyCombo,
-  parseKeyCombo,
-  Tooltip,
-} from '@blueprintjs/core';
-import { Button, IconSet } from 'components';
+import { comboMatches, getKeyComboString, KeyCombo, parseKeyCombo } from '@blueprintjs/core';
+import { IconButton, IconSet } from 'components';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useRef, useState } from 'react';
-import { AppToaster } from '../App';
+import React, { useCallback, useContext, useState } from 'react';
 import StoreContext from '../contexts/StoreContext';
 import { defaultHotkeyMap, IHotkeyMap } from '../stores/UiStore';
 import { camelCaseToSpaced } from '../utils';
 
 const noop = () => void {};
 
-interface IChangeableKeyComboProps {
-  combo: string;
-  defaultCombo: string;
+interface IKeyComboInput {
   action: keyof IHotkeyMap;
-  onChange: (action: keyof IHotkeyMap, combo: string) => void;
+  onChange: (action: keyof IHotkeyMap | null) => void;
 }
 
-const ChangeableKeyCombo = ({
-  action,
-  combo,
-  onChange,
-  defaultCombo,
-}: IChangeableKeyComboProps) => {
-  const [isChanging, setIsChanging] = useState(false);
+// There is no need for an observer as the input will only exist for a single edit.
+const KeyComboInput = ({ action, onChange }: IKeyComboInput) => {
+  const { uiStore } = useContext(StoreContext);
   const [newCombo, setNewCombo] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const {
-    uiStore: { hotkeyMap },
-  } = useContext(StoreContext);
 
   const checkIfTaken = useCallback(
     (comboStr: string) => {
+      if (comboStr === '') {
+        return false;
+      }
       const comboObj = parseKeyCombo(comboStr);
-      if (comboMatches(comboObj, parseKeyCombo(hotkeyMap[action]))) return false;
-      return Object.values(hotkeyMap).some((s) => comboMatches(parseKeyCombo(s), comboObj));
+      if (comboMatches(comboObj, parseKeyCombo(uiStore.hotkeyMap[action]))) {
+        return false;
+      }
+      return Object.values(uiStore.hotkeyMap).some((s) => comboMatches(parseKeyCombo(s), comboObj));
     },
-    [action, hotkeyMap],
+    [action, uiStore.hotkeyMap],
   );
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -53,10 +38,10 @@ const ChangeableKeyCombo = ({
 
     if (e.key === 'Escape') {
       setNewCombo('');
-      setTimeout(() => inputRef.current?.blur(), 0); // run in next cycle so setNewCombo is processed
+      setTimeout(() => e.currentTarget.blur(), 0); // run in next cycle so setNewCombo is processed
       return;
     } else if (e.key === 'Enter') {
-      inputRef.current?.blur();
+      e.currentTarget.blur();
       return;
     }
 
@@ -65,112 +50,91 @@ const ChangeableKeyCombo = ({
   }, []);
 
   const handleOnBlur = useCallback(() => {
-    if (newCombo !== '') {
-      onChange(action, newCombo);
+    if (checkIfTaken(newCombo)) {
+      uiStore.remapHotkey(action, newCombo);
     }
-    setNewCombo('');
-    setIsChanging(false);
-  }, [action, newCombo, onChange]);
-
-  const handleClick = useCallback(() => setIsChanging(true), []);
-
-  const handleReset = useCallback(() => {
-    onChange(action, defaultCombo);
-  }, [action, defaultCombo, onChange]);
+    onChange(null);
+  }, [action, checkIfTaken, newCombo, onChange, uiStore]);
 
   return (
-    <>
-      {isChanging ? (
-        <input
-          value={`${newCombo}...`}
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-          onBlur={handleOnBlur}
-          autoFocus
-          style={{ width: '120px' }}
-          ref={inputRef}
-          onChange={noop}
+    <div>
+      <input
+        placeholder="..."
+        value={newCombo}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        onBlur={handleOnBlur}
+        autoFocus
+        style={{ width: '120px' }}
+        onChange={noop}
+      />
+      {checkIfTaken(newCombo) && <div>{IconSet.WARNING_FILL} Key combination already in use!</div>}
+    </div>
+  );
+};
+
+interface IChangeableKeyComboProps extends IKeyComboInput {
+  combo: string;
+  defaultCombo: string;
+  isChanging: boolean;
+}
+
+const ChangeableKeyCombo = ({
+  action,
+  combo,
+  defaultCombo,
+  isChanging,
+  onChange,
+}: IChangeableKeyComboProps) => {
+  const { uiStore } = useContext(StoreContext);
+
+  return isChanging ? (
+    <KeyComboInput action={action} onChange={onChange} />
+  ) : (
+    <div>
+      <span onClick={() => onChange(action)} style={{ cursor: 'pointer' }}>
+        <KeyCombo combo={combo} />
+      </span>
+      {!comboMatches(parseKeyCombo(combo), parseKeyCombo(defaultCombo)) && (
+        <IconButton
+          icon={IconSet.RELOAD}
+          onClick={() => uiStore.remapHotkey(action, defaultCombo)}
+          text="Reload"
         />
-      ) : (
-        <div onClick={handleClick} style={{ cursor: 'pointer', display: 'inline' }}>
-          <KeyCombo combo={newCombo || combo} className="inline" />
-        </div>
       )}
-      {!isChanging && !comboMatches(parseKeyCombo(combo), parseKeyCombo(defaultCombo)) && (
-        <Button styling="minimal" icon={IconSet.RELOAD} onClick={handleReset} text="" />
-      )}
-      {isChanging && newCombo && checkIfTaken(newCombo) && (
-        <Tooltip
-          content="Key combination already in use!"
-          defaultIsOpen
-          usePortal={false}
-          position="top"
-        >
-          <Icon intent="warning" icon="warning-sign" />
-        </Tooltip>
-      )}
-    </>
+    </div>
   );
 };
 
 const HotkeyMapper = observer(() => {
   const { uiStore } = useContext(StoreContext);
-
-  const handleChange = useCallback(
-    (action: keyof IHotkeyMap, combo: string) => {
-      const comboObj = parseKeyCombo(combo);
-      if (comboMatches(comboObj, parseKeyCombo(uiStore.hotkeyMap[action]))) return;
-
-      // Check if key combo is already taken
-      if (Object.values(uiStore.hotkeyMap).some((s) => comboMatches(parseKeyCombo(s), comboObj))) {
-        AppToaster.show({
-          intent: 'warning',
-          message: `The combination "${combo}" is already in use`,
-        });
-      } else {
-        uiStore.remapHotkey(action, combo);
-      }
-    },
-    [uiStore],
-  );
+  const [changed, onChange] = useState<keyof IHotkeyMap | null>(null);
 
   return (
-    <>
-      {/* Not sure why theme needs to be re-applied in new window. The user-agent style sheets take over for some reason */}
-      <table
-        style={{ width: '100%' }}
-        className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}
-      >
-        <thead>
-          <tr>
-            <th>Action</th>
-            <th>Key combination</th>
+    <table>
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Key combination</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.keys(uiStore.hotkeyMap).map((key) => (
+          <tr key={key}>
+            <td>{camelCaseToSpaced(key)}</td>
+            <td>
+              <ChangeableKeyCombo
+                action={key as keyof IHotkeyMap}
+                combo={uiStore.hotkeyMap[key as keyof IHotkeyMap]}
+                defaultCombo={defaultHotkeyMap[key as keyof IHotkeyMap]}
+                isChanging={changed === key}
+                onChange={onChange}
+              />
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          {Object.keys(uiStore.hotkeyMap).map((key) => (
-            <tr key={key}>
-              <td>{camelCaseToSpaced(key)}</td>
-              <td style={{ height: '26px' }}>
-                <ChangeableKeyCombo
-                  action={key as keyof IHotkeyMap}
-                  combo={(uiStore.hotkeyMap as any)[key]}
-                  defaultCombo={defaultHotkeyMap[key as keyof IHotkeyMap]}
-                  onChange={handleChange}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <Callout>
-        Click on a key combination to modify it. After typing your new combination, press Enter to
-        confirm or Escape to cancel. The application must be reloaded for the changes to take
-        effect.
-        <br />
-        <Button icon={IconSet.RELOAD} text="Reload" onClick={() => window.location.reload()} />
-      </Callout>
-    </>
+        ))}
+      </tbody>
+    </table>
   );
 });
 

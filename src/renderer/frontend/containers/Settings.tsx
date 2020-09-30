@@ -9,6 +9,7 @@ import { getThumbnailPath, isDirEmpty } from '../utils';
 import { ClearDbButton } from '../components/ErrorBoundary';
 import HotkeyMapper from '../components/HotkeyMapper';
 import PopupWindow from '../components/PopupWindow';
+import { Callout } from '@blueprintjs/core';
 
 // Window state
 const WINDOW_STORAGE_KEY = 'Allusion_Window';
@@ -178,6 +179,20 @@ const SettingsForm = observer(() => {
 
       <hr />
 
+      <div>
+        <Callout>
+          <p>
+            Click on a key combination to modify it. After typing your new combination, press Enter
+            to confirm or Escape to cancel. The application must be reloaded for the changes to take
+            effect.
+          </p>
+          <Button icon={IconSet.RELOAD} text="Reload" onClick={() => window.location.reload()} />
+        </Callout>
+        <HotkeyMapper />
+      </div>
+
+      <hr />
+
       <ButtonGroup>
         <ClearDbButton />
         <Button
@@ -187,23 +202,6 @@ const SettingsForm = observer(() => {
           text="Toggle DevTools"
         />
       </ButtonGroup>
-
-      <br />
-
-      {/* <Callout icon={IconSet.INFO}>
-        <H4 className="bp3-heading inspectorHeading">Tip: Hotkeys</H4>
-        <p>
-          Did you know there are hotkeys available in most panels?
-          <br />
-          Press&nbsp;
-          <KeyCombo combo="mod+k" />
-          &nbsp;to see them.
-        </p>
-      </Callout> */}
-
-      <div style={{ maxHeight: '200px', overflowY: 'auto', fontSize: '11px' }}>
-        <HotkeyMapper />
-      </div>
     </div>
   );
 });

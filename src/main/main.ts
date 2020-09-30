@@ -92,38 +92,35 @@ function createWindow() {
 
   // Customize new window opening
   // https://www.electronjs.org/docs/api/window-open
-  mainWindow.webContents.on(
-    'new-window',
-    (event, url, frameName, disposition, options, additionalFeatures) => {
-      if (frameName === 'settings') {
-        event.preventDefault();
-        // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
-        const additionalOptions: Electron.BrowserWindowConstructorOptions = {
-          modal: true,
-          parent: mainWindow!,
-          width: 600,
-          height: 580,
-          title: 'Settings • Allusion',
-          // resizable: false,
-        };
-        Object.assign(options, additionalOptions);
-        const settingsWindow = new BrowserWindow(options);
-        settingsWindow.center(); // the "center" option doesn't work :/
-        settingsWindow.setMenu(null); // no toolbar needed
-        (event as any).newGuest = settingsWindow;
+  mainWindow.webContents.on('new-window', (event, _url, frameName, _disposition, options) => {
+    if (frameName === 'settings') {
+      event.preventDefault();
+      // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
+      const additionalOptions: Electron.BrowserWindowConstructorOptions = {
+        modal: true,
+        parent: mainWindow!,
+        width: 640,
+        height: 480,
+        title: 'Settings • Allusion',
+        // resizable: false,
+      };
+      Object.assign(options, additionalOptions);
+      const settingsWindow = new BrowserWindow(options);
+      settingsWindow.center(); // the "center" option doesn't work :/
+      settingsWindow.setMenu(null); // no toolbar needed
+      (event as any).newGuest = settingsWindow;
 
-        // if (isDev()) { // For when you need devtools in settings
-        //   settingsWindow.webContents.openDevTools();
-        // }
+      // if (isDev()) { // For when you need devtools in settings
+      //   settingsWindow.webContents.openDevTools();
+      // }
 
-        mainWindow?.webContents.once('will-navigate', () => {
-          if (!settingsWindow?.isDestroyed()) {
-            settingsWindow.close(); // close when main window is reloaded
-          }
-        });
-      }
-    },
-  );
+      mainWindow?.webContents.once('will-navigate', () => {
+        if (!settingsWindow?.isDestroyed()) {
+          settingsWindow.close(); // close when main window is reloaded
+        }
+      });
+    }
+  });
 
   let menu = null;
 
