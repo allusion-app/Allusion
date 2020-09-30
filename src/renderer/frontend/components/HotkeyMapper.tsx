@@ -13,62 +13,61 @@ interface IKeyComboInput {
   onChange: (action: keyof IHotkeyMap | null) => void;
 }
 
+const isInvalidCombo = (input: string, action: keyof IHotkeyMap, hotkeyMap: IHotkeyMap) => {
+  if (input.length === 0) {
+    return true;
+  }
+  const combo = parseKeyCombo(input);
+  if (comboMatches(combo, parseKeyCombo(hotkeyMap[action]))) {
+    return true;
+  }
+  return Object.values(hotkeyMap).some((s) => comboMatches(parseKeyCombo(s), combo));
+};
+
 // There is no need for an observer as the input will only exist for a single edit.
 const KeyComboInput = ({ action, onChange }: IKeyComboInput) => {
   const { uiStore } = useContext(StoreContext);
-  const [newCombo, setNewCombo] = useState('');
+  const [combo, setCombo] = useState('');
 
-  const checkIfTaken = useCallback(
-    (comboStr: string) => {
-      if (comboStr === '') {
-        return false;
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      e.stopPropagation();
+      if (e.key === 'Escape') {
+        onChange(null);
+      } else if (e.key === 'Enter') {
+        e.currentTarget.blur();
+      } else {
+        setCombo(getKeyComboString(e.nativeEvent));
       }
-      const comboObj = parseKeyCombo(comboStr);
-      if (comboMatches(comboObj, parseKeyCombo(uiStore.hotkeyMap[action]))) {
-        return false;
-      }
-      return Object.values(uiStore.hotkeyMap).some((s) => comboMatches(parseKeyCombo(s), comboObj));
     },
-    [action, uiStore.hotkeyMap],
+    [onChange],
   );
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (e.key === 'Escape') {
-      setNewCombo('');
-      setTimeout(() => e.currentTarget.blur(), 0); // run in next cycle so setNewCombo is processed
-      return;
-    } else if (e.key === 'Enter') {
-      e.currentTarget.blur();
-      return;
-    }
-
-    const comboString = getKeyComboString(e.nativeEvent);
-    setNewCombo(comboString);
-  }, []);
-
-  const handleOnBlur = useCallback(() => {
-    if (checkIfTaken(newCombo)) {
-      uiStore.remapHotkey(action, newCombo);
-    }
-    onChange(null);
-  }, [action, checkIfTaken, newCombo, onChange, uiStore]);
+  const handleOnBlur = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      // The input is controlled which is why e.currentTarget.value equals 'combo'.
+      // Depending on 'combo' would constantly recreate this function.
+      if (!isInvalidCombo(e.currentTarget.value, action, uiStore.hotkeyMap)) {
+        uiStore.remapHotkey(action, e.currentTarget.value);
+      }
+      onChange(null);
+    },
+    [action, onChange, uiStore],
+  );
 
   return (
     <div>
       <input
         placeholder="..."
-        value={newCombo}
-        tabIndex={0}
+        value={combo}
         onKeyDown={handleKeyDown}
         onBlur={handleOnBlur}
         autoFocus
-        style={{ width: '120px' }}
         onChange={noop}
       />
-      {checkIfTaken(newCombo) && <div>{IconSet.WARNING_FILL} Key combination already in use!</div>}
+      {combo.length > 0 && isInvalidCombo(combo, action, uiStore.hotkeyMap) && (
+        <div>{IconSet.WARNING_FILL} Key combination already in use!</div>
+      )}
     </div>
   );
 };
@@ -119,13 +118,13 @@ const HotkeyMapper = observer(() => {
         </tr>
       </thead>
       <tbody>
-        {Object.keys(uiStore.hotkeyMap).map((key) => (
+        {Object.entries(uiStore.hotkeyMap).map(([key, combo]) => (
           <tr key={key}>
             <td>{camelCaseToSpaced(key)}</td>
             <td>
               <ChangeableKeyCombo
                 action={key as keyof IHotkeyMap}
-                combo={uiStore.hotkeyMap[key as keyof IHotkeyMap]}
+                combo={combo}
                 defaultCombo={defaultHotkeyMap[key as keyof IHotkeyMap]}
                 isChanging={changed === key}
                 onChange={onChange}
