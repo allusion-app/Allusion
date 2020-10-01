@@ -72,7 +72,6 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
         placement="bottom"
         target={
           <input
-            autoFocus
             type="text"
             value={query}
             aria-autocomplete="list"
