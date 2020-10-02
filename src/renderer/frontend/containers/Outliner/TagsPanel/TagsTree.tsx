@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useCallback, useReducer, useContext } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { Collapse } from '@blueprintjs/core';
 
 import { IconSet, Tree } from 'components';
 import { Toolbar, ToolbarButton, ContextMenu } from 'components/menu';
@@ -39,6 +38,7 @@ import TagStore from 'src/renderer/frontend/stores/TagStore';
 import TagCollectionStore from 'src/renderer/frontend/stores/TagCollectionStore';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
+import { Collapse } from 'src/renderer/frontend/components/Transition';
 
 interface ILabelProps {
   /** SVG element */
@@ -776,7 +776,7 @@ const TagsTree = observer(({ root, tagCollectionStore, tagStore, uiStore }: ITag
         </Toolbar>
       </div>
 
-      <Collapse isOpen={!isCollapsed}>
+      <Collapse open={!isCollapsed}>
         {root.subCollections.length === 0 && root.tags.length === 0 ? (
           <div className="tree-content-label" style={{ padding: '0.25rem' }}>
             {IconSet.INFO}

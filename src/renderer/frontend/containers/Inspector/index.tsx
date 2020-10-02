@@ -1,12 +1,12 @@
 import React, { useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { observer } from 'mobx-react-lite';
-import { CSSTransition } from 'react-transition-group';
 import { ClientFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
 import { clamp } from '../../utils';
 import { MissingImageFallback } from '../ContentView/GalleryItem';
+import { Slide } from '../../components/Transition';
 
 const Carousel = ({ items }: { items: ClientFile[] }) => {
   // NOTE: maxItems is coupled to the CSS! Max is 10 atm (see inspector.scss)
@@ -61,36 +61,17 @@ const Carousel = ({ items }: { items: ClientFile[] }) => {
   );
 };
 
-interface IContainer {
-  children: ReactNode;
-}
-
-const Container = observer(({ children }: IContainer) => {
-  const { uiStore } = useContext(StoreContext);
-  return (
-    <CSSTransition
-      in={uiStore.isInspectorOpen}
-      classNames="sliding-sidebar"
-      // Note: timeout needs to equal the transition time in CSS
-      timeout={200}
-      unmountOnExit
-    >
-      <aside id="inspector">{children}</aside>
-    </CSSTransition>
-  );
-});
-
 const Inspector = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
   const selectedFiles = uiStore.fileSelection;
 
   if (selectedFiles.size === 0) {
     return (
-      <Container>
+      <Slide element="aside" id="inspector" open={uiStore.isInspectorOpen} unmountOnExit>
         <section>
           <h2 className="inspector-heading">No image selected</h2>
         </section>
-      </Container>
+      </Slide>
     );
   }
 
@@ -113,7 +94,7 @@ const Inspector = observer(() => {
   }
 
   return (
-    <Container>
+    <Slide element="aside" id="inspector" open={uiStore.isInspectorOpen} unmountOnExit>
       <div className="inspector-preview">{selectionPreview}</div>
       <section>
         <h2 className="inspector-heading">Information</h2>
@@ -127,7 +108,7 @@ const Inspector = observer(() => {
         <h2 className="inspector-heading">Tags</h2>
         <FileTags files={uiStore.clientFileSelection} />
       </section>
-    </Container>
+    </Slide>
   );
 });
 

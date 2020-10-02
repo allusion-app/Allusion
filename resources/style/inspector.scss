@@ -2,23 +2,7 @@
 #inspector {
   grid-area: inspector;
   width: var(--inspector-width);
-  overflow-x: hidden;
-  transition: max-width 200ms ease-in-out; // 120ms $pt-transition-cubic2
   margin-right: 1px;
-
-  // Sidebar CSS transition
-  &.sliding-sidebar-enter {
-    max-width: 0;
-  }
-  &.sliding-sidebar-enter-active {
-    max-width: var(--inspector-width);
-  }
-  &.sliding-sidebar-exit {
-    max-width: var(--inspector-width);
-  }
-  &.sliding-sidebar-exit-active {
-    max-width: 0;
-  }
 
   > * {
     // Don't squash content of aside during parent transition

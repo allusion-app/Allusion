@@ -3,30 +3,13 @@
   grid-area: outliner;
   display: flex;
   flex-direction: column;
-  // Show y scrollbar when there's loads of tags or location list items
-  overflow-x: hidden;
-  transition: max-width 200ms $pt-transition-cubic2;
+  width: var(--outliner-width);
   margin-left: 1px;
 
-  // Sidebar CSS transition
-  &.sliding-sidebar-enter {
-    max-width: 0;
+  > * {
+    // Don't squash content during parent transition
+    width: var(--outliner-width);
   }
-  &.sliding-sidebar-enter-active {
-    max-width: var(--outliner-width);
-  }
-  &.sliding-sidebar-exit {
-    max-width: var(--outliner-width);
-  }
-  &.sliding-sidebar-exit-active {
-    max-width: 0;
-  }
-}
-
-#outliner-content,
-#system-tags {
-  // Don't squash content during parent transition
-  width: var(--outliner-width);
 }
 
 #outliner-content {

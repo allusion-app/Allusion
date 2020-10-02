@@ -1,7 +1,6 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { remote, shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { Collapse } from '@blueprintjs/core';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import {
@@ -21,6 +20,7 @@ import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { CustomKeyDict, IExpansionState } from '../../types';
 import { LocationRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
+import { Collapse } from 'src/renderer/frontend/components/Transition';
 
 // Tooltip info
 const enum Tooltip {
@@ -482,7 +482,7 @@ const LocationsPanel = () => {
           />
         </Toolbar>
       </div>
-      <Collapse isOpen={!isCollapsed}>
+      <Collapse open={!isCollapsed}>
         <LocationsTree
           showContextMenu={show}
           lastRefresh={locationTreeKey.toString()}
