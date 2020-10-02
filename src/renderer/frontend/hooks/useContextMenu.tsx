@@ -1,4 +1,4 @@
-import React, { useReducer, useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 type Menu = JSX.Element | JSX.Element[];
 
@@ -22,35 +22,6 @@ interface IContextMenuState {
   menu: Menu;
 }
 
-enum IActionType {
-  Show,
-  Hide,
-}
-
-interface IActionConfig {
-  resetOnClose: boolean;
-  initialMenu: Menu;
-}
-
-type IAction =
-  | (Omit<IContextMenuState, 'open'> & { type: IActionType.Show })
-  | { type: IActionType.Hide; config: IActionConfig };
-
-const reducer = (state: any, action: IAction): IContextMenuState => {
-  if (action.type === IActionType.Show) {
-    return {
-      open: true,
-      menu: action.menu,
-      x: action.x,
-      y: action.y,
-    };
-  } else if (action.config.resetOnClose) {
-    return { ...state, menu: action.config.initialMenu, open: false };
-  } else {
-    return { ...state, open: false };
-  }
-};
-
 interface IContextMenuMethods {
   show: (x: number, y: number, menu: JSX.Element | JSX.Element[]) => void;
   hide: () => void;
@@ -63,18 +34,26 @@ export default function useContextMenu(
     resetOnClose: options?.resetOnClose ?? true,
     initialMenu: options?.initialMenu ?? <></>,
   });
-  const [state, dispatch] = useReducer(reducer, {
+  const [state, dispatch] = useState({
     open: false,
     x: 0,
     y: 0,
     menu: config.current.initialMenu,
   });
+
   const show = useCallback(
     (x: number, y: number, menu: JSX.Element | JSX.Element[]) =>
-      dispatch({ type: IActionType.Show, x, y, menu }),
+      dispatch({ open: true, menu, x, y }),
     [],
   );
-  const hide = useCallback(() => dispatch({ type: IActionType.Hide, config: config.current }), []);
+
+  const hide = useCallback(() => {
+    if (config.current.resetOnClose) {
+      dispatch((state) => ({ ...state, menu: config.current.initialMenu, open: false }));
+    } else {
+      dispatch((state) => ({ ...state, open: false }));
+    }
+  }, []);
 
   return [state, { show, hide }];
 }
