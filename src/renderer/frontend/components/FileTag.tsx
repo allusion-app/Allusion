@@ -13,12 +13,7 @@ interface IFileTagProps {
 const Single = observer(({ file, autoFocus }: { file: ClientFile; autoFocus?: boolean }) => {
   const { tagStore } = useContext(StoreContext);
 
-  const handleCreate = async (name: string) => {
-    const tag = await tagStore.addTag(name);
-    // Add new tags to the root hierarchy by default
-    tagStore.getRootTag().addTag(tag.id);
-    return tag;
-  };
+  const handleCreate = async (name: string) => tagStore.create(tagStore.getRoot(), name);
 
   return (
     <MultiTagSelector
@@ -50,12 +45,7 @@ const Multi = observer(({ files, autoFocus }: IFileTagProps) => {
     return `${tag.name} (${match ? match[1] : '?'})`;
   };
 
-  const handleCreate = async (name: string) => {
-    const newTag = await tagStore.addTag(name);
-    // Add new tags to the root hierarchy by default
-    tagStore.getRootTag().addTag(newTag.id);
-    return newTag;
-  };
+  const handleCreate = async (name: string) => tagStore.create(tagStore.getRoot(), name);
 
   return (
     <MultiTagSelector

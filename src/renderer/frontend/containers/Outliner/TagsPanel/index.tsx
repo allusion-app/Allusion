@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 
 import { Hotkey, Hotkeys, HotkeysTarget, Divider } from '@blueprintjs/core';
-import { observer, Observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 import StoreContext, { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 import IconSet from 'components/Icons';
@@ -53,12 +53,7 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
     return (
       <div>
-        <Observer>
-          {() => {
-            const { tagStore, uiStore } = this.props.rootStore;
-            return <TagsTree root={tagStore.getRootTag()} uiStore={uiStore} tagStore={tagStore} />;
-          }}
-        </Observer>
+        <TagsTree />
         <Divider />
         <SystemTags />
       </div>

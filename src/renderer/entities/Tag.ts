@@ -1,6 +1,6 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import TagStore from '../frontend/stores/TagStore';
-import { generateId, ID, IResource, ISerializable } from './ID';
+import { ID, IResource, ISerializable } from './ID';
 
 export const ROOT_TAG_ID = 'root';
 
@@ -20,11 +20,11 @@ export interface ITag extends IResource {
  * update the entity in the backend.
  */
 export class ClientTag implements ISerializable<ITag> {
-  store: TagStore;
-  saveHandler: IReactionDisposer;
-  autoSave = true;
+  private store: TagStore;
+  private saveHandler: IReactionDisposer;
+  private autoSave = true;
 
-  id: ID;
+  readonly id: ID;
   dateAdded: Date = new Date();
   @observable name: string;
   @observable description: string = '';
@@ -32,7 +32,7 @@ export class ClientTag implements ISerializable<ITag> {
   readonly subTags = observable<ID>([]);
   // icon, (fileCount?)
 
-  constructor(store: TagStore, name: string = '', id = generateId()) {
+  constructor(store: TagStore, id: ID, name: string = '') {
     this.store = store;
     this.id = id;
     this.name = name;
@@ -74,6 +74,24 @@ export class ClientTag implements ISerializable<ITag> {
       .filter((c) => c !== undefined) as ClientTag[];
   }
 
+  /**
+   * Returns true if tag is an ancestor of this tag.
+   * @param tag possible ancestor node
+   */
+  isAncestor(tag: ClientTag): boolean {
+    if (this === tag) {
+      return false;
+    }
+    let node = this.parent;
+    while (node.id !== ROOT_TAG_ID) {
+      if (node === tag) {
+        return true;
+      }
+      node = node.parent;
+    }
+    return false;
+  }
+
   @action.bound rename(name: string): void {
     this.name = name;
   }
@@ -82,23 +100,8 @@ export class ClientTag implements ISerializable<ITag> {
     this.color = color;
   }
 
-  @action.bound addTag(tag: ClientTag | ID): void {
-    const id = tag instanceof ClientTag ? tag.id : tag;
-    if (!this.subTags.includes(id)) {
-      this.subTags.push(id);
-    }
-  }
-
-  @action.bound insertSubTag(tag: ClientTag, at = 0): void {
-    if (tag.parent === this && this.subTags.findIndex((t) => t === tag.id) < at) {
-      at -= 1;
-    }
-    tag.parent.subTags.remove(tag.id);
-    this.subTags.splice(at, 0, tag.id);
-  }
-
-  @action removeSubTag(tag: ID): void {
-    this.subTags.remove(tag);
+  @action.bound insertSubTag(tag: ClientTag, at: number): void {
+    this.store.insert(this, tag, at);
   }
 
   /**
@@ -109,7 +112,6 @@ export class ClientTag implements ISerializable<ITag> {
     // make sure our changes aren't sent back to the backend
     this.autoSave = false;
 
-    this.id = backendTag.id;
     this.name = backendTag.name;
     this.description = backendTag.description;
     this.dateAdded = backendTag.dateAdded;
@@ -137,7 +139,7 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   async delete(): Promise<void> {
-    return this.store.removeTag(this);
+    return this.store.delete(this);
   }
 
   dispose(): void {

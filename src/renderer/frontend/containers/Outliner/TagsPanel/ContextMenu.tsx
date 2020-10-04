@@ -93,85 +93,6 @@ const ColorPickerMenu = observer(
   },
 );
 
-interface IEditMenuProps {
-  rename: () => void;
-  delete: () => void;
-  color: string;
-  setColor: (color: string) => void;
-  contextText: string;
-}
-
-const EditMenu = (props: IEditMenuProps) => {
-  return (
-    <>
-      <MenuItem onClick={props.rename} text="Rename" icon={IconSet.EDIT} />
-      <MenuItem onClick={props.delete} text={`Delete${props.contextText}`} icon={IconSet.DELETE} />
-      <ColorPickerMenu
-        selectedColor={props.color}
-        onChange={props.setColor}
-        contextText={props.contextText}
-      />
-    </>
-  );
-};
-
-interface ISearchMenuProps {
-  addSearch: () => void;
-  replaceSearch: () => void;
-}
-
-const SearchMenu = (props: ISearchMenuProps) => {
-  return (
-    <>
-      <MenuItem onClick={props.addSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
-      <MenuItem onClick={props.replaceSearch} text="Replace Search Query" icon={IconSet.REPLACE} />
-    </>
-  );
-};
-
-interface IMenuProps<T> {
-  nodeData: T;
-  uiStore: UiStore;
-  dispatch: React.Dispatch<Action>;
-}
-
-export const TagContextMenu = ({ nodeData, dispatch, uiStore }: IMenuProps<ClientTag>) => {
-  const { tags } = uiStore.getTagContextItems(nodeData.id);
-  let contextText = formatTagCountText(Math.max(0, tags.length - 1));
-  contextText = contextText && ` (${contextText})`;
-
-  return (
-    <Menu>
-      <EditMenu
-        rename={() => dispatch(Factory.enableEditing(nodeData.id))}
-        delete={() => dispatch(Factory.confirmDeletion(nodeData))}
-        color={nodeData.color}
-        setColor={(color: string) => {
-          if (nodeData.isSelected) {
-            uiStore.colorSelectedTagsAndCollections(nodeData.id, color);
-          } else {
-            nodeData.setColor(color);
-          }
-        }}
-        contextText={contextText}
-      />
-      <Divider />
-      <SearchMenu
-        addSearch={() =>
-          nodeData.isSelected
-            ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
-        }
-        replaceSearch={() =>
-          nodeData.isSelected
-            ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
-        }
-      />
-    </Menu>
-  );
-};
-
 const expandTagCollection = (c: ClientTag, expansion: IExpansionState): IExpansionState => {
   c.clientSubTags.forEach((subTag) => {
     expandTagCollection(subTag, expansion);
@@ -188,13 +109,16 @@ const collapseTagCollection = (c: ClientTag, expansion: IExpansionState): IExpan
   return expansion;
 };
 
-interface ICollectionMenuProps extends IMenuProps<ClientTag> {
+interface IContextMenuProps {
+  nodeData: ClientTag;
+  uiStore: UiStore;
+  dispatch: React.Dispatch<Action>;
   tagStore: TagStore;
   expansion: IExpansionState;
   pos: number;
 }
 
-export const CollectionContextMenu = (props: ICollectionMenuProps) => {
+export const TagItemContextMenu = (props: IContextMenuProps) => {
   const { nodeData, dispatch, expansion, pos, tagStore, uiStore } = props;
   const { tags } = uiStore.getTagContextItems(nodeData.id);
   let contextText = formatTagCountText(tags.length);
@@ -204,21 +128,26 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
       <MenuItem
         onClick={() =>
           tagStore
-            .addTag('New Tag')
-            .then((tag) => {
-              nodeData.addTag(tag.id);
-              dispatch(Factory.insertNode(nodeData.id, tag.id));
-            })
+            .create(nodeData, 'New Tag')
+            .then((tag) => dispatch(Factory.insertNode(nodeData.id, tag.id)))
             .catch((err) => console.log('Could not create tag', err))
         }
         text="New Tag"
         icon={IconSet.TAG_ADD}
       />
-      <EditMenu
-        rename={() => dispatch(Factory.enableEditing(nodeData.id))}
-        delete={() => dispatch(Factory.confirmDeletion(nodeData))}
-        color={nodeData.color}
-        setColor={(color: string) => {
+      <MenuItem
+        onClick={() => dispatch(Factory.enableEditing(nodeData.id))}
+        text="Rename"
+        icon={IconSet.EDIT}
+      />
+      <MenuItem
+        onClick={() => dispatch(Factory.confirmDeletion(nodeData))}
+        text={`Delete${contextText}`}
+        icon={IconSet.DELETE}
+      />
+      <ColorPickerMenu
+        selectedColor={nodeData.color}
+        onChange={(color) => {
           if (nodeData.isSelected) {
             uiStore.colorSelectedTagsAndCollections(nodeData.id, color);
           } else {
@@ -238,34 +167,40 @@ export const CollectionContextMenu = (props: ICollectionMenuProps) => {
         text="Collapse"
         icon={IconSet.ITEM_COLLAPS}
       />
-      {/* <MenuItem
-        onClick={() => nodeData.parent.insertCollection(nodeData, pos - 2)}
+      <MenuItem
+        onClick={() => nodeData.parent.insertSubTag(nodeData, pos - 2)}
         text="Move Up"
         icon={IconSet.ITEM_MOVE_UP}
         disabled={pos === 1}
       />
       <MenuItem
-        onClick={() => nodeData.parent.insertCollection(nodeData, pos + 1)}
+        onClick={() => nodeData.parent.insertSubTag(nodeData, pos + 1)}
         text="Move Down"
         icon={IconSet.ITEM_MOVE_DOWN}
-        disabled={pos === nodeData.parent.subCollections.length}
-      /> */}
+        disabled={pos === nodeData.parent.subTags.length}
+      />
       <Divider />
-      <SearchMenu
-        addSearch={() =>
+      <MenuItem
+        onClick={() =>
           nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
             : uiStore.addSearchCriterias(
                 nodeData.getTagsRecursively().map((c: ID) => new ClientIDSearchCriteria('tags', c)),
               )
         }
-        replaceSearch={() =>
+        text="Add to Search Query"
+        icon={IconSet.SEARCH}
+      />
+      <MenuItem
+        onClick={() =>
           nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
             : uiStore.replaceSearchCriterias(
                 nodeData.getTagsRecursively().map((c: ID) => new ClientIDSearchCriteria('tags', c)),
               )
         }
+        text="Replace Search Query"
+        icon={IconSet.REPLACE}
       />
     </Menu>
   );

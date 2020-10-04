@@ -110,17 +110,17 @@ ReactDOM.render(
  * @param tagNames The names of the tags
  */
 async function addTagsToFile(filePath: string, tagNames: string[]) {
-  const clientFile = rootStore.fileStore.fileList.find((file) => file.absolutePath === filePath);
+  const { fileStore, tagStore } = rootStore;
+  const clientFile = fileStore.fileList.find((file) => file.absolutePath === filePath);
   if (clientFile) {
     const tagIds = await Promise.all(
       tagNames.map(async (tagName) => {
-        const clientTag = rootStore.tagStore.tagList.find((tag) => tag.name === tagName);
+        const clientTag = tagStore.tagList.find((tag) => tag.name === tagName);
         console.log(clientTag);
-        if (clientTag) {
+        if (clientTag !== undefined) {
           return clientTag.id;
         } else {
-          const newClientTag = await rootStore.tagStore.addTag(tagName);
-          rootStore.tagStore.getRootTag().addTag(newClientTag);
+          const newClientTag = await tagStore.create(tagStore.getRoot(), tagName);
           return newClientTag.id;
         }
       }),

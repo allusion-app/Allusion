@@ -1,33 +1,40 @@
-import { action, IObservableArray, observable, runInAction } from 'mobx';
+import { action, IObservableArray, ObservableMap, observable, runInAction } from 'mobx';
 import Backend from '../../backend/Backend';
 import { ClientTag, ITag, ROOT_TAG_ID } from '../../entities/Tag';
 import RootStore from './RootStore';
-import { ID } from '../../entities/ID';
+import { generateId, ID } from '../../entities/ID';
 import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 
 /**
  * Based on https://mobx.js.org/best/store.html
  */
 class TagStore {
-  tagList: IObservableArray<ClientTag> = observable<ClientTag>([]);
-
   private backend: Backend;
   private rootStore: RootStore;
+
+  readonly tagList: IObservableArray<ClientTag> = observable([]);
+  // Maps child ID to parent ClientTag reference
+  private readonly parentLookup: ObservableMap<ID, ClientTag> = observable(new Map());
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
   }
 
-  @action.bound init() {
-    this.loadTags();
+  async init() {
+    try {
+      const fetchedTags = await this.backend.fetchTags();
+      this.initTagList(fetchedTags);
+    } catch (err) {
+      console.log('Could not load tags', err);
+    }
   }
 
   get(tag: ID): ClientTag | undefined {
     return this.tagList.find((t) => t.id === tag);
   }
 
-  getRootTag() {
+  getRoot() {
     const root = this.get(ROOT_TAG_ID);
     if (!root) {
       throw new Error('Root tag not found. This should not happen!');
@@ -36,11 +43,11 @@ class TagStore {
   }
 
   getParent(child: ID): ClientTag {
-    const parent = this.tagList.find((col) => col.subTags.includes(child));
-    if (!parent) {
+    const parent = this.parentLookup.get(child);
+    if (parent === undefined && child !== ROOT_TAG_ID) {
       console.warn('Tag does not have a parent', this);
     }
-    return parent || this.rootStore.tagStore.getRootTag();
+    return parent || this.getRoot();
   }
 
   isSelected(tag: ID): boolean {
@@ -53,57 +60,122 @@ class TagStore {
     );
   }
 
+  @action.bound async create(parent: ClientTag, tagName: string) {
+    let id = generateId();
+    // It is very unlikely to create two identical ids but that is better
+    // than throwing an error.
+    if (this.tagList.some((t) => t.id === id)) {
+      id = generateId();
+    }
+    const tag = new ClientTag(this, id, tagName);
+    await this.backend.createTag(tag.serialize());
+    this.add(parent, tag);
+    return tag;
+  }
+
+  @action.bound insert(tag: ClientTag, subTag: ClientTag, index: number) {
+    if (tag === subTag || subTag.id === ROOT_TAG_ID) {
+      return;
+    }
+    // Reorder tag.subTags and return
+    if (tag === subTag.parent) {
+      if (index > -1 && index < tag.subTags.length) {
+        const newIndex = tag.subTags.indexOf(subTag.id) < index ? index - 1 : index;
+        tag.subTags.remove(subTag.id);
+        tag.subTags.splice(newIndex, 0, subTag.id);
+      }
+      return;
+    }
+    // Check whether subTag is not an ancestor node of tag.
+    let node = tag.parent;
+    while (node.id !== ROOT_TAG_ID) {
+      if (node === subTag) {
+        return;
+      }
+      node = node.parent;
+    }
+    // Insert subTag into tag
+    subTag.parent.subTags.remove(subTag.id);
+    if (index > -1 && index < tag.subTags.length) {
+      tag.subTags.splice(index, 0, subTag.id);
+    } else {
+      tag.subTags.push(subTag.id);
+    }
+    this.parentLookup.set(subTag.id, tag);
+  }
+
+  @action.bound async delete(tag: ClientTag) {
+    tag.dispose();
+    await this.backend.removeTag(tag);
+    await this.deleteSubTags(tag.clientSubTags);
+    // Remove tag id reference from other observable objects
+    this.rootStore.uiStore.deselectTag(tag.id);
+    for (const file of this.rootStore.fileStore.fileList) {
+      file.removeTag(tag.id);
+    }
+    runInAction(() => tag.parent.subTags.remove(tag.id));
+    this.remove(tag);
+  }
+
   save(tag: ITag) {
     this.backend.saveTag(tag);
   }
 
-  @action.bound async addTag(tagName: string) {
-    const tag = new ClientTag(this, tagName);
+  @action private add(parent: ClientTag, tag: ClientTag) {
+    this.parentLookup.set(tag.id, parent);
     this.tagList.push(tag);
-    await this.backend.createTag(tag.serialize());
-    return tag;
+    parent.subTags.push(tag.id);
   }
 
-  @action.bound async removeTag(tag: ClientTag) {
-    // Mark tag object for garbage collection
-    const id = await this.delete(tag);
-
-    // Remove tag id reference from other observable objects
-    this.rootStore.uiStore.deselectTag(id);
-    this.rootStore.fileStore.fileList.forEach((f) => f.removeTag(id));
-    this.rootStore.tagStore.tagList.forEach((tag) => tag.removeSubTag(id));
-  }
-
-  /**
-   * Removes tag from frontend and backend
-   */
-  @action private async delete(tag: ClientTag): Promise<ID> {
-    const id = tag.id;
-    tag.dispose();
-    await this.backend.removeTag(tag);
-    runInAction(() => this.tagList.remove(tag));
-    return id;
-  }
-
-  @action private loadTags() {
-    this.backend
-      .fetchTags()
-      .then((fetchedTags) => {
-        fetchedTags.forEach((tag) => this.updateFromBackend(tag));
-      })
-      .catch((err) => console.log('Could not load tags', err));
-  }
-
-  @action private updateFromBackend(backendTag: ITag) {
-    const tag = this.get(backendTag.id);
-    // In case a tag was added to the server from another client or session
-    if (!tag) {
-      this.tagList.push(new ClientTag(this).updateFromBackend(backendTag));
-    } else {
-      // Else, update the existing tag
-      tag.updateFromBackend(backendTag);
+  // The difference between this method and delete is that no computation
+  // power is wasted on removing the tag id from the parent subTags list.
+  @action private async deleteSubTags(subTags: ClientTag[]) {
+    for (const subTag of subTags) {
+      subTag.dispose();
+      await this.backend.removeTag(subTag);
+      await this.deleteSubTags(subTag.clientSubTags);
+      this.remove(subTag);
     }
   }
+
+  @action private remove(tag: ClientTag) {
+    // Remove tag id reference from other observable objects types
+    this.rootStore.uiStore.deselectTag(tag.id);
+    for (const file of this.rootStore.fileStore.fileList) {
+      file.removeTag(tag.id);
+    }
+    this.parentLookup.delete(tag.id);
+    this.tagList.remove(tag);
+  }
+
+  @action private initTagList(backendTags: ITag[]) {
+    // Create tag objects
+    for (const backendTag of backendTags) {
+      const tag = new ClientTag(this, backendTag.id).updateFromBackend(backendTag);
+      this.tagList.push(tag);
+      for (const subTag of tag.subTags) {
+        this.parentLookup.set(subTag, tag);
+      }
+    }
+    // Set missing parents with root
+    const root = this.getRoot();
+    for (const tag of this.tagList) {
+      if (tag !== root && !this.parentLookup.has(tag.id)) {
+        this.parentLookup.set(tag.id, root);
+      }
+    }
+  }
+
+  // @action private updateFromBackend(backendTag: ITag) {
+  //   const tag = this.get(backendTag.id);
+  //   // In case a tag was added to the server from another client or session
+  //   if (tag === undefined) {
+  //     this.tagList.push(new ClientTag(this, backendTag.id).updateFromBackend(backendTag));
+  //   } else {
+  //     // Else, update the existing tag
+  //     tag.updateFromBackend(backendTag);
+  //   }
+  // }
 }
 
 export default TagStore;

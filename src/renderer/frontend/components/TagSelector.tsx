@@ -107,7 +107,7 @@ const TagSelector = ({
 
   // Only used for visualization in the selector, an actual ClientTag is created onSelect
   const createNewTag = useCallback(
-    (name: string) => new ClientTag(tagStore, name, CREATED_TAG_ID),
+    (name: string) => new ClientTag(tagStore, CREATED_TAG_ID, name),
     [tagStore],
   );
 

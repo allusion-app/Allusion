@@ -487,7 +487,7 @@ class UiStore {
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.tags.forEach((tag) => target.insertSubTag(tag));
+    ctx.tags.forEach((tag) => target.insertSubTag(tag, 0));
   }
 
   /////////////////// Search Actions ///////////////////
