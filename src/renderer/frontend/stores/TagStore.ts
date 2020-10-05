@@ -172,7 +172,7 @@ class TagStore {
     // Set missing parents with root
     const root = this.root;
     for (const tag of this.tagList) {
-      if (!this.parentLookup.has(tag.id)) {
+      if (!this.exists(tag.id)) {
         this.parentLookup.set(tag.id, root);
       }
     }
