@@ -119,7 +119,7 @@ class FileStore {
     file.setBroken(true);
     this.rootStore.uiStore.deselectFile(file);
     this.incrementNumMissingFiles();
-    if (file.tags.length === 0) {
+    if (file.tags.size === 0) {
       this.decrementNumUntaggedFiles();
     }
   }
@@ -131,7 +131,7 @@ class FileStore {
 
     try {
       await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
-      await this.backend.removeFiles(filesToRemove);
+      await this.backend.removeFiles(filesToRemove.map((f) => f.serialize()));
       runInAction(() => {
         filesToRemove.forEach((f) => {
           this.rootStore.uiStore.deselectFile(f);
@@ -296,7 +296,7 @@ class FileStore {
     return this.index.get(id);
   }
 
-  getTags(tags: ID[]): ClientTag[] {
+  getTags(tags: Set<ID>): ClientTag[] {
     return Array.from(this.rootStore.tagStore.getIterFrom(tags));
   }
 
@@ -469,7 +469,7 @@ class FileStore {
     for (const file of this.fileList) {
       if (file.isBroken) {
         missingFiles += 1;
-      } else if (file.tags.length === 0) {
+      } else if (file.tags.size === 0) {
         untaggedFiles += 1;
       }
     }
