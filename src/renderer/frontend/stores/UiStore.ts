@@ -97,7 +97,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
 ];
 
 class UiStore {
-  rootStore: RootStore;
+  private rootStore: RootStore;
 
   @observable isInitialized = false;
 
@@ -331,7 +331,7 @@ class UiStore {
   }
 
   @computed get clientTagSelection(): ClientTag[] {
-    return Array.from(this.tagSelection, (id) => this.rootStore.tagStore.get(id)) as ClientTag[];
+    return Array.from(this.rootStore.tagStore.getIterFrom(this.tagSelection));
   }
 
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
@@ -368,33 +368,27 @@ class UiStore {
     this.tagSelection.add(tag.id);
   }
 
-  @action.bound selectTags(tags: ClientTag[] | ID[], clear?: boolean) {
+  @action.bound selectTags(tags: ID[], clear?: boolean) {
     if (clear) {
       this.clearTagSelection();
     }
-    if (tags.length === 0) {
-      return;
-    }
-    if (tags[0] instanceof ClientTag) {
-      (tags as ClientTag[]).forEach((tag: ClientTag) => this.tagSelection.add(tag.id));
-    } else {
-      (tags as ID[]).forEach((id) => this.tagSelection.add(id));
+    for (const tag of tags) {
+      this.tagSelection.add(tag);
     }
   }
 
-  @action.bound deselectTags(tags: ClientTag[] | ID[]) {
-    if (tags.length === 0) {
-      return;
-    }
-    if (tags[0] instanceof ClientTag) {
-      (tags as ClientTag[]).forEach((tag) => this.tagSelection.delete(tag.id));
-    } else {
-      (tags as ID[]).forEach((tag) => this.tagSelection.delete(tag));
+  @action.bound deselectTags(tags: ID[]) {
+    for (const tag of tags) {
+      this.tagSelection.delete(tag);
     }
   }
 
-  @action.bound deselectTag(tag: ClientTag | ID) {
-    this.tagSelection.delete(tag instanceof ClientTag ? tag.id : tag);
+  @action.bound deselectTag(tag: ClientTag) {
+    this.tagSelection.delete(tag.id);
+  }
+
+  @action.bound selectAllTags() {
+    this.tagSelection.replace(this.rootStore.tagStore.root.subTags);
   }
 
   @action.bound clearTagSelection() {

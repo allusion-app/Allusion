@@ -412,7 +412,7 @@ const mapTag = (tag: ClientTag): ITreeItem => ({
 
 const TagsTree = observer(() => {
   const { tagStore, uiStore } = useContext(StoreContext);
-  const root = tagStore.getRoot();
+  const root = tagStore.root;
   const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   const [state, dispatch] = useReducer(reducer, {

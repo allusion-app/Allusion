@@ -64,10 +64,7 @@ export const TagRemoval = (props: IRemovalProps<ClientTag>) => {
   const { object } = props;
   const tagsToRemove = object.isSelected
     ? uiStore.clientTagSelection
-    : (object
-        .getTagsRecursively()
-        .map((t) => tagStore.get(t))
-        .filter((t) => t !== undefined) as ClientTag[]);
+    : Array.from(tagStore.getIterFrom(object.getTagsRecursively()));
 
   const text = `Are you sure you want to delete the tag "${object.name}"?`;
 

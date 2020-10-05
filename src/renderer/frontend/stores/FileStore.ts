@@ -296,8 +296,8 @@ class FileStore {
     return this.index.get(id);
   }
 
-  getTag(tag: ID): ClientTag | undefined {
-    return this.rootStore.tagStore.get(tag);
+  getTags(tags: ID[]): ClientTag[] {
+    return Array.from(this.rootStore.tagStore.getIterFrom(tags));
   }
 
   getLocation(location: ID): ClientLocation {

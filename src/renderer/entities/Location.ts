@@ -92,9 +92,7 @@ export class ClientLocation implements ISerializable<ILocation> {
   }
 
   @computed get clientTagsToAdd(): ClientTag[] {
-    return this.tagsToAdd
-      .map((id) => this.store.rootStore.tagStore.get(id))
-      .filter((t) => t !== undefined) as ClientTag[];
+    return Array.from(this.store.rootStore.tagStore.getIterFrom(this.tagsToAdd));
   }
 
   @computed get name(): string {

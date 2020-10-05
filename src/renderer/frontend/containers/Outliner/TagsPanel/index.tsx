@@ -59,9 +59,6 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
       </div>
     );
   }
-  selectAllTags = () => {
-    this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());
-  };
   renderHotkeys() {
     const { uiStore } = this.props.rootStore;
     const { hotkeyMap } = uiStore;
@@ -70,7 +67,7 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
         <Hotkey
           combo={hotkeyMap.selectAll}
           label="Select all tags in the outliner"
-          onKeyDown={this.selectAllTags}
+          onKeyDown={uiStore.selectAllTags}
           group="Outliner"
         />
         <Hotkey

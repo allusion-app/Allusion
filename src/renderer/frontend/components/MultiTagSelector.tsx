@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { Button, MenuItem, Intent, Icon, ITagProps } from '@blueprintjs/core';
 import { ItemRenderer, MultiSelect, ItemPredicate } from '@blueprintjs/select';
 
-import { ClientTag, ROOT_TAG_ID } from '../../entities/Tag';
+import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
 import { getClassForBackground } from '../utils';
@@ -159,12 +159,6 @@ const MultiTagSelector = ({
     }
   }, [refocusObject, autoFocus]);
 
-  const items = useMemo(() => {
-    const tagsWithoutRoot = tagStore.tagList.filter((tag) => tag.id !== ROOT_TAG_ID);
-    return tagsWithoutRoot;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tagStore.tagList.length, tagStore.tagList.length]);
-
   const getTagProps = useCallback(
     (_: any, index: number): ITagProps => ({
       minimal: true,
@@ -176,7 +170,7 @@ const MultiTagSelector = ({
 
   return (
     <TagMultiSelect
-      items={items}
+      items={tagStore.root.clientSubTags}
       selectedItems={selectedItems}
       itemRenderer={SearchTagItem}
       noResults={NoResults}

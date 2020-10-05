@@ -129,11 +129,9 @@ const TagSelector = ({
     }
   }, [refocusObject, autoFocus, inputRef]);
 
-  const items = tagStore.tagList;
-
   return (
     <TagSelect
-      items={items}
+      items={tagStore.root.clientSubTags}
       selectedItem={selectedItem}
       itemRenderer={SearchTagItem}
       noResults={NoResults}

@@ -69,9 +69,7 @@ export class ClientTag implements ISerializable<ITag> {
 
   /** Get actual tag collection objects based on the IDs retrieved from the backend */
   @computed get clientSubTags(): ClientTag[] {
-    return this.subTags
-      .map((id) => this.store.get(id))
-      .filter((c) => c !== undefined) as ClientTag[];
+    return Array.from(this.store.getIterFrom(this.subTags));
   }
 
   /**
@@ -135,7 +133,15 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   getTagsRecursively(): ID[] {
-    return [this.id, ...this.clientSubTags.flatMap((c) => c.getTagsRecursively())];
+    const ids = [this.id];
+    const pushIds = (tags: ClientTag[]) => {
+      for (const t of tags) {
+        ids.push(t.id);
+        pushIds(t.clientSubTags);
+      }
+    };
+    pushIds(this.clientSubTags);
+    return ids;
   }
 
   async delete(): Promise<void> {

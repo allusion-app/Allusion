@@ -1,4 +1,4 @@
-import { action, IObservableArray, ObservableMap, observable, runInAction } from 'mobx';
+import { action, IObservableArray, ObservableMap, observable, runInAction, computed } from 'mobx';
 import Backend from '../../backend/Backend';
 import { ClientTag, ITag, ROOT_TAG_ID } from '../../entities/Tag';
 import RootStore from './RootStore';
@@ -13,7 +13,7 @@ class TagStore {
   private rootStore: RootStore;
 
   readonly tagList: IObservableArray<ClientTag> = observable([]);
-  // Maps child ID to parent ClientTag reference
+  // Maps child ID to parent ClientTag reference.
   private readonly parentLookup: ObservableMap<ID, ClientTag> = observable(new Map());
 
   constructor(backend: Backend, rootStore: RootStore) {
@@ -34,7 +34,7 @@ class TagStore {
     return this.tagList.find((t) => t.id === tag);
   }
 
-  getRoot() {
+  @computed get root() {
     const root = this.get(ROOT_TAG_ID);
     if (!root) {
       throw new Error('Root tag not found. This should not happen!');
@@ -44,10 +44,11 @@ class TagStore {
 
   getParent(child: ID): ClientTag {
     const parent = this.parentLookup.get(child);
-    if (parent === undefined && child !== ROOT_TAG_ID) {
+    if (parent === undefined) {
       console.warn('Tag does not have a parent', this);
+      return this.root;
     }
-    return parent || this.getRoot();
+    return parent;
   }
 
   isSelected(tag: ID): boolean {
@@ -60,11 +61,27 @@ class TagStore {
     );
   }
 
+  /** Checks whether a tag exists with this id. */
+  exists(id: ID): boolean {
+    // Each tag has a parent which is why it is faster to lookup the parent
+    // instead of searching the whole list every time.
+    return this.parentLookup.has(id);
+  }
+
+  *getIterFrom(ids: Iterable<ID>): Generator<ClientTag> {
+    for (const id of ids) {
+      if (this.exists(id)) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        yield this.get(id)!;
+      }
+    }
+  }
+
   @action.bound async create(parent: ClientTag, tagName: string) {
     let id = generateId();
     // It is very unlikely to create two identical ids but that is better
     // than throwing an error.
-    if (this.tagList.some((t) => t.id === id)) {
+    if (this.exists(id)) {
       id = generateId();
     }
     const tag = new ClientTag(this, id, tagName);
@@ -108,11 +125,6 @@ class TagStore {
     tag.dispose();
     await this.backend.removeTag(tag);
     await this.deleteSubTags(tag.clientSubTags);
-    // Remove tag id reference from other observable objects
-    this.rootStore.uiStore.deselectTag(tag.id);
-    for (const file of this.rootStore.fileStore.fileList) {
-      file.removeTag(tag.id);
-    }
     runInAction(() => tag.parent.subTags.remove(tag.id));
     this.remove(tag);
   }
@@ -140,7 +152,7 @@ class TagStore {
 
   @action private remove(tag: ClientTag) {
     // Remove tag id reference from other observable objects types
-    this.rootStore.uiStore.deselectTag(tag.id);
+    this.rootStore.uiStore.deselectTag(tag);
     for (const file of this.rootStore.fileStore.fileList) {
       file.removeTag(tag.id);
     }
@@ -158,9 +170,9 @@ class TagStore {
       }
     }
     // Set missing parents with root
-    const root = this.getRoot();
+    const root = this.root;
     for (const tag of this.tagList) {
-      if (tag !== root && !this.parentLookup.has(tag.id)) {
+      if (!this.parentLookup.has(tag.id)) {
         this.parentLookup.set(tag.id, root);
       }
     }

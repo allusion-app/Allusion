@@ -123,9 +123,7 @@ export class ClientFile implements ISerializable<IFile> {
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get clientTags(): ClientTag[] {
-    return this.tags
-      .map((id) => this.store.getTag(id))
-      .filter((t) => t !== undefined) as ClientTag[];
+    return this.store.getTags(this.tags);
   }
 
   @action.bound setThumbnailPath(thumbnailPath: string): void {
