@@ -70,7 +70,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly locationId: ID;
   readonly relativePath: string;
   readonly absolutePath: string;
-  readonly tags: ObservableSet;
+  readonly tags: ObservableSet<ID>;
   readonly size: number;
   readonly width: number;
   readonly height: number;
@@ -152,7 +152,7 @@ export class ClientFile implements ISerializable<IFile> {
 
   @action.bound setBroken(state: boolean): void {
     this.isBroken = state;
-    this.autoSave = !this.isBroken;
+    this.autoSave = !state;
   }
 
   serialize(): IFile {

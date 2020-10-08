@@ -113,12 +113,12 @@ export default class BaseRepository<T extends IResource> {
     return items;
   }
 
-  public async remove(item: T): Promise<void> {
-    return this.collection.delete(item.id);
+  public async remove(item: ID): Promise<void> {
+    return this.collection.delete(item);
   }
 
-  public async removeMany(items: T[]): Promise<void> {
-    return this.collection.bulkDelete(items.map((i) => i.id));
+  public async removeMany(items: ID[]): Promise<void> {
+    return this.collection.bulkDelete(items);
   }
 
   public async update(item: T): Promise<T> {

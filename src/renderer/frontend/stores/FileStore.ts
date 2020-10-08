@@ -127,13 +127,17 @@ class FileStore {
   }
 
   @action.bound async removeFiles(ids: ID[]) {
-    const filesToRemove = ids
-      .map((id) => this.get(id))
-      .filter((f) => f !== undefined) as ClientFile[];
+    const filesToRemove: ClientFile[] = [];
+    for (const id of ids) {
+      const file = this.get(id);
+      if (file !== undefined) {
+        filesToRemove.push(file);
+      }
+    }
 
     try {
       await Promise.all(filesToRemove.map((f) => this.removeThumbnail(f)));
-      await this.backend.removeFiles(filesToRemove.map((f) => f.serialize()));
+      await this.backend.removeFiles(filesToRemove.map((f) => f.id));
       runInAction(() => {
         filesToRemove.forEach((f) => {
           this.rootStore.uiStore.deselectFile(f);

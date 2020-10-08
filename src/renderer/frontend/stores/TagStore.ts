@@ -123,7 +123,7 @@ class TagStore {
 
   @action.bound async delete(tag: ClientTag) {
     tag.dispose();
-    await this.backend.removeTag(tag);
+    await this.backend.removeTag(tag.id);
     await this.deleteSubTags(tag.clientSubTags);
     runInAction(() => tag.parent.subTags.remove(tag.id));
     this.remove(tag);
@@ -144,7 +144,7 @@ class TagStore {
   @action private async deleteSubTags(subTags: ClientTag[]) {
     for (const subTag of subTags) {
       subTag.dispose();
-      await this.backend.removeTag(subTag);
+      await this.backend.removeTag(subTag.id);
       await this.deleteSubTags(subTag.clientSubTags);
       this.remove(subTag);
     }

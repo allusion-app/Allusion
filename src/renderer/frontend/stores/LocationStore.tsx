@@ -316,7 +316,7 @@ class LocationStore {
     await this.rootStore.fileStore.removeFiles(filesToRemove.map((f) => f.id));
 
     // Remove location from DB through backend
-    await this.backend.removeLocation(location.serialize());
+    await this.backend.removeLocation(location.id);
 
     // Remove location locally
     runInAction(() => this.locationList.remove(location));
