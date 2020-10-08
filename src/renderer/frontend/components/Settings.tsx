@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useCallback, useState, useRef, useMemo } from 'react';
+import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Drawer,
@@ -21,8 +21,6 @@ import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
-import RootStore from '../stores/RootStore';
-import ReactDOM from 'react-dom';
 import PopupWindow from './PopupWindow';
 
 // Window state
@@ -207,7 +205,7 @@ const SettingsForm = observer(() => {
         <ClearDbButton fill position="bottom-left" />
 
         <Button
-          onClick={uiStore.toggleDevtools}
+          onClick={RendererMessenger.toggleDevTools}
           intent="warning"
           icon={IconSet.CHROME_DEVTOOLS}
           fill

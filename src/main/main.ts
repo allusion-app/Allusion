@@ -92,28 +92,25 @@ function createWindow() {
 
   // Customize new window opening
   // https://www.electronjs.org/docs/api/window-open
-  mainWindow.webContents.on(
-    'new-window',
-    (event, url, frameName, disposition, options, additionalFeatures) => {
-      if (frameName === 'settings') {
-        event.preventDefault();
-        // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
-        const additionalOptions: Electron.BrowserWindowConstructorOptions = {
-          modal: true,
-          parent: mainWindow!,
-          width: 600,
-          height: 570,
-          title: 'Settings • Allusion',
-          resizable: false,
-        };
-        Object.assign(options, additionalOptions);
-        const settingsWindow = new BrowserWindow(options);
-        settingsWindow.center(); // the "center" option doesn't work :/
-        settingsWindow.setMenu(null); // no toolbar needed
-        (event as any).newGuest = settingsWindow;
-      }
-    },
-  );
+  mainWindow.webContents.on('new-window', (event, url, frameName, _disposition, options) => {
+    if (frameName === 'settings') {
+      event.preventDefault();
+      // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
+      const additionalOptions: Electron.BrowserWindowConstructorOptions = {
+        modal: true,
+        parent: mainWindow!,
+        width: 600,
+        height: 570,
+        title: 'Settings • Allusion',
+        resizable: false,
+      };
+      Object.assign(options, additionalOptions);
+      const settingsWindow = new BrowserWindow(options);
+      settingsWindow.center(); // the "center" option doesn't work :/
+      settingsWindow.setMenu(null); // no toolbar needed
+      (event as any).newGuest = settingsWindow;
+    }
+  });
 
   let menu = null;
 
@@ -378,3 +375,10 @@ MainMessenger.onDragExport(({ absolutePaths }) => {
 });
 
 MainMessenger.onGetUserPicturesPath();
+
+MainMessenger.onClearDatabase(() => {
+  mainWindow?.webContents.reload();
+  previewWindow?.hide();
+});
+
+MainMessenger.onToggleDevTools(() => mainWindow?.webContents.toggleDevTools());

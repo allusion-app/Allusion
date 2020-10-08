@@ -19,6 +19,10 @@ import { IButtonProps } from '@blueprintjs/core/lib/esm/components/button/abstra
 
 export const ClearDbButton = (props: IButtonProps & { position?: Position }) => {
   const rootStore = useContext(StoreContext);
+  const clearDatabase = async () => {
+    await rootStore.clearDatabase();
+    rootStore.uiStore.closeSettings();
+  };
 
   return (
     <Popover
@@ -42,11 +46,7 @@ export const ClearDbButton = (props: IButtonProps & { position?: Position }) => 
           <Button className={Classes.POPOVER_DISMISS} style={{ marginRight: 10 }}>
             Cancel
           </Button>
-          <Button
-            intent="danger"
-            className={Classes.POPOVER_DISMISS}
-            onClick={rootStore.clearDatabase}
-          >
+          <Button intent="danger" className={Classes.POPOVER_DISMISS} onClick={clearDatabase}>
             Clear
           </Button>
         </div>

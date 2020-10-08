@@ -9,6 +9,8 @@ import { ipcRenderer, ipcMain, WebContents, IpcRenderer, IpcMain, app } from 'el
 
 /////////////////// General ////////////////////
 export const INITIALIZED = 'INITIALIZED';
+const CLEAR_DATABASE = 'CLEAR_DATABASE';
+const TOGGLE_DEV_TOOLS = 'TOGGLE_DEV_TOOLS';
 
 //////// Main proces (browser extension) ////////
 export const GET_TAGS = 'GET_TAGS';
@@ -75,7 +77,7 @@ export interface IRunInBackgroundMessage {
 export const GET_USER_PICTURES_PATH = 'GET_USER_PICTURES_PATH';
 export const GET_DOWNLOAD_PATH = 'GET_DOWNLOAD_PATH';
 export const RECEIVE_DOWNLOAD_PATH = 'RECEIVE_DOWNLOAD_PATH';
-export const SET_DOWNLOAD_PATH = 'S ET_DOWNLOAD_PATH';
+export const SET_DOWNLOAD_PATH = 'SET_DOWNLOAD_PATH';
 export interface IDownloadPathMessage {
   dir: string;
 }
@@ -85,6 +87,10 @@ export class RendererMessenger {
   static initialized = () => {
     ipcRenderer.send(INITIALIZED);
   };
+
+  static clearDatabase = () => ipcRenderer.send(CLEAR_DATABASE);
+
+  static toggleDevTools = () => ipcRenderer.send(TOGGLE_DEV_TOOLS);
 
   static onGetTags = (fetchTags: () => Promise<ITagsMessage>) => {
     ipcRenderer.on(GET_TAGS, async () => {
@@ -116,7 +122,6 @@ export class RendererMessenger {
   static setTheme = (msg: IThemeMessage) => {
     ipcRenderer.send(SET_THEME, msg);
   };
-
 
   static setRunInBackground = (msg: IRunInBackgroundMessage) => {
     ipcRenderer.send(SET_RUN_IN_BACKGROUND, msg);
@@ -160,6 +165,10 @@ export class MainMessenger {
   static onceInitialized = async (): Promise<unknown> => {
     return new Promise((resolve) => ipcMain.once(INITIALIZED, resolve));
   };
+
+  static onClearDatabase = (cb: () => void) => ipcMain.on(CLEAR_DATABASE, cb);
+
+  static onToggleDevTools = (cb: () => void) => ipcMain.on(TOGGLE_DEV_TOOLS, cb);
 
   static getTags = async (wc: WebContents): Promise<ITagsMessage> => {
     wc.send(GET_TAGS);
