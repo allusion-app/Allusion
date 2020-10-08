@@ -23,11 +23,11 @@ configure({ enforceActions: 'observed' });
  * 3. Makes complex unit tests easy as you just have to instantiate a root store.
  */
 class RootStore {
-  public readonly tagStore: TagStore;
-  public readonly fileStore: FileStore;
-  public readonly locationStore: LocationStore;
-  public readonly uiStore: UiStore;
-  public readonly clearDatabase: () => Promise<void>;
+  readonly tagStore: TagStore;
+  readonly fileStore: FileStore;
+  readonly locationStore: LocationStore;
+  readonly uiStore: UiStore;
+  readonly clearDatabase: () => Promise<void>;
 
   constructor(backend: Backend) {
     this.tagStore = new TagStore(backend, this);

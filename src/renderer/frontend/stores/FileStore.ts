@@ -101,8 +101,10 @@ class FileStore {
     });
     // The function caller is responsible for handling errors.
     await this.backend.createFile(file.serialize());
-    this.index.set(file.id, this.fileList.length);
-    runInAction(() => this.fileList.push(file));
+    runInAction(() => {
+      this.index.set(file.id, this.fileList.length);
+      this.fileList.push(file);
+    });
     this.incrementNumUntaggedFiles();
     return file;
   }
@@ -304,7 +306,7 @@ class FileStore {
     const loc = this.rootStore.locationStore.get(location);
     if (!loc) {
       console.warn('Location of file was not found! This should never happen!', location);
-      return this.rootStore.locationStore.getDefaultLocation();
+      return this.rootStore.locationStore.defaultLocation;
     }
     return loc;
   }

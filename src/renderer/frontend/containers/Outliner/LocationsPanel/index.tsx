@@ -481,7 +481,7 @@ const LocationsPanel = () => {
 
       // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
 
-      const newLoc = await locationStore.addDirectory(newLocPath);
+      const newLoc = await locationStore.create(newLocPath);
       setLocationConfigOpen(newLoc);
       setLocationTreeKey(new Date());
     },
