@@ -177,17 +177,6 @@ class TagStore {
       }
     }
   }
-
-  // @action private updateFromBackend(backendTag: ITag) {
-  //   const tag = this.get(backendTag.id);
-  //   // In case a tag was added to the server from another client or session
-  //   if (tag === undefined) {
-  //     this.tagList.push(new ClientTag(this, backendTag.id).updateFromBackend(backendTag));
-  //   } else {
-  //     // Else, update the existing tag
-  //     tag.updateFromBackend(backendTag);
-  //   }
-  // }
 }
 
 export default TagStore;

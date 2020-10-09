@@ -90,9 +90,7 @@ class LocationStore {
       const createdPaths = filePaths.filter(
         (path) => !dbFiles.find((dbFile) => dbFile.absolutePath === path),
       );
-      const createdFiles = await Promise.all(
-        createdPaths.map((path) => this.pathToIFile(path, loc)),
-      );
+      const createdFiles = await Promise.all(createdPaths.map((path) => pathToIFile(path, loc)));
 
       // Find all files that have been removed (those in DB but not on disk)
       const missingFiles = dbFiles.filter((file) => !filePaths.includes(file.absolutePath));
@@ -283,7 +281,7 @@ class LocationStore {
     const N = 50;
     const files = await promiseAllLimit(
       filePaths.map((path) => async () => {
-        const f = await this.pathToIFile(path, loc);
+        const f = await pathToIFile(path, loc);
         // await timeout(1000); // artificial timeout to see the progress bar a little longer
         return f;
       }),
@@ -313,7 +311,7 @@ class LocationStore {
     location.dispose();
 
     const filesToRemove = await this.findLocationFiles(location.id);
-    await this.rootStore.fileStore.removeFiles(filesToRemove.map((f) => f.id));
+    await this.rootStore.fileStore.deleteFiles(filesToRemove.map((f) => f.id));
 
     // Remove location from DB through backend
     await this.backend.removeLocation(location.id);
@@ -324,7 +322,7 @@ class LocationStore {
   }
 
   @action.bound async addFile(path: string, location: ClientLocation) {
-    const file = await this.pathToIFile(path, location);
+    const file = await pathToIFile(path, location);
     await this.backend.createFilesFromPath(path, [file]);
 
     AppToaster.show(
@@ -344,7 +342,7 @@ class LocationStore {
   hideFile(path: string) {
     const fileStore = this.rootStore.fileStore;
     const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
-    if (clientFile) {
+    if (clientFile !== undefined) {
       fileStore.hideFile(clientFile);
     }
 
@@ -373,19 +371,19 @@ class LocationStore {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
     return this.backend.searchFiles(crit, 'id', 'ASC');
   }
+}
 
-  private async pathToIFile(path: string, loc: ClientLocation): Promise<IFile> {
-    return {
-      absolutePath: path,
-      relativePath: path.replace(loc.path, ''),
-      id: generateId(),
-      locationId: loc.id,
-      tags: Array.from(loc.tagsToAdd),
-      dateAdded: new Date(),
-      dateModified: new Date(),
-      ...(await getMetaData(path)),
-    };
-  }
+async function pathToIFile(path: string, loc: ClientLocation): Promise<IFile> {
+  return {
+    absolutePath: path,
+    relativePath: path.replace(loc.path, ''),
+    id: generateId(),
+    locationId: loc.id,
+    tags: Array.from(loc.tagsToAdd),
+    dateAdded: new Date(),
+    dateModified: new Date(),
+    ...(await getMetaData(path)),
+  };
 }
 
 export default LocationStore;
