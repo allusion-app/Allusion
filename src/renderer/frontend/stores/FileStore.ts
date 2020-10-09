@@ -16,7 +16,12 @@ const FILE_STORAGE_KEY = 'Allusion_File';
 /** These fields are stored and recovered when the application opens up */
 const PersistentPreferenceFields: Array<keyof FileStore> = ['fileOrder', 'orderBy'];
 
-export type ViewContent = 'query' | 'all' | 'untagged' | 'missing';
+const enum Content {
+  All,
+  Missing,
+  Untagged,
+  Query,
+}
 
 class FileStore {
   readonly fileList = observable<ClientFile>([]);
@@ -24,8 +29,8 @@ class FileStore {
   private readonly index = new Map<ID, number>();
 
   /** The origin of the current files that are shown */
-  @observable content: ViewContent = 'all';
-  @observable fileOrder: FileOrder = 'DESC';
+  @observable private content: Content = Content.All;
+  @observable fileOrder: FileOrder = FileOrder.DESC;
   @observable orderBy: keyof IFile = 'dateAdded';
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
@@ -43,23 +48,23 @@ class FileStore {
   }
 
   @computed get showsAllContent() {
-    return this.content === 'all';
+    return this.content === Content.All;
   }
 
   @computed get showsUntaggedContent() {
-    return this.content === 'untagged';
+    return this.content === Content.Untagged;
   }
 
   @computed get showsMissingContent() {
-    return this.content === 'missing';
+    return this.content === Content.Missing;
   }
 
   @computed get showsQueryContent() {
-    return this.content === 'query';
+    return this.content === Content.Query;
   }
 
   @action.bound switchFileOrder() {
-    this.setFileOrder(this.fileOrder === 'DESC' ? 'ASC' : 'DESC');
+    this.setFileOrder(this.fileOrder === FileOrder.DESC ? FileOrder.ASC : FileOrder.DESC);
     this.refetch();
   }
 
@@ -69,15 +74,15 @@ class FileStore {
   }
 
   @action.bound setContentQuery() {
-    this.content = 'query';
+    this.content = Content.Query;
   }
 
   @action.bound setContentAll() {
-    this.content = 'all';
+    this.content = Content.All;
   }
 
   @action.bound setContentUntagged() {
-    this.content = 'untagged';
+    this.content = Content.Untagged;
   }
 
   @action.bound async init(autoLoadFiles: boolean) {
@@ -88,7 +93,7 @@ class FileStore {
   }
 
   @action.bound async addFile(path: string, locationId: ID, dateAdded: Date = new Date()) {
-    const loc = this.rootStore.locationStore.get(locationId)!;
+    const loc = this.getLocation(locationId)!;
     const file = new ClientFile(this, {
       id: generateId(),
       locationId,
@@ -458,7 +463,7 @@ class FileStore {
     this.numUntaggedFiles = untaggedFiles;
   }
 
-  @action private setFileOrder(order: FileOrder = 'DESC') {
+  @action private setFileOrder(order: FileOrder = FileOrder.DESC) {
     this.fileOrder = order;
   }
 
@@ -467,7 +472,7 @@ class FileStore {
   }
 
   @action private setContentMissing() {
-    this.content = 'missing';
+    this.content = Content.Missing;
   }
 
   @action private incrementNumMissingFiles() {

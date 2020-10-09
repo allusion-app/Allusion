@@ -13,9 +13,9 @@ import { debounce } from '../utils';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export type ViewMethod = 'list' | 'grid';
-export type ViewThumbnailSize = 'small' | 'medium' | 'large';
-export type ViewThumbnailShape = 'square' | 'letterbox';
-export const PREFERENCES_STORAGE_KEY = 'preferences';
+type ThumbnailSize = 'small' | 'medium' | 'large';
+type ThumbnailShape = 'square' | 'letterbox';
+const PREFERENCES_STORAGE_KEY = 'preferences';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -122,8 +122,8 @@ class UiStore {
   @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
   @observable firstItem: number = 0;
-  @observable thumbnailSize: ViewThumbnailSize = 'medium';
-  @observable thumbnailShape: ViewThumbnailShape = 'square';
+  @observable thumbnailSize: ThumbnailSize = 'medium';
+  @observable thumbnailShape: ThumbnailShape = 'square';
 
   @observable isToolbarFileRemoverOpen: boolean = false;
 
@@ -187,11 +187,11 @@ class UiStore {
   }
 
   @action.bound setMethodList() {
-    this.setMethod('list');
+    this.method = 'list';
   }
 
   @action.bound setMethodGrid() {
-    this.setMethod('grid');
+    this.method = 'grid';
   }
 
   @action.bound enableSlideMode() {
@@ -614,11 +614,11 @@ class UiStore {
     this.method = method;
   }
 
-  @action private setThumbnailSize(size: ViewThumbnailSize = 'medium') {
+  @action private setThumbnailSize(size: ThumbnailSize = 'medium') {
     this.thumbnailSize = size;
   }
 
-  @action private setThumbnailShape(shape: ViewThumbnailShape) {
+  @action private setThumbnailShape(shape: ThumbnailShape) {
     this.thumbnailShape = shape;
   }
 }

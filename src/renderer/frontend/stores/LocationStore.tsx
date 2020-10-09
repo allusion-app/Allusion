@@ -14,6 +14,7 @@ import { ProgressBar } from '@blueprintjs/core';
 import { promiseAllLimit } from '../utils';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import IconSet from 'components/Icons';
+import { FileOrder } from 'src/renderer/backend/DBRepository';
 
 class LocationStore {
   private backend: Backend;
@@ -28,7 +29,7 @@ class LocationStore {
 
   @action.bound async init(autoLoad: boolean) {
     // Get dirs from backend
-    const dirs = await this.backend.getWatchedDirectories('dateAdded', 'ASC');
+    const dirs = await this.backend.getWatchedDirectories('dateAdded', FileOrder.ASC);
 
     const locations = dirs.map(
       (dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd),
@@ -369,7 +370,7 @@ class LocationStore {
    */
   async findLocationFiles(locationId: ID): Promise<IFile[]> {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
-    return this.backend.searchFiles(crit, 'id', 'ASC');
+    return this.backend.searchFiles(crit, 'id', FileOrder.ASC);
   }
 }
 
