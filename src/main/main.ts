@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, nativeImage, nativeTheme, screen, Tray } from 'electron';
+import { app, BrowserWindow, Menu, nativeImage, nativeTheme, screen, Tray, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import AppIcon from '../../resources/logo/allusion-logomark-fc-512x512.png';
 import TrayIcon from '../../resources/logo/allusion-logomark-fc-256x256.png';
@@ -233,10 +233,13 @@ function createWindow() {
 
   // Import images that were added while the window was closed
   MainMessenger.onceInitialized().then(async () => {
-    clipServer!.setDownloadPath((await MainMessenger.getDownloadPath(mainWindow!.webContents)).dir);
-    const importItems = await clipServer!.getImportQueue();
+    if (clipServer === null || mainWindow === null) {
+      return;
+    }
+    clipServer.setDownloadPath((await MainMessenger.getDownloadPath(mainWindow.webContents)).dir);
+    const importItems = await clipServer.getImportQueue();
     await Promise.all(importItems.map(importExternalImage));
-    clipServer!.clearImportQueue();
+    clipServer.clearImportQueue();
   });
 }
 
@@ -312,16 +315,19 @@ app.on('activate', () => {
 
 // Messaging: Sending and receiving messages between the main and renderer process //
 /////////////////////////////////////////////////////////////////////////////////////
-MainMessenger.onSetDownloadPath(({ dir }) => clipServer!.setDownloadPath(dir));
+MainMessenger.onSetDownloadPath(({ dir }) => clipServer?.setDownloadPath(dir));
 MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
 MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
 
-MainMessenger.onSetDownloadPath(({ dir }) => clipServer!.setDownloadPath(dir));
+MainMessenger.onSetDownloadPath(({ dir }) => clipServer?.setDownloadPath(dir));
 MainMessenger.onSetClipServerEnabled(({ isClipServerRunning }) =>
-  clipServer!.setEnabled(isClipServerRunning),
+  clipServer?.setEnabled(isClipServerRunning),
 );
 MainMessenger.onSetRunningInBackground(({ isRunInBackground }) => {
-  clipServer!.setRunInBackground(isRunInBackground);
+  if (clipServer === null) {
+    return;
+  }
+  clipServer.setRunInBackground(isRunInBackground);
   if (isRunInBackground) {
     createTrayMenu();
   } else if (tray) {
@@ -374,11 +380,15 @@ MainMessenger.onDragExport(({ absolutePaths }) => {
   }
 });
 
-MainMessenger.onGetUserPicturesPath();
-
 MainMessenger.onClearDatabase(() => {
   mainWindow?.webContents.reload();
   previewWindow?.hide();
 });
 
 MainMessenger.onToggleDevTools(() => mainWindow?.webContents.toggleDevTools());
+
+MainMessenger.onReload(() => mainWindow?.webContents.reload());
+
+MainMessenger.onOpenDialog(dialog);
+
+MainMessenger.onGetPath(app);

@@ -6,7 +6,6 @@ import fse from 'fs-extra';
 
 import IconSet from 'components/Icons';
 import LocationsPanel from '../containers/Outliner/LocationsPanel';
-import { remote } from 'electron';
 import StoreContext from '../contexts/StoreContext';
 import { RendererMessenger } from '../../../Messaging';
 import { DEFAULT_LOCATION_ID } from '../../entities/Location';
@@ -31,13 +30,13 @@ const SetupImportDirStep = ({
   importLocation: string;
   setImportLocation: (loc: string) => void;
 }) => {
-  const browseImportDirectory = useCallback(() => {
-    const dirs = remote.dialog.showOpenDialogSync({
+  const browseImportDirectory = useCallback(async () => {
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
       defaultPath: importLocation,
     });
 
-    if (!dirs) {
+    if (dirs.length === 0) {
       return;
     }
     const newDir = dirs[0];
@@ -127,13 +126,13 @@ const WelcomeDialog = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [importLocation, setImportLocation] = useState(
-    path.join(RendererMessenger.getUserPicturesPath(), 'Allusion'),
-  );
+  const [importLocation, setImportLocation] = useState('');
 
   const [step, setStep] = useState(0);
   const handleNextStep = useCallback(async () => {
     if (step === 0) {
+      const picturesPath = await RendererMessenger.getPath('pictures');
+      setImportLocation(path.join(picturesPath, 'Allusion'));
       setStep(step + 1);
     } else if (step === 1) {
       // Make directory in case not exists

@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { remote, shell } from 'electron';
+import { shell } from 'electron';
 import {
   Button,
   NonIdealState,
@@ -16,6 +16,7 @@ import IconSet from 'components/Icons';
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';
 import { IButtonProps } from '@blueprintjs/core/lib/esm/components/button/abstractButton';
+import { RendererMessenger } from 'src/Messaging';
 
 export const ClearDbButton = (props: IButtonProps & { position?: Position }) => {
   const rootStore = useContext(StoreContext);
@@ -95,11 +96,11 @@ class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryS
   }
 
   viewInspector() {
-    remote.getCurrentWebContents().openDevTools();
+    RendererMessenger.toggleDevTools();
   }
 
   reloadApplication() {
-    remote.getCurrentWindow().reload();
+    RendererMessenger.reload();
   }
 
   openIssueURL() {
@@ -138,7 +139,7 @@ ${this.state.error}
                   intent="warning"
                   icon={IconSet.CHROME_DEVTOOLS}
                 >
-                  View in DevTools
+                  Toggle DevTools
                 </Button>
                 <ClearDbButton position="bottom" />
                 <Button onClick={this.openIssueURL} icon={IconSet.GITHUB}>

@@ -1,5 +1,5 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
-import { remote, shell } from 'electron';
+import { shell } from 'electron';
 import { observer, Observer } from 'mobx-react-lite';
 import {
   Button,
@@ -31,6 +31,7 @@ import { IExpansionState } from '..';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { CustomKeyDict } from '../index';
 import { LocationRemoval } from '../MessageBox';
+import { RendererMessenger } from 'src/Messaging';
 
 // Tooltip info
 const enum Tooltip {
@@ -449,12 +450,12 @@ const LocationsPanel = () => {
   const handleChooseWatchedDir = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
-      const dirs = remote.dialog.showOpenDialogSync({
+      const { filePaths: dirs } = await RendererMessenger.openDialog({
         properties: ['openDirectory'],
       });
 
       // multi-selection is disabled which means there can be at most 1 folder
-      if (!dirs || dirs.length === 0) {
+      if (dirs.length === 0) {
         return;
       }
       const newLocPath = dirs[0];

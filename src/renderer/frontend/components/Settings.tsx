@@ -42,12 +42,12 @@ const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
 const SettingsForm = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
-  const browseImportDir = useCallback(() => {
-    const dirs = remote.dialog.showOpenDialogSync({
+  const browseImportDir = useCallback(async () => {
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
     });
 
-    if (!dirs) {
+    if (dirs.length === 0) {
       return;
     }
 
@@ -75,12 +75,12 @@ const SettingsForm = observer(() => {
   }, []);
 
   const browseThumbnailDirectory = useCallback(async () => {
-    const dirs = remote.dialog.showOpenDialogSync({
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
       defaultPath: uiStore.thumbnailDirectory,
     });
 
-    if (!dirs) {
+    if (dirs.length === 0) {
       return;
     }
     const newDir = dirs[0];

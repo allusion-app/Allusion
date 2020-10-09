@@ -1,16 +1,36 @@
 import { ID } from './renderer/entities/ID';
 import { IImportItem } from './main/clipServer';
 import { ITag } from './renderer/entities/Tag';
-import { ipcRenderer, ipcMain, WebContents, IpcRenderer, IpcMain, app } from 'electron';
+import { ipcRenderer, ipcMain, WebContents } from 'electron';
 
 /**
  * All types of messages between the main and renderer process in one place, with type safety.
  */
 
+type SYSTEM_PATHS =
+  | 'home'
+  | 'appData'
+  | 'userData'
+  | 'cache'
+  | 'temp'
+  | 'exe'
+  | 'module'
+  | 'desktop'
+  | 'documents'
+  | 'downloads'
+  | 'music'
+  | 'pictures'
+  | 'videos'
+  | 'logs'
+  | 'pepperFlashSystemPlugin';
+
 /////////////////// General ////////////////////
 export const INITIALIZED = 'INITIALIZED';
 const CLEAR_DATABASE = 'CLEAR_DATABASE';
 const TOGGLE_DEV_TOOLS = 'TOGGLE_DEV_TOOLS';
+const RELOAD = 'RELOAD';
+const OPEN_DIALOG = 'OPEN_DIALOG';
+const GET_PATH = 'GET_PATH';
 
 //////// Main proces (browser extension) ////////
 export const GET_TAGS = 'GET_TAGS';
@@ -74,7 +94,6 @@ export interface IRunInBackgroundMessage {
   isRunInBackground: boolean;
 }
 
-export const GET_USER_PICTURES_PATH = 'GET_USER_PICTURES_PATH';
 export const GET_DOWNLOAD_PATH = 'GET_DOWNLOAD_PATH';
 export const RECEIVE_DOWNLOAD_PATH = 'RECEIVE_DOWNLOAD_PATH';
 export const SET_DOWNLOAD_PATH = 'SET_DOWNLOAD_PATH';
@@ -92,40 +111,35 @@ export class RendererMessenger {
 
   static toggleDevTools = () => ipcRenderer.send(TOGGLE_DEV_TOOLS);
 
-  static onGetTags = (fetchTags: () => Promise<ITagsMessage>) => {
+  static reload = () => ipcRenderer.send(RELOAD);
+
+  static openDialog = (
+    options: Electron.OpenDialogOptions,
+  ): Promise<Electron.OpenDialogReturnValue> => ipcRenderer.invoke(OPEN_DIALOG, options);
+
+  static getPath = (name: SYSTEM_PATHS): Promise<string> => ipcRenderer.invoke(GET_PATH, name);
+
+  static onGetTags = (fetchTags: () => Promise<ITagsMessage>) =>
     ipcRenderer.on(GET_TAGS, async () => {
       const msg = await fetchTags();
       ipcRenderer.send(RECEIVE_TAGS, msg);
     });
-  };
 
-  static getIsClipServerEnabled = (): boolean => {
-    return ipcRenderer.sendSync(IS_CLIP_SERVER_RUNNING);
-  };
+  static getIsClipServerEnabled = (): boolean => ipcRenderer.sendSync(IS_CLIP_SERVER_RUNNING);
 
-  static getIsRunningInBackground = (): boolean => {
-    return ipcRenderer.sendSync(IS_RUNNING_IN_BACKGROUND);
-  };
+  static getIsRunningInBackground = (): boolean => ipcRenderer.sendSync(IS_RUNNING_IN_BACKGROUND);
 
-  static setDownloadPath = (msg: IDownloadPathMessage) => {
-    ipcRenderer.send(SET_DOWNLOAD_PATH, msg);
-  };
+  static setDownloadPath = (msg: IDownloadPathMessage) => ipcRenderer.send(SET_DOWNLOAD_PATH, msg);
 
-  static onGetDownloadPath = (cb: () => string) => {
-    return ipcRenderer.on(RECEIVE_DOWNLOAD_PATH, cb);
-  };
+  static onGetDownloadPath = (cb: () => string) => ipcRenderer.on(RECEIVE_DOWNLOAD_PATH, cb);
 
-  static setClipServerEnabled = (msg: IClipServerEnabledMessage) => {
+  static setClipServerEnabled = (msg: IClipServerEnabledMessage) =>
     ipcRenderer.send(SET_CLIP_SERVER_ENABLED, msg);
-  };
 
-  static setTheme = (msg: IThemeMessage) => {
-    ipcRenderer.send(SET_THEME, msg);
-  };
+  static setTheme = (msg: IThemeMessage) => ipcRenderer.send(SET_THEME, msg);
 
-  static setRunInBackground = (msg: IRunInBackgroundMessage) => {
+  static setRunInBackground = (msg: IRunInBackgroundMessage) =>
     ipcRenderer.send(SET_RUN_IN_BACKGROUND, msg);
-  };
 
   static storeFile = (msg: IStoreFileMessage): Promise<IStoreFileReplyMessage> => {
     ipcRenderer.send(STORE_FILE, msg);
@@ -134,31 +148,22 @@ export class RendererMessenger {
     );
   };
 
-  static startDragExport = (msg: IDragExportMessage) => {
-    ipcRenderer.send(DRAG_EXPORT, msg);
-  };
+  static startDragExport = (msg: IDragExportMessage) => ipcRenderer.send(DRAG_EXPORT, msg);
 
-  static onImportExternalImage = (cb: (msg: IImportExternalImageMessage) => void): IpcRenderer => {
-    return ipcRenderer.on(IMPORT_EXTERNAL_IMAGE, (_, msg: IImportExternalImageMessage) => cb(msg));
-  };
+  static onImportExternalImage = (cb: (msg: IImportExternalImageMessage) => void) =>
+    ipcRenderer.on(IMPORT_EXTERNAL_IMAGE, (_, msg: IImportExternalImageMessage) => cb(msg));
 
-  static onAddTagsToFile = (cb: (msg: IAddTagsToFileMessage) => void): IpcRenderer => {
-    return ipcRenderer.on(ADD_TAGS_TO_FILE, (_, msg: IAddTagsToFileMessage) => cb(msg));
-  };
+  static onAddTagsToFile = (cb: (msg: IAddTagsToFileMessage) => void) =>
+    ipcRenderer.on(ADD_TAGS_TO_FILE, (_, msg: IAddTagsToFileMessage) => cb(msg));
 
   static sendPreviewFiles = (msg: IPreviewFilesMessage) => {
     ipcRenderer.send(SEND_PREVIEW_FILES, msg);
   };
 
-  static onReceivePreviewFiles = (cb: (msg: IPreviewFilesMessage) => void): IpcRenderer => {
-    return ipcRenderer.on(RECEIEVE_PREVIEW_FILES, (_, msg: IPreviewFilesMessage) => cb(msg));
-  };
+  static onReceivePreviewFiles = (cb: (msg: IPreviewFilesMessage) => void) =>
+    ipcRenderer.on(RECEIEVE_PREVIEW_FILES, (_, msg: IPreviewFilesMessage) => cb(msg));
 
-  static onClosedPreviewWindow = (cb: () => void): IpcRenderer => {
-    return ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
-  };
-
-  static getUserPicturesPath = (): string => ipcRenderer.sendSync(GET_USER_PICTURES_PATH);
+  static onClosedPreviewWindow = (cb: () => void) => ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
 }
 
 export class MainMessenger {
@@ -170,6 +175,14 @@ export class MainMessenger {
 
   static onToggleDevTools = (cb: () => void) => ipcMain.on(TOGGLE_DEV_TOOLS, cb);
 
+  static onReload = (cb: () => void) => ipcMain.on(RELOAD, cb);
+
+  static onOpenDialog = (dialog: Electron.Dialog) =>
+    ipcMain.handle(OPEN_DIALOG, (_, options) => dialog.showOpenDialog(options));
+
+  static onGetPath = (app: Electron.App) =>
+    ipcMain.handle(GET_PATH, (_, name) => app.getPath(name));
+
   static getTags = async (wc: WebContents): Promise<ITagsMessage> => {
     wc.send(GET_TAGS);
     return new Promise((resolve) =>
@@ -177,21 +190,17 @@ export class MainMessenger {
     );
   };
 
-  static onSetDownloadPath = (cb: (msg: IDownloadPathMessage) => void): IpcMain => {
-    return ipcMain.on(SET_DOWNLOAD_PATH, (_, msg: IDownloadPathMessage) => cb(msg));
-  };
+  static onSetDownloadPath = (cb: (msg: IDownloadPathMessage) => void) =>
+    ipcMain.on(SET_DOWNLOAD_PATH, (_, msg: IDownloadPathMessage) => cb(msg));
 
-  static onSetClipServerEnabled = (cb: (msg: IClipServerEnabledMessage) => void): IpcMain => {
-    return ipcMain.on(SET_CLIP_SERVER_ENABLED, (_, msg: IClipServerEnabledMessage) => cb(msg));
-  };
+  static onSetClipServerEnabled = (cb: (msg: IClipServerEnabledMessage) => void) =>
+    ipcMain.on(SET_CLIP_SERVER_ENABLED, (_, msg: IClipServerEnabledMessage) => cb(msg));
 
-  static onSetTheme = (cb: (msg: IThemeMessage) => void): IpcMain => {
-    return ipcMain.on(SET_THEME, (_, msg: IThemeMessage) => cb(msg));
-  };
+  static onSetTheme = (cb: (msg: IThemeMessage) => void) =>
+    ipcMain.on(SET_THEME, (_, msg: IThemeMessage) => cb(msg));
 
-  static onSetRunningInBackground = (cb: (msg: IRunInBackgroundMessage) => void): IpcMain => {
-    return ipcMain.on(SET_RUN_IN_BACKGROUND, (_, msg: IRunInBackgroundMessage) => cb(msg));
-  };
+  static onSetRunningInBackground = (cb: (msg: IRunInBackgroundMessage) => void) =>
+    ipcMain.on(SET_RUN_IN_BACKGROUND, (_, msg: IRunInBackgroundMessage) => cb(msg));
 
   static getDownloadPath = (wc: WebContents): Promise<IDownloadPathMessage> => {
     wc.send(GET_DOWNLOAD_PATH);
@@ -200,46 +209,32 @@ export class MainMessenger {
     );
   };
 
-  static onIsClipServerRunning = (cb: () => boolean): IpcMain => {
-    return ipcMain.on(IS_CLIP_SERVER_RUNNING, (e) => (e.returnValue = cb()));
-  };
+  static onIsClipServerRunning = (cb: () => boolean) =>
+    ipcMain.on(IS_CLIP_SERVER_RUNNING, (e) => (e.returnValue = cb()));
 
-  static onIsRunningInBackground = (cb: () => boolean): IpcMain => {
-    return ipcMain.on(IS_RUNNING_IN_BACKGROUND, (e) => (e.returnValue = cb()));
-  };
+  static onIsRunningInBackground = (cb: () => boolean) =>
+    ipcMain.on(IS_RUNNING_IN_BACKGROUND, (e) => (e.returnValue = cb()));
 
-  static sendPreviewFiles = (wc: WebContents, msg: IPreviewFilesMessage) => {
+  static sendPreviewFiles = (wc: WebContents, msg: IPreviewFilesMessage) =>
     wc.send(RECEIEVE_PREVIEW_FILES, msg);
-  };
 
-  static sendImportExternalImage = (wc: WebContents, msg: IImportExternalImageMessage) => {
+  static sendImportExternalImage = (wc: WebContents, msg: IImportExternalImageMessage) =>
     wc.send(IMPORT_EXTERNAL_IMAGE, msg);
-  };
 
-  static sendAddTagsToFile = (wc: WebContents, msg: IAddTagsToFileMessage) => {
+  static sendAddTagsToFile = (wc: WebContents, msg: IAddTagsToFileMessage) =>
     wc.send(ADD_TAGS_TO_FILE, msg);
-  };
 
-  static onSendPreviewFiles = (cb: (msg: IPreviewFilesMessage) => void): IpcMain => {
-    return ipcMain.on(SEND_PREVIEW_FILES, (_, msg: IPreviewFilesMessage) => cb(msg));
-  };
+  static onSendPreviewFiles = (cb: (msg: IPreviewFilesMessage) => void) =>
+    ipcMain.on(SEND_PREVIEW_FILES, (_, msg: IPreviewFilesMessage) => cb(msg));
 
-  static sendClosedPreviewWindow = (wc: WebContents) => {
-    wc.send(CLOSED_PREVIEW_WINDOW);
-  };
+  static sendClosedPreviewWindow = (wc: WebContents) => wc.send(CLOSED_PREVIEW_WINDOW);
 
-  static onStoreFile = (getDownloadPath: (msg: IStoreFileMessage) => Promise<string>) => {
+  static onStoreFile = (getDownloadPath: (msg: IStoreFileMessage) => Promise<string>) =>
     ipcMain.on(STORE_FILE, async (e, msg: IStoreFileMessage) => {
       const downloadPath = await getDownloadPath(msg);
       e.sender.send(STORE_FILE_REPLY, { downloadPath } as IStoreFileReplyMessage);
     });
-  };
 
-  static onDragExport = (cb: (msg: IDragExportMessage) => void): IpcMain => {
-    return ipcMain.on(DRAG_EXPORT, (_, msg: IDragExportMessage) => cb(msg));
-  };
-
-  static onGetUserPicturesPath = (): IpcMain => {
-    return ipcMain.on(GET_USER_PICTURES_PATH, (e) => (e.returnValue = app.getPath('pictures')));
-  };
+  static onDragExport = (cb: (msg: IDragExportMessage) => void) =>
+    ipcMain.on(DRAG_EXPORT, (_, msg: IDragExportMessage) => cb(msg));
 }

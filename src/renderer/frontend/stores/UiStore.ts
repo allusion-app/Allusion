@@ -1,7 +1,6 @@
 import path from 'path';
 import fse from 'fs-extra';
 import { action, observable, computed, observe } from 'mobx';
-import { remote } from 'electron';
 
 import RootStore from './RootStore';
 import { ClientFile, IFile } from '../../entities/File';
@@ -562,9 +561,11 @@ class UiStore {
     }
 
     // Set default thumbnail directory in case none was specified
-    if (!this.thumbnailDirectory) {
-      this.setThumbnailDirectory(path.join(remote.app.getPath('userData'), 'thumbnails'));
-      fse.ensureDirSync(this.thumbnailDirectory);
+    if (this.thumbnailDirectory.length === 0) {
+      RendererMessenger.getPath('userData').then((userDataPath) => {
+        this.setThumbnailDirectory(path.join(userDataPath, 'thumbnails'));
+        fse.ensureDirSync(this.thumbnailDirectory);
+      });
     }
   }
 

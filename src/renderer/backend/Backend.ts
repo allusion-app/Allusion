@@ -101,11 +101,6 @@ export default class Backend {
     return this.tagRepository.remove(tag);
   }
 
-  // async removeFile(file: ID): Promise<void> {
-  //   console.log('Removing file...', file);
-  //   return this.fileRepository.remove(file);
-  // }
-
   async removeFiles(files: ID[]): Promise<void> {
     console.log('Removing files...', files);
     return this.fileRepository.removeMany(files);
