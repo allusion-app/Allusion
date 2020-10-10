@@ -266,11 +266,8 @@ const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
 const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));
 
-const toggleSelection = (nodeData: ClientTag, { uiStore }: ITreeData) => {
-  nodeData.isSelected
-    ? uiStore.deselectTags(nodeData.getTagsRecursively())
-    : uiStore.selectTags(nodeData.getTagsRecursively());
-};
+const toggleSelection = (nodeData: ClientTag, { uiStore }: ITreeData) =>
+  nodeData.isSelected ? uiStore.deselectTag(nodeData) : uiStore.selectTag(nodeData);
 
 const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
   const element = event.currentTarget.querySelector('.tree-content-label');

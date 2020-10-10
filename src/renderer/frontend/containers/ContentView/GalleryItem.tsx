@@ -213,14 +213,14 @@ const GalleryItem = observer(
     // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
     return (
-      <div
-        className="thumbnail"
-        aria-selected={isSelected}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <Tooltip content={file.name} hoverOpenDelay={1000}>
+      <Tooltip content={file.name} hoverOpenDelay={1000}>
+        <div
+          className="thumbnail"
+          aria-selected={isSelected}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <div
             onClick={handleClickImg}
             className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
@@ -253,20 +253,20 @@ const GalleryItem = observer(
               </div>
             )}
           </div>
-        </Tooltip>
-        <ThumbnailDecoration
-          showDetails={showDetails}
-          file={file}
-          uiStore={uiStore}
-          tags={
-            <ThumbnailTags
-              tags={file.clientTags}
-              onClick={handleClickImg}
-              onDoubleClick={handleDoubleClickImg}
-            />
-          }
-        />
-      </div>
+          <ThumbnailDecoration
+            showDetails={showDetails}
+            file={file}
+            uiStore={uiStore}
+            tags={
+              <ThumbnailTags
+                tags={file.clientTags}
+                onClick={handleClickImg}
+                onDoubleClick={handleDoubleClickImg}
+              />
+            }
+          />
+        </div>
+      </Tooltip>
     );
   },
 );
