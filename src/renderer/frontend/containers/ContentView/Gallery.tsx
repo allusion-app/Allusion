@@ -364,6 +364,15 @@ const SlideGallery = observer(({ fileStore, uiStore, contentRect }: IGalleryLayo
     }
   }, [fileList, uiStore.fileSelection, uiStore, fileStore]);
 
+  // Go back to previous view when pressing the back button (mouse button 5)
+  useEffect(() => {
+    // Push a dummy state, so that a pop-state event can be activated
+    history.pushState(null, document.title, location.href);
+    const popStateHandler = uiStore.disableSlideMode;
+    window.addEventListener('popstate', popStateHandler);
+    return () => window.removeEventListener('popstate', popStateHandler);
+  }, [uiStore.disableSlideMode]);
+
   // Automatically select the active image, so it is shown in the inspector
   useEffect(() => {
     if (uiStore.firstItem < fileList.length) {
@@ -386,7 +395,7 @@ const SlideGallery = observer(({ fileStore, uiStore, contentRect }: IGalleryLayo
         decrImgIndex();
       } else if (event.key === 'ArrowRight') {
         incrImgIndex();
-      } else if (event.key === 'Escape') {
+      } else if (event.key === 'Escape' || event.key === 'Backspace') {
         uiStore.disableSlideMode();
       }
     },

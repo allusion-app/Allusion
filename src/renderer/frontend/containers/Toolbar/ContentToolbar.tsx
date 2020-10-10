@@ -108,6 +108,7 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'size', icon: IconSet.FILTER_FILTER_DOWN, text: 'File size' },
   { prop: 'dateAdded', icon: IconSet.FILTER_DATE, text: 'Date added' },
   { prop: 'dateModified', icon: IconSet.FILTER_DATE, text: 'Date modified' },
+  { prop: 'dateCreated', icon: IconSet.FILTER_DATE, text: 'Date created' },
 ];
 
 export const SortMenuItems = ({
