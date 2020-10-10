@@ -5,23 +5,17 @@ import { CSSTransition } from 'react-transition-group';
 import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
 import IconSet from 'components/Icons';
 import { ClientTag } from '../../../entities/Tag';
-import {
-  ClientIDSearchCriteria,
-  ClientCollectionSearchCriteria,
-} from '../../../entities/SearchCriteria';
+import { ClientIDSearchCriteria } from '../../../entities/SearchCriteria';
 import MultiTagSelector from '../../components/MultiTagSelector';
 
 const QuickSearchList = ({ rootStore: { uiStore, tagStore } }: IRootStoreProp) => {
   const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
-    let item;
     if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
-      item = tagStore.get(c.value[0]);
-    } else if (c instanceof ClientCollectionSearchCriteria) {
-      // item = tagCollectionStore.get(c.collectionId);
-    }
-    if (item) {
-      selectedItems.push(item);
+      const item = tagStore.get(c.value[0]);
+      if (item !== undefined) {
+        selectedItems.push(item);
+      }
     }
   });
 

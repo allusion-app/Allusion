@@ -7,7 +7,6 @@ import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { formatTagCountText } from 'src/renderer/frontend/utils';
 import { Action, Factory } from './StateReducer';
 import { IExpansionState } from '..';
-import { ID } from 'src/renderer/entities/ID';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import TagStore from 'src/renderer/frontend/stores/TagStore';
@@ -184,9 +183,7 @@ export const TagItemContextMenu = (props: IContextMenuProps) => {
         onClick={() =>
           nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.addSearchCriterias(
-                nodeData.getTagsRecursively().map((c: ID) => new ClientIDSearchCriteria('tags', c)),
-              )
+            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
         }
         text="Add to Search Query"
         icon={IconSet.SEARCH}
@@ -195,9 +192,7 @@ export const TagItemContextMenu = (props: IContextMenuProps) => {
         onClick={() =>
           nodeData.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriterias(
-                nodeData.getTagsRecursively().map((c: ID) => new ClientIDSearchCriteria('tags', c)),
-              )
+            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
         }
         text="Replace Search Query"
         icon={IconSet.REPLACE}

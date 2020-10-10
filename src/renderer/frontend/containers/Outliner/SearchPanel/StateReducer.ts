@@ -8,7 +8,6 @@ import {
   ClientStringSearchCriteria,
   ClientDateSearchCriteria,
   ClientNumberSearchCriteria,
-  ClientCollectionSearchCriteria,
   ClientIDSearchCriteria,
 } from 'src/renderer/entities/SearchCriteria';
 import { ID, generateId } from 'src/renderer/entities/ID';
@@ -20,10 +19,7 @@ export type CriteriaKey = keyof Pick<
   'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded'
 >;
 export type CriteriaOperator = OperatorType;
-export type TagValue =
-  | { tagId: ID; label: string }
-  | { collectionId: ID; label: string; tags: ID[] }
-  | undefined;
+export type TagValue = { id: ID; label: string } | undefined;
 export type CriteriaValue = string | number | Date | TagValue;
 
 interface ICriteriaField<
@@ -110,11 +106,7 @@ export const Factory = {
   }),
   setTag: (id: ID, tagId: ID, label: string): Action => ({
     flag: Flag.Value,
-    data: { id, value: { tagId, label } },
-  }),
-  setCollection: (id: ID, collectionId: ID, tags: ID[], label: string): Action => ({
-    flag: Flag.Value,
-    data: { id, value: { collectionId, tags, label } },
+    data: { id, value: { id: tagId, label } },
   }),
 };
 
@@ -182,9 +174,7 @@ export function fromCriteria(criteria: FileSearchCriteria): CriteriaField {
     criteria.key === 'tags' &&
     criteria.value.length > 0
   ) {
-    c.value = { tagId: criteria.value[0], label: criteria.label };
-  } else if (criteria instanceof ClientCollectionSearchCriteria && criteria.key === 'tags') {
-    c.value = { collectionId: criteria.collectionId, label: criteria.label, tags: criteria.value };
+    c.value = { id: criteria.value[0], label: criteria.label };
   } else {
     return c;
   }
@@ -205,24 +195,14 @@ export function intoCriteria(field: CriteriaField): FileSearchCriteria {
       field.operator,
       CustomKeyDict,
     );
-  } else if (field.key === 'tags' && field.value) {
-    if ('tagId' in field.value) {
-      return new ClientIDSearchCriteria(
-        field.key,
-        field.value.tagId,
-        field.value.label,
-        field.operator,
-        CustomKeyDict,
-      );
-    } else {
-      return new ClientCollectionSearchCriteria(
-        field.value.collectionId,
-        field.value.tags,
-        field.value.label,
-        field.operator,
-        CustomKeyDict,
-      );
-    }
+  } else if (field.key === 'tags' && field.value !== undefined) {
+    return new ClientIDSearchCriteria(
+      field.key,
+      field.value.id,
+      field.value.label,
+      field.operator,
+      CustomKeyDict,
+    );
   } else {
     return new ClientIDSearchCriteria('tags');
   }

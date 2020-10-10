@@ -6,10 +6,7 @@ import { Tree, Toolbar, ToolbarButton } from 'components';
 import IconSet from 'components/Icons';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'components/Tree';
 import { TagRemoval } from '../MessageBox';
-import {
-  ClientIDSearchCriteria,
-  ClientCollectionSearchCriteria,
-} from 'src/renderer/entities/SearchCriteria';
+import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/renderer/entities/Tag';
 import { ID } from 'src/renderer/entities/ID';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
@@ -203,11 +200,7 @@ const TagItem = observer((props: ITagItemProps) => {
 
   const handleQuickQuery = useCallback(
     (event: React.MouseEvent) => {
-      const query = new ClientCollectionSearchCriteria(
-        nodeData.id,
-        nodeData.getTagsRecursively(),
-        nodeData.name,
-      );
+      const query = new ClientIDSearchCriteria('tags', nodeData.id, nodeData.name);
       if (event.ctrlKey) {
         if (!nodeData.isSearched) {
           uiStore.addSearchCriteria(query);

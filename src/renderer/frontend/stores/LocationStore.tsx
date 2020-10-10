@@ -294,18 +294,8 @@ class LocationStore {
     AppToaster.show({ message: 'Updating database...', timeout: 0 }, toastKey);
     await this.backend.createFilesFromPath(loc.path, files);
 
-    AppToaster.show(
-      {
-        message: `Location "${loc.name}" is ready!`,
-        intent: 'success',
-        timeout: 0,
-        action: {
-          text: 'Refresh',
-          onClick: this.rootStore.fileStore.refetch,
-        },
-      },
-      toastKey,
-    );
+    AppToaster.show({ message: `Location "${loc.name}" is ready!`, intent: 'success' }, toastKey);
+    this.rootStore.fileStore.refetch();
   }
 
   @action.bound async delete(location: ClientLocation) {
