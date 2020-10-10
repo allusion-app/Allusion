@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Popover, Icon, Menu, MenuItem } from '@blueprintjs/core';
 import IconSet from 'components/Icons';
@@ -13,7 +13,6 @@ import {
 import { ClientFile, IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
-import { useMemo, useContext } from 'react';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from '../Outliner/MessageBox';
 
@@ -118,7 +117,9 @@ export const SortMenuItems = ({
   orderFilesBy,
   switchFileOrder,
 }: IFileFilter) => {
-  const orderIcon = <Icon icon={fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />;
+  const orderIcon = (
+    <Icon icon={fileOrder === FileOrder.DESC ? IconSet.ARROW_DOWN : IconSet.ARROW_UP} />
+  );
   return (
     <>
       {sortMenuData.map(({ prop, icon, text }) => (
@@ -237,12 +238,12 @@ const ContentToolbar = observer(() => {
             isOpen={uiStore.isToolbarTagSelectorOpen}
             close={uiStore.closeToolbarTagSelector}
             toggle={uiStore.toggleToolbarTagSelector}
-            hidden={fileStore.content === 'missing'}
+            hidden={fileStore.showsMissingContent}
           />
 
           {/* Only show option to remove selected files in toolbar when viewing missing files */}
           <RemoveFilesPopover
-            hidden={fileStore.content !== 'missing'}
+            hidden={!fileStore.showsMissingContent}
             disabled={uiStore.fileSelection.size === 0}
           />
 

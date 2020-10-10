@@ -124,23 +124,14 @@ interface IValueInput<V extends CriteriaValue = CriteriaValue> extends IKeySelec
 }
 
 const TagCriteriaItem = ({ id, value, dispatch }: Omit<IValueInput<TagValue>, 'keyValue'>) => {
-  const { tagStore, tagCollectionStore } = useContext(StoreContext);
-  const selectedItem =
-    value !== undefined
-      ? 'tagId' in value
-        ? tagStore.get(value.tagId)
-        : tagCollectionStore.get(value.collectionId)
-      : undefined;
+  const { tagStore } = useContext(StoreContext);
+  const selectedItem = value !== undefined ? tagStore.get((value as any).tagId) : undefined;
 
   return (
     <TagSelector
       autoFocus
-      includeCollections
       selectedItem={selectedItem}
       onTagSelect={(t) => dispatch(Factory.setTag(id, t.id, t.name))}
-      onTagColSelect={(c) =>
-        dispatch(Factory.setCollection(id, c.id, c.getTagsRecursively(), c.name))
-      }
     />
   );
 };

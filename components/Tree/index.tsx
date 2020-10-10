@@ -261,8 +261,7 @@ interface IBranch extends ITreeNode {
   overScan: number;
   isExpanded: (nodeData: any, treeData: any) => boolean;
   toggleExpansion: (nodeData: any, treeData: any) => void;
-  branches: ITreeBranch[];
-  leaves: ITreeLeaf[];
+  children: ITreeItem[];
   onBranchKeyDown: KeyDownEventHandler;
 }
 
@@ -307,8 +306,7 @@ const TreeBranch = observer(
   ({
     ancestorVisible,
     overScan,
-    branches,
-    leaves,
+    children,
     label: Label,
     level,
     size,
@@ -387,34 +385,35 @@ const TreeBranch = observer(
             className="group"
             onTransitionEnd={handleTransitionEnd}
           >
-            {branches.slice(0, ancestorVisible ? end : 0).map((b, i) => (
-              <TreeBranch
-                {...b}
-                ancestorVisible={expanded}
-                overScan={overScan}
-                key={b.id}
-                level={level + 1}
-                size={branches.length + leaves.length}
-                pos={i + 1}
-                toggleExpansion={toggleExpansion}
-                onBranchKeyDown={onBranchKeyDown}
-                onLeafKeyDown={onLeafKeyDown}
-                treeData={treeData}
-              />
-            ))}
-            {leaves
-              .slice(0, ancestorVisible ? end && Math.max(end - branches.length, 0) : 0)
-              .map((l, i) => (
-                <TreeLeaf
-                  {...l}
-                  key={l.id}
-                  level={level + 1}
-                  size={branches.length + leaves.length}
-                  pos={branches.length + i + 1}
-                  onLeafKeyDown={onLeafKeyDown}
-                  treeData={treeData}
-                />
-              ))}
+            {children
+              .slice(0, ancestorVisible ? end : 0)
+              .map((c, i) =>
+                c.children.length > 0 ? (
+                  <TreeBranch
+                    {...c}
+                    ancestorVisible={expanded}
+                    overScan={overScan}
+                    key={c.id}
+                    level={level + 1}
+                    size={children.length}
+                    pos={i + 1}
+                    toggleExpansion={toggleExpansion}
+                    onBranchKeyDown={onBranchKeyDown}
+                    onLeafKeyDown={onLeafKeyDown}
+                    treeData={treeData}
+                  />
+                ) : (
+                  <TreeLeaf
+                    {...c}
+                    key={c.id}
+                    level={level + 1}
+                    size={children.length}
+                    pos={i + 1}
+                    onLeafKeyDown={onLeafKeyDown}
+                    treeData={treeData}
+                  />
+                ),
+              )}
           </ul>
         </div>
       </li>
@@ -432,10 +431,8 @@ export interface ITree {
   multiSelect?: boolean;
   /** CSS class passed to the tree container element */
   className?: string;
-  /** Expandable nodes */
-  branches: ITreeBranch[];
-  /** Non-expandable nodes */
-  leaves: ITreeLeaf[];
+  /** Children nodes */
+  children: ITreeItem[];
   /** Toggles the expansion of a parent node */
   toggleExpansion: (nodeData: any, treeData: any) => void;
   /** `onKeyDown` Event Handler for branch nodes (see `createBranchOnKeyDown`) */
@@ -487,20 +484,14 @@ export type TreeLabel =
   | ((nodeData: any, treeData: any, level: number, size: number, pos: number) => JSX.Element)
   | string;
 
-/** Presentation for leaf nodes */
-export interface ITreeLeaf extends INodeData {
+/** Presentation for branch nodes */
+export interface ITreeItem extends INodeData {
   /** Actual rendered label */
   label: TreeLabel;
   /** CSS class added to a tree item */
   className?: string;
-}
-
-/** Presentation for branch nodes */
-export interface ITreeBranch extends ITreeLeaf {
-  /** Expandable child nodes */
-  branches: ITreeBranch[];
-  /** Non-expandable child nodes */
-  leaves: ITreeLeaf[];
+  /** Child nodes */
+  children: ITreeItem[];
   /** Checks whether a parent node is open or closed */
   isExpanded: (nodeData: any, treeData: any) => boolean;
 }
@@ -524,8 +515,7 @@ const Tree = ({
   className = '',
   multiSelect,
   labelledBy,
-  branches,
-  leaves,
+  children,
   treeData,
   onBranchKeyDown,
   onLeafKeyDown,
@@ -539,7 +529,7 @@ const Tree = ({
       tree.current.firstElementChild.setAttribute('tabIndex', '0');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [branches.length > 0 || leaves.length > 0]);
+  }, [children.length > 0]);
 
   return (
     <ul
@@ -553,32 +543,33 @@ const Tree = ({
       onKeyDown={handleTreeKeyDown}
       onFocus={handleFocus}
     >
-      {branches.map((b, i) => (
-        <TreeBranch
-          {...b}
-          ancestorVisible
-          overScan={overScan}
-          key={b.id}
-          level={1}
-          size={branches.length + leaves.length}
-          pos={i + 1}
-          onBranchKeyDown={onBranchKeyDown}
-          onLeafKeyDown={onLeafKeyDown}
-          toggleExpansion={toggleExpansion}
-          treeData={treeData}
-        />
-      ))}
-      {leaves.map((l, i) => (
-        <TreeLeaf
-          {...l}
-          key={l.id}
-          level={1}
-          size={branches.length + leaves.length}
-          pos={branches.length + i + 1}
-          onLeafKeyDown={onLeafKeyDown}
-          treeData={treeData}
-        />
-      ))}
+      {children.map((c, i) =>
+        c.children.length > 0 ? (
+          <TreeBranch
+            {...c}
+            ancestorVisible
+            overScan={overScan}
+            key={c.id}
+            level={1}
+            size={children.length}
+            pos={i + 1}
+            onBranchKeyDown={onBranchKeyDown}
+            onLeafKeyDown={onLeafKeyDown}
+            toggleExpansion={toggleExpansion}
+            treeData={treeData}
+          />
+        ) : (
+          <TreeLeaf
+            {...c}
+            key={c.id}
+            level={1}
+            size={children.length}
+            pos={i + 1}
+            onLeafKeyDown={onLeafKeyDown}
+            treeData={treeData}
+          />
+        ),
+      )}
     </ul>
   );
 };

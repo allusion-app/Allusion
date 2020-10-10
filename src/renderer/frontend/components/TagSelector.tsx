@@ -4,11 +4,10 @@ import { ItemPredicate, ItemRenderer, Suggest } from '@blueprintjs/select';
 import { observer } from 'mobx-react-lite';
 
 import { ClientTag } from 'src/renderer/entities/Tag';
-import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
 
-const TagSelect = Suggest.ofType<ClientTag | ClientTagCollection>();
+const TagSelect = Suggest.ofType<ClientTag>();
 
 const NoResults = <MenuItem disabled={true} text="No results." />;
 
@@ -28,12 +27,7 @@ const renderCreateTagOption = (
   />
 );
 
-const filterTag: ItemPredicate<ClientTag | ClientTagCollection> = (
-  query,
-  tag,
-  _index,
-  exactMatch,
-) => {
+const filterTag: ItemPredicate<ClientTag> = (query, tag, _index, exactMatch) => {
   const normalizedName = tag.name.toLowerCase();
   const normalizedQuery = query.toLowerCase();
 
@@ -45,8 +39,8 @@ const filterTag: ItemPredicate<ClientTag | ClientTagCollection> = (
 };
 
 interface ITagSelectorProps {
-  selectedItem: ClientTag | ClientTagCollection | undefined | null;
-  tagLabel?: (tag: ClientTag | ClientTagCollection) => string;
+  selectedItem: ClientTag | undefined | null;
+  tagLabel?: (tag: ClientTag) => string;
   onTagSelect: (tag: ClientTag) => void;
   onTagCreation?: (name: string) => Promise<ClientTag>;
   /** Focus on mount */
@@ -54,8 +48,6 @@ interface ITagSelectorProps {
   /** When this object changes, autoFocus is triggered (since this component does not remount often itself) */
   refocusObject?: any;
   tagIntent?: Intent;
-  includeCollections?: boolean;
-  onTagColSelect?: (tag: ClientTagCollection) => void;
 }
 
 const TagSelector = ({
@@ -65,38 +57,29 @@ const TagSelector = ({
   onTagCreation,
   autoFocus,
   refocusObject,
-  includeCollections,
-  onTagColSelect,
 }: ITagSelectorProps) => {
-  const { tagStore, tagCollectionStore } = useContext(StoreContext);
+  const { tagStore } = useContext(StoreContext);
 
   const handleSelect = useCallback(
-    async (tag: ClientTag | ClientTagCollection) => {
+    async (tag: ClientTag) => {
       // When a tag is created, it is selected. Here we detect whether we need to actually create the ClientTag.
       if (onTagCreation && tag.id === CREATED_TAG_ID) {
         tag = await onTagCreation(tag.name);
       }
 
-      if (tag instanceof ClientTag) {
-        onTagSelect(tag);
-      } else if (onTagColSelect) {
-        onTagColSelect(tag);
-      }
+      onTagSelect(tag);
     },
-    [onTagColSelect, onTagCreation, onTagSelect],
+    [onTagCreation, onTagSelect],
   );
 
-  const SearchTagItem = useCallback<ItemRenderer<ClientTag | ClientTagCollection>>(
+  const SearchTagItem = useCallback<ItemRenderer<ClientTag>>(
     (tag, { modifiers, handleClick }) => {
       if (!modifiers.matchesPredicate) {
         return null;
       }
       const isSelected = selectedItem === tag;
-      const isCol = tag instanceof ClientTagCollection;
 
-      const rightIcon = isCol ? (
-        <Icon icon={IconSet.TAG_GROUP} iconSize={12} color={tag.viewColor} />
-      ) : tag.viewColor ? (
+      const rightIcon = tag.viewColor ? (
         <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
       ) : undefined;
       return (
@@ -115,7 +98,7 @@ const TagSelector = ({
     [selectedItem],
   );
 
-  const TagLabel = (tag: ClientTag | ClientTagCollection) => {
+  const TagLabel = (tag: ClientTag) => {
     if (!tag) {
       return '???';
     }
@@ -124,7 +107,7 @@ const TagSelector = ({
 
   // Only used for visualization in the selector, an actual ClientTag is created onSelect
   const createNewTag = useCallback(
-    (name: string) => new ClientTag(tagStore, name, CREATED_TAG_ID),
+    (name: string) => new ClientTag(tagStore, CREATED_TAG_ID, name),
     [tagStore],
   );
 
@@ -146,13 +129,9 @@ const TagSelector = ({
     }
   }, [refocusObject, autoFocus, inputRef]);
 
-  const items = includeCollections
-    ? [...tagStore.tagList, ...tagCollectionStore.tagCollectionList]
-    : tagStore.tagList;
-
   return (
     <TagSelect
-      items={items}
+      items={tagStore.root.clientSubTags}
       selectedItem={selectedItem}
       itemRenderer={SearchTagItem}
       noResults={NoResults}

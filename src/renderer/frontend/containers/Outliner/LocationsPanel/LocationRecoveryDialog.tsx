@@ -1,5 +1,4 @@
 import { Button, ButtonGroup, Callout, Classes, Dialog } from '@blueprintjs/core';
-import { remote } from 'electron';
 import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 import Path from 'path';
@@ -10,6 +9,7 @@ import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import LocationStore from 'src/renderer/frontend/stores/LocationStore';
 import IconSet from 'components/Icons';
 import { AppToaster } from 'src/renderer/frontend/App';
+import { RendererMessenger } from 'src/Messaging';
 
 interface IMatch {
   locationImageCount: number;
@@ -72,12 +72,12 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
 
     const location = locationStore.get(isLocationRecoveryOpen!)!;
 
-    const dirs = remote.dialog.showOpenDialogSync({
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
       defaultPath: location.path, // TODO: Maybe pick the parent dir of the original location by default?
     });
 
-    if (!dirs) {
+    if (dirs.length === 0) {
       return;
     }
     const newDir = dirs[0];

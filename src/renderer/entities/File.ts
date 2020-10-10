@@ -1,4 +1,4 @@
-import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
+import { IReactionDisposer, observable, reaction, computed, action, ObservableSet } from 'mobx';
 import Path from 'path';
 import fse from 'fs-extra';
 
@@ -75,7 +75,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly locationId: ID;
   readonly relativePath: string;
   readonly absolutePath: string;
-  readonly tags = observable<ID>([]);
+  readonly tags: ObservableSet<ID>;
   readonly size: number;
   readonly width: number;
   readonly height: number;
@@ -112,7 +112,7 @@ export class ClientFile implements ISerializable<IFile> {
     const base = Path.basename(this.relativePath);
     this.filename = base.substr(0, base.lastIndexOf('.'));
 
-    this.tags.push(...fileProps.tags);
+    this.tags = observable(new Set(fileProps.tags));
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -130,9 +130,7 @@ export class ClientFile implements ISerializable<IFile> {
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get clientTags(): ClientTag[] {
-    return this.tags
-      .map((id) => this.store.getTag(id))
-      .filter((t) => t !== undefined) as ClientTag[];
+    return this.store.getTags(this.tags);
   }
 
   @action.bound setThumbnailPath(thumbnailPath: string): void {
@@ -140,35 +138,28 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @action.bound addTag(tag: ID): void {
-    if (this.tags.length === 0) {
+    if (this.tags.size === 0) {
       this.store.decrementNumUntaggedFiles();
     }
-
-    if (!this.tags.includes(tag)) {
-      this.tags.push(tag);
-    }
+    this.tags.add(tag);
   }
 
   @action.bound removeTag(tag: ID): void {
-    if (this.tags.includes(tag)) {
-      if (this.tags.length === 1) {
-        this.store.incrementNumUntaggedFiles();
-      }
-
-      this.tags.remove(tag);
+    if (this.tags.delete(tag) && this.tags.size === 0) {
+      this.store.incrementNumUntaggedFiles();
     }
   }
 
   @action.bound removeAllTags(): void {
-    if (this.tags.length !== 0) {
+    if (this.tags.size > 0) {
       this.store.incrementNumUntaggedFiles();
+      this.tags.clear();
     }
-    this.tags.clear();
   }
 
   @action.bound setBroken(state: boolean): void {
     this.isBroken = state;
-    this.autoSave = !this.isBroken;
+    this.autoSave = !state;
   }
 
   serialize(): IFile {
@@ -177,7 +168,7 @@ export class ClientFile implements ISerializable<IFile> {
       locationId: this.locationId,
       relativePath: this.relativePath,
       absolutePath: this.absolutePath,
-      tags: this.tags.toJS(), // removes observable properties from observable array
+      tags: Array.from(this.tags), // removes observable properties from observable array
       size: this.size,
       width: this.width,
       height: this.height,

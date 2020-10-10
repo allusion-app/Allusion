@@ -101,7 +101,7 @@ interface IGalleryItemProps extends IRootStoreProp {
 }
 
 const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-  if (event.dataTransfer.types.includes(DnDType.Tag)) {
+  if (event.dataTransfer.types.includes(DnDType)) {
     event.dataTransfer.dropEffect = 'link';
     event.preventDefault();
     event.stopPropagation();
@@ -110,7 +110,7 @@ const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
 };
 
 const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-  if (event.dataTransfer.types.includes(DnDType.Tag)) {
+  if (event.dataTransfer.types.includes(DnDType)) {
     event.dataTransfer.dropEffect = 'none';
     event.preventDefault();
     event.stopPropagation();
@@ -130,11 +130,13 @@ const GalleryItem = observer(
 
     const handleDrop = useCallback(
       (event: React.DragEvent<HTMLDivElement>) => {
-        if (event.dataTransfer.types.includes(DnDType.Tag)) {
+        if (event.dataTransfer.types.includes(DnDType)) {
           event.dataTransfer.dropEffect = 'none';
-          const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType.Tag));
-          ctx.tags.forEach((tag) => file.addTag(tag.id));
-          ctx.collections.forEach((col) => col.getTagsRecursively().forEach(file.addTag));
+          const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType));
+          ctx.tags.forEach((tag) => {
+            file.addTag(tag.id);
+            tag.subTags.forEach(file.addTag);
+          });
           event.currentTarget.dataset[DnDAttribute.Target] = 'false';
         }
       },

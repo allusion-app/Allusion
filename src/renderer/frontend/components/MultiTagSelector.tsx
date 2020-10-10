@@ -8,9 +8,8 @@ import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
 import { getClassForBackground } from '../utils';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
 
-const TagMultiSelect = MultiSelect.ofType<ClientTag | ClientTagCollection>();
+const TagMultiSelect = MultiSelect.ofType<ClientTag>();
 
 const NoResults = <MenuItem disabled={true} text="No results." />;
 
@@ -30,7 +29,7 @@ const renderCreateTagOption = (
   />
 );
 
-const filterTag: ItemPredicate<ClientTag | ClientTagCollection> = (query, tag, index, exactMatch) => {
+const filterTag: ItemPredicate<ClientTag> = (query, tag, index, exactMatch) => {
   const normalizedName = tag.name.toLowerCase();
   const normalizedQuery = query.toLowerCase();
 
@@ -42,8 +41,8 @@ const filterTag: ItemPredicate<ClientTag | ClientTagCollection> = (query, tag, i
 };
 
 interface IMultiTagSelectorProps {
-  selectedItems: (ClientTag | ClientTagCollection)[];
-  tagLabel?: (tag: ClientTag | ClientTagCollection) => string;
+  selectedItems: ClientTag[];
+  tagLabel?: (tag: ClientTag) => string;
   onTagSelect: (tag: ClientTag) => void;
   onTagDeselect: (tag: ClientTag, index: number) => void;
   onClearSelection: () => void;
@@ -58,8 +57,6 @@ interface IMultiTagSelectorProps {
   onKeyDown?: (event: React.KeyboardEvent<HTMLElement>, index?: number | undefined) => void;
   showClearButton?: boolean;
   includeCollections?: boolean;
-  onTagColSelect?: (tag: ClientTagCollection) => void;
-  onTagColDeselect?: (tag: ClientTagCollection, index: number) => void;
 }
 
 const MultiTagSelector = ({
@@ -75,39 +72,29 @@ const MultiTagSelector = ({
   refocusObject,
   onKeyDown,
   showClearButton = true,
-  includeCollections,
-  onTagColSelect,
-  onTagColDeselect,
 }: IMultiTagSelectorProps) => {
-  const { tagStore, tagCollectionStore } = useContext(StoreContext);
+  const { tagStore } = useContext(StoreContext);
 
   const handleSelect = useCallback(
-    async (tag: ClientTag | ClientTagCollection) => {
+    async (tag: ClientTag) => {
       // When a tag is created, it is selected. Here we detect whether we need to actually create the ClientTag.
       if (onTagCreation && tag.id === CREATED_TAG_ID) {
         tag = await onTagCreation(tag.name);
       }
 
-      if (tag instanceof ClientTag) {
-        return selectedItems.includes(tag)
-          ? onTagDeselect(tag, selectedItems.indexOf(tag))
-          : onTagSelect(tag);
-      } else if (onTagColSelect && onTagColDeselect) {
-        return selectedItems.includes(tag)
-          ? onTagColDeselect(tag, selectedItems.indexOf(tag))
-          : onTagColSelect(tag);
-      }
+      return selectedItems.includes(tag)
+        ? onTagDeselect(tag, selectedItems.indexOf(tag))
+        : onTagSelect(tag);
     },
-    [onTagColDeselect, onTagColSelect, onTagCreation, onTagDeselect, onTagSelect, selectedItems],
+    [onTagCreation, onTagDeselect, onTagSelect, selectedItems],
   );
 
   const handleDeselect = useCallback(
     (_: string, index: number) => {
       const item = selectedItems[index];
-     item instanceof ClientTag
-      ? onTagDeselect(item, index)
-      : onTagColDeselect && onTagColDeselect(item, index);
-    }, [onTagDeselect, onTagColDeselect, selectedItems],
+      onTagDeselect(item, index);
+    },
+    [onTagDeselect, selectedItems],
   );
 
   // Todo: Might need a confirmation pop over
@@ -115,27 +102,20 @@ const MultiTagSelector = ({
     () =>
       selectedItems.length > 0 ? (
         <Button icon={IconSet.CLOSE} minimal={true} onClick={onClearSelection} />
-      ) : (
-        undefined
-      ),
+      ) : undefined,
     [onClearSelection, selectedItems.length],
   );
 
-  const SearchTagItem = useCallback<ItemRenderer<ClientTag | ClientTagCollection>>(
+  const SearchTagItem = useCallback<ItemRenderer<ClientTag>>(
     (tag, { modifiers, handleClick }) => {
       if (!modifiers.matchesPredicate) {
         return null;
       }
       const isSelected = selectedItems.includes(tag);
-      const isCol = tag instanceof ClientTagCollection;
 
-      const rightIcon = isCol
-        ? <Icon icon={IconSet.TAG_GROUP} iconSize={12} color={tag.viewColor} />
-        : (
-          tag.viewColor
-            ? <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
-            : undefined
-        );
+      const rightIcon = tag.viewColor ? (
+        <Icon icon="full-circle" iconSize={12} color={tag.viewColor} />
+      ) : undefined;
       return (
         <MenuItem
           active={modifiers.active}
@@ -152,30 +132,26 @@ const MultiTagSelector = ({
     [selectedItems],
   );
 
-  const TagLabel = (tag: ClientTag | ClientTagCollection) => {
+  const TagLabel = (tag: ClientTag) => {
     if (!tag) return <span>???</span>;
     const colClass = tag.viewColor ? getClassForBackground(tag.viewColor) : 'color-white';
     const text = tagLabel ? tagLabel(tag) : tag.name;
-    return (
-      <span className={colClass}>
-        {text}
-      </span>
-    );
+    return <span className={colClass}>{text}</span>;
   };
 
   // Only used for visualization in the selector, an actual ClientTag is created onSelect
   const createNewTag = useCallback(
-    (name: string) => new ClientTag(tagStore, name, CREATED_TAG_ID),
+    (name: string) => new ClientTag(tagStore, CREATED_TAG_ID, name),
     [tagStore],
   );
 
   const maybeCreateNewItemFromQuery = onTagCreation ? createNewTag : undefined;
-  const maybeCreateNewItemRenderer = onTagCreation
-    ? renderCreateTagOption
-    : undefined;
+  const maybeCreateNewItemRenderer = onTagCreation ? renderCreateTagOption : undefined;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const setInputRef = useCallback((input: HTMLInputElement | null) => inputRef.current = input, [inputRef]);
+  const setInputRef = useCallback((input: HTMLInputElement | null) => (inputRef.current = input), [
+    inputRef,
+  ]);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
@@ -183,23 +159,18 @@ const MultiTagSelector = ({
     }
   }, [refocusObject, autoFocus]);
 
-  const items = useMemo(() => {
-    if (!includeCollections) return tagStore.tagList;
-    const collectionsWithoutRoot = tagCollectionStore.tagCollectionList
-      .filter(col => col.id !== ROOT_TAG_COLLECTION_ID)
-    return [...tagStore.tagList, ...collectionsWithoutRoot];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [includeCollections, tagStore.tagList.length, tagCollectionStore.tagCollectionList.length]);
-
-  const getTagProps = useCallback((_: any, index: number): ITagProps => ({
-    minimal: true,
-    // Todo: Style doesn't update until focusing the tagInput
-    style: { backgroundColor: selectedItems[index]?.viewColor },
-  }), [selectedItems]);
+  const getTagProps = useCallback(
+    (_: any, index: number): ITagProps => ({
+      minimal: true,
+      // Todo: Style doesn't update until focusing the tagInput
+      style: { backgroundColor: selectedItems[index]?.viewColor },
+    }),
+    [selectedItems],
+  );
 
   return (
     <TagMultiSelect
-      items={items}
+      items={tagStore.root.clientSubTags}
       selectedItems={selectedItems}
       itemRenderer={SearchTagItem}
       noResults={NoResults}

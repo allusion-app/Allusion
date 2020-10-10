@@ -45,7 +45,10 @@ export const dbDelete = (dbName: string): void => {
   Dexie.delete(dbName);
 };
 
-export type FileOrder = 'ASC' | 'DESC';
+export const enum FileOrder {
+  ASC,
+  DESC,
+}
 
 export interface IDbRequest<T> {
   count?: number;
@@ -81,7 +84,7 @@ export default class BaseRepository<T extends IResource> {
 
   public async getAll({ count, order, fileOrder }: IDbRequest<T>): Promise<T[]> {
     let col = order ? this.collection.orderBy(order as string) : this.collection;
-    if (fileOrder === 'DESC') {
+    if (fileOrder === FileOrder.DESC) {
       col = col.reverse();
     }
     return (count ? col.limit(count) : col).toArray();
@@ -90,7 +93,7 @@ export default class BaseRepository<T extends IResource> {
   public async find(req: IDbQueryRequest<T>): Promise<T[]> {
     const { count, order, fileOrder } = req;
     let table = await this._find(req, req.matchAny ? 'or' : 'and');
-    table = fileOrder === 'DESC' ? table.reverse() : table;
+    table = fileOrder === FileOrder.DESC ? table.reverse() : table;
     table = count ? table.limit(count) : table;
     return order ? table.sortBy(order as string) : table.toArray();
   }
@@ -113,12 +116,12 @@ export default class BaseRepository<T extends IResource> {
     return items;
   }
 
-  public async remove(item: T): Promise<void> {
-    return this.collection.delete(item.id);
+  public async remove(item: ID): Promise<void> {
+    return this.collection.delete(item);
   }
 
-  public async removeMany(items: T[]): Promise<void> {
-    return this.collection.bulkDelete(items.map((i) => i.id));
+  public async removeMany(items: ID[]): Promise<void> {
+    return this.collection.bulkDelete(items);
   }
 
   public async update(item: T): Promise<T> {
