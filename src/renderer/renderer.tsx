@@ -5,7 +5,6 @@
 import 'mobx-react-lite/batchingForReactDom';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { remote } from 'electron';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -92,16 +91,10 @@ if (IS_PREVIEW_WINDOW) {
   rootStore.uiStore.recoverPersistentPreferences();
   rootStore.fileStore.recoverPersistentPreferences();
 
-  // Before closing the main window, store preferences
-  remote.getCurrentWindow().on('close', () => {
-    rootStore.uiStore.storePersistentPreferences();
-  });
-
   // Recover global preferences
   try {
     const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY) ?? '';
     const prefs = JSON.parse(window_preferences);
-    console.log('SET WINDOWS', prefs);
     if (prefs.isFullScreen === true) {
       RendererMessenger.setFullScreen(prefs.isFullScreen);
     }
