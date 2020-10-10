@@ -326,25 +326,16 @@ class LocationStore {
     const file = await pathToIFile(path, location);
     await this.backend.createFilesFromPath(path, [file]);
 
-    AppToaster.show(
-      {
-        message: 'New images have been detected.',
-        intent: 'primary',
-        timeout: 0,
-        action: {
-          icon: IconSet.RELOAD,
-          onClick: this.rootStore.fileStore.refetch,
-        },
-      },
-      'refresh',
-    );
+    AppToaster.show({ message: 'New images have been detected.', intent: 'primary' });
+    this.rootStore.fileStore.refetch();
   }
 
-  hideFile(path: string) {
+  @action hideFile(path: string) {
     const fileStore = this.rootStore.fileStore;
     const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
     if (clientFile !== undefined) {
       fileStore.hideFile(clientFile);
+      fileStore.refetch();
     }
 
     AppToaster.show(
