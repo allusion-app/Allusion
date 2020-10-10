@@ -92,7 +92,7 @@ function createWindow() {
 
   // Customize new window opening
   // https://www.electronjs.org/docs/api/window-open
-  mainWindow.webContents.on('new-window', (event, url, frameName, _disposition, options) => {
+  mainWindow.webContents.on('new-window', (event, _url, frameName, _disposition, options) => {
     if (frameName === 'settings') {
       event.preventDefault();
       // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
@@ -392,3 +392,7 @@ MainMessenger.onReload(() => mainWindow?.webContents.reload());
 MainMessenger.onOpenDialog(dialog);
 
 MainMessenger.onGetPath(app);
+
+MainMessenger.onIsFullScreen(() => mainWindow?.isFullScreen() ?? false);
+
+MainMessenger.onSetFullScreen((isFullScreen) => mainWindow?.setFullScreen(isFullScreen));

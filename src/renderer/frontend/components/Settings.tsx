@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useCallback } from 'react';
+import React, { useContext, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Drawer,
@@ -17,20 +17,16 @@ import {
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
 import { ClearDbButton } from './ErrorBoundary';
-import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
 import PopupWindow from './PopupWindow';
+import { WINDOW_STORAGE_KEY } from 'src/renderer/renderer';
 
-// Window state
-const WINDOW_STORAGE_KEY = 'Allusion_Window';
-
-const toggleFullScreen = () => {
-  const { isFullScreen, setFullScreen } = remote.getCurrentWindow();
-  // Save window state
-  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: !isFullScreen() }));
-  setFullScreen(!isFullScreen());
+const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
+  const isFullScreen = e.currentTarget.checked;
+  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
+  RendererMessenger.setFullScreen(isFullScreen);
 };
 
 const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -58,21 +54,6 @@ const SettingsForm = observer(() => {
     // Since the import dir could also contain non-allusion files, not sure if a good idea
     // But then there should be support for re-importing manually copied files
   }, [locationStore]);
-
-  useEffect(() => {
-    // Load last window state
-    const preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
-    if (preferences) {
-      try {
-        const prefs = JSON.parse(preferences);
-        if (prefs.isFullScreen) {
-          remote.getCurrentWindow().setFullScreen(prefs.isFullScreen);
-        }
-      } catch (e) {
-        console.log('Cannot load persistent preferences', e);
-      }
-    }
-  }, []);
 
   const browseThumbnailDirectory = useCallback(async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
@@ -130,7 +111,7 @@ const SettingsForm = observer(() => {
       </div>
       <div className="column">
         <Switch
-          defaultChecked={remote.getCurrentWindow().isFullScreen()}
+          defaultChecked={RendererMessenger.isFullScreen()}
           onChange={toggleFullScreen}
           label="Full screen"
         />
@@ -148,13 +129,13 @@ const SettingsForm = observer(() => {
         />
 
         <Switch
-          defaultChecked={RendererMessenger.getIsRunningInBackground()}
+          defaultChecked={RendererMessenger.isRunningInBackground()}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
 
         <Switch
-          defaultChecked={RendererMessenger.getIsClipServerEnabled()}
+          defaultChecked={RendererMessenger.isClipServerEnabled()}
           onChange={toggleClipServer}
           label="Browser extension support"
         />

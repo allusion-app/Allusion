@@ -22,6 +22,9 @@ import PreviewApp from './frontend/Preview';
 import { RendererMessenger } from '../Messaging';
 import { DEFAULT_LOCATION_ID } from './entities/Location';
 
+// Window State
+export const WINDOW_STORAGE_KEY = 'Allusion_Window';
+
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
 const params = new URLSearchParams(window.location.search.slice(1));
@@ -93,6 +96,18 @@ if (IS_PREVIEW_WINDOW) {
   remote.getCurrentWindow().on('close', () => {
     rootStore.uiStore.storePersistentPreferences();
   });
+
+  // Recover global preferences
+  try {
+    const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY) ?? '';
+    const prefs = JSON.parse(window_preferences);
+    console.log('SET WINDOWS', prefs);
+    if (prefs.isFullScreen === true) {
+      RendererMessenger.setFullScreen(prefs.isFullScreen);
+    }
+  } catch (e) {
+    console.log('Cannot load window preferences', e);
+  }
 }
 
 // Render our react components in the div with id 'app' in the html file

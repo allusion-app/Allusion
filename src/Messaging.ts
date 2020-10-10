@@ -31,6 +31,8 @@ const TOGGLE_DEV_TOOLS = 'TOGGLE_DEV_TOOLS';
 const RELOAD = 'RELOAD';
 const OPEN_DIALOG = 'OPEN_DIALOG';
 const GET_PATH = 'GET_PATH';
+const SET_FULL_SCREEN = 'SET_FULL_SCREEN';
+const IS_FULL_SCREEN = 'IS_FULL_SCREEN';
 
 //////// Main proces (browser extension) ////////
 export const GET_TAGS = 'GET_TAGS';
@@ -103,9 +105,7 @@ export interface IDownloadPathMessage {
 
 // Static methods for type safe IPC messages between renderer and main process
 export class RendererMessenger {
-  static initialized = () => {
-    ipcRenderer.send(INITIALIZED);
-  };
+  static initialized = () => ipcRenderer.send(INITIALIZED);
 
   static clearDatabase = () => ipcRenderer.send(CLEAR_DATABASE);
 
@@ -119,15 +119,20 @@ export class RendererMessenger {
 
   static getPath = (name: SYSTEM_PATHS): Promise<string> => ipcRenderer.invoke(GET_PATH, name);
 
+  static setFullScreen = (isFullScreen: boolean) =>
+    ipcRenderer.invoke(SET_FULL_SCREEN, isFullScreen);
+
+  static isFullScreen = (): boolean => ipcRenderer.sendSync(IS_FULL_SCREEN);
+
   static onGetTags = (fetchTags: () => Promise<ITagsMessage>) =>
     ipcRenderer.on(GET_TAGS, async () => {
       const msg = await fetchTags();
       ipcRenderer.send(RECEIVE_TAGS, msg);
     });
 
-  static getIsClipServerEnabled = (): boolean => ipcRenderer.sendSync(IS_CLIP_SERVER_RUNNING);
+  static isClipServerEnabled = (): boolean => ipcRenderer.sendSync(IS_CLIP_SERVER_RUNNING);
 
-  static getIsRunningInBackground = (): boolean => ipcRenderer.sendSync(IS_RUNNING_IN_BACKGROUND);
+  static isRunningInBackground = (): boolean => ipcRenderer.sendSync(IS_RUNNING_IN_BACKGROUND);
 
   static setDownloadPath = (msg: IDownloadPathMessage) => ipcRenderer.send(SET_DOWNLOAD_PATH, msg);
 
@@ -182,6 +187,12 @@ export class MainMessenger {
 
   static onGetPath = (app: Electron.App) =>
     ipcMain.handle(GET_PATH, (_, name) => app.getPath(name));
+
+  static onSetFullScreen = (cb: (isFullScreen: boolean) => void) =>
+    ipcMain.handle(SET_FULL_SCREEN, (_, isFullScreen) => cb(isFullScreen));
+
+  static onIsFullScreen = (cb: () => boolean) =>
+    ipcMain.on(IS_FULL_SCREEN, (e) => (e.returnValue = cb()));
 
   static getTags = async (wc: WebContents): Promise<ITagsMessage> => {
     wc.send(GET_TAGS);
