@@ -21,6 +21,8 @@ interface IMetaData {
   size: number;
   width: number;
   height: number;
+  /** Date when this file was created (from the OS, not related to Allusion) */
+  dateCreated: Date;
 }
 
 /** Should be called when after constructing a file before sending it to the backend. */
@@ -42,6 +44,7 @@ export async function getMetaData(path: string): Promise<IMetaData> {
     size: stats.size,
     width: (dimensions && dimensions.width) || 0,
     height: (dimensions && dimensions.height) || 0,
+    dateCreated: stats.birthtime,
   };
 }
 
@@ -52,7 +55,9 @@ export interface IFile extends IMetaData, IResource {
   relativePath: string;
   absolutePath: string;
   tags: ID[];
+  /** When the file was imported into Allusion */
   dateAdded: Date;
+  /** When the file was modified in Allusion, not related to OS modified date */
   dateModified: Date;
 }
 
@@ -76,6 +81,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly height: number;
   readonly dateAdded: Date;
   readonly dateModified: Date;
+  readonly dateCreated: Date;
   readonly name: string;
   readonly extension: string;
   readonly filename: string;
@@ -96,6 +102,7 @@ export class ClientFile implements ISerializable<IFile> {
     this.height = fileProps.height;
     this.dateAdded = fileProps.dateAdded;
     this.dateModified = fileProps.dateModified;
+    this.dateCreated = fileProps.dateCreated;
     this.name = fileProps.name;
     this.extension = fileProps.extension;
 
@@ -176,6 +183,7 @@ export class ClientFile implements ISerializable<IFile> {
       height: this.height,
       dateAdded: this.dateAdded,
       dateModified: this.dateModified,
+      dateCreated: this.dateCreated,
       name: this.name,
       extension: this.extension,
     };
