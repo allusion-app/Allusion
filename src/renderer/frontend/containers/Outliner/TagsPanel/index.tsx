@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 
 import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
-import { observer, Observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 import StoreContext, { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 import { IconSet } from 'components';
@@ -53,25 +53,10 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
   render() {
     return (
       <div>
-        <Observer>
-          {() => {
-            const { tagCollectionStore, tagStore, uiStore } = this.props.rootStore;
-            return (
-              <TagsTree
-                root={tagCollectionStore.getRootCollection()}
-                uiStore={uiStore}
-                tagCollectionStore={tagCollectionStore}
-                tagStore={tagStore}
-              />
-            );
-          }}
-        </Observer>
+        <TagsTree />
       </div>
     );
   }
-  selectAllTags = () => {
-    this.props.rootStore.uiStore.selectTags(this.props.rootStore.tagStore.tagList.toJS());
-  };
   renderHotkeys() {
     const { uiStore } = this.props.rootStore;
     const { hotkeyMap } = uiStore;
@@ -80,7 +65,7 @@ class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
         <Hotkey
           combo={hotkeyMap.selectAll}
           label="Select all tags in the outliner"
-          onKeyDown={this.selectAllTags}
+          onKeyDown={uiStore.selectAllTags}
           group="Outliner"
         />
         <Hotkey

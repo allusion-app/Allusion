@@ -1,7 +1,8 @@
 import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
 import TagStore from '../frontend/stores/TagStore';
-import { generateId, ID, IResource, ISerializable } from './ID';
-import { ClientTagCollection } from './TagCollection';
+import { ID, IResource, ISerializable } from './ID';
+
+export const ROOT_TAG_ID = 'root';
 
 /* A Tag as it is represented in the Database */
 export interface ITag extends IResource {
@@ -10,6 +11,7 @@ export interface ITag extends IResource {
   description: string;
   dateAdded: Date;
   color: string;
+  subTags: ID[];
 }
 
 /**
@@ -18,20 +20,22 @@ export interface ITag extends IResource {
  * update the entity in the backend.
  */
 export class ClientTag implements ISerializable<ITag> {
-  store: TagStore;
-  saveHandler: IReactionDisposer;
-  autoSave = true;
+  private store: TagStore;
+  private saveHandler: IReactionDisposer;
+  private autoSave = true;
 
-  id: ID;
-  dateAdded: Date = new Date();
+  readonly id: ID;
+  readonly dateAdded: Date;
   @observable name: string;
   @observable description: string = '';
   @observable color: string = '';
-  // icon, color, (fileCount?)
+  readonly subTags = observable<ID>([]);
+  // icon, (fileCount?)
 
-  constructor(store: TagStore, name: string = '', id = generateId()) {
+  constructor(store: TagStore, id: ID, name: string, dateAdded: Date = new Date()) {
     this.store = store;
     this.id = id;
+    this.dateAdded = dateAdded;
     this.name = name;
 
     // observe all changes to observable fields
@@ -48,7 +52,7 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
-  @computed get parent(): ClientTagCollection {
+  @computed get parent(): ClientTag {
     return this.store.getParent(this.id);
   }
 
@@ -64,12 +68,39 @@ export class ClientTag implements ISerializable<ITag> {
     return this.store.isSearched(this.id);
   }
 
+  /** Get actual tag collection objects based on the IDs retrieved from the backend */
+  @computed get clientSubTags(): ClientTag[] {
+    return Array.from(this.store.getIterFrom(this.subTags));
+  }
+
+  /**
+   * Returns true if tag is an ancestor of this tag.
+   * @param tag possible ancestor node
+   */
+  isAncestor(tag: ClientTag): boolean {
+    if (this === tag) {
+      return false;
+    }
+    let node = this.parent;
+    while (node.id !== ROOT_TAG_ID) {
+      if (node === tag) {
+        return true;
+      }
+      node = node.parent;
+    }
+    return false;
+  }
+
   @action.bound rename(name: string): void {
     this.name = name;
   }
 
   @action.bound setColor(color: string): void {
     this.color = color;
+  }
+
+  @action.bound insertSubTag(tag: ClientTag, at: number): void {
+    this.store.insert(this, tag, at);
   }
 
   /**
@@ -80,11 +111,10 @@ export class ClientTag implements ISerializable<ITag> {
     // make sure our changes aren't sent back to the backend
     this.autoSave = false;
 
-    this.id = backendTag.id;
     this.name = backendTag.name;
     this.description = backendTag.description;
-    this.dateAdded = backendTag.dateAdded;
     this.color = backendTag.color;
+    this.subTags.replace(backendTag.subTags);
 
     this.autoSave = true;
 
@@ -98,11 +128,24 @@ export class ClientTag implements ISerializable<ITag> {
       description: this.description,
       dateAdded: this.dateAdded,
       color: this.color,
+      subTags: this.subTags.toJS(),
     };
   }
 
+  getTagsRecursively(): ID[] {
+    const ids = [this.id];
+    const pushIds = (tags: ClientTag[]) => {
+      for (const t of tags) {
+        ids.push(t.id);
+        pushIds(t.clientSubTags);
+      }
+    };
+    pushIds(this.clientSubTags);
+    return ids;
+  }
+
   async delete(): Promise<void> {
-    return this.store.removeTag(this);
+    return this.store.delete(this);
   }
 
   dispose(): void {

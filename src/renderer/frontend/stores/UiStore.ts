@@ -1,22 +1,20 @@
 import path from 'path';
 import fse from 'fs-extra';
 import { action, observable, computed, observe } from 'mobx';
-import { remote } from 'electron';
 
 import RootStore from './RootStore';
 import { ClientFile, IFile } from '../../entities/File';
 import { ID } from '../../entities/ID';
-import { ClientTag } from '../../entities/Tag';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import { ClientTag, ROOT_TAG_ID } from '../../entities/Tag';
 import { ClientBaseCriteria, ClientIDSearchCriteria } from '../../entities/SearchCriteria';
 import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export type ViewMethod = 'list' | 'grid';
-export type ViewThumbnailSize = 'small' | 'medium' | 'large';
-export type ViewThumbnailShape = 'square' | 'letterbox';
-export const PREFERENCES_STORAGE_KEY = 'preferences';
+type ThumbnailSize = 'small' | 'medium' | 'large';
+type ThumbnailShape = 'square' | 'letterbox';
+const PREFERENCES_STORAGE_KEY = 'preferences';
 
 export interface IHotkeyMap {
   // Outerliner actions
@@ -92,7 +90,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
 ];
 
 class UiStore {
-  rootStore: RootStore;
+  private rootStore: RootStore;
 
   @observable isInitialized = false;
 
@@ -112,8 +110,8 @@ class UiStore {
   @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
   @observable firstItem: number = 0;
-  @observable thumbnailSize: ViewThumbnailSize = 'medium';
-  @observable thumbnailShape: ViewThumbnailShape = 'square';
+  @observable thumbnailSize: ThumbnailSize = 'medium';
+  @observable thumbnailShape: ThumbnailShape = 'square';
 
   @observable isToolbarFileRemoverOpen: boolean = false;
 
@@ -177,11 +175,11 @@ class UiStore {
   }
 
   @action.bound setMethodList() {
-    this.setMethod('list');
+    this.method = 'list';
   }
 
   @action.bound setMethodGrid() {
-    this.setMethod('grid');
+    this.method = 'grid';
   }
 
   @action.bound enableSlideMode() {
@@ -267,12 +265,6 @@ class UiStore {
     this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
     RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' });
   }
-  @action.bound toggleDevtools() {
-    remote.getCurrentWebContents().toggleDevTools();
-  }
-  @action.bound reload() {
-    remote.getCurrentWindow().reload();
-  }
 
   @action.bound toggleAdvancedSearch() {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
@@ -293,7 +285,7 @@ class UiStore {
   }
 
   @computed get clientTagSelection(): ClientTag[] {
-    return Array.from(this.tagSelection, (id) => this.rootStore.tagStore.get(id)) as ClientTag[];
+    return Array.from(this.rootStore.tagStore.getIterFrom(this.tagSelection));
   }
 
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
@@ -303,11 +295,14 @@ class UiStore {
     this.fileSelection.add(file.id);
   }
 
-  @action.bound selectFiles(fileIDs: ID[], clear?: boolean) {
+  @action.bound selectFiles(files: ID[], clear?: boolean) {
     if (clear) {
-      this.clearFileSelection();
+      this.fileSelection.replace(files);
+      return;
     }
-    fileIDs.forEach((id) => this.fileSelection.add(id));
+    for (const id of files) {
+      this.fileSelection.add(id);
+    }
   }
 
   @action.bound deselectFile(file: ClientFile) {
@@ -330,46 +325,36 @@ class UiStore {
     this.tagSelection.add(tag.id);
   }
 
-  @action.bound selectTags(tags: ClientTag[] | ID[], clear?: boolean) {
+  @action.bound selectTags(tags: ID[], clear?: boolean) {
     if (clear) {
-      this.clearTagSelection();
-    }
-    if (tags.length === 0) {
+      this.tagSelection.replace(tags);
       return;
     }
-    if (tags[0] instanceof ClientTag) {
-      (tags as ClientTag[]).forEach((tag: ClientTag) => this.tagSelection.add(tag.id));
-    } else {
-      (tags as ID[]).forEach((id) => this.tagSelection.add(id));
+    for (const tag of tags) {
+      this.tagSelection.add(tag);
     }
   }
 
-  @action.bound deselectTags(tags: ClientTag[] | ID[]) {
-    if (tags.length === 0) {
-      return;
-    }
-    if (tags[0] instanceof ClientTag) {
-      (tags as ClientTag[]).forEach((tag) => this.tagSelection.delete(tag.id));
-    } else {
-      (tags as ID[]).forEach((tag) => this.tagSelection.delete(tag));
+  @action.bound deselectTags(tags: ID[]) {
+    for (const tag of tags) {
+      this.tagSelection.delete(tag);
     }
   }
 
-  @action.bound deselectTag(tag: ClientTag | ID) {
-    this.tagSelection.delete(tag instanceof ClientTag ? tag.id : tag);
+  @action.bound deselectTag(tag: ClientTag) {
+    this.tagSelection.delete(tag.id);
+  }
+
+  @action.bound selectAllTags() {
+    this.tagSelection.replace(this.rootStore.tagStore.root.subTags);
   }
 
   @action.bound clearTagSelection() {
     this.tagSelection.clear();
   }
 
-  @action.bound async removeSelectedTagsAndCollections() {
+  @action.bound async removeSelectedTags() {
     const ctx = this.getTagContextItems();
-    for (const col of ctx.collections) {
-      if (col.id !== ROOT_TAG_COLLECTION_ID) {
-        await col.delete();
-      }
-    }
     for (const tag of ctx.tags) {
       await tag.delete();
     }
@@ -377,13 +362,11 @@ class UiStore {
 
   @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
     const ctx = this.getTagContextItems(activeElementId);
-    const colorCollection = (collection: ClientTagCollection) => {
-      collection.setColor(color);
-      collection.clientTags.forEach((tag) => tag.setColor(color));
-      collection.clientSubCollections.forEach(colorCollection);
+    const colorCollection = (tag: ClientTag) => {
+      tag.setColor(color);
+      tag.clientSubTags.forEach((tag) => tag.setColor(color));
     };
-    ctx.collections.forEach(colorCollection);
-    ctx.tags.forEach((tag) => tag.setColor(color));
+    ctx.tags.forEach(colorCollection);
   }
 
   /**
@@ -394,13 +377,12 @@ class UiStore {
    * but can be easily found by getting the tags from each collection.
    */
   @action.bound getTagContextItems(activeItemId?: ID) {
-    const { tagStore, tagCollectionStore } = this.rootStore;
+    const { tagStore } = this.rootStore;
 
     // If no id was given, the context is the tag selection. Else, it might be a single tag/collection
     let isContextTheSelection = activeItemId === undefined;
 
     const contextTags: ClientTag[] = [];
-    const contextCols: ClientTagCollection[] = [];
 
     // If an id is given, check whether it belongs to a tag or collection
     if (activeItemId) {
@@ -411,44 +393,34 @@ class UiStore {
         } else {
           contextTags.push(selectedTag);
         }
-      } else {
-        const selectedCol = tagCollectionStore.get(activeItemId);
-        if (selectedCol) {
-          if (selectedCol.isSelected) {
-            isContextTheSelection = true;
-          } else {
-            contextCols.push(selectedCol);
-          }
-        }
       }
     }
 
     // If no id is given or when the selected tag or collection is selected, the context is the whole selection
     if (isContextTheSelection) {
-      const selectedCols = tagCollectionStore.tagCollectionList.filter((c) => c.isSelected);
+      const selectedTags = tagStore.tagList.filter((c) => c.isSelected);
 
-      // root collection may not be present in the context
-      const rootColIndex = selectedCols.findIndex((col) => col.id === ROOT_TAG_COLLECTION_ID);
-      if (rootColIndex >= 0) {
-        selectedCols.splice(rootColIndex, 1);
+      // root tag may not be present in the context
+      const rootTagIndex = selectedTags.findIndex((col) => col.id === ROOT_TAG_ID);
+      if (rootTagIndex >= 0) {
+        selectedTags.splice(rootTagIndex, 1);
       }
 
-      // Only include selected collections of which their parent is not selected
-      const selectedColsNotInSelectedCols = selectedCols.filter((col) =>
-        selectedCols.every((parent) => !parent.subCollections.includes(col.id)),
+      // Only include selected tags of which their parent is not selected
+      const selectedColsNotInSelectedCols = selectedTags.filter((col) =>
+        selectedTags.every((parent) => !parent.subTags.includes(col.id)),
       );
-      contextCols.push(...selectedColsNotInSelectedCols);
+      contextTags.push(...selectedColsNotInSelectedCols);
 
       // Only include the selected tags that are not in a selected collection
-      const selectedTagsNotInSelectedCols = this.clientTagSelection.filter((t) =>
-        selectedCols.every((col) => !col.tags.includes(t.id)),
-      );
-      contextTags.push(...selectedTagsNotInSelectedCols);
+      // const selectedTagsNotInSelectedCols = this.clientTagSelection.filter((t) =>
+      //   selectedTags.every((col) => !col.tags.includes(t.id)),
+      // );
+      // contextTags.push(...selectedTagsNotInSelectedCols);
     }
 
     return {
       tags: contextTags,
-      collections: contextCols,
     };
   }
 
@@ -456,21 +428,18 @@ class UiStore {
    * @param targetId Where to move the selection to
    */
   @action.bound moveSelectedTagItems(id: ID) {
-    const { tagStore, tagCollectionStore } = this.rootStore;
+    const { tagStore } = this.rootStore;
 
-    const target = tagStore.get(id) || tagCollectionStore.get(id);
+    const target = tagStore.get(id);
     if (!target) {
       throw new Error('Invalid target to move to');
     }
-
-    const targetCol = target instanceof ClientTag ? target.parent : target;
 
     // Find all tags + collections in the current context (all selected items)
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.collections.forEach((col) => targetCol.insertCollection(col));
-    ctx.tags.forEach((tag) => targetCol.insertTag(tag));
+    ctx.tags.forEach((tag) => target.insertSubTag(tag, 0));
   }
 
   /////////////////// Search Actions ///////////////////
@@ -567,9 +536,11 @@ class UiStore {
     }
 
     // Set default thumbnail directory in case none was specified
-    if (!this.thumbnailDirectory) {
-      this.setThumbnailDirectory(path.join(remote.app.getPath('userData'), 'thumbnails'));
-      fse.ensureDirSync(this.thumbnailDirectory);
+    if (this.thumbnailDirectory.length === 0) {
+      RendererMessenger.getPath('userData').then((userDataPath) => {
+        this.setThumbnailDirectory(path.join(userDataPath, 'thumbnails'));
+        fse.ensureDirSync(this.thumbnailDirectory);
+      });
     }
   }
 
@@ -615,11 +586,11 @@ class UiStore {
     this.method = method;
   }
 
-  @action private setThumbnailSize(size: ViewThumbnailSize = 'medium') {
+  @action private setThumbnailSize(size: ThumbnailSize = 'medium') {
     this.thumbnailSize = size;
   }
 
-  @action private setThumbnailShape(shape: ViewThumbnailShape) {
+  @action private setThumbnailShape(shape: ThumbnailShape) {
     this.thumbnailShape = shape;
   }
 }

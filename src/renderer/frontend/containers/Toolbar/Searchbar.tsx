@@ -4,57 +4,34 @@ import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
 import { IconButton, IconSet, Tag } from 'components';
 import { Tooltip } from 'components/popover';
 import { ClientTag } from '../../../entities/Tag';
-import {
-  ClientIDSearchCriteria,
-  ClientCollectionSearchCriteria,
-} from '../../../entities/SearchCriteria';
-import { MultiTagColSelector } from '../../components/MultiTagSelector';
-import { ClientTagCollection } from '../../../entities/TagCollection';
+import { ClientIDSearchCriteria } from '../../../entities/SearchCriteria';
+import { MultiTagSelector } from '../../components/MultiTagSelector';
 
-const QuickSearchList = ({
-  rootStore: { uiStore, tagStore, tagCollectionStore },
-}: IRootStoreProp) => {
-  const selectedItems: (ClientTag | ClientTagCollection)[] = [];
+const QuickSearchList = ({ rootStore: { uiStore, tagStore } }: IRootStoreProp) => {
+  const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
-    let item;
     if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
-      item = tagStore.get(c.value[0]);
-    } else if (c instanceof ClientCollectionSearchCriteria) {
-      item = tagCollectionStore.get(c.collectionId);
-    }
-    if (item) {
-      selectedItems.push(item);
+      const item = tagStore.get(c.value[0]);
+      if (item) {
+        selectedItems.push(item);
+      }
     }
   });
 
-  const handleSelect = (item: ClientTag | ClientTagCollection) => {
-    if (item instanceof ClientTag) {
-      return uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', item.id, item.name));
-    }
-    uiStore.addSearchCriteria(
-      new ClientCollectionSearchCriteria(item.id, item.getTagsRecursively(), item.name),
+  const handleSelect = (item: ClientTag) =>
+    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', item.id, item.name));
+
+  const handleDeselect = (item: ClientTag) => {
+    const crit = uiStore.searchCriteriaList.find(
+      (c) => c instanceof ClientIDSearchCriteria && c.value.includes(item.id),
     );
-  };
-
-  const handleDeselect = (item: ClientTag | ClientTagCollection) => {
-    let crit;
-    if (item instanceof ClientTag) {
-      crit = uiStore.searchCriteriaList.find(
-        (c) => c instanceof ClientIDSearchCriteria && c.value.includes(item.id),
-      );
-    } else {
-      crit = uiStore.searchCriteriaList.find(
-        (c) => c instanceof ClientCollectionSearchCriteria && c.collectionId === item.id,
-      );
-    }
-
     if (crit) {
       uiStore.removeSearchCriteria(crit);
     }
   };
 
   return (
-    <MultiTagColSelector
+    <MultiTagSelector
       selection={selectedItems}
       onSelect={handleSelect}
       onDeselect={handleDeselect}

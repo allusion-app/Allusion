@@ -21,7 +21,7 @@ const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImag
       <div
         style={{
           width: `${contentRect.width}px`,
-          height: `${contentRect.height}px`,
+          maxHeight: `${contentRect.height}px`,
         }}
       >
         {/* https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}

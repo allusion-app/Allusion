@@ -40,7 +40,7 @@ const ImageInfo = observer(({ file }: { file: ClientFile }) => {
       },
       {
         key: 'Created',
-        value: fileStats ? formatDateTime(fileStats.birthtime) : '...',
+        value: fileStats ? formatDateTime(file.dateCreated) : '...',
       },
       { key: 'Modified', value: fileStats ? formatDateTime(fileStats.ctime) : '...' },
       {

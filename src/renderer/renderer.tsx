@@ -4,7 +4,6 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { remote } from 'electron';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -17,6 +16,9 @@ import RootStore from './frontend/stores/RootStore';
 import PreviewApp from './frontend/Preview';
 import { RendererMessenger } from '../Messaging';
 import { DEFAULT_LOCATION_ID } from './entities/Location';
+
+// Window State
+export const WINDOW_STORAGE_KEY = 'Allusion_Window';
 
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
@@ -85,10 +87,20 @@ if (IS_PREVIEW_WINDOW) {
   rootStore.uiStore.recoverPersistentPreferences();
   rootStore.fileStore.recoverPersistentPreferences();
 
-  // Before closing the main window, store preferences
-  remote.getCurrentWindow().on('close', () => {
-    rootStore.uiStore.storePersistentPreferences();
-  });
+  // Recover global preferences
+  try {
+    const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
+    if (window_preferences === null) {
+      localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: false }));
+    } else {
+      const prefs = JSON.parse(window_preferences);
+      if (prefs.isFullScreen === true) {
+        RendererMessenger.setFullScreen(prefs.isFullScreen);
+      }
+    }
+  } catch (e) {
+    console.log('Cannot load window preferences', e);
+  }
 }
 
 // Render our react components in the div with id 'app' in the html file
@@ -106,17 +118,17 @@ ReactDOM.render(
  * @param tagNames The names of the tags
  */
 async function addTagsToFile(filePath: string, tagNames: string[]) {
-  const clientFile = rootStore.fileStore.fileList.find((file) => file.absolutePath === filePath);
+  const { fileStore, tagStore } = rootStore;
+  const clientFile = fileStore.fileList.find((file) => file.absolutePath === filePath);
   if (clientFile) {
     const tagIds = await Promise.all(
       tagNames.map(async (tagName) => {
-        const clientTag = rootStore.tagStore.tagList.find((tag) => tag.name === tagName);
+        const clientTag = tagStore.tagList.find((tag) => tag.name === tagName);
         console.log(clientTag);
-        if (clientTag) {
+        if (clientTag !== undefined) {
           return clientTag.id;
         } else {
-          const newClientTag = await rootStore.tagStore.addTag(tagName);
-          rootStore.tagCollectionStore.getRootCollection().addTag(newClientTag);
+          const newClientTag = await tagStore.create(tagStore.root, tagName);
           return newClientTag.id;
         }
       }),

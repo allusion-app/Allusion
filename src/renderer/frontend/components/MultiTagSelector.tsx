@@ -1,14 +1,20 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
-import { MultiAutoComplete, IMultiAutoComplete } from 'components';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from '../../entities/TagCollection';
+import { IconButton, IconSet, Listbox, Option, Tag } from 'components';
+import { Flyout } from 'components/Dialog';
 
-type IMultiTagSelector = Omit<IMultiAutoComplete<ClientTag>, 'items' | 'tagColor'>;
-
-const getColor = (t: ClientTag) => t.viewColor;
+interface IMultiTagSelector {
+  selection: ClientTag[];
+  onSelect: (item: ClientTag) => void;
+  onDeselect: (item: ClientTag) => void;
+  onClear: () => void;
+  onCreate?: (name: string) => Promise<ClientTag>;
+  tagLabel?: (item: ClientTag) => string;
+  disabled?: boolean;
+}
 
 const MultiTagSelector = observer(
   ({
@@ -21,63 +27,87 @@ const MultiTagSelector = observer(
     disabled,
   }: IMultiTagSelector) => {
     const { tagStore } = useContext(StoreContext);
+    const [isOpen, setIsOpen] = useState(false);
+    const [query, setQuery] = useState('');
+    const normalizedQuery = query.toLowerCase();
+    const suggestions = tagStore.root.clientSubTags.filter(
+      (t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
+    );
+
     return (
-      <MultiAutoComplete
-        disabled={disabled}
-        selection={selection}
-        items={tagStore.tagList}
-        onSelect={onSelect}
-        onDeselect={onDeselect}
-        onClear={onClear}
-        onCreate={onCreate}
-        tagLabel={tagLabel}
-        tagColor={getColor}
-      />
+      <div
+        role="combobox"
+        onBlur={(e) => {
+          if (
+            e.relatedTarget instanceof HTMLElement &&
+            e.relatedTarget.matches('[role="option"]')
+          ) {
+            return;
+          }
+          setIsOpen(false);
+        }}
+      >
+        <Flyout
+          open={isOpen}
+          placement="bottom"
+          target={
+            <div className="multiautocomplete-input">
+              <div>
+                <span>
+                  {selection.map((t) => (
+                    <Tag
+                      key={t.id}
+                      text={tagLabel(t)}
+                      color={t.viewColor}
+                      onRemove={() => onDeselect(t)}
+                    />
+                  ))}
+                </span>
+                <input
+                  disabled={disabled}
+                  type="text"
+                  value={query}
+                  aria-autocomplete="list"
+                  onChange={(e) => {
+                    setIsOpen(true);
+                    setQuery(e.target.value);
+                  }}
+                />
+              </div>
+              <IconButton icon={IconSet.CLOSE} text="Close" onClick={onClear} />
+            </div>
+          }
+        >
+          <Listbox>
+            {suggestions.map((t) => (
+              <Option
+                key={t.id}
+                selected={selection.includes(t)}
+                value={t.name}
+                onClick={() => {
+                  onSelect(t);
+                  setQuery('');
+                  setIsOpen(false);
+                }}
+              />
+            ))}
+            {onCreate && suggestions.length === 0 ? (
+              <Option
+                key="create"
+                selected={false}
+                value={`Create Tag ${query}`}
+                onClick={async () => {
+                  onSelect(await onCreate(query));
+                  setQuery('');
+                  setIsOpen(false);
+                }}
+              />
+            ) : null}
+          </Listbox>
+        </Flyout>
+      </div>
     );
   },
 );
 
-type TagItem = ClientTag | ClientTagCollection;
-
-type IMultiTagColSelector = Omit<IMultiAutoComplete<TagItem>, 'items' | 'tagColor'>;
-
-const MultiTagColSelector = observer(
-  ({
-    selection,
-    onSelect,
-    onDeselect,
-    onClear,
-    onCreate,
-    tagLabel = (t) => t.name,
-    disabled,
-  }: IMultiTagColSelector) => {
-    const {
-      tagStore: { tagList },
-      tagCollectionStore: { tagCollectionList },
-    } = useContext(StoreContext);
-
-    const items = useMemo(() => {
-      const rootIndex = tagCollectionList.findIndex((c) => c.id === ROOT_TAG_COLLECTION_ID);
-      const collections = tagCollectionList;
-      return (collections
-        .slice(0, rootIndex)
-        .concat(collections.slice(rootIndex + 1)) as TagItem[]).concat(tagList);
-    }, [tagCollectionList, tagList]);
-
-    return (
-      <MultiAutoComplete
-        disabled={disabled}
-        selection={selection}
-        items={items}
-        onSelect={onSelect}
-        onDeselect={onDeselect}
-        onClear={onClear}
-        onCreate={onCreate}
-        tagLabel={tagLabel}
-        tagColor={getColor}
-      />
-    );
-  },
-);
-
-export { MultiTagSelector, MultiTagColSelector };
+export { MultiTagSelector };

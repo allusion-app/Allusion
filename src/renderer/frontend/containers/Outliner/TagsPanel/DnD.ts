@@ -1,10 +1,7 @@
 import { ID } from 'src/renderer/entities/ID';
 
 /** Data transfer types of TagsTree items. */
-export const enum DnDType {
-  Collection = 'collection',
-  Tag = 'tag',
-}
+export const DnDType = 'tag';
 
 /** Data attributes that will be available on every drag operation. */
 export const enum DnDAttribute {
@@ -32,17 +29,14 @@ document.body.appendChild(PreviewTag);
 export function onDragStart(
   event: React.DragEvent<HTMLDivElement>,
   name: string,
-  dndType: DnDType,
   id: ID,
   isSelected: boolean,
-  effectAllowed: string = 'move',
-  dropEffect: string = 'move',
 ) {
   PreviewTag.innerText = name;
-  event.dataTransfer.setData(dndType, id);
+  event.dataTransfer.setData(DnDType, id);
   event.dataTransfer.setDragImage(PreviewTag, 0, 0);
-  event.dataTransfer.effectAllowed = effectAllowed;
-  event.dataTransfer.dropEffect = dropEffect;
+  event.dataTransfer.effectAllowed = 'linkMove';
+  event.dataTransfer.dropEffect = 'move';
   event.currentTarget.dataset[DnDAttribute.Source] = 'true';
   DragItem = { id, isSelected };
 }
@@ -56,20 +50,16 @@ export function onDragStart(
 export function onDragOver(
   event: React.DragEvent<HTMLDivElement>,
   isSelected: boolean,
-  accept: (t: string) => boolean,
-  canDrop: (t: string) => boolean = () => true,
-  dropEffect: string = 'move',
-  sideEffect?: () => void,
-) {
+  canDrop: () => boolean,
+): boolean {
   const dropTarget = event.currentTarget;
   const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
   if (isSource || (DragItem.isSelected && isSelected)) {
-    return;
+    return false;
   }
-  // Since we only check for tags and collections we only need one type.
-  const type = event.dataTransfer.types.find(accept);
-  if (type && canDrop(type)) {
-    event.dataTransfer.dropEffect = dropEffect;
+  const isTag = event.dataTransfer.types.includes(DnDType);
+  if (isTag && canDrop()) {
+    event.dataTransfer.dropEffect = 'move';
     event.preventDefault();
     event.stopPropagation();
     dropTarget.dataset[DnDAttribute.Target] = 'true';
@@ -86,12 +76,13 @@ export function onDragOver(
       dropTarget.classList.remove('top');
       dropTarget.classList.remove('bottom');
     }
-    sideEffect?.();
+    return true;
   }
+  return false;
 }
 
-function onDragLeave(event: React.DragEvent<HTMLDivElement>, accept: (t: string) => boolean) {
-  if (event.dataTransfer.types.some(accept)) {
+export function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
+  if (event.dataTransfer.types.includes(DnDType)) {
     event.dataTransfer.dropEffect = 'none';
     event.preventDefault();
     event.stopPropagation();
@@ -101,17 +92,9 @@ function onDragLeave(event: React.DragEvent<HTMLDivElement>, accept: (t: string)
   }
 }
 
-export function handleTagDragLeave(event: React.DragEvent<HTMLDivElement>) {
-  onDragLeave(event, (t) => t === DnDType.Tag);
-}
-
-export function handleCollectionDragLeave(event: React.DragEvent<HTMLDivElement>) {
-  onDragLeave(event, (t) => t === DnDType.Tag || t === DnDType.Collection);
-}
-
 /** Header and Footer drop zones of the root node */
 export function handleDragOverAndLeave(event: React.DragEvent<HTMLDivElement>) {
-  if (event.dataTransfer.types.some((t) => t === DnDType.Tag || t === DnDType.Collection)) {
+  if (event.dataTransfer.types.includes(DnDType)) {
     event.preventDefault();
     event.stopPropagation();
   }

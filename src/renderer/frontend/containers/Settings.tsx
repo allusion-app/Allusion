@@ -1,5 +1,4 @@
-import { remote } from 'electron';
-import React, { useContext, useEffect, useCallback } from 'react';
+import React, { useContext, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import StoreContext from '../contexts/StoreContext';
 import { RendererMessenger } from '../../../Messaging';
@@ -10,15 +9,12 @@ import { ClearDbButton } from '../components/ErrorBoundary';
 import HotkeyMapper from '../components/HotkeyMapper';
 import PopupWindow from '../components/PopupWindow';
 import { Callout } from '@blueprintjs/core';
+import { WINDOW_STORAGE_KEY } from 'src/renderer/renderer';
 
-// Window state
-const WINDOW_STORAGE_KEY = 'Allusion_Window';
-
-const toggleFullScreen = () => {
-  const { isFullScreen, setFullScreen } = remote.getCurrentWindow();
-  // Save window state
-  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: !isFullScreen() }));
-  setFullScreen(!isFullScreen());
+const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
+  const isFullScreen = e.currentTarget.checked;
+  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
+  RendererMessenger.setFullScreen(isFullScreen);
 };
 
 const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -30,12 +26,12 @@ const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
 const SettingsForm = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
-  const browseImportDir = useCallback(() => {
-    const dirs = remote.dialog.showOpenDialogSync({
+  const browseImportDir = useCallback(async () => {
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
     });
 
-    if (!dirs) {
+    if (dirs.length === 0) {
       return;
     }
 
@@ -47,28 +43,13 @@ const SettingsForm = observer(() => {
     // But then there should be support for re-importing manually copied files
   }, [locationStore]);
 
-  useEffect(() => {
-    // Load last window state
-    const preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
-    if (preferences) {
-      try {
-        const prefs = JSON.parse(preferences);
-        if (prefs.isFullScreen) {
-          remote.getCurrentWindow().setFullScreen(prefs.isFullScreen);
-        }
-      } catch (e) {
-        console.log('Cannot load persistent preferences', e);
-      }
-    }
-  }, []);
-
   const browseThumbnailDirectory = useCallback(async () => {
-    const dirs = remote.dialog.showOpenDialogSync({
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
       defaultPath: uiStore.thumbnailDirectory,
     });
 
-    if (!dirs) {
+    if (dirs.length === 0) {
       return;
     }
     const newDir = dirs[0];
@@ -133,7 +114,7 @@ const SettingsForm = observer(() => {
       </div>
       <div className="column">
         <Toggle
-          defaultChecked={remote.getCurrentWindow().isFullScreen()}
+          defaultChecked={RendererMessenger.isFullScreen()}
           onChange={toggleFullScreen}
           label="Full screen"
         />
@@ -145,13 +126,13 @@ const SettingsForm = observer(() => {
         />
 
         <Toggle
-          defaultChecked={RendererMessenger.getIsRunningInBackground()}
+          defaultChecked={RendererMessenger.isRunningInBackground()}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
 
         <Toggle
-          defaultChecked={RendererMessenger.getIsClipServerEnabled()}
+          defaultChecked={RendererMessenger.isClipServerEnabled()}
           onChange={toggleClipServer}
           label="Browser extension support"
         />
@@ -196,7 +177,7 @@ const SettingsForm = observer(() => {
       <ButtonGroup>
         <ClearDbButton />
         <Button
-          onClick={uiStore.toggleDevtools}
+          onClick={RendererMessenger.toggleDevTools}
           styling="outlined"
           icon={IconSet.CHROME_DEVTOOLS}
           text="Toggle DevTools"

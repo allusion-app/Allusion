@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { KeyCombo } from '@blueprintjs/core';
 import { Tooltip } from '.';
@@ -13,7 +13,7 @@ import {
 } from 'components/menu';
 import { IFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
-import { useContext } from 'react';
+import { FileOrder } from '../../../backend/DBRepository';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import Searchbar from './Searchbar';
@@ -67,11 +67,13 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'size', icon: IconSet.FILTER_FILTER_DOWN, text: 'File size' },
   { prop: 'dateAdded', icon: IconSet.FILTER_DATE, text: 'Date added' },
   { prop: 'dateModified', icon: IconSet.FILTER_DATE, text: 'Date modified' },
+  { prop: 'dateCreated', icon: IconSet.FILTER_DATE, text: 'Date created' },
 ];
 
 export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) => {
   const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = fileStore;
-  const orderIcon = fileOrder === 'DESC' ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
+  const orderIcon = fileOrder === FileOrder.DESC ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
+
   return (
     <MenuRadioGroup>
       {sortMenuData.map(({ prop, icon, text }) => (
@@ -146,7 +148,7 @@ const ContentToolbar = observer(() => {
           selectionCount={fileSelection.size}
         />
 
-        {fileStore.content === 'missing' ? (
+        {fileStore.showsMissingContent ? (
           // Only show option to remove selected files in toolbar when viewing missing files */}
           <RemoveFilesPopover />
         ) : (

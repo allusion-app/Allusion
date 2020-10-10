@@ -4,17 +4,11 @@ import { ClientFile } from '../../entities/File';
 import { observer } from 'mobx-react-lite';
 import { MultiTagSelector } from './MultiTagSelector';
 import StoreContext from '../contexts/StoreContext';
-import { ClientTagCollection } from '../../entities/TagCollection';
 
 const Single = observer(({ file }: { file: ClientFile }) => {
-  const { tagStore, tagCollectionStore } = useContext(StoreContext);
+  const { tagStore } = useContext(StoreContext);
 
-  const handleCreate = async (name: string) => {
-    const tag = await tagStore.addTag(name);
-    // Add new tags to the root hierarchy by default
-    tagCollectionStore.getRootCollection().addTag(tag.id);
-    return tag;
-  };
+  const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
 
   return (
     <MultiTagSelector
@@ -29,7 +23,7 @@ const Single = observer(({ file }: { file: ClientFile }) => {
 });
 
 const Multi = observer(({ files }: { files: ClientFile[] }) => {
-  const { tagStore, tagCollectionStore } = useContext(StoreContext);
+  const { tagStore } = useContext(StoreContext);
 
   // Count how often tags are used
   const combinedTags: ClientTag[] = files.flatMap((f) => f.clientTags);
@@ -39,17 +33,12 @@ const Multi = observer(({ files }: { files: ClientFile[] }) => {
   // Sort based on count
   const sortedTags = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
 
-  const tagLabel = (tag: ClientTag | ClientTagCollection) => {
+  const tagLabel = (tag: ClientTag) => {
     const match = sortedTags.find((pair) => pair[0] === tag);
     return `${tag.name} (${match ? match[1] : '?'})`;
   };
 
-  const handleCreate = async (name: string) => {
-    const newTag = await tagStore.addTag(name);
-    // Add new tags to the root hierarchy by default
-    tagCollectionStore.getRootCollection().addTag(newTag.id);
-    return newTag;
-  };
+  const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
 
   return (
     <MultiTagSelector

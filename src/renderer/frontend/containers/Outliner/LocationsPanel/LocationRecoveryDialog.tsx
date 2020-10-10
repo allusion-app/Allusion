@@ -1,4 +1,3 @@
-import { remote } from 'electron';
 import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 import Path from 'path';
@@ -10,6 +9,7 @@ import LocationStore from 'src/renderer/frontend/stores/LocationStore';
 import { Button, ButtonGroup, IconSet } from 'components';
 import { Dialog } from 'components/popover';
 import { AppToaster } from 'src/renderer/frontend/App';
+import { RendererMessenger } from 'src/Messaging';
 
 interface IMatch {
   locationImageCount: number;
@@ -207,13 +207,13 @@ const LocationRecoveryDialog = () => {
   };
 
   const handleLocate = async () => {
-    const dirs = remote.dialog.showOpenDialogSync({
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
       defaultPath: location.path, // TODO: Maybe pick the parent dir of the original location by default?
     });
 
-    if (!dirs) {
-      return setMatch(undefined);
+    if (dirs.length === 0) {
+      return;
     }
     const newDir = dirs[0];
 

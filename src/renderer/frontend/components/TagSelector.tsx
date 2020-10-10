@@ -1,16 +1,13 @@
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import { ClientTag } from 'src/renderer/entities/Tag';
-import { ClientTagCollection, ROOT_TAG_COLLECTION_ID } from 'src/renderer/entities/TagCollection';
 import { Listbox, Option } from 'components';
 import { Flyout } from 'components/popover';
 
-type TagItem = ClientTag | ClientTagCollection;
-
 interface ITagSelector {
-  selection: TagItem | undefined;
-  onSelect: (item: TagItem) => void;
+  selection: ClientTag | undefined;
+  onSelect: (item: ClientTag) => void;
 }
 
 /**
@@ -21,38 +18,11 @@ interface ITagSelector {
  * list filtering is done.
  * */
 const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
-  const {
-    tagStore: { tagList },
-    tagCollectionStore: { tagCollectionList },
-  } = useContext(StoreContext);
+  const { tagStore } = useContext(StoreContext);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
-  // Instead of creating a new array by filtering out the root node, two slices
-  // (cheap copies) will be created, one ending before the root and the other
-  // starting afterwards. This is a bit cheaper and should have the similar or
-  // better performance.
-  const rootIndex = useMemo(
-    () => tagCollectionList.findIndex((c) => c.id === ROOT_TAG_COLLECTION_ID),
-    [tagCollectionList],
-  );
 
   const normalizedQuery = query.toLowerCase();
-  const filterMap = (items: TagItem[]) => {
-    return items
-      .filter((t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0)
-      .map((t) => (
-        <Option
-          key={t.id}
-          selected={selection === t}
-          value={t.name}
-          onClick={() => {
-            onSelect(t);
-            setQuery(t.name);
-            setIsOpen(false);
-          }}
-        />
-      ));
-  };
 
   return (
     <div
@@ -84,9 +54,20 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
         }
       >
         <Listbox>
-          {filterMap(tagCollectionList.slice(0, rootIndex))}
-          {filterMap(tagCollectionList.slice(rootIndex + 1))}
-          {filterMap(tagList)}
+          {tagStore.root.clientSubTags
+            .filter((t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0)
+            .map((t) => (
+              <Option
+                key={t.id}
+                selected={selection === t}
+                value={t.name}
+                onClick={() => {
+                  onSelect(t);
+                  setQuery(t.name);
+                  setIsOpen(false);
+                }}
+              />
+            ))}
         </Listbox>
       </Flyout>
     </div>

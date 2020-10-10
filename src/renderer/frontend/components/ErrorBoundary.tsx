@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { remote, shell } from 'electron';
+import { shell } from 'electron';
 import { NonIdealState, EditableText } from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
 import { Button, ButtonGroup, IconSet } from 'components';
@@ -7,6 +7,7 @@ import { DialogActions, DialogButton, Flyout } from 'components/popover';
 
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';
+import { RendererMessenger } from 'src/Messaging';
 
 export const ClearDbButton = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,9 +39,14 @@ export const ClearDbButton = () => {
           <DialogActions
             closeButtonText="Cancel"
             primaryButtonText="Clear"
-            onClick={(button) =>
-              button === DialogButton.CloseButton ? setIsOpen(false) : rootStore.clearDatabase()
-            }
+            onClick={async (button) => {
+              if (button === DialogButton.CloseButton) {
+                setIsOpen(false);
+              } else {
+                await rootStore.clearDatabase();
+                rootStore.uiStore.closeSettings();
+              }
+            }}
           />
         </div>
       </div>
@@ -88,11 +94,11 @@ class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryS
   }
 
   viewInspector() {
-    remote.getCurrentWebContents().openDevTools();
+    RendererMessenger.toggleDevTools();
   }
 
   reloadApplication() {
-    remote.getCurrentWindow().reload();
+    RendererMessenger.reload();
   }
 
   openIssueURL() {
@@ -133,7 +139,7 @@ ${this.state.error}
                   onClick={this.viewInspector}
                   styling="outlined"
                   icon={IconSet.CHROME_DEVTOOLS}
-                  text="View in DevTools"
+                  text="Toggle DevTools"
                 />
                 <ClearDbButton />
                 <Button

@@ -13,7 +13,6 @@ import {
   BinaryOperatorType,
   ClientStringSearchCriteria,
   ClientIDSearchCriteria,
-  ClientCollectionSearchCriteria,
   ClientDateSearchCriteria,
   ClientNumberSearchCriteria,
 } from 'src/renderer/entities/SearchCriteria';
@@ -26,7 +25,6 @@ import TagSelector from 'src/renderer/frontend/components/TagSelector';
 import { FileSearchCriteria } from 'src/renderer/frontend/stores/UiStore';
 import { generateId, ID } from 'src/renderer/entities/ID';
 import { ClientTag } from 'src/renderer/entities/Tag';
-import { ClientTagCollection } from 'src/renderer/entities/TagCollection';
 import { CustomKeyDict } from '../types';
 
 import './search.scss';
@@ -36,10 +34,7 @@ type QueryKey = keyof Pick<
   'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded'
 >;
 type QueryOperator = OperatorType;
-type TagValue =
-  | { tagId: ID; label: string }
-  | { collectionId: ID; label: string; tags: ID[] }
-  | undefined;
+type TagValue = { id: ID; label: string } | undefined;
 type QueryValue = string | number | Date | TagValue;
 
 interface IQuery<K extends QueryKey, O extends QueryOperator, V extends QueryValue> {
@@ -95,13 +90,7 @@ const fromCriteria = (criteria: FileSearchCriteria): [ID, Query] => {
     criteria.key === 'tags' &&
     criteria.value.length > 0
   ) {
-    query.value = { tagId: criteria.value[0], label: criteria.label };
-  } else if (criteria instanceof ClientCollectionSearchCriteria && criteria.key === 'tags') {
-    query.value = {
-      collectionId: criteria.collectionId,
-      label: criteria.label,
-      tags: criteria.value,
-    };
+    query.value = { id: criteria.value[0], label: criteria.label };
   } else {
     return [generateId(), query];
   }
@@ -122,24 +111,14 @@ const intoCriteria = (query: Query): FileSearchCriteria => {
       query.operator,
       CustomKeyDict,
     );
-  } else if (query.key === 'tags' && query.value) {
-    if ('tagId' in query.value) {
-      return new ClientIDSearchCriteria(
-        query.key,
-        query.value.tagId,
-        query.value.label,
-        query.operator,
-        CustomKeyDict,
-      );
-    } else {
-      return new ClientCollectionSearchCriteria(
-        query.value.collectionId,
-        query.value.tags,
-        query.value.label,
-        query.operator,
-        CustomKeyDict,
-      );
-    }
+  } else if (query.key === 'tags' && query.value !== undefined) {
+    return new ClientIDSearchCriteria(
+      query.key,
+      query.value.id,
+      query.value.label,
+      query.operator,
+      CustomKeyDict,
+    );
   } else {
     return new ClientIDSearchCriteria('tags');
   }
@@ -270,19 +249,13 @@ const OperatorSelector = ({ id, keyValue, value, dispatch }: FieldInput<QueryOpe
 type ValueInput<V> = Omit<FieldInput<V>, 'keyValue'>;
 
 const TagCriteriaItem = ({ id, value, dispatch }: ValueInput<TagValue>) => {
-  const { tagStore, tagCollectionStore } = useContext(StoreContext);
+  const { tagStore } = useContext(StoreContext);
   const [selection, setSelection] = useState(
-    value !== undefined
-      ? 'tagId' in value
-        ? tagStore.get(value.tagId)
-        : tagCollectionStore.get(value.collectionId)
-      : undefined,
+    value !== undefined ? tagStore.get(value.id) : undefined,
   );
 
-  const handleSelect = (t: ClientTag | ClientTagCollection) => {
-    t instanceof ClientTag
-      ? dispatch(setValue(id, { tagId: t.id, label: t.name }))
-      : dispatch(setValue(id, { collectionId: t.id, tags: t.getTagsRecursively(), label: t.name }));
+  const handleSelect = (t: ClientTag) => {
+    dispatch(setValue(id, { id: t.id, label: t.name }));
     setSelection(t);
   };
 

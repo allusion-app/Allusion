@@ -1,5 +1,5 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
-import { remote, shell } from 'electron';
+import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
@@ -15,12 +15,13 @@ import { AppToaster } from 'src/renderer/frontend/App';
 import { IconButton, IconSet, Tree } from 'components';
 import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'components/menu';
 import { DialogActions, Dialog } from 'components/popover';
-import { ITreeBranch, createBranchOnKeyDown } from 'components/Tree';
+import { createBranchOnKeyDown, ITreeItem } from 'components/Tree';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { CustomKeyDict, IExpansionState } from '../../types';
 import { LocationRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
 import { Collapse } from 'src/renderer/frontend/components/Transition';
+import { RendererMessenger } from 'src/Messaging';
 
 // Tooltip info
 const enum Tooltip {
@@ -287,12 +288,11 @@ const SubLocationLabel = (nodeData: any, treeData: any) => (
   <SubLocation nodeData={nodeData} treeData={treeData} />
 );
 
-const mapDirectory = (dir: IDirectoryTreeItem): ITreeBranch => ({
+const mapDirectory = (dir: IDirectoryTreeItem): ITreeItem => ({
   id: dir.fullPath,
   label: SubLocationLabel,
   nodeData: dir,
-  branches: dir.children.map(mapDirectory),
-  leaves: [],
+  children: dir.children.map(mapDirectory),
   isExpanded,
 });
 
@@ -321,12 +321,11 @@ const LocationsTree = observer(
       }),
       [expansion, onConfig, onDelete, showContextMenu],
     );
-    const [branches, setBranches] = useState<ITreeBranch[]>(
+    const [branches, setBranches] = useState<ITreeItem[]>(
       locationStore.locationList.map((location) => ({
         id: location.id,
         label: LocationLabel,
-        branches: [],
-        leaves: [],
+        children: [],
         nodeData: location,
         isExpanded,
       })),
@@ -358,8 +357,7 @@ const LocationsTree = observer(
           locationStore.locationList.map(async (location) => ({
             id: location.id,
             label: LocationLabel,
-            branches: (await location.getDirectoryTree()).map(mapDirectory),
-            leaves: [],
+            children: (await location.getDirectoryTree()).map(mapDirectory),
             nodeData: location,
             isExpanded,
           })),
@@ -374,8 +372,7 @@ const LocationsTree = observer(
       <Tree
         id="location-list"
         multiSelect
-        branches={branches}
-        leaves={[]}
+        children={branches}
         treeData={treeData}
         toggleExpansion={toggleExpansion}
         onBranchKeyDown={handleBranchKeyDown}
@@ -415,12 +412,12 @@ const LocationsPanel = () => {
   const handleChooseWatchedDir = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
-      const dirs = remote.dialog.showOpenDialogSync({
+      const { filePaths: dirs } = await RendererMessenger.openDialog({
         properties: ['openDirectory'],
       });
 
       // multi-selection is disabled which means there can be at most 1 folder
-      if (!dirs || dirs.length === 0) {
+      if (dirs.length === 0) {
         return;
       }
       const newLocPath = dirs[0];
@@ -447,7 +444,7 @@ const LocationsPanel = () => {
 
       // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
 
-      const newLoc = await locationStore.addDirectory(newLocPath);
+      const newLoc = await locationStore.create(newLocPath);
       setLocationConfigOpen(newLoc);
       setLocationTreeKey(new Date());
     },
