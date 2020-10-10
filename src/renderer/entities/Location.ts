@@ -1,4 +1,4 @@
-import { IReactionDisposer, reaction, computed, observable, action, runInAction } from 'mobx';
+import { IReactionDisposer, reaction, computed, observable, action, ObservableSet } from 'mobx';
 import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
@@ -65,16 +65,24 @@ export class ClientLocation implements ISerializable<ILocation> {
   // true when the path no longer exists (broken link)
   @observable isBroken = false;
 
-  readonly tagsToAdd = observable<ID>([]);
+  readonly id: ID;
+  @observable path: string;
+  readonly dateAdded: Date;
+  readonly tagsToAdd: ObservableSet<ID>;
 
   constructor(
     store: LocationStore,
-    public id: ID,
-    public path: string,
-    public dateAdded: Date = new Date(),
+    id: ID,
+    path: string,
+    dateAdded: Date = new Date(),
     tagsToAdd?: ID[],
   ) {
     this.store = store;
+    this.id = id;
+    this.path = path;
+    this.dateAdded = dateAdded;
+    this.tagsToAdd = observable(new Set(tagsToAdd));
+
     // observe all changes to observable fields
     this.saveHandler = reaction(
       // We need to explicitly define which values this reaction should react to
@@ -86,13 +94,10 @@ export class ClientLocation implements ISerializable<ILocation> {
         }
       },
     );
-    if (tagsToAdd) {
-      runInAction(() => this.tagsToAdd.push(...tagsToAdd));
-    }
   }
 
   @computed get clientTagsToAdd(): ClientTag[] {
-    return Array.from(this.store.rootStore.tagStore.getIterFrom(this.tagsToAdd));
+    return this.store.getTags(this.tagsToAdd);
   }
 
   @computed get name(): string {
@@ -115,25 +120,28 @@ export class ClientLocation implements ISerializable<ILocation> {
       id: this.id,
       path: this.path,
       dateAdded: this.dateAdded,
-      tagsToAdd: this.tagsToAdd.toJS(),
+      tagsToAdd: Array.from(this.tagsToAdd),
     };
   }
 
   @action changePath(newPath: string): void {
-    this.store.changeLocationPath(this, newPath);
+    this.store.changeLocationPath(this, newPath).then(() => {
+      this.path = newPath;
+      this.setBroken(false);
+    });
   }
 
   @action.bound setBroken(state: boolean): void {
     this.isBroken = state;
-    this.autoSave = !this.isBroken;
+    this.autoSave = !state;
   }
 
   @action.bound addTag(tag: ClientTag): void {
-    this.tagsToAdd.push(tag.id);
+    this.tagsToAdd.add(tag.id);
   }
 
   @action.bound removeTag(tag: ClientTag): void {
-    this.tagsToAdd.remove(tag.id);
+    this.tagsToAdd.delete(tag.id);
   }
 
   @action.bound clearTags(): void {
@@ -145,8 +153,7 @@ export class ClientLocation implements ISerializable<ILocation> {
   }
 
   async delete(): Promise<void> {
-    await this.store.removeDirectory(this);
-    this.store.rootStore.fileStore.refetch();
+    return this.store.delete(this);
   }
 
   dispose(): void {
@@ -154,7 +161,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.saveHandler();
   }
 
-  private watchDirectory(inputPath: string, cancel?: () => boolean): Promise<string[]> {
+  @action private watchDirectory(inputPath: string, cancel?: () => boolean): Promise<string[]> {
     // Watch for folder changes
     this.watcher = chokidar.watch(inputPath, {
       depth: RECURSIVE_DIR_WATCH_DEPTH,
@@ -181,22 +188,8 @@ export class ClientLocation implements ISerializable<ILocation> {
             // Todo: ignore dot files/dirs?
             if (this.isReady) {
               console.log(`File ${path} has been added after initialization`);
-
-              AppToaster.show(
-                {
-                  message: 'New images have been detected.',
-                  intent: 'primary',
-                  timeout: 0,
-                  action: {
-                    icon: IconSet.RELOAD,
-                    onClick: this.store.rootStore.fileStore.refetch,
-                  },
-                },
-                'refresh',
-              );
-
               // Add to backend
-              this.store.createFileFromPath(path, this);
+              this.store.addFile(path, this);
             } else {
               initialFiles.push(path);
             }
@@ -205,24 +198,7 @@ export class ClientLocation implements ISerializable<ILocation> {
         .on('change', (path: string) => console.log(`File ${path} has been changed`))
         .on('unlink', (path: string) => {
           console.log(`Location "${this.name}": File ${path} has been removed.`);
-          const fileStore = this.store.rootStore.fileStore;
-          const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
-          if (clientFile) {
-            fileStore.hideFile(clientFile);
-          }
-
-          AppToaster.show(
-            {
-              message: 'Some images have gone missing!',
-              intent: 'warning',
-              timeout: 0,
-              action: {
-                icon: IconSet.WARNING_BROKEN_LINK,
-                onClick: this.store.rootStore.fileStore.fetchMissingFiles,
-              },
-            },
-            'missing',
-          );
+          this.store.hideFile(path);
         })
         .on('ready', () => {
           this.isReady = true;
@@ -241,7 +217,7 @@ export class ClientLocation implements ISerializable<ILocation> {
               timeout: 0,
               action: {
                 icon: IconSet.DELETE,
-                onClick: () => this.store.removeDirectory(this),
+                onClick: () => this.delete(),
               },
             },
             'location-error',

@@ -123,7 +123,7 @@ class TagStore {
 
   @action.bound async delete(tag: ClientTag) {
     tag.dispose();
-    await this.backend.removeTag(tag);
+    await this.backend.removeTag(tag.id);
     await this.deleteSubTags(tag.clientSubTags);
     runInAction(() => tag.parent.subTags.remove(tag.id));
     this.remove(tag);
@@ -144,7 +144,7 @@ class TagStore {
   @action private async deleteSubTags(subTags: ClientTag[]) {
     for (const subTag of subTags) {
       subTag.dispose();
-      await this.backend.removeTag(subTag);
+      await this.backend.removeTag(subTag.id);
       await this.deleteSubTags(subTag.clientSubTags);
       this.remove(subTag);
     }
@@ -177,17 +177,6 @@ class TagStore {
       }
     }
   }
-
-  // @action private updateFromBackend(backendTag: ITag) {
-  //   const tag = this.get(backendTag.id);
-  //   // In case a tag was added to the server from another client or session
-  //   if (tag === undefined) {
-  //     this.tagList.push(new ClientTag(this, backendTag.id).updateFromBackend(backendTag));
-  //   } else {
-  //     // Else, update the existing tag
-  //     tag.updateFromBackend(backendTag);
-  //   }
-  // }
 }
 
 export default TagStore;

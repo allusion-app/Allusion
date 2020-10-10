@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { remote, shell } from 'electron';
+import { shell } from 'electron';
 import {
   Button,
   NonIdealState,
@@ -16,9 +16,14 @@ import IconSet from 'components/Icons';
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';
 import { IButtonProps } from '@blueprintjs/core/lib/esm/components/button/abstractButton';
+import { RendererMessenger } from 'src/Messaging';
 
 export const ClearDbButton = (props: IButtonProps & { position?: Position }) => {
   const rootStore = useContext(StoreContext);
+  const clearDatabase = async () => {
+    await rootStore.clearDatabase();
+    rootStore.uiStore.closeSettings();
+  };
 
   return (
     <Popover
@@ -42,11 +47,7 @@ export const ClearDbButton = (props: IButtonProps & { position?: Position }) => 
           <Button className={Classes.POPOVER_DISMISS} style={{ marginRight: 10 }}>
             Cancel
           </Button>
-          <Button
-            intent="danger"
-            className={Classes.POPOVER_DISMISS}
-            onClick={rootStore.clearDatabase}
-          >
+          <Button intent="danger" className={Classes.POPOVER_DISMISS} onClick={clearDatabase}>
             Clear
           </Button>
         </div>
@@ -95,11 +96,11 @@ class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryS
   }
 
   viewInspector() {
-    remote.getCurrentWebContents().openDevTools();
+    RendererMessenger.toggleDevTools();
   }
 
   reloadApplication() {
-    remote.getCurrentWindow().reload();
+    RendererMessenger.reload();
   }
 
   openIssueURL() {
@@ -138,7 +139,7 @@ ${this.state.error}
                   intent="warning"
                   icon={IconSet.CHROME_DEVTOOLS}
                 >
-                  View in DevTools
+                  Toggle DevTools
                 </Button>
                 <ClearDbButton position="bottom" />
                 <Button onClick={this.openIssueURL} icon={IconSet.GITHUB}>

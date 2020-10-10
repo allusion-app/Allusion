@@ -1,7 +1,6 @@
 import path from 'path';
 import fse from 'fs-extra';
 import { action, observable, computed, observe } from 'mobx';
-import { remote } from 'electron';
 
 import RootStore from './RootStore';
 import { ClientFile, IFile } from '../../entities/File';
@@ -13,9 +12,9 @@ import { debounce } from '../utils';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export type ViewMethod = 'list' | 'grid';
-export type ViewThumbnailSize = 'small' | 'medium' | 'large';
-export type ViewThumbnailShape = 'square' | 'letterbox';
-export const PREFERENCES_STORAGE_KEY = 'preferences';
+type ThumbnailSize = 'small' | 'medium' | 'large';
+type ThumbnailShape = 'square' | 'letterbox';
+const PREFERENCES_STORAGE_KEY = 'preferences';
 
 interface IHotkeyMap {
   // Outerliner actions
@@ -122,8 +121,8 @@ class UiStore {
   @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
   @observable firstItem: number = 0;
-  @observable thumbnailSize: ViewThumbnailSize = 'medium';
-  @observable thumbnailShape: ViewThumbnailShape = 'square';
+  @observable thumbnailSize: ThumbnailSize = 'medium';
+  @observable thumbnailShape: ThumbnailShape = 'square';
 
   @observable isToolbarFileRemoverOpen: boolean = false;
 
@@ -187,11 +186,11 @@ class UiStore {
   }
 
   @action.bound setMethodList() {
-    this.setMethod('list');
+    this.method = 'list';
   }
 
   @action.bound setMethodGrid() {
-    this.setMethod('grid');
+    this.method = 'grid';
   }
 
   @action.bound enableSlideMode() {
@@ -284,12 +283,6 @@ class UiStore {
   @action.bound toggleTheme() {
     this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
     RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' });
-  }
-  @action.bound toggleDevtools() {
-    remote.getCurrentWebContents().toggleDevTools();
-  }
-  @action.bound reload() {
-    remote.getCurrentWindow().reload();
   }
 
   @action.bound toggleQuickSearch() {
@@ -568,9 +561,11 @@ class UiStore {
     }
 
     // Set default thumbnail directory in case none was specified
-    if (!this.thumbnailDirectory) {
-      this.setThumbnailDirectory(path.join(remote.app.getPath('userData'), 'thumbnails'));
-      fse.ensureDirSync(this.thumbnailDirectory);
+    if (this.thumbnailDirectory.length === 0) {
+      RendererMessenger.getPath('userData').then((userDataPath) => {
+        this.setThumbnailDirectory(path.join(userDataPath, 'thumbnails'));
+        fse.ensureDirSync(this.thumbnailDirectory);
+      });
     }
   }
 
@@ -620,11 +615,11 @@ class UiStore {
     this.method = method;
   }
 
-  @action private setThumbnailSize(size: ViewThumbnailSize = 'medium') {
+  @action private setThumbnailSize(size: ThumbnailSize = 'medium') {
     this.thumbnailSize = size;
   }
 
-  @action private setThumbnailShape(shape: ViewThumbnailShape) {
+  @action private setThumbnailShape(shape: ThumbnailShape) {
     this.thumbnailShape = shape;
   }
 }

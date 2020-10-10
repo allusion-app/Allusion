@@ -114,7 +114,7 @@ export class ClientTag implements ISerializable<ITag> {
     this.description = backendTag.description;
     this.dateAdded = backendTag.dateAdded;
     this.color = backendTag.color;
-    this.subTags.push(...backendTag.subTags);
+    this.subTags.replace(backendTag.subTags);
 
     this.autoSave = true;
 

@@ -86,29 +86,24 @@ export default class Backend {
     return await this.fileRepository.update(file);
   }
 
-  async removeTag(tag: ITag): Promise<void> {
+  async removeTag(tag: ID): Promise<void> {
     console.log('Removing tag...', tag);
     // We have to make sure files tagged with this tag should be untagged
     // Get all files with this tag
     const filesWithTag = await this.fileRepository.find({
-      criteria: { key: 'tags', value: tag.id, operator: 'contains', valueType: 'array' },
+      criteria: { key: 'tags', value: tag, operator: 'contains', valueType: 'array' },
     });
     // Remove tag from files
-    filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag.id)));
+    filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag)));
     // Update files in db
     await this.fileRepository.updateMany(filesWithTag);
     // Remove tag from db
-    await this.tagRepository.remove(tag);
+    return this.tagRepository.remove(tag);
   }
 
-  async removeFile(file: IFile): Promise<void> {
-    console.log('Removing file...', file);
-    await this.fileRepository.remove(file);
-  }
-
-  async removeFiles(files: IFile[]): Promise<void> {
+  async removeFiles(files: ID[]): Promise<void> {
     console.log('Removing files...', files);
-    await this.fileRepository.removeMany(files);
+    return this.fileRepository.removeMany(files);
   }
 
   async countFiles(
@@ -137,7 +132,7 @@ export default class Backend {
     return await this.locationRepository.update(dir);
   }
 
-  async removeLocation(dir: ILocation): Promise<void> {
+  async removeLocation(dir: ID): Promise<void> {
     console.log('Backend: Removing watched directory...');
     return this.locationRepository.remove(dir);
   }

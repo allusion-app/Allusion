@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useCallback, useState, useRef, useMemo } from 'react';
+import React, { useContext, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Drawer,
@@ -17,22 +17,16 @@ import {
 import StoreContext from '../contexts/StoreContext';
 import IconSet from 'components/Icons';
 import { ClearDbButton } from './ErrorBoundary';
-import { remote } from 'electron';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
-import RootStore from '../stores/RootStore';
-import ReactDOM from 'react-dom';
 import PopupWindow from './PopupWindow';
+import { WINDOW_STORAGE_KEY } from 'src/renderer/renderer';
 
-// Window state
-const WINDOW_STORAGE_KEY = 'Allusion_Window';
-
-const toggleFullScreen = () => {
-  const { isFullScreen, setFullScreen } = remote.getCurrentWindow();
-  // Save window state
-  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: !isFullScreen() }));
-  setFullScreen(!isFullScreen());
+const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
+  const isFullScreen = e.currentTarget.checked;
+  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
+  RendererMessenger.setFullScreen(isFullScreen);
 };
 
 const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -44,12 +38,12 @@ const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
 const SettingsForm = observer(() => {
   const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
-  const browseImportDir = useCallback(() => {
-    const dirs = remote.dialog.showOpenDialogSync({
+  const browseImportDir = useCallback(async () => {
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
     });
 
-    if (!dirs) {
+    if (dirs.length === 0) {
       return;
     }
 
@@ -61,28 +55,13 @@ const SettingsForm = observer(() => {
     // But then there should be support for re-importing manually copied files
   }, [locationStore]);
 
-  useEffect(() => {
-    // Load last window state
-    const preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
-    if (preferences) {
-      try {
-        const prefs = JSON.parse(preferences);
-        if (prefs.isFullScreen) {
-          remote.getCurrentWindow().setFullScreen(prefs.isFullScreen);
-        }
-      } catch (e) {
-        console.log('Cannot load persistent preferences', e);
-      }
-    }
-  }, []);
-
   const browseThumbnailDirectory = useCallback(async () => {
-    const dirs = remote.dialog.showOpenDialogSync({
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
       defaultPath: uiStore.thumbnailDirectory,
     });
 
-    if (!dirs) {
+    if (dirs.length === 0) {
       return;
     }
     const newDir = dirs[0];
@@ -132,7 +111,7 @@ const SettingsForm = observer(() => {
       </div>
       <div className="column">
         <Switch
-          defaultChecked={remote.getCurrentWindow().isFullScreen()}
+          defaultChecked={RendererMessenger.isFullScreen()}
           onChange={toggleFullScreen}
           label="Full screen"
         />
@@ -150,13 +129,13 @@ const SettingsForm = observer(() => {
         />
 
         <Switch
-          defaultChecked={RendererMessenger.getIsRunningInBackground()}
+          defaultChecked={RendererMessenger.isRunningInBackground()}
           onChange={toggleRunInBackground}
           label="Run in background"
         />
 
         <Switch
-          defaultChecked={RendererMessenger.getIsClipServerEnabled()}
+          defaultChecked={RendererMessenger.isClipServerEnabled()}
           onChange={toggleClipServer}
           label="Browser extension support"
         />
@@ -207,7 +186,7 @@ const SettingsForm = observer(() => {
         <ClearDbButton fill position="bottom-left" />
 
         <Button
-          onClick={uiStore.toggleDevtools}
+          onClick={RendererMessenger.toggleDevTools}
           intent="warning"
           icon={IconSet.CHROME_DEVTOOLS}
           fill
