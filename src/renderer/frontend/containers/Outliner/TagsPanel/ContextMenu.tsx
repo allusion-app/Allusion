@@ -6,7 +6,6 @@ import { observer } from 'mobx-react-lite';
 import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { formatTagCountText } from 'src/renderer/frontend/utils';
 import { Action, Factory } from './StateReducer';
-import { IExpansionState } from '..';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import UiStore from 'src/renderer/frontend/stores/UiStore';
 import TagStore from 'src/renderer/frontend/stores/TagStore';
@@ -92,33 +91,16 @@ const ColorPickerMenu = observer(
   },
 );
 
-const expandTagCollection = (c: ClientTag, expansion: IExpansionState): IExpansionState => {
-  c.clientSubTags.forEach((subTag) => {
-    expandTagCollection(subTag, expansion);
-  });
-  expansion[c.id] = true;
-  return expansion;
-};
-
-const collapseTagCollection = (c: ClientTag, expansion: IExpansionState): IExpansionState => {
-  c.clientSubTags.forEach((subTag) => {
-    collapseTagCollection(subTag, expansion);
-  });
-  expansion[c.id] = false;
-  return expansion;
-};
-
 interface IContextMenuProps {
   nodeData: ClientTag;
   uiStore: UiStore;
   dispatch: React.Dispatch<Action>;
   tagStore: TagStore;
-  expansion: IExpansionState;
   pos: number;
 }
 
 export const TagItemContextMenu = (props: IContextMenuProps) => {
-  const { nodeData, dispatch, expansion, pos, tagStore, uiStore } = props;
+  const { nodeData, dispatch, pos, tagStore, uiStore } = props;
   const { tags } = uiStore.getTagContextItems(nodeData.id);
   let contextText = formatTagCountText(tags.length);
   contextText = contextText && ` (${contextText})`;
@@ -156,16 +138,6 @@ export const TagItemContextMenu = (props: IContextMenuProps) => {
         contextText={contextText}
       />
       <Divider />
-      <MenuItem
-        onClick={() => dispatch(Factory.setExpansion(expandTagCollection(nodeData, expansion)))}
-        text="Expand"
-        icon={IconSet.ITEM_EXPAND}
-      />
-      <MenuItem
-        onClick={() => dispatch(Factory.setExpansion(collapseTagCollection(nodeData, expansion)))}
-        text="Collapse"
-        icon={IconSet.ITEM_COLLAPS}
-      />
       <MenuItem
         onClick={() => nodeData.parent.insertSubTag(nodeData, pos - 2)}
         text="Move Up"

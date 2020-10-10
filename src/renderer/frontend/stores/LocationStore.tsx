@@ -148,17 +148,8 @@ class LocationStore {
     }
 
     if (foundNewFiles) {
-      AppToaster.show(
-        {
-          message: 'New images detected!',
-          intent: 'success',
-          action: {
-            text: 'Refresh',
-            onClick: this.rootStore.fileStore.refetch,
-          },
-        },
-        progressToastKey,
-      );
+      AppToaster.show({ message: 'New images detected.', intent: 'primary' }, progressToastKey);
+      this.rootStore.fileStore.refetch();
     } else {
       AppToaster.dismiss(progressToastKey);
     }

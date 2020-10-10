@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useReducer, useContext } from 'react';
+import React, { useMemo, useState, useCallback, useReducer, useContext, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ContextMenu, Collapse, H4, Icon, InputGroup } from '@blueprintjs/core';
 
@@ -27,52 +27,43 @@ import { Action, State, Factory, reducer } from './StateReducer';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 
 interface ILabelProps {
-  /** SVG element */
-  icon: JSX.Element;
   text: string;
   setText: (value: string) => void;
   isEditing: boolean;
-  color: string;
   onSubmit: (target: EventTarget & HTMLInputElement) => void;
   onClick: (event: React.MouseEvent) => void;
 }
 
 // const isValid = (text: string) => text.trim().length > 0;
 
-const Label = (props: ILabelProps) => (
-  <>
-    <span className="pre-icon" style={{ color: props.color }}>
-      {props.icon}
-    </span>
-    {props.isEditing ? (
-      <InputGroup
-        autoFocus
-        placeholder="Enter a new name"
-        defaultValue={props.text}
-        onBlur={(e) => {
-          const value = e.currentTarget.value.trim();
-          if (value.length > 0) {
-            props.setText(value);
-          }
+const Label = (props: ILabelProps) =>
+  props.isEditing ? (
+    <InputGroup
+      autoFocus
+      placeholder="Enter a new name"
+      defaultValue={props.text}
+      onBlur={(e) => {
+        const value = e.currentTarget.value.trim();
+        if (value.length > 0) {
+          props.setText(value);
+        }
+        props.onSubmit(e.currentTarget);
+      }}
+      onKeyDown={(e) => {
+        const value = e.currentTarget.value.trim();
+        if (e.key === 'Enter' && value.length > 0) {
+          props.setText(value);
           props.onSubmit(e.currentTarget);
-        }}
-        onKeyDown={(e) => {
-          const value = e.currentTarget.value.trim();
-          if (e.key === 'Enter' && value.length > 0) {
-            props.setText(value);
-            props.onSubmit(e.currentTarget);
-          }
-        }}
-        onFocus={(e) => e.target.select()}
-        // TODO: Visualizing errors...
-        // Only show red outline when input field is in focus and text is invalid
-        // className={!isValidInput ? 'bp3-intent-danger' : ''}
-      />
-    ) : (
-      <div onClick={props.onClick}>{props.text}</div>
-    )}
-  </>
-);
+        }
+      }}
+      onFocus={(e) => e.target.select()}
+      // TODO: Visualizing errors...
+      // Only show red outline when input field is in focus and text is invalid
+      // className={!isValidInput ? 'bp3-intent-danger' : ''}
+    />
+  ) : (
+    <div onClick={props.onClick}>{props.text}</div>
+  );
 
 interface ITagItemProps {
   nodeData: ClientTag;
@@ -117,7 +108,6 @@ const TagItem = observer((props: ITagItemProps) => {
       ContextMenu.show(
         <TagItemContextMenu
           dispatch={dispatch}
-          expansion={expansion}
           nodeData={nodeData}
           pos={pos}
           tagStore={tagStore}
@@ -127,7 +117,7 @@ const TagItem = observer((props: ITagItemProps) => {
         undefined,
         uiStore.theme === 'DARK',
       ),
-    [dispatch, expansion, nodeData, pos, tagStore, uiStore],
+    [dispatch, nodeData, pos, tagStore, uiStore],
   );
 
   const handleDragStart = useCallback(
@@ -142,7 +132,7 @@ const TagItem = observer((props: ITagItemProps) => {
       }
       onDragStart(event, name, nodeData.id, nodeData.isSelected);
     },
-    [nodeData.id, nodeData.isSelected, nodeData.name, uiStore],
+    [nodeData, uiStore],
   );
 
   const handleDragOver = useCallback(
@@ -223,21 +213,18 @@ const TagItem = observer((props: ITagItemProps) => {
       onDrop={handleDrop}
       onContextMenu={handleContextMenu}
     >
+      <span className="pre-icon" style={{ color: nodeData.color }}>
+        {IconSet.TAG}
+      </span>
       <Label
         text={nodeData.name}
         setText={nodeData.rename}
-        color={nodeData.viewColor}
-        icon={expansion[nodeData.id] ? IconSet.TAG_GROUP_OPEN : IconSet.TAG_GROUP}
         isEditing={isEditing}
         onSubmit={submit}
         onClick={handleQuickQuery}
       />
       {!isEditing && (
-        <button
-          disabled={nodeData.subTags.length === 0}
-          onClick={handleSelect}
-          className="after-icon"
-        >
+        <button onClick={handleSelect} className="after-icon">
           {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
         </button>
       )}
@@ -356,41 +343,37 @@ const handleLeafOnKeyDown = (
   treeData: ITreeData,
 ) => createLeafOnKeyDown(event, nodeData, treeData, toggleSelection, customKeys);
 
-// Range Selection from last selected node
+// Range Selection using pre-order tree traversal
 const rangeSelection = (
+  selection: ID[],
   nodeData: ClientTag,
   lastSelection: ID,
   root: ClientTag,
-  uiStore: UiStore,
-): ID => {
-  uiStore.clearTagSelection();
-  let isSelecting: { value: boolean } | undefined = undefined;
+) => {
+  let isSelecting = false;
   const selectRange = (node: ClientTag) => {
     if (node.id === lastSelection || node.id === nodeData.id) {
-      if (isSelecting === undefined) {
-        isSelecting = { value: true };
+      if (!isSelecting) {
+        // Start selection
+        isSelecting = true;
       } else {
-        uiStore.selectTags(node.getTagsRecursively());
-        isSelecting = { value: false };
-        return nodeData.id;
+        // End selection
+        selection.push(node.id);
+        isSelecting = false;
+        return;
       }
     }
 
-    if (node.subTags.length > 0) {
-      // Pre-order Tree Traversal
-      for (const subTag of node.clientSubTags) {
-        if (isSelecting === undefined || isSelecting.value) {
-          selectRange(subTag);
-          continue;
-        }
-        return nodeData.id;
-      }
-    } else if (isSelecting?.value) {
-      uiStore.selectTag(node);
+    if (isSelecting) {
+      selection.push(node.id);
+    }
+
+    for (const subTag of node.clientSubTags) {
+      selectRange(subTag);
     }
   };
+
   selectRange(root);
-  return nodeData.id;
 };
 
 const mapTag = (tag: ClientTag): ITreeItem => ({
@@ -421,23 +404,24 @@ const TagsTree = observer(() => {
   }, []);
 
   // Handles selection via click event
-  const [lastSelection, setLastSelection] = useState<ID | undefined>(undefined);
+  const activeSelection = useRef<ID | null>(null);
   const select = useCallback(
     (event: React.MouseEvent, nodeData: ClientTag) => {
-      if (event.shiftKey && lastSelection !== undefined && lastSelection !== nodeData.id) {
-        setLastSelection(rangeSelection(nodeData, lastSelection, root, uiStore));
+      const lastSelection = activeSelection.current;
+      if (event.shiftKey && lastSelection !== null && lastSelection !== nodeData.id) {
+        // Batch selection
+        const selection: ID[] = [];
+        rangeSelection(selection, nodeData, lastSelection, root);
+        uiStore.selectTags(selection, true);
+        activeSelection.current = nodeData.id;
       } else {
         // Toggles selection state of a single node
-        const nextLastSelection = nodeData.isSelected ? undefined : nodeData.id;
-
-        nodeData.isSelected
-          ? uiStore.deselectTags(nodeData.getTagsRecursively())
-          : uiStore.selectTags(nodeData.getTagsRecursively());
-
-        setLastSelection(nextLastSelection);
+        const nextLastSelection = nodeData.isSelected ? null : nodeData.id;
+        nodeData.isSelected ? uiStore.deselectTag(nodeData) : uiStore.selectTag(nodeData);
+        activeSelection.current = nextLastSelection;
       }
     },
-    [lastSelection, root, uiStore],
+    [root, uiStore],
   );
 
   const treeData: ITreeData = useMemo(
@@ -463,6 +447,11 @@ const TagsTree = observer(() => {
     },
     [root, tagStore],
   );
+
+  const handleCollapse = useCallback(() => {
+    activeSelection.current = null;
+    dispatch(Factory.setExpansion({}));
+  }, []);
 
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -513,7 +502,14 @@ const TagsTree = observer(() => {
                 icon={IconSet.TAG_ADD}
                 label="New Tag"
                 onClick={handleRootAddTag}
-                tooltip="Add New Tag"
+                tooltip="Add a new tag"
+              />
+              <ToolbarButton
+                showLabel="never"
+                icon={IconSet.ITEM_COLLAPS}
+                label="Collapse"
+                onClick={handleCollapse}
+                tooltip="Close all tags"
               />
             </>
           )}

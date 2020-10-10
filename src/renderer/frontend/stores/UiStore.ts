@@ -334,11 +334,14 @@ class UiStore {
     this.fileSelection.add(file.id);
   }
 
-  @action.bound selectFiles(fileIDs: ID[], clear?: boolean) {
+  @action.bound selectFiles(files: ID[], clear?: boolean) {
     if (clear) {
-      this.clearFileSelection();
+      this.fileSelection.replace(files);
+      return;
     }
-    fileIDs.forEach((id) => this.fileSelection.add(id));
+    for (const id of files) {
+      this.fileSelection.add(id);
+    }
   }
 
   @action.bound deselectFile(file: ClientFile) {
@@ -363,7 +366,8 @@ class UiStore {
 
   @action.bound selectTags(tags: ID[], clear?: boolean) {
     if (clear) {
-      this.clearTagSelection();
+      this.tagSelection.replace(tags);
+      return;
     }
     for (const tag of tags) {
       this.tagSelection.add(tag);
