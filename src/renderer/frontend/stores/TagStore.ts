@@ -163,7 +163,12 @@ class TagStore {
   @action private initTagList(backendTags: ITag[]) {
     // Create tag objects
     for (const backendTag of backendTags) {
-      const tag = new ClientTag(this, backendTag.id).updateFromBackend(backendTag);
+      const tag = new ClientTag(
+        this,
+        backendTag.id,
+        backendTag.name,
+        backendTag.dateAdded,
+      ).updateFromBackend(backendTag);
       this.tagList.push(tag);
       for (const subTag of tag.subTags) {
         this.parentLookup.set(subTag, tag);

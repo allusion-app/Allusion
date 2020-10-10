@@ -25,16 +25,17 @@ export class ClientTag implements ISerializable<ITag> {
   private autoSave = true;
 
   readonly id: ID;
-  dateAdded: Date = new Date();
+  readonly dateAdded: Date;
   @observable name: string;
   @observable description: string = '';
   @observable color: string = '';
   readonly subTags = observable<ID>([]);
   // icon, (fileCount?)
 
-  constructor(store: TagStore, id: ID, name: string = '') {
+  constructor(store: TagStore, id: ID, name: string, dateAdded: Date = new Date()) {
     this.store = store;
     this.id = id;
+    this.dateAdded = dateAdded;
     this.name = name;
 
     // observe all changes to observable fields
@@ -112,7 +113,6 @@ export class ClientTag implements ISerializable<ITag> {
 
     this.name = backendTag.name;
     this.description = backendTag.description;
-    this.dateAdded = backendTag.dateAdded;
     this.color = backendTag.color;
     this.subTags.replace(backendTag.subTags);
 
