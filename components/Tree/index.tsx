@@ -9,7 +9,7 @@ import React, {
   useState,
 } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ID } from '../../src/renderer/entities/ID';
+import { ID } from 'src/renderer/entities/ID';
 
 // --- Helper function for tree items ---
 

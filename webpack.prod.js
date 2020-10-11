@@ -90,7 +90,16 @@ let rendererConfig = {
       {
         test: /\.(scss|css)$/,
         exclude: /\.module\.scss$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              publicPath: './',
+            },
+          },
+          'css-loader',
+          'sass-loader',
+        ],
       },
       {
         test: /\.module.(scss|css)$/,
@@ -98,13 +107,12 @@ let rendererConfig = {
           {
             loader: MiniCssExtractPlugin.loader,
             options: {
-              esModule: true,
+              publicPath: './',
             },
           },
           {
             loader: 'css-loader',
             options: {
-              esModule: true,
               modules: {
                 // Use real class name, hash only added when needed
                 localIdentName: '[local]_[hash:base64:5]',

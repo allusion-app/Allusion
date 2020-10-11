@@ -5,7 +5,7 @@
   "description": "A tool for managing your visual library",
   "main": "build/main.bundle.js",
   "scripts": {
-    "dev": "rimraf build && webpack --watch --config ./webpack.dev.js --progress --colors",
+    "dev": "rimraf build && webpack --watch --config ./webpack.dev.js --progress --color",
     "production": "rimraf build && webpack --config ./webpack.prod.js",
     "start": "electron ./build/main.bundle.js --dev",
     "lint": "eslint src/**/*{ts,tsx} -f codeframe",
@@ -81,8 +81,8 @@
     "ts-jest": "^25.3.0",
     "ts-loader": "^8.0.0",
     "typescript": "^3.8.2",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^4.0.0",
     "worker-loader": "^3.0.0"
   },
   "dependencies": {
