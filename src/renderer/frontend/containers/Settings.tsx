@@ -1,11 +1,11 @@
 import React, { useContext, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import StoreContext from '../contexts/StoreContext';
-import { RendererMessenger } from '../../../Messaging';
 import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'components';
+import { ClearDbButton } from '../components/ErrorBoundary';
 import { moveThumbnailDir } from '../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../utils';
-import { ClearDbButton } from '../components/ErrorBoundary';
+import { RendererMessenger } from '../../../Messaging';
 import HotkeyMapper from '../components/HotkeyMapper';
 import PopupWindow from '../components/PopupWindow';
 import { Callout } from '@blueprintjs/core';

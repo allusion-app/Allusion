@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { shell } from 'electron';
-import { NonIdealState, EditableText } from '@blueprintjs/core';
+import { NonIdealState } from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
 import { Button, ButtonGroup, IconSet } from 'components';
 import { DialogActions, DialogButton, Flyout } from 'components/popover';
@@ -151,12 +151,7 @@ ${this.state.error}
               </ButtonGroup>
             }
           >
-            <EditableText
-              className="bp3-intent-danger bp3-monospace-text message"
-              value={error.toString()}
-              isEditing={false}
-              multiline
-            />
+            <div className="bp3-intent-danger bp3-monospace-text message">{error.toString()}</div>
           </NonIdealState>
         </div>
       );

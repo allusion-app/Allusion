@@ -8,7 +8,7 @@ import { TagRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/renderer/entities/Tag';
 import { ID } from 'src/renderer/entities/ID';
-import UiStore, { FileSearchCriteria } from 'src/renderer/frontend/stores/UiStore';
+import UiStore from 'src/renderer/frontend/stores/UiStore';
 import { TagItemContextMenu } from './ContextMenu';
 import {
   DnDType,
@@ -88,9 +88,7 @@ interface ITagItemProps {
 const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
-    const alreadySearchedCrit:
-      | FileSearchCriteria
-      | undefined = uiStore.searchCriteriaList.find((c) =>
+    const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
       (c as ClientIDSearchCriteria<any>)?.value?.includes(nodeData.id),
     );
     if (alreadySearchedCrit) {
@@ -187,7 +185,7 @@ const TagItem = observer((props: ITagItemProps) => {
 
   const handleQuickQuery = useCallback(
     (event: React.MouseEvent) => {
-      const query = new ClientIDSearchCriteria('tags', nodeData.id);
+      const query = new ClientIDSearchCriteria('tags', nodeData.id, nodeData.name);
       if (event.ctrlKey) {
         if (!nodeData.isSearched) {
           uiStore.addSearchCriteria(query);
@@ -229,13 +227,6 @@ const TagItem = observer((props: ITagItemProps) => {
 
 interface ITreeData {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
-  state: State;
-  dispatch: React.Dispatch<Action>;
-  submit: (target: EventTarget & HTMLInputElement) => void;
-  select: (event: React.MouseEvent, nodeData: ClientTag) => void;
-}
-
-interface ITreeData {
   state: State;
   dispatch: React.Dispatch<Action>;
   submit: (target: EventTarget & HTMLInputElement) => void;
