@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
@@ -12,7 +12,6 @@ import {
   MenuCheckboxItem,
 } from 'components/menu';
 import ContentToolbar from './ContentToolbar';
-import { remote } from 'electron';
 import { KeyCombo } from '@blueprintjs/core';
 
 // Tooltip info
@@ -29,20 +28,6 @@ export const enum Tooltip {
   Back = 'Back to Content panel',
   Preview = 'Open selected images in a preview window',
 }
-
-const WindowDecoration = () => {
-  const [isMaximized, setMaximized] = useState(remote.getCurrentWindow().isMaximized());
-  useEffect(() => {
-    remote.getCurrentWindow().on('maximize', () => setMaximized(true));
-    remote.getCurrentWindow().on('unmaximize', () => setMaximized(false));
-  }, []);
-
-  if (!isMaximized) {
-    return <div id="window-resize-area" />;
-  } else {
-    return null;
-  }
-};
 
 const isMac = process.platform === 'darwin';
 
@@ -97,7 +82,7 @@ const Toolbar = observer(() => {
         </Menu>
       </ToolbarMenuButton>
 
-      {isMac && <WindowDecoration />}
+      {isMac && <div id="window-resize-area" />}
     </Commandbar>
   );
 });
