@@ -143,7 +143,7 @@ const customKeys = (
 
 const DirectoryMenu = ({ path }: { path: string }) => {
   const { uiStore } = useContext(StoreContext);
-  const handleOpenFileExplorer = useCallback(() => shell.openItem(path), [path]);
+  const handleOpenFileExplorer = useCallback(() => shell.openPath(path), [path]);
 
   const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(criteria(path)), [
     path,

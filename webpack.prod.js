@@ -76,7 +76,7 @@ let rendererConfig = {
         test: /\.worker\.ts$/,
         loader: 'worker-loader',
         options: {
-          name: '[name].js',
+          filename: '[name].js',
         },
       },
       {
