@@ -89,7 +89,7 @@
     "@blueprintjs/core": "^3.25.0",
     "@popperjs/core": "^2.4.4",
     "chokidar": "^3.4.0",
-    "dexie": "^2.0.4",
+    "dexie": "^3.0.2",
     "electron-updater": "^4.3.5",
     "fs-extra": "^9.0.1",
     "image-size": "^0.8.3",

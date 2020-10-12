@@ -3480,10 +3480,10 @@ detect-node@^2.0.4:
   resolved "https://registry.yarnpkg.com/detect-node/-/detect-node-2.0.4.tgz#014ee8f8f669c5c58023da64b8179c083a28c46c"
   integrity sha512-ZIzRpLJrOj7jjP2miAtgqIfmzbxa4ZOr5jJc601zklsfEx9oTzmmj2nVpIPRpNlRTIh8lc1kyViIY7BWSGNmKw==
 
-dexie@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/dexie/-/dexie-2.0.4.tgz#6027a5e05879424e8f9979d8c14e7420f27e3a11"
-  integrity sha512-aQ/s1U2wHxwBKRrt2Z/mwFNHMQWhESerFsMYzE+5P5OsIe5o1kgpFMWkzKTtkvkyyEni6mWr/T4HUJuY9xIHLA==
+dexie@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/dexie/-/dexie-3.0.2.tgz#4b979904d739e0530b68352005f175a82633a075"
+  integrity sha512-go4FnIoAhcUiCdxutfIZRxnSaSyDgfEq+GH7N0I8nTCJbC2FmeBj+0FrETa3ln5ix+VQMOPsFeYHlgE/8SZWwQ==
 
 diff-sequences@^25.2.6:
   version "25.2.6"

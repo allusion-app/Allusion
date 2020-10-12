@@ -52,7 +52,7 @@ export default class Backend {
 
   async fetchFilesByID(ids: ID[]): Promise<IFile[]> {
     console.log('Backend: Fetching files by ID...');
-    const files = await Promise.all(ids.map((id) => this.fileRepository.get(id)));
+    const files = await this.fileRepository.getByIds(ids);
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
