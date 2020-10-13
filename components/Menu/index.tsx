@@ -38,7 +38,7 @@ const handleMenuClick = (e: React.MouseEvent) => {
   handleClick(e);
 };
 
-type MenuChild = React.ReactElement<IMenuRadioGroup | ISubMenu | IMenuItem>;
+type MenuChild = React.ReactElement<IMenuRadioGroup | ISubMenu | IMenuItem> | React.ReactFragment;
 type MenuChildren = MenuChild | MenuChild[];
 
 interface IMenu {

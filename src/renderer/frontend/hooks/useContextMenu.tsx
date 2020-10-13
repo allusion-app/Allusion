@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 
-type Menu = JSX.Element | JSX.Element[];
+type Menu = JSX.Element | React.ReactFragment;
 
 interface IContextMenuConfig {
   /** Replaces the menu with the initial menu every time the context menu is

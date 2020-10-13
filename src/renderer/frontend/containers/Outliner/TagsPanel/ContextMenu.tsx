@@ -1,14 +1,15 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext } from 'react';
 import { Icon } from '@blueprintjs/core';
 import { IconSet } from 'components';
 import { MenuDivider, MenuItem, SubMenu, Menu } from 'components/menu';
-import { SketchPicker, ColorResult } from 'react-color';
 import { observer } from 'mobx-react-lite';
 import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { formatTagCountText } from 'src/renderer/frontend/utils';
 import { Action, Factory } from './StateReducer';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
+import { HexColorPicker } from 'react-colorful';
+import 'react-colorful/dist/index.css';
 
 const defaultColorOptions = [
   { title: 'Eminence', color: '#5f3292' },
@@ -33,7 +34,6 @@ interface IColorPickerMenuProps {
 const ColorPickerMenu = observer(
   ({ selectedColor, onChange, contextText }: IColorPickerMenuProps) => {
     const defaultColor = '#007af5';
-    const handlePickCustomColor = useCallback((res: ColorResult) => onChange(res.hex), [onChange]);
     return (
       <SubMenu
         text={`Color${contextText}`}
@@ -58,13 +58,19 @@ const ColorPickerMenu = observer(
             />
           }
         />
-        <SubMenu text="Custom" icon={IconSet.COLOR}>
-          <SketchPicker
-            color={selectedColor || defaultColor}
-            onChangeComplete={handlePickCustomColor}
-            disableAlpha
-            presetColors={defaultColorOptions}
+        {defaultColorOptions.map(({ title, color }) => (
+          <MenuItem
+            key={title}
+            text={title}
+            onClick={() => onChange(color)}
+            icon={
+              <Icon icon={selectedColor === color ? 'tick-circle' : 'full-circle'} color={color} />
+            }
           />
+        ))}
+        <MenuDivider />
+        <SubMenu text="Custom" icon={IconSet.COLOR}>
+          <HexColorPicker color={selectedColor} onChange={onChange} />
         </SubMenu>
       </SubMenu>
     );
