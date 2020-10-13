@@ -377,17 +377,19 @@ MainMessenger.onSendPreviewFiles((msg) => {
 // TODO: Should set this on startup: E.g. Choosing light theme, but having a dark system theme, will be incorrect after restart
 MainMessenger.onSetTheme((msg) => (nativeTheme.themeSource = msg.theme));
 
-MainMessenger.onDragExport(({ absolutePaths }) => {
-  if (!mainWindow) return;
-  if (absolutePaths.length > 0) {
-    mainWindow.webContents.startDrag({
-      files: absolutePaths,
-      // Just show the first image as a thumbnail for now
-      // TODO: Show some indication that multiple images are dragged, would be cool to show a stack of the first few of them
-      // also, this will show really big icons for narrow images, should take into account their aspect ratio
-      icon: nativeImage.createFromPath(absolutePaths[0]).resize({ width: 200 }) || AppIcon,
-    } as any); // need to "any" this since the types are not correct: the files field is allowed but not according to TypeScript
+MainMessenger.onDragExport((absolutePaths) => {
+  if (mainWindow === null || absolutePaths.length === 0) {
+    return;
   }
+  // Need to cast item as `any` since the types are not correct. The `files` field is allowed but
+  // not according to the electron documentation where it is `file`.
+  mainWindow.webContents.startDrag({
+    files: absolutePaths,
+    // Just show the first image as a thumbnail for now
+    // TODO: Show some indication that multiple images are dragged, would be cool to show a stack of the first few of them
+    // also, this will show really big icons for narrow images, should take into account their aspect ratio
+    icon: nativeImage.createFromPath(absolutePaths[0]).resize({ width: 200 }) || AppIcon,
+  } as any);
 });
 
 MainMessenger.onClearDatabase(() => {

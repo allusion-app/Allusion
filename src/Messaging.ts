@@ -74,9 +74,7 @@ export interface IPreviewFilesMessage {
 
 /////////////// Drag n drop export ///////////////
 export const DRAG_EXPORT = 'DRAG_EXPORT';
-export interface IDragExportMessage {
-  absolutePaths: string[];
-}
+export type IDragExportMessage = string[];
 
 //////////////////// Settings ////////////////////
 export const IS_CLIP_SERVER_RUNNING = 'IS_CLIP_SERVER_RUNNING';

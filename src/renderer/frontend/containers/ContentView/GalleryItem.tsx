@@ -179,13 +179,14 @@ const GalleryItem = observer(
         // If file is selected, add all selected items to the drag event, for exporting e.g. to your file explorer or programs like PureRef
         // Creating an event in the main process turned out to be the most robust, did many experiments with drag event content types.
         // Creating a drag event with multiple images did not work correctly from the browser side (e.g. only limited to thumbnails, not full images)
-        if (isSelected && uiStore.fileSelection.size > 1) {
-          e.preventDefault();
-          RendererMessenger.startDragExport({
-            absolutePaths: uiStore.clientFileSelection.map((f) => f.absolutePath),
-          });
+        if (!uiStore.fileSelection.has(file.id)) {
+          return;
+        }
+        e.preventDefault();
+        if (uiStore.fileSelection.size > 1) {
+          RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
         } else {
-          RendererMessenger.startDragExport({ absolutePaths: [file.absolutePath] });
+          RendererMessenger.startDragExport([file.absolutePath]);
         }
 
         // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
@@ -193,7 +194,7 @@ const GalleryItem = observer(
         (window as any).internalDragStart = new Date();
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [file, isSelected, uiStore.fileSelection, uiStore.fileSelection.size],
+      [file.absolutePath, file.id, uiStore.fileSelection],
     );
 
     // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
