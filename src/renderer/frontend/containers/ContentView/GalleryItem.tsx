@@ -3,7 +3,6 @@ import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../../entities/File';
-import { ClientTag } from '../../../entities/Tag';
 import { Button, ButtonGroup, IconSet, Tag } from 'components';
 import { MenuDivider, MenuItem } from 'components/menu';
 import { Tooltip } from 'components/popover';
@@ -13,63 +12,120 @@ import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
 
-interface IThumbnailTags {
-  tags: ClientTag[];
-  onClick: (event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => void;
-  onDoubleClick: (event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => void;
-}
-
-const ThumbnailTags = observer(({ tags, onClick, onDoubleClick }: IThumbnailTags) => (
-  <span className="thumbnail-tags" onClick={onClick} onDoubleClick={onDoubleClick}>
-    {tags.map((tag) => (
-      <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
-    ))}
-  </span>
-));
-
-const FileRecovery = observer(({ file }: { file: ClientFile }) => {
+const Image = observer(({ file }: { file: ClientFile }) => {
   const { uiStore } = useContext(StoreContext);
-  return (
-    <div>
-      <p>The file {file.name} could not be found.</p>
-      <p>Would you like to remove it from your library?</p>
-      <ButtonGroup>
-        <Button
-          text="Remove"
-          styling="outlined"
-          onClick={() => {
-            uiStore.selectFile(file, true);
-            uiStore.openToolbarFileRemover();
-          }}
-        />
-      </ButtonGroup>
-    </div>
+
+  // Initially, we assume the thumbnail exists
+  const [isReady, setIsReady] = useState(true);
+  const [isGenerating, setisGenerating] = useState(false);
+
+  // This will check whether a thumbnail exists, generate it if needed
+  useEffect(() => {
+    ensureThumbnail(file, uiStore.thumbnailDirectory).then((exists) => {
+      if (!exists) {
+        setIsReady(false);
+        if (file.isBroken !== true) {
+          setisGenerating(true);
+        }
+      }
+    });
+  }, [file, uiStore.thumbnailDirectory]);
+
+  // The thumbnailPath of an image is always set, but may not exist yet.
+  // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
+  // which we detect here to know the thumbnail is ready
+  useEffect(() => {
+    if (file.thumbnailPath.endsWith('?v=1')) {
+      setIsReady(true);
+      setisGenerating(false);
+    }
+  }, [file.thumbnailPath]);
+
+  // When the thumbnail cannot be loaded, display an error
+  const handleImageError = useCallback(
+    (err: any) => {
+      console.log('Could not load image:', file.thumbnailPath, err);
+      setIsReady(false);
+    },
+    [file.thumbnailPath],
+  );
+
+  return isReady ? (
+    // Show image when it has been loaded
+    <img src={file.thumbnailPath} onError={handleImageError} alt="" />
+  ) : isGenerating ? (
+    // If it's being generated, show a placeholder
+    <div className="donut-loading" />
+  ) : (
+    // Show an error it it could not be loaded
+    <MissingImageFallback />
   );
 });
 
-interface IThumbnailDecoration extends Omit<IThumbnailTags, 'tags'> {
+export const MissingImageFallback = ({ style }: { style?: React.CSSProperties }) => (
+  <div style={style} className="image-error custom-icon-128">
+    {IconSet.DB_ERROR}Could not load image
+  </div>
+);
+
+const FileRecovery = observer(
+  ({ file, showDetails }: { file: ClientFile; showDetails?: boolean }) => {
+    const { uiStore, fileStore } = useContext(StoreContext);
+    if (showDetails === true) {
+      return (
+        <div>
+          <p>The file {file.name} could not be found.</p>
+          <p>Would you like to remove it from your library?</p>
+          <ButtonGroup>
+            <Button
+              text="Remove"
+              styling="outlined"
+              onClick={() => {
+                uiStore.selectFile(file, true);
+                uiStore.openToolbarFileRemover();
+              }}
+            />
+          </ButtonGroup>
+        </div>
+      );
+    } else {
+      return (
+        <Tooltip content="This image could not be found.">
+          <span
+            className="thumbnail-broken-overlay"
+            onClick={(e) => {
+              e.stopPropagation(); // prevent image click event
+              fileStore.fetchMissingFiles();
+              uiStore.selectFile(file, true);
+            }}
+          >
+            {IconSet.WARNING_BROKEN_LINK}
+          </span>
+        </Tooltip>
+      );
+    }
+  },
+);
+
+interface IThumbnailDecoration {
   showDetails?: boolean;
   file: ClientFile;
 }
 
-const ThumbnailDecoration = observer(
-  ({ showDetails, file, onClick, onDoubleClick }: IThumbnailDecoration) => {
-    if (file.isBroken && showDetails) {
-      return <FileRecovery file={file} />;
-    }
+const ThumbnailDecoration = observer(({ showDetails, file }: IThumbnailDecoration) => {
+  if (file.isBroken === true) {
+    return <FileRecovery file={file} showDetails={showDetails} />;
+  } else if (showDetails === true) {
     return (
       <>
-        {showDetails && (
-          <>
-            <h2>{file.filename}</h2>
-            <ImageInfo file={file} />
-          </>
-        )}
-        <ThumbnailTags tags={file.clientTags} onClick={onClick} onDoubleClick={onDoubleClick} />
+        <h2>{file.filename}</h2>
+        <ImageInfo file={file} />
       </>
     );
-  },
-);
+  } else {
+    return null;
+  }
+});
 
 interface IGalleryItemProps {
   file: ClientFile;
@@ -96,15 +152,9 @@ const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
   }
 };
 
-export const MissingImageFallback = ({ style }: { style?: React.CSSProperties }) => (
-  <div style={style} className="image-error custom-icon-128">
-    {IconSet.DB_ERROR}Could not load image
-  </div>
-);
-
 const GalleryItem = observer(
   ({ file, select, showDetails, showContextMenu }: IGalleryItemProps) => {
-    const { uiStore, fileStore } = useContext(StoreContext);
+    const { uiStore } = useContext(StoreContext);
     const isSelected = uiStore.fileSelection.has(file.id);
 
     const handleDrop = useCallback(
@@ -135,44 +185,6 @@ const GalleryItem = observer(
       uiStore.selectFile(file, true);
       uiStore.enableSlideMode();
     }, [file, uiStore]);
-
-    // Initially, we assume the thumbnail exists
-    const [isThumbnailReady, setThumbnailReady] = useState(true);
-    const [isThumbnailGenerating, setThumbnailGenerating] = useState(false);
-
-    const imagePath = uiStore.isSlideMode ? file.absolutePath : file.thumbnailPath;
-
-    useEffect(() => {
-      // This will check whether a thumbnail exists, generate it if needed
-      ensureThumbnail(file, uiStore.thumbnailDirectory).then((exists) => {
-        if (!exists) {
-          setThumbnailReady(false);
-          if (!file.isBroken) {
-            // can't genarate thumbnail if img doesn't exist
-            setThumbnailGenerating(true);
-          }
-        }
-      });
-    }, [file, uiStore.thumbnailDirectory]);
-
-    // The thumbnailPath of an image is always set, but may not exist yet.
-    // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
-    // which we detect here to know the thumbnail is ready
-    useEffect(() => {
-      if (imagePath.endsWith('?v=1')) {
-        setThumbnailReady(true);
-        setThumbnailGenerating(false);
-      }
-    }, [imagePath]);
-
-    // When the thumbnail cannot be loaded, display an error
-    const handleImageError = useCallback(
-      (err: any) => {
-        console.log('Could not load image:', imagePath, err);
-        setThumbnailReady(false);
-      },
-      [imagePath],
-    );
 
     const handleDragStart = useCallback(
       async (e: React.DragEvent<HTMLImageElement>) => {
@@ -225,37 +237,14 @@ const GalleryItem = observer(
           onDoubleClick={handleDoubleClick}
           onDragStart={handleDragStart}
         >
-          {isThumbnailReady ? (
-            // Show image when it has been loaded
-            <img src={imagePath} onError={handleImageError} alt="" />
-          ) : isThumbnailGenerating ? (
-            // If it's being generated, show a placeholder
-            <div className="donut-loading" />
-          ) : (
-            // Show an error it it could not be loaded
-            <MissingImageFallback />
-          )}
-          {file.isBroken && !showDetails && (
-            <Tooltip content="This image could not be found.">
-              <span
-                className="thumbnail-broken-overlay"
-                onClick={(e) => {
-                  e.stopPropagation(); // prevent image click event
-                  fileStore.fetchMissingFiles();
-                  uiStore.selectFile(file, true);
-                }}
-              >
-                {IconSet.WARNING_BROKEN_LINK}
-              </span>
-            </Tooltip>
-          )}
+          <Image file={file} />
         </div>
-        <ThumbnailDecoration
-          showDetails={showDetails}
-          file={file}
-          onClick={handleClick}
-          onDoubleClick={handleDoubleClick}
-        />
+        <ThumbnailDecoration showDetails={showDetails} file={file} />
+        <span className="thumbnail-tags" onClick={handleClick} onDoubleClick={handleDoubleClick}>
+          {file.clientTags.map((tag) => (
+            <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
+          ))}
+        </span>
       </div>
     );
   },
@@ -337,7 +326,7 @@ const SimpleGalleryItem = observer(({ file, showDetails }: IGalleryItemProps) =>
       {showDetails && (
         <>
           <h2>{file.filename}</h2>
-          <ImageInfo file={file} />
+          <ImageInfo suspended file={file} />
         </>
       )}
       <span className="thumbnail-tags" />

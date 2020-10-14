@@ -19,20 +19,14 @@
   grid-template-columns: auto 1fr;
   grid-column-gap: 1rem;
   grid-row-gap: 0.25rem;
-}
 
-.file-info-key,
-.file-info-value {
-  white-space: nowrap;
-  overflow: hidden;
-}
+  > :nth-child(odd) {
+    color: var(--text-muted-color);
+  }
 
-.file-info-key {
-  color: var(--text-muted-color);
-}
-
-.file-info-value {
-  text-align: left;
+  > span {
+    white-space: nowrap;
+  }
 }
 
 .inspector-heading {
