@@ -45,7 +45,7 @@ let initialize = () => {
 };
 
 function createTrayMenu() {
-  if (!tray) {
+  if (!tray || tray.isDestroyed()) {
     tray = new Tray(`${__dirname}/${isMac ? TrayIconMac : TrayIcon}`);
     const trayMenu = Menu.buildFromTemplate([
       {
@@ -216,7 +216,7 @@ function createWindow() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null;
-    if (previewWindow) {
+    if (previewWindow && !previewWindow.isDestroyed()) {
       previewWindow.close();
     }
   });
