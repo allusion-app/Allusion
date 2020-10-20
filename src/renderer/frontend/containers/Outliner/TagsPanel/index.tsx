@@ -1,8 +1,8 @@
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 
-import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import StoreContext, { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
+import StoreContext from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 import { IconSet } from 'components';
 import { Toolbar, ToolbarToggleButton } from 'components/menu';
@@ -48,35 +48,30 @@ export const SystemTags = observer(() => {
   );
 });
 
-@HotkeysTarget
-class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
-  render() {
-    return (
-      <div>
-        <TagsTree />
-      </div>
-    );
-  }
-  renderHotkeys() {
-    const { uiStore } = this.props.rootStore;
-    const { hotkeyMap } = uiStore;
-    return (
-      <Hotkeys>
-        <Hotkey
-          combo={hotkeyMap.selectAll}
-          label="Select all tags in the outliner"
-          onKeyDown={uiStore.selectAllTags}
-          group="Outliner"
-        />
-        <Hotkey
-          combo={hotkeyMap.deselectAll}
-          label="Deselect all tags in the outliner"
-          onKeyDown={uiStore.clearTagSelection}
-          group="Outliner"
-        />
-      </Hotkeys>
-    );
-  }
-}
+const TagsPanel = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  const { hotkeyMap } = uiStore;
 
-export default withRootstore(TagPanelWithHotkeys);
+  const handleShortcuts = useCallback(
+    (e: React.KeyboardEvent) => {
+      const combo = getKeyCombo(e.nativeEvent);
+      const matches = (c: string): boolean => {
+        return comboMatches(combo, parseKeyCombo(c));
+      };
+      if (matches(hotkeyMap.selectAll)) {
+        uiStore.selectAllTags();
+      } else if (matches(hotkeyMap.deselectAll)) {
+        uiStore.clearTagSelection();
+      }
+    },
+    [hotkeyMap.deselectAll, hotkeyMap.selectAll, uiStore],
+  );
+
+  return (
+    <div onKeyDown={handleShortcuts}>
+      <TagsTree />
+    </div>
+  );
+});
+
+export default TagsPanel;
