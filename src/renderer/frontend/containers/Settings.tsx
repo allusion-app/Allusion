@@ -8,7 +8,6 @@ import { getThumbnailPath, isDirEmpty } from '../utils';
 import { RendererMessenger } from '../../../Messaging';
 import HotkeyMapper from '../components/HotkeyMapper';
 import PopupWindow from '../components/PopupWindow';
-import { Callout } from '@blueprintjs/core';
 import { WINDOW_STORAGE_KEY } from 'src/renderer/renderer';
 
 const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
@@ -161,14 +160,12 @@ const SettingsForm = observer(() => {
       <hr />
 
       <div>
-        <Callout>
-          <p>
-            Click on a key combination to modify it. After typing your new combination, press Enter
-            to confirm or Escape to cancel. The application must be reloaded for the changes to take
-            effect.
-          </p>
-          <Button icon={IconSet.RELOAD} text="Reload" onClick={() => window.location.reload()} />
-        </Callout>
+        <p>
+          Click on a key combination to modify it. After typing your new combination, press Enter to
+          confirm or Escape to cancel. The application must be reloaded for the changes to take
+          effect.
+        </p>
+        <Button icon={IconSet.RELOAD} text="Reload" onClick={() => window.location.reload()} />
         <HotkeyMapper />
       </div>
 
