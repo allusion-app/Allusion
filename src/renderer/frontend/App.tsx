@@ -62,9 +62,9 @@ const App = observer(() => {
       <div id="layout-container" className={themeClass} onClick={handleClick}>
         <ErrorBoundary>
           <GlobalHotkeys>
-            <Outliner />
-
             <Toolbar />
+
+            <Outliner />
 
             <ContentView />
 
