@@ -262,14 +262,9 @@ img {
 .error-boundary {
   grid-area: main;
 
-  .bp3-non-ideal-state > * {
-    max-width: unset;
-  }
-
   .message {
-    text-align: left;
-    width: 800px;
-    max-width: 800px;
+    font-family: monospace;
+    max-width: 120ch;
   }
 }
 

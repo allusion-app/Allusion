@@ -408,13 +408,11 @@ const TagsTree = observer(() => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleRootAddTag = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
+    () =>
       tagStore
         .create(root, 'New Tag')
         .then((tag) => dispatch(Factory.enableEditing(tag.id)))
-        .catch((err) => console.log('Could not create tag', err));
-    },
+        .catch((err) => console.log('Could not create tag', err)),
     [root, tagStore],
   );
 

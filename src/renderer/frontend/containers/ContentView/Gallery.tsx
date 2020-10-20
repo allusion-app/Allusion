@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
-import { NonIdealState } from '@blueprintjs/core';
 import {
   FixedSizeGrid,
   FixedSizeList,
@@ -14,7 +13,7 @@ import StoreContext from '../../contexts/StoreContext';
 import GalleryItem, { MissingImageFallback } from './GalleryItem';
 import { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
-import { Button, ButtonGroup, IconSet } from 'components';
+import { IconSet } from 'components';
 import { ContextMenu, SubMenu, Menu, MenuDivider } from 'components/menu';
 import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
@@ -22,6 +21,7 @@ import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
 import { LayoutMenuItems, SortMenuItems } from '../Toolbar/ContentToolbar';
 import useContextMenu from '../../hooks/useContextMenu';
+import Placeholder from './Placeholder';
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
@@ -559,54 +559,7 @@ const Gallery = () => {
   // Also take into account scrolling when dragging while selecting
 
   if (fileList.length === 0) {
-    let icon = IconSet.MEDIA;
-    let title = 'No images';
-    let description = 'Images can be added from the outliner';
-    let action = (
-      <Button onClick={uiStore.toggleOutliner} text="Toggle outliner" styling="outlined" />
-    );
-    if (fileStore.showsQueryContent) {
-      description = 'Try searching for something else.';
-      icon = IconSet.SEARCH;
-      title = 'No images found';
-      action = (
-        <ButtonGroup>
-          <Button
-            text="All images"
-            icon={IconSet.MEDIA}
-            onClick={fileStore.fetchAllFiles}
-            styling="outlined"
-          />
-          <Button
-            text="Untagged"
-            icon={IconSet.TAG_BLANCO}
-            onClick={fileStore.fetchUntaggedFiles}
-            styling="outlined"
-          />
-        </ButtonGroup>
-      );
-    } else if (fileStore.showsUntaggedContent) {
-      icon = IconSet.TAG;
-      description = 'All images have been tagged. Nice work!';
-      title = 'No untagged images';
-      action = (
-        <Button
-          text="All Images"
-          icon={IconSet.MEDIA}
-          onClick={fileStore.fetchAllFiles}
-          styling="outlined"
-        />
-      );
-    }
-
-    return (
-      <NonIdealState
-        icon={<span className="custom-icon-64">{icon}</span>}
-        title={title}
-        description={description}
-        action={action}
-      />
-    );
+    return <Placeholder />;
   }
 
   return (

@@ -1,6 +1,5 @@
 import React, { useContext, useState } from 'react';
 import { shell } from 'electron';
-import { NonIdealState } from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
 import { Button, ButtonGroup, IconSet } from 'components';
 import { DialogActions, DialogButton, Flyout } from 'components/popover';
@@ -123,36 +122,31 @@ ${this.state.error}
       // You can render any custom fallback UI
       return (
         <div className="error-boundary">
-          <NonIdealState
-            icon={<span className="custom-icon-64">{IconSet.DB_ERROR}</span>}
-            title="Something went wrong."
-            description="You can try one of the following options or contact the maintainers"
-            action={
-              <ButtonGroup>
-                <Button
-                  onClick={this.reloadApplication}
-                  styling="outlined"
-                  icon={IconSet.RELOAD}
-                  text="Reload"
-                />
-                <Button
-                  onClick={this.viewInspector}
-                  styling="outlined"
-                  icon={IconSet.CHROME_DEVTOOLS}
-                  text="Toggle DevTools"
-                />
-                <ClearDbButton />
-                <Button
-                  styling="outlined"
-                  onClick={this.openIssueURL}
-                  icon={IconSet.GITHUB}
-                  text="Create Issue"
-                />
-              </ButtonGroup>
-            }
-          >
-            <div className="bp3-intent-danger bp3-monospace-text message">{error.toString()}</div>
-          </NonIdealState>
+          <span className="custom-icon-64">{IconSet.DB_ERROR}</span>
+          <h2>Something went wrong</h2>
+          <p>You can try one of the following options or contact the maintainers.</p>
+          <ButtonGroup>
+            <Button
+              onClick={this.reloadApplication}
+              styling="outlined"
+              icon={IconSet.RELOAD}
+              text="Reload"
+            />
+            <Button
+              onClick={this.viewInspector}
+              styling="outlined"
+              icon={IconSet.CHROME_DEVTOOLS}
+              text="Toggle DevTools"
+            />
+            <ClearDbButton />
+            <Button
+              styling="outlined"
+              onClick={this.openIssueURL}
+              icon={IconSet.GITHUB}
+              text="Create Issue"
+            />
+          </ButtonGroup>
+          <p className="message">{error.toString()}</p>
         </div>
       );
     }

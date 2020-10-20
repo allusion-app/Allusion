@@ -409,47 +409,43 @@ const LocationsPanel = () => {
     }
   }, [locationConfigOpen, locationStore]);
 
-  const handleChooseWatchedDir = useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation();
-      const { filePaths: dirs } = await RendererMessenger.openDialog({
-        properties: ['openDirectory'],
+  const handleChooseWatchedDir = useCallback(async () => {
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
+      properties: ['openDirectory'],
+    });
+
+    // multi-selection is disabled which means there can be at most 1 folder
+    if (dirs.length === 0) {
+      return;
+    }
+    const newLocPath = dirs[0];
+
+    // Check if the new location is a sub-directory of an existing location
+    const parentDir = locationStore.locationList.find((dir) => newLocPath.includes(dir.path));
+    if (parentDir) {
+      AppToaster.show({
+        message: 'You cannot add a location that is a sub-folder of an existing location.',
+        intent: 'danger',
       });
+      return;
+    }
 
-      // multi-selection is disabled which means there can be at most 1 folder
-      if (dirs.length === 0) {
-        return;
-      }
-      const newLocPath = dirs[0];
+    // Check if the new location is a parent-directory of an existing location
+    const childDir = locationStore.locationList.find((dir) => dir.path.includes(newLocPath));
+    if (childDir) {
+      AppToaster.show({
+        message: 'You cannot add a location that is a parent-folder of an existing location.',
+        intent: 'danger',
+      });
+      return;
+    }
 
-      // Check if the new location is a sub-directory of an existing location
-      const parentDir = locationStore.locationList.find((dir) => newLocPath.includes(dir.path));
-      if (parentDir) {
-        AppToaster.show({
-          message: 'You cannot add a location that is a sub-folder of an existing location.',
-          intent: 'danger',
-        });
-        return;
-      }
+    // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
 
-      // Check if the new location is a parent-directory of an existing location
-      const childDir = locationStore.locationList.find((dir) => dir.path.includes(newLocPath));
-      if (childDir) {
-        AppToaster.show({
-          message: 'You cannot add a location that is a parent-folder of an existing location.',
-          intent: 'danger',
-        });
-        return;
-      }
-
-      // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
-
-      const newLoc = await locationStore.create(newLocPath);
-      setLocationConfigOpen(newLoc);
-      setLocationTreeKey(new Date());
-    },
-    [locationStore],
-  );
+    const newLoc = await locationStore.create(newLocPath);
+    setLocationConfigOpen(newLoc);
+    setLocationTreeKey(new Date());
+  }, [locationStore]);
 
   // Refresh when adding/removing location
   useEffect(() => {
