@@ -12,7 +12,7 @@ import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { RendererMessenger } from 'src/Messaging';
 
-const Image = observer(({ file }: { file: ClientFile }) => {
+const Thumbnail = observer(({ file }: { file: ClientFile }) => {
   const { uiStore } = useContext(StoreContext);
 
   // Initially, we assume the thumbnail exists
@@ -237,7 +237,7 @@ const GalleryItem = observer(
           onDoubleClick={handleDoubleClick}
           onDragStart={handleDragStart}
         >
-          <Image file={file} />
+          <Thumbnail file={file} />
         </div>
         <ThumbnailDecoration showDetails={showDetails} file={file} />
         <span className="thumbnail-tags" onClick={handleClick} onDoubleClick={handleDoubleClick}>
