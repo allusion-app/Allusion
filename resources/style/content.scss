@@ -127,9 +127,8 @@
 .thumbnail-tags {
   grid-area: tags;
   display: block;
-  padding: 0.4em 0.4rem 0.15rem 0.4rem;
   position: absolute;
-  bottom: 4px;
+  bottom: 0;
   overflow: hidden;
 
   > * {
@@ -166,32 +165,6 @@
   }
 }
 /////////////////////// View methods //////////////////////////////////
-.list [role='gridcell'] {
-  display: grid;
-  grid-column-gap: 1.5em;
-  grid-template-columns: min-content 1fr;
-  grid-template-areas:
-    'image title'
-    'image info'
-    'image tags';
-  height: calc(var(--thumbnail-size) + 16px);
-
-  span > * {
-    text-align: left !important;
-  }
-
-  .thumbnail-tags {
-    position: unset;
-    padding: 0;
-    margin-left: -0.2rem;
-    min-height: 1.5rem;
-  }
-
-  h2 {
-    align-self: end;
-  }
-}
-
 .list {
   // Stripe pattern
   [aria-rowindex$='0'],
@@ -201,32 +174,57 @@
   [aria-rowindex$='8'] {
     background-color: rgba(102, 102, 102, 0.045);
   }
+
+  [role='gridcell'] {
+    display: grid;
+    grid-column-gap: 1.5em;
+    grid-template-columns: min-content 1fr;
+    grid-template-areas:
+      'image title'
+      'image info'
+      'image tags';
+    height: 100%;
+  }
+
+  .thumbnail-tags {
+    position: unset;
+    padding: 0;
+  }
+
+  h2 {
+    align-self: end;
+  }
+
+  .thumbnail {
+    align-self: center;
+  }
 }
 
-.thumbnail-small .list {
-  .file-info {
-    grid-row-gap: 0;
-  }
-  .thumbnail-tags {
-    margin-bottom: 4px;
-  }
+.thumbnail-small .list .file-info {
+  grid-row-gap: 0;
 }
 
 .grid {
   [role='row'] {
-    display: flex;
-    align-items: center;
+    padding: 4px 0;
 
     [role='gridcell']:last-child {
       padding-right: 0;
     }
   }
-}
 
-.grid [role='gridcell'] {
-  &:hover .thumbnail-tags {
-    max-height: var(--thumbnail-size);
-    background-color: rgba(0, 0, 0, 0.25);
+  [role='gridcell'] {
+    display: inline-block;
+
+    &:hover .thumbnail-tags {
+      max-height: var(--thumbnail-size);
+      background-color: rgba(0, 0, 0, 0.25);
+    }
+
+    &[data-dnd-target='true'] .thumbnail-tags {
+      max-height: var(--thumbnail-size);
+      overflow: hidden; // can't scroll while dropping
+    }
   }
 
   .thumbnail-tags {
@@ -235,12 +233,8 @@
     max-height: 2.8em;
     width: var(--thumbnail-size);
   }
-
-  &[data-dnd-target='true'] .thumbnail-tags {
-    max-height: var(--thumbnail-size);
-    overflow: hidden; // can't scroll while dropping
-  }
 }
+
 // Fix for temp placeholder masonry smiley
 .masonry {
   position: relative !important;
@@ -255,7 +249,7 @@
 
 // Slide view:
 #zoomableImage {
-  height: calc(100vh - 2.4rem); // Minus toolbarheight
+  height: calc(100vh - var(--toolbar-height));
   display: flex;
   flex-direction: column;
 
