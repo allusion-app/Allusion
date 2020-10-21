@@ -110,7 +110,7 @@ const TagItem = observer((props: ITagItemProps) => {
       showContextMenu(
         e.clientX,
         e.clientY,
-        <TagItemContextMenu dispatch={dispatch} nodeData={nodeData} pos={pos} />,
+        <TagItemContextMenu dispatch={dispatch} tag={nodeData} pos={pos} />,
       ),
     [dispatch, nodeData, pos, showContextMenu],
   );
@@ -208,7 +208,7 @@ const TagItem = observer((props: ITagItemProps) => {
       onDragEnd={handleDragEnd}
       onContextMenu={handleContextMenu}
     >
-      <span style={{ color: nodeData.color }}>{IconSet.TAG}</span>
+      <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>
       <Label
         text={nodeData.name}
         setText={nodeData.rename}

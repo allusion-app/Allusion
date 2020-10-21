@@ -1,7 +1,6 @@
-import React, { useContext } from 'react';
-import { Icon } from '@blueprintjs/core';
+import React, { useCallback, useContext } from 'react';
 import { IconSet } from 'components';
-import { MenuDivider, MenuItem, SubMenu, Menu } from 'components/menu';
+import { MenuDivider, MenuItem, SubMenu, Menu, MenuCheckboxItem } from 'components/menu';
 import { observer } from 'mobx-react-lite';
 import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { formatTagCountText } from 'src/renderer/frontend/utils';
@@ -25,135 +24,129 @@ const defaultColorOptions = [
   { title: 'Razzmatazz', color: '#ec125f' },
 ];
 
-interface IColorPickerMenuProps {
-  selectedColor: string;
-  onChange: (color: string) => any;
-  contextText: string;
-}
+const ColorPickerMenu = observer(({ tag }: { tag: ClientTag }) => {
+  const { uiStore } = useContext(StoreContext);
+  const handleChange = useCallback(
+    (color: string) => {
+      if (tag.isSelected) {
+        uiStore.colorSelectedTagsAndCollections(tag.id, color);
+      } else {
+        tag.setColor(color);
+      }
+    },
+    [tag, uiStore],
+  );
 
-const ColorPickerMenu = observer(
-  ({ selectedColor, onChange, contextText }: IColorPickerMenuProps) => {
-    const defaultColor = '#007af5';
-    return (
-      <SubMenu
-        text={`Color${contextText}`}
-        icon={<Icon icon={selectedColor ? IconSet.COLOR : IconSet.COLOR} color={selectedColor} />}
-      >
-        <MenuItem
+  return (
+    <>
+      {/* Rainbow gradient icon? */}
+      <MenuCheckboxItem
+        checked={tag.color === 'inherit'}
+        text="Inherit Parent Color"
+        onClick={() => handleChange(tag.color === 'inherit' ? '' : 'inherit')}
+      />
+      <SubMenu text="Pick Color" icon={IconSet.COLOR}>
+        <HexColorPicker color={tag.color || undefined} onChange={handleChange} />
+        <button
           key="none"
-          text="None"
-          onClick={() => onChange('')}
-          icon={
-            <Icon icon={selectedColor === '' ? 'tick-circle' : 'circle'} color={defaultColor} />
-          }
-        />
-        <MenuItem
-          key="inherit"
-          text="Inherit"
-          onClick={() => onChange('inherit')}
-          icon={
-            <Icon
-              icon={selectedColor === 'inherit' ? 'tick-circle' : 'circle'}
-              color={defaultColor} // Rainbow gradient?
-            />
-          }
+          aria-label="No Color"
+          style={{
+            background: 'none',
+            border: '1px solid var(--text-color)',
+            borderRadius: '100%',
+            height: '1rem',
+            width: '1rem',
+          }}
+          onClick={() => handleChange('')}
         />
         {defaultColorOptions.map(({ title, color }) => (
-          <MenuItem
+          <button
             key={title}
-            text={title}
-            onClick={() => onChange(color)}
-            icon={
-              <Icon icon={selectedColor === color ? 'tick-circle' : 'full-circle'} color={color} />
-            }
+            aria-label={title}
+            style={{
+              background: color,
+              border: 'none',
+              borderRadius: '100%',
+              height: '1rem',
+              width: '1rem',
+            }}
+            onClick={() => handleChange(color)}
           />
         ))}
-        <MenuDivider />
-        <SubMenu text="Custom" icon={IconSet.COLOR}>
-          <HexColorPicker color={selectedColor} onChange={onChange} />
-        </SubMenu>
       </SubMenu>
-    );
-  },
-);
+    </>
+  );
+});
 
 interface IContextMenuProps {
-  nodeData: ClientTag;
+  tag: ClientTag;
   dispatch: React.Dispatch<Action>;
   pos: number;
 }
 
-export const TagItemContextMenu = (props: IContextMenuProps) => {
-  const { nodeData, dispatch, pos } = props;
+export const TagItemContextMenu = observer((props: IContextMenuProps) => {
+  const { tag, dispatch, pos } = props;
   const { tagStore, uiStore } = useContext(StoreContext);
-  const { tags } = uiStore.getTagContextItems(nodeData.id);
+  const { tags } = uiStore.getTagContextItems(tag.id);
   let contextText = formatTagCountText(tags.length);
   contextText = contextText && ` (${contextText})`;
+
   return (
     <Menu>
       <MenuItem
         onClick={() =>
           tagStore
-            .create(nodeData, 'New Tag')
-            .then((tag) => dispatch(Factory.insertNode(nodeData.id, tag.id)))
+            .create(tag, 'New Tag')
+            .then((t) => dispatch(Factory.insertNode(tag.id, t.id)))
             .catch((err) => console.log('Could not create tag', err))
         }
         text="New Tag"
         icon={IconSet.TAG_ADD}
       />
       <MenuItem
-        onClick={() => dispatch(Factory.enableEditing(nodeData.id))}
+        onClick={() => dispatch(Factory.enableEditing(tag.id))}
         text="Rename"
         icon={IconSet.EDIT}
       />
       <MenuItem
-        onClick={() => dispatch(Factory.confirmDeletion(nodeData))}
+        onClick={() => dispatch(Factory.confirmDeletion(tag))}
         text={`Delete${contextText}`}
         icon={IconSet.DELETE}
       />
-      <ColorPickerMenu
-        selectedColor={nodeData.color}
-        onChange={(color) => {
-          if (nodeData.isSelected) {
-            uiStore.colorSelectedTagsAndCollections(nodeData.id, color);
-          } else {
-            nodeData.setColor(color);
-          }
-        }}
-        contextText={contextText}
-      />
       <MenuDivider />
-      <MenuItem
-        onClick={() => nodeData.parent.insertSubTag(nodeData, pos - 2)}
-        text="Move Up"
-        icon={IconSet.ITEM_MOVE_UP}
-        disabled={pos === 1}
-      />
-      <MenuItem
-        onClick={() => nodeData.parent.insertSubTag(nodeData, pos + 1)}
-        text="Move Down"
-        icon={IconSet.ITEM_MOVE_DOWN}
-        disabled={pos === nodeData.parent.subTags.length}
-      />
+      <ColorPickerMenu tag={tag} />
       <MenuDivider />
       <MenuItem
         onClick={() =>
-          nodeData.isSelected
+          tag.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
+            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
         }
         text="Add to Search Query"
         icon={IconSet.SEARCH}
       />
       <MenuItem
         onClick={() =>
-          nodeData.isSelected
+          tag.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id))
+            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
         }
         text="Replace Search Query"
         icon={IconSet.REPLACE}
       />
+      <MenuDivider />
+      <MenuItem
+        onClick={() => tag.parent.insertSubTag(tag, pos - 2)}
+        text="Move Up"
+        icon={IconSet.ITEM_MOVE_UP}
+        disabled={pos === 1}
+      />
+      <MenuItem
+        onClick={() => tag.parent.insertSubTag(tag, pos + 1)}
+        text="Move Down"
+        icon={IconSet.ITEM_MOVE_DOWN}
+        disabled={pos === tag.parent.subTags.length}
+      />
     </Menu>
   );
-};
+});

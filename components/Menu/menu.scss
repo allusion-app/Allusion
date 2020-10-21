@@ -21,7 +21,7 @@
   }
 
   &[aria-disabled='true'] {
-    color: var(--text-muted-color);
+    color: var(--text-muted-color) !important;
     cursor: not-allowed;
   }
 }
