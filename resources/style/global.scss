@@ -211,30 +211,6 @@ img {
 }
 
 ///////////////////////////////// Media Queries /////////////////////////////////
-// @media (min-width: 1601px) {
-//   .grid [role='gridcell'],
-//   .grid [role='gridcell'] img,
-//   .list [role='gridcell'] img {
-//     width: 350px !important;
-//     height: 350px !important;
-//   }
-// }
-// @media (min-width: 1281px) {
-//   .grid [role='gridcell'],
-//   .grid [role='gridcell'] img,
-//   .list [role='gridcell'] img {
-//     width: 260px !important;
-//     height: 260px !important;
-//   }
-// }
-// @media (max-width: 1280px) {
-//   .grid [role='gridcell'],
-//   .grid [role='gridcell'] img,
-//   .list [role='gridcell'] img {
-//     width: 225px !important;
-//     height: 225px !important;
-//   }
-// }
 @media (max-width: 960px) {
   .toolbar-button-text:not(.always) {
     margin: 0;
@@ -242,13 +218,6 @@ img {
     white-space: nowrap;
     overflow: hidden;
   }
-
-  // .grid [role='gridcell'],
-  // .grid [role='gridcell'] img,
-  // .list [role='gridcell'] img {
-  //   width: 150px !important;
-  //   height: 150px !important;
-  // }
 }
 
 ///////////////////////////////// Misc /////////////////////////////////
