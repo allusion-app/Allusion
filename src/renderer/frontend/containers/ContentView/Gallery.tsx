@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
-import {
-  FixedSizeGrid,
-  FixedSizeList,
-  GridChildComponentProps,
-  ListChildComponentProps,
-  GridOnScrollProps,
-  ListOnScrollProps,
-} from 'react-window';
+import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
@@ -38,9 +31,9 @@ import Placeholder from './Placeholder';
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
 // TODO: Use computed styles to access the CSS variables
 const PADDING = 8;
-const CELL_SIZE_SMALL = 150 + PADDING;
-const CELL_SIZE_MEDIUM = 250 + PADDING;
-const CELL_SIZE_LARGE = 350 + PADDING;
+const CELL_SIZE_SMALL = 160 + PADDING;
+const CELL_SIZE_MEDIUM = 240 + PADDING;
+const CELL_SIZE_LARGE = 320 + PADDING;
 // Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
 // can fit into one row.
 const SHRINK_FACTOR = 0.9;
@@ -117,7 +110,7 @@ const GridGallery = observer(
 
     const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
-    const ref = useRef<FixedSizeGrid>(null);
+    const ref = useRef<FixedSizeList>(null);
     const outerRef = useRef<HTMLElement>();
 
     useEffect(() => {
@@ -129,10 +122,7 @@ const GridGallery = observer(
     const handleScrollTo = useCallback(
       (i: number) => {
         if (ref.current) {
-          ref.current.scrollToItem({
-            rowIndex: Math.floor(i / numColumns),
-            columnIndex: 0,
-          });
+          ref.current.scrollToItem(Math.floor(i / numColumns));
         }
       },
       [numColumns],
@@ -158,8 +148,8 @@ const GridGallery = observer(
 
     // Store what the first item in view is in the UiStore
     const handleScroll = useCallback(
-      ({ scrollTop }: GridOnScrollProps) =>
-        uiStore.setFirstItem(numColumns * Math.round(scrollTop / cellSize)),
+      ({ scrollOffset }: ListOnScrollProps) =>
+        uiStore.setFirstItem(numColumns * Math.round(scrollOffset / cellSize)),
       [cellSize, numColumns, uiStore],
     );
 
@@ -191,21 +181,19 @@ const GridGallery = observer(
       return () => window.removeEventListener('keydown', throttledKeyDown);
     }, [fileList, uiStore, numColumns, select, lastSelectionIndex]);
 
-    const handleItemKey = useCallback(
-      ({ columnIndex, rowIndex, data }) => getItemKey(rowIndex * numColumns + columnIndex, data),
-      [numColumns],
-    );
-
-    const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
-      ({ columnIndex, rowIndex, style, data }) => {
-        const itemIndex = rowIndex * numColumns + columnIndex;
-        const file = itemIndex < data.length ? data[itemIndex] : null;
-        if (!file) {
-          return <div />;
-        }
+    const Row = useCallback(
+      ({ index, style, data }) => {
+        const offset = index * numColumns;
         return (
-          <div style={style}>
-            <GalleryItem file={file} select={select} showContextMenu={showContextMenu} />
+          <div role="row" aria-rowindex={index + 1} style={style}>
+            {data.slice(offset, offset + numColumns).map((file: ClientFile) => (
+              <GalleryItem
+                key={file.id}
+                file={file}
+                select={select}
+                showContextMenu={showContextMenu}
+              />
+            ))}
           </div>
         );
       },
@@ -213,22 +201,22 @@ const GridGallery = observer(
     );
 
     return (
-      <FixedSizeGrid
-        columnCount={numColumns}
-        columnWidth={cellSize}
-        height={contentRect.height}
-        rowCount={numRows}
-        rowHeight={cellSize}
-        width={contentRect.width}
-        itemData={fileList}
-        itemKey={handleItemKey}
-        overscanRowCount={2}
-        children={Cell}
-        onScroll={handleScroll}
-        initialScrollTop={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
-        ref={ref}
-        outerRef={outerRef}
-      />
+      <div className="grid" role="grid" aria-rowcount={numRows} aria-colcount={numColumns}>
+        <FixedSizeList
+          height={contentRect.height}
+          width={contentRect.width}
+          itemSize={cellSize}
+          itemCount={numRows}
+          itemData={fileList}
+          itemKey={getItemKey}
+          overscanCount={2}
+          children={Row}
+          onScroll={handleScroll}
+          initialScrollOffset={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
+          ref={ref}
+          outerRef={outerRef}
+        />
+      </div>
     );
   },
 );
@@ -271,14 +259,11 @@ const ListGallery = observer(
       [cellSize, uiStore],
     );
 
-    const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
+    const Row = useCallback(
       ({ index, style, data }) => {
-        const file = index < data.length ? data[index] : null;
-        if (!file) {
-          return <div />;
-        }
+        const file = data[index];
         return (
-          <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
+          <div role="row" aria-rowindex={index + 1} style={style}>
             <GalleryItem
               file={file}
               select={select}
@@ -292,19 +277,21 @@ const ListGallery = observer(
     );
 
     return (
-      <FixedSizeList
-        height={contentRect.height}
-        width={contentRect.width}
-        itemSize={cellSize}
-        itemCount={fileList.length}
-        itemData={fileList}
-        itemKey={getItemKey}
-        overscanCount={2}
-        children={Row}
-        onScroll={handleScroll}
-        initialScrollOffset={uiStore.firstItem * cellSize}
-        ref={ref}
-      />
+      <div className="list" role="grid" aria-rowcount={fileList.length}>
+        <FixedSizeList
+          height={contentRect.height}
+          width={contentRect.width}
+          itemSize={cellSize}
+          itemCount={fileList.length}
+          itemData={fileList}
+          itemKey={getItemKey}
+          overscanCount={2}
+          children={Row}
+          onScroll={handleScroll}
+          initialScrollOffset={uiStore.firstItem * cellSize}
+          ref={ref}
+        />
+      </div>
     );
   },
 );
@@ -564,7 +551,7 @@ const Gallery = () => {
     <div
       ref={container}
       id="gallery-content"
-      className={`thumbnail-${uiStore.thumbnailSize} ${uiStore.method} thumbnail-${uiStore.thumbnailShape}`}
+      className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
       onClick={uiStore.clearFileSelection}
       onBlur={handleFlyoutBlur}
     >

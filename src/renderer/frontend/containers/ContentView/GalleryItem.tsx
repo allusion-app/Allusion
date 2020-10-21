@@ -224,7 +224,7 @@ const GalleryItem = observer(
 
     return (
       <div
-        className="thumbnail"
+        role="gridcell"
         aria-selected={isSelected}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -233,7 +233,7 @@ const GalleryItem = observer(
       >
         <div
           onClick={handleClick}
-          className={`thumbnail-img${file.isBroken ? ' thumbnail-broken' : ''}`}
+          className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
           onDoubleClick={handleDoubleClick}
           onDragStart={handleDragStart}
         >
@@ -319,8 +319,8 @@ const ExternalAppMenuItems = ({ path }: { path: string }) => {
 // A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
 const SimpleGalleryItem = observer(({ file, showDetails }: IGalleryItemProps) => {
   return (
-    <div className="thumbnail">
-      <div className="thumbnail-img">
+    <div role="gridcell">
+      <div className="thumbnail">
         <img src={file.thumbnailPath} alt="" />
       </div>
       {showDetails && (

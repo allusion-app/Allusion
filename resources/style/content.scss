@@ -1,16 +1,15 @@
 ///////////////////////////////// Content area /////////////////////////////////
 #gallery-content {
   flex: 1;
-  margin-left: 4px;
-
-  &:not(.slide) > div {
-    // WARNING: This fixes a lot of things, so do not delete it!
-    position: absolute !important;
-  }
 
   > div {
-    // No horizontal scrollbar
-    overflow-x: hidden !important;
+    // WARNING: This fixes a lot of things, so do not delete it!
+    position: absolute !important;
+
+    > div {
+      // No horizontal scrollbar
+      overflow-x: hidden !important;
+    }
   }
 }
 
@@ -20,25 +19,25 @@
   /* --thumbnail-size: calc(100vw / 10); */
   /* --thumbnail-size: calc(calc(100vw / 10) - calc(10 * var(--thumbnail-margin))); */
   // --thumbnail-size: 82px;
-  --thumbnail-size: 150px;
+  --thumbnail-size: 160px;
 }
 .thumbnail-medium {
   /* --thumbnail-size: calc(100vw / 6); */
   /* --thumbnail-size: calc(calc(100vw / 6) - calc(6 * var(--thumbnail-margin))); */
   // --thumbnail-size: 182px;
-  --thumbnail-size: 250px;
+  --thumbnail-size: 240px;
 }
 .thumbnail-large {
   /* --thumbnail-size: calc(100vw / 4); */
   /* --thumbnail-size: calc(calc(100vw / 4) - calc(4 * var(--thumbnail-margin))); */
   // --thumbnail-size: 282px;
-  --thumbnail-size: 350px;
+  --thumbnail-size: 320px;
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
-.thumbnail {
+[role='gridcell'] {
   position: relative;
-  padding: 4px 0;
+  padding: 0 4px;
 
   h2 {
     grid-area: title;
@@ -47,7 +46,7 @@
     white-space: nowrap;
   }
 
-  &[aria-selected='true'] .thumbnail-img {
+  &[aria-selected='true'] .thumbnail {
     background-color: $blue1;
 
     > img,
@@ -63,7 +62,7 @@
     outline-style: solid;
   }
 
-  &[data-dnd-target='true'] .thumbnail-img {
+  &[data-dnd-target='true'] .thumbnail {
     background: $yellow1;
 
     img {
@@ -77,7 +76,7 @@
   }
 }
 
-.thumbnail-img {
+.thumbnail {
   grid-area: image;
   width: var(--thumbnail-size);
   height: var(--thumbnail-size);
@@ -167,7 +166,7 @@
   }
 }
 /////////////////////// View methods //////////////////////////////////
-.list .thumbnail {
+.list [role='gridcell'] {
   display: grid;
   grid-column-gap: 1.5em;
   grid-template-columns: min-content 1fr;
@@ -193,11 +192,18 @@
   }
 }
 
-.list div div > .list-item-even {
-  background-color: rgba(102, 102, 102, 0.045);
+.list {
+  // Stripe pattern
+  [aria-rowindex$='0'],
+  [aria-rowindex$='2'],
+  [aria-rowindex$='4'],
+  [aria-rowindex$='6'],
+  [aria-rowindex$='8'] {
+    background-color: rgba(102, 102, 102, 0.045);
+  }
 }
 
-.thumbnail-small.list {
+.thumbnail-small .list {
   .file-info {
     grid-row-gap: 0;
   }
@@ -206,7 +212,18 @@
   }
 }
 
-.grid .thumbnail {
+.grid {
+  [role='row'] {
+    display: flex;
+    align-items: center;
+
+    [role='gridcell']:last-child {
+      padding-right: 0;
+    }
+  }
+}
+
+.grid [role='gridcell'] {
   &:hover .thumbnail-tags {
     max-height: var(--thumbnail-size);
     background-color: rgba(0, 0, 0, 0.25);
@@ -229,10 +246,10 @@
   position: relative !important;
 }
 
-.thumbnail-square:not(.slide) img {
+.thumbnail-square img {
   object-fit: cover;
 }
-.thumbnail-letterbox:not(.slide) img {
+.thumbnail-letterbox img {
   object-fit: contain;
 }
 
