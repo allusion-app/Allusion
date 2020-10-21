@@ -563,35 +563,35 @@ class UiStore {
     return this.fileSelection.values().next().value;
   }
 
-  @action.bound private viewAllContent() {
+  @action private viewAllContent() {
     this.rootStore.fileStore.fetchAllFiles();
   }
 
-  @action.bound private viewQueryContent() {
+  @action private viewQueryContent() {
     this.rootStore.fileStore.fetchFilesByQuery();
   }
 
-  @action.bound private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
+  @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
     this.theme = theme;
   }
 
-  @action.bound private setIsOutlinerOpen(value: boolean = true) {
+  @action private setIsOutlinerOpen(value: boolean = true) {
     this.isOutlinerOpen = value;
   }
 
-  @action.bound private setIsInspectorOpen(value: boolean = false) {
+  @action private setIsInspectorOpen(value: boolean = false) {
     this.isInspectorOpen = value;
   }
 
-  @action.bound private setMethod(method: ViewMethod = 'grid') {
+  @action private setMethod(method: ViewMethod = 'grid') {
     this.method = method;
   }
 
-  @action.bound private setThumbnailSize(size: ThumbnailSize = 'medium') {
+  @action private setThumbnailSize(size: ThumbnailSize = 'medium') {
     this.thumbnailSize = size;
   }
 
-  @action.bound private setThumbnailShape(shape: ThumbnailShape) {
+  @action private setThumbnailShape(shape: ThumbnailShape) {
     this.thumbnailShape = shape;
   }
 }

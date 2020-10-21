@@ -143,7 +143,7 @@ class TagStore {
     this.backend.saveTag(tag);
   }
 
-  @action.bound private add(parent: ClientTag, tag: ClientTag) {
+  @action private add(parent: ClientTag, tag: ClientTag) {
     this.parentLookup.set(tag.id, parent);
     this.tagList.push(tag);
     parent.subTags.push(tag.id);
@@ -151,7 +151,7 @@ class TagStore {
 
   // The difference between this method and delete is that no computation
   // power is wasted on removing the tag id from the parent subTags list.
-  @action.bound private async deleteSubTags(subTags: ClientTag[]) {
+  @action private async deleteSubTags(subTags: ClientTag[]) {
     for (const subTag of subTags) {
       subTag.dispose();
       await this.backend.removeTag(subTag.id);
@@ -160,7 +160,7 @@ class TagStore {
     }
   }
 
-  @action.bound private remove(tag: ClientTag) {
+  @action private remove(tag: ClientTag) {
     // Remove tag id reference from other observable objects types
     this.rootStore.uiStore.deselectTag(tag);
     for (const file of this.rootStore.fileStore.fileList) {
@@ -170,7 +170,7 @@ class TagStore {
     this.tagList.remove(tag);
   }
 
-  @action.bound private initTagList(backendTags: ITag[]) {
+  @action private initTagList(backendTags: ITag[]) {
     // Create tag objects
     for (const backendTag of backendTags) {
       const tag = new ClientTag(

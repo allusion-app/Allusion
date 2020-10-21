@@ -171,10 +171,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.saveHandler();
   }
 
-  @action.bound private watchDirectory(
-    directory: string,
-    cancel?: () => boolean,
-  ): Promise<string[]> {
+  @action private watchDirectory(directory: string, cancel?: () => boolean): Promise<string[]> {
     // Watch for folder changes
     this.watcher = chokidar.watch(directory, {
       depth: RECURSIVE_DIR_WATCH_DEPTH,
