@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { observer } from 'mobx-react-lite';
 import { usePopper } from 'react-popper';
 import { Placement } from '@popperjs/core/lib/enums';
 
@@ -37,7 +36,7 @@ interface IFlyout {
   allowedAutoPlacements?: Placement[];
 }
 
-const Flyout = observer((props: IFlyout) => {
+const Flyout = (props: IFlyout) => {
   const {
     open,
     label,
@@ -108,7 +107,7 @@ const Flyout = observer((props: IFlyout) => {
       </dialog>
     </>
   );
-});
+};
 
 interface ITooltip {
   content: React.ReactNode;
@@ -121,7 +120,7 @@ interface ITooltip {
   allowedAutoPlacements?: Placement[];
 }
 
-const Tooltip = observer((props: ITooltip) => {
+const Tooltip = (props: ITooltip) => {
   const {
     content,
     children,
@@ -189,7 +188,7 @@ const Tooltip = observer((props: ITooltip) => {
       </dialog>
     </>
   );
-});
+};
 
 interface IContextMenu {
   open: boolean;
@@ -200,7 +199,7 @@ interface IContextMenu {
   onClose: (event: Event) => void;
 }
 
-const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) => {
+const ContextMenu = ({ open, x, y, children, onClose }: IContextMenu) => {
   const dialog = useRef<HTMLDialogElement>(null);
   const boundingRect = useRef({
     width: 0,
@@ -258,6 +257,6 @@ const ContextMenu = observer(({ open, x, y, children, onClose }: IContextMenu) =
       {children}
     </dialog>
   );
-});
+};
 
 export { ContextMenu, Flyout, Tooltip };

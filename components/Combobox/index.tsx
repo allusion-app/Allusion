@@ -1,7 +1,6 @@
 /** NOTE: Listbox and Option re-use the styles from menu.scss! */
 import './combobox.scss';
 import React from 'react';
-import { observer } from 'mobx-react-lite';
 
 interface IOption {
   value: string;
@@ -12,7 +11,7 @@ interface IOption {
   disabled?: boolean;
 }
 
-const Option = observer(({ value, selected, onClick, icon, rightIcon, disabled }: IOption) => (
+const Option = ({ value, selected, onClick, icon, rightIcon, disabled }: IOption) => (
   <li
     role="option"
     aria-selected={selected}
@@ -28,19 +27,19 @@ const Option = observer(({ value, selected, onClick, icon, rightIcon, disabled }
       {rightIcon}
     </span>
   </li>
-));
+);
 
 interface IListbox {
   multiselectable?: boolean;
   children: React.ReactFragment | React.ReactElement<IOption> | React.ReactElement<IOption>[];
 }
 
-const Listbox = observer((props: IListbox) => {
+const Listbox = (props: IListbox) => {
   return (
     <ul role="listbox" aria-multiselectable={props.multiselectable}>
       {props.children}
     </ul>
   );
-});
+};
 
 export { Listbox, Option };

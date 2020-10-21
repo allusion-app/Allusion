@@ -1,6 +1,5 @@
 import './radio.scss';
 import React, { useEffect, useRef } from 'react';
-import { observer } from 'mobx-react-lite';
 
 interface IRadio {
   label: string;
@@ -10,7 +9,7 @@ interface IRadio {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const Radio = observer((props: IRadio) => {
+const Radio = (props: IRadio) => {
   const { label, value, defaultChecked, checked, onChange } = props;
   return (
     <label>
@@ -24,14 +23,14 @@ const Radio = observer((props: IRadio) => {
       {label}
     </label>
   );
-});
+};
 
 interface IRadioGroup {
   name: string;
   children: React.ReactElement<IRadio>[];
 }
 
-const RadioGroup = observer(({ name, children }: IRadioGroup) => {
+const RadioGroup = ({ name, children }: IRadioGroup) => {
   const group = useRef<HTMLFieldSetElement>(null);
   useEffect(() => {
     if (group.current) {
@@ -49,6 +48,6 @@ const RadioGroup = observer(({ name, children }: IRadioGroup) => {
       </div>
     </fieldset>
   );
-});
+};
 
 export { Radio, RadioGroup };

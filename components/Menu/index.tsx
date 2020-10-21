@@ -1,6 +1,5 @@
 import './menu.scss';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { observer } from 'mobx-react-lite';
 import { IconSet } from '../Icons';
 import { Flyout } from '../Dialog';
 
@@ -48,7 +47,7 @@ interface IMenu {
   labelledby?: string;
 }
 
-const Menu = observer(({ id, children, label, labelledby }: IMenu) => (
+const Menu = ({ id, children, label, labelledby }: IMenu) => (
   <ul
     id={id}
     role="menu"
@@ -60,7 +59,7 @@ const Menu = observer(({ id, children, label, labelledby }: IMenu) => (
   >
     {children}
   </ul>
-));
+);
 
 interface IMenuItem {
   icon?: JSX.Element;
@@ -70,7 +69,7 @@ interface IMenuItem {
   disabled?: boolean;
 }
 
-const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenuItem) => (
+const MenuItem = ({ text, icon, onClick, accelerator, disabled }: IMenuItem) => (
   <li
     role="menuitem"
     tabIndex={-1}
@@ -85,14 +84,14 @@ const MenuItem = observer(({ text, icon, onClick, accelerator, disabled }: IMenu
       {accelerator}
     </span>
   </li>
-));
+);
 
 interface IMenuRadioGroup {
   children: React.ReactElement<IMenuRadioItem>[];
   label?: string;
 }
 
-const MenuRadioGroup = observer(({ children, label }: IMenuRadioGroup) => (
+const MenuRadioGroup = ({ children, label }: IMenuRadioGroup) => (
   <li role="none">
     <ul
       role="group"
@@ -104,50 +103,46 @@ const MenuRadioGroup = observer(({ children, label }: IMenuRadioGroup) => (
       {children}
     </ul>
   </li>
-));
+);
 
 interface IMenuRadioItem extends IMenuItem {
   checked: boolean;
 }
 
-const MenuRadioItem = observer(
-  ({ text, icon, checked, onClick, accelerator, disabled }: IMenuRadioItem) => (
-    <li
-      role="menuitemradio"
-      aria-checked={checked}
-      tabIndex={-1}
-      onClick={disabled ? undefined : onClick}
-      aria-disabled={disabled}
-    >
-      <span className="item-icon" aria-hidden>
-        {icon}
-      </span>
-      {text}
-      <span className="item-accelerator" aria-hidden>
-        {accelerator}
-      </span>
-    </li>
-  ),
+const MenuRadioItem = ({ text, icon, checked, onClick, accelerator, disabled }: IMenuRadioItem) => (
+  <li
+    role="menuitemradio"
+    aria-checked={checked}
+    tabIndex={-1}
+    onClick={disabled ? undefined : onClick}
+    aria-disabled={disabled}
+  >
+    <span className="item-icon" aria-hidden>
+      {icon}
+    </span>
+    {text}
+    <span className="item-accelerator" aria-hidden>
+      {accelerator}
+    </span>
+  </li>
 );
 
 type IMenuCheckboxItem = Omit<IMenuRadioItem, 'icon'>;
 
-const MenuCheckboxItem = observer(
-  ({ text, checked, onClick, accelerator, disabled }: IMenuCheckboxItem) => (
-    <li
-      role="menuitemcheckbox"
-      aria-checked={checked}
-      tabIndex={-1}
-      onClick={disabled ? undefined : onClick}
-      aria-disabled={disabled}
-    >
-      <span className="item-icon" aria-hidden></span>
-      {text}
-      <span className="item-accelerator" aria-hidden>
-        {accelerator}
-      </span>
-    </li>
-  ),
+const MenuCheckboxItem = ({ text, checked, onClick, accelerator, disabled }: IMenuCheckboxItem) => (
+  <li
+    role="menuitemcheckbox"
+    aria-checked={checked}
+    tabIndex={-1}
+    onClick={disabled ? undefined : onClick}
+    aria-disabled={disabled}
+  >
+    <span className="item-icon" aria-hidden></span>
+    {text}
+    <span className="item-accelerator" aria-hidden>
+      {accelerator}
+    </span>
+  </li>
 );
 
 const MenuDivider = () => <li role="separator" className="menu-separator"></li>;
@@ -166,7 +161,7 @@ import { Placement } from '@popperjs/core/lib/enums';
 
 const subMenuPlacments = ['right-end', 'right'] as Placement[];
 
-const SubMenu = observer(({ text, icon, disabled, children }: ISubMenu) => {
+const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
   const [isOpen, setIsOpen] = useState(false);
   const menu = useRef<HTMLUListElement>(null);
 
@@ -234,6 +229,6 @@ const SubMenu = observer(({ text, icon, disabled, children }: ISubMenu) => {
       </Flyout>
     </li>
   );
-});
+};
 
 export { Menu, MenuCheckboxItem, MenuDivider, MenuItem, MenuRadioGroup, MenuRadioItem, SubMenu };

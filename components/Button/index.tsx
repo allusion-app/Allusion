@@ -1,5 +1,4 @@
 import './button.scss';
-import { observer } from 'mobx-react-lite';
 import React from 'react';
 
 interface IButton {
@@ -10,7 +9,7 @@ interface IButton {
   disabled?: boolean;
 }
 
-const Button = observer(({ text, icon, onClick, styling = 'minimal', disabled }: IButton) => {
+const Button = ({ text, icon, onClick, styling = 'minimal', disabled }: IButton) => {
   return (
     <button className={`btn btn-${styling}`} onClick={onClick} disabled={disabled}>
       {icon && (
@@ -21,7 +20,7 @@ const Button = observer(({ text, icon, onClick, styling = 'minimal', disabled }:
       <span className="btn-content-text">{text}</span>
     </button>
   );
-});
+};
 
 interface IButtonGroup {
   id?: string;
@@ -29,13 +28,13 @@ interface IButtonGroup {
   children: (React.ReactElement | undefined)[] | React.ReactElement;
 }
 
-const ButtonGroup = observer(({ id, children, className = '' }: IButtonGroup) => {
+const ButtonGroup = ({ id, children, className = '' }: IButtonGroup) => {
   return (
     <div id={id} className={`btn-group ${className}`}>
       {children}
     </div>
   );
-});
+};
 
 interface IIconButton {
   text: string;
@@ -44,7 +43,7 @@ interface IIconButton {
   disabled?: boolean;
 }
 
-const IconButton = observer(({ text, icon, onClick, disabled }: IIconButton) => {
+const IconButton = ({ text, icon, onClick, disabled }: IIconButton) => {
   return (
     <button className="btn btn-icon" onClick={onClick} disabled={disabled}>
       <span className="btn-content-icon" aria-hidden="true">
@@ -53,6 +52,6 @@ const IconButton = observer(({ text, icon, onClick, disabled }: IIconButton) => 
       <span className="btn-content-text hidden">{text}</span>
     </button>
   );
-});
+};
 
 export { Button, ButtonGroup, IconButton };

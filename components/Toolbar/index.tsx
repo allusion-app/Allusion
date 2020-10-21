@@ -2,7 +2,6 @@
 import './toolbar.scss';
 import React, { useEffect, useRef, useState } from 'react';
 import { Tooltip, Flyout } from '../Dialog/index';
-import { observer } from 'mobx-react-lite';
 
 interface IToolbar {
   children: React.ReactNode;
@@ -114,7 +113,7 @@ interface IToolbarButton extends IBaseButton {
   haspopup?: boolean | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog';
 }
 
-const ToolbarButton = observer((props: IToolbarButton) => {
+const ToolbarButton = (props: IToolbarButton) => {
   const {
     id,
     onClick,
@@ -161,7 +160,7 @@ const ToolbarButton = observer((props: IToolbarButton) => {
       )}
     </button>
   );
-});
+};
 
 interface IBaseGroup {
   children: React.ReactNode;
@@ -206,7 +205,7 @@ const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   }
 };
 
-const ToolbarGroup = observer((props: IToolbarGroup) => {
+const ToolbarGroup = (props: IToolbarGroup) => {
   const { id, label, children, role, showLabel, onKeyDown = handleGroupKeyDown } = props;
   return (
     <div
@@ -219,7 +218,7 @@ const ToolbarGroup = observer((props: IToolbarGroup) => {
       {children}
     </div>
   );
-});
+};
 
 interface IToolbarToggleButton extends IBaseButton {
   pressed: boolean;
@@ -340,7 +339,7 @@ interface IToolbarMenuButton extends IBaseButton {
   role?: 'menu' | 'group';
 }
 
-const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
+const ToolbarMenuButton = (props: IToolbarMenuButton) => {
   const [isOpen, setIsOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 
@@ -378,7 +377,7 @@ const ToolbarMenuButton = observer((props: IToolbarMenuButton) => {
       </Flyout>
     </div>
   );
-});
+};
 
 export {
   Toolbar,
