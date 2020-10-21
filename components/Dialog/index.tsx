@@ -1,7 +1,6 @@
 import './dialog.scss';
 import React, { useEffect, useRef } from 'react';
 import { Button, ButtonGroup } from 'components';
-import { observer } from 'mobx-react-lite';
 
 interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   open: boolean;
@@ -18,7 +17,7 @@ interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   onCancel?: (event: Event) => void;
 }
 
-const Dialog = observer((props: IDialog) => {
+const Dialog = (props: IDialog) => {
   const {
     open,
     role,
@@ -70,7 +69,7 @@ const Dialog = observer((props: IDialog) => {
       </div>
     </dialog>
   );
-});
+};
 
 interface IAlert extends IDialogActions {
   open: boolean;
@@ -82,7 +81,7 @@ interface IAlert extends IDialogActions {
   // onSuppression?: () => void;
 }
 
-const Alert = observer((props: IAlert) => {
+const Alert = (props: IAlert) => {
   const { open, onClick, title, information, view, icon } = props;
 
   return (
@@ -112,7 +111,7 @@ const Alert = observer((props: IAlert) => {
       </div>
     </Dialog>
   );
-});
+};
 
 enum DialogButton {
   CloseButton,
@@ -128,7 +127,7 @@ interface IDialogActions {
   defaultButton?: DialogButton;
 }
 
-const DialogActions = observer((props: IDialogActions) => {
+const DialogActions = (props: IDialogActions) => {
   return (
     <ButtonGroup className="dialog-actions">
       {props.primaryButtonText ? (
@@ -152,7 +151,7 @@ const DialogActions = observer((props: IDialogActions) => {
       />
     </ButtonGroup>
   );
-});
+};
 
 import { ContextMenu, Flyout, Tooltip } from './Flyout';
 
