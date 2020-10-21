@@ -1,4 +1,4 @@
-import { action, computed, observable, runInAction } from 'mobx';
+import { action, computed, observable, runInAction, makeObservable } from 'mobx';
 import SysPath from 'path';
 import React from 'react';
 
@@ -16,14 +16,16 @@ import { IconSet } from 'components/Icons';
 import { FileOrder } from 'src/renderer/backend/DBRepository';
 
 class LocationStore {
-  private backend: Backend;
-  private rootStore: RootStore;
+  private readonly backend: Backend;
+  private readonly rootStore: RootStore;
 
   readonly locationList = observable<ClientLocation>([]);
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
+
+    makeObservable(this);
   }
 
   @action.bound async init(autoLoad: boolean) {

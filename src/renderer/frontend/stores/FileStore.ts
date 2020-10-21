@@ -1,4 +1,4 @@
-import { action, observable, computed, observe, runInAction } from 'mobx';
+import { action, observable, computed, observe, runInAction, makeObservable } from 'mobx';
 import fse from 'fs-extra';
 
 import Backend from '../../backend/Backend';
@@ -24,6 +24,9 @@ const enum Content {
 }
 
 class FileStore {
+  private readonly backend: Backend;
+  private readonly rootStore: RootStore;
+
   readonly fileList = observable<ClientFile>([]);
   /** A map of file ID to its index in the file list, for quick lookups by ID */
   private readonly index = new Map<ID, number>();
@@ -35,12 +38,10 @@ class FileStore {
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
 
-  private backend: Backend;
-  private rootStore: RootStore;
-
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
+    makeObservable(this);
 
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);

@@ -1,6 +1,6 @@
 import path from 'path';
 import fse from 'fs-extra';
-import { action, observable, computed, observe } from 'mobx';
+import { action, observable, computed, observe, makeObservable } from 'mobx';
 
 import RootStore from './RootStore';
 import { ClientFile, IFile } from '../../entities/File';
@@ -90,7 +90,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
 ];
 
 class UiStore {
-  private rootStore: RootStore;
+  private readonly rootStore: RootStore;
 
   @observable isInitialized = false;
 
@@ -129,6 +129,7 @@ class UiStore {
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
+    makeObservable(this);
 
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
@@ -209,7 +210,7 @@ class UiStore {
     }
 
     RendererMessenger.sendPreviewFiles({
-      ids: Array.from(this.fileSelection.toJS()),
+      ids: Array.from(this.fileSelection),
       thumbnailDirectory: this.thumbnailDirectory,
     });
 
@@ -553,7 +554,7 @@ class UiStore {
   }
 
   /////////////////// Helper methods ///////////////////
-  @action clearSelection() {
+  @action.bound clearSelection() {
     this.tagSelection.clear();
     this.fileSelection.clear();
   }
@@ -562,35 +563,35 @@ class UiStore {
     return this.fileSelection.values().next().value;
   }
 
-  @action private viewAllContent() {
+  @action.bound private viewAllContent() {
     this.rootStore.fileStore.fetchAllFiles();
   }
 
-  @action private viewQueryContent() {
+  @action.bound private viewQueryContent() {
     this.rootStore.fileStore.fetchFilesByQuery();
   }
 
-  @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
+  @action.bound private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
     this.theme = theme;
   }
 
-  @action private setIsOutlinerOpen(value: boolean = true) {
+  @action.bound private setIsOutlinerOpen(value: boolean = true) {
     this.isOutlinerOpen = value;
   }
 
-  @action private setIsInspectorOpen(value: boolean = false) {
+  @action.bound private setIsInspectorOpen(value: boolean = false) {
     this.isInspectorOpen = value;
   }
 
-  @action private setMethod(method: ViewMethod = 'grid') {
+  @action.bound private setMethod(method: ViewMethod = 'grid') {
     this.method = method;
   }
 
-  @action private setThumbnailSize(size: ThumbnailSize = 'medium') {
+  @action.bound private setThumbnailSize(size: ThumbnailSize = 'medium') {
     this.thumbnailSize = size;
   }
 
-  @action private setThumbnailShape(shape: ThumbnailShape) {
+  @action.bound private setThumbnailShape(shape: ThumbnailShape) {
     this.thumbnailShape = shape;
   }
 }

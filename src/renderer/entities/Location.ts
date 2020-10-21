@@ -1,4 +1,12 @@
-import { IReactionDisposer, reaction, computed, observable, action, ObservableSet } from 'mobx';
+import {
+  IReactionDisposer,
+  reaction,
+  computed,
+  observable,
+  action,
+  ObservableSet,
+  makeObservable,
+} from 'mobx';
 import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
@@ -94,6 +102,8 @@ export class ClientLocation implements ISerializable<ILocation> {
         }
       },
     );
+
+    makeObservable(this);
   }
 
   @computed get clientTagsToAdd(): ClientTag[] {
@@ -124,7 +134,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     };
   }
 
-  @action changePath(newPath: string): void {
+  @action.bound changePath(newPath: string): void {
     this.store.changeLocationPath(this, newPath).then(() => {
       this.path = newPath;
       this.setBroken(false);
@@ -161,9 +171,12 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.saveHandler();
   }
 
-  @action private watchDirectory(inputPath: string, cancel?: () => boolean): Promise<string[]> {
+  @action.bound private watchDirectory(
+    directory: string,
+    cancel?: () => boolean,
+  ): Promise<string[]> {
     // Watch for folder changes
-    this.watcher = chokidar.watch(inputPath, {
+    this.watcher = chokidar.watch(directory, {
       depth: RECURSIVE_DIR_WATCH_DEPTH,
       // Ignore dot files. Also dot folders?
       // Todo: Ignore everything but image files

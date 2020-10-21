@@ -7,7 +7,7 @@ import {
   GridOnScrollProps,
   ListOnScrollProps,
 } from 'react-window';
-import { observer, useObserver } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import GalleryItem, { MissingImageFallback } from './GalleryItem';
@@ -197,19 +197,18 @@ const GridGallery = observer(
     );
 
     const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
-      ({ columnIndex, rowIndex, style, data }) =>
-        useObserver(() => {
-          const itemIndex = rowIndex * numColumns + columnIndex;
-          const file = itemIndex < data.length ? data[itemIndex] : null;
-          if (!file) {
-            return <div />;
-          }
-          return (
-            <div style={style}>
-              <GalleryItem file={file} select={select} showContextMenu={showContextMenu} />
-            </div>
-          );
-        }),
+      ({ columnIndex, rowIndex, style, data }) => {
+        const itemIndex = rowIndex * numColumns + columnIndex;
+        const file = itemIndex < data.length ? data[itemIndex] : null;
+        if (!file) {
+          return <div />;
+        }
+        return (
+          <div style={style}>
+            <GalleryItem file={file} select={select} showContextMenu={showContextMenu} />
+          </div>
+        );
+      },
       [select, numColumns, showContextMenu],
     );
 
@@ -273,23 +272,22 @@ const ListGallery = observer(
     );
 
     const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
-      ({ index, style, data }) =>
-        useObserver(() => {
-          const file = index < data.length ? data[index] : null;
-          if (!file) {
-            return <div />;
-          }
-          return (
-            <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
-              <GalleryItem
-                file={file}
-                select={select}
-                showContextMenu={showContextMenu}
-                showDetails
-              />
-            </div>
-          );
-        }),
+      ({ index, style, data }) => {
+        const file = index < data.length ? data[index] : null;
+        if (!file) {
+          return <div />;
+        }
+        return (
+          <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
+            <GalleryItem
+              file={file}
+              select={select}
+              showContextMenu={showContextMenu}
+              showDetails
+            />
+          </div>
+        );
+      },
       [select, showContextMenu],
     );
 

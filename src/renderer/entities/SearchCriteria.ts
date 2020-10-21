@@ -1,5 +1,5 @@
 import { ID, ISerializable } from './ID';
-import { action, observable } from 'mobx';
+import { action, observable, makeObservable } from 'mobx';
 import { camelCaseToSpaced } from '../frontend/utils';
 import { IFile } from './File';
 
@@ -101,6 +101,7 @@ export abstract class ClientBaseCriteria<T>
     this.valueType = valueType;
     this.operator = operator;
     this.dict = dict || ({} as SearchKeyDict<T>);
+    makeObservable(this);
   }
 
   abstract toString(): string;
@@ -120,6 +121,7 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
     if (ids) {
       this.value.push(...ids);
     }
+    makeObservable(this);
   }
 
   toString: () => string = () => this.value.toString();
@@ -129,7 +131,7 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
       key: this.key,
       valueType: this.valueType,
       operator: this.operator as ArrayOperatorType,
-      value: this.value.toJS(),
+      value: this.value.slice(),
     };
   };
 
@@ -164,6 +166,7 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
     super(key, 'array', operator, dict);
     this.value = id ? [id] : [];
     this.label = label;
+    makeObservable(this);
   }
 
   toString: () => string = () =>
@@ -201,6 +204,7 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   ) {
     super(key, 'string', operator, dict);
     this.value = value;
+    makeObservable(this);
   }
 
   toString: () => string = () =>
@@ -237,6 +241,7 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
   ) {
     super(key, 'number', operator, dict);
     this.value = value;
+    makeObservable(this);
   }
   toString: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${
@@ -273,6 +278,7 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
     super(key, 'date', operator, dict);
     this.value = value;
     this.value.setHours(0, 0, 0, 0);
+    makeObservable(this);
   }
 
   toString: () => string = () =>
@@ -312,6 +318,7 @@ export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IF
     super('tags', tagIDs, operator, dict);
     this.collectionId = collectionId;
     this.label = label;
+    makeObservable(this);
   }
 
   toString: () => string = () =>

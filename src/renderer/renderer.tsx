@@ -4,6 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { observe } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -62,7 +63,7 @@ if (IS_PREVIEW_WINDOW) {
   });
 
   // Change window title to filename on load
-  rootStore.fileStore.fileList.observe(({ object: list }) => {
+  observe(rootStore.fileStore.fileList, ({ object: list }) => {
     if (list.length > 0) {
       const file = list[0];
       document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.absolutePath}`;
@@ -70,7 +71,7 @@ if (IS_PREVIEW_WINDOW) {
   });
 
   // Change window title to filename when changing the selected file
-  rootStore.uiStore.fileSelection.observe(({ object: list }) => {
+  observe(rootStore.uiStore.fileSelection, ({ object: list }) => {
     if (list.size > 0) {
       const file = rootStore.fileStore.get(rootStore.uiStore.getFirstSelectedFileId());
       if (file) {

@@ -1,4 +1,12 @@
-import { IReactionDisposer, observable, reaction, computed, action, ObservableSet } from 'mobx';
+import {
+  IReactionDisposer,
+  observable,
+  reaction,
+  computed,
+  action,
+  ObservableSet,
+  makeObservable,
+} from 'mobx';
 import Path from 'path';
 import fse from 'fs-extra';
 
@@ -126,6 +134,8 @@ export class ClientFile implements ISerializable<IFile> {
         }
       },
     );
+
+    makeObservable(this);
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
@@ -150,7 +160,7 @@ export class ClientFile implements ISerializable<IFile> {
     }
   }
 
-  @action.bound removeAllTags(): void {
+  @action.bound clearTags(): void {
     if (this.tags.size > 0) {
       this.store.incrementNumUntaggedFiles();
       this.tags.clear();

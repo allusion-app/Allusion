@@ -14,7 +14,7 @@ const Single = observer(({ file }: { file: ClientFile }) => {
     <MultiTagSelector
       disabled={file.isBroken}
       selection={file.clientTags}
-      onClear={file.removeAllTags}
+      onClear={file.clearTags}
       onDeselect={(tag) => file.removeTag(tag.id)}
       onSelect={(tag) => file.addTag(tag.id)}
       onCreate={handleCreate}
@@ -43,7 +43,7 @@ const Multi = observer(({ files }: { files: ClientFile[] }) => {
   return (
     <MultiTagSelector
       selection={sortedTags.map((pair) => pair[0])}
-      onClear={() => files.forEach((f) => f.removeAllTags())}
+      onClear={() => files.forEach((f) => f.clearTags())}
       onDeselect={(tag) => files.forEach((f) => f.removeTag(tag.id))}
       onSelect={(tag) => files.forEach((f) => f.addTag(tag.id))}
       tagLabel={tagLabel}

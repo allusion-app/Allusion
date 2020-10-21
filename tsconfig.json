@@ -16,6 +16,7 @@
     "lib": ["dom", "esnext", "webworker"],
     "moduleResolution": "node",
     "experimentalDecorators": true,
+    "useDefineForClassFields": true,
     "strict": true
   },
   "include": ["components/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts"],

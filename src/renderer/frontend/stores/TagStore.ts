@@ -1,4 +1,12 @@
-import { action, IObservableArray, ObservableMap, observable, runInAction, computed } from 'mobx';
+import {
+  action,
+  IObservableArray,
+  ObservableMap,
+  observable,
+  runInAction,
+  computed,
+  makeObservable,
+} from 'mobx';
 import Backend from '../../backend/Backend';
 import { ClientTag, ITag, ROOT_TAG_ID } from '../../entities/Tag';
 import RootStore from './RootStore';
@@ -9,16 +17,18 @@ import { ClientIDSearchCriteria } from 'src/renderer/entities/SearchCriteria';
  * Based on https://mobx.js.org/best/store.html
  */
 class TagStore {
-  private backend: Backend;
-  private rootStore: RootStore;
+  private readonly backend: Backend;
+  private readonly rootStore: RootStore;
 
   readonly tagList: IObservableArray<ClientTag> = observable([]);
-  // Maps child ID to parent ClientTag reference.
+  /** Maps child ID to parent ClientTag reference. */
   private readonly parentLookup: ObservableMap<ID, ClientTag> = observable(new Map());
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
+
+    makeObservable(this);
   }
 
   async init() {
@@ -133,7 +143,7 @@ class TagStore {
     this.backend.saveTag(tag);
   }
 
-  @action private add(parent: ClientTag, tag: ClientTag) {
+  @action.bound private add(parent: ClientTag, tag: ClientTag) {
     this.parentLookup.set(tag.id, parent);
     this.tagList.push(tag);
     parent.subTags.push(tag.id);
@@ -141,7 +151,7 @@ class TagStore {
 
   // The difference between this method and delete is that no computation
   // power is wasted on removing the tag id from the parent subTags list.
-  @action private async deleteSubTags(subTags: ClientTag[]) {
+  @action.bound private async deleteSubTags(subTags: ClientTag[]) {
     for (const subTag of subTags) {
       subTag.dispose();
       await this.backend.removeTag(subTag.id);
@@ -150,7 +160,7 @@ class TagStore {
     }
   }
 
-  @action private remove(tag: ClientTag) {
+  @action.bound private remove(tag: ClientTag) {
     // Remove tag id reference from other observable objects types
     this.rootStore.uiStore.deselectTag(tag);
     for (const file of this.rootStore.fileStore.fileList) {
@@ -160,7 +170,7 @@ class TagStore {
     this.tagList.remove(tag);
   }
 
-  @action private initTagList(backendTags: ITag[]) {
+  @action.bound private initTagList(backendTags: ITag[]) {
     // Create tag objects
     for (const backendTag of backendTags) {
       const tag = new ClientTag(
