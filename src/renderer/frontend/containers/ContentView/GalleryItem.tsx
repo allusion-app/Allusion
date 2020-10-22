@@ -131,7 +131,6 @@ interface IGalleryItemProps {
   file: ClientFile;
   colIndex: number;
   showDetails?: boolean;
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
 const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -152,90 +151,77 @@ const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
   }
 };
 
-const GalleryItem = observer(
-  ({ file, showDetails, showContextMenu, colIndex }: IGalleryItemProps) => {
-    const { uiStore } = useContext(StoreContext);
-    const isSelected = uiStore.fileSelection.has(file.id);
+const GalleryItem = observer(({ file, showDetails, colIndex }: IGalleryItemProps) => {
+  const { uiStore } = useContext(StoreContext);
+  const isSelected = uiStore.fileSelection.has(file.id);
 
-    const handleDrop = useCallback(
-      (event: React.DragEvent<HTMLDivElement>) => {
-        if (event.dataTransfer.types.includes(DnDType)) {
-          event.dataTransfer.dropEffect = 'none';
-          const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType));
-          ctx.tags.forEach((tag) => {
-            file.addTag(tag.id);
-            tag.subTags.forEach(file.addTag);
-          });
-          event.currentTarget.dataset[DnDAttribute.Target] = 'false';
-        }
-      },
-      [file, uiStore],
-    );
+  const handleDrop = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      if (event.dataTransfer.types.includes(DnDType)) {
+        event.dataTransfer.dropEffect = 'none';
+        const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType));
+        ctx.tags.forEach((tag) => {
+          file.addTag(tag.id);
+          tag.subTags.forEach(file.addTag);
+        });
+        event.currentTarget.dataset[DnDAttribute.Target] = 'false';
+      }
+    },
+    [file, uiStore],
+  );
 
-    const handleDragStart = useCallback(
-      async (e: React.DragEvent<HTMLImageElement>) => {
-        // If file is selected, add all selected items to the drag event, for exporting e.g. to your file explorer or programs like PureRef
-        // Creating an event in the main process turned out to be the most robust, did many experiments with drag event content types.
-        // Creating a drag event with multiple images did not work correctly from the browser side (e.g. only limited to thumbnails, not full images)
-        if (!uiStore.fileSelection.has(file.id)) {
-          return;
-        }
-        e.preventDefault();
-        if (uiStore.fileSelection.size > 1) {
-          RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
-        } else {
-          RendererMessenger.startDragExport([file.absolutePath]);
-        }
+  const handleDragStart = useCallback(
+    async (e: React.DragEvent<HTMLImageElement>) => {
+      // If file is selected, add all selected items to the drag event, for exporting e.g. to your file explorer or programs like PureRef
+      // Creating an event in the main process turned out to be the most robust, did many experiments with drag event content types.
+      // Creating a drag event with multiple images did not work correctly from the browser side (e.g. only limited to thumbnails, not full images)
+      if (!uiStore.fileSelection.has(file.id)) {
+        return;
+      }
+      e.preventDefault();
+      if (uiStore.fileSelection.size > 1) {
+        RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
+      } else {
+        RendererMessenger.startDragExport([file.absolutePath]);
+      }
 
-        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
-        // So we can store the date when the event starts... Hacky but it works :)
-        (window as any).internalDragStart = new Date();
-      },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [file.absolutePath, file.id, uiStore.fileSelection],
-    );
+      // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+      // So we can store the date when the event starts... Hacky but it works :)
+      (window as any).internalDragStart = new Date();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [file.absolutePath, file.id, uiStore.fileSelection],
+  );
 
-    // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
-    // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
+  // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
+  // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
-    const handleContextMenu = useCallback(
-      (e: React.MouseEvent) => {
-        showContextMenu(e.clientX, e.clientY, [
-          file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
-          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-        ]);
-      },
-      [file, showContextMenu],
-    );
-
-    return (
+  return (
+    <div
+      role="gridcell"
+      aria-colindex={colIndex}
+      aria-selected={isSelected}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div
-        role="gridcell"
-        aria-colindex={colIndex}
-        aria-selected={isSelected}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onContextMenu={handleContextMenu}
+        className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
+        onDragStart={handleDragStart}
       >
-        <div
-          className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
-          onDragStart={handleDragStart}
-        >
-          <Thumbnail file={file} />
-        </div>
-        <ThumbnailDecoration showDetails={showDetails} file={file} />
-        <span className="thumbnail-tags">
-          {file.clientTags.map((tag) => (
-            <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
-          ))}
-        </span>
+        <Thumbnail file={file} />
       </div>
-    );
-  },
-);
+      <ThumbnailDecoration showDetails={showDetails} file={file} />
+      <span className="thumbnail-tags">
+        {file.clientTags.map((tag) => (
+          <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
+        ))}
+      </span>
+    </div>
+  );
+});
 
-const MissingFileMenuItems = () => {
+export const MissingFileMenuItems = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
   return (
     <>
@@ -250,7 +236,7 @@ const MissingFileMenuItems = () => {
   );
 };
 
-const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
   const { uiStore } = useContext(StoreContext);
   const handleViewFullSize = useCallback(() => {
     uiStore.selectFile(file, true);
@@ -285,7 +271,7 @@ const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
   );
 };
 
-const ExternalAppMenuItems = ({ path }: { path: string }) => {
+export const ExternalAppMenuItems = ({ path }: { path: string }) => {
   const handleOpen = useCallback(() => shell.openPath(path), [path]);
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
   return (

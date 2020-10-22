@@ -3,7 +3,12 @@ import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
-import GalleryItem, { MissingImageFallback } from './GalleryItem';
+import GalleryItem, {
+  ExternalAppMenuItems,
+  FileViewerMenuItems,
+  MissingFileMenuItems,
+  MissingImageFallback,
+} from './GalleryItem';
 import { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
 import { IconSet } from 'components';
@@ -183,7 +188,7 @@ const GridGallery = observer(
 
     const handleClick = useCallback(
       (e: React.MouseEvent) => {
-        const index = getGridItemIndex(e, numColumns);
+        const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
         if (index !== undefined) {
           select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
         }
@@ -193,7 +198,7 @@ const GridGallery = observer(
 
     const handleDoubleClick = useCallback(
       (e: React.MouseEvent) => {
-        const index = getGridItemIndex(e, numColumns);
+        const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
         if (index !== undefined) {
           uiStore.selectFile(fileList[index], true);
           uiStore.enableSlideMode();
@@ -202,23 +207,32 @@ const GridGallery = observer(
       [fileList, numColumns, uiStore],
     );
 
+    const handleContextMenu = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
+        if (index !== undefined) {
+          const file = fileList[index];
+          showContextMenu(e.clientX, e.clientY, [
+            file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
+            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+          ]);
+        }
+      },
+      [fileList, numColumns, showContextMenu],
+    );
+
     const Row = useCallback(
       ({ index, style, data }) => {
         const offset = index * numColumns;
         return (
           <div role="row" aria-rowindex={index + 1} style={style}>
             {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
-              <GalleryItem
-                colIndex={i + 1}
-                key={file.id}
-                file={file}
-                showContextMenu={showContextMenu}
-              />
+              <GalleryItem colIndex={i + 1} key={file.id} file={file} />
             ))}
           </div>
         );
       },
-      [numColumns, showContextMenu],
+      [numColumns],
     );
 
     return (
@@ -229,6 +243,7 @@ const GridGallery = observer(
         aria-colcount={numColumns}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
       >
         <FixedSizeList
           height={contentRect.height}
@@ -289,7 +304,7 @@ const ListGallery = observer(
 
     const handleClick = useCallback(
       (e: React.MouseEvent) => {
-        const index = getListItemIndex(e);
+        const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
         if (index !== undefined) {
           select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
         }
@@ -299,7 +314,7 @@ const ListGallery = observer(
 
     const handleDoubleClick = useCallback(
       (e: React.MouseEvent) => {
-        const index = getListItemIndex(e);
+        const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
         if (index !== undefined) {
           uiStore.selectFile(fileList[index], true);
           uiStore.enableSlideMode();
@@ -308,17 +323,28 @@ const ListGallery = observer(
       [fileList, uiStore],
     );
 
-    const Row = useCallback(
-      ({ index, style, data }) => {
-        const file = data[index];
-        return (
-          <div role="row" aria-rowindex={index + 1} style={style}>
-            <GalleryItem colIndex={1} file={file} showContextMenu={showContextMenu} showDetails />
-          </div>
-        );
+    const handleContextMenu = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getListItemIndex(e, () => true);
+        if (index !== undefined) {
+          const file = fileList[index];
+          showContextMenu(e.clientX, e.clientY, [
+            file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
+            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+          ]);
+        }
       },
-      [showContextMenu],
+      [fileList, showContextMenu],
     );
+
+    const Row = useCallback(({ index, style, data }) => {
+      const file = data[index];
+      return (
+        <div role="row" aria-rowindex={index + 1} style={style}>
+          <GalleryItem colIndex={1} file={file} showDetails />
+        </div>
+      );
+    }, []);
 
     return (
       <div
@@ -327,6 +353,7 @@ const ListGallery = observer(
         aria-rowcount={fileList.length}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
       >
         <FixedSizeList
           height={contentRect.height}
@@ -617,9 +644,12 @@ const Gallery = () => {
 
 export default observer(Gallery);
 
-function getListItemIndex(e: React.MouseEvent): number | undefined {
+function getListItemIndex(
+  e: React.MouseEvent,
+  matches: (target: HTMLElement) => boolean,
+): number | undefined {
   const target = e.target as HTMLElement;
-  if (target.matches('.thumbnail')) {
+  if (matches(target)) {
     e.stopPropagation();
     // Each thumbnail is in a gridcell which is owned by a row.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -629,9 +659,13 @@ function getListItemIndex(e: React.MouseEvent): number | undefined {
   return undefined;
 }
 
-function getGridItemIndex(e: React.MouseEvent, numColumns: number): number | undefined {
+function getGridItemIndex(
+  e: React.MouseEvent,
+  numColumns: number,
+  matches: (target: HTMLElement) => boolean,
+): number | undefined {
   const target = e.target as HTMLElement;
-  if (target.matches('.thumbnail') || target.matches('.thumbnail-tags')) {
+  if (matches(target)) {
     e.stopPropagation();
     // Each thumbnail is in a gridcell which is owned by a row.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
