@@ -10,6 +10,8 @@ import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 
+// TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
+// e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 const Thumbnail = observer(({ file }: { file: ClientFile }) => {
   const { uiStore } = useContext(StoreContext);
 
@@ -48,20 +50,13 @@ const Thumbnail = observer(({ file }: { file: ClientFile }) => {
     [file.thumbnailPath],
   );
 
-  return (
-    <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-      {isReady ? (
-        // Show image when it has been loaded
-        <img src={file.thumbnailPath} onError={handleImageError} alt="" />
-      ) : isGenerating ? (
-        // If it's being generated, show a placeholder
-        <div className="donut-loading" />
-      ) : (
-        // Show an error it it could not be loaded
-        <MissingImageFallback />
-      )}
-    </div>
-  );
+  if (isReady) {
+    return <img src={file.thumbnailPath} onError={handleImageError} alt="" />;
+  } else if (isGenerating) {
+    return <div className="donut-loading" />;
+  } else {
+    return <MissingImageFallback />;
+  }
 });
 
 export const MissingImageFallback = ({ style }: { style?: React.CSSProperties }) => (
@@ -70,89 +65,18 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
   </div>
 );
 
-const FileRecovery = observer(
-  ({ file, showDetails }: { file: ClientFile; showDetails?: boolean }) => {
-    const { uiStore, fileStore } = useContext(StoreContext);
-    if (showDetails === true) {
-      return (
-        <div>
-          <p>The file {file.name} could not be found.</p>
-          <p>Would you like to remove it from your library?</p>
-          <ButtonGroup>
-            <Button
-              text="Remove"
-              styling="outlined"
-              onClick={() => {
-                uiStore.selectFile(file, true);
-                uiStore.openToolbarFileRemover();
-              }}
-            />
-          </ButtonGroup>
-        </div>
-      );
-    } else {
-      return (
-        <Tooltip content="This image could not be found.">
-          <span
-            className="thumbnail-broken-overlay"
-            onClick={(e) => {
-              e.stopPropagation(); // prevent image click event
-              fileStore.fetchMissingFiles();
-              uiStore.selectFile(file, true);
-            }}
-          >
-            {IconSet.WARNING_BROKEN_LINK}
-          </span>
-        </Tooltip>
-      );
-    }
-  },
-);
-
-interface IThumbnailDecoration {
-  showDetails?: boolean;
-  file: ClientFile;
-}
-
-const ThumbnailDecoration = observer(({ showDetails, file }: IThumbnailDecoration) => {
-  if (file.isBroken === true) {
-    return <FileRecovery file={file} showDetails={showDetails} />;
-  } else if (showDetails === true) {
-    return (
-      <>
-        <h2>{file.filename}</h2>
-        <ImageInfo file={file} />
-      </>
-    );
+const ItemTags = observer(({ file, suspended }: { file: ClientFile; suspended: boolean }) => {
+  if (suspended) {
+    return <span className="thumbnail-tags" />;
   } else {
-    return null;
-  }
-});
-
-interface IGalleryItemProps {
-  file: ClientFile;
-  colIndex: number;
-  showDetails?: boolean;
-}
-
-const GalleryItem = observer(({ file, showDetails, colIndex }: IGalleryItemProps) => {
-  const { uiStore } = useContext(StoreContext);
-  const isSelected = uiStore.fileSelection.has(file.id);
-
-  // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
-  // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-
-  return (
-    <div role="gridcell" aria-colindex={colIndex} aria-selected={isSelected}>
-      <Thumbnail file={file} />
-      <ThumbnailDecoration showDetails={showDetails} file={file} />
+    return (
       <span className="thumbnail-tags">
         {file.clientTags.map((tag) => (
           <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
         ))}
       </span>
-    </div>
-  );
+    );
+  }
 });
 
 export const MissingFileMenuItems = () => {
@@ -220,31 +144,77 @@ export const ExternalAppMenuItems = ({ path }: { path: string }) => {
   );
 };
 
-// A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
-const SimpleGalleryItem = observer(({ file, showDetails, colIndex }: IGalleryItemProps) => {
+export const ListItem = observer(({ file }: { file: ClientFile }) => {
+  const { uiStore } = useContext(StoreContext);
+  const [suspended, setSuspended] = useState(true);
+  useEffect(() => {
+    const timeout = setTimeout(() => setSuspended(false), 300);
+    return () => clearTimeout(timeout);
+  });
+
   return (
-    <div role="gridcell" aria-colindex={colIndex}>
-      <div className="thumbnail">
-        <img src={file.thumbnailPath} alt="" />
+    <div role="gridcell" aria-selected={uiStore.fileSelection.has(file.id)}>
+      <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+        {suspended ? <img src={file.thumbnailPath} alt="" /> : <Thumbnail file={file} />}
       </div>
-      {showDetails && (
+      {file.isBroken === true ? (
+        <div>
+          <p>The file {file.name} could not be found.</p>
+          <p>Would you like to remove it from your library?</p>
+          <ButtonGroup>
+            <Button
+              text="Remove"
+              styling="outlined"
+              onClick={() => {
+                uiStore.selectFile(file, true);
+                uiStore.openToolbarFileRemover();
+              }}
+            />
+          </ButtonGroup>
+        </div>
+      ) : (
         <>
           <h2>{file.filename}</h2>
-          <ImageInfo suspended file={file} />
+          <ImageInfo suspended={suspended} file={file} />
         </>
       )}
-      <span className="thumbnail-tags" />
+      <ItemTags file={file} suspended={suspended} />
     </div>
   );
 });
 
-const DelayedGalleryItem = (props: IGalleryItemProps) => {
-  const [showSimple, setShowSimple] = useState(true);
+export const GridItem = observer(({ file, colIndex }: { file: ClientFile; colIndex: number }) => {
+  const { uiStore, fileStore } = useContext(StoreContext);
+  const [suspended, setSuspended] = useState(true);
   useEffect(() => {
-    const timeout = setTimeout(() => setShowSimple(false), 300);
+    const timeout = setTimeout(() => setSuspended(false), 300);
     return () => clearTimeout(timeout);
   });
-  return showSimple ? <SimpleGalleryItem {...props} /> : <GalleryItem {...props} />;
-};
 
-export default observer(DelayedGalleryItem);
+  return (
+    <div
+      role="gridcell"
+      aria-colindex={colIndex}
+      aria-selected={uiStore.fileSelection.has(file.id)}
+    >
+      <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+        {suspended ? <img src={file.thumbnailPath} alt="" /> : <Thumbnail file={file} />}
+      </div>
+      {file.isBroken === true && (
+        <Tooltip content="This image could not be found.">
+          <span
+            className="thumbnail-broken-overlay"
+            onClick={(e) => {
+              e.stopPropagation(); // prevent image click event
+              fileStore.fetchMissingFiles();
+              uiStore.selectFile(file, true);
+            }}
+          >
+            {IconSet.WARNING_BROKEN_LINK}
+          </span>
+        </Tooltip>
+      )}
+      <ItemTags file={file} suspended={suspended} />
+    </div>
+  );
+});

@@ -3,13 +3,14 @@ import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
-import GalleryItem, {
+import {
   ExternalAppMenuItems,
   FileViewerMenuItems,
+  GridItem,
+  ListItem,
   MissingFileMenuItems,
   MissingImageFallback,
 } from './GalleryItem';
-import { ViewMethod } from '../../stores/UiStore';
 import { ClientFile } from '../../../entities/File';
 import { IconSet } from 'components';
 import { ContextMenu, SubMenu, Menu, MenuDivider } from 'components/menu';
@@ -23,36 +24,8 @@ import Placeholder from './Placeholder';
 import { RendererMessenger } from 'src/Messaging';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
 
-interface IGalleryLayoutProps {
-  contentRect: Rectangle;
-  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
-  lastSelectionIndex: React.MutableRefObject<number | undefined>;
-  /** menu: [fileMenu, externalMenu] */
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
-}
-
-function getLayoutComponent(
-  viewMethod: ViewMethod,
-  isSlideMode: boolean,
-  props: IGalleryLayoutProps,
-) {
-  if (isSlideMode) {
-    return <SlideGallery {...props} />;
-  }
-  switch (viewMethod) {
-    case 'grid':
-      return <GridGallery {...props} />;
-    // case 'masonry':
-    //   return <MasonryGallery {...props} />;
-    case 'list':
-      return <ListGallery {...props} />;
-    default:
-      return null;
-  }
-}
-
 const GridGallery = observer(
-  ({ contentRect, select, lastSelectionIndex, showContextMenu }: IGalleryLayoutProps) => {
+  ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
     const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
     const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
@@ -234,7 +207,7 @@ const GridGallery = observer(
         return (
           <div role="row" aria-rowindex={index + 1} style={style}>
             {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
-              <GalleryItem colIndex={i + 1} key={file.id} file={file} />
+              <GridItem colIndex={i + 1} key={file.id} file={file} />
             ))}
           </div>
         );
@@ -276,7 +249,7 @@ const GridGallery = observer(
 );
 
 const ListGallery = observer(
-  ({ contentRect, select, lastSelectionIndex, showContextMenu }: IGalleryLayoutProps) => {
+  ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
     const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
     const [, cellSize] = getThumbnailSize(uiStore.thumbnailSize);
@@ -403,7 +376,7 @@ const ListGallery = observer(
       const file = data[index];
       return (
         <div role="row" aria-rowindex={index + 1} style={style}>
-          <GalleryItem colIndex={1} file={file} showDetails />
+          <ListItem file={file} />
         </div>
       );
     }, []);
@@ -439,7 +412,7 @@ const ListGallery = observer(
   },
 );
 
-export const MasonryGallery = observer(({}: IGalleryLayoutProps) => {
+export const MasonryGallery = observer(({}: ILayoutProps) => {
   const Styles: any = {
     textAlign: 'center',
     display: 'flex',
@@ -463,7 +436,7 @@ export const MasonryGallery = observer(({}: IGalleryLayoutProps) => {
   }
 });
 
-const SlideGallery = observer(({ contentRect }: IGalleryLayoutProps) => {
+const SlideGallery = observer(({ contentRect }: ILayoutProps) => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const { fileList } = fileStore;
   // Go to the first selected image on load
@@ -583,6 +556,31 @@ const handleFlyoutBlur = (e: React.FocusEvent) => {
   }
 };
 
+interface ILayoutProps {
+  contentRect: Rectangle;
+  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
+  lastSelectionIndex: React.MutableRefObject<number | undefined>;
+  /** menu: [fileMenu, externalMenu] */
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
+}
+
+const Layout = observer((props: ILayoutProps) => {
+  const { uiStore } = useContext(StoreContext);
+  if (uiStore.isSlideMode) {
+    return <SlideGallery {...props} />;
+  }
+  switch (uiStore.method) {
+    case 'grid':
+      return <GridGallery {...props} />;
+    // case 'masonry':
+    //   return <MasonryGallery {...props} />;
+    case 'list':
+      return <ListGallery {...props} />;
+    default:
+      return null;
+  }
+});
+
 const Gallery = () => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
@@ -684,12 +682,12 @@ const Gallery = () => {
       onClick={uiStore.clearFileSelection}
       onBlur={handleFlyoutBlur}
     >
-      {getLayoutComponent(uiStore.method, uiStore.isSlideMode, {
-        contentRect,
-        select: handleFileSelect,
-        lastSelectionIndex,
-        showContextMenu: show,
-      })}
+      <Layout
+        contentRect={contentRect}
+        select={handleFileSelect}
+        lastSelectionIndex={lastSelectionIndex}
+        showContextMenu={show}
+      />
       <ContextMenu key="contextmenu" open={open} x={x} y={y} onClose={hide}>
         <Menu>
           {fileMenu}
