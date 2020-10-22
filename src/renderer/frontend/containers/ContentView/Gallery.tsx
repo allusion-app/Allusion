@@ -436,7 +436,7 @@ export const MasonryGallery = observer(({}: ILayoutProps) => {
   }
 });
 
-const SlideGallery = observer(({ contentRect }: ILayoutProps) => {
+const SlideGallery = observer(({ contentRect }: { contentRect: Rectangle }) => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const { fileList } = fileStore;
   // Go to the first selected image on load
@@ -564,22 +564,91 @@ interface ILayoutProps {
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
-const Layout = observer((props: ILayoutProps) => {
-  const { uiStore } = useContext(StoreContext);
-  if (uiStore.isSlideMode) {
-    return <SlideGallery {...props} />;
-  }
-  switch (uiStore.method) {
-    case 'grid':
-      return <GridGallery {...props} />;
-    // case 'masonry':
-    //   return <MasonryGallery {...props} />;
-    case 'list':
-      return <ListGallery {...props} />;
-    default:
-      return null;
-  }
-});
+const Layout = observer(
+  ({ contentRect, showContextMenu }: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
+    const { uiStore, fileStore } = useContext(StoreContext);
+    const fileList = fileStore.fileList;
+    const { makeSelection, lastSelectionIndex } = useSelectionCursor();
+
+    // useComputed to listen to fileSelection changes
+    const handleFileSelect = useCallback(
+      (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => {
+        const i = fileStore.getIndex(selectedFile.id);
+        if (i === undefined) {
+          return;
+        }
+
+        const isSelected = uiStore.fileSelection.has(selectedFile.id);
+        const singleSelected = isSelected && uiStore.fileSelection.size === 1;
+
+        const newSelection = makeSelection(i, selectRange);
+        if (!selectAdditive) {
+          uiStore.clearFileSelection();
+        }
+        if (selectRange) {
+          uiStore.selectFiles(newSelection.map((i) => fileList[i].id));
+        } else if (selectAdditive) {
+          // Add or subtract to the selection
+          isSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
+        } else {
+          // Only select this file. If this is the only selected file, deselect it
+          singleSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
+        }
+      },
+      [fileStore, uiStore, makeSelection, fileList],
+    );
+
+    useEffect(() => {
+      const onKeyDown = (e: KeyboardEvent) => {
+        let index = lastSelectionIndex.current;
+        if (index === undefined) {
+          return;
+        }
+        if (e.key === 'ArrowLeft' && index > 0) {
+          index -= 1;
+        } else if (e.key === 'ArrowRight' && index < fileList.length - 1) {
+          index += 1;
+        } else {
+          return;
+        }
+        handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      };
+
+      const throttledKeyDown = throttle(onKeyDown, 50);
+
+      window.addEventListener('keydown', throttledKeyDown);
+      return () => window.removeEventListener('keydown', throttledKeyDown);
+    }, [fileList, uiStore, handleFileSelect, lastSelectionIndex]);
+
+    if (uiStore.isSlideMode) {
+      return <SlideGallery contentRect={contentRect} />;
+    }
+    switch (uiStore.method) {
+      case 'grid':
+        return (
+          <GridGallery
+            contentRect={contentRect}
+            select={handleFileSelect}
+            lastSelectionIndex={lastSelectionIndex}
+            showContextMenu={showContextMenu}
+          />
+        );
+      // case 'masonry':
+      //   return <MasonryGallery {...props} />;
+      case 'list':
+        return (
+          <ListGallery
+            contentRect={contentRect}
+            select={handleFileSelect}
+            lastSelectionIndex={lastSelectionIndex}
+            showContextMenu={showContextMenu}
+          />
+        );
+      default:
+        return null;
+    }
+  },
+);
 
 const Gallery = () => {
   const { fileStore, uiStore } = useContext(StoreContext);
@@ -614,57 +683,7 @@ const Gallery = () => {
     return () => observer.disconnect();
   }, [fileList.length]);
 
-  const { makeSelection, lastSelectionIndex } = useSelectionCursor();
-
-  // useComputed to listen to fileSelection changes
-  const handleFileSelect = useCallback(
-    (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => {
-      const i = fileStore.getIndex(selectedFile.id);
-      if (i === undefined) {
-        return;
-      }
-
-      const isSelected = uiStore.fileSelection.has(selectedFile.id);
-      const singleSelected = isSelected && uiStore.fileSelection.size === 1;
-
-      const newSelection = makeSelection(i, selectRange);
-      if (!selectAdditive) {
-        uiStore.clearFileSelection();
-      }
-      if (selectRange) {
-        uiStore.selectFiles(newSelection.map((i) => fileList[i].id));
-      } else if (selectAdditive) {
-        // Add or subtract to the selection
-        isSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
-      } else {
-        // Only select this file. If this is the only selected file, deselect it
-        singleSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
-      }
-    },
-    [fileStore, uiStore, makeSelection, fileList],
-  );
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      let index = lastSelectionIndex.current;
-      if (index === undefined) {
-        return;
-      }
-      if (e.key === 'ArrowLeft' && index > 0) {
-        index -= 1;
-      } else if (e.key === 'ArrowRight' && index < fileList.length - 1) {
-        index += 1;
-      } else {
-        return;
-      }
-      handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
-    };
-
-    const throttledKeyDown = throttle(onKeyDown, 50);
-
-    window.addEventListener('keydown', throttledKeyDown);
-    return () => window.removeEventListener('keydown', throttledKeyDown);
-  }, [fileList, uiStore, handleFileSelect, lastSelectionIndex]);
+  // const { makeSelection, lastSelectionIndex } = useSelectionCursor();
 
   // Todo: Select by dragging a rectangle shape
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
@@ -682,12 +701,7 @@ const Gallery = () => {
       onClick={uiStore.clearFileSelection}
       onBlur={handleFlyoutBlur}
     >
-      <Layout
-        contentRect={contentRect}
-        select={handleFileSelect}
-        lastSelectionIndex={lastSelectionIndex}
-        showContextMenu={show}
-      />
+      <Layout contentRect={contentRect} showContextMenu={show} />
       <ContextMenu key="contextmenu" open={open} x={x} y={y} onClose={hide}>
         <Menu>
           {fileMenu}
