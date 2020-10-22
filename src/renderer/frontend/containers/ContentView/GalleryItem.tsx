@@ -8,9 +8,7 @@ import { MenuItem } from 'components/menu';
 import { Tooltip } from 'components/popover';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
-import { DnDType, DnDAttribute } from '../Outliner/TagsPanel/DnD';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
-import { RendererMessenger } from 'src/Messaging';
 
 const Thumbnail = observer(({ file }: { file: ClientFile }) => {
   const { uiStore } = useContext(StoreContext);
@@ -50,15 +48,19 @@ const Thumbnail = observer(({ file }: { file: ClientFile }) => {
     [file.thumbnailPath],
   );
 
-  return isReady ? (
-    // Show image when it has been loaded
-    <img src={file.thumbnailPath} onError={handleImageError} alt="" />
-  ) : isGenerating ? (
-    // If it's being generated, show a placeholder
-    <div className="donut-loading" />
-  ) : (
-    // Show an error it it could not be loaded
-    <MissingImageFallback />
+  return (
+    <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+      {isReady ? (
+        // Show image when it has been loaded
+        <img src={file.thumbnailPath} onError={handleImageError} alt="" />
+      ) : isGenerating ? (
+        // If it's being generated, show a placeholder
+        <div className="donut-loading" />
+      ) : (
+        // Show an error it it could not be loaded
+        <MissingImageFallback />
+      )}
+    </div>
   );
 });
 
@@ -133,84 +135,16 @@ interface IGalleryItemProps {
   showDetails?: boolean;
 }
 
-const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-  if (event.dataTransfer.types.includes(DnDType)) {
-    event.dataTransfer.dropEffect = 'link';
-    event.preventDefault();
-    event.stopPropagation();
-    event.currentTarget.dataset[DnDAttribute.Target] = 'true';
-  }
-};
-
-const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-  if (event.dataTransfer.types.includes(DnDType)) {
-    event.dataTransfer.dropEffect = 'none';
-    event.preventDefault();
-    event.stopPropagation();
-    event.currentTarget.dataset[DnDAttribute.Target] = 'false';
-  }
-};
-
 const GalleryItem = observer(({ file, showDetails, colIndex }: IGalleryItemProps) => {
   const { uiStore } = useContext(StoreContext);
   const isSelected = uiStore.fileSelection.has(file.id);
-
-  const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      if (event.dataTransfer.types.includes(DnDType)) {
-        event.dataTransfer.dropEffect = 'none';
-        const ctx = uiStore.getTagContextItems(event.dataTransfer.getData(DnDType));
-        ctx.tags.forEach((tag) => {
-          file.addTag(tag.id);
-          tag.subTags.forEach(file.addTag);
-        });
-        event.currentTarget.dataset[DnDAttribute.Target] = 'false';
-      }
-    },
-    [file, uiStore],
-  );
-
-  const handleDragStart = useCallback(
-    async (e: React.DragEvent<HTMLImageElement>) => {
-      // If file is selected, add all selected items to the drag event, for exporting e.g. to your file explorer or programs like PureRef
-      // Creating an event in the main process turned out to be the most robust, did many experiments with drag event content types.
-      // Creating a drag event with multiple images did not work correctly from the browser side (e.g. only limited to thumbnails, not full images)
-      if (!uiStore.fileSelection.has(file.id)) {
-        return;
-      }
-      e.preventDefault();
-      if (uiStore.fileSelection.size > 1) {
-        RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
-      } else {
-        RendererMessenger.startDragExport([file.absolutePath]);
-      }
-
-      // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
-      // So we can store the date when the event starts... Hacky but it works :)
-      (window as any).internalDragStart = new Date();
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [file.absolutePath, file.id, uiStore.fileSelection],
-  );
 
   // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
   // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 
   return (
-    <div
-      role="gridcell"
-      aria-colindex={colIndex}
-      aria-selected={isSelected}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      <div
-        className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
-        onDragStart={handleDragStart}
-      >
-        <Thumbnail file={file} />
-      </div>
+    <div role="gridcell" aria-colindex={colIndex} aria-selected={isSelected}>
+      <Thumbnail file={file} />
       <ThumbnailDecoration showDetails={showDetails} file={file} />
       <span className="thumbnail-tags">
         {file.clientTags.map((tag) => (

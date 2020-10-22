@@ -20,37 +20,8 @@ import useSelectionCursor from '../../hooks/useSelectionCursor';
 import { LayoutMenuItems, SortMenuItems } from '../Toolbar/ContentToolbar';
 import useContextMenu from '../../hooks/useContextMenu';
 import Placeholder from './Placeholder';
-
-// WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
-// We'll have less loss of space perhaps
-// https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
-// const { screen } = remote;
-// const { width } = screen.getPrimaryDisplay().workAreaSize;
-// const CELL_SMALL = (width / 10) - 16;
-// const CELL_MEDIUM = (width / 6) - 8;
-// const CELL_LARGE = (width / 4) - 8;
-// // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-// const CELL_SIZE_SMALL = CELL_SMALL - 2;
-// const CELL_SIZE_MEDIUM = CELL_MEDIUM - 2;
-// const CELL_SIZE_LARGE = CELL_LARGE - 2;
-// Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-// TODO: Use computed styles to access the CSS variables
-const PADDING = 8;
-const CELL_SIZE_SMALL = 160 + PADDING;
-const CELL_SIZE_MEDIUM = 240 + PADDING;
-const CELL_SIZE_LARGE = 320 + PADDING;
-// Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
-// can fit into one row.
-const SHRINK_FACTOR = 0.9;
-
-function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
-  if (sizeType === 'small') {
-    return [CELL_SIZE_SMALL * SHRINK_FACTOR, CELL_SIZE_SMALL];
-  } else if (sizeType === 'medium') {
-    return [CELL_SIZE_MEDIUM * SHRINK_FACTOR, CELL_SIZE_MEDIUM];
-  }
-  return [CELL_SIZE_LARGE * SHRINK_FACTOR, CELL_SIZE_LARGE];
-}
+import { RendererMessenger } from 'src/Messaging';
+import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
 
 interface IGalleryLayoutProps {
   contentRect: Rectangle;
@@ -79,22 +50,6 @@ function getLayoutComponent(
       return null;
   }
 }
-
-function get_column_layout(width: number, minSize: number, maxSize: number): [number, number] {
-  const numColumns = Math.trunc(width / minSize);
-  let cellSize = Math.trunc(width / numColumns);
-  if (isNaN(cellSize) || !isFinite(cellSize)) {
-    cellSize = minSize;
-  }
-  cellSize = Math.min(cellSize, maxSize);
-  return [numColumns, cellSize];
-}
-
-/** Generates a unique key for an element in the fileList */
-const getItemKey = (index: number, data: ClientFile[]): string => {
-  const file = index < data.length ? data[index] : null;
-  return file ? file.id : `${index}`;
-};
 
 const GridGallery = observer(
   ({ contentRect, select, lastSelectionIndex, showContextMenu }: IGalleryLayoutProps) => {
@@ -221,6 +176,58 @@ const GridGallery = observer(
       [fileList, numColumns, showContextMenu],
     );
 
+    // If the file is selected, add all selected items to the drag event, for
+    // exporting to your file explorer or programs like PureRef.
+    // Creating an event in the main process turned out to be the most robust,
+    // did many experiments with drag event content types. Creating a drag
+    // event with multiple images did not work correctly from the browser side
+    // (e.g. only limited to thumbnails, not full images).
+    const handleDragStart = useCallback(
+      async (e: React.DragEvent) => {
+        console.log(e.target);
+        const index = getGridItemIndex(e, numColumns, (t) => t.matches('.thumbnail'));
+        if (index === undefined) {
+          return;
+        }
+        const file = fileList[index];
+        if (!uiStore.fileSelection.has(file.id)) {
+          return;
+        }
+        e.preventDefault();
+        if (uiStore.fileSelection.size > 1) {
+          RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
+        } else {
+          RendererMessenger.startDragExport([file.absolutePath]);
+        }
+
+        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+        // So we can store the date when the event starts... Hacky but it works :)
+        (window as any).internalDragStart = new Date();
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [uiStore.fileSelection],
+    );
+
+    const handleDrop = useCallback(
+      (e: React.DragEvent<HTMLDivElement>) => {
+        if (e.dataTransfer.types.includes(DnDType)) {
+          const index = getGridItemIndex(e, numColumns, (t) => t.matches('.thumbnail'));
+          if (index === undefined) {
+            return;
+          }
+          const file = fileList[index];
+          e.dataTransfer.dropEffect = 'none';
+          const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
+          ctx.tags.forEach((tag) => {
+            file.addTag(tag.id);
+            tag.subTags.forEach(file.addTag);
+          });
+          e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+        }
+      },
+      [fileList, numColumns, uiStore],
+    );
+
     const Row = useCallback(
       ({ index, style, data }) => {
         const offset = index * numColumns;
@@ -244,6 +251,10 @@ const GridGallery = observer(
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         <FixedSizeList
           height={contentRect.height}
@@ -337,6 +348,57 @@ const ListGallery = observer(
       [fileList, showContextMenu],
     );
 
+    // If the file is selected, add all selected items to the drag event, for
+    // exporting to your file explorer or programs like PureRef.
+    // Creating an event in the main process turned out to be the most robust,
+    // did many experiments with drag event content types. Creating a drag
+    // event with multiple images did not work correctly from the browser side
+    // (e.g. only limited to thumbnails, not full images).
+    const handleDragStart = useCallback(
+      async (e: React.DragEvent) => {
+        const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+        if (index === undefined) {
+          return;
+        }
+        const file = fileList[index];
+        if (!uiStore.fileSelection.has(file.id)) {
+          return;
+        }
+        e.preventDefault();
+        if (uiStore.fileSelection.size > 1) {
+          RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
+        } else {
+          RendererMessenger.startDragExport([file.absolutePath]);
+        }
+
+        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+        // So we can store the date when the event starts... Hacky but it works :)
+        (window as any).internalDragStart = new Date();
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [uiStore.fileSelection],
+    );
+
+    const handleDrop = useCallback(
+      (e: React.DragEvent<HTMLDivElement>) => {
+        if (e.dataTransfer.types.includes(DnDType)) {
+          const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+          if (index === undefined) {
+            return;
+          }
+          const file = fileList[index];
+          e.dataTransfer.dropEffect = 'none';
+          const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
+          ctx.tags.forEach((tag) => {
+            file.addTag(tag.id);
+            tag.subTags.forEach(file.addTag);
+          });
+          e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+        }
+      },
+      [fileList, uiStore],
+    );
+
     const Row = useCallback(({ index, style, data }) => {
       const file = data[index];
       return (
@@ -354,6 +416,10 @@ const ListGallery = observer(
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         <FixedSizeList
           height={contentRect.height}
@@ -643,6 +709,69 @@ const Gallery = () => {
 };
 
 export default observer(Gallery);
+
+function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+  if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'link';
+    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'true';
+  }
+}
+
+function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+  const target = e.target as HTMLElement;
+  if (e.dataTransfer.types.includes(DnDType) && target.matches('.thumbnail')) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'none';
+    target.dataset[DnDAttribute.Target] = 'false';
+  }
+}
+
+// WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
+// We'll have less loss of space perhaps
+// https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
+// const { screen } = remote;
+// const { width } = screen.getPrimaryDisplay().workAreaSize;
+// const CELL_SMALL = (width / 10) - 16;
+// const CELL_MEDIUM = (width / 6) - 8;
+// const CELL_LARGE = (width / 4) - 8;
+// // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
+// const CELL_SIZE_SMALL = CELL_SMALL - 2;
+// const CELL_SIZE_MEDIUM = CELL_MEDIUM - 2;
+// const CELL_SIZE_LARGE = CELL_LARGE - 2;
+// Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
+// TODO: Use computed styles to access the CSS variables
+const PADDING = 8;
+const CELL_SIZE_SMALL = 160 + PADDING;
+const CELL_SIZE_MEDIUM = 240 + PADDING;
+const CELL_SIZE_LARGE = 320 + PADDING;
+// Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
+// can fit into one row.
+const SHRINK_FACTOR = 0.9;
+
+function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
+  if (sizeType === 'small') {
+    return [CELL_SIZE_SMALL * SHRINK_FACTOR, CELL_SIZE_SMALL];
+  } else if (sizeType === 'medium') {
+    return [CELL_SIZE_MEDIUM * SHRINK_FACTOR, CELL_SIZE_MEDIUM];
+  }
+  return [CELL_SIZE_LARGE * SHRINK_FACTOR, CELL_SIZE_LARGE];
+}
+
+function get_column_layout(width: number, minSize: number, maxSize: number): [number, number] {
+  const numColumns = Math.trunc(width / minSize);
+  let cellSize = Math.trunc(width / numColumns);
+  if (isNaN(cellSize) || !isFinite(cellSize)) {
+    cellSize = minSize;
+  }
+  cellSize = Math.min(cellSize, maxSize);
+  return [numColumns, cellSize];
+}
+
+/** Generates a unique key for an element in the fileList */
+function getItemKey(index: number, data: ClientFile[]): string {
+  return data[index].id;
+}
 
 function getListItemIndex(
   e: React.MouseEvent,

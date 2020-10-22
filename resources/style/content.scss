@@ -37,7 +37,7 @@
 /////////////////////// Thumbnail //////////////////////////////////
 [role='gridcell'] {
   position: relative;
-  padding: 0 4px;
+  margin: 4px;
 
   h2 {
     grid-area: title;
@@ -60,14 +60,6 @@
     outline-width: 5px;
     outline-offset: -5px;
     outline-style: solid;
-  }
-
-  &[data-dnd-target='true'] .thumbnail {
-    background: $yellow1;
-
-    img {
-      clip-path: inset(0.5rem round 0.125rem);
-    }
   }
 
   &:hover .thumbnail-tags {
@@ -98,6 +90,14 @@
     margin-left: auto;
     margin-right: auto;
     display: block;
+  }
+
+  &[data-dnd-target='true'] {
+    background: $yellow1;
+
+    img {
+      clip-path: inset(0.5rem round 0.125rem);
+    }
   }
 }
 
@@ -210,11 +210,10 @@
 
 .grid {
   [role='row'] {
-    padding: 4px 0;
     white-space: nowrap;
 
     [role='gridcell']:last-child {
-      padding-right: 0;
+      margin-right: 0;
     }
   }
 
@@ -225,11 +224,11 @@
       max-height: var(--thumbnail-size);
       background-color: rgba(0, 0, 0, 0.25);
     }
+  }
 
-    &[data-dnd-target='true'] .thumbnail-tags {
-      max-height: var(--thumbnail-size);
-      overflow: hidden; // can't scroll while dropping
-    }
+  .thumbnail[data-dnd-target='true'] .thumbnail-tags {
+    max-height: var(--thumbnail-size);
+    overflow: hidden; // can't scroll while dropping
   }
 
   .thumbnail-tags {
