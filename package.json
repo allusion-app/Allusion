@@ -72,6 +72,7 @@
     "mini-css-extract-plugin": "^1.0.0",
     "ncp": "^2.0.0",
     "node-loader": "^1.0.0",
+    "normalize.css": "^8.0.1",
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
     "sass": "^1.27.0",

@@ -440,20 +440,6 @@ const handleFlyoutBlur = (e: React.FocusEvent) => {
   }
 };
 
-const GalleryContextMenuItems = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
-  return (
-    <>
-      <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
-        <LayoutMenuItems uiStore={uiStore} />
-      </SubMenu>
-      <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-        <SortMenuItems fileStore={fileStore} />
-      </SubMenu>
-    </>
-  );
-});
-
 const Gallery = () => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
@@ -564,8 +550,14 @@ const Gallery = () => {
       <ContextMenu key="contextmenu" open={open} x={x} y={y} onClose={hide}>
         <Menu>
           {fileMenu}
-          <MenuDivider key="divider" />
-          <GalleryContextMenuItems key="gallery-menu" />
+          <MenuDivider key="separator_file" />
+          <SubMenu key="view" icon={IconSet.VIEW_GRID} text="View method...">
+            <LayoutMenuItems uiStore={uiStore} />
+          </SubMenu>
+          <SubMenu key="sort" icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+            <SortMenuItems fileStore={fileStore} />
+          </SubMenu>
+          <MenuDivider key="separator_ext" />
           {externalMenu}
         </Menu>
       </ContextMenu>

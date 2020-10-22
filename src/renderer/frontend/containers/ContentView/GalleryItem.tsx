@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../../entities/File';
 import { Button, ButtonGroup, IconSet, Tag } from 'components';
-import { MenuDivider, MenuItem } from 'components/menu';
+import { MenuItem } from 'components/menu';
 import { Tooltip } from 'components/popover';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
@@ -305,7 +305,6 @@ const ExternalAppMenuItems = ({ path }: { path: string }) => {
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
   return (
     <>
-      <MenuDivider />
       <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
       <MenuItem
         onClick={handleOpenFileExplorer}
@@ -319,7 +318,7 @@ const ExternalAppMenuItems = ({ path }: { path: string }) => {
 // A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
 const SimpleGalleryItem = observer(({ file, showDetails }: IGalleryItemProps) => {
   return (
-    <div role="gridcell">
+    <div role="gridcell" tabIndex={-1}>
       <div className="thumbnail">
         <img src={file.thumbnailPath} alt="" />
       </div>
