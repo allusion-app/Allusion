@@ -181,27 +181,55 @@ const GridGallery = observer(
       return () => window.removeEventListener('keydown', throttledKeyDown);
     }, [fileList, uiStore, numColumns, select, lastSelectionIndex]);
 
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getGridItemIndex(e, numColumns);
+        if (index !== undefined) {
+          select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+        }
+      },
+      [fileList, numColumns, select],
+    );
+
+    const handleDoubleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getGridItemIndex(e, numColumns);
+        if (index !== undefined) {
+          uiStore.selectFile(fileList[index], true);
+          uiStore.enableSlideMode();
+        }
+      },
+      [fileList, numColumns, uiStore],
+    );
+
     const Row = useCallback(
       ({ index, style, data }) => {
         const offset = index * numColumns;
         return (
           <div role="row" aria-rowindex={index + 1} style={style}>
-            {data.slice(offset, offset + numColumns).map((file: ClientFile) => (
+            {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
               <GalleryItem
+                colIndex={i + 1}
                 key={file.id}
                 file={file}
-                select={select}
                 showContextMenu={showContextMenu}
               />
             ))}
           </div>
         );
       },
-      [select, numColumns, showContextMenu],
+      [numColumns, showContextMenu],
     );
 
     return (
-      <div className="grid" role="grid" aria-rowcount={numRows} aria-colcount={numColumns}>
+      <div
+        className="grid"
+        role="grid"
+        aria-rowcount={numRows}
+        aria-colcount={numColumns}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+      >
         <FixedSizeList
           height={contentRect.height}
           width={contentRect.width}
@@ -259,25 +287,47 @@ const ListGallery = observer(
       [cellSize, uiStore],
     );
 
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getListItemIndex(e);
+        if (index !== undefined) {
+          select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+        }
+      },
+      [fileList, select],
+    );
+
+    const handleDoubleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getListItemIndex(e);
+        if (index !== undefined) {
+          uiStore.selectFile(fileList[index], true);
+          uiStore.enableSlideMode();
+        }
+      },
+      [fileList, uiStore],
+    );
+
     const Row = useCallback(
       ({ index, style, data }) => {
         const file = data[index];
         return (
           <div role="row" aria-rowindex={index + 1} style={style}>
-            <GalleryItem
-              file={file}
-              select={select}
-              showContextMenu={showContextMenu}
-              showDetails
-            />
+            <GalleryItem colIndex={1} file={file} showContextMenu={showContextMenu} showDetails />
           </div>
         );
       },
-      [select, showContextMenu],
+      [showContextMenu],
     );
 
     return (
-      <div className="list" role="grid" aria-rowcount={fileList.length}>
+      <div
+        className="list"
+        role="grid"
+        aria-rowcount={fileList.length}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+      >
         <FixedSizeList
           height={contentRect.height}
           width={contentRect.width}
@@ -566,3 +616,30 @@ const Gallery = () => {
 };
 
 export default observer(Gallery);
+
+function getListItemIndex(e: React.MouseEvent): number | undefined {
+  const target = e.target as HTMLElement;
+  if (target.matches('.thumbnail')) {
+    e.stopPropagation();
+    // Each thumbnail is in a gridcell which is owned by a row.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const rowIndex = target.closest('[role="row"]')!.getAttribute('aria-rowindex')!;
+    return parseInt(rowIndex) - 1;
+  }
+  return undefined;
+}
+
+function getGridItemIndex(e: React.MouseEvent, numColumns: number): number | undefined {
+  const target = e.target as HTMLElement;
+  if (target.matches('.thumbnail') || target.matches('.thumbnail-tags')) {
+    e.stopPropagation();
+    // Each thumbnail is in a gridcell which is owned by a row.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const rowIndex = target.closest('[role="row"]')!.getAttribute('aria-rowindex')!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const colIndex = target.closest('[role="gridcell"')!.getAttribute('aria-colindex')!;
+    const offset = (parseInt(rowIndex) - 1) * numColumns;
+    return offset + parseInt(colIndex) - 1;
+  }
+  return undefined;
+}

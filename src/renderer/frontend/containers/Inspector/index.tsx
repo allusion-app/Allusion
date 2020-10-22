@@ -76,21 +76,29 @@ const Inspector = observer(() => {
   }
 
   let selectionPreview: ReactNode;
+  let information: ReactNode;
 
   if (selectedFiles.size === 1) {
-    const singleFile = fileStore.get(uiStore.getFirstSelectedFileId())!;
-    selectionPreview = singleFile.isBroken ? (
-      <MissingImageFallback />
-    ) : (
-      <img
-        src={singleFile.absolutePath}
-        style={{ cursor: uiStore.isSlideMode ? undefined : 'zoom-in' }}
-        onClick={uiStore.enableSlideMode}
-      />
-    );
+    const first = fileStore.get(uiStore.getFirstSelectedFileId()!);
+    if (first === undefined) {
+      selectionPreview = <MissingImageFallback />;
+      information = 'The selected file cannot be found. Please check if the given file exists.';
+    } else {
+      selectionPreview = first.isBroken ? (
+        <MissingImageFallback />
+      ) : (
+        <img
+          src={first.absolutePath}
+          style={{ cursor: uiStore.isSlideMode ? undefined : 'zoom-in' }}
+          onClick={uiStore.enableSlideMode}
+        />
+      );
+      information = <ImageInfo file={first} />;
+    }
   } else {
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
     selectionPreview = <Carousel items={uiStore.clientFileSelection} />;
+    information = `Selected ${uiStore.clientFileSelection.length} files`;
   }
 
   return (
@@ -98,11 +106,7 @@ const Inspector = observer(() => {
       <div className="inspector-preview">{selectionPreview}</div>
       <section>
         <h2 className="inspector-heading">Information</h2>
-        {selectedFiles.size === 1 ? (
-          <ImageInfo file={fileStore.get(uiStore.getFirstSelectedFileId())!} />
-        ) : (
-          `Selected ${uiStore.clientFileSelection.length} files`
-        )}
+        {information}
       </section>
       <section>
         <h2 className="inspector-heading">Tags</h2>

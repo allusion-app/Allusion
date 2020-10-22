@@ -129,7 +129,7 @@ const ThumbnailDecoration = observer(({ showDetails, file }: IThumbnailDecoratio
 
 interface IGalleryItemProps {
   file: ClientFile;
-  select: (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
+  colIndex: number;
   showDetails?: boolean;
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
@@ -153,7 +153,7 @@ const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
 };
 
 const GalleryItem = observer(
-  ({ file, select, showDetails, showContextMenu }: IGalleryItemProps) => {
+  ({ file, showDetails, showContextMenu, colIndex }: IGalleryItemProps) => {
     const { uiStore } = useContext(StoreContext);
     const isSelected = uiStore.fileSelection.has(file.id);
 
@@ -171,20 +171,6 @@ const GalleryItem = observer(
       },
       [file, uiStore],
     );
-
-    const handleClick = useCallback(
-      (e: React.MouseEvent) => {
-        e.stopPropagation(); // avoid propogation to background
-        select(file, e.ctrlKey || e.metaKey, e.shiftKey);
-      },
-      [file, select],
-    );
-
-    // Slide view when double clicking
-    const handleDoubleClick = useCallback(() => {
-      uiStore.selectFile(file, true);
-      uiStore.enableSlideMode();
-    }, [file, uiStore]);
 
     const handleDragStart = useCallback(
       async (e: React.DragEvent<HTMLImageElement>) => {
@@ -225,6 +211,7 @@ const GalleryItem = observer(
     return (
       <div
         role="gridcell"
+        aria-colindex={colIndex}
         aria-selected={isSelected}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -232,15 +219,13 @@ const GalleryItem = observer(
         onContextMenu={handleContextMenu}
       >
         <div
-          onClick={handleClick}
           className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
-          onDoubleClick={handleDoubleClick}
           onDragStart={handleDragStart}
         >
           <Thumbnail file={file} />
         </div>
         <ThumbnailDecoration showDetails={showDetails} file={file} />
-        <span className="thumbnail-tags" onClick={handleClick} onDoubleClick={handleDoubleClick}>
+        <span className="thumbnail-tags">
           {file.clientTags.map((tag) => (
             <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
           ))}
@@ -316,9 +301,9 @@ const ExternalAppMenuItems = ({ path }: { path: string }) => {
 };
 
 // A simple version of the GalleryItem, only rendering the minimally required info (thumbnail + name)
-const SimpleGalleryItem = observer(({ file, showDetails }: IGalleryItemProps) => {
+const SimpleGalleryItem = observer(({ file, showDetails, colIndex }: IGalleryItemProps) => {
   return (
-    <div role="gridcell" tabIndex={-1}>
+    <div role="gridcell" aria-colindex={colIndex}>
       <div className="thumbnail">
         <img src={file.thumbnailPath} alt="" />
       </div>

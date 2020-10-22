@@ -73,8 +73,8 @@ if (IS_PREVIEW_WINDOW) {
   // Change window title to filename when changing the selected file
   observe(rootStore.uiStore.fileSelection, ({ object: list }) => {
     if (list.size > 0) {
-      const file = rootStore.fileStore.get(rootStore.uiStore.getFirstSelectedFileId());
-      if (file) {
+      const file = rootStore.fileStore.get(rootStore.uiStore.getFirstSelectedFileId()!);
+      if (file !== undefined) {
         document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.absolutePath}`;
       }
     }

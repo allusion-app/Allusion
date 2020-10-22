@@ -85,10 +85,10 @@
   -webkit-user-drag: element;
   background-color: var(--foreground-color);
 
-  > img,
-  > .image-error {
+  :first-child {
     clip-path: inset(0 round 0.25rem);
     transition: clip-path 0.2s $pt-transition-cubic2;
+    pointer-events: none;
   }
 
   > img {
@@ -186,17 +186,21 @@
     height: 100%;
   }
 
-  .thumbnail-tags {
-    position: unset;
-    padding: 0;
+  .thumbnail {
+    align-self: center;
   }
 
   h2 {
     align-self: end;
   }
 
-  .thumbnail {
-    align-self: center;
+  .file-info {
+    pointer-events: none;
+  }
+
+  .thumbnail-tags {
+    position: unset;
+    padding: 0;
   }
 }
 
@@ -207,6 +211,7 @@
 .grid {
   [role='row'] {
     padding: 4px 0;
+    white-space: nowrap;
 
     [role='gridcell']:last-child {
       padding-right: 0;

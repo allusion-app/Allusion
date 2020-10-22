@@ -559,8 +559,8 @@ class UiStore {
     this.fileSelection.clear();
   }
 
-  getFirstSelectedFileId(): ID {
-    return this.fileSelection.values().next().value;
+  getFirstSelectedFileId(): ID | undefined {
+    return this.fileSelection.values().next().value ?? undefined;
   }
 
   @action private viewAllContent() {
