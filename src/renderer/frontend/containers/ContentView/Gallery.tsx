@@ -156,7 +156,7 @@ const GridGallery = observer(
     // event with multiple images did not work correctly from the browser side
     // (e.g. only limited to thumbnails, not full images).
     const handleDragStart = useCallback(
-      async (e: React.DragEvent) => {
+      (e: React.DragEvent) => {
         console.log(e.target);
         const index = getGridItemIndex(e, numColumns, (t) => t.matches('.thumbnail'));
         if (index === undefined) {
@@ -178,7 +178,7 @@ const GridGallery = observer(
         (window as any).internalDragStart = new Date();
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [uiStore.fileSelection],
+      [fileList, numColumns, uiStore.fileSelection],
     );
 
     const handleDrop = useCallback(
@@ -328,7 +328,7 @@ const ListGallery = observer(
     // event with multiple images did not work correctly from the browser side
     // (e.g. only limited to thumbnails, not full images).
     const handleDragStart = useCallback(
-      async (e: React.DragEvent) => {
+      (e: React.DragEvent) => {
         const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
         if (index === undefined) {
           return;
@@ -349,7 +349,7 @@ const ListGallery = observer(
         (window as any).internalDragStart = new Date();
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [uiStore.fileSelection],
+      [fileList, uiStore.fileSelection],
     );
 
     const handleDrop = useCallback(
