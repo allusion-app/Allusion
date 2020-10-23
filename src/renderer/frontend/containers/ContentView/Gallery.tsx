@@ -192,6 +192,7 @@ const GridGallery = observer(
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
         onDragStart={handleDragStart}
+        onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -324,6 +325,7 @@ const ListGallery = observer(
         onDoubleClick={handleDoubleClick}
         onContextMenu={handleContextMenu}
         onDragStart={handleDragStart}
+        onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -650,7 +652,7 @@ const Gallery = () => {
 
 export default observer(Gallery);
 
-function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'link';
@@ -658,12 +660,17 @@ function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
   }
 }
 
+function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+  if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
+    e.preventDefault();
+  }
+}
+
 function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
-  const target = e.target as HTMLElement;
-  if (e.dataTransfer.types.includes(DnDType) && target.matches('.thumbnail')) {
+  if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'none';
-    target.dataset[DnDAttribute.Target] = 'false';
+    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
   }
 }
 
@@ -714,7 +721,7 @@ function onDrop(
     file.addTag(tag.id);
     tag.subTags.forEach(file.addTag);
   });
-  e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+  (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
 }
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
