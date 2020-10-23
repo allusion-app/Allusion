@@ -568,6 +568,9 @@ const Layout = observer(
   ({ contentRect, showContextMenu }: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
     const { uiStore, fileStore } = useContext(StoreContext);
     const fileList = fileStore.fileList;
+    // Todo: Select by dragging a rectangle shape
+    // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+    // Also take into account scrolling when dragging while selecting
     const { makeSelection, lastSelectionIndex } = useSelectionCursor();
 
     // useComputed to listen to fileSelection changes
@@ -682,12 +685,6 @@ const Gallery = () => {
     }
     return () => observer.disconnect();
   }, [fileList.length]);
-
-  // const { makeSelection, lastSelectionIndex } = useSelectionCursor();
-
-  // Todo: Select by dragging a rectangle shape
-  // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
-  // Also take into account scrolling when dragging while selecting
 
   if (fileList.length === 0) {
     return <Placeholder />;
