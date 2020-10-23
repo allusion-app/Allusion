@@ -6,8 +6,8 @@ import StoreContext from '../../contexts/StoreContext';
 import {
   ExternalAppMenuItems,
   FileViewerMenuItems,
-  GridItem,
-  ListItem,
+  GridCell,
+  ListCell,
   MissingFileMenuItems,
   MissingImageFallback,
 } from './GalleryItem';
@@ -23,6 +23,7 @@ import useContextMenu from '../../hooks/useContextMenu';
 import Placeholder from './Placeholder';
 import { RendererMessenger } from 'src/Messaging';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
+import UiStore from '../../stores/UiStore';
 
 const GridGallery = observer(
   ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
@@ -149,53 +150,19 @@ const GridGallery = observer(
       [fileList, numColumns, showContextMenu],
     );
 
-    // If the file is selected, add all selected items to the drag event, for
-    // exporting to your file explorer or programs like PureRef.
-    // Creating an event in the main process turned out to be the most robust,
-    // did many experiments with drag event content types. Creating a drag
-    // event with multiple images did not work correctly from the browser side
-    // (e.g. only limited to thumbnails, not full images).
     const handleDragStart = useCallback(
       (e: React.DragEvent) => {
-        console.log(e.target);
         const index = getGridItemIndex(e, numColumns, (t) => t.matches('.thumbnail'));
-        if (index === undefined) {
-          return;
-        }
-        const file = fileList[index];
-        if (!uiStore.fileSelection.has(file.id)) {
-          return;
-        }
-        e.preventDefault();
-        if (uiStore.fileSelection.size > 1) {
-          RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
-        } else {
-          RendererMessenger.startDragExport([file.absolutePath]);
-        }
-
-        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
-        // So we can store the date when the event starts... Hacky but it works :)
-        (window as any).internalDragStart = new Date();
+        onDragStart(e, index, uiStore, fileList);
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [fileList, numColumns, uiStore.fileSelection],
+      [fileList, numColumns, uiStore],
     );
 
     const handleDrop = useCallback(
-      (e: React.DragEvent<HTMLDivElement>) => {
+      (e: React.DragEvent<HTMLElement>) => {
         if (e.dataTransfer.types.includes(DnDType)) {
           const index = getGridItemIndex(e, numColumns, (t) => t.matches('.thumbnail'));
-          if (index === undefined) {
-            return;
-          }
-          const file = fileList[index];
-          e.dataTransfer.dropEffect = 'none';
-          const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
-          ctx.tags.forEach((tag) => {
-            file.addTag(tag.id);
-            tag.subTags.forEach(file.addTag);
-          });
-          e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+          onDrop(e, index, uiStore, fileList);
         }
       },
       [fileList, numColumns, uiStore],
@@ -207,7 +174,7 @@ const GridGallery = observer(
         return (
           <div role="row" aria-rowindex={index + 1} style={style}>
             {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
-              <GridItem colIndex={i + 1} key={file.id} file={file} />
+              <GridCell colIndex={i + 1} key={file.id} file={file} />
             ))}
           </div>
         );
@@ -321,52 +288,19 @@ const ListGallery = observer(
       [fileList, showContextMenu],
     );
 
-    // If the file is selected, add all selected items to the drag event, for
-    // exporting to your file explorer or programs like PureRef.
-    // Creating an event in the main process turned out to be the most robust,
-    // did many experiments with drag event content types. Creating a drag
-    // event with multiple images did not work correctly from the browser side
-    // (e.g. only limited to thumbnails, not full images).
     const handleDragStart = useCallback(
       (e: React.DragEvent) => {
         const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
-        if (index === undefined) {
-          return;
-        }
-        const file = fileList[index];
-        if (!uiStore.fileSelection.has(file.id)) {
-          return;
-        }
-        e.preventDefault();
-        if (uiStore.fileSelection.size > 1) {
-          RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
-        } else {
-          RendererMessenger.startDragExport([file.absolutePath]);
-        }
-
-        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
-        // So we can store the date when the event starts... Hacky but it works :)
-        (window as any).internalDragStart = new Date();
+        onDragStart(e, index, uiStore, fileList);
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [fileList, uiStore.fileSelection],
+      [fileList, uiStore],
     );
 
     const handleDrop = useCallback(
-      (e: React.DragEvent<HTMLDivElement>) => {
+      (e: React.DragEvent<HTMLElement>) => {
         if (e.dataTransfer.types.includes(DnDType)) {
           const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
-          if (index === undefined) {
-            return;
-          }
-          const file = fileList[index];
-          e.dataTransfer.dropEffect = 'none';
-          const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
-          ctx.tags.forEach((tag) => {
-            file.addTag(tag.id);
-            tag.subTags.forEach(file.addTag);
-          });
-          e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+          onDrop(e, index, uiStore, fileList);
         }
       },
       [fileList, uiStore],
@@ -376,7 +310,7 @@ const ListGallery = observer(
       const file = data[index];
       return (
         <div role="row" aria-rowindex={index + 1} style={style}>
-          <ListItem file={file} />
+          <ListCell file={file} />
         </div>
       );
     }, []);
@@ -431,9 +365,6 @@ export const MasonryGallery = observer(({}: ILayoutProps) => {
       <p>This view is currently not supported</p>
     </div>
   );
-  {
-    /* // tslint:disable-next-line */
-  }
 });
 
 const SlideGallery = observer(({ contentRect }: { contentRect: Rectangle }) => {
@@ -734,6 +665,56 @@ function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
     e.dataTransfer.dropEffect = 'none';
     target.dataset[DnDAttribute.Target] = 'false';
   }
+}
+
+// If the file is selected, add all selected items to the drag event, for
+// exporting to your file explorer or programs like PureRef.
+// Creating an event in the main process turned out to be the most robust,
+// did many experiments with drag event content types. Creating a drag
+// event with multiple images did not work correctly from the browser side
+// (e.g. only limited to thumbnails, not full images).
+function onDragStart(
+  e: React.DragEvent,
+  index: number | undefined,
+  uiStore: UiStore,
+  fileList: ClientFile[],
+) {
+  if (index === undefined) {
+    return;
+  }
+  const file = fileList[index];
+  if (!uiStore.fileSelection.has(file.id)) {
+    return;
+  }
+  e.preventDefault();
+  if (uiStore.fileSelection.size > 1) {
+    RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
+  } else {
+    RendererMessenger.startDragExport([file.absolutePath]);
+  }
+
+  // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+  // So we can store the date when the event starts... Hacky but it works :)
+  (window as any).internalDragStart = new Date();
+}
+
+function onDrop(
+  e: React.DragEvent<HTMLElement>,
+  index: number | undefined,
+  uiStore: UiStore,
+  files: ClientFile[],
+) {
+  if (index === undefined) {
+    return;
+  }
+  const file = files[index];
+  e.dataTransfer.dropEffect = 'none';
+  const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
+  ctx.tags.forEach((tag) => {
+    file.addTag(tag.id);
+    tag.subTags.forEach(file.addTag);
+  });
+  e.currentTarget.dataset[DnDAttribute.Target] = 'false';
 }
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.

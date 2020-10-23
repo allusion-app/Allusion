@@ -144,7 +144,7 @@ export const ExternalAppMenuItems = ({ path }: { path: string }) => {
   );
 };
 
-export const ListItem = observer(({ file }: { file: ClientFile }) => {
+export const ListCell = observer(({ file }: { file: ClientFile }) => {
   const { uiStore } = useContext(StoreContext);
   const [suspended, setSuspended] = useState(true);
   useEffect(() => {
@@ -183,7 +183,7 @@ export const ListItem = observer(({ file }: { file: ClientFile }) => {
   );
 });
 
-export const GridItem = observer(({ file, colIndex }: { file: ClientFile; colIndex: number }) => {
+export const GridCell = observer(({ file, colIndex }: { file: ClientFile; colIndex: number }) => {
   const { uiStore, fileStore } = useContext(StoreContext);
   const [suspended, setSuspended] = useState(true);
   useEffect(() => {
