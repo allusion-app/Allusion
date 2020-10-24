@@ -1,4 +1,4 @@
-import { action, observable, computed, observe, runInAction } from 'mobx';
+import { action, observable, computed, observe, runInAction, makeObservable } from 'mobx';
 import fse from 'fs-extra';
 
 import Backend from '../../backend/Backend';
@@ -24,6 +24,9 @@ const enum Content {
 }
 
 class FileStore {
+  private readonly backend: Backend;
+  private readonly rootStore: RootStore;
+
   readonly fileList = observable<ClientFile>([]);
   /** A map of file ID to its index in the file list, for quick lookups by ID */
   private readonly index = new Map<ID, number>();
@@ -35,12 +38,10 @@ class FileStore {
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
 
-  private backend: Backend;
-  private rootStore: RootStore;
-
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
+    makeObservable(this);
 
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
@@ -88,7 +89,7 @@ class FileStore {
   @action.bound async init(autoLoadFiles: boolean) {
     if (autoLoadFiles) {
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
-      this.updateFromBackend(fetchedFiles);
+      return this.updateFromBackend(fetchedFiles);
     }
   }
 
@@ -172,10 +173,10 @@ class FileStore {
 
   @action.bound async fetchAllFiles() {
     try {
-      this.rootStore.uiStore.closeQuickSearch();
+      this.rootStore.uiStore.clearSearchCriteriaList();
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
       this.setContentAll();
-      this.updateFromBackend(fetchedFiles);
+      return this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
     }
@@ -184,7 +185,7 @@ class FileStore {
   @action.bound async fetchUntaggedFiles() {
     try {
       const { uiStore } = this.rootStore;
-      uiStore.closeQuickSearch();
+      uiStore.clearSearchCriteriaList();
       const criteria = new ClientArraySearchCriteria('tags', []).serialize();
       const fetchedFiles = await this.backend.searchFiles(
         criteria,
@@ -193,7 +194,7 @@ class FileStore {
         uiStore.searchMatchAny,
       );
       this.setContentUntagged();
-      this.updateFromBackend(fetchedFiles);
+      return this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
     }
@@ -207,7 +208,7 @@ class FileStore {
         rootStore: { uiStore },
       } = this;
 
-      uiStore.closeQuickSearch();
+      uiStore.clearSearchCriteriaList();
       this.setContentMissing();
 
       // Fetch all files, then check their existence and only show the missing ones
@@ -235,8 +236,15 @@ class FileStore {
       await promiseAllLimit(existenceCheckPromises, N);
       const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
 
-      runInAction(() => this.fileList.replace(missingClientFiles));
-      this.updateFileListState();
+      runInAction(() => {
+        this.fileList.replace(missingClientFiles);
+        this.numMissingFiles = missingClientFiles.length;
+        this.index.clear();
+        for (let index = 0; index < missingClientFiles.length; index++) {
+          const file = newClientFiles[index];
+          this.index.set(file.id, index);
+        }
+      });
       this.cleanFileSelection();
     } catch (err) {
       console.error('Could not load broken files', err);
@@ -257,7 +265,7 @@ class FileStore {
         uiStore.searchMatchAny,
       );
       this.setContentQuery();
-      this.updateFromBackend(fetchedFiles);
+      return this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on criteria', e);
     }
@@ -266,7 +274,7 @@ class FileStore {
   @action.bound async fetchFilesByIDs(files: ID[]) {
     try {
       const fetchedFiles = await this.backend.fetchFilesByID(files);
-      this.updateFromBackend(fetchedFiles);
+      return this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on IDs', e);
     }
@@ -316,7 +324,7 @@ class FileStore {
     this.backend.saveFile(file);
   }
 
-  recoverPersistentPreferences() {
+  @action recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
     if (prefsString) {
       try {
@@ -329,7 +337,7 @@ class FileStore {
     }
   }
 
-  storePersistentPreferences() {
+  @action storePersistentPreferences() {
     const prefs: any = {};
     for (const field of PersistentPreferenceFields) {
       prefs[field] = this[field];
@@ -351,7 +359,7 @@ class FileStore {
     return removedFilePaths;
   }
 
-  @action private updateFromBackend(backendFiles: IFile[]) {
+  @action private async updateFromBackend(backendFiles: IFile[]): Promise<void> {
     if (backendFiles.length === 0) {
       this.rootStore.uiStore.clearFileSelection();
       return this.clearFileList();
@@ -388,14 +396,14 @@ class FileStore {
     // Run the existence check with at most N checks in parallel
     // TODO: Should make N configurable, or determine based on the system/disk performance
     // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
-    const N = 50;
-    promiseAllLimit(existenceCheckPromises, N).catch((e) =>
-      console.error('An error occured during existence checking!', e),
-    );
-
     runInAction(() => this.fileList.replace(newClientFiles));
-    this.updateFileListState();
-    this.cleanFileSelection();
+    const N = 50;
+    return promiseAllLimit(existenceCheckPromises, N)
+      .then(() => {
+        this.updateFileListState();
+        this.cleanFileSelection();
+      })
+      .catch((e) => console.error('An error occured during existence checking!', e));
   }
 
   /** Remove files from selection that are not in the file list anymore */

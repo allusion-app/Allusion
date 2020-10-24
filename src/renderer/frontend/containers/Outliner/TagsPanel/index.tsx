@@ -1,11 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 
-import { Hotkey, Hotkeys, HotkeysTarget, Divider } from '@blueprintjs/core';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-import StoreContext, { IRootStoreProp, withRootstore } from '../../../contexts/StoreContext';
+import StoreContext from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
-import IconSet from 'components/Icons';
-import { Toolbar, ToolbarToggleButton } from 'components';
+import { IconSet } from 'components';
+import { Toolbar, ToolbarToggleButton } from 'components/menu';
 
 // Tooltip info
 const enum TooltipInfo {
@@ -14,13 +14,13 @@ const enum TooltipInfo {
   Missing = 'View missing images on your system',
 }
 
-const SystemTags = observer(() => {
+export const SystemTags = observer(() => {
   const { fileStore } = useContext(StoreContext);
   return (
     <Toolbar id="system-tags" label="System Tags" controls="gallery-content">
       <ToolbarToggleButton
         showLabel="always"
-        label={`${fileStore.fileList.length}`}
+        text={fileStore.fileList.length}
         icon={IconSet.MEDIA}
         onClick={fileStore.fetchAllFiles}
         pressed={fileStore.showsAllContent}
@@ -28,7 +28,7 @@ const SystemTags = observer(() => {
       />
       <ToolbarToggleButton
         showLabel="always"
-        label={`${fileStore.numUntaggedFiles}`}
+        text={fileStore.numUntaggedFiles}
         icon={IconSet.TAG_BLANCO}
         onClick={fileStore.fetchUntaggedFiles}
         pressed={fileStore.showsUntaggedContent}
@@ -37,8 +37,8 @@ const SystemTags = observer(() => {
       {fileStore.numMissingFiles > 0 && (
         <ToolbarToggleButton
           showLabel="always"
-          label={`${fileStore.numMissingFiles}`}
-          icon={IconSet.WARNING_BROKEN_LINK}
+          text={fileStore.numMissingFiles}
+          icon={IconSet.WARNING_FILL}
           onClick={fileStore.fetchMissingFiles}
           pressed={fileStore.showsMissingContent}
           tooltip={TooltipInfo.Missing}
@@ -48,37 +48,30 @@ const SystemTags = observer(() => {
   );
 });
 
-@HotkeysTarget
-class TagPanelWithHotkeys extends React.PureComponent<IRootStoreProp> {
-  render() {
-    return (
-      <div>
-        <TagsTree />
-        <Divider />
-        <SystemTags />
-      </div>
-    );
-  }
-  renderHotkeys() {
-    const { uiStore } = this.props.rootStore;
-    const { hotkeyMap } = uiStore;
-    return (
-      <Hotkeys>
-        <Hotkey
-          combo={hotkeyMap.selectAll}
-          label="Select all tags in the outliner"
-          onKeyDown={uiStore.selectAllTags}
-          group="Outliner"
-        />
-        <Hotkey
-          combo={hotkeyMap.deselectAll}
-          label="Deselect all tags in the outliner"
-          onKeyDown={uiStore.clearTagSelection}
-          group="Outliner"
-        />
-      </Hotkeys>
-    );
-  }
-}
+const TagsPanel = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  const { hotkeyMap } = uiStore;
 
-export default withRootstore(TagPanelWithHotkeys);
+  const handleShortcuts = useCallback(
+    (e: React.KeyboardEvent) => {
+      const combo = getKeyCombo(e.nativeEvent);
+      const matches = (c: string): boolean => {
+        return comboMatches(combo, parseKeyCombo(c));
+      };
+      if (matches(hotkeyMap.selectAll)) {
+        uiStore.selectAllTags();
+      } else if (matches(hotkeyMap.deselectAll)) {
+        uiStore.clearTagSelection();
+      }
+    },
+    [hotkeyMap.deselectAll, hotkeyMap.selectAll, uiStore],
+  );
+
+  return (
+    <div onKeyDown={handleShortcuts}>
+      <TagsTree />
+    </div>
+  );
+});
+
+export default TagsPanel;

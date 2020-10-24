@@ -18,6 +18,7 @@ export default class Backend {
   private locationRepository: DBRepository<ILocation>;
 
   constructor() {
+    console.log(`Initializing database "${DB_NAME}"...`);
     // Initialize database tables
     const db = dbInit(dbConfig, DB_NAME);
     this.fileRepository = new DBRepository('files', db);
@@ -52,7 +53,7 @@ export default class Backend {
 
   async fetchFilesByID(ids: ID[]): Promise<IFile[]> {
     console.log('Backend: Fetching files by ID...');
-    const files = await Promise.all(ids.map((id) => this.fileRepository.get(id)));
+    const files = await this.fileRepository.getByIds(ids);
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
@@ -68,22 +69,22 @@ export default class Backend {
 
   async createTag(tag: ITag): Promise<ITag> {
     console.log('Backend: Creating tag...', tag);
-    return await this.tagRepository.create(tag);
+    return this.tagRepository.create(tag);
   }
 
   async createFile(file: IFile): Promise<IFile> {
     console.log('Backend: Creating file...', file);
-    return await this.fileRepository.create(file);
+    return this.fileRepository.create(file);
   }
 
   async saveTag(tag: ITag): Promise<ITag> {
     console.log('Backend: Saving tag...', tag);
-    return await this.tagRepository.update(tag);
+    return this.tagRepository.update(tag);
   }
 
   async saveFile(file: IFile): Promise<IFile> {
     console.log('Backend: Saving file...', file);
-    return await this.fileRepository.update(file);
+    return this.fileRepository.update(file);
   }
 
   async removeTag(tag: ID): Promise<void> {
@@ -129,7 +130,7 @@ export default class Backend {
 
   async saveLocation(dir: ILocation): Promise<ILocation> {
     console.log('Backend: Saving watched directory...', dir);
-    return await this.locationRepository.update(dir);
+    return this.locationRepository.update(dir);
   }
 
   async removeLocation(dir: ID): Promise<void> {

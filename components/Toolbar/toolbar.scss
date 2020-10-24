@@ -1,4 +1,4 @@
-.toolbar[role='toolbar'] {
+[role='toolbar'] {
   display: flex;
   min-height: 2.25rem;
   align-items: center;
@@ -12,7 +12,7 @@
   margin: 0 1rem;
 }
 
-.toolbar-group[role='radiogroup'] .toolbar-button {
+[role='toolbar'] [role='radiogroup'] .toolbar-button {
   &:first-child {
     border-bottom-left-radius: 0.25rem;
     border-top-left-radius: 0.25rem;
@@ -25,7 +25,7 @@
 }
 
 .toolbar-item:focus {
-  box-shadow: 0 0 0 0.125rem var(--highlight-font-color);
+  box-shadow: 0 0 0 0.125rem var(--hover-color);
 }
 
 .toolbar-button {
@@ -35,21 +35,19 @@
   border: none;
 
   &:hover {
-    background-color: var(--highlight-background-color);
-    color: var(--highlight-font-color);
+    background-color: var(--hover-background);
+    color: var(--hover-color);
   }
 
   &[aria-checked='true'] {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: currentColor;
+    color: var(--background-color);
   }
 
   &[aria-pressed='true'] {
-    .toolbar-button-content {
-      min-height: 2.125rem;
-      padding-bottom: 0.125rem;
+    .toolbar-button-text {
+      font-weight: 700;
     }
-    border-bottom: 0.125rem solid var(--primary-color);
     color: var(--primary-color);
   }
 
@@ -68,43 +66,37 @@
   padding: 0.25rem;
 }
 
+.toolbar-button-icon {
+  pointer-events: none;
+}
+
 .toolbar-button-icon,
-.toolbar-button-label,
-.toolbar-button-label.always,
-.toolbar-group.always .toolbar-button-label:not(.never) {
-  margin: 0.25rem;
+.toolbar-button-text,
+.toolbar-button-text.always,
+.toolbar-group.always .toolbar-button-text:not(.never) {
+  display: inline-flex;
+  margin: 0.125rem;
 }
 
 // Hide text without removing it from screen readers:
 // https://stackoverflow.com/questions/12783419/hide-text-with-css-best-practice
-.toolbar-button-label.never,
-.toolbar-group.never .toolbar-button-label:not(.always) {
+.toolbar-button-text.never,
+.toolbar-group.never .toolbar-button-text:not(.always) {
   margin: 0;
   text-indent: -100vw;
   white-space: nowrap;
   overflow: hidden;
 }
 
-.toolbar-button-label.always,
-.toolbar-group.always .toolbar-button-label:not(.never) {
+.toolbar-button-text.always,
+.toolbar-group.always .toolbar-button-text:not(.never) {
   text-indent: unset;
   white-space: unset;
   overflow: unset;
 }
 
-.toolbar[aria-orientation='vertical'] {
+[role='toolbar'][aria-orientation='vertical'] {
   flex-direction: column;
-
-  .toolbar-button[aria-pressed='true'] {
-    .toolbar-button-content {
-      min-height: 2.25rem;
-      min-width: 2.125rem;
-      padding: 0.25rem;
-      padding-left: 0.125rem;
-    }
-    border: none;
-    border-left: 0.125rem solid var(--primary-color);
-  }
 }
 
 .toolbar-group[aria-orientation='vertical'] {

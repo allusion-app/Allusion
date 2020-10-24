@@ -78,7 +78,7 @@ let rendererConfig = {
         test: /\.worker\.ts$/,
         loader: 'worker-loader',
         options: {
-          name: '[name].js',
+          filename: '[name].js',
         },
       },
       {
@@ -102,7 +102,7 @@ let rendererConfig = {
               sourceMap: true,
               modules: {
                 // Use real class name, hash only added when needed
-                localIdentName: '[local]_[hash:base64:5]' ,
+                localIdentName: '[local]_[hash:base64:5]',
               },
             },
           },

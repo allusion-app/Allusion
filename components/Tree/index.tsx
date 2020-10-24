@@ -8,8 +8,7 @@ import React, {
   CSSProperties,
   useState,
 } from 'react';
-import { observer } from 'mobx-react-lite';
-import { ID } from '../../src/renderer/entities/ID';
+import { ID } from 'src/renderer/entities/ID';
 
 // --- Helper function for tree items ---
 
@@ -23,9 +22,9 @@ const refocus = (previousTarget: Element, nextTarget: HTMLElement) => {
   setTabFocus(nextTarget);
 };
 
-const isGroup = (element: Element | null) => element?.getAttribute('role') === 'group';
+const isGroup = (element: Element | null) => element?.matches('[role="group"]');
 
-const isExpanded = (element: Element | null) => element?.getAttribute('aria-expanded') === 'true';
+const isExpanded = (element: Element | null) => element?.matches('[aria-expanded="true"]');
 
 const getParent = (element: Element): HTMLElement | null =>
   isGroup(element.parentElement) ? element.parentElement!.parentElement!.parentElement : null;
@@ -131,12 +130,12 @@ export const createLeafOnKeyDown = (
 };
 
 const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
-  if (event.target instanceof Element && event.target.getAttribute('role') !== 'treeitem') {
+  if (event.target instanceof Element && !event.target.matches('[role="treeitem"]')) {
     return;
   }
   switch (event.key) {
     case 'Home': {
-      const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');
+      const prev = event.currentTarget.querySelector('[role="treeitem"][tabindex="0"]');
       setTabFocus(event.currentTarget.firstElementChild as HTMLElement);
       if (prev) {
         prev.setAttribute('tabIndex', '-1');
@@ -145,7 +144,7 @@ const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
     }
 
     case 'End': {
-      const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');
+      const prev = event.currentTarget.querySelector('[role="treeitem"][tabindex="0"]');
       setTabFocus(event.currentTarget.lastElementChild as HTMLElement);
       if (prev) {
         prev.setAttribute('tabIndex', '-1');
@@ -265,161 +264,156 @@ interface IBranch extends ITreeNode {
   onBranchKeyDown: KeyDownEventHandler;
 }
 
-const TreeLeaf = observer(
-  ({
-    label: Label,
-    isSelected,
-    level,
-    size,
-    pos,
+const TreeLeaf = ({
+  label: Label,
+  isSelected,
+  level,
+  size,
+  pos,
+  nodeData,
+  treeData,
+  onLeafKeyDown,
+  className = '',
+}: ILeaf) => {
+  const handleKeyDown = useCallback((e) => onLeafKeyDown(e, nodeData, treeData), [
+    onLeafKeyDown,
     nodeData,
     treeData,
-    onLeafKeyDown,
-    className = '',
-  }: ILeaf) => {
-    const handleKeyDown = useCallback((e) => onLeafKeyDown(e, nodeData, treeData), [
-      onLeafKeyDown,
-      nodeData,
-      treeData,
-    ]);
+  ]);
 
-    return (
-      <li
-        className={`${className} tree_item`}
-        aria-level={level}
-        aria-setsize={size}
-        aria-posinset={pos}
-        aria-selected={isSelected?.(nodeData, treeData)}
-        onKeyDown={handleKeyDown}
-        role="treeitem"
-        tabIndex={-1}
-      >
-        <div className="label">
-          {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
-        </div>
-      </li>
-    );
-  },
-);
+  return (
+    <li
+      className={className}
+      aria-level={level}
+      aria-setsize={size}
+      aria-posinset={pos}
+      aria-selected={isSelected?.(nodeData, treeData)}
+      onKeyDown={handleKeyDown}
+      role="treeitem"
+      tabIndex={-1}
+    >
+      <div className="label">
+        {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
+      </div>
+    </li>
+  );
+};
 
-const TreeBranch = observer(
-  ({
-    ancestorVisible,
-    overScan,
-    children,
-    label: Label,
-    level,
-    size,
-    pos,
-    nodeData,
-    treeData,
-    isExpanded,
-    isSelected,
-    toggleExpansion,
-    onBranchKeyDown,
-    onLeafKeyDown,
-    className = '',
-  }: IBranch) => {
-    const transition = useRef<HTMLDivElement | null>(null);
-    const expanded = isExpanded(nodeData, treeData) ?? false;
-    const [end, setEnd] = useState<number | undefined>(expanded ? undefined : overScan);
+const TreeBranch = ({
+  ancestorVisible,
+  overScan,
+  children,
+  label: Label,
+  level,
+  size,
+  pos,
+  nodeData,
+  treeData,
+  isExpanded,
+  isSelected,
+  toggleExpansion,
+  onBranchKeyDown,
+  onLeafKeyDown,
+  className = '',
+}: IBranch) => {
+  const transition = useRef<HTMLDivElement | null>(null);
+  const expanded = isExpanded(nodeData, treeData) ?? false;
+  const [end, setEnd] = useState<number | undefined>(expanded ? undefined : overScan);
 
-    // TODO: Try transitionrun/transitionstart instead on ul element.
-    useLayoutEffect(() => {
-      if (transition.current) {
-        if (expanded) {
-          setEnd(undefined);
-          transition.current.style.maxHeight = '';
-        } else {
-          transition.current.style.maxHeight = transition.current.clientHeight + 'px';
-        }
+  // TODO: Try transitionrun/transitionstart instead on ul element.
+  useLayoutEffect(() => {
+    if (transition.current) {
+      if (expanded) {
+        setEnd(undefined);
+        transition.current.style.maxHeight = '';
+      } else {
+        transition.current.style.maxHeight = transition.current.clientHeight + 'px';
       }
-    }, [expanded]);
+    }
+  }, [expanded]);
 
-    const handleToggle = useCallback(() => toggleExpansion(nodeData, treeData), [
-      toggleExpansion,
-      nodeData,
-      treeData,
-    ]);
+  const handleToggle = useCallback(() => toggleExpansion(nodeData, treeData), [
+    toggleExpansion,
+    nodeData,
+    treeData,
+  ]);
 
-    const handleKeyDown = useCallback(
-      (event: React.KeyboardEvent<HTMLLIElement>) => onBranchKeyDown(event, nodeData, treeData),
-      [onBranchKeyDown, nodeData, treeData],
-    );
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLLIElement>) => onBranchKeyDown(event, nodeData, treeData),
+    [onBranchKeyDown, nodeData, treeData],
+  );
 
-    const handleTransitionEnd = useCallback(
-      (event: React.TransitionEvent) => {
-        if (event.currentTarget.parentElement!.clientHeight === 0) {
-          event.stopPropagation();
-          setEnd(overScan);
-        }
-      },
-      [overScan],
-    );
+  const handleTransitionEnd = useCallback(
+    (event: React.TransitionEvent) => {
+      if (event.currentTarget.parentElement!.clientHeight === 0) {
+        event.stopPropagation();
+        setEnd(overScan);
+      }
+    },
+    [overScan],
+  );
 
-    return (
-      <li
-        className={`${className} tree_item`}
-        role="treeitem"
-        tabIndex={-1}
-        aria-expanded={expanded}
-        aria-selected={isSelected?.(nodeData, treeData)}
-        aria-level={level}
-        aria-setsize={size}
-        aria-posinset={pos}
-        onKeyDown={handleKeyDown}
-      >
-        <div className="label">
-          <div
-            className="default_caret"
-            aria-pressed={expanded}
-            aria-label="Expand"
-            onClick={handleToggle}
-          />
-          {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
-        </div>
-        <div className="group_transition" style={{ maxHeight: 0 }} ref={transition}>
-          <ul
-            style={{ '--level': level } as React.CSSProperties}
-            role="group"
-            className="group"
-            onTransitionEnd={handleTransitionEnd}
-          >
-            {children
-              .slice(0, ancestorVisible ? end : 0)
-              .map((c, i) =>
-                c.children.length > 0 ? (
-                  <TreeBranch
-                    {...c}
-                    ancestorVisible={expanded}
-                    overScan={overScan}
-                    key={c.id}
-                    level={level + 1}
-                    size={children.length}
-                    pos={i + 1}
-                    toggleExpansion={toggleExpansion}
-                    onBranchKeyDown={onBranchKeyDown}
-                    onLeafKeyDown={onLeafKeyDown}
-                    treeData={treeData}
-                  />
-                ) : (
-                  <TreeLeaf
-                    {...c}
-                    key={c.id}
-                    level={level + 1}
-                    size={children.length}
-                    pos={i + 1}
-                    onLeafKeyDown={onLeafKeyDown}
-                    treeData={treeData}
-                  />
-                ),
-              )}
-          </ul>
-        </div>
-      </li>
-    );
-  },
-);
+  return (
+    <li
+      className={className}
+      role="treeitem"
+      tabIndex={-1}
+      aria-expanded={expanded}
+      aria-selected={isSelected?.(nodeData, treeData)}
+      aria-level={level}
+      aria-setsize={size}
+      aria-posinset={pos}
+      onKeyDown={handleKeyDown}
+    >
+      <div className="label">
+        <div
+          className="default_caret"
+          aria-pressed={expanded}
+          aria-label="Expand"
+          onClick={handleToggle}
+        />
+        {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
+      </div>
+      <div className="transition" style={{ maxHeight: 0 }} ref={transition}>
+        <ul
+          style={{ '--level': level } as React.CSSProperties}
+          role="group"
+          onTransitionEnd={handleTransitionEnd}
+        >
+          {children
+            .slice(0, ancestorVisible ? end : 0)
+            .map((c, i) =>
+              c.children.length > 0 ? (
+                <TreeBranch
+                  {...c}
+                  ancestorVisible={expanded}
+                  overScan={overScan}
+                  key={c.id}
+                  level={level + 1}
+                  size={children.length}
+                  pos={i + 1}
+                  toggleExpansion={toggleExpansion}
+                  onBranchKeyDown={onBranchKeyDown}
+                  onLeafKeyDown={onLeafKeyDown}
+                  treeData={treeData}
+                />
+              ) : (
+                <TreeLeaf
+                  {...c}
+                  key={c.id}
+                  level={level + 1}
+                  size={children.length}
+                  pos={i + 1}
+                  onLeafKeyDown={onLeafKeyDown}
+                  treeData={treeData}
+                />
+              ),
+            )}
+        </ul>
+      </div>
+    </li>
+  );
+};
 
 // --- Public API ---
 
@@ -497,7 +491,7 @@ export interface ITreeItem extends INodeData {
 }
 
 const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
-  if (event.target.getAttribute('role') !== 'treeitem') {
+  if (!event.target.matches('[role="treeitem"]')) {
     return;
   }
   const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');
@@ -535,7 +529,7 @@ const Tree = ({
     <ul
       id={id}
       style={{ '--level': 0 } as CSSProperties}
-      className={`tree ${className}`}
+      className={className}
       ref={tree}
       role="tree"
       aria-labelledby={labelledBy}

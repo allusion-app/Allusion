@@ -5,92 +5,36 @@ $pt-transition-cubic2-delay: cubic-bezier(0.4, 0, 0.2, 1) 0.8s !default;
 $pt-transition-ease-bounce: cubic-bezier(0.54, 1.12, 0.38, 1.11) !default;
 $pt-transition-duration: 100ms !default;
 
+* {
+  box-sizing: border-box;
+}
+
+// Viewport
+html,
+body,
+#app,
+#layout-container,
+#preview {
+  width: 100vw;
+  height: 100vh;
+}
+
 // Page layout
 html {
-  height: 100%;
   -webkit-font-smoothing: antialiased;
 }
 
 body {
   margin: 0px;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
 }
 
-// Global specific styles for the main window
-#app {
-  --outliner-width: 18em;
-  --inspector-width: 24em;
-  --toolbar-height: 3rem;
-  --quick-searchbar-height: 2.4rem;
-  --thumbnail-size: 250px;
-  --thumbnail-margin: 0.25rem;
-  --mac-system-buttons-width: 5rem;
-  height: 100vh;
-  background: $dark-gray0;
-}
-
-// Global specific styles for the preview window
-#preview {
-  --toolbar-height: 3rem;
-  display: grid;
-  grid-template-areas:
-    'toolbar'
-    'main';
-  grid-template-rows: var(--toolbar-height) 1fr;
-  height: 100vh;
-}
-
-// Default Theme
-.bp3-dark,
-.bp3-light {
-  --primary-color: #{$blue1};
-  --stroke-color: #{$gray3};
-  --selection-background-color: #007bf53f;
-  --selection-font-color: white;
-  --treeitem-identation: 1rem;
-  --treeitem-offset: 1rem;
-}
-
-// Dark Theme
-.bp3-dark {
-  --focus-color: #{$dark-gray3};
-  --highlight-background-color: #{$dark-gray4}; // dark-gray5?
-  --highlight-font-color: white;
-  --caret-color: #{$light-gray1};
-
-  // Text/icon color
-  color: $pt-dark-text-color;
-  --text-muted-color: $pt-dark-text-color-muted;
-
-  // The background color of elements inside of panels
-  --foreground-color: #{$dark-gray3};
-  // Background color of the main panels
-  --background-color: #{$dark-gray0}; // dark-gray0 or 1?
-  // The separator (border) color of the main panels
-  --background-separator-color: #{$dark-gray0};
-}
-
-// Light Theme
-.bp3-light {
-  --focus-color: #{$light-gray4};
-  --highlight-background-color: #{$light-gray4};
-  --highlight-font-color: #{$black};
-  --caret-color: #{$dark-gray1};
-
-  // Text/icon color
-  color: $pt-text-color;
-  --text-muted-color: $pt-text-color-muted;
-
-  // The (background) color of elements inside of panels
-  --foreground-color: #{$light-gray5};
-  // Background color of the main panels
-  --background-color: #{$light-gray3}; // light-gray5 ?
-  // The separator (border) color of the main panels
-  --background-separator-color: #{$light-gray3}; // light-gray1?
+fieldset {
+  margin: 0;
+  border: none;
+  padding: 0;
 }
 
 // Override standard CSS attributes
@@ -107,23 +51,81 @@ pre {
   }
 }
 
+// Global specific styles for the main window
+#app {
+  --outliner-width: 18em;
+  --inspector-width: 24em;
+  --toolbar-height: 3rem;
+  --quick-searchbar-height: 2.5rem;
+  --thumbnail-size: 250px;
+  --thumbnail-margin: 0.25rem;
+  --mac-system-buttons-width: 5rem;
+}
+
+// Global specific styles for the preview window
+#preview {
+  --toolbar-height: 3rem;
+  display: grid;
+  grid-template-areas:
+    'toolbar'
+    'main';
+  grid-template-rows: var(--toolbar-height) 1fr;
+}
+
+// Default Theme
+.bp3-dark,
+.bp3-light {
+  --primary-color: #{$blue1};
+  --stroke-color: #{$gray3};
+  --selection-background-color: #007bf53f;
+  --selection-font-color: white;
+  --treeitem-identation: 1rem;
+  --treeitem-offset: 1rem;
+}
+
+// Dark Theme
+.bp3-dark {
+  --focus-color: #{$dark-gray3};
+  --hover-background: #{$dark-gray4}; // dark-gray5?
+  --hover-color: white;
+
+  // Text/icon color
+  --text-color: hsl(0, 0%, 80%);
+  --text-muted-color: hsl(0, 0%, 55%);
+  color: var(--text-color);
+
+  // The background color of elements inside of panels
+  --foreground-color: #{$dark-gray3};
+  --foreground-color2: #{$dark-gray2}; // Left side
+  // Background color of the main panels
+  --background-color: #{$dark-gray0}; // dark-gray0 or 1? --> NOT used in new design
+}
+
+// Light Theme
+.bp3-light {
+  --focus-color: #{$light-gray4};
+  --hover-background: #{$light-gray4};
+  --hover-color: #{$black};
+
+  // Text/icon color
+  --text-color: hsl(0, 0%, 20%);
+  --text-muted-color: hsl(0, 0%, 45%);
+  color: var(--text-color);
+
+  // The (background) color of elements inside of panels
+  --foreground-color: #{$light-gray5};
+  --foreground-color2: #{$light-gray3}; // Left side
+  // Background color of the main panels
+  --background-color: #{$light-gray3}; // light-gray5 ? --> NOT used in new design
+}
+
 #layout-container {
-  height: 100vh;
   display: grid;
   grid-template-rows: var(--toolbar-height) 1fr;
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
     'toolbar toolbar toolbar'
     'outliner main inspector';
-  row-gap: 2px;
-}
-
-#layout-container.vertical-toolbar {
-  --toolbar-height: 3rem;
-  grid-template-columns: var(--toolbar-height) min-content 1fr min-content;
-  grid-template-areas:
-    'toolbar main-toolbar main-toolbar main-toolbar'
-    'toolbar outliner main inspector';
 }
 
 .preloader {
@@ -137,7 +139,7 @@ pre {
 main {
   grid-area: main;
   display: flex;
-  flex-flow: column;
+  background: var(--foreground-color);
 }
 
 .contextMenuTarget {
@@ -202,91 +204,22 @@ img {
 // instead of switching colors around like this
 #preview,
 #layout-container {
-  background-color: var(--background-color);
+  background-color: var(--foreground-color);
 }
 
 #toolbar,
-#inspector,
-#outliner {
+// #outliner,
+#inspector {
   background-color: var(--foreground-color);
 }
 
 ///////////////////////////////// Media Queries /////////////////////////////////
-@media (min-width: 1601px) {
-  .grid.thumbnail,
-  .grid.thumbnail img,
-  .list.thumbnail img {
-    width: 350px !important;
-    height: 350px !important;
-  }
-}
-@media (min-width: 1281px) {
-  .grid.thumbnail,
-  .grid.thumbnail img,
-  .list.thumbnail img {
-    width: 260px !important;
-    height: 260px !important;
-  }
-}
-@media (max-width: 1280px) {
-  .grid.thumbnail,
-  .grid.thumbnail img,
-  .list.thumbnail img {
-    width: 225px !important;
-    height: 225px !important;
-  }
-}
 @media (max-width: 960px) {
-  .toolbar-button-label:not(.always) {
+  .toolbar-button-text:not(.always) {
     margin: 0;
     text-indent: -100vw;
     white-space: nowrap;
     overflow: hidden;
-  }
-
-  .grid.thumbnail,
-  .grid.thumbnail img,
-  .list.thumbnail img {
-    width: 150px !important;
-    height: 150px !important;
-  }
-}
-
-@media (max-width: 540px) {
-  #layout-container {
-    --toolbar-height: 4.8rem;
-  }
-
-  #layout-container:not(.vertical-toolbar) > #toolbar {
-    display: grid;
-    gap: 0;
-    grid-template-rows: 1fr 1fr;
-    grid-template-columns: 1fr min-content;
-    grid-template-areas:
-      'outliner-toolbar inspector-toolbar'
-      'main-toolbar main-toolbar';
-
-    &.mac-toolbar {
-      padding: 0;
-      grid-template-columns: var(--mac-system-buttons-width) 1fr min-content;
-      grid-template-areas:
-        '. outliner-toolbar inspector-toolbar'
-        'main-toolbar main-toolbar main-toolbar';
-    }
-
-    #main-toolbar {
-      justify-content: space-between;
-    }
-  }
-
-  #main-toolbar {
-    > .toolbar-group {
-      margin: 0;
-    }
-  }
-
-  .slide.thumbnail {
-    height: calc(50vh - 4.8rem) !important;
   }
 }
 
@@ -295,61 +228,55 @@ img {
 .error-boundary {
   grid-area: main;
 
-  .bp3-non-ideal-state > * {
-    max-width: 500px;
-  }
-
   .message {
-    text-align: left;
-    width: 800px;
-    max-width: 800px;
+    font-family: monospace;
+    max-width: 120ch;
   }
 }
 
 // Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
-.custom-icon * {
-  fill: currentColor;
+.custom-icon {
+  width: 1rem;
+  height: 1rem;
+  margin: 0.125rem;
+  flex-shrink: 0;
+
+  * {
+    fill: currentColor;
+  }
 }
-.bp3-overlay-content {
-  display: flex;
-  align-items: center;
+.custom-icon-128 > * {
+  height: 8rem;
+  width: 8rem;
 }
-.drop-overlay-content {
-  margin: auto calc(50% - 200px);
-  width: 400px;
-  padding: 20px !important;
+.custom-icon-64 > * {
+  height: 4rem;
+  width: 4rem;
+}
+.custom-icon-48 > * {
+  height: 3rem;
+  width: 3rem;
+}
+.custom-icon-32 > * {
+  height: 2rem;
+  width: 2rem;
+}
+
+.file-dropper-overlay {
+  margin: auto;
+
+  &::backdrop {
+    background-color: $blue-trans1;
+  }
+
+  > .dialog-content {
+    width: 400px;
+  }
 
   .quick-tags {
     text-align: center;
     margin-top: 20px !important;
   }
-}
-
-.bp3-icon-eye {
-  cursor: none;
-}
-.custom-icon-128 > * {
-  height: 8rem !important;
-  width: 8rem !important;
-}
-.custom-icon-64 > * {
-  height: 4rem !important;
-  width: 4rem !important;
-}
-.custom-icon-14 > * {
-  height: 0.875rem !important;
-  width: 0.875rem !important;
-  display: block;
-}
-
-.bp3-alert .custom-icon,
-.custom-icon-32 > * {
-  height: 2rem !important;
-  width: 2rem !important;
-}
-
-.fillWidth {
-  width: 100%;
 }
 
 .toast-without-dismiss {
@@ -368,28 +295,4 @@ img {
   100% {
     opacity: 1;
   }
-}
-
-.color-black {
-  color: black;
-  transition: color 0.2s ease;
-}
-
-.color-white {
-  color: white;
-  transition: color 0.2s ease;
-}
-
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ellipsis-left {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  direction: rtl;
-  text-align: left;
 }

@@ -1,0 +1,40 @@
+#search-form {
+  .criteria {
+    display: flex;
+
+    > * {
+      flex-grow: 1;
+    }
+
+    > select:not(:nth-child(3)) {
+      max-width: 25%;
+    }
+
+    > .btn {
+      flex-grow: 0;
+      margin-left: 0.5rem;
+      line-height: 0;
+      font-size: 1rem;
+      max-width: 2rem;
+    }
+  }
+}
+
+#functions-bar {
+  display: flex;
+  justify-content: space-between;
+
+  > fieldset {
+    margin-bottom: 1rem;
+
+    > div {
+      display: flex;
+      align-items: center;
+
+      legend {
+        margin: 0;
+        margin-right: 1.5rem;
+      }
+    }
+  }
+}

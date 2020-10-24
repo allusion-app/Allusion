@@ -1,54 +1,45 @@
 import React, { useContext } from 'react';
-import { Alert, Tag } from '@blueprintjs/core';
-import IconSet from 'components/Icons';
 import { ClientLocation } from 'src/renderer/entities/Location';
-import StoreContext from '../../contexts/StoreContext';
+import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import { ClientFile } from 'src/renderer/entities/File';
+import { Tag, IconSet } from 'components';
+import { Alert, DialogButton } from 'components/popover';
+import { observer } from 'mobx-react-lite';
 
-interface IConfirmationProps {
-  theme?: string;
-  isOpen: boolean;
-  confirmButtonText: string;
+interface IRemovalAlertProps {
+  open: boolean;
   onCancel: () => void;
   onConfirm: () => void;
   title: string;
-  information?: string;
+  information: string;
   body?: React.ReactNode;
-  icon?: JSX.Element;
 }
 
-const Confirmation = (props: IConfirmationProps) => (
+const RemovalAlert = (props: IRemovalAlertProps) => (
   <Alert
-    isOpen={props.isOpen}
-    cancelButtonText="Cancel"
-    confirmButtonText={props.confirmButtonText}
-    icon={props.icon}
-    intent="danger"
-    canEscapeKeyCancel
-    canOutsideClickCancel
-    onCancel={props.onCancel}
-    onConfirm={props.onConfirm}
-    className={props.theme}
-  >
-    <strong>{props.title}</strong>
-    <p>{props.information}</p>
-    {props.body}
-  </Alert>
+    open={props.open}
+    title={props.title}
+    information={props.information}
+    view={props.body}
+    icon={IconSet.WARNING}
+    closeButtonText="Cancel"
+    primaryButtonText="Delete"
+    defaultButton={DialogButton.PrimaryButton}
+    onClick={(button) =>
+      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
+    }
+  />
 );
 
 interface IRemovalProps<T> {
-  theme: string;
   object: T;
   onClose: () => void;
 }
 
-export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
-  <Confirmation
-    theme={props.theme}
-    icon={IconSet.DELETE}
-    isOpen={true}
-    confirmButtonText="Delete"
+export const LocationRemoval = observer((props: IRemovalProps<ClientLocation>) => (
+  <RemovalAlert
+    open
     title={`Are you sure you want to delete the location "${props.object.name}"?`}
     information="This will permanently remove the location and all files contained in it from Allusion."
     onCancel={props.onClose}
@@ -56,10 +47,10 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
       props.onClose();
       props.object.delete();
     }}
-  ></Confirmation>
-);
+  />
+));
 
-export const TagRemoval = (props: IRemovalProps<ClientTag>) => {
+export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   const { uiStore, tagStore } = useContext(StoreContext);
   const { object } = props;
   const tagsToRemove = object.isSelected
@@ -69,11 +60,8 @@ export const TagRemoval = (props: IRemovalProps<ClientTag>) => {
   const text = `Are you sure you want to delete the tag "${object.name}"?`;
 
   return (
-    <Confirmation
-      theme={props.theme}
-      icon={IconSet.DELETE}
-      isOpen={true}
-      confirmButtonText="Delete"
+    <RemovalAlert
+      open
       title={text}
       information="Deleting tags or collections will permanently remove them from Allusion."
       body={
@@ -81,9 +69,7 @@ export const TagRemoval = (props: IRemovalProps<ClientTag>) => {
           <div id="tag-remove-overview">
             <p>Selected Tags</p>
             {tagsToRemove.map((tag) => (
-              <span key={tag.id}>
-                <Tag intent="primary">{tag.name}</Tag>{' '}
-              </span>
+              <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
             ))}
           </div>
         )
@@ -93,26 +79,21 @@ export const TagRemoval = (props: IRemovalProps<ClientTag>) => {
         props.onClose();
         object.isSelected ? uiStore.removeSelectedTags() : props.object.delete();
       }}
-    ></Confirmation>
+    />
   );
-};
+});
 
-export const FileRemoval = (
-  props: IRemovalProps<ClientFile[]> & Pick<IConfirmationProps, 'isOpen'>,
-) => {
-  const { fileStore } = useContext(StoreContext);
+export const FileRemoval = observer((props: IRemovalProps<ClientFile[]>) => {
+  const { fileStore, uiStore } = useContext(StoreContext);
   const { object: files } = props;
 
   return (
-    <Confirmation
-      theme={props.theme}
-      icon={IconSet.DELETE}
-      isOpen={props.isOpen}
-      confirmButtonText="Delete"
+    <RemovalAlert
+      open={uiStore.isToolbarFileRemoverOpen}
       title={`Are you sure you want to delete ${files.length} missing file${
         files.length > 1 ? 's' : ''
       }?`}
-      information="Deleting files will permanently remove them from Allusion. If you just accidentially moved files (to the trash bin), you can recover them by moving them back to their previous location and refresh Allusion."
+      information="Deleting files will permanently remove them from Allusion. Accidentially moved files can be recovered by returning them to their previous location."
       onCancel={props.onClose}
       onConfirm={() => {
         props.onClose();
@@ -120,4 +101,4 @@ export const FileRemoval = (
       }}
     />
   );
-};
+});

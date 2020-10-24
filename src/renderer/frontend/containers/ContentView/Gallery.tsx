@@ -1,129 +1,52 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ResizeSensor, IResizeEntry, NonIdealState, Button, ButtonGroup } from '@blueprintjs/core';
-import {
-  FixedSizeGrid,
-  FixedSizeList,
-  GridChildComponentProps,
-  ListChildComponentProps,
-  GridOnScrollProps,
-  ListOnScrollProps,
-} from 'react-window';
-import { observer, useObserver } from 'mobx-react-lite';
+import React, { useState, useEffect, useCallback, useRef, useContext, useMemo } from 'react';
+import { FixedSizeList, ListOnScrollProps } from 'react-window';
+import { Observer, observer } from 'mobx-react-lite';
 
-import { withRootstore, IRootStoreProp } from '../../contexts/StoreContext';
-import GalleryItem, { MissingImageFallback } from './GalleryItem';
-import UiStore, { ViewMethod } from '../../stores/UiStore';
+import StoreContext from '../../contexts/StoreContext';
+import {
+  ExternalAppMenuItems,
+  FileViewerMenuItems,
+  GridCell,
+  ListCell,
+  MissingFileMenuItems,
+  MissingImageFallback,
+} from './GalleryItem';
 import { ClientFile } from '../../../entities/File';
-import IconSet from 'components/Icons';
+import { IconSet } from 'components';
+import { ContextMenu, SubMenu, Menu, MenuDivider } from 'components/menu';
 import { throttle } from '../../utils';
 import { Rectangle } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
-import useDebounce from '../../hooks/useDebounce';
-import FileStore from '../../stores/FileStore';
-
-// WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
-// We'll have less loss of space perhaps
-// https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
-// const { screen } = remote;
-// const { width } = screen.getPrimaryDisplay().workAreaSize;
-// const CELL_SMALL = (width / 10) - 16;
-// const CELL_MEDIUM = (width / 6) - 8;
-// const CELL_LARGE = (width / 4) - 8;
-// // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-// const CELL_SIZE_SMALL = CELL_SMALL - 2;
-// const CELL_SIZE_MEDIUM = CELL_MEDIUM - 2;
-// const CELL_SIZE_LARGE = CELL_LARGE - 2;
-// Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-// TODO: Use computed styles to access the CSS variables
-const PADDING = 8;
-const CELL_SIZE_SMALL = 150 + PADDING;
-const CELL_SIZE_MEDIUM = 250 + PADDING;
-const CELL_SIZE_LARGE = 350 + PADDING;
-// Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
-// can fit into one row.
-const SHRINK_FACTOR = 0.9;
-
-function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
-  if (sizeType === 'small') {
-    return [CELL_SIZE_SMALL * SHRINK_FACTOR, CELL_SIZE_SMALL];
-  } else if (sizeType === 'medium') {
-    return [CELL_SIZE_MEDIUM * SHRINK_FACTOR, CELL_SIZE_MEDIUM];
-  }
-  return [CELL_SIZE_LARGE * SHRINK_FACTOR, CELL_SIZE_LARGE];
-}
-
-interface IGalleryLayoutProps {
-  contentRect: Rectangle;
-  uiStore: UiStore;
-  fileStore: FileStore;
-  handleClick: (file: ClientFile, e: React.MouseEvent) => void;
-  handleDoubleClick: (file: ClientFile, e: React.MouseEvent) => void;
-  handleFileSelect: (
-    selectedFile: ClientFile,
-    selectAdditive: boolean,
-    selectRange: boolean,
-  ) => void;
-  lastSelectionIndex: React.MutableRefObject<number | undefined>;
-}
-
-function getLayoutComponent(
-  viewMethod: ViewMethod,
-  isSlideMode: boolean,
-  props: IGalleryLayoutProps,
-) {
-  if (isSlideMode) {
-    return <SlideGallery {...props} />;
-  }
-  switch (viewMethod) {
-    case 'grid':
-      return <GridGallery {...props} />;
-    // case 'masonry':
-    //   return <MasonryGallery {...props} />;
-    case 'list':
-      return <ListGallery {...props} />;
-    default:
-      return null;
-  }
-}
-
-function get_column_layout(width: number, minSize: number, maxSize: number) {
-  const numColumns = Math.trunc(width / minSize);
-  let cellSize = Math.trunc(width / numColumns);
-  if (isNaN(cellSize) || !isFinite(cellSize)) {
-    cellSize = minSize;
-  }
-  cellSize = Math.min(cellSize, maxSize);
-  return [numColumns, cellSize];
-}
-
-/** Generates a unique key for an element in the fileList */
-const getItemKey = (index: number, data: ClientFile[]): string => {
-  const file = index < data.length ? data[index] : null;
-  return file ? file.id : `${index}`;
-};
+import { LayoutMenuItems, SortMenuItems } from '../Toolbar/ContentToolbar';
+import useContextMenu from '../../hooks/useContextMenu';
+import Placeholder from './Placeholder';
+import { RendererMessenger } from 'src/Messaging';
+import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
+import UiStore from '../../stores/UiStore';
 
 const GridGallery = observer(
-  ({
-    contentRect,
-    uiStore,
-    fileStore,
-    handleClick,
-    handleDoubleClick,
-    handleFileSelect,
-    lastSelectionIndex,
-  }: IGalleryLayoutProps) => {
+  ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
+    const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
-    const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
+    const [minSize, maxSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
+      uiStore.thumbnailSize,
+    ]);
+    const [[numColumns, cellSize], setDimensions] = useState([0, 0]);
 
-    // Debounce the numColums so it doesn't constantly update when the panel width changes (sidebar toggling or window resize)
-    const [numColumns, cellSize] = useDebounce(
-      get_column_layout(contentRect.width, minSize, maxSize),
-      50,
-    );
+    useEffect(() => {
+      const timeoutID = setTimeout(() => {
+        setDimensions(get_column_layout(contentRect.width, minSize, maxSize));
+      }, 50);
+
+      return () => {
+        clearTimeout(timeoutID);
+      };
+    }, [contentRect.width, maxSize, minSize]);
+
     const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
 
-    const ref = useRef<FixedSizeGrid>(null);
+    const ref = useRef<FixedSizeList>(null);
     const outerRef = useRef<HTMLElement>();
 
     useEffect(() => {
@@ -135,10 +58,7 @@ const GridGallery = observer(
     const handleScrollTo = useCallback(
       (i: number) => {
         if (ref.current) {
-          ref.current.scrollToItem({
-            rowIndex: Math.floor(i / numColumns),
-            columnIndex: 0,
-          });
+          ref.current.scrollToItem(Math.floor(i / numColumns));
         }
       },
       [numColumns],
@@ -164,8 +84,8 @@ const GridGallery = observer(
 
     // Store what the first item in view is in the UiStore
     const handleScroll = useCallback(
-      ({ scrollTop }: GridOnScrollProps) =>
-        uiStore.setFirstItem(numColumns * Math.round(scrollTop / cellSize)),
+      ({ scrollOffset }: ListOnScrollProps) =>
+        uiStore.setFirstItem(numColumns * Math.round(scrollOffset / cellSize)),
       [cellSize, numColumns, uiStore],
     );
 
@@ -173,7 +93,7 @@ const GridGallery = observer(
     useEffect(() => {
       const onKeyDown = (e: KeyboardEvent) => {
         // Up and down cursor keys are used in the tag selector list, so ignore these events when it is open
-        if (uiStore.isToolbarTagSelectorOpen || lastSelectionIndex.current === undefined) {
+        if (lastSelectionIndex.current === undefined) {
           return;
         }
 
@@ -189,73 +109,126 @@ const GridGallery = observer(
         } else {
           return;
         }
-        handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+        select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
       };
 
       const throttledKeyDown = throttle(onKeyDown, 50);
       window.addEventListener('keydown', throttledKeyDown);
       return () => window.removeEventListener('keydown', throttledKeyDown);
-    }, [fileList, uiStore, numColumns, handleFileSelect, lastSelectionIndex]);
+    }, [fileList, uiStore, numColumns, select, lastSelectionIndex]);
 
-    const handleItemKey = useCallback(
-      ({ columnIndex, rowIndex, data }) => getItemKey(rowIndex * numColumns + columnIndex, data),
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
+        if (index !== undefined) {
+          select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+        }
+      },
+      [fileList, numColumns, select],
+    );
+
+    const handleDoubleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
+        if (index !== undefined) {
+          uiStore.selectFile(fileList[index], true);
+          uiStore.enableSlideMode();
+        }
+      },
+      [fileList, numColumns, uiStore],
+    );
+
+    const handleContextMenu = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
+        if (index !== undefined) {
+          const file = fileList[index];
+          showContextMenu(e.clientX, e.clientY, [
+            file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
+            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+          ]);
+        }
+      },
+      [fileList, numColumns, showContextMenu],
+    );
+
+    const handleDragStart = useCallback(
+      (e: React.DragEvent) => {
+        const index = getGridItemIndex(e, numColumns, (t) => t.matches('.thumbnail'));
+        onDragStart(e, index, uiStore, fileList);
+      },
+      [fileList, numColumns, uiStore],
+    );
+
+    const handleDrop = useCallback(
+      (e: React.DragEvent<HTMLElement>) => {
+        if (e.dataTransfer.types.includes(DnDType)) {
+          const index = getGridItemIndex(e, numColumns, (t) => t.matches('.thumbnail'));
+          onDrop(e, index, uiStore, fileList);
+        }
+      },
+      [fileList, numColumns, uiStore],
+    );
+
+    const Row = useCallback(
+      ({ index, style, data }) => (
+        <Observer>
+          {() => {
+            const offset = index * numColumns;
+            return (
+              <div role="row" aria-rowindex={index + 1} style={style}>
+                {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
+                  <GridCell colIndex={i + 1} key={file.id} file={file} />
+                ))}
+              </div>
+            );
+          }}
+        </Observer>
+      ),
       [numColumns],
     );
 
-    const Cell: React.FunctionComponent<GridChildComponentProps> = useCallback(
-      ({ columnIndex, rowIndex, style, data }) =>
-        useObserver(() => {
-          const itemIndex = rowIndex * numColumns + columnIndex;
-          const file = itemIndex < data.length ? data[itemIndex] : null;
-          if (!file) {
-            return <div />;
-          }
-          return (
-            <div style={style}>
-              <GalleryItem
-                file={file}
-                isSelected={uiStore.fileSelection.has(file.id)}
-                onClick={handleClick}
-                onDoubleClick={handleDoubleClick}
-              />
-            </div>
-          );
-        }),
-      [handleClick, handleDoubleClick, numColumns, uiStore.fileSelection],
-    );
-
     return (
-      <FixedSizeGrid
-        columnCount={numColumns}
-        columnWidth={cellSize}
-        height={contentRect.height}
-        rowCount={numRows}
-        rowHeight={cellSize}
-        width={contentRect.width}
-        itemData={fileList}
-        itemKey={handleItemKey}
-        overscanRowCount={2}
-        children={Cell}
-        onScroll={handleScroll}
-        initialScrollTop={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
-        ref={ref}
-        outerRef={outerRef}
-      />
+      <div
+        className="grid"
+        role="grid"
+        aria-rowcount={numRows}
+        aria-colcount={numColumns}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
+        onDragStart={handleDragStart}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <FixedSizeList
+          height={contentRect.height}
+          width={contentRect.width}
+          itemSize={cellSize}
+          itemCount={numRows}
+          itemData={fileList}
+          itemKey={getItemKey}
+          overscanCount={2}
+          children={Row}
+          onScroll={handleScroll}
+          initialScrollOffset={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
+          ref={ref}
+          outerRef={outerRef}
+        />
+      </div>
     );
   },
 );
 
 const ListGallery = observer(
-  ({
-    contentRect,
-    fileStore,
-    uiStore,
-    handleClick,
-    handleDoubleClick,
-    lastSelectionIndex,
-  }: IGalleryLayoutProps) => {
+  ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
+    const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
-    const [, cellSize] = getThumbnailSize(uiStore.thumbnailSize);
+    const cellSize = useMemo(() => getThumbnailSize(uiStore.thumbnailSize)[1], [
+      uiStore.thumbnailSize,
+    ]);
     const ref = useRef<FixedSizeList>(null);
 
     const handleScrollTo = useCallback((i: number) => {
@@ -289,47 +262,108 @@ const ListGallery = observer(
       [cellSize, uiStore],
     );
 
-    const Row: React.FunctionComponent<ListChildComponentProps> = useCallback(
-      ({ index, style, data }) =>
-        useObserver(() => {
-          const file = index < data.length ? data[index] : null;
-          if (!file) {
-            return <div />;
-          }
-          return (
-            <div style={style} className={index % 2 ? 'list-item-even' : 'list-item-uneven'}>
-              <GalleryItem
-                file={file}
-                isSelected={uiStore.fileSelection.has(file.id)}
-                onClick={handleClick}
-                onDoubleClick={handleDoubleClick}
-                showDetails
-              />
-            </div>
-          );
-        }),
-      [handleClick, handleDoubleClick, uiStore.fileSelection],
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+        if (index !== undefined) {
+          select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+        }
+      },
+      [fileList, select],
+    );
+
+    const handleDoubleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+        if (index !== undefined) {
+          uiStore.selectFile(fileList[index], true);
+          uiStore.enableSlideMode();
+        }
+      },
+      [fileList, uiStore],
+    );
+
+    const handleContextMenu = useCallback(
+      (e: React.MouseEvent) => {
+        const index = getListItemIndex(e, () => true);
+        if (index !== undefined) {
+          const file = fileList[index];
+          showContextMenu(e.clientX, e.clientY, [
+            file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
+            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+          ]);
+        }
+      },
+      [fileList, showContextMenu],
+    );
+
+    const handleDragStart = useCallback(
+      (e: React.DragEvent) => {
+        const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+        onDragStart(e, index, uiStore, fileList);
+      },
+      [fileList, uiStore],
+    );
+
+    const handleDrop = useCallback(
+      (e: React.DragEvent<HTMLElement>) => {
+        if (e.dataTransfer.types.includes(DnDType)) {
+          const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+          onDrop(e, index, uiStore, fileList);
+        }
+      },
+      [fileList, uiStore],
+    );
+
+    const Row = useCallback(
+      ({ index, style, data }) => (
+        <Observer>
+          {() => {
+            const file = data[index];
+            return (
+              <div role="row" aria-rowindex={index + 1} style={style}>
+                <ListCell file={file} />
+              </div>
+            );
+          }}
+        </Observer>
+      ),
+      [],
     );
 
     return (
-      <FixedSizeList
-        height={contentRect.height}
-        width={contentRect.width}
-        itemSize={cellSize}
-        itemCount={fileList.length}
-        itemData={fileList}
-        itemKey={getItemKey}
-        overscanCount={2}
-        children={Row}
-        onScroll={handleScroll}
-        initialScrollOffset={uiStore.firstItem * cellSize}
-        ref={ref}
-      />
+      <div
+        className="list"
+        role="grid"
+        aria-rowcount={fileList.length}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
+        onDragStart={handleDragStart}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <FixedSizeList
+          height={contentRect.height}
+          width={contentRect.width}
+          itemSize={cellSize}
+          itemCount={fileList.length}
+          itemData={fileList}
+          itemKey={getItemKey}
+          overscanCount={2}
+          children={Row}
+          onScroll={handleScroll}
+          initialScrollOffset={uiStore.firstItem * cellSize}
+          ref={ref}
+        />
+      </div>
     );
   },
 );
 
-export const MasonryGallery = observer(({}: IGalleryLayoutProps) => {
+export const MasonryGallery = observer(({}: ILayoutProps) => {
   const Styles: any = {
     textAlign: 'center',
     display: 'flex',
@@ -342,19 +376,16 @@ export const MasonryGallery = observer(({}: IGalleryLayoutProps) => {
 
   return (
     <div style={Styles}>
-      {' '}
       <span className="custom-icon-64" style={{ marginBottom: '1rem' }}>
         {IconSet.DB_ERROR}
       </span>
       <p>This view is currently not supported</p>
     </div>
   );
-  {
-    /* // tslint:disable-next-line */
-  }
 });
 
-const SlideGallery = observer(({ fileStore, uiStore, contentRect }: IGalleryLayoutProps) => {
+const SlideGallery = observer(({ contentRect }: { contentRect: Rectangle }) => {
+  const { fileStore, uiStore } = useContext(StoreContext);
   const { fileList } = fileStore;
   // Go to the first selected image on load
   useEffect(() => {
@@ -464,160 +495,326 @@ const SlideGallery = observer(({ fileStore, uiStore, contentRect }: IGalleryLayo
   );
 });
 
-const Gallery = ({ rootStore: { uiStore, fileStore } }: IRootStoreProp) => {
+const handleFlyoutBlur = (e: React.FocusEvent) => {
+  if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) {
+    const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
+    if (dialog.open) {
+      dialog.close();
+    }
+  }
+};
+
+interface ILayoutProps {
+  contentRect: Rectangle;
+  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
+  lastSelectionIndex: React.MutableRefObject<number | undefined>;
+  /** menu: [fileMenu, externalMenu] */
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
+}
+
+const Layout = observer(
+  ({ contentRect, showContextMenu }: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
+    const { uiStore, fileStore } = useContext(StoreContext);
+    const fileList = fileStore.fileList;
+    // Todo: Select by dragging a rectangle shape
+    // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+    // Also take into account scrolling when dragging while selecting
+    const { makeSelection, lastSelectionIndex } = useSelectionCursor();
+
+    // useComputed to listen to fileSelection changes
+    const handleFileSelect = useCallback(
+      (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => {
+        const i = fileStore.getIndex(selectedFile.id);
+        if (i === undefined) {
+          return;
+        }
+
+        const isSelected = uiStore.fileSelection.has(selectedFile.id);
+        const singleSelected = isSelected && uiStore.fileSelection.size === 1;
+
+        const newSelection = makeSelection(i, selectRange);
+        if (!selectAdditive) {
+          uiStore.clearFileSelection();
+        }
+        if (selectRange) {
+          uiStore.selectFiles(newSelection.map((i) => fileList[i].id));
+        } else if (selectAdditive) {
+          // Add or subtract to the selection
+          isSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
+        } else {
+          // Only select this file. If this is the only selected file, deselect it
+          singleSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
+        }
+      },
+      [fileStore, uiStore, makeSelection, fileList],
+    );
+
+    useEffect(() => {
+      const onKeyDown = (e: KeyboardEvent) => {
+        let index = lastSelectionIndex.current;
+        if (index === undefined) {
+          return;
+        }
+        if (e.key === 'ArrowLeft' && index > 0) {
+          index -= 1;
+        } else if (e.key === 'ArrowRight' && index < fileList.length - 1) {
+          index += 1;
+        } else {
+          return;
+        }
+        handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      };
+
+      const throttledKeyDown = throttle(onKeyDown, 50);
+
+      window.addEventListener('keydown', throttledKeyDown);
+      return () => window.removeEventListener('keydown', throttledKeyDown);
+    }, [fileList, uiStore, handleFileSelect, lastSelectionIndex]);
+
+    if (uiStore.isSlideMode) {
+      return <SlideGallery contentRect={contentRect} />;
+    }
+    switch (uiStore.method) {
+      case 'grid':
+        return (
+          <GridGallery
+            contentRect={contentRect}
+            select={handleFileSelect}
+            lastSelectionIndex={lastSelectionIndex}
+            showContextMenu={showContextMenu}
+          />
+        );
+      // case 'masonry':
+      //   return <MasonryGallery {...props} />;
+      case 'list':
+        return (
+          <ListGallery
+            contentRect={contentRect}
+            select={handleFileSelect}
+            lastSelectionIndex={lastSelectionIndex}
+            showContextMenu={showContextMenu}
+          />
+        );
+      default:
+        return null;
+    }
+  },
+);
+
+const Gallery = () => {
+  const { fileStore, uiStore } = useContext(StoreContext);
+  const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
+  const {
+    open,
+    x,
+    y,
+    menu: [fileMenu, externalMenu],
+  } = contextState;
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
-  const handleResize = useCallback((entries: IResizeEntry[]) => {
-    const { contentRect: rect, target } = entries[0];
-    setContentRect({
-      width: rect.width,
-      height: rect.height,
-      x: (target as HTMLDivElement).offsetLeft,
-      y: (target as HTMLDivElement).offsetTop,
-    });
-  }, []);
+  const container = useRef<HTMLDivElement>(null);
 
-  const { makeSelection, lastSelectionIndex } = useSelectionCursor();
-
-  const handleBackgroundClick = useCallback(() => uiStore.clearFileSelection(), [uiStore]);
-
-  // useComputed to listen to fileSelection changes
-  const handleFileSelect = useCallback(
-    (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => {
-      const i = fileStore.getIndex(selectedFile.id);
-      if (i === undefined) {
-        return;
-      }
-
-      const isSelected = uiStore.fileSelection.has(selectedFile.id);
-      const singleSelected = isSelected && uiStore.fileSelection.size === 1;
-
-      const newSelection = makeSelection(i, selectRange);
-      if (!selectAdditive) {
-        uiStore.clearFileSelection();
-      }
-      if (selectRange) {
-        uiStore.selectFiles(newSelection.map((i) => fileList[i].id));
-      } else if (selectAdditive) {
-        // Add or subtract to the selection
-        isSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
-      } else {
-        // Only select this file. If this is the only selected file, deselect it
-        singleSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
-      }
-    },
-    [fileStore, uiStore, makeSelection, fileList],
-  );
-
-  const handleItemClick = useCallback(
-    (clickedFile: ClientFile, e: React.MouseEvent) => {
-      e.stopPropagation(); // avoid propogation to background
-      handleFileSelect(clickedFile, e.ctrlKey || e.metaKey, e.shiftKey);
-    },
-    [handleFileSelect],
-  );
-
-  // Slide view when double clicking
-  const handleDoubleClick = useCallback(
-    (clickedFile: ClientFile) => {
-      uiStore.selectFile(clickedFile, true);
-      uiStore.enableSlideMode();
-    },
-    [uiStore],
+  const resizeObserver = useRef(
+    new ResizeObserver((entries) => {
+      const { contentRect: rect, target } = entries[0];
+      setContentRect({
+        width: rect.width,
+        height: rect.height,
+        x: (target as HTMLDivElement).offsetLeft,
+        y: (target as HTMLDivElement).offsetTop,
+      });
+    }),
   );
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      let index = lastSelectionIndex.current;
-      if (index === undefined) {
-        return;
-      }
-      if (e.key === 'ArrowLeft' && index > 0) {
-        index -= 1;
-      } else if (e.key === 'ArrowRight' && index < fileList.length - 1) {
-        index += 1;
-      } else {
-        return;
-      }
-      handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
-    };
-
-    const throttledKeyDown = throttle(onKeyDown, 50);
-
-    window.addEventListener('keydown', throttledKeyDown);
-    return () => window.removeEventListener('keydown', throttledKeyDown);
-  }, [fileList, uiStore, handleFileSelect, lastSelectionIndex]);
-
-  // Todo: Select by dragging a rectangle shape
-  // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
-  // Also take into account scrolling when dragging while selecting
+    const observer = resizeObserver.current;
+    if (container.current) {
+      resizeObserver.current.observe(container.current);
+    }
+    return () => observer.disconnect();
+  }, [fileList.length]);
 
   if (fileList.length === 0) {
-    let icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
-    let title = 'No images';
-    let description = 'Images can be added from the outliner';
-    let action = (
-      <Button onClick={uiStore.toggleOutliner} text="Toggle outliner" intent="primary" />
-    );
-    if (fileStore.showsQueryContent) {
-      description = 'Try searching for something else.';
-      icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
-      title = 'No images found';
-      action = (
-        <ButtonGroup>
-          <Button text="All images" icon={IconSet.MEDIA} onClick={fileStore.fetchAllFiles} />
-          <Button
-            text="Untagged"
-            icon={IconSet.TAG_BLANCO}
-            onClick={fileStore.fetchUntaggedFiles}
-          />
-          <Button
-            text="Search"
-            icon={IconSet.SEARCH}
-            onClick={uiStore.openQuickSearch}
-            intent="primary"
-          />
-        </ButtonGroup>
-      );
-    } else if (fileStore.showsUntaggedContent) {
-      icon = <span className="bp3-icon custom-icon custom-icon-64">{IconSet.MEDIA}</span>;
-      description = 'All images have been tagged. Nice work!';
-      title = 'No untagged images';
-      action = (
-        <ButtonGroup>
-          <Button text="All Images" icon={IconSet.MEDIA} onClick={fileStore.fetchAllFiles} />
-          <Button
-            text="Search"
-            icon={IconSet.SEARCH}
-            onClick={uiStore.openQuickSearch}
-            intent="primary"
-          />
-        </ButtonGroup>
-      );
-    }
-
-    return <NonIdealState icon={icon} title={title} description={description} action={action} />;
+    return <Placeholder />;
   }
 
   return (
-    <ResizeSensor onResize={handleResize}>
-      <div
-        id="gallery-content"
-        className={`thumbnail-${uiStore.thumbnailSize} ${uiStore.method} thumbnail-${uiStore.thumbnailShape}`}
-        onClick={handleBackgroundClick}
-      >
-        {getLayoutComponent(uiStore.method, uiStore.isSlideMode, {
-          contentRect,
-          fileStore,
-          uiStore,
-          handleClick: handleItemClick,
-          handleDoubleClick,
-          handleFileSelect,
-          lastSelectionIndex,
-        })}
-      </div>
-    </ResizeSensor>
+    <div
+      ref={container}
+      id="gallery-content"
+      className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
+      onClick={uiStore.clearFileSelection}
+      onBlur={handleFlyoutBlur}
+    >
+      <Layout contentRect={contentRect} showContextMenu={show} />
+      <ContextMenu key="contextmenu" open={open} x={x} y={y} onClose={hide}>
+        <Menu>
+          {fileMenu}
+          <MenuDivider key="separator_file" />
+          <SubMenu key="view" icon={IconSet.VIEW_GRID} text="View method...">
+            <LayoutMenuItems uiStore={uiStore} />
+          </SubMenu>
+          <SubMenu key="sort" icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+            <SortMenuItems fileStore={fileStore} />
+          </SubMenu>
+          <MenuDivider key="separator_ext" />
+          {externalMenu}
+        </Menu>
+      </ContextMenu>
+    </div>
   );
 };
 
-export default withRootstore(observer(Gallery));
+export default observer(Gallery);
+
+function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
+  if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'link';
+    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'true';
+  }
+}
+
+function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+  if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
+    e.preventDefault();
+  }
+}
+
+function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+  if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'none';
+    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
+  }
+}
+
+// If the file is selected, add all selected items to the drag event, for
+// exporting to your file explorer or programs like PureRef.
+// Creating an event in the main process turned out to be the most robust,
+// did many experiments with drag event content types. Creating a drag
+// event with multiple images did not work correctly from the browser side
+// (e.g. only limited to thumbnails, not full images).
+function onDragStart(
+  e: React.DragEvent,
+  index: number | undefined,
+  uiStore: UiStore,
+  fileList: ClientFile[],
+) {
+  if (index === undefined) {
+    return;
+  }
+  const file = fileList[index];
+  if (!uiStore.fileSelection.has(file.id)) {
+    return;
+  }
+  e.preventDefault();
+  if (uiStore.fileSelection.size > 1) {
+    RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
+  } else {
+    RendererMessenger.startDragExport([file.absolutePath]);
+  }
+
+  // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+  // So we can store the date when the event starts... Hacky but it works :)
+  (window as any).internalDragStart = new Date();
+}
+
+function onDrop(
+  e: React.DragEvent<HTMLElement>,
+  index: number | undefined,
+  uiStore: UiStore,
+  files: ClientFile[],
+) {
+  if (index === undefined) {
+    return;
+  }
+  const file = files[index];
+  e.dataTransfer.dropEffect = 'none';
+  const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
+  ctx.tags.forEach((tag) => {
+    file.addTag(tag.id);
+    tag.subTags.forEach(file.addTag);
+  });
+  (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
+}
+
+// WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
+// We'll have less loss of space perhaps
+// https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
+// const { screen } = remote;
+// const { width } = screen.getPrimaryDisplay().workAreaSize;
+// const CELL_SMALL = (width / 10) - 16;
+// const CELL_MEDIUM = (width / 6) - 8;
+// const CELL_LARGE = (width / 4) - 8;
+// // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
+// const CELL_SIZE_SMALL = CELL_SMALL - 2;
+// const CELL_SIZE_MEDIUM = CELL_MEDIUM - 2;
+// const CELL_SIZE_LARGE = CELL_LARGE - 2;
+// Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
+// TODO: Use computed styles to access the CSS variables
+const PADDING = 8;
+const CELL_SIZE_SMALL = 160 + PADDING;
+const CELL_SIZE_MEDIUM = 240 + PADDING;
+const CELL_SIZE_LARGE = 320 + PADDING;
+// Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
+// can fit into one row.
+const SHRINK_FACTOR = 0.9;
+
+function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
+  if (sizeType === 'small') {
+    return [CELL_SIZE_SMALL * SHRINK_FACTOR, CELL_SIZE_SMALL];
+  } else if (sizeType === 'medium') {
+    return [CELL_SIZE_MEDIUM * SHRINK_FACTOR, CELL_SIZE_MEDIUM];
+  }
+  return [CELL_SIZE_LARGE * SHRINK_FACTOR, CELL_SIZE_LARGE];
+}
+
+function get_column_layout(width: number, minSize: number, maxSize: number): [number, number] {
+  const numColumns = Math.trunc(width / minSize);
+  let cellSize = Math.trunc(width / numColumns);
+  if (isNaN(cellSize) || !isFinite(cellSize)) {
+    cellSize = minSize;
+  }
+  cellSize = Math.min(cellSize, maxSize);
+  return [numColumns, cellSize];
+}
+
+/** Generates a unique key for an element in the fileList */
+function getItemKey(index: number, data: ClientFile[]): string {
+  return data[index].id;
+}
+
+function getListItemIndex(
+  e: React.MouseEvent,
+  matches: (target: HTMLElement) => boolean,
+): number | undefined {
+  const target = e.target as HTMLElement;
+  if (matches(target)) {
+    e.stopPropagation();
+    // Each thumbnail is in a gridcell which is owned by a row.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const rowIndex = target.closest('[role="row"]')!.getAttribute('aria-rowindex')!;
+    return parseInt(rowIndex) - 1;
+  }
+  return undefined;
+}
+
+function getGridItemIndex(
+  e: React.MouseEvent,
+  numColumns: number,
+  matches: (target: HTMLElement) => boolean,
+): number | undefined {
+  const target = e.target as HTMLElement;
+  if (matches(target)) {
+    e.stopPropagation();
+    // Each thumbnail is in a gridcell which is owned by a row.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const rowIndex = target.closest('[role="row"]')!.getAttribute('aria-rowindex')!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const colIndex = target.closest('[role="gridcell"')!.getAttribute('aria-colindex')!;
+    const offset = (parseInt(rowIndex) - 1) * numColumns;
+    return offset + parseInt(colIndex) - 1;
+  }
+  return undefined;
+}

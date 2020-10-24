@@ -1,4 +1,4 @@
-import { IReactionDisposer, observable, reaction, computed, action } from 'mobx';
+import { IReactionDisposer, observable, reaction, computed, action, makeObservable } from 'mobx';
 import TagStore from '../frontend/stores/TagStore';
 import { ID, IResource, ISerializable } from './ID';
 
@@ -49,6 +49,8 @@ export class ClientTag implements ISerializable<ITag> {
         }
       },
     );
+
+    makeObservable(this);
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
@@ -128,7 +130,7 @@ export class ClientTag implements ISerializable<ITag> {
       description: this.description,
       dateAdded: this.dateAdded,
       color: this.color,
-      subTags: this.subTags.toJS(),
+      subTags: this.subTags.slice(),
     };
   }
 

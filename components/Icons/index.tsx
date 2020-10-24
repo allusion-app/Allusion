@@ -4,7 +4,7 @@ interface ISVG extends React.SVGProps<SVGSVGElement> {
   src: any;
 }
 
-export const SVG = (props: ISVG) => {
+const SVG = (props: ISVG) => {
   const { src: SVG, ...p } = props;
   return <SVG {...p} />;
 };
@@ -86,9 +86,7 @@ import WARNING_FILL from 'resources/icons/warning-fill.svg';
 import WARNING_BROKEN_LINK from 'resources/icons/warning-broken-link.svg';
 import WARNING from 'resources/icons/warning.svg';
 
-const toSvg = (src: any) => (
-  <SVG src={src} className="bp3-icon custom-icon" style={{ width: '16px', height: '16px' }} />
-);
+const toSvg = (src: any) => <SVG src={src} className="custom-icon" />;
 
 const IconSet = {
   ADD_TAG_FILL: toSvg(ADD_TAG_FILL),
@@ -169,4 +167,4 @@ const IconSet = {
   WARNING: toSvg(WARNING),
 };
 
-export default IconSet;
+export { IconSet, SVG };

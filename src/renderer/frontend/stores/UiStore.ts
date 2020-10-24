@@ -1,6 +1,6 @@
 import path from 'path';
 import fse from 'fs-extra';
-import { action, observable, computed, observe } from 'mobx';
+import { action, observable, computed, observe, makeObservable } from 'mobx';
 
 import RootStore from './RootStore';
 import { ClientFile, IFile } from '../../entities/File';
@@ -16,7 +16,7 @@ type ThumbnailSize = 'small' | 'medium' | 'large';
 type ThumbnailShape = 'square' | 'letterbox';
 const PREFERENCES_STORAGE_KEY = 'preferences';
 
-interface IHotkeyMap {
+export interface IHotkeyMap {
   // Outerliner actions
   toggleOutliner: string;
   replaceQuery: string;
@@ -27,7 +27,6 @@ interface IHotkeyMap {
   toggleHelpCenter: string;
 
   // Toolbar actions (these should only be active when the content area is focused)
-  openTagSelector: string;
   deleteSelection: string;
   selectAll: string;
   deselectAll: string;
@@ -35,20 +34,17 @@ interface IHotkeyMap {
   viewGrid: string;
   // viewMason: string;
   viewSlide: string;
-  quickSearch: string;
   advancedSearch: string;
-  closeSearch: string;
 
   // Other
   openPreviewWindow: string;
 }
 
 // https://blueprintjs.com/docs/#core/components/hotkeys.dialog
-const defaultHotkeyMap: IHotkeyMap = {
+export const defaultHotkeyMap: IHotkeyMap = {
   toggleOutliner: '1',
   toggleInspector: '2',
   replaceQuery: 'r',
-  openTagSelector: 't',
   toggleSettings: 's',
   toggleHelpCenter: 'h',
   deleteSelection: 'del',
@@ -59,10 +55,8 @@ const defaultHotkeyMap: IHotkeyMap = {
   // TODO: Add masonry layout
   // viewMason: 'alt + 3',
   viewSlide: 'alt + 3',
-  quickSearch: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
-  closeSearch: 'escape',
 };
 
 /**
@@ -89,32 +83,27 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'isOutlinerOpen',
   'isInspectorOpen',
   'thumbnailDirectory',
-  'isToolbarVertical',
   'method',
   'thumbnailSize',
   'thumbnailShape',
+  'hotkeyMap',
 ];
 
 class UiStore {
-  private rootStore: RootStore;
+  private readonly rootStore: RootStore;
 
   @observable isInitialized = false;
 
   // Theme
   @observable theme: 'LIGHT' | 'DARK' = 'DARK';
 
-  // Sidebar
-  @observable isToolbarVertical: boolean = true;
-
   // UI
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = false;
   @observable isSettingsOpen: boolean = false;
   @observable isHelpCenterOpen: boolean = false;
-  @observable isToolbarTagSelectorOpen: boolean = false;
   @observable isLocationRecoveryOpen: ID | null = null;
   @observable isPreviewOpen: boolean = false;
-  @observable isQuickSearchOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
   @observable searchMatchAny = false;
   @observable method: ViewMethod = 'grid';
@@ -136,10 +125,11 @@ class UiStore {
 
   @observable thumbnailDirectory: string = '';
 
-  @observable hotkeyMap: IHotkeyMap = defaultHotkeyMap;
+  @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
+    makeObservable(this);
 
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
@@ -220,7 +210,7 @@ class UiStore {
     }
 
     RendererMessenger.sendPreviewFiles({
-      ids: Array.from(this.fileSelection.toJS()),
+      ids: Array.from(this.fileSelection),
       thumbnailDirectory: this.thumbnailDirectory,
     });
 
@@ -248,20 +238,12 @@ class UiStore {
     this.isHelpCenterOpen = !this.isHelpCenterOpen;
   }
 
-  @action.bound toggleToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.size > 0 && !this.isToolbarTagSelectorOpen;
+  @action.bound openToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = true;
   }
 
-  @action.bound openToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = this.fileSelection.size > 0;
-  }
-
-  @action.bound closeToolbarTagSelector() {
-    this.isToolbarTagSelectorOpen = false;
-  }
-
-  @action.bound toggleToolbarFileRemover() {
-    this.isToolbarFileRemoverOpen = !this.isToolbarFileRemoverOpen;
+  @action.bound closeToolbarFileRemover() {
+    this.isToolbarFileRemoverOpen = false;
   }
 
   @action.bound openLocationRecovery(locationId: ID) {
@@ -285,24 +267,8 @@ class UiStore {
     RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' });
   }
 
-  @action.bound toggleQuickSearch() {
-    if (this.isQuickSearchOpen) {
-      return this.closeQuickSearch();
-    }
-    this.openQuickSearch();
-  }
-
   @action.bound toggleAdvancedSearch() {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
-  }
-
-  @action.bound closeQuickSearch() {
-    this.isQuickSearchOpen = false;
-    this.clearSearchCriteriaList();
-  }
-
-  @action.bound openQuickSearch() {
-    this.isQuickSearchOpen = true;
   }
 
   @action.bound closeAdvancedSearch() {
@@ -311,10 +277,6 @@ class UiStore {
 
   @action.bound toggleSearchMatchAny() {
     this.searchMatchAny = !this.searchMatchAny;
-  }
-
-  @action.bound toggleToolbarVertical() {
-    this.setToolbarVertical(!this.isToolbarVertical);
   }
 
   /////////////////// Selection actions ///////////////////
@@ -545,22 +507,32 @@ class UiStore {
     }
   }
 
+  @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {
+    this.hotkeyMap[action] = combo;
+    // can't rely on the observer PersistentPreferenceFields, since it's an object
+    // Would be neater with a deepObserve, but this works as well:
+    this.storePersistentPreferences();
+  }
+
   // Storing preferences
-  recoverPersistentPreferences() {
+  @action recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
-        this.setToolbarVertical(prefs.isToolbarVertical);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.setIsInspectorOpen(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
         this.setMethod(prefs.method);
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);
+        Object.entries<string>(prefs.hotkeyMap).forEach(
+          ([k, v]) => (this.hotkeyMap[k as keyof IHotkeyMap] = v),
+        );
+        console.log('recovered', prefs.hotkeyMap, this.hotkeyMap);
       } catch (e) {
-        console.log('Cannot parse persistent preferences', e);
+        console.error('Cannot parse persistent preferences', e);
       }
     }
 
@@ -573,7 +545,7 @@ class UiStore {
     }
   }
 
-  storePersistentPreferences() {
+  @action storePersistentPreferences() {
     const prefs: any = {};
     for (const field of PersistentPreferenceFields) {
       prefs[field] = this[field];
@@ -582,13 +554,13 @@ class UiStore {
   }
 
   /////////////////// Helper methods ///////////////////
-  @action clearSelection() {
+  @action.bound clearSelection() {
     this.tagSelection.clear();
     this.fileSelection.clear();
   }
 
-  getFirstSelectedFileId(): ID {
-    return this.fileSelection.values().next().value;
+  getFirstSelectedFileId(): ID | undefined {
+    return this.fileSelection.values().next().value ?? undefined;
   }
 
   @action private viewAllContent() {
@@ -609,10 +581,6 @@ class UiStore {
 
   @action private setIsInspectorOpen(value: boolean = false) {
     this.isInspectorOpen = value;
-  }
-
-  @action private setToolbarVertical(val: boolean) {
-    this.isToolbarVertical = val;
   }
 
   @action private setMethod(method: ViewMethod = 'grid') {

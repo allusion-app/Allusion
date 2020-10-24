@@ -1,14 +1,21 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
-import IconSet from 'components/Icons';
-import { Toolbar as Commandbar, ToolbarToggleButton, ToolbarGroup } from 'components';
+import { IconSet } from 'components';
+import {
+  Toolbar as Commandbar,
+  ToolbarToggleButton,
+  ToolbarMenuButton,
+  Menu,
+  MenuItem,
+  MenuCheckboxItem,
+} from 'components/menu';
 import ContentToolbar from './ContentToolbar';
-import { remote } from 'electron';
+import { KeyCombo } from '@blueprintjs/core';
 
 // Tooltip info
-export const enum ToolbarTooltips {
+export const enum Tooltip {
   Add = 'Toggle Add Panel',
   Outliner = 'Toggle Outliner',
   Search = 'Toggle Search Panel',
@@ -17,77 +24,10 @@ export const enum ToolbarTooltips {
   TagFiles = 'Quick add or delete tags to selection',
   Delete = 'Delete selected missing images from library',
   View = 'Change view content panel',
-  ViewGrid = 'Change view to Grid',
-  ViewList = 'Change view List',
   Filter = 'Filter view content panel',
-  Inspector = 'Toggle Inspector',
-  Settings = 'Toggle Settings',
-  HelpCenter = 'Toggle Help Center',
   Back = 'Back to Content panel',
   Preview = 'Open selected images in a preview window',
 }
-
-const OutlinerToolbar = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  return (
-    <ToolbarGroup id="outliner-toolbar">
-      <ToolbarToggleButton
-        showLabel="never"
-        icon={IconSet.OUTLINER}
-        onClick={uiStore.toggleOutliner}
-        pressed={uiStore.isOutlinerOpen}
-        label="Outliner"
-        tooltip={ToolbarTooltips.Outliner}
-      />
-    </ToolbarGroup>
-  );
-});
-
-const InspectorToolbar = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  return (
-    <ToolbarGroup
-      showLabel={uiStore.isToolbarVertical ? 'never' : undefined}
-      id="inspector-toolbar"
-    >
-      <ToolbarToggleButton
-        icon={IconSet.INFO}
-        onClick={uiStore.toggleInspector}
-        pressed={uiStore.isInspectorOpen}
-        label="Inspector"
-        tooltip={ToolbarTooltips.Inspector}
-      />
-      <ToolbarToggleButton
-        icon={IconSet.HELPCENTER}
-        onClick={uiStore.toggleHelpCenter}
-        pressed={uiStore.isHelpCenterOpen}
-        label="Help Center"
-        tooltip={ToolbarTooltips.HelpCenter}
-      />
-      <ToolbarToggleButton
-        icon={IconSet.SETTINGS}
-        onClick={uiStore.toggleSettings}
-        pressed={uiStore.isSettingsOpen}
-        label="Settings"
-        tooltip={ToolbarTooltips.Settings}
-      />
-    </ToolbarGroup>
-  );
-});
-
-const WindowDecoration = () => {
-  const [isMaximized, setMaximized] = useState(remote.getCurrentWindow().isMaximized());
-  useEffect(() => {
-    remote.getCurrentWindow().on('maximize', () => setMaximized(true));
-    remote.getCurrentWindow().on('unmaximize', () => setMaximized(false));
-  }, []);
-
-  if (!isMaximized) {
-    return <div id="window-resize-area" />;
-  } else {
-    return null;
-  }
-};
 
 const isMac = process.platform === 'darwin';
 
@@ -100,15 +40,55 @@ const Toolbar = observer(() => {
       className={isMac ? 'mac-toolbar' : undefined}
       label="App Command Bar"
       controls="layout-container"
-      orientation={uiStore.isToolbarVertical ? 'vertical' : undefined}
     >
-      <OutlinerToolbar />
+      {/* <ToolbarToggleButton
+        showLabel="never"
+        icon={IconSet.OUTLINER}
+        onClick={uiStore.toggleOutliner}
+        pressed={uiStore.isOutlinerOpen}
+        text="Outliner"
+        tooltip={Tooltip.Outliner}
+      /> */}
 
-      {!uiStore.isToolbarVertical && <ContentToolbar />}
+      <ContentToolbar />
 
-      <InspectorToolbar />
+      <ToolbarMenuButton
+        showLabel="never"
+        icon={IconSet.MORE}
+        text="More"
+        tooltip="See more"
+        id="__secondary-menu"
+        controls="__secondary-menu-options"
+      >
+        <Menu id="__secondary-menu-options" labelledby="__secondary-menu">
+          <MenuCheckboxItem
+            onClick={uiStore.toggleInspector}
+            checked={uiStore.isInspectorOpen}
+            text="Show Inspector"
+            accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleInspector} />}
+          />
+          <MenuItem
+            icon={IconSet.SEARCH_EXTENDED}
+            onClick={uiStore.toggleAdvancedSearch}
+            text="Advanced Search"
+            accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.advancedSearch} />}
+          />
+          <MenuItem
+            icon={IconSet.HELPCENTER}
+            onClick={uiStore.toggleHelpCenter}
+            text="Help Center"
+            accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleHelpCenter} />}
+          />
+          <MenuItem
+            icon={IconSet.SETTINGS}
+            onClick={uiStore.toggleSettings}
+            text="Settings"
+            accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleSettings} />}
+          />
+        </Menu>
+      </ToolbarMenuButton>
 
-      {isMac && <WindowDecoration />}
+      {isMac && <div id="window-resize-area" />}
     </Commandbar>
   );
 });

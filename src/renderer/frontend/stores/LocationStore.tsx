@@ -1,4 +1,4 @@
-import { action, computed, observable, runInAction } from 'mobx';
+import { action, computed, observable, runInAction, makeObservable } from 'mobx';
 import SysPath from 'path';
 import React from 'react';
 
@@ -10,21 +10,22 @@ import { IFile, getMetaData } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
 import { AppToaster } from '../App';
-import { ProgressBar } from '@blueprintjs/core';
 import { promiseAllLimit } from '../utils';
 import { ClientTag } from 'src/renderer/entities/Tag';
-import IconSet from 'components/Icons';
+import { IconSet } from 'components/Icons';
 import { FileOrder } from 'src/renderer/backend/DBRepository';
 
 class LocationStore {
-  private backend: Backend;
-  private rootStore: RootStore;
+  private readonly backend: Backend;
+  private readonly rootStore: RootStore;
 
   readonly locationList = observable<ClientLocation>([]);
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
+
+    makeObservable(this);
   }
 
   @action.bound async init(autoLoad: boolean) {
@@ -36,8 +37,7 @@ class LocationStore {
     );
 
     runInAction(() => {
-      this.locationList.clear();
-      this.locationList.push(...locations);
+      this.locationList.replace(locations);
     });
 
     console.log('initializing with ', locations);
@@ -255,7 +255,7 @@ class LocationStore {
       AppToaster.show(
         {
           // message: 'Gathering image metadata...',
-          message: <ProgressBar intent="primary" value={progress} />,
+          message: <progress value={progress} />,
           timeout: 0,
           className: 'toast-without-dismiss',
           action: {
@@ -340,7 +340,7 @@ class LocationStore {
   /**
    * Fetches the files belonging to a location
    */
-  async findLocationFiles(locationId: ID): Promise<IFile[]> {
+  @action async findLocationFiles(locationId: ID): Promise<IFile[]> {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
     return this.backend.searchFiles(crit, 'id', FileOrder.ASC);
   }

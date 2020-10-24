@@ -1,7 +1,8 @@
-///////////////////////////////// Outliner /////////////////////////////////
+///////////////////////////////// Toolbar /////////////////////////////////
 #toolbar {
   grid-area: toolbar;
   margin: 0 1px;
+  padding: 0 1rem;
 
   // Since the toolbar is acting as the frame, it should be draggable to move the window around
   -webkit-app-region: drag;
@@ -16,29 +17,6 @@
   }
 }
 
-#preview #toolbar {
-  .bp3-switch {
-    margin: 0;
-  }
-}
-
-#main-toolbar {
-  grid-area: main-toolbar;
-  justify-content: center;
-
-  .bp3-popover-content .file-tag {
-    padding: 1em;
-  }
-}
-
-#outliner-toolbar {
-  grid-area: outliner-toolbar;
-}
-
-#inspector-toolbar {
-  grid-area: inspector-toolbar;
-}
-
 // Invisible region in order to still resize the window by dragging from the top when not maximized
 #window-resize-area {
   -webkit-app-region: no-drag;
@@ -49,21 +27,13 @@
   height: 4px;
 }
 
-.vertical-toolbar {
-  #outliner-toolbar {
-    margin-top: 0.375rem;
-  }
-
-  #main-toolbar {
-    grid-area: main-toolbar;
-    margin: 0 1px;
-    background-color: var(--foreground-color);
-
-    // Since the toolbar is acting as the frame, it should be draggable to move the window around
-    -webkit-app-region: drag;
-    // But all of the buttons should not be draggable, else not clickable
-    button {
-      -webkit-app-region: none;
-    }
+.quick-search {
+  padding: 0.25rem;
+  min-height: var(--quick-searchbar-height);
+  display: flex;
+  flex-grow: 1;
+  > * {
+    display: flex;
+    flex-grow: 1;
   }
 }

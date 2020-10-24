@@ -6,17 +6,17 @@ import Outliner from './containers/Outliner';
 import StoreContext from './contexts/StoreContext';
 import Inspector from './containers/Inspector';
 import Toolbar from './containers/Toolbar';
-import ContentToolbar from './containers/Toolbar/ContentToolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
 import GlobalHotkeys from './components/Hotkeys';
-import SettingsWindow from './components/Settings';
+import SettingsWindow from './containers/Settings';
 import HelpCenter from './components/HelpCenter';
 import DropOverlay from './components/DropOverlay';
-import { AdvancedSearchDialog } from './containers/Outliner/SearchPanel';
+import AdvancedSearchDialog from './containers/AdvancedSearch';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { Toaster, Position } from '@blueprintjs/core';
-import WelcomeDialog from './components/WelcomeDialog';
+import WelcomeDialog from './containers/WelcomeDialog';
+import ToggleBar from './containers/Outliner/ToggleBar';
 
 const SPLASH_SCREEN_TIME = 1400;
 
@@ -24,6 +24,13 @@ export const AppToaster = Toaster.create({
   position: Position.BOTTOM_RIGHT,
   className: 'toaster',
 });
+
+const handleClick = (e: React.MouseEvent) => {
+  if (!(e.target instanceof HTMLElement && e.target.closest('dialog[open][data-contextmenu]'))) {
+    const dialogs = e.currentTarget.querySelectorAll('dialog[open][data-contextmenu]');
+    dialogs.forEach((d) => (d as HTMLDialogElement).close());
+  }
+};
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -48,16 +55,15 @@ const App = observer(() => {
     return <SplashScreen />;
   }
 
-  let themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-  themeClass = uiStore.isToolbarVertical ? `${themeClass} vertical-toolbar` : themeClass;
+  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div id="layout-container" className={themeClass}>
+      <div id="layout-container" className={themeClass} onClick={handleClick}>
         <ErrorBoundary>
           <GlobalHotkeys>
-            {uiStore.isToolbarVertical ? <ContentToolbar /> : <></>}
+            <ToggleBar />
 
             <Toolbar />
 

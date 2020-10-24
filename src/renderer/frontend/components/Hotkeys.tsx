@@ -40,9 +40,9 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
         <Hotkey
           global={true}
           combo={hotkeyMap.toggleSettings}
-          label="Opens the settings tab in right sidebar"
+          label="Opens the settings menu window"
           onKeyDown={uiStore.toggleSettings}
-          preventDefault
+          // preventDefault
         />
 
         <Hotkey
@@ -63,13 +63,6 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
         {/* Toolbar actions */}
         <Hotkey
           global={true}
-          combo={hotkeyMap.openTagSelector}
-          label="Opens the tag selector (toolbar)"
-          onKeyDown={uiStore.toggleToolbarTagSelector}
-          preventDefault
-        />
-        <Hotkey
-          global={true}
           combo={hotkeyMap.viewList}
           label="Sets view to list mode"
           onKeyDown={uiStore.setMethodList}
@@ -85,12 +78,6 @@ export class GlobalHotkeys extends React.PureComponent<IGlobalHotkeysProps & IRo
           combo={hotkeyMap.viewSlide}
           label="Sets view to slide mode"
           onKeyDown={uiStore.toggleSlideMode}
-        />
-        <Hotkey
-          global={true}
-          combo={hotkeyMap.quickSearch}
-          label="Toggle quick search"
-          onKeyDown={uiStore.toggleQuickSearch}
         />
         <Hotkey
           global={true}

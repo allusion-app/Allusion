@@ -1,13 +1,12 @@
 import React, { useContext, useEffect, useCallback } from 'react';
-import { Switch } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import ContentView from './containers/ContentView';
-import IconSet from 'components/Icons';
 import { useWorkerListener } from './ThumbnailGeneration';
-import { Toolbar, ToolbarGroup, ToolbarButton } from 'components';
+import { IconSet, Toggle } from 'components';
+import { Toolbar, ToolbarGroup, ToolbarButton } from 'components/menu';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -36,18 +35,18 @@ const PreviewApp = observer(() => {
             <ToolbarButton
               showLabel="never"
               icon={IconSet.ARROW_LEFT}
-              label="Previous Image"
+              text="Previous Image"
               onClick={handleLeftButton}
               disabled={uiStore.firstItem === 0}
             />
             <ToolbarButton
               showLabel="never"
               icon={IconSet.ARROW_RIGHT}
-              label="Next Image"
+              text="Next Image"
               onClick={handleRightButton}
               disabled={uiStore.firstItem === fileStore.fileList.length - 1}
             />
-            <Switch
+            <Toggle
               label="Overview"
               onChange={uiStore.toggleSlideMode}
               checked={!uiStore.isSlideMode}

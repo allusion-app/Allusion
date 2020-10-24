@@ -1,58 +1,55 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { shell } from 'electron';
-import {
-  Button,
-  NonIdealState,
-  ButtonGroup,
-  EditableText,
-  Popover,
-  H5,
-  Classes,
-  Position,
-} from '@blueprintjs/core';
 import { githubUrl } from '../../../config';
-import IconSet from 'components/Icons';
+import { Button, ButtonGroup, IconSet } from 'components';
+import { DialogActions, DialogButton, Flyout } from 'components/popover';
 
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 import StoreContext from '../contexts/StoreContext';
-import { IButtonProps } from '@blueprintjs/core/lib/esm/components/button/abstractButton';
 import { RendererMessenger } from 'src/Messaging';
 
-export const ClearDbButton = (props: IButtonProps & { position?: Position }) => {
+export const ClearDbButton = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const rootStore = useContext(StoreContext);
-  const clearDatabase = async () => {
-    await rootStore.clearDatabase();
-    rootStore.uiStore.closeSettings();
-  };
 
   return (
-    <Popover
-      position={props.position}
-      targetClassName={props.fill ? 'fillWidth' : ''}
-      // Portal doesn't work in new window https://github.com/palantir/blueprint/issues/3248
-      usePortal={false}
+    <Flyout
+      open={isOpen}
+      placement="top"
+      target={
+        <Button
+          styling="outlined"
+          icon={IconSet.CLEAR_DATABASE}
+          text="Clear Database"
+          onClick={() => setIsOpen(!isOpen)}
+        />
+      }
     >
-      <Button {...props} intent="danger" icon={IconSet.CLEAR_DATABASE}>
-        Clear database
-      </Button>
-      <div style={{ padding: '8px', maxWidth: '400px' }}>
-        <H5>Confirm</H5>
-        <p>Are you sure you want to clear the database?</p>
-        <p>
-          This is intended to be a last resort, as all imported images and created tags you will be
-          permanently removed.
-        </p>
-        <p>No images on your system will be deleted.</p>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 15 }}>
-          <Button className={Classes.POPOVER_DISMISS} style={{ marginRight: 10 }}>
-            Cancel
-          </Button>
-          <Button intent="danger" className={Classes.POPOVER_DISMISS} onClick={clearDatabase}>
-            Clear
-          </Button>
+      <div className="dialog-content" style={{ padding: '8px', maxWidth: '45ch' }}>
+        <h2 className="dialog-title">Are you sure you want to clear the database?</h2>
+        <div className="dialog-information">
+          <p>
+            This is intended as a last resort. All imported images and created tags will be
+            permanently removed.
+          </p>
+          <p>This will not delete your images on your system!</p>
+        </div>
+        <div className="dialog-footer">
+          <DialogActions
+            closeButtonText="Cancel"
+            primaryButtonText="Clear"
+            onClick={async (button) => {
+              if (button === DialogButton.CloseButton) {
+                setIsOpen(false);
+              } else {
+                await rootStore.clearDatabase();
+                rootStore.uiStore.closeSettings();
+              }
+            }}
+          />
         </div>
       </div>
-    </Popover>
+    </Flyout>
   );
 };
 
@@ -125,36 +122,31 @@ ${this.state.error}
       // You can render any custom fallback UI
       return (
         <div className="error-boundary">
-          <NonIdealState
-            icon={<span className="bp3-icon custom-icon custom-icon-64">{IconSet.DB_ERROR}</span>}
-            title="Something went wrong."
-            description="You can try one of the following options or contact the maintainers"
-            action={
-              <ButtonGroup>
-                <Button onClick={this.reloadApplication} intent="primary" icon={IconSet.RELOAD}>
-                  Reload
-                </Button>
-                <Button
-                  onClick={this.viewInspector}
-                  intent="warning"
-                  icon={IconSet.CHROME_DEVTOOLS}
-                >
-                  Toggle DevTools
-                </Button>
-                <ClearDbButton position="bottom" />
-                <Button onClick={this.openIssueURL} icon={IconSet.GITHUB}>
-                  Create issue
-                </Button>
-              </ButtonGroup>
-            }
-          >
-            <EditableText
-              className="bp3-intent-danger bp3-monospace-text message"
-              value={error.toString()}
-              isEditing={false}
-              multiline
+          <span className="custom-icon-64">{IconSet.DB_ERROR}</span>
+          <h2>Something went wrong</h2>
+          <p>You can try one of the following options or contact the maintainers.</p>
+          <ButtonGroup>
+            <Button
+              onClick={this.reloadApplication}
+              styling="outlined"
+              icon={IconSet.RELOAD}
+              text="Reload"
             />
-          </NonIdealState>
+            <Button
+              onClick={this.viewInspector}
+              styling="outlined"
+              icon={IconSet.CHROME_DEVTOOLS}
+              text="Toggle DevTools"
+            />
+            <ClearDbButton />
+            <Button
+              styling="outlined"
+              onClick={this.openIssueURL}
+              icon={IconSet.GITHUB}
+              text="Create Issue"
+            />
+          </ButtonGroup>
+          <p className="message">{error.toString()}</p>
         </div>
       );
     }

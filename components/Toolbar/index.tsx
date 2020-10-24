@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import './toolbar.scss';
-import React, { useEffect, useRef } from 'react';
-import { Tooltip } from '@blueprintjs/core';
-import { observer } from 'mobx-react-lite';
+import React, { useEffect, useRef, useState } from 'react';
+import { Tooltip, Flyout } from '../Dialog/index';
 
 interface IToolbar {
   children: React.ReactNode;
   id?: string;
   className?: string;
   label?: string;
-  labelledBy?: string;
+  labelledby?: string;
   controls: string;
   orientation?: 'horizontal' | 'vertical';
 }
 
 const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const current = e.currentTarget;
-  const target = (e.target as HTMLElement).closest('.toolbar > *')!;
-  const isVertical = current.getAttribute('aria-orientation') === 'vertical';
+  const target = (e.target as HTMLElement).closest('[role="toolbar"] > *')!;
+  const isVertical = current.matches('[aria-orientation="vertical"]');
 
   if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     return;
@@ -26,19 +25,19 @@ const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   let item;
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
     item = target.previousElementSibling ?? current.lastElementChild!;
-    if (!item.classList.contains('toolbar-item')) {
+    if (!item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item:last-child')!;
     }
   } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
     item = target.nextElementSibling ?? current.querySelector('.toolbar-item');
-    if (item && !item.classList.contains('toolbar-item')) {
+    if (item && !item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item');
     }
   } else if (e.key === 'Home') {
     item = current.querySelector('.toolbar-item');
   } else if (e.key === 'End') {
     item = current.lastElementChild!;
-    if (!item.classList.contains('toolbar-item')) {
+    if (!item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item:last-child')!;
     }
   }
@@ -50,14 +49,14 @@ const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
 };
 
 const handleToolbarFocus = (e: React.FocusEvent<HTMLElement>) => {
-  if (e.target.classList.contains('toolbar-item')) {
+  if (e.target.matches('.toolbar-item')) {
     e.currentTarget.querySelector('.toolbar-item[tabindex="0"]')?.setAttribute('tabIndex', '-1');
     e.target.setAttribute('tabIndex', '0');
   }
 };
 
 const Toolbar = (props: IToolbar) => {
-  const { children, id, className, label, labelledBy, controls, orientation } = props;
+  const { children, id, className, label, labelledby, controls, orientation } = props;
   const toolbar = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -82,9 +81,9 @@ const Toolbar = (props: IToolbar) => {
       ref={toolbar}
       role="toolbar"
       id={id}
-      className={`toolbar ${className ?? ''}`}
+      className={className}
       aria-label={label}
-      aria-labelledby={labelledBy}
+      aria-labelledby={labelledby}
       aria-controls={controls}
       aria-orientation={orientation}
       onFocus={handleToolbarFocus}
@@ -95,10 +94,9 @@ const Toolbar = (props: IToolbar) => {
   );
 };
 
-export default Toolbar;
-
 interface IBaseButton {
-  label: string;
+  id?: string;
+  text: React.ReactText;
   icon: JSX.Element;
   onClick?: (event: React.MouseEvent) => void;
   showLabel?: 'always' | 'never';
@@ -110,54 +108,59 @@ interface IToolbarButton extends IBaseButton {
   disabled?: boolean;
   pressed?: boolean;
   checked?: boolean;
+  expanded?: boolean;
+  controls?: string;
+  haspopup?: boolean | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog';
 }
 
-export const ToolbarButton = observer(
-  ({
+const ToolbarButton = (props: IToolbarButton) => {
+  const {
+    id,
     onClick,
     icon,
-    label,
+    text,
     role,
     pressed,
     checked,
     disabled,
     tooltip,
     showLabel,
-  }: IToolbarButton) => {
-    const content = (
-      <span className="toolbar-button-content">
-        <span className="toolbar-button-icon" aria-hidden="true">
-          {icon}
-        </span>
-        <span className={`toolbar-button-label ${showLabel ?? ''}`}>{label}</span>
+    expanded,
+    controls,
+    haspopup,
+  } = props;
+  const content = (
+    <span className="toolbar-button-content">
+      <span className="toolbar-button-icon" aria-hidden>
+        {icon}
       </span>
-    );
-    return (
-      <button
-        className="toolbar-item toolbar-button"
-        onClick={onClick}
-        role={role}
-        aria-pressed={pressed}
-        aria-checked={checked}
-        aria-disabled={disabled}
-        tabIndex={-1}
-      >
-        {tooltip ? (
-          <Tooltip
-            content={tooltip}
-            usePortal={false}
-            openOnTargetFocus={false}
-            hoverOpenDelay={1000}
-          >
-            {content}
-          </Tooltip>
-        ) : (
-          content
-        )}
-      </button>
-    );
-  },
-);
+      <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
+    </span>
+  );
+  return (
+    <button
+      id={id}
+      className="toolbar-item toolbar-button"
+      onClick={disabled ? undefined : onClick}
+      role={role}
+      aria-pressed={pressed}
+      aria-checked={checked}
+      aria-disabled={disabled}
+      aria-controls={controls}
+      aria-haspopup={haspopup}
+      aria-expanded={expanded}
+      tabIndex={-1}
+    >
+      {tooltip ? (
+        <Tooltip content={tooltip} hoverDelay={1500}>
+          {content}
+        </Tooltip>
+      ) : (
+        content
+      )}
+    </button>
+  );
+};
 
 interface IBaseGroup {
   children: React.ReactNode;
@@ -173,7 +176,7 @@ interface IToolbarGroup extends IBaseGroup {
 
 const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const target = (e.target as HTMLElement).closest('.toolbar-group > *')!;
-  const isVertical = e.currentTarget.getAttribute('aria-orientation') === 'vertical';
+  const isVertical = e.currentTarget.matches('[aria-orientation="vertical"]');
 
   if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
     return;
@@ -182,16 +185,16 @@ const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   let item;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
     item = target.nextElementSibling ?? target.parentElement!.nextElementSibling;
-    if (item && !item.classList.contains('toolbar-item')) {
+    if (item && !item.matches('.toolbar-item')) {
       item = item.querySelector('.toolbar-item');
     }
   } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
     item = target.previousElementSibling ?? target.parentElement!.previousElementSibling;
     if (item) {
-      if (item.classList.contains('toolbar-group')) {
+      if (item.matches('.toolbar-group')) {
         item = item.lastElementChild!;
       }
-      if (!item.classList.contains('toolbar-item')) {
+      if (!item.matches('.toolbar-item')) {
         item = item.querySelector('.toolbar-item:last-child');
       }
     }
@@ -202,7 +205,7 @@ const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   }
 };
 
-export const ToolbarGroup = observer((props: IToolbarGroup) => {
+const ToolbarGroup = (props: IToolbarGroup) => {
   const { id, label, children, role, showLabel, onKeyDown = handleGroupKeyDown } = props;
   return (
     <div
@@ -215,20 +218,21 @@ export const ToolbarGroup = observer((props: IToolbarGroup) => {
       {children}
     </div>
   );
-});
+};
 
 interface IToolbarToggleButton extends IBaseButton {
   pressed: boolean;
 }
 
-export const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { pressed, onClick, icon, label, tooltip, showLabel } = props;
+const ToolbarToggleButton = (props: IToolbarToggleButton) => {
+  const { id, pressed, onClick, icon, text, tooltip, showLabel } = props;
   return (
     <ToolbarButton
+      id={id}
       pressed={pressed}
       onClick={onClick}
       icon={icon}
-      label={label}
+      text={text}
       showLabel={showLabel}
       tooltip={tooltip}
     />
@@ -241,7 +245,7 @@ interface IToolbarSegment extends IBaseGroup {
 
 const handleSegmentKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const target = e.target as HTMLElement;
-  const isVertical = e.currentTarget.getAttribute('aria-orientation') === 'vertical';
+  const isVertical = e.currentTarget.matches('[aria-orientation="vertical"]');
   let item;
   if (e.key === 'ArrowLeft' || (isVertical && e.key === 'ArrowUp')) {
     item = target.previousElementSibling;
@@ -258,7 +262,7 @@ const handleSegmentKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   }
 };
 
-export const ToolbarSegment = ({ label, children, showLabel }: IToolbarSegment) => {
+const ToolbarSegment = ({ label, children, showLabel }: IToolbarSegment) => {
   return (
     <ToolbarGroup
       role="radiogroup"
@@ -275,17 +279,112 @@ interface IToolbarSegmentButton extends IBaseButton {
   checked: boolean;
 }
 
-export const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
-  const { checked, onClick, icon, label, tooltip, showLabel } = props;
+const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
+  const { id, checked, onClick, icon, text, tooltip, showLabel } = props;
   return (
     <ToolbarButton
+      id={id}
       role="radio"
       checked={checked}
       onClick={onClick}
       icon={icon}
-      label={label}
+      text={text}
       tooltip={tooltip}
       showLabel={showLabel}
     />
   );
+};
+
+const handleKeyDown = (e: React.KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter': {
+      const item = e.currentTarget.querySelector('dialog [tabindex="0"]:focus') as HTMLElement;
+      if (item) {
+        e.stopPropagation();
+        item.click();
+        e.currentTarget.querySelector('button')?.focus();
+      }
+      break;
+    }
+
+    case 'Escape':
+      const item = e.currentTarget.querySelector('dialog [tabindex="0"]:focus') as HTMLElement;
+      if (item) {
+        e.stopPropagation();
+        item.blur();
+        e.currentTarget.querySelector('button')?.focus();
+      }
+      break;
+
+    default:
+      break;
+  }
+};
+
+const handleFlyoutBlur = (e: React.FocusEvent) => {
+  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+    const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
+    if (dialog.open) {
+      dialog.close();
+    }
+  }
+};
+
+interface IToolbarMenuButton extends IBaseButton {
+  controls: string;
+  /** The element must be a Menu component otherwise focus will not work. */
+  children: React.ReactNode;
+  disabled?: boolean;
+  /** @default 'menu' */
+  role?: 'menu' | 'group';
+}
+
+const ToolbarMenuButton = (props: IToolbarMenuButton) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const container = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (container.current && isOpen) {
+      // Focus first focusable menu item
+      const first = container.current.querySelector('[role^="menuitem"]') as HTMLElement;
+      // The Menu component will handle setting the tab indices.
+      first?.focus();
+    }
+  }, [isOpen]);
+
+  return (
+    <div ref={container} onKeyDown={handleKeyDown} onBlur={handleFlyoutBlur}>
+      <Flyout
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        onCancel={() => setIsOpen(false)}
+        target={
+          <ToolbarButton
+            id={props.id}
+            icon={props.icon}
+            text={props.text}
+            disabled={props.disabled}
+            showLabel={props.showLabel}
+            tooltip={props.tooltip}
+            onClick={() => setIsOpen(!isOpen)}
+            expanded={isOpen}
+            controls={props.controls}
+            haspopup="menu"
+          />
+        }
+      >
+        {props.children}
+      </Flyout>
+    </div>
+  );
+};
+
+export {
+  Toolbar,
+  ToolbarGroup,
+  ToolbarButton,
+  ToolbarMenuButton,
+  ToolbarSegment,
+  ToolbarSegmentButton,
+  ToolbarToggleButton,
 };

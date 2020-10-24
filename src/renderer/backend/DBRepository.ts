@@ -1,4 +1,4 @@
-import Dexie from 'dexie';
+import Dexie, { Transaction, WhereClause } from 'dexie';
 import { ID, IResource } from '../entities/ID';
 import {
   SearchCriteria,
@@ -18,7 +18,7 @@ export interface IDBCollectionConfig {
 export interface IDBVersioningConfig {
   version: number;
   collections: IDBCollectionConfig[];
-  upgrade?: (tx: Dexie.Transaction) => void;
+  upgrade?: (tx: Transaction) => void;
 }
 
 /**
@@ -80,6 +80,10 @@ export default class BaseRepository<T extends IResource> {
 
   public async get(id: ID): Promise<T | undefined> {
     return this.collection.get(id);
+  }
+
+  public async getByIds(ids: ID[]): Promise<(T | undefined)[]> {
+    return this.collection.bulkGet(ids);
   }
 
   public async getAll({ count, order, fileOrder }: IDbRequest<T>): Promise<T[]> {
@@ -198,7 +202,7 @@ export default class BaseRepository<T extends IResource> {
   //          Since some of our search operations are not supported by Dexie, some _where functions return a lambda.
   // - lambda: For 'and' conjunctions, a naive filter function (lambda) must be used.
 
-  private _filterWhere(where: Dexie.WhereClause<T, string>, crit: SearchCriteria<T>) {
+  private _filterWhere(where: WhereClause<T, string>, crit: SearchCriteria<T>) {
     switch (crit.valueType) {
       case 'array':
         return this._filterArrayWhere(where, crit as IArraySearchCriteria<T>);
@@ -224,7 +228,7 @@ export default class BaseRepository<T extends IResource> {
     }
   }
 
-  private _filterArrayWhere(where: Dexie.WhereClause<T, string>, crit: IArraySearchCriteria<T>) {
+  private _filterArrayWhere(where: WhereClause<T, string>, crit: IArraySearchCriteria<T>) {
     // Querying array props: https://dexie.org/docs/MultiEntry-Index
     // Check whether to search for empty arrays (e.g. no tags)
     if (crit.value.length === 0) {
@@ -253,7 +257,7 @@ export default class BaseRepository<T extends IResource> {
     }
   }
 
-  private _filterStringWhere(where: Dexie.WhereClause<T, string>, crit: IStringSearchCriteria<T>) {
+  private _filterStringWhere(where: WhereClause<T, string>, crit: IStringSearchCriteria<T>) {
     type DbStringOperator = 'equalsIgnoreCase' | 'startsWithIgnoreCase';
     const funcName = ((operator: StringOperatorType): DbStringOperator | undefined => {
       switch (operator) {
@@ -300,7 +304,7 @@ export default class BaseRepository<T extends IResource> {
     return getFilterFunc(crit.operator);
   }
 
-  private _filterNumberWhere(where: Dexie.WhereClause<T, string>, crit: INumberSearchCriteria<T>) {
+  private _filterNumberWhere(where: WhereClause<T, string>, crit: INumberSearchCriteria<T>) {
     type DbNumberOperator =
       | 'equals'
       | 'notEqual'
@@ -360,7 +364,7 @@ export default class BaseRepository<T extends IResource> {
     return getFilterFunc(crit.operator);
   }
 
-  private _filterDateWhere(where: Dexie.WhereClause<T, string>, crit: IDateSearchCriteria<T>) {
+  private _filterDateWhere(where: WhereClause<T, string>, crit: IDateSearchCriteria<T>) {
     const dateStart = new Date(crit.value);
     dateStart.setHours(0, 0, 0);
     const dateEnd = new Date(crit.value);

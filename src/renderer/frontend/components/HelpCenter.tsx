@@ -1,8 +1,9 @@
-import { Classes, Drawer, IPanelProps, PanelStack, Button, ButtonGroup } from '@blueprintjs/core';
+import { IPanelProps, PanelStack } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useContext, useRef, useEffect } from 'react';
 import StoreContext from '../contexts/StoreContext';
-import IconSet from 'components/Icons';
+import { Button, ButtonGroup, IconButton, IconSet } from 'components';
+import { Dialog } from 'components/popover';
 
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
 // TODO: Put images in /resources/helpcenter/ or somewhere like that
@@ -291,12 +292,10 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
       ))}
       <br />
       <ButtonGroup>
-        <Button intent="primary" onClick={closePanel}>
-          Previous
-        </Button>
+        <Button styling="outlined" onClick={closePanel} text="Previous" />
         {nextSection && (
           <Button
-            intent="primary"
+            styling="outlined"
             onClick={() =>
               openPanel({
                 title: nextSection.title,
@@ -304,9 +303,8 @@ const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: Secti
                 props: { section: nextSection },
               })
             }
-          >
-            Next
-          </Button>
+            text="Next"
+          />
         )}
       </ButtonGroup>
     </div>
@@ -322,21 +320,11 @@ const HelpCenterHome = (props: IPanelProps) => {
       </header>
       <nav>
         {sections.map((section) => (
-          <section key={section.title}>
-            <header
-              onClick={() =>
-                props.openPanel({
-                  title: section.title,
-                  component: SectionPanel,
-                  props: { section },
-                })
-              }
-            >
-              <span>
-                {section.icon}
-                {section.title}
-              </span>
-            </header>
+          <details open key={section.title}>
+            <summary>
+              {section.icon}
+              {section.title}
+            </summary>
             <ul>
               {section.subSections.map((subSec, subSectionIndex) => (
                 <li
@@ -353,7 +341,7 @@ const HelpCenterHome = (props: IPanelProps) => {
                 </li>
               ))}
             </ul>
-          </section>
+          </details>
         ))}
       </nav>
     </div>
@@ -364,14 +352,17 @@ const HelpCenter = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   return (
-    <Drawer
-      isOpen={uiStore.isHelpCenterOpen}
-      icon={IconSet.HELPCENTER}
-      onClose={uiStore.toggleHelpCenter}
-      title="Help Center"
-      className="settings" // same class as settings panel, since we override the Drawer dimensions there nicely
+    <Dialog
+      open={uiStore.isHelpCenterOpen}
+      onCancel={uiStore.toggleHelpCenter}
+      className="bp3-light help-center-drawer"
     >
-      <div className={Classes.DRAWER_BODY} id="help-center">
+      <span className="dialog-icon">{IconSet.HELPCENTER}</span>
+      <h2 id="dialog-title" className="dialog-title">
+        Help Center
+      </h2>
+      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={uiStore.toggleHelpCenter} />
+      <div id="help-center" className="dialog-information">
         <PanelStack
           initialPanel={{
             component: HelpCenterHome,
@@ -379,7 +370,7 @@ const HelpCenter = observer(() => {
           }}
         />
       </div>
-    </Drawer>
+    </Dialog>
   );
 });
 

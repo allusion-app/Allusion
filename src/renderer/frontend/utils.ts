@@ -135,7 +135,7 @@ export function promiseAllLimit<T>(
 //// Text formatting utils ////
 ///////////////////////////////
 export const formatTagCountText = (numTags: number) => {
-  const extraTagsText = numTags ? `+${numTags} tag${numTags === 1 ? '' : 's'}` : '';
+  const extraTagsText = numTags > 1 ? `+${numTags} tag${numTags === 1 ? '' : 's'}` : '';
   return `${extraTagsText}`;
 };
 
@@ -267,11 +267,11 @@ export const getContrast = (hexcolor: string) => {
   return (r * 299 + g * 587 + b * 114) / 1000;
 };
 
-export const getClassForBackground = (backHex: string) => {
+export const getColorFromBackground = (backHex: string): 'black' | 'white' => {
   // const hsl = hexToHSL(backHex);
   // const [, sat, lum] = hsl;
-  // return lum < 50 || (lum < 60 && sat > 75) ? 'color-white' : 'color-black';
-  return getContrast(backHex) >= 128 ? 'color-black' : 'color-white';
+  // return lum < 50 || (lum < 60 && sat > 75) ? 'white' : 'black';
+  return getContrast(backHex) >= 128 ? 'black' : 'white';
 };
 
 ////////////////////
@@ -310,4 +310,14 @@ export function needsThumbnail(width: number, height: number) {
 export const isDirEmpty = async (dir: string) => {
   const dirContents = await fse.readdir(dir);
   return dirContents.length === 0 || (dirContents.length === 1 && dirContents[0] === '.DS_Store');
+};
+
+export const clamp = (value: number, min: number, max: number): number => {
+  if (value > max) {
+    return max;
+  } else if (value < min) {
+    return min;
+  } else {
+    return value;
+  }
 };

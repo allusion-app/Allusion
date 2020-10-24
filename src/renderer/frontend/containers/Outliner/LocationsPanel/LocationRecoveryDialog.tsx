@@ -1,13 +1,13 @@
-import { Button, ButtonGroup, Callout, Classes, Dialog } from '@blueprintjs/core';
 import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 import Path from 'path';
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { IMG_EXTENSIONS } from 'src/renderer/entities/File';
 import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import LocationStore from 'src/renderer/frontend/stores/LocationStore';
-import IconSet from 'components/Icons';
+import { Button, ButtonGroup, IconSet } from 'components';
+import { Dialog } from 'components/popover';
 import { AppToaster } from 'src/renderer/frontend/App';
 import { RendererMessenger } from 'src/Messaging';
 
@@ -54,24 +54,159 @@ async function doesLocationMatchWithDir(
   };
 }
 
-const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) => void }) => {
+enum Status {
+  /** The location is in a valid state. */
+  Ok,
+  /** The path does not exist on the system. This happens when a folder has
+   * been (re)moved or an external device was unmounted. */
+  InvalidPath,
+  /** The chosen path does not contain any matching files. The user should
+   * either choose another path or delete the location. */
+  NoMatches,
+  /** The chosen path only contains some of the old location data. In this case
+   * the user has to decide whether the data should be overridden. */
+  PartialRecovery,
+}
+
+const statusFromMatch = (match: IMatch | undefined): Status => {
+  if (match === undefined) {
+    return Status.InvalidPath;
+  } else if (match.locationImageCount === match.matchCount) {
+    return Status.Ok;
+  } else if (match.matchCount === 0) {
+    return Status.NoMatches;
+  } else {
+    return Status.PartialRecovery;
+  }
+};
+
+interface IRecoveryInfoProps {
+  location: ClientLocation;
+  status: Status;
+  match?: IMatch;
+}
+
+const RecoveryInfo = observer(({ location, status, match }: IRecoveryInfoProps) => {
+  switch (status) {
+    case Status.Ok:
+      return (
+        <div>The location has been recovered, all files were found in the specified directory!</div>
+      );
+
+    case Status.InvalidPath:
+      return (
+        <div>
+          <p>The location {location.name} could not be found on your system.</p>
+          <p>
+            If it has been moved to a different directory, you can relocate the location by choosing
+            its new path to recover information Allusion has stored about your images
+          </p>
+          <p>Original path:</p>
+          <pre>{location.path}</pre>
+        </div>
+      );
+
+    case Status.NoMatches:
+      return (
+        <div>
+          The location could not be recovered since no images of this location were found in the
+          specified directory.
+        </div>
+      );
+
+    // TODO: Should also warn about new images in the folder that were not in the location before (status.directoryImageCount)
+    case Status.PartialRecovery:
+      if (match) {
+        return (
+          <div>
+            Only {match.matchCount} out of {match.locationImageCount} images were found in the
+            specified directory. By recovering the location, the missing files would be lost. Do you
+            still want to recover the location using this directory?
+          </div>
+        );
+      }
+      return null;
+
+    default:
+      return null;
+  }
+});
+
+interface IRecoveryActionsProps {
+  status: Status;
+  locate: () => void;
+  rescan: () => void;
+  retry: () => void;
+  save: () => void;
+}
+
+const RecoveryActions = observer(
+  ({ status, locate, rescan, retry, save }: IRecoveryActionsProps) => {
+    const { uiStore } = useContext(StoreContext);
+
+    switch (status) {
+      case Status.Ok:
+        // TODO: Refetch on close?
+        return (
+          <ButtonGroup className="dialog-actions">
+            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
+          </ButtonGroup>
+        );
+
+      case Status.InvalidPath:
+        return (
+          <ButtonGroup className="dialog-actions">
+            <Button styling="filled" onClick={locate} text="Locate" />
+            {/* Re-scan option, e.g. for when you mount a drive */}
+            <Button styling="outlined" onClick={rescan} text="Re-Scan" />
+            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Cancel" />
+          </ButtonGroup>
+        );
+
+      case Status.NoMatches:
+        return (
+          <ButtonGroup className="dialog-actions">
+            <Button styling="outlined" onClick={retry} text="Retry" />
+          </ButtonGroup>
+        );
+
+      case Status.PartialRecovery:
+        return (
+          <ButtonGroup className="dialog-actions">
+            <Button styling="outlined" onClick={retry} text="Retry" />
+            <Button styling="outlined" onClick={save} text="Recover" />
+          </ButtonGroup>
+        );
+
+      default:
+        return (
+          <ButtonGroup className="dialog-actions">
+            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
+          </ButtonGroup>
+        );
+    }
+  },
+);
+
+const LocationRecoveryDialog = () => {
   const { uiStore, locationStore, fileStore } = useContext(StoreContext);
-  const theme = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
   const { isLocationRecoveryOpen } = uiStore;
 
-  const [status, setStatus] = useState<IMatch>();
+  const [match, setMatch] = useState<IMatch>();
   const [pickedDir, setPickedDir] = useState<string>();
 
-  const handleChangeLocationPath = useCallback((location: ClientLocation, path: string) => {
+  const location = isLocationRecoveryOpen ? locationStore.get(isLocationRecoveryOpen) : undefined;
+
+  if (!location) return null;
+
+  const status = statusFromMatch(match);
+
+  const handleChangeLocationPath = (location: ClientLocation, path: string) => {
     location.changePath(path);
     AppToaster.show({ intent: 'success', message: `Recovered Location ${path}!` });
-  }, []);
+  };
 
-  const handleRecover = useCallback(async () => {
-    setStatus(undefined);
-
-    const location = locationStore.get(isLocationRecoveryOpen!)!;
-
+  const handleLocate = async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
       defaultPath: location.path, // TODO: Maybe pick the parent dir of the original location by default?
@@ -89,13 +224,10 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
     }
 
     setPickedDir(newDir);
-    setStatus(match);
-  }, [handleChangeLocationPath, isLocationRecoveryOpen, locationStore]);
+    setMatch(match);
+  };
 
-  const handleRescan = useCallback(async () => {
-    // Check if folder is there, close if found, show :( when not
-    const location = locationStore.get(isLocationRecoveryOpen!)!;
-
+  const handleRescan = async () => {
     const exists = await fse.pathExists(location.path);
 
     if (exists) {
@@ -110,114 +242,29 @@ const LocationRecoveryDialog = ({ onDelete }: { onDelete: (loc: ClientLocation) 
     } else {
       AppToaster.show({ intent: 'warning', message: `Location ${location.path} still not found` });
     }
-  }, [fileStore, isLocationRecoveryOpen, locationStore, uiStore]);
+  };
 
-  if (!isLocationRecoveryOpen) return <></>;
-
-  const location = locationStore.get(isLocationRecoveryOpen);
-  if (!location) return <></>;
-
-  const noRecovery = status && status.matchCount === 0;
-  const fullRecovery = status && !noRecovery && status.locationImageCount === status.matchCount;
-  const partialRecovery = status && !noRecovery && status.matchCount < status.locationImageCount;
-
-  // TODO: Should also warn about new images in the folder that were not in the location before (status.directoryImageCount)
   return (
-    <Dialog
-      title={
-        <span className="ellipsis" title={location.path}>
-          Location &quot;{location.name}&quot; could not be found
-        </span>
-      }
-      icon={IconSet.FOLDER_CLOSE}
-      isOpen={Boolean(location)}
-      onClose={uiStore.closeLocationRecovery}
-      className={theme}
-    >
-      <div className={Classes.DIALOG_BODY}>
-        {!status ? (
-          <span>
-            <p>The location {location.name} could not be found on your system.</p>
-            <p>
-              If it has been moved to a different directory, you can relocate the location by
-              choosing its new path to recover information Allusion has stored about your images
-            </p>
-            <p>Original path:</p>
-            <pre>{location.path}</pre>
-          </span>
-        ) : (
-          <span>
-            {fullRecovery && (
-              <Callout intent="success">
-                The location has been recovered, all files were found in the specified directory!
-                <br />
-                <br />
-                <Button onClick={uiStore.closeLocationRecovery}>Close</Button>
-                {/* TODO: Refetch on close? */}
-              </Callout>
-            )}
-            {noRecovery && (
-              <Callout intent="danger">
-                The location could not be recovered since no images of this location were found in
-                the specified directory.
-                <br />
-                <br />
-                <Button onClick={() => setStatus(undefined)}>Retry</Button>
-              </Callout>
-            )}
-            {partialRecovery &&
-              (location.path === pickedDir ? (
-                <Callout intent="success">
-                  The location has been recovered!
-                  <br />
-                  <br />
-                  <Button onClick={uiStore.closeLocationRecovery}>Close</Button>
-                </Callout>
-              ) : (
-                <Callout intent="warning">
-                  Only {status.matchCount} out of {status.locationImageCount} images were found in
-                  the specified directory. By recovering the location, the missing files would be
-                  lost. Do you still want to recover the location using this directory?
-                  <br />
-                  <br />
-                  <Button onClick={() => setStatus(undefined)}>Retry</Button>
-                  <Button
-                    onClick={() =>
-                      void uiStore.closeLocationRecovery() ||
-                      handleChangeLocationPath(location, pickedDir!)
-                    }
-                    intent="warning"
-                  >
-                    Recover
-                  </Button>
-                </Callout>
-              ))}
-          </span>
-        )}
+    <Dialog open={Boolean(location)} labelledby="dialog-title" describedby="dialog-information">
+      <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
+      <h2 id="dialog-title" className="dialog-title">
+        Location &quot;{location.name}&quot; could not be found
+      </h2>
+      <div id="dialog-information" className="dialog-information">
+        <RecoveryInfo location={location} status={status} match={match} />
       </div>
-
-      {!status && (
-        <div className={Classes.DIALOG_FOOTER}>
-          <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-            <ButtonGroup>
-              {/* Re-scan option, e.g. for when you mount a drive */}
-              <Button intent="none" onClick={handleRescan}>
-                Re-scan
-              </Button>
-              <Button intent="primary" onClick={handleRecover}>
-                Relocate
-              </Button>
-              <Button
-                intent="danger"
-                onClick={() => void uiStore.closeLocationRecovery() || onDelete(location)}
-              >
-                Delete
-              </Button>
-              <Button onClick={uiStore.closeLocationRecovery}>Cancel</Button>
-            </ButtonGroup>
-          </div>
-        </div>
-      )}
+      <div className="footer">
+        <RecoveryActions
+          status={status}
+          locate={handleLocate}
+          rescan={handleRescan}
+          retry={() => setMatch(undefined)}
+          save={() => {
+            handleChangeLocationPath(location, pickedDir!);
+            uiStore.closeLocationRecovery();
+          }}
+        />
+      </div>
     </Dialog>
   );
 };

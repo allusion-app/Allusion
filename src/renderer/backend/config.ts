@@ -1,6 +1,6 @@
 import { IDBVersioningConfig } from './DBRepository';
 import { IFile } from '../entities/File';
-import Dexie from 'dexie';
+import { Transaction } from 'dexie';
 import { ILocation } from '../entities/Location';
 import fse from 'fs-extra';
 
@@ -34,7 +34,7 @@ export const dbConfig: IDBVersioningConfig[] = [
     // Version 2, 11-4-20: We don't store the period on the files.extension field anymore
     version: 2,
     collections: [],
-    upgrade: (tx: Dexie.Transaction): void => {
+    upgrade: (tx: Transaction): void => {
       tx.table('files')
         .toCollection()
         .modify((file: IFile) => {
@@ -59,7 +59,7 @@ export const dbConfig: IDBVersioningConfig[] = [
           '++id, locationId, *tags, relativePath, &absolutePath, name, extension, size, width, height, dateAdded, dateModified',
       },
     ],
-    upgrade: async (tx: Dexie.Transaction): Promise<void> => {
+    upgrade: async (tx: Transaction): Promise<void> => {
       const locations: ILocation[] = await tx.table('locations').toArray();
       tx.table('files')
         .toCollection()
@@ -86,7 +86,7 @@ export const dbConfig: IDBVersioningConfig[] = [
           '++id, locationId, *tags, relativePath, &absolutePath, name, extension, size, width, height, dateAdded, dateModified, dateCreated',
       },
     ],
-    upgrade: async (tx: Dexie.Transaction): Promise<void> => {
+    upgrade: async (tx: Transaction): Promise<void> => {
       tx.table('files')
         .toCollection()
         .modify((file: any) => {
