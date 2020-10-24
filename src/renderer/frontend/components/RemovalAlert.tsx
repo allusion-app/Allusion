@@ -5,6 +5,7 @@ import { ClientTag } from 'src/renderer/entities/Tag';
 import { ClientFile } from 'src/renderer/entities/File';
 import { Tag, IconSet } from 'components';
 import { Alert, DialogButton } from 'components/popover';
+import { observer } from 'mobx-react-lite';
 
 interface IRemovalAlertProps {
   open: boolean;
@@ -36,7 +37,7 @@ interface IRemovalProps<T> {
   onClose: () => void;
 }
 
-export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
+export const LocationRemoval = observer((props: IRemovalProps<ClientLocation>) => (
   <RemovalAlert
     open
     title={`Are you sure you want to delete the location "${props.object.name}"?`}
@@ -47,9 +48,9 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
       props.object.delete();
     }}
   />
-);
+));
 
-export const TagRemoval = (props: IRemovalProps<ClientTag>) => {
+export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   const { uiStore, tagStore } = useContext(StoreContext);
   const { object } = props;
   const tagsToRemove = object.isSelected
@@ -80,9 +81,9 @@ export const TagRemoval = (props: IRemovalProps<ClientTag>) => {
       }}
     />
   );
-};
+});
 
-export const FileRemoval = (props: IRemovalProps<ClientFile[]>) => {
+export const FileRemoval = observer((props: IRemovalProps<ClientFile[]>) => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const { object: files } = props;
 
@@ -100,4 +101,4 @@ export const FileRemoval = (props: IRemovalProps<ClientFile[]>) => {
       }}
     />
   );
-};
+});

@@ -111,14 +111,14 @@ interface IQuickTagProps {
   onDropOnTag: (e: React.DragEvent, tag?: ClientTag) => void;
 }
 
-const QuickTag = ({ tag, onDropOnTag }: IQuickTagProps) => {
+const QuickTag = observer(({ tag, onDropOnTag }: IQuickTagProps) => {
   const handleDropOnTag = useCallback((e: React.DragEvent) => onDropOnTag(e, tag), [
     onDropOnTag,
     tag,
   ]);
 
   return <Tag onDrop={handleDropOnTag} onDragOver={preventDragEvent} text={tag.name} />;
-};
+});
 
 /**
  * Adds a div surrounding this component's children, that detects when files/urls are dropped onto it,

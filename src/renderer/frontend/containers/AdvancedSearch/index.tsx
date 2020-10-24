@@ -50,92 +50,6 @@ type Query =
   | IQuery<'size', NumberOperatorType, number>
   | IQuery<'dateAdded', NumberOperatorType, Date>;
 
-const defaultQuery = (key: QueryKey): Query => {
-  if (key === 'name' || key === 'absolutePath') {
-    return { key, operator: 'contains', value: '' };
-  } else if (key === 'tags') {
-    return { key, operator: 'contains', value: undefined };
-  } else if (key === 'extension') {
-    return {
-      key,
-      operator: 'equals',
-      value: IMG_EXTENSIONS[0],
-    };
-  } else if (key === 'size') {
-    return { key, operator: 'greaterThanOrEquals', value: 0 };
-  } else {
-    return {
-      key,
-      operator: 'equals',
-      value: new Date(),
-    };
-  }
-};
-
-const BYTES_IN_MB = 1024 * 1024;
-
-const fromCriteria = (criteria: FileSearchCriteria): [ID, Query] => {
-  const query = defaultQuery('tags');
-  if (
-    criteria instanceof ClientStringSearchCriteria &&
-    (criteria.key === 'name' || criteria.key === 'absolutePath' || criteria.key === 'extension')
-  ) {
-    query.value = criteria.value;
-  } else if (criteria instanceof ClientDateSearchCriteria && criteria.key === 'dateAdded') {
-    query.value = criteria.value;
-  } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
-    query.value = criteria.value / BYTES_IN_MB;
-  } else if (
-    criteria instanceof ClientIDSearchCriteria &&
-    criteria.key === 'tags' &&
-    criteria.value.length > 0
-  ) {
-    query.value = { id: criteria.value[0], label: criteria.label };
-  } else {
-    return [generateId(), query];
-  }
-  query.key = criteria.key;
-  query.operator = criteria.operator;
-  return [generateId(), query];
-};
-
-const intoCriteria = (query: Query): FileSearchCriteria => {
-  if (query.key === 'name' || query.key === 'absolutePath' || query.key === 'extension') {
-    return new ClientStringSearchCriteria(query.key, query.value, query.operator, CustomKeyDict);
-  } else if (query.key === 'dateAdded') {
-    return new ClientDateSearchCriteria(query.key, query.value, query.operator, CustomKeyDict);
-  } else if (query.key === 'size') {
-    return new ClientNumberSearchCriteria(
-      query.key,
-      query.value * BYTES_IN_MB,
-      query.operator,
-      CustomKeyDict,
-    );
-  } else if (query.key === 'tags' && query.value !== undefined) {
-    return new ClientIDSearchCriteria(
-      query.key,
-      query.value.id,
-      query.value.label,
-      query.operator,
-      CustomKeyDict,
-    );
-  } else {
-    return new ClientIDSearchCriteria('tags');
-  }
-};
-
-const setValue = (id: ID, value: QueryValue): ((form: FormState) => FormState) => {
-  return (form: FormState) => {
-    const query = form.fields.get(id);
-    if (query === undefined) {
-      return form;
-    }
-    query.value = value;
-    form.fields.set(id, query);
-    return { ...form };
-  };
-};
-
 /**
  * When a criteria is updated, only the state object is updated to notify React
  * that a change occured. `FormState.fields` is manipulated directly instead.
@@ -199,18 +113,19 @@ const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => {
   );
 };
 
-const toOption = (o: string) => (
-  <option key={o} value={o}>
-    {camelCaseToSpaced(o)}
-  </option>
-);
-
-const OperatorOptions = {
-  ARRAY: ArrayOperators.map(toOption),
-  BINARY: BinaryOperators.map(toOption),
-  NUMBER: NumberOperators.map(toOption),
-  STRING: StringOperators.map(toOption),
-};
+const OperatorOptions = (function () {
+  const toOption = (o: string) => (
+    <option key={o} value={o}>
+      {camelCaseToSpaced(o)}
+    </option>
+  );
+  return {
+    ARRAY: ArrayOperators.map(toOption),
+    BINARY: BinaryOperators.map(toOption),
+    NUMBER: NumberOperators.map(toOption),
+    STRING: StringOperators.map(toOption),
+  };
+})();
 
 const getOperatorOptions = (key: QueryKey) => {
   if (key === 'dateAdded' || key === 'size') {
@@ -449,3 +364,89 @@ const AdvancedSearchDialog = observer(() => {
 });
 
 export default AdvancedSearchDialog;
+
+const BYTES_IN_MB = 1024 * 1024;
+
+function fromCriteria(criteria: FileSearchCriteria): [ID, Query] {
+  const query = defaultQuery('tags');
+  if (
+    criteria instanceof ClientStringSearchCriteria &&
+    (criteria.key === 'name' || criteria.key === 'absolutePath' || criteria.key === 'extension')
+  ) {
+    query.value = criteria.value;
+  } else if (criteria instanceof ClientDateSearchCriteria && criteria.key === 'dateAdded') {
+    query.value = criteria.value;
+  } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
+    query.value = criteria.value / BYTES_IN_MB;
+  } else if (
+    criteria instanceof ClientIDSearchCriteria &&
+    criteria.key === 'tags' &&
+    criteria.value.length > 0
+  ) {
+    query.value = { id: criteria.value[0], label: criteria.label };
+  } else {
+    return [generateId(), query];
+  }
+  query.key = criteria.key;
+  query.operator = criteria.operator;
+  return [generateId(), query];
+}
+
+function intoCriteria(query: Query): FileSearchCriteria {
+  if (query.key === 'name' || query.key === 'absolutePath' || query.key === 'extension') {
+    return new ClientStringSearchCriteria(query.key, query.value, query.operator, CustomKeyDict);
+  } else if (query.key === 'dateAdded') {
+    return new ClientDateSearchCriteria(query.key, query.value, query.operator, CustomKeyDict);
+  } else if (query.key === 'size') {
+    return new ClientNumberSearchCriteria(
+      query.key,
+      query.value * BYTES_IN_MB,
+      query.operator,
+      CustomKeyDict,
+    );
+  } else if (query.key === 'tags' && query.value !== undefined) {
+    return new ClientIDSearchCriteria(
+      query.key,
+      query.value.id,
+      query.value.label,
+      query.operator,
+      CustomKeyDict,
+    );
+  } else {
+    return new ClientIDSearchCriteria('tags');
+  }
+}
+
+function setValue(id: ID, value: QueryValue): (form: FormState) => FormState {
+  return (form: FormState) => {
+    const query = form.fields.get(id);
+    if (query === undefined) {
+      return form;
+    }
+    query.value = value;
+    form.fields.set(id, query);
+    return { ...form };
+  };
+}
+
+function defaultQuery(key: QueryKey): Query {
+  if (key === 'name' || key === 'absolutePath') {
+    return { key, operator: 'contains', value: '' };
+  } else if (key === 'tags') {
+    return { key, operator: 'contains', value: undefined };
+  } else if (key === 'extension') {
+    return {
+      key,
+      operator: 'equals',
+      value: IMG_EXTENSIONS[0],
+    };
+  } else if (key === 'size') {
+    return { key, operator: 'greaterThanOrEquals', value: 0 };
+  } else {
+    return {
+      key,
+      operator: 'equals',
+      value: new Date(),
+    };
+  }
+}

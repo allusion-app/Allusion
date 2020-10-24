@@ -37,8 +37,7 @@ class LocationStore {
     );
 
     runInAction(() => {
-      this.locationList.clear();
-      this.locationList.push(...locations);
+      this.locationList.replace(locations);
     });
 
     console.log('initializing with ', locations);
@@ -341,7 +340,7 @@ class LocationStore {
   /**
    * Fetches the files belonging to a location
    */
-  async findLocationFiles(locationId: ID): Promise<IFile[]> {
+  @action async findLocationFiles(locationId: ID): Promise<IFile[]> {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
     return this.backend.searchFiles(crit, 'id', FileOrder.ASC);
   }

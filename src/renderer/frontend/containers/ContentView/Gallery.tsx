@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useContext, useMemo } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
-import { observer } from 'mobx-react-lite';
+import { Observer, observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import {
@@ -29,7 +29,9 @@ const GridGallery = observer(
   ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
     const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
-    const [minSize, maxSize] = getThumbnailSize(uiStore.thumbnailSize);
+    const [minSize, maxSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
+      uiStore.thumbnailSize,
+    ]);
     const [[numColumns, cellSize], setDimensions] = useState([0, 0]);
 
     useEffect(() => {
@@ -169,16 +171,20 @@ const GridGallery = observer(
     );
 
     const Row = useCallback(
-      ({ index, style, data }) => {
-        const offset = index * numColumns;
-        return (
-          <div role="row" aria-rowindex={index + 1} style={style}>
-            {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
-              <GridCell colIndex={i + 1} key={file.id} file={file} />
-            ))}
-          </div>
-        );
-      },
+      ({ index, style, data }) => (
+        <Observer>
+          {() => {
+            const offset = index * numColumns;
+            return (
+              <div role="row" aria-rowindex={index + 1} style={style}>
+                {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
+                  <GridCell colIndex={i + 1} key={file.id} file={file} />
+                ))}
+              </div>
+            );
+          }}
+        </Observer>
+      ),
       [numColumns],
     );
 
@@ -220,7 +226,9 @@ const ListGallery = observer(
   ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
     const { fileStore, uiStore } = useContext(StoreContext);
     const { fileList } = fileStore;
-    const [, cellSize] = getThumbnailSize(uiStore.thumbnailSize);
+    const cellSize = useMemo(() => getThumbnailSize(uiStore.thumbnailSize)[1], [
+      uiStore.thumbnailSize,
+    ]);
     const ref = useRef<FixedSizeList>(null);
 
     const handleScrollTo = useCallback((i: number) => {
@@ -307,14 +315,21 @@ const ListGallery = observer(
       [fileList, uiStore],
     );
 
-    const Row = useCallback(({ index, style, data }) => {
-      const file = data[index];
-      return (
-        <div role="row" aria-rowindex={index + 1} style={style}>
-          <ListCell file={file} />
-        </div>
-      );
-    }, []);
+    const Row = useCallback(
+      ({ index, style, data }) => (
+        <Observer>
+          {() => {
+            const file = data[index];
+            return (
+              <div role="row" aria-rowindex={index + 1} style={style}>
+                <ListCell file={file} />
+              </div>
+            );
+          }}
+        </Observer>
+      ),
+      [],
+    );
 
     return (
       <div

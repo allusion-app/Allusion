@@ -324,7 +324,7 @@ class FileStore {
     this.backend.saveFile(file);
   }
 
-  recoverPersistentPreferences() {
+  @action recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
     if (prefsString) {
       try {
@@ -337,7 +337,7 @@ class FileStore {
     }
   }
 
-  storePersistentPreferences() {
+  @action storePersistentPreferences() {
     const prefs: any = {};
     for (const field of PersistentPreferenceFields) {
       prefs[field] = this[field];

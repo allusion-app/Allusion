@@ -1,13 +1,14 @@
 import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
-import StoreContext, { IRootStoreProp } from '../../contexts/StoreContext';
+import StoreContext from '../../contexts/StoreContext';
 import { IconButton, IconSet, Tag } from 'components';
 import { Tooltip } from 'components/popover';
 import { ClientTag } from '../../../entities/Tag';
 import { ClientIDSearchCriteria } from '../../../entities/SearchCriteria';
 import { MultiTagSelector } from '../../components/MultiTagSelector';
 
-const QuickSearchList = ({ rootStore: { uiStore, tagStore } }: IRootStoreProp) => {
+const QuickSearchList = observer(() => {
+  const { uiStore, tagStore } = useContext(StoreContext);
   const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
     if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
@@ -38,62 +39,55 @@ const QuickSearchList = ({ rootStore: { uiStore, tagStore } }: IRootStoreProp) =
       onClear={uiStore.clearSearchCriteriaList}
     />
   );
-};
+});
 
-interface ICriteriaList {
-  criterias: string[];
-  removeCriteriaByIndex: (index: number) => void;
-  toggleAdvancedSearch: () => void;
-}
+const CriteriaList = observer(() => {
+  const { uiStore, tagStore } = useContext(StoreContext);
 
-const CriteriaList = ({
-  criterias,
-  toggleAdvancedSearch,
-  removeCriteriaByIndex,
-}: ICriteriaList) => {
   // // Open advanced search when clicking one of the criteria (but not their delete buttons)
   const handleTagClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) {
         e.stopPropagation();
-        toggleAdvancedSearch();
+        uiStore.toggleAdvancedSearch();
       }
     },
-    [toggleAdvancedSearch],
+    [uiStore],
   );
 
   return (
     <div>
-      {criterias.map((c, i) => (
-        <Tag key={i} text={c} onClick={handleTagClick} onRemove={() => removeCriteriaByIndex(i)} />
-      ))}
+      {uiStore.searchCriteriaList.map((c, i) => {
+        let label = c.toString();
+        if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
+          const tag = tagStore.get(c.value[0]);
+          if (tag !== undefined) {
+            label = label.concat(tag.name);
+          }
+        }
+        return (
+          <Tag
+            key={i}
+            text={label}
+            onClick={handleTagClick}
+            onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
+          />
+        );
+      })}
     </div>
   );
-};
+});
 
 export const Searchbar = observer(() => {
-  const rootStore = useContext(StoreContext);
   const {
-    uiStore: { searchCriteriaList, toggleAdvancedSearch, removeSearchCriteriaByIndex },
-    tagStore,
-  } = rootStore;
+    uiStore: { searchCriteriaList, toggleAdvancedSearch },
+  } = useContext(StoreContext);
 
   // Only show quick search bar when all criteria are tags or collections, else
   // show a search bar that opens to the advanced search form
   const isQuickSearch =
     searchCriteriaList.length === 0 ||
     searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
-
-  const criterias = searchCriteriaList.map((c) => {
-    const label = c.toString();
-    if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
-      const tag = tagStore.get(c.value[0]);
-      if (tag) {
-        return label.concat(tag.name);
-      }
-    }
-    return label;
-  });
 
   return (
     <div className="quick-search">
@@ -104,15 +98,7 @@ export const Searchbar = observer(() => {
           text="Advanced Search"
         />
       </Tooltip>
-      {isQuickSearch ? (
-        <QuickSearchList rootStore={rootStore} />
-      ) : (
-        <CriteriaList
-          criterias={criterias}
-          toggleAdvancedSearch={toggleAdvancedSearch}
-          removeCriteriaByIndex={removeSearchCriteriaByIndex}
-        />
-      )}
+      {isQuickSearch ? <QuickSearchList /> : <CriteriaList />}
     </div>
   );
 });

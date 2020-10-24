@@ -141,7 +141,7 @@ const customKeys = (
   }
 };
 
-const DirectoryMenu = ({ path }: { path: string }) => {
+const DirectoryMenu = observer(({ path }: { path: string }) => {
   const { uiStore } = useContext(StoreContext);
   const handleOpenFileExplorer = useCallback(() => shell.openPath(path), [path]);
 
@@ -167,7 +167,7 @@ const DirectoryMenu = ({ path }: { path: string }) => {
       />
     </>
   );
-};
+});
 
 interface ILocationContextMenuProps {
   location: ClientLocation;
@@ -175,44 +175,52 @@ interface ILocationContextMenuProps {
   onConfig: (location: ClientLocation) => void;
 }
 
-const LocationTreeContextMenu = ({ location, onDelete, onConfig }: ILocationContextMenuProps) => {
-  const { uiStore } = useContext(StoreContext);
-  const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
-  const openConfigDialog = useCallback(() => location && onConfig(location), [location, onConfig]);
+const LocationTreeContextMenu = observer(
+  ({ location, onDelete, onConfig }: ILocationContextMenuProps) => {
+    const { uiStore } = useContext(StoreContext);
+    const openDeleteDialog = useCallback(() => location && onDelete(location), [
+      location,
+      onDelete,
+    ]);
+    const openConfigDialog = useCallback(() => location && onConfig(location), [
+      location,
+      onConfig,
+    ]);
 
-  if (location.isBroken) {
+    if (location.isBroken) {
+      return (
+        <>
+          <MenuItem
+            text="Open Recovery Panel"
+            onClick={() => uiStore.openLocationRecovery(location.id)}
+            icon={IconSet.WARNING_BROKEN_LINK}
+            disabled={location.id === DEFAULT_LOCATION_ID}
+          />
+          <MenuItem
+            text="Delete"
+            onClick={openDeleteDialog}
+            icon={IconSet.DELETE}
+            disabled={location.id === DEFAULT_LOCATION_ID}
+          />
+        </>
+      );
+    }
+
     return (
       <>
-        <MenuItem
-          text="Open Recovery Panel"
-          onClick={() => uiStore.openLocationRecovery(location.id)}
-          icon={IconSet.WARNING_BROKEN_LINK}
-          disabled={location.id === DEFAULT_LOCATION_ID}
-        />
+        <MenuItem text="Configure" onClick={openConfigDialog} icon={IconSet.SETTINGS} />
         <MenuItem
           text="Delete"
           onClick={openDeleteDialog}
           icon={IconSet.DELETE}
           disabled={location.id === DEFAULT_LOCATION_ID}
         />
+        <MenuDivider />
+        <DirectoryMenu path={location.path} />
       </>
     );
-  }
-
-  return (
-    <>
-      <MenuItem text="Configure" onClick={openConfigDialog} icon={IconSet.SETTINGS} />
-      <MenuItem
-        text="Delete"
-        onClick={openDeleteDialog}
-        icon={IconSet.DELETE}
-        disabled={location.id === DEFAULT_LOCATION_ID}
-      />
-      <MenuDivider />
-      <DirectoryMenu path={location.path} />
-    </>
-  );
-};
+  },
+);
 
 const SubLocation = observer(
   ({ nodeData, treeData }: { nodeData: IDirectoryTreeItem; treeData: ITreeData }) => {

@@ -125,7 +125,7 @@ class UiStore {
 
   @observable thumbnailDirectory: string = '';
 
-  @observable hotkeyMap = { ...defaultHotkeyMap };
+  @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -515,7 +515,7 @@ class UiStore {
   }
 
   // Storing preferences
-  recoverPersistentPreferences() {
+  @action recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
     if (prefsString) {
       try {
@@ -545,7 +545,7 @@ class UiStore {
     }
   }
 
-  storePersistentPreferences() {
+  @action storePersistentPreferences() {
     const prefs: any = {};
     for (const field of PersistentPreferenceFields) {
       prefs[field] = this[field];
