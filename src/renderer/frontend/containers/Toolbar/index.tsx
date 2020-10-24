@@ -41,14 +41,14 @@ const Toolbar = observer(() => {
       label="App Command Bar"
       controls="layout-container"
     >
-      <ToolbarToggleButton
+      {/* <ToolbarToggleButton
         showLabel="never"
         icon={IconSet.OUTLINER}
         onClick={uiStore.toggleOutliner}
         pressed={uiStore.isOutlinerOpen}
         text="Outliner"
         tooltip={Tooltip.Outliner}
-      />
+      /> */}
 
       <ContentToolbar />
 
@@ -66,6 +66,12 @@ const Toolbar = observer(() => {
             checked={uiStore.isInspectorOpen}
             text="Show Inspector"
             accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleInspector} />}
+          />
+          <MenuItem
+            icon={IconSet.SEARCH_EXTENDED}
+            onClick={uiStore.toggleAdvancedSearch}
+            text="Advanced Search"
+            accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.advancedSearch} />}
           />
           <MenuItem
             icon={IconSet.HELPCENTER}

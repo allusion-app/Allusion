@@ -96,8 +96,9 @@ pre {
 
   // The background color of elements inside of panels
   --foreground-color: #{$dark-gray3};
+  --foreground-color2: #{$dark-gray2}; // Left side
   // Background color of the main panels
-  --background-color: #{$dark-gray0}; // dark-gray0 or 1?
+  --background-color: #{$dark-gray0}; // dark-gray0 or 1? --> NOT used in new design
 }
 
 // Light Theme
@@ -113,8 +114,9 @@ pre {
 
   // The (background) color of elements inside of panels
   --foreground-color: #{$light-gray5};
+  --foreground-color2: #{$light-gray3}; // Left side
   // Background color of the main panels
-  --background-color: #{$light-gray3}; // light-gray5 ?
+  --background-color: #{$light-gray3}; // light-gray5 ? --> NOT used in new design
 }
 
 #layout-container {
@@ -137,6 +139,7 @@ pre {
 main {
   grid-area: main;
   display: flex;
+  background: var(--foreground-color);
 }
 
 .contextMenuTarget {
@@ -201,12 +204,12 @@ img {
 // instead of switching colors around like this
 #preview,
 #layout-container {
-  background-color: var(--background-color);
+  background-color: var(--foreground-color);
 }
 
 #toolbar,
-#inspector,
-#outliner {
+// #outliner,
+#inspector {
   background-color: var(--foreground-color);
 }
 

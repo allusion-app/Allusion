@@ -1,0 +1,337 @@
+// Pasted in the raw CSS from the sheet (with a few small corrections (width and colors as variables))
+// Should move it into the style files of the respective containers and components later
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  // #allusion {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+    'Helvetica Neue', sans-serif;
+  font-size: 0.8125rem;
+  color: rgb(32, 32, 32);
+  backdrop-filter: blur(50px);
+  position: relative;
+  // background: rgba(255, 255, 255, 0.85);
+  background-color: var(--foreground-color);
+}
+
+#togglebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--outliner-width);
+  height: 3rem;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+  background-color: var(--foreground-color2);
+}
+
+.togglebar-button {
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  cursor: pointer;
+
+  margin: 1em;
+  &.mac-toolbar {
+    // The region on the top left is replaced with system buttons by Electron/OSX
+    padding-left: var(--mac-system-buttons-width);
+  }
+}
+
+#toolbar {
+  position: absolute;
+  top: 0;
+  left: var(--outliner-width);
+  right: 0;
+  height: 3rem;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  z-index: 20;
+}
+
+.toolbarInput {
+  flex: 1;
+  height: 1.5rem;
+  padding: 0.25rem 0.25rem;
+  margin: 0 0.25rem;
+  display: flex;
+  align-items: center;
+
+  input {
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    outline: none;
+    border-radius: 0.25rem;
+    margin: 0 0.25rem;
+    cursor: text;
+    line-height: 1.5rem;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.075);
+    }
+    &:focus {
+      box-shadow: 0 0 0 0.125rem rgb(51, 153, 255);
+    }
+  }
+}
+#outliner {
+  // position: absolute;
+  top: 3rem;
+  bottom: 0;
+  left: 0;
+  width: var(--outliner-width);
+  box-sizing: border-box;
+  overflow-y: auto;
+  z-index: 20;
+  background-color: var(--foreground-color2);
+}
+.section {
+  margin-bottom: 0.5rem;
+}
+.actionbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#contentArea {
+  position: absolute;
+  top: 3rem;
+  left: var(--outliner-width);
+  right: var(--inspector-width);
+  bottom: 0;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  overflow-y: scroll;
+  z-index: 20;
+}
+#inspector {
+  position: absolute;
+  top: 3rem;
+  bottom: 0;
+  right: 0;
+  width: 18rem;
+  box-sizing: border-box;
+  padding: 0 0.75rem 0 0;
+  overflow-y: scroll;
+  z-index: 20;
+}
+#background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: var(--outliner-width);
+  background: rgb(255, 255, 255);
+  z-index: 10;
+}
+.dropdown {
+  background: rgb(255, 255, 255);
+  width: 8rem;
+  position: absolute;
+  padding: 0.5rem;
+  z-index: 200;
+  border-radius: 0.25rem;
+  box-shadow: 3px 4px 6px 3px rgba(0, 0, 0, 0.2);
+}
+.dropdown span {
+  padding: 0.25rem 0.5rem;
+  cursor: default;
+  display: flex;
+  justify-content: flex-start;
+}
+.dropdown span:hover {
+  background: rgb(240, 240, 240);
+}
+.dropdown img {
+  padding: 0 0.25rem;
+}
+.toaster-disabled-fixme {
+  // TODO: Disabled for now - it always shows the blue container for some reason
+  background: #3399ff;
+  color: #ffffff;
+  width: 22.5rem;
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  padding: 0.25rem 0.5rem;
+  z-index: 200;
+  border-radius: 0.25rem;
+  box-shadow: 3px 4px 6px 3px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  img,
+  span {
+    height: 1rem;
+    margin: 0.25rem;
+  }
+  button {
+    height: 1.5rem;
+    min-width: 1.5rem;
+    padding: 0.25rem;
+    margin: 0.25rem;
+    display: flex;
+    align-items: center;
+
+    background: rgba(0, 0, 0, 0);
+    color: #ffffff;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    border-radius: 0.25rem;
+  }
+  button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+  }
+}
+
+// Elements
+
+#windowPanel {
+  padding: 0.125rem 0.25rem;
+  display: flex;
+}
+
+.windowBtn {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: 0.25rem;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.toolbarBtn {
+  height: 1.5rem;
+  min-width: 1.5rem;
+  padding: 0.25rem;
+  margin: 0.25rem;
+  display: flex;
+  align-items: center;
+
+  background: rgba(0, 0, 0, 0);
+  border: none;
+  outline: none;
+  border-radius: 0.25rem;
+}
+.toolbarBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.toolbarBtn:focus {
+  background: rgba(0, 0, 0, 0.05);
+}
+.toolbarBtn:active {
+  background: rgba(0, 0, 0, 0.075);
+}
+#outliner .row,
+#outliner .header {
+  padding: 0.25rem 1rem 0.25rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: default;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#outliner .header {
+  font-weight: bold;
+}
+#outliner .row span {
+  flex: 1;
+}
+#outliner .row img {
+  flex: 0;
+}
+#outliner .add {
+  display: none;
+}
+#outliner .section:hover .add {
+  display: block;
+}
+#outliner .row:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+/*Search*/
+#outliner .search {
+  background: rgba(0, 0, 0, 0.08);
+}
+#outliner .search:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+/*Selection*/
+#outliner .selectionIndicator,
+#outliner .check {
+  display: none;
+}
+#outliner .selectionMode .selectionIndicator {
+  display: block;
+}
+#outliner #tagPanel .row:hover .selectionIndicator {
+  display: block;
+}
+#outliner .select .selectionIndicator {
+  display: none !important;
+}
+#outliner .select .check {
+  display: block;
+}
+
+.actionbar actionbarBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0.5rem;
+}
+.actionbar img {
+  height: 0.8125rem;
+}
+.actionbar span {
+  font-size: 0.6875rem;
+  font-weight: bold;
+}
+
+#inspector #preview {
+  width: 100%;
+}
+#inspector .header {
+  padding: 0.25rem 0;
+  display: flex;
+  justify-content: center;
+  font-weight: bold;
+}
+#inspector .row {
+  padding: 0.125rem 0.25rem;
+  display: flex;
+  justify-content: space-between;
+}
+.right {
+  text-align: right;
+  padding-left: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
