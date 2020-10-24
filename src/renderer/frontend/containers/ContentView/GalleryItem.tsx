@@ -130,7 +130,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
 };
 
 export const ExternalAppMenuItems = ({ path }: { path: string }) => {
-  const handleOpen = useCallback(() => shell.openPath(path), [path]);
+  const handleOpen = useCallback(() => shell.openExternal(path), [path]);
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
   return (
     <>
