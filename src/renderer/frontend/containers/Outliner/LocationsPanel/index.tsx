@@ -464,7 +464,8 @@ const LocationsPanel = () => {
     <div>
       <div className="outliner-header-wrapper">
         <h2 onClick={() => setCollapsed(!isCollapsed)}>
-          {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}Locations
+          {/* {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} */}
+          Locations
         </h2>
         <Toolbar controls="location-list">
           <ToolbarButton

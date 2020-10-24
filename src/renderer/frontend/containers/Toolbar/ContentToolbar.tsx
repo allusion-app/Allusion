@@ -148,12 +148,25 @@ const ContentToolbar = observer(() => {
           selectionCount={fileSelection.size}
         />
 
+        <Searchbar />
+
+        {/* TODO: Put back tag button (or just the T hotkey) */}
         {fileStore.showsMissingContent ? (
           // Only show option to remove selected files in toolbar when viewing missing files */}
           <RemoveFilesPopover />
         ) : (
           // Only show when not viewing missing files (so it is replaced by the Delete button)
-          <FileTags files={fileSelection.size > 0 ? uiStore.clientFileSelection : []} />
+          // <FileTags files={fileSelection.size > 0 ? uiStore.clientFileSelection : []} />
+          // Doesn't exist anymore :(
+          // <TagFilesPopover
+          //   files={uiStore.clientFileSelection}
+          //   disabled={fileSelection.length <= 0 || fileStore.fileList.length <= 0}
+          //   isOpen={uiStore.isToolbarTagSelectorOpen}
+          //   close={uiStore.closeToolbarTagSelector}
+          //   toggle={uiStore.toggleToolbarTagSelector}
+          //   hidden={fileStore.content === 'missing'}
+          // />
+          <></>
         )}
 
         <ToolbarMenuButton
@@ -181,8 +194,6 @@ const ContentToolbar = observer(() => {
             <LayoutMenuItems uiStore={uiStore} />
           </Menu>
         </ToolbarMenuButton>
-
-        <Searchbar />
       </>
     );
   }

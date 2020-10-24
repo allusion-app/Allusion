@@ -90,14 +90,7 @@ export const Searchbar = observer(() => {
     searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
 
   return (
-    <div className="quick-search">
-      <Tooltip content="Open Advanced Search (Ctrl + Shift + F)" hoverDelay={1500}>
-        <IconButton
-          icon={IconSet.SEARCH_EXTENDED}
-          onClick={toggleAdvancedSearch}
-          text="Advanced Search"
-        />
-      </Tooltip>
+    <div className="quick-search toolbarInput">
       {isQuickSearch ? <QuickSearchList /> : <CriteriaList />}
     </div>
   );

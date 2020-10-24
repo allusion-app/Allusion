@@ -18,6 +18,7 @@ export default class Backend {
   private locationRepository: DBRepository<ILocation>;
 
   constructor() {
+    console.log(`Initializing database "${DB_NAME}"...`);
     // Initialize database tables
     const db = dbInit(dbConfig, DB_NAME);
     this.fileRepository = new DBRepository('files', db);

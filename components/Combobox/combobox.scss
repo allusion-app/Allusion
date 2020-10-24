@@ -5,6 +5,16 @@
 
   &:first-child {
     min-height: 1.5rem;
+    display: flex;
+    flex-grow: 1;
+
+    > *:first-child {
+      display: flex;
+      flex-grow: 1;
+      > input {
+        flex-grow: 1;
+      }
+    }
   }
 
   > .btn-icon {

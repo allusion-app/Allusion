@@ -16,6 +16,7 @@ import AdvancedSearchDialog from './containers/AdvancedSearch';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './containers/WelcomeDialog';
+import ToggleBar from './containers/Outliner/ToggleBar';
 
 const SPLASH_SCREEN_TIME = 1400;
 
@@ -62,6 +63,8 @@ const App = observer(() => {
       <div id="layout-container" className={themeClass} onClick={handleClick}>
         <ErrorBoundary>
           <GlobalHotkeys>
+            <ToggleBar />
+
             <Toolbar />
 
             <Outliner />

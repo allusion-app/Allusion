@@ -19,11 +19,6 @@
 
 [role='treeitem'] {
   padding: 0;
-  background-color: var(--background-color);
-
-  &[aria-level='1'] {
-    background-color: var(--foreground-color);
-  }
 
   > .label {
     min-height: 2rem;

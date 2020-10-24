@@ -477,7 +477,8 @@ const TagsTree = observer(() => {
         onDrop={handleDrop}
       >
         <h2 onClick={() => setIsCollapsed(!isCollapsed)}>
-          {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN}Tags
+          {/* {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} */}
+          Tags
         </h2>
         <Toolbar controls="tag-hierarchy">
           {uiStore.tagSelection.size > 0 ? (
@@ -512,8 +513,9 @@ const TagsTree = observer(() => {
       <Collapse open={!isCollapsed}>
         {root.subTags.length === 0 ? (
           <div className="tree-content-label" style={{ padding: '0.25rem' }}>
-            <span className="pre-icon">{IconSet.INFO}</span>
-            No tags or collections created yet
+            {/* <span className="pre-icon">{IconSet.INFO}</span> */}
+            {/* No tags or collections created yet */}
+            <i style={{ marginLeft: '1em' }}>None</i>
           </div>
         ) : (
           <Tree

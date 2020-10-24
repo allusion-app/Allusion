@@ -29,6 +29,11 @@
 
 .quick-search {
   padding: 0.25rem;
-  display: flex;
   min-height: var(--quick-searchbar-height);
+  display: flex;
+  flex-grow: 1;
+  > * {
+    display: flex;
+    flex-grow: 1;
+  }
 }
