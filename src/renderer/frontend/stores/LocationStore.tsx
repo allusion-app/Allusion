@@ -30,7 +30,7 @@ class LocationStore {
 
   @action.bound async init(autoLoad: boolean) {
     // Get dirs from backend
-    const dirs = await this.backend.getWatchedDirectories('dateAdded', FileOrder.ASC);
+    const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.ASC);
 
     const locations = dirs.map(
       (dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd),
