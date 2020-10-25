@@ -10,17 +10,11 @@ interface IToolbar {
   label?: string;
   labelledby?: string;
   controls: string;
-  orientation?: 'horizontal' | 'vertical';
 }
 
 const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const current = e.currentTarget;
   const target = (e.target as HTMLElement).closest('[role="toolbar"] > *')!;
-  const isVertical = current.matches('[aria-orientation="vertical"]');
-
-  if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-    return;
-  }
 
   let item;
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
@@ -56,7 +50,7 @@ const handleToolbarFocus = (e: React.FocusEvent<HTMLElement>) => {
 };
 
 const Toolbar = (props: IToolbar) => {
-  const { children, id, className, label, labelledby, controls, orientation } = props;
+  const { children, id, className, label, labelledby, controls } = props;
   const toolbar = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -64,17 +58,6 @@ const Toolbar = (props: IToolbar) => {
       toolbar.current.querySelector('.toolbar-item')?.setAttribute('tabIndex', '0');
     }
   }, []);
-
-  useEffect(() => {
-    if (toolbar.current) {
-      const list = toolbar.current.querySelectorAll('.toolbar-group');
-      if (orientation) {
-        list.forEach((group) => group.setAttribute('aria-orientation', orientation));
-      } else {
-        list.forEach((group) => group.removeAttribute('aria-orientation'));
-      }
-    }
-  }, [orientation]);
 
   return (
     <div
@@ -85,7 +68,6 @@ const Toolbar = (props: IToolbar) => {
       aria-label={label}
       aria-labelledby={labelledby}
       aria-controls={controls}
-      aria-orientation={orientation}
       onFocus={handleToolbarFocus}
       onKeyDown={handleToolbarKeyDown}
     >
@@ -176,11 +158,6 @@ interface IToolbarGroup extends IBaseGroup {
 
 const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const target = (e.target as HTMLElement).closest('.toolbar-group > *')!;
-  const isVertical = e.currentTarget.matches('[aria-orientation="vertical"]');
-
-  if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-    return;
-  }
 
   let item;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -245,15 +222,14 @@ interface IToolbarSegment extends IBaseGroup {
 
 const handleSegmentKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const target = e.target as HTMLElement;
-  const isVertical = e.currentTarget.matches('[aria-orientation="vertical"]');
   let item;
-  if (e.key === 'ArrowLeft' || (isVertical && e.key === 'ArrowUp')) {
+  if (e.key === 'ArrowLeft') {
     item = target.previousElementSibling;
-  } else if (e.key === 'ArrowRight' || (isVertical && e.key === 'ArrowDown')) {
+  } else if (e.key === 'ArrowRight') {
     item = target.nextElementSibling;
-  } else if (e.key === 'ArrowDown' || (isVertical && e.key === 'ArrowLeft')) {
+  } else if (e.key === 'ArrowDown') {
     item = target.nextElementSibling ?? e.currentTarget.firstElementChild;
-  } else if (e.key === 'ArrowUp' || (isVertical && e.key === 'ArrowRight')) {
+  } else if (e.key === 'ArrowUp') {
     item = target.previousElementSibling ?? e.currentTarget.lastElementChild;
   }
   if (item) {
