@@ -183,7 +183,6 @@
       'image title'
       'image info'
       'image tags';
-    height: 100%;
   }
 
   .thumbnail {
@@ -199,6 +198,7 @@
   }
 
   .thumbnail-tags {
+    min-height: 1.5rem;
     position: unset;
     padding: 0;
   }

@@ -63,31 +63,6 @@ body {
   z-index: 20;
 }
 
-.toolbarInput {
-  flex: 1;
-  height: 1.5rem;
-  padding: 0.25rem 0.25rem;
-  margin: 0 0.25rem;
-  display: flex;
-  align-items: center;
-
-  input {
-    background: rgba(0, 0, 0, 0.05);
-    border: none;
-    outline: none;
-    border-radius: 0.25rem;
-    margin: 0 0.25rem;
-    cursor: text;
-    line-height: 1.5rem;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.075);
-    }
-    &:focus {
-      box-shadow: 0 0 0 0.125rem rgb(51, 153, 255);
-    }
-  }
-}
 #outliner {
   // position: absolute;
   top: 3rem;

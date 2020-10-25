@@ -4,7 +4,6 @@
   display: flex;
   flex-direction: column;
   width: var(--outliner-width);
-  margin-left: 1px;
 
   > * {
     // Don't squash content during parent transition
@@ -146,7 +145,6 @@
   }
 
   input {
-    height: 100%;
     width: 100%;
   }
 }

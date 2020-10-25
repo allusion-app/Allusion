@@ -40,6 +40,7 @@ interface ILabelProps {
 const Label = (props: ILabelProps) =>
   props.isEditing ? (
     <input
+      className="input"
       autoFocus
       type="text"
       placeholder="Enter a new name"

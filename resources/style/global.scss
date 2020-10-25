@@ -37,6 +37,13 @@ fieldset {
   padding: 0;
 }
 
+input {
+  color: inherit;
+  padding: 0;
+  padding-left: 0.25rem;
+  line-height: 1.5rem;
+}
+
 // Override standard CSS attributes
 pre {
   word-wrap: break-word;
@@ -56,7 +63,6 @@ pre {
   --outliner-width: 18em;
   --inspector-width: 24em;
   --toolbar-height: 3rem;
-  --quick-searchbar-height: 2.5rem;
   --thumbnail-size: 250px;
   --thumbnail-margin: 0.25rem;
   --mac-system-buttons-width: 5rem;

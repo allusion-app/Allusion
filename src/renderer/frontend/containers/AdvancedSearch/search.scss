@@ -18,6 +18,10 @@
       max-width: 2rem;
     }
   }
+
+  [role='combobox'] input {
+    width: 100%;
+  }
 }
 
 #functions-bar {

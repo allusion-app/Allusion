@@ -191,6 +191,7 @@ const ValueInput = ({ id, keyValue, value, dispatch }: FieldInput<QueryValue>) =
   if (keyValue === 'name' || keyValue === 'absolutePath') {
     return (
       <input
+        className="input"
         type="text"
         placeholder="Enter some text..."
         defaultValue={value as string}
@@ -204,6 +205,7 @@ const ValueInput = ({ id, keyValue, value, dispatch }: FieldInput<QueryValue>) =
   } else if (keyValue === 'size') {
     return (
       <input
+        className="input"
         type="number"
         placeholder="Enter a file size..."
         defaultValue={value as number}
@@ -213,6 +215,7 @@ const ValueInput = ({ id, keyValue, value, dispatch }: FieldInput<QueryValue>) =
   } else if (keyValue === 'dateAdded') {
     return (
       <input
+        className="input"
         type="date"
         max={new Date().toISOString().substr(0, 10)}
         defaultValue={(value as Date).toISOString().substr(0, 10)}

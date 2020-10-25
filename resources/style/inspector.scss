@@ -2,7 +2,6 @@
 #inspector {
   grid-area: inspector;
   width: var(--inspector-width);
-  margin-right: 1px;
 
   > * {
     // Don't squash content of aside during parent transition

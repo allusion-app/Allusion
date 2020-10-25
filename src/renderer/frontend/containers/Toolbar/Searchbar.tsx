@@ -1,8 +1,7 @@
 import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import StoreContext from '../../contexts/StoreContext';
-import { IconButton, IconSet, Tag } from 'components';
-import { Tooltip } from 'components/popover';
+import { Tag } from 'components';
 import { ClientTag } from '../../../entities/Tag';
 import { ClientIDSearchCriteria } from '../../../entities/SearchCriteria';
 import { MultiTagSelector } from '../../components/MultiTagSelector';
@@ -56,7 +55,7 @@ const CriteriaList = observer(() => {
   );
 
   return (
-    <div>
+    <div className="input">
       {uiStore.searchCriteriaList.map((c, i) => {
         let label = c.toString();
         if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
@@ -80,7 +79,7 @@ const CriteriaList = observer(() => {
 
 export const Searchbar = observer(() => {
   const {
-    uiStore: { searchCriteriaList, toggleAdvancedSearch },
+    uiStore: { searchCriteriaList },
   } = useContext(StoreContext);
 
   // Only show quick search bar when all criteria are tags or collections, else
@@ -90,9 +89,7 @@ export const Searchbar = observer(() => {
     searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
 
   return (
-    <div className="quick-search toolbarInput">
-      {isQuickSearch ? <QuickSearchList /> : <CriteriaList />}
-    </div>
+    <div className="toolbar-input">{isQuickSearch ? <QuickSearchList /> : <CriteriaList />}</div>
   );
 });
 

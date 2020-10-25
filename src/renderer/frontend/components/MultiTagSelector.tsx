@@ -37,6 +37,7 @@ const MultiTagSelector = observer(
     return (
       <div
         role="combobox"
+        className="input"
         onBlur={(e) => {
           if (
             e.relatedTarget instanceof HTMLElement &&
@@ -49,20 +50,18 @@ const MultiTagSelector = observer(
       >
         <Flyout
           open={isOpen}
-          placement="bottom"
+          placement="bottom-start"
           target={
             <div className="multiautocomplete-input">
-              <div>
-                <span>
-                  {selection.map((t) => (
-                    <Tag
-                      key={t.id}
-                      text={tagLabel(t)}
-                      color={t.viewColor}
-                      onRemove={() => onDeselect(t)}
-                    />
-                  ))}
-                </span>
+              <div className="input-wrapper">
+                {selection.map((t) => (
+                  <Tag
+                    key={t.id}
+                    text={tagLabel(t)}
+                    color={t.viewColor}
+                    onRemove={() => onDeselect(t)}
+                  />
+                ))}
                 <input
                   disabled={disabled}
                   type="text"
