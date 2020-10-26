@@ -231,6 +231,36 @@ const ListGallery = observer(
       uiStore.thumbnailSize,
     ]);
     const ref = useRef<FixedSizeList>(null);
+    const innerRef = useRef<HTMLElement>(null);
+    const topOffset = useRef(0);
+    const observer = useRef(
+      new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting && e.intersectionRect.y === topOffset.current) {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              const rowIndex = e.target.getAttribute('aria-rowindex')!;
+              uiStore.setFirstItem(parseInt(rowIndex) - 1);
+              break;
+            }
+          }
+        },
+        { threshold: [0, 1] },
+      ),
+    );
+
+    useEffect(() => {
+      if (innerRef.current !== null) {
+        // TODO: Use resize observer on toolbar to get offset.
+        topOffset.current = innerRef.current.getBoundingClientRect().y;
+        const children = innerRef.current.children;
+        for (let i = 0; i < children.length; i++) {
+          observer.current.observe(children[i]);
+        }
+      }
+
+      () => observer.current.disconnect();
+    }, [uiStore]);
 
     const handleScrollTo = useCallback((i: number) => {
       if (ref.current) {
@@ -255,13 +285,6 @@ const ListGallery = observer(
         }
       }
     }, [latestSelectedFile, handleScrollTo, fileList, forceUpdateObj, fileStore]);
-
-    // Store what the first item in view is in the UiStore
-    const handleScroll = useCallback(
-      ({ scrollOffset }: ListOnScrollProps) =>
-        uiStore.setFirstItem(Math.round(scrollOffset / cellSize)),
-      [cellSize, uiStore],
-    );
 
     const handleClick = useCallback(
       (e: React.MouseEvent) => {
@@ -322,7 +345,16 @@ const ListGallery = observer(
           {() => {
             const file = data[index];
             return (
-              <div role="row" aria-rowindex={index + 1} style={style}>
+              <div
+                ref={(el) => {
+                  if (el !== null) {
+                    observer.current.observe(el);
+                  }
+                }}
+                role="row"
+                aria-rowindex={index + 1}
+                style={style}
+              >
                 <ListCell suspended={isScrolling} file={file} />
               </div>
             );
@@ -356,9 +388,9 @@ const ListGallery = observer(
           itemKey={getItemKey}
           overscanCount={2}
           children={Row}
-          onScroll={handleScroll}
           initialScrollOffset={uiStore.firstItem * cellSize}
           ref={ref}
+          innerRef={innerRef}
         />
       </div>
     );
