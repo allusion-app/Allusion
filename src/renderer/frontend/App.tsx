@@ -16,13 +16,30 @@ import AdvancedSearchDialog from './containers/AdvancedSearch';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { Toaster, Position } from '@blueprintjs/core';
 import WelcomeDialog from './containers/WelcomeDialog';
-import ToggleBar from './containers/Outliner/ToggleBar';
+import { ToolbarToggleButton } from 'components/menu';
+import { IconSet } from 'components';
 
 const SPLASH_SCREEN_TIME = 1400;
+const PLATFORM = process.platform;
 
 export const AppToaster = Toaster.create({
   position: Position.BOTTOM_RIGHT,
   className: 'toaster',
+});
+
+const OutlinerToggle = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <ToolbarToggleButton
+      id="outliner-toggle"
+      controls="outliner"
+      pressed={uiStore.isOutlinerOpen}
+      icon={uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
+      onClick={uiStore.toggleOutliner}
+      text="Toggle Outliner"
+      showLabel="never"
+    />
+  );
 });
 
 const handleClick = (e: React.MouseEvent) => {
@@ -60,14 +77,14 @@ const App = observer(() => {
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div id="layout-container" className={themeClass} onClick={handleClick}>
+      <div data-os={PLATFORM} id="layout-container" className={themeClass} onClick={handleClick}>
         <ErrorBoundary>
           <GlobalHotkeys>
-            <ToggleBar />
-
-            <Toolbar />
+            <OutlinerToggle />
 
             <Outliner />
+
+            <Toolbar />
 
             <ContentView />
 

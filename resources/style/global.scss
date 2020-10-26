@@ -130,7 +130,7 @@ pre {
   grid-template-rows: var(--toolbar-height) 1fr;
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
-    'toolbar toolbar toolbar'
+    'outliner toolbar toolbar'
     'outliner main inspector';
 }
 

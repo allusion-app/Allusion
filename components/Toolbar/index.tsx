@@ -198,11 +198,12 @@ const ToolbarGroup = (props: IToolbarGroup) => {
 };
 
 interface IToolbarToggleButton extends IBaseButton {
+  controls?: string;
   pressed: boolean;
 }
 
 const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { id, pressed, onClick, icon, text, tooltip, showLabel } = props;
+  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls } = props;
   return (
     <ToolbarButton
       id={id}
@@ -212,6 +213,7 @@ const ToolbarToggleButton = (props: IToolbarToggleButton) => {
       text={text}
       showLabel={showLabel}
       tooltip={tooltip}
+      controls={controls}
     />
   );
 };
