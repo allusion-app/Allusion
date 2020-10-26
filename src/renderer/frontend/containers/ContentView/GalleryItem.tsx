@@ -79,7 +79,7 @@ const ItemTags = observer(({ file, suspended }: { file: ClientFile; suspended: b
   }
 });
 
-export const MissingFileMenuItems = () => {
+export const MissingFileMenuItems = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
   return (
     <>
@@ -92,29 +92,29 @@ export const MissingFileMenuItems = () => {
       <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
     </>
   );
-};
+});
 
-export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+export const FileViewerMenuItems = observer(({ file }: { file: ClientFile }) => {
   const { uiStore } = useContext(StoreContext);
-  const handleViewFullSize = useCallback(() => {
+  const handleViewFullSize = () => {
     uiStore.selectFile(file, true);
     uiStore.toggleSlideMode();
-  }, [file, uiStore]);
+  };
 
-  const handlePreviewWindow = useCallback(() => {
+  const handlePreviewWindow = () => {
     if (!uiStore.fileSelection.has(file.id)) {
       uiStore.selectFile(file, true);
     }
     uiStore.openPreviewWindow();
-  }, [file, uiStore]);
+  };
 
-  const handleInspect = useCallback(() => {
+  const handleInspect = () => {
     uiStore.clearFileSelection();
     uiStore.selectFile(file);
     if (!uiStore.isInspectorOpen) {
       uiStore.toggleInspector();
     }
-  }, [file, uiStore]);
+  };
 
   return (
     <>
@@ -127,22 +127,22 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
     </>
   );
-};
+});
 
-export const ExternalAppMenuItems = ({ path }: { path: string }) => {
-  const handleOpen = useCallback(() => shell.openExternal(path), [path]);
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
-  return (
-    <>
-      <MenuItem onClick={handleOpen} text="Open External" icon={IconSet.OPEN_EXTERNAL} />
-      <MenuItem
-        onClick={handleOpenFileExplorer}
-        text="Reveal in File Browser"
-        icon={IconSet.FOLDER_CLOSE}
-      />
-    </>
-  );
-};
+export const ExternalAppMenuItems = ({ path }: { path: string }) => (
+  <>
+    <MenuItem
+      onClick={() => shell.openExternal(path)}
+      text="Open External"
+      icon={IconSet.OPEN_EXTERNAL}
+    />
+    <MenuItem
+      onClick={() => shell.showItemInFolder(path)}
+      text="Reveal in File Browser"
+      icon={IconSet.FOLDER_CLOSE}
+    />
+  </>
+);
 
 export const ListCell = observer(({ file }: { file: ClientFile }) => {
   const { uiStore } = useContext(StoreContext);
@@ -150,7 +150,7 @@ export const ListCell = observer(({ file }: { file: ClientFile }) => {
   useEffect(() => {
     const timeout = setTimeout(() => setSuspended(false), 300);
     return () => clearTimeout(timeout);
-  });
+  }, []);
 
   return (
     <div role="gridcell" aria-selected={uiStore.fileSelection.has(file.id)}>
@@ -189,7 +189,7 @@ export const GridCell = observer(({ file, colIndex }: { file: ClientFile; colInd
   useEffect(() => {
     const timeout = setTimeout(() => setSuspended(false), 300);
     return () => clearTimeout(timeout);
-  });
+  }, []);
 
   return (
     <div
