@@ -12,13 +12,10 @@ import {
   MenuRadioItem,
 } from 'components/menu';
 import { IFile } from '../../../entities/File';
-import FileTags from '../../components/FileTag';
 import { FileOrder } from '../../../backend/DBRepository';
 import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import Searchbar from './Searchbar';
-import FileStore from '../../stores/FileStore';
-import UiStore from '../../stores/UiStore';
 
 interface IFileSelection {
   allFilesSelected: boolean;
@@ -70,7 +67,8 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateCreated', icon: IconSet.FILTER_DATE, text: 'Date created' },
 ];
 
-export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) => {
+export const SortMenuItems = observer(() => {
+  const { fileStore } = useContext(StoreContext);
   const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = fileStore;
   const orderIcon = fileOrder === FileOrder.DESC ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
 
@@ -90,24 +88,27 @@ export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) 
   );
 });
 
-export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => (
-  <MenuRadioGroup>
-    <MenuRadioItem
-      icon={IconSet.VIEW_LIST}
-      onClick={uiStore.setMethodList}
-      checked={uiStore.isList}
-      text="List View"
-      accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
-    />
-    <MenuRadioItem
-      icon={IconSet.VIEW_GRID}
-      onClick={uiStore.setMethodGrid}
-      checked={uiStore.isGrid}
-      text="Grid View"
-      accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
-    />
-  </MenuRadioGroup>
-));
+export const LayoutMenuItems = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <MenuRadioGroup>
+      <MenuRadioItem
+        icon={IconSet.VIEW_LIST}
+        onClick={uiStore.setMethodList}
+        checked={uiStore.isList}
+        text="List View"
+        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
+      />
+      <MenuRadioItem
+        icon={IconSet.VIEW_GRID}
+        onClick={uiStore.setMethodGrid}
+        checked={uiStore.isGrid}
+        text="Grid View"
+        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
+      />
+    </MenuRadioGroup>
+  );
+});
 
 const SlideModeToolbar = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -178,7 +179,7 @@ const ContentToolbar = observer(() => {
           controls="__sort-options"
         >
           <Menu id="__sort-options" labelledby="__sort-menu">
-            <SortMenuItems fileStore={fileStore} />
+            <SortMenuItems />
           </Menu>
         </ToolbarMenuButton>
 
@@ -191,7 +192,7 @@ const ContentToolbar = observer(() => {
           controls="__layout-options"
         >
           <Menu id="__layout-options" labelledby="__layout-menu">
-            <LayoutMenuItems uiStore={uiStore} />
+            <LayoutMenuItems />
           </Menu>
         </ToolbarMenuButton>
       </>

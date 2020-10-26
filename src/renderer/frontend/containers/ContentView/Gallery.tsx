@@ -647,17 +647,17 @@ const Gallery = () => {
       onBlur={handleFlyoutBlur}
     >
       <Layout contentRect={contentRect} showContextMenu={show} />
-      <ContextMenu key="contextmenu" open={open} x={x} y={y} onClose={hide}>
+      <ContextMenu open={open} x={x} y={y} onClose={hide}>
         <Menu>
           {fileMenu}
-          <MenuDivider key="separator_file" />
-          <SubMenu key="view" icon={IconSet.VIEW_GRID} text="View method...">
-            <LayoutMenuItems uiStore={uiStore} />
+          <MenuDivider />
+          <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
+            <LayoutMenuItems />
           </SubMenu>
-          <SubMenu key="sort" icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-            <SortMenuItems fileStore={fileStore} />
+          <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+            <SortMenuItems />
           </SubMenu>
-          <MenuDivider key="separator_ext" />
+          <MenuDivider />
           {externalMenu}
         </Menu>
       </ContextMenu>
