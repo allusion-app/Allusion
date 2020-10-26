@@ -171,14 +171,14 @@ const GridGallery = observer(
     );
 
     const Row = useCallback(
-      ({ index, style, data }) => (
+      ({ index, style, data, isScrolling }) => (
         <Observer>
           {() => {
             const offset = index * numColumns;
             return (
               <div role="row" aria-rowindex={index + 1} style={style}>
                 {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
-                  <GridCell colIndex={i + 1} key={file.id} file={file} />
+                  <GridCell suspended={isScrolling} colIndex={i + 1} key={file.id} file={file} />
                 ))}
               </div>
             );
@@ -204,6 +204,7 @@ const GridGallery = observer(
         onDrop={handleDrop}
       >
         <FixedSizeList
+          useIsScrolling
           height={contentRect.height}
           width={contentRect.width}
           itemSize={cellSize}
@@ -316,13 +317,13 @@ const ListGallery = observer(
     );
 
     const Row = useCallback(
-      ({ index, style, data }) => (
+      ({ index, style, data, isScrolling }) => (
         <Observer>
           {() => {
             const file = data[index];
             return (
               <div role="row" aria-rowindex={index + 1} style={style}>
-                <ListCell file={file} />
+                <ListCell suspended={isScrolling} file={file} />
               </div>
             );
           }}
@@ -346,6 +347,7 @@ const ListGallery = observer(
         onDrop={handleDrop}
       >
         <FixedSizeList
+          useIsScrolling
           height={contentRect.height}
           width={contentRect.width}
           itemSize={cellSize}

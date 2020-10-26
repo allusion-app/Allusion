@@ -144,13 +144,13 @@ export const ExternalAppMenuItems = ({ path }: { path: string }) => (
   </>
 );
 
-export const ListCell = observer(({ file }: { file: ClientFile }) => {
+interface ICellProps {
+  file: ClientFile;
+  suspended: boolean;
+}
+
+export const ListCell = observer(({ file, suspended }: ICellProps) => {
   const { uiStore } = useContext(StoreContext);
-  const [suspended, setSuspended] = useState(true);
-  useEffect(() => {
-    const timeout = setTimeout(() => setSuspended(false), 300);
-    return () => clearTimeout(timeout);
-  }, []);
 
   return (
     <div role="gridcell" aria-selected={uiStore.fileSelection.has(file.id)}>
@@ -183,38 +183,35 @@ export const ListCell = observer(({ file }: { file: ClientFile }) => {
   );
 });
 
-export const GridCell = observer(({ file, colIndex }: { file: ClientFile; colIndex: number }) => {
-  const { uiStore, fileStore } = useContext(StoreContext);
-  const [suspended, setSuspended] = useState(true);
-  useEffect(() => {
-    const timeout = setTimeout(() => setSuspended(false), 300);
-    return () => clearTimeout(timeout);
-  }, []);
+export const GridCell = observer(
+  ({ file, colIndex, suspended }: ICellProps & { colIndex: number }) => {
+    const { uiStore, fileStore } = useContext(StoreContext);
 
-  return (
-    <div
-      role="gridcell"
-      aria-colindex={colIndex}
-      aria-selected={uiStore.fileSelection.has(file.id)}
-    >
-      <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-        {suspended ? <img src={file.thumbnailPath} alt="" /> : <Thumbnail file={file} />}
+    return (
+      <div
+        role="gridcell"
+        aria-colindex={colIndex}
+        aria-selected={uiStore.fileSelection.has(file.id)}
+      >
+        <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+          {suspended ? <img src={file.thumbnailPath} alt="" /> : <Thumbnail file={file} />}
+        </div>
+        {file.isBroken === true && (
+          <Tooltip content="This image could not be found.">
+            <span
+              className="thumbnail-broken-overlay"
+              onClick={(e) => {
+                e.stopPropagation(); // prevent image click event
+                fileStore.fetchMissingFiles();
+                uiStore.selectFile(file, true);
+              }}
+            >
+              {IconSet.WARNING_BROKEN_LINK}
+            </span>
+          </Tooltip>
+        )}
+        <ItemTags file={file} suspended={suspended} />
       </div>
-      {file.isBroken === true && (
-        <Tooltip content="This image could not be found.">
-          <span
-            className="thumbnail-broken-overlay"
-            onClick={(e) => {
-              e.stopPropagation(); // prevent image click event
-              fileStore.fetchMissingFiles();
-              uiStore.selectFile(file, true);
-            }}
-          >
-            {IconSet.WARNING_BROKEN_LINK}
-          </span>
-        </Tooltip>
-      )}
-      <ItemTags file={file} suspended={suspended} />
-    </div>
-  );
-});
+    );
+  },
+);
