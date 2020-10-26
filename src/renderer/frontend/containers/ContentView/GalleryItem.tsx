@@ -10,49 +10,64 @@ import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 
+interface ICellProps {
+  file: ClientFile;
+  suspended: boolean;
+}
+
+const enum ThumbnailState {
+  Ok,
+  Generating,
+  Error,
+}
+
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-const Thumbnail = observer(({ file }: { file: ClientFile }) => {
+const Thumbnail = observer(({ file, suspended }: ICellProps) => {
   const { uiStore } = useContext(StoreContext);
 
   // Initially, we assume the thumbnail exists
-  const [isReady, setIsReady] = useState(true);
-  const [isGenerating, setisGenerating] = useState(false);
+  const [state, setState] = useState(ThumbnailState.Ok);
 
   // This will check whether a thumbnail exists, generate it if needed
   useEffect(() => {
-    ensureThumbnail(file, uiStore.thumbnailDirectory).then((exists) => {
-      if (!exists) {
-        setIsReady(false);
-        if (file.isBroken !== true) {
-          setisGenerating(true);
+    if (suspended) {
+      return;
+    }
+    ensureThumbnail(file, uiStore.thumbnailDirectory)
+      .then((exists) => {
+        if (exists) {
+          setState(ThumbnailState.Ok);
+        } else if (file.isBroken !== true) {
+          setState(ThumbnailState.Generating);
+        } else {
+          setState(ThumbnailState.Error);
         }
-      }
-    });
-  }, [file, uiStore.thumbnailDirectory]);
+      })
+      .catch(() => setState(ThumbnailState.Error));
+  }, [file, suspended, uiStore.thumbnailDirectory]);
 
   // The thumbnailPath of an image is always set, but may not exist yet.
   // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
   // which we detect here to know the thumbnail is ready
   useEffect(() => {
-    if (file.thumbnailPath.endsWith('?v=1')) {
-      setIsReady(true);
-      setisGenerating(false);
+    if (!suspended && file.thumbnailPath.endsWith('?v=1')) {
+      setState(ThumbnailState.Ok);
     }
-  }, [file.thumbnailPath]);
+  }, [file.thumbnailPath, suspended]);
 
   // When the thumbnail cannot be loaded, display an error
   const handleImageError = useCallback(
-    (err: any) => {
+    (err) => {
       console.log('Could not load image:', file.thumbnailPath, err);
-      setIsReady(false);
+      setState(ThumbnailState.Error);
     },
     [file.thumbnailPath],
   );
 
-  if (isReady) {
+  if (state === ThumbnailState.Ok) {
     return <img src={file.thumbnailPath} onError={handleImageError} alt="" />;
-  } else if (isGenerating) {
+  } else if (state === ThumbnailState.Generating) {
     return <div className="donut-loading" />;
   } else {
     return <MissingImageFallback />;
@@ -65,7 +80,7 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
   </div>
 );
 
-const ItemTags = observer(({ file, suspended }: { file: ClientFile; suspended: boolean }) => {
+const ItemTags = observer(({ file, suspended }: ICellProps) => {
   if (suspended) {
     return <span className="thumbnail-tags" />;
   } else {
@@ -144,18 +159,20 @@ export const ExternalAppMenuItems = ({ path }: { path: string }) => (
   </>
 );
 
-interface ICellProps {
-  file: ClientFile;
-  suspended: boolean;
-}
-
 export const ListCell = observer(({ file, suspended }: ICellProps) => {
   const { uiStore } = useContext(StoreContext);
+  const [mounted, setMounted] = useState(suspended);
+
+  useEffect(() => {
+    if (!suspended) {
+      setMounted(true);
+    }
+  }, [suspended]);
 
   return (
     <div role="gridcell" aria-selected={uiStore.fileSelection.has(file.id)}>
       <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-        {suspended ? <img src={file.thumbnailPath} alt="" /> : <Thumbnail file={file} />}
+        <Thumbnail suspended={!mounted} file={file} />
       </div>
       {file.isBroken === true ? (
         <div>
@@ -175,10 +192,10 @@ export const ListCell = observer(({ file, suspended }: ICellProps) => {
       ) : (
         <>
           <h2>{file.filename}</h2>
-          <ImageInfo suspended={suspended} file={file} />
+          <ImageInfo suspended={!mounted} file={file} />
         </>
       )}
-      <ItemTags file={file} suspended={suspended} />
+      <ItemTags file={file} suspended={!mounted} />
     </div>
   );
 });
@@ -186,6 +203,13 @@ export const ListCell = observer(({ file, suspended }: ICellProps) => {
 export const GridCell = observer(
   ({ file, colIndex, suspended }: ICellProps & { colIndex: number }) => {
     const { uiStore, fileStore } = useContext(StoreContext);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+      if (!suspended) {
+        setMounted(true);
+      }
+    }, [suspended]);
 
     return (
       <div
@@ -194,7 +218,7 @@ export const GridCell = observer(
         aria-selected={uiStore.fileSelection.has(file.id)}
       >
         <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-          {suspended ? <img src={file.thumbnailPath} alt="" /> : <Thumbnail file={file} />}
+          <Thumbnail suspended={!mounted} file={file} />
         </div>
         {file.isBroken === true && (
           <Tooltip content="This image could not be found.">
@@ -210,7 +234,7 @@ export const GridCell = observer(
             </span>
           </Tooltip>
         )}
-        <ItemTags file={file} suspended={suspended} />
+        <ItemTags file={file} suspended={!mounted} />
       </div>
     );
   },

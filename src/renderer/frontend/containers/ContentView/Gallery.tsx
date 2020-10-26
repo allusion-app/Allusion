@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useContext, useMemo } from 'react';
-import { FixedSizeList, ListOnScrollProps } from 'react-window';
+import { FixedSizeList } from 'react-window';
 import { Observer, observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
@@ -44,14 +44,47 @@ const GridGallery = observer(
       };
     }, [contentRect.width, maxSize, minSize]);
 
-    const numRows = numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0;
+    const numRows = useMemo(() => (numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0), [
+      fileList.length,
+      numColumns,
+    ]);
 
     const ref = useRef<FixedSizeList>(null);
-    const outerRef = useRef<HTMLElement>();
+    const innerRef = useRef<HTMLElement>(null);
+    const topOffset = useRef(0);
+    const observer = useRef(
+      new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting && e.intersectionRect.y === topOffset.current) {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              const rowIndex = parseInt(e.target.getAttribute('aria-rowindex')!) - 1;
+              const index = rowIndex * e.target.childElementCount;
+              uiStore.setFirstItem(index);
+              break;
+            }
+          }
+        },
+        { threshold: [0, 1] },
+      ),
+    );
 
     useEffect(() => {
-      if (outerRef.current) {
-        outerRef.current.style.setProperty('--thumbnail-size', cellSize - PADDING + 'px');
+      if (innerRef.current !== null) {
+        // TODO: Use resize observer on toolbar to get offset.
+        topOffset.current = innerRef.current.getBoundingClientRect().y;
+        const children = innerRef.current.children;
+        for (let i = 0; i < children.length; i++) {
+          observer.current.observe(children[i]);
+        }
+      }
+
+      () => observer.current.disconnect();
+    }, [cellSize]);
+
+    useEffect(() => {
+      if (innerRef.current !== null) {
+        innerRef.current.style.setProperty('--thumbnail-size', cellSize - PADDING + 'px');
       }
     }, [cellSize]);
 
@@ -81,13 +114,6 @@ const GridGallery = observer(
         }
       }
     }, [latestSelectedFile, handleScrollTo, fileStore, forceUpdateObj]);
-
-    // Store what the first item in view is in the UiStore
-    const handleScroll = useCallback(
-      ({ scrollOffset }: ListOnScrollProps) =>
-        uiStore.setFirstItem(numColumns * Math.round(scrollOffset / cellSize)),
-      [cellSize, numColumns, uiStore],
-    );
 
     // Arrow keys up/down for selecting image in next row
     useEffect(() => {
@@ -176,7 +202,16 @@ const GridGallery = observer(
           {() => {
             const offset = index * numColumns;
             return (
-              <div role="row" aria-rowindex={index + 1} style={style}>
+              <div
+                ref={(el) => {
+                  if (el !== null) {
+                    observer.current.observe(el);
+                  }
+                }}
+                role="row"
+                aria-rowindex={index + 1}
+                style={style}
+              >
                 {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
                   <GridCell suspended={isScrolling} colIndex={i + 1} key={file.id} file={file} />
                 ))}
@@ -213,10 +248,9 @@ const GridGallery = observer(
           itemKey={getItemKey}
           overscanCount={2}
           children={Row}
-          onScroll={handleScroll}
           initialScrollOffset={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
           ref={ref}
-          outerRef={outerRef}
+          innerRef={innerRef}
         />
       </div>
     );
