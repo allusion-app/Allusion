@@ -132,7 +132,7 @@ class FileStore {
     }
   }
 
-  @action.bound async deleteFiles(ids: ID[]) {
+  @action async deleteFiles(ids: ID[]): Promise<void> {
     if (ids.length === 0) {
       return;
     }
@@ -143,17 +143,7 @@ class FileStore {
       await this.backend.removeFiles(ids);
 
       // Remove files from stores
-      const removedFilePaths: string[] = this.removeFiles(ids);
-
-      // Remove thumbnails
-      return Promise.all(
-        removedFilePaths.map(async (path) => {
-          const thumbnailPath = getThumbnailPath(path, this.rootStore.uiStore.thumbnailDirectory);
-          if (await fse.pathExists(thumbnailPath)) {
-            return fse.remove(thumbnailPath);
-          }
-        }),
-      );
+      this.removeFiles(ids);
     } catch (err) {
       console.error('Could not remove files', err);
     }
@@ -345,18 +335,27 @@ class FileStore {
     localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
   }
 
-  @action private removeFiles(ids: ID[]): string[] {
-    const removedFilePaths: string[] = [];
+  @action private removeFiles(ids: ID[]) {
     for (const id of ids) {
       const file = this.get(id);
       if (file !== undefined) {
-        removedFilePaths.push(file.absolutePath);
         this.rootStore.uiStore.deselectFile(file);
-        this.fileList.remove(file);
+        this.removeThumbnail(file.absolutePath);
       }
     }
-    this.updateFileListState();
-    return removedFilePaths;
+    this.refetch();
+  }
+
+  @action private async removeThumbnail(path: string) {
+    const thumbnailPath = getThumbnailPath(path, this.rootStore.uiStore.thumbnailDirectory);
+    try {
+      if (await fse.pathExists(thumbnailPath)) {
+        return fse.remove(thumbnailPath);
+      }
+    } catch (error) {
+      // TODO: Show a notification that not all thumbnails could be removed?
+      console.error(error);
+    }
   }
 
   @action private async updateFromBackend(backendFiles: IFile[]): Promise<void> {

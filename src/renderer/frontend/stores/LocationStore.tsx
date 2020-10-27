@@ -227,7 +227,6 @@ class LocationStore {
 
     // Remove location locally
     runInAction(() => this.locationList.remove(location));
-    this.rootStore.fileStore.refetch();
   }
 
   @action.bound async addFile(path: string, location: ClientLocation) {
