@@ -17,7 +17,7 @@ interface ICellProps {
 
 const enum ThumbnailState {
   Ok,
-  Generating,
+  Loading,
   Error,
 }
 
@@ -27,7 +27,7 @@ const Thumbnail = observer(({ file, suspended }: ICellProps) => {
   const { uiStore } = useContext(StoreContext);
 
   // Initially, we assume the thumbnail exists
-  const [state, setState] = useState(ThumbnailState.Ok);
+  const [state, setState] = useState(suspended ? ThumbnailState.Loading : ThumbnailState.Ok);
 
   // This will check whether a thumbnail exists, generate it if needed
   useEffect(() => {
@@ -39,7 +39,7 @@ const Thumbnail = observer(({ file, suspended }: ICellProps) => {
         if (exists) {
           setState(ThumbnailState.Ok);
         } else if (file.isBroken !== true) {
-          setState(ThumbnailState.Generating);
+          setState(ThumbnailState.Loading);
         } else {
           setState(ThumbnailState.Error);
         }
@@ -67,7 +67,7 @@ const Thumbnail = observer(({ file, suspended }: ICellProps) => {
 
   if (state === ThumbnailState.Ok) {
     return <img src={file.thumbnailPath} onError={handleImageError} alt="" />;
-  } else if (state === ThumbnailState.Generating) {
+  } else if (state === ThumbnailState.Loading) {
     return <div className="donut-loading" />;
   } else {
     return <MissingImageFallback />;
