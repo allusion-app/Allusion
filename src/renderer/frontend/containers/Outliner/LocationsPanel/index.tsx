@@ -272,15 +272,7 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
     }),
     [expansion, onDelete, showContextMenu],
   );
-  const [branches, setBranches] = useState<ITreeItem[]>(
-    locationStore.locationList.map((location) => ({
-      id: location.id,
-      label: LocationLabel,
-      children: [],
-      nodeData: location,
-      isExpanded,
-    })),
-  );
+  const [branches, setBranches] = useState<ITreeItem[]>([]);
 
   const handleBranchKeyDown = useCallback(
     (
@@ -305,13 +297,21 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
     let isMounted = true;
     const dispose = autorun(() => {
       Promise.all(
-        locationStore.locationList.map(async (location) => ({
-          id: location.id,
-          label: LocationLabel,
-          children: (await location.getDirectoryTree()).map(mapDirectory),
-          nodeData: location,
-          isExpanded,
-        })),
+        locationStore.locationList.map(async (location) => {
+          let children: ITreeItem[];
+          try {
+            children = (await location.getDirectoryTree()).map(mapDirectory);
+          } catch (error) {
+            children = [];
+          }
+          return {
+            id: location.id,
+            label: LocationLabel,
+            children,
+            nodeData: location,
+            isExpanded,
+          };
+        }),
       ).then((value) => {
         if (isMounted) {
           setBranches(value);
@@ -355,10 +355,10 @@ const LocationsPanel = () => {
     if (dirs.length === 0) {
       return;
     }
-    const newLocPath = dirs[0];
+    const path = dirs[0];
 
     // Check if the new location is a sub-directory of an existing location
-    const parentDir = locationStore.locationList.some((dir) => newLocPath.includes(dir.path));
+    const parentDir = locationStore.locationList.some((dir) => path.includes(dir.path));
     if (parentDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a sub-folder of an existing location.',
@@ -368,13 +368,17 @@ const LocationsPanel = () => {
     }
 
     // Check if the new location is a parent-directory of an existing location
-    const childDir = locationStore.locationList.some((dir) => dir.path.includes(newLocPath));
+    const childDir = locationStore.locationList.some((dir) => dir.path.includes(path));
     if (childDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a parent-folder of an existing location.',
         intent: 'danger',
       });
+      return;
     }
+
+    const location = await locationStore.create(path);
+    locationStore.initializeLocation(location);
   }, [locationStore]);
 
   return (
