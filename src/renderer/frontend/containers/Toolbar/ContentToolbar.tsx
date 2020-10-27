@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { KeyCombo } from '@blueprintjs/core';
 import { Tooltip } from '.';
@@ -17,24 +17,27 @@ import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import Searchbar from './Searchbar';
 
-interface IFileSelection {
-  allFilesSelected: boolean;
-  toggleSelection: () => void;
-  selectionCount: number;
-}
+const FileSelection = observer(() => {
+  const { uiStore, fileStore } = useContext(StoreContext);
+  const { fileSelection } = uiStore;
 
-const FileSelection = observer(
-  ({ allFilesSelected, toggleSelection: toggle, selectionCount }: IFileSelection) => (
+  const allFilesSelected =
+    fileSelection.size > 0 && fileSelection.size === fileStore.fileList.length;
+  // If everything is selected, deselect all. Else, select all
+  const handleToggleSelect = () =>
+    allFilesSelected ? uiStore.clearFileSelection() : uiStore.selectAllFiles();
+
+  return (
     <ToolbarToggleButton
       showLabel="always"
       icon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
-      onClick={toggle}
+      onClick={handleToggleSelect}
       pressed={allFilesSelected}
-      text={selectionCount}
+      text={fileSelection.size}
       tooltip={Tooltip.Select}
     />
-  ),
-);
+  );
+});
 
 const RemoveFilesPopover = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -125,29 +128,13 @@ const SlideModeToolbar = observer(() => {
 
 const ContentToolbar = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
-  const { fileSelection } = uiStore;
-
-  // If everything is selected, deselect all. Else, select all
-  const handleToggleSelect = useCallback(
-    () =>
-      fileSelection.size > 0 && fileSelection.size === fileStore.fileList.length
-        ? uiStore.clearFileSelection()
-        : uiStore.selectAllFiles(),
-    [fileSelection, fileStore.fileList, uiStore],
-  );
 
   if (uiStore.isSlideMode) {
     return <SlideModeToolbar />;
   } else {
     return (
       <>
-        <FileSelection
-          allFilesSelected={
-            fileSelection.size > 0 && fileSelection.size === fileStore.fileList.length
-          }
-          toggleSelection={handleToggleSelect}
-          selectionCount={fileSelection.size}
-        />
+        <FileSelection />
 
         <Searchbar />
 

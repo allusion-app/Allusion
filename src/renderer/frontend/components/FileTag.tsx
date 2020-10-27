@@ -4,6 +4,7 @@ import { ClientFile } from '../../entities/File';
 import { observer } from 'mobx-react-lite';
 import { MultiTagSelector } from './MultiTagSelector';
 import StoreContext from '../contexts/StoreContext';
+import { action } from 'mobx';
 
 const Single = observer(({ file }: { file: ClientFile }) => {
   const { tagStore } = useContext(StoreContext);
@@ -33,10 +34,10 @@ const Multi = observer(({ files }: { files: ClientFile[] }) => {
   // Sort based on count
   const sortedTags = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
 
-  const tagLabel = (tag: ClientTag) => {
+  const tagLabel = action((tag: ClientTag) => {
     const match = sortedTags.find((pair) => pair[0] === tag);
     return `${tag.name} (${match ? match[1] : '?'})`;
-  };
+  });
 
   const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
 

@@ -5,6 +5,7 @@ import { ClientTag } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import { IconButton, IconSet, Listbox, Option, Tag } from 'components';
 import { Flyout } from 'components/Dialog';
+import { action } from 'mobx';
 
 interface IMultiTagSelector {
   selection: ClientTag[];
@@ -23,7 +24,7 @@ const MultiTagSelector = observer(
     onDeselect,
     onClear,
     onCreate,
-    tagLabel = (t) => t.name,
+    tagLabel = action((t: ClientTag) => t.name),
     disabled,
   }: IMultiTagSelector) => {
     const { tagStore } = useContext(StoreContext);

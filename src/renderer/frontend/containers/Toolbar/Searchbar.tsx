@@ -5,6 +5,7 @@ import { Tag } from 'components';
 import { ClientTag } from '../../../entities/Tag';
 import { ClientIDSearchCriteria } from '../../../entities/SearchCriteria';
 import { MultiTagSelector } from '../../components/MultiTagSelector';
+import { action } from 'mobx';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore } = useContext(StoreContext);
@@ -18,17 +19,18 @@ const QuickSearchList = observer(() => {
     }
   });
 
-  const handleSelect = (item: ClientTag) =>
-    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', item.id, item.name));
+  const handleSelect = action((item: ClientTag) =>
+    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', item.id, item.name)),
+  );
 
-  const handleDeselect = (item: ClientTag) => {
+  const handleDeselect = action((item: ClientTag) => {
     const crit = uiStore.searchCriteriaList.find(
       (c) => c instanceof ClientIDSearchCriteria && c.value.includes(item.id),
     );
     if (crit) {
       uiStore.removeSearchCriteria(crit);
     }
-  };
+  });
 
   return (
     <MultiTagSelector
