@@ -10,6 +10,7 @@
   > * {
     // Don't squash content during parent transition
     width: var(--outliner-width);
+    padding: 0.25rem 0.5rem 0.25rem 1rem;
   }
 }
 
@@ -30,7 +31,7 @@
   overflow-x: hidden;
   flex-grow: 1;
 
-  &:hover .outliner-header-wrapper [role='toolbar'] {
+  &:hover header [role='toolbar'] {
     opacity: 1;
   }
 }
@@ -45,23 +46,13 @@
 }
 
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
-.outliner-header-wrapper {
+#outliner-content header {
   display: flex;
   align-items: center;
-  padding: 2px;
 
   h2 {
     cursor: pointer;
     flex-grow: 1;
-    font-size: medium;
-    margin: 0;
-    padding-left: 1rem;
-
-    // caret icon
-    > .custom-icon {
-      margin-right: 0.5rem;
-      vertical-align: top;
-    }
   }
 
   [role='toolbar'] {

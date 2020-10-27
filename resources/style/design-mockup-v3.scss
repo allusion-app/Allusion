@@ -24,17 +24,7 @@
   overflow-y: scroll;
   z-index: 20;
 }
-#inspector {
-  position: absolute;
-  top: 3rem;
-  bottom: 0;
-  right: 0;
-  width: 18rem;
-  box-sizing: border-box;
-  padding: 0 0.75rem 0 0;
-  overflow-y: scroll;
-  z-index: 20;
-}
+
 #background {
   position: absolute;
   top: 0;
@@ -147,35 +137,6 @@
 .toolbarBtn:active {
   background: rgba(0, 0, 0, 0.075);
 }
-#outliner .row,
-#outliner .header {
-  padding: 0.25rem 1rem 0.25rem 1.25rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: default;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-#outliner .header {
-  font-weight: bold;
-}
-#outliner .row span {
-  flex: 1;
-}
-#outliner .row img {
-  flex: 0;
-}
-#outliner .add {
-  display: none;
-}
-#outliner .section:hover .add {
-  display: block;
-}
-#outliner .row:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
 /*Search*/
 #outliner .search {
   background: rgba(0, 0, 0, 0.08);
@@ -213,21 +174,6 @@
 .actionbar span {
   font-size: 0.6875rem;
   font-weight: bold;
-}
-
-#inspector #preview {
-  width: 100%;
-}
-#inspector .header {
-  padding: 0.25rem 0;
-  display: flex;
-  justify-content: center;
-  font-weight: bold;
-}
-#inspector .row {
-  padding: 0.125rem 0.25rem;
-  display: flex;
-  justify-content: space-between;
 }
 .right {
   text-align: right;

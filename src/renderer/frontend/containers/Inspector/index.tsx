@@ -69,7 +69,9 @@ const Inspector = observer(() => {
     return (
       <Slide element="aside" id="inspector" open={uiStore.isInspectorOpen} unmountOnExit>
         <section>
-          <h2 className="inspector-heading">No image selected</h2>
+          <header>
+            <h2>No image selected</h2>
+          </header>
         </section>
       </Slide>
     );
@@ -79,7 +81,8 @@ const Inspector = observer(() => {
   let information: ReactNode;
 
   if (selectedFiles.size === 1) {
-    const first = fileStore.get(uiStore.getFirstSelectedFileId()!);
+    const id = uiStore.getFirstSelectedFileId();
+    const first = id === undefined ? undefined : fileStore.get(id);
     if (first === undefined) {
       selectionPreview = <MissingImageFallback />;
       information = 'The selected file cannot be found. Please check if the given file exists.';
@@ -105,11 +108,15 @@ const Inspector = observer(() => {
     <Slide element="aside" id="inspector" open={uiStore.isInspectorOpen} unmountOnExit>
       <div className="inspector-preview">{selectionPreview}</div>
       <section>
-        <h2 className="inspector-heading">Information</h2>
+        <header>
+          <h2>Information</h2>
+        </header>
         {information}
       </section>
       <section>
-        <h2 className="inspector-heading">Tags</h2>
+        <header>
+          <h2>Tags</h2>
+        </header>
         <FileTags files={uiStore.clientFileSelection} />
       </section>
     </Slide>

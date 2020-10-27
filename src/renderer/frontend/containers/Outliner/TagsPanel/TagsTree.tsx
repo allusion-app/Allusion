@@ -417,11 +417,6 @@ const TagsTree = observer(() => {
     [root, tagStore],
   );
 
-  const handleCollapse = useCallback(() => {
-    activeSelection.current = null;
-    dispatch(Factory.setExpansion({}));
-  }, []);
-
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       const dataSet = event.currentTarget.dataset;
@@ -471,16 +466,12 @@ const TagsTree = observer(() => {
 
   return (
     <>
-      <div
-        className="outliner-header-wrapper"
+      <header
         onDragOver={handleDragOverAndLeave}
         onDragLeave={handleDragOverAndLeave}
         onDrop={handleDrop}
       >
-        <h2 onClick={() => setIsCollapsed(!isCollapsed)}>
-          {/* {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} */}
-          Tags
-        </h2>
+        <h2 onClick={() => setIsCollapsed(!isCollapsed)}>Tags</h2>
         <Toolbar controls="tag-hierarchy">
           {uiStore.tagSelection.size > 0 ? (
             <ToolbarButton
@@ -491,25 +482,16 @@ const TagsTree = observer(() => {
               tooltip="Clear Selection"
             />
           ) : (
-            <>
-              <ToolbarButton
-                showLabel="never"
-                icon={IconSet.TAG_ADD}
-                text="New Tag"
-                onClick={handleRootAddTag}
-                tooltip="Add a new tag"
-              />
-              <ToolbarButton
-                showLabel="never"
-                icon={IconSet.ITEM_COLLAPS}
-                text="Collapse"
-                onClick={handleCollapse}
-                tooltip="Close all tags"
-              />
-            </>
+            <ToolbarButton
+              showLabel="never"
+              icon={IconSet.TAG_ADD}
+              text="New Tag"
+              onClick={handleRootAddTag}
+              tooltip="Add a new tag"
+            />
           )}
         </Toolbar>
-      </div>
+      </header>
 
       <Collapse open={!isCollapsed}>
         {root.subTags.length === 0 ? (

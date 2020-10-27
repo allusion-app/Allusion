@@ -310,85 +310,82 @@ const LocationLabel = (nodeData: any, treeData: any) => (
 
 interface ILocationTreeProps {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
-  lastRefresh: string;
   onDelete: (loc: ClientLocation) => void;
   onConfig: (loc: ClientLocation) => void;
 }
 
-const LocationsTree = observer(
-  ({ onDelete, onConfig, lastRefresh, showContextMenu }: ILocationTreeProps) => {
-    const { locationStore, uiStore } = useContext(StoreContext);
-    const [expansion, setExpansion] = useState<IExpansionState>({});
-    const treeData: ITreeData = useMemo(
-      () => ({
-        expansion,
-        setExpansion,
-        delete: onDelete,
-        config: onConfig,
-        showContextMenu,
-      }),
-      [expansion, onConfig, onDelete, showContextMenu],
-    );
-    const [branches, setBranches] = useState<ITreeItem[]>(
-      locationStore.locationList.map((location) => ({
-        id: location.id,
-        label: LocationLabel,
-        children: [],
-        nodeData: location,
+const LocationsTree = observer(({ onDelete, onConfig, showContextMenu }: ILocationTreeProps) => {
+  const { locationStore, uiStore } = useContext(StoreContext);
+  const [expansion, setExpansion] = useState<IExpansionState>({});
+  const treeData: ITreeData = useMemo(
+    () => ({
+      expansion,
+      setExpansion,
+      delete: onDelete,
+      config: onConfig,
+      showContextMenu,
+    }),
+    [expansion, onConfig, onDelete, showContextMenu],
+  );
+  const [branches, setBranches] = useState<ITreeItem[]>(
+    locationStore.locationList.map((location) => ({
+      id: location.id,
+      label: LocationLabel,
+      children: [],
+      nodeData: location,
+      isExpanded,
+    })),
+  );
+
+  const handleBranchKeyDown = useCallback(
+    (
+      event: React.KeyboardEvent<HTMLLIElement>,
+      nodeData: ClientLocation | IDirectoryTreeItem,
+      treeData: ITreeData,
+    ) =>
+      createBranchOnKeyDown(
+        event,
+        nodeData,
+        treeData,
         isExpanded,
-      })),
-    );
+        emptyFunction,
+        toggleExpansion,
+        customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(criteria(path))),
+      ),
+    [uiStore],
+  );
 
-    const handleBranchKeyDown = useCallback(
-      (
-        event: React.KeyboardEvent<HTMLLIElement>,
-        nodeData: ClientLocation | IDirectoryTreeItem,
-        treeData: ITreeData,
-      ) =>
-        createBranchOnKeyDown(
-          event,
-          nodeData,
-          treeData,
+  useEffect(() => {
+    // Prevents updating state when component will be unmounted!
+    let isMounted = true;
+    if (isMounted) {
+      Promise.all(
+        locationStore.locationList.map(async (location) => ({
+          id: location.id,
+          label: LocationLabel,
+          children: (await location.getDirectoryTree()).map(mapDirectory),
+          nodeData: location,
           isExpanded,
-          emptyFunction,
-          toggleExpansion,
-          customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(criteria(path))),
-        ),
-      [uiStore],
-    );
+        })),
+      ).then((value) => setBranches(value));
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [locationStore.locationList]);
 
-    useEffect(() => {
-      // Prevents updating state when component will be unmounted!
-      let isMounted = true;
-      if (isMounted) {
-        Promise.all(
-          locationStore.locationList.map(async (location) => ({
-            id: location.id,
-            label: LocationLabel,
-            children: (await location.getDirectoryTree()).map(mapDirectory),
-            nodeData: location,
-            isExpanded,
-          })),
-        ).then((value) => setBranches(value));
-      }
-      return () => {
-        isMounted = false;
-      };
-    }, [locationStore.locationList, lastRefresh]);
-
-    return (
-      <Tree
-        id="location-list"
-        multiSelect
-        children={branches}
-        treeData={treeData}
-        toggleExpansion={toggleExpansion}
-        onBranchKeyDown={handleBranchKeyDown}
-        onLeafKeyDown={emptyFunction}
-      />
-    );
-  },
-);
+  return (
+    <Tree
+      id="location-list"
+      multiSelect
+      children={branches}
+      treeData={treeData}
+      toggleExpansion={toggleExpansion}
+      onBranchKeyDown={handleBranchKeyDown}
+      onLeafKeyDown={emptyFunction}
+    />
+  );
+});
 
 const LocationsPanel = () => {
   const { locationStore } = useContext(StoreContext);
@@ -398,7 +395,6 @@ const LocationsPanel = () => {
     undefined,
   );
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation | undefined>(undefined);
-  const [locationTreeKey, setLocationTreeKey] = useState(new Date());
   const [isCollapsed, setCollapsed] = useState(false);
 
   const closeConfig = useCallback(() => {
@@ -452,21 +448,12 @@ const LocationsPanel = () => {
 
     const newLoc = await locationStore.create(newLocPath);
     setLocationConfigOpen(newLoc);
-    setLocationTreeKey(new Date());
   }, [locationStore]);
-
-  // Refresh when adding/removing location
-  useEffect(() => {
-    setLocationTreeKey(new Date());
-  }, [locationStore.locationList.length]);
 
   return (
     <div>
-      <div className="outliner-header-wrapper">
-        <h2 onClick={() => setCollapsed(!isCollapsed)}>
-          {/* {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} */}
-          Locations
-        </h2>
+      <header>
+        <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list">
           <ToolbarButton
             showLabel="never"
@@ -475,19 +462,11 @@ const LocationsPanel = () => {
             onClick={handleChooseWatchedDir}
             tooltip={Tooltip.Location}
           />
-          <ToolbarButton
-            showLabel="never"
-            icon={IconSet.RELOAD}
-            text="Refresh"
-            onClick={() => setLocationTreeKey(new Date())}
-            tooltip={Tooltip.Refresh}
-          />
         </Toolbar>
-      </div>
+      </header>
       <Collapse open={!isCollapsed}>
         <LocationsTree
           showContextMenu={show}
-          lastRefresh={locationTreeKey.toString()}
           onDelete={setDeletableLocation}
           onConfig={setLocationConfigOpen}
         />

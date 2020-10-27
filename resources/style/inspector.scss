@@ -6,7 +6,12 @@
   > * {
     // Don't squash content of aside during parent transition
     width: var(--inspector-width);
-    padding: 1rem;
+    padding: 0.25rem 1rem 0.25rem 0.5rem;
+  }
+
+  header {
+    text-align: center;
+    padding: 0.5rem 1rem;
   }
 }
 
@@ -26,13 +31,6 @@
   > span {
     white-space: nowrap;
   }
-}
-
-.inspector-heading {
-  font-size: medium;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 0.5rem;
 }
 
 .inspector-preview {

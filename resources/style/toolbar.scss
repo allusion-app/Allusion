@@ -6,7 +6,7 @@
   left: var(--outliner-width);
   right: 0;
   height: var(--toolbar-height);
-  padding: 0 0.5rem;
+  padding: 0 1rem 0 0.5rem;
 
   // Since the toolbar is acting as the frame, it should be draggable to move the window around
   -webkit-app-region: drag;

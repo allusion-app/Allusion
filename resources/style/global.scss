@@ -31,6 +31,13 @@ body {
     'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
 }
 
+header,
+header h2 {
+  font-size: medium;
+  font-weight: bold;
+  margin: 0;
+}
+
 fieldset {
   margin: 0;
   border: none;
@@ -60,7 +67,7 @@ pre {
 
 // Global specific styles for the main window
 #app {
-  --outliner-width: 18em;
+  --outliner-width: 20em;
   --inspector-width: 24em;
   --toolbar-height: 3rem;
   --thumbnail-size: 250px;
@@ -86,7 +93,7 @@ pre {
   --selection-background-color: #007bf53f;
   --selection-font-color: white;
   --treeitem-identation: 1rem;
-  --treeitem-offset: 1rem;
+  --treeitem-offset: 0.5rem;
 }
 
 // Dark Theme
@@ -210,12 +217,6 @@ img {
 // instead of switching colors around like this
 #preview,
 #layout-container {
-  background-color: var(--foreground-color);
-}
-
-#toolbar,
-// #outliner,
-#inspector {
   background-color: var(--foreground-color);
 }
 
