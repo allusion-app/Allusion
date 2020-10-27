@@ -1,6 +1,7 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
+import { autorun } from 'mobx';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import {
@@ -30,14 +31,11 @@ const enum Tooltip {
 }
 
 interface ILocationConfigModalProps {
-  dir: ClientLocation | undefined;
+  dir: ClientLocation;
   handleClose: () => void;
 }
 
 const LocationConfigModal = observer(({ dir, handleClose }: ILocationConfigModalProps) => {
-  if (!dir) {
-    return null;
-  }
   return (
     <Dialog labelledby="dialog-title" describedby="dialog-information" open onCancel={handleClose}>
       <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
@@ -358,7 +356,7 @@ const LocationsTree = observer(({ onDelete, onConfig, showContextMenu }: ILocati
   useEffect(() => {
     // Prevents updating state when component will be unmounted!
     let isMounted = true;
-    if (isMounted) {
+    const dispose = autorun(() => {
       Promise.all(
         locationStore.locationList.map(async (location) => ({
           id: location.id,
@@ -367,10 +365,16 @@ const LocationsTree = observer(({ onDelete, onConfig, showContextMenu }: ILocati
           nodeData: location,
           isExpanded,
         })),
-      ).then((value) => setBranches(value));
-    }
-    return () => {
+      ).then((value) => {
+        if (isMounted) {
+          setBranches(value);
+        }
+      });
+    });
+
+    () => {
       isMounted = false;
+      dispose();
     };
   }, [locationStore.locationList]);
 
@@ -471,7 +475,9 @@ const LocationsPanel = () => {
           onConfig={setLocationConfigOpen}
         />
       </Collapse>
-      <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
+      {locationConfigOpen !== undefined && (
+        <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
+      )}
       <LocationRecoveryDialog />
       {deletableLocation && (
         <LocationRemoval object={deletableLocation} onClose={closeLocationRemover} />
