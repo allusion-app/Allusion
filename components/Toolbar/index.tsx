@@ -83,6 +83,7 @@ interface IBaseButton {
   onClick?: (event: React.MouseEvent) => void;
   showLabel?: 'always' | 'never';
   tooltip?: string;
+  tabIndex?: 0 | -1;
 }
 
 interface IToolbarButton extends IBaseButton {
@@ -110,6 +111,7 @@ const ToolbarButton = (props: IToolbarButton) => {
     expanded,
     controls,
     haspopup,
+    tabIndex,
   } = props;
   const content = (
     <span className="toolbar-button-content">
@@ -131,7 +133,7 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-controls={controls}
       aria-haspopup={haspopup}
       aria-expanded={expanded}
-      tabIndex={-1}
+      tabIndex={tabIndex ?? -1}
     >
       {tooltip ? (
         <Tooltip content={tooltip} hoverDelay={1500}>
@@ -203,7 +205,7 @@ interface IToolbarToggleButton extends IBaseButton {
 }
 
 const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls } = props;
+  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls, tabIndex } = props;
   return (
     <ToolbarButton
       id={id}
@@ -214,6 +216,7 @@ const ToolbarToggleButton = (props: IToolbarToggleButton) => {
       showLabel={showLabel}
       tooltip={tooltip}
       controls={controls}
+      tabIndex={tabIndex}
     />
   );
 };
@@ -258,7 +261,7 @@ interface IToolbarSegmentButton extends IBaseButton {
 }
 
 const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
-  const { id, checked, onClick, icon, text, tooltip, showLabel } = props;
+  const { id, checked, onClick, icon, text, tooltip, showLabel, tabIndex } = props;
   return (
     <ToolbarButton
       id={id}
@@ -269,6 +272,7 @@ const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
       text={text}
       tooltip={tooltip}
       showLabel={showLabel}
+      tabIndex={tabIndex}
     />
   );
 };
@@ -347,6 +351,7 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
             onClick={() => setIsOpen(!isOpen)}
             expanded={isOpen}
             controls={props.controls}
+            tabIndex={props.tabIndex}
             haspopup="menu"
           />
         }

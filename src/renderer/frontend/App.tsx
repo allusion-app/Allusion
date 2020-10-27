@@ -38,6 +38,7 @@ const OutlinerToggle = observer(() => {
       onClick={uiStore.toggleOutliner}
       text="Toggle Outliner"
       showLabel="never"
+      tabIndex={0}
     />
   );
 });
