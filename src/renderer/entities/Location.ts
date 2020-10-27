@@ -1,12 +1,4 @@
-import {
-  IReactionDisposer,
-  reaction,
-  computed,
-  observable,
-  action,
-  ObservableSet,
-  makeObservable,
-} from 'mobx';
+import { IReactionDisposer, reaction, computed, observable, action, makeObservable } from 'mobx';
 import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
@@ -14,7 +6,6 @@ import SysPath from 'path';
 import { ID, IResource, ISerializable } from './ID';
 import LocationStore from '../frontend/stores/LocationStore';
 import { IMG_EXTENSIONS } from './File';
-import { ClientTag } from './Tag';
 import { RECURSIVE_DIR_WATCH_DEPTH } from '../../config';
 import { AppToaster } from '../frontend/App';
 import { IconSet } from 'components/Icons';
@@ -25,7 +16,6 @@ export interface ILocation extends IResource {
   id: ID;
   path: string;
   dateAdded: Date;
-  tagsToAdd: ID[];
 }
 
 export interface IDirectoryTreeItem {
@@ -76,20 +66,12 @@ export class ClientLocation implements ISerializable<ILocation> {
   readonly id: ID;
   @observable path: string;
   readonly dateAdded: Date;
-  readonly tagsToAdd: ObservableSet<ID>;
 
-  constructor(
-    store: LocationStore,
-    id: ID,
-    path: string,
-    dateAdded: Date = new Date(),
-    tagsToAdd?: ID[],
-  ) {
+  constructor(store: LocationStore, id: ID, path: string, dateAdded: Date = new Date()) {
     this.store = store;
     this.id = id;
     this.path = path;
     this.dateAdded = dateAdded;
-    this.tagsToAdd = observable(new Set(tagsToAdd));
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -104,10 +86,6 @@ export class ClientLocation implements ISerializable<ILocation> {
     );
 
     makeObservable(this);
-  }
-
-  @computed get clientTagsToAdd(): ClientTag[] {
-    return this.store.getTags(this.tagsToAdd);
   }
 
   @computed get name(): string {
@@ -130,7 +108,6 @@ export class ClientLocation implements ISerializable<ILocation> {
       id: this.id,
       path: this.path,
       dateAdded: this.dateAdded,
-      tagsToAdd: Array.from(this.tagsToAdd),
     };
   }
 
@@ -144,18 +121,6 @@ export class ClientLocation implements ISerializable<ILocation> {
   @action.bound setBroken(state: boolean): void {
     this.isBroken = state;
     this.autoSave = !state;
-  }
-
-  @action.bound addTag(tag: ClientTag): void {
-    this.tagsToAdd.add(tag.id);
-  }
-
-  @action.bound removeTag(tag: ClientTag): void {
-    this.tagsToAdd.delete(tag.id);
-  }
-
-  @action.bound clearTags(): void {
-    this.tagsToAdd.clear();
   }
 
   async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {

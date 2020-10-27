@@ -32,9 +32,7 @@ class LocationStore {
     // Get dirs from backend
     const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.ASC);
 
-    const locations = dirs.map(
-      (dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd),
-    );
+    const locations = dirs.map((dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded));
 
     runInAction(() => {
       this.locationList.replace(locations);
@@ -352,7 +350,7 @@ async function pathToIFile(path: string, loc: ClientLocation): Promise<IFile> {
     relativePath: path.replace(loc.path, ''),
     id: generateId(),
     locationId: loc.id,
-    tags: Array.from(loc.tagsToAdd),
+    tags: [],
     dateAdded: new Date(),
     dateModified: new Date(),
     ...(await getMetaData(path)),
