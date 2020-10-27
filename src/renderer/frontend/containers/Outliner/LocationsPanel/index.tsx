@@ -11,11 +11,9 @@ import {
 } from 'src/renderer/entities/Location';
 import { ClientStringSearchCriteria } from 'src/renderer/entities/SearchCriteria';
 import { IFile } from 'src/renderer/entities/File';
-import { MultiTagSelector } from 'src/renderer/frontend/components/MultiTagSelector';
 import { AppToaster } from 'src/renderer/frontend/App';
-import { IconButton, IconSet, Tree } from 'components';
+import { IconSet, Tree } from 'components';
 import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'components/menu';
-import { DialogActions, Dialog } from 'components/popover';
 import { createBranchOnKeyDown, ITreeItem } from 'components/Tree';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { CustomKeyDict, IExpansionState } from '../../types';
@@ -30,48 +28,10 @@ const enum Tooltip {
   Refresh = 'Refresh Directories',
 }
 
-interface ILocationConfigModalProps {
-  dir: ClientLocation;
-  handleClose: () => void;
-}
-
-const LocationConfigModal = observer(({ dir, handleClose }: ILocationConfigModalProps) => {
-  return (
-    <Dialog labelledby="dialog-title" describedby="dialog-information" open onCancel={handleClose}>
-      <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
-      <h2 id="dialog-title" className="dialog-title">
-        Location: {dir.name}
-      </h2>
-      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={handleClose} />
-      <div id="dialog-information" className="dialog-information">
-        <p>Path:</p>
-        <pre>{dir.path}</pre>
-        <label>
-          Tags to add
-          <MultiTagSelector
-            disabled={dir.isBroken}
-            selection={dir.clientTagsToAdd}
-            onSelect={dir.addTag}
-            onDeselect={dir.removeTag}
-            onClear={dir.clearTags}
-          />
-        </label>
-      </div>
-      <div className="dialog-footer">
-        <DialogActions
-          closeButtonText={dir.isInitialized ? 'Close' : 'Confirm'}
-          onClick={handleClose}
-        />
-      </div>
-    </Dialog>
-  );
-});
-
 interface ITreeData {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   expansion: IExpansionState;
   setExpansion: React.Dispatch<IExpansionState>;
-  config: (location: ClientLocation) => void;
   delete: (location: ClientLocation) => void;
 }
 
@@ -170,55 +130,44 @@ const DirectoryMenu = observer(({ path }: { path: string }) => {
 interface ILocationContextMenuProps {
   location: ClientLocation;
   onDelete: (location: ClientLocation) => void;
-  onConfig: (location: ClientLocation) => void;
 }
 
-const LocationTreeContextMenu = observer(
-  ({ location, onDelete, onConfig }: ILocationContextMenuProps) => {
-    const { uiStore } = useContext(StoreContext);
-    const openDeleteDialog = useCallback(() => location && onDelete(location), [
-      location,
-      onDelete,
-    ]);
-    const openConfigDialog = useCallback(() => location && onConfig(location), [
-      location,
-      onConfig,
-    ]);
+const LocationTreeContextMenu = observer(({ location, onDelete }: ILocationContextMenuProps) => {
+  const { uiStore } = useContext(StoreContext);
+  const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
 
-    if (location.isBroken) {
-      return (
-        <>
-          <MenuItem
-            text="Open Recovery Panel"
-            onClick={() => uiStore.openLocationRecovery(location.id)}
-            icon={IconSet.WARNING_BROKEN_LINK}
-            disabled={location.id === DEFAULT_LOCATION_ID}
-          />
-          <MenuItem
-            text="Delete"
-            onClick={openDeleteDialog}
-            icon={IconSet.DELETE}
-            disabled={location.id === DEFAULT_LOCATION_ID}
-          />
-        </>
-      );
-    }
-
+  if (location.isBroken) {
     return (
       <>
-        <MenuItem text="Configure" onClick={openConfigDialog} icon={IconSet.SETTINGS} />
+        <MenuItem
+          text="Open Recovery Panel"
+          onClick={() => uiStore.openLocationRecovery(location.id)}
+          icon={IconSet.WARNING_BROKEN_LINK}
+          disabled={location.id === DEFAULT_LOCATION_ID}
+        />
         <MenuItem
           text="Delete"
           onClick={openDeleteDialog}
           icon={IconSet.DELETE}
           disabled={location.id === DEFAULT_LOCATION_ID}
         />
-        <MenuDivider />
-        <DirectoryMenu path={location.path} />
       </>
     );
-  },
-);
+  }
+
+  return (
+    <>
+      <MenuItem
+        text="Delete"
+        onClick={openDeleteDialog}
+        icon={IconSet.DELETE}
+        disabled={location.id === DEFAULT_LOCATION_ID}
+      />
+      <MenuDivider />
+      <DirectoryMenu path={location.path} />
+    </>
+  );
+});
 
 const SubLocation = observer(
   ({ nodeData, treeData }: { nodeData: IDirectoryTreeItem; treeData: ITreeData }) => {
@@ -252,16 +201,16 @@ const SubLocation = observer(
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
     const { uiStore } = useContext(StoreContext);
-    const { showContextMenu, expansion, config, delete: onDelete } = treeData;
+    const { showContextMenu, expansion, delete: onDelete } = treeData;
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         showContextMenu(
           event.clientX,
           event.clientY,
-          <LocationTreeContextMenu location={nodeData} onConfig={config} onDelete={onDelete} />,
+          <LocationTreeContextMenu location={nodeData} onDelete={onDelete} />,
         );
       },
-      [nodeData, showContextMenu, config, onDelete],
+      [nodeData, showContextMenu, onDelete],
     );
 
     const handleClick = useCallback(
@@ -309,10 +258,9 @@ const LocationLabel = (nodeData: any, treeData: any) => (
 interface ILocationTreeProps {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   onDelete: (loc: ClientLocation) => void;
-  onConfig: (loc: ClientLocation) => void;
 }
 
-const LocationsTree = observer(({ onDelete, onConfig, showContextMenu }: ILocationTreeProps) => {
+const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useContext(StoreContext);
   const [expansion, setExpansion] = useState<IExpansionState>({});
   const treeData: ITreeData = useMemo(
@@ -320,10 +268,9 @@ const LocationsTree = observer(({ onDelete, onConfig, showContextMenu }: ILocati
       expansion,
       setExpansion,
       delete: onDelete,
-      config: onConfig,
       showContextMenu,
     }),
-    [expansion, onConfig, onDelete, showContextMenu],
+    [expansion, onDelete, showContextMenu],
   );
   const [branches, setBranches] = useState<ITreeItem[]>(
     locationStore.locationList.map((location) => ({
@@ -395,28 +342,10 @@ const LocationsPanel = () => {
   const { locationStore } = useContext(StoreContext);
   const [contextState, { show, hide }] = useContextMenu();
 
-  const [locationConfigOpen, setLocationConfigOpen] = useState<ClientLocation | undefined>(
-    undefined,
-  );
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation | undefined>(undefined);
   const [isCollapsed, setCollapsed] = useState(false);
 
-  const closeConfig = useCallback(() => {
-    if (locationConfigOpen !== undefined && !locationConfigOpen.isInitialized) {
-      // Import files after config modal is closed, if not already initialized
-      locationStore.initializeLocation(locationConfigOpen);
-    }
-    setLocationConfigOpen(undefined);
-  }, [locationConfigOpen, locationStore]);
-
-  const closeLocationRemover = useCallback(() => {
-    setDeletableLocation(undefined);
-    // Initialize the location in case it was newly added
-    if (locationConfigOpen && !locationConfigOpen.isInitialized) {
-      locationStore.initializeLocation(locationConfigOpen);
-    }
-  }, [locationConfigOpen, locationStore]);
-
+  // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
   const handleChooseWatchedDir = useCallback(async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
@@ -429,7 +358,7 @@ const LocationsPanel = () => {
     const newLocPath = dirs[0];
 
     // Check if the new location is a sub-directory of an existing location
-    const parentDir = locationStore.locationList.find((dir) => newLocPath.includes(dir.path));
+    const parentDir = locationStore.locationList.some((dir) => newLocPath.includes(dir.path));
     if (parentDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a sub-folder of an existing location.',
@@ -439,19 +368,13 @@ const LocationsPanel = () => {
     }
 
     // Check if the new location is a parent-directory of an existing location
-    const childDir = locationStore.locationList.find((dir) => dir.path.includes(newLocPath));
+    const childDir = locationStore.locationList.some((dir) => dir.path.includes(newLocPath));
     if (childDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a parent-folder of an existing location.',
         intent: 'danger',
       });
-      return;
     }
-
-    // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
-
-    const newLoc = await locationStore.create(newLocPath);
-    setLocationConfigOpen(newLoc);
   }, [locationStore]);
 
   return (
@@ -469,18 +392,14 @@ const LocationsPanel = () => {
         </Toolbar>
       </header>
       <Collapse open={!isCollapsed}>
-        <LocationsTree
-          showContextMenu={show}
-          onDelete={setDeletableLocation}
-          onConfig={setLocationConfigOpen}
-        />
+        <LocationsTree showContextMenu={show} onDelete={setDeletableLocation} />
       </Collapse>
-      {locationConfigOpen !== undefined && (
-        <LocationConfigModal dir={locationConfigOpen} handleClose={closeConfig} />
-      )}
       <LocationRecoveryDialog />
       {deletableLocation && (
-        <LocationRemoval object={deletableLocation} onClose={closeLocationRemover} />
+        <LocationRemoval
+          object={deletableLocation}
+          onClose={() => setDeletableLocation(undefined)}
+        />
       )}
       <ContextMenu open={contextState.open} x={contextState.x} y={contextState.y} onClose={hide}>
         <Menu>{contextState.menu}</Menu>
