@@ -6,6 +6,7 @@ import StoreContext from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 import { IconSet } from 'components';
 import { Toolbar, ToolbarToggleButton } from 'components/menu';
+import { runInAction } from 'mobx';
 
 // Tooltip info
 const enum TooltipInfo {
@@ -58,11 +59,13 @@ const TagsPanel = observer(() => {
       const matches = (c: string): boolean => {
         return comboMatches(combo, parseKeyCombo(c));
       };
-      if (matches(hotkeyMap.selectAll)) {
-        uiStore.selectAllTags();
-      } else if (matches(hotkeyMap.deselectAll)) {
-        uiStore.clearTagSelection();
-      }
+      runInAction(() => {
+        if (matches(hotkeyMap.selectAll)) {
+          uiStore.selectAllTags();
+        } else if (matches(hotkeyMap.deselectAll)) {
+          uiStore.clearTagSelection();
+        }
+      });
     },
     [hotkeyMap.deselectAll, hotkeyMap.selectAll, uiStore],
   );

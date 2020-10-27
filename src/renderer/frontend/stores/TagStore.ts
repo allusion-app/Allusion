@@ -40,19 +40,19 @@ class TagStore {
     }
   }
 
-  get(tag: ID): ClientTag | undefined {
+  @action get(tag: ID): ClientTag | undefined {
     return this.tagList.find((t) => t.id === tag);
   }
 
   @computed get root() {
-    const root = this.get(ROOT_TAG_ID);
+    const root = this.tagList.find((t) => t.id === ROOT_TAG_ID);
     if (!root) {
       throw new Error('Root tag not found. This should not happen!');
     }
     return root;
   }
 
-  getParent(child: ID): ClientTag {
+  @action getParent(child: ID): ClientTag {
     const parent = this.parentLookup.get(child);
     if (parent === undefined) {
       console.warn('Tag does not have a parent', this);
@@ -61,11 +61,11 @@ class TagStore {
     return parent;
   }
 
-  isSelected(tag: ID): boolean {
+  @action isSelected(tag: ID): boolean {
     return this.rootStore.uiStore.tagSelection.has(tag);
   }
 
-  isSearched(tag: ID): boolean {
+  @action isSearched(tag: ID): boolean {
     return this.rootStore.uiStore.searchCriteriaList.some(
       (c) => c instanceof ClientIDSearchCriteria && c.value.includes(tag),
     );
@@ -134,7 +134,7 @@ class TagStore {
   @action.bound async delete(tag: ClientTag) {
     tag.dispose();
     await this.backend.removeTag(tag.id);
-    await this.deleteSubTags(tag.clientSubTags);
+    await this.deleteSubTags(tag);
     runInAction(() => tag.parent.subTags.remove(tag.id));
     this.remove(tag);
   }
@@ -151,11 +151,11 @@ class TagStore {
 
   // The difference between this method and delete is that no computation
   // power is wasted on removing the tag id from the parent subTags list.
-  @action private async deleteSubTags(subTags: ClientTag[]) {
-    for (const subTag of subTags) {
+  @action private async deleteSubTags(tag: ClientTag) {
+    for (const subTag of tag.clientSubTags) {
       subTag.dispose();
       await this.backend.removeTag(subTag.id);
-      await this.deleteSubTags(subTag.clientSubTags);
+      await this.deleteSubTags(subTag);
       this.remove(subTag);
     }
   }

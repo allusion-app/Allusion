@@ -26,6 +26,7 @@ import { Action, State, Factory, reducer } from './StateReducer';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
 import { Collapse } from 'src/renderer/frontend/components/Transition';
+import { action, runInAction } from 'mobx';
 
 interface ILabelProps {
   text: string;
@@ -118,15 +119,17 @@ const TagItem = observer((props: ITagItemProps) => {
 
   const handleDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      let name = nodeData.name;
-      if (nodeData.isSelected) {
-        const ctx = uiStore.getTagContextItems(nodeData.id);
-        const extraText = formatTagCountText(ctx.tags.length);
-        if (extraText.length > 0) {
-          name = name + `(${extraText})`;
+      runInAction(() => {
+        let name = nodeData.name;
+        if (nodeData.isSelected) {
+          const ctx = uiStore.getTagContextItems(nodeData.id);
+          const extraText = formatTagCountText(ctx.tags.length);
+          if (extraText.length > 0) {
+            name = name + `(${extraText})`;
+          }
         }
-      }
-      onDragStart(event, name, nodeData.id, nodeData.isSelected);
+        onDragStart(event, name, nodeData.id, nodeData.isSelected);
+      });
     },
     [nodeData, uiStore],
   );
@@ -186,14 +189,16 @@ const TagItem = observer((props: ITagItemProps) => {
 
   const handleQuickQuery = useCallback(
     (event: React.MouseEvent) => {
-      const query = new ClientIDSearchCriteria('tags', nodeData.id, nodeData.name);
-      if (event.ctrlKey) {
-        if (!nodeData.isSearched) {
-          uiStore.addSearchCriteria(query);
+      runInAction(() => {
+        const query = new ClientIDSearchCriteria('tags', nodeData.id, nodeData.name);
+        if (event.ctrlKey) {
+          if (!nodeData.isSearched) {
+            uiStore.addSearchCriteria(query);
+          }
+        } else {
+          uiStore.replaceSearchCriteria(query);
         }
-      } else {
-        uiStore.replaceSearchCriteria(query);
-      }
+      });
     },
     [nodeData, uiStore],
   );
@@ -219,7 +224,7 @@ const TagItem = observer((props: ITagItemProps) => {
       />
       {!isEditing && (
         <button onClick={handleSelect} className="btn-icon">
-          {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
+          {uiStore.tagSelection.has(nodeData.id) ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
         </button>
       )}
     </div>
@@ -316,37 +321,34 @@ const customKeys = (
 };
 
 // Range Selection using pre-order tree traversal
-const rangeSelection = (
-  selection: ID[],
-  nodeData: ClientTag,
-  lastSelection: ID,
-  root: ClientTag,
-) => {
-  let isSelecting = false;
-  const selectRange = (node: ClientTag) => {
-    if (node.id === lastSelection || node.id === nodeData.id) {
-      if (!isSelecting) {
-        // Start selection
-        isSelecting = true;
-      } else {
-        // End selection
-        selection.push(node.id);
-        isSelecting = false;
-        return;
+const rangeSelection = action(
+  (selection: ID[], nodeData: ClientTag, lastSelection: ID, root: ClientTag) => {
+    let isSelecting = false;
+    const selectRange = (node: ClientTag) => {
+      if (node.id === lastSelection || node.id === nodeData.id) {
+        if (!isSelecting) {
+          // Start selection
+          isSelecting = true;
+        } else {
+          // End selection
+          selection.push(node.id);
+          isSelecting = false;
+          return;
+        }
       }
-    }
 
-    if (isSelecting) {
-      selection.push(node.id);
-    }
+      if (isSelecting) {
+        selection.push(node.id);
+      }
 
-    for (const subTag of node.clientSubTags) {
-      selectRange(subTag);
-    }
-  };
+      for (const subTag of node.clientSubTags) {
+        selectRange(subTag);
+      }
+    };
 
-  selectRange(root);
-};
+    selectRange(root);
+  },
+);
 
 const mapTag = (tag: ClientTag): ITreeItem => ({
   id: tag.id,

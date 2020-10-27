@@ -54,11 +54,11 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
-  @computed get parent(): ClientTag {
+  get parent(): ClientTag {
     return this.store.getParent(this.id);
   }
 
-  @computed get isSelected(): boolean {
+  get isSelected(): boolean {
     return this.store.isSelected(this.id);
   }
 
@@ -66,7 +66,7 @@ export class ClientTag implements ISerializable<ITag> {
     return this.color === 'inherit' ? this.parent.viewColor : this.color;
   }
 
-  @computed get isSearched(): boolean {
+  get isSearched(): boolean {
     return this.store.isSearched(this.id);
   }
 
