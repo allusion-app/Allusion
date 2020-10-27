@@ -184,7 +184,7 @@ const SettingsForm = observer(() => {
   );
 });
 
-export const SettingsWindow: React.FC = observer(() => {
+const SettingsWindow = () => {
   const { uiStore } = useContext(StoreContext);
 
   if (!uiStore.isSettingsOpen) {
@@ -203,6 +203,6 @@ export const SettingsWindow: React.FC = observer(() => {
       </div>
     </PopupWindow>
   );
-});
+};
 
-export default SettingsWindow;
+export default observer(SettingsWindow);

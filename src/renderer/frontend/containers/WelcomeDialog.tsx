@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useContext, useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
 import path from 'path';
 import fse from 'fs-extra';
 
@@ -115,7 +114,7 @@ const WelcomeDialog = () => {
 
   // Only check on mount whether to show the dialog, when no default directory exists
   useEffect(() => {
-    if (!Boolean(locationStore.get(DEFAULT_LOCATION_ID))) {
+    if (locationStore.get(DEFAULT_LOCATION_ID) === undefined) {
       setShowDialog(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,4 +172,4 @@ const WelcomeDialog = () => {
   );
 };
 
-export default observer(WelcomeDialog);
+export default WelcomeDialog;

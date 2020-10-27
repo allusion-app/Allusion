@@ -10,7 +10,7 @@ import { RendererMessenger } from 'src/Messaging';
 // This will throw exceptions whenver we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
 // https://mobx.js.org/refguide/action.html
-configure({ enforceActions: 'observed' });
+configure({ observableRequiresReaction: true, reactionRequiresObservable: true });
 
 /**
  * From: https://mobx.js.org/best/store.html

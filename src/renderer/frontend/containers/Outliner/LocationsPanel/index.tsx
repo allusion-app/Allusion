@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { autorun } from 'mobx';
+import { action, autorun } from 'mobx';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import {
@@ -99,7 +99,7 @@ const customKeys = (
   }
 };
 
-const DirectoryMenu = observer(({ path }: { path: string }) => {
+const DirectoryMenu = ({ path }: { path: string }) => {
   const { uiStore } = useContext(StoreContext);
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
@@ -125,7 +125,7 @@ const DirectoryMenu = observer(({ path }: { path: string }) => {
       />
     </>
   );
-});
+};
 
 interface ILocationContextMenuProps {
   location: ClientLocation;
@@ -169,34 +169,38 @@ const LocationTreeContextMenu = observer(({ location, onDelete }: ILocationConte
   );
 });
 
-const SubLocation = observer(
-  ({ nodeData, treeData }: { nodeData: IDirectoryTreeItem; treeData: ITreeData }) => {
-    const { uiStore } = useContext(StoreContext);
-    const { showContextMenu, expansion } = treeData;
-    const handleContextMenu = useCallback(
-      (e: React.MouseEvent) =>
-        showContextMenu(e.clientX, e.clientY, <DirectoryMenu path={nodeData.fullPath} />),
-      [nodeData.fullPath, showContextMenu],
-    );
+const SubLocation = ({
+  nodeData,
+  treeData,
+}: {
+  nodeData: IDirectoryTreeItem;
+  treeData: ITreeData;
+}) => {
+  const { uiStore } = useContext(StoreContext);
+  const { showContextMenu, expansion } = treeData;
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) =>
+      showContextMenu(e.clientX, e.clientY, <DirectoryMenu path={nodeData.fullPath} />),
+    [nodeData.fullPath, showContextMenu],
+  );
 
-    const handleClick = useCallback(
-      (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        // TODO: Mark searched nodes as selected?
-        event.ctrlKey
-          ? uiStore.addSearchCriteria(criteria(nodeData.fullPath))
-          : uiStore.replaceSearchCriteria(criteria(nodeData.fullPath));
-      },
-      [nodeData.fullPath, uiStore],
-    );
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      // TODO: Mark searched nodes as selected?
+      event.ctrlKey
+        ? uiStore.addSearchCriteria(criteria(nodeData.fullPath))
+        : uiStore.replaceSearchCriteria(criteria(nodeData.fullPath));
+    },
+    [nodeData.fullPath, uiStore],
+  );
 
-    return (
-      <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
-        {expansion[nodeData.fullPath] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
-        {nodeData.name}
-      </div>
-    );
-  },
-);
+  return (
+    <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
+      {expansion[nodeData.fullPath] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
+      {nodeData.name}
+    </div>
+  );
+};
 
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
@@ -260,7 +264,7 @@ interface ILocationTreeProps {
   onDelete: (loc: ClientLocation) => void;
 }
 
-const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProps) => {
+const LocationsTree = ({ onDelete, showContextMenu }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useContext(StoreContext);
   const [expansion, setExpansion] = useState<IExpansionState>({});
   const treeData: ITreeData = useMemo(
@@ -336,7 +340,7 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
       onLeafKeyDown={emptyFunction}
     />
   );
-});
+};
 
 const LocationsPanel = () => {
   const { locationStore } = useContext(StoreContext);
@@ -347,18 +351,28 @@ const LocationsPanel = () => {
 
   // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
   const handleChooseWatchedDir = useCallback(async () => {
-    const { filePaths: dirs } = await RendererMessenger.openDialog({
-      properties: ['openDirectory'],
-    });
-
-    // multi-selection is disabled which means there can be at most 1 folder
-    if (dirs.length === 0) {
+    let path: string;
+    try {
+      const { filePaths } = await RendererMessenger.openDialog({
+        properties: ['openDirectory'],
+      });
+      // multi-selection is disabled which means there can be at most 1 folder
+      if (filePaths.length === 0) {
+        return;
+      }
+      path = filePaths[0];
+    } catch (error) {
+      // TODO: Show error notification.
+      console.error(error);
       return;
     }
-    const path = dirs[0];
+
+    if (path === undefined) {
+      return;
+    }
 
     // Check if the new location is a sub-directory of an existing location
-    const parentDir = locationStore.locationList.some((dir) => path.includes(dir.path));
+    const parentDir = locationStore.exists((dir) => path.includes(dir.path));
     if (parentDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a sub-folder of an existing location.',
@@ -368,7 +382,7 @@ const LocationsPanel = () => {
     }
 
     // Check if the new location is a parent-directory of an existing location
-    const childDir = locationStore.locationList.some((dir) => dir.path.includes(path));
+    const childDir = locationStore.exists((dir) => dir.path.includes(path));
     if (childDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a parent-folder of an existing location.',
@@ -377,8 +391,9 @@ const LocationsPanel = () => {
       return;
     }
 
-    const location = await locationStore.create(path);
-    locationStore.initializeLocation(location);
+    locationStore
+      .create(path)
+      .then(action((location: ClientLocation) => locationStore.initializeLocation(location)));
   }, [locationStore]);
 
   return (
@@ -412,4 +427,4 @@ const LocationsPanel = () => {
   );
 };
 
-export default observer(LocationsPanel);
+export default LocationsPanel;
