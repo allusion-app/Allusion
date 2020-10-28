@@ -210,11 +210,13 @@ class FileStore {
       const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
 
       // Dispose of unused files
-      for (const oldFile of this.fileList) {
-        if (!reusedStatus.has(oldFile.id)) {
-          oldFile.dispose();
+      runInAction(() => {
+        for (const oldFile of this.fileList) {
+          if (!reusedStatus.has(oldFile.id)) {
+            oldFile.dispose();
+          }
         }
-      }
+      });
 
       // We don't store whether files are missing (since they might change at any time)
       // So we have to check all files and check their existence them here
@@ -224,14 +226,14 @@ class FileStore {
 
       const N = 50; // TODO: same here as in fetchFromBackend: number of concurrent checks should be system dependent
       await promiseAllLimit(existenceCheckPromises, N);
-      const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
 
       runInAction(() => {
+        const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
         this.fileList.replace(missingClientFiles);
         this.numMissingFiles = missingClientFiles.length;
         this.index.clear();
-        for (let index = 0; index < missingClientFiles.length; index++) {
-          const file = newClientFiles[index];
+        for (let index = 0; index < this.fileList.length; index++) {
+          const file = this.fileList[index];
           this.index.set(file.id, index);
         }
       });
@@ -296,8 +298,8 @@ class FileStore {
     return this.index.get(id);
   }
 
-  getTags(tags: Set<ID>): ClientTag[] {
-    return Array.from(this.rootStore.tagStore.getIterFrom(tags));
+  getTags(tags: Iterable<ID>): Generator<ClientTag> {
+    return this.rootStore.tagStore.getIterFrom(tags);
   }
 
   getLocation(location: ID): ClientLocation {
@@ -426,7 +428,7 @@ class FileStore {
     const clientFiles = backendFiles.map((f) => {
       // Might already exist!
       const existingFile = this.get(f.id);
-      if (existingFile) {
+      if (existingFile !== undefined) {
         reusedStatus.add(existingFile.id);
         return existingFile;
       }

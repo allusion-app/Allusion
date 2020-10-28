@@ -9,7 +9,6 @@ import { Tooltip } from 'components/popover';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
-import { runInAction } from 'mobx';
 
 interface ICellProps {
   file: ClientFile;
@@ -25,53 +24,52 @@ const enum ThumbnailState {
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 const Thumbnail = observer(({ file, suspended }: ICellProps) => {
-  const { uiStore } = useContext(StoreContext);
+  const {
+    uiStore: { thumbnailDirectory },
+  } = useContext(StoreContext);
+  const { isBroken, thumbnailPath } = file;
 
   // Initially, we assume the thumbnail exists
-  const [state, setState] = useState(suspended ? ThumbnailState.Loading : ThumbnailState.Ok);
+  const [state, setState] = useState(ThumbnailState.Ok);
 
   // This will check whether a thumbnail exists, generate it if needed
   useEffect(() => {
     if (suspended) {
       return;
     }
-    runInAction(() => {
-      ensureThumbnail(file, uiStore.thumbnailDirectory)
-        .then((exists) => {
-          if (exists) {
-            setState(ThumbnailState.Ok);
-          } else if (file.isBroken !== true) {
-            setState(ThumbnailState.Loading);
-          } else {
-            setState(ThumbnailState.Error);
-          }
-        })
-        .catch(() => setState(ThumbnailState.Error));
-    });
-  }, [file, suspended, uiStore.thumbnailDirectory]);
+    ensureThumbnail(file, thumbnailDirectory)
+      .then((exists) => {
+        if (exists) {
+          setState(ThumbnailState.Ok);
+        } else if (isBroken !== true) {
+          setState(ThumbnailState.Loading);
+        } else {
+          setState(ThumbnailState.Error);
+        }
+      })
+      .catch(() => setState(ThumbnailState.Error));
+  }, [file, isBroken, suspended, thumbnailDirectory]);
 
   // The thumbnailPath of an image is always set, but may not exist yet.
   // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
   // which we detect here to know the thumbnail is ready
   useEffect(() => {
-    runInAction(() => {
-      if (!suspended && file.thumbnailPath.endsWith('?v=1')) {
-        setState(ThumbnailState.Ok);
-      }
-    });
-  }, [file.thumbnailPath, suspended]);
+    if (!suspended && thumbnailPath.endsWith('?v=1')) {
+      setState(ThumbnailState.Ok);
+    }
+  }, [thumbnailPath, suspended]);
 
   // When the thumbnail cannot be loaded, display an error
   const handleImageError = useCallback(
     (err) => {
-      console.log('Could not load image:', file.thumbnailPath, err);
+      console.log('Could not load image:', thumbnailPath, err);
       setState(ThumbnailState.Error);
     },
-    [file.thumbnailPath],
+    [thumbnailPath],
   );
 
   if (state === ThumbnailState.Ok) {
-    return <img src={file.thumbnailPath} onError={handleImageError} alt="" />;
+    return <img src={thumbnailPath} onError={handleImageError} alt="" />;
   } else if (state === ThumbnailState.Loading) {
     return <div className="donut-loading" />;
   } else {
@@ -91,7 +89,7 @@ const ItemTags = observer(({ file, suspended }: ICellProps) => {
   } else {
     return (
       <span className="thumbnail-tags">
-        {file.clientTags.map((tag) => (
+        {Array.from(file.tags, (tag) => (
           <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
         ))}
       </span>

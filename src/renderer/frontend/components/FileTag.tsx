@@ -14,10 +14,10 @@ const Single = observer(({ file }: { file: ClientFile }) => {
   return (
     <MultiTagSelector
       disabled={file.isBroken}
-      selection={file.clientTags}
+      selection={Array.from(file.tags)}
       onClear={file.clearTags}
-      onDeselect={(tag) => file.removeTag(tag.id)}
-      onSelect={(tag) => file.addTag(tag.id)}
+      onDeselect={file.removeTag}
+      onSelect={file.addTag}
       onCreate={handleCreate}
     />
   );
@@ -27,26 +27,33 @@ const Multi = observer(({ files }: { files: ClientFile[] }) => {
   const { tagStore } = useContext(StoreContext);
 
   // Count how often tags are used
-  const combinedTags: ClientTag[] = files.flatMap((f) => f.clientTags);
   const countMap = new Map<ClientTag, number>();
-  combinedTags.forEach((t) => countMap.set(t, (countMap.get(t) || 0) + 1));
+  for (const file of files) {
+    for (const tag of file.tags) {
+      const count = countMap.get(tag);
+      countMap.set(tag, count !== undefined ? count + 1 : 1);
+    }
+  }
 
-  // Sort based on count
-  const sortedTags = Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
+  const selection = (() =>
+    Array.from(countMap.entries())
+      // Sort based on count
+      .sort((a, b) => b[1] - a[1])
+      .map((pair) => pair[0]))();
 
   const tagLabel = action((tag: ClientTag) => {
-    const match = sortedTags.find((pair) => pair[0] === tag);
-    return `${tag.name} (${match ? match[1] : '?'})`;
+    const count = countMap.get(tag);
+    return `${tag.name} (${count})`;
   });
 
   const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
 
   return (
     <MultiTagSelector
-      selection={sortedTags.map((pair) => pair[0])}
+      selection={selection}
       onClear={() => files.forEach((f) => f.clearTags())}
-      onDeselect={(tag) => files.forEach((f) => f.removeTag(tag.id))}
-      onSelect={(tag) => files.forEach((f) => f.addTag(tag.id))}
+      onDeselect={(tag) => files.forEach((f) => f.removeTag(tag))}
+      onSelect={(tag) => files.forEach((f) => f.addTag(tag))}
       tagLabel={tagLabel}
       onCreate={handleCreate}
     />

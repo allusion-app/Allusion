@@ -24,7 +24,7 @@ import Placeholder from './Placeholder';
 import { RendererMessenger } from 'src/Messaging';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
 import UiStore from '../../stores/UiStore';
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 
 const GridGallery = observer(
   ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
@@ -148,7 +148,7 @@ const GridGallery = observer(
       (e: React.MouseEvent) => {
         const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
         if (index !== undefined) {
-          select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+          runInAction(() => select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
         }
       },
       [fileList, numColumns, select],
@@ -157,10 +157,13 @@ const GridGallery = observer(
     const handleDoubleClick = useCallback(
       (e: React.MouseEvent) => {
         const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
-        if (index !== undefined) {
+        if (index === undefined) {
+          return;
+        }
+        runInAction(() => {
           uiStore.selectFile(fileList[index], true);
           uiStore.enableSlideMode();
-        }
+        });
       },
       [fileList, numColumns, uiStore],
     );
@@ -168,13 +171,16 @@ const GridGallery = observer(
     const handleContextMenu = useCallback(
       (e: React.MouseEvent) => {
         const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
-        if (index !== undefined) {
+        if (index === undefined) {
+          return;
+        }
+        runInAction(() => {
           const file = fileList[index];
           showContextMenu(e.clientX, e.clientY, [
             file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
             file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
           ]);
-        }
+        });
       },
       [fileList, numColumns, showContextMenu],
     );
@@ -325,7 +331,7 @@ const ListGallery = observer(
       (e: React.MouseEvent) => {
         const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
         if (index !== undefined) {
-          select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+          runInAction(() => select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
         }
       },
       [fileList, select],
@@ -334,10 +340,13 @@ const ListGallery = observer(
     const handleDoubleClick = useCallback(
       (e: React.MouseEvent) => {
         const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
-        if (index !== undefined) {
+        if (index === undefined) {
+          return;
+        }
+        runInAction(() => {
           uiStore.selectFile(fileList[index], true);
           uiStore.enableSlideMode();
-        }
+        });
       },
       [fileList, uiStore],
     );
@@ -345,13 +354,16 @@ const ListGallery = observer(
     const handleContextMenu = useCallback(
       (e: React.MouseEvent) => {
         const index = getListItemIndex(e, () => true);
-        if (index !== undefined) {
+        if (index === undefined) {
+          return;
+        }
+        runInAction(() => {
           const file = fileList[index];
           showContextMenu(e.clientX, e.clientY, [
             file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
             file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
           ]);
-        }
+        });
       },
       [fileList, showContextMenu],
     );
@@ -764,49 +776,48 @@ function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
 // did many experiments with drag event content types. Creating a drag
 // event with multiple images did not work correctly from the browser side
 // (e.g. only limited to thumbnails, not full images).
-function onDragStart(
-  e: React.DragEvent,
-  index: number | undefined,
-  uiStore: UiStore,
-  fileList: ClientFile[],
-) {
-  if (index === undefined) {
-    return;
-  }
-  const file = fileList[index];
-  if (!uiStore.fileSelection.has(file.id)) {
-    return;
-  }
-  e.preventDefault();
-  if (uiStore.fileSelection.size > 1) {
-    RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
-  } else {
-    RendererMessenger.startDragExport([file.absolutePath]);
-  }
+const onDragStart = action(
+  (e: React.DragEvent, index: number | undefined, uiStore: UiStore, fileList: ClientFile[]) => {
+    if (index === undefined) {
+      return;
+    }
+    const file = fileList[index];
+    if (!uiStore.fileSelection.has(file.id)) {
+      return;
+    }
+    e.preventDefault();
+    if (uiStore.fileSelection.size > 1) {
+      RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
+    } else {
+      RendererMessenger.startDragExport([file.absolutePath]);
+    }
 
-  // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
-  // So we can store the date when the event starts... Hacky but it works :)
-  (window as any).internalDragStart = new Date();
-}
+    // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+    // So we can store the date when the event starts... Hacky but it works :)
+    (window as any).internalDragStart = new Date();
+  },
+);
 
-function onDrop(
-  e: React.DragEvent<HTMLElement>,
-  index: number | undefined,
-  uiStore: UiStore,
-  files: ClientFile[],
-) {
-  if (index === undefined) {
-    return;
-  }
-  const file = files[index];
-  e.dataTransfer.dropEffect = 'none';
-  const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
-  ctx.tags.forEach((tag) => {
-    file.addTag(tag.id);
-    tag.subTags.forEach(file.addTag);
-  });
-  (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
-}
+const onDrop = action(
+  (
+    e: React.DragEvent<HTMLElement>,
+    index: number | undefined,
+    uiStore: UiStore,
+    files: ClientFile[],
+  ) => {
+    if (index === undefined) {
+      return;
+    }
+    const file = files[index];
+    const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
+    ctx.tags.forEach((tag) => {
+      file.addTag(tag);
+      tag.clientSubTags.forEach(file.addTag);
+    });
+    e.dataTransfer.dropEffect = 'none';
+    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
+  },
+);
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps

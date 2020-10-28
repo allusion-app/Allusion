@@ -8,7 +8,7 @@ import { clamp } from '../../utils';
 import { MissingImageFallback } from '../ContentView/GalleryItem';
 import { Slide } from '../../components/Transition';
 
-const Carousel = ({ items }: { items: ClientFile[] }) => {
+const Carousel = observer(({ items }: { items: ClientFile[] }) => {
   // NOTE: maxItems is coupled to the CSS! Max is 10 atm (see inspector.scss)
   const maxItems = 7;
   const [scrollIndex, setScrollIndex] = useState(0);
@@ -59,7 +59,7 @@ const Carousel = ({ items }: { items: ClientFile[] }) => {
       )}
     </div>
   );
-};
+});
 
 const Inspector = observer(() => {
   const { uiStore } = useContext(StoreContext);

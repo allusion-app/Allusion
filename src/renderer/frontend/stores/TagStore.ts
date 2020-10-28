@@ -164,7 +164,7 @@ class TagStore {
     // Remove tag id reference from other observable objects types
     this.rootStore.uiStore.deselectTag(tag);
     for (const file of this.rootStore.fileStore.fileList) {
-      file.removeTag(tag.id);
+      file.removeTag(tag);
     }
     this.parentLookup.delete(tag.id);
     this.tagList.remove(tag);

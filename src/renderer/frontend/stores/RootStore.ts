@@ -46,7 +46,10 @@ class RootStore {
     // The location store is not required to be finished with loading before showing the rest
     // So it does not need to be awaited
     this.locationStore.init(autoLoadFiles);
-    await Promise.all([this.tagStore.init(), this.fileStore.init(autoLoadFiles)]);
+    // The tag store needs to be awaited because file entites have references
+    // to tag entities.
+    await this.tagStore.init();
+    this.fileStore.init(autoLoadFiles);
     // Upon loading data, initialize UI state.
     this.uiStore.init();
   }

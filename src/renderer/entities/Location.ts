@@ -90,14 +90,6 @@ export class ClientLocation implements ISerializable<ILocation> {
     }
   }
 
-  @action serialize(): ILocation {
-    return {
-      id: this.id,
-      path: this.path,
-      dateAdded: this.dateAdded,
-    };
-  }
-
   @action setPath(newPath: string): void {
     this.path = newPath;
   }
@@ -112,6 +104,14 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   async delete(): Promise<void> {
     return this.store.delete(this);
+  }
+
+  serialize(): ILocation {
+    return {
+      id: this.id,
+      path: this.path,
+      dateAdded: this.dateAdded,
+    };
   }
 
   @action private watchDirectory(directory: string, cancel?: () => boolean): Promise<string[]> {

@@ -232,7 +232,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
               // Add tag if needed
               const clientFile = await fileStore.addFile(reply.downloadPath, DEFAULT_LOCATION_ID);
               if (clientFile && tag) {
-                clientFile.addTag(tag.id);
+                clientFile.addTag(tag);
               }
             }
           }

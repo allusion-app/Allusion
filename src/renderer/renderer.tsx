@@ -123,19 +123,19 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   const { fileStore, tagStore } = rootStore;
   const clientFile = fileStore.fileList.find((file) => file.absolutePath === filePath);
   if (clientFile) {
-    const tagIds = await Promise.all(
+    const tags = await Promise.all(
       tagNames.map(async (tagName) => {
         const clientTag = tagStore.tagList.find((tag) => tag.name === tagName);
         console.log(clientTag);
         if (clientTag !== undefined) {
-          return clientTag.id;
+          return clientTag;
         } else {
           const newClientTag = await tagStore.create(tagStore.root, tagName);
-          return newClientTag.id;
+          return newClientTag;
         }
       }),
     );
-    tagIds.forEach((t) => clientFile.addTag(t));
+    tags.forEach(clientFile.addTag);
   } else {
     console.error('Could not find image to set tags for', filePath);
   }
