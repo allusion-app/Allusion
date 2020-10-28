@@ -162,10 +162,8 @@ const SettingsForm = observer(() => {
       <div>
         <p>
           Click on a key combination to modify it. After typing your new combination, press Enter to
-          confirm or Escape to cancel. The application must be reloaded for the changes to take
-          effect.
+          confirm or Escape to cancel.
         </p>
-        <Button icon={IconSet.RELOAD} text="Reload" onClick={() => window.location.reload()} />
         <HotkeyMapper />
       </div>
 

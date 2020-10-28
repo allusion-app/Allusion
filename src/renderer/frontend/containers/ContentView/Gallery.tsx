@@ -81,7 +81,7 @@ const GridGallery = observer(
       }
 
       () => observer.current.disconnect();
-    }, [cellSize]);
+    }, []);
 
     useEffect(() => {
       if (innerRef.current !== null) {
@@ -295,7 +295,7 @@ const ListGallery = observer(
       }
 
       () => observer.current.disconnect();
-    }, [uiStore]);
+    }, []);
 
     const handleScrollTo = useCallback((i: number) => {
       if (ref.current) {

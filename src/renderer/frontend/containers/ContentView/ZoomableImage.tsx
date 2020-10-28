@@ -2,7 +2,6 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Rectangle } from 'electron';
 
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
-import { observer } from 'mobx-react-lite';
 import { IconSet } from 'components';
 
 interface IZoomableImageProps {
@@ -279,4 +278,4 @@ export const CustomZoomableImage = ({ src, contentRect }: IZoomableImageProps) =
   );
 };
 
-export default observer(ZoomableImage);
+export default ZoomableImage;

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import fse from 'fs-extra';
-import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../entities/File';
 import { formatDateTime } from '../utils';
@@ -9,12 +8,12 @@ import { imageSize } from 'image-size';
 const sizeOf = promisify(imageSize);
 
 interface IImageInfo {
-  /** This is used to avoid fetching twice in DelayedGalleryItem component! */
+  /** This is used to avoid making sys calls while the user is scrolling! */
   suspended?: boolean;
   file: ClientFile;
 }
 
-const ImageInfo = observer(({ suspended = false, file }: IImageInfo) => {
+const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
   const [fileStats, setFileStats] = useState({
     imported: formatDateTime(file.dateAdded),
     created: '...',
@@ -78,6 +77,6 @@ const ImageInfo = observer(({ suspended = false, file }: IImageInfo) => {
       <span>{fileStats.dimensions}</span>
     </div>
   );
-});
+};
 
 export default ImageInfo;
