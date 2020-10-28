@@ -188,23 +188,6 @@ function createWindow() {
       ],
     });
 
-    menuBar.push({
-      label: 'Help',
-      submenu: [
-        {
-          label: 'Show Keyboard Shortcuts',
-          accelerator: 'CommandOrControl+K',
-          click: (_, browserWindow) => {
-            browserWindow!.webContents.sendInputEvent({
-              type: 'keyDown',
-              isTrusted: true,
-              keyCode: '?',
-            } as any);
-          },
-        },
-      ],
-    });
-
     menu = Menu.buildFromTemplate(menuBar);
   }
   Menu.setApplicationMenu(menu);

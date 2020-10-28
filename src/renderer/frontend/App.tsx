@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import ContentView from './containers/ContentView';
@@ -8,13 +9,12 @@ import Inspector from './containers/Inspector';
 import Toolbar from './containers/Toolbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import SplashScreen from './components/SplashScreen';
-import GlobalHotkeys from './components/Hotkeys';
 import SettingsWindow from './containers/Settings';
 import HelpCenter from './components/HelpCenter';
 import DropOverlay from './components/DropOverlay';
 import AdvancedSearchDialog from './containers/AdvancedSearch';
 import { useWorkerListener } from './ThumbnailGeneration';
-import { Toaster, Position } from '@blueprintjs/core';
+import { Toaster, Position, getKeyCombo, comboMatches, parseKeyCombo } from '@blueprintjs/core';
 import WelcomeDialog from './containers/WelcomeDialog';
 import { ToolbarToggleButton } from 'components/menu';
 import { IconSet } from 'components';
@@ -58,16 +58,51 @@ const App = observer(() => {
 
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
+
+  const handleGlobalShortcuts = useCallback(
+    (e: KeyboardEvent) => {
+      const combo = getKeyCombo(e);
+      const matches = (c: string): boolean => {
+        return comboMatches(combo, parseKeyCombo(c));
+      };
+      runInAction(() => {
+        const { hotkeyMap } = uiStore;
+        // UI
+        if (matches(hotkeyMap.toggleOutliner)) {
+          uiStore.toggleOutliner();
+        } else if (matches(hotkeyMap.toggleInspector)) {
+          uiStore.toggleInspector();
+          // Windows
+        } else if (matches(hotkeyMap.toggleSettings)) {
+          uiStore.toggleSettings();
+        } else if (matches(hotkeyMap.toggleHelpCenter)) {
+          uiStore.toggleHelpCenter();
+        } else if (matches(hotkeyMap.openPreviewWindow)) {
+          uiStore.openPreviewWindow();
+          // Search
+        } else if (matches(hotkeyMap.advancedSearch)) {
+          uiStore.toggleAdvancedSearch();
+          // View
+        } else if (matches(hotkeyMap.viewList)) {
+          uiStore.setMethodList();
+        } else if (matches(hotkeyMap.viewGrid)) {
+          uiStore.setMethodGrid();
+        } else if (matches(hotkeyMap.viewSlide)) {
+          uiStore.toggleSlideMode();
+        }
+      });
+    },
+    [uiStore],
+  );
+
   useEffect(() => {
     setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
 
     // Prevent scrolling with Space, instead used to open preview window
-    window.addEventListener('keydown', (e) => {
-      if (e.key === ' ' && !(e.target instanceof HTMLInputElement)) {
-        e.preventDefault();
-      }
-    });
-  }, []);
+    window.addEventListener('keydown', handleGlobalShortcuts);
+
+    () => window.removeEventListener('keydown', handleGlobalShortcuts);
+  }, [handleGlobalShortcuts]);
 
   if (!uiStore.isInitialized || showSplash) {
     return <SplashScreen />;
@@ -80,25 +115,23 @@ const App = observer(() => {
     <DropOverlay>
       <div data-os={PLATFORM} id="layout-container" className={themeClass} onClick={handleClick}>
         <ErrorBoundary>
-          <GlobalHotkeys>
-            <OutlinerToggle />
+          <OutlinerToggle />
 
-            <Outliner />
+          <Outliner />
 
-            <Toolbar />
+          <Toolbar />
 
-            <ContentView />
+          <ContentView />
 
-            <Inspector />
+          <Inspector />
 
-            <SettingsWindow />
+          <SettingsWindow />
 
-            <HelpCenter />
+          <HelpCenter />
 
-            <AdvancedSearchDialog />
+          <AdvancedSearchDialog />
 
-            <WelcomeDialog />
-          </GlobalHotkeys>
+          <WelcomeDialog />
         </ErrorBoundary>
       </div>
     </DropOverlay>

@@ -287,7 +287,7 @@ class FileStore {
     this.index.clear();
   }
 
-  get(id: ID): ClientFile | undefined {
+  @action get(id: ID): ClientFile | undefined {
     const fileIndex = this.index.get(id);
     return fileIndex !== undefined ? this.fileList[fileIndex] : undefined;
   }

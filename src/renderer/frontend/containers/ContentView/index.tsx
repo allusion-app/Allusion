@@ -1,38 +1,37 @@
-import React from 'react';
-import { Hotkey, Hotkeys, HotkeysTarget } from '@blueprintjs/core';
+import React, { useCallback, useContext } from 'react';
+import { runInAction } from 'mobx';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
 
-import { IRootStoreProp, withRootstore } from '../../contexts/StoreContext';
+import StoreContext from '../../contexts/StoreContext';
 import Gallery from './Gallery';
 
-@HotkeysTarget
-class ContentViewWithHotkeys extends React.PureComponent<IRootStoreProp> {
-  render() {
-    return (
-      <main>
-        <Gallery />
-      </main>
-    );
-  }
-  renderHotkeys() {
-    const { uiStore } = this.props.rootStore;
-    const { hotkeyMap } = uiStore;
-    return (
-      <Hotkeys>
-        <Hotkey
-          combo={hotkeyMap.selectAll}
-          label="Select all files in the content area"
-          onKeyDown={uiStore.selectAllFiles}
-          group="Gallery"
-        />
-        <Hotkey
-          combo={hotkeyMap.deselectAll}
-          label="Deselect all files in the content area"
-          onKeyDown={uiStore.clearFileSelection}
-          group="Gallery"
-        />
-      </Hotkeys>
-    );
-  }
-}
+const ContentView = () => {
+  const { uiStore } = useContext(StoreContext);
 
-export default withRootstore(ContentViewWithHotkeys);
+  const handleShortcuts = useCallback(
+    (e: React.KeyboardEvent) => {
+      const combo = getKeyCombo(e.nativeEvent);
+      const matches = (c: string): boolean => {
+        return comboMatches(combo, parseKeyCombo(c));
+      };
+      runInAction(() => {
+        const { hotkeyMap } = uiStore;
+        if (matches(hotkeyMap.selectAll)) {
+          uiStore.selectAllFiles();
+        } else if (matches(hotkeyMap.deselectAll)) {
+          uiStore.clearFileSelection();
+        }
+      });
+    },
+    [uiStore],
+  );
+
+  return (
+    // TODO: Remove tabIndex once focus navigation has been added.
+    <main tabIndex={0} onKeyDown={handleShortcuts}>
+      <Gallery />
+    </main>
+  );
+};
+
+export default ContentView;

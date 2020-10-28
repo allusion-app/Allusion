@@ -49,9 +49,8 @@ export const SystemTags = observer(() => {
   );
 });
 
-const TagsPanel = observer(() => {
+const TagsPanel = () => {
   const { uiStore } = useContext(StoreContext);
-  const { hotkeyMap } = uiStore;
 
   const handleShortcuts = useCallback(
     (e: React.KeyboardEvent) => {
@@ -60,6 +59,7 @@ const TagsPanel = observer(() => {
         return comboMatches(combo, parseKeyCombo(c));
       };
       runInAction(() => {
+        const { hotkeyMap } = uiStore;
         if (matches(hotkeyMap.selectAll)) {
           uiStore.selectAllTags();
         } else if (matches(hotkeyMap.deselectAll)) {
@@ -67,7 +67,7 @@ const TagsPanel = observer(() => {
         }
       });
     },
-    [hotkeyMap.deselectAll, hotkeyMap.selectAll, uiStore],
+    [uiStore],
   );
 
   return (
@@ -75,6 +75,6 @@ const TagsPanel = observer(() => {
       <TagsTree />
     </div>
   );
-});
+};
 
 export default TagsPanel;
