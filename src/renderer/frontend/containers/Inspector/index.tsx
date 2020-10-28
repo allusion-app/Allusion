@@ -62,7 +62,7 @@ const Carousel = ({ items }: { items: ClientFile[] }) => {
 };
 
 const Inspector = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore } = useContext(StoreContext);
   const selectedFiles = uiStore.fileSelection;
 
   if (selectedFiles.size === 0) {
@@ -81,8 +81,7 @@ const Inspector = observer(() => {
   let information: ReactNode;
 
   if (selectedFiles.size === 1) {
-    const id = uiStore.getFirstSelectedFileId();
-    const first = id === undefined ? undefined : fileStore.get(id);
+    const first = uiStore.firstSelectedFile;
     if (first === undefined) {
       selectionPreview = <MissingImageFallback />;
       information = 'The selected file cannot be found. Please check if the given file exists.';

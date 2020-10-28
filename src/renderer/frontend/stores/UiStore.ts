@@ -563,6 +563,13 @@ class UiStore {
     return this.fileSelection.values().next().value ?? undefined;
   }
 
+  @computed get firstSelectedFile(): ClientFile | undefined {
+    if (this.fileSelection.size === 0 || this.clientFileSelection.length === 0) {
+      return undefined;
+    }
+    return this.clientFileSelection[0];
+  }
+
   @action private viewAllContent() {
     this.rootStore.fileStore.fetchAllFiles();
   }
