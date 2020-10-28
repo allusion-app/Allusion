@@ -31,8 +31,10 @@ class LocationStore {
   @action async init(autoLoad: boolean) {
     // Get dirs from backend
     const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.ASC);
-    this.locationList.replace(
-      dirs.map((dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded)),
+    runInAction(() =>
+      this.locationList.replace(
+        dirs.map((dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded)),
+      ),
     );
 
     // E.g. in preview window, it's not needed to watch the locations
