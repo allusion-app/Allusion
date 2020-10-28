@@ -24,6 +24,7 @@ import Placeholder from './Placeholder';
 import { RendererMessenger } from 'src/Messaging';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
 import UiStore from '../../stores/UiStore';
+import { action } from 'mobx';
 
 const GridGallery = observer(
   ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
@@ -849,9 +850,9 @@ function get_column_layout(width: number, minSize: number, maxSize: number): [nu
 }
 
 /** Generates a unique key for an element in the fileList */
-function getItemKey(index: number, data: ClientFile[]): string {
+const getItemKey = action((index: number, data: ClientFile[]): string => {
   return data[index].id;
-}
+});
 
 function getListItemIndex(
   e: React.MouseEvent,

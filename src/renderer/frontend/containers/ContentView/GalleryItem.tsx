@@ -9,6 +9,7 @@ import { Tooltip } from 'components/popover';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
+import { runInAction } from 'mobx';
 
 interface ICellProps {
   file: ClientFile;
@@ -34,26 +35,30 @@ const Thumbnail = observer(({ file, suspended }: ICellProps) => {
     if (suspended) {
       return;
     }
-    ensureThumbnail(file, uiStore.thumbnailDirectory)
-      .then((exists) => {
-        if (exists) {
-          setState(ThumbnailState.Ok);
-        } else if (file.isBroken !== true) {
-          setState(ThumbnailState.Loading);
-        } else {
-          setState(ThumbnailState.Error);
-        }
-      })
-      .catch(() => setState(ThumbnailState.Error));
+    runInAction(() => {
+      ensureThumbnail(file, uiStore.thumbnailDirectory)
+        .then((exists) => {
+          if (exists) {
+            setState(ThumbnailState.Ok);
+          } else if (file.isBroken !== true) {
+            setState(ThumbnailState.Loading);
+          } else {
+            setState(ThumbnailState.Error);
+          }
+        })
+        .catch(() => setState(ThumbnailState.Error));
+    });
   }, [file, suspended, uiStore.thumbnailDirectory]);
 
   // The thumbnailPath of an image is always set, but may not exist yet.
   // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
   // which we detect here to know the thumbnail is ready
   useEffect(() => {
-    if (!suspended && file.thumbnailPath.endsWith('?v=1')) {
-      setState(ThumbnailState.Ok);
-    }
+    runInAction(() => {
+      if (!suspended && file.thumbnailPath.endsWith('?v=1')) {
+        setState(ThumbnailState.Ok);
+      }
+    });
   }, [file.thumbnailPath, suspended]);
 
   // When the thumbnail cannot be loaded, display an error

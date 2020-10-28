@@ -4,6 +4,7 @@ import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import { ClientTag } from 'src/renderer/entities/Tag';
 import { Listbox, Option } from 'components';
 import { Flyout } from 'components/popover';
+import { action, runInAction } from 'mobx';
 
 interface ITagSelector {
   selection: ClientTag | undefined;
@@ -34,7 +35,7 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
         }
         setIsOpen(false);
         if (selection !== undefined) {
-          setQuery(selection.name);
+          runInAction(() => setQuery(selection.name));
         }
       }}
     >
@@ -62,11 +63,11 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
                 key={t.id}
                 selected={selection === t}
                 value={t.name}
-                onClick={() => {
+                onClick={action(() => {
                   onSelect(t);
                   setQuery(t.name);
                   setIsOpen(false);
-                }}
+                })}
               />
             ))}
         </Listbox>
