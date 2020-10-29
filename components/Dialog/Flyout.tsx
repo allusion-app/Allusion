@@ -195,7 +195,7 @@ interface IContextMenu {
   x: number;
   y: number;
   /** The element must be a Menu component otherwise focus will not work. */
-  children: React.ReactFragment | React.ReactElement;
+  children?: React.ReactFragment | React.ReactElement;
   onClose: (event: Event) => void;
 }
 

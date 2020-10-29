@@ -10,7 +10,7 @@ const path = require('path');
 let mainConfig = {
   mode: 'production',
   entry: './src/main/main.ts',
-  target: 'electron-main',
+  target: ['electron-main', 'es2020'],
   output: {
     filename: 'main.bundle.js',
     path: __dirname + '/build',
@@ -53,7 +53,7 @@ let mainConfig = {
 let rendererConfig = {
   mode: 'production',
   entry: './src/renderer/renderer.tsx',
-  target: 'electron-renderer',
+  target: ['electron-renderer', 'es2020'],
   output: {
     filename: 'renderer.bundle.js',
     path: __dirname + '/build',

@@ -683,12 +683,8 @@ const Layout = observer(
 const Gallery = () => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
-  const {
-    open,
-    x,
-    y,
-    menu: [fileMenu, externalMenu],
-  } = contextState;
+  const { open, x, y, menu } = contextState;
+  const [fileMenu, externalMenu] = menu as [React.ReactNode, React.ReactNode];
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
   const container = useRef<HTMLDivElement>(null);
