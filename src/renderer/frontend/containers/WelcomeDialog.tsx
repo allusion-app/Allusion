@@ -117,8 +117,7 @@ const WelcomeDialog = () => {
     if (locationStore.get(DEFAULT_LOCATION_ID) === undefined) {
       setShowDialog(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [locationStore]);
 
   const [importLocation, setImportLocation] = useState('');
 

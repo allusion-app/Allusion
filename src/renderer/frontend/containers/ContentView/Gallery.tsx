@@ -470,11 +470,10 @@ const SlideGallery = observer(({ contentRect }: { contentRect: Rectangle }) => {
   const { fileList } = fileStore;
   // Go to the first selected image on load
   useEffect(() => {
-    if (uiStore.fileSelection.size > 0) {
-      const firstSelectedId = uiStore.fileSelection.values().next().value;
-      uiStore.setFirstItem(fileStore.getIndex(firstSelectedId));
+    if (uiStore.firstSelectedFile !== undefined) {
+      uiStore.setFirstItem(fileStore.getIndex(uiStore.firstSelectedFile.id));
     }
-  }, [fileList, uiStore.fileSelection, uiStore, fileStore]);
+  }, [fileStore, uiStore]);
 
   // Go back to previous view when pressing the back button (mouse button 5)
   useEffect(() => {
@@ -610,21 +609,20 @@ const Layout = observer(
           return;
         }
 
-        const isSelected = uiStore.fileSelection.has(selectedFile.id);
-        const singleSelected = isSelected && uiStore.fileSelection.size === 1;
+        const isSelected = uiStore.fileSelection.has(selectedFile);
 
         const newSelection = makeSelection(i, selectRange);
         if (!selectAdditive) {
           uiStore.clearFileSelection();
         }
         if (selectRange) {
-          uiStore.selectFiles(newSelection.map((i) => fileList[i].id));
+          uiStore.selectFiles(newSelection.map((i) => fileList[i]));
         } else if (selectAdditive) {
           // Add or subtract to the selection
           isSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
         } else {
-          // Only select this file. If this is the only selected file, deselect it
-          singleSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
+          // Only select this file.
+          uiStore.selectFile(selectedFile);
         }
       },
       [fileStore, uiStore, makeSelection, fileList],
@@ -782,12 +780,12 @@ const onDragStart = action(
       return;
     }
     const file = fileList[index];
-    if (!uiStore.fileSelection.has(file.id)) {
+    if (!uiStore.fileSelection.has(file)) {
       return;
     }
     e.preventDefault();
     if (uiStore.fileSelection.size > 1) {
-      RendererMessenger.startDragExport(uiStore.clientFileSelection.map((f) => f.absolutePath));
+      RendererMessenger.startDragExport(Array.from(uiStore.fileSelection, (f) => f.absolutePath));
     } else {
       RendererMessenger.startDragExport([file.absolutePath]);
     }

@@ -65,9 +65,9 @@ class TagStore {
 
   *getIterFrom(ids: Iterable<ID>): Generator<ClientTag> {
     for (const id of ids) {
-      if (this.exists(id)) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        yield this.get(id)!;
+      const tag = this.get(id);
+      if (tag !== undefined) {
+        yield tag;
       }
     }
   }

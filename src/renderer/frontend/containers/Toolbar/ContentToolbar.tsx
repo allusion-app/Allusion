@@ -52,10 +52,7 @@ const RemoveFilesPopover = observer(() => {
         // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
         // intent="warning"
       />
-      <FileRemoval
-        onClose={uiStore.closeToolbarFileRemover}
-        object={uiStore.isToolbarFileRemoverOpen ? uiStore.clientFileSelection : []}
-      />
+      <FileRemoval />
     </>
   );
 });

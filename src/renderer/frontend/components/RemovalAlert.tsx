@@ -2,7 +2,6 @@ import React, { useContext } from 'react';
 import { ClientLocation } from 'src/renderer/entities/Location';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import { ClientTag } from 'src/renderer/entities/Tag';
-import { ClientFile } from 'src/renderer/entities/File';
 import { Tag, IconSet } from 'components';
 import { Alert, DialogButton } from 'components/popover';
 import { observer } from 'mobx-react-lite';
@@ -81,21 +80,27 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   );
 });
 
-export const FileRemoval = observer((props: IRemovalProps<ClientFile[]>) => {
+export const FileRemoval = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
-  const { object: files } = props;
+  const selection = uiStore.fileSelection;
 
   return (
     <RemovalAlert
       open={uiStore.isToolbarFileRemoverOpen}
-      title={`Are you sure you want to delete ${files.length} missing file${
-        files.length > 1 ? 's' : ''
+      title={`Are you sure you want to delete ${selection.size} missing file${
+        selection.size > 1 ? 's' : ''
       }?`}
       information="Deleting files will permanently remove them from Allusion. Accidentially moved files can be recovered by returning them to their previous location."
-      onCancel={props.onClose}
+      onCancel={uiStore.closeToolbarFileRemover}
       onConfirm={() => {
-        props.onClose();
-        fileStore.deleteFiles(files.filter((f) => f.isBroken).map((f) => f.id));
+        uiStore.closeToolbarFileRemover();
+        const files = [];
+        for (const file of selection) {
+          if (file.isBroken === true) {
+            files.push(file.id);
+          }
+        }
+        fileStore.deleteFiles(files);
       }}
     />
   );

@@ -410,9 +410,9 @@ class FileStore {
   /** Remove files from selection that are not in the file list anymore */
   @action private cleanFileSelection() {
     const { fileSelection } = this.rootStore.uiStore;
-    for (const id of fileSelection) {
-      if (!this.index.has(id)) {
-        fileSelection.delete(id);
+    for (const file of fileSelection) {
+      if (!this.index.has(file.id)) {
+        fileSelection.delete(file);
       }
     }
   }

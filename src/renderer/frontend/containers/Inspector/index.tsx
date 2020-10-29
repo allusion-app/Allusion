@@ -1,6 +1,5 @@
 import React, { useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ClientFile } from '../../../entities/File';
 import FileTags from '../../components/FileTag';
 import ImageInfo from '../../components/ImageInfo';
 import StoreContext from '../../contexts/StoreContext';
@@ -8,7 +7,9 @@ import { clamp } from '../../utils';
 import { MissingImageFallback } from '../ContentView/GalleryItem';
 import { Slide } from '../../components/Transition';
 
-const Carousel = observer(({ items }: { items: ClientFile[] }) => {
+const Carousel = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  const items = uiStore.fileSelection;
   // NOTE: maxItems is coupled to the CSS! Max is 10 atm (see inspector.scss)
   const maxItems = 7;
   const [scrollIndex, setScrollIndex] = useState(0);
@@ -16,10 +17,9 @@ const Carousel = observer(({ items }: { items: ClientFile[] }) => {
   // Add some padding items so that you can scroll the last item to the front
   const paddedItems = useMemo(() => {
     const padding = Array.from(Array(maxItems - 1));
-    setScrollIndex(items.length - 1);
-    return [...padding, ...items];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items.length]);
+    setScrollIndex(items.size - 1);
+    return padding.concat(items);
+  }, [items]);
 
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
@@ -47,7 +47,7 @@ const Carousel = observer(({ items }: { items: ClientFile[] }) => {
             className={`carousel-slide child-${index}`}
             role="group"
             aria-roledescription="slide"
-            aria-label={`${scrollIndex + index + 1} of ${items.length}`}
+            aria-label={`${scrollIndex + index + 1} of ${items.size}`}
           >
             {/* TODO: Thumbnail path is not always resolved atm, working on that in another branch */}
             <img
@@ -99,8 +99,8 @@ const Inspector = observer(() => {
     }
   } else {
     // Stack effects: https://tympanus.net/codrops/2014/03/05/simple-stack-effects/
-    selectionPreview = <Carousel items={uiStore.clientFileSelection} />;
-    information = `Selected ${uiStore.clientFileSelection.length} files`;
+    selectionPreview = <Carousel />;
+    information = `Selected ${uiStore.fileSelection.size} files`;
   }
 
   return (
@@ -116,7 +116,7 @@ const Inspector = observer(() => {
         <header>
           <h2>Tags</h2>
         </header>
-        <FileTags files={uiStore.clientFileSelection} />
+        <FileTags />
       </section>
     </Slide>
   );

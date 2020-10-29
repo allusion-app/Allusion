@@ -6,8 +6,9 @@ import { MultiTagSelector } from './MultiTagSelector';
 import StoreContext from '../contexts/StoreContext';
 import { action } from 'mobx';
 
-const Single = observer(({ file }: { file: ClientFile }) => {
-  const { tagStore } = useContext(StoreContext);
+const Single = observer(() => {
+  const { tagStore, uiStore } = useContext(StoreContext);
+  const file = uiStore.fileSelection.values().next().value as ClientFile;
 
   const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
 
@@ -23,8 +24,11 @@ const Single = observer(({ file }: { file: ClientFile }) => {
   );
 });
 
-const Multi = observer(({ files }: { files: ClientFile[] }) => {
-  const { tagStore } = useContext(StoreContext);
+const Multi = observer(() => {
+  const {
+    tagStore,
+    uiStore: { fileSelection: files },
+  } = useContext(StoreContext);
 
   // Count how often tags are used
   const countMap = new Map<ClientTag, number>();
@@ -60,11 +64,10 @@ const Multi = observer(({ files }: { files: ClientFile[] }) => {
   );
 });
 
-const FileTags = observer(({ files }: { files: ClientFile[] }) => {
+const FileTags = observer(() => {
+  const { uiStore } = useContext(StoreContext);
   return (
-    <div className="file-tag">
-      {files.length === 1 ? <Single file={files[0]} /> : <Multi files={files} />}
-    </div>
+    <div className="file-tag">{uiStore.fileSelection.size === 1 ? <Single /> : <Multi />}</div>
   );
 });
 

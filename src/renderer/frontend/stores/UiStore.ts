@@ -116,9 +116,9 @@ class UiStore {
   @observable isToolbarFileRemoverOpen: boolean = false;
 
   // Selections
-  // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
-  // Sets are however more suitable: An ID should only be present once, and it has quicker lookup performance
-  readonly fileSelection = observable<ID>(new Set<ID>());
+  // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
+  // However, sets are more suitable because they have quicker lookup performance.
+  readonly fileSelection = observable(new Set<ClientFile>());
   readonly tagSelection = observable<ID>(new Set<ID>());
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
@@ -210,7 +210,7 @@ class UiStore {
     }
 
     RendererMessenger.sendPreviewFiles({
-      ids: Array.from(this.fileSelection),
+      ids: Array.from(this.fileSelection, (file) => file.id),
       thumbnailDirectory: this.thumbnailDirectory,
     });
 
@@ -280,11 +280,6 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
-  /** Note: This is a relatively expensive operation for large file lists. Use with care! Currently evaluated every rerender :( */
-  @computed get clientFileSelection(): ClientFile[] {
-    return Array.from(this.fileSelection, (id) => this.rootStore.fileStore.get(id)) as ClientFile[];
-  }
-
   @computed get clientTagSelection(): ClientTag[] {
     return Array.from(this.rootStore.tagStore.getIterFrom(this.tagSelection));
   }
@@ -293,16 +288,16 @@ class UiStore {
     if (clear) {
       this.clearFileSelection();
     }
-    this.fileSelection.add(file.id);
+    this.fileSelection.add(file);
   }
 
-  @action.bound selectFiles(files: ID[], clear?: boolean) {
+  @action.bound selectFiles(files: ClientFile[], clear?: boolean) {
     if (clear) {
       this.fileSelection.replace(files);
       return;
     }
-    for (const id of files) {
-      this.fileSelection.add(id);
+    for (const file of files) {
+      this.fileSelection.add(file);
     }
   }
 
@@ -315,8 +310,7 @@ class UiStore {
   }
 
   @action.bound selectAllFiles() {
-    this.clearFileSelection();
-    this.rootStore.fileStore.fileList.forEach((f) => this.fileSelection.add(f.id));
+    this.fileSelection.replace(this.rootStore.fileStore.fileList);
   }
 
   @action.bound selectTag(tag: ClientTag, clear?: boolean) {
@@ -560,14 +554,14 @@ class UiStore {
   }
 
   getFirstSelectedFileId(): ID | undefined {
-    return this.fileSelection.values().next().value ?? undefined;
+    return this.firstSelectedFile?.id;
   }
 
   @computed get firstSelectedFile(): ClientFile | undefined {
-    if (this.fileSelection.size === 0 || this.clientFileSelection.length === 0) {
-      return undefined;
+    for (const file of this.fileSelection) {
+      return file;
     }
-    return this.clientFileSelection[0];
+    return undefined;
   }
 
   @action private viewAllContent() {
