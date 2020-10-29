@@ -56,7 +56,7 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
         }
       >
         <Listbox>
-          {tagStore.root.clientSubTags
+          {tagStore.root.subTags
             .filter((t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0)
             .map((t) => (
               <Option

@@ -51,11 +51,9 @@ export const LocationRemoval = observer((props: IRemovalProps<ClientLocation>) =
 ));
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { uiStore } = useContext(StoreContext);
   const { object } = props;
-  const tagsToRemove = object.isSelected
-    ? uiStore.clientTagSelection
-    : Array.from(tagStore.getIterFrom(object.getTagsRecursively()));
+  const tagsToRemove = object.isSelected ? uiStore.clientTagSelection : object.toList();
 
   const text = `Are you sure you want to delete the tag "${object.name}"?`;
 

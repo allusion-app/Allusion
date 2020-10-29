@@ -347,7 +347,7 @@ class UiStore {
   }
 
   @action.bound selectAllTags() {
-    this.tagSelection.replace(this.rootStore.tagStore.root.subTags);
+    this.tagSelection.replace(this.rootStore.tagStore.root.subTags.map((subTag) => subTag.id));
   }
 
   @action.bound clearTagSelection() {
@@ -365,7 +365,7 @@ class UiStore {
     const ctx = this.getTagContextItems(activeElementId);
     const colorCollection = (tag: ClientTag) => {
       tag.setColor(color);
-      tag.clientSubTags.forEach((tag) => tag.setColor(color));
+      tag.subTags.forEach((tag) => tag.setColor(color));
     };
     ctx.tags.forEach(colorCollection);
   }
@@ -409,7 +409,7 @@ class UiStore {
 
       // Only include selected tags of which their parent is not selected
       const selectedColsNotInSelectedCols = selectedTags.filter((col) =>
-        selectedTags.every((parent) => !parent.subTags.includes(col.id)),
+        selectedTags.every((parent) => !parent.subTags.includes(col)),
       );
       contextTags.push(...selectedColsNotInSelectedCols);
 

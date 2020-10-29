@@ -104,17 +104,12 @@ export default class Backend {
 
   async removeTag(tag: ID): Promise<void> {
     console.info('Backend: Removing tag...', tag);
-    // We have to make sure files tagged with this tag should be untagged
-    // Get all files with this tag
-    const filesWithTag = await this.fileRepository.find({
-      criteria: { key: 'tags', value: tag, operator: 'contains', valueType: 'array' },
-    });
-    // Remove tag from files
-    filesWithTag.forEach((file) => file.tags.splice(file.tags.indexOf(tag)));
-    // Update files in db
-    await this.fileRepository.updateMany(filesWithTag);
-    // Remove tag from db
     return this.tagRepository.remove(tag);
+  }
+
+  async removeTags(tags: ID[]): Promise<void> {
+    console.info('Backend: Removing tags...', tags);
+    return this.tagRepository.removeMany(tags);
   }
 
   async removeFiles(files: ID[]): Promise<void> {

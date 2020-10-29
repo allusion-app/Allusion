@@ -31,7 +31,7 @@ const MultiTagSelector = observer(
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const normalizedQuery = query.toLowerCase();
-    const suggestions = tagStore.root.clientSubTags.filter(
+    const suggestions = tagStore.root.subTags.filter(
       (t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
     );
 

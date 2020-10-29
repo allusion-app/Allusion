@@ -29,7 +29,8 @@ export class ClientTag implements ISerializable<ITag> {
   @observable name: string;
   @observable description: string = '';
   @observable color: string = '';
-  readonly subTags = observable<ID>([]);
+  @observable private _parent: ClientTag | undefined;
+  readonly subTags = observable<ClientTag>([]);
   // icon, (fileCount?)
 
   constructor(store: TagStore, id: ID, name: string, dateAdded: Date = new Date()) {
@@ -54,8 +55,12 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
-  get parent(): ClientTag {
-    return this.store.getParent(this.id);
+  @computed get parent(): ClientTag {
+    if (this._parent === undefined) {
+      console.warn('Tag does not have a parent', this);
+      return this.store.root;
+    }
+    return this._parent;
   }
 
   get isSelected(): boolean {
@@ -70,16 +75,11 @@ export class ClientTag implements ISerializable<ITag> {
     return this.store.isSearched(this.id);
   }
 
-  /** Get actual tag collection objects based on the IDs retrieved from the backend */
-  @computed get clientSubTags(): ClientTag[] {
-    return Array.from(this.store.getIterFrom(this.subTags));
-  }
-
   /**
    * Returns true if tag is an ancestor of this tag.
    * @param tag possible ancestor node
    */
-  isAncestor(tag: ClientTag): boolean {
+  @action isAncestor(tag: ClientTag): boolean {
     if (this === tag) {
       return false;
     }
@@ -91,6 +91,10 @@ export class ClientTag implements ISerializable<ITag> {
       node = node.parent;
     }
     return false;
+  }
+
+  @action setParent(parent: ClientTag): void {
+    this._parent = parent;
   }
 
   @action.bound rename(name: string): void {
@@ -105,24 +109,6 @@ export class ClientTag implements ISerializable<ITag> {
     this.store.insert(this, tag, at);
   }
 
-  /**
-   * Used for updating this Entity if changes are made to the backend outside of this session of the application.
-   * @param backendTag The file received from the backend
-   */
-  @action.bound updateFromBackend(backendTag: ITag): ClientTag {
-    // make sure our changes aren't sent back to the backend
-    this.autoSave = false;
-
-    this.name = backendTag.name;
-    this.description = backendTag.description;
-    this.color = backendTag.color;
-    this.subTags.replace(backendTag.subTags);
-
-    this.autoSave = true;
-
-    return this;
-  }
-
   serialize(): ITag {
     return {
       id: this.id,
@@ -130,19 +116,19 @@ export class ClientTag implements ISerializable<ITag> {
       description: this.description,
       dateAdded: this.dateAdded,
       color: this.color,
-      subTags: this.subTags.slice(),
+      subTags: this.subTags.map((subTag) => subTag.id),
     };
   }
 
-  getTagsRecursively(): ID[] {
-    const ids = [this.id];
+  toList(): ClientTag[] {
+    const ids: ClientTag[] = [this];
     const pushIds = (tags: ClientTag[]) => {
       for (const t of tags) {
-        ids.push(t.id);
-        pushIds(t.clientSubTags);
+        ids.push(t);
+        pushIds(t.subTags);
       }
     };
-    pushIds(this.clientSubTags);
+    pushIds(this.subTags);
     return ids;
   }
 
@@ -150,7 +136,16 @@ export class ClientTag implements ISerializable<ITag> {
     return this.store.delete(this);
   }
 
+  freeze(): void {
+    this.autoSave = false;
+  }
+
+  unFreeze(): void {
+    this.autoSave = true;
+  }
+
   dispose(): void {
+    this.freeze();
     // clean up the observer
     this.saveHandler();
   }

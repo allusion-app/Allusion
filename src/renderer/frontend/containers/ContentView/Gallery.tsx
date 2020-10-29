@@ -812,7 +812,7 @@ const onDrop = action(
     const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
     ctx.tags.forEach((tag) => {
       file.addTag(tag);
-      tag.clientSubTags.forEach(file.addTag);
+      tag.subTags.forEach(file.addTag);
     });
     e.dataTransfer.dropEffect = 'none';
     (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';

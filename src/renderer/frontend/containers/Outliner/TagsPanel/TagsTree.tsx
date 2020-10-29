@@ -341,7 +341,7 @@ const rangeSelection = action(
         selection.push(node.id);
       }
 
-      for (const subTag of node.clientSubTags) {
+      for (const subTag of node.subTags) {
         selectRange(subTag);
       }
     };
@@ -353,7 +353,7 @@ const rangeSelection = action(
 const mapTag = (tag: ClientTag): ITreeItem => ({
   id: tag.id,
   label: TagItemLabel,
-  children: tag.clientSubTags.map(mapTag),
+  children: tag.subTags.map(mapTag),
   nodeData: tag,
   isExpanded,
   isSelected,
@@ -432,7 +432,7 @@ const TagsTree = observer(() => {
         const data = event.dataTransfer.getData(DnDType);
         const tag = tagStore.get(data);
         if (tag) {
-          root.insertSubTag(tag, tagStore.tagList.length);
+          runInAction(() => root.insertSubTag(tag, tagStore.tagList.length));
         }
         dataSet[DnDAttribute.Target] = 'false';
       }
@@ -507,7 +507,7 @@ const TagsTree = observer(() => {
             multiSelect
             id="tag-hierarchy"
             className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
-            children={root.clientSubTags.map(mapTag)}
+            children={root.subTags.map(mapTag)}
             treeData={treeData}
             toggleExpansion={toggleExpansion}
             onBranchKeyDown={handleBranchOnKeyDown}

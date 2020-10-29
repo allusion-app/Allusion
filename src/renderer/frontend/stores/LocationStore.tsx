@@ -11,7 +11,6 @@ import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
 import { AppToaster } from '../App';
 import { promiseAllLimit } from '../utils';
-import { ClientTag } from 'src/renderer/entities/Tag';
 import { IconSet } from 'components/Icons';
 import { FileOrder } from 'src/renderer/backend/DBRepository';
 
@@ -98,10 +97,6 @@ class LocationStore {
 
   @action.bound get(locationId: ID): ClientLocation | undefined {
     return this.locationList.find((loc) => loc.id === locationId);
-  }
-
-  @action.bound getTags(tags: Set<ID>): ClientTag[] {
-    return Array.from(this.rootStore.tagStore.getIterFrom(tags));
   }
 
   @action.bound async setDefaultLocation(dir: string): Promise<void> {
