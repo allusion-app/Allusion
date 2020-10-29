@@ -79,4 +79,4 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
   );
 };
 
-export default ImageInfo;
+export default React.memo(ImageInfo);
