@@ -97,6 +97,11 @@ export default class Backend {
     return this.fileRepository.update(file);
   }
 
+  async saveFiles(files: IFile[]): Promise<IFile[]> {
+    console.info('Backend: Saving files...', files);
+    return this.fileRepository.updateMany(files);
+  }
+
   async saveLocation(location: ILocation): Promise<ILocation> {
     console.info('Backend: Saving location...', location);
     return this.locationRepository.update(location);

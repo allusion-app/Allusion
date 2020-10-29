@@ -234,7 +234,7 @@ const LocationRecoveryDialog = () => {
       uiStore.closeLocationRecovery();
       location.setBroken(false);
       if (!location.isInitialized) {
-        locationStore.initializeLocation(location);
+        locationStore.initLocation(location);
       } else {
         fileStore.refetch();
       }

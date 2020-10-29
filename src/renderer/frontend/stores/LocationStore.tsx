@@ -5,7 +5,7 @@ import React from 'react';
 import Backend from '../../backend/Backend';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { ClientLocation, DEFAULT_LOCATION_ID, ILocation } from '../../entities/Location';
+import { ClientLocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
 import { IFile, getMetaData } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
@@ -99,34 +99,35 @@ class LocationStore {
     return this.locationList.find((loc) => loc.id === locationId);
   }
 
-  @action.bound async setDefaultLocation(dir: string): Promise<void> {
-    const loc = this.get(DEFAULT_LOCATION_ID);
-    if (loc === undefined) {
-      console.warn('Default location not found. This should only happen on first launch!');
-      const location = new ClientLocation(this, DEFAULT_LOCATION_ID, dir);
-      await this.backend.createLocation(location.serialize());
-      runInAction(() => this.locationList.push(location));
-      return;
-    }
-    loc.setPath(dir);
-    await this.backend.saveLocation(loc.serialize());
+  @action async setDefaultLocation(dir: string): Promise<void> {
+    const location = action(() => {
+      const defaultLocation = this.get(DEFAULT_LOCATION_ID);
+      if (defaultLocation === undefined) {
+        console.warn('Default location not found. This should only happen on first launch!');
+        const location = new ClientLocation(this, DEFAULT_LOCATION_ID, dir);
+        this.locationList.push(location);
+        return location;
+      }
+      defaultLocation.setPath(dir);
+      return defaultLocation;
+    })();
+    await this.initLocation(location);
+    await this.backend.saveLocation(location.serialize());
     // Todo: What about the files inside that loc? Keep them in DB? Move them over?
     RendererMessenger.setDownloadPath({ dir });
   }
 
-  @action.bound async changeLocationPath(location: ClientLocation, newPath: string) {
+  @action async changeLocationPath(location: ClientLocation, newPath: string): Promise<void> {
     // First, update the absolute path of all files from this location
     const locFiles = await this.findLocationFiles(location.id);
-    await Promise.all(
-      locFiles.map((f) =>
-        this.backend.saveFile({
-          ...f,
-          absolutePath: SysPath.join(newPath, f.relativePath),
-        }),
-      ),
-    );
+    const files: IFile[] = locFiles.map((f) => ({
+      ...f,
+      absolutePath: SysPath.join(newPath, f.relativePath),
+    }));
+    await this.backend.saveFiles(files);
     location.setPath(newPath);
-    location.setBroken(false);
+    await this.initLocation(location);
+    await this.backend.saveLocation(location.serialize());
     // Refetch files in case some were from this location and could not be found before
     this.rootStore.fileStore.refetch();
 
@@ -146,7 +147,7 @@ class LocationStore {
   }
 
   /** Imports all files from a location into the FileStore */
-  @action.bound async initializeLocation(location: ClientLocation) {
+  @action.bound async initLocation(location: ClientLocation) {
     const toastKey = `initialize-${location.id}`;
 
     let isCancelled = false;
@@ -256,10 +257,6 @@ class LocationStore {
     );
   }
 
-  save(location: ILocation) {
-    this.backend.saveLocation(location);
-  }
-
   /**
    * Fetches the files belonging to a location
    */
@@ -313,41 +310,32 @@ class LocationStore {
 
     console.debug('missing', missingFiles, 'created', createdFiles, 'matches', matches);
 
-    const foundMatches = matches.filter((m) => m !== undefined);
+    // Update renamed files in backend
+    const foundMatches = matches.filter((m) => m !== undefined) as IFile[];
     if (foundMatches.length > 0) {
       console.debug(
         `Found ${foundMatches.length} renamed/moved files in location ${name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
         foundMatches,
       );
-      // These files have been renamed -> update backend file to retain tags
       // TODO: remove thumbnail as well (clean-up needed, since the path changed)
-      await Promise.all(
-        matches.map((match, missingFilesIndex) =>
-          !match
-            ? undefined
-            : this.backend.saveFile({
-                ...missingFiles[missingFilesIndex],
-                absolutePath: match.absolutePath,
-                relativePath: match.relativePath,
-              }),
-        ),
-      );
+      const files: IFile[] = [];
+      for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        if (match !== undefined) {
+          files.push({
+            ...missingFiles[i],
+            absolutePath: match.absolutePath,
+            relativePath: match.relativePath,
+          });
+        }
+      }
+      await this.backend.saveFiles(files);
     }
 
     // For createdFiles without a match, insert them in the DB as new files
-    const newFiles = createdFiles.filter((cf) => !matches.includes(cf));
+    const newFiles = createdFiles.filter((cf) => !foundMatches.includes(cf));
     await this.backend.createFilesFromPath(path, newFiles);
 
-    // For dbFiles without a match, mark them as missing (decided not to permanently delete them)
-    const deletedFiles = matches.map((match, i) => (!match ? missingFiles[i] : undefined));
-    if (deletedFiles.length > 0) {
-      console.debug(
-        `Found ${deletedFiles.length} removed files in location ${name}. This will be shown as 'broken' images and will have to be removed manually in the Recovery panel`,
-        deletedFiles,
-      );
-      // They'll be marked as broken after being fetched. The user will have to manually remove them then, no need to update with isBroken
-      // await Promise.all(deletedFiles.map(f => this.backend.saveFile({ ...f, isBroken: true });
-    }
     return newFiles.length > 0;
   }
 }

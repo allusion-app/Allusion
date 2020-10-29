@@ -24,32 +24,6 @@ export interface IDirectoryTreeItem {
   children: IDirectoryTreeItem[];
 }
 
-/**
- * Recursive function that returns the dir list for a given path
- */
-async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
-  try {
-    let dirs: string[] = [];
-    for (const file of await fse.readdir(path)) {
-      const fullPath = SysPath.join(path, file);
-      if ((await fse.stat(fullPath)).isDirectory()) {
-        dirs = [...dirs, fullPath];
-      }
-    }
-    return Promise.all(
-      dirs.map(
-        async (dir): Promise<IDirectoryTreeItem> => ({
-          name: SysPath.basename(dir),
-          fullPath: dir,
-          children: await getDirectoryTree(dir),
-        }),
-      ),
-    );
-  } catch (e) {
-    return [];
-  }
-}
-
 export class ClientLocation implements ISerializable<ILocation> {
   private store: LocationStore;
 
@@ -83,15 +57,17 @@ export class ClientLocation implements ISerializable<ILocation> {
     const path = this.path;
     const pathExists = await fse.pathExists(path);
     if (pathExists) {
-      return this.watchDirectory(path, cancel);
+      this.setBroken(false);
+      return this.watch(path, cancel);
     } else {
+      await this.watcher?.close();
       this.setBroken(true);
       return undefined;
     }
   }
 
-  @action setPath(newPath: string): void {
-    this.path = newPath;
+  @action setPath(path: string): void {
+    this.path = path;
   }
 
   @action setBroken(state: boolean): void {
@@ -106,7 +82,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     return this.store.delete(this);
   }
 
-  serialize(): ILocation {
+  @action serialize(): ILocation {
     return {
       id: this.id,
       path: this.path,
@@ -114,7 +90,11 @@ export class ClientLocation implements ISerializable<ILocation> {
     };
   }
 
-  @action private watchDirectory(directory: string, cancel?: () => boolean): Promise<string[]> {
+  @action private async watch(directory: string, cancel?: () => boolean): Promise<string[]> {
+    if (this.watcher !== undefined) {
+      await this.watcher.close();
+      this.watcher = undefined;
+    }
     // Watch for folder changes
     this.watcher = chokidar.watch(directory, {
       depth: RECURSIVE_DIR_WATCH_DEPTH,
@@ -180,5 +160,31 @@ export class ClientLocation implements ISerializable<ILocation> {
           );
         });
     });
+  }
+}
+
+/**
+ * Recursive function that returns the dir list for a given path
+ */
+async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
+  try {
+    let dirs: string[] = [];
+    for (const file of await fse.readdir(path)) {
+      const fullPath = SysPath.join(path, file);
+      if ((await fse.stat(fullPath)).isDirectory()) {
+        dirs = [...dirs, fullPath];
+      }
+    }
+    return Promise.all(
+      dirs.map(
+        async (dir): Promise<IDirectoryTreeItem> => ({
+          name: SysPath.basename(dir),
+          fullPath: dir,
+          children: await getDirectoryTree(dir),
+        }),
+      ),
+    );
+  } catch (e) {
+    return [];
   }
 }

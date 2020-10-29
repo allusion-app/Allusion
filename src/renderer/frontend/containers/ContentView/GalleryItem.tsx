@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { shell } from 'electron';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../../entities/File';
@@ -27,7 +28,7 @@ const Thumbnail = observer(({ file, suspended }: ICellProps) => {
   const {
     uiStore: { thumbnailDirectory },
   } = useContext(StoreContext);
-  const { isBroken, thumbnailPath } = file;
+  const { thumbnailPath } = file;
 
   // Initially, we assume the thumbnail exists
   const [state, setState] = useState(ThumbnailState.Ok);
@@ -38,17 +39,19 @@ const Thumbnail = observer(({ file, suspended }: ICellProps) => {
       return;
     }
     ensureThumbnail(file, thumbnailDirectory)
-      .then((exists) => {
-        if (exists) {
-          setState(ThumbnailState.Ok);
-        } else if (isBroken !== true) {
-          setState(ThumbnailState.Loading);
-        } else {
-          setState(ThumbnailState.Error);
-        }
-      })
+      .then(
+        action((exists: boolean) => {
+          if (exists) {
+            setState(ThumbnailState.Ok);
+          } else if (file.isBroken !== true) {
+            setState(ThumbnailState.Loading);
+          } else {
+            setState(ThumbnailState.Error);
+          }
+        }),
+      )
       .catch(() => setState(ThumbnailState.Error));
-  }, [file, isBroken, suspended, thumbnailDirectory]);
+  }, [file, suspended, thumbnailDirectory]);
 
   // The thumbnailPath of an image is always set, but may not exist yet.
   // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,

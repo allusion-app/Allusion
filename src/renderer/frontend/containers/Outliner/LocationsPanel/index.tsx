@@ -393,7 +393,7 @@ const LocationsPanel = () => {
 
     locationStore
       .create(path)
-      .then(action((location: ClientLocation) => locationStore.initializeLocation(location)));
+      .then(action((location: ClientLocation) => locationStore.initLocation(location)));
   }, [locationStore]);
 
   return (
