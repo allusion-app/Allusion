@@ -176,7 +176,7 @@ export const ListCell = observer(({ file, suspended }: ICellProps) => {
   }, [suspended]);
 
   return (
-    <div role="gridcell" aria-selected={uiStore.fileSelection.has(file)}>
+    <div role="gridcell" tabIndex={-1} aria-selected={uiStore.fileSelection.has(file)}>
       <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
         <Thumbnail suspended={!mounted} file={file} />
       </div>
@@ -218,7 +218,12 @@ export const GridCell = observer(
     }, [suspended]);
 
     return (
-      <div role="gridcell" aria-colindex={colIndex} aria-selected={uiStore.fileSelection.has(file)}>
+      <div
+        role="gridcell"
+        tabIndex={-1}
+        aria-colindex={colIndex}
+        aria-selected={uiStore.fileSelection.has(file)}
+      >
         <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
           <Thumbnail suspended={!mounted} file={file} />
         </div>
