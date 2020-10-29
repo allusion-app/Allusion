@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
-import { ClientTag } from 'src/renderer/entities/Tag';
+import { ClientTag, ROOT_TAG_ID } from 'src/renderer/entities/Tag';
 import { Listbox, Option } from 'components';
 import { Flyout } from 'components/popover';
 import { action, runInAction } from 'mobx';
@@ -56,8 +56,10 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
         }
       >
         <Listbox>
-          {tagStore.root.subTags
-            .filter((t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0)
+          {tagStore.tagList
+            .filter(
+              (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
+            )
             .map((t) => (
               <Option
                 key={t.id}

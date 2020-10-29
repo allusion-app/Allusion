@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { ClientTag } from '../../entities/Tag';
+import { ClientTag, ROOT_TAG_ID } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import { IconButton, IconSet, Listbox, Option, Tag } from 'components';
 import { Flyout } from 'components/Dialog';
@@ -31,8 +31,8 @@ const MultiTagSelector = observer(
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const normalizedQuery = query.toLowerCase();
-    const suggestions = tagStore.root.subTags.filter(
-      (t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
+    const suggestions = tagStore.tagList.filter(
+      (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
     );
 
     return (
