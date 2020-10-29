@@ -11,7 +11,10 @@ import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
-export type ViewMethod = 'list' | 'grid';
+export const enum ViewMethod {
+  List,
+  Grid,
+}
 type ThumbnailSize = 'small' | 'medium' | 'large';
 type ThumbnailShape = 'square' | 'letterbox';
 const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -106,7 +109,7 @@ class UiStore {
   @observable isPreviewOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
   @observable searchMatchAny = false;
-  @observable method: ViewMethod = 'grid';
+  @observable method: ViewMethod = ViewMethod.Grid;
   @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
   @observable firstItem: number = 0;
@@ -142,11 +145,11 @@ class UiStore {
 
   /////////////////// UI Actions ///////////////////
   @computed get isList(): boolean {
-    return this.method === 'list';
+    return this.method === ViewMethod.List;
   }
 
   @computed get isGrid(): boolean {
-    return this.method === 'grid';
+    return this.method === ViewMethod.Grid;
   }
 
   @action.bound setThumbnailSmall() {
@@ -176,11 +179,11 @@ class UiStore {
   }
 
   @action.bound setMethodList() {
-    this.method = 'list';
+    this.method = ViewMethod.List;
   }
 
   @action.bound setMethodGrid() {
-    this.method = 'grid';
+    this.method = ViewMethod.Grid;
   }
 
   @action.bound enableSlideMode() {
@@ -581,7 +584,7 @@ class UiStore {
     this.isInspectorOpen = value;
   }
 
-  @action private setMethod(method: ViewMethod = 'grid') {
+  @action private setMethod(method: ViewMethod = ViewMethod.Grid) {
     this.method = method;
   }
 

@@ -3,28 +3,117 @@ import { FixedSizeList } from 'react-window';
 import { Observer, observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
-import {
-  ExternalAppMenuItems,
-  FileViewerMenuItems,
-  GridCell,
-  ListCell,
-  MissingFileMenuItems,
-  MissingImageFallback,
-} from './GalleryItem';
+import { GridCell, ListCell, MissingImageFallback } from './GalleryItem';
 import { ClientFile } from '../../../entities/File';
 import { IconSet } from 'components';
-import { ContextMenu, SubMenu, Menu, MenuDivider } from 'components/menu';
+import { MenuItem } from 'components/menu';
 import { throttle } from '../../utils';
-import { Rectangle } from 'electron';
+import { shell } from 'electron';
 import ZoomableImage from './ZoomableImage';
 import useSelectionCursor from '../../hooks/useSelectionCursor';
-import { LayoutMenuItems, SortMenuItems } from '../Toolbar/ContentToolbar';
-import useContextMenu from '../../hooks/useContextMenu';
-import Placeholder from './Placeholder';
 import { RendererMessenger } from 'src/Messaging';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
-import UiStore from '../../stores/UiStore';
+import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { action, runInAction } from 'mobx';
+
+type Dimension = { width: number; height: number };
+
+interface ILayoutProps {
+  contentRect: Dimension;
+  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
+  lastSelectionIndex: React.MutableRefObject<number | undefined>;
+  /** menu: [fileMenu, externalMenu] */
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
+}
+
+const Layout = ({
+  contentRect,
+  showContextMenu,
+}: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
+  const { uiStore, fileStore } = useContext(StoreContext);
+  const fileList = fileStore.fileList;
+  // Todo: Select by dragging a rectangle shape
+  // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+  // Also take into account scrolling when dragging while selecting
+  const { makeSelection, lastSelectionIndex } = useSelectionCursor();
+
+  // useComputed to listen to fileSelection changes
+  const handleFileSelect = useCallback(
+    (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => {
+      const i = fileStore.getIndex(selectedFile.id);
+      if (i === undefined) {
+        return;
+      }
+
+      const isSelected = uiStore.fileSelection.has(selectedFile);
+
+      const newSelection = makeSelection(i, selectRange);
+      if (!selectAdditive) {
+        uiStore.clearFileSelection();
+      }
+      if (selectRange) {
+        uiStore.selectFiles(newSelection.map((i) => fileList[i]));
+      } else if (selectAdditive) {
+        // Add or subtract to the selection
+        isSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
+      } else {
+        // Only select this file.
+        uiStore.selectFile(selectedFile);
+      }
+    },
+    [fileStore, uiStore, makeSelection, fileList],
+  );
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      let index = lastSelectionIndex.current;
+      if (index === undefined) {
+        return;
+      }
+      if (e.key === 'ArrowLeft' && index > 0) {
+        index -= 1;
+      } else if (e.key === 'ArrowRight' && index < fileList.length - 1) {
+        index += 1;
+      } else {
+        return;
+      }
+      handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+    };
+
+    const throttledKeyDown = throttle(onKeyDown, 50);
+
+    window.addEventListener('keydown', throttledKeyDown);
+    return () => window.removeEventListener('keydown', throttledKeyDown);
+  }, [fileList, uiStore, handleFileSelect, lastSelectionIndex]);
+
+  if (uiStore.isSlideMode) {
+    return <SlideGallery contentRect={contentRect} />;
+  }
+  switch (uiStore.method) {
+    case ViewMethod.Grid:
+      return (
+        <GridGallery
+          contentRect={contentRect}
+          select={handleFileSelect}
+          lastSelectionIndex={lastSelectionIndex}
+          showContextMenu={showContextMenu}
+        />
+      );
+    // case 'masonry':
+    //   return <MasonryGallery {...props} />;
+    case ViewMethod.List:
+      return (
+        <ListGallery
+          contentRect={contentRect}
+          select={handleFileSelect}
+          lastSelectionIndex={lastSelectionIndex}
+          showContextMenu={showContextMenu}
+        />
+      );
+    default:
+      return null;
+  }
+};
 
 const GridGallery = observer(
   ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
@@ -465,7 +554,7 @@ export const MasonryGallery = observer(({}: ILayoutProps) => {
   );
 });
 
-const SlideGallery = observer(({ contentRect }: { contentRect: Rectangle }) => {
+const SlideGallery = observer(({ contentRect }: { contentRect: Dimension }) => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const { fileList } = fileStore;
   // Go to the first selected image on load
@@ -575,172 +664,72 @@ const SlideGallery = observer(({ contentRect }: { contentRect: Rectangle }) => {
   );
 });
 
-const handleFlyoutBlur = (e: React.FocusEvent) => {
-  if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) {
-    const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
-    if (dialog.open) {
-      dialog.close();
-    }
-  }
-};
-
-interface ILayoutProps {
-  contentRect: Rectangle;
-  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
-  lastSelectionIndex: React.MutableRefObject<number | undefined>;
-  /** menu: [fileMenu, externalMenu] */
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
-}
-
-const Layout = observer(
-  ({ contentRect, showContextMenu }: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
-    const { uiStore, fileStore } = useContext(StoreContext);
-    const fileList = fileStore.fileList;
-    // Todo: Select by dragging a rectangle shape
-    // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
-    // Also take into account scrolling when dragging while selecting
-    const { makeSelection, lastSelectionIndex } = useSelectionCursor();
-
-    // useComputed to listen to fileSelection changes
-    const handleFileSelect = useCallback(
-      (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => {
-        const i = fileStore.getIndex(selectedFile.id);
-        if (i === undefined) {
-          return;
-        }
-
-        const isSelected = uiStore.fileSelection.has(selectedFile);
-
-        const newSelection = makeSelection(i, selectRange);
-        if (!selectAdditive) {
-          uiStore.clearFileSelection();
-        }
-        if (selectRange) {
-          uiStore.selectFiles(newSelection.map((i) => fileList[i]));
-        } else if (selectAdditive) {
-          // Add or subtract to the selection
-          isSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
-        } else {
-          // Only select this file.
-          uiStore.selectFile(selectedFile);
-        }
-      },
-      [fileStore, uiStore, makeSelection, fileList],
-    );
-
-    useEffect(() => {
-      const onKeyDown = (e: KeyboardEvent) => {
-        let index = lastSelectionIndex.current;
-        if (index === undefined) {
-          return;
-        }
-        if (e.key === 'ArrowLeft' && index > 0) {
-          index -= 1;
-        } else if (e.key === 'ArrowRight' && index < fileList.length - 1) {
-          index += 1;
-        } else {
-          return;
-        }
-        handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
-      };
-
-      const throttledKeyDown = throttle(onKeyDown, 50);
-
-      window.addEventListener('keydown', throttledKeyDown);
-      return () => window.removeEventListener('keydown', throttledKeyDown);
-    }, [fileList, uiStore, handleFileSelect, lastSelectionIndex]);
-
-    if (uiStore.isSlideMode) {
-      return <SlideGallery contentRect={contentRect} />;
-    }
-    switch (uiStore.method) {
-      case 'grid':
-        return (
-          <GridGallery
-            contentRect={contentRect}
-            select={handleFileSelect}
-            lastSelectionIndex={lastSelectionIndex}
-            showContextMenu={showContextMenu}
-          />
-        );
-      // case 'masonry':
-      //   return <MasonryGallery {...props} />;
-      case 'list':
-        return (
-          <ListGallery
-            contentRect={contentRect}
-            select={handleFileSelect}
-            lastSelectionIndex={lastSelectionIndex}
-            showContextMenu={showContextMenu}
-          />
-        );
-      default:
-        return null;
-    }
-  },
-);
-
-const Gallery = () => {
-  const { fileStore, uiStore } = useContext(StoreContext);
-  const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
-  const { open, x, y, menu } = contextState;
-  const [fileMenu, externalMenu] = menu as [React.ReactNode, React.ReactNode];
-  const { fileList } = fileStore;
-  const [contentRect, setContentRect] = useState<Rectangle>({ width: 1, height: 1, x: 0, y: 0 });
-  const container = useRef<HTMLDivElement>(null);
-
-  const resizeObserver = useRef(
-    new ResizeObserver((entries) => {
-      const { contentRect: rect, target } = entries[0];
-      setContentRect({
-        width: rect.width,
-        height: rect.height,
-        x: (target as HTMLDivElement).offsetLeft,
-        y: (target as HTMLDivElement).offsetTop,
-      });
-    }),
+const MissingFileMenuItems = observer(() => {
+  const { uiStore, fileStore } = useContext(StoreContext);
+  return (
+    <>
+      <MenuItem
+        onClick={fileStore.fetchMissingFiles}
+        text="Open Recovery Panel"
+        icon={IconSet.WARNING_BROKEN_LINK}
+        disabled={fileStore.showsMissingContent}
+      />
+      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+    </>
   );
+});
 
-  useEffect(() => {
-    const observer = resizeObserver.current;
-    if (container.current) {
-      resizeObserver.current.observe(container.current);
+const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+  const { uiStore } = useContext(StoreContext);
+  const handleViewFullSize = () => {
+    uiStore.selectFile(file, true);
+    uiStore.toggleSlideMode();
+  };
+
+  const handlePreviewWindow = () => {
+    if (!uiStore.fileSelection.has(file)) {
+      uiStore.selectFile(file, true);
     }
-    return () => observer.disconnect();
-  }, [fileList.length]);
+    uiStore.openPreviewWindow();
+  };
 
-  if (fileList.length === 0) {
-    return <Placeholder />;
-  }
+  const handleInspect = () => {
+    uiStore.clearFileSelection();
+    uiStore.selectFile(file);
+    if (!uiStore.isInspectorOpen) {
+      uiStore.toggleInspector();
+    }
+  };
 
   return (
-    <div
-      ref={container}
-      id="gallery-content"
-      className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
-      onClick={uiStore.clearFileSelection}
-      onBlur={handleFlyoutBlur}
-    >
-      <Layout contentRect={contentRect} showContextMenu={show} />
-      <ContextMenu open={open} x={x} y={y} onClose={hide}>
-        <Menu>
-          {fileMenu}
-          <MenuDivider />
-          <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
-            <LayoutMenuItems />
-          </SubMenu>
-          <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-            <SortMenuItems />
-          </SubMenu>
-          <MenuDivider />
-          {externalMenu}
-        </Menu>
-      </ContextMenu>
-    </div>
+    <>
+      <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.SEARCH} />
+      <MenuItem
+        onClick={handlePreviewWindow}
+        text="Open In Preview Window"
+        icon={IconSet.PREVIEW}
+      />
+      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
+    </>
   );
 };
 
-export default observer(Gallery);
+const ExternalAppMenuItems = ({ path }: { path: string }) => (
+  <>
+    <MenuItem
+      onClick={() => shell.openExternal(path)}
+      text="Open External"
+      icon={IconSet.OPEN_EXTERNAL}
+    />
+    <MenuItem
+      onClick={() => shell.showItemInFolder(path)}
+      text="Reveal in File Browser"
+      icon={IconSet.FOLDER_CLOSE}
+    />
+  </>
+);
+
+export default observer(Layout);
 
 function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
