@@ -224,7 +224,7 @@ const TagItem = observer((props: ITagItemProps) => {
       />
       {!isEditing && (
         <button onClick={handleSelect} className="btn-icon">
-          {uiStore.tagSelection.has(nodeData.id) ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
+          {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
         </button>
       )}
     </div>
@@ -322,7 +322,7 @@ const customKeys = (
 
 // Range Selection using pre-order tree traversal
 const rangeSelection = action(
-  (selection: ID[], nodeData: ClientTag, lastSelection: ID, root: ClientTag) => {
+  (selection: ClientTag[], nodeData: ClientTag, lastSelection: ID, root: ClientTag) => {
     let isSelecting = false;
     const selectRange = (node: ClientTag) => {
       if (node.id === lastSelection || node.id === nodeData.id) {
@@ -331,14 +331,14 @@ const rangeSelection = action(
           isSelecting = true;
         } else {
           // End selection
-          selection.push(node.id);
+          selection.push(node);
           isSelecting = false;
           return;
         }
       }
 
       if (isSelecting) {
-        selection.push(node.id);
+        selection.push(node);
       }
 
       for (const subTag of node.subTags) {
@@ -383,7 +383,7 @@ const TagsTree = observer(() => {
       const lastSelection = activeSelection.current;
       if (event.shiftKey && lastSelection !== null && lastSelection !== nodeData.id) {
         // Batch selection
-        const selection: ID[] = [];
+        const selection: ClientTag[] = [];
         rangeSelection(selection, nodeData, lastSelection, root);
         uiStore.selectTags(selection, true);
         activeSelection.current = nodeData.id;

@@ -119,7 +119,7 @@ class UiStore {
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
   // However, sets are more suitable because they have quicker lookup performance.
   readonly fileSelection = observable(new Set<ClientFile>());
-  readonly tagSelection = observable<ID>(new Set<ID>());
+  readonly tagSelection = observable(new Set<ClientTag>());
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
@@ -280,10 +280,6 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
-  @computed get clientTagSelection(): ClientTag[] {
-    return Array.from(this.rootStore.tagStore.getIterFrom(this.tagSelection));
-  }
-
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
     if (clear) {
       this.clearFileSelection();
@@ -317,10 +313,10 @@ class UiStore {
     if (clear) {
       this.clearTagSelection();
     }
-    this.tagSelection.add(tag.id);
+    this.tagSelection.add(tag);
   }
 
-  @action.bound selectTags(tags: ID[], clear?: boolean) {
+  @action.bound selectTags(tags: ClientTag[], clear?: boolean) {
     if (clear) {
       this.tagSelection.replace(tags);
       return;
@@ -341,7 +337,8 @@ class UiStore {
   }
 
   @action.bound selectAllTags() {
-    this.tagSelection.replace(this.rootStore.tagStore.root.subTags.map((subTag) => subTag.id));
+    this.tagSelection.replace(this.rootStore.tagStore.tagList);
+    this.tagSelection.delete(this.rootStore.tagStore.root);
   }
 
   @action.bound clearTagSelection() {
@@ -488,7 +485,7 @@ class UiStore {
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceSearchCriterias(
-      Array.from(this.tagSelection, (id) => new ClientIDSearchCriteria('tags', id)),
+      Array.from(this.tagSelection, (tag) => new ClientIDSearchCriteria('tags', tag.id)),
     );
     this.clearTagSelection();
   }

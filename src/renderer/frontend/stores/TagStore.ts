@@ -53,7 +53,7 @@ class TagStore {
     return root;
   }
 
-  @action isSelected(tag: ID): boolean {
+  @action isSelected(tag: ClientTag): boolean {
     return this.rootStore.uiStore.tagSelection.has(tag);
   }
 

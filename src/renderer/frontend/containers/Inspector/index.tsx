@@ -16,9 +16,9 @@ const Carousel = observer(() => {
 
   // Add some padding items so that you can scroll the last item to the front
   const paddedItems = useMemo(() => {
-    const padding = Array.from(Array(maxItems - 1));
+    const padding = new Array(maxItems - 1);
     setScrollIndex(items.size - 1);
-    return padding.concat(items);
+    return padding.concat(Array.from(items));
   }, [items]);
 
   const handleWheel = useCallback(

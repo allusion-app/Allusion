@@ -64,7 +64,7 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   get isSelected(): boolean {
-    return this.store.isSelected(this.id);
+    return this.store.isSelected(this);
   }
 
   @computed get viewColor(): string {
