@@ -486,7 +486,8 @@ interface IListItem {
   uiStore: UiStore;
 }
 
-const ListItem = observer(({ index, data, style, isScrolling, observer, uiStore }: IListItem) => {
+const ListItem = observer((props: IListItem) => {
+  const { index, data, style, isScrolling, observer, uiStore } = props;
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
@@ -520,45 +521,44 @@ interface IGridRow extends IListItem {
   fileStore: FileStore;
 }
 
-const GridRow = observer(
-  ({ index, data, style, isScrolling, observer, columns, uiStore, fileStore }: IGridRow) => {
-    const row = useRef<HTMLDivElement>(null);
-    const [isMounted, setIsMounted] = useState(false);
+const GridRow = observer((props: IGridRow) => {
+  const { index, data, style, isScrolling, observer, columns, uiStore, fileStore } = props;
+  const row = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-    useEffect(() => {
-      const element = row.current;
-      if (element !== null && !isMounted && !isScrolling) {
-        observer.observe(element);
-        setIsMounted(true);
+  useEffect(() => {
+    const element = row.current;
+    if (element !== null && !isMounted && !isScrolling) {
+      observer.observe(element);
+      setIsMounted(true);
+    }
+  }, [isMounted, isScrolling, observer]);
+
+  useEffect(() => {
+    const unobserveTarget = () => {
+      if (row.current) {
+        observer.unobserve(row.current);
       }
-    }, [isMounted, isScrolling, observer]);
+    };
+    return unobserveTarget;
+  }, [observer]);
 
-    useEffect(() => {
-      const unobserveTarget = () => {
-        if (row.current) {
-          observer.unobserve(row.current);
-        }
-      };
-      return unobserveTarget;
-    }, [observer]);
-
-    const offset = index * columns;
-    return (
-      <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
-        {data.slice(offset, offset + columns).map((file: ClientFile, i: number) => (
-          <GridCell
-            mounted={isMounted}
-            colIndex={i + 1}
-            key={file.id}
-            file={file}
-            uiStore={uiStore}
-            fileStore={fileStore}
-          />
-        ))}
-      </div>
-    );
-  },
-);
+  const offset = index * columns;
+  return (
+    <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
+      {data.slice(offset, offset + columns).map((file: ClientFile, i: number) => (
+        <GridCell
+          mounted={isMounted}
+          colIndex={i + 1}
+          key={file.id}
+          file={file}
+          uiStore={uiStore}
+          fileStore={fileStore}
+        />
+      ))}
+    </div>
+  );
+});
 
 // const MasonryGallery = observer(({}: ILayoutProps) => {
 //   const Styles: any = {

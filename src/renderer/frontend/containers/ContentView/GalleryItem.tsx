@@ -103,9 +103,9 @@ const Thumbnail = observer(({ file, mounted, uiStore }: ICell) => {
       .then((exists) => {
         if (isMounted && exists) {
           setState(ThumbnailState.Ok);
-        } else if (isBroken !== true && mounted) {
+        } else if (isBroken !== true && isMounted) {
           setState(ThumbnailState.Loading);
-        } else if (mounted) {
+        } else if (isMounted) {
           setState(ThumbnailState.Error);
         }
       })

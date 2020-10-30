@@ -64,6 +64,141 @@ type FormState = { readonly fields: Map<string, Query> };
 type FormDispatch = React.Dispatch<React.SetStateAction<FormState>>;
 type FieldInput<V> = IKeySelector & { value: V };
 
+const AdvancedSearchDialog = () => {
+  const {
+    uiStore: {
+      searchCriteriaList,
+      replaceSearchCriterias,
+      isAdvancedSearchOpen,
+      closeAdvancedSearch,
+      searchMatchAny,
+      toggleSearchMatchAny,
+    },
+  } = useContext(StoreContext);
+  // Note that this only works because no component is wrapped in React.memo or
+  // similar. Otherwise, the data would get stale because `fields` reference
+  // doesn't change while the user interacts with the form. In short, every
+  // change re-renders every component.
+  const [form, setForm] = useState<FormState>({ fields: new Map<ID, Query>() });
+
+  // Initialize form with current queries. When the form is closed, all inputs
+  // are unmounted to save memory.
+  useEffect(() => {
+    if (isAdvancedSearchOpen) {
+      setForm((form) => {
+        if (searchCriteriaList.length > 0) {
+          for (const [id, query] of searchCriteriaList.map(fromCriteria)) {
+            form.fields.set(id, query);
+          }
+        } else {
+          form.fields.set('tags', defaultQuery('tags'));
+        }
+        return { ...form };
+      });
+    } else {
+      setForm({ fields: new Map() });
+    }
+  }, [isAdvancedSearchOpen, searchCriteriaList]);
+
+  const add = useCallback(() => {
+    setForm((form) => {
+      form.fields.set(generateId(), defaultQuery('tags'));
+      return { ...form };
+    });
+  }, []);
+
+  const search = useCallback(() => {
+    replaceSearchCriterias(Array.from(form.fields.values(), intoCriteria));
+    closeAdvancedSearch();
+  }, [closeAdvancedSearch, form.fields, replaceSearchCriterias]);
+
+  const reset = useCallback(() => {
+    setForm((form) => {
+      form.fields.clear();
+      form.fields.set(generateId(), defaultQuery('tags'));
+      return { ...form };
+    });
+  }, []);
+
+  return (
+    <Dialog
+      open={isAdvancedSearchOpen}
+      onCancel={closeAdvancedSearch}
+      labelledby="dialog-title"
+      describedby="search-form"
+    >
+      <span className="dialog-icon">{IconSet.SEARCH_EXTENDED}</span>
+      <h2 id="dialog-title" className="dialog-title">
+        Advanced Search
+      </h2>
+      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={closeAdvancedSearch} />
+      <form id="search-form" className="dialog-information">
+        {Array.from(form.fields.entries(), ([id, query]) => (
+          <Field
+            key={id}
+            id={id}
+            query={query}
+            dispatch={setForm}
+            removable={form.fields.size > 1}
+          />
+        ))}
+      </form>
+      <div className="dialog-footer">
+        <div id="functions-bar">
+          <Button text="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
+          <RadioGroup name="Match">
+            <Radio
+              label="Any"
+              value="any"
+              checked={searchMatchAny}
+              onChange={toggleSearchMatchAny}
+            />
+            <Radio
+              label="All"
+              value="all"
+              checked={!searchMatchAny}
+              onChange={toggleSearchMatchAny}
+            />
+          </RadioGroup>
+        </div>
+        <ButtonGroup className="dialog-actions">
+          <Button text="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
+          <Button text="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
+        </ButtonGroup>
+      </div>
+    </Dialog>
+  );
+};
+
+interface IFieldProps {
+  id: ID;
+  query: Query;
+  dispatch: FormDispatch;
+  removable: boolean;
+}
+
+// The main Criteria component, finds whatever input fields for the key should be rendered
+const Field = ({ id, query, dispatch, removable }: IFieldProps) => (
+  <fieldset>
+    <div className="criteria">
+      <KeySelector id={id} keyValue={query.key} dispatch={dispatch} />
+      <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
+      <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
+      <Button
+        text="-"
+        onClick={() =>
+          dispatch((form) => {
+            form.fields.delete(id);
+            return { ...form };
+          })
+        }
+        disabled={!removable}
+        styling="filled"
+      />
+    </div>
+  </fieldset>
+);
+
 interface IKeySelector {
   id: ID;
   dispatch: FormDispatch;
@@ -230,143 +365,7 @@ const ValueInput = ({ id, keyValue, value, dispatch }: FieldInput<QueryValue>) =
   return <p>This should never happen.</p>;
 };
 
-interface IFieldProps {
-  id: ID;
-  query: Query;
-  dispatch: FormDispatch;
-  removable: boolean;
-}
-
-// The main Criteria component, finds whatever input fields for the key should be rendered
-const Field = ({ id, query, dispatch, removable }: IFieldProps) => {
-  return (
-    <fieldset>
-      <div className="criteria">
-        <KeySelector id={id} keyValue={query.key} dispatch={dispatch} />
-        <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
-        <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
-        <Button
-          text="-"
-          onClick={() =>
-            dispatch((form) => {
-              form.fields.delete(id);
-              return { ...form };
-            })
-          }
-          disabled={!removable}
-          styling="filled"
-        />
-      </div>
-    </fieldset>
-  );
-};
-
-const AdvancedSearchDialog = observer(() => {
-  const {
-    uiStore: {
-      searchCriteriaList,
-      replaceSearchCriterias,
-      isAdvancedSearchOpen,
-      closeAdvancedSearch,
-      searchMatchAny,
-      toggleSearchMatchAny,
-    },
-  } = useContext(StoreContext);
-  const [form, setForm] = useState<FormState>({ fields: new Map<ID, Query>() });
-
-  // Initialize form with current queries. When the form is closed, all inputs
-  // are unmounted to save memory.
-  useEffect(() => {
-    if (isAdvancedSearchOpen) {
-      setForm((form) => {
-        if (searchCriteriaList.length > 0) {
-          for (const [id, query] of searchCriteriaList.map(fromCriteria)) {
-            form.fields.set(id, query);
-          }
-        } else {
-          form.fields.set('tags', defaultQuery('tags'));
-        }
-        return { ...form };
-      });
-    } else {
-      setForm((form) => {
-        form.fields.clear();
-        return { ...form };
-      });
-    }
-  }, [isAdvancedSearchOpen, searchCriteriaList]);
-
-  const add = useCallback(() => {
-    setForm((form) => {
-      form.fields.set(generateId(), defaultQuery('tags'));
-      return { ...form };
-    });
-  }, []);
-
-  const search = useCallback(() => {
-    replaceSearchCriterias(Array.from(form.fields.values(), intoCriteria));
-    closeAdvancedSearch();
-  }, [closeAdvancedSearch, form.fields, replaceSearchCriterias]);
-
-  const reset = useCallback(() => {
-    setForm((form) => {
-      form.fields.clear();
-      form.fields.set(generateId(), defaultQuery('tags'));
-      return { ...form };
-    });
-  }, []);
-
-  return (
-    <Dialog
-      open={isAdvancedSearchOpen}
-      onCancel={closeAdvancedSearch}
-      labelledby="dialog-title"
-      describedby="search-form"
-    >
-      <span className="dialog-icon">{IconSet.SEARCH_EXTENDED}</span>
-      <h2 id="dialog-title" className="dialog-title">
-        Advanced Search
-      </h2>
-      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={closeAdvancedSearch} />
-      <form id="search-form" className="dialog-information">
-        {Array.from(form.fields.entries(), ([id, query]) => (
-          <Field
-            key={id}
-            id={id}
-            query={query}
-            dispatch={setForm}
-            removable={form.fields.size > 1}
-          />
-        ))}
-      </form>
-      <div className="dialog-footer">
-        <div id="functions-bar">
-          <Button text="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
-          <RadioGroup name="Match">
-            <Radio
-              label="Any"
-              value="any"
-              checked={searchMatchAny}
-              onChange={toggleSearchMatchAny}
-            />
-            <Radio
-              label="All"
-              value="all"
-              checked={!searchMatchAny}
-              onChange={toggleSearchMatchAny}
-            />
-          </RadioGroup>
-        </div>
-        <ButtonGroup className="dialog-actions">
-          <Button text="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
-          <Button text="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
-        </ButtonGroup>
-      </div>
-    </Dialog>
-  );
-});
-
-export default AdvancedSearchDialog;
+export default observer(AdvancedSearchDialog);
 
 const BYTES_IN_MB = 1024 * 1024;
 
