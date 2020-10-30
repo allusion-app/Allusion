@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { KeyCombo } from '@blueprintjs/core';
 import { Tooltip } from '.';
@@ -13,19 +13,25 @@ import {
 } from 'components/menu';
 import { IFile } from '../../../entities/File';
 import { FileOrder } from '../../../backend/DBRepository';
-import StoreContext from '../../contexts/StoreContext';
 import { FileRemoval } from 'src/renderer/frontend/components/RemovalAlert';
 import Searchbar from './Searchbar';
+import { runInAction } from 'mobx';
+import UiStore from '../../stores/UiStore';
+import FileStore from '../../stores/FileStore';
 
-const FileSelection = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
-  const { fileSelection } = uiStore;
+type FileStoreProp = { fileStore: FileStore };
+type UiStoreProp = { uiStore: UiStore };
 
-  const allFilesSelected =
-    fileSelection.size > 0 && fileSelection.size === fileStore.fileList.length;
+const FileSelection = observer(({ uiStore, fileStore }: UiStoreProp & FileStoreProp) => {
+  const allFilesSelected = uiStore.fileSelection.size === fileStore.fileList.length;
   // If everything is selected, deselect all. Else, select all
-  const handleToggleSelect = () =>
-    allFilesSelected ? uiStore.clearFileSelection() : uiStore.selectAllFiles();
+  const handleToggleSelect = useCallback(() => {
+    runInAction(() => {
+      uiStore.fileSelection.size === fileStore.fileList.length
+        ? uiStore.clearFileSelection()
+        : uiStore.selectAllFiles();
+    });
+  }, [fileStore, uiStore]);
 
   return (
     <ToolbarToggleButton
@@ -33,14 +39,13 @@ const FileSelection = observer(() => {
       icon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
       onClick={handleToggleSelect}
       pressed={allFilesSelected}
-      text={fileSelection.size}
+      text={uiStore.fileSelection.size}
       tooltip={Tooltip.Select}
     />
   );
 });
 
-const RemoveFilesPopover = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+const RemoveFilesPopover = observer(({ uiStore }: UiStoreProp) => {
   return (
     <>
       <ToolbarButton
@@ -67,8 +72,7 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateCreated', icon: IconSet.FILTER_DATE, text: 'Date created' },
 ];
 
-export const SortMenuItems = observer(() => {
-  const { fileStore } = useContext(StoreContext);
+export const SortMenuItems = observer(({ fileStore }: FileStoreProp) => {
   const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = fileStore;
   const orderIcon = fileOrder === FileOrder.DESC ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
 
@@ -88,8 +92,7 @@ export const SortMenuItems = observer(() => {
   );
 });
 
-export const LayoutMenuItems = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+export const LayoutMenuItems = observer(({ uiStore }: UiStoreProp) => {
   return (
     <MenuRadioGroup>
       <MenuRadioItem
@@ -110,35 +113,28 @@ export const LayoutMenuItems = observer(() => {
   );
 });
 
-const SlideModeToolbar = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  return (
-    <ToolbarButton
-      showLabel="always"
-      icon={IconSet.ARROW_LEFT}
-      onClick={uiStore.disableSlideMode}
-      text="Return"
-      tooltip={Tooltip.Back}
-    />
-  );
-});
-
-const ContentToolbar = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
-
+const ContentToolbar = observer(({ uiStore, fileStore }: UiStoreProp & FileStoreProp) => {
   if (uiStore.isSlideMode) {
-    return <SlideModeToolbar />;
+    return (
+      <ToolbarButton
+        showLabel="always"
+        icon={IconSet.ARROW_LEFT}
+        onClick={uiStore.disableSlideMode}
+        text="Return"
+        tooltip={Tooltip.Back}
+      />
+    );
   } else {
     return (
       <>
-        <FileSelection />
+        <FileSelection uiStore={uiStore} fileStore={fileStore} />
 
         <Searchbar />
 
         {/* TODO: Put back tag button (or just the T hotkey) */}
         {fileStore.showsMissingContent ? (
           // Only show option to remove selected files in toolbar when viewing missing files */}
-          <RemoveFilesPopover />
+          <RemoveFilesPopover uiStore={uiStore} />
         ) : (
           // Only show when not viewing missing files (so it is replaced by the Delete button)
           // <FileTags files={fileSelection.size > 0 ? uiStore.clientFileSelection : []} />
@@ -163,7 +159,7 @@ const ContentToolbar = observer(() => {
           controls="__sort-options"
         >
           <Menu id="__sort-options" labelledby="__sort-menu">
-            <SortMenuItems />
+            <SortMenuItems fileStore={fileStore} />
           </Menu>
         </ToolbarMenuButton>
 
@@ -176,7 +172,7 @@ const ContentToolbar = observer(() => {
           controls="__layout-options"
         >
           <Menu id="__layout-options" labelledby="__layout-menu">
-            <LayoutMenuItems />
+            <LayoutMenuItems uiStore={uiStore} />
           </Menu>
         </ToolbarMenuButton>
       </>

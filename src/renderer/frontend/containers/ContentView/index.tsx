@@ -84,10 +84,10 @@ const Gallery = observer(() => {
           {fileMenu}
           <MenuDivider />
           <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
-            <LayoutMenuItems />
+            <LayoutMenuItems uiStore={uiStore} />
           </SubMenu>
           <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-            <SortMenuItems />
+            <SortMenuItems fileStore={fileStore} />
           </SubMenu>
           <MenuDivider />
           {externalMenu}
