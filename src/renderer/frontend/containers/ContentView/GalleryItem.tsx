@@ -41,15 +41,7 @@ export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
         <ImageInfo suspended={!mounted} file={file} />
       </>
     )}
-    {!mounted ? (
-      <span className="thumbnail-tags" />
-    ) : (
-      <span className="thumbnail-tags">
-        {Array.from(file.tags, (tag) => (
-          <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
-        ))}
-      </span>
-    )}
+    {file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />}
   </div>
 ));
 
@@ -82,15 +74,7 @@ export const GridCell = observer(({ file, colIndex, mounted, uiStore, fileStore 
         </span>
       </Tooltip>
     )}
-    {!mounted ? (
-      <span className="thumbnail-tags" />
-    ) : (
-      <span className="thumbnail-tags">
-        {Array.from(file.tags, (tag) => (
-          <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
-        ))}
-      </span>
-    )}
+    {file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />}
   </div>
 ));
 
@@ -111,12 +95,13 @@ const Thumbnail = observer(({ file, mounted, uiStore }: ICell) => {
 
   // This will check whether a thumbnail exists, generate it if needed
   useEffect(() => {
+    let isMounted = true;
     if (!mounted && isBroken === true) {
       return;
     }
     ensureThumbnail(file, thumbnailDirectory)
-      .then((exists: boolean) => {
-        if (exists && mounted) {
+      .then((exists) => {
+        if (isMounted && exists) {
           setState(ThumbnailState.Ok);
         } else if (isBroken !== true && mounted) {
           setState(ThumbnailState.Loading);
@@ -125,6 +110,10 @@ const Thumbnail = observer(({ file, mounted, uiStore }: ICell) => {
         }
       })
       .catch(() => setState(ThumbnailState.Error));
+
+    return () => {
+      isMounted = false;
+    };
   }, [file, isBroken, mounted, thumbnailDirectory]);
 
   // The thumbnailPath of an image is always set, but may not exist yet.
@@ -159,3 +148,11 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
     {IconSet.DB_ERROR}Could not load image
   </div>
 );
+
+const Tags = observer(({ file }: { file: ClientFile }) => (
+  <span className="thumbnail-tags">
+    {Array.from(file.tags, (tag) => (
+      <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
+    ))}
+  </span>
+));

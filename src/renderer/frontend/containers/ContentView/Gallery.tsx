@@ -130,9 +130,7 @@ const GridGallery = observer(
         setDimensions(get_column_layout(contentRect.width, minSize, maxSize));
       }, 50);
 
-      return () => {
-        clearTimeout(timeoutID);
-      };
+      return () => clearTimeout(timeoutID);
     }, [contentRect.width, maxSize, minSize]);
 
     const numRows = useMemo(() => (numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0), [
@@ -143,7 +141,7 @@ const GridGallery = observer(
     const ref = useRef<FixedSizeList>(null);
     const innerRef = useRef<HTMLElement>(null);
     const topOffset = useRef(0);
-    const observer = useRef(
+    const resizeObserver = useRef(
       new IntersectionObserver(
         (entries) => {
           for (const e of entries) {
@@ -161,16 +159,13 @@ const GridGallery = observer(
     );
 
     useEffect(() => {
+      const observer = resizeObserver.current;
       if (innerRef.current !== null) {
         // TODO: Use resize observer on toolbar to get offset.
         topOffset.current = innerRef.current.getBoundingClientRect().y;
-        const children = innerRef.current.children;
-        for (let i = 0; i < children.length; i++) {
-          observer.current.observe(children[i]);
-        }
       }
 
-      () => observer.current.disconnect();
+      return () => observer.disconnect();
     }, []);
 
     useEffect(() => {
@@ -179,32 +174,12 @@ const GridGallery = observer(
       }
     }, [cellSize]);
 
-    const handleScrollTo = useCallback(
-      (i: number) => {
-        if (ref.current) {
-          ref.current.scrollToItem(Math.floor(i / numColumns));
-        }
-      },
-      [numColumns],
-    );
-
-    // force an update with an observable obj since no rerender is triggered when a Ref value updates (lastSelectionIndex)
-    const forceUpdateObj =
-      uiStore.fileSelection.size === 0 ? null : uiStore.getFirstSelectedFileId();
-
-    // Scroll to a file when selecting it
-    const latestSelectedFile =
-      typeof lastSelectionIndex.current === 'number' &&
-      lastSelectionIndex.current < fileList.length &&
-      fileList[lastSelectionIndex.current].id;
+    const index = lastSelectionIndex.current;
     useEffect(() => {
-      if (latestSelectedFile) {
-        const index = fileStore.getIndex(latestSelectedFile);
-        if (index !== undefined && index >= 0) {
-          handleScrollTo(index);
-        }
+      if (index !== undefined && ref.current !== null) {
+        ref.current.scrollToItem(Math.floor(index / numColumns));
       }
-    }, [latestSelectedFile, handleScrollTo, fileStore, forceUpdateObj]);
+    }, [index, numColumns, uiStore.fileSelection.size]);
 
     // Arrow keys up/down for selecting image in next row
     useEffect(() => {
@@ -300,7 +275,7 @@ const GridGallery = observer(
           data={data}
           style={style}
           isScrolling={isScrolling}
-          observer={observer.current}
+          observer={resizeObserver.current}
           columns={numColumns}
           uiStore={uiStore}
           fileStore={fileStore}
@@ -343,48 +318,6 @@ const GridGallery = observer(
   },
 );
 
-interface IGridRow extends IListItem {
-  columns: number;
-  fileStore: FileStore;
-}
-
-const GridRow = observer(
-  ({ index, data, style, isScrolling, observer, columns, uiStore, fileStore }: IGridRow) => {
-    const row = useRef<HTMLDivElement>(null);
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-      const element = row.current;
-      if (element !== null && !isMounted && !isScrolling) {
-        observer.observe(element);
-        setIsMounted(true);
-      }
-      () => {
-        if (element !== null) {
-          observer.unobserve(element);
-          setIsMounted(false);
-        }
-      };
-    }, [isMounted, isScrolling, observer]);
-
-    const offset = index * columns;
-    return (
-      <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
-        {data.slice(offset, offset + columns).map((file: ClientFile, i: number) => (
-          <GridCell
-            mounted={isMounted}
-            colIndex={i + 1}
-            key={file.id}
-            file={file}
-            uiStore={uiStore}
-            fileStore={fileStore}
-          />
-        ))}
-      </div>
-    );
-  },
-);
-
 const ListGallery = observer(
   ({ contentRect, select, lastSelectionIndex, showContextMenu }: ILayoutProps) => {
     const { fileStore, uiStore } = useContext(StoreContext);
@@ -395,7 +328,7 @@ const ListGallery = observer(
     const ref = useRef<FixedSizeList>(null);
     const innerRef = useRef<HTMLElement>(null);
     const topOffset = useRef(0);
-    const observer = useRef(
+    const resizeObserver = useRef(
       new IntersectionObserver(
         (entries) => {
           for (const e of entries) {
@@ -412,41 +345,21 @@ const ListGallery = observer(
     );
 
     useEffect(() => {
+      const observer = resizeObserver.current;
       if (innerRef.current !== null) {
         // TODO: Use resize observer on toolbar to get offset.
         topOffset.current = innerRef.current.getBoundingClientRect().y;
-        const children = innerRef.current.children;
-        for (let i = 0; i < children.length; i++) {
-          observer.current.observe(children[i]);
-        }
       }
 
-      () => observer.current.disconnect();
+      return () => observer.disconnect();
     }, []);
 
-    const handleScrollTo = useCallback((i: number) => {
-      if (ref.current) {
-        ref.current.scrollToItem(i);
-      }
-    }, []);
-
-    // force an update with an observable obj since no rerender is triggered when a Ref value updates (lastSelectionIndex)
-    const forceUpdateObj =
-      uiStore.fileSelection.size === 0 ? null : uiStore.getFirstSelectedFileId();
-
-    // Scroll to a file when selecting it
-    const latestSelectedFile =
-      lastSelectionIndex.current &&
-      lastSelectionIndex.current < fileList.length &&
-      fileList[lastSelectionIndex.current].id;
+    const index = lastSelectionIndex.current;
     useEffect(() => {
-      if (latestSelectedFile) {
-        const index = fileStore.getIndex(latestSelectedFile);
-        if (latestSelectedFile && index !== undefined && index >= 0) {
-          handleScrollTo(index);
-        }
+      if (index !== undefined && ref.current !== null) {
+        ref.current.scrollToItem(Math.floor(index));
       }
-    }, [latestSelectedFile, handleScrollTo, fileList, forceUpdateObj, fileStore]);
+    }, [index, uiStore.fileSelection.size]);
 
     const handleClick = useCallback(
       (e: React.MouseEvent) => {
@@ -514,7 +427,7 @@ const ListGallery = observer(
           data={data}
           style={style}
           isScrolling={isScrolling}
-          observer={observer.current}
+          observer={resizeObserver.current}
           uiStore={uiStore}
         />
       ),
@@ -567,19 +480,23 @@ const ListItem = observer(({ index, data, style, isScrolling, observer, uiStore 
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
+
   useEffect(() => {
     const element = row.current;
     if (element !== null && !isMounted && !isScrolling) {
       setIsMounted(true);
       observer.observe(element);
     }
-    () => {
-      if (element !== null) {
-        observer.unobserve(element);
-        setIsMounted(false);
+  }, [isMounted, isScrolling, observer]);
+
+  useEffect(() => {
+    const unobserveTarget = () => {
+      if (row.current) {
+        observer.unobserve(row.current);
       }
     };
-  }, [isMounted, isScrolling, observer]);
+    return unobserveTarget;
+  }, [observer]);
 
   return (
     <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
@@ -587,6 +504,51 @@ const ListItem = observer(({ index, data, style, isScrolling, observer, uiStore 
     </div>
   );
 });
+
+interface IGridRow extends IListItem {
+  columns: number;
+  fileStore: FileStore;
+}
+
+const GridRow = observer(
+  ({ index, data, style, isScrolling, observer, columns, uiStore, fileStore }: IGridRow) => {
+    const row = useRef<HTMLDivElement>(null);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+      const element = row.current;
+      if (element !== null && !isMounted && !isScrolling) {
+        observer.observe(element);
+        setIsMounted(true);
+      }
+    }, [isMounted, isScrolling, observer]);
+
+    useEffect(() => {
+      const unobserveTarget = () => {
+        if (row.current) {
+          observer.unobserve(row.current);
+        }
+      };
+      return unobserveTarget;
+    }, [observer]);
+
+    const offset = index * columns;
+    return (
+      <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
+        {data.slice(offset, offset + columns).map((file: ClientFile, i: number) => (
+          <GridCell
+            mounted={isMounted}
+            colIndex={i + 1}
+            key={file.id}
+            file={file}
+            uiStore={uiStore}
+            fileStore={fileStore}
+          />
+        ))}
+      </div>
+    );
+  },
+);
 
 // const MasonryGallery = observer(({}: ILayoutProps) => {
 //   const Styles: any = {

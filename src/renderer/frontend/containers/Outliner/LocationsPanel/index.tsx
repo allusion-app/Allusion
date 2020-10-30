@@ -323,7 +323,7 @@ const LocationsTree = ({ onDelete, showContextMenu }: ILocationTreeProps) => {
       });
     });
 
-    () => {
+    return () => {
       isMounted = false;
       dispose();
     };

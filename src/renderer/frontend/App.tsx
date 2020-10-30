@@ -101,7 +101,7 @@ const App = observer(() => {
     // Prevent scrolling with Space, instead used to open preview window
     window.addEventListener('keydown', handleGlobalShortcuts);
 
-    () => window.removeEventListener('keydown', handleGlobalShortcuts);
+    return () => window.removeEventListener('keydown', handleGlobalShortcuts);
   }, [handleGlobalShortcuts]);
 
   if (!uiStore.isInitialized || showSplash) {
