@@ -5,9 +5,15 @@ import { observer } from 'mobx-react-lite';
 import { MultiTagSelector } from './MultiTagSelector';
 import StoreContext from '../contexts/StoreContext';
 import { action } from 'mobx';
+import UiStore from '../stores/UiStore';
+import TagStore from '../stores/TagStore';
 
-const Single = observer(() => {
-  const { tagStore, uiStore } = useContext(StoreContext);
+interface IFileTagProp {
+  tagStore: TagStore;
+  uiStore: UiStore;
+}
+
+const Single = observer(({ tagStore, uiStore }: IFileTagProp) => {
   const file = uiStore.fileSelection.values().next().value as ClientFile;
 
   const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
@@ -24,12 +30,7 @@ const Single = observer(() => {
   );
 });
 
-const Multi = observer(() => {
-  const {
-    tagStore,
-    uiStore: { fileSelection: files },
-  } = useContext(StoreContext);
-
+const Multi = observer(({ tagStore, uiStore: { fileSelection: files } }: IFileTagProp) => {
   // Count how often tags are used
   const countMap = new Map<ClientTag, number>();
   for (const file of files) {
@@ -65,9 +66,15 @@ const Multi = observer(() => {
 });
 
 const FileTags = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
   return (
-    <div className="file-tag">{uiStore.fileSelection.size === 1 ? <Single /> : <Multi />}</div>
+    <div className="file-tag">
+      {uiStore.fileSelection.size === 1 ? (
+        <Single tagStore={tagStore} uiStore={uiStore} />
+      ) : (
+        <Multi tagStore={tagStore} uiStore={uiStore} />
+      )}
+    </div>
   );
 });
 

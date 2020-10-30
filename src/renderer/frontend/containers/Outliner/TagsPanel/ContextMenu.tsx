@@ -9,6 +9,7 @@ import { ClientTag } from 'src/renderer/entities/Tag';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import { HexColorPicker } from 'react-colorful';
 import 'react-colorful/dist/index.css';
+import UiStore from 'src/renderer/frontend/stores/UiStore';
 
 const defaultColorOptions = [
   { title: 'Eminence', color: '#5f3292' },
@@ -24,8 +25,7 @@ const defaultColorOptions = [
   { title: 'Razzmatazz', color: '#ec125f' },
 ];
 
-const ColorPickerMenu = observer(({ tag }: { tag: ClientTag }) => {
-  const { uiStore } = useContext(StoreContext);
+const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: UiStore }) => {
   const handleChange = useCallback(
     (color: string) => {
       if (tag.isSelected) {
@@ -114,7 +114,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         icon={IconSet.DELETE}
       />
       <MenuDivider />
-      <ColorPickerMenu tag={tag} />
+      <ColorPickerMenu tag={tag} uiStore={uiStore} />
       <MenuDivider />
       <MenuItem
         onClick={() =>

@@ -6,9 +6,15 @@ import { ClientTag } from '../../../entities/Tag';
 import { ClientIDSearchCriteria } from '../../../entities/SearchCriteria';
 import { MultiTagSelector } from '../../components/MultiTagSelector';
 import { action } from 'mobx';
+import UiStore from '../../stores/UiStore';
+import TagStore from '../../stores/TagStore';
 
-const QuickSearchList = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+interface ISearchListProps {
+  uiStore: UiStore;
+  tagStore: TagStore;
+}
+
+const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
     if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
@@ -42,9 +48,7 @@ const QuickSearchList = observer(() => {
   );
 });
 
-const CriteriaList = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
-
+const CriteriaList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   // // Open advanced search when clicking one of the criteria (but not their delete buttons)
   const handleTagClick = useCallback(
     (e: React.MouseEvent) => {
@@ -80,9 +84,8 @@ const CriteriaList = observer(() => {
 });
 
 export const Searchbar = observer(() => {
-  const {
-    uiStore: { searchCriteriaList },
-  } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
+  const searchCriteriaList = uiStore.searchCriteriaList;
 
   // Only show quick search bar when all criteria are tags or collections, else
   // show a search bar that opens to the advanced search form
@@ -91,7 +94,13 @@ export const Searchbar = observer(() => {
     searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
 
   return (
-    <div className="toolbar-input">{isQuickSearch ? <QuickSearchList /> : <CriteriaList />}</div>
+    <div className="toolbar-input">
+      {isQuickSearch ? (
+        <QuickSearchList uiStore={uiStore} tagStore={tagStore} />
+      ) : (
+        <CriteriaList uiStore={uiStore} tagStore={tagStore} />
+      )}
+    </div>
   );
 });
 

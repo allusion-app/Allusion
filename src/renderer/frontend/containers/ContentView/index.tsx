@@ -78,7 +78,12 @@ const Gallery = observer(() => {
       onClick={uiStore.clearFileSelection}
       onBlur={handleFlyoutBlur}
     >
-      <Layout contentRect={contentRect} showContextMenu={show} />
+      <Layout
+        contentRect={contentRect}
+        showContextMenu={show}
+        uiStore={uiStore}
+        fileStore={fileStore}
+      />
       <ContextMenu open={open} x={x} y={y} onClose={hide}>
         <Menu>
           {fileMenu}

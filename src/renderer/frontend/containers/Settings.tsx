@@ -9,22 +9,17 @@ import { RendererMessenger } from '../../../Messaging';
 import HotkeyMapper from '../components/HotkeyMapper';
 import PopupWindow from '../components/PopupWindow';
 import { WINDOW_STORAGE_KEY } from 'src/renderer/renderer';
+import UiStore from '../stores/UiStore';
+import FileStore from '../stores/FileStore';
+import LocationStore from '../stores/LocationStore';
 
-const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
-  const isFullScreen = e.currentTarget.checked;
-  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
-  RendererMessenger.setFullScreen(isFullScreen);
-};
+interface ISettingsProps {
+  uiStore: UiStore;
+  fileStore: FileStore;
+  locationStore: LocationStore;
+}
 
-const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
-  RendererMessenger.setClipServerEnabled({ isClipServerRunning: event.target.checked });
-
-const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
-  RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });
-
-const SettingsForm = observer(() => {
-  const { uiStore, fileStore, locationStore } = useContext(StoreContext);
-
+const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps) => {
   const browseImportDir = useCallback(async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
@@ -183,7 +178,7 @@ const SettingsForm = observer(() => {
 });
 
 const SettingsWindow = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
   if (!uiStore.isSettingsOpen) {
     return null;
@@ -197,10 +192,22 @@ const SettingsWindow = () => {
       additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
     >
       <div id="settings-window" className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
-        <SettingsForm />
+        <Settings uiStore={uiStore} fileStore={fileStore} locationStore={locationStore} />
       </div>
     </PopupWindow>
   );
 };
 
 export default observer(SettingsWindow);
+
+const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
+  const isFullScreen = e.currentTarget.checked;
+  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
+  RendererMessenger.setFullScreen(isFullScreen);
+};
+
+const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setClipServerEnabled({ isClipServerRunning: event.target.checked });
+
+const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });
