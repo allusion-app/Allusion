@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useContext, useMemo } from 'react';
 import { FixedSizeList } from 'react-window';
-import { Observer, observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 import { GridCell, ListCell, MissingImageFallback } from './GalleryItem';
@@ -15,6 +15,7 @@ import { RendererMessenger } from 'src/Messaging';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { action, runInAction } from 'mobx';
+import FileStore from '../../stores/FileStore';
 
 type Dimension = { width: number; height: number };
 
@@ -294,29 +295,18 @@ const GridGallery = observer(
 
     const Row = useCallback(
       ({ index, style, data, isScrolling }) => (
-        <Observer>
-          {() => {
-            const offset = index * numColumns;
-            return (
-              <div
-                ref={(el) => {
-                  if (el !== null) {
-                    observer.current.observe(el);
-                  }
-                }}
-                role="row"
-                aria-rowindex={index + 1}
-                style={style}
-              >
-                {data.slice(offset, offset + numColumns).map((file: ClientFile, i: number) => (
-                  <GridCell suspended={isScrolling} colIndex={i + 1} key={file.id} file={file} />
-                ))}
-              </div>
-            );
-          }}
-        </Observer>
+        <GridRow
+          index={index}
+          data={data}
+          style={style}
+          isScrolling={isScrolling}
+          observer={observer.current}
+          columns={numColumns}
+          uiStore={uiStore}
+          fileStore={fileStore}
+        />
       ),
-      [numColumns],
+      [fileStore, numColumns, uiStore],
     );
 
     return (
@@ -348,6 +338,48 @@ const GridGallery = observer(
           ref={ref}
           innerRef={innerRef}
         />
+      </div>
+    );
+  },
+);
+
+interface IGridRow extends IListItem {
+  columns: number;
+  fileStore: FileStore;
+}
+
+const GridRow = observer(
+  ({ index, data, style, isScrolling, observer, columns, uiStore, fileStore }: IGridRow) => {
+    const row = useRef<HTMLDivElement>(null);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+      const element = row.current;
+      if (element !== null && !isMounted && !isScrolling) {
+        observer.observe(element);
+        setIsMounted(true);
+      }
+      () => {
+        if (element !== null) {
+          observer.unobserve(element);
+          setIsMounted(false);
+        }
+      };
+    }, [isMounted, isScrolling, observer]);
+
+    const offset = index * columns;
+    return (
+      <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
+        {data.slice(offset, offset + columns).map((file: ClientFile, i: number) => (
+          <GridCell
+            mounted={isMounted}
+            colIndex={i + 1}
+            key={file.id}
+            file={file}
+            uiStore={uiStore}
+            fileStore={fileStore}
+          />
+        ))}
       </div>
     );
   },
@@ -477,27 +509,16 @@ const ListGallery = observer(
 
     const Row = useCallback(
       ({ index, style, data, isScrolling }) => (
-        <Observer>
-          {() => {
-            const file = data[index];
-            return (
-              <div
-                ref={(el) => {
-                  if (el !== null) {
-                    observer.current.observe(el);
-                  }
-                }}
-                role="row"
-                aria-rowindex={index + 1}
-                style={style}
-              >
-                <ListCell suspended={isScrolling} file={file} />
-              </div>
-            );
-          }}
-        </Observer>
+        <ListItem
+          index={index}
+          data={data}
+          style={style}
+          isScrolling={isScrolling}
+          observer={observer.current}
+          uiStore={uiStore}
+        />
       ),
-      [],
+      [uiStore],
     );
 
     return (
@@ -533,26 +554,60 @@ const ListGallery = observer(
   },
 );
 
-export const MasonryGallery = observer(({}: ILayoutProps) => {
-  const Styles: any = {
-    textAlign: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    height: '65%',
-  };
+interface IListItem {
+  index: number;
+  data: ClientFile[];
+  style: React.CSSProperties;
+  isScrolling: true;
+  observer: IntersectionObserver;
+  uiStore: UiStore;
+}
+
+const ListItem = observer(({ index, data, style, isScrolling, observer, uiStore }: IListItem) => {
+  const row = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const file = data[index];
+  useEffect(() => {
+    const element = row.current;
+    if (element !== null && !isMounted && !isScrolling) {
+      setIsMounted(true);
+      observer.observe(element);
+    }
+    () => {
+      if (element !== null) {
+        observer.unobserve(element);
+        setIsMounted(false);
+      }
+    };
+  }, [isMounted, isScrolling, observer]);
 
   return (
-    <div style={Styles}>
-      <span className="custom-icon-64" style={{ marginBottom: '1rem' }}>
-        {IconSet.DB_ERROR}
-      </span>
-      <p>This view is currently not supported</p>
+    <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
+      <ListCell mounted={isMounted} file={file} uiStore={uiStore} />
     </div>
   );
 });
+
+// const MasonryGallery = observer(({}: ILayoutProps) => {
+//   const Styles: any = {
+//     textAlign: 'center',
+//     display: 'flex',
+//     flexDirection: 'column',
+//     alignItems: 'center',
+//     justifyContent: 'center',
+//     width: '100%',
+//     height: '65%',
+//   };
+
+//   return (
+//     <div style={Styles}>
+//       <span className="custom-icon-64" style={{ marginBottom: '1rem' }}>
+//         {IconSet.DB_ERROR}
+//       </span>
+//       <p>This view is currently not supported</p>
+//     </div>
+//   );
+// });
 
 const SlideGallery = observer(({ contentRect }: { contentRect: Dimension }) => {
   const { fileStore, uiStore } = useContext(StoreContext);
@@ -734,6 +789,7 @@ export default observer(Layout);
 function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'link';
     (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'true';
   }
@@ -741,12 +797,14 @@ function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
 
 function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
+    e.stopPropagation();
     e.preventDefault();
   }
 }
 
 function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
+    e.stopPropagation();
     e.preventDefault();
     e.dataTransfer.dropEffect = 'none';
     (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
@@ -764,6 +822,7 @@ const onDragStart = action(
     if (index === undefined) {
       return;
     }
+    e.stopPropagation();
     const file = fileList[index];
     if (!uiStore.fileSelection.has(file)) {
       return;
@@ -791,6 +850,7 @@ const onDrop = action(
     if (index === undefined) {
       return;
     }
+    e.stopPropagation();
     const file = files[index];
     const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
     ctx.tags.forEach((tag) => {
