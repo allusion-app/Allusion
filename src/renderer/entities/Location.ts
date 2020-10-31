@@ -1,4 +1,4 @@
-import { computed, observable, action, makeObservable } from 'mobx';
+import { observable, action, makeObservable } from 'mobx';
 import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
@@ -36,10 +36,10 @@ export class ClientLocation implements ISerializable<ILocation> {
   @observable isBroken = false;
 
   readonly id: ID;
-  @observable path: string;
+  readonly path: string;
   readonly dateAdded: Date;
 
-  constructor(store: LocationStore, id: ID, path: string, dateAdded: Date = new Date()) {
+  constructor(store: LocationStore, id: ID, path: string, dateAdded: Date) {
     this.store = store;
     this.id = id;
     this.path = path;
@@ -48,41 +48,36 @@ export class ClientLocation implements ISerializable<ILocation> {
     makeObservable(this);
   }
 
-  @computed get name(): string {
+  get name(): string {
     return SysPath.basename(this.path);
   }
 
-  @action.bound async init(cancel?: () => boolean): Promise<string[] | undefined> {
+  @action async init(cancel?: () => boolean): Promise<string[] | undefined> {
     this.isInitialized = true;
-    const path = this.path;
-    const pathExists = await fse.pathExists(path);
+    const pathExists = await fse.pathExists(this.path);
     if (pathExists) {
       this.setBroken(false);
-      return this.watch(path, cancel);
+      return this.watch(this.path, cancel);
     } else {
-      await this.watcher?.close();
       this.setBroken(true);
       return undefined;
     }
-  }
-
-  @action setPath(path: string): void {
-    this.path = path;
   }
 
   @action setBroken(state: boolean): void {
     this.isBroken = state;
   }
 
-  @action async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
+  async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
     return getDirectoryTree(this.path);
   }
 
   async delete(): Promise<void> {
+    await this.drop();
     return this.store.delete(this);
   }
 
-  @action serialize(): ILocation {
+  serialize(): ILocation {
     return {
       id: this.id,
       path: this.path,
@@ -90,7 +85,16 @@ export class ClientLocation implements ISerializable<ILocation> {
     };
   }
 
-  @action private async watch(directory: string, cancel?: () => boolean): Promise<string[]> {
+  /** Cleanup resources */
+  async drop(): Promise<void> {
+    if (this.watcher !== undefined) {
+      const promise = await this.watcher.close();
+      this.watcher = undefined;
+      return promise;
+    }
+  }
+
+  private async watch(directory: string, cancel?: () => boolean): Promise<string[]> {
     if (this.watcher !== undefined) {
       await this.watcher.close();
       this.watcher = undefined;
@@ -133,15 +137,12 @@ export class ClientLocation implements ISerializable<ILocation> {
           console.log(`Location "${this.name}": File ${path} has been removed.`);
           this.store.hideFile(path);
         })
-        .on(
-          'ready',
-          action(() => {
-            this.isReady = true;
-            console.log(`Location "${this.name}" ready. Detected files:`, initialFiles.length);
-            // Todo: Compare this in DB, add new files and mark missing files as missing
-            resolve(initialFiles);
-          }),
-        )
+        .on('ready', () => {
+          this.isReady = true;
+          console.log(`Location "${this.name}" ready. Detected files:`, initialFiles.length);
+          // Todo: Compare this in DB, add new files and mark missing files as missing
+          resolve(initialFiles);
+        })
         .on('error', (error: Error) => {
           console.error('Location watch error:', error);
           AppToaster.show(

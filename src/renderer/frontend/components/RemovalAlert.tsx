@@ -36,7 +36,7 @@ interface IRemovalProps<T> {
   onClose: () => void;
 }
 
-export const LocationRemoval = observer((props: IRemovalProps<ClientLocation>) => (
+export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
   <RemovalAlert
     open
     title={`Are you sure you want to delete the location "${props.object.name}"?`}
@@ -47,7 +47,7 @@ export const LocationRemoval = observer((props: IRemovalProps<ClientLocation>) =
       props.object.delete();
     }}
   />
-));
+);
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   const { uiStore } = useContext(StoreContext);

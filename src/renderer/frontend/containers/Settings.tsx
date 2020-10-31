@@ -20,6 +20,8 @@ interface ISettingsProps {
 }
 
 const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps) => {
+  const thumbnailDirectory = uiStore.thumbnailDirectory;
+
   const browseImportDir = useCallback(async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
@@ -40,7 +42,7 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
   const browseThumbnailDirectory = useCallback(async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
-      defaultPath: uiStore.thumbnailDirectory,
+      defaultPath: thumbnailDirectory,
     });
 
     if (dirs.length === 0) {
@@ -53,7 +55,7 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
       return;
     }
 
-    const oldDir = uiStore.thumbnailDirectory;
+    const oldDir = thumbnailDirectory;
 
     // Move thumbnail files
     await moveThumbnailDir(oldDir, newDir);
@@ -65,7 +67,7 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
         f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
       }
     });
-  }, [fileStore.fileList, uiStore]);
+  }, [fileStore.fileList, thumbnailDirectory, uiStore]);
 
   return (
     <div className="settings-form">
@@ -145,7 +147,7 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
 
           {/* Where to import images you drop on the app or import through the browser extension */}
           <div className="input-file">
-            <span className="input input-file-value">{uiStore.thumbnailDirectory}</span>
+            <span className="input input-file-value">{thumbnailDirectory}</span>
             <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
           </div>
         </fieldset>
