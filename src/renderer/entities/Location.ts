@@ -68,10 +68,6 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.isBroken = state;
   }
 
-  async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
-    return getDirectoryTree(this.path);
-  }
-
   async delete(): Promise<void> {
     await this.drop();
     return this.store.delete(this);
@@ -167,7 +163,7 @@ export class ClientLocation implements ISerializable<ILocation> {
 /**
  * Recursive function that returns the dir list for a given path
  */
-async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
+export async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
   try {
     let dirs: string[] = [];
     for (const file of await fse.readdir(path)) {

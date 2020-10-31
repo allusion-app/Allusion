@@ -7,6 +7,7 @@ import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import {
   ClientLocation,
   DEFAULT_LOCATION_ID,
+  getDirectoryTree,
   IDirectoryTreeItem,
 } from 'src/renderer/entities/Location';
 import { ClientStringSearchCriteria } from 'src/renderer/entities/SearchCriteria';
@@ -317,7 +318,7 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
         locationStore.locationList.map(async (location) => {
           let children: ITreeItem[];
           try {
-            children = (await location.getDirectoryTree()).map(mapDirectory);
+            children = (await getDirectoryTree(location.path)).map(mapDirectory);
           } catch (error) {
             children = [];
           }
