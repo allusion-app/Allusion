@@ -62,20 +62,34 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
   // Or add the units: pixels vs DPI
   return (
-    <div className="file-info">
-      <span>Filename</span>
-      <span>{file.name}</span>
-      <span>Imported</span>
-      <span>{fileStats.imported}</span>
-      <span>Created</span>
-      <span>{fileStats.created}</span>
-      <span>Modified</span>
-      <span>{fileStats.modified}</span>
-      <span>Last Opened</span>
-      <span>{fileStats.lastOpened}</span>
-      <span>Dimensions</span>
-      <span>{fileStats.dimensions}</span>
-    </div>
+    <table className="file-info">
+      <tbody>
+        <tr>
+          <th scope="row">Filename</th>
+          <td>{file.name}</td>
+        </tr>
+        <tr>
+          <th scope="row">Imported</th>
+          <td>{fileStats.imported}</td>
+        </tr>
+        <tr>
+          <th scope="row">Created</th>
+          <td>{fileStats.created}</td>
+        </tr>
+        <tr>
+          <th scope="row">Modified</th>
+          <td>{fileStats.modified}</td>
+        </tr>
+        <tr>
+          <th scope="row">Last Opened</th>
+          <td>{fileStats.lastOpened}</td>
+        </tr>
+        <tr>
+          <th scope="row">Dimensions</th>
+          <td>{fileStats.dimensions}</td>
+        </tr>
+      </tbody>
+    </table>
   );
 };
 

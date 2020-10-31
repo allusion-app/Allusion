@@ -67,15 +67,11 @@ const Multi = observer(({ tagStore, uiStore: { fileSelection: files } }: IFileTa
 
 const FileTags = observer(() => {
   const { uiStore, tagStore } = useContext(StoreContext);
-  return (
-    <div className="file-tag">
-      {uiStore.fileSelection.size === 1 ? (
-        <Single tagStore={tagStore} uiStore={uiStore} />
-      ) : (
-        <Multi tagStore={tagStore} uiStore={uiStore} />
-      )}
-    </div>
-  );
+  if (uiStore.fileSelection.size === 1) {
+    return <Single tagStore={tagStore} uiStore={uiStore} />;
+  } else {
+    return <Multi tagStore={tagStore} uiStore={uiStore} />;
+  }
 });
 
 export default FileTags;

@@ -41,7 +41,7 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
     >
       <Flyout
         open={isOpen}
-        placement="bottom"
+        placement="bottom-start"
         target={
           <input
             type="text"

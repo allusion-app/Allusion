@@ -1,5 +1,11 @@
 [role='combobox'] {
+  > input {
+    height: 100%;
+    width: 100%;
+  }
+
   input {
+    min-height: 1.5rem;
     border: none;
     background: transparent;
   }
@@ -11,7 +17,6 @@
   align-items: flex-start;
 
   > .input-wrapper {
-    min-height: 1.5rem;
     display: flex;
     flex-grow: 1;
     flex-wrap: wrap;

@@ -145,12 +145,14 @@ const GridGallery = observer((props: ILayoutProps) => {
 
   const ref = useRef<FixedSizeList>(null);
   const innerRef = useRef<HTMLElement>(null);
-  const topOffset = useRef(0);
-  const resizeObserver = useRef(
+  // FIXME: Hardcoded until responsive design is done.
+  const TOOLBAR_HEIGHT = 48;
+  const intersectionObserver = useRef(
     new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
-          if (e.isIntersecting && e.intersectionRect.y === topOffset.current) {
+          // Rounding is expensive, so we check if it whithin the toolbar bottom edge.
+          if (e.isIntersecting && e.intersectionRect.y < TOOLBAR_HEIGHT + 1) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const rowIndex = parseInt(e.target.getAttribute('aria-rowindex')!) - 1;
             const index = rowIndex * e.target.childElementCount;
@@ -163,15 +165,9 @@ const GridGallery = observer((props: ILayoutProps) => {
     ),
   );
 
-  useEffect(() => {
-    const observer = resizeObserver.current;
-    if (innerRef.current !== null) {
-      // TODO: Use resize observer on toolbar to get offset.
-      topOffset.current = innerRef.current.getBoundingClientRect().y;
-    }
+  useEffect(() => () => intersectionObserver.current.disconnect(), []);
 
-    return () => observer.disconnect();
-  }, []);
+  console.log(uiStore.firstItem);
 
   useEffect(() => {
     if (innerRef.current !== null) {
@@ -284,7 +280,7 @@ const GridGallery = observer((props: ILayoutProps) => {
         data={data}
         style={style}
         isScrolling={isScrolling}
-        observer={resizeObserver.current}
+        observer={intersectionObserver.current}
         columns={numColumns}
         uiStore={uiStore}
         fileStore={fileStore}
@@ -333,13 +329,14 @@ const ListGallery = observer((props: ILayoutProps) => {
     uiStore.thumbnailSize,
   ]);
   const ref = useRef<FixedSizeList>(null);
-  const innerRef = useRef<HTMLElement>(null);
-  const topOffset = useRef(0);
-  const resizeObserver = useRef(
+  // FIXME: Hardcoded until responsive design is done.
+  const TOOLBAR_HEIGHT = 48;
+  const intersectionObserver = useRef(
     new IntersectionObserver(
       (entries) => {
+        // Rounding is expensive, so we check if it whithin the toolbar bottom edge.
         for (const e of entries) {
-          if (e.isIntersecting && e.intersectionRect.y === topOffset.current) {
+          if (e.isIntersecting && e.intersectionRect.y < TOOLBAR_HEIGHT + 1) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const rowIndex = e.target.getAttribute('aria-rowindex')!;
             uiStore.setFirstItem(parseInt(rowIndex) - 1);
@@ -351,15 +348,9 @@ const ListGallery = observer((props: ILayoutProps) => {
     ),
   );
 
-  useEffect(() => {
-    const observer = resizeObserver.current;
-    if (innerRef.current !== null) {
-      // TODO: Use resize observer on toolbar to get offset.
-      topOffset.current = innerRef.current.getBoundingClientRect().y;
-    }
+  useEffect(() => () => intersectionObserver.current.disconnect(), []);
 
-    return () => observer.disconnect();
-  }, []);
+  console.log(uiStore.firstItem);
 
   const index = lastSelectionIndex.current;
   useEffect(() => {
@@ -438,7 +429,7 @@ const ListGallery = observer((props: ILayoutProps) => {
         data={data}
         style={style}
         isScrolling={isScrolling}
-        observer={resizeObserver.current}
+        observer={intersectionObserver.current}
         uiStore={uiStore}
       />
     ),
@@ -471,7 +462,6 @@ const ListGallery = observer((props: ILayoutProps) => {
         children={Row}
         initialScrollOffset={uiStore.firstItem * cellSize}
         ref={ref}
-        innerRef={innerRef}
       />
     </div>
   );

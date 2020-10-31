@@ -18,19 +18,15 @@
       max-width: 2rem;
     }
   }
-
-  [role='combobox'] input {
-    width: 100%;
-  }
 }
 
 #functions-bar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 
   > fieldset {
-    margin-bottom: 1rem;
-
     > div {
       display: flex;
       align-items: center;
