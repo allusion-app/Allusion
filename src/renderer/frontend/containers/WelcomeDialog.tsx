@@ -76,8 +76,10 @@ const SetupImportDirStep = ({
 
       <fieldset>
         <legend>Choose your default import location</legend>
-        <span title={importLocation}>{importLocation}</span>
-        <Button styling="filled" text="Browse" onClick={browseImportDirectory} />
+        <div className="input-file">
+          <span className="input input-file-value">{importLocation}</span>
+          <Button styling="filled" text="Browse" onClick={browseImportDirectory} />
+        </div>
       </fieldset>
     </Step>
   );

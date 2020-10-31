@@ -56,3 +56,34 @@
     box-shadow: 0 0 0 0.125rem rgb(51, 153, 255);
   }
 }
+
+/** We cannot use <input type="file" /> as we want to pick directories. However,
+    I am too lazy to create an additional React component + SASS file. This
+    seems even more overkill than having a Toggle component. At least there is
+    some complex CSS going on. So, you have to use this class.
+
+    # Example in React
+    ```ts
+    const { path, browseDirectory, placeholder } = props;
+
+    <div className="input-file">
+      <span className="input input-file-value">{path ?? placeholder}</span>
+      <Button styling="filled" text="Browse" onClick={browseDirectory} />
+    </div>
+    ```
+*/
+.input-file {
+  display: flex;
+
+  .input-file-value {
+    margin: 0;
+    margin-right: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-family: 'Courier New', Courier, monospace;
+    flex-grow: 1;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+  }
+}

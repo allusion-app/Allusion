@@ -4,11 +4,8 @@
     display: inline;
   }
 
-  // Might be nice to have something like this for layouting things https://rebassjs.org/reflexbox/
-
-  .column {
-    display: inline-block;
-    width: 50%;
+  .input-file {
+    width: 100%;
   }
 
   table {
@@ -19,6 +16,14 @@
   td {
     height: 2em;
     vertical-align: top;
+  }
+}
+
+.settings-thumbnail {
+  display: flex;
+
+  > * {
+    flex-grow: 1;
   }
 }
 

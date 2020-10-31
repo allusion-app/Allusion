@@ -43,17 +43,3 @@ input[type='radio'] {
     border-color: var(--focus-color);
   }
 }
-
-fieldset[role='radiogroup'] {
-  margin-bottom: 1rem;
-
-  legend {
-    display: block;
-    margin-bottom: 1rem;
-  }
-
-  label {
-    display: inline;
-    padding-inline-end: 1rem;
-  }
-}

@@ -69,8 +69,23 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
 
   return (
     <div className="settings-form">
-      <div className="column">
-        <RadioGroup name="Thumbnail Size">
+      <h2>Appearance</h2>
+      <fieldset>
+        <Toggle
+          checked={uiStore.theme === 'DARK'}
+          onChange={uiStore.toggleTheme}
+          label="Dark theme"
+        />
+        <Toggle
+          defaultChecked={RendererMessenger.isFullScreen()}
+          onChange={toggleFullScreen}
+          label="Full screen"
+        />
+      </fieldset>
+
+      <h3>Thumbnail</h3>
+      <div className="settings-thumbnail">
+        <RadioGroup name="Size">
           <Radio
             label="Small"
             value="small"
@@ -90,8 +105,7 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
             onChange={uiStore.setThumbnailLarge}
           />
         </RadioGroup>
-
-        <RadioGroup name="Thumbnail Shape">
+        <RadioGroup name="Shape">
           <Radio
             label="Square"
             checked={uiStore.thumbnailShape === 'square'}
@@ -106,19 +120,9 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
           />
         </RadioGroup>
       </div>
-      <div className="column">
-        <Toggle
-          defaultChecked={RendererMessenger.isFullScreen()}
-          onChange={toggleFullScreen}
-          label="Full screen"
-        />
 
-        <Toggle
-          checked={uiStore.theme === 'DARK'}
-          onChange={uiStore.toggleTheme}
-          label="Dark theme"
-        />
-
+      <h2>Options</h2>
+      <fieldset>
         <Toggle
           defaultChecked={RendererMessenger.isRunningInBackground()}
           onChange={toggleRunInBackground}
@@ -130,10 +134,9 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
           onChange={toggleClipServer}
           label="Browser extension support"
         />
-      </div>
+      </fieldset>
 
-      <hr />
-
+      <h2>Storage</h2>
       <div>
         {/* Todo: Add support to toggle this */}
         {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
@@ -141,29 +144,29 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
           <legend>Thumbnail Directory</legend>
 
           {/* Where to import images you drop on the app or import through the browser extension */}
-          <span title={uiStore.thumbnailDirectory}>{uiStore.thumbnailDirectory}</span>
-          <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
+          <div className="input-file">
+            <span className="input input-file-value">{uiStore.thumbnailDirectory}</span>
+            <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
+          </div>
         </fieldset>
 
         <fieldset>
           <legend>Import Directory</legend>
-          <span title={locationStore.importDirectory}>{locationStore.importDirectory}</span>
-          <Button styling="filled" text="Browse" onClick={browseImportDir} />
+          <div className="input-file">
+            <span className="input input-file-value">{locationStore.importDirectory}</span>
+            <Button styling="filled" text="Browse" onClick={browseImportDir} />
+          </div>
         </fieldset>
       </div>
 
-      <hr />
+      <h2>Shortcuts Map</h2>
+      <p>
+        Click on a key combination to modify it. After typing your new combination, press Enter to
+        confirm or Escape to cancel.
+      </p>
+      <HotkeyMapper />
 
-      <div>
-        <p>
-          Click on a key combination to modify it. After typing your new combination, press Enter to
-          confirm or Escape to cancel.
-        </p>
-        <HotkeyMapper />
-      </div>
-
-      <hr />
-
+      <h2>Development</h2>
       <ButtonGroup>
         <ClearDbButton />
         <Button

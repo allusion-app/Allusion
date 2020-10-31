@@ -40,8 +40,20 @@ header h2 {
 
 fieldset {
   margin: 0;
+  margin-bottom: 0.5rem;
   border: none;
   padding: 0;
+
+  legend {
+    display: block;
+    font-weight: lighter;
+    margin-bottom: 0.5rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
 }
 
 input {
@@ -49,20 +61,6 @@ input {
   padding: 0;
   padding-left: 0.25rem;
   line-height: 1.5rem;
-}
-
-// Override standard CSS attributes
-pre {
-  word-wrap: break-word;
-  white-space: initial;
-}
-.bp3-dark {
-  pre {
-    font-family: unset;
-    background: $dark-gray8-trans;
-    padding: 6px;
-    border-radius: 6px;
-  }
 }
 
 // Global specific styles for the main window
