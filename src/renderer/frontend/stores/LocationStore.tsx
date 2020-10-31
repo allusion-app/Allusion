@@ -199,11 +199,7 @@ class LocationStore {
     // TODO: Should make N configurable, or determine based on the system/disk performance
     const N = 50;
     const files = await promiseAllLimit(
-      filePaths.map((path) => async () => {
-        const f = await pathToIFile(path, location);
-        // await timeout(1000); // artificial timeout to see the progress bar a little longer
-        return f;
-      }),
+      filePaths.map((path) => () => pathToIFile(path, location)),
       N,
       showProgressToaster,
       () => isCancelled,

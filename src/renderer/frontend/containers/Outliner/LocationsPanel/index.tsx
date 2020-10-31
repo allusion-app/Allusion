@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { action, autorun } from 'mobx';
+import { autorun } from 'mobx';
 
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import {
@@ -269,7 +269,7 @@ interface ILocationTreeProps {
   onDelete: (loc: ClientLocation) => void;
 }
 
-const LocationsTree = ({ onDelete, showContextMenu }: ILocationTreeProps) => {
+const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useContext(StoreContext);
   const [expansion, setExpansion] = useState<IExpansionState>({});
   const treeData: ITreeData = useMemo(
@@ -281,7 +281,15 @@ const LocationsTree = ({ onDelete, showContextMenu }: ILocationTreeProps) => {
     }),
     [expansion, onDelete, showContextMenu],
   );
-  const [branches, setBranches] = useState<ITreeItem[]>([]);
+  const [branches, setBranches] = useState<ITreeItem[]>(
+    locationStore.locationList.map((location) => ({
+      id: location.id,
+      label: LocationLabel,
+      children: [],
+      nodeData: location,
+      isExpanded,
+    })),
+  );
 
   const handleBranchKeyDown = useCallback(
     (
@@ -345,7 +353,7 @@ const LocationsTree = ({ onDelete, showContextMenu }: ILocationTreeProps) => {
       onLeafKeyDown={emptyFunction}
     />
   );
-};
+});
 
 const LocationsPanel = () => {
   const { locationStore } = useContext(StoreContext);
@@ -396,9 +404,7 @@ const LocationsPanel = () => {
       return;
     }
 
-    locationStore
-      .create(path)
-      .then(action((location: ClientLocation) => locationStore.initLocation(location)));
+    locationStore.create(path).then((location) => locationStore.initLocation(location));
   }, [locationStore]);
 
   return (
