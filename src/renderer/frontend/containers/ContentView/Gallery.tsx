@@ -167,8 +167,6 @@ const GridGallery = observer((props: ILayoutProps) => {
 
   useEffect(() => () => intersectionObserver.current.disconnect(), []);
 
-  console.log(uiStore.firstItem);
-
   useEffect(() => {
     if (innerRef.current !== null) {
       innerRef.current.style.setProperty('--thumbnail-size', cellSize - PADDING + 'px');
@@ -349,8 +347,6 @@ const ListGallery = observer((props: ILayoutProps) => {
   );
 
   useEffect(() => () => intersectionObserver.current.disconnect(), []);
-
-  console.log(uiStore.firstItem);
 
   const index = lastSelectionIndex.current;
   useEffect(() => {
