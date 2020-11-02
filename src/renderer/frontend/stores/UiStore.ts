@@ -350,9 +350,7 @@ class UiStore {
 
   @action.bound async removeSelectedTags() {
     const ctx = this.getTagContextItems();
-    for (const tag of ctx.tags) {
-      await tag.delete();
-    }
+    return this.rootStore.tagStore.deleteMany(ctx.tags);
   }
 
   @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {

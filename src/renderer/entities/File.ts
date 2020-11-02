@@ -32,29 +32,6 @@ interface IMetaData {
   dateCreated: Date;
 }
 
-/** Should be called when after constructing a file before sending it to the backend. */
-export async function getMetaData(path: string): Promise<IMetaData> {
-  const stats = await fse.stat(path);
-  let dimensions: ISizeCalculationResult | undefined;
-  try {
-    dimensions = await sizeOf(path);
-  } catch (e) {
-    if (!dimensions) {
-      console.error('Could not find dimensions for ', path);
-    }
-    // TODO: Remove image? Probably unsupported file type
-  }
-
-  return {
-    name: Path.basename(path),
-    extension: Path.extname(path).slice(1).toLowerCase(),
-    size: stats.size,
-    width: (dimensions && dimensions.width) || 0,
-    height: (dimensions && dimensions.height) || 0,
-    dateCreated: stats.birthtime,
-  };
-}
-
 /* A File as it is represented in the Database */
 export interface IFile extends IMetaData, IResource {
   locationId: ID;
@@ -166,6 +143,13 @@ export class ClientFile implements ISerializable<IFile> {
     this.autoSave = !state;
   }
 
+  /** Update observable properties without updating the database */
+  @action update(update: (file: ClientFile) => void): void {
+    this.autoSave = false;
+    update(this);
+    this.autoSave = true;
+  }
+
   serialize(): IFile {
     return {
       id: this.id,
@@ -188,4 +172,27 @@ export class ClientFile implements ISerializable<IFile> {
     // clean up the observer
     this.saveHandler();
   }
+}
+
+/** Should be called when after constructing a file before sending it to the backend. */
+export async function getMetaData(path: string): Promise<IMetaData> {
+  const stats = await fse.stat(path);
+  let dimensions: ISizeCalculationResult | undefined;
+  try {
+    dimensions = await sizeOf(path);
+  } catch (e) {
+    if (!dimensions) {
+      console.error('Could not find dimensions for ', path);
+    }
+    // TODO: Remove image? Probably unsupported file type
+  }
+
+  return {
+    name: Path.basename(path),
+    extension: Path.extname(path).slice(1).toLowerCase(),
+    size: stats.size,
+    width: (dimensions && dimensions.width) || 0,
+    height: (dimensions && dimensions.height) || 0,
+    dateCreated: stats.birthtime,
+  };
 }

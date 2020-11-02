@@ -33,7 +33,6 @@ export default class Backend {
       await this.createTag({
         id: ROOT_TAG_ID,
         name: 'Root',
-        description: '',
         dateAdded: new Date(),
         subTags: [],
         color: '',
@@ -109,11 +108,36 @@ export default class Backend {
 
   async removeTag(tag: ID): Promise<void> {
     console.info('Backend: Removing tag...', tag);
+    // We have to make sure files tagged with this tag should be untagged
+    // Get all files with this tag
+    const filesWithTag = await this.fileRepository.find({
+      criteria: { key: 'tags', value: tag, operator: 'contains', valueType: 'array' },
+    });
+    // Remove tag from files
+    for (const file of filesWithTag) {
+      file.tags.splice(file.tags.indexOf(tag));
+    }
+    // Update files in db
+    await this.saveFiles(filesWithTag);
+    // Remove tag from db
     return this.tagRepository.remove(tag);
   }
 
   async removeTags(tags: ID[]): Promise<void> {
     console.info('Backend: Removing tags...', tags);
+    // We have to make sure files tagged with these tags should be untagged
+    // Get all files with these tags
+    const filesWithTags = await this.fileRepository.find({
+      criteria: { key: 'tags', value: tags, operator: 'contains', valueType: 'array' },
+    });
+    const deletedTags = new Set(tags);
+    // Remove tags from files
+    for (const file of filesWithTags) {
+      file.tags = file.tags.filter((t) => deletedTags.has(t));
+    }
+    // Update files in db
+    await this.saveFiles(filesWithTags);
+    // Remove tag from db
     return this.tagRepository.removeMany(tags);
   }
 

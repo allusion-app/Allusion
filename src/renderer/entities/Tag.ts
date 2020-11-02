@@ -8,7 +8,6 @@ export const ROOT_TAG_ID = 'root';
 export interface ITag extends IResource {
   id: ID;
   name: string;
-  description: string;
   dateAdded: Date;
   color: string;
   subTags: ID[];
@@ -27,17 +26,17 @@ export class ClientTag implements ISerializable<ITag> {
   readonly id: ID;
   readonly dateAdded: Date;
   @observable name: string;
-  @observable description: string = '';
-  @observable color: string = '';
+  @observable color: string;
   @observable private _parent: ClientTag | undefined;
   readonly subTags = observable<ClientTag>([]);
   // icon, (fileCount?)
 
-  constructor(store: TagStore, id: ID, name: string, dateAdded: Date = new Date()) {
+  constructor(store: TagStore, id: ID, name: string, dateAdded: Date, color: string = '') {
     this.store = store;
     this.id = id;
     this.dateAdded = dateAdded;
     this.name = name;
+    this.color = color;
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -113,7 +112,6 @@ export class ClientTag implements ISerializable<ITag> {
     return {
       id: this.id,
       name: this.name,
-      description: this.description,
       dateAdded: this.dateAdded,
       color: this.color,
       subTags: this.subTags.map((subTag) => subTag.id),
@@ -136,16 +134,15 @@ export class ClientTag implements ISerializable<ITag> {
     return this.store.delete(this);
   }
 
-  freeze(): void {
+  /** Update observable properties without updating the database */
+  @action update(update: (tag: ClientTag) => void): void {
     this.autoSave = false;
-  }
-
-  unFreeze(): void {
+    update(this);
     this.autoSave = true;
   }
 
   dispose(): void {
-    this.freeze();
+    this.autoSave = false;
     // clean up the observer
     this.saveHandler();
   }

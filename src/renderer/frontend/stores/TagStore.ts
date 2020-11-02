@@ -1,12 +1,4 @@
-import {
-  action,
-  IObservableArray,
-  ObservableMap,
-  observable,
-  runInAction,
-  computed,
-  makeObservable,
-} from 'mobx';
+import { action, observable, computed, makeObservable, runInAction } from 'mobx';
 import Backend from '../../backend/Backend';
 import { ClientTag, ITag, ROOT_TAG_ID } from '../../entities/Tag';
 import RootStore from './RootStore';
@@ -20,9 +12,9 @@ class TagStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
 
-  readonly tagList: IObservableArray<ClientTag> = observable([]);
+  readonly tagList = observable(new Array<ClientTag>());
   /** A lookup map to speedup finding entities */
-  private readonly index: ObservableMap<ID, number> = observable(new Map());
+  private readonly index = observable(new Map<ID, number>());
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -34,7 +26,7 @@ class TagStore {
   async init() {
     try {
       const fetchedTags = await this.backend.fetchTags();
-      this.initTagList(fetchedTags);
+      this.createTagGraph(fetchedTags);
     } catch (err) {
       console.log('Could not load tags', err);
     }
@@ -70,7 +62,7 @@ class TagStore {
     if (this.exists(id)) {
       id = generateId();
     }
-    const tag = new ClientTag(this, id, tagName);
+    const tag = new ClientTag(this, id, tagName, new Date());
     await this.backend.createTag(tag.serialize());
     this.add(parent, tag);
     return tag;
@@ -109,26 +101,34 @@ class TagStore {
 
   @action.bound async delete(tag: ClientTag) {
     tag.dispose();
-    await this.deleteSubTags(tag);
     await this.backend.removeTag(tag.id);
-    runInAction(() => tag.parent.subTags.remove(tag));
+    await this.deleteSubTags(tag);
     this.remove(tag);
     this.rebuildIndex();
+    this.rootStore.fileStore.refetch();
+  }
+
+  @action.bound async deleteMany(tags: ClientTag[]) {
+    await this.backend.removeTags(tags.map((t) => t.id));
+    for (const tag of tags) {
+      tag.dispose();
+      await this.deleteSubTags(tag);
+      this.remove(tag);
+    }
+    this.rebuildIndex();
+    this.rootStore.fileStore.refetch();
   }
 
   save(tag: ITag) {
     this.backend.saveTag(tag);
   }
 
-  @action private initTagList(backendTags: ITag[]) {
+  @action private createTagGraph(backendTags: ITag[]) {
     // Create tags
-    for (const backendTag of backendTags) {
+    for (const { id, name, dateAdded, color } of backendTags) {
       // Create entity and set properties
       // We have to do this because JavaScript does not allow multiple constructor.
-      const tag = new ClientTag(this, backendTag.id, backendTag.name, backendTag.dateAdded);
-      tag.freeze();
-      tag.description = backendTag.description;
-      tag.color = backendTag.color;
+      const tag = new ClientTag(this, id, name, dateAdded, color);
       // Add to index
       this.index.set(tag.id, this.tagList.length);
       this.tagList.push(tag);
@@ -136,17 +136,18 @@ class TagStore {
 
     // Set parent and add sub tags
     for (let i = 0; i < backendTags.length; i++) {
-      const backendTag = backendTags[i];
+      const { subTags } = backendTags[i];
       const tag = this.tagList[i];
 
-      for (const id of backendTag.subTags) {
-        const subTag = this.get(id);
-        if (subTag !== undefined) {
-          subTag.setParent(tag);
-          tag.subTags.push(subTag);
+      tag.update((tag) => {
+        for (const id of subTags) {
+          const subTag = this.get(id);
+          if (subTag !== undefined) {
+            subTag.setParent(tag);
+            tag.subTags.push(subTag);
+          }
         }
-      }
-      tag.unFreeze();
+      });
     }
     this.root.setParent(this.root);
   }
@@ -165,21 +166,20 @@ class TagStore {
       const ids = tag.subTags.map((subTag) => subTag.id);
       await this.backend.removeTags(ids);
     }
-    runInAction(async () => {
+    runInAction(() => {
       for (const subTag of tag.subTags) {
         subTag.dispose();
         this.deleteSubTags(subTag);
-        this.remove(subTag);
+        this.rootStore.uiStore.deselectTag(subTag);
+        this.tagList.remove(subTag);
       }
     });
   }
 
   @action private remove(tag: ClientTag) {
-    // Remove tag id reference from other observable objects types
+    // Remove tag id reference from other observable objects
     this.rootStore.uiStore.deselectTag(tag);
-    for (const file of this.rootStore.fileStore.fileList) {
-      file.removeTag(tag);
-    }
+    tag.parent.subTags.remove(tag);
     this.tagList.remove(tag);
   }
 

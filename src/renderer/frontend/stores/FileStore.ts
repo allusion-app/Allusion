@@ -429,6 +429,7 @@ class FileStore {
       // Might already exist!
       const existingFile = this.get(f.id);
       if (existingFile !== undefined) {
+        existingFile.update((file) => file.tags.replace(this.getTags(f.tags)));
         reusedStatus.add(existingFile.id);
         return existingFile;
       }
