@@ -167,9 +167,9 @@ const TagItem = observer((props: ITagItemProps) => {
         const tag = tagStore.get(id);
         if (tag !== undefined) {
           if (event.currentTarget.classList.contains('top')) {
-            nodeData.parent.insertSubTag(tag, pos - 1); // 'pos' does not start from 0!
+            runInAction(() => nodeData.parent.insertSubTag(tag, pos - 1)); // 'pos' does not start from 0!
           } else if (event.currentTarget.classList.contains('bottom')) {
-            nodeData.parent.insertSubTag(tag, pos);
+            runInAction(() => nodeData.parent.insertSubTag(tag, pos));
           } else {
             nodeData.insertSubTag(tag, 0);
           }

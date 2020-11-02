@@ -56,9 +56,9 @@ const Multi = observer(({ tagStore, uiStore: { fileSelection: files } }: IFileTa
   return (
     <MultiTagSelector
       selection={selection}
-      onClear={() => files.forEach((f) => f.clearTags())}
-      onDeselect={(tag) => files.forEach((f) => f.removeTag(tag))}
-      onSelect={(tag) => files.forEach((f) => f.addTag(tag))}
+      onClear={action(() => files.forEach((f) => f.clearTags()))}
+      onDeselect={action((tag) => files.forEach((f) => f.removeTag(tag)))}
+      onSelect={action((tag) => files.forEach((f) => f.addTag(tag)))}
       tagLabel={tagLabel}
       onCreate={handleCreate}
     />
