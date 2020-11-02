@@ -285,14 +285,19 @@ class LocationStore {
   }
 
   @action.bound async delete(location: ClientLocation) {
-    const filesToRemove = await this.findLocationFiles(location.id);
-    await this.rootStore.fileStore.deleteFiles(filesToRemove.map((f) => f.id));
-
     // Remove location from DB through backend
     await this.backend.removeLocation(location.id);
-
-    // Remove location locally
-    runInAction(() => this.locationList.remove(location));
+    runInAction(() => {
+      // Remove deleted files from selection
+      for (const file of this.rootStore.uiStore.fileSelection) {
+        if (file.locationId === location.id) {
+          this.rootStore.uiStore.deselectFile(file);
+        }
+      }
+      // Remove location locally
+      this.locationList.remove(location);
+    });
+    this.rootStore.fileStore.refetch();
   }
 
   @action async addFile(path: string, location: ClientLocation) {

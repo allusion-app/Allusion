@@ -125,18 +125,22 @@ class FileStore {
     }
   }
 
-  @action async deleteFiles(ids: ID[]): Promise<void> {
-    if (ids.length === 0) {
+  @action async deleteFiles(files: ClientFile[]): Promise<void> {
+    if (files.length === 0) {
       return;
     }
 
     try {
       // Remove from backend
       // Deleting non-exiting keys should not throw an error!
-      await this.backend.removeFiles(ids);
+      await this.backend.removeFiles(files.map((f) => f.id));
 
       // Remove files from stores
-      this.removeFiles(ids);
+      for (const file of files) {
+        this.rootStore.uiStore.deselectFile(file);
+        this.removeThumbnail(file.absolutePath);
+      }
+      this.refetch();
     } catch (err) {
       console.error('Could not remove files', err);
     }
@@ -335,17 +339,6 @@ class FileStore {
       prefs[field] = this[field];
     }
     localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
-  }
-
-  @action private removeFiles(ids: ID[]) {
-    for (const id of ids) {
-      const file = this.get(id);
-      if (file !== undefined) {
-        this.rootStore.uiStore.deselectFile(file);
-        this.removeThumbnail(file.absolutePath);
-      }
-    }
-    this.refetch();
   }
 
   @action private async removeThumbnail(path: string) {

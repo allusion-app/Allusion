@@ -108,7 +108,7 @@ class TagStore {
     this.rootStore.fileStore.refetch();
   }
 
-  @action.bound async deleteMany(tags: ClientTag[]) {
+  @action.bound async deleteTags(tags: ClientTag[]) {
     await this.backend.removeTags(tags.map((t) => t.id));
     for (const tag of tags) {
       tag.dispose();

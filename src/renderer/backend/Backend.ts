@@ -148,6 +148,10 @@ export default class Backend {
 
   async removeLocation(location: ID): Promise<void> {
     console.info('Backend: Remove location...', location);
+    const filesWithLocation = await this.fileRepository.find({
+      criteria: { key: 'locationId', value: location, operator: 'equals', valueType: 'array' },
+    });
+    await this.removeFiles(filesWithLocation.map((f) => f.id));
     return this.locationRepository.remove(location);
   }
 

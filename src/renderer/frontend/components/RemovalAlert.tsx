@@ -97,7 +97,7 @@ export const FileRemoval = observer(() => {
         const files = [];
         for (const file of selection) {
           if (file.isBroken === true) {
-            files.push(file.id);
+            files.push(file);
           }
         }
         fileStore.deleteFiles(files);
