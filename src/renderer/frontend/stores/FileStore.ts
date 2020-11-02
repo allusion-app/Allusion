@@ -86,21 +86,14 @@ class FileStore {
     this.content = Content.Untagged;
   }
 
-  @action.bound async init(autoLoadFiles: boolean) {
-    if (autoLoadFiles) {
-      const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
-      return this.updateFromBackend(fetchedFiles);
-    }
-  }
-
-  @action.bound async addFile(path: string, locationId: ID, dateAdded: Date = new Date()) {
-    const loc = this.getLocation(locationId)!;
+  @action.bound async importExternalFile(path: string, dateAdded: Date) {
+    const loc = this.rootStore.locationStore.defaultLocation;
     const file = new ClientFile(this, {
       id: generateId(),
-      locationId,
+      locationId: loc.id,
       absolutePath: path,
       relativePath: path.replace(loc.path, ''),
-      dateAdded: dateAdded,
+      dateAdded,
       dateModified: new Date(),
       tags: [],
       ...(await getMetaData(path)),
@@ -298,8 +291,15 @@ class FileStore {
     return this.index.get(id);
   }
 
-  getTags(tags: Iterable<ID>): Generator<ClientTag> {
-    return this.rootStore.tagStore.getIterFrom(tags);
+  getTags(ids: ID[]): Set<ClientTag> {
+    const tags = new Set<ClientTag>();
+    for (const id of ids) {
+      const tag = this.rootStore.tagStore.get(id);
+      if (tag !== undefined) {
+        tags.add(tag);
+      }
+    }
+    return tags;
   }
 
   getLocation(location: ID): ClientLocation {

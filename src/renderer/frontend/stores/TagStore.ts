@@ -63,15 +63,6 @@ class TagStore {
     );
   }
 
-  *getIterFrom(ids: Iterable<ID>): Generator<ClientTag> {
-    for (const id of ids) {
-      const tag = this.get(id);
-      if (tag !== undefined) {
-        yield tag;
-      }
-    }
-  }
-
   @action.bound async create(parent: ClientTag, tagName: string) {
     let id = generateId();
     // It is very unlikely to create two identical ids but that is better

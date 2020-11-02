@@ -27,30 +27,30 @@ class LocationStore {
     makeObservable(this);
   }
 
-  @action async init(autoLoad: boolean) {
+  @action async init() {
     // Get dirs from backend
     const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.ASC);
     const locations = dirs.map((dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded));
     runInAction(() => this.locationList.replace(locations));
+  }
 
-    // E.g. in preview window, it's not needed to watch the locations
-    if (!autoLoad) {
-      return;
-    }
-
+  // E.g. in preview window, it's not needed to watch the locations
+  @action async watchLocations() {
     const progressToastKey = 'progress';
     let foundNewFiles = false;
+    const len = this.locationList.length;
+    const getLocation = action((index: number) => this.locationList[index]);
 
     // TODO: Do this in a web worker, not in the renderer thread!
     // For every location, find its files, and update the database accordingly.
-    for (let i = 0; i < locations.length; i++) {
-      const location = locations[i];
+    for (let i = 0; i < len; i++) {
+      const location = getLocation(i);
 
       AppToaster.show(
         {
           // icon: '',
           intent: 'none',
-          message: `Looking for new images... [${i + 1} / ${locations.length}]`,
+          message: `Looking for new images... [${i + 1} / ${len}]`,
           timeout: 0,
         },
         progressToastKey,
@@ -133,10 +133,10 @@ class LocationStore {
 
     if (foundNewFiles) {
       AppToaster.show({ message: 'New images detected.', intent: 'primary' }, progressToastKey);
-      this.rootStore.fileStore.refetch();
     } else {
       AppToaster.dismiss(progressToastKey);
     }
+    return foundNewFiles;
   }
 
   @computed get importDirectory() {

@@ -109,8 +109,11 @@ const WelcomeDialog = () => {
   const [showDialog, setShowDialog] = useState(false);
 
   const handleClose = useCallback(async () => {
-    await locationStore.init(true);
-    fileStore.refetch();
+    await locationStore.init();
+    const filesFound = await locationStore.watchLocations();
+    if (filesFound) {
+      fileStore.refetch();
+    }
     setShowDialog(false);
   }, [locationStore, fileStore]);
 

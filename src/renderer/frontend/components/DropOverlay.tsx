@@ -8,7 +8,6 @@ import { ClientTag } from '../../entities/Tag';
 import { timeoutPromise } from '../utils';
 import { IMG_EXTENSIONS } from '../../entities/File';
 import { RendererMessenger, IStoreFileMessage } from '../../../Messaging';
-import { DEFAULT_LOCATION_ID } from '../../entities/Location';
 import { Tag, IconSet } from 'components';
 import { Dialog } from 'components/popover';
 
@@ -201,7 +200,7 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
             const file = await fse.readFile(dataItem.path);
             fileData = {
               filenameWithExt: path.basename(dataItem.path),
-              imgBase64: new Buffer(file).toString('base64'),
+              imgBase64: file.toString('base64'),
             };
           } else if (typeof dataItem === 'string') {
             // It's probably a URL, so we can download it to get the image data
@@ -230,9 +229,9 @@ const DropOverlay = ({ children }: { children: React.ReactChild | React.ReactChi
               console.log('Imported file', reply.downloadPath);
 
               // Add tag if needed
-              const clientFile = await fileStore.addFile(reply.downloadPath, DEFAULT_LOCATION_ID);
-              if (clientFile && tag) {
-                clientFile.addTag(tag);
+              if (tag !== undefined) {
+                const file = await fileStore.importExternalFile(reply.downloadPath, new Date());
+                file.addTag(tag);
               }
             }
           }

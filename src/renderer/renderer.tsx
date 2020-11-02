@@ -17,7 +17,6 @@ import StoreContext from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
 import PreviewApp from './frontend/Preview';
 import { RendererMessenger } from '../Messaging';
-import { DEFAULT_LOCATION_ID } from './entities/Location';
 
 // Window State
 export const WINDOW_STORAGE_KEY = 'Allusion_Window';
@@ -34,7 +33,7 @@ backend
   .init()
   .then(async () => {
     console.log('Backend has been initialized!');
-    await rootStore.init(!IS_PREVIEW_WINDOW);
+    await rootStore.init(IS_PREVIEW_WINDOW);
     RendererMessenger.initialized();
   })
   .catch((err) => console.log('Could not initialize backend!', err));
@@ -143,7 +142,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
 
 RendererMessenger.onImportExternalImage(async ({ item }) => {
   console.log('Importing image...', item);
-  await rootStore.fileStore.addFile(item.filePath, DEFAULT_LOCATION_ID, item.dateAdded);
+  await rootStore.fileStore.importExternalFile(item.filePath, item.dateAdded);
   await addTagsToFile(item.filePath, item.tagNames);
 });
 

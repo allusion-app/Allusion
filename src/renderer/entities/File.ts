@@ -119,7 +119,7 @@ export class ClientFile implements ISerializable<IFile> {
     const base = Path.basename(this.relativePath);
     this.filename = base.substr(0, base.lastIndexOf('.'));
 
-    this.tags = observable(new Set(this.store.getTags(fileProps.tags)));
+    this.tags = observable(this.store.getTags(fileProps.tags));
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
