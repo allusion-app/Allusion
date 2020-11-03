@@ -71,19 +71,19 @@ const Layout = ({
       }
       if (e.key === 'ArrowLeft' && index > 0) {
         index -= 1;
-      } else if (e.key === 'ArrowRight' && index < fileList.length - 1) {
+      } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
         index += 1;
       } else {
         return;
       }
-      handleFileSelect(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
     };
 
     const throttledKeyDown = throttle(onKeyDown, 50);
 
     window.addEventListener('keydown', throttledKeyDown);
     return () => window.removeEventListener('keydown', throttledKeyDown);
-  }, [fileList, uiStore, handleFileSelect, lastSelectionIndex]);
+  }, [fileStore, handleFileSelect]);
 
   if (uiStore.isSlideMode) {
     return <SlideGallery contentRect={contentRect} uiStore={uiStore} fileStore={fileStore} />;
