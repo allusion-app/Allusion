@@ -53,9 +53,9 @@ const Layout = ({
         }
         lastSelectionIndex.current = i;
       } else if (toggleSelection) {
-        if (uiStore.toggleFileSelection(selectedFile)) {
-          lastSelectionIndex.current = fileStore.getIndex(selectedFile.id);
-        }
+        lastSelectionIndex.current = uiStore.toggleFileSelection(selectedFile)
+          ? fileStore.getIndex(selectedFile.id)
+          : undefined;
       } else {
         uiStore.selectFile(selectedFile, true);
         lastSelectionIndex.current = fileStore.getIndex(selectedFile.id);

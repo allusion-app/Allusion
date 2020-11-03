@@ -355,8 +355,7 @@ const TagsTree = observer(() => {
         uiStore.selectTagRange(nodeData, lastSelection);
         activeSelection.current = nodeData.id;
       } else {
-        // Toggles selection state of a single node
-        const selection = uiStore.toggleTagSelection(nodeData) ? null : nodeData.id;
+        const selection = uiStore.toggleTagSelection(nodeData) ? nodeData.id : null;
         activeSelection.current = selection;
       }
     },

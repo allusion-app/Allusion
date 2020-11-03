@@ -294,6 +294,9 @@ class UiStore {
     this.fileSelection.delete(file);
   }
 
+  /**
+   * Returns true if the file was selected.
+   */
   @action.bound toggleFileSelection(file: ClientFile): boolean {
     if (this.fileSelection.has(file)) {
       this.fileSelection.delete(file);
@@ -323,6 +326,9 @@ class UiStore {
     this.tagSelection.delete(tag);
   }
 
+  /**
+   * Returns true if the tag was selected.
+   */
   @action.bound toggleTagSelection(tag: ClientTag): boolean {
     if (this.tagSelection.has(tag)) {
       this.tagSelection.delete(tag);
