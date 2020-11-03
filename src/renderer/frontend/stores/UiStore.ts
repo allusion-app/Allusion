@@ -297,13 +297,11 @@ class UiStore {
   /**
    * Returns true if the file was selected.
    */
-  @action.bound toggleFileSelection(file: ClientFile): boolean {
+  @action.bound toggleFileSelection(file: ClientFile) {
     if (this.fileSelection.has(file)) {
       this.fileSelection.delete(file);
-      return false;
     } else {
       this.fileSelection.add(file);
-      return true;
     }
   }
 
@@ -329,13 +327,11 @@ class UiStore {
   /**
    * Returns true if the tag was selected.
    */
-  @action.bound toggleTagSelection(tag: ClientTag): boolean {
+  @action.bound toggleTagSelection(tag: ClientTag) {
     if (this.tagSelection.has(tag)) {
       this.tagSelection.delete(tag);
-      return false;
     } else {
       this.tagSelection.add(tag);
-      return true;
     }
   }
 

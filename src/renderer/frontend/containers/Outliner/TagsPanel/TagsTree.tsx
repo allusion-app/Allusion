@@ -347,16 +347,15 @@ const TagsTree = observer(() => {
   }, []);
 
   // Handles selection via click event
-  const activeSelection = useRef<ID | null>(null);
+  const lastSelection = useRef<ID | null>(null);
   const select = useCallback(
-    (event: React.MouseEvent, nodeData: ClientTag) => {
-      const lastSelection = activeSelection.current;
-      if (event.shiftKey && lastSelection !== null && lastSelection !== nodeData.id) {
-        uiStore.selectTagRange(nodeData, lastSelection);
-        activeSelection.current = nodeData.id;
+    (e: React.MouseEvent, nodeData: ClientTag) => {
+      if (e.shiftKey && lastSelection.current !== null && lastSelection.current !== nodeData.id) {
+        uiStore.selectTagRange(nodeData, lastSelection.current);
+        lastSelection.current = nodeData.id;
       } else {
-        const selection = uiStore.toggleTagSelection(nodeData) ? nodeData.id : null;
-        activeSelection.current = selection;
+        uiStore.toggleTagSelection(nodeData);
+        lastSelection.current = nodeData.id;
       }
     },
     [uiStore],
