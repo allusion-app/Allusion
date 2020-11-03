@@ -9,7 +9,6 @@ import { MenuItem } from 'components/menu';
 import { throttle } from '../../utils';
 import { shell } from 'electron';
 import ZoomableImage from './ZoomableImage';
-import useSelectionCursor from '../../hooks/useSelectionCursor';
 import { RendererMessenger } from 'src/Messaging';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
@@ -34,37 +33,35 @@ const Layout = ({
   uiStore,
   fileStore,
 }: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
-  const fileList = fileStore.fileList;
   // Todo: Select by dragging a rectangle shape
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
   // Also take into account scrolling when dragging while selecting
-  const { makeSelection, lastSelectionIndex } = useSelectionCursor();
+  const lastSelectionIndex = useRef<number>();
 
   // useComputed to listen to fileSelection changes
   const handleFileSelect = useCallback(
-    (selectedFile: ClientFile, selectAdditive: boolean, selectRange: boolean) => {
-      const i = fileStore.getIndex(selectedFile.id);
-      if (i === undefined) {
-        return;
-      }
-
-      const isSelected = uiStore.fileSelection.has(selectedFile);
-
-      const newSelection = makeSelection(i, selectRange);
-      if (!selectAdditive) {
-        uiStore.clearFileSelection();
-      }
-      if (selectRange) {
-        uiStore.selectFiles(newSelection.map((i) => fileList[i]));
-      } else if (selectAdditive) {
-        // Add or subtract to the selection
-        isSelected ? uiStore.deselectFile(selectedFile) : uiStore.selectFile(selectedFile);
+    (selectedFile: ClientFile, toggleSelection: boolean, rangeSelection: boolean) => {
+      if (rangeSelection && lastSelectionIndex.current !== undefined) {
+        const i = fileStore.getIndex(selectedFile.id);
+        if (i === undefined) {
+          return;
+        }
+        if (i < lastSelectionIndex.current) {
+          uiStore.selectFileRange(i, lastSelectionIndex.current);
+        } else {
+          uiStore.selectFileRange(lastSelectionIndex.current, i);
+        }
+        lastSelectionIndex.current = i;
+      } else if (toggleSelection) {
+        if (uiStore.toggleFileSelection(selectedFile)) {
+          lastSelectionIndex.current = fileStore.getIndex(selectedFile.id);
+        }
       } else {
-        // Only select this file.
-        uiStore.selectFile(selectedFile);
+        uiStore.selectFile(selectedFile, true);
+        lastSelectionIndex.current = fileStore.getIndex(selectedFile.id);
       }
     },
-    [fileStore, uiStore, makeSelection, fileList],
+    [fileStore, uiStore],
   );
 
   useEffect(() => {

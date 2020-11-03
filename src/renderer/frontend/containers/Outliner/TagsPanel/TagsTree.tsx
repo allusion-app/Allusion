@@ -26,7 +26,7 @@ import { Action, State, Factory, reducer } from './StateReducer';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
 import { Collapse } from 'src/renderer/frontend/components/Transition';
-import { action, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 
 interface ILabelProps {
   text: string;
@@ -267,7 +267,7 @@ const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));
 
 const toggleSelection = (uiStore: UiStore, nodeData: ClientTag) =>
-  nodeData.isSelected ? uiStore.deselectTag(nodeData) : uiStore.selectTag(nodeData);
+  uiStore.toggleTagSelection(nodeData);
 
 const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
   const element = event.currentTarget.querySelector('.tree-content-label');
@@ -320,36 +320,6 @@ const customKeys = (
   }
 };
 
-// Range Selection using pre-order tree traversal
-const rangeSelection = action(
-  (selection: ClientTag[], nodeData: ClientTag, lastSelection: ID, root: ClientTag) => {
-    let isSelecting = false;
-    const selectRange = (node: ClientTag) => {
-      if (node.id === lastSelection || node.id === nodeData.id) {
-        if (!isSelecting) {
-          // Start selection
-          isSelecting = true;
-        } else {
-          // End selection
-          selection.push(node);
-          isSelecting = false;
-          return;
-        }
-      }
-
-      if (isSelecting) {
-        selection.push(node);
-      }
-
-      for (const subTag of node.subTags) {
-        selectRange(subTag);
-      }
-    };
-
-    selectRange(root);
-  },
-);
-
 const mapTag = (tag: ClientTag): ITreeItem => ({
   id: tag.id,
   label: TagItemLabel,
@@ -382,19 +352,15 @@ const TagsTree = observer(() => {
     (event: React.MouseEvent, nodeData: ClientTag) => {
       const lastSelection = activeSelection.current;
       if (event.shiftKey && lastSelection !== null && lastSelection !== nodeData.id) {
-        // Batch selection
-        const selection: ClientTag[] = [];
-        rangeSelection(selection, nodeData, lastSelection, root);
-        uiStore.selectTags(selection, true);
+        uiStore.selectTagRange(nodeData, lastSelection);
         activeSelection.current = nodeData.id;
       } else {
         // Toggles selection state of a single node
-        const nextLastSelection = nodeData.isSelected ? null : nodeData.id;
-        nodeData.isSelected ? uiStore.deselectTag(nodeData) : uiStore.selectTag(nodeData);
-        activeSelection.current = nextLastSelection;
+        const selection = uiStore.toggleTagSelection(nodeData) ? null : nodeData.id;
+        activeSelection.current = selection;
       }
     },
-    [root, uiStore],
+    [uiStore],
   );
 
   const treeData: ITreeData = useMemo(

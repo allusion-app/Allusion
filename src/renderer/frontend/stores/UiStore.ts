@@ -290,53 +290,75 @@ class UiStore {
     this.fileSelection.add(file);
   }
 
-  @action.bound selectFiles(files: ClientFile[], clear?: boolean) {
-    if (clear) {
-      this.fileSelection.replace(files);
-      return;
-    }
-    for (const file of files) {
-      this.fileSelection.add(file);
-    }
-  }
-
   @action.bound deselectFile(file: ClientFile) {
-    this.fileSelection.delete(file.id);
+    this.fileSelection.delete(file);
   }
 
-  @action.bound clearFileSelection() {
+  @action.bound toggleFileSelection(file: ClientFile): boolean {
+    if (this.fileSelection.has(file)) {
+      this.fileSelection.delete(file);
+      return false;
+    } else {
+      this.fileSelection.add(file);
+      return true;
+    }
+  }
+
+  @action.bound selectFileRange(start: number, end: number) {
     this.fileSelection.clear();
+    for (let i = start; i <= end; i++) {
+      this.fileSelection.add(this.rootStore.fileStore.fileList[i]);
+    }
   }
 
   @action.bound selectAllFiles() {
     this.fileSelection.replace(this.rootStore.fileStore.fileList);
   }
 
-  @action.bound selectTag(tag: ClientTag, clear?: boolean) {
-    if (clear) {
-      this.clearTagSelection();
-    }
-    this.tagSelection.add(tag);
-  }
-
-  @action.bound selectTags(tags: ClientTag[], clear?: boolean) {
-    if (clear) {
-      this.tagSelection.replace(tags);
-      return;
-    }
-    for (const tag of tags) {
-      this.tagSelection.add(tag);
-    }
-  }
-
-  @action.bound deselectTags(tags: ID[]) {
-    for (const tag of tags) {
-      this.tagSelection.delete(tag);
-    }
+  @action.bound clearFileSelection() {
+    this.fileSelection.clear();
   }
 
   @action.bound deselectTag(tag: ClientTag) {
-    this.tagSelection.delete(tag.id);
+    this.tagSelection.delete(tag);
+  }
+
+  @action.bound toggleTagSelection(tag: ClientTag): boolean {
+    if (this.tagSelection.has(tag)) {
+      this.tagSelection.delete(tag);
+      return false;
+    } else {
+      this.tagSelection.add(tag);
+      return true;
+    }
+  }
+
+  // Range Selection using pre-order tree traversal
+  @action.bound selectTagRange(tag: ClientTag, lastSelection: ID) {
+    this.tagSelection.clear();
+    let isSelecting = false;
+    const selectRange = (node: ClientTag) => {
+      if (node.id === lastSelection || node.id === tag.id) {
+        if (!isSelecting) {
+          // Start selection
+          isSelecting = true;
+        } else {
+          // End selection
+          this.tagSelection.add(node);
+          isSelecting = false;
+          return;
+        }
+      }
+
+      if (isSelecting) {
+        this.tagSelection.add(node);
+      }
+
+      for (const subTag of node.subTags) {
+        selectRange(subTag);
+      }
+    };
+    selectRange(this.rootStore.tagStore.root);
   }
 
   @action.bound selectAllTags() {
