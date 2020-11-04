@@ -131,11 +131,9 @@ interface IZoomableImageProps {
 }
 
 const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImageProps) => {
-  const ignoreClick = useCallback((e: React.MouseEvent) => e.stopPropagation(), []);
-
   // Todo: Same context menu as GalleryItem
   return (
-    <div onClick={ignoreClick} id="zoomableImage">
+    <div id="zoomableImage">
       <div
         style={{
           width: `${contentRect.width}px`,
@@ -143,13 +141,7 @@ const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImag
         }}
       >
         {/* https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
-        <PinchZoomPan
-          position="center"
-          zoomButtons={false}
-          maxScale={4}
-          key={src}
-          doubleTapBehavior="zoom"
-        >
+        <PinchZoomPan position="center" zoomButtons={false} doubleTapBehavior="zoom">
           <img src={src} alt={src} />
         </PinchZoomPan>
 
