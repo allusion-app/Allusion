@@ -96,7 +96,7 @@
     "mobx": "^6.0.0",
     "mobx-react-lite": "^3.0.0",
     "react": "^16.14.0",
-    "react-colorful": "4.3.0",
+    "react-colorful": "^4.4.2",
     "react-dom": "^16.14.0",
     "react-popper": "^2.2.3",
     "react-responsive-pinch-zoom-pan": "^0.3.0",

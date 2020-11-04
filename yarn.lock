@@ -6686,10 +6686,10 @@ rc@^1.2.8:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-colorful@4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/react-colorful/-/react-colorful-4.3.0.tgz#2b4c88e203d09a248bacf49c105aa047ca3b4d93"
-  integrity sha512-m9ssS2c3+DWtVzM8XAAR93M7NjRQNERf0PvdMvB/+0mTh6/N0sHi7z2LwsFoD5dqUULyhkIMBu8AiHH8s6lzsg==
+react-colorful@^4.4.2:
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/react-colorful/-/react-colorful-4.4.2.tgz#b32c4458e3ae6447049cb1a8f17a2a5f6b0f5b1f"
+  integrity sha512-oQ4gG7RSpJt+C9ozmvObiZIh4E6MIgjkzjNXA1xx/Bel01Q2P6JalLODe1YlU8U44WaoCXrVXVv7d1sMWR7gvw==
 
 react-dom@^16.14.0:
   version "16.14.0"
