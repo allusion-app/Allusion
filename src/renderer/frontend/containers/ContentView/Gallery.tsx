@@ -153,6 +153,11 @@ const GridGallery = observer((props: ILayoutProps) => {
             const rowIndex = parseInt(e.target.getAttribute('aria-rowindex')!) - 1;
             const index = rowIndex * e.target.childElementCount;
             uiStore.setFirstItem(index);
+            // Make first item in viewport focusable if there is nothing to tab to.
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            if (e.target.parentElement!.querySelector('[tabindex="0"]') === null) {
+              (e.target.firstElementChild as HTMLElement).tabIndex = 0;
+            }
             break;
           }
         }
@@ -334,6 +339,11 @@ const ListGallery = observer((props: ILayoutProps) => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const rowIndex = e.target.getAttribute('aria-rowindex')!;
             uiStore.setFirstItem(parseInt(rowIndex) - 1);
+            // Make first item in viewport focusable if there is nothing to tab to.
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            if (e.target.parentElement!.querySelector('[tabindex="0"]') === null) {
+              (e.target.firstElementChild as HTMLElement).tabIndex = 0;
+            }
             break;
           }
         }

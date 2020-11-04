@@ -33,8 +33,7 @@ const ContentView = () => {
   );
 
   return (
-    // TODO: Remove tabIndex once focus navigation has been added.
-    <main tabIndex={0} onKeyDown={handleShortcuts}>
+    <main onKeyDown={handleShortcuts}>
       <Gallery />
     </main>
   );
