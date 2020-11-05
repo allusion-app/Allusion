@@ -32,24 +32,20 @@ const Single = observer(({ tagStore, uiStore }: IFileTagProp) => {
 
 const Multi = observer(({ tagStore, uiStore: { fileSelection: files } }: IFileTagProp) => {
   // Count how often tags are used
-  const countMap = new Map<ClientTag, number>();
+  const counter = new Map<ClientTag, number>();
   for (const file of files) {
     for (const tag of file.tags) {
-      const count = countMap.get(tag);
-      countMap.set(tag, count !== undefined ? count + 1 : 1);
+      const count = counter.get(tag);
+      counter.set(tag, count !== undefined ? count + 1 : 1);
     }
   }
 
-  const selection = (() =>
-    Array.from(countMap.entries())
-      // Sort based on count
-      .sort((a, b) => b[1] - a[1])
-      .map((pair) => pair[0]))();
+  const selection = Array.from(counter.entries())
+    // Sort based on count
+    .sort((a, b) => b[1] - a[1])
+    .map((pair) => pair[0]);
 
-  const tagLabel = action((tag: ClientTag) => {
-    const count = countMap.get(tag);
-    return `${tag.name} (${count})`;
-  });
+  const tagLabel = action((tag: ClientTag) => `${tag.name} (${counter.get(tag)})`);
 
   const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
 
