@@ -209,8 +209,15 @@ class UiStore {
       return;
     }
 
+    // If only one image was selected, open all images, but focus on the selected image. Otherwise, open selected images
+    const previewFiles =
+      this.fileSelection.size === 1
+        ? this.rootStore.fileStore.fileList.map((file) => file.id)
+        : Array.from(this.fileSelection);
+
     RendererMessenger.sendPreviewFiles({
-      ids: Array.from(this.fileSelection),
+      ids: previewFiles,
+      activeImgId: this.getFirstSelectedFileId(),
       thumbnailDirectory: this.thumbnailDirectory,
     });
 

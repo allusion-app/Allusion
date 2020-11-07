@@ -40,8 +40,8 @@ backend
   .catch((err) => console.log('Could not initialize backend!', err));
 
 if (IS_PREVIEW_WINDOW) {
-  RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory }) => {
-    rootStore.uiStore.setFirstItem(0);
+  RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory, activeImgId }) => {
+    rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
     rootStore.uiStore.enableSlideMode();
     rootStore.fileStore.fetchFilesByIDs(ids);

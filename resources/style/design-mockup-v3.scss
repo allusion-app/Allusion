@@ -10,7 +10,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
     'Helvetica Neue', sans-serif;
   font-size: 0.8125rem;
-  color: rgb(32, 32, 32);
+  // color: rgb(32, 32, 32); depends on theme, moved to global.scss
   backdrop-filter: blur(50px);
   position: relative;
   // background: rgba(255, 255, 255, 0.85);
@@ -20,7 +20,7 @@ body {
 #togglebar {
   position: absolute;
   top: 0;
-  left: 0;
+  // left: 0; // causes it to be 1 pixel too narrow??
   width: var(--outliner-width);
   height: 3rem;
   box-sizing: border-box;
@@ -120,18 +120,18 @@ body {
   bottom: 0;
   box-sizing: border-box;
   padding: 0 0.5rem;
-  overflow-y: scroll;
+  overflow-y: auto;
   z-index: 20;
 }
 #inspector {
-  position: absolute;
+  // position: absolute;
   top: 3rem;
   bottom: 0;
   right: 0;
   width: 18rem;
   box-sizing: border-box;
-  padding: 0 0.75rem 0 0;
-  overflow-y: scroll;
+  // padding: 0 0.75rem 0 0;
+  overflow-y: auto;
   z-index: 20;
 }
 #background {
@@ -164,7 +164,7 @@ body {
 .dropdown img {
   padding: 0 0.25rem;
 }
-.toaster-disabled-fixme {
+.toaster-disabled-FIXME {
   // TODO: Disabled for now - it always shows the blue container for some reason
   background: #3399ff;
   color: #ffffff;

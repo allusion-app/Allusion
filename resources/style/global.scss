@@ -53,8 +53,8 @@ pre {
 
 // Global specific styles for the main window
 #app {
-  --outliner-width: 18em;
-  --inspector-width: 24em;
+  --outliner-width: 14rem;
+  --inspector-width: 18rem;
   --toolbar-height: 3rem;
   --quick-searchbar-height: 2.5rem;
   --thumbnail-size: 250px;
@@ -95,8 +95,8 @@ pre {
   color: var(--text-color);
 
   // The background color of elements inside of panels
-  --foreground-color: #{$dark-gray3};
-  --foreground-color2: #{$dark-gray2}; // Left side
+  --foreground-color: #{$dark-gray3}; // Main background color
+  --foreground-color2: #{$dark-gray2}; // Alt background color (outliner)
   // Background color of the main panels
   --background-color: #{$dark-gray0}; // dark-gray0 or 1? --> NOT used in new design
 }
@@ -108,13 +108,13 @@ pre {
   --hover-color: #{$black};
 
   // Text/icon color
-  --text-color: hsl(0, 0%, 20%);
+  --text-color: rgb(32, 32, 32); // hsl(0, 0%, 20%);
   --text-muted-color: hsl(0, 0%, 45%);
   color: var(--text-color);
 
   // The (background) color of elements inside of panels
-  --foreground-color: #{$light-gray5};
-  --foreground-color2: #{$light-gray3}; // Left side
+  --foreground-color: rgb(255, 255, 255); // #{$light-gray5};
+  --foreground-color2: rgba(217, 217, 217); // #{$light-gray3}; // Left side
   // Background color of the main panels
   --background-color: #{$light-gray3}; // light-gray5 ? --> NOT used in new design
 }
@@ -140,6 +140,7 @@ main {
   grid-area: main;
   display: flex;
   background: var(--foreground-color);
+  padding-left: 0.5rem;
 }
 
 .contextMenuTarget {

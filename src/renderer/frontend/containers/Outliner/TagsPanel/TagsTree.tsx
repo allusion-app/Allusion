@@ -208,7 +208,7 @@ const TagItem = observer((props: ITagItemProps) => {
       onDragEnd={handleDragEnd}
       onContextMenu={handleContextMenu}
     >
-      <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>
+      {!nodeData.subTags.length && <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>}
       <Label
         text={nodeData.name}
         setText={nodeData.rename}
