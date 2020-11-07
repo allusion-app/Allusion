@@ -11,7 +11,7 @@ let mainConfig = {
   mode: 'development',
   entry: './src/main/main.ts',
   devtool: 'source-map',
-  target: 'electron-main',
+  target: ['electron-main', 'es2020'],
   output: {
     filename: 'main.bundle.js',
     path: __dirname + '/build',
@@ -55,7 +55,7 @@ let rendererConfig = {
   mode: 'development',
   entry: './src/renderer/renderer.tsx',
   devtool: 'source-map',
-  target: 'electron-renderer',
+  target: ['electron-renderer', 'es2020'],
   output: {
     filename: 'renderer.bundle.js',
     path: __dirname + '/build',

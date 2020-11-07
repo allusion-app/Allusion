@@ -17,7 +17,6 @@ import StoreContext from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
 import PreviewApp from './frontend/Preview';
 import { RendererMessenger } from '../Messaging';
-import { DEFAULT_LOCATION_ID } from './entities/Location';
 
 // Window State
 export const WINDOW_STORAGE_KEY = 'Allusion_Window';
@@ -34,7 +33,7 @@ backend
   .init()
   .then(async () => {
     console.log('Backend has been initialized!');
-    await rootStore.init(!IS_PREVIEW_WINDOW);
+    await rootStore.init(IS_PREVIEW_WINDOW);
     RendererMessenger.initialized();
   })
   .catch((err) => console.log('Could not initialize backend!', err));
@@ -74,7 +73,7 @@ if (IS_PREVIEW_WINDOW) {
   // Change window title to filename when changing the selected file
   observe(rootStore.uiStore.fileSelection, ({ object: list }) => {
     if (list.size > 0) {
-      const file = rootStore.fileStore.get(rootStore.uiStore.getFirstSelectedFileId()!);
+      const file = rootStore.uiStore.firstSelectedFile;
       if (file !== undefined) {
         document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.absolutePath}`;
       }
@@ -123,19 +122,19 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   const { fileStore, tagStore } = rootStore;
   const clientFile = fileStore.fileList.find((file) => file.absolutePath === filePath);
   if (clientFile) {
-    const tagIds = await Promise.all(
+    const tags = await Promise.all(
       tagNames.map(async (tagName) => {
         const clientTag = tagStore.tagList.find((tag) => tag.name === tagName);
         console.log(clientTag);
         if (clientTag !== undefined) {
-          return clientTag.id;
+          return clientTag;
         } else {
           const newClientTag = await tagStore.create(tagStore.root, tagName);
-          return newClientTag.id;
+          return newClientTag;
         }
       }),
     );
-    tagIds.forEach((t) => clientFile.addTag(t));
+    tags.forEach(clientFile.addTag);
   } else {
     console.error('Could not find image to set tags for', filePath);
   }
@@ -143,7 +142,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
 
 RendererMessenger.onImportExternalImage(async ({ item }) => {
   console.log('Importing image...', item);
-  await rootStore.fileStore.addFile(item.filePath, DEFAULT_LOCATION_ID, item.dateAdded);
+  await rootStore.fileStore.importExternalFile(item.filePath, item.dateAdded);
   await addTagsToFile(item.filePath, item.tagNames);
 });
 

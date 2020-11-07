@@ -1,12 +1,4 @@
-import {
-  action,
-  IObservableArray,
-  ObservableMap,
-  observable,
-  runInAction,
-  computed,
-  makeObservable,
-} from 'mobx';
+import { action, observable, computed, makeObservable, runInAction } from 'mobx';
 import Backend from '../../backend/Backend';
 import { ClientTag, ITag, ROOT_TAG_ID } from '../../entities/Tag';
 import RootStore from './RootStore';
@@ -20,9 +12,9 @@ class TagStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
 
-  readonly tagList: IObservableArray<ClientTag> = observable([]);
-  /** Maps child ID to parent ClientTag reference. */
-  private readonly parentLookup: ObservableMap<ID, ClientTag> = observable(new Map());
+  readonly tagList = observable(new Array<ClientTag>());
+  /** A lookup map to speedup finding entities */
+  private readonly index = observable(new Map<ID, number>());
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -34,57 +26,33 @@ class TagStore {
   async init() {
     try {
       const fetchedTags = await this.backend.fetchTags();
-      this.initTagList(fetchedTags);
+      this.createTagGraph(fetchedTags);
     } catch (err) {
       console.log('Could not load tags', err);
     }
   }
 
-  get(tag: ID): ClientTag | undefined {
-    return this.tagList.find((t) => t.id === tag);
+  @action get(tag: ID): ClientTag | undefined {
+    const index = this.index.get(tag);
+    return index !== undefined ? this.tagList[index] : undefined;
   }
 
   @computed get root() {
-    const root = this.get(ROOT_TAG_ID);
+    const root = this.tagList.find((t) => t.id === ROOT_TAG_ID);
     if (!root) {
       throw new Error('Root tag not found. This should not happen!');
     }
     return root;
   }
 
-  getParent(child: ID): ClientTag {
-    const parent = this.parentLookup.get(child);
-    if (parent === undefined) {
-      console.warn('Tag does not have a parent', this);
-      return this.root;
-    }
-    return parent;
-  }
-
-  isSelected(tag: ID): boolean {
+  @action isSelected(tag: ClientTag): boolean {
     return this.rootStore.uiStore.tagSelection.has(tag);
   }
 
-  isSearched(tag: ID): boolean {
+  @action isSearched(tag: ID): boolean {
     return this.rootStore.uiStore.searchCriteriaList.some(
       (c) => c instanceof ClientIDSearchCriteria && c.value.includes(tag),
     );
-  }
-
-  /** Checks whether a tag exists with this id. */
-  exists(id: ID): boolean {
-    // Each tag has a parent which is why it is faster to lookup the parent
-    // instead of searching the whole list every time.
-    return this.parentLookup.has(id);
-  }
-
-  *getIterFrom(ids: Iterable<ID>): Generator<ClientTag> {
-    for (const id of ids) {
-      if (this.exists(id)) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        yield this.get(id)!;
-      }
-    }
   }
 
   @action.bound async create(parent: ClientTag, tagName: string) {
@@ -94,7 +62,7 @@ class TagStore {
     if (this.exists(id)) {
       id = generateId();
     }
-    const tag = new ClientTag(this, id, tagName);
+    const tag = new ClientTag(this, id, tagName, new Date());
     await this.backend.createTag(tag.serialize());
     this.add(parent, tag);
     return tag;
@@ -107,9 +75,9 @@ class TagStore {
     // Reorder tag.subTags and return
     if (tag === subTag.parent) {
       if (index > -1 && index < tag.subTags.length) {
-        const newIndex = tag.subTags.indexOf(subTag.id) < index ? index - 1 : index;
-        tag.subTags.remove(subTag.id);
-        tag.subTags.splice(newIndex, 0, subTag.id);
+        const newIndex = tag.subTags.indexOf(subTag) < index ? index - 1 : index;
+        tag.subTags.remove(subTag);
+        tag.subTags.splice(newIndex, 0, subTag);
       }
       return;
     }
@@ -122,75 +90,110 @@ class TagStore {
       node = node.parent;
     }
     // Insert subTag into tag
-    subTag.parent.subTags.remove(subTag.id);
+    subTag.parent.subTags.remove(subTag);
     if (index > -1 && index < tag.subTags.length) {
-      tag.subTags.splice(index, 0, subTag.id);
+      tag.subTags.splice(index, 0, subTag);
     } else {
-      tag.subTags.push(subTag.id);
+      tag.subTags.push(subTag);
     }
-    this.parentLookup.set(subTag.id, tag);
+    subTag.setParent(tag);
   }
 
   @action.bound async delete(tag: ClientTag) {
     tag.dispose();
     await this.backend.removeTag(tag.id);
-    await this.deleteSubTags(tag.clientSubTags);
-    runInAction(() => tag.parent.subTags.remove(tag.id));
+    await this.deleteSubTags(tag);
     this.remove(tag);
+    this.rebuildIndex();
+    this.rootStore.fileStore.refetch();
+  }
+
+  @action.bound async deleteTags(tags: ClientTag[]) {
+    await this.backend.removeTags(tags.map((t) => t.id));
+    for (const tag of tags) {
+      tag.dispose();
+      await this.deleteSubTags(tag);
+      this.remove(tag);
+    }
+    this.rebuildIndex();
+    this.rootStore.fileStore.refetch();
   }
 
   save(tag: ITag) {
     this.backend.saveTag(tag);
   }
 
+  @action private createTagGraph(backendTags: ITag[]) {
+    // Create tags
+    for (const { id, name, dateAdded, color } of backendTags) {
+      // Create entity and set properties
+      // We have to do this because JavaScript does not allow multiple constructor.
+      const tag = new ClientTag(this, id, name, dateAdded, color);
+      // Add to index
+      this.index.set(tag.id, this.tagList.length);
+      this.tagList.push(tag);
+    }
+
+    // Set parent and add sub tags
+    for (let i = 0; i < backendTags.length; i++) {
+      const { subTags } = backendTags[i];
+      const tag = this.tagList[i];
+
+      tag.update((tag) => {
+        for (const id of subTags) {
+          const subTag = this.get(id);
+          if (subTag !== undefined) {
+            subTag.setParent(tag);
+            tag.subTags.push(subTag);
+          }
+        }
+      });
+    }
+    this.root.setParent(this.root);
+  }
+
   @action private add(parent: ClientTag, tag: ClientTag) {
-    this.parentLookup.set(tag.id, parent);
+    this.index.set(tag.id, this.tagList.length);
     this.tagList.push(tag);
-    parent.subTags.push(tag.id);
+    tag.setParent(parent);
+    parent.subTags.push(tag);
   }
 
   // The difference between this method and delete is that no computation
   // power is wasted on removing the tag id from the parent subTags list.
-  @action private async deleteSubTags(subTags: ClientTag[]) {
-    for (const subTag of subTags) {
-      subTag.dispose();
-      await this.backend.removeTag(subTag.id);
-      await this.deleteSubTags(subTag.clientSubTags);
-      this.remove(subTag);
+  @action private async deleteSubTags(tag: ClientTag) {
+    if (tag.subTags.length > 0) {
+      const ids = tag.subTags.map((subTag) => subTag.id);
+      await this.backend.removeTags(ids);
     }
+    runInAction(() => {
+      for (const subTag of tag.subTags) {
+        subTag.dispose();
+        this.deleteSubTags(subTag);
+        this.rootStore.uiStore.deselectTag(subTag);
+        this.tagList.remove(subTag);
+      }
+    });
   }
 
   @action private remove(tag: ClientTag) {
-    // Remove tag id reference from other observable objects types
+    // Remove tag id reference from other observable objects
     this.rootStore.uiStore.deselectTag(tag);
-    for (const file of this.rootStore.fileStore.fileList) {
-      file.removeTag(tag.id);
-    }
-    this.parentLookup.delete(tag.id);
+    tag.parent.subTags.remove(tag);
     this.tagList.remove(tag);
   }
 
-  @action private initTagList(backendTags: ITag[]) {
-    // Create tag objects
-    for (const backendTag of backendTags) {
-      const tag = new ClientTag(
-        this,
-        backendTag.id,
-        backendTag.name,
-        backendTag.dateAdded,
-      ).updateFromBackend(backendTag);
-      this.tagList.push(tag);
-      for (const subTag of tag.subTags) {
-        this.parentLookup.set(subTag, tag);
-      }
+  @action private rebuildIndex(): void {
+    this.index.clear();
+    for (let i = 0; i < this.tagList.length; i++) {
+      const tag = this.tagList[i];
+      this.index.set(tag.id, i);
     }
-    // Set missing parents with root
-    const root = this.root;
-    for (const tag of this.tagList) {
-      if (!this.exists(tag.id)) {
-        this.parentLookup.set(tag.id, root);
-      }
-    }
+  }
+
+  /** Checks whether a tag exists with this id. */
+  private exists(id: ID): boolean {
+    return this.index.has(id);
   }
 }
 

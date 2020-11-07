@@ -11,24 +11,4 @@ import RootStore from '../stores/RootStore';
  */
 const StoreContext = React.createContext<RootStore>({} as RootStore);
 
-export interface IRootStoreProp {
-  rootStore: RootStore;
-}
-
-/**
- * A higher order component (HOC) for injecting the context in the props of the wrapped component
- * Usage:
- * const myComponent = ...
- * const myComponentWithRootStore = withRootStore(myComponent);
- * Now myComponent is passed the rootStore as a prop.
- */
-export const withRootstore = <P extends IRootStoreProp>(WrappedComponent: React.ComponentType<P>) =>
-  function rootStoreHoc(props: Pick<P, Exclude<keyof P, keyof IRootStoreProp>>) {
-    return (
-      <StoreContext.Consumer>
-        {(rootStore) => <WrappedComponent {...(props as P)} rootStore={rootStore} />}
-      </StoreContext.Consumer>
-    );
-  };
-
 export default StoreContext;

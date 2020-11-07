@@ -202,7 +202,7 @@ const LocationRecoveryDialog = () => {
   const status = statusFromMatch(match);
 
   const handleChangeLocationPath = (location: ClientLocation, path: string) => {
-    location.changePath(path);
+    locationStore.changeLocationPath(location, path);
     AppToaster.show({ intent: 'success', message: `Recovered Location ${path}!` });
   };
 
@@ -234,7 +234,7 @@ const LocationRecoveryDialog = () => {
       uiStore.closeLocationRecovery();
       location.setBroken(false);
       if (!location.isInitialized) {
-        locationStore.initializeLocation(location);
+        locationStore.initLocation(location);
       } else {
         fileStore.refetch();
       }

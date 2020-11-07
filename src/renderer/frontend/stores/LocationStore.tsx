@@ -5,13 +5,12 @@ import React from 'react';
 import Backend from '../../backend/Backend';
 import RootStore from './RootStore';
 import { ID, generateId } from '../../entities/ID';
-import { ClientLocation, DEFAULT_LOCATION_ID, ILocation } from '../../entities/Location';
+import { ClientLocation, DEFAULT_LOCATION_ID } from '../../entities/Location';
 import { IFile, getMetaData } from '../../entities/File';
 import { RendererMessenger } from '../../../Messaging';
 import { ClientStringSearchCriteria } from '../../entities/SearchCriteria';
 import { AppToaster } from '../App';
 import { promiseAllLimit } from '../utils';
-import { ClientTag } from 'src/renderer/entities/Tag';
 import { IconSet } from 'components/Icons';
 import { FileOrder } from 'src/renderer/backend/DBRepository';
 
@@ -28,70 +27,65 @@ class LocationStore {
     makeObservable(this);
   }
 
-  @action.bound async init(autoLoad: boolean) {
+  @action async init() {
     // Get dirs from backend
-    const dirs = await this.backend.getWatchedDirectories('dateAdded', FileOrder.ASC);
+    const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.ASC);
+    const locations = dirs.map((dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded));
+    runInAction(() => this.locationList.replace(locations));
+  }
 
-    const locations = dirs.map(
-      (dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.tagsToAdd),
-    );
-
-    runInAction(() => {
-      this.locationList.replace(locations);
-    });
-
-    console.log('initializing with ', locations);
-
-    // E.g. in preview window, it's not needed to watch the locations
-    if (!autoLoad) return;
-
+  // E.g. in preview window, it's not needed to watch the locations
+  @action async watchLocations() {
     const progressToastKey = 'progress';
     let foundNewFiles = false;
+    const len = this.locationList.length;
+    const getLocation = action((index: number) => this.locationList[index]);
 
     // TODO: Do this in a web worker, not in the renderer thread!
-    // For every location, find its files, and update update the database accordingly
-    for (let i = 0; i < locations.length; i++) {
-      const loc = locations[i];
+    // For every location, find its files, and update the database accordingly.
+    for (let i = 0; i < len; i++) {
+      const location = getLocation(i);
 
       AppToaster.show(
         {
           // icon: '',
           intent: 'none',
-          message: `Looking for new images... [${i + 1} / ${locations.length}]`,
+          message: `Looking for new images... [${i + 1} / ${len}]`,
           timeout: 0,
         },
         progressToastKey,
       );
 
-      // Find all files in this location
-      const filePaths = await loc.init();
+      const filePaths = await location.init();
 
-      if (loc.isBroken) {
+      if (filePaths === undefined) {
         AppToaster.show(
           {
             intent: 'warning',
-            message: `Cannot find Location "${loc.name}"`,
+            message: `Cannot find Location "${location.name}"`,
             action: {
               text: 'Recover',
-              onClick: () => this.rootStore.uiStore.openLocationRecovery(loc.id),
+              onClick: () => this.rootStore.uiStore.openLocationRecovery(location.id),
             },
             timeout: 0,
           },
-          `missing-loc-${loc.id}`,
+          `missing-loc-${location.id}`,
         ); // a key such that the toast can be dismissed automatically on recovery
-        continue;
+        return;
       }
 
       // Get files in database for this location
       // TODO: Could be optimized, at startup we already fetch all files - but might not in the future
-      const dbFiles = await this.findLocationFiles(loc.id);
+      const dbFiles = await this.findLocationFiles(location.id);
 
       // Find all files that have been created (those on disk but not in DB)
       // TODO: Can be optimized: Sort dbFiles, so the includes check can be a binary search
       const createdPaths = filePaths.filter(
         (path) => !dbFiles.find((dbFile) => dbFile.absolutePath === path),
       );
-      const createdFiles = await Promise.all(createdPaths.map((path) => pathToIFile(path, loc)));
+      const createdFiles = await Promise.all(
+        createdPaths.map((path) => pathToIFile(path, location)),
+      );
 
       // Find all files that have been removed (those in DB but not on disk)
       const missingFiles = dbFiles.filter((file) => !filePaths.includes(file.absolutePath));
@@ -104,43 +98,33 @@ class LocationStore {
         ),
       );
 
-      console.log('missing', missingFiles, 'created', createdFiles, 'matches', matches);
+      console.debug('missing', missingFiles, 'created', createdFiles, 'matches', matches);
 
-      const foundMatches = matches.filter((m) => m !== undefined);
+      // Update renamed files in backend
+      const foundMatches = matches.filter((m) => m !== undefined) as IFile[];
       if (foundMatches.length > 0) {
-        console.log(
-          `DEBUG: Found ${foundMatches.length} renamed/moved files in location ${loc.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
+        console.debug(
+          `Found ${foundMatches.length} renamed/moved files in location ${location.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
           foundMatches,
         );
-        // These files have been renamed -> update backend file to retain tags
         // TODO: remove thumbnail as well (clean-up needed, since the path changed)
-        await Promise.all(
-          matches.map((match, missingFilesIndex) =>
-            !match
-              ? undefined
-              : this.backend.saveFile({
-                  ...missingFiles[missingFilesIndex],
-                  absolutePath: match.absolutePath,
-                  relativePath: match.relativePath,
-                }),
-          ),
-        );
+        const files: IFile[] = [];
+        for (let i = 0; i < matches.length; i++) {
+          const match = matches[i];
+          if (match !== undefined) {
+            files.push({
+              ...missingFiles[i],
+              absolutePath: match.absolutePath,
+              relativePath: match.relativePath,
+            });
+          }
+        }
+        await this.backend.saveFiles(files);
       }
 
       // For createdFiles without a match, insert them in the DB as new files
-      const newFiles = createdFiles.filter((cf) => !matches.includes(cf));
-      await this.backend.createFilesFromPath(loc.path, newFiles);
-
-      // For dbFiles without a match, mark them as missing (decided not to permanently delete them)
-      const deletedFiles = matches.map((match, i) => (!match ? missingFiles[i] : undefined));
-      if (deletedFiles.length > 0) {
-        console.log(
-          `DEBUG: Found ${deletedFiles.length} removed files in location ${loc.name}. This will be shown as 'broken' images and will have to be removed manually in the Recovery panel`,
-          deletedFiles,
-        );
-        // They'll be marked as broken after being fetched. The user will have to manually remove them then, no need to update with isBroken
-        // await Promise.all(deletedFiles.map(f => this.backend.saveFile({ ...f, isBroken: true });
-      }
+      const newFiles = createdFiles.filter((cf) => !foundMatches.includes(cf));
+      await this.backend.createFilesFromPath(location.path, newFiles);
 
       // TODO: Also update files that have changed, e.g. when overwriting a file (with same filename)
       // Look at modified date? Or file size? For these ones, update metadata (resolution, size) and recreate thumbnail
@@ -149,15 +133,15 @@ class LocationStore {
 
     if (foundNewFiles) {
       AppToaster.show({ message: 'New images detected.', intent: 'primary' }, progressToastKey);
-      this.rootStore.fileStore.refetch();
     } else {
       AppToaster.dismiss(progressToastKey);
     }
+    return foundNewFiles;
   }
 
   @computed get importDirectory() {
-    const location = this.get(DEFAULT_LOCATION_ID);
-    if (!location) {
+    const location = this.locationList.find((l) => l.id === DEFAULT_LOCATION_ID);
+    if (location === undefined) {
       console.warn('Default location not properly set-up. This should not happen!');
       return '';
     }
@@ -165,71 +149,82 @@ class LocationStore {
   }
 
   @computed get defaultLocation(): ClientLocation {
-    const defaultLocation = this.get(DEFAULT_LOCATION_ID);
-    if (!defaultLocation) {
+    const defaultLocation = this.locationList.find((l) => l.id === DEFAULT_LOCATION_ID);
+    if (defaultLocation === undefined) {
       throw new Error('Default location not found. This should not happen!');
     }
     return defaultLocation;
   }
 
-  @action.bound get(locationId: ID): ClientLocation | undefined {
+  @action get(locationId: ID): ClientLocation | undefined {
     return this.locationList.find((loc) => loc.id === locationId);
   }
 
-  @action.bound getTags(tags: Set<ID>): ClientTag[] {
-    return Array.from(this.rootStore.tagStore.getIterFrom(tags));
-  }
-
-  @action.bound async setDefaultLocation(dir: string): Promise<void> {
-    const loc = this.get(DEFAULT_LOCATION_ID);
-    if (loc === undefined) {
-      console.warn('Default location not found. This should only happen on first launch!');
-      const location = new ClientLocation(this, DEFAULT_LOCATION_ID, dir);
-      await this.backend.createLocation(location.serialize());
-      runInAction(() => this.locationList.push(location));
-      return;
+  @action async setDefaultLocation(dir: string): Promise<void> {
+    const index = this.locationList.findIndex((l) => l.id === DEFAULT_LOCATION_ID);
+    let location;
+    if (index > -1) {
+      const defaultLocation = this.locationList[index];
+      if (defaultLocation.path === dir) {
+        return;
+      }
+      await defaultLocation.drop();
+      location = new ClientLocation(this, DEFAULT_LOCATION_ID, dir, defaultLocation.dateAdded);
+      this.set(index, location);
+    } else {
+      location = new ClientLocation(this, DEFAULT_LOCATION_ID, dir, new Date());
+      this.locationList.push(location);
     }
-    loc.path = dir;
-    await this.backend.saveLocation(loc.serialize());
-    // Todo: What about the files inside that loc? Keep them in DB? Move them over?
+    await this.initLocation(location);
+    await this.backend.saveLocation(location.serialize());
+    // // Todo: What about the files inside that loc? Keep them in DB? Move them over?
     RendererMessenger.setDownloadPath({ dir });
   }
 
-  @action.bound async changeLocationPath(location: ClientLocation, newPath: string) {
+  @action async changeLocationPath(location: ClientLocation, newPath: string): Promise<void> {
+    const index = this.locationList.findIndex((l) => l.id === location.id);
+    if (index === -1) {
+      throw new Error(`The location ${location.name} has already been removed.`);
+    }
     // First, update the absolute path of all files from this location
     const locFiles = await this.findLocationFiles(location.id);
-    await Promise.all(
-      locFiles.map((f) =>
-        this.backend.saveFile({
-          ...f,
-          absolutePath: SysPath.join(newPath, f.relativePath),
-        }),
-      ),
-    );
+    const files: IFile[] = locFiles.map((f) => ({
+      ...f,
+      absolutePath: SysPath.join(newPath, f.relativePath),
+    }));
+    await this.backend.saveFiles(files);
 
+    const newLocation = new ClientLocation(this, location.id, newPath, location.dateAdded);
+    this.set(index, newLocation);
+    await this.initLocation(newLocation);
+    await this.backend.saveLocation(newLocation.serialize());
     // Refetch files in case some were from this location and could not be found before
     this.rootStore.fileStore.refetch();
 
     // Dismiss the 'Cannot find location' toast if it is still open
-    AppToaster.dismiss(`missing-loc-${location.id}`);
+    AppToaster.dismiss(`missing-loc-${newLocation.id}`);
+  }
+
+  @action exists(predicate: (location: ClientLocation) => boolean): boolean {
+    return this.locationList.some(predicate);
   }
 
   @action.bound async create(path: string): Promise<ClientLocation> {
-    const location = new ClientLocation(this, generateId(), path);
+    const location = new ClientLocation(this, generateId(), path, new Date());
     await this.backend.createLocation(location.serialize());
     runInAction(() => this.locationList.push(location));
     return location;
   }
 
   /** Imports all files from a location into the FileStore */
-  @action.bound async initializeLocation(loc: ClientLocation) {
-    const toastKey = `initialize-${loc.id}`;
+  @action.bound async initLocation(location: ClientLocation) {
+    const toastKey = `initialize-${location.id}`;
 
     let isCancelled = false;
     const handleCancelled = () => {
-      console.log('clicked cancel');
+      console.debug('clicked cancel');
       isCancelled = true;
-      this.delete(loc);
+      this.delete(location);
     };
 
     AppToaster.show(
@@ -244,9 +239,10 @@ class LocationStore {
       },
       toastKey,
     );
-    const filePaths = await loc.init(() => isCancelled);
 
-    if (isCancelled) {
+    const filePaths = await location.init(() => isCancelled);
+
+    if (isCancelled || filePaths === undefined) {
       return;
     }
 
@@ -272,38 +268,39 @@ class LocationStore {
     // TODO: Should make N configurable, or determine based on the system/disk performance
     const N = 50;
     const files = await promiseAllLimit(
-      filePaths.map((path) => async () => {
-        const f = await pathToIFile(path, loc);
-        // await timeout(1000); // artificial timeout to see the progress bar a little longer
-        return f;
-      }),
+      filePaths.map((path) => () => pathToIFile(path, location)),
       N,
       showProgressToaster,
       () => isCancelled,
     );
 
     AppToaster.show({ message: 'Updating database...', timeout: 0 }, toastKey);
-    await this.backend.createFilesFromPath(loc.path, files);
+    await this.backend.createFilesFromPath(location.path, files);
 
-    AppToaster.show({ message: `Location "${loc.name}" is ready!`, intent: 'success' }, toastKey);
+    AppToaster.show(
+      { message: `Location "${location.name}" is ready!`, intent: 'success' },
+      toastKey,
+    );
     this.rootStore.fileStore.refetch();
   }
 
   @action.bound async delete(location: ClientLocation) {
-    location.dispose();
-
-    const filesToRemove = await this.findLocationFiles(location.id);
-    await this.rootStore.fileStore.deleteFiles(filesToRemove.map((f) => f.id));
-
     // Remove location from DB through backend
     await this.backend.removeLocation(location.id);
-
-    // Remove location locally
-    runInAction(() => this.locationList.remove(location));
+    runInAction(() => {
+      // Remove deleted files from selection
+      for (const file of this.rootStore.uiStore.fileSelection) {
+        if (file.locationId === location.id) {
+          this.rootStore.uiStore.deselectFile(file);
+        }
+      }
+      // Remove location locally
+      this.locationList.remove(location);
+    });
     this.rootStore.fileStore.refetch();
   }
 
-  @action.bound async addFile(path: string, location: ClientLocation) {
+  @action async addFile(path: string, location: ClientLocation) {
     const file = await pathToIFile(path, location);
     await this.backend.createFilesFromPath(path, [file]);
 
@@ -333,16 +330,16 @@ class LocationStore {
     );
   }
 
-  save(location: ILocation) {
-    this.backend.saveLocation(location);
-  }
-
   /**
    * Fetches the files belonging to a location
    */
   @action async findLocationFiles(locationId: ID): Promise<IFile[]> {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
     return this.backend.searchFiles(crit, 'id', FileOrder.ASC);
+  }
+
+  @action private set(index: number, location: ClientLocation) {
+    this.locationList[index] = location;
   }
 }
 
@@ -352,7 +349,7 @@ async function pathToIFile(path: string, loc: ClientLocation): Promise<IFile> {
     relativePath: path.replace(loc.path, ''),
     id: generateId(),
     locationId: loc.id,
-    tags: Array.from(loc.tagsToAdd),
+    tags: [],
     dateAdded: new Date(),
     dateModified: new Date(),
     ...(await getMetaData(path)),

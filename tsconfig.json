@@ -12,7 +12,7 @@
     "module": "ESNext",
     "sourceMap": true,
     "outDir": "dist",
-    "target": "es5",
+    "target": "ES2020",
     "lib": ["dom", "esnext", "webworker"],
     "moduleResolution": "node",
     "experimentalDecorators": true,
@@ -20,5 +20,5 @@
     "strict": true
   },
   "include": ["components/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts"],
-  "exclude": ["node_modules", "dist", "resources"]
+  "exclude": ["node_modules", "dist", "resources", "build"]
 }

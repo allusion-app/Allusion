@@ -2,7 +2,6 @@ import {
   IReactionDisposer,
   observable,
   reaction,
-  computed,
   action,
   ObservableSet,
   makeObservable,
@@ -33,29 +32,6 @@ interface IMetaData {
   dateCreated: Date;
 }
 
-/** Should be called when after constructing a file before sending it to the backend. */
-export async function getMetaData(path: string): Promise<IMetaData> {
-  const stats = await fse.stat(path);
-  let dimensions: ISizeCalculationResult | undefined;
-  try {
-    dimensions = await sizeOf(path);
-  } catch (e) {
-    if (!dimensions) {
-      console.error('Could not find dimensions for ', path);
-    }
-    // TODO: Remove image? Probably unsupported file type
-  }
-
-  return {
-    name: Path.basename(path),
-    extension: Path.extname(path).slice(1).toLowerCase(),
-    size: stats.size,
-    width: (dimensions && dimensions.width) || 0,
-    height: (dimensions && dimensions.height) || 0,
-    dateCreated: stats.birthtime,
-  };
-}
-
 /* A File as it is represented in the Database */
 export interface IFile extends IMetaData, IResource {
   locationId: ID;
@@ -83,7 +59,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly locationId: ID;
   readonly relativePath: string;
   readonly absolutePath: string;
-  readonly tags: ObservableSet<ID>;
+  readonly tags: ObservableSet<ClientTag>;
   readonly size: number;
   readonly width: number;
   readonly height: number;
@@ -120,7 +96,7 @@ export class ClientFile implements ISerializable<IFile> {
     const base = Path.basename(this.relativePath);
     this.filename = base.substr(0, base.lastIndexOf('.'));
 
-    this.tags = observable(new Set(fileProps.tags));
+    this.tags = observable(this.store.getTags(fileProps.tags));
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -138,23 +114,18 @@ export class ClientFile implements ISerializable<IFile> {
     makeObservable(this);
   }
 
-  /** Get actual tag objects based on the IDs retrieved from the backend */
-  @computed get clientTags(): ClientTag[] {
-    return this.store.getTags(this.tags);
-  }
-
   @action.bound setThumbnailPath(thumbnailPath: string): void {
     this.thumbnailPath = thumbnailPath;
   }
 
-  @action.bound addTag(tag: ID): void {
+  @action.bound addTag(tag: ClientTag): void {
     if (this.tags.size === 0) {
       this.store.decrementNumUntaggedFiles();
     }
     this.tags.add(tag);
   }
 
-  @action.bound removeTag(tag: ID): void {
+  @action.bound removeTag(tag: ClientTag): void {
     if (this.tags.delete(tag) && this.tags.size === 0) {
       this.store.incrementNumUntaggedFiles();
     }
@@ -172,13 +143,20 @@ export class ClientFile implements ISerializable<IFile> {
     this.autoSave = !state;
   }
 
+  /** Update observable properties without updating the database */
+  @action update(update: (file: ClientFile) => void): void {
+    this.autoSave = false;
+    update(this);
+    this.autoSave = true;
+  }
+
   serialize(): IFile {
     return {
       id: this.id,
       locationId: this.locationId,
       relativePath: this.relativePath,
       absolutePath: this.absolutePath,
-      tags: Array.from(this.tags), // removes observable properties from observable array
+      tags: Array.from(this.tags, (t) => t.id), // removes observable properties from observable array
       size: this.size,
       width: this.width,
       height: this.height,
@@ -194,4 +172,27 @@ export class ClientFile implements ISerializable<IFile> {
     // clean up the observer
     this.saveHandler();
   }
+}
+
+/** Should be called when after constructing a file before sending it to the backend. */
+export async function getMetaData(path: string): Promise<IMetaData> {
+  const stats = await fse.stat(path);
+  let dimensions: ISizeCalculationResult | undefined;
+  try {
+    dimensions = await sizeOf(path);
+  } catch (e) {
+    if (!dimensions) {
+      console.error('Could not find dimensions for ', path);
+    }
+    // TODO: Remove image? Probably unsupported file type
+  }
+
+  return {
+    name: Path.basename(path),
+    extension: Path.extname(path).slice(1).toLowerCase(),
+    size: stats.size,
+    width: (dimensions && dimensions.width) || 0,
+    height: (dimensions && dimensions.height) || 0,
+    dateCreated: stats.birthtime,
+  };
 }

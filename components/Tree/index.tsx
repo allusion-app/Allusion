@@ -145,7 +145,8 @@ const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
 
     case 'End': {
       const prev = event.currentTarget.querySelector('[role="treeitem"][tabindex="0"]');
-      setTabFocus(event.currentTarget.lastElementChild as HTMLElement);
+      const last = getLastDescendant(event.currentTarget.lastElementChild!);
+      setTabFocus(last as HTMLElement);
       if (prev) {
         prev.setAttribute('tabIndex', '-1');
       }

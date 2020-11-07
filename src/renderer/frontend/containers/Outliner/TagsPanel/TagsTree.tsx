@@ -26,6 +26,7 @@ import { Action, State, Factory, reducer } from './StateReducer';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import useContextMenu from 'src/renderer/frontend/hooks/useContextMenu';
 import { Collapse } from 'src/renderer/frontend/components/Transition';
+import { runInAction } from 'mobx';
 
 interface ILabelProps {
   text: string;
@@ -40,6 +41,7 @@ interface ILabelProps {
 const Label = (props: ILabelProps) =>
   props.isEditing ? (
     <input
+      className="input"
       autoFocus
       type="text"
       placeholder="Enter a new name"
@@ -117,15 +119,17 @@ const TagItem = observer((props: ITagItemProps) => {
 
   const handleDragStart = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      let name = nodeData.name;
-      if (nodeData.isSelected) {
-        const ctx = uiStore.getTagContextItems(nodeData.id);
-        const extraText = formatTagCountText(ctx.tags.length);
-        if (extraText.length > 0) {
-          name = name + `(${extraText})`;
+      runInAction(() => {
+        let name = nodeData.name;
+        if (nodeData.isSelected) {
+          const ctx = uiStore.getTagContextItems(nodeData.id);
+          const extraText = formatTagCountText(ctx.tags.length);
+          if (extraText.length > 0) {
+            name = name + `(${extraText})`;
+          }
         }
-      }
-      onDragStart(event, name, nodeData.id, nodeData.isSelected);
+        onDragStart(event, name, nodeData.id, nodeData.isSelected);
+      });
     },
     [nodeData, uiStore],
   );
@@ -163,9 +167,9 @@ const TagItem = observer((props: ITagItemProps) => {
         const tag = tagStore.get(id);
         if (tag !== undefined) {
           if (event.currentTarget.classList.contains('top')) {
-            nodeData.parent.insertSubTag(tag, pos - 1); // 'pos' does not start from 0!
+            runInAction(() => nodeData.parent.insertSubTag(tag, pos - 1)); // 'pos' does not start from 0!
           } else if (event.currentTarget.classList.contains('bottom')) {
-            nodeData.parent.insertSubTag(tag, pos);
+            runInAction(() => nodeData.parent.insertSubTag(tag, pos));
           } else {
             nodeData.insertSubTag(tag, 0);
           }
@@ -185,14 +189,16 @@ const TagItem = observer((props: ITagItemProps) => {
 
   const handleQuickQuery = useCallback(
     (event: React.MouseEvent) => {
-      const query = new ClientIDSearchCriteria('tags', nodeData.id, nodeData.name);
-      if (event.ctrlKey) {
-        if (!nodeData.isSearched) {
-          uiStore.addSearchCriteria(query);
+      runInAction(() => {
+        const query = new ClientIDSearchCriteria('tags', nodeData.id, nodeData.name);
+        if (event.ctrlKey) {
+          if (!nodeData.isSearched) {
+            uiStore.addSearchCriteria(query);
+          }
+        } else {
+          uiStore.replaceSearchCriteria(query);
         }
-      } else {
-        uiStore.replaceSearchCriteria(query);
-      }
+      });
     },
     [nodeData, uiStore],
   );
@@ -218,7 +224,7 @@ const TagItem = observer((props: ITagItemProps) => {
       />
       {!isEditing && (
         <button onClick={handleSelect} className="btn-icon">
-          {nodeData.isSelected ? IconSet.CHECKMARK : IconSet.SELECT_ALL}
+          {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
         </button>
       )}
     </div>
@@ -261,7 +267,7 @@ const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));
 
 const toggleSelection = (uiStore: UiStore, nodeData: ClientTag) =>
-  nodeData.isSelected ? uiStore.deselectTag(nodeData) : uiStore.selectTag(nodeData);
+  uiStore.toggleTagSelection(nodeData);
 
 const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
   const element = event.currentTarget.querySelector('.tree-content-label');
@@ -314,43 +320,10 @@ const customKeys = (
   }
 };
 
-// Range Selection using pre-order tree traversal
-const rangeSelection = (
-  selection: ID[],
-  nodeData: ClientTag,
-  lastSelection: ID,
-  root: ClientTag,
-) => {
-  let isSelecting = false;
-  const selectRange = (node: ClientTag) => {
-    if (node.id === lastSelection || node.id === nodeData.id) {
-      if (!isSelecting) {
-        // Start selection
-        isSelecting = true;
-      } else {
-        // End selection
-        selection.push(node.id);
-        isSelecting = false;
-        return;
-      }
-    }
-
-    if (isSelecting) {
-      selection.push(node.id);
-    }
-
-    for (const subTag of node.clientSubTags) {
-      selectRange(subTag);
-    }
-  };
-
-  selectRange(root);
-};
-
 const mapTag = (tag: ClientTag): ITreeItem => ({
   id: tag.id,
   label: TagItemLabel,
-  children: tag.clientSubTags.map(mapTag),
+  children: tag.subTags.map(mapTag),
   nodeData: tag,
   isExpanded,
   isSelected,
@@ -374,24 +347,18 @@ const TagsTree = observer(() => {
   }, []);
 
   // Handles selection via click event
-  const activeSelection = useRef<ID | null>(null);
+  const lastSelection = useRef<ID | null>(null);
   const select = useCallback(
-    (event: React.MouseEvent, nodeData: ClientTag) => {
-      const lastSelection = activeSelection.current;
-      if (event.shiftKey && lastSelection !== null && lastSelection !== nodeData.id) {
-        // Batch selection
-        const selection: ID[] = [];
-        rangeSelection(selection, nodeData, lastSelection, root);
-        uiStore.selectTags(selection, true);
-        activeSelection.current = nodeData.id;
+    (e: React.MouseEvent, nodeData: ClientTag) => {
+      if (e.shiftKey && lastSelection.current !== null && lastSelection.current !== nodeData.id) {
+        uiStore.selectTagRange(nodeData, lastSelection.current);
+        lastSelection.current = nodeData.id;
       } else {
-        // Toggles selection state of a single node
-        const nextLastSelection = nodeData.isSelected ? null : nodeData.id;
-        nodeData.isSelected ? uiStore.deselectTag(nodeData) : uiStore.selectTag(nodeData);
-        activeSelection.current = nextLastSelection;
+        uiStore.toggleTagSelection(nodeData);
+        lastSelection.current = nodeData.id;
       }
     },
-    [root, uiStore],
+    [uiStore],
   );
 
   const treeData: ITreeData = useMemo(
@@ -416,11 +383,6 @@ const TagsTree = observer(() => {
     [root, tagStore],
   );
 
-  const handleCollapse = useCallback(() => {
-    activeSelection.current = null;
-    dispatch(Factory.setExpansion({}));
-  }, []);
-
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       const dataSet = event.currentTarget.dataset;
@@ -434,7 +396,7 @@ const TagsTree = observer(() => {
         const data = event.dataTransfer.getData(DnDType);
         const tag = tagStore.get(data);
         if (tag) {
-          root.insertSubTag(tag, tagStore.tagList.length);
+          runInAction(() => root.insertSubTag(tag, tagStore.tagList.length));
         }
         dataSet[DnDAttribute.Target] = 'false';
       }
@@ -470,16 +432,12 @@ const TagsTree = observer(() => {
 
   return (
     <>
-      <div
-        className="outliner-header-wrapper"
+      <header
         onDragOver={handleDragOverAndLeave}
         onDragLeave={handleDragOverAndLeave}
         onDrop={handleDrop}
       >
-        <h2 onClick={() => setIsCollapsed(!isCollapsed)}>
-          {/* {isCollapsed ? IconSet.ARROW_RIGHT : IconSet.ARROW_DOWN} */}
-          Tags
-        </h2>
+        <h2 onClick={() => setIsCollapsed(!isCollapsed)}>Tags</h2>
         <Toolbar controls="tag-hierarchy">
           {uiStore.tagSelection.size > 0 ? (
             <ToolbarButton
@@ -490,25 +448,16 @@ const TagsTree = observer(() => {
               tooltip="Clear Selection"
             />
           ) : (
-            <>
-              <ToolbarButton
-                showLabel="never"
-                icon={IconSet.TAG_ADD}
-                text="New Tag"
-                onClick={handleRootAddTag}
-                tooltip="Add a new tag"
-              />
-              <ToolbarButton
-                showLabel="never"
-                icon={IconSet.ITEM_COLLAPS}
-                text="Collapse"
-                onClick={handleCollapse}
-                tooltip="Close all tags"
-              />
-            </>
+            <ToolbarButton
+              showLabel="never"
+              icon={IconSet.TAG_ADD}
+              text="New Tag"
+              onClick={handleRootAddTag}
+              tooltip="Add a new tag"
+            />
           )}
         </Toolbar>
-      </div>
+      </header>
 
       <Collapse open={!isCollapsed}>
         {root.subTags.length === 0 ? (
@@ -522,7 +471,7 @@ const TagsTree = observer(() => {
             multiSelect
             id="tag-hierarchy"
             className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
-            children={root.clientSubTags.map(mapTag)}
+            children={root.subTags.map(mapTag)}
             treeData={treeData}
             toggleExpansion={toggleExpansion}
             onBranchKeyDown={handleBranchOnKeyDown}

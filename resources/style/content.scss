@@ -183,7 +183,6 @@
       'image title'
       'image info'
       'image tags';
-    height: 100%;
   }
 
   .thumbnail {
@@ -199,13 +198,14 @@
   }
 
   .thumbnail-tags {
+    min-height: 1.5rem;
     position: unset;
     padding: 0;
   }
 }
 
 .thumbnail-small .list .file-info {
-  grid-row-gap: 0;
+  border-spacing: 0;
 }
 
 .grid {

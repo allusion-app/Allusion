@@ -1,12 +1,4 @@
-import {
-  IReactionDisposer,
-  reaction,
-  computed,
-  observable,
-  action,
-  ObservableSet,
-  makeObservable,
-} from 'mobx';
+import { observable, action, makeObservable } from 'mobx';
 import chokidar, { FSWatcher } from 'chokidar';
 import fse from 'fs-extra';
 import SysPath from 'path';
@@ -14,7 +6,6 @@ import SysPath from 'path';
 import { ID, IResource, ISerializable } from './ID';
 import LocationStore from '../frontend/stores/LocationStore';
 import { IMG_EXTENSIONS } from './File';
-import { ClientTag } from './Tag';
 import { RECURSIVE_DIR_WATCH_DEPTH } from '../../config';
 import { AppToaster } from '../frontend/App';
 import { IconSet } from 'components/Icons';
@@ -25,7 +16,6 @@ export interface ILocation extends IResource {
   id: ID;
   path: string;
   dateAdded: Date;
-  tagsToAdd: ID[];
 }
 
 export interface IDirectoryTreeItem {
@@ -34,36 +24,8 @@ export interface IDirectoryTreeItem {
   children: IDirectoryTreeItem[];
 }
 
-/**
- * Recursive function that returns the dir list for a given path
- */
-async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
-  try {
-    let dirs: string[] = [];
-    for (const file of await fse.readdir(path)) {
-      const fullPath = SysPath.join(path, file);
-      if ((await fse.stat(fullPath)).isDirectory()) {
-        dirs = [...dirs, fullPath];
-      }
-    }
-    return Promise.all(
-      dirs.map(
-        async (dir): Promise<IDirectoryTreeItem> => ({
-          name: SysPath.basename(dir),
-          fullPath: dir,
-          children: await getDirectoryTree(dir),
-        }),
-      ),
-    );
-  } catch (e) {
-    return [];
-  }
-}
-
 export class ClientLocation implements ISerializable<ILocation> {
   private store: LocationStore;
-  private saveHandler: IReactionDisposer;
-  private autoSave = true;
 
   private watcher?: FSWatcher;
   // Whether the initial scan has been completed, and new/removed files are being watched
@@ -74,55 +36,41 @@ export class ClientLocation implements ISerializable<ILocation> {
   @observable isBroken = false;
 
   readonly id: ID;
-  @observable path: string;
+  readonly path: string;
   readonly dateAdded: Date;
-  readonly tagsToAdd: ObservableSet<ID>;
 
-  constructor(
-    store: LocationStore,
-    id: ID,
-    path: string,
-    dateAdded: Date = new Date(),
-    tagsToAdd?: ID[],
-  ) {
+  constructor(store: LocationStore, id: ID, path: string, dateAdded: Date) {
     this.store = store;
     this.id = id;
     this.path = path;
     this.dateAdded = dateAdded;
-    this.tagsToAdd = observable(new Set(tagsToAdd));
-
-    // observe all changes to observable fields
-    this.saveHandler = reaction(
-      // We need to explicitly define which values this reaction should react to
-      () => this.serialize(),
-      // Then update the entity in the database
-      (dir) => {
-        if (this.autoSave) {
-          this.store.save(dir);
-        }
-      },
-    );
 
     makeObservable(this);
   }
 
-  @computed get clientTagsToAdd(): ClientTag[] {
-    return this.store.getTags(this.tagsToAdd);
-  }
-
-  @computed get name(): string {
+  get name(): string {
     return SysPath.basename(this.path);
   }
 
-  @action.bound async init(cancel?: () => boolean): Promise<string[]> {
+  @action async init(cancel?: () => boolean): Promise<string[] | undefined> {
     this.isInitialized = true;
     const pathExists = await fse.pathExists(this.path);
     if (pathExists) {
-      return this.watchDirectory(this.path, cancel);
+      this.setBroken(false);
+      return this.watch(this.path, cancel);
     } else {
       this.setBroken(true);
-      return [];
+      return undefined;
     }
+  }
+
+  @action setBroken(state: boolean): void {
+    this.isBroken = state;
+  }
+
+  async delete(): Promise<void> {
+    await this.drop();
+    return this.store.delete(this);
   }
 
   serialize(): ILocation {
@@ -130,48 +78,23 @@ export class ClientLocation implements ISerializable<ILocation> {
       id: this.id,
       path: this.path,
       dateAdded: this.dateAdded,
-      tagsToAdd: Array.from(this.tagsToAdd),
     };
   }
 
-  @action.bound changePath(newPath: string): void {
-    this.store.changeLocationPath(this, newPath).then(() => {
-      this.path = newPath;
-      this.setBroken(false);
-    });
+  /** Cleanup resources */
+  async drop(): Promise<void> {
+    if (this.watcher !== undefined) {
+      const promise = await this.watcher.close();
+      this.watcher = undefined;
+      return promise;
+    }
   }
 
-  @action.bound setBroken(state: boolean): void {
-    this.isBroken = state;
-    this.autoSave = !state;
-  }
-
-  @action.bound addTag(tag: ClientTag): void {
-    this.tagsToAdd.add(tag.id);
-  }
-
-  @action.bound removeTag(tag: ClientTag): void {
-    this.tagsToAdd.delete(tag.id);
-  }
-
-  @action.bound clearTags(): void {
-    this.tagsToAdd.clear();
-  }
-
-  async getDirectoryTree(): Promise<IDirectoryTreeItem[]> {
-    return getDirectoryTree(this.path);
-  }
-
-  async delete(): Promise<void> {
-    return this.store.delete(this);
-  }
-
-  dispose(): void {
-    // clean up the observer
-    this.saveHandler();
-  }
-
-  @action private watchDirectory(directory: string, cancel?: () => boolean): Promise<string[]> {
+  private async watch(directory: string, cancel?: () => boolean): Promise<string[]> {
+    if (this.watcher !== undefined) {
+      await this.watcher.close();
+      this.watcher = undefined;
+    }
     // Watch for folder changes
     this.watcher = chokidar.watch(directory, {
       depth: RECURSIVE_DIR_WATCH_DEPTH,
@@ -234,5 +157,31 @@ export class ClientLocation implements ISerializable<ILocation> {
           );
         });
     });
+  }
+}
+
+/**
+ * Recursive function that returns the dir list for a given path
+ */
+export async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
+  try {
+    let dirs: string[] = [];
+    for (const file of await fse.readdir(path)) {
+      const fullPath = SysPath.join(path, file);
+      if ((await fse.stat(fullPath)).isDirectory()) {
+        dirs = [...dirs, fullPath];
+      }
+    }
+    return Promise.all(
+      dirs.map(
+        async (dir): Promise<IDirectoryTreeItem> => ({
+          name: SysPath.basename(dir),
+          fullPath: dir,
+          children: await getDirectoryTree(dir),
+        }),
+      ),
+    );
+  } catch (e) {
+    return [];
   }
 }
