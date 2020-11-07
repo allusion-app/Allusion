@@ -11,7 +11,10 @@ import { RendererMessenger } from '../../../Messaging';
 import { debounce } from '../utils';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
-export type ViewMethod = 'list' | 'grid';
+export const enum ViewMethod {
+  List,
+  Grid,
+}
 type ThumbnailSize = 'small' | 'medium' | 'large';
 type ThumbnailShape = 'square' | 'letterbox';
 const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -106,7 +109,7 @@ class UiStore {
   @observable isPreviewOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
   @observable searchMatchAny = false;
-  @observable method: ViewMethod = 'grid';
+  @observable method: ViewMethod = ViewMethod.Grid;
   @observable isSlideMode: boolean = false;
   /** Index of the first item in the viewport */
   @observable firstItem: number = 0;
@@ -116,10 +119,10 @@ class UiStore {
   @observable isToolbarFileRemoverOpen: boolean = false;
 
   // Selections
-  // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270
-  // Sets are however more suitable: An ID should only be present once, and it has quicker lookup performance
-  readonly fileSelection = observable<ID>(new Set<ID>());
-  readonly tagSelection = observable<ID>(new Set<ID>());
+  // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
+  // However, sets are more suitable because they have quicker lookup performance.
+  readonly fileSelection = observable(new Set<ClientFile>());
+  readonly tagSelection = observable(new Set<ClientTag>());
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
@@ -142,11 +145,11 @@ class UiStore {
 
   /////////////////// UI Actions ///////////////////
   @computed get isList(): boolean {
-    return this.method === 'list';
+    return this.method === ViewMethod.List;
   }
 
   @computed get isGrid(): boolean {
-    return this.method === 'grid';
+    return this.method === ViewMethod.Grid;
   }
 
   @action.bound setThumbnailSmall() {
@@ -176,11 +179,11 @@ class UiStore {
   }
 
   @action.bound setMethodList() {
-    this.method = 'list';
+    this.method = ViewMethod.List;
   }
 
   @action.bound setMethodGrid() {
-    this.method = 'grid';
+    this.method = ViewMethod.Grid;
   }
 
   @action.bound enableSlideMode() {
@@ -212,11 +215,11 @@ class UiStore {
     // If only one image was selected, open all images, but focus on the selected image. Otherwise, open selected images
     const previewFiles =
       this.fileSelection.size === 1
-        ? this.rootStore.fileStore.fileList.map((file) => file.id)
+        ? this.rootStore.fileStore.fileList
         : Array.from(this.fileSelection);
 
     RendererMessenger.sendPreviewFiles({
-      ids: previewFiles,
+      ids: previewFiles.map((file) => file.id),
       activeImgId: this.getFirstSelectedFileId(),
       thumbnailDirectory: this.thumbnailDirectory,
     });
@@ -287,74 +290,89 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
-  /** Note: This is a relatively expensive operation for large file lists. Use with care! Currently evaluated every rerender :( */
-  @computed get clientFileSelection(): ClientFile[] {
-    return Array.from(this.fileSelection, (id) => this.rootStore.fileStore.get(id)) as ClientFile[];
-  }
-
-  @computed get clientTagSelection(): ClientTag[] {
-    return Array.from(this.rootStore.tagStore.getIterFrom(this.tagSelection));
-  }
-
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
     if (clear) {
       this.clearFileSelection();
     }
-    this.fileSelection.add(file.id);
-  }
-
-  @action.bound selectFiles(files: ID[], clear?: boolean) {
-    if (clear) {
-      this.fileSelection.replace(files);
-      return;
-    }
-    for (const id of files) {
-      this.fileSelection.add(id);
-    }
+    this.fileSelection.add(file);
   }
 
   @action.bound deselectFile(file: ClientFile) {
-    this.fileSelection.delete(file.id);
+    this.fileSelection.delete(file);
+  }
+
+  /**
+   * Returns true if the file was selected.
+   */
+  @action.bound toggleFileSelection(file: ClientFile) {
+    if (this.fileSelection.has(file)) {
+      this.fileSelection.delete(file);
+    } else {
+      this.fileSelection.add(file);
+    }
+  }
+
+  @action.bound selectFileRange(start: number, end: number) {
+    this.fileSelection.clear();
+    for (let i = start; i <= end; i++) {
+      this.fileSelection.add(this.rootStore.fileStore.fileList[i]);
+    }
+  }
+
+  @action.bound selectAllFiles() {
+    this.fileSelection.replace(this.rootStore.fileStore.fileList);
   }
 
   @action.bound clearFileSelection() {
     this.fileSelection.clear();
   }
 
-  @action.bound selectAllFiles() {
-    this.clearFileSelection();
-    this.rootStore.fileStore.fileList.forEach((f) => this.fileSelection.add(f.id));
+  @action.bound deselectTag(tag: ClientTag) {
+    this.tagSelection.delete(tag);
   }
 
-  @action.bound selectTag(tag: ClientTag, clear?: boolean) {
-    if (clear) {
-      this.clearTagSelection();
-    }
-    this.tagSelection.add(tag.id);
-  }
-
-  @action.bound selectTags(tags: ID[], clear?: boolean) {
-    if (clear) {
-      this.tagSelection.replace(tags);
-      return;
-    }
-    for (const tag of tags) {
+  /**
+   * Returns true if the tag was selected.
+   */
+  @action.bound toggleTagSelection(tag: ClientTag) {
+    if (this.tagSelection.has(tag)) {
+      this.tagSelection.delete(tag);
+    } else {
       this.tagSelection.add(tag);
     }
   }
 
-  @action.bound deselectTags(tags: ID[]) {
-    for (const tag of tags) {
-      this.tagSelection.delete(tag);
-    }
-  }
+  // Range Selection using pre-order tree traversal
+  @action.bound selectTagRange(tag: ClientTag, lastSelection: ID) {
+    this.tagSelection.clear();
+    let isSelecting = false;
+    const selectRange = (node: ClientTag) => {
+      if (node.id === lastSelection || node.id === tag.id) {
+        if (!isSelecting) {
+          // Start selection
+          isSelecting = true;
+        } else {
+          // End selection
+          this.tagSelection.add(node);
+          isSelecting = false;
+          return;
+        }
+      }
 
-  @action.bound deselectTag(tag: ClientTag) {
-    this.tagSelection.delete(tag.id);
+      if (isSelecting) {
+        this.tagSelection.add(node);
+      }
+
+      for (const subTag of node.subTags) {
+        selectRange(subTag);
+      }
+    };
+    selectRange(this.rootStore.tagStore.root);
   }
 
   @action.bound selectAllTags() {
-    this.tagSelection.replace(this.rootStore.tagStore.root.subTags);
+    this.tagSelection.replace(this.rootStore.tagStore.tagList);
+    this.tagSelection.delete(this.rootStore.tagStore.root);
   }
 
   @action.bound clearTagSelection() {
@@ -363,16 +381,14 @@ class UiStore {
 
   @action.bound async removeSelectedTags() {
     const ctx = this.getTagContextItems();
-    for (const tag of ctx.tags) {
-      await tag.delete();
-    }
+    return this.rootStore.tagStore.deleteTags(ctx.tags);
   }
 
   @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
     const ctx = this.getTagContextItems(activeElementId);
     const colorCollection = (tag: ClientTag) => {
       tag.setColor(color);
-      tag.clientSubTags.forEach((tag) => tag.setColor(color));
+      tag.subTags.forEach((tag) => tag.setColor(color));
     };
     ctx.tags.forEach(colorCollection);
   }
@@ -416,7 +432,7 @@ class UiStore {
 
       // Only include selected tags of which their parent is not selected
       const selectedColsNotInSelectedCols = selectedTags.filter((col) =>
-        selectedTags.every((parent) => !parent.subTags.includes(col.id)),
+        selectedTags.every((parent) => !parent.subTags.includes(col)),
       );
       contextTags.push(...selectedColsNotInSelectedCols);
 
@@ -501,7 +517,7 @@ class UiStore {
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceSearchCriterias(
-      Array.from(this.tagSelection, (id) => new ClientIDSearchCriteria('tags', id)),
+      Array.from(this.tagSelection, (tag) => new ClientIDSearchCriteria('tags', tag.id)),
     );
     this.clearTagSelection();
   }
@@ -567,7 +583,14 @@ class UiStore {
   }
 
   getFirstSelectedFileId(): ID | undefined {
-    return this.fileSelection.values().next().value ?? undefined;
+    return this.firstSelectedFile?.id;
+  }
+
+  @computed get firstSelectedFile(): ClientFile | undefined {
+    for (const file of this.fileSelection) {
+      return file;
+    }
+    return undefined;
   }
 
   @action private viewAllContent() {
@@ -590,7 +613,7 @@ class UiStore {
     this.isInspectorOpen = value;
   }
 
-  @action private setMethod(method: ViewMethod = 'grid') {
+  @action private setMethod(method: ViewMethod = ViewMethod.Grid) {
     this.method = method;
   }
 

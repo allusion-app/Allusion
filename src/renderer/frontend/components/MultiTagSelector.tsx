@@ -1,10 +1,11 @@
 import React, { useContext, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { ClientTag } from '../../entities/Tag';
+import { ClientTag, ROOT_TAG_ID } from '../../entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 import { IconButton, IconSet, Listbox, Option, Tag } from 'components';
 import { Flyout } from 'components/Dialog';
+import { action } from 'mobx';
 
 interface IMultiTagSelector {
   selection: ClientTag[];
@@ -23,20 +24,21 @@ const MultiTagSelector = observer(
     onDeselect,
     onClear,
     onCreate,
-    tagLabel = (t) => t.name,
+    tagLabel = action((t: ClientTag) => t.name),
     disabled,
   }: IMultiTagSelector) => {
     const { tagStore } = useContext(StoreContext);
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const normalizedQuery = query.toLowerCase();
-    const suggestions = tagStore.root.clientSubTags.filter(
-      (t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
+    const suggestions = tagStore.tagList.filter(
+      (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
     );
 
     return (
       <div
         role="combobox"
+        className="input"
         onBlur={(e) => {
           if (
             e.relatedTarget instanceof HTMLElement &&
@@ -49,20 +51,18 @@ const MultiTagSelector = observer(
       >
         <Flyout
           open={isOpen}
-          placement="bottom"
+          placement="bottom-start"
           target={
             <div className="multiautocomplete-input">
-              <div>
-                <span>
-                  {selection.map((t) => (
-                    <Tag
-                      key={t.id}
-                      text={tagLabel(t)}
-                      color={t.viewColor}
-                      onRemove={() => onDeselect(t)}
-                    />
-                  ))}
-                </span>
+              <div className="input-wrapper">
+                {selection.map((t) => (
+                  <Tag
+                    key={t.id}
+                    text={tagLabel(t)}
+                    color={t.viewColor}
+                    onRemove={() => onDeselect(t)}
+                  />
+                ))}
                 <input
                   disabled={disabled}
                   type="text"

@@ -86,21 +86,14 @@ class FileStore {
     this.content = Content.Untagged;
   }
 
-  @action.bound async init(autoLoadFiles: boolean) {
-    if (autoLoadFiles) {
-      const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
-      return this.updateFromBackend(fetchedFiles);
-    }
-  }
-
-  @action.bound async addFile(path: string, locationId: ID, dateAdded: Date = new Date()) {
-    const loc = this.getLocation(locationId)!;
+  @action.bound async importExternalFile(path: string, dateAdded: Date) {
+    const loc = this.rootStore.locationStore.defaultLocation;
     const file = new ClientFile(this, {
       id: generateId(),
-      locationId,
+      locationId: loc.id,
       absolutePath: path,
       relativePath: path.replace(loc.path, ''),
-      dateAdded: dateAdded,
+      dateAdded,
       dateModified: new Date(),
       tags: [],
       ...(await getMetaData(path)),
@@ -132,28 +125,22 @@ class FileStore {
     }
   }
 
-  @action.bound async deleteFiles(ids: ID[]) {
-    if (ids.length === 0) {
+  @action async deleteFiles(files: ClientFile[]): Promise<void> {
+    if (files.length === 0) {
       return;
     }
 
     try {
       // Remove from backend
       // Deleting non-exiting keys should not throw an error!
-      await this.backend.removeFiles(ids);
+      await this.backend.removeFiles(files.map((f) => f.id));
 
       // Remove files from stores
-      const removedFilePaths: string[] = this.removeFiles(ids);
-
-      // Remove thumbnails
-      return Promise.all(
-        removedFilePaths.map(async (path) => {
-          const thumbnailPath = getThumbnailPath(path, this.rootStore.uiStore.thumbnailDirectory);
-          if (await fse.pathExists(thumbnailPath)) {
-            return fse.remove(thumbnailPath);
-          }
-        }),
-      );
+      for (const file of files) {
+        this.rootStore.uiStore.deselectFile(file);
+        this.removeThumbnail(file.absolutePath);
+      }
+      this.refetch();
     } catch (err) {
       console.error('Could not remove files', err);
     }
@@ -220,11 +207,13 @@ class FileStore {
       const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
 
       // Dispose of unused files
-      for (const oldFile of this.fileList) {
-        if (!reusedStatus.has(oldFile.id)) {
-          oldFile.dispose();
+      runInAction(() => {
+        for (const oldFile of this.fileList) {
+          if (!reusedStatus.has(oldFile.id)) {
+            oldFile.dispose();
+          }
         }
-      }
+      });
 
       // We don't store whether files are missing (since they might change at any time)
       // So we have to check all files and check their existence them here
@@ -234,14 +223,14 @@ class FileStore {
 
       const N = 50; // TODO: same here as in fetchFromBackend: number of concurrent checks should be system dependent
       await promiseAllLimit(existenceCheckPromises, N);
-      const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
 
       runInAction(() => {
+        const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
         this.fileList.replace(missingClientFiles);
         this.numMissingFiles = missingClientFiles.length;
         this.index.clear();
-        for (let index = 0; index < missingClientFiles.length; index++) {
-          const file = newClientFiles[index];
+        for (let index = 0; index < this.fileList.length; index++) {
+          const file = this.fileList[index];
           this.index.set(file.id, index);
         }
       });
@@ -297,7 +286,7 @@ class FileStore {
     this.index.clear();
   }
 
-  get(id: ID): ClientFile | undefined {
+  @action get(id: ID): ClientFile | undefined {
     const fileIndex = this.index.get(id);
     return fileIndex !== undefined ? this.fileList[fileIndex] : undefined;
   }
@@ -306,8 +295,15 @@ class FileStore {
     return this.index.get(id);
   }
 
-  getTags(tags: Set<ID>): ClientTag[] {
-    return Array.from(this.rootStore.tagStore.getIterFrom(tags));
+  getTags(ids: ID[]): Set<ClientTag> {
+    const tags = new Set<ClientTag>();
+    for (const id of ids) {
+      const tag = this.rootStore.tagStore.get(id);
+      if (tag !== undefined) {
+        tags.add(tag);
+      }
+    }
+    return tags;
   }
 
   getLocation(location: ID): ClientLocation {
@@ -345,18 +341,16 @@ class FileStore {
     localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
   }
 
-  @action private removeFiles(ids: ID[]): string[] {
-    const removedFilePaths: string[] = [];
-    for (const id of ids) {
-      const file = this.get(id);
-      if (file !== undefined) {
-        removedFilePaths.push(file.absolutePath);
-        this.rootStore.uiStore.deselectFile(file);
-        this.fileList.remove(file);
+  @action private async removeThumbnail(path: string) {
+    const thumbnailPath = getThumbnailPath(path, this.rootStore.uiStore.thumbnailDirectory);
+    try {
+      if (await fse.pathExists(thumbnailPath)) {
+        return fse.remove(thumbnailPath);
       }
+    } catch (error) {
+      // TODO: Show a notification that not all thumbnails could be removed?
+      console.error(error);
     }
-    this.updateFileListState();
-    return removedFilePaths;
   }
 
   @action private async updateFromBackend(backendFiles: IFile[]): Promise<void> {
@@ -409,9 +403,9 @@ class FileStore {
   /** Remove files from selection that are not in the file list anymore */
   @action private cleanFileSelection() {
     const { fileSelection } = this.rootStore.uiStore;
-    for (const id of fileSelection) {
-      if (!this.index.has(id)) {
-        fileSelection.delete(id);
+    for (const file of fileSelection) {
+      if (!this.index.has(file.id)) {
+        fileSelection.delete(file);
       }
     }
   }
@@ -427,7 +421,8 @@ class FileStore {
     const clientFiles = backendFiles.map((f) => {
       // Might already exist!
       const existingFile = this.get(f.id);
-      if (existingFile) {
+      if (existingFile !== undefined) {
+        existingFile.update((file) => file.tags.replace(this.getTags(f.tags)));
         reusedStatus.add(existingFile.id);
         return existingFile;
       }

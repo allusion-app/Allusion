@@ -1,6 +1,7 @@
 import { useContext, useEffect } from 'react';
 import fse from 'fs-extra';
 import path from 'path';
+import { action } from 'mobx';
 
 import ThumbnailWorker from './workers/thumbnailGenerator.worker';
 import StoreContext from './contexts/StoreContext';
@@ -29,7 +30,7 @@ interface IThumbnailMessageResponse {
 const thumbnailWorker = new ThumbnailWorker({ type: 'module' });
 
 // Generates thumbnail if not yet exists. Will set file.thumbnailPath when it exists.
-export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
+export const ensureThumbnail = action(async (file: ClientFile, thumbnailDir: string) => {
   const thumbnailPath = file.thumbnailPath.split('?v=1')[0]; // remove ?v=1 that might have been added by the useWorkerListener down below
   const thumbnailExists = await fse.pathExists(thumbnailPath);
   if (!thumbnailExists) {
@@ -42,7 +43,7 @@ export async function ensureThumbnail(file: ClientFile, thumbnailDir: string) {
     thumbnailWorker.postMessage(msg);
   }
   return thumbnailExists;
-}
+});
 
 // Listens and processes events from the Workers. Should only be used once in the entire app
 export const useWorkerListener = () => {

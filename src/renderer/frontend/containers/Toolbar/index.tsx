@@ -5,7 +5,6 @@ import StoreContext from '../../contexts/StoreContext';
 import { IconSet } from 'components';
 import {
   Toolbar as Commandbar,
-  ToolbarToggleButton,
   ToolbarMenuButton,
   Menu,
   MenuItem,
@@ -32,7 +31,7 @@ export const enum Tooltip {
 const isMac = process.platform === 'darwin';
 
 const Toolbar = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useContext(StoreContext);
 
   return (
     <Commandbar
@@ -41,16 +40,7 @@ const Toolbar = observer(() => {
       label="App Command Bar"
       controls="layout-container"
     >
-      {/* <ToolbarToggleButton
-        showLabel="never"
-        icon={IconSet.OUTLINER}
-        onClick={uiStore.toggleOutliner}
-        pressed={uiStore.isOutlinerOpen}
-        text="Outliner"
-        tooltip={Tooltip.Outliner}
-      /> */}
-
-      <ContentToolbar />
+      <ContentToolbar uiStore={uiStore} fileStore={fileStore} />
 
       <ToolbarMenuButton
         showLabel="never"

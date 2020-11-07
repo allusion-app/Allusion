@@ -8,7 +8,6 @@ export const ROOT_TAG_ID = 'root';
 export interface ITag extends IResource {
   id: ID;
   name: string;
-  description: string;
   dateAdded: Date;
   color: string;
   subTags: ID[];
@@ -27,16 +26,17 @@ export class ClientTag implements ISerializable<ITag> {
   readonly id: ID;
   readonly dateAdded: Date;
   @observable name: string;
-  @observable description: string = '';
-  @observable color: string = '';
-  readonly subTags = observable<ID>([]);
+  @observable color: string;
+  @observable private _parent: ClientTag | undefined;
+  readonly subTags = observable<ClientTag>([]);
   // icon, (fileCount?)
 
-  constructor(store: TagStore, id: ID, name: string, dateAdded: Date = new Date()) {
+  constructor(store: TagStore, id: ID, name: string, dateAdded: Date, color: string = '') {
     this.store = store;
     this.id = id;
     this.dateAdded = dateAdded;
     this.name = name;
+    this.color = color;
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -55,31 +55,30 @@ export class ClientTag implements ISerializable<ITag> {
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get parent(): ClientTag {
-    return this.store.getParent(this.id);
+    if (this._parent === undefined) {
+      console.warn('Tag does not have a parent', this);
+      return this.store.root;
+    }
+    return this._parent;
   }
 
-  @computed get isSelected(): boolean {
-    return this.store.isSelected(this.id);
+  get isSelected(): boolean {
+    return this.store.isSelected(this);
   }
 
   @computed get viewColor(): string {
     return this.color === 'inherit' ? this.parent.viewColor : this.color;
   }
 
-  @computed get isSearched(): boolean {
+  get isSearched(): boolean {
     return this.store.isSearched(this.id);
-  }
-
-  /** Get actual tag collection objects based on the IDs retrieved from the backend */
-  @computed get clientSubTags(): ClientTag[] {
-    return Array.from(this.store.getIterFrom(this.subTags));
   }
 
   /**
    * Returns true if tag is an ancestor of this tag.
    * @param tag possible ancestor node
    */
-  isAncestor(tag: ClientTag): boolean {
+  @action isAncestor(tag: ClientTag): boolean {
     if (this === tag) {
       return false;
     }
@@ -91,6 +90,10 @@ export class ClientTag implements ISerializable<ITag> {
       node = node.parent;
     }
     return false;
+  }
+
+  @action setParent(parent: ClientTag): void {
+    this._parent = parent;
   }
 
   @action.bound rename(name: string): void {
@@ -105,44 +108,25 @@ export class ClientTag implements ISerializable<ITag> {
     this.store.insert(this, tag, at);
   }
 
-  /**
-   * Used for updating this Entity if changes are made to the backend outside of this session of the application.
-   * @param backendTag The file received from the backend
-   */
-  @action.bound updateFromBackend(backendTag: ITag): ClientTag {
-    // make sure our changes aren't sent back to the backend
-    this.autoSave = false;
-
-    this.name = backendTag.name;
-    this.description = backendTag.description;
-    this.color = backendTag.color;
-    this.subTags.replace(backendTag.subTags);
-
-    this.autoSave = true;
-
-    return this;
-  }
-
   serialize(): ITag {
     return {
       id: this.id,
       name: this.name,
-      description: this.description,
       dateAdded: this.dateAdded,
       color: this.color,
-      subTags: this.subTags.slice(),
+      subTags: this.subTags.map((subTag) => subTag.id),
     };
   }
 
-  getTagsRecursively(): ID[] {
-    const ids = [this.id];
+  toList(): ClientTag[] {
+    const ids: ClientTag[] = [this];
     const pushIds = (tags: ClientTag[]) => {
       for (const t of tags) {
-        ids.push(t.id);
-        pushIds(t.clientSubTags);
+        ids.push(t);
+        pushIds(t.subTags);
       }
     };
-    pushIds(this.clientSubTags);
+    pushIds(this.subTags);
     return ids;
   }
 
@@ -150,7 +134,15 @@ export class ClientTag implements ISerializable<ITag> {
     return this.store.delete(this);
   }
 
+  /** Update observable properties without updating the database */
+  @action update(update: (tag: ClientTag) => void): void {
+    this.autoSave = false;
+    update(this);
+    this.autoSave = true;
+  }
+
   dispose(): void {
+    this.autoSave = false;
     // clean up the observer
     this.saveHandler();
   }

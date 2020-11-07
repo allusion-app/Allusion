@@ -23,10 +23,10 @@
 #functions-bar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 
   > fieldset {
-    margin-bottom: 1rem;
-
     > div {
       display: flex;
       align-items: center;

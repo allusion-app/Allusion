@@ -1,14 +1,20 @@
 import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import StoreContext from '../../contexts/StoreContext';
-import { IconButton, IconSet, Tag } from 'components';
-import { Tooltip } from 'components/popover';
+import { Tag } from 'components';
 import { ClientTag } from '../../../entities/Tag';
 import { ClientIDSearchCriteria } from '../../../entities/SearchCriteria';
 import { MultiTagSelector } from '../../components/MultiTagSelector';
+import { action } from 'mobx';
+import UiStore from '../../stores/UiStore';
+import TagStore from '../../stores/TagStore';
 
-const QuickSearchList = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+interface ISearchListProps {
+  uiStore: UiStore;
+  tagStore: TagStore;
+}
+
+const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
     if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
@@ -19,17 +25,18 @@ const QuickSearchList = observer(() => {
     }
   });
 
-  const handleSelect = (item: ClientTag) =>
-    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', item.id, item.name));
+  const handleSelect = action((item: ClientTag) =>
+    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', item.id, item.name)),
+  );
 
-  const handleDeselect = (item: ClientTag) => {
+  const handleDeselect = action((item: ClientTag) => {
     const crit = uiStore.searchCriteriaList.find(
       (c) => c instanceof ClientIDSearchCriteria && c.value.includes(item.id),
     );
     if (crit) {
       uiStore.removeSearchCriteria(crit);
     }
-  };
+  });
 
   return (
     <MultiTagSelector
@@ -41,9 +48,7 @@ const QuickSearchList = observer(() => {
   );
 });
 
-const CriteriaList = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
-
+const CriteriaList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   // // Open advanced search when clicking one of the criteria (but not their delete buttons)
   const handleTagClick = useCallback(
     (e: React.MouseEvent) => {
@@ -56,7 +61,7 @@ const CriteriaList = observer(() => {
   );
 
   return (
-    <div>
+    <div className="input">
       {uiStore.searchCriteriaList.map((c, i) => {
         let label = c.toString();
         if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
@@ -79,9 +84,8 @@ const CriteriaList = observer(() => {
 });
 
 export const Searchbar = observer(() => {
-  const {
-    uiStore: { searchCriteriaList, toggleAdvancedSearch },
-  } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
+  const searchCriteriaList = uiStore.searchCriteriaList;
 
   // Only show quick search bar when all criteria are tags or collections, else
   // show a search bar that opens to the advanced search form
@@ -90,8 +94,12 @@ export const Searchbar = observer(() => {
     searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
 
   return (
-    <div className="quick-search toolbarInput">
-      {isQuickSearch ? <QuickSearchList /> : <CriteriaList />}
+    <div className="toolbar-input">
+      {isQuickSearch ? (
+        <QuickSearchList uiStore={uiStore} tagStore={tagStore} />
+      ) : (
+        <CriteriaList uiStore={uiStore} tagStore={tagStore} />
+      )}
     </div>
   );
 });

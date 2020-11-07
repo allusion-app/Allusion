@@ -31,32 +31,45 @@ body {
     'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
 }
 
-fieldset {
+header,
+header h2 {
+  font-size: medium;
+  font-weight: bold;
   margin: 0;
-  border: none;
-  padding: 0;
 }
 
-// Override standard CSS attributes
-pre {
-  word-wrap: break-word;
-  white-space: initial;
-}
-.bp3-dark {
-  pre {
-    font-family: unset;
-    background: $dark-gray8-trans;
-    padding: 6px;
-    border-radius: 6px;
+fieldset {
+  margin: 0;
+  margin-bottom: 0.5rem;
+  border: none;
+  padding: 0;
+
+  legend {
+    display: block;
+    font-weight: lighter;
+    margin-bottom: 0.5rem;
   }
+
+  label {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+}
+
+input {
+  color: inherit;
+  padding: 0;
+  padding-left: 0.25rem;
+  line-height: 1.5rem;
 }
 
 // Global specific styles for the main window
 #app {
-  --outliner-width: 14rem;
+  --outliner-width: 14rem; // new design
   --inspector-width: 18rem;
+  // --outliner-width: 20em; // old design
+  // --inspector-width: 24em;
   --toolbar-height: 3rem;
-  --quick-searchbar-height: 2.5rem;
   --thumbnail-size: 250px;
   --thumbnail-margin: 0.25rem;
   --mac-system-buttons-width: 5rem;
@@ -80,7 +93,7 @@ pre {
   --selection-background-color: #007bf53f;
   --selection-font-color: white;
   --treeitem-identation: 1rem;
-  --treeitem-offset: 1rem;
+  --treeitem-offset: 0.5rem;
 }
 
 // Dark Theme
@@ -124,7 +137,7 @@ pre {
   grid-template-rows: var(--toolbar-height) 1fr;
   grid-template-columns: min-content 1fr min-content;
   grid-template-areas:
-    'toolbar toolbar toolbar'
+    'outliner toolbar toolbar'
     'outliner main inspector';
 }
 
@@ -205,12 +218,6 @@ img {
 // instead of switching colors around like this
 #preview,
 #layout-container {
-  background-color: var(--foreground-color);
-}
-
-#toolbar,
-// #outliner,
-#inspector {
   background-color: var(--foreground-color);
 }
 

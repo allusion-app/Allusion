@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useContext, useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
 import path from 'path';
 import fse from 'fs-extra';
 
@@ -77,8 +76,10 @@ const SetupImportDirStep = ({
 
       <fieldset>
         <legend>Choose your default import location</legend>
-        <span title={importLocation}>{importLocation}</span>
-        <Button styling="filled" text="Browse" onClick={browseImportDirectory} />
+        <div className="input-file">
+          <span className="input input-file-value">{importLocation}</span>
+          <Button styling="filled" text="Browse" onClick={browseImportDirectory} />
+        </div>
       </fieldset>
     </Step>
   );
@@ -108,18 +109,20 @@ const WelcomeDialog = () => {
   const [showDialog, setShowDialog] = useState(false);
 
   const handleClose = useCallback(async () => {
-    await locationStore.init(true);
-    fileStore.refetch();
+    await locationStore.init();
+    const filesFound = await locationStore.watchLocations();
+    if (filesFound) {
+      fileStore.refetch();
+    }
     setShowDialog(false);
   }, [locationStore, fileStore]);
 
   // Only check on mount whether to show the dialog, when no default directory exists
   useEffect(() => {
-    if (!Boolean(locationStore.get(DEFAULT_LOCATION_ID))) {
+    if (locationStore.get(DEFAULT_LOCATION_ID) === undefined) {
       setShowDialog(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [locationStore]);
 
   const [importLocation, setImportLocation] = useState('');
 
@@ -173,4 +176,4 @@ const WelcomeDialog = () => {
   );
 };
 
-export default observer(WelcomeDialog);
+export default WelcomeDialog;

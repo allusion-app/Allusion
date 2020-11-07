@@ -17,7 +17,7 @@ export const Slide = ({
   children,
 }: ITransition) => {
   const transition = useRef<HTMLElement | null>(null);
-  const [hide, setHide] = useState(false);
+  const [hide, setHide] = useState(unmountOnExit && !open);
 
   useLayoutEffect(() => {
     const container = transition.current;
@@ -41,7 +41,7 @@ export const Slide = ({
     container?.addEventListener('transitionstart', handleTransitionStart);
     container?.addEventListener('transitionend', handleTransitionEnd);
 
-    () => {
+    return () => {
       container?.removeEventListener('transitionstart', handleTransitionStart);
       container?.removeEventListener('transitionend', handleTransitionEnd);
     };
@@ -62,7 +62,7 @@ export const Collapse = ({
   children,
 }: ITransition) => {
   const transition = useRef<HTMLDivElement | null>(null);
-  const [hide, setHide] = useState(false);
+  const [hide, setHide] = useState(unmountOnExit && !open);
 
   useLayoutEffect(() => {
     const container = transition.current;
@@ -86,7 +86,7 @@ export const Collapse = ({
     container?.addEventListener('transitionstart', handleTransitionStart);
     container?.addEventListener('transitionend', handleTransitionEnd);
 
-    () => {
+    return () => {
       container?.removeEventListener('transitionstart', handleTransitionStart);
       container?.removeEventListener('transitionend', handleTransitionEnd);
     };

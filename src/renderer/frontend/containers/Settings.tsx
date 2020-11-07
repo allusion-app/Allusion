@@ -9,21 +9,18 @@ import { RendererMessenger } from '../../../Messaging';
 import HotkeyMapper from '../components/HotkeyMapper';
 import PopupWindow from '../components/PopupWindow';
 import { WINDOW_STORAGE_KEY } from 'src/renderer/renderer';
+import UiStore from '../stores/UiStore';
+import FileStore from '../stores/FileStore';
+import LocationStore from '../stores/LocationStore';
 
-const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
-  const isFullScreen = e.currentTarget.checked;
-  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
-  RendererMessenger.setFullScreen(isFullScreen);
-};
+interface ISettingsProps {
+  uiStore: UiStore;
+  fileStore: FileStore;
+  locationStore: LocationStore;
+}
 
-const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
-  RendererMessenger.setClipServerEnabled({ isClipServerRunning: event.target.checked });
-
-const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
-  RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });
-
-const SettingsForm = observer(() => {
-  const { uiStore, fileStore, locationStore } = useContext(StoreContext);
+const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps) => {
+  const thumbnailDirectory = uiStore.thumbnailDirectory;
 
   const browseImportDir = useCallback(async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
@@ -45,7 +42,7 @@ const SettingsForm = observer(() => {
   const browseThumbnailDirectory = useCallback(async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
-      defaultPath: uiStore.thumbnailDirectory,
+      defaultPath: thumbnailDirectory,
     });
 
     if (dirs.length === 0) {
@@ -58,7 +55,7 @@ const SettingsForm = observer(() => {
       return;
     }
 
-    const oldDir = uiStore.thumbnailDirectory;
+    const oldDir = thumbnailDirectory;
 
     // Move thumbnail files
     await moveThumbnailDir(oldDir, newDir);
@@ -70,12 +67,27 @@ const SettingsForm = observer(() => {
         f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
       }
     });
-  }, [fileStore.fileList, uiStore]);
+  }, [fileStore.fileList, thumbnailDirectory, uiStore]);
 
   return (
     <div className="settings-form">
-      <div className="column">
-        <RadioGroup name="Thumbnail Size">
+      <h2>Appearance</h2>
+      <fieldset>
+        <Toggle
+          checked={uiStore.theme === 'DARK'}
+          onChange={uiStore.toggleTheme}
+          label="Dark theme"
+        />
+        <Toggle
+          defaultChecked={RendererMessenger.isFullScreen()}
+          onChange={toggleFullScreen}
+          label="Full screen"
+        />
+      </fieldset>
+
+      <h3>Thumbnail</h3>
+      <div className="settings-thumbnail">
+        <RadioGroup name="Size">
           <Radio
             label="Small"
             value="small"
@@ -95,8 +107,7 @@ const SettingsForm = observer(() => {
             onChange={uiStore.setThumbnailLarge}
           />
         </RadioGroup>
-
-        <RadioGroup name="Thumbnail Shape">
+        <RadioGroup name="Shape">
           <Radio
             label="Square"
             checked={uiStore.thumbnailShape === 'square'}
@@ -111,19 +122,9 @@ const SettingsForm = observer(() => {
           />
         </RadioGroup>
       </div>
-      <div className="column">
-        <Toggle
-          defaultChecked={RendererMessenger.isFullScreen()}
-          onChange={toggleFullScreen}
-          label="Full screen"
-        />
 
-        <Toggle
-          checked={uiStore.theme === 'DARK'}
-          onChange={uiStore.toggleTheme}
-          label="Dark theme"
-        />
-
+      <h2>Options</h2>
+      <fieldset>
         <Toggle
           defaultChecked={RendererMessenger.isRunningInBackground()}
           onChange={toggleRunInBackground}
@@ -135,10 +136,9 @@ const SettingsForm = observer(() => {
           onChange={toggleClipServer}
           label="Browser extension support"
         />
-      </div>
+      </fieldset>
 
-      <hr />
-
+      <h2>Storage</h2>
       <div>
         {/* Todo: Add support to toggle this */}
         {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
@@ -146,31 +146,29 @@ const SettingsForm = observer(() => {
           <legend>Thumbnail Directory</legend>
 
           {/* Where to import images you drop on the app or import through the browser extension */}
-          <span title={uiStore.thumbnailDirectory}>{uiStore.thumbnailDirectory}</span>
-          <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
+          <div className="input-file">
+            <span className="input input-file-value">{thumbnailDirectory}</span>
+            <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
+          </div>
         </fieldset>
 
         <fieldset>
           <legend>Import Directory</legend>
-          <span title={locationStore.importDirectory}>{locationStore.importDirectory}</span>
-          <Button styling="filled" text="Browse" onClick={browseImportDir} />
+          <div className="input-file">
+            <span className="input input-file-value">{locationStore.importDirectory}</span>
+            <Button styling="filled" text="Browse" onClick={browseImportDir} />
+          </div>
         </fieldset>
       </div>
 
-      <hr />
+      <h2>Shortcuts Map</h2>
+      <p>
+        Click on a key combination to modify it. After typing your new combination, press Enter to
+        confirm or Escape to cancel.
+      </p>
+      <HotkeyMapper />
 
-      <div>
-        <p>
-          Click on a key combination to modify it. After typing your new combination, press Enter to
-          confirm or Escape to cancel. The application must be reloaded for the changes to take
-          effect.
-        </p>
-        <Button icon={IconSet.RELOAD} text="Reload" onClick={() => window.location.reload()} />
-        <HotkeyMapper />
-      </div>
-
-      <hr />
-
+      <h2>Development</h2>
       <ButtonGroup>
         <ClearDbButton />
         <Button
@@ -184,8 +182,8 @@ const SettingsForm = observer(() => {
   );
 });
 
-export const SettingsWindow: React.FC = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+const SettingsWindow = () => {
+  const { uiStore, fileStore, locationStore } = useContext(StoreContext);
 
   if (!uiStore.isSettingsOpen) {
     return null;
@@ -199,10 +197,22 @@ export const SettingsWindow: React.FC = observer(() => {
       additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
     >
       <div id="settings-window" className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
-        <SettingsForm />
+        <Settings uiStore={uiStore} fileStore={fileStore} locationStore={locationStore} />
       </div>
     </PopupWindow>
   );
-});
+};
 
-export default SettingsWindow;
+export default observer(SettingsWindow);
+
+const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
+  const isFullScreen = e.currentTarget.checked;
+  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
+  RendererMessenger.setFullScreen(isFullScreen);
+};
+
+const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setClipServerEnabled({ isClipServerRunning: event.target.checked });
+
+const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
+  RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });

@@ -12,7 +12,6 @@ const mockTag: ITag = {
   id: 'tag1',
   name: 'tag1 name',
   dateAdded: new Date(),
-  description: 'tag1 description',
   color: '',
   subTags: [],
 };

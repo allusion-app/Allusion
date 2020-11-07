@@ -6,6 +6,7 @@ import StoreContext from '../../../contexts/StoreContext';
 import TagsTree from './TagsTree';
 import { IconSet } from 'components';
 import { Toolbar, ToolbarToggleButton } from 'components/menu';
+import { runInAction } from 'mobx';
 
 // Tooltip info
 const enum TooltipInfo {
@@ -48,9 +49,8 @@ export const SystemTags = observer(() => {
   );
 });
 
-const TagsPanel = observer(() => {
+const TagsPanel = () => {
   const { uiStore } = useContext(StoreContext);
-  const { hotkeyMap } = uiStore;
 
   const handleShortcuts = useCallback(
     (e: React.KeyboardEvent) => {
@@ -58,13 +58,16 @@ const TagsPanel = observer(() => {
       const matches = (c: string): boolean => {
         return comboMatches(combo, parseKeyCombo(c));
       };
-      if (matches(hotkeyMap.selectAll)) {
-        uiStore.selectAllTags();
-      } else if (matches(hotkeyMap.deselectAll)) {
-        uiStore.clearTagSelection();
-      }
+      runInAction(() => {
+        const { hotkeyMap } = uiStore;
+        if (matches(hotkeyMap.selectAll)) {
+          uiStore.selectAllTags();
+        } else if (matches(hotkeyMap.deselectAll)) {
+          uiStore.clearTagSelection();
+        }
+      });
     },
-    [hotkeyMap.deselectAll, hotkeyMap.selectAll, uiStore],
+    [uiStore],
   );
 
   return (
@@ -72,6 +75,6 @@ const TagsPanel = observer(() => {
       <TagsTree />
     </div>
   );
-});
+};
 
 export default TagsPanel;

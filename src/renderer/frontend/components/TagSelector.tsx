@@ -1,9 +1,10 @@
 import React, { useContext, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
-import { ClientTag } from 'src/renderer/entities/Tag';
+import { ClientTag, ROOT_TAG_ID } from 'src/renderer/entities/Tag';
 import { Listbox, Option } from 'components';
 import { Flyout } from 'components/popover';
+import { action, runInAction } from 'mobx';
 
 interface ITagSelector {
   selection: ClientTag | undefined;
@@ -27,19 +28,20 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
   return (
     <div
       role="combobox"
+      className="input"
       onBlur={(e) => {
         if (e.relatedTarget instanceof HTMLElement && e.relatedTarget.matches('[role="option"]')) {
           return;
         }
         setIsOpen(false);
         if (selection !== undefined) {
-          setQuery(selection.name);
+          runInAction(() => setQuery(selection.name));
         }
       }}
     >
       <Flyout
         open={isOpen}
-        placement="bottom"
+        placement="bottom-start"
         target={
           <input
             type="text"
@@ -54,18 +56,20 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
         }
       >
         <Listbox>
-          {tagStore.root.clientSubTags
-            .filter((t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0)
+          {tagStore.tagList
+            .filter(
+              (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
+            )
             .map((t) => (
               <Option
                 key={t.id}
                 selected={selection === t}
                 value={t.name}
-                onClick={() => {
+                onClick={action(() => {
                   onSelect(t);
                   setQuery(t.name);
                   setIsOpen(false);
-                }}
+                })}
               />
             ))}
         </Listbox>

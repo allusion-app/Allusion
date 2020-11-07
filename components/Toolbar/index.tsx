@@ -10,17 +10,11 @@ interface IToolbar {
   label?: string;
   labelledby?: string;
   controls: string;
-  orientation?: 'horizontal' | 'vertical';
 }
 
 const handleToolbarKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const current = e.currentTarget;
   const target = (e.target as HTMLElement).closest('[role="toolbar"] > *')!;
-  const isVertical = current.matches('[aria-orientation="vertical"]');
-
-  if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-    return;
-  }
 
   let item;
   if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
@@ -56,7 +50,7 @@ const handleToolbarFocus = (e: React.FocusEvent<HTMLElement>) => {
 };
 
 const Toolbar = (props: IToolbar) => {
-  const { children, id, className, label, labelledby, controls, orientation } = props;
+  const { children, id, className, label, labelledby, controls } = props;
   const toolbar = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -64,17 +58,6 @@ const Toolbar = (props: IToolbar) => {
       toolbar.current.querySelector('.toolbar-item')?.setAttribute('tabIndex', '0');
     }
   }, []);
-
-  useEffect(() => {
-    if (toolbar.current) {
-      const list = toolbar.current.querySelectorAll('.toolbar-group');
-      if (orientation) {
-        list.forEach((group) => group.setAttribute('aria-orientation', orientation));
-      } else {
-        list.forEach((group) => group.removeAttribute('aria-orientation'));
-      }
-    }
-  }, [orientation]);
 
   return (
     <div
@@ -85,7 +68,6 @@ const Toolbar = (props: IToolbar) => {
       aria-label={label}
       aria-labelledby={labelledby}
       aria-controls={controls}
-      aria-orientation={orientation}
       onFocus={handleToolbarFocus}
       onKeyDown={handleToolbarKeyDown}
     >
@@ -101,6 +83,7 @@ interface IBaseButton {
   onClick?: (event: React.MouseEvent) => void;
   showLabel?: 'always' | 'never';
   tooltip?: string;
+  tabIndex?: 0 | -1;
 }
 
 interface IToolbarButton extends IBaseButton {
@@ -128,6 +111,7 @@ const ToolbarButton = (props: IToolbarButton) => {
     expanded,
     controls,
     haspopup,
+    tabIndex,
   } = props;
   const content = (
     <span className="toolbar-button-content">
@@ -149,7 +133,7 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-controls={controls}
       aria-haspopup={haspopup}
       aria-expanded={expanded}
-      tabIndex={-1}
+      tabIndex={tabIndex ?? -1}
     >
       {tooltip ? (
         <Tooltip content={tooltip} hoverDelay={1500}>
@@ -176,11 +160,6 @@ interface IToolbarGroup extends IBaseGroup {
 
 const handleGroupKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const target = (e.target as HTMLElement).closest('.toolbar-group > *')!;
-  const isVertical = e.currentTarget.matches('[aria-orientation="vertical"]');
-
-  if (isVertical && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-    return;
-  }
 
   let item;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -221,11 +200,12 @@ const ToolbarGroup = (props: IToolbarGroup) => {
 };
 
 interface IToolbarToggleButton extends IBaseButton {
+  controls?: string;
   pressed: boolean;
 }
 
 const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { id, pressed, onClick, icon, text, tooltip, showLabel } = props;
+  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls, tabIndex } = props;
   return (
     <ToolbarButton
       id={id}
@@ -235,6 +215,8 @@ const ToolbarToggleButton = (props: IToolbarToggleButton) => {
       text={text}
       showLabel={showLabel}
       tooltip={tooltip}
+      controls={controls}
+      tabIndex={tabIndex}
     />
   );
 };
@@ -245,15 +227,14 @@ interface IToolbarSegment extends IBaseGroup {
 
 const handleSegmentKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
   const target = e.target as HTMLElement;
-  const isVertical = e.currentTarget.matches('[aria-orientation="vertical"]');
   let item;
-  if (e.key === 'ArrowLeft' || (isVertical && e.key === 'ArrowUp')) {
+  if (e.key === 'ArrowLeft') {
     item = target.previousElementSibling;
-  } else if (e.key === 'ArrowRight' || (isVertical && e.key === 'ArrowDown')) {
+  } else if (e.key === 'ArrowRight') {
     item = target.nextElementSibling;
-  } else if (e.key === 'ArrowDown' || (isVertical && e.key === 'ArrowLeft')) {
+  } else if (e.key === 'ArrowDown') {
     item = target.nextElementSibling ?? e.currentTarget.firstElementChild;
-  } else if (e.key === 'ArrowUp' || (isVertical && e.key === 'ArrowRight')) {
+  } else if (e.key === 'ArrowUp') {
     item = target.previousElementSibling ?? e.currentTarget.lastElementChild;
   }
   if (item) {
@@ -280,7 +261,7 @@ interface IToolbarSegmentButton extends IBaseButton {
 }
 
 const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
-  const { id, checked, onClick, icon, text, tooltip, showLabel } = props;
+  const { id, checked, onClick, icon, text, tooltip, showLabel, tabIndex } = props;
   return (
     <ToolbarButton
       id={id}
@@ -291,6 +272,7 @@ const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
       text={text}
       tooltip={tooltip}
       showLabel={showLabel}
+      tabIndex={tabIndex}
     />
   );
 };
@@ -369,6 +351,7 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
             onClick={() => setIsOpen(!isOpen)}
             expanded={isOpen}
             controls={props.controls}
+            tabIndex={props.tabIndex}
             haspopup="menu"
           />
         }

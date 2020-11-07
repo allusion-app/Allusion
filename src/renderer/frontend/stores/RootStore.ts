@@ -10,7 +10,7 @@ import { RendererMessenger } from 'src/Messaging';
 // This will throw exceptions whenver we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
 // https://mobx.js.org/refguide/action.html
-configure({ enforceActions: 'observed' });
+configure({ observableRequiresReaction: true, reactionRequiresObservable: true });
 
 /**
  * From: https://mobx.js.org/best/store.html
@@ -42,11 +42,20 @@ class RootStore {
     };
   }
 
-  async init(autoLoadFiles: boolean) {
-    // The location store is not required to be finished with loading before showing the rest
-    // So it does not need to be awaited
-    this.locationStore.init(autoLoadFiles);
-    await Promise.all([this.tagStore.init(), this.fileStore.init(autoLoadFiles)]);
+  async init(isPreviewWindow: boolean) {
+    // The location store must be initiated because the file entity contructor
+    // uses the location reference to set values.
+    await this.locationStore.init();
+    // The tag store needs to be awaited because file entites have references
+    // to tag entities.
+    await this.tagStore.init();
+
+    // The preview window is opened while the locations are already watched. The
+    // files are fetched based on the file selection.
+    if (!isPreviewWindow) {
+      this.locationStore.watchLocations().then(this.fileStore.fetchAllFiles);
+    }
+
     // Upon loading data, initialize UI state.
     this.uiStore.init();
   }
