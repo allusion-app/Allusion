@@ -15,10 +15,10 @@ const enum TooltipInfo {
   Missing = 'View missing images on your system',
 }
 
-export const SystemTags = observer(() => {
+export const OutlinerActionBar = observer(() => {
   const { fileStore } = useContext(StoreContext);
   return (
-    <Toolbar id="system-tags" label="System Tags" controls="gallery-content">
+    <Toolbar className="actionbar" label="Action Bar" controls="gallery-content">
       <ToolbarToggleButton
         showLabel="always"
         text={fileStore.fileList.length}
@@ -71,7 +71,7 @@ const TagsPanel = () => {
   );
 
   return (
-    <div onKeyDown={handleShortcuts}>
+    <div onKeyDown={handleShortcuts} className="section">
       <TagsTree />
     </div>
   );

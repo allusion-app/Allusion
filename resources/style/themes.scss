@@ -1,0 +1,46 @@
+// All themes
+.bp3-dark,
+.bp3-light {
+  --primary-color: #{$blue1};
+  --stroke-color: #{$gray3};
+  --selection-background-color: #007bf53f;
+  --selection-font-color: white;
+  --treeitem-identation: 1rem;
+  --treeitem-offset: 0.5rem;
+}
+
+// Dark Theme
+.bp3-dark {
+  --focus-color: #{$dark-gray3};
+  --hover-background: #{$dark-gray4}; // dark-gray5?
+  --hover-color: white;
+
+  // Text/icon color
+  --text-color: hsl(0, 0%, 80%);
+  --text-muted-color: hsl(0, 0%, 55%);
+  color: var(--text-color);
+
+  // The background color of elements inside of panels
+  --foreground-color: #{$dark-gray3}; // Main background color
+  --foreground-color2: #{$dark-gray2}; // Alt background color (outliner)
+  // Background color of the main panels
+  --background-color: #{$dark-gray0}; // dark-gray0 or 1? --> NOT used in new design
+}
+
+// Light Theme
+.bp3-light {
+  --focus-color: #{$light-gray4};
+  --hover-background: #{$light-gray4};
+  --hover-color: #{$black};
+
+  // Text/icon color
+  --text-color: rgb(32, 32, 32); // hsl(0, 0%, 20%);
+  --text-muted-color: hsl(0, 0%, 45%);
+  color: var(--text-color);
+
+  // The (background) color of elements inside of panels
+  --foreground-color: rgb(255, 255, 255); // #{$light-gray5};
+  --foreground-color2: rgba(217, 217, 217); // #{$light-gray3}; // Left side
+  // Background color of the main panels
+  --background-color: #{$light-gray3}; // light-gray5 ? --> NOT used in new design
+}

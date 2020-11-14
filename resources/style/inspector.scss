@@ -37,6 +37,22 @@ table.file-info {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  // TODO: New design:
+  // .listContentRow {
+  //   display: flex;
+  //   justify-content: left;
+  //   align-items: stretch;
+  // }
+  // .listContentMetadata .header {
+  //   padding: 0.125rem 0.5rem;
+  //   display: flex;
+  //   font-weight: bold;
+  // }
+  // .listContentMetadata .row {
+  //   padding: 0.125rem 0.5rem;
+  //   display: flex;
+  //   justify-content: space-between;
+  // }
 }
 
 .inspector-preview {

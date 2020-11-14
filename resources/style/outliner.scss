@@ -7,6 +7,7 @@
   padding-top: var(--toolbar-height);
   background-color: var(--foreground-color2);
 
+  // Same transparent background image as in the design mockup
   // background-image: url(~resources/images/background.png);
   // background-size: cover;
 
@@ -36,15 +37,6 @@
 
   &:hover header [role='toolbar'] {
     opacity: 1;
-  }
-}
-
-#system-tags {
-  flex-shrink: 0;
-  justify-content: unset;
-
-  > .toolbar-item {
-    margin: 0 0.5rem;
   }
 }
 
