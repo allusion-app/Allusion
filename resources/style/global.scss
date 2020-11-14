@@ -227,14 +227,20 @@ img {
   }
 }
 
+#toaster {
+  position: absolute;
+  right: 1rem;
+  bottom: 0rem;
+}
+
 // TODO: Fix this when we have our own custom toaster, currently intefering with Blueprint
 .toast {
   background: #3399ff;
   color: #ffffff;
   width: 22.5rem;
-  position: absolute;
-  right: 1rem;
-  bottom: 1rem;
+  // right: 1rem;
+  // bottom: 1rem;
+  margin-bottom: 1rem;
   padding: 0.25rem 0.5rem;
   z-index: 200;
   border-radius: 0.25rem;
