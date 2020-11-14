@@ -5,13 +5,30 @@ import { IconSet, Button, ButtonGroup } from 'components';
 import { observer } from 'mobx-react-lite';
 
 const Placeholder = observer(() => {
-  const { fileStore, uiStore } = useContext(StoreContext);
+  const { fileStore, uiStore, tagStore } = useContext(StoreContext);
   let icon;
   let title;
   let description;
   let action;
 
-  if (fileStore.showsAllContent) {
+  console.log(fileStore.showsAllContent, tagStore.tagList.length);
+  if (fileStore.showsAllContent && tagStore.tagList.length === 1) {
+    // No tags exist, and no images added: Assuming it's a new user -> Show a welcome screen
+    icon = IconSet.LOGO;
+    title = 'Welcome to Allusion';
+    description = (
+      <>
+        <p>
+          Allusion is a tool designed to help you organize your Visual Library, so you can easily
+          find what you need throughout your creative process.
+        </p>
+        <p>Allusion needs to know where to find your images. Click below to get started.</p>
+      </>
+    );
+    action = (
+      <Button text="Getting Started Guide" onClick={() => window.alert('TODO: Get started')} />
+    );
+  } else if (fileStore.showsAllContent) {
     icon = IconSet.MEDIA;
     title = 'No images';
     description = 'Images can be added from the outliner';
@@ -71,8 +88,8 @@ const Placeholder = observer(() => {
   }
 
   return (
-    <div>
-      <span className="custom-icon-64">{icon}</span>
+    <div id="content-placeholder">
+      <span className="custom-icon-128">{icon}</span>
       <h2>{title}</h2>
       <p>{description}</p>
       {action}

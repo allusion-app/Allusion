@@ -7,6 +7,9 @@
   padding-top: var(--toolbar-height);
   background-color: var(--foreground-color2);
 
+  // background-image: url(~resources/images/background.png);
+  // background-size: cover;
+
   > * {
     // Don't squash content during parent transition
     width: var(--outliner-width);

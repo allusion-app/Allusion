@@ -18,6 +18,7 @@ import { Toaster, Position, getKeyCombo, comboMatches, parseKeyCombo } from '@bl
 import WelcomeDialog from './containers/WelcomeDialog';
 import { ToolbarToggleButton } from 'components/menu';
 import { IconSet } from 'components';
+import TagSelector from './components/TagSelector';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -131,7 +132,7 @@ const App = observer(() => {
 
           <AdvancedSearchDialog />
 
-          <WelcomeDialog />
+          {/* <WelcomeDialog /> */}
         </ErrorBoundary>
       </div>
     </DropOverlay>
