@@ -54,6 +54,7 @@ const TagsPanel = () => {
 
   const handleShortcuts = useCallback(
     (e: React.KeyboardEvent) => {
+      if ((e.target as HTMLElement).matches?.('input')) return;
       const combo = getKeyCombo(e.nativeEvent);
       const matches = (c: string): boolean => {
         return comboMatches(combo, parseKeyCombo(c));

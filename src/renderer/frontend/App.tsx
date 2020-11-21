@@ -62,6 +62,7 @@ const App = observer(() => {
 
   const handleGlobalShortcuts = useCallback(
     (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).matches?.('input')) return;
       const combo = getKeyCombo(e);
       const matches = (c: string): boolean => {
         return comboMatches(combo, parseKeyCombo(c));

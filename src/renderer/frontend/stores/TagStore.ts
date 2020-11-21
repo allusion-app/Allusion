@@ -45,6 +45,10 @@ class TagStore {
     return root;
   }
 
+  @computed get tagListWithoutRoot() {
+    return this.tagList.filter((t) => t.id !== ROOT_TAG_ID);
+  }
+
   @action isSelected(tag: ClientTag): boolean {
     return this.rootStore.uiStore.tagSelection.has(tag);
   }

@@ -8,7 +8,6 @@ import { observe } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
-import '../../resources/style/design-mockup-v3.scss';
 import './style.scss';
 
 import Backend from './backend/Backend';

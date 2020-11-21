@@ -18,6 +18,7 @@ import Searchbar from './Searchbar';
 import { runInAction } from 'mobx';
 import UiStore from '../../stores/UiStore';
 import FileStore from '../../stores/FileStore';
+import TagFilesPopover from '../../components/TagFilesPopover';
 
 type FileStoreProp = { fileStore: FileStore };
 type UiStoreProp = { uiStore: UiStore };
@@ -147,7 +148,8 @@ const ContentToolbar = observer(({ uiStore, fileStore }: UiStoreProp & FileStore
           //   toggle={uiStore.toggleToolbarTagSelector}
           //   hidden={fileStore.content === 'missing'}
           // />
-          <></>
+          // New attempt
+          <TagFilesPopover />
         )}
 
         <ToolbarMenuButton

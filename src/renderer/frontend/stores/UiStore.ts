@@ -31,6 +31,7 @@ export interface IHotkeyMap {
 
   // Toolbar actions (these should only be active when the content area is focused)
   deleteSelection: string;
+  openTagEditor: string;
   selectAll: string;
   deselectAll: string;
   viewList: string;
@@ -51,6 +52,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   toggleSettings: 's',
   toggleHelpCenter: 'h',
   deleteSelection: 'del',
+  openTagEditor: 't',
   selectAll: 'mod + a',
   deselectAll: 'mod + d',
   viewList: 'alt + 1',
@@ -116,6 +118,7 @@ class UiStore {
   @observable thumbnailSize: ThumbnailSize = 'medium';
   @observable thumbnailShape: ThumbnailShape = 'square';
 
+  @observable isToolbarTagPopoverOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
 
   // Selections
@@ -254,6 +257,14 @@ class UiStore {
 
   @action.bound closeToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = false;
+  }
+
+  @action.bound openToolbarTagPopover() {
+    this.isToolbarTagPopoverOpen = true;
+  }
+
+  @action.bound closeToolbarTagPopover() {
+    this.isToolbarTagPopoverOpen = false;
   }
 
   @action.bound openLocationRecovery(locationId: ID) {
