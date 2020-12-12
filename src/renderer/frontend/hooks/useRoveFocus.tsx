@@ -2,7 +2,7 @@ import { useCallback, useState, useEffect } from 'react';
 
 function useRoveFocus(size: number): [number, (index: number) => void] {
   const [currentFocus, setCurrentFocus] = useState(0);
-  console.log(currentFocus, size);
+  // console.log(currentFocus, size);
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown') {

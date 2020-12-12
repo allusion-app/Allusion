@@ -568,6 +568,8 @@ class UiStore {
       } catch (e) {
         console.error('Cannot parse persistent preferences', e);
       }
+      // Set the native window theme based on the application theme
+      RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' })
     }
 
     // Set default thumbnail directory in case none was specified

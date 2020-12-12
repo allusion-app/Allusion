@@ -7,6 +7,7 @@
   right: 0;
   height: var(--toolbar-height);
   padding: 0 1rem 0 0.5rem;
+  background-color: var(--background-color);
 
   // Since the toolbar is acting as the frame, it should be draggable to move the window around
   -webkit-app-region: drag;
@@ -45,7 +46,7 @@
   top: var(--toolbar-height);
   left: calc(50% - 200px);
 
-  background-color: var(--foreground-color);
+  background-color: var(--background-color);
 }
 
 .tag-files-widget {

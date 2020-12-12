@@ -20,11 +20,9 @@
   --text-muted-color: hsl(0, 0%, 55%);
   color: var(--text-color);
 
-  // The background color of elements inside of panels
-  --foreground-color: #{$dark-gray3}; // Main background color
-  --foreground-color2: #{$dark-gray2}; // Alt background color (outliner)
-  // Background color of the main panels
-  --background-color: #{$dark-gray0}; // dark-gray0 or 1? --> NOT used in new design
+  // The main background color of the panels
+  --background-color: #{$dark-gray3}; // Main background color
+  --background-color-alt: rgba(#{$dark-gray3}, 0.85); // Alt background color (outliner)
 }
 
 // Light Theme
@@ -38,9 +36,12 @@
   --text-muted-color: hsl(0, 0%, 45%);
   color: var(--text-color);
 
-  // The (background) color of elements inside of panels
-  --foreground-color: rgb(255, 255, 255); // #{$light-gray5};
-  --foreground-color2: rgba(217, 217, 217); // #{$light-gray3}; // Left side
-  // Background color of the main panels
-  --background-color: #{$light-gray3}; // light-gray5 ? --> NOT used in new design
+  // The main background color of the panels
+  --background-color: rgb(255, 255, 255); // Main background color {$light-gray5} ?
+  --background-color-alt: rgba(
+    255,
+    255,
+    255,
+    0.85
+  ); // Alt background color (outliner) {$light-gray3}?
 }

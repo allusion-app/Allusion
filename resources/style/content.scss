@@ -83,7 +83,7 @@
   height: var(--thumbnail-size);
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
-  background-color: var(--foreground-color);
+  background-color: var(--background-color);
 
   // This acts as the border-radius, but also for child elements
   :first-child {
