@@ -9,6 +9,12 @@
     border: none;
     background: transparent;
   }
+
+  [role='separator'] {
+    background: var(--text-muted-color);
+    height: 1px;
+    margin: 0.5rem 1rem;
+  }
 }
 
 .multiautocomplete-input {

@@ -1,7 +1,7 @@
 import React, { useCallback, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import StoreContext from '../../contexts/StoreContext';
-import { Tag } from 'components';
+import { IconSet, Tag } from 'components';
 import { ClientTag } from '../../../entities/Tag';
 import { ClientIDSearchCriteria } from '../../../entities/SearchCriteria';
 import { MultiTagSelector } from '../../components/MultiTagSelector';
@@ -44,12 +44,13 @@ const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
       onSelect={handleSelect}
       onDeselect={handleDeselect}
       onClear={uiStore.clearSearchCriteriaList}
+      extraOption={{ label: 'Advanced search', action: uiStore.toggleAdvancedSearch, icon: IconSet.SEARCH_EXTENDED }}
     />
   );
 });
 
 const CriteriaList = observer(({ uiStore, tagStore }: ISearchListProps) => {
-  // // Open advanced search when clicking one of the criteria (but not their delete buttons)
+  // Open advanced search when clicking one of the criteria (but not their delete buttons)
   const handleTagClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) {
@@ -98,8 +99,8 @@ export const Searchbar = observer(() => {
       {isQuickSearch ? (
         <QuickSearchList uiStore={uiStore} tagStore={tagStore} />
       ) : (
-        <CriteriaList uiStore={uiStore} tagStore={tagStore} />
-      )}
+          <CriteriaList uiStore={uiStore} tagStore={tagStore} />
+        )}
     </div>
   );
 });
