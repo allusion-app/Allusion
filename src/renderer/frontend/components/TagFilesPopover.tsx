@@ -22,37 +22,35 @@ interface TagItemProps {
   index: number;
 }
 
-const TagItem = observer(
-  ({ text, isSelected, onSelect, isFocused, setFocus, index, color }: TagItemProps) => {
-    const ref = useRef<HTMLLIElement>(null);
-    useEffect(() => {
-      const inputFocused = document.activeElement?.matches('input');
-      // Move element into view when it is focused
-      if (isFocused && !inputFocused) ref.current?.focus();
-    }, [isFocused]);
+const TagItem = ({ text, isSelected, onSelect, isFocused, setFocus, index, color }: TagItemProps) => {
+  const ref = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    const inputFocused = document.activeElement?.matches('input');
+    // Move element into view when it is focused
+    if (isFocused && !inputFocused) ref.current?.focus();
+  }, [isFocused]);
 
-    const handleSelect = () => {
-      setFocus(index);
-      onSelect();
-    };
+  const handleSelect = () => {
+    setFocus(index);
+    onSelect();
+  };
 
-    return (
-      <li
-        onClick={handleSelect}
-        onKeyPress={(e) => e.key === 'Enter' && handleSelect()}
-        tabIndex={isFocused ? 1 : -1}
-        role="button"
-        ref={ref}
-      >
-        <span className="tag-item-icon" style={{ color }}>
-          {IconSet.TAG}
-        </span>
-        <span>{text}</span>
-        <span className="tag-item-icon">{isSelected ? IconSet.CHECKMARK : null}</span>
-      </li>
-    );
-  },
-);
+  return (
+    <li
+      onClick={handleSelect}
+      onKeyPress={(e) => e.key === 'Enter' && handleSelect()}
+      tabIndex={isFocused ? 1 : -1}
+      role="button"
+      ref={ref}
+    >
+      <span className="tag-item-icon" style={{ color }}>
+        {IconSet.TAG}
+      </span>
+      <span>{text}</span>
+      <span className="tag-item-icon">{isSelected ? IconSet.CHECKMARK : null}</span>
+    </li>
+  );
+};
 
 interface TagFilesWidgetProps {
   files: ObservableSet<ClientFile>;
@@ -69,6 +67,7 @@ const TagFilesWidget = observer(({ files, onSelect, onDeselect }: TagFilesWidget
 
   const handleInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+
       const text = e.target.value;
       setInputText(e.target.value);
 
@@ -133,7 +132,7 @@ interface FloatingDialogProps {
   children: ReactNode;
 }
 
-const FloatingDialog = observer((props: FloatingDialogProps) => {
+const FloatingDialog = (props: FloatingDialogProps) => {
   useEffect(() => {
     const el = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -148,7 +147,7 @@ const FloatingDialog = observer((props: FloatingDialogProps) => {
 
   if (!props.isOpen) return null;
   return <div className="floating-dialog">{props.children}</div>;
-});
+};
 
 const TagFilesPopover = observer(() => {
   const { uiStore } = useContext(StoreContext);
