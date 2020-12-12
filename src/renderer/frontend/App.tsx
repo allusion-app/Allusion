@@ -1,23 +1,23 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { comboMatches, getKeyCombo, parseKeyCombo, Position, Toaster } from '@blueprintjs/core';
+import { IconSet } from 'components';
+import { ToolbarToggleButton } from 'components/menu';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-
-import ContentView from './containers/ContentView';
-import Outliner from './containers/Outliner';
-import StoreContext from './contexts/StoreContext';
-import Inspector from './containers/Inspector';
-import Toolbar from './containers/Toolbar';
-import ErrorBoundary from './components/ErrorBoundary';
-import SplashScreen from './components/SplashScreen';
-import SettingsWindow from './containers/Settings';
-import HelpCenter from './components/HelpCenter';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import DropOverlay from './components/DropOverlay';
+import ErrorBoundary from './components/ErrorBoundary';
+import HelpCenter from './components/HelpCenter';
+import SplashScreen from './components/SplashScreen';
 import AdvancedSearchDialog from './containers/AdvancedSearch';
-import { useWorkerListener } from './ThumbnailGeneration';
-import { Toaster, Position, getKeyCombo, comboMatches, parseKeyCombo } from '@blueprintjs/core';
+import ContentView from './containers/ContentView';
+import Inspector from './containers/Inspector';
+import Outliner from './containers/Outliner';
+import SettingsWindow from './containers/Settings';
+import Toolbar from './containers/Toolbar';
 import WelcomeDialog from './containers/WelcomeDialog';
-import { ToolbarToggleButton } from 'components/menu';
-import { IconSet } from 'components';
+import StoreContext from './contexts/StoreContext';
+import { useWorkerListener } from './ThumbnailGeneration';
+import { Toaster as CustomToaster } from './components/Toaster';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -34,6 +34,7 @@ const OutlinerToggle = observer(() => {
       id="outliner-toggle"
       controls="outliner"
       pressed={uiStore.isOutlinerOpen}
+      // TODO: should be a double caret icon
       icon={uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
       onClick={uiStore.toggleOutliner}
       text="Toggle Outliner"
@@ -61,6 +62,7 @@ const App = observer(() => {
 
   const handleGlobalShortcuts = useCallback(
     (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).matches?.('input')) return;
       const combo = getKeyCombo(e);
       const matches = (c: string): boolean => {
         return comboMatches(combo, parseKeyCombo(c));
@@ -130,6 +132,8 @@ const App = observer(() => {
           <HelpCenter />
 
           <AdvancedSearchDialog />
+
+          <CustomToaster />
 
           <WelcomeDialog />
         </ErrorBoundary>

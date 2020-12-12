@@ -54,3 +54,14 @@ A short introduction to Jest with Typescript and React can be found [here](https
 
 Tests can be run using `yarn test` or debugged in VSCode using the launch configs in `.vscode/launch.json`, which can run either all tests or just the test file that is open.
 Jest also offers some useful options, such as running `yarn test Backend` which will only run the test files with `Backend` in their filename.
+
+## Styling
+
+All styles are defined using [SASS](https://sass-lang.com/guide).
+There are two locations where styles are defined:
+
+1. The application style sheets `/resources/style`: for the layout of panels, global styles, color definitions, etc.
+2. The component style sheets `/components/*/*.scss`: the appearance of buttons, fly-outs,
+
+For the application style sheets, there is a file per main panel (toolbar, outliner, content, inspector, etc.) and a couple of files for variable definitions and global styles. To ensure consistent colors are used across the entire application, all of the necessary colors are defined in the `colors.scss` file. These are then used in the `themes.scss` file for themes-specific colors (background, font, etc.).
+The `global.scss` file contains the root element style, layout definitions and some misc styles like the handlebars.

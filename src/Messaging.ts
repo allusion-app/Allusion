@@ -69,6 +69,7 @@ export const SEND_PREVIEW_FILES = 'SEND_PREVIEW_FILES_MESSAGE';
 export const RECEIEVE_PREVIEW_FILES = 'RECEIEVE_PREVIEW_FILES_MESSAGE';
 export interface IPreviewFilesMessage {
   ids: ID[];
+  activeImgId?: ID;
   thumbnailDirectory: string;
 }
 

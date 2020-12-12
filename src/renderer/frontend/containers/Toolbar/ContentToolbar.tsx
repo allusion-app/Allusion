@@ -18,6 +18,7 @@ import Searchbar from './Searchbar';
 import { runInAction } from 'mobx';
 import UiStore from '../../stores/UiStore';
 import FileStore from '../../stores/FileStore';
+import TagFilesPopover from '../../components/TagFilesPopover';
 
 type FileStoreProp = { fileStore: FileStore };
 type UiStoreProp = { uiStore: UiStore };
@@ -54,8 +55,8 @@ const RemoveFilesPopover = observer(({ uiStore }: UiStoreProp) => {
         onClick={uiStore.openToolbarFileRemover}
         text="Delete"
         tooltip={Tooltip.Delete}
-        // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
-        // intent="warning"
+      // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
+      // intent="warning"
       />
       <FileRemoval />
     </>
@@ -136,19 +137,9 @@ const ContentToolbar = observer(({ uiStore, fileStore }: UiStoreProp & FileStore
           // Only show option to remove selected files in toolbar when viewing missing files */}
           <RemoveFilesPopover uiStore={uiStore} />
         ) : (
-          // Only show when not viewing missing files (so it is replaced by the Delete button)
-          // <FileTags files={fileSelection.size > 0 ? uiStore.clientFileSelection : []} />
-          // Doesn't exist anymore :(
-          // <TagFilesPopover
-          //   files={uiStore.clientFileSelection}
-          //   disabled={fileSelection.length <= 0 || fileStore.fileList.length <= 0}
-          //   isOpen={uiStore.isToolbarTagSelectorOpen}
-          //   close={uiStore.closeToolbarTagSelector}
-          //   toggle={uiStore.toggleToolbarTagSelector}
-          //   hidden={fileStore.content === 'missing'}
-          // />
-          <></>
-        )}
+            // Only show when not viewing missing files (so it is replaced by the Delete button)
+            <TagFilesPopover />
+          )}
 
         <ToolbarMenuButton
           showLabel="never"

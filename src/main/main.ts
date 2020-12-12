@@ -87,6 +87,13 @@ function createWindow() {
     backgroundColor: '#14181a',
     title: 'Allusion',
     show: false,
+
+    // Vibrancy effect for MacOS
+    ...(isMac ? {
+      vibrancy: 'window',
+      transparent: true,
+      hasShadow: true,
+    } : {}),
   });
   mainWindow.on('ready-to-show', () => mainWindow?.show());
 
@@ -357,7 +364,7 @@ MainMessenger.onSendPreviewFiles((msg) => {
   }
 });
 
-// TODO: Should set this on startup: E.g. Choosing light theme, but having a dark system theme, will be incorrect after restart
+// Set native window theme (frame, menu bar)
 MainMessenger.onSetTheme((msg) => (nativeTheme.themeSource = msg.theme));
 
 MainMessenger.onDragExport((absolutePaths) => {

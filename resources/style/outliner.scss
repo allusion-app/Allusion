@@ -5,7 +5,11 @@
   flex-direction: column;
   width: var(--outliner-width);
   padding-top: var(--toolbar-height);
-  background-color: var(--foreground-color2);
+  background-color: var(--background-color-alt);
+
+  // Same transparent background image as in the design mockup
+  // background-image: url(~resources/images/background.png);
+  // background-size: cover;
 
   > * {
     // Don't squash content during parent transition
@@ -33,15 +37,6 @@
 
   &:hover header [role='toolbar'] {
     opacity: 1;
-  }
-}
-
-#system-tags {
-  flex-shrink: 0;
-  justify-content: unset;
-
-  > .toolbar-item {
-    margin: 0 0.5rem;
   }
 }
 
@@ -99,7 +94,8 @@
 .tree-content-label {
   display: flex;
   align-items: center;
-  height: 2rem;
+  min-height: 28px; // min-height of the icon it contains
+  padding: 0.25rem 0 0.25rem;
   width: 100%;
 
   span {

@@ -1,11 +1,11 @@
 import { IPanelProps, PanelStack } from '@blueprintjs/core';
-import { observer } from 'mobx-react-lite';
-import React, { ReactNode, useContext, useRef, useEffect } from 'react';
-import StoreContext from '../contexts/StoreContext';
 import { Button, ButtonGroup, IconButton, IconSet } from 'components';
 import { Dialog } from 'components/popover';
-
+import { observer } from 'mobx-react-lite';
+import React, { ReactNode, useContext, useEffect, useRef } from 'react';
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
+import StoreContext from '../contexts/StoreContext';
+
 // TODO: Put images in /resources/helpcenter/ or somewhere like that
 
 interface ISection {

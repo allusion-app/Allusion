@@ -118,6 +118,9 @@ const Layout = ({
   }
 };
 
+// Some extra padding in the Grid view, so that the scrollbar will not overlap with the content
+const CONTENT_PADDING_RIGHT = 12;
+
 const GridGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
   const { fileList } = fileStore;
@@ -128,7 +131,7 @@ const GridGallery = observer((props: ILayoutProps) => {
 
   useEffect(() => {
     const timeoutID = setTimeout(() => {
-      setDimensions(get_column_layout(contentRect.width, minSize, maxSize));
+      setDimensions(get_column_layout(contentRect.width - CONTENT_PADDING_RIGHT, minSize, maxSize));
     }, 50);
 
     return () => clearTimeout(timeoutID);
@@ -245,8 +248,8 @@ const GridGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
+              <FileViewerMenuItems file={file} uiStore={uiStore} />
+            ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });
@@ -397,8 +400,8 @@ const ListGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
+              <FileViewerMenuItems file={file} uiStore={uiStore} />
+            ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });

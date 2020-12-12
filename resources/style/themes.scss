@@ -1,0 +1,47 @@
+// All themes
+.bp3-dark,
+.bp3-light {
+  --primary-color: #{$blue1};
+  --stroke-color: #{$gray3};
+  --selection-background-color: #007bf53f;
+  --selection-font-color: white;
+  --treeitem-identation: 1rem;
+  --treeitem-offset: 0.5rem;
+}
+
+// Dark Theme
+.bp3-dark {
+  --focus-color: #{$dark-gray3};
+  --hover-background: #{$dark-gray4}; // dark-gray5?
+  --hover-color: white;
+
+  // Text/icon color
+  --text-color: hsl(0, 0%, 80%);
+  --text-muted-color: hsl(0, 0%, 55%);
+  color: var(--text-color);
+
+  // The main background color of the panels
+  --background-color: #{$dark-gray3}; // Main background color
+  --background-color-alt: rgba(#{$dark-gray3}, 0.85); // Alt background color (outliner)
+}
+
+// Light Theme
+.bp3-light {
+  --focus-color: #{$light-gray4};
+  --hover-background: #{$light-gray4};
+  --hover-color: #{$black};
+
+  // Text/icon color
+  --text-color: rgb(32, 32, 32); // hsl(0, 0%, 20%);
+  --text-muted-color: hsl(0, 0%, 45%);
+  color: var(--text-color);
+
+  // The main background color of the panels
+  --background-color: rgb(255, 255, 255); // Main background color {$light-gray5} ?
+  --background-color-alt: rgba(
+    255,
+    255,
+    255,
+    0.85
+  ); // Alt background color (outliner) {$light-gray3}?
+}

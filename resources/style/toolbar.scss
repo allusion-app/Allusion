@@ -7,6 +7,7 @@
   right: 0;
   height: var(--toolbar-height);
   padding: 0 1rem 0 0.5rem;
+  background-color: var(--background-color);
 
   // Since the toolbar is acting as the frame, it should be draggable to move the window around
   -webkit-app-region: drag;
@@ -14,6 +15,14 @@
   button {
     -webkit-app-region: none;
   }
+
+  // From design-mockup-v3.css
+  // height: 3rem;
+  // box-sizing: border-box;
+  // padding: 0 0.5rem;
+  // display: flex;
+  // align-items: center;
+  // z-index: 20;
 }
 
 // Invisible region in order to still resize the window by dragging from the top when not maximized
@@ -29,4 +38,64 @@
 .toolbar-input {
   padding: 0.25rem;
   flex-grow: 1;
+}
+
+.floating-dialog {
+  position: absolute;
+  z-index: 200;
+  top: var(--toolbar-height);
+  left: calc(50% - 200px);
+
+  background-color: var(--background-color);
+}
+
+.tag-files-widget {
+  padding: 0.5em;
+  width: 400px;
+  height: 200px;
+  max-height: 200px;
+  border-radius: 0.25rem;
+
+  box-shadow: 6px 8px 12px 6px rgba(0, 0, 0, 0.4);
+
+  display: flex;
+  flex-direction: column;
+
+  input {
+    width: 100%;
+  }
+
+  > ul {
+    flex: 1 0;
+    overflow: auto;
+
+    padding: 0;
+    margin: 2px 0;
+    list-style-type: none;
+
+    > li {
+      &:hover {
+        background: var(--hover-background);
+      }
+      border: 2px solid transparent;
+      &:focus {
+        border: 2px solid var(--focus-color);
+      }
+
+      .tag-item-icon {
+        display: inline-flex;
+      }
+
+      display: flex;
+      > *:nth-child(2) {
+        flex: 1 0;
+      }
+    }
+  }
+
+  > div:last-child {
+    margin-top: 4px;
+    max-height: 50px;
+    overflow: auto;
+  }
 }

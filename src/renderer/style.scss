@@ -5,14 +5,13 @@
 @import '~@blueprintjs/core/src/blueprint.scss';
 @import '~@blueprintjs/core/src/common/_variables.scss';
 
-// Custom variables
-$sidebar-width: 18em;
-
+@import '~resources/style/themes.scss'; // Color schemes of themes (dark/light)
 @import '~resources/style/global.scss'; // Global styles, layout, media queries and miscellanious CSS
 
 // Panels
 @import '~resources/style/content.scss'; // The main content area (Gallery, etc.)
 @import '~resources/style/welcome.scss'; // Welcome screen
+@import '~resources/style/sidebar.scss'; // Common styles for outliner and inspector
 @import '~resources/style/outliner.scss'; // The outliner (left toolbar)
 @import '~resources/style/inspector.scss'; // The inspector (right toolbar)
 @import '~resources/style/toolbar.scss'; // The toolbar (top bar)

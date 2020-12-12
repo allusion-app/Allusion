@@ -8,7 +8,6 @@ import { observe } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
-import '../../resources/style/design-mockup-v3.scss';
 import './style.scss';
 
 import Backend from './backend/Backend';
@@ -39,8 +38,8 @@ backend
   .catch((err) => console.log('Could not initialize backend!', err));
 
 if (IS_PREVIEW_WINDOW) {
-  RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory }) => {
-    rootStore.uiStore.setFirstItem(0);
+  RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory, activeImgId }) => {
+    rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
     rootStore.uiStore.enableSlideMode();
     rootStore.fileStore.fetchFilesByIDs(ids);

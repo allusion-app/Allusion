@@ -65,6 +65,10 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
     <table className="file-info">
       <tbody>
         <tr>
+          <th scope="row">Dimensions</th>
+          <td>{fileStats.dimensions}</td>
+        </tr>
+        <tr>
           <th scope="row">Filename</th>
           <td>{file.name}</td>
         </tr>
@@ -83,10 +87,6 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
         <tr>
           <th scope="row">Last Opened</th>
           <td>{fileStats.lastOpened}</td>
-        </tr>
-        <tr>
-          <th scope="row">Dimensions</th>
-          <td>{fileStats.dimensions}</td>
         </tr>
       </tbody>
     </table>

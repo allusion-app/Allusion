@@ -31,6 +31,7 @@ export interface IHotkeyMap {
 
   // Toolbar actions (these should only be active when the content area is focused)
   deleteSelection: string;
+  openTagEditor: string;
   selectAll: string;
   deselectAll: string;
   viewList: string;
@@ -51,6 +52,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   toggleSettings: 's',
   toggleHelpCenter: 'h',
   deleteSelection: 'del',
+  openTagEditor: 't',
   selectAll: 'mod + a',
   deselectAll: 'mod + d',
   viewList: 'alt + 1',
@@ -116,6 +118,7 @@ class UiStore {
   @observable thumbnailSize: ThumbnailSize = 'medium';
   @observable thumbnailShape: ThumbnailShape = 'square';
 
+  @observable isToolbarTagPopoverOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
 
   // Selections
@@ -212,8 +215,15 @@ class UiStore {
       return;
     }
 
+    // If only one image was selected, open all images, but focus on the selected image. Otherwise, open selected images
+    const previewFiles =
+      this.fileSelection.size === 1
+        ? this.rootStore.fileStore.fileList
+        : Array.from(this.fileSelection);
+
     RendererMessenger.sendPreviewFiles({
-      ids: Array.from(this.fileSelection, (file) => file.id),
+      ids: previewFiles.map((file) => file.id),
+      activeImgId: this.getFirstSelectedFileId(),
       thumbnailDirectory: this.thumbnailDirectory,
     });
 
@@ -247,6 +257,14 @@ class UiStore {
 
   @action.bound closeToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = false;
+  }
+
+  @action.bound openToolbarTagPopover() {
+    this.isToolbarTagPopoverOpen = true;
+  }
+
+  @action.bound closeToolbarTagPopover() {
+    this.isToolbarTagPopoverOpen = false;
   }
 
   @action.bound openLocationRecovery(locationId: ID) {
@@ -550,6 +568,8 @@ class UiStore {
       } catch (e) {
         console.error('Cannot parse persistent preferences', e);
       }
+      // Set the native window theme based on the application theme
+      RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' })
     }
 
     // Set default thumbnail directory in case none was specified

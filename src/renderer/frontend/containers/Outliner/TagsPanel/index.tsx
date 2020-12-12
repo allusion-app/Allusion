@@ -15,10 +15,10 @@ const enum TooltipInfo {
   Missing = 'View missing images on your system',
 }
 
-export const SystemTags = observer(() => {
+export const OutlinerActionBar = observer(() => {
   const { fileStore } = useContext(StoreContext);
   return (
-    <Toolbar id="system-tags" label="System Tags" controls="gallery-content">
+    <Toolbar className="actionbar" label="Action Bar" controls="gallery-content">
       <ToolbarToggleButton
         showLabel="always"
         text={fileStore.fileList.length}
@@ -54,6 +54,7 @@ const TagsPanel = () => {
 
   const handleShortcuts = useCallback(
     (e: React.KeyboardEvent) => {
+      if ((e.target as HTMLElement).matches?.('input')) return;
       const combo = getKeyCombo(e.nativeEvent);
       const matches = (c: string): boolean => {
         return comboMatches(combo, parseKeyCombo(c));
@@ -71,7 +72,7 @@ const TagsPanel = () => {
   );
 
   return (
-    <div onKeyDown={handleShortcuts}>
+    <div onKeyDown={handleShortcuts} className="section">
       <TagsTree />
     </div>
   );

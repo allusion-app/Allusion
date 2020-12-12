@@ -21,7 +21,7 @@
   padding: 0;
 
   > .label {
-    min-height: 2rem;
+    min-height: 1rem;
     display: flex;
     align-items: center;
     padding-left: calc(var(--level) * var(--treeitem-identation) + var(--treeitem-offset));
