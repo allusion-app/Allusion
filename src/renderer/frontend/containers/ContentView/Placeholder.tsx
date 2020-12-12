@@ -11,7 +11,6 @@ const Placeholder = observer(() => {
   let description;
   let action;
 
-  console.log(fileStore.showsAllContent, tagStore.tagList.length);
   if (fileStore.showsAllContent && tagStore.tagList.length === 1) {
     // No tags exist, and no images added: Assuming it's a new user -> Show a welcome screen
     icon = IconSet.LOGO;
