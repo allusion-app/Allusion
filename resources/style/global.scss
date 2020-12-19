@@ -62,20 +62,9 @@ input {
 // Global specific styles for the preview window
 #preview {
   --toolbar-height: 3rem;
-  display: grid;
-  grid-template-areas:
-    'toolbar'
-    'main';
-  grid-template-rows: var(--toolbar-height) 1fr;
 }
 
 #layout-container {
-  display: grid;
-  grid-template-rows: var(--toolbar-height) 1fr;
-  grid-template-columns: min-content 1fr min-content;
-  grid-template-areas:
-    'outliner main toolbar'
-    'outliner main inspector';
 }
 
 .preloader {
@@ -109,7 +98,6 @@ h2 {
   font-size: inherit;
   font-weight: bold;
 }
-
 
 // Default browser CSS overrides
 /* Prevent text selection in all HTML elements for more native feel */
@@ -187,8 +175,6 @@ img {
 ///////////////////////////////// Misc /////////////////////////////////
 // Error boundary (when app crashes)
 .error-boundary {
-  grid-area: main;
-
   .message {
     font-family: monospace;
     max-width: 120ch;

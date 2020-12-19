@@ -1,4 +1,15 @@
 ///////////////////////////////// Content area /////////////////////////////////
+main {
+  // Extend/retract the left and right layout of the content area when the outliner/inspector is toggled
+  transition: all 0.2s ease-out;
+  &.outlinerClosed {
+    left: 0;
+  }
+  &.inspectorClosed {
+    right: 0;
+  }
+}
+
 #gallery-content {
   flex: 1;
 

@@ -1,6 +1,10 @@
 ///////////////////////////////// Inspector /////////////////////////////////
 #inspector {
-  grid-area: inspector;
+  position: absolute;
+  top: var(--toolbar-height);
+  bottom: 0;
+  right: 0;
+
   width: var(--inspector-width);
   background-color: var(--background-color);
 

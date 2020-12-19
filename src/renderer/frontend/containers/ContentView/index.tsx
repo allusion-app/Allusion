@@ -11,7 +11,7 @@ import Placeholder from './Placeholder';
 import Layout from './Gallery';
 import { observer } from 'mobx-react-lite';
 
-const ContentView = () => {
+const ContentView = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
   const handleShortcuts = useCallback(
@@ -36,11 +36,15 @@ const ContentView = () => {
   );
 
   return (
-    <main onKeyDown={handleShortcuts}>
+    <main
+      onKeyDown={handleShortcuts}
+      // Notify the `main` element that its absolute left/right position can be extended or retracted
+      className={`${uiStore.isOutlinerOpen ? '' : 'outlinerClosed'} ${uiStore.isInspectorOpen ? '' : 'inspectorClosed'}`}
+    >
       <Gallery />
     </main>
   );
-};
+});
 
 const Gallery = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);

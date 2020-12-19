@@ -10,6 +10,8 @@
   display: flex;
   align-items: center;
 
+  background-color: var(--background-color);
+
   // Since the toolbar is acting as the frame, it should be draggable to move the window around
   -webkit-app-region: drag;
   // But all of the buttons should not be draggable, else not clickable
