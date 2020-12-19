@@ -24,13 +24,6 @@ body {
   position: relative;
 }
 
-header,
-header h2 {
-  font-size: medium;
-  font-weight: bold;
-  margin: 0;
-}
-
 fieldset {
   margin: 0;
   margin-bottom: 0.5rem;
@@ -59,7 +52,7 @@ input {
 // Global specific styles for the main window
 #app {
   --outliner-width: 14rem; // new design (20em previously)
-  --inspector-width: 20rem; // new design (24em previously)
+  --inspector-width: 18rem; // new design (24em previously)
   --toolbar-height: 3rem;
   --thumbnail-size: 250px;
   --thumbnail-margin: 0.25rem;
@@ -110,6 +103,13 @@ main {
   outline-offset: -2px;
   outline-style: solid;
 }
+
+// temporary style
+h2 {
+  font-size: inherit;
+  font-weight: bold;
+}
+
 
 // Default browser CSS overrides
 /* Prevent text selection in all HTML elements for more native feel */

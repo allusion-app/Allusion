@@ -1,0 +1,37 @@
+#togglebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 14rem;
+  height: 3rem;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+
+  -webkit-app-region: drag;
+  button {
+    -webkit-app-region: none;
+  }
+}
+#windowPanel {
+  padding: 0.125rem 0.25rem;
+  display: flex;
+}
+.windowBtn {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: 0.25rem;
+  border-radius: 50%;
+}
+#windowPanel #windowClose{
+  background: #ff6157;
+}
+#windowPanel #windowMinimize{
+  background: #ffc12f;
+}
+#windowPanel #windowMaximize{
+  background: #2acb42;
+}

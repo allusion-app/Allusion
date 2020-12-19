@@ -30,17 +30,24 @@ export const AppToaster = Toaster.create({
 const OutlinerToggle = observer(() => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ToolbarToggleButton
-      id="outliner-toggle"
+    <div id="togglebar">
+
+      <div id="windowPanel">
+        <div className="windowBtn" id="windowClose"></div>
+        <div className="windowBtn" id="windowMinimize"></div>
+        <div className="windowBtn" id="windowMaximize"></div>
+      </div>
+    
+      <ToolbarToggleButton
       controls="outliner"
       pressed={uiStore.isOutlinerOpen}
-      // TODO: should be a double caret icon
-      icon={uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
+      icon={uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
       onClick={uiStore.toggleOutliner}
       text="Toggle Outliner"
       showLabel="never"
       tabIndex={0}
-    />
+      />
+    </div>
   );
 });
 
@@ -119,9 +126,9 @@ const App = observer(() => {
         <ErrorBoundary>
           <OutlinerToggle />
 
-          <Outliner />
-
           <Toolbar />
+
+          <Outliner />
 
           <ContentView />
 

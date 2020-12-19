@@ -411,7 +411,7 @@ const LocationsPanel = () => {
   return (
     <div className="section">
       <header>
-        <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
+        <span onClick={() => setCollapsed(!isCollapsed)}>Locations</span>
         <Toolbar controls="location-list">
           <ToolbarButton
             showLabel="never"

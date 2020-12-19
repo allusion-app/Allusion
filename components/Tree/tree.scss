@@ -21,11 +21,10 @@
   padding: 0;
 
   > .label {
-    min-height: 1rem;
-    display: flex;
-    align-items: center;
     padding-left: calc(var(--level) * var(--treeitem-identation) + var(--treeitem-offset));
-    padding-right: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
     &:hover {
       background-color: var(--hover-background);
@@ -76,8 +75,8 @@
   flex-shrink: 0;
   cursor: pointer;
   background-color: var(--text-color);
-  mask-image: url(~resources/icons/arrow-down.svg);
-  -webkit-mask-image: url(~resources/icons/arrow-down.svg);
+  mask-image: url(~resources/icons/small-arrow-down.svg);
+  -webkit-mask-image: url(~resources/icons/small-arrow-down.svg);
   transition: transform 100ms ease-out;
   margin-right: 0.25em;
 

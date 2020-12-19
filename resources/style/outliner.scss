@@ -8,8 +8,6 @@
   padding-top: var(--toolbar-height);
   box-sizing: border-box;
 
-  display: flex;
-  flex-direction: column;
   background-color: var(--background-color-alt);
 
   // Same transparent background image as in the design mockup
@@ -20,11 +18,6 @@
     // Don't squash content during parent transition
     width: var(--outliner-width);
   }
-}
-
-[data-os='darwin'] #outliner-toggle {
-  left: 10.5rem; //Note: Temporary
-  z-index: 20;
 }
 
 #outliner-toggle {
@@ -48,11 +41,14 @@
 ///////////////////////////////// Tag hierarchy /////////////////////////////////
 #outliner-content header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding: 0.25rem 1rem 0.25rem 1.25rem;
 
-  h2 {
+  span {
+    height: 1.5rem;
     cursor: pointer;
-    flex-grow: 1;
+    font-weight: bold;
   }
 
   [role='toolbar'] {
@@ -97,11 +93,11 @@
 }
 
 .tree-content-label {
+  height: 1.5rem;
+  flex:1;
   display: flex;
   align-items: center;
-  min-height: 28px; // min-height of the icon it contains
-  padding: 0.25rem 0 0.25rem;
-  width: 100%;
+  padding: 0.25rem 1rem 0.25rem 0;
 
   span {
     display: inline-flex;

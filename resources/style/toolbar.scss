@@ -1,6 +1,5 @@
 ///////////////////////////////// Toolbar /////////////////////////////////
 #toolbar {
-  grid-area: toolbar;
   position: absolute;
   top: 0;
   left: var(--outliner-width);
@@ -8,7 +7,8 @@
   height: var(--toolbar-height);
   box-sizing: border-box;
   padding: 0 0.5rem;
-  background-color: var(--background-color);
+  display: flex;
+  align-items: center;
 
   // Since the toolbar is acting as the frame, it should be draggable to move the window around
   -webkit-app-region: drag;
@@ -16,14 +16,6 @@
   button {
     -webkit-app-region: none;
   }
-
-  // From design-mockup-v3.css
-  // height: 3rem;
-  // box-sizing: border-box;
-  // padding: 0 0.5rem;
-  // display: flex;
-  // align-items: center;
-  // z-index: 20;
 }
 
 // Invisible region in order to still resize the window by dragging from the top when not maximized
@@ -32,7 +24,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
+  right: 0;
   height: 4px;
 }
 

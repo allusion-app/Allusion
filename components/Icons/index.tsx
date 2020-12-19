@@ -26,6 +26,7 @@ import DB_ERROR from 'resources/icons/db-error.svg';
 import DELETE from 'resources/icons/delete.svg';
 import DESELECT_ALL_FILL from 'resources/icons/deselect-all-fill.svg';
 import DESELECT_ALL_ROUND from 'resources/icons/deselect-all-round.svg';
+import DOUBLE_CARET from 'resources/icons/double-caret.svg';
 import EDIT from 'resources/icons/edit.svg';
 import FILTER from 'resources/icons/filter.svg';
 import FILTER_DATE from 'resources/icons/filter-date.svg';
@@ -52,6 +53,7 @@ import LOGO from 'resources/logo/allusion-logomark-white.svg';
 import LOGOMARK_BLACK from 'resources/logo/allusion-logo-ver-fc-black.svg';
 import LOGOMARK_WHITE from 'resources/logo/allusion-logo-ver-fc-white.svg';
 import MEDIA from 'resources/icons/media.svg';
+import MENU_HAMBURGER from 'resources/icons/menu-hamburger.svg';
 import META_INFO from 'resources/icons/meta-info.svg';
 import META_INFO_2 from 'resources/icons/meta-info-2.svg';
 import MORE from 'resources/icons/more.svg';
@@ -69,6 +71,8 @@ import SELECT_ALL_TRANS from 'resources/icons/select-all-trans.svg';
 import SELECT_ALL_TRANS_CHECKED from 'resources/icons/select-all-trans-checked.svg';
 import SELECT_ALL from 'resources/icons/select-all.svg';
 import SETTINGS from 'resources/icons/settings.svg';
+import SMALL_ARROW_DOWN from 'resources/icons/small-arrow-down.svg';
+import SMALL_ARROW_RIGHT from 'resources/icons/small-arrow-right.svg';
 import TAG_ADD from 'resources/icons/tag-add.svg';
 import TAG_ADD_COLLECTION from 'resources/icons/tag-add-collection.svg';
 import TAG_BLANCO from 'resources/icons/tag-blanco.svg';
@@ -106,6 +110,7 @@ const IconSet = {
   DELETE: toSvg(DELETE),
   DESELECT_ALL_FILL: toSvg(DESELECT_ALL_FILL),
   DESELECT_ALL_ROUND: toSvg(DESELECT_ALL_ROUND),
+  DOUBLE_CARET: toSvg(DOUBLE_CARET),
   EDIT: toSvg(EDIT),
   FILTER: toSvg(FILTER),
   FILTER_DATE: toSvg(FILTER_DATE),
@@ -133,6 +138,7 @@ const IconSet = {
   LOGO_MARK_BLACK: toSvg(LOGOMARK_BLACK),
   LOGO_MARK_WHITE: toSvg(LOGOMARK_WHITE),
   MEDIA: toSvg(MEDIA),
+  MENU_HAMBURGER: toSvg(MENU_HAMBURGER),
   META_INFO: toSvg(META_INFO),
   META_INFO_2: toSvg(META_INFO_2),
   MORE: toSvg(MORE),
@@ -149,6 +155,8 @@ const IconSet = {
   SELECT_ALL_TRANS_CHECKED: toSvg(SELECT_ALL_TRANS_CHECKED),
   SELECT_ALL: toSvg(SELECT_ALL),
   SETTINGS: toSvg(SETTINGS),
+  SMALL_ARROW_DOWN: toSvg(SMALL_ARROW_DOWN),
+  SMALL_ARROW_RIGHT: toSvg(SMALL_ARROW_RIGHT),
   TAG_ADD: toSvg(TAG_ADD),
   TAG_ADD_COLLECTION: toSvg(TAG_ADD_COLLECTION),
   TAG_BLANCO: toSvg(TAG_BLANCO),
