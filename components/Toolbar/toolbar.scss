@@ -1,6 +1,5 @@
 [role='toolbar'] {
   display: flex;
-  min-height: 2.25rem;
   align-items: center;
   justify-content: space-between;
 }
@@ -29,10 +28,19 @@
 }
 
 .toolbar-button {
-  padding: 0;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  padding: 0.125rem;
+  margin: 0.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   color: currentColor;
   background-color: unset;
   border: none;
+  outline: none;
+  border-radius: 0.25rem;
 
   &:hover {
     background-color: var(--hover-background);
@@ -58,12 +66,9 @@
 }
 
 .toolbar-button-content {
-  min-width: 2.25rem;
-  min-height: 2.25rem;
-  display: inline-flex;
-  align-items: center;
+  display: flex;
   justify-content: center;
-  padding: 0.25rem;
+  align-items: center;
 }
 
 .toolbar-button-icon {
@@ -75,7 +80,6 @@
 .toolbar-button-text.always,
 .toolbar-group.always .toolbar-button-text:not(.never) {
   display: inline-flex;
-  margin: 0.125rem;
 }
 
 // Hide text without removing it from screen readers:

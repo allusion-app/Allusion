@@ -70,15 +70,15 @@
   // Gradient overlay and noise texture
   &::after {
     background: var(--background-color);
-    background: url(~resources/images/noise.png),
-      -webkit-gradient(linear, 0% 80%, 0% 20%, from(#14181ae5), to(#14181a00));
+    //background: url(~resources/images/noise.png),
+    //-webkit-gradient(linear, 0% 80%, 0% 20%, from(#14181ae5), to(#14181a00));
     z-index: 1;
   }
 
   // Background image
   &::before {
     background: var(--background-color);
-    background: url(~resources/images/welcome-bg-16-9-low.jpg);
+    //background: url(~resources/images/welcome-bg-16-9-low.jpg);
     background-position: center;
     background-position-x: left;
     background-size: 100%;

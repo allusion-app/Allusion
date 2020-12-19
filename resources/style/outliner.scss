@@ -1,10 +1,15 @@
 ///////////////////////////////// Outliner /////////////////////////////////
 #outliner {
-  grid-area: outliner;
-  display: flex;
-  flex-direction: column;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
   width: var(--outliner-width);
   padding-top: var(--toolbar-height);
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
   background-color: var(--background-color-alt);
 
   // Same transparent background image as in the design mockup
@@ -14,19 +19,19 @@
   > * {
     // Don't squash content during parent transition
     width: var(--outliner-width);
-    padding: 0.25rem 0.5rem 0.25rem 1rem;
   }
 }
 
 [data-os='darwin'] #outliner-toggle {
-  left: var(--mac-system-buttons-width);
+  left: 10.5rem; //Note: Temporary
+  z-index: 20;
 }
 
 #outliner-toggle {
   position: absolute;
   top: 0;
   left: 0;
-  margin: 0.375rem 1rem;
+  margin: 0.75rem 1rem;
   color: var(--text-color);
 }
 

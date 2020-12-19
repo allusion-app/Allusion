@@ -6,7 +6,8 @@
   left: var(--outliner-width);
   right: 0;
   height: var(--toolbar-height);
-  padding: 0 1rem 0 0.5rem;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
   background-color: var(--background-color);
 
   // Since the toolbar is acting as the frame, it should be draggable to move the window around

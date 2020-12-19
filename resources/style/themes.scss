@@ -21,8 +21,8 @@
   color: var(--text-color);
 
   // The main background color of the panels
-  --background-color: #{$dark-gray3}; // Main background color
-  --background-color-alt: rgba(#{$dark-gray3}, 0.85); // Alt background color (outliner)
+  --background-color: #{$dark-gray0}; // Main background color
+  --background-color-alt: #{$dark-gray1}; // Alt background color (outliner)
 }
 
 // Light Theme
@@ -39,9 +39,8 @@
   // The main background color of the panels
   --background-color: rgb(255, 255, 255); // Main background color {$light-gray5} ?
   --background-color-alt: rgba(
-    255,
-    255,
-    255,
-    0.85
+    240,
+    240,
+    240
   ); // Alt background color (outliner) {$light-gray3}?
 }

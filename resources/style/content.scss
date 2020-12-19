@@ -78,6 +78,7 @@
 }
 
 .thumbnail {
+  border-radius: 0.125rem;
   grid-area: image;
   width: var(--thumbnail-size);
   height: var(--thumbnail-size);
