@@ -19,25 +19,25 @@
   /* --thumbnail-size: calc(100vw / 10); */
   /* --thumbnail-size: calc(calc(100vw / 10) - calc(10 * var(--thumbnail-margin))); */
   // --thumbnail-size: 82px;
-  --thumbnail-size: 160px;
+  --thumbnail-size: 10rem;
 }
 .thumbnail-medium {
   /* --thumbnail-size: calc(100vw / 6); */
   /* --thumbnail-size: calc(calc(100vw / 6) - calc(6 * var(--thumbnail-margin))); */
   // --thumbnail-size: 182px;
-  --thumbnail-size: 240px;
+  --thumbnail-size: 15rem;
 }
 .thumbnail-large {
   /* --thumbnail-size: calc(100vw / 4); */
   /* --thumbnail-size: calc(calc(100vw / 4) - calc(4 * var(--thumbnail-margin))); */
   // --thumbnail-size: 282px;
-  --thumbnail-size: 320px;
+  --thumbnail-size: 20rem;
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
 [role='gridcell'] {
   position: relative;
-  margin: 4px;
+  margin: 0 0.25rem 0.5rem 0.25rem;
 
   h2 {
     grid-area: title;
@@ -78,9 +78,9 @@
 }
 
 .thumbnail {
-  border-radius: 0.125rem;
+  border-radius: 0.25rem;
   grid-area: image;
-  width: var(--thumbnail-size);
+  max-width: calc(var(--thumbnail-size) *1.5);
   height: var(--thumbnail-size);
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
@@ -222,10 +222,15 @@
 .grid {
   [role='row'] {
     white-space: nowrap;
-
+    display: flex;
+    justify-content: stretch;
+  
     [role='gridcell']:last-child {
       margin-right: 0;
     }
+  }
+  [role='row']:last-child {
+    justify-content: flex-start;
   }
 
   [role='gridcell'] {
