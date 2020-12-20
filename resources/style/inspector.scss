@@ -7,12 +7,7 @@
 
   width: var(--inspector-width);
   background-color: var(--background-color);
-
-  > * {
-    // Don't squash content of aside during parent transition
-    width: var(--inspector-width);
-    padding: 0.25rem 1rem 0.25rem 0.5rem;
-  }
+  padding: 0 0.75rem 0 0;
 
   header {
     text-align: center;
@@ -24,6 +19,7 @@
 table.file-info {
   display: block;
   border-spacing: 0 0.25rem;
+  padding: 0 0.25rem;
 
   th {
     color: var(--text-muted-color);
@@ -41,6 +37,7 @@ table.file-info {
     padding-left: 1rem;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 12rem;
   }
   // TODO: New design:
   // .listContentRow {

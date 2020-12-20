@@ -86,7 +86,6 @@ export const defaultHotkeyMap: IHotkeyMap = {
 const PersistentPreferenceFields: Array<keyof UiStore> = [
   'theme',
   'isOutlinerOpen',
-  'isInspectorOpen',
   'thumbnailDirectory',
   'method',
   'thumbnailSize',

@@ -130,7 +130,7 @@ const ContentToolbar = observer(({ uiStore, fileStore }: UiStoreProp & FileStore
       <>
         <FileSelection uiStore={uiStore} fileStore={fileStore} />
 
-        <Searchbar />
+        
 
         {/* TODO: Put back tag button (or just the T hotkey) */}
         {fileStore.showsMissingContent ? (
@@ -140,10 +140,11 @@ const ContentToolbar = observer(({ uiStore, fileStore }: UiStoreProp & FileStore
             // Only show when not viewing missing files (so it is replaced by the Delete button)
             <TagFilesPopover />
           )}
-
+          
+        <Searchbar />
         <ToolbarMenuButton
           showLabel="never"
-          icon={IconSet.FILTER}
+          icon={IconSet.SORT}
           text="Sort"
           tooltip={Tooltip.Filter}
           id="__sort-menu"

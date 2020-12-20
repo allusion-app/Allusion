@@ -73,6 +73,7 @@ import SELECT_ALL from 'resources/icons/select-all.svg';
 import SETTINGS from 'resources/icons/settings.svg';
 import SMALL_ARROW_DOWN from 'resources/icons/small-arrow-down.svg';
 import SMALL_ARROW_RIGHT from 'resources/icons/small-arrow-right.svg';
+import SORT from 'resources/icons/sort.svg';
 import TAG_ADD from 'resources/icons/tag-add.svg';
 import TAG_ADD_COLLECTION from 'resources/icons/tag-add-collection.svg';
 import TAG_BLANCO from 'resources/icons/tag-blanco.svg';
@@ -157,6 +158,7 @@ const IconSet = {
   SETTINGS: toSvg(SETTINGS),
   SMALL_ARROW_DOWN: toSvg(SMALL_ARROW_DOWN),
   SMALL_ARROW_RIGHT: toSvg(SMALL_ARROW_RIGHT),
+  SORT: toSvg(SORT),
   TAG_ADD: toSvg(TAG_ADD),
   TAG_ADD_COLLECTION: toSvg(TAG_ADD_COLLECTION),
   TAG_BLANCO: toSvg(TAG_BLANCO),

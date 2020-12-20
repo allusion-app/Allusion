@@ -119,7 +119,7 @@ const Layout = ({
 };
 
 // Some extra padding in the Grid view, so that the scrollbar will not overlap with the content
-const CONTENT_PADDING_RIGHT = 8;
+const CONTENT_PADDING_RIGHT = 12;
 
 const GridGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
