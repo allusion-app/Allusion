@@ -83,7 +83,6 @@ function createWindow() {
     height,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
-    backgroundColor: '#14181a',
     title: 'Allusion',
     show: false,
 

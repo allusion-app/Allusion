@@ -7,6 +7,7 @@
   margin: 0;
   width: 100vw;
   height: 100vh;
+  color: rgb(32, 32, 32);
 
   > .dialog-content {
     grid-template-areas:
@@ -22,6 +23,7 @@
     font-size: 32px;
     font-weight: 300;
     margin-bottom: 2rem;
+    color: rgb(32, 32, 32) !important;
   }
 
   .dialog-icon {
@@ -31,6 +33,7 @@
     height: 90px;
     margin: auto;
     margin-bottom: 1rem;
+    color: rgb(32, 32, 32) !important;
   }
 
   p {
@@ -59,29 +62,12 @@
   // Setting content property to '' will make the background visible.
   &::after,
   &::before {
+    background: var(--accent-color-green);
     margin: 0;
     position: absolute;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-  }
-
-  // Gradient overlay and noise texture
-  &::after {
-    background: var(--background-color);
-    //background: url(~resources/images/noise.png),
-    //-webkit-gradient(linear, 0% 80%, 0% 20%, from(#14181ae5), to(#14181a00));
-    z-index: 1;
-  }
-
-  // Background image
-  &::before {
-    background: var(--background-color);
-    //background: url(~resources/images/welcome-bg-16-9-low.jpg);
-    background-position: center;
-    background-position-x: left;
-    background-size: 100%;
-    z-index: 0;
   }
 }

@@ -1,0 +1,22 @@
+// All themes
+.bp3-dark, .bp3-light {
+  --accent-color-blue: rgb(51,153,255);
+  --accent-color-red: rgb(250,52,37);
+  --accent-color-green: rgb(104,232,188);
+}
+
+// Dark Theme
+.bp3-dark {
+  --background-color: rgb(24,24,24);
+  --background-color-alt: rgb(32,32,32);
+  --text-color: rgb(200,200,200);
+  --text-muted-color: rgb(128,128,128);
+}
+
+// Light Theme
+.bp3-light {
+  --background-color: rgb(255,255,255);
+  --background-color-alt: rgb(240,240,240);
+  --text-color: rgb(64,64,64);
+  --text-muted-color: rgb(128,128,128);
+}

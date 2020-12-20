@@ -12,7 +12,6 @@ import { DEFAULT_LOCATION_ID } from '../../entities/Location';
 const Step = (props: { title: string; children: React.ReactNode }) => {
   return (
     <>
-      <div className="dialog-icon"></div>
       <h2 id="welcome-title" className="dialog-title">
         {props.title}
       </h2>
