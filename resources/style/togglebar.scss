@@ -2,7 +2,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 14rem;
+  width: var(--outliner-width);
   height: 3rem;
   box-sizing: border-box;
   padding: 0 0.5rem;

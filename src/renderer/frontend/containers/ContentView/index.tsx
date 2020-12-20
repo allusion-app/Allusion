@@ -36,11 +36,7 @@ const ContentView = observer(() => {
   );
 
   return (
-    <main
-      onKeyDown={handleShortcuts}
-      // Notify the `main` element that its absolute left/right position can be extended or retracted
-      className={`${uiStore.isOutlinerOpen ? '' : 'outlinerClosed'} ${uiStore.isInspectorOpen ? '' : 'inspectorClosed'}`}
-    >
+    <main>
       <Gallery />
     </main>
   );

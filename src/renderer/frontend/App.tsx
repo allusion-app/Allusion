@@ -122,7 +122,7 @@ const App = observer(() => {
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div data-os={PLATFORM} id="layout-container" className={themeClass} onClick={handleClick}>
+      <div data-os={PLATFORM} id="layout-container" className={`${themeClass} ${uiStore.isOutlinerOpen ? '' : 'outlinerClosed'} ${uiStore.isInspectorOpen ? '' : 'inspectorClosed'}`} onClick={handleClick}>
         <ErrorBoundary>
           <OutlinerToggle />
 

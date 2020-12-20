@@ -6,6 +6,7 @@ body,
 #preview {
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
 }
 
 // Page layout
@@ -51,7 +52,7 @@ input {
 
 // Global specific styles for the main window
 #app {
-  --outliner-width: 14rem; // new design (20em previously)
+  --outliner-width: 12rem; // new design (20em previously)
   --inspector-width: 18rem; // new design (24em previously)
   --toolbar-height: 3rem;
   --thumbnail-size: 250px;
@@ -62,9 +63,6 @@ input {
 // Global specific styles for the preview window
 #preview {
   --toolbar-height: 3rem;
-}
-
-#layout-container {
 }
 
 .preloader {

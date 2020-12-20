@@ -1,0 +1,22 @@
+.outlinerClosed {
+  #togglebar{
+    width: 8.5rem;
+  }
+  #toolbar {
+    left: 8.5rem;
+  }
+  #outliner {
+    left: calc(var(--outliner-width) * (-1));
+  }
+  main {
+    left: 0;
+  }
+}
+.inspectorClosed {
+  main {
+    right: 0;
+  }
+  #inspector {
+    right: calc(var(--inspector-width) * (-1));
+  }
+}
