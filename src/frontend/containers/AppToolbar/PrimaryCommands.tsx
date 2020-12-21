@@ -9,7 +9,7 @@ import { IconSet } from 'widgets';
 import { ToolbarButton, ToolbarToggleButton } from 'widgets/menu';
 
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
-import TagFilesPopover from 'src/frontend/components/TagFilesPopover';
+import TagFilesPopover from 'src/frontend/containers/AppToolbar/TagFilesPopover';
 
 import Searchbar from './Searchbar';
 import { SortCommand, ViewCommand } from './Menus';

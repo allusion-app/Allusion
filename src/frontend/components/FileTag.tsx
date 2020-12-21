@@ -11,30 +11,17 @@ import UiStore from '../stores/UiStore';
 
 import { MultiTagSelector } from './MultiTagSelector';
 
-export function countFileTags(files: ObservableSet<ClientFile>) {
-  // Count how often tags are used
-  const counter = new Map<ClientTag, number>();
-  for (const file of files) {
-    for (const tag of file.tags) {
-      const count = counter.get(tag);
-      counter.set(tag, count !== undefined ? count + 1 : 1);
-    }
-  }
-
-  const sortedTags = Array.from(counter.entries())
-    // Sort based on count
-    .sort((a, b) => b[1] - a[1])
-    .map((pair) => pair[0]);
-
-  return { counter, sortedTags };
-}
 interface IFileTagProp {
   tagStore: TagStore;
   uiStore: UiStore;
 }
 
 const Single = observer(({ tagStore, uiStore }: IFileTagProp) => {
-  const file = uiStore.fileSelection.values().next().value as ClientFile;
+  const file = uiStore.firstSelectedFile;
+
+  if (file === undefined) {
+    throw new Error('BUG: No file was selected. A condition was not checked.');
+  }
 
   const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
 
@@ -79,3 +66,21 @@ const FileTags = observer(() => {
 });
 
 export default FileTags;
+
+export function countFileTags(files: ObservableSet<ClientFile>) {
+  // Count how often tags are used
+  const counter = new Map<ClientTag, number>();
+  for (const file of files) {
+    for (const tag of file.tags) {
+      const count = counter.get(tag);
+      counter.set(tag, count !== undefined ? count + 1 : 1);
+    }
+  }
+
+  const sortedTags = Array.from(counter.entries())
+    // Sort based on count
+    .sort((a, b) => b[1] - a[1])
+    .map((pair) => pair[0]);
+
+  return { counter, sortedTags };
+}

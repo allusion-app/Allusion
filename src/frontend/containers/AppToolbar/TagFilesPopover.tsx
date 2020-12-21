@@ -5,17 +5,46 @@ import { observer } from 'mobx-react-lite';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 
-import StoreContext from '../contexts/StoreContext';
+import StoreContext from '../../contexts/StoreContext';
 
-import useRoveFocus from '../hooks/useRoveFocus';
+import useRoveFocus from '../../hooks/useRoveFocus';
 
 import { IconSet } from 'widgets/Icons';
 import { ToolbarButton } from 'widgets/menu';
 import { Tag } from 'widgets/Tag';
 
-import { countFileTags } from './FileTag';
+import { countFileTags } from '../../components/FileTag';
 
-import { Tooltip } from '../containers/AppToolbar/PrimaryCommands';
+import { Tooltip } from './PrimaryCommands';
+
+const TagFilesPopover = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  const files = uiStore.fileSelection;
+  return (
+    <>
+      <ToolbarButton
+        showLabel="never"
+        icon={IconSet.TAG}
+        disabled={uiStore.fileSelection.size === 0}
+        onClick={uiStore.openToolbarTagPopover}
+        text="Tag selected files"
+        tooltip={Tooltip.TagFiles}
+      />
+      <FloatingDialog
+        isOpen={uiStore.isToolbarTagPopoverOpen}
+        onClose={uiStore.closeToolbarTagPopover}
+      >
+        <TagFilesWidget
+          files={files}
+          onDeselect={action((tag) => files.forEach((f) => f.removeTag(tag)))}
+          onSelect={action((tag) => files.forEach((f) => f.addTag(tag)))}
+        />
+      </FloatingDialog>
+    </>
+  );
+});
+
+export default TagFilesPopover;
 
 interface TagItemProps {
   text: string;
@@ -161,32 +190,3 @@ const FloatingDialog = (props: FloatingDialogProps) => {
   if (!props.isOpen) return null;
   return <div className="floating-dialog">{props.children}</div>;
 };
-
-const TagFilesPopover = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  const files = uiStore.fileSelection;
-  return (
-    <>
-      <ToolbarButton
-        showLabel="never"
-        icon={IconSet.TAG}
-        disabled={uiStore.fileSelection.size === 0}
-        onClick={uiStore.openToolbarTagPopover}
-        text="Tag selected files"
-        tooltip={Tooltip.TagFiles}
-      />
-      <FloatingDialog
-        isOpen={uiStore.isToolbarTagPopoverOpen}
-        onClose={uiStore.closeToolbarTagPopover}
-      >
-        <TagFilesWidget
-          files={files}
-          onDeselect={action((tag) => files.forEach((f) => f.removeTag(tag)))}
-          onSelect={action((tag) => files.forEach((f) => f.addTag(tag)))}
-        />
-      </FloatingDialog>
-    </>
-  );
-});
-
-export default TagFilesPopover;
