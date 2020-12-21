@@ -5,31 +5,7 @@ import { ClientTag } from 'src/renderer/entities/Tag';
 import { Tag, IconSet } from 'components';
 import { Alert, DialogButton } from 'components/popover';
 import { observer } from 'mobx-react-lite';
-
-interface IRemovalAlertProps {
-  open: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-  title: string;
-  information: string;
-  body?: React.ReactNode;
-}
-
-const RemovalAlert = (props: IRemovalAlertProps) => (
-  <Alert
-    open={props.open}
-    title={props.title}
-    information={props.information}
-    view={props.body}
-    icon={IconSet.WARNING}
-    closeButtonText="Cancel"
-    primaryButtonText="Delete"
-    defaultButton={DialogButton.PrimaryButton}
-    onClick={(button) =>
-      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
-    }
-  />
-);
+import { action } from 'mobx';
 
 interface IRemovalProps<T> {
   object: T;
@@ -84,6 +60,20 @@ export const FileRemoval = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const selection = uiStore.fileSelection;
 
+  const handleConfirm = (() => {
+    const confirm = () => {
+      uiStore.closeToolbarFileRemover();
+      const files = [];
+      for (const file of selection) {
+        if (file.isBroken === true) {
+          files.push(file);
+        }
+      }
+      fileStore.deleteFiles(files);
+    };
+    return action(confirm);
+  })();
+
   return (
     <RemovalAlert
       open={uiStore.isToolbarFileRemoverOpen}
@@ -92,16 +82,32 @@ export const FileRemoval = observer(() => {
       }?`}
       information="Deleting files will permanently remove them from Allusion. Accidentially moved files can be recovered by returning them to their previous location."
       onCancel={uiStore.closeToolbarFileRemover}
-      onConfirm={() => {
-        uiStore.closeToolbarFileRemover();
-        const files = [];
-        for (const file of selection) {
-          if (file.isBroken === true) {
-            files.push(file);
-          }
-        }
-        fileStore.deleteFiles(files);
-      }}
+      onConfirm={handleConfirm}
     />
   );
 });
+
+interface IRemovalAlertProps {
+  open: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  title: string;
+  information: string;
+  body?: React.ReactNode;
+}
+
+const RemovalAlert = (props: IRemovalAlertProps) => (
+  <Alert
+    open={props.open}
+    title={props.title}
+    information={props.information}
+    view={props.body}
+    icon={IconSet.WARNING}
+    closeButtonText="Cancel"
+    primaryButtonText="Delete"
+    defaultButton={DialogButton.PrimaryButton}
+    onClick={(button) =>
+      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
+    }
+  />
+);
