@@ -30,10 +30,10 @@ const Placeholder = observer(() => {
   } else if (fileStore.showsAllContent) {
     icon = IconSet.MEDIA;
     title = 'No images';
-    description = 'Images can be added from the outliner';
+    description = <p>Images can be added from the outliner</p>;
     action = <Button onClick={uiStore.toggleOutliner} text="Toggle outliner" styling="outlined" />;
   } else if (fileStore.showsQueryContent) {
-    description = 'Try searching for something else.';
+    description = <p>Try searching for something else.</p>;
     icon = IconSet.SEARCH;
     title = 'No images found';
     action = (
@@ -54,7 +54,7 @@ const Placeholder = observer(() => {
     );
   } else if (fileStore.showsUntaggedContent) {
     icon = IconSet.TAG;
-    description = 'All images have been tagged. Nice work!';
+    description = <p>All images have been tagged. Nice work!</p>;
     title = 'No untagged images';
     action = (
       <Button
@@ -66,7 +66,7 @@ const Placeholder = observer(() => {
     );
   } else if (fileStore.showsMissingContent) {
     icon = IconSet.WARNING_BROKEN_LINK;
-    description = 'Try searching for something else.';
+    description = <p>Try searching for something else.</p>;
     title = 'No missing images';
     action = (
       <ButtonGroup>
@@ -90,7 +90,7 @@ const Placeholder = observer(() => {
     <div id="content-placeholder">
       <span className="custom-icon-128">{icon}</span>
       <h2>{title}</h2>
-      <p>{description}</p>
+      {description}
       {action}
     </div>
   );
