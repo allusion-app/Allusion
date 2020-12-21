@@ -1,7 +1,6 @@
 ///////////////////////////////// Content area /////////////////////////////////
 #gallery-content {
   flex: 1;
-  padding: 0 0.5rem;
 
   > div {
     // WARNING: This fixes a lot of things, so do not delete it!
@@ -20,19 +19,19 @@
   /* --thumbnail-size: calc(100vw / 10); */
   /* --thumbnail-size: calc(calc(100vw / 10) - calc(10 * var(--thumbnail-margin))); */
   // --thumbnail-size: 82px;
-  --thumbnail-size: 10rem;
+  --thumbnail-size: 9.5rem;
 }
 .thumbnail-medium {
   /* --thumbnail-size: calc(100vw / 6); */
   /* --thumbnail-size: calc(calc(100vw / 6) - calc(6 * var(--thumbnail-margin))); */
   // --thumbnail-size: 182px;
-  --thumbnail-size: 15rem;
+  --thumbnail-size: 14.5rem;
 }
 .thumbnail-large {
   /* --thumbnail-size: calc(100vw / 4); */
   /* --thumbnail-size: calc(calc(100vw / 4) - calc(4 * var(--thumbnail-margin))); */
   // --thumbnail-size: 282px;
-  --thumbnail-size: 20rem;
+  --thumbnail-size: 19.5rem;
 }
 
 /////////////////////// Thumbnail //////////////////////////////////

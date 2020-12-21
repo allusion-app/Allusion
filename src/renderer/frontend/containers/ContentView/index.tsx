@@ -36,7 +36,7 @@ const ContentView = observer(() => {
   );
 
   return (
-    <main>
+    <main id="contentArea">
       <Gallery />
     </main>
   );

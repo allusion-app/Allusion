@@ -119,7 +119,7 @@ const Layout = ({
 };
 
 // Some extra padding in the Grid view, so that the scrollbar will not overlap with the content
-const CONTENT_PADDING_RIGHT = 12;
+const CONTENT_PADDING_RIGHT = 0;
 
 const GridGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
@@ -730,12 +730,12 @@ const onDrop = action(
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
 // TODO: Use computed styles to access the CSS variables
 const PADDING = 8;
-const CELL_SIZE_SMALL = 160 + PADDING;
-const CELL_SIZE_MEDIUM = 240 + PADDING;
-const CELL_SIZE_LARGE = 320 + PADDING;
+const CELL_SIZE_SMALL = 152 + PADDING;
+const CELL_SIZE_MEDIUM = 232 + PADDING;
+const CELL_SIZE_LARGE = 312 + PADDING;
 // Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
 // can fit into one row.
-const SHRINK_FACTOR = 0.9;
+const SHRINK_FACTOR = 1;
 
 function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {

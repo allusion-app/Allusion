@@ -1,24 +1,5 @@
 ///////////////////////////////// Toolbar /////////////////////////////////
-#toolbar {
-  position: absolute;
-  top: 0;
-  left: var(--outliner-width);
-  right: 0;
-  height: var(--toolbar-height);
-  box-sizing: border-box;
-  padding: 0 0.5rem;
-  display: flex;
-  align-items: center;
 
-  background-color: var(--background-color);
-
-  // Since the toolbar is acting as the frame, it should be draggable to move the window around
-  -webkit-app-region: drag;
-  // But all of the buttons should not be draggable, else not clickable
-  button {
-    -webkit-app-region: none;
-  }
-}
 
 // Invisible region in order to still resize the window by dragging from the top when not maximized
 #window-resize-area {

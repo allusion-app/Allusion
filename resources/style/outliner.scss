@@ -1,24 +1,4 @@
 ///////////////////////////////// Outliner /////////////////////////////////
-#outliner {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: var(--outliner-width);
-  padding-top: var(--toolbar-height);
-  box-sizing: border-box;
-
-  background-color: var(--background-color-alt);
-
-  // Same transparent background image as in the design mockup
-  // background-image: url(~resources/images/background.png);
-  // background-size: cover;
-
-  > * {
-    // Don't squash content during parent transition
-    width: var(--outliner-width);
-  }
-}
 
 #outliner-toggle {
   position: absolute;

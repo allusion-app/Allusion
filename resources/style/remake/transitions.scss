@@ -8,12 +8,12 @@
   #outliner {
     left: calc(var(--outliner-width) * (-1));
   }
-  main {
+  #contentArea {
     left: 0;
   }
 }
 .inspectorClosed {
-  main {
+  #contentArea {
     right: 0;
   }
   #inspector {

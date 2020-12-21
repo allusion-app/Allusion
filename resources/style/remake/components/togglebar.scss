@@ -1,0 +1,24 @@
+#togglebar {
+  
+  #windowPanel {
+    padding: 0.125rem 0.25rem;
+    display: flex;
+
+    .windowBtn {
+      width: 0.75rem;
+      height: 0.75rem;
+      margin: 0.25rem;
+      border-radius: 50%;
+    }
+
+    #windowClose{
+      background: #ff6157;
+    }
+    #windowMinimize{
+      background: #ffc12f;
+    }
+    #windowMaximize{
+      background: #2acb42;
+    }
+  }
+}

@@ -6,7 +6,6 @@
 @import '~@blueprintjs/core/src/common/_variables.scss';
 
 @import '~resources/style/themes.scss'; // Color schemes of themes (dark/light)
-@import '~resources/style/remake/themes.scss'; // Color schemes of themes (dark/light)
 @import '~resources/style/global.scss'; // Global styles, layout, media queries and miscellanious CSS
 
 // Panels
@@ -15,10 +14,18 @@
 @import '~resources/style/sidebar.scss'; // Common styles for outliner and inspector
 @import '~resources/style/outliner.scss'; // The outliner (left toolbar)
 @import '~resources/style/inspector.scss'; // The inspector (right toolbar)
-@import '~resources/style/togglebar.scss'; // The toolbar (top bar)
 @import '~resources/style/toolbar.scss'; // The togglebar (window buttons)
-@import '~resources/style/transitions.scss'; // Style for toggling Outliner and Inspector
 
 // Individual components
 @import '~resources/style/help-center.scss';
 @import '~resources/style/settings.scss';
+
+
+// Remake
+@import '~resources/style/remake/variables.scss';
+@import '~resources/style/remake/themes.scss';
+@import '~resources/style/remake/layout.scss';
+
+@import '~resources/style/remake/components/togglebar.scss';
+
+@import '~resources/style/remake/transitions.scss';

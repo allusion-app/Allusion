@@ -45,7 +45,7 @@
 }
 
 .input {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--background-color-alt);
   border: none;
   outline: none;
   border-radius: 0.25rem;
