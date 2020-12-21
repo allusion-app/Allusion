@@ -1,5 +1,5 @@
 import { ID } from './renderer/entities/ID';
-import { IImportItem } from './main/clipServer';
+import { IImportItem } from './clipper/server';
 import { ITag } from './renderer/entities/Tag';
 import { ipcRenderer, ipcMain, WebContents } from 'electron';
 

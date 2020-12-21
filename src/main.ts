@@ -1,12 +1,22 @@
-import { app, BrowserWindow, Menu, nativeImage, nativeTheme, screen, Tray, dialog } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  Menu,
+  nativeImage,
+  nativeTheme,
+  screen,
+  Tray,
+  dialog,
+  BrowserWindowConstructorOptions,
+} from 'electron';
 import { autoUpdater } from 'electron-updater';
 import AppIcon from '../../resources/logo/allusion-logomark-fc-512x512.png';
 import TrayIcon from '../../resources/logo/allusion-logomark-fc-256x256.png';
 import TrayIconMac from '../../resources/logo/allusion-logomark-white@2x.png';
-import { isDev } from '../config';
-import { MainMessenger } from '../Messaging';
-import { ITag } from '../renderer/entities/Tag';
-import ClipServer, { IImportItem } from './clipServer';
+import { isDev } from './config';
+import { MainMessenger } from './Messaging';
+import { ITag } from './renderer/entities/Tag';
+import ClipServer, { IImportItem } from './clipper/server';
 
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
@@ -66,8 +76,7 @@ function createTrayMenu() {
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
+  let mainOptions: BrowserWindowConstructorOptions = {
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
     // Fixed it by adding a margin-top to the body and giving html background color so it blends in
     // But new issue arissed in fullscreen than
@@ -87,14 +96,15 @@ function createWindow() {
     backgroundColor: '#14181a',
     title: 'Allusion',
     show: false,
+  };
 
-    // Vibrancy effect for MacOS
-    ...(isMac ? {
-      vibrancy: 'window',
-      transparent: true,
-      hasShadow: true,
-    } : {}),
-  });
+  // Vibrancy effect for MacOS
+  if (isMac) {
+    mainOptions = { ...mainOptions, vibrancy: 'window', transparent: true, hasShadow: true };
+  }
+
+  // Create the browser window.
+  mainWindow = new BrowserWindow(mainOptions);
   mainWindow.on('ready-to-show', () => mainWindow?.show());
 
   // Customize new window opening
