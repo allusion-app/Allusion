@@ -44,7 +44,7 @@ class ToastManager {
 }
 
 // Create a singleton toaster - we should only be needing one
-export const AppToaster = new ToastManager();
+const AppToaster = new ToastManager();
 
 // Demo of new toasts
 // AppToaster.show({ message: 'First custom toast!', timeout: 0 });

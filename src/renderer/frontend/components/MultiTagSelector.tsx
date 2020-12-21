@@ -6,7 +6,7 @@ import StoreContext from '../contexts/StoreContext';
 import { IconButton, IconSet, Listbox, Option, Tag } from 'components';
 import { Flyout } from 'components/Dialog';
 import { action } from 'mobx';
-import { MenuDivider } from 'components/Menu';
+import { MenuDivider } from 'components/menu';
 
 interface IMultiTagSelector {
   selection: ClientTag[];
@@ -16,7 +16,7 @@ interface IMultiTagSelector {
   onCreate?: (name: string) => Promise<ClientTag>;
   tagLabel?: (item: ClientTag) => string;
   disabled?: boolean;
-  extraOption?: { label: string, action: () => void, icon?: JSX.Element };
+  extraOption?: { label: string; action: () => void; icon?: JSX.Element };
 }
 
 const MultiTagSelector = observer(
@@ -106,10 +106,16 @@ const MultiTagSelector = observer(
                 }}
               />
             ) : null}
-            {extraOption && <>
-              <MenuDivider />
-              <Option value={extraOption.label} onClick={extraOption.action} icon={extraOption.icon} />
-            </>}
+            {extraOption && (
+              <>
+                <MenuDivider />
+                <Option
+                  value={extraOption.label}
+                  onClick={extraOption.action}
+                  icon={extraOption.icon}
+                />
+              </>
+            )}
           </Listbox>
         </Flyout>
       </div>
