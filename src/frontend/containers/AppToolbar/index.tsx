@@ -25,6 +25,8 @@ const AppToolbar = observer(() => {
 
       {/* Overflow Menu */}
       <SecondaryCommands uiStore={uiStore} />
+
+      {/* Enables resizing when the window title bar is hidden */}
       <div id="window-resize-area" />
     </Toolbar>
   );
