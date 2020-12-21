@@ -13,7 +13,7 @@ import { ContextMenu, SubMenu, Menu, MenuDivider } from 'widgets/menu';
 import Placeholder from './Placeholder';
 import Layout from './Gallery';
 
-import { LayoutMenuItems, SortMenuItems } from '../Toolbar/ContentToolbar';
+import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
 
 const ContentView = () => {
   const { uiStore } = useContext(StoreContext);

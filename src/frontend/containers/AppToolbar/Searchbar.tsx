@@ -2,10 +2,34 @@ import React, { useCallback, useContext } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
+import StoreContext from 'src/frontend/contexts/StoreContext';
+
+const Searchbar = observer(() => {
+  const { uiStore, tagStore } = useContext(StoreContext);
+  const searchCriteriaList = uiStore.searchCriteriaList;
+
+  // Only show quick search bar when all criteria are tags or collections, else
+  // show a search bar that opens to the advanced search form
+  const isQuickSearch =
+    searchCriteriaList.length === 0 ||
+    searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
+
+  return (
+    <div className="toolbar-input">
+      {isQuickSearch ? (
+        <QuickSearchList uiStore={uiStore} tagStore={tagStore} />
+      ) : (
+        <CriteriaList uiStore={uiStore} tagStore={tagStore} />
+      )}
+    </div>
+  );
+});
+
+export default Searchbar;
+
 import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 
-import StoreContext from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
 import TagStore from 'src/frontend/stores/TagStore';
 
@@ -91,26 +115,3 @@ const CriteriaList = observer(({ uiStore, tagStore }: ISearchListProps) => {
     </div>
   );
 });
-
-export const Searchbar = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
-  const searchCriteriaList = uiStore.searchCriteriaList;
-
-  // Only show quick search bar when all criteria are tags or collections, else
-  // show a search bar that opens to the advanced search form
-  const isQuickSearch =
-    searchCriteriaList.length === 0 ||
-    searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
-
-  return (
-    <div className="toolbar-input">
-      {isQuickSearch ? (
-        <QuickSearchList uiStore={uiStore} tagStore={tagStore} />
-      ) : (
-        <CriteriaList uiStore={uiStore} tagStore={tagStore} />
-      )}
-    </div>
-  );
-});
-
-export default Searchbar;

@@ -19,7 +19,7 @@ import ContentView from './containers/ContentView';
 import Inspector from './containers/Inspector';
 import Outliner from './containers/Outliner';
 import SettingsWindow from './containers/Settings';
-import Toolbar from './containers/Toolbar';
+import AppToolbar from './containers/AppToolbar';
 import WelcomeDialog from './containers/WelcomeDialog';
 
 import { useWorkerListener } from './ThumbnailGeneration';
@@ -126,7 +126,7 @@ const App = observer(() => {
 
           <Outliner />
 
-          <Toolbar />
+          <AppToolbar />
 
           <ContentView />
 

@@ -15,7 +15,7 @@ import { Tag } from 'widgets/Tag';
 
 import { countFileTags } from './FileTag';
 
-import { Tooltip } from '../containers/Toolbar';
+import { Tooltip } from '../containers/AppToolbar/PrimaryCommands';
 
 interface TagItemProps {
   text: string;
