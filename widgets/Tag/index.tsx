@@ -1,8 +1,11 @@
-import './tag.scss';
-import { IconButton } from 'components/Button';
-import { IconSet } from '../Icons';
 import React, { useMemo } from 'react';
-import { getColorFromBackground } from 'src/renderer/frontend/utils';
+
+import './tag.scss';
+
+import { IconButton } from 'widgets/Button';
+import { IconSet } from '../Icons';
+
+import { getColorFromBackground } from 'src/frontend/utils';
 
 interface ITag extends React.DOMAttributes<HTMLSpanElement> {
   text: string;

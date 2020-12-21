@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import './tree.scss';
 import React, {
   useCallback,
   useEffect,
@@ -8,7 +7,10 @@ import React, {
   CSSProperties,
   useState,
 } from 'react';
-import { ID } from 'src/renderer/entities/ID';
+
+import './tree.scss';
+
+import { ID } from 'src/entities/ID';
 
 // --- Helper function for tree items ---
 

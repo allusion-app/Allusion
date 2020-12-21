@@ -1,6 +1,8 @@
 import './dialog.scss';
+
 import React, { useEffect, useRef } from 'react';
-import { Button, ButtonGroup } from 'components';
+
+import { Button, ButtonGroup } from 'widgets';
 
 interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   open: boolean;

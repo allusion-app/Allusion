@@ -1,7 +1,9 @@
-import { ID } from './renderer/entities/ID';
-import { IImportItem } from './clipper/server';
-import { ITag } from './renderer/entities/Tag';
 import { ipcRenderer, ipcMain, WebContents } from 'electron';
+
+import { ID } from './entities/ID';
+import { ITag } from './entities/Tag';
+
+import { IImportItem } from './clipper/server';
 
 /**
  * All types of messages between the main and renderer process in one place, with type safety.

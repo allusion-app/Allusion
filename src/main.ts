@@ -10,12 +10,12 @@ import {
   BrowserWindowConstructorOptions,
 } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import AppIcon from '../../resources/logo/allusion-logomark-fc-512x512.png';
-import TrayIcon from '../../resources/logo/allusion-logomark-fc-256x256.png';
-import TrayIconMac from '../../resources/logo/allusion-logomark-white@2x.png';
+import AppIcon from '../resources/logo/allusion-logomark-fc-512x512.png';
+import TrayIcon from '../resources/logo/allusion-logomark-fc-256x256.png';
+import TrayIconMac from '../resources/logo/allusion-logomark-white@2x.png';
 import { isDev } from './config';
 import { MainMessenger } from './Messaging';
-import { ITag } from './renderer/entities/Tag';
+import { ITag } from './entities/Tag';
 import ClipServer, { IImportItem } from './clipper/server';
 
 let mainWindow: BrowserWindow | null;

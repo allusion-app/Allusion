@@ -1,10 +1,10 @@
 import http, { Server } from 'http';
 import path from 'path';
 import fse from 'fs-extra';
+import { app } from 'electron';
 
 import { SERVER_PORT } from '../config';
-import { app } from 'electron';
-import { ITag } from '../renderer/entities/Tag';
+import { ITag } from '../entities/Tag';
 
 /**
  * The clip server hosts endpoints for our browser extension to import images,
@@ -25,12 +25,15 @@ export interface IImportItem {
 
 /** A class that hosts the clip server that browser extensions can connect to */
 class ClipServer {
-
   /**
    * Sanitizes filename: Some symbols from URLs might not be supported on the filesystem (depends on OS)
    * Check not to overwrite existing files - downloaded images can often have the same name (image.jpg, download.jpg)
    */
-  private static async createDownloadPath(directory: string, filename: string, noIncrement?: boolean) {
+  private static async createDownloadPath(
+    directory: string,
+    filename: string,
+    noIncrement?: boolean,
+  ) {
     // Sanitize (filter out weird symbols, emojis, etc.)
     const sanitzedFilename = filename.replace(/[^a-zA-Z0-9-_\.\(\)\- ]/g, '_');
     let filePath = path.join(directory, sanitzedFilename);
@@ -88,10 +91,10 @@ class ClipServer {
     this.requestTags = requestTags;
 
     if (fse.existsSync(preferencesFilePath)) {
-      const existingPrefs =  fse.readJSONSync(preferencesFilePath);
+      const existingPrefs = fse.readJSONSync(preferencesFilePath);
       this.preferences = {
         ...this.preferences,
-       ...existingPrefs,
+        ...existingPrefs,
       };
     }
 
@@ -137,7 +140,10 @@ class ClipServer {
       return [];
     }
     const fileContent = await fse.readFile(importQueueFilePath, 'utf8');
-    const items = fileContent.trim().split('\n').map((line) => JSON.parse(line));
+    const items = fileContent
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
     return items;
   }
 
@@ -146,13 +152,19 @@ class ClipServer {
   }
 
   async storeImageWithoutImport(filename: string, imgBase64: string) {
-    const downloadPath = await ClipServer.createDownloadPath(this.preferences.downloadPath, filename);
+    const downloadPath = await ClipServer.createDownloadPath(
+      this.preferences.downloadPath,
+      filename,
+    );
     await this.storeImage(downloadPath, imgBase64);
     return downloadPath;
   }
 
   async storeAndImportImage(filename: string, imgBase64: string) {
-    const downloadPath = await ClipServer.createDownloadPath(this.preferences.downloadPath, filename);
+    const downloadPath = await ClipServer.createDownloadPath(
+      this.preferences.downloadPath,
+      filename,
+    );
 
     await this.storeImage(downloadPath, imgBase64);
 
@@ -170,49 +182,55 @@ class ClipServer {
 
   private startServer() {
     console.log('Running clip server...');
-    this.server = http.createServer(async (req, res) => {
-      if (req.method === 'POST') {
-        // Parse the content of the POST request
-        let body = '';
-        req.on('data', (chunk) => (body += chunk));
-        req.on('end', async () => {
-          try {
-            // Check what kind of message has been sent
-            if (req.url && req.url.endsWith('import-image')) {
-              const { filename, imgBase64 } = JSON.parse(body);
-              console.log('Received file', filename);
+    this.server = http
+      .createServer(async (req, res) => {
+        if (req.method === 'POST') {
+          // Parse the content of the POST request
+          let body = '';
+          req.on('data', (chunk) => (body += chunk));
+          req.on('end', async () => {
+            try {
+              // Check what kind of message has been sent
+              if (req.url && req.url.endsWith('import-image')) {
+                const { filename, imgBase64 } = JSON.parse(body);
+                console.log('Received file', filename);
 
-              await this.storeAndImportImage(filename, imgBase64);
+                await this.storeAndImportImage(filename, imgBase64);
 
-              res.end({ message: 'OK!' });
-            } else if (req.url && req.url.endsWith('/set-tags')) {
-              const { tagNames, filename } = JSON.parse(body);
+                res.end({ message: 'OK!' });
+              } else if (req.url && req.url.endsWith('/set-tags')) {
+                const { tagNames, filename } = JSON.parse(body);
 
-              const downloadPath = await ClipServer.createDownloadPath(this.preferences.downloadPath, filename, true);
+                const downloadPath = await ClipServer.createDownloadPath(
+                  this.preferences.downloadPath,
+                  filename,
+                  true,
+                );
 
-              const item: IImportItem = {
-                filePath: downloadPath,
-                tagNames,
-                dateAdded: new Date(),
-              };
+                const item: IImportItem = {
+                  filePath: downloadPath,
+                  tagNames,
+                  dateAdded: new Date(),
+                };
 
-              const isUpdated = await this.addTagsToFile(item);
-              if (!isUpdated) {
-                await this.replaceLastQueueItem(item);
+                const isUpdated = await this.addTagsToFile(item);
+                if (!isUpdated) {
+                  await this.replaceLastQueueItem(item);
+                }
+                res.end({ message: 'OK!' });
               }
-              res.end({ message: 'OK!' });
+            } catch (e) {
+              res.end(JSON.stringify(e));
             }
-          } catch (e) {
-            res.end(JSON.stringify(e));
+          });
+        } else if (req.method === 'GET') {
+          if (req.url && req.url.endsWith('/tags')) {
+            const tags = await this.requestTags();
+            res.end(JSON.stringify(tags));
           }
-        });
-      } else if (req.method === 'GET') {
-        if (req.url && req.url.endsWith('/tags')) {
-          const tags = await this.requestTags();
-          res.end(JSON.stringify(tags));
         }
-      }
-    }).listen(SERVER_PORT, 'localhost');
+      })
+      .listen(SERVER_PORT, 'localhost');
   }
 
   private stopServer() {

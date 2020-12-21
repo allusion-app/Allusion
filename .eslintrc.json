@@ -32,7 +32,7 @@
   },
   "overrides": [
     {
-      "files": ["src/renderer/entities/*.ts", "src/renderer/backend/*.ts"],
+      "files": ["src/entities/*.ts", "src/backend/*.ts"],
       "rules": {
         "@typescript-eslint/explicit-module-boundary-types": ["warn"]
       }
