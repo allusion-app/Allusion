@@ -44,13 +44,13 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
     >
       <Flyout
         open={isOpen}
+        onCancel={() => setIsOpen(false)}
         placement="bottom-start"
         target={
           <input
             type="text"
             value={query}
             aria-autocomplete="list"
-            onFocus={() => setIsOpen(true)}
             onChange={(e) => {
               setIsOpen(true);
               setQuery(e.target.value);

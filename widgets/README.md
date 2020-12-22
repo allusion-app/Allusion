@@ -53,7 +53,7 @@ Menus are usually floating panels that show a several commands that the user can
 
 Unfortunately naming is inconsistent across literature (hell even in this module) and GUI toolkits because both types of popovers are modal and popovers. For some sanity I chose the Windows UI component names: flyout and dialog.
 
-Flyouts are dismissable light weight containers that 'fly out' (more like pop up) of your application and are the building primitive for the context menu and toolbar menu popups.
+Flyouts are dismissable light weight containers that 'fly out' (more like pop up) of your application and are the building primitive for the toolbar menu popups as an example.
 Dialogs are containers that contain requests to the user and trap the (keyboard and mouse) focus and cannot be as easily dismissed as flyouts. Due to the heavier user experience it is advised only to use it for important tasks (e.g. unreversable operations).
 
 - Alert

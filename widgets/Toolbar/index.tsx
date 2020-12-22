@@ -1,5 +1,5 @@
 import './toolbar.scss';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Tooltip, Flyout } from '../Dialog/index';
 
 interface IToolbar {
@@ -173,41 +173,6 @@ const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
   );
 };
 
-const handleKeyDown = (e: React.KeyboardEvent) => {
-  switch (e.key) {
-    case 'Enter': {
-      const item = e.currentTarget.querySelector('dialog [tabindex="0"]:focus') as HTMLElement;
-      if (item) {
-        e.stopPropagation();
-        item.click();
-        e.currentTarget.querySelector('button')?.focus();
-      }
-      break;
-    }
-
-    case 'Escape':
-      const item = e.currentTarget.querySelector('dialog [tabindex="0"]:focus') as HTMLElement;
-      if (item) {
-        e.stopPropagation();
-        item.blur();
-        e.currentTarget.querySelector('button')?.focus();
-      }
-      break;
-
-    default:
-      break;
-  }
-};
-
-const handleFlyoutBlur = (e: React.FocusEvent) => {
-  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-    const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
-    if (dialog.open) {
-      dialog.close();
-    }
-  }
-};
-
 interface IToolbarMenuButton extends IBaseButton {
   controls: string;
   /** The element must be a Menu component otherwise focus will not work. */
@@ -234,7 +199,6 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
     <div ref={container} onKeyDown={handleKeyDown} onBlur={handleFlyoutBlur}>
       <Flyout
         open={isOpen}
-        onClose={() => setIsOpen(false)}
         onCancel={() => setIsOpen(false)}
         target={
           <ToolbarButton
@@ -256,6 +220,26 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
       </Flyout>
     </div>
   );
+};
+
+const handleKeyDown = (e: React.KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    const item = e.currentTarget.querySelector('dialog [tabindex="0"]:focus') as HTMLElement;
+    if (item) {
+      e.stopPropagation();
+      item.click();
+      e.currentTarget.querySelector('button')?.focus();
+    }
+  }
+};
+
+const handleFlyoutBlur = (e: React.FocusEvent) => {
+  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+    const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
+    if (dialog.open) {
+      dialog.close();
+    }
+  }
 };
 
 export {

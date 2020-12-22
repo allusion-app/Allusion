@@ -25,11 +25,8 @@ interface IFlyout {
   /** The popover content. */
   children: React.ReactNode;
   className?: string;
-  onClose?: (event: Event) => void;
-  /** If no event listener is provided for the cancel event, by default closing
-   *  with the Escape key will be disabled. This is to ensure that the passed
-   * state valid.  */
-  onCancel?: (event: Event) => void;
+  /** Closes the flyout when the `Escape` key is pressed. */
+  onCancel?: () => void;
   placement?: Placement;
   /** Flip modifier settings */
   fallbackPlacements?: Placement[];
@@ -43,7 +40,6 @@ const Flyout = (props: IFlyout) => {
     labelledby,
     describedby,
     className,
-    onClose,
     onCancel,
     target,
     children,
@@ -72,22 +68,22 @@ const Flyout = (props: IFlyout) => {
     }
   }, [open, forceUpdate]);
 
-  // Add event listeners because React does not have proper typings :)
-  useEffect(() => {
-    const element = dialog.current;
-    if (onClose) {
-      element?.addEventListener('close', onClose);
-    }
-    const cancel = onCancel ?? ((e: Event) => e.preventDefault());
-    element?.addEventListener('cancel', cancel);
-
-    return () => {
-      if (onClose) {
-        element?.removeEventListener('close', onClose);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (onCancel !== undefined) {
+          e.stopPropagation();
+          onCancel();
+          // Returns focus to the `target` element.
+          const target = e.currentTarget.previousElementSibling as HTMLElement;
+          target.focus();
+        } else {
+          e.preventDefault();
+        }
       }
-      element?.removeEventListener('cancel', cancel);
-    };
-  }, [onClose, onCancel]);
+    },
+    [onCancel],
+  );
 
   return (
     <>
@@ -102,6 +98,7 @@ const Flyout = (props: IFlyout) => {
         aria-labelledby={labelledby}
         aria-describedby={describedby}
         className={className}
+        onKeyDown={handleKeyDown}
       >
         {children}
       </dialog>

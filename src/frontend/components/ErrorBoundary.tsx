@@ -17,6 +17,7 @@ export const ClearDbButton = () => {
   return (
     <Flyout
       open={isOpen}
+      onCancel={() => setIsOpen(false)}
       placement="top"
       target={
         <Button

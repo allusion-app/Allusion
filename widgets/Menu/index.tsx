@@ -193,7 +193,7 @@ const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
         open={isOpen}
         placement="right-start"
         fallbackPlacements={subMenuPlacments}
-        onClose={close}
+        onCancel={close}
         target={
           <a
             tabIndex={-1}
