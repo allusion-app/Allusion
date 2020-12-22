@@ -90,7 +90,7 @@ const Gallery = observer(() => {
         uiStore={uiStore}
         fileStore={fileStore}
       />
-      <ContextMenu open={open} x={x} y={y} onClose={hide}>
+      <ContextMenu isOpen={open} x={x} y={y} onClose={hide}>
         <Menu>
           {fileMenu}
           <MenuDivider />

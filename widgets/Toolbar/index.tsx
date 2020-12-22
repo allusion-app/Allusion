@@ -1,6 +1,6 @@
 import './toolbar.scss';
 import React, { useEffect, useRef, useState } from 'react';
-import { Tooltip, Flyout } from '../Dialog/index';
+import { Tooltip, Flyout } from '../popover';
 
 interface IToolbar {
   children: React.ReactNode;
@@ -87,13 +87,7 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-expanded={expanded}
       tabIndex={tabIndex ?? -1}
     >
-      {tooltip ? (
-        <Tooltip content={tooltip} hoverDelay={1500}>
-          {content}
-        </Tooltip>
-      ) : (
-        content
-      )}
+      {tooltip ? <Tooltip content={tooltip} hoverDelay={1500} trigger={content} /> : content}
     </button>
   );
 };
@@ -198,7 +192,7 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
   return (
     <div ref={container} onKeyDown={handleKeyDown} onBlur={handleFlyoutBlur}>
       <Flyout
-        open={isOpen}
+        isOpen={isOpen}
         onCancel={() => setIsOpen(false)}
         target={
           <ToolbarButton

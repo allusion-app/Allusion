@@ -440,7 +440,7 @@ const LocationsPanel = () => {
           onClose={() => setDeletableLocation(undefined)}
         />
       )}
-      <ContextMenu open={contextState.open} x={contextState.x} y={contextState.y} onClose={hide}>
+      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} onClose={hide}>
         <Menu>{contextState.menu}</Menu>
       </ContextMenu>
     </div>

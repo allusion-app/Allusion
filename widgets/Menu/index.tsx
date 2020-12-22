@@ -1,7 +1,7 @@
 import './menu.scss';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { IconSet } from '../Icons';
-import { Flyout } from '../Dialog';
+import { Flyout } from '../popover';
 
 const handleBlur = (e: React.FocusEvent) => {
   if (
@@ -190,7 +190,7 @@ const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
       onBlur={handleFlyoutBlur}
     >
       <Flyout
-        open={isOpen}
+        isOpen={isOpen}
         placement="right-start"
         fallbackPlacements={subMenuPlacments}
         onCancel={close}

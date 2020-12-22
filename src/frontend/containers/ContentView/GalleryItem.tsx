@@ -65,18 +65,21 @@ export const GridCell = observer(({ file, colIndex, mounted, uiStore, fileStore 
       <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
     </div>
     {file.isBroken === true && (
-      <Tooltip content="This image could not be found.">
-        <span
-          className="thumbnail-broken-overlay"
-          onClick={(e) => {
-            e.stopPropagation(); // prevent image click event
-            fileStore.fetchMissingFiles();
-            uiStore.selectFile(file, true);
-          }}
-        >
-          {IconSet.WARNING_BROKEN_LINK}
-        </span>
-      </Tooltip>
+      <Tooltip
+        content="This image could not be found."
+        trigger={
+          <span
+            className="thumbnail-broken-overlay"
+            onClick={(e) => {
+              e.stopPropagation(); // prevent image click event
+              fileStore.fetchMissingFiles();
+              uiStore.selectFile(file, true);
+            }}
+          >
+            {IconSet.WARNING_BROKEN_LINK}
+          </span>
+        }
+      />
     )}
     {file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />}
   </div>

@@ -55,7 +55,7 @@ const MultiTagSelector = observer(
         }}
       >
         <Flyout
-          open={isOpen}
+          isOpen={isOpen}
           onCancel={() => setIsOpen(false)}
           placement="bottom-start"
           target={

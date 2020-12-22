@@ -104,9 +104,31 @@ dialog[role='alertdialog'] {
   }
 }
 
-.tooltip {
-  display: inline-flex;
-  margin: 0.5rem 1rem;
+[data-popover='true'] {
+  display: none;
+  z-index: 1;
+
+  background-color: var(--background-color);
+  border: none;
+  border-radius: 0.25rem;
+  box-shadow: 3px 4px 6px 3px rgba(0, 0, 0, 0.2);
+  color: var(--text-color);
+
+  &[data-open='true'] {
+    display: unset;
+  }
+}
+
+[role='tooltip'] {
+  pointer-events: none;
+  background: var(--primary-color);
+  color: white;
+  font-size: 1rem;
+
+  .tooltip {
+    display: inline-flex;
+    margin: 0.5rem 1rem;
+  }
 }
 
 @keyframes appear {

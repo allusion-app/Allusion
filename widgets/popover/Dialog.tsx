@@ -1,10 +1,8 @@
-import './dialog.scss';
-
 import React, { useEffect, useRef } from 'react';
 
 import { Button, ButtonGroup } from 'widgets';
 
-interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
+export interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   open: boolean;
   role?: string;
   label?: string;
@@ -19,7 +17,7 @@ interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   onCancel?: (event: Event) => void;
 }
 
-const Dialog = (props: IDialog) => {
+export const Dialog = (props: IDialog) => {
   const {
     open,
     role,
@@ -73,7 +71,7 @@ const Dialog = (props: IDialog) => {
   );
 };
 
-interface IAlert extends IDialogActions {
+export interface IAlert extends IDialogActions {
   open: boolean;
   title: React.ReactChild;
   icon?: JSX.Element;
@@ -83,7 +81,7 @@ interface IAlert extends IDialogActions {
   // onSuppression?: () => void;
 }
 
-const Alert = (props: IAlert) => {
+export const Alert = (props: IAlert) => {
   const { open, onClick, title, information, view, icon } = props;
 
   return (
@@ -115,13 +113,13 @@ const Alert = (props: IAlert) => {
   );
 };
 
-enum DialogButton {
+export enum DialogButton {
   CloseButton,
   PrimaryButton,
   SecondaryButton,
 }
 
-interface IDialogActions {
+export interface IDialogActions {
   onClick: (button: DialogButton) => void;
   closeButtonText: string;
   primaryButtonText?: string;
@@ -129,7 +127,7 @@ interface IDialogActions {
   defaultButton?: DialogButton;
 }
 
-const DialogActions = (props: IDialogActions) => {
+export const DialogActions = (props: IDialogActions) => {
   return (
     <ButtonGroup className="dialog-actions">
       {props.primaryButtonText ? (
@@ -154,7 +152,3 @@ const DialogActions = (props: IDialogActions) => {
     </ButtonGroup>
   );
 };
-
-import { ContextMenu, Flyout, Tooltip } from './Flyout';
-
-export { Alert, ContextMenu, Dialog, DialogButton, DialogActions, Flyout, Tooltip };

@@ -43,7 +43,7 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
       }}
     >
       <Flyout
-        open={isOpen}
+        isOpen={isOpen}
         onCancel={() => setIsOpen(false)}
         placement="bottom-start"
         target={
