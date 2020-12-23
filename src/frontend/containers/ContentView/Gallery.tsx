@@ -13,7 +13,7 @@ import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 
 import { IconSet } from 'widgets';
-import { MenuItem } from 'widgets/menu';
+import { MenuItem } from 'widgets/menus';
 
 import { GridCell, ListCell } from './GalleryItem';
 import SlideMode from './SlideMode';

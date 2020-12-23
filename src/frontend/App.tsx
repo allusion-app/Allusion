@@ -6,7 +6,7 @@ import { observer } from 'mobx-react-lite';
 import StoreContext from './contexts/StoreContext';
 
 import { IconSet } from 'widgets';
-import { ToolbarToggleButton } from 'widgets/menu';
+import { ToolbarToggleButton } from 'widgets/menus';
 
 import DropOverlay from './containers/DropOverlay';
 import ErrorBoundary from './containers/ErrorBoundary';

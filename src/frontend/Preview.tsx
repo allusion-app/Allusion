@@ -6,7 +6,7 @@ import StoreContext from './contexts/StoreContext';
 import ErrorBoundary from './containers/ErrorBoundary';
 import ContentView from './containers/ContentView';
 import { IconSet, Toggle } from 'widgets';
-import { Toolbar, ToolbarGroup, ToolbarButton } from 'widgets/menu';
+import { Toolbar, ToolbarGroup, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './ThumbnailGeneration';
 

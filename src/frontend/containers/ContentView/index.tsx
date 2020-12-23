@@ -8,7 +8,7 @@ import StoreContext from '../../contexts/StoreContext';
 import useContextMenu from '../../hooks/useContextMenu';
 
 import { IconSet } from 'widgets';
-import { ContextMenu, SubMenu, Menu, MenuDivider } from 'widgets/menu';
+import { ContextMenu, SubMenu, Menu, MenuDivider } from 'widgets/menus';
 
 import Placeholder from './Placeholder';
 import Layout from './Gallery';

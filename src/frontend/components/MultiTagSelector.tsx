@@ -7,7 +7,7 @@ import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import StoreContext from '../contexts/StoreContext';
 
 import { IconButton, IconSet, Listbox, Option, Tag } from 'widgets';
-import { MenuDivider } from 'widgets/menu';
+import { MenuDivider } from 'widgets/menus';
 import { Flyout } from 'widgets/popovers';
 
 interface IMultiTagSelector {

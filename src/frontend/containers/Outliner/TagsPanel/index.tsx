@@ -6,7 +6,7 @@ import { runInAction } from 'mobx';
 import StoreContext from '../../../contexts/StoreContext';
 
 import { IconSet } from 'widgets';
-import { Toolbar, ToolbarToggleButton } from 'widgets/menu';
+import { Toolbar, ToolbarToggleButton } from 'widgets/menus';
 
 import TagsTree from './TagsTree';
 

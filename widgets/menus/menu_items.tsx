@@ -1,77 +1,96 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 
 import { IconSet } from '../Icons';
-import { RawPopover } from '../popovers/RawPopover';
 
-export interface ISubMenu {
+export interface IMenuItem {
   icon?: JSX.Element;
   text: string;
-  disabled?: boolean;
-  children: React.ReactNode;
-}
-
-export const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const menu = useRef<HTMLUListElement>(null);
-
-  const handleBlur = (e: React.FocusEvent) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      e.stopPropagation();
-      setIsOpen(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      setIsOpen(false);
-      // Returns focus to the anchor element.
-      (e.currentTarget.firstElementChild as HTMLElement).focus();
-    } else if (!disabled && e.key === 'ArrowLeft') {
-      e.stopPropagation();
-      setIsOpen(false);
-      // Returns focus to the anchor element.
-      (e.currentTarget.firstElementChild as HTMLElement).focus();
-    }
-  };
-
-  return (
-    <li role="none" onBlur={handleBlur} onKeyDown={handleKeyDown}>
-      <RawPopover
-        popoverRef={menu}
-        isOpen={isOpen}
-        target={
-          <MenuItemLink
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            text={text}
-            icon={icon}
-            disabled={disabled}
-          />
-        }
-        container="ul"
-        placement="right-start"
-        fallbackPlacements={['right-end', 'right']}
-        data-submenu
-        role="menu"
-        aria-label={text}
-        className="menu"
-      >
-        {children}
-      </RawPopover>
-    </li>
-  );
-};
-
-interface IMenuItemLink {
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  icon?: JSX.Element;
-  text: string;
+  accelerator?: JSX.Element;
+  onClick: (event: React.MouseEvent<HTMLElement>) => void;
   disabled?: boolean;
 }
 
-const MenuItemLink = ({ isOpen, setIsOpen, disabled, icon, text }: IMenuItemLink) => {
+export const MenuItem = ({ text, icon, onClick, accelerator, disabled }: IMenuItem) => (
+  <li
+    role="menuitem"
+    tabIndex={-1}
+    onClick={disabled ? undefined : onClick}
+    aria-disabled={disabled}
+  >
+    <span className="item-icon" aria-hidden>
+      {icon}
+    </span>
+    {text}
+    <span className="item-accelerator" aria-hidden>
+      {accelerator}
+    </span>
+  </li>
+);
+
+export interface IMenuRadioItem extends IMenuItem {
+  checked: boolean;
+}
+
+export const MenuRadioItem = ({
+  text,
+  icon,
+  checked,
+  onClick,
+  accelerator,
+  disabled,
+}: IMenuRadioItem) => (
+  <li
+    role="menuitemradio"
+    aria-checked={checked}
+    tabIndex={-1}
+    onClick={disabled ? undefined : onClick}
+    aria-disabled={disabled}
+  >
+    <span className="item-icon" aria-hidden>
+      {icon}
+    </span>
+    {text}
+    <span className="item-accelerator" aria-hidden>
+      {accelerator}
+    </span>
+  </li>
+);
+
+export type IMenuCheckboxItem = Omit<IMenuRadioItem, 'icon'>;
+
+export const MenuCheckboxItem = ({
+  text,
+  checked,
+  onClick,
+  accelerator,
+  disabled,
+}: IMenuCheckboxItem) => (
+  <li
+    role="menuitemcheckbox"
+    aria-checked={checked}
+    tabIndex={-1}
+    onClick={disabled ? undefined : onClick}
+    aria-disabled={disabled}
+  >
+    <span className="item-icon" aria-hidden></span>
+    {text}
+    <span className="item-accelerator" aria-hidden>
+      {accelerator}
+    </span>
+  </li>
+);
+
+export const MenuDivider = () => <li role="separator" className="menu-separator"></li>;
+
+export interface IMenuItemLink {
+  icon?: JSX.Element;
+  text: string;
+  disabled?: boolean;
+  expanded: boolean;
+  setExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const MenuItemLink = ({ expanded, setExpanded, disabled, icon, text }: IMenuItemLink) => {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -79,13 +98,13 @@ const MenuItemLink = ({ isOpen, setIsOpen, disabled, icon, text }: IMenuItemLink
   const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
     if (!disabled) {
       e.currentTarget.focus();
-      setIsOpen(true);
+      setExpanded(true);
     }
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
     if (!(e.currentTarget.parentElement as HTMLElement).contains(e.relatedTarget as Node)) {
-      setIsOpen(false);
+      setExpanded(false);
     }
   };
 
@@ -97,7 +116,7 @@ const MenuItemLink = ({ isOpen, setIsOpen, disabled, icon, text }: IMenuItemLink
       ) as HTMLElement | null;
       if (first !== null) {
         e.stopPropagation();
-        setIsOpen(true);
+        setExpanded(true);
         first.focus();
       }
     } else if (e.key === 'ArrowUp') {
@@ -140,7 +159,7 @@ const MenuItemLink = ({ isOpen, setIsOpen, disabled, icon, text }: IMenuItemLink
       tabIndex={-1}
       role="menuitem"
       aria-haspopup="menu"
-      aria-expanded={isOpen}
+      aria-expanded={expanded}
       aria-disabled={disabled}
       href="#"
       onClick={handleClick}

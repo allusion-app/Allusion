@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import UiStore from 'src/frontend/stores/UiStore';
 
 import { IconSet } from 'widgets';
-import { ToolbarMenuButton, Menu, MenuItem, MenuCheckboxItem } from 'widgets/menu';
+import { ToolbarMenuButton, Menu, MenuItem, MenuCheckboxItem } from 'widgets/menus';
 
 const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
   return (

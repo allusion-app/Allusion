@@ -10,7 +10,7 @@ import StoreContext from '../../contexts/StoreContext';
 import useRoveFocus from '../../hooks/useRoveFocus';
 
 import { IconSet } from 'widgets/Icons';
-import { ToolbarButton } from 'widgets/menu';
+import { ToolbarButton } from 'widgets/menus';
 import { Tag } from 'widgets/Tag';
 
 import { countFileTags } from '../../components/FileTag';

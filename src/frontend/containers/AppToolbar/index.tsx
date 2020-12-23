@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
 
-import { Toolbar } from 'widgets/menu';
+import { Toolbar } from 'widgets/menus';
 
 import PrimaryCommands, { SlideModeCommand } from './PrimaryCommands';
 import SecondaryCommands from './SecondaryCommands';

@@ -12,7 +12,7 @@ import StoreContext from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
 
 import { IconSet } from 'widgets';
-import { MenuDivider, MenuItem, SubMenu, Menu, MenuCheckboxItem } from 'widgets/menu';
+import { MenuDivider, MenuItem, SubMenu, Menu, MenuCheckboxItem } from 'widgets/menus';
 
 import { Action, Factory } from './StateReducer';
 

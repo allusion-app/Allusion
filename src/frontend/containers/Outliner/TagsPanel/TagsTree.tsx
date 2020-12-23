@@ -12,7 +12,7 @@ import UiStore from 'src/frontend/stores/UiStore';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 
 import { IconSet, Tree } from 'widgets';
-import { Toolbar, ToolbarButton, ContextMenu } from 'widgets/menu';
+import { Toolbar, ToolbarButton, ContextMenu } from 'widgets/menus';
 import { ITreeItem, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/Tree';
 
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';

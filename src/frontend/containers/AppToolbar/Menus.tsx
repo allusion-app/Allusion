@@ -10,7 +10,7 @@ import UiStore from 'src/frontend/stores/UiStore';
 import FileStore from 'src/frontend/stores/FileStore';
 
 import { IconSet } from 'widgets';
-import { ToolbarMenuButton, Menu, MenuRadioGroup, MenuRadioItem } from 'widgets/menu';
+import { ToolbarMenuButton, Menu, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
 
 // Tooltip info
 const enum Tooltip {

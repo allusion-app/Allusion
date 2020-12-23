@@ -20,7 +20,7 @@ import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
 
 import { IconSet, Tree } from 'widgets';
-import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'widgets/menu';
+import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'widgets/menus';
 import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 
 import { CustomKeyDict, IExpansionState } from '../../types';
