@@ -22,7 +22,7 @@ export interface IFlyout {
 
 export const Flyout = (props: IFlyout) => {
   const {
-    isOpen: open,
+    isOpen,
     label,
     labelledby,
     describedby,
@@ -35,7 +35,7 @@ export const Flyout = (props: IFlyout) => {
     allowedAutoPlacements,
   } = props;
 
-  const popover = useRef<HTMLDialogElement>(null);
+  const popover = useRef<HTMLDivElement>(null);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -57,7 +57,7 @@ export const Flyout = (props: IFlyout) => {
   return (
     <RawPopover
       popoverRef={popover}
-      isOpen={open}
+      isOpen={isOpen}
       target={target}
       container="div"
       placement={placement}

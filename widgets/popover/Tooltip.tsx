@@ -5,7 +5,7 @@ import { RawPopover } from './RawPopover';
 
 export interface ITooltip {
   /** The content of the tooltip which is displayed on hover. */
-  content: React.ReactNode;
+  content: React.ReactText;
   /** The element that triggers the tooltip when hovered over. */
   trigger: React.ReactElement<HTMLElement>;
   /** @default 100 */
