@@ -1,7 +1,7 @@
 import './toolbar.scss';
 import React, { useEffect, useRef, useState } from 'react';
 import { Tooltip, Flyout } from '../popovers';
-import { IMenu } from 'widgets/Menu/index';
+import { IMenu } from '../menus';
 
 interface IToolbar {
   children: React.ReactNode;

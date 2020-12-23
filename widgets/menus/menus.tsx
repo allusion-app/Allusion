@@ -86,7 +86,7 @@ export const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
 
 import { IMenuRadioItem } from './menu_items';
 
-interface IMenuRadioGroup {
+export interface IMenuRadioGroup {
   children: React.ReactElement<IMenuRadioItem>[];
   label?: string;
 }
