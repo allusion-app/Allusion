@@ -15,7 +15,9 @@
   padding: 0 1rem;
   margin: 0.25rem 0;
 
-  &:hover {
+  &[aria-expanded='true'],
+  &:hover,
+  &:focus {
     color: var(--hover-color);
     background: var(--hover-background);
   }

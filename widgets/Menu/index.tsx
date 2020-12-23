@@ -1,7 +1,7 @@
 import './menu.scss';
 import React from 'react';
 
-interface IMenu {
+export interface IMenu {
   id?: string;
   children: React.ReactNode;
   label?: string;
@@ -14,9 +14,8 @@ const Menu = ({ id, children, label, labelledby }: IMenu) => (
     role="menu"
     aria-label={label}
     aria-labelledby={labelledby}
-    onClick={handleMenuClick}
     onFocus={handleFocus}
-    onBlur={handleBlur}
+    onMouseOver={handleMouseOver}
   >
     {children}
   </ul>
@@ -54,13 +53,7 @@ interface IMenuRadioGroup {
 
 const MenuRadioGroup = ({ children, label }: IMenuRadioGroup) => (
   <li role="none">
-    <ul
-      role="group"
-      aria-label={label}
-      onClick={handleClick}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-    >
+    <ul role="group" aria-label={label}>
       {children}
     </ul>
   </li>
@@ -110,36 +103,23 @@ const MenuDivider = () => <li role="separator" className="menu-separator"></li>;
 
 export { Menu, MenuCheckboxItem, MenuDivider, MenuItem, MenuRadioGroup, MenuRadioItem };
 
-const handleBlur = (e: React.FocusEvent) => {
-  if (
-    (e.relatedTarget as Element)?.closest('[role="menu"][data-submenu]') ||
-    e.target.closest('[role="menu"][data-submenu]')
-  ) {
-    e.stopPropagation();
-  }
-};
-
 const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
-  if (!event.target.matches('[role^="menuitem"]')) {
+  const target = event.target.closest('[role^="menuitem"]') as HTMLElement | null;
+  if (target === null) {
     return;
   }
-  const prev = event.currentTarget.querySelectorAll('[role^="menuitem"][tabindex="0"]');
-  if (prev.length > 0) {
-    prev.forEach((p) => p.setAttribute('tabIndex', '-1'));
+  const previous = event.currentTarget.querySelector('[role^="menuitem"][tabindex="0"]');
+  if (previous !== null) {
+    previous.setAttribute('tabIndex', '-1');
   }
-  event.target.setAttribute('tabIndex', '0');
-  event.target.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
+  target.setAttribute('tabIndex', '0');
+  // target.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
+  target.focus();
 };
 
-const handleClick = (e: React.MouseEvent) => {
-  if ((e.target as Element).matches('li[role^="menuitem"]')) {
-    const dialog = e.currentTarget.closest('dialog') as HTMLDialogElement;
-    (dialog.previousElementSibling as HTMLElement)?.focus();
-    dialog.close();
+function handleMouseOver(event: React.MouseEvent) {
+  const target = (event.target as Element).closest('[role^="menuitem"]') as HTMLElement | null;
+  if (target !== null) {
+    target.focus();
   }
-};
-
-const handleMenuClick = (e: React.MouseEvent) => {
-  e.stopPropagation();
-  handleClick(e);
-};
+}

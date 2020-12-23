@@ -26,7 +26,17 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
   });
 
   useEffect(() => {
-    if (!isOpen) {
+    if (popover.current === null) {
+      return;
+    }
+    if (isOpen) {
+      // Focus first focusable menu item
+      const first = popover.current.querySelector('[role^="menuitem"]') as HTMLElement | null;
+      // The Menu component will handle setting the tab indices.
+      if (first !== null) {
+        first.focus();
+      }
+    } else {
       onClose();
     }
   }, [isOpen, onClose]);
@@ -45,6 +55,13 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
       });
     }
   }, [isOpen, x, y]);
+
+  const handleClick = (e: React.MouseEvent) => {
+    const target = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
+    if (target !== null) {
+      onClose();
+    }
+  };
 
   const handleBlur = (e: React.FocusEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
@@ -73,6 +90,7 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
       placement="right-start"
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
+      onClick={handleClick}
     >
       {children}
     </RawPopover>

@@ -1,6 +1,7 @@
 import './toolbar.scss';
 import React, { useEffect, useRef, useState } from 'react';
 import { Tooltip, Flyout } from '../popover';
+import { IMenu } from 'widgets/Menu/index';
 
 interface IToolbar {
   children: React.ReactNode;
@@ -170,7 +171,7 @@ const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
 interface IToolbarMenuButton extends IBaseButton {
   controls: string;
   /** The element must be a Menu component otherwise focus will not work. */
-  children: React.ReactNode;
+  children: React.ReactElement<IMenu>;
   disabled?: boolean;
   /** @default 'menu' */
   role?: 'menu' | 'group';
@@ -183,9 +184,11 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
   useEffect(() => {
     if (container.current && isOpen) {
       // Focus first focusable menu item
-      const first = container.current.querySelector('[role^="menuitem"]') as HTMLElement;
+      const first = container.current.querySelector('[role^="menuitem"]') as HTMLElement | null;
       // The Menu component will handle setting the tab indices.
-      first?.focus();
+      if (first !== null) {
+        first.focus();
+      }
     }
   }, [isOpen]);
 

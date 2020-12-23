@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 
 import { IconSet } from '../Icons';
 import { RawPopover } from '../popover/RawPopover';
@@ -14,60 +14,40 @@ export const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
   const [isOpen, setIsOpen] = useState(false);
   const menu = useRef<HTMLUListElement>(null);
 
-  const open = useMemo(() => (disabled ? undefined : () => setIsOpen(true)), [disabled]);
-  const close = useMemo(() => (disabled ? undefined : () => setIsOpen(false)), [disabled]);
-  const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLUListElement>) => {
-    if (!(e.relatedTarget as Element).matches('li[role="none"]')) {
+  const handleBlur = (e: React.FocusEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      e.stopPropagation();
       setIsOpen(false);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    if (menu.current && isOpen) {
-      const first = menu.current.querySelector('[role^="menuitem"]') as HTMLElement;
-      // The Menu component will handle setting the tab indices.
-      first?.focus();
-    }
-  });
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.stopPropagation();
       setIsOpen(false);
       // Returns focus to the anchor element.
-      const target = e.currentTarget.previousElementSibling as HTMLElement;
-      target.focus();
+      (e.currentTarget.firstElementChild as HTMLElement).focus();
+    } else if (!disabled && e.key === 'ArrowLeft') {
+      e.stopPropagation();
+      setIsOpen(false);
+      // Returns focus to the anchor element.
+      (e.currentTarget.firstElementChild as HTMLElement).focus();
     }
-  }, []);
+  };
 
   return (
-    <li
-      role="none"
-      onClick={open}
-      onMouseEnter={open}
-      onMouseLeave={close}
-      onBlur={handleFlyoutBlur}
-    >
+    <li role="none" onBlur={handleBlur} onKeyDown={handleKeyDown}>
       <RawPopover
         popoverRef={menu}
         isOpen={isOpen}
         target={
-          <a
-            tabIndex={-1}
-            role="menuitem"
-            aria-haspopup="menu"
-            aria-expanded="false"
-            aria-disabled={disabled}
-            href="#"
-          >
-            <span className="item-icon" aria-hidden>
-              {icon}
-            </span>
-            {text}
-            <span className="item-accelerator" aria-hidden>
-              {IconSet.ARROW_RIGHT}
-            </span>
-          </a>
+          <MenuItemLink
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            text={text}
+            icon={icon}
+            disabled={disabled}
+          />
         }
         container="ul"
         placement="right-start"
@@ -76,11 +56,6 @@ export const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
         role="menu"
         aria-label={text}
         className="menu"
-        onClick={handleClick}
-        onFocus={handleFocus}
-        onMouseEnter={open}
-        onMouseLeave={handleMouseLeave}
-        onKeyDown={handleKeyDown}
       >
         {children}
       </RawPopover>
@@ -88,25 +63,98 @@ export const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
   );
 };
 
-const handleFlyoutBlur = (e: React.FocusEvent) =>
-  (e.currentTarget.firstElementChild as HTMLAnchorElement).focus();
+interface IMenuItemLink {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  icon?: JSX.Element;
+  text: string;
+  disabled?: boolean;
+}
 
-const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
-  if (!event.target.matches('[role^="menuitem"]')) {
-    return;
-  }
-  const prev = event.currentTarget.querySelectorAll('[role^="menuitem"][tabindex="0"]');
-  if (prev.length > 0) {
-    prev.forEach((p) => p.setAttribute('tabIndex', '-1'));
-  }
-  event.target.setAttribute('tabIndex', '0');
-  event.target.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
-};
+const MenuItemLink = ({ isOpen, setIsOpen, disabled, icon, text }: IMenuItemLink) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
 
-const handleClick = (e: React.MouseEvent) => {
-  if ((e.target as Element).matches('li[role^="menuitem"]')) {
-    const dialog = e.currentTarget.closest('dialog') as HTMLDialogElement;
-    (dialog.previousElementSibling as HTMLElement)?.focus();
-    dialog.close();
-  }
+  const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
+    if (!disabled) {
+      e.currentTarget.focus();
+      setIsOpen(true);
+    }
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+    if (!(e.currentTarget.parentElement as HTMLElement).contains(e.relatedTarget as Node)) {
+      setIsOpen(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (!disabled && (e.key === 'ArrowRight' || e.key === 'Enter')) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const first = e.currentTarget.nextElementSibling!.querySelector(
+        '[role^="menuitem"]',
+      ) as HTMLElement | null;
+      if (first !== null) {
+        e.stopPropagation();
+        setIsOpen(true);
+        first.focus();
+      }
+    } else if (e.key === 'ArrowUp') {
+      let listItem = e.currentTarget.parentElement as HTMLElement;
+      if (listItem.previousElementSibling !== null) {
+        e.stopPropagation();
+        listItem = listItem.previousElementSibling as HTMLElement;
+
+        if (listItem.matches('[role="none"]')) {
+          listItem = listItem.querySelector('[role^="menuitem"]') as HTMLElement;
+        } else if (listItem.matches('[role="separator"]')) {
+          listItem = listItem.previousElementSibling as HTMLElement;
+        }
+        // If listItem becomes null, this is a serious badly made UI. A
+        // separator should never be the first item and groups should not be
+        // empty or if unavaible just become disabled.
+        listItem.focus();
+      }
+    } else if (e.key === 'ArrowDown') {
+      let listItem = e.currentTarget.parentElement as HTMLElement;
+      if (listItem.nextElementSibling !== null) {
+        e.stopPropagation();
+        listItem = listItem.nextElementSibling as HTMLElement;
+
+        if (listItem.matches('[role="none"]')) {
+          listItem = listItem.querySelector('[role^="menuitem"]') as HTMLElement;
+        } else if (listItem.matches('[role="separator"]')) {
+          listItem = listItem.nextElementSibling as HTMLElement;
+        }
+        // If listItem becomes null, this is a serious badly made UI. A
+        // separator should never be the last item and groups should not be
+        // empty or if unavaible just become disabled.
+        listItem.focus();
+      }
+    }
+  };
+
+  return (
+    <a
+      tabIndex={-1}
+      role="menuitem"
+      aria-haspopup="menu"
+      aria-expanded={isOpen}
+      aria-disabled={disabled}
+      href="#"
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onKeyDown={handleKeyDown}
+    >
+      <span className="item-icon" aria-hidden>
+        {icon}
+      </span>
+      {text}
+      <span className="item-accelerator" aria-hidden>
+        {IconSet.ARROW_RIGHT}
+      </span>
+    </a>
+  );
 };

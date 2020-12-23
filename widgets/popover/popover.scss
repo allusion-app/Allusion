@@ -104,7 +104,7 @@ dialog[role='alertdialog'] {
   }
 }
 
-[data-popover='true'] {
+[data-popover] {
   display: none;
   z-index: 1;
 
@@ -117,6 +117,20 @@ dialog[role='alertdialog'] {
   &[data-open='true'] {
     display: unset;
   }
+}
+
+/*
+  Ugly workaround for submenu focus
+
+  Elements set to `display: none` cannot be focused before they become visible
+  again because those elements are removed from the dom tree. Using the
+  visibility property also results in the same, so all that is left is to paint
+  it invisible.
+*/
+[data-submenu][data-open='false'] {
+  display: unset;
+  opacity: 0;
+  pointer-events: none;
 }
 
 [role='tooltip'] {
