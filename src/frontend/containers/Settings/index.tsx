@@ -3,20 +3,19 @@ import { observer } from 'mobx-react-lite';
 
 import { RendererMessenger } from 'src/Messaging';
 
-import StoreContext from '../contexts/StoreContext';
+import StoreContext from '../../contexts/StoreContext';
 
-import UiStore from '../stores/UiStore';
-import FileStore from '../stores/FileStore';
-import LocationStore from '../stores/LocationStore';
+import UiStore from '../../stores/UiStore';
+import FileStore from '../../stores/FileStore';
+import LocationStore from '../../stores/LocationStore';
 
 import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
+import { ClearDbButton } from '../ErrorBoundary';
+import HotkeyMapper from './HotkeyMapper';
+import PopupWindow from './PopupWindow';
 
-import { ClearDbButton } from '../components/ErrorBoundary';
-import HotkeyMapper from '../components/HotkeyMapper';
-import PopupWindow from '../components/PopupWindow';
-
-import { moveThumbnailDir } from '../ThumbnailGeneration';
-import { getThumbnailPath, isDirEmpty } from '../utils';
+import { moveThumbnailDir } from '../../ThumbnailGeneration';
+import { getThumbnailPath, isDirEmpty } from '../../utils';
 
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 

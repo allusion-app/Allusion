@@ -2,10 +2,10 @@ import React, { useCallback, useContext, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { comboMatches, getKeyComboString, KeyCombo, parseKeyCombo } from '@blueprintjs/core';
 
-import StoreContext from '../contexts/StoreContext';
-import { defaultHotkeyMap, IHotkeyMap } from '../stores/UiStore';
+import StoreContext from '../../contexts/StoreContext';
+import { defaultHotkeyMap, IHotkeyMap } from '../../stores/UiStore';
 
-import { camelCaseToSpaced } from '../utils';
+import { camelCaseToSpaced } from '../../utils';
 
 import { IconButton, IconSet } from 'widgets';
 

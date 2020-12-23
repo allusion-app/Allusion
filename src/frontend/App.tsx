@@ -8,10 +8,10 @@ import StoreContext from './contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { ToolbarToggleButton } from 'widgets/menu';
 
-import DropOverlay from './components/DropOverlay';
-import ErrorBoundary from './components/ErrorBoundary';
-import HelpCenter from './components/HelpCenter';
-import SplashScreen from './components/SplashScreen';
+import DropOverlay from './containers/DropOverlay';
+import ErrorBoundary from './containers/ErrorBoundary';
+import HelpCenter from './containers/HelpCenter';
+import SplashScreen from './containers/SplashScreen';
 import { Toaster as CustomToaster } from './components/Toaster';
 
 import AdvancedSearchDialog from './containers/AdvancedSearch';
