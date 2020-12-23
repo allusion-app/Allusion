@@ -82,7 +82,6 @@ const Gallery = observer(() => {
       id="gallery-content"
       className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
       onClick={uiStore.clearFileSelection}
-      onBlur={handleFlyoutBlur}
     >
       <Layout
         contentRect={contentRect}
@@ -109,12 +108,3 @@ const Gallery = observer(() => {
 });
 
 export default ContentView;
-
-function handleFlyoutBlur(e: React.FocusEvent) {
-  if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget as Node)) {
-    const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
-    if (dialog.open) {
-      dialog.close();
-    }
-  }
-}

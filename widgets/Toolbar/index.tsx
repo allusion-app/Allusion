@@ -190,7 +190,7 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
   }, [isOpen]);
 
   return (
-    <div ref={container} onKeyDown={handleKeyDown} onBlur={handleFlyoutBlur}>
+    <div ref={container} onKeyDown={handleKeyDown}>
       <Flyout
         isOpen={isOpen}
         onCancel={() => setIsOpen(false)}
@@ -223,15 +223,6 @@ const handleKeyDown = (e: React.KeyboardEvent) => {
       e.stopPropagation();
       item.click();
       e.currentTarget.querySelector('button')?.focus();
-    }
-  }
-};
-
-const handleFlyoutBlur = (e: React.FocusEvent) => {
-  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-    const dialog = e.currentTarget.lastElementChild as HTMLDialogElement;
-    if (dialog.open) {
-      dialog.close();
     }
   }
 };

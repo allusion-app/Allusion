@@ -49,13 +49,6 @@ const OutlinerToggle = observer(() => {
   );
 });
 
-const handleClick = (e: React.MouseEvent) => {
-  if (!(e.target instanceof HTMLElement && e.target.closest('dialog[open][data-contextmenu]'))) {
-    const dialogs = e.currentTarget.querySelectorAll('dialog[open][data-contextmenu]');
-    dialogs.forEach((d) => (d as HTMLDialogElement).close());
-  }
-};
-
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
@@ -120,7 +113,7 @@ const App = observer(() => {
   return (
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
-      <div data-os={PLATFORM} id="layout-container" className={themeClass} onClick={handleClick}>
+      <div data-os={PLATFORM} id="layout-container" className={themeClass}>
         <ErrorBoundary>
           <OutlinerToggle />
 
