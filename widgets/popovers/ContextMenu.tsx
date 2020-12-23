@@ -13,7 +13,7 @@ export interface IContextMenu {
 }
 
 export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) => {
-  const popover = useRef<HTMLDivElement>(null);
+  const container = useRef<HTMLDivElement>(null);
   const [virtualElement, setVirtualElement] = useState({
     getBoundingClientRect: () => ({
       width: 0,
@@ -26,23 +26,10 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
   });
 
   useEffect(() => {
-    if (popover.current === null) {
-      return;
-    }
-    if (isOpen) {
-      // Focus first focusable menu item
-      const first = popover.current.querySelector('[role^="menuitem"]') as HTMLElement | null;
-      // The Menu component will handle setting the tab indices.
-      if (first !== null) {
-        first.focus();
-      }
-    } else {
-      onClose();
-    }
-  }, [isOpen, onClose]);
+    if (container.current && isOpen) {
+      // Focus container so the keydown event can be handled even without a mouse.
+      container.current.focus();
 
-  useEffect(() => {
-    if (popover.current && isOpen) {
       setVirtualElement({
         getBoundingClientRect: () => ({
           width: 0,
@@ -74,16 +61,30 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
     if (e.key === 'Escape') {
       e.stopPropagation();
       onClose();
-      // Returns focus to the anchor element.
-      const target = e.currentTarget.previousElementSibling as HTMLElement;
-      target.focus();
+    } else if (e.key === 'ArrowDown') {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const first: HTMLElement | null = container.current!.querySelector('[role^="menuitem"]');
+      if (first !== null) {
+        e.stopPropagation();
+        first.focus();
+      }
+    } else if (e.key === 'ArrowUp') {
+      // FIXME: It's not performant but a context menu is usually shorter than a `Tree`.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const last: NodeListOf<HTMLElement> = container.current!.querySelectorAll(
+        '[role^="menuitem"]',
+      );
+      if (last.length > 0) {
+        e.stopPropagation();
+        last[last.length - 1].focus();
+      }
     }
   };
 
   return (
     <RawPopover
       anchorElement={virtualElement}
-      popoverRef={popover}
+      popoverRef={container}
       isOpen={isOpen}
       data-contextmenu
       container="div"
@@ -91,6 +92,7 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       onClick={handleClick}
+      tabIndex={-1}
     >
       {children}
     </RawPopover>
