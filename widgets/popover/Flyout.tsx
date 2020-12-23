@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef } from 'react';
 import { Placement } from '@popperjs/core/lib/enums';
 
 import { RawPopover } from './RawPopover';
@@ -37,22 +37,26 @@ export const Flyout = (props: IFlyout) => {
 
   const popover = useRef<HTMLDivElement>(null);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (onCancel !== undefined) {
-          e.stopPropagation();
-          onCancel();
-          // Returns focus to the `target` element.
-          const target = e.currentTarget.previousElementSibling as HTMLElement;
-          target.focus();
-        } else {
-          e.preventDefault();
-        }
+  const handleBlur = (e: React.FocusEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node) && onCancel !== undefined) {
+      e.stopPropagation();
+      onCancel();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (onCancel !== undefined) {
+        e.stopPropagation();
+        onCancel();
+        // Returns focus to the `target` element.
+        const target = e.currentTarget.previousElementSibling as HTMLElement;
+        target.focus();
+      } else {
+        e.preventDefault();
       }
-    },
-    [onCancel],
-  );
+    }
+  };
 
   return (
     <RawPopover
@@ -70,6 +74,7 @@ export const Flyout = (props: IFlyout) => {
       aria-labelledby={labelledby}
       aria-describedby={describedby}
       className={className}
+      onBlur={handleBlur}
       onKeyDown={handleKeyDown}
     >
       {children}

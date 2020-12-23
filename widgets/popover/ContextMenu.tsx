@@ -7,12 +7,13 @@ export interface IContextMenu {
   x: number;
   y: number;
   /** The element must be a Menu component otherwise focus will not work. */
-  children?: React.ReactFragment | React.ReactElement;
+  children?: React.ReactNode;
+  // TODO: Rename to close or cancel
   onClose: () => void;
 }
 
 export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) => {
-  const popover = useRef<HTMLDialogElement>(null);
+  const popover = useRef<HTMLDivElement>(null);
   const [virtualElement, setVirtualElement] = useState({
     getBoundingClientRect: () => ({
       width: 0,
@@ -42,12 +43,25 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
           left: x,
         }),
       });
-      // Focus first focusable menu item
-      const first = popover.current.querySelector('[role^="menuitem"]') as HTMLElement;
-      // The Menu component will handle setting the tab indices.
-      first?.focus();
     }
   }, [isOpen, x, y]);
+
+  const handleBlur = (e: React.FocusEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      e.stopPropagation();
+      onClose();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      onClose();
+      // Returns focus to the anchor element.
+      const target = e.currentTarget.previousElementSibling as HTMLElement;
+      target.focus();
+    }
+  };
 
   return (
     <RawPopover
@@ -57,6 +71,8 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
       data-contextmenu
       container="div"
       placement="right-start"
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
     >
       {children}
     </RawPopover>
