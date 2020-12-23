@@ -15,8 +15,8 @@ import {
   MenuItem,
   MenuRadioGroup,
   MenuRadioItem,
-  SubMenu,
 } from './Menu/index';
+import { SubMenu } from './Menu/SubMenu';
 
 export {
   ContextMenu,
