@@ -192,8 +192,17 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
     }
   }, [isOpen]);
 
+  const handleClick = (e: React.MouseEvent) => {
+    const target = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
+    if (target !== null) {
+      e.stopPropagation();
+      setIsOpen(false);
+      (e.currentTarget.firstElementChild as HTMLElement).focus();
+    }
+  };
+
   return (
-    <div ref={container} onKeyDown={handleKeyDown}>
+    <div ref={container} onClick={handleClick}>
       <Flyout
         isOpen={isOpen}
         onCancel={() => setIsOpen(false)}
@@ -217,17 +226,6 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
       </Flyout>
     </div>
   );
-};
-
-const handleKeyDown = (e: React.KeyboardEvent) => {
-  if (e.key === 'Enter') {
-    const item = e.currentTarget.querySelector('dialog [tabindex="0"]:focus') as HTMLElement;
-    if (item) {
-      e.stopPropagation();
-      item.click();
-      e.currentTarget.querySelector('button')?.focus();
-    }
-  }
 };
 
 export {

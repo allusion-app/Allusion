@@ -108,52 +108,6 @@ export const MenuItemLink = ({ expanded, setExpanded, disabled, icon, text }: IM
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
-    if (!disabled && (e.key === 'ArrowRight' || e.key === 'Enter')) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const first = e.currentTarget.nextElementSibling!.querySelector(
-        '[role^="menuitem"]',
-      ) as HTMLElement | null;
-      if (first !== null) {
-        e.stopPropagation();
-        setExpanded(true);
-        first.focus();
-      }
-    } else if (e.key === 'ArrowUp') {
-      let listItem = e.currentTarget.parentElement as HTMLElement;
-      if (listItem.previousElementSibling !== null) {
-        e.stopPropagation();
-        listItem = listItem.previousElementSibling as HTMLElement;
-
-        if (listItem.matches('[role="none"]')) {
-          listItem = listItem.querySelector('[role^="menuitem"]') as HTMLElement;
-        } else if (listItem.matches('[role="separator"]')) {
-          listItem = listItem.previousElementSibling as HTMLElement;
-        }
-        // If listItem becomes null, this is a serious badly made UI. A
-        // separator should never be the first item and groups should not be
-        // empty or if unavaible just become disabled.
-        listItem.focus();
-      }
-    } else if (e.key === 'ArrowDown') {
-      let listItem = e.currentTarget.parentElement as HTMLElement;
-      if (listItem.nextElementSibling !== null) {
-        e.stopPropagation();
-        listItem = listItem.nextElementSibling as HTMLElement;
-
-        if (listItem.matches('[role="none"]')) {
-          listItem = listItem.querySelector('[role^="menuitem"]') as HTMLElement;
-        } else if (listItem.matches('[role="separator"]')) {
-          listItem = listItem.nextElementSibling as HTMLElement;
-        }
-        // If listItem becomes null, this is a serious badly made UI. A
-        // separator should never be the last item and groups should not be
-        // empty or if unavaible just become disabled.
-        listItem.focus();
-      }
-    }
-  };
-
   return (
     <a
       tabIndex={-1}
@@ -165,7 +119,6 @@ export const MenuItemLink = ({ expanded, setExpanded, disabled, icon, text }: IM
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onKeyDown={handleKeyDown}
     >
       <span className="item-icon" aria-hidden>
         {icon}
