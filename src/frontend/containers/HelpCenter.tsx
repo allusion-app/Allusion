@@ -5,7 +5,7 @@ import { IPanelProps, PanelStack } from '@blueprintjs/core';
 import StoreContext from '../contexts/StoreContext';
 
 import { Button, ButtonGroup, IconButton, IconSet } from 'widgets';
-import { Dialog } from 'widgets/popover';
+import { Dialog } from 'widgets/popovers';
 
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
 

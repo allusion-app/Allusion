@@ -9,7 +9,7 @@ import UiStore from '../../stores/UiStore';
 import FileStore from '../../stores/FileStore';
 
 import { Button, ButtonGroup, IconSet, Tag } from 'widgets';
-import { Tooltip } from 'widgets/popover';
+import { Tooltip } from 'widgets/popovers';
 
 import ImageInfo from '../../components/ImageInfo';
 

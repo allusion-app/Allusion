@@ -7,7 +7,7 @@ import {
   ToolbarSegmentButton,
   ToolbarToggleButton,
 } from './Toolbar';
-import { ContextMenu } from './popover';
+import { ContextMenu } from './popovers';
 import {
   Menu,
   MenuCheckboxItem,

@@ -8,7 +8,7 @@ import { DEFAULT_LOCATION_ID } from 'src/entities/Location';
 import StoreContext from '../contexts/StoreContext';
 
 import { Button, ButtonGroup } from 'widgets';
-import { Dialog } from 'widgets/popover';
+import { Dialog } from 'widgets/popovers';
 
 import LocationsPanel from './Outliner/LocationsPanel';
 

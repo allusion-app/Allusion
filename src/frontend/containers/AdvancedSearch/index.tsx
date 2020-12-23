@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import { generateId, ID } from 'src/entities/ID';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import { Button, ButtonGroup, IconButton, IconSet, RadioGroup, Radio } from 'widgets';
-import { Dialog } from 'widgets/popover';
+import { Dialog } from 'widgets/popovers';
 import Field from './Field';
 import { Query, defaultQuery, fromCriteria, intoCriteria } from './query';
 

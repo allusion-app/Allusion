@@ -8,7 +8,7 @@ import { ClientTag } from 'src/entities/Tag';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 
 import { Tag, IconSet } from 'widgets';
-import { Alert, DialogButton } from 'widgets/popover';
+import { Alert, DialogButton } from 'widgets/popovers';
 
 interface IRemovalProps<T> {
   object: T;

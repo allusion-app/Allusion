@@ -8,7 +8,7 @@ import { githubUrl } from 'src/config';
 import StoreContext from '../contexts/StoreContext';
 
 import { Button, ButtonGroup, IconSet } from 'widgets';
-import { DialogActions, DialogButton, Flyout } from 'widgets/popover';
+import { DialogActions, DialogButton, Flyout } from 'widgets/popovers';
 
 export const ClearDbButton = () => {
   const [isOpen, setIsOpen] = useState(false);

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 
 import { IconSet } from '../Icons';
-import { RawPopover } from '../popover/RawPopover';
+import { RawPopover } from '../popovers/RawPopover';
 
 export interface ISubMenu {
   icon?: JSX.Element;

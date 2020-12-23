@@ -7,7 +7,7 @@ import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 
 import { Listbox, Option } from 'widgets';
-import { Flyout } from 'widgets/popover';
+import { Flyout } from 'widgets/popovers';
 
 interface ITagSelector {
   selection: ClientTag | undefined;

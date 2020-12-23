@@ -8,7 +8,7 @@ import StoreContext from '../contexts/StoreContext';
 
 import { IconButton, IconSet, Listbox, Option, Tag } from 'widgets';
 import { MenuDivider } from 'widgets/menu';
-import { Flyout } from 'widgets/popover';
+import { Flyout } from 'widgets/popovers';
 
 interface IMultiTagSelector {
   selection: ClientTag[];

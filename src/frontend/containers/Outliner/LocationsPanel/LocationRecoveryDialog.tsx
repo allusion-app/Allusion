@@ -13,7 +13,7 @@ import StoreContext from 'src/frontend/contexts/StoreContext';
 import LocationStore from 'src/frontend/stores/LocationStore';
 
 import { Button, ButtonGroup, IconSet } from 'widgets';
-import { Dialog } from 'widgets/popover';
+import { Dialog } from 'widgets/popovers';
 
 import { AppToaster } from 'src/frontend/App';
 

@@ -11,7 +11,7 @@ import { IMG_EXTENSIONS } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 
 import { Tag, IconSet } from 'widgets';
-import { Dialog } from 'widgets/popover';
+import { Dialog } from 'widgets/popovers';
 
 const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
