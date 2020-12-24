@@ -197,6 +197,7 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
   const handleBlur = (e: React.FocusEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       e.stopPropagation();
+      setIsOpen(false);
       (e.currentTarget.previousElementSibling as HTMLElement).focus();
     }
   };
