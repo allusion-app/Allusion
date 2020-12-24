@@ -46,6 +46,7 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
   const handleClick = (e: React.MouseEvent) => {
     const target = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
     if (target !== null) {
+      e.stopPropagation();
       onClose();
     }
   };

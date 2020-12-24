@@ -1,6 +1,8 @@
 import './toolbar.scss';
 import React, { useEffect, useRef, useState } from 'react';
-import { Tooltip, Flyout } from '../popovers';
+
+import { Tooltip } from '../popovers';
+import { RawPopover } from '../popovers/RawPopover';
 import { IMenu } from '../menus';
 
 interface IToolbar {
@@ -192,39 +194,56 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
     }
   }, [isOpen]);
 
+  const handleBlur = (e: React.FocusEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      e.stopPropagation();
+      (e.currentTarget.previousElementSibling as HTMLElement).focus();
+    }
+  };
+
   const handleClick = (e: React.MouseEvent) => {
     const target = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
     if (target !== null) {
       e.stopPropagation();
       setIsOpen(false);
-      (e.currentTarget.firstElementChild as HTMLElement).focus();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      setIsOpen(false);
+      (e.currentTarget.previousElementSibling as HTMLElement).focus();
     }
   };
 
   return (
-    <div ref={container} onClick={handleClick}>
-      <Flyout
-        isOpen={isOpen}
-        onCancel={() => setIsOpen(false)}
-        target={
-          <ToolbarButton
-            id={props.id}
-            icon={props.icon}
-            text={props.text}
-            disabled={props.disabled}
-            showLabel={props.showLabel}
-            tooltip={props.tooltip}
-            onClick={() => setIsOpen(!isOpen)}
-            expanded={isOpen}
-            controls={props.controls}
-            tabIndex={props.tabIndex}
-            haspopup="menu"
-          />
-        }
-      >
-        {props.children}
-      </Flyout>
-    </div>
+    <RawPopover
+      popoverRef={container}
+      isOpen={isOpen}
+      target={
+        <ToolbarButton
+          id={props.id}
+          icon={props.icon}
+          text={props.text}
+          disabled={props.disabled}
+          showLabel={props.showLabel}
+          tooltip={props.tooltip}
+          onClick={() => setIsOpen(!isOpen)}
+          expanded={isOpen}
+          controls={props.controls}
+          tabIndex={props.tabIndex}
+          haspopup="menu"
+        />
+      }
+      container="div"
+      placement="bottom"
+      onBlur={handleBlur}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+    >
+      {props.children}
+    </RawPopover>
   );
 };
 
