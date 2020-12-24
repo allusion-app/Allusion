@@ -58,6 +58,13 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
     }
   };
 
+  function handleMouseOver(event: React.MouseEvent) {
+    const target = (event.target as Element).closest('[role^="menuitem"]') as HTMLElement | null;
+    if (target !== null) {
+      target.focus();
+    }
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.stopPropagation();
@@ -90,10 +97,11 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
       data-contextmenu
       container="div"
       placement="right-start"
+      tabIndex={-1}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       onClick={handleClick}
-      tabIndex={-1}
+      onMouseOver={handleMouseOver}
     >
       {children}
     </RawPopover>
