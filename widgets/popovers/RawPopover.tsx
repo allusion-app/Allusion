@@ -14,7 +14,9 @@ export interface IRawPopover extends React.HTMLAttributes<HTMLElement> {
   target?: React.ReactElement<HTMLElement>;
   /** The actual popover content. */
   children: React.ReactNode;
-  /** The native element used as container element for the popover content. */
+  /**
+   * The native element used as container element for the popover content.
+   * @default "div" */
   container?: React.ElementType;
   /** The default or preferred placement of the popover as long there is enough space for it to be positioned there. */
   placement?: Placement;
@@ -23,7 +25,21 @@ export interface IRawPopover extends React.HTMLAttributes<HTMLElement> {
   allowedAutoPlacements?: Placement[];
 }
 
-export const RawPopover = (props: IRawPopover) => {
+/**
+ * The building primitive for anything floating
+ *
+ * It is not recommended to use the component directly but rather existing
+ * components like dialog, flyout, context menu etc. They implement desktop
+ * like experience and make popovers more accessible.
+ *
+ * Note that this component is unlike other ones in the widget module wrapped
+ * in `React.memo`. Usually, this is avoided to prevent creating hard to find
+ * performance issues. However, if the component would always re-render it would
+ * always re-calculate the popover position even if the popover was hidden.
+ * That's why instead of using this component directly, try to build a wrapper,
+ * so re-renders are only triggered when the wrapper's properties are changed.
+ */
+export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
   const {
     isOpen,
     anchorElement,
@@ -40,18 +56,21 @@ export const RawPopover = (props: IRawPopover) => {
   /** React typings are still horrible :) */
   const options = useRef(createPopperOptions(placement, fallbackPlacements, allowedAutoPlacements));
 
-  const { styles, attributes, forceUpdate } = usePopper(
+  const { styles, attributes, update } = usePopper(
     anchorElement ?? popoverRef.current?.previousElementSibling,
     popoverRef.current,
     options.current,
   );
 
+  // Since the component is memoized it will keep its previous position unless
+  // it is updated manually.
   useEffect(() => {
     if (isOpen) {
-      forceUpdate?.();
+      update?.();
     }
-  }, [isOpen, forceUpdate]);
+  }, [isOpen, update]);
 
+  // Apply popper properties to passed props and add custom data attributes for CSS
   const properties = Object.assign(
     restProperties,
     { ref: popoverRef, 'data-popover': true, 'data-open': isOpen, style: styles.popper },
@@ -64,7 +83,7 @@ export const RawPopover = (props: IRawPopover) => {
       <Container {...properties}>{children}</Container>
     </>
   );
-};
+});
 
 function createPopperOptions(
   placement?: Placement,

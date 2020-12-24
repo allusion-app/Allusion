@@ -29,6 +29,7 @@ export const Tooltip = (props: ITooltip) => {
   const timerID = useRef<number>();
   const popover = useRef<HTMLDivElement>(null);
 
+  // Add event listeners to target element to show tooltip on hover
   useEffect(() => {
     const handleMouseEnter = () => {
       timerID.current = (setTimeout(() => {
@@ -69,7 +70,6 @@ export const Tooltip = (props: ITooltip) => {
       popoverRef={popover}
       isOpen={isOpen}
       target={trigger}
-      container="div"
       role="tooltip"
       placement={placement}
       fallbackPlacements={fallbackPlacements}

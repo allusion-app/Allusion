@@ -12,17 +12,33 @@ export interface IContextMenu {
   onClose: () => void;
 }
 
+/**
+ * The classic desktop context menu
+ *
+ * Unlike other implementations there is no single context menu added through a
+ * React portal. This component is driven entirely by the state of your app.
+ *
+ * This might seem inconvenient but the upside is that styling has not to be
+ * re-applied to a portal and that multiple context menus can exist without
+ * harming performance. In short this component is more inconvenient but allows
+ * for better composability.
+ *
+ * Since it is really annoying to always write out the same lines of code, the
+ * `useContextMenu` hook can be used to create all the necessary state and
+ * callbacks which can be used to set the state from deep within a tree.
+ */
 export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) => {
   const container = useRef<HTMLDivElement>(null);
+  const boundingRect = useRef({
+    width: 0,
+    height: 0,
+    top: y,
+    right: x,
+    bottom: y,
+    left: x,
+  });
   const [virtualElement, setVirtualElement] = useState({
-    getBoundingClientRect: () => ({
-      width: 0,
-      height: 0,
-      top: y,
-      right: x,
-      bottom: y,
-      left: x,
-    }),
+    getBoundingClientRect: () => boundingRect.current,
   });
 
   useEffect(() => {
@@ -30,19 +46,19 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
       // Focus container so the keydown event can be handled even without a mouse.
       container.current.focus();
 
+      // Update bounding rect
+      const rect = boundingRect.current;
+      rect.top = y;
+      rect.right = x;
+      rect.bottom = y;
+      rect.left = x;
       setVirtualElement({
-        getBoundingClientRect: () => ({
-          width: 0,
-          height: 0,
-          top: y,
-          right: x,
-          bottom: y,
-          left: x,
-        }),
+        getBoundingClientRect: () => boundingRect.current,
       });
     }
   }, [isOpen, x, y]);
 
+  // Close upon executing a command from a menu item
   const handleClick = (e: React.MouseEvent) => {
     const target = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
     if (target !== null) {
@@ -51,6 +67,7 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
     }
   };
 
+  // Clicking or tabbing outside will close the context menu by default
   const handleBlur = (e: React.FocusEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       e.stopPropagation();
@@ -58,6 +75,7 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
     }
   };
 
+  // Applies focus to the menu item which allows to use keyboard navigation immediately
   function handleMouseOver(event: React.MouseEvent) {
     const target = (event.target as Element).closest('[role^="menuitem"]') as HTMLElement | null;
     if (target !== null) {
@@ -65,6 +83,7 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
     }
   }
 
+  // Handles keyboard navigation if no menu item has been focused yet
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.stopPropagation();
@@ -95,7 +114,6 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
       popoverRef={container}
       isOpen={isOpen}
       data-contextmenu
-      container="div"
       placement="right-start"
       tabIndex={-1}
       onBlur={handleBlur}

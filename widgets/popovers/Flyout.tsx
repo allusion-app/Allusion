@@ -19,6 +19,9 @@ export interface IFlyout {
   allowedAutoPlacements?: Placement[];
 }
 
+/**
+ * A dismissable dialog modal
+ */
 export const Flyout = (props: IFlyout) => {
   const {
     isOpen,
@@ -57,7 +60,6 @@ export const Flyout = (props: IFlyout) => {
       popoverRef={popover}
       isOpen={isOpen}
       target={target}
-      container="div"
       placement={placement}
       fallbackPlacements={fallbackPlacements}
       allowedAutoPlacements={allowedAutoPlacements}

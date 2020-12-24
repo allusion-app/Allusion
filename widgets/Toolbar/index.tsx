@@ -236,7 +236,6 @@ const ToolbarMenuButton = (props: IToolbarMenuButton) => {
           haspopup="menu"
         />
       }
-      container="div"
       placement="bottom"
       onBlur={handleBlur}
       onClick={handleClick}
