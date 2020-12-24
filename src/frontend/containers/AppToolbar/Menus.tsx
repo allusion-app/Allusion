@@ -10,7 +10,7 @@ import UiStore from 'src/frontend/stores/UiStore';
 import FileStore from 'src/frontend/stores/FileStore';
 
 import { IconSet } from 'widgets';
-import { ToolbarMenuButton, Menu, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
+import { MenuButton, Menu, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
 
 // Tooltip info
 const enum Tooltip {
@@ -20,7 +20,7 @@ const enum Tooltip {
 
 export const SortCommand = ({ fileStore }: { fileStore: FileStore }) => {
   return (
-    <ToolbarMenuButton
+    <MenuButton
       showLabel="never"
       icon={IconSet.FILTER}
       text="Sort"
@@ -31,13 +31,13 @@ export const SortCommand = ({ fileStore }: { fileStore: FileStore }) => {
       <Menu id="__sort-options" labelledby="__sort-menu">
         <SortMenuItems fileStore={fileStore} />
       </Menu>
-    </ToolbarMenuButton>
+    </MenuButton>
   );
 };
 
 export const ViewCommand = ({ uiStore }: { uiStore: UiStore }) => {
   return (
-    <ToolbarMenuButton
+    <MenuButton
       showLabel="never"
       icon={IconSet.THUMB_BG}
       text="View"
@@ -48,7 +48,7 @@ export const ViewCommand = ({ uiStore }: { uiStore: UiStore }) => {
       <Menu id="__layout-options" labelledby="__layout-menu">
         <LayoutMenuItems uiStore={uiStore} />
       </Menu>
-    </ToolbarMenuButton>
+    </MenuButton>
   );
 };
 

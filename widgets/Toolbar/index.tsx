@@ -169,7 +169,7 @@ const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
   );
 };
 
-interface IToolbarMenuButton extends IBaseButton {
+interface IMenuButton extends IBaseButton {
   controls: string;
   /** The element must be a Menu component otherwise focus will not work. */
   children: React.ReactElement<IMenu>;
@@ -178,7 +178,7 @@ interface IToolbarMenuButton extends IBaseButton {
   role?: 'menu' | 'group';
 }
 
-const ToolbarMenuButton = (props: IToolbarMenuButton) => {
+const MenuButton = (props: IMenuButton) => {
   const [isOpen, setIsOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 
@@ -250,7 +250,7 @@ export {
   Toolbar,
   ToolbarGroup,
   ToolbarButton,
-  ToolbarMenuButton,
+  MenuButton,
   ToolbarSegment,
   ToolbarSegmentButton,
   ToolbarToggleButton,

@@ -5,11 +5,11 @@ import { observer } from 'mobx-react-lite';
 import UiStore from 'src/frontend/stores/UiStore';
 
 import { IconSet } from 'widgets';
-import { ToolbarMenuButton, Menu, MenuItem, MenuCheckboxItem } from 'widgets/menus';
+import { MenuButton, Menu, MenuItem, MenuCheckboxItem } from 'widgets/menus';
 
 const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
   return (
-    <ToolbarMenuButton
+    <MenuButton
       showLabel="never"
       icon={IconSet.MORE}
       text="More"
@@ -43,7 +43,7 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
           accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleSettings} />}
         />
       </Menu>
-    </ToolbarMenuButton>
+    </MenuButton>
   );
 });
 
