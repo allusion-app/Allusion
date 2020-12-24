@@ -20,7 +20,7 @@ const enum TooltipInfo {
 export const OutlinerActionBar = observer(() => {
   const { fileStore } = useContext(StoreContext);
   return (
-    <Toolbar className="actionbar" label="Action Bar" controls="gallery-content">
+    <Toolbar id="actionbar" label="Action Bar" controls="gallery-content">
       <ToolbarToggleButton
         showLabel="always"
         text={fileStore.fileList.length}

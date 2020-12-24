@@ -1,7 +1,7 @@
 .section {
   margin-bottom: 0.5rem;
 }
-.actionbar {
+#actionbar {
   // Design v3
   position: absolute;
   bottom: 0;
@@ -20,7 +20,7 @@
   }
 
   // TODO: the buttons are currently .toolbar-button - not .actionbarBtn
-  .actionbarBtn {
+  .toolbar-button {
     background: none;
     outline: none;
     border: none;
@@ -32,8 +32,8 @@
   img {
     height: 0.8125rem;
   }
-  .actionbarBtn .active,
-  .actionbarBtn:hover {
+  .toolbar-button:active,
+  .toolbar-button:hover {
     color: #3399ff;
   }
   img {

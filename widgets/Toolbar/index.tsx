@@ -15,13 +15,12 @@ interface IToolbar {
 }
 
 const Toolbar = (props: IToolbar) => {
-  const { children, id, className, label, labelledby, controls } = props;
+  const { children, id, label, labelledby, controls } = props;
 
   return (
     <div
       role="toolbar"
       id={id}
-      className={className}
       aria-label={label}
       aria-labelledby={labelledby}
       aria-controls={controls}

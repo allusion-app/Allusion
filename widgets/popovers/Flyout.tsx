@@ -11,9 +11,8 @@ export interface IFlyout {
   target: React.ReactElement<HTMLElement>;
   /** The popover content. */
   children: React.ReactNode;
-  className?: string;
   /** Closes the flyout when the `Escape` key is pressed. */
-  onCancel?: () => void;
+  onCancel: () => void;
   placement?: Placement;
   /** Flip modifier settings */
   fallbackPlacements?: Placement[];
@@ -26,7 +25,6 @@ export const Flyout = (props: IFlyout) => {
     label,
     labelledby,
     describedby,
-    className,
     onCancel,
     target,
     children,
@@ -38,7 +36,7 @@ export const Flyout = (props: IFlyout) => {
   const popover = useRef<HTMLDivElement>(null);
 
   const handleBlur = (e: React.FocusEvent) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node) && onCancel !== undefined) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       e.stopPropagation();
       onCancel();
     }
@@ -46,15 +44,11 @@ export const Flyout = (props: IFlyout) => {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      if (onCancel !== undefined) {
-        e.stopPropagation();
-        onCancel();
-        // Returns focus to the `target` element.
-        const target = e.currentTarget.previousElementSibling as HTMLElement;
-        target.focus();
-      } else {
-        e.preventDefault();
-      }
+      e.stopPropagation();
+      onCancel();
+      // Returns focus to the `target` element.
+      const target = e.currentTarget.previousElementSibling as HTMLElement;
+      target.focus();
     }
   };
 
@@ -73,7 +67,6 @@ export const Flyout = (props: IFlyout) => {
       aria-label={label}
       aria-labelledby={labelledby}
       aria-describedby={describedby}
-      className={className}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
     >
