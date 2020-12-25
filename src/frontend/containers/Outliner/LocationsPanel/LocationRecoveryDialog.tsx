@@ -12,7 +12,7 @@ import StoreContext from 'src/frontend/contexts/StoreContext';
 
 import LocationStore from 'src/frontend/stores/LocationStore';
 
-import { Button, ButtonGroup, IconSet } from 'widgets';
+import { Button, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
 
 import { AppToaster } from 'src/frontend/App';
@@ -154,41 +154,41 @@ const RecoveryActions = observer(
       case Status.Ok:
         // TODO: Refetch on close?
         return (
-          <ButtonGroup className="dialog-actions">
+          <div className="btn-group dialog-actions">
             <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
-          </ButtonGroup>
+          </div>
         );
 
       case Status.InvalidPath:
         return (
-          <ButtonGroup className="dialog-actions">
+          <div className="btn-group dialog-actions">
             <Button styling="filled" onClick={locate} text="Locate" />
             {/* Re-scan option, e.g. for when you mount a drive */}
             <Button styling="outlined" onClick={rescan} text="Re-Scan" />
             <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Cancel" />
-          </ButtonGroup>
+          </div>
         );
 
       case Status.NoMatches:
         return (
-          <ButtonGroup className="dialog-actions">
+          <div className="btn-group dialog-actions">
             <Button styling="outlined" onClick={retry} text="Retry" />
-          </ButtonGroup>
+          </div>
         );
 
       case Status.PartialRecovery:
         return (
-          <ButtonGroup className="dialog-actions">
+          <div className="btn-group dialog-actions">
             <Button styling="outlined" onClick={retry} text="Retry" />
             <Button styling="outlined" onClick={save} text="Recover" />
-          </ButtonGroup>
+          </div>
         );
 
       default:
         return (
-          <ButtonGroup className="dialog-actions">
+          <div className="btn-group dialog-actions">
             <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
-          </ButtonGroup>
+          </div>
         );
     }
   },

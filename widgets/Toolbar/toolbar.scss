@@ -2,30 +2,26 @@
   display: flex;
   min-height: 2.25rem;
   align-items: center;
-  justify-content: space-between;
 }
 
-.toolbar-group {
+// Segment control
+[role='toolbar'] [role='radiogroup'] {
   display: inline-flex;
   align-items: center;
   min-height: 2.25rem;
   margin: 0 1rem;
-}
 
-[role='toolbar'] [role='radiogroup'] .toolbar-button {
-  &:first-child {
-    border-bottom-left-radius: 0.25rem;
-    border-top-left-radius: 0.25rem;
+  .toolbar-button {
+    &:first-child {
+      border-bottom-left-radius: 0.25rem;
+      border-top-left-radius: 0.25rem;
+    }
+
+    &:last-child {
+      border-bottom-right-radius: 0.25rem;
+      border-top-right-radius: 0.25rem;
+    }
   }
-
-  &:last-child {
-    border-bottom-right-radius: 0.25rem;
-    border-top-right-radius: 0.25rem;
-  }
-}
-
-.toolbar-item:focus {
-  box-shadow: 0 0 0 0.125rem var(--hover-color);
 }
 
 .toolbar-button {
@@ -37,6 +33,10 @@
   &:hover {
     background-color: var(--hover-background);
     color: var(--hover-color);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 0.125rem var(--hover-color);
   }
 
   &[aria-checked='true'] {
@@ -73,7 +73,7 @@
 .toolbar-button-icon,
 .toolbar-button-text,
 .toolbar-button-text.always,
-.toolbar-group.always .toolbar-button-text:not(.never) {
+[role='radiogroup'].always .toolbar-button-text:not(.never) {
   display: inline-flex;
   margin: 0.125rem;
 }
@@ -81,7 +81,7 @@
 // Hide text without removing it from screen readers:
 // https://stackoverflow.com/questions/12783419/hide-text-with-css-best-practice
 .toolbar-button-text.never,
-.toolbar-group.never .toolbar-button-text:not(.always) {
+[role='radiogroup'].never .toolbar-button-text:not(.always) {
   margin: 0;
   text-indent: -100vw;
   white-space: nowrap;
@@ -89,31 +89,8 @@
 }
 
 .toolbar-button-text.always,
-.toolbar-group.always .toolbar-button-text:not(.never) {
+[role='radiogroup'].always .toolbar-button-text:not(.never) {
   text-indent: unset;
   white-space: unset;
   overflow: unset;
-}
-
-[role='toolbar'][aria-orientation='vertical'] {
-  flex-direction: column;
-}
-
-.toolbar-group[aria-orientation='vertical'] {
-  flex-direction: column;
-  margin: 1rem 0;
-
-  &[role='radiogroup'] .toolbar-button {
-    border-radius: 0;
-
-    &:first-child {
-      border-top-left-radius: 0.25rem;
-      border-top-right-radius: 0.25rem;
-    }
-
-    &:last-child {
-      border-bottom-right-radius: 0.25rem;
-      border-bottom-left-radius: 0.25rem;
-    }
-  }
 }

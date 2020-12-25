@@ -1,12 +1,24 @@
 import './menu.scss';
 import React, { useRef, useState } from 'react';
 
+import { IMenuCheckboxItem, IMenuItem, IMenuItemLink, IMenuRadioItem } from './menu_items';
+
 export interface IMenu {
   id?: string;
-  children: React.ReactNode;
+  children: MenuChildren;
   label?: string;
   labelledby?: string;
 }
+
+export type MenuChildren = MenuChild | MenuChild[] | null | React.ReactFragment;
+
+export type MenuChild =
+  | React.ReactElement<IMenuCheckboxItem>
+  | React.ReactElement<IMenuItem>
+  | React.ReactElement<IMenuItemLink>
+  | React.ReactElement<IMenuRadioGroup>
+  | React.ReactElement<IMenuRadioGroup>
+  | React.ReactElement<ISubMenu>;
 
 export const Menu = ({ id, children, label, labelledby }: IMenu) => {
   return (
@@ -97,8 +109,6 @@ export const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
     </li>
   );
 };
-
-import { IMenuRadioItem } from './menu_items';
 
 export interface IMenuRadioGroup {
   children: React.ReactElement<IMenuRadioItem>[];

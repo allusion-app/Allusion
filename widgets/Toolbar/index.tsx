@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { Tooltip } from '../popovers';
 import { RawPopover } from '../popovers/RawPopover';
-import { IMenu } from '../menus';
 
 interface IToolbar {
   children: React.ReactNode;
@@ -78,7 +77,7 @@ const ToolbarButton = (props: IToolbarButton) => {
   return (
     <button
       id={id}
-      className="toolbar-item toolbar-button"
+      className="toolbar-button"
       onClick={disabled ? undefined : onClick}
       role={role}
       aria-pressed={pressed}
@@ -91,26 +90,6 @@ const ToolbarButton = (props: IToolbarButton) => {
     >
       {tooltip ? <Tooltip content={tooltip} hoverDelay={1500} trigger={content} /> : content}
     </button>
-  );
-};
-
-interface IBaseGroup {
-  children: React.ReactNode;
-  showLabel?: 'always' | 'never';
-}
-
-interface IToolbarGroup extends IBaseGroup {
-  id?: string;
-  label?: string;
-  role?: string;
-}
-
-const ToolbarGroup = (props: IToolbarGroup) => {
-  const { id, label, children, role, showLabel } = props;
-  return (
-    <div id={id} className={`toolbar-group ${showLabel ?? ''}`} role={role} aria-label={label}>
-      {children}
-    </div>
   );
 };
 
@@ -136,15 +115,18 @@ const ToolbarToggleButton = (props: IToolbarToggleButton) => {
   );
 };
 
-interface IToolbarSegment extends IBaseGroup {
+interface IToolbarSegment {
+  id?: string;
+  showLabel?: 'always' | 'never';
+  children: React.ReactNode;
   label: string;
 }
 
-const ToolbarSegment = ({ label, children, showLabel }: IToolbarSegment) => {
+const ToolbarSegment = ({ id, label, children, showLabel }: IToolbarSegment) => {
   return (
-    <ToolbarGroup role="radiogroup" label={label} showLabel={showLabel}>
+    <div id={id} role="radiogroup" aria-label={label} className={showLabel}>
       {children}
-    </ToolbarGroup>
+    </div>
   );
 };
 
@@ -169,13 +151,17 @@ const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
   );
 };
 
-interface IMenuButton extends IBaseButton {
+import { Menu, MenuChildren } from '../menus';
+
+interface IMenuButton {
+  id: string;
+  text: React.ReactText;
+  icon: JSX.Element;
+  showLabel?: 'always' | 'never';
+  tooltip?: string;
   controls: string;
-  /** The element must be a Menu component otherwise focus will not work. */
-  children: React.ReactElement<IMenu>;
+  children: MenuChildren;
   disabled?: boolean;
-  /** @default 'menu' */
-  role?: 'menu' | 'group';
 }
 
 const MenuButton = (props: IMenuButton) => {
@@ -232,7 +218,6 @@ const MenuButton = (props: IMenuButton) => {
           onClick={() => setIsOpen(!isOpen)}
           expanded={isOpen}
           controls={props.controls}
-          tabIndex={props.tabIndex}
           haspopup="menu"
         />
       }
@@ -241,14 +226,15 @@ const MenuButton = (props: IMenuButton) => {
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
-      {props.children}
+      <Menu id={props.controls} labelledby={props.id}>
+        {props.children}
+      </Menu>
     </RawPopover>
   );
 };
 
 export {
   Toolbar,
-  ToolbarGroup,
   ToolbarButton,
   MenuButton,
   ToolbarSegment,

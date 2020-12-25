@@ -7,7 +7,7 @@ import { DEFAULT_LOCATION_ID } from 'src/entities/Location';
 
 import StoreContext from '../contexts/StoreContext';
 
-import { Button, ButtonGroup } from 'widgets';
+import { Button } from 'widgets';
 import { Dialog } from 'widgets/popovers';
 
 import LocationsPanel from './Outliner/LocationsPanel';
@@ -166,14 +166,14 @@ const WelcomeDialog = () => {
       {step === 3 && <IntroStep />}
 
       <div className="dialog-footer">
-        <ButtonGroup className="dialog-actions">
+        <div className="btn-group dialog-actions">
           <Button onClick={handleClose} disabled={step === 0} text="Skip" styling="outlined" />
           <Button
             styling="filled"
             onClick={handleNextStep}
             text={step !== NUM_STEPS - 1 ? 'Next' : 'Start'}
           />
-        </ButtonGroup>
+        </div>
       </div>
     </Dialog>
   );

@@ -8,7 +8,7 @@ import StoreContext from '../../contexts/StoreContext';
 import useContextMenu from '../../hooks/useContextMenu';
 
 import { IconSet } from 'widgets';
-import { ContextMenu, SubMenu, Menu, MenuDivider } from 'widgets/menus';
+import { ContextMenu, SubMenu, Menu, MenuDivider, MenuChild } from 'widgets/menus';
 
 import Placeholder from './Placeholder';
 import Layout from './Gallery';
@@ -50,7 +50,7 @@ const Gallery = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
   const { open, x, y, menu } = contextState;
-  const [fileMenu, externalMenu] = menu as [React.ReactNode, React.ReactNode];
+  const [fileMenu, externalMenu] = menu as [MenuChild, MenuChild];
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState({ width: 1, height: 1 });
   const container = useRef<HTMLDivElement>(null);

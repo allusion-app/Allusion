@@ -6,7 +6,7 @@ import StoreContext from './contexts/StoreContext';
 import ErrorBoundary from './containers/ErrorBoundary';
 import ContentView from './containers/ContentView';
 import { IconSet, Toggle } from 'widgets';
-import { Toolbar, ToolbarGroup, ToolbarButton } from 'widgets/menus';
+import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './ThumbnailGeneration';
 
@@ -33,27 +33,25 @@ const PreviewApp = observer(() => {
     <div id="preview" className={themeClass}>
       <ErrorBoundary>
         <Toolbar id="toolbar" label="Preview Command Bar" controls="gallery">
-          <ToolbarGroup>
-            <ToolbarButton
-              showLabel="never"
-              icon={IconSet.ARROW_LEFT}
-              text="Previous Image"
-              onClick={handleLeftButton}
-              disabled={uiStore.firstItem === 0}
-            />
-            <ToolbarButton
-              showLabel="never"
-              icon={IconSet.ARROW_RIGHT}
-              text="Next Image"
-              onClick={handleRightButton}
-              disabled={uiStore.firstItem === fileStore.fileList.length - 1}
-            />
-            <Toggle
-              label="Overview"
-              onChange={uiStore.toggleSlideMode}
-              checked={!uiStore.isSlideMode}
-            />
-          </ToolbarGroup>
+          <ToolbarButton
+            showLabel="never"
+            icon={IconSet.ARROW_LEFT}
+            text="Previous Image"
+            onClick={handleLeftButton}
+            disabled={uiStore.firstItem === 0}
+          />
+          <ToolbarButton
+            showLabel="never"
+            icon={IconSet.ARROW_RIGHT}
+            text="Next Image"
+            onClick={handleRightButton}
+            disabled={uiStore.firstItem === fileStore.fileList.length - 1}
+          />
+          <Toggle
+            label="Overview"
+            onChange={uiStore.toggleSlideMode}
+            checked={!uiStore.isSlideMode}
+          />
         </Toolbar>
 
         <ContentView />

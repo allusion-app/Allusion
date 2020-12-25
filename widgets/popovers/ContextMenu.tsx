@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { RawPopover } from './RawPopover';
+import { IMenu } from '../menus/menus';
 
 export interface IContextMenu {
   isOpen: boolean;
   x: number;
   y: number;
-  /** The element must be a Menu component otherwise focus will not work. */
-  children?: React.ReactNode;
+  children?: React.ReactElement<IMenu> | React.ReactFragment | null;
   // TODO: Rename to close or cancel
   onClose: () => void;
 }

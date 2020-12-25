@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 
 import { generateId, ID } from 'src/entities/ID';
 import StoreContext from 'src/frontend/contexts/StoreContext';
-import { Button, ButtonGroup, IconButton, IconSet, RadioGroup, Radio } from 'widgets';
+import { Button, IconButton, IconSet, RadioGroup, Radio } from 'widgets';
 import { Dialog } from 'widgets/popovers';
 import Field from './Field';
 import { Query, defaultQuery, fromCriteria, intoCriteria } from './query';
@@ -95,10 +95,10 @@ export const AdvancedSearchDialog = observer(() => {
             />
           </RadioGroup>
         </div>
-        <ButtonGroup className="dialog-actions">
+        <div className="btn-group dialog-actions">
           <Button text="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
           <Button text="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
-        </ButtonGroup>
+        </div>
       </div>
     </Dialog>
   );

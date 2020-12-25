@@ -1,6 +1,15 @@
 import './menu.scss';
 
-import { Menu, MenuRadioGroup, SubMenu, IMenu, IMenuRadioGroup, ISubMenu } from './menus';
+import {
+  Menu,
+  MenuRadioGroup,
+  SubMenu,
+  IMenu,
+  MenuChild,
+  MenuChildren,
+  IMenuRadioGroup,
+  ISubMenu,
+} from './menus';
 import {
   MenuCheckboxItem,
   MenuDivider,
@@ -21,6 +30,8 @@ export {
   MenuRadioItem,
   SubMenu,
   IMenu,
+  MenuChild,
+  MenuChildren,
   IMenuRadioGroup,
   ISubMenu,
   IMenuItem,
@@ -32,7 +43,6 @@ export {
 import {
   Toolbar,
   ToolbarButton,
-  ToolbarGroup,
   MenuButton,
   ToolbarSegment,
   ToolbarSegmentButton,
@@ -43,7 +53,6 @@ import { ContextMenu } from '../popovers';
 export {
   ContextMenu,
   ToolbarButton,
-  ToolbarGroup,
   MenuButton,
   ToolbarSegment,
   ToolbarSegmentButton,

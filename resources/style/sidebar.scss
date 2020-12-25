@@ -14,10 +14,6 @@
 
   // extra css (from the section previously named #system-tags)
   flex-shrink: 0;
-  justify-content: unset;
-  > .toolbar-item {
-    margin: 0 0.5rem;
-  }
 
   // TODO: the buttons are currently .toolbar-button - not .actionbarBtn
   .toolbar-button {

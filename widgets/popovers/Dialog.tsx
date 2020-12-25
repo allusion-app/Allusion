@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-import { Button, ButtonGroup } from 'widgets';
+import { Button } from 'widgets';
 
 export interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
   open: boolean;
@@ -129,7 +129,7 @@ export interface IDialogActions {
 
 export const DialogActions = (props: IDialogActions) => {
   return (
-    <ButtonGroup className="dialog-actions">
+    <div className="btn-group dialog-actions">
       {props.primaryButtonText ? (
         <Button
           styling={props.defaultButton === DialogButton.PrimaryButton ? 'filled' : 'outlined'}
@@ -149,6 +149,6 @@ export const DialogActions = (props: IDialogActions) => {
         text={props.closeButtonText}
         onClick={() => props.onClick(DialogButton.CloseButton)}
       />
-    </ButtonGroup>
+    </div>
   );
 };

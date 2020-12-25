@@ -24,13 +24,12 @@ const Button = ({ text, icon, onClick, styling = 'minimal', disabled }: IButton)
 
 interface IButtonGroup {
   id?: string;
-  className?: string;
   children: (React.ReactElement | undefined)[] | React.ReactElement;
 }
 
-const ButtonGroup = ({ id, children, className = '' }: IButtonGroup) => {
+const ButtonGroup = ({ id, children }: IButtonGroup) => {
   return (
-    <div id={id} className={`btn-group ${className}`}>
+    <div id={id} className="btn-group">
       {children}
     </div>
   );
