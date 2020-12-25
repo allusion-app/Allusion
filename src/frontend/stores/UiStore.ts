@@ -261,6 +261,10 @@ class UiStore {
     this.isToolbarFileRemoverOpen = false;
   }
 
+  @action.bound toggleToolbarTagPopover() {
+    this.isToolbarTagPopoverOpen = !this.isToolbarTagPopoverOpen;
+  }
+
   @action.bound openToolbarTagPopover() {
     this.isToolbarTagPopoverOpen = true;
   }

@@ -1,8 +1,7 @@
-import React, { ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { action, ObservableSet } from 'mobx';
+import React, { ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 
 import StoreContext from '../../contexts/StoreContext';
@@ -16,17 +15,19 @@ import { Tag } from 'widgets/Tag';
 import { countFileTags } from '../../components/FileTag';
 
 import { Tooltip } from './PrimaryCommands';
+import UiStore from 'src/frontend/stores/UiStore';
+import TagStore from 'src/frontend/stores/TagStore';
 
 const TagFilesPopover = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  const files = uiStore.fileSelection;
+  const { uiStore, tagStore } = useContext(StoreContext);
+
   return (
     <>
       <ToolbarButton
         showLabel="never"
         icon={IconSet.TAG}
         disabled={uiStore.fileSelection.size === 0}
-        onClick={uiStore.openToolbarTagPopover}
+        onClick={uiStore.toggleToolbarTagPopover}
         text="Tag selected files"
         tooltip={Tooltip.TagFiles}
       />
@@ -34,11 +35,7 @@ const TagFilesPopover = observer(() => {
         isOpen={uiStore.isToolbarTagPopoverOpen}
         onClose={uiStore.closeToolbarTagPopover}
       >
-        <TagFilesWidget
-          files={files}
-          onDeselect={action((tag) => files.forEach((f) => f.removeTag(tag)))}
-          onSelect={action((tag) => files.forEach((f) => f.addTag(tag)))}
-        />
+        <TagFilesWidget uiStore={uiStore} tagStore={tagStore} />
       </FloatingDialog>
     </>
   );
@@ -83,7 +80,7 @@ const TagItem = ({
       onClick={handleSelect}
       onKeyPress={(e) => e.key === 'Enter' && handleSelect()}
       tabIndex={isFocused ? 1 : -1}
-      role="button"
+      role="option"
       ref={ref}
     >
       <span className="tag-item-icon" style={{ color }}>
@@ -96,45 +93,49 @@ const TagItem = ({
 };
 
 interface TagFilesWidgetProps {
-  files: ObservableSet<ClientFile>;
-  onSelect: (tag: ClientTag) => void;
-  onDeselect: (tag: ClientTag) => void;
+  uiStore: UiStore;
+  tagStore: TagStore;
 }
 
-const TagFilesWidget = observer(({ files, onSelect, onDeselect }: TagFilesWidgetProps) => {
-  const { tagStore } = useContext(StoreContext);
+const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => {
   const [inputText, setInputText] = useState('');
+  const files = uiStore.fileSelection;
 
   const { counter, sortedTags } = countFileTags(files);
   const [matchingTags, setMatchingTags] = useState([...tagStore.tagListWithoutRoot]);
 
-  const handleInput = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const text = e.target.value;
-      setInputText(e.target.value);
+  const onSelect = (tag: ClientTag) => files.forEach((f) => f.addTag(tag));
+  const onDeselect = (tag: ClientTag) => files.forEach((f) => f.removeTag(tag));
 
-      if (text.length === 0) {
-        setMatchingTags([...tagStore.tagListWithoutRoot]);
-      } else {
-        const textLower = text.toLowerCase();
-        const newTagList = tagStore.tagListWithoutRoot.filter((t) =>
-          t.name.toLowerCase().includes(textLower),
-        );
-        setMatchingTags(newTagList);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  const handleInput = action((e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+    setInputText(e.target.value);
+
+    if (text.length === 0) {
+      setMatchingTags([...tagStore.tagListWithoutRoot]);
+    } else {
+      const textLower = text.toLowerCase();
+      const newTagList = tagStore.tagListWithoutRoot.filter((t) =>
+        t.name.toLowerCase().includes(textLower),
+      );
+      setMatchingTags(newTagList);
+    }
+  });
 
   const [focus, setFocus] = useRoveFocus(matchingTags.length);
 
   return (
-    <div className="tag-files-widget">
+    <div role="combobox" className="tag-files-widget">
       <div className="input-wrapper">
-        <input value={inputText} onChange={handleInput} tabIndex={0} autoFocus />
+        <input
+          autoFocus
+          type="text"
+          value={inputText}
+          aria-autocomplete="list"
+          onChange={handleInput}
+        />
       </div>
-      <ul>
+      <ul role="listbox" aria-multiselectable="true">
         {matchingTags.map((t, i) => (
           <TagItem
             text={t.name}
@@ -148,7 +149,7 @@ const TagFilesWidget = observer(({ files, onSelect, onDeselect }: TagFilesWidget
           />
         ))}
         {matchingTags.length === 0 && (
-          <li>
+          <li role="option">
             <i>{`No tags found matching "${inputText}"`}</i>
           </li>
         )}
@@ -175,18 +176,23 @@ interface FloatingDialogProps {
 }
 
 const FloatingDialog = (props: FloatingDialogProps) => {
-  useEffect(() => {
-    const el = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        props.onClose();
-        e.preventDefault();
-        e.stopPropagation;
-      }
-    };
-    document.addEventListener('keydown', el);
-    return () => document.removeEventListener('keydown', el);
-  });
+  const { onClose, isOpen, children } = props;
 
-  if (!props.isOpen) return null;
-  return <div className="floating-dialog">{props.children}</div>;
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+      e.preventDefault();
+      e.stopPropagation;
+    }
+  };
+
+  if (isOpen) {
+    return (
+      <div className="floating-dialog" onKeyDown={handleKeyDown}>
+        {children}
+      </div>
+    );
+  } else {
+    return null;
+  }
 };
