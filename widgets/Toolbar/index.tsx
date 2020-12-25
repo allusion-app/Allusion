@@ -106,6 +106,7 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-controls={controls}
       aria-haspopup={haspopup}
       aria-expanded={expanded}
+      tabIndex={-1}
     >
       {tooltip ? <Tooltip content={tooltip} hoverDelay={1500} trigger={content} /> : content}
     </button>
