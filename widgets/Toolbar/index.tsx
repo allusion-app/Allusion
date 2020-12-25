@@ -27,9 +27,9 @@ const Toolbar = (props: IToolbar) => {
 
     const lastFocusedItem = toolbar.current.querySelector('[data-toolbaritem][tabindex="0"]');
     if (lastFocusedItem === null) {
-      const firstToolbarItem = toolbar.current.querySelector(
+      const firstToolbarItem: HTMLElement | null = toolbar.current.querySelector(
         '[data-toolbaritem][tabindex="-1"]',
-      ) as HTMLElement | null;
+      );
       if (firstToolbarItem !== null) {
         firstToolbarItem.tabIndex = 0;
       }

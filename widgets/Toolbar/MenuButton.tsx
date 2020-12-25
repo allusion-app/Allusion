@@ -22,7 +22,7 @@ export const MenuButton = (props: IMenuButton) => {
   useEffect(() => {
     if (container.current && isOpen) {
       // Focus first focusable menu item
-      const first = container.current.querySelector('[role^="menuitem"]') as HTMLElement | null;
+      const first: HTMLElement | null = container.current.querySelector('[role^="menuitem"]');
       // The Menu component will handle setting the tab indices.
       if (first !== null) {
         first.focus();

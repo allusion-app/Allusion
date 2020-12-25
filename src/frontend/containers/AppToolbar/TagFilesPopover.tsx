@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useContext, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -8,7 +8,7 @@ import StoreContext from '../../contexts/StoreContext';
 
 import { IconSet } from 'widgets/Icons';
 import { ToolbarButton } from 'widgets/menus';
-import { Tag, Listbox } from 'widgets';
+import { Tag, Listbox, Option } from 'widgets';
 
 import { countFileTags } from '../../components/FileTag';
 
@@ -41,55 +41,6 @@ const TagFilesPopover = observer(() => {
 
 export default TagFilesPopover;
 
-interface TagItemProps {
-  text: string;
-  isSelected: boolean;
-  color?: string;
-  // TODO: color
-  onSelect: () => void;
-  isFocused: boolean;
-  setFocus: (index: number) => void;
-  index: number;
-}
-
-const TagItem = ({
-  text,
-  isSelected,
-  onSelect,
-  isFocused,
-  setFocus,
-  index,
-  color,
-}: TagItemProps) => {
-  const ref = useRef<HTMLLIElement>(null);
-  useEffect(() => {
-    const inputFocused = document.activeElement?.matches('input');
-    // Move element into view when it is focused
-    if (isFocused && !inputFocused) ref.current?.focus();
-  }, [isFocused]);
-
-  const handleSelect = () => {
-    setFocus(index);
-    onSelect();
-  };
-
-  return (
-    <li
-      onClick={handleSelect}
-      onKeyPress={(e) => e.key === 'Enter' && handleSelect()}
-      tabIndex={isFocused ? 1 : -1}
-      role="option"
-      ref={ref}
-    >
-      <span className="tag-item-icon" style={{ color }}>
-        {IconSet.TAG}
-      </span>
-      <span>{text}</span>
-      <span className="tag-item-icon">{isSelected ? IconSet.CHECKMARK : null}</span>
-    </li>
-  );
-};
-
 interface TagFilesWidgetProps {
   uiStore: UiStore;
   tagStore: TagStore;
@@ -102,8 +53,17 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const { counter, sortedTags } = countFileTags(files);
   const [matchingTags, setMatchingTags] = useState([...tagStore.tagListWithoutRoot]);
 
-  const onSelect = (tag: ClientTag) => files.forEach((f) => f.addTag(tag));
-  const onDeselect = (tag: ClientTag) => files.forEach((f) => f.removeTag(tag));
+  const onSelect = action((tag: ClientTag) => {
+    for (const f of files) {
+      f.addTag(tag);
+    }
+  });
+
+  const onDeselect = action((tag: ClientTag) => {
+    for (const f of files) {
+      f.removeTag(tag);
+    }
+  });
 
   const handleInput = action((e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value;
@@ -120,26 +80,8 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     }
   });
 
-  const [focus, setFocus] = useState(0);
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowDown') {
-        // Down arrow
-        e.preventDefault();
-        e.stopPropagation();
-        setFocus(focus === 0 - 1 ? 0 : focus + 1);
-      } else if (e.key === 'ArrowUp') {
-        // Up arrow
-        e.preventDefault();
-        e.stopPropagation();
-        setFocus(focus === 0 ? 0 - 1 : focus - 1);
-      }
-    },
-    [focus],
-  );
-
   return (
-    <div className="tag-files-widget" onKeyDown={handleKeyDown}>
+    <div className="tag-files-widget">
       <input
         autoFocus
         type="text"
@@ -150,22 +92,17 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         aria-controls="tag-files-listbox"
       />
       <Listbox id="tag-files-listbox" multiselectable={true}>
-        {matchingTags.map((t, i) => (
-          <TagItem
-            text={t.name}
+        {matchingTags.map((t) => (
+          <Option
             key={t.id}
-            isFocused={focus === i}
-            setFocus={setFocus}
-            isSelected={Boolean(counter.get(t))}
-            onSelect={() => (counter.get(t) ? onDeselect(t) : onSelect(t))}
-            color={t.viewColor}
-            index={i}
+            value={t.name}
+            selected={counter.get(t) !== undefined}
+            icon={<span style={{ color: t.viewColor }}>{IconSet.TAG}</span>}
+            onClick={() => (counter.get(t) ? onDeselect(t) : onSelect(t))}
           />
         ))}
         {matchingTags.length === 0 && (
-          <li role="option">
-            <i>{`No tags found matching "${inputText}"`}</i>
-          </li>
+          <Option value={`No tags found matching "${inputText}"`} selected={false} />
         )}
       </Listbox>
       <div>

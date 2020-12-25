@@ -27,7 +27,6 @@ const Single = observer(({ tagStore, uiStore }: IFileTagProp) => {
 
   return (
     <MultiTagSelector
-      listboxID="file-tag-listbox"
       disabled={file.isBroken}
       selection={Array.from(file.tags)}
       onClear={file.clearTags}
@@ -47,7 +46,6 @@ const Multi = observer(({ tagStore, uiStore: { fileSelection: files } }: IFileTa
 
   return (
     <MultiTagSelector
-      listboxID="file-tag-listbox"
       selection={sortedTags}
       onClear={action(() => files.forEach((f) => f.clearTags()))}
       onDeselect={action((tag) => files.forEach((f) => f.removeTag(tag)))}

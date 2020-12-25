@@ -1,8 +1,9 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { generateId } from 'src/entities/ID';
 
 import StoreContext from '../contexts/StoreContext';
 
@@ -11,7 +12,6 @@ import { MenuDivider } from 'widgets/menus';
 import { Flyout } from 'widgets/popovers';
 
 interface IMultiTagSelector {
-  listboxID: string;
   selection: ClientTag[];
   onSelect: (item: ClientTag) => void;
   onDeselect: (item: ClientTag) => void;
@@ -32,8 +32,8 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     tagLabel = action((t: ClientTag) => t.name),
     disabled,
     extraOption,
-    listboxID,
   } = props;
+  const listboxID = useRef(generateId());
   const { tagStore } = useContext(StoreContext);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -77,26 +77,33 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                   setIsOpen(true);
                   setQuery(e.target.value);
                 }}
-                aria-controls={listboxID}
+                aria-controls={listboxID.current}
               />
             </div>
             <IconButton icon={IconSet.CLOSE} text="Close" onClick={onClear} />
           </div>
         }
       >
-        <Listbox id={listboxID} multiselectable>
-          {suggestions.map((t) => (
-            <Option
-              key={t.id}
-              selected={selection.includes(t)}
-              value={t.name}
-              onClick={() => {
-                onSelect(t);
-                setQuery('');
-                setIsOpen(false);
-              }}
-            />
-          ))}
+        <Listbox id={listboxID.current} multiselectable>
+          {suggestions.map((t) => {
+            const isSelected = selection.includes(t);
+            return (
+              <Option
+                key={t.id}
+                selected={isSelected}
+                value={t.name}
+                onClick={() => {
+                  if (!isSelected) {
+                    onSelect(t);
+                  } else {
+                    onDeselect(t);
+                  }
+                  setIsOpen(false);
+                  setQuery('');
+                }}
+              />
+            );
+          })}
           {onCreate && suggestions.length === 0 ? (
             <Option
               key="create"

@@ -68,7 +68,6 @@ const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
 
   return (
     <MultiTagSelector
-      listboxID="quick-search-listbox"
       selection={selectedItems}
       onSelect={handleSelect}
       onDeselect={handleDeselect}

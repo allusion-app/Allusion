@@ -1,8 +1,9 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { generateId } from 'src/entities/ID';
 
 import StoreContext from 'src/frontend/contexts/StoreContext';
 
@@ -22,6 +23,7 @@ interface ITagSelector {
  * list filtering is done.
  * */
 const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
+  const listboxId = useRef(generateId());
   const { tagStore } = useContext(StoreContext);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -55,10 +57,11 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
               setIsOpen(true);
               setQuery(e.target.value);
             }}
+            aria-controls={listboxId.current}
           />
         }
       >
-        <Listbox>
+        <Listbox id={listboxId.current}>
           {tagStore.tagList
             .filter(
               (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,

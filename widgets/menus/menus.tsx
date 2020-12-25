@@ -69,9 +69,9 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
       (e.currentTarget.firstElementChild as HTMLElement).focus();
     } else if (!disabled && !isOpen && (e.key === 'ArrowRight' || e.key === 'Enter')) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const first = e.currentTarget.lastElementChild!.querySelector(
+      const first: HTMLElement | null = e.currentTarget.lastElementChild!.querySelector(
         '[role^="menuitem"]',
-      ) as HTMLElement | null;
+      );
       if (first !== null) {
         e.stopPropagation();
         setIsOpen(true);
@@ -130,9 +130,9 @@ function handleFocus(event: React.FocusEvent) {
   }
 
   event.stopPropagation();
-  const previous = event.currentTarget.querySelector(
+  const previous: HTMLElement | null = event.currentTarget.querySelector(
     '[role^="menuitem"][tabindex="0"]',
-  ) as HTMLElement | null;
+  );
   if (previous !== null) {
     previous.tabIndex = -1;
   }
