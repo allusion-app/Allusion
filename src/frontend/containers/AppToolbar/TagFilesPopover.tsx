@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -6,11 +6,9 @@ import { ClientTag } from 'src/entities/Tag';
 
 import StoreContext from '../../contexts/StoreContext';
 
-import useRoveFocus from '../../hooks/useRoveFocus';
-
 import { IconSet } from 'widgets/Icons';
 import { ToolbarButton } from 'widgets/menus';
-import { Tag } from 'widgets/Tag';
+import { Tag, Listbox } from 'widgets';
 
 import { countFileTags } from '../../components/FileTag';
 
@@ -122,10 +120,26 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     }
   });
 
-  const [focus, setFocus] = useRoveFocus(matchingTags.length);
+  const [focus, setFocus] = useState(0);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        // Down arrow
+        e.preventDefault();
+        e.stopPropagation();
+        setFocus(focus === 0 - 1 ? 0 : focus + 1);
+      } else if (e.key === 'ArrowUp') {
+        // Up arrow
+        e.preventDefault();
+        e.stopPropagation();
+        setFocus(focus === 0 ? 0 - 1 : focus - 1);
+      }
+    },
+    [focus],
+  );
 
   return (
-    <div className="tag-files-widget">
+    <div className="tag-files-widget" onKeyDown={handleKeyDown}>
       <input
         autoFocus
         type="text"
@@ -133,8 +147,9 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         aria-autocomplete="list"
         onChange={handleInput}
         className="input"
+        aria-controls="tag-files-listbox"
       />
-      <ul role="listbox" aria-multiselectable="true">
+      <Listbox id="tag-files-listbox" multiselectable={true}>
         {matchingTags.map((t, i) => (
           <TagItem
             text={t.name}
@@ -152,8 +167,8 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
             <i>{`No tags found matching "${inputText}"`}</i>
           </li>
         )}
-      </ul>
-      <div className="input-wrapper">
+      </Listbox>
+      <div>
         {sortedTags.map((t) => (
           <Tag
             key={t.id}
