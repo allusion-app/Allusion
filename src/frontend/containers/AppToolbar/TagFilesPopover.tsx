@@ -125,16 +125,15 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const [focus, setFocus] = useRoveFocus(matchingTags.length);
 
   return (
-    <div role="combobox" className="tag-files-widget">
-      <div className="input-wrapper">
-        <input
-          autoFocus
-          type="text"
-          value={inputText}
-          aria-autocomplete="list"
-          onChange={handleInput}
-        />
-      </div>
+    <div className="tag-files-widget">
+      <input
+        autoFocus
+        type="text"
+        value={inputText}
+        aria-autocomplete="list"
+        onChange={handleInput}
+        className="input"
+      />
       <ul role="listbox" aria-multiselectable="true">
         {matchingTags.map((t, i) => (
           <TagItem

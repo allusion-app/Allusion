@@ -10,7 +10,7 @@ export interface IMenuButton {
   icon: JSX.Element;
   showLabel?: 'always' | 'never';
   tooltip?: string;
-  controls: string;
+  menuID: string;
   children: MenuChildren;
   disabled?: boolean;
 }
@@ -68,7 +68,7 @@ export const MenuButton = (props: IMenuButton) => {
           tooltip={props.tooltip}
           onClick={() => setIsOpen(!isOpen)}
           expanded={isOpen}
-          controls={props.controls}
+          controls={props.menuID}
           haspopup="menu"
         />
       }
@@ -77,7 +77,7 @@ export const MenuButton = (props: IMenuButton) => {
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
-      <Menu id={props.controls} labelledby={props.id}>
+      <Menu id={props.menuID} labelledby={props.id}>
         {props.children}
       </Menu>
     </RawPopover>

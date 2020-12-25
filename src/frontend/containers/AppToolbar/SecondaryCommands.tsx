@@ -15,7 +15,7 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
       text="More"
       tooltip="See more"
       id="__secondary-menu"
-      controls="__secondary-menu-options"
+      menuID="__secondary-menu-options"
     >
       <MenuCheckboxItem
         onClick={uiStore.toggleInspector}

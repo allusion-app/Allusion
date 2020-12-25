@@ -30,14 +30,16 @@ const Option = ({ value, selected, onClick, icon, rightIcon, disabled }: IOption
 );
 
 interface IListbox {
+  id?: string;
   multiselectable?: boolean;
   children: React.ReactFragment | React.ReactElement<IOption> | React.ReactElement<IOption>[];
 }
 
 const Listbox = (props: IListbox) => {
+  const { id, multiselectable, children } = props;
   return (
-    <ul role="listbox" aria-multiselectable={props.multiselectable}>
-      {props.children}
+    <ul id={id} role="listbox" aria-multiselectable={multiselectable}>
+      {children}
     </ul>
   );
 };

@@ -26,7 +26,7 @@ export const SortCommand = ({ fileStore }: { fileStore: FileStore }) => {
       text="Sort"
       tooltip={Tooltip.Filter}
       id="__sort-menu"
-      controls="__sort-options"
+      menuID="__sort-options"
     >
       <SortMenuItems fileStore={fileStore} />
     </MenuButton>
@@ -41,7 +41,7 @@ export const ViewCommand = ({ uiStore }: { uiStore: UiStore }) => {
       text="View"
       tooltip={Tooltip.View}
       id="__layout-menu"
-      controls="__layout-options"
+      menuID="__layout-options"
     >
       <LayoutMenuItems uiStore={uiStore} />
     </MenuButton>
