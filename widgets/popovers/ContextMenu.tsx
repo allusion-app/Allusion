@@ -7,7 +7,7 @@ export interface IContextMenu {
   isOpen: boolean;
   x: number;
   y: number;
-  children?: React.ReactElement<IMenu> | React.ReactFragment | null;
+  children?: React.ReactElement<IMenu> | React.ReactFragment;
   // TODO: Rename to close or cancel
   onClose: () => void;
 }

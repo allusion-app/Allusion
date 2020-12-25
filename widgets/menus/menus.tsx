@@ -10,7 +10,7 @@ export interface IMenu {
   labelledby?: string;
 }
 
-export type MenuChildren = MenuChild | MenuChild[] | null | React.ReactFragment;
+export type MenuChildren = MenuChild | MenuChild[] | React.ReactFragment;
 
 export type MenuChild =
   | React.ReactElement<IMenuCheckboxItem>
@@ -123,16 +123,20 @@ export const MenuRadioGroup = ({ children, label }: IMenuRadioGroup) => (
   </li>
 );
 
-function handleFocus(event: React.FocusEvent<HTMLUListElement>) {
+function handleFocus(event: React.FocusEvent) {
   const target = event.target.closest('[role^="menuitem"]') as HTMLElement | null;
   if (target === null) {
     return;
   }
-  const previous = event.currentTarget.querySelector('[role^="menuitem"][tabindex="0"]');
+
+  event.stopPropagation();
+  const previous = event.currentTarget.querySelector(
+    '[role^="menuitem"][tabindex="0"]',
+  ) as HTMLElement | null;
   if (previous !== null) {
-    previous.setAttribute('tabIndex', '-1');
+    previous.tabIndex = -1;
   }
-  target.setAttribute('tabIndex', '0');
+  target.tabIndex = 0;
   // target.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
   target.focus();
 }
