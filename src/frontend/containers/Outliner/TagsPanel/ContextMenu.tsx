@@ -12,7 +12,7 @@ import StoreContext from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
 
 import { IconSet } from 'widgets';
-import { MenuDivider, MenuItem, SubMenu, Menu, MenuCheckboxItem } from 'widgets/menus';
+import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
 
 import { Action, Factory } from './StateReducer';
 
@@ -50,7 +50,7 @@ const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: U
         text="Inherit Parent Color"
         onClick={() => handleChange(tag.color === 'inherit' ? '' : 'inherit')}
       />
-      <SubMenu text="Pick Color" icon={IconSet.COLOR}>
+      <MenuSubItem text="Pick Color" icon={IconSet.COLOR}>
         <HexColorPicker color={tag.color || undefined} onChange={handleChange} />
         <button
           key="none"
@@ -78,7 +78,7 @@ const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: U
             onClick={() => handleChange(color)}
           />
         ))}
-      </SubMenu>
+      </MenuSubItem>
     </>
   );
 });

@@ -21,9 +21,7 @@ export const MenuItem = ({ text, icon, onClick, accelerator, disabled }: IMenuIt
       {icon}
     </span>
     {text}
-    <span className="item-accelerator" aria-hidden>
-      {accelerator}
-    </span>
+    <span className="item-accelerator">{accelerator}</span>
   </li>
 );
 
@@ -50,9 +48,7 @@ export const MenuRadioItem = ({
       {icon}
     </span>
     {text}
-    <span className="item-accelerator" aria-hidden>
-      {accelerator}
-    </span>
+    <span className="item-accelerator">{accelerator}</span>
   </li>
 );
 
@@ -74,9 +70,7 @@ export const MenuCheckboxItem = ({
   >
     <span className="item-icon" aria-hidden></span>
     {text}
-    <span className="item-accelerator" aria-hidden>
-      {accelerator}
-    </span>
+    <span className="item-accelerator">{accelerator}</span>
   </li>
 );
 
@@ -124,9 +118,7 @@ export const MenuItemLink = ({ expanded, setExpanded, disabled, icon, text }: IM
         {icon}
       </span>
       {text}
-      <span className="item-accelerator" aria-hidden>
-        {IconSet.ARROW_RIGHT}
-      </span>
+      <span className="item-accelerator">{IconSet.ARROW_RIGHT}</span>
     </a>
   );
 };

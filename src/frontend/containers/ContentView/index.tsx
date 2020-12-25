@@ -8,7 +8,7 @@ import StoreContext from '../../contexts/StoreContext';
 import useContextMenu from '../../hooks/useContextMenu';
 
 import { IconSet } from 'widgets';
-import { ContextMenu, SubMenu, Menu, MenuDivider, MenuChild } from 'widgets/menus';
+import { ContextMenu, MenuSubItem, Menu, MenuDivider, MenuChild } from 'widgets/menus';
 
 import Placeholder from './Placeholder';
 import Layout from './Gallery';
@@ -93,12 +93,12 @@ const Gallery = observer(() => {
         <Menu>
           {fileMenu}
           <MenuDivider />
-          <SubMenu icon={IconSet.VIEW_GRID} text="View method...">
+          <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
             <LayoutMenuItems uiStore={uiStore} />
-          </SubMenu>
-          <SubMenu icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+          </MenuSubItem>
+          <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
             <SortMenuItems fileStore={fileStore} />
-          </SubMenu>
+          </MenuSubItem>
           <MenuDivider />
           {externalMenu}
         </Menu>

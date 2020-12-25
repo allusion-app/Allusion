@@ -18,7 +18,7 @@ export type MenuChild =
   | React.ReactElement<IMenuItemLink>
   | React.ReactElement<IMenuRadioGroup>
   | React.ReactElement<IMenuRadioGroup>
-  | React.ReactElement<ISubMenu>;
+  | React.ReactElement<IMenuSubItem>;
 
 export const Menu = ({ id, children, label, labelledby }: IMenu) => {
   return (
@@ -38,14 +38,14 @@ export const Menu = ({ id, children, label, labelledby }: IMenu) => {
 import { RawPopover } from '../popovers/RawPopover';
 import { MenuItemLink } from './menu_items';
 
-export interface ISubMenu {
+export interface IMenuSubItem {
   icon?: JSX.Element;
   text: string;
   disabled?: boolean;
   children: React.ReactNode;
 }
 
-export const SubMenu = ({ text, icon, disabled, children }: ISubMenu) => {
+export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) => {
   const [isOpen, setIsOpen] = useState(false);
   const menu = useRef<HTMLUListElement>(null);
 

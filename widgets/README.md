@@ -30,7 +30,6 @@ Toolbars are any grouping of widgets that control an area/component of the appli
 
 - Toolbar
 - ToolbarButton
-- ToolbarGroup
 - MenuButton
 - ToolbarSegment
 - ToolbarSegmentButton
@@ -47,7 +46,7 @@ Menus are usually floating panels that show a several commands that the user can
 - MenuItem
 - MenuRadioGroup
 - MenuRadioItem
-- SubMenu
+- MenuSubItem
 
 ### Popover Widgets
 
