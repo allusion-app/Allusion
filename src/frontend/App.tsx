@@ -6,7 +6,6 @@ import { observer } from 'mobx-react-lite';
 import StoreContext from './contexts/StoreContext';
 
 import { IconSet } from 'widgets';
-import { ToolbarToggleButton } from 'widgets/menus';
 
 import DropOverlay from './containers/DropOverlay';
 import ErrorBoundary from './containers/ErrorBoundary';
@@ -30,23 +29,6 @@ const PLATFORM = process.platform;
 export const AppToaster = Toaster.create({
   position: Position.BOTTOM_RIGHT,
   className: 'toaster',
-});
-
-const OutlinerToggle = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  return (
-    <ToolbarToggleButton
-      id="outliner-toggle"
-      controls="outliner"
-      pressed={uiStore.isOutlinerOpen}
-      // TODO: should be a double caret icon
-      icon={uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
-      onClick={uiStore.toggleOutliner}
-      text="Toggle Outliner"
-      showLabel="never"
-      tabIndex={0}
-    />
-  );
 });
 
 const App = observer(() => {
@@ -141,3 +123,23 @@ const App = observer(() => {
 });
 
 export default App;
+
+const OutlinerToggle = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+
+  return (
+    <button
+      id="outliner-toggle"
+      className="btn btn-icon"
+      aria-controls="outliner"
+      aria-pressed={uiStore.isOutlinerOpen}
+      onClick={uiStore.toggleOutliner}
+      tabIndex={0}
+    >
+      <span className="btn-content-icon" aria-hidden="true">
+        {uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
+      </span>
+      <span className="btn-content-text hidden">Toggle Outliner</span>
+    </button>
+  );
+});

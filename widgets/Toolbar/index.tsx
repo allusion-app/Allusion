@@ -1,8 +1,7 @@
 import './toolbar.scss';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import { Tooltip } from '../popovers';
-import { RawPopover } from '../popovers/RawPopover';
 
 interface IToolbar {
   children: React.ReactNode;
@@ -15,9 +14,32 @@ interface IToolbar {
 
 const Toolbar = (props: IToolbar) => {
   const { children, id, label, labelledby, controls } = props;
+  const toolbar = useRef<HTMLDivElement>(null);
+
+  // Either the first item or last focused toolbar item needs to be part of the
+  // tab order.
+  // A data attribute is used to find items. A role would mess up other kinds
+  // of toolbar items like (radio) buttons and a class seems to always create
+  // more of a mess for JS and CSS.
+  useEffect(() => {
+    if (toolbar.current === null) {
+      return;
+    }
+
+    const lastFocusedItem = toolbar.current.querySelector('[data-toolbaritem][tabindex="0"]');
+    if (lastFocusedItem === null) {
+      const firstToolbarItem = toolbar.current.querySelector(
+        '[data-toolbaritem][tabindex="-1"]',
+      ) as HTMLElement | null;
+      if (firstToolbarItem !== null) {
+        firstToolbarItem.tabIndex = 0;
+      }
+    }
+  }, [children]);
 
   return (
     <div
+      ref={toolbar}
       role="toolbar"
       id={id}
       aria-label={label}
@@ -36,7 +58,6 @@ interface IBaseButton {
   onClick?: (event: React.MouseEvent) => void;
   showLabel?: 'always' | 'never';
   tooltip?: string;
-  tabIndex?: 0 | -1;
 }
 
 interface IToolbarButton extends IBaseButton {
@@ -64,7 +85,6 @@ const ToolbarButton = (props: IToolbarButton) => {
     expanded,
     controls,
     haspopup,
-    tabIndex,
   } = props;
   const content = (
     <span className="toolbar-button-content">
@@ -77,6 +97,7 @@ const ToolbarButton = (props: IToolbarButton) => {
   return (
     <button
       id={id}
+      data-toolbaritem
       className="toolbar-button"
       onClick={disabled ? undefined : onClick}
       role={role}
@@ -86,7 +107,6 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-controls={controls}
       aria-haspopup={haspopup}
       aria-expanded={expanded}
-      tabIndex={tabIndex ?? -1}
     >
       {tooltip ? <Tooltip content={tooltip} hoverDelay={1500} trigger={content} /> : content}
     </button>
@@ -99,7 +119,7 @@ interface IToolbarToggleButton extends IBaseButton {
 }
 
 const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls, tabIndex } = props;
+  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls } = props;
   return (
     <ToolbarButton
       id={id}
@@ -110,128 +130,12 @@ const ToolbarToggleButton = (props: IToolbarToggleButton) => {
       showLabel={showLabel}
       tooltip={tooltip}
       controls={controls}
-      tabIndex={tabIndex}
     />
   );
 };
 
-interface IToolbarSegment {
-  id?: string;
-  showLabel?: 'always' | 'never';
-  children: React.ReactNode;
-  label: string;
-}
-
-const ToolbarSegment = ({ id, label, children, showLabel }: IToolbarSegment) => {
-  return (
-    <div id={id} role="radiogroup" aria-label={label} className={showLabel}>
-      {children}
-    </div>
-  );
-};
-
-interface IToolbarSegmentButton extends IBaseButton {
-  checked: boolean;
-}
-
-const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
-  const { id, checked, onClick, icon, text, tooltip, showLabel, tabIndex } = props;
-  return (
-    <ToolbarButton
-      id={id}
-      role="radio"
-      checked={checked}
-      onClick={onClick}
-      icon={icon}
-      text={text}
-      tooltip={tooltip}
-      showLabel={showLabel}
-      tabIndex={tabIndex}
-    />
-  );
-};
-
-import { Menu, MenuChildren } from '../menus';
-
-interface IMenuButton {
-  id: string;
-  text: React.ReactText;
-  icon: JSX.Element;
-  showLabel?: 'always' | 'never';
-  tooltip?: string;
-  controls: string;
-  children: MenuChildren;
-  disabled?: boolean;
-}
-
-const MenuButton = (props: IMenuButton) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const container = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (container.current && isOpen) {
-      // Focus first focusable menu item
-      const first = container.current.querySelector('[role^="menuitem"]') as HTMLElement | null;
-      // The Menu component will handle setting the tab indices.
-      if (first !== null) {
-        first.focus();
-      }
-    }
-  }, [isOpen]);
-
-  const handleBlur = (e: React.FocusEvent) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      e.stopPropagation();
-      setIsOpen(false);
-      (e.currentTarget.previousElementSibling as HTMLElement).focus();
-    }
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    const target = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
-    if (target !== null) {
-      e.stopPropagation();
-      setIsOpen(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      setIsOpen(false);
-      (e.currentTarget.previousElementSibling as HTMLElement).focus();
-    }
-  };
-
-  return (
-    <RawPopover
-      popoverRef={container}
-      isOpen={isOpen}
-      target={
-        <ToolbarButton
-          id={props.id}
-          icon={props.icon}
-          text={props.text}
-          disabled={props.disabled}
-          showLabel={props.showLabel}
-          tooltip={props.tooltip}
-          onClick={() => setIsOpen(!isOpen)}
-          expanded={isOpen}
-          controls={props.controls}
-          haspopup="menu"
-        />
-      }
-      placement="bottom"
-      onBlur={handleBlur}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-    >
-      <Menu id={props.controls} labelledby={props.id}>
-        {props.children}
-      </Menu>
-    </RawPopover>
-  );
-};
+import { MenuButton } from './MenuButton';
+import { ToolbarSegment, ToolbarSegmentButton } from './ToolbarSegment';
 
 export {
   Toolbar,
