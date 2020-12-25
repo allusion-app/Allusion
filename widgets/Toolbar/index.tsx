@@ -6,7 +6,6 @@ import { Tooltip } from '../popovers';
 interface IToolbar {
   children: React.ReactNode;
   id?: string;
-  className?: string;
   label?: string;
   labelledby?: string;
   controls: string;
