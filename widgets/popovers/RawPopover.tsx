@@ -80,7 +80,7 @@ export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
   return (
     <>
       {target}
-      <Container {...properties}>{children}</Container>
+      <Container {...properties}>{isOpen ? children : null}</Container>
     </>
   );
 });

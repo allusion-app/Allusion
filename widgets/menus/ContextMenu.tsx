@@ -80,18 +80,14 @@ export const ContextMenu = ({ isOpen, x, y, children, close }: IContextMenu) => 
       e.stopPropagation();
       close();
     } else if (e.key === 'ArrowDown') {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const first: HTMLElement | null = container.current!.querySelector('[role^="menuitem"]');
+      const first: HTMLElement | null = e.currentTarget.querySelector('[role^="menuitem"]');
       if (first !== null) {
         e.stopPropagation();
         first.focus();
       }
     } else if (e.key === 'ArrowUp') {
       // FIXME: It's not performant but a context menu is usually shorter than a `Tree`.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const last: NodeListOf<HTMLElement> = container.current!.querySelectorAll(
-        '[role^="menuitem"]',
-      );
+      const last: NodeListOf<HTMLElement> = e.currentTarget.querySelectorAll('[role^="menuitem"]');
       if (last.length > 0) {
         e.stopPropagation();
         last[last.length - 1].focus();
