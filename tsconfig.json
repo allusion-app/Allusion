@@ -19,6 +19,6 @@
     "useDefineForClassFields": true,
     "strict": true
   },
-  "include": ["components/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts"],
+  "include": ["components/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts", "wasm/**/*"],
   "exclude": ["node_modules", "dist", "resources", "build"]
 }

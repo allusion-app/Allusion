@@ -89,12 +89,12 @@ const Inspector = observer(() => {
       selectionPreview = first.isBroken ? (
         <MissingImageFallback />
       ) : (
-        <img
-          src={first.absolutePath}
-          style={{ cursor: uiStore.isSlideMode ? undefined : 'zoom-in' }}
-          onClick={uiStore.enableSlideMode}
-        />
-      );
+          <img
+            src={first.absolutePath}
+            style={{ cursor: uiStore.isSlideMode ? undefined : 'zoom-in' }}
+            onClick={uiStore.enableSlideMode}
+          />
+        );
       information = <ImageInfo file={first} />;
     }
   } else {

@@ -6,6 +6,7 @@
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 
 let mainConfig = {
   mode: 'development',
@@ -64,12 +65,16 @@ let rendererConfig = {
     __dirname: false,
     __filename: false,
   },
+  experiments: {
+    asyncWebAssembly: true,
+  },
   resolve: {
-    extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
+    extensions: ['.js', '.json', '.ts', '.tsx', '.svg', '.wasm'],
     alias: {
       components: path.resolve(__dirname, 'components/'),
       resources: path.resolve(__dirname, 'resources/'),
       src: path.resolve(__dirname, 'src/'),
+      wasm: path.resolve(__dirname, 'wasm/'),
     },
   },
   module: {
@@ -124,6 +129,14 @@ let rendererConfig = {
         },
       },
       {
+        test: /\.wasm$/,
+        loader: 'file-loader',
+        type: 'javascript/auto',
+        options: {
+          name: '[path][name].[ext]',
+        },
+      },
+      {
         test: /\.node$/,
         use: 'node-loader',
       },
@@ -145,6 +158,9 @@ let rendererConfig = {
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './src/renderer/index.html'),
+    }),
+    new WasmPackPlugin({
+      crateDirectory: path.resolve(__dirname, './wasm/masonry'),
     }),
   ],
 };

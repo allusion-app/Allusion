@@ -1,19 +1,20 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { FixedSizeList } from 'react-window';
-import { observer } from 'mobx-react-lite';
-
-import { GridCell, ListCell } from './GalleryItem';
-import { ClientFile } from '../../../entities/File';
 import { IconSet } from 'components';
 import { MenuItem } from 'components/menu';
-import { throttle } from '../../utils';
 import { shell } from 'electron';
-import SlideMode from './SlideMode';
-import { RendererMessenger } from 'src/Messaging';
-import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
-import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { action, runInAction } from 'mobx';
+import { observer } from 'mobx-react-lite';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FixedSizeList } from 'react-window';
+import { RendererMessenger } from 'src/Messaging';
+import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
+import UiStore, { ViewMethod } from '../../stores/UiStore';
+import { throttle } from '../../utils';
+import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
+import { GridCell, ListCell } from './GalleryItem';
+import { computeMasonryLayout } from './Masonry';
+import SlideMode from './SlideMode';
+
 
 type Dimension = { width: number; height: number };
 type UiStoreProp = { uiStore: UiStore };
@@ -136,6 +137,11 @@ const GridGallery = observer((props: ILayoutProps) => {
 
     return () => clearTimeout(timeoutID);
   }, [contentRect.width, maxSize, minSize]);
+
+  useEffect(() => {
+    const imgs = fileList.map(x => ({ width: x.width, height: x.height }));
+    computeMasonryLayout(imgs, contentRect.width);
+  }, []);
 
   const numRows = useMemo(() => (numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0), [
     fileList.length,
@@ -555,7 +561,7 @@ const GridRow = observer((props: IGridRow) => {
   );
 });
 
-// const MasonryGallery = observer(({}: ILayoutProps) => {
+// const MasonryGallery = observer(({ }: ILayoutProps) => {
 //   const Styles: any = {
 //     textAlign: 'center',
 //     display: 'flex',
@@ -718,8 +724,8 @@ const onDrop = action(
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
 // https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
-// const { screen } = remote;
-// const { width } = screen.getPrimaryDisplay().workAreaSize;
+// const {screen} = remote;
+// const {width} = screen.getPrimaryDisplay().workAreaSize;
 // const CELL_SMALL = (width / 10) - 16;
 // const CELL_MEDIUM = (width / 6) - 8;
 // const CELL_LARGE = (width / 4) - 8;
