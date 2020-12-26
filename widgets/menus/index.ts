@@ -20,6 +20,7 @@ import {
   IMenuRadioItem,
   IMenuItemLink,
 } from './menu_items';
+import { ContextMenu } from './ContextMenu';
 
 export {
   Menu,
@@ -48,7 +49,6 @@ import {
   ToolbarSegmentButton,
   ToolbarToggleButton,
 } from '../Toolbar';
-import { ContextMenu } from '../popovers';
 
 export {
   ContextMenu,

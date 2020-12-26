@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { RawPopover } from './RawPopover';
-import { IMenu } from '../menus/menus';
+import { RawPopover } from '../popovers/RawPopover';
+import { IMenu } from './menus';
 
 export interface IContextMenu {
   isOpen: boolean;
