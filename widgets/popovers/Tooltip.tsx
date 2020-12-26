@@ -39,7 +39,7 @@ export const Tooltip = (props: ITooltip) => {
     const target = popover.current.previousElementSibling as HTMLElement;
 
     const handleMouseEnter = () => {
-      timerID.current = setTimeout(() => setIsOpen(true), hoverDelay)[Symbol.toPrimitive]();
+      timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
     };
 
     const handleMouseLeave = () => {
