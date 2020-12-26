@@ -144,6 +144,7 @@ function handleFocus(event: React.FocusEvent) {
 function handleMenuKeyDown(event: React.KeyboardEvent) {
   if (event.key === 'Enter') {
     if ((event.target as HTMLElement).matches('[role^="menuitem"]')) {
+      event.stopPropagation();
       (event.target as HTMLElement).click();
     }
   } else if (event.key === 'ArrowUp') {

@@ -55,7 +55,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     >
       <Flyout
         isOpen={isOpen}
-        onCancel={() => setIsOpen(false)}
+        cancel={() => setIsOpen(false)}
         placement="bottom-start"
         target={
           <div className="multiautocomplete-input">

@@ -11,8 +11,8 @@ export interface IFlyout {
   target: React.ReactElement<HTMLElement>;
   /** The popover content. */
   children: React.ReactNode;
-  /** Closes the flyout when the `Escape` key is pressed. */
-  onCancel: () => void;
+  /** Closes the flyout when the `Escape` key is pressed or clicked outside. */
+  cancel: () => void;
   placement?: Placement;
   /** Flip modifier settings */
   fallbackPlacements?: Placement[];
@@ -28,7 +28,7 @@ export const Flyout = (props: IFlyout) => {
     label,
     labelledby,
     describedby,
-    onCancel,
+    cancel,
     target,
     children,
     placement,
@@ -41,17 +41,16 @@ export const Flyout = (props: IFlyout) => {
   const handleBlur = (e: React.FocusEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       e.stopPropagation();
-      onCancel();
+      cancel();
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.stopPropagation();
-      onCancel();
+      cancel();
       // Returns focus to the `target` element.
-      const target = e.currentTarget.previousElementSibling as HTMLElement;
-      target.focus();
+      (e.currentTarget.previousElementSibling as HTMLElement).focus();
     }
   };
 

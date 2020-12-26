@@ -1,12 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useLayoutEffect,
-  CSSProperties,
-  useState,
-} from 'react';
+import React, { useEffect, useRef, useLayoutEffect, CSSProperties, useState } from 'react';
 
 import './tree.scss';
 
@@ -278,12 +271,6 @@ const TreeLeaf = ({
   onLeafKeyDown,
   className = '',
 }: ILeaf) => {
-  const handleKeyDown = useCallback((e) => onLeafKeyDown(e, nodeData, treeData), [
-    onLeafKeyDown,
-    nodeData,
-    treeData,
-  ]);
-
   return (
     <li
       className={className}
@@ -291,7 +278,7 @@ const TreeLeaf = ({
       aria-setsize={size}
       aria-posinset={pos}
       aria-selected={isSelected?.(nodeData, treeData)}
-      onKeyDown={handleKeyDown}
+      onKeyDown={(e) => onLeafKeyDown(e, nodeData, treeData)}
       role="treeitem"
       tabIndex={-1}
     >
@@ -335,27 +322,6 @@ const TreeBranch = ({
     }
   }, [expanded]);
 
-  const handleToggle = useCallback(() => toggleExpansion(nodeData, treeData), [
-    toggleExpansion,
-    nodeData,
-    treeData,
-  ]);
-
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLLIElement>) => onBranchKeyDown(event, nodeData, treeData),
-    [onBranchKeyDown, nodeData, treeData],
-  );
-
-  const handleTransitionEnd = useCallback(
-    (event: React.TransitionEvent) => {
-      if (event.currentTarget.parentElement!.clientHeight === 0) {
-        event.stopPropagation();
-        setEnd(overScan);
-      }
-    },
-    [overScan],
-  );
-
   return (
     <li
       className={className}
@@ -366,14 +332,14 @@ const TreeBranch = ({
       aria-level={level}
       aria-setsize={size}
       aria-posinset={pos}
-      onKeyDown={handleKeyDown}
+      onKeyDown={(e) => onBranchKeyDown(e, nodeData, treeData)}
     >
       <div className="label">
         <div
           className="default_caret"
           aria-pressed={expanded}
           aria-label="Expand"
-          onClick={handleToggle}
+          onClick={() => toggleExpansion(nodeData, treeData)}
         />
         {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
       </div>
@@ -381,7 +347,12 @@ const TreeBranch = ({
         <ul
           style={{ '--level': level } as React.CSSProperties}
           role="group"
-          onTransitionEnd={handleTransitionEnd}
+          onTransitionEnd={(e) => {
+            if (e.currentTarget.parentElement!.clientHeight === 0) {
+              e.stopPropagation();
+              setEnd(overScan);
+            }
+          }}
         >
           {children
             .slice(0, ancestorVisible ? end : 0)

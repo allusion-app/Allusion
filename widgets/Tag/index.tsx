@@ -7,7 +7,7 @@ import { IconSet } from '../Icons';
 
 import { getColorFromBackground } from 'src/frontend/utils';
 
-interface ITag extends React.HTMLAttributes<HTMLSpanElement> {
+interface ITag extends React.DOMAttributes<HTMLSpanElement> {
   text: string;
   /** background-color in CSS */
   color?: string;
@@ -23,11 +23,10 @@ const Tag = (props: ITag) => {
   );
 
   // Mutating those props is fine because the rest operator creates a new object.
-  restProperties.style = style;
-  restProperties.className = 'tag';
+  const properties = { ...restProperties, style, className: 'tag' };
 
   return (
-    <span {...restProperties}>
+    <span {...properties}>
       {text}
       {onRemove ? <IconButton icon={IconSet.CLOSE} text="Remove" onClick={onRemove} /> : null}
     </span>

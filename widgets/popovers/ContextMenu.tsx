@@ -8,8 +8,7 @@ export interface IContextMenu {
   x: number;
   y: number;
   children?: React.ReactElement<IMenu> | React.ReactFragment;
-  // TODO: Rename to close or cancel
-  onClose: () => void;
+  close: () => void;
 }
 
 /**
@@ -27,7 +26,7 @@ export interface IContextMenu {
  * `useContextMenu` hook can be used to create all the necessary state and
  * callbacks which can be used to set the state from deep within a tree.
  */
-export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) => {
+export const ContextMenu = ({ isOpen, x, y, children, close }: IContextMenu) => {
   const container = useRef<HTMLDivElement>(null);
   const boundingRect = useRef({
     width: 0,
@@ -63,7 +62,7 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
     const target = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
     if (target !== null) {
       e.stopPropagation();
-      onClose();
+      close();
     }
   };
 
@@ -71,23 +70,15 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
   const handleBlur = (e: React.FocusEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       e.stopPropagation();
-      onClose();
+      close();
     }
   };
-
-  // Applies focus to the menu item which allows to use keyboard navigation immediately
-  function handleMouseOver(event: React.MouseEvent) {
-    const target = (event.target as Element).closest('[role^="menuitem"]') as HTMLElement | null;
-    if (target !== null) {
-      target.focus();
-    }
-  }
 
   // Handles keyboard navigation if no menu item has been focused yet
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.stopPropagation();
-      onClose();
+      close();
     } else if (e.key === 'ArrowDown') {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const first: HTMLElement | null = container.current!.querySelector('[role^="menuitem"]');
@@ -125,3 +116,12 @@ export const ContextMenu = ({ isOpen, x, y, children, onClose }: IContextMenu) =
     </RawPopover>
   );
 };
+
+// Applies focus to the menu item which allows to use keyboard navigation immediately
+function handleMouseOver(event: React.MouseEvent) {
+  const target = (event.target as Element).closest('[role^="menuitem"]') as HTMLElement | null;
+  if (target !== null) {
+    event.stopPropagation();
+    target.focus();
+  }
+}

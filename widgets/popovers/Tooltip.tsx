@@ -31,37 +31,36 @@ export const Tooltip = (props: ITooltip) => {
 
   // Add event listeners to target element to show tooltip on hover
   useEffect(() => {
+    if (popover.current === null) {
+      return;
+    }
+    // SAFETY: It the trigger element does not exist or it is not an element,
+    // this is a developer error.
+    const target = popover.current.previousElementSibling as HTMLElement;
+
     const handleMouseEnter = () => {
-      timerID.current = (setTimeout(() => {
-        setIsOpen(true);
-      }, hoverDelay) as unknown) as number;
+      timerID.current = setTimeout(() => setIsOpen(true), hoverDelay)[Symbol.toPrimitive]();
     };
 
     const handleMouseLeave = () => {
-      if (timerID.current) {
+      if (timerID.current !== undefined) {
         clearTimeout(timerID.current);
         timerID.current = undefined;
       }
       setIsOpen(false);
     };
 
-    let target: HTMLElement | null;
-    if (popover.current !== null && popover.current.previousElementSibling !== null) {
-      target = popover.current.previousElementSibling as HTMLElement;
-      target.addEventListener('mouseenter', handleMouseEnter);
-      target.addEventListener('mouseleave', handleMouseLeave);
-    }
+    target.addEventListener('mouseenter', handleMouseEnter);
+    target.addEventListener('mouseleave', handleMouseLeave);
 
     // Clear timer on removing component
     return () => {
-      if (timerID.current) {
+      if (timerID.current !== undefined) {
         clearTimeout(timerID.current);
         timerID.current = undefined;
       }
-      if (target !== null) {
-        target.removeEventListener('mouseenter', handleMouseEnter);
-        target.removeEventListener('mouseleave', handleMouseLeave);
-      }
+      target.removeEventListener('mouseenter', handleMouseEnter);
+      target.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, [hoverDelay]);
 

@@ -46,7 +46,7 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
     >
       <Flyout
         isOpen={isOpen}
-        onCancel={() => setIsOpen(false)}
+        cancel={() => setIsOpen(false)}
         placement="bottom-start"
         target={
           <input
