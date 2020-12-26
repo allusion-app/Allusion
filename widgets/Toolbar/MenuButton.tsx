@@ -19,9 +19,9 @@ export const MenuButton = (props: IMenuButton) => {
   const [isOpen, setIsOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 
+  // Whenever the menu is opened, focus the first focusable menu item!
   useEffect(() => {
     if (container.current && isOpen) {
-      // Focus first focusable menu item
       const first: HTMLElement | null = container.current.querySelector('[role^="menuitem"]');
       // The Menu component will handle setting the tab indices.
       if (first !== null) {

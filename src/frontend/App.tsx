@@ -129,6 +129,7 @@ const OutlinerToggle = observer(() => {
 
   return (
     <button
+      autoFocus
       id="outliner-toggle"
       className="btn btn-icon"
       aria-controls="outliner"

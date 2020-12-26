@@ -65,6 +65,7 @@ function handleFocus(event: React.FocusEvent) {
   if (previous !== null) {
     previous.tabIndex = -1;
   }
+  target.tabIndex = 0;
   target.focus();
 }
 
