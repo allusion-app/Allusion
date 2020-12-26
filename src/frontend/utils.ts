@@ -43,7 +43,8 @@ export const timeoutPromise = <T>(timeMS: number, promise: Promise<T>): Promise<
   });
 };
 
-export const timeout = <T>(timeMS: number) => new Promise((resolve) => setTimeout(resolve, timeMS));
+export const timeout = <T>(timeMS: number): Promise<T> =>
+  new Promise((resolve) => setTimeout(resolve, timeMS));
 
 ///////////////////////////////
 //////// Promise utils ////////
@@ -75,12 +76,18 @@ export function promiseAllLimit<T>(
   progressCallback?: (progress: number) => void,
   cancel?: () => boolean,
 ): Promise<T[]> {
+  // Prevents returning a Promise that is never resolved!
+  if (collection.length === 0) {
+    return new Promise((resolve) => resolve([]));
+  }
+
   let i = 0;
   let jobsLeft = collection.length;
   const outcome: T[] = [];
   let rejected = false;
   // create a new promise and capture reference to resolve and reject to avoid nesting of code
-  let resolve: (o: T[]) => void, reject: (e: Error) => void;
+  let resolve: (o: T[]) => void;
+  let reject: (e: Error) => void;
   const pendingPromise: Promise<T[]> = new Promise(function (res, rej) {
     resolve = res;
     reject = rej;
