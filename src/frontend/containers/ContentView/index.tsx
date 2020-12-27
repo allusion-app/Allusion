@@ -39,8 +39,14 @@ const ContentView = () => {
     [uiStore],
   );
 
+  const handleBlur = (e: React.FocusEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      uiStore.clearFileSelection();
+    }
+  };
+
   return (
-    <main onKeyDown={handleShortcuts}>
+    <main onKeyDown={handleShortcuts} onBlur={handleBlur}>
       <Gallery />
     </main>
   );
@@ -81,7 +87,6 @@ const Gallery = observer(() => {
       ref={container}
       id="gallery-content"
       className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
-      onClick={uiStore.clearFileSelection}
     >
       <Layout
         contentRect={contentRect}
