@@ -1,22 +1,17 @@
-import React, { useContext, useCallback } from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { RendererMessenger } from 'src/Messaging';
-
 import StoreContext from '../../contexts/StoreContext';
-
 import UiStore from '../../stores/UiStore';
 import FileStore from '../../stores/FileStore';
 import LocationStore from '../../stores/LocationStore';
-
 import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import PopupWindow from './PopupWindow';
-
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../../utils';
-
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 
 interface ISettingsProps {
@@ -28,7 +23,7 @@ interface ISettingsProps {
 const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps) => {
   const thumbnailDirectory = uiStore.thumbnailDirectory;
 
-  const browseImportDir = useCallback(async () => {
+  const browseImportDir = async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
     });
@@ -43,9 +38,9 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
     // Todo: Provide option to move/copy the files in that directory (?)
     // Since the import dir could also contain non-allusion files, not sure if a good idea
     // But then there should be support for re-importing manually copied files
-  }, [locationStore]);
+  };
 
-  const browseThumbnailDirectory = useCallback(async () => {
+  const browseThumbnailDirectory = async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
       defaultPath: thumbnailDirectory,
@@ -73,7 +68,7 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
         f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
       }
     });
-  }, [fileStore.fileList, thumbnailDirectory, uiStore]);
+  };
 
   return (
     <div className="settings-form">

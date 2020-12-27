@@ -1,16 +1,12 @@
-import React, { useCallback } from 'react';
-import { runInAction } from 'mobx';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 
 import UiStore from 'src/frontend/stores/UiStore';
 import FileStore from 'src/frontend/stores/FileStore';
-
 import { IconSet } from 'widgets';
 import { ToolbarButton, ToolbarToggleButton } from 'widgets/menus';
-
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
 import TagFilesPopover from 'src/frontend/containers/AppToolbar/TagFilesPopover';
-
 import Searchbar from './Searchbar';
 import { SortCommand, ViewCommand } from './Menus';
 
@@ -66,13 +62,11 @@ const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: Fil
 
   const allFilesSelected = uiStore.fileSelection.size === fileStore.fileList.length;
   // If everything is selected, deselect all. Else, select all
-  const handleToggleSelect = useCallback(() => {
-    runInAction(() => {
-      uiStore.fileSelection.size === fileStore.fileList.length
-        ? uiStore.clearFileSelection()
-        : uiStore.selectAllFiles();
-    });
-  }, [fileStore, uiStore]);
+  const handleToggleSelect = () => {
+    uiStore.fileSelection.size === fileStore.fileList.length
+      ? uiStore.clearFileSelection()
+      : uiStore.selectAllFiles();
+  };
 
   return (
     <ToolbarToggleButton

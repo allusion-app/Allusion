@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 type Menu = JSX.Element | React.ReactFragment;
 
@@ -41,19 +41,20 @@ export default function useContextMenu(
     menu: config.current.initialMenu,
   });
 
-  const show = useCallback(
-    (x: number, y: number, menu: JSX.Element | JSX.Element[]) =>
-      dispatch({ open: true, menu, x, y }),
-    [],
-  );
+  // This is safe to do because React guarantees that the dispatch function's
+  // identity will stay the same across renders.
+  const contextMenuMethods = useRef({
+    show: (x: number, y: number, menu: JSX.Element | JSX.Element[]) => {
+      dispatch({ open: true, menu, x, y });
+    },
+    hide: () => {
+      if (config.current.resetOnClose) {
+        dispatch((state) => ({ ...state, menu: config.current.initialMenu, open: false }));
+      } else {
+        dispatch((state) => ({ ...state, open: false }));
+      }
+    },
+  });
 
-  const hide = useCallback(() => {
-    if (config.current.resetOnClose) {
-      dispatch((state) => ({ ...state, menu: config.current.initialMenu, open: false }));
-    } else {
-      dispatch((state) => ({ ...state, open: false }));
-    }
-  }, []);
-
-  return [state, { show, hide }];
+  return [state, contextMenuMethods.current];
 }

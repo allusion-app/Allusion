@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { HexColorPicker } from 'react-colorful';
 import 'react-colorful/dist/index.css';
@@ -31,16 +31,13 @@ const defaultColorOptions = [
 ];
 
 const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: UiStore }) => {
-  const handleChange = useCallback(
-    (color: string) => {
-      if (tag.isSelected) {
-        uiStore.colorSelectedTagsAndCollections(tag.id, color);
-      } else {
-        tag.setColor(color);
-      }
-    },
-    [tag, uiStore],
-  );
+  const handleChange = (color: string) => {
+    if (tag.isSelected) {
+      uiStore.colorSelectedTagsAndCollections(tag.id, color);
+    } else {
+      tag.setColor(color);
+    }
+  };
 
   return (
     <>

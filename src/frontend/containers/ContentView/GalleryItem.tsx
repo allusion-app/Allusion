@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { ensureThumbnail } from '../../ThumbnailGeneration';
@@ -132,16 +132,12 @@ const Thumbnail = observer(({ file, mounted, uiStore }: ICell) => {
     }
   }, [thumbnailPath, mounted]);
 
-  // When the thumbnail cannot be loaded, display an error
-  const handleImageError = useCallback(
-    (err) => {
-      console.log('Could not load image:', thumbnailPath, err);
-      setState(ThumbnailState.Error);
-    },
-    [thumbnailPath],
-  );
-
   if (state === ThumbnailState.Ok) {
+    // When the thumbnail cannot be loaded, display an error
+    const handleImageError = () => {
+      console.log('Could not load image:', thumbnailPath);
+      setState(ThumbnailState.Error);
+    };
     return <img src={thumbnailPath} onError={handleImageError} alt="" />;
   } else if (state === ThumbnailState.Loading) {
     return <div className="donut-loading" />;
