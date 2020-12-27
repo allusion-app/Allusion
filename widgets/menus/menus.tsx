@@ -67,7 +67,7 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
       setIsOpen(false);
       // Returns focus to the anchor element.
       (e.currentTarget.firstElementChild as HTMLElement).focus();
-    } else if (!disabled && !isOpen && (e.key === 'ArrowRight' || e.key === 'Enter')) {
+    } else if (!disabled && (e.key === 'ArrowRight' || e.key === 'Enter')) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const first: HTMLElement | null = e.currentTarget.lastElementChild!.querySelector(
         '[role^="menuitem"]',
@@ -82,20 +82,34 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
     }
   };
 
+  const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
+    if (!disabled && e.currentTarget.firstElementChild === e.target) {
+      (e.currentTarget.firstElementChild as HTMLElement).focus();
+      setIsOpen(true);
+    }
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+    if (
+      e.currentTarget.firstElementChild === e.target &&
+      !e.currentTarget.contains(e.relatedTarget as Node)
+    ) {
+      setIsOpen(false);
+    }
+  };
+
   return (
-    <li role="none" onBlur={handleBlur} onKeyDown={handleKeyDown}>
+    <li
+      role="none"
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <RawPopover
         popoverRef={menu}
         isOpen={isOpen}
-        target={
-          <MenuItemLink
-            expanded={isOpen}
-            setExpanded={setIsOpen}
-            text={text}
-            icon={icon}
-            disabled={disabled}
-          />
-        }
+        target={<MenuItemLink expanded={isOpen} text={text} icon={icon} disabled={disabled} />}
         container="ul"
         placement="right-start"
         fallbackPlacements={['right-end', 'right']}

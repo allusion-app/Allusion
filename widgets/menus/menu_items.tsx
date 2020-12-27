@@ -81,27 +81,9 @@ export interface IMenuItemLink {
   text: string;
   disabled?: boolean;
   expanded: boolean;
-  setExpanded: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const MenuItemLink = ({ expanded, setExpanded, disabled, icon, text }: IMenuItemLink) => {
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
-  const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
-    if (!disabled) {
-      e.currentTarget.focus();
-      setExpanded(true);
-    }
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
-    if (!(e.currentTarget.parentElement as HTMLElement).contains(e.relatedTarget as Node)) {
-      setExpanded(false);
-    }
-  };
-
+export const MenuItemLink = ({ expanded, disabled, icon, text }: IMenuItemLink) => {
   return (
     <a
       tabIndex={-1}
@@ -110,9 +92,6 @@ export const MenuItemLink = ({ expanded, setExpanded, disabled, icon, text }: IM
       aria-expanded={expanded}
       aria-disabled={disabled}
       href="#"
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       <span className="item-icon" aria-hidden>
         {icon}
