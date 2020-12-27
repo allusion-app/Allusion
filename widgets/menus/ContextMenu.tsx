@@ -61,7 +61,6 @@ export const ContextMenu = ({ isOpen, x, y, children, close }: IContextMenu) => 
   const handleClick = (e: React.MouseEvent) => {
     const target = (e.target as HTMLElement).closest('li[role^="menuitem"]') as HTMLElement | null;
     if (target !== null) {
-      e.stopPropagation();
       close();
     }
   };
@@ -69,7 +68,6 @@ export const ContextMenu = ({ isOpen, x, y, children, close }: IContextMenu) => 
   // Clicking or tabbing outside will close the context menu by default
   const handleBlur = (e: React.FocusEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      e.stopPropagation();
       close();
     }
   };
@@ -117,7 +115,6 @@ export const ContextMenu = ({ isOpen, x, y, children, close }: IContextMenu) => 
 function handleMouseOver(event: React.MouseEvent) {
   const target = (event.target as Element).closest('[role^="menuitem"]') as HTMLElement | null;
   if (target !== null) {
-    event.stopPropagation();
     target.focus();
   }
 }

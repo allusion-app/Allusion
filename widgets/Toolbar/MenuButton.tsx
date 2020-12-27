@@ -32,7 +32,6 @@ export const MenuButton = (props: IMenuButton) => {
 
   const handleBlur = (e: React.FocusEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      e.stopPropagation();
       setIsOpen(false);
       (e.currentTarget.previousElementSibling as HTMLElement).focus();
     }
@@ -41,7 +40,6 @@ export const MenuButton = (props: IMenuButton) => {
   const handleClick = (e: React.MouseEvent) => {
     const target = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
     if (target !== null) {
-      e.stopPropagation();
       setIsOpen(false);
     }
   };

@@ -58,7 +58,6 @@ function handleFocus(event: React.FocusEvent) {
     return;
   }
 
-  event.stopPropagation();
   const previous: HTMLElement | null = event.currentTarget.querySelector(
     '[role="option"][tabindex="0"]',
   );

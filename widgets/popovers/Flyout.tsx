@@ -40,7 +40,6 @@ export const Flyout = (props: IFlyout) => {
 
   const handleBlur = (e: React.FocusEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      e.stopPropagation();
       cancel();
     }
   };

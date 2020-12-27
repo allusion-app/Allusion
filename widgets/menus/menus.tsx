@@ -51,7 +51,6 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
 
   const handleBlur = (e: React.FocusEvent) => {
     if (isOpen && !e.currentTarget.contains(e.relatedTarget as Node)) {
-      e.stopPropagation();
       setIsOpen(false);
     }
   };
@@ -143,7 +142,6 @@ function handleFocus(event: React.FocusEvent) {
     return;
   }
 
-  event.stopPropagation();
   const previous: HTMLElement | null = event.currentTarget.querySelector(
     '[role^="menuitem"][tabindex="0"]',
   );
