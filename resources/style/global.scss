@@ -7,10 +7,25 @@ body,
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+
+  // Non-mac platform has a custom toolbar of 22px on top of the normal toolbar
+  --frame-height: 22px;
+  &[data-os='darwin'] {
+    // Mac has toolbar buttons integrated in the app toolbar
+    --frame-height: 0px;
+
+    #togglebar,
+    #toolbar {
+      -webkit-app-region: drag;
+      button {
+        -webkit-app-region: none;
+      }
+    }
+  }
+  // --app-top-offset: calc(var(--toolbar-height) + var(--frame-height));
 }
 
 // Page layout
-
 fieldset {
   margin: 0;
   margin-bottom: 0.5rem;
@@ -37,7 +52,6 @@ input {
 }
 
 // Global specific styles for the main window
-
 
 // Global specific styles for the preview window
 #preview {
@@ -123,7 +137,6 @@ img {
 ///////////////////////////////// Theme Colours /////////////////////////////////
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this
-
 
 ///////////////////////////////// Media Queries /////////////////////////////////
 @media (max-width: 960px) {

@@ -80,7 +80,7 @@
 .thumbnail {
   border-radius: 0.25rem;
   grid-area: image;
-  max-width: calc(var(--thumbnail-size) *1.5);
+  max-width: calc(var(--thumbnail-size) * 1.5);
   height: var(--thumbnail-size);
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
@@ -224,7 +224,7 @@
     white-space: nowrap;
     display: flex;
     justify-content: stretch;
-  
+
     [role='gridcell']:last-child {
       margin-right: 0;
     }
@@ -267,7 +267,7 @@
 
 // Slide view:
 #zoomableImage {
-  height: calc(100vh - var(--toolbar-height));
+  height: calc(100vh - var(--toolbar-height) - var(--frame-height));
   display: flex;
   flex-direction: column;
 

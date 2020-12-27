@@ -18,6 +18,7 @@ import WelcomeDialog from './containers/WelcomeDialog';
 import StoreContext from './contexts/StoreContext';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { Toaster as CustomToaster } from './components/Toaster';
+import WindowsToolbar from './containers/Toolbar/WindowsToolbar';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -37,15 +38,15 @@ const OutlinerToggle = observer(() => {
         <div className="windowBtn" id="windowMinimize"></div>
         <div className="windowBtn" id="windowMaximize"></div>
       </div>
-    
+
       <ToolbarToggleButton
-      controls="outliner"
-      pressed={uiStore.isOutlinerOpen}
-      icon={uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
-      onClick={uiStore.toggleOutliner}
-      text="Toggle Outliner"
-      showLabel="never"
-      tabIndex={0}
+        controls="outliner"
+        pressed={uiStore.isOutlinerOpen}
+        icon={uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
+        onClick={uiStore.toggleOutliner}
+        text="Toggle Outliner"
+        showLabel="never"
+        tabIndex={0}
       />
     </div>
   );
@@ -123,7 +124,11 @@ const App = observer(() => {
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
       <div data-os={PLATFORM} id="layout-container" className={`${themeClass} ${uiStore.isOutlinerOpen ? '' : 'outlinerClosed'} ${uiStore.isInspectorOpen ? '' : 'inspectorClosed'}`} onClick={handleClick}>
+
+        {PLATFORM !== 'darwin' && <WindowsToolbar />}
+
         <ErrorBoundary>
+
           <OutlinerToggle />
 
           <Toolbar />

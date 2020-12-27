@@ -5,14 +5,15 @@ html {
 
 body {
   margin: 0px;
-  font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Oxygen-Sans, Ubuntu, Cantarell, ""Helvetica Neue"", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, '' Segoe UI '', Roboto, Oxygen-Sans, Ubuntu,
+    Cantarell, '' Helvetica Neue '', sans-serif;
   font-size: 0.8125rem;
   position: relative;
 }
 
 #togglebar {
   position: absolute;
-  top: 0;
+  top: var(--frame-height);
   left: 0;
   width: var(--outliner-width);
   height: var(--toolbar-height);
@@ -22,17 +23,11 @@ body {
   align-items: center;
   justify-content: space-between;
   z-index: 20;
-
-  -webkit-app-region: drag;
-
-  button {
-    -webkit-app-region: none;
-  }
 }
 
 #toolbar {
   position: absolute;
-  top: 0;
+  top: var(--frame-height);
   left: var(--outliner-width);
   right: 0;
   height: var(--toolbar-height);
@@ -40,12 +35,6 @@ body {
   padding: 0 0.5rem;
   display: flex;
   align-items: center;
-
-  -webkit-app-region: drag;
-  
-  button {
-    -webkit-app-region: none;
-  }
 }
 
 #outliner {
@@ -54,7 +43,7 @@ body {
   bottom: 0;
   left: 0;
   width: var(--outliner-width);
-  padding-top: var(--toolbar-height);
+  padding-top: calc(var(--toolbar-height) + var(--frame-height));
   box-sizing: border-box;
   background: var(--background-color-alt);
   border-right: 0.0625rem solid var(--border-dark);
@@ -62,7 +51,7 @@ body {
 
 #contentArea {
   position: absolute;
-  top: var(--toolbar-height);
+  top: calc(var(--toolbar-height) + var(--frame-height));
   left: var(--outliner-width);
   right: var(--inspector-width);
   bottom: 0;
@@ -74,7 +63,7 @@ body {
 
 #inspector {
   position: absolute;
-  top: var(--toolbar-height);
+  top: calc(var(--toolbar-height) + var(--frame-height));
   bottom: 0;
   right: 0;
   width: var(--inspector-width);

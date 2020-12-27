@@ -1,5 +1,54 @@
 ///////////////////////////////// Toolbar /////////////////////////////////
 
+#windows-frame-bar {
+  -webkit-app-region: drag;
+  position: absolute;
+  top: 0;
+  z-index: 100;
+
+  height: var(--frame-height);
+  width: 100%;
+  // background-color: var(--background-color); // TODO: darker?
+  background-color: $dark-gray0;
+  color: $dark-gray6;
+
+  > span {
+    margin-top: 3px;
+    text-align: center;
+    width: calc(100% - 3 * 28px);
+    display: inline-block;
+  }
+
+  #window-system-buttons {
+    // The font for windows system icons
+    font-family: 'Segoe MDL2 Assets';
+    font-size: 10px;
+
+    display: flex;
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    > span {
+      -webkit-app-region: none;
+      height: 22px;
+      width: 28px;
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background-color: $dark-gray1;
+      }
+
+      &:last-child:hover {
+        background-color: $danger;
+      }
+    }
+  }
+}
 
 // Invisible region in order to still resize the window by dragging from the top when not maximized
 #window-resize-area {
@@ -19,7 +68,7 @@
 .floating-dialog {
   position: absolute;
   z-index: 200;
-  top: var(--toolbar-height);
+  top: calc(var(--toolbar-height);
   left: calc(50% - 200px);
 
   background-color: var(--background-color);

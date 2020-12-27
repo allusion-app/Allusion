@@ -2,4 +2,5 @@ body {
   --outliner-width: 12rem;
   --inspector-width: 18rem;
   --toolbar-height: 3rem;
+  --frame-height: 0px; // only for non-darwin platforms: set in layout container
 }

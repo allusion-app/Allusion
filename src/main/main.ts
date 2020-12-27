@@ -68,10 +68,7 @@ function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
-    // Fixed it by adding a margin-top to the body and giving html background color so it blends in
-    // But new issue arissed in fullscreen than
-    frame: !isMac,
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
@@ -84,7 +81,7 @@ function createWindow() {
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     title: 'Allusion',
-    show: false,
+    show: false, // only show once initial loading is finished
 
     // Vibrancy effect for MacOS
     ...(isMac ? {
