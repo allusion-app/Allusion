@@ -348,7 +348,7 @@ const TreeBranch = ({
           style={{ '--level': level } as React.CSSProperties}
           role="group"
           onTransitionEnd={(e) => {
-            if (e.currentTarget.parentElement!.clientHeight === 0) {
+            if (!expanded) {
               e.stopPropagation();
               setEnd(overScan);
             }

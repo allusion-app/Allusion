@@ -28,7 +28,7 @@ import { CustomKeyDict, IExpansionState } from '../../types';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 
 import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
-import { Collapse } from 'src/frontend/components/Transition';
+import { Collapse } from 'src/frontend/components/Collapse';
 
 import { AppToaster } from 'src/frontend/App';
 

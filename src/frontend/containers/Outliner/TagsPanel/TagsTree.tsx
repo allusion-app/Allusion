@@ -16,7 +16,7 @@ import { Toolbar, ToolbarButton, ContextMenu } from 'widgets/menus';
 import { ITreeItem, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/Tree';
 
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
-import { Collapse } from 'src/frontend/components/Transition';
+import { Collapse } from 'src/frontend/components/Collapse';
 
 import { TagItemContextMenu } from './ContextMenu';
 import {

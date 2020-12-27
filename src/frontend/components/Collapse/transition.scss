@@ -1,0 +1,18 @@
+.collapse {
+  > * {
+    transition: transform 0.2s ease-out;
+  }
+}
+
+.collapse {
+  height: 100%;
+  transition: height 0.2s ease-out;
+}
+
+.collapse[data-transition-in='false'] {
+  height: 0;
+
+  > * {
+    transform: translateY(-100%);
+  }
+}

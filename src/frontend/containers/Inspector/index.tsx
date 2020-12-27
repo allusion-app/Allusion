@@ -48,6 +48,14 @@ const Inspector = observer(() => {
 
 export default Inspector;
 
+const Panel = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
+  return (
+    <aside id="inspector" style={isOpen ? undefined : { width: '0' }}>
+      {isOpen ? children : null}
+    </aside>
+  );
+};
+
 interface IContent {
   preview: React.ReactNode;
   information: React.ReactNode;
@@ -80,13 +88,5 @@ const Placeholder = () => {
         <h2>No image selected</h2>
       </header>
     </section>
-  );
-};
-
-const Panel = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
-  return (
-    <aside id="inspector" style={isOpen ? undefined : { width: '0' }}>
-      {isOpen ? children : null}
-    </aside>
   );
 };
