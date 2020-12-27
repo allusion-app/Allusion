@@ -238,7 +238,11 @@ class UiStore {
   }
 
   @action.bound toggleInspector() {
-    this.setIsInspectorOpen(!this.isInspectorOpen);
+    this.isInspectorOpen = !this.isInspectorOpen;
+  }
+
+  @action.bound openInspector() {
+    this.isInspectorOpen = true;
   }
 
   @action.bound toggleSettings() {
@@ -308,7 +312,7 @@ class UiStore {
 
   /////////////////// Selection actions ///////////////////
   @action.bound selectFile(file: ClientFile, clear?: boolean) {
-    if (clear) {
+    if (clear === true) {
       this.clearFileSelection();
     }
     this.fileSelection.add(file);
@@ -562,7 +566,7 @@ class UiStore {
         const prefs = JSON.parse(prefsString);
         this.setTheme(prefs.theme);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
-        this.setIsInspectorOpen(prefs.isInspectorOpen);
+        this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
         this.setMethod(prefs.method);
         this.setThumbnailSize(prefs.thumbnailSize);
@@ -626,10 +630,6 @@ class UiStore {
 
   @action private setIsOutlinerOpen(value: boolean = true) {
     this.isOutlinerOpen = value;
-  }
-
-  @action private setIsInspectorOpen(value: boolean = false) {
-    this.isInspectorOpen = value;
   }
 
   @action private setMethod(method: ViewMethod = ViewMethod.Grid) {

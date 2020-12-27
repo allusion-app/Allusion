@@ -599,19 +599,14 @@ const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile } & UiStorePr
     uiStore.toggleSlideMode();
   };
 
-  const handlePreviewWindow = action(() => {
-    if (!uiStore.fileSelection.has(file)) {
-      uiStore.selectFile(file, true);
-    }
+  const handlePreviewWindow = () => {
+    uiStore.selectFile(file, true);
     uiStore.openPreviewWindow();
-  });
+  };
 
   const handleInspect = () => {
-    uiStore.clearFileSelection();
-    uiStore.selectFile(file);
-    if (!uiStore.isInspectorOpen) {
-      uiStore.toggleInspector();
-    }
+    uiStore.selectFile(file, true);
+    uiStore.openInspector();
   };
 
   return (
