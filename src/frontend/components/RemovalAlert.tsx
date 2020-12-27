@@ -63,19 +63,16 @@ export const FileRemoval = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const selection = uiStore.fileSelection;
 
-  const handleConfirm = (() => {
-    const confirm = () => {
-      uiStore.closeToolbarFileRemover();
-      const files = [];
-      for (const file of selection) {
-        if (file.isBroken === true) {
-          files.push(file);
-        }
+  const handleConfirm = action(() => {
+    uiStore.closeToolbarFileRemover();
+    const files = [];
+    for (const file of selection) {
+      if (file.isBroken === true) {
+        files.push(file);
       }
-      fileStore.deleteFiles(files);
-    };
-    return action(confirm);
-  })();
+    }
+    fileStore.deleteFiles(files);
+  });
 
   return (
     <RemovalAlert
