@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -83,18 +83,14 @@ const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
 
 const CriteriaList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   // Open advanced search when clicking one of the criteria (but not their delete buttons)
-  const handleTagClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        e.stopPropagation();
-        uiStore.toggleAdvancedSearch();
-      }
-    },
-    [uiStore],
-  );
+  const handleTagClick = (e: React.MouseEvent) => {
+    if (e.currentTarget === e.target || (e.target as HTMLElement).matches('.tag')) {
+      uiStore.toggleAdvancedSearch();
+    }
+  };
 
   return (
-    <div className="input">
+    <div className="input" onClick={handleTagClick}>
       {uiStore.searchCriteriaList.map((c, i) => {
         let label = c.toString();
         if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
@@ -103,14 +99,7 @@ const CriteriaList = observer(({ uiStore, tagStore }: ISearchListProps) => {
             label = label.concat(tag.name);
           }
         }
-        return (
-          <Tag
-            key={i}
-            text={label}
-            onClick={handleTagClick}
-            onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
-          />
-        );
+        return <Tag key={i} text={label} onRemove={() => uiStore.removeSearchCriteriaByIndex(i)} />;
       })}
     </div>
   );

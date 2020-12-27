@@ -331,7 +331,6 @@ const GridGallery = observer((props: ILayoutProps) => {
 
 const ListGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
-  const { fileList } = fileStore;
   const cellSize = useMemo(() => getThumbnailSize(uiStore.thumbnailSize)[1], [
     uiStore.thumbnailSize,
   ]);
@@ -373,10 +372,10 @@ const ListGallery = observer((props: ILayoutProps) => {
     (e: React.MouseEvent) => {
       const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
       if (index !== undefined) {
-        runInAction(() => select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
+        runInAction(() => select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
       }
     },
-    [fileList, select],
+    [fileStore, select],
   );
 
   const handleDoubleClick = useCallback(
@@ -386,11 +385,11 @@ const ListGallery = observer((props: ILayoutProps) => {
         return;
       }
       runInAction(() => {
-        uiStore.selectFile(fileList[index], true);
+        uiStore.selectFile(fileStore.fileList[index], true);
         uiStore.enableSlideMode();
       });
     },
-    [fileList, uiStore],
+    [fileStore, uiStore],
   );
 
   const handleContextMenu = useCallback(
@@ -400,7 +399,7 @@ const ListGallery = observer((props: ILayoutProps) => {
         return;
       }
       runInAction(() => {
-        const file = fileList[index];
+        const file = fileStore.fileList[index];
         showContextMenu(e.clientX, e.clientY, [
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
@@ -411,25 +410,25 @@ const ListGallery = observer((props: ILayoutProps) => {
         ]);
       });
     },
-    [fileList, fileStore, showContextMenu, uiStore],
+    [fileStore, showContextMenu, uiStore],
   );
 
   const handleDragStart = useCallback(
     (e: React.DragEvent) => {
       const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
-      onDragStart(e, index, uiStore, fileList);
+      runInAction(() => onDragStart(e, index, uiStore, fileStore.fileList));
     },
-    [fileList, uiStore],
+    [fileStore, uiStore],
   );
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLElement>) => {
       if (e.dataTransfer.types.includes(DnDType)) {
         const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
-        onDrop(e, index, uiStore, fileList);
+        runInAction(() => onDrop(e, index, uiStore, fileStore.fileList));
       }
     },
-    [fileList, uiStore],
+    [fileStore, uiStore],
   );
 
   const Row = useCallback(
@@ -450,7 +449,7 @@ const ListGallery = observer((props: ILayoutProps) => {
     <div
       className="list"
       role="grid"
-      aria-rowcount={fileList.length}
+      aria-rowcount={fileStore.fileList.length}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onContextMenu={handleContextMenu}
@@ -465,8 +464,8 @@ const ListGallery = observer((props: ILayoutProps) => {
         height={contentRect.height}
         width={contentRect.width}
         itemSize={cellSize}
-        itemCount={fileList.length}
-        itemData={fileList}
+        itemCount={fileStore.fileList.length}
+        itemData={fileStore.fileList}
         itemKey={getItemKey}
         overscanCount={2}
         children={Row}

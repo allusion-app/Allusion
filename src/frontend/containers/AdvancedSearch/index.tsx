@@ -12,16 +12,8 @@ import { Query, defaultQuery, fromCriteria, intoCriteria } from './query';
 import './search.scss';
 
 export const AdvancedSearchDialog = observer(() => {
-  const {
-    uiStore: {
-      searchCriteriaList,
-      replaceSearchCriterias,
-      isAdvancedSearchOpen,
-      closeAdvancedSearch,
-      searchMatchAny,
-      toggleSearchMatchAny,
-    },
-  } = useContext(StoreContext);
+  const { uiStore } = useContext(StoreContext);
+  const { searchCriteriaList, isAdvancedSearchOpen } = uiStore;
   const [form, setForm] = useState(new Map<ID, Query>());
 
   // Initialize form with current queries. When the form is closed, all inputs
@@ -46,15 +38,13 @@ export const AdvancedSearchDialog = observer(() => {
   }, [isAdvancedSearchOpen, searchCriteriaList]);
 
   const add = useCallback(() => {
-    setForm((form) => {
-      return new Map(form.set(generateId(), defaultQuery('tags')));
-    });
+    setForm((form) => new Map(form.set(generateId(), defaultQuery('tags'))));
   }, []);
 
   const search = useCallback(() => {
-    replaceSearchCriterias(Array.from(form.values(), intoCriteria));
-    closeAdvancedSearch();
-  }, [closeAdvancedSearch, form, replaceSearchCriterias]);
+    uiStore.replaceSearchCriterias(Array.from(form.values(), intoCriteria));
+    uiStore.closeAdvancedSearch();
+  }, [form, uiStore]);
 
   const reset = useCallback(() => {
     setForm(new Map().set(generateId(), defaultQuery('tags')));
@@ -63,7 +53,7 @@ export const AdvancedSearchDialog = observer(() => {
   return (
     <Dialog
       open={isAdvancedSearchOpen}
-      onCancel={closeAdvancedSearch}
+      onCancel={uiStore.closeAdvancedSearch}
       labelledby="dialog-title"
       describedby="search-form"
     >
@@ -71,7 +61,7 @@ export const AdvancedSearchDialog = observer(() => {
       <h2 id="dialog-title" className="dialog-title">
         Advanced Search
       </h2>
-      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={closeAdvancedSearch} />
+      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={uiStore.closeAdvancedSearch} />
       <form role="search" id="search-form" className="dialog-information">
         {Array.from(form.entries(), ([id, query]) => (
           <Field key={id} id={id} query={query} dispatch={setForm} removable={form.size > 1} />
@@ -84,14 +74,14 @@ export const AdvancedSearchDialog = observer(() => {
             <Radio
               label="Any"
               value="any"
-              checked={searchMatchAny}
-              onChange={toggleSearchMatchAny}
+              checked={uiStore.searchMatchAny}
+              onChange={uiStore.toggleSearchMatchAny}
             />
             <Radio
               label="All"
               value="all"
-              checked={!searchMatchAny}
-              onChange={toggleSearchMatchAny}
+              checked={!uiStore.searchMatchAny}
+              onChange={uiStore.toggleSearchMatchAny}
             />
           </RadioGroup>
         </div>
