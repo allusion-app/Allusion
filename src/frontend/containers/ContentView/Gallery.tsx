@@ -6,19 +6,14 @@ import { shell } from 'electron';
 
 import { throttle } from '../../utils';
 import { RendererMessenger } from 'src/Messaging';
-
 import { ClientFile } from 'src/entities/File';
-
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
-
 import { IconSet } from 'widgets';
 import { MenuItem } from 'widgets/menus';
-
 import { GridCell, ListCell } from './GalleryItem';
 import SlideMode from './SlideMode';
-
-import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
+import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/dnd';
 
 type Dimension = { width: number; height: number };
 type UiStoreProp = { uiStore: UiStore };

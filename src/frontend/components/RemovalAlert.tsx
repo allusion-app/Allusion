@@ -4,9 +4,7 @@ import { action } from 'mobx';
 
 import { ClientLocation } from 'src/entities/Location';
 import { ClientTag } from 'src/entities/Tag';
-
 import StoreContext from 'src/frontend/contexts/StoreContext';
-
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 

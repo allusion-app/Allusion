@@ -7,6 +7,14 @@ import {
   NumberOperatorType,
   BinaryOperatorType,
 } from 'src/entities/SearchCriteria';
+import { FileSearchCriteria } from 'src/frontend/stores/UiStore';
+import {
+  ClientStringSearchCriteria,
+  ClientIDSearchCriteria,
+  ClientDateSearchCriteria,
+  ClientNumberSearchCriteria,
+} from 'src/entities/SearchCriteria';
+import { CustomKeyDict } from '../types';
 
 export type Query =
   | IQuery<'name' | 'absolutePath', StringOperatorType, string>
@@ -50,15 +58,6 @@ export function defaultQuery(key: QueryKey): Query {
     };
   }
 }
-
-import { FileSearchCriteria } from 'src/frontend/stores/UiStore';
-import {
-  ClientStringSearchCriteria,
-  ClientIDSearchCriteria,
-  ClientDateSearchCriteria,
-  ClientNumberSearchCriteria,
-} from 'src/entities/SearchCriteria';
-import { CustomKeyDict } from '../types';
 
 const BYTES_IN_MB = 1024 * 1024;
 

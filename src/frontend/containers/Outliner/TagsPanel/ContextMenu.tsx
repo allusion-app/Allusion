@@ -4,17 +4,13 @@ import { HexColorPicker } from 'react-colorful';
 import 'react-colorful/dist/index.css';
 
 import { formatTagCountText } from 'src/frontend/utils';
-
 import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
-
 import { IconSet } from 'widgets';
 import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
-
-import { Action, Factory } from './StateReducer';
+import { Action, Factory } from './state';
 
 const defaultColorOptions = [
   { title: 'Eminence', color: '#5f3292' },

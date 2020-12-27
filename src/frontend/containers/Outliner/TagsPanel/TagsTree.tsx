@@ -5,19 +5,14 @@ import { observer } from 'mobx-react-lite';
 import { ID } from 'src/entities/ID';
 import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
-
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
-
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
-
 import { IconSet, Tree } from 'widgets';
 import { Toolbar, ToolbarButton, ContextMenu } from 'widgets/menus';
 import { ITreeItem, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/Tree';
-
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
-
 import { TagItemContextMenu } from './ContextMenu';
 import {
   DnDType,
@@ -28,12 +23,10 @@ import {
   DnDAttribute,
   DragItem,
   handleDragOverAndLeave,
-} from './DnD';
-
+} from './dnd';
 import { formatTagCountText } from 'src/frontend/utils';
-
 import { IExpansionState } from '../../types';
-import { Action, State, Factory, reducer } from './StateReducer';
+import { Action, State, Factory, reducer } from './state';
 
 interface ILabelProps {
   text: string;
