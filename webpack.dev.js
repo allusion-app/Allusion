@@ -7,6 +7,7 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 let mainConfig = {
   mode: 'development',
@@ -67,6 +68,10 @@ let rendererConfig = {
   },
   experiments: {
     asyncWebAssembly: true,
+  },
+  externals: {
+    // don't let webpack mess with wasm, load it at runtime
+    wasm: 'wasm',
   },
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg', '.wasm'],
@@ -161,6 +166,9 @@ let rendererConfig = {
     }),
     new WasmPackPlugin({
       crateDirectory: path.resolve(__dirname, './wasm/masonry'),
+    }),
+    new CopyPlugin({
+      patterns: [{ from: 'wasm/masonry/pkg', to: 'wasm/masonry/pkg' }],
     }),
   ],
 };

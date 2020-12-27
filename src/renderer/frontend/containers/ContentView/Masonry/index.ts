@@ -2,18 +2,25 @@ import { wrap } from 'comlink';
 import MasonryWorker, { Mason } from './masonry.worker';
 
 import * as WASM from 'wasm/masonry/pkg/masonry_bg.wasm';
-import WASM2 from 'wasm/masonry/pkg/masonry_bg.wasm';
+import { default as WASM2 } from 'wasm/masonry/pkg/masonry_bg.wasm';
 
 import * as Masonry from 'wasm/masonry/pkg';
 
+
 export async function computeMasonryLayout(imgs: { width: number, height: number }[], containerWidth: number) {
 
-  console.log(WASM, WASM.layout_new, typeof WASM, WASM.memory, Object.keys(WASM), (WASM as any).default);
+  console.log(WASM, (WASM as any).default, WASM.layout_new, typeof WASM, WASM.memory, Object.keys(WASM), (WASM as any).default);
   console.log(WASM2, WASM2.layout_new, typeof WASM2, WASM2.memory)
 
-  import('wasm/masonry/pkg/masonry').then((module) => {
+  const fetchRes = await fetch('wasm/masonry/pkg/masonry_bg.wasm');
+  console.log(fetchRes);
 
-    console.log(module.Layout)
+  const x = await import('wasm/masonry/pkg/masonry.js');
+  console.log(x, x.default, x.Layout.new(imgs.length, 300))
+
+  import(/*webpackIgnore: true*/ 'wasm/masonry/pkg/masonry').then((module) => {
+
+    console.log('HELLO WORLD', module.Layout)
     const layout2 = Masonry.Layout.new(imgs.length, 300);
     const itemsPtr = layout2.items();
     console.log(itemsPtr);

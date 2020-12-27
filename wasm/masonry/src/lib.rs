@@ -14,9 +14,10 @@ pub fn greet(name: &str) {
 
 // TODO: Could also use the google photos layout: Rows of masonry layouts, each with a header (e.g. the date)
 #[wasm_bindgen]
+#[derive(Clone)]
 pub struct Transform {
-    srcWidth: u16,
-    srcHeight: u16,
+    src_width: u16,
+    src_height: u16,
     width: u16,
     height: u16,
     left: u16,
@@ -33,19 +34,20 @@ pub struct Layout {
 impl Layout {
     // ...
 
-    pub fn new(length: u32, thumbnailSize: u32) -> Layout {
-        let items = (0..length)
-            .map(|i| Transform {
-                srcWidth: 0,
-                srcHeight: 0,
-                width: 0,
-                height: 0,
-                top: 0,
-                left: 0,
-            })
-            .collect();
-
-        Layout { items }
+    pub fn new(length: u32, thumbnail_size: u32) -> Layout {
+        Layout {
+            items: vec![
+                Transform {
+                    src_width: 0,
+                    src_height: 0,
+                    width: 0,
+                    height: 0,
+                    top: 0,
+                    left: 0,
+                };
+                length as usize
+            ],
+        }
     }
 
     // TODO: resize/re-init func
@@ -63,58 +65,58 @@ impl Layout {
     //     return self.items[index]
     // }
 
-    pub fn compute(&mut self, containerWidth: u32, padding: u32) -> i32 {
+    pub fn compute(&mut self, container_width: u32, padding: u32) -> i32 {
         // TODO: Loop over images until containerWidth is reached:
         // Either adjust row height or add/remove item to make it fit full-width, whatever is the closest
         // Could also have an approximated version for very large lists, and just properly compute for what in and close to the viewport
 
-        let baseRowHeight = 220;
+        let base_row_height = 220;
 
-        let mut topOffset = 0;
-        let mut curRowWidth = 0;
-        let mut firstRowItemIndex = 0;
+        let mut top_offset = 0;
+        let mut cur_row_width = 0;
+        let mut first_row_item_index = 0;
 
         for i in 0..self.items.len() {
             let item = &mut self.items[i];
-            let mut relWidth =
-                ((baseRowHeight as f32 / item.srcWidth as f32) * item.srcHeight as f32);
-            item.width = relWidth as u16;
-            item.top = topOffset as u16;
-            item.height = baseRowHeight;
+            let rel_width =
+                (base_row_height as f32 / item.src_width as f32) * item.src_height as f32;
+            item.width = rel_width as u16;
+            item.top = top_offset as u16;
+            item.height = base_row_height;
 
-            item.left = curRowWidth as u16;
+            item.left = cur_row_width as u16;
             // Check if adding this image to the row would exceed the container width
-            let newRowWidth = curRowWidth + relWidth as u32 + padding;
+            let new_row_width = cur_row_width + rel_width as u32 + padding;
 
             // TODO: Edge case for last row: not always full width
-            if newRowWidth > containerWidth {
+            if new_row_width > container_width {
                 // If it exceeds it, position all current items in the row accordingly and start a new row for this item
                 // Position all items in this row properly after the row is filled, needs to expand a little
 
                 // Now that the size of this row is definitive: Set the size of all row items
-                let correctionFactor = containerWidth as f32 / newRowWidth as f32;
-                for j in firstRowItemIndex..i {
-                    let prevItem = &mut self.items[j];
-                    prevItem.left = (correctionFactor * prevItem.left as f32) as u16;
-                    prevItem.width = (prevItem.width as f32 * correctionFactor) as u16;
-                    prevItem.height = (prevItem.height as f32 * correctionFactor) as u16;
+                let correction_factor = container_width as f32 / new_row_width as f32;
+                for j in first_row_item_index..i {
+                    let prev_item = &mut self.items[j];
+                    prev_item.left = (correction_factor * prev_item.left as f32) as u16;
+                    prev_item.width = (prev_item.width as f32 * correction_factor) as u16;
+                    prev_item.height = (prev_item.height as f32 * correction_factor) as u16;
                 }
 
                 // Start a new row
-                curRowWidth = 0;
-                firstRowItemIndex = i + i;
-                topOffset += padding as u32 + (baseRowHeight as f32 * correctionFactor) as u32;
+                cur_row_width = 0;
+                first_row_item_index = i + i;
+                top_offset += padding as u32 + (base_row_height as f32 * correction_factor) as u32;
             }
         }
         // Return the height of the container: If a new row was just started, no need to add last item's height
-        if curRowWidth != 0 {
-            let lastItem = self.items.last();
-            return match lastItem {
-                Some(item) => topOffset as i32 + item.height as i32,
-                None => topOffset as i32,
+        if cur_row_width != 0 {
+            let last_item = self.items.last();
+            return match last_item {
+                Some(item) => top_offset as i32 + item.height as i32,
+                None => top_offset as i32,
             };
         }
-        topOffset as i32
+        top_offset as i32
     }
 }
 
