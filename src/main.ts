@@ -78,6 +78,8 @@ function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   let mainOptions: BrowserWindowConstructorOptions = {
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons (is this still relevant?)
+    // Documentation: https://www.electronjs.org/docs/all#alternatives-on-macos
+    // could go entirely custom with 'customButtonsOnHover'
     titleBarStyle: 'hiddenInset',
     // Disable native frame: we use a custom titlebar for all platforms: a unique one for MacOS, and one for windows/linux
     frame: false,

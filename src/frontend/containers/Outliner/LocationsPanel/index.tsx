@@ -31,6 +31,7 @@ import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
 
 import { AppToaster } from 'src/frontend/App';
+import useFileDropper from 'src/frontend/hooks/useFileDropper';
 
 // Tooltip info
 const enum Tooltip {
@@ -417,9 +418,11 @@ const LocationsPanel = observer(() => {
   }, [locationStore]);
 
   const isEmpty = !locationStore.locationList.length;
+  // Detect file dropping and show a blue outline around location panel
+  const { isDropping } = useFileDropper();
 
   return (
-    <div className={`section ${isEmpty ? 'attention' : ''}`}>
+    <div className={`section ${isEmpty || isDropping ? 'attention' : ''} ${isDropping ? 'info' : ''}`}>
       <header>
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list">

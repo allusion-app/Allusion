@@ -20,8 +20,14 @@
   // Show an outline to indicate the section needs attention
   .attention {
     border: 2px dashed $yellow1;
-    border-radius: 1rem;
     background-color: rgba($yellow1, 0.1);
+    &.info {
+      border: 2px dashed $blue1;
+      background-color: rgba($blue1, 0.1);
+    }
+
+    box-sizing: border-box;
+    border-radius: 1rem;
     margin: -4px;
     padding: 4px;
     padding-bottom: 12px;

@@ -94,35 +94,32 @@ const App = observer(() => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    // Overlay that shows up when dragging files/images over the application
-    <DropOverlay>
-      <div data-os={PLATFORM} id="layout-container" className={themeClass}>
+    <div data-os={PLATFORM} id="layout-container" className={themeClass}>
 
-        {PLATFORM !== 'darwin' && <WindowsToolbar />}
+      {PLATFORM !== 'darwin' && <WindowsToolbar />}
 
-        <ErrorBoundary>
-          <OutlinerToggle />
+      <ErrorBoundary>
+        <OutlinerToggle />
 
-          <Outliner />
+        <Outliner />
 
-          <AppToolbar />
+        <AppToolbar />
 
-          <ContentView />
+        <ContentView />
 
-          <Inspector />
+        <Inspector />
 
-          <SettingsWindow />
+        <SettingsWindow />
 
-          <HelpCenter />
+        <HelpCenter />
 
-          <AdvancedSearchDialog />
+        <AdvancedSearchDialog />
 
-          <CustomToaster />
+        <CustomToaster />
 
-          {/* <WelcomeDialog /> */}
-        </ErrorBoundary>
-      </div>
-    </DropOverlay>
+        {/* <WelcomeDialog /> */}
+      </ErrorBoundary>
+    </div>
   );
 });
 
