@@ -2,42 +2,71 @@
 #toolbar {
   grid-area: toolbar;
   position: absolute;
-  top: 0;
+  top: var(--frame-height);
   left: var(--outliner-width);
   right: 0;
   height: var(--toolbar-height);
   padding: 0 1rem 0 0.5rem;
   background-color: var(--background-color);
+}
 
-  // Since the toolbar is acting as the frame, it should be draggable to move the window around
-  -webkit-app-region: drag;
-  // But all of the buttons should not be draggable, else not clickable
-  button {
-    -webkit-app-region: none;
+#windows-frame-bar {
+  -webkit-app-region: drag; // Custom frame should be draggable for moving window around
+  position: absolute;
+  top: 0;
+  z-index: 100;
+
+  height: var(--frame-height);
+  width: 100%;
+  background-color: $dark-gray0;
+  color: $dark-gray6;
+
+  > span {
+    margin-top: 3px;
+    text-align: center;
+    width: calc(100% - 3 * 28px);
+    display: inline-block;
   }
 
-  // From design-mockup-v3.css
-  // height: 3rem;
-  // box-sizing: border-box;
-  // padding: 0 0.5rem;
-  // display: flex;
-  // align-items: center;
-  // z-index: 20;
+  #window-system-buttons {
+    // The font for windows system icons. TODO: Check if available on linux
+    font-family: 'Segoe MDL2 Assets';
+    font-size: 10px;
+
+    display: flex;
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    > span {
+      -webkit-app-region: none;
+      height: 22px;
+      width: 28px;
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background-color: $dark-gray1;
+      }
+
+      &:last-child:hover {
+        background-color: $danger;
+      }
+    }
+  }
 }
 
 // Invisible region in order to still resize the window by dragging from the top when not maximized
 #window-resize-area {
-  display: none;
   -webkit-app-region: no-drag;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 4px;
-}
-
-[data-os='darwin'] #window-resize-area {
-  display: unset;
 }
 
 .toolbar-input {

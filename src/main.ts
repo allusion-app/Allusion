@@ -77,11 +77,10 @@ function createTrayMenu() {
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   let mainOptions: BrowserWindowConstructorOptions = {
-    // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons
-    // Fixed it by adding a margin-top to the body and giving html background color so it blends in
-    // But new issue arissed in fullscreen than
+    // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons (is this still relevant?)
     titleBarStyle: 'hiddenInset',
-    frame: !isMac,
+    // Disable native frame: we use a custom titlebar for all platforms: a unique one for MacOS, and one for windows/linux
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
@@ -95,7 +94,7 @@ function createWindow() {
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#14181a',
     title: 'Allusion',
-    show: false,
+    show: false, // only show once initial loading is finished
   };
 
   // Vibrancy effect for MacOS
@@ -110,6 +109,7 @@ function createWindow() {
   // Customize new window opening
   // https://www.electronjs.org/docs/api/window-open
   mainWindow.webContents.on('new-window', (event, _url, frameName, _disposition, options) => {
+    // Note: For pop-out windows, the native frame is enabled
     if (frameName === 'settings') {
       event.preventDefault();
       // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
