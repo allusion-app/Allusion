@@ -81,7 +81,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   });
 
   return (
-    <div className="tag-files-widget" onKeyDown={handleKeyDown}>
+    <div id="tag-editor" onKeyDown={handleKeyDown}>
       <input
         autoFocus
         type="text"
@@ -148,7 +148,8 @@ const FloatingDialog = (props: FloatingDialogProps) => {
   }, [onClose]);
 
   return (
-    <div className="floating-dialog" onBlur={handleBlur}>
+    // FIXME: data attributes placeholder
+    <div data-popover data-open={isOpen} className="floating-dialog" onBlur={handleBlur}>
       {isOpen ? children : null}
     </div>
   );

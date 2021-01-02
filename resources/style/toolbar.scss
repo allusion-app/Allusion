@@ -76,26 +76,21 @@
 
 .floating-dialog {
   position: absolute;
-  z-index: 200;
   top: var(--toolbar-height);
-  left: calc(50% - 200px);
-
-  background-color: var(--background-color);
+  left: 0;
+  right: 0;
+  width: 400px;
+  margin: auto;
 }
 
-.tag-files-widget {
+#tag-editor {
   padding: 0.5em;
-  width: 400px;
   height: 200px;
   max-height: 200px;
-  border-radius: 0.25rem;
-
-  box-shadow: 6px 8px 12px 6px rgba(0, 0, 0, 0.4);
-
   display: flex;
   flex-direction: column;
 
-  > ul {
+  [role='listbox'] {
     flex: 1;
     overflow: auto;
   }
