@@ -19,7 +19,7 @@ import {
   IMenuCheckboxItem,
   IMenuRadioItem,
   IMenuItemLink,
-} from './menu_items';
+} from './menu-items';
 import { ContextMenu } from './ContextMenu';
 
 export {

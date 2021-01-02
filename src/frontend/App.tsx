@@ -22,6 +22,7 @@ import AppToolbar from './containers/AppToolbar';
 import WelcomeDialog from './containers/WelcomeDialog';
 
 import { useWorkerListener } from './ThumbnailGeneration';
+import WindowsToolbar from './containers/AppToolbar/WindowsToolbar';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -96,6 +97,9 @@ const App = observer(() => {
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
       <div data-os={PLATFORM} id="layout-container" className={themeClass}>
+
+        {PLATFORM !== 'darwin' && <WindowsToolbar />}
+
         <ErrorBoundary>
           <OutlinerToggle />
 

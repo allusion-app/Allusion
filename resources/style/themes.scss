@@ -7,6 +7,9 @@
   --selection-font-color: white;
   --treeitem-identation: 1rem;
   --treeitem-offset: 0.5rem;
+
+  // The height of the custom title bar. Will be set to 0px for MacOS in layout-container CSS: toolbar is integrated in AppToolbar
+  --frame-height: 22px;
 }
 
 // Dark Theme

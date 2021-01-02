@@ -39,14 +39,37 @@ input {
   --mac-system-buttons-width: 5rem;
 }
 
-// Global specific styles for the preview window
+// Preview window layout definition
 #preview {
   --toolbar-height: 3rem;
+  --frame-height: 0px; // No custom frame: Native title bar is currently enabled on all platforms
   display: grid;
   grid-template-areas:
     'toolbar'
     'main';
   grid-template-rows: var(--toolbar-height) 1fr;
+
+  #toolbar {
+    left: 0; // No #outliner-toggle
+  }
+}
+
+// Main window layout definition
+#layout-container {
+  &[data-os='darwin'] {
+    // Mac has traffic light buttons integrated in the AppToolbar
+    --frame-height: 0px;
+
+    // Since the toolbar is acting as the frame, it should be draggable to move the window around
+    #outliner-toggle, // renamed to #togglebar in new design?
+    #toolbar {
+      -webkit-app-region: drag;
+      button {
+        // But all of the buttons should not be draggable, else not clickable
+        -webkit-app-region: none;
+      }
+    }
+  }
 }
 
 .preloader {

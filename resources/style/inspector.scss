@@ -3,6 +3,7 @@
   grid-area: inspector;
   width: var(--inspector-width);
   background-color: var(--background-color);
+  padding-top: calc(var(--toolbar-height) + var(--frame-height));
 
   > * {
     // Don't squash content of aside during parent transition
