@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext, useEffect, useState } from 'react';
+import React, { ReactNode, useContext, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -137,19 +137,22 @@ const FloatingDialog = (props: FloatingDialogProps) => {
     }
   };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      onClose();
+    }
+  };
 
   return (
     // FIXME: data attributes placeholder
-    <div data-popover data-open={isOpen} className="floating-dialog" onBlur={handleBlur}>
+    <div
+      data-popover
+      data-open={isOpen}
+      className="floating-dialog"
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+    >
       {isOpen ? children : null}
     </div>
   );
