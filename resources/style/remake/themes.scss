@@ -16,6 +16,8 @@
   --text-muted-color: rgb(128, 128, 128);
   --border-dark: rgb(18, 18, 24);
   --border-light: rgb(35, 37, 46);
+  --button-hover-color1: rgba(255, 255, 255, 0.05);
+  --button-hover-color2: rgba(255, 255, 255, 0.075);
 }
 
 // Light Theme
@@ -26,4 +28,6 @@
   --text-muted-color: rgb(128, 128, 128);
   --border-dark: rgb(200, 200, 200);
   --border-light: rgb(240, 240, 240);
+  --button-hover-color1: rgba(0, 0, 0, 0.05);
+  --button-hover-color2: rgba(0, 0, 0, 0.075);
 }
