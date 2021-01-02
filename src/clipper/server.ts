@@ -114,7 +114,7 @@ class ClipServer {
   }
 
   isEnabled() {
-    return this.preferences.isEnabled;
+    return !!this.preferences.isEnabled;
   }
 
   getDownloadPath() {
@@ -132,7 +132,7 @@ class ClipServer {
   }
 
   isRunInBackgroundEnabled() {
-    return this.preferences.runInBackground;
+    return !!this.preferences.runInBackground;
   }
 
   async getImportQueue(): Promise<IImportItem[]> {
