@@ -7,8 +7,8 @@
   background: var(--background-color-light);
   border: 0.0625rem solid var(--border-dark);
   border-radius: 0.5rem;
-  min-width: 20ch;
   box-shadow: var(--box-shadow);
+  min-width: 20ch;
 }
 
 [role='menu'] [role='group'] {
@@ -28,7 +28,7 @@
   &:hover,
   &:focus {
     color: var(--hover-color);
-    background: var(--hover-background1);
+    background: var(--shade1);
   }
 
   &[aria-disabled='true'] {
@@ -44,7 +44,7 @@ a[role='menuitem'] {
 
 [role^='menuitem']:hover {
   color: var(--hover-color);
-  background: var(--hover-background1);
+  background: var(--shade1);
 }
 
 [role='menuitemradio'][aria-checked='true'] {

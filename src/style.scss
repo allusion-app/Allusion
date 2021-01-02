@@ -14,7 +14,6 @@
 @import '~resources/style/sidebar.scss'; // Common styles for outliner and inspector
 @import '~resources/style/outliner.scss'; // The outliner (left toolbar)
 @import '~resources/style/inspector.scss'; // The inspector (right toolbar)
-@import '~resources/style/toolbar.scss'; // The toolbar (top bar)
 
 // Individual components
 @import '~resources/style/help-center.scss';
@@ -23,5 +22,7 @@
 // Remake
 @import '~resources/style/remake/themes.scss';
 @import '~resources/style/remake/variables.scss';
+
 @import '~resources/style/remake/layout.scss';
+@import '~resources/style/remake/windows-frame-bar.scss';
 @import '~resources/style/remake/app-toolbar.scss';

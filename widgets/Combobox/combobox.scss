@@ -45,8 +45,8 @@
 }
 
 .input {
-  background: rgba(0, 0, 0, 0.05);
-  border: none;
+  background: var(--shade1);
+  border: 0.0625rem solid var(--border-dark);
   outline: none;
   border-radius: 0.25rem;
   margin: 0.125rem 0.25rem;
@@ -54,11 +54,11 @@
   line-height: 1.5rem;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.075);
+    background: var(--shade2);
   }
 
   &:focus-within {
-    background: unset; // Clear hover effect
+    background: var(--shade1);
     box-shadow: 0 0 0 0.125rem rgb(51, 153, 255);
   }
 }
@@ -89,7 +89,7 @@
     flex-grow: 1;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.05);
+      background: var(--shade2);
     }
   }
 }

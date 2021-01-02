@@ -1,5 +1,3 @@
-///////////////////////////////// Toolbar /////////////////////////////////
-
 #windows-frame-bar {
   -webkit-app-region: drag; // Custom frame should be draggable for moving window around
   position: absolute;
@@ -46,53 +44,5 @@
         background-color: $danger;
       }
     }
-  }
-}
-
-// Invisible region in order to still resize the window by dragging from the top when not maximized
-#window-resize-area {
-  -webkit-app-region: no-drag;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-}
-
-.toolbar-input {
-  padding: 0.25rem;
-  flex-grow: 1;
-}
-
-.floating-dialog {
-  position: absolute;
-  z-index: 200;
-  top: var(--toolbar-height);
-  left: calc(50% - 200px);
-
-  background-color: var(--background-color);
-}
-
-.tag-files-widget {
-  padding: 0.5em;
-  width: 400px;
-  height: 200px;
-  max-height: 200px;
-  border-radius: 0.25rem;
-
-  box-shadow: 6px 8px 12px 6px rgba(0, 0, 0, 0.4);
-
-  display: flex;
-  flex-direction: column;
-
-  > ul {
-    flex: 1;
-    overflow: auto;
-  }
-
-  > div:last-child {
-    margin-top: 4px;
-    max-height: 50px;
-    overflow: auto;
   }
 }
