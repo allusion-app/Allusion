@@ -9,7 +9,7 @@ const path = require('path');
 
 let mainConfig = {
   mode: 'production',
-  entry: './src/main/main.ts',
+  entry: './src/main.ts',
   target: ['electron-main', 'es2020'],
   output: {
     filename: 'main.bundle.js',
@@ -52,7 +52,7 @@ let mainConfig = {
 
 let rendererConfig = {
   mode: 'production',
-  entry: './src/renderer/renderer.tsx',
+  entry: './src/renderer.tsx',
   target: ['electron-renderer', 'es2020'],
   output: {
     filename: 'renderer.bundle.js',
@@ -65,7 +65,7 @@ let rendererConfig = {
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
     alias: {
-      components: path.resolve(__dirname, 'components/'),
+      widgets: path.resolve(__dirname, 'widgets/'),
       resources: path.resolve(__dirname, 'resources/'),
       src: path.resolve(__dirname, 'src/'),
     },
@@ -157,7 +157,7 @@ let rendererConfig = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, './src/renderer/index.html'),
+      template: path.resolve(__dirname, './src/index.html'),
     }),
     new MiniCssExtractPlugin({ filename: '[name].[contenthash].css', chunkFilename: '[id].[contenthash].css' }),
   ],

@@ -1,0 +1,93 @@
+[role='toolbar'] {
+  display: flex;
+  min-height: 2.25rem;
+  align-items: center;
+}
+
+// Segment control
+[role='toolbar'] [role='radiogroup'] {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  margin: 0 1rem;
+
+  [role='radio'] {
+    &:first-child {
+      border-bottom-left-radius: 0.25rem;
+      border-top-left-radius: 0.25rem;
+    }
+
+    &:last-child {
+      border-bottom-right-radius: 0.25rem;
+      border-top-right-radius: 0.25rem;
+    }
+  }
+}
+
+.toolbar-button {
+  padding: 0;
+  color: currentColor;
+  background-color: unset;
+  border: none;
+
+  &:hover {
+    background-color: var(--hover-background);
+    color: var(--hover-color);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 0.125rem var(--hover-color);
+  }
+
+  &[aria-checked='true'] {
+    background-color: currentColor;
+    color: var(--background-color);
+  }
+
+  &[aria-pressed='true'] {
+    .toolbar-button-text {
+      font-weight: 700;
+    }
+    color: var(--primary-color);
+  }
+
+  &[aria-disabled='true'] {
+    color: unset;
+    cursor: not-allowed;
+  }
+}
+
+.toolbar-button-content {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+}
+
+.toolbar-button-icon {
+  pointer-events: none;
+}
+
+.toolbar-button-icon,
+.toolbar-button-text,
+.toolbar-button-text.always {
+  display: inline-flex;
+  margin: 0.125rem;
+}
+
+// Hide text without removing it from screen readers:
+// https://stackoverflow.com/questions/12783419/hide-text-with-css-best-practice
+.toolbar-button-text.never {
+  margin: 0;
+  text-indent: -100vw;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.toolbar-button-text.always {
+  text-indent: unset;
+  white-space: unset;
+  overflow: unset;
+}

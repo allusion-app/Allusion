@@ -20,9 +20,11 @@
   --text-muted-color: hsl(0, 0%, 55%);
   color: var(--text-color);
 
+  $background-color: $dark-gray3;
+  $background-color-alt: rgba($background-color, 0.85);
   // The main background color of the panels
-  --background-color: #{$dark-gray3}; // Main background color
-  --background-color-alt: rgba(#{$dark-gray3}, 0.85); // Alt background color (outliner)
+  --background-color: #{$background-color}; // Main background color
+  --background-color-alt: #{$background-color-alt}; // Alt background color (outliner)
 }
 
 // Light Theme

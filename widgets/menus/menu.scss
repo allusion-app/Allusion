@@ -1,0 +1,86 @@
+[role='menu'],
+[role='listbox'],
+[role='menu'] [role='group'] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 20ch;
+}
+
+[role^='menuitem'],
+[role='option'] {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 1rem;
+  margin: 0.25rem 0;
+
+  &[aria-expanded='true'],
+  &:hover,
+  &:focus {
+    color: var(--hover-color);
+    background: var(--hover-background);
+  }
+
+  &[aria-disabled='true'] {
+    color: var(--text-muted-color) !important;
+    cursor: not-allowed;
+  }
+}
+
+a[role='menuitem'] {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+[role^='menuitem']:hover {
+  color: var(--hover-color);
+  background: var(--hover-background);
+}
+
+[role='menuitemradio'][aria-checked='true'] {
+  color: white;
+  background: var(--primary-color);
+}
+
+[role='menuitemcheckbox'][aria-checked='true'],
+[role='option'][aria-selected='true'] {
+  .item-icon {
+    background: currentColor;
+    mask-image: url(~resources/icons/checkmark.svg);
+    -webkit-mask-image: url(~resources/icons/checkmark.svg);
+  }
+}
+
+[role='menu'] [role='separator'] {
+  background: var(--text-muted-color);
+  height: 1px;
+  margin: 0.5rem 1rem;
+}
+
+.item-icon,
+.item-accelerator {
+  display: inline-flex;
+  pointer-events: none;
+  align-items: center;
+  height: 1rem;
+  min-width: 1rem;
+
+  .custom-icon {
+    margin: 0;
+  }
+
+  * {
+    pointer-events: none;
+  }
+}
+
+.item-icon {
+  margin-right: 0.5rem;
+}
+
+.item-accelerator {
+  margin-left: 3rem;
+  flex-grow: 1;
+  justify-content: flex-end;
+}

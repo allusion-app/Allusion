@@ -27,12 +27,17 @@
 
 // Invisible region in order to still resize the window by dragging from the top when not maximized
 #window-resize-area {
+  display: none;
   -webkit-app-region: no-drag;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 4px;
+}
+
+[data-os='darwin'] #window-resize-area {
+  display: unset;
 }
 
 .toolbar-input {
@@ -61,36 +66,9 @@
   display: flex;
   flex-direction: column;
 
-  input {
-    width: 100%;
-  }
-
   > ul {
-    flex: 1 0;
+    flex: 1;
     overflow: auto;
-
-    padding: 0;
-    margin: 2px 0;
-    list-style-type: none;
-
-    > li {
-      &:hover {
-        background: var(--hover-background);
-      }
-      border: 2px solid transparent;
-      &:focus {
-        border: 2px solid var(--focus-color);
-      }
-
-      .tag-item-icon {
-        display: inline-flex;
-      }
-
-      display: flex;
-      > *:nth-child(2) {
-        flex: 1 0;
-      }
-    }
   }
 
   > div:last-child {

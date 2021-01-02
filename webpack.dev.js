@@ -9,7 +9,7 @@ const path = require('path');
 
 let mainConfig = {
   mode: 'development',
-  entry: './src/main/main.ts',
+  entry: './src/main.ts',
   devtool: 'source-map',
   target: ['electron-main', 'es2020'],
   output: {
@@ -53,7 +53,7 @@ let mainConfig = {
 
 let rendererConfig = {
   mode: 'development',
-  entry: './src/renderer/renderer.tsx',
+  entry: './src/renderer.tsx',
   devtool: 'source-map',
   target: ['electron-renderer', 'es2020'],
   output: {
@@ -67,7 +67,7 @@ let rendererConfig = {
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
     alias: {
-      components: path.resolve(__dirname, 'components/'),
+      widgets: path.resolve(__dirname, 'widgets/'),
       resources: path.resolve(__dirname, 'resources/'),
       src: path.resolve(__dirname, 'src/'),
     },
@@ -144,7 +144,7 @@ let rendererConfig = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, './src/renderer/index.html'),
+      template: path.resolve(__dirname, './src/index.html'),
     }),
   ],
 };

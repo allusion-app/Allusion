@@ -1,7 +1,7 @@
 .section {
   margin-bottom: 0.5rem;
 }
-.actionbar {
+#actionbar {
   // Design v3
   position: absolute;
   bottom: 0;
@@ -14,13 +14,9 @@
 
   // extra css (from the section previously named #system-tags)
   flex-shrink: 0;
-  justify-content: unset;
-  > .toolbar-item {
-    margin: 0 0.5rem;
-  }
 
   // TODO: the buttons are currently .toolbar-button - not .actionbarBtn
-  .actionbarBtn {
+  .toolbar-button {
     background: none;
     outline: none;
     border: none;
@@ -32,8 +28,8 @@
   img {
     height: 0.8125rem;
   }
-  .actionbarBtn .active,
-  .actionbarBtn:hover {
+  .toolbar-button:active,
+  .toolbar-button:hover {
     color: #3399ff;
   }
   img {
