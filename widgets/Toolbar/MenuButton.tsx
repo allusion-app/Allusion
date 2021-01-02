@@ -31,9 +31,10 @@ export const MenuButton = (props: IMenuButton) => {
   }, [isOpen]);
 
   const handleBlur = (e: React.FocusEvent) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+    const button = e.currentTarget.previousElementSibling as HTMLElement;
+    if (e.relatedTarget !== button && !e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsOpen(false);
-      (e.currentTarget.previousElementSibling as HTMLElement).focus();
+      button.focus();
     }
   };
 

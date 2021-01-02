@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext, useState } from 'react';
+import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -24,7 +24,7 @@ const TagFilesPopover = observer(() => {
       <ToolbarButton
         showLabel="never"
         icon={IconSet.TAG}
-        disabled={uiStore.fileSelection.size === 0}
+        disabled={uiStore.fileSelection.size === 0 && !uiStore.isToolbarTagPopoverOpen}
         onClick={uiStore.toggleToolbarTagPopover}
         text="Tag selected files"
         tooltip={Tooltip.TagFiles}
@@ -129,20 +129,19 @@ interface FloatingDialogProps {
 const FloatingDialog = (props: FloatingDialogProps) => {
   const { onClose, isOpen, children } = props;
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onClose();
-      e.preventDefault();
-      e.stopPropagation;
-    }
-  };
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        e.stopPropagation();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   if (isOpen) {
-    return (
-      <div className="floating-dialog" onKeyDown={handleKeyDown}>
-        {children}
-      </div>
-    );
+    return <div className="floating-dialog">{children}</div>;
   } else {
     return null;
   }
