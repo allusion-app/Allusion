@@ -21,26 +21,6 @@ body {
   position: relative;
 }
 
-#togglebar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: var(--outliner-width);
-  height: var(--toolbar-height);
-  box-sizing: border-box;
-  padding: 0 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 20;
-
-  -webkit-app-region: drag;
-
-  button {
-    -webkit-app-region: none;
-  }
-}
-
 #toolbar {
   position: absolute;
   top: 0;
@@ -59,6 +39,10 @@ body {
   }
 }
 
+#outliner.outliner-is-closed ~ #toolbar {
+  left: var(--mac-system-buttons-width);
+}
+
 #outliner {
   position: absolute;
   top: 0;
@@ -70,6 +54,10 @@ body {
   border-right: 0.0625rem solid var(--border-dark);
   background: var(--background-color-alt);
   z-index: 10;
+}
+
+#outliner.outliner-is-closed {
+  transform: translateX(-100%);
 }
 
 #content-view {
@@ -85,4 +73,8 @@ body {
   justify-content: stretch;
   overflow-y: hidden;
   z-index: 10;
+}
+
+#outliner.outliner-is-closed ~ #content-view {
+  left: 0;
 }

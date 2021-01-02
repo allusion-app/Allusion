@@ -5,7 +5,6 @@ import StoreContext from '../../contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
 import FileStore from 'src/frontend/stores/FileStore';
 import { IconSet } from 'widgets';
-import OutlinerToggle from '../';
 import { ToolbarButton, ToolbarToggleButton } from 'widgets/menus';
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
 import TagFilesPopover from 'src/frontend/containers/AppToolbar/TagFilesPopover';
