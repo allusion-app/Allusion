@@ -97,12 +97,9 @@ const App = observer(() => {
     // Overlay that shows up when dragging files/images over the application
     <DropOverlay>
       <div data-os={PLATFORM} id="layout-container" className={themeClass}>
-
         {PLATFORM !== 'darwin' && <WindowsToolbar />}
 
         <ErrorBoundary>
-          <OutlinerToggle />
-
           <Outliner />
 
           <AppToolbar />
@@ -127,24 +124,3 @@ const App = observer(() => {
 });
 
 export default App;
-
-const OutlinerToggle = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-
-  return (
-    <button
-      autoFocus
-      id="outliner-toggle"
-      className="btn btn-icon"
-      aria-controls="outliner"
-      aria-pressed={uiStore.isOutlinerOpen}
-      onClick={uiStore.toggleOutliner}
-      tabIndex={0}
-    >
-      <span className="btn-content-icon" aria-hidden="true">
-        {uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
-      </span>
-      <span className="btn-content-text hidden">Toggle Outliner</span>
-    </button>
-  );
-});

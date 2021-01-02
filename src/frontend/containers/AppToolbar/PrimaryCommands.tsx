@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
+import StoreContext from '../../contexts/StoreContext';
 
 import UiStore from 'src/frontend/stores/UiStore';
 import FileStore from 'src/frontend/stores/FileStore';
 import { IconSet } from 'widgets';
+import OutlinerToggle from '../';
 import { ToolbarButton, ToolbarToggleButton } from 'widgets/menus';
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
 import TagFilesPopover from 'src/frontend/containers/AppToolbar/TagFilesPopover';
@@ -18,11 +20,33 @@ export const enum Tooltip {
   Back = 'Back to content panel',
 }
 
+const OutlinerToggle = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+
+  return (
+    <button
+      autoFocus
+      id="outliner-toggle"
+      className="btn btn-icon"
+      aria-controls="outliner"
+      aria-pressed={uiStore.isOutlinerOpen}
+      onClick={uiStore.toggleOutliner}
+      tabIndex={0}
+    >
+      <span className="btn-content-icon" aria-hidden="true">
+        {uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
+      </span>
+      <span className="btn-content-text hidden">Toggle Outliner</span>
+    </button>
+  );
+});
+
 const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
   const { uiStore, fileStore } = props;
 
   return (
     <>
+      <OutlinerToggle />
       <FileSelectionCommand uiStore={uiStore} fileStore={fileStore} />
 
       <Searchbar />
