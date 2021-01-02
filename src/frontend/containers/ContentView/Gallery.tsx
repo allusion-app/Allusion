@@ -47,11 +47,10 @@ const Layout = ({
           return;
         }
         if (i < lastSelectionIndex.current) {
-          uiStore.selectFileRange(i, lastSelectionIndex.current);
+          uiStore.selectFileRange(i, lastSelectionIndex.current, toggleSelection);
         } else {
-          uiStore.selectFileRange(lastSelectionIndex.current, i);
+          uiStore.selectFileRange(lastSelectionIndex.current, i, toggleSelection);
         }
-        lastSelectionIndex.current = i;
       } else if (toggleSelection) {
         uiStore.toggleFileSelection(selectedFile);
         lastSelectionIndex.current = fileStore.getIndex(selectedFile.id);
@@ -248,8 +247,8 @@ const GridGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
+              <FileViewerMenuItems file={file} uiStore={uiStore} />
+            ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });
@@ -399,8 +398,8 @@ const ListGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
+              <FileViewerMenuItems file={file} uiStore={uiStore} />
+            ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });
