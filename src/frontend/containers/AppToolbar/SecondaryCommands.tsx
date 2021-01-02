@@ -41,6 +41,11 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
         text="Settings"
         accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleSettings} />}
       />
+      <MenuItem
+        icon={IconSet.LOGO}
+        onClick={() => window.alert('TODO: This application was made by [us]. It\'s open source. You can contribute here if you wanna [link]')}
+        text="About"
+      />
     </MenuButton>
   );
 });
