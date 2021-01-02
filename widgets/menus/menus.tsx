@@ -1,7 +1,7 @@
 import './menu.scss';
 import React, { useRef, useState } from 'react';
 
-import { IMenuCheckboxItem, IMenuItem, IMenuItemLink, IMenuRadioItem } from './menu_items';
+import { IMenuCheckboxItem, IMenuItem, IMenuItemLink, IMenuRadioItem } from './menu-items';
 
 export interface IMenu {
   id?: string;
@@ -36,7 +36,7 @@ export const Menu = ({ id, children, label, labelledby }: IMenu) => {
 };
 
 import { RawPopover } from '../popovers/RawPopover';
-import { MenuItemLink } from './menu_items';
+import { MenuItemLink } from './menu-items';
 
 export interface IMenuSubItem {
   icon?: JSX.Element;
