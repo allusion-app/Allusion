@@ -1,0 +1,88 @@
+html {
+  font-size: 16px;
+}
+
+html,
+body,
+#app,
+#layout-container,
+#preview {
+  width: 100vw;
+  height: 100vh;
+}
+
+body {
+  margin: 0px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, '' Segoe UI '', Roboto, Oxygen-Sans, Ubuntu,
+    Cantarell, '' Helvetica Neue '', sans-serif;
+  font-size: 0.8125rem;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+#togglebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--outliner-width);
+  height: var(--toolbar-height);
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+
+  -webkit-app-region: drag;
+
+  button {
+    -webkit-app-region: none;
+  }
+}
+
+#toolbar {
+  position: absolute;
+  top: 0;
+  left: var(--outliner-width);
+  right: 0;
+  height: var(--toolbar-height);
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  z-index: 20;
+
+  -webkit-app-region: drag;
+  button {
+    -webkit-app-region: none;
+  }
+}
+
+#outliner {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--outliner-width);
+  box-sizing: border-box;
+  padding-top: var(--toolbar-height);
+  border-right: 0.0625rem solid var(--border-dark);
+  background: var(--background-color-alt);
+  z-index: 10;
+}
+
+#content-view {
+  position: absolute;
+  top: 0;
+  left: var(--outliner-width);
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  padding: var(--toolbar-height) 0.5rem 0 0.5rem;
+  background: var(--background-color);
+  display: flex;
+  justify-content: stretch;
+  overflow-y: hidden;
+  z-index: 10;
+}
