@@ -140,7 +140,7 @@ const WelcomeDialog = () => {
       fse.ensureDirSync(importLocation);
 
       // Create the first Location
-      await locationStore.setDefaultLocation(importLocation);
+      await locationStore.setDefaultImportLocation(importLocation);
       setStep(step + 1);
     } else if (step === 2) {
       setStep(step + 1);

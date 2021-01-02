@@ -33,7 +33,7 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
     }
 
     const chosenDir = dirs[0];
-    locationStore.setDefaultLocation(chosenDir);
+    locationStore.setDefaultImportLocation(chosenDir);
 
     // Todo: Provide option to move/copy the files in that directory (?)
     // Since the import dir could also contain non-allusion files, not sure if a good idea

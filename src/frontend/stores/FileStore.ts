@@ -90,7 +90,7 @@ class FileStore {
   }
 
   @action.bound async importExternalFile(path: string, dateAdded: Date) {
-    const loc = this.rootStore.locationStore.defaultLocation;
+    const loc = this.rootStore.locationStore.defaultImportLocation;
     const file = new ClientFile(this, {
       id: generateId(),
       locationId: loc.id,
@@ -313,7 +313,7 @@ class FileStore {
     const loc = this.rootStore.locationStore.get(location);
     if (!loc) {
       console.warn('Location of file was not found! This should never happen!', location);
-      return this.rootStore.locationStore.defaultLocation;
+      return this.rootStore.locationStore.defaultImportLocation;
     }
     return loc;
   }

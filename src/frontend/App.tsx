@@ -119,7 +119,7 @@ const App = observer(() => {
 
           <CustomToaster />
 
-          <WelcomeDialog />
+          {/* <WelcomeDialog /> */}
         </ErrorBoundary>
       </div>
     </DropOverlay>

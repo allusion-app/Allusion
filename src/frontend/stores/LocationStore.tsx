@@ -7,7 +7,7 @@ import { FileOrder } from 'src/backend/DBRepository';
 
 import { ID, generateId } from 'src/entities/ID';
 import { IFile, getMetaData } from 'src/entities/File';
-import { ClientLocation, DEFAULT_LOCATION_ID } from 'src/entities/Location';
+import { ClientLocation, DEFAULT_LOCATION_ID as DEFAULT_IMPORT_LOCATION_ID } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';
@@ -144,7 +144,7 @@ class LocationStore {
   }
 
   @computed get importDirectory() {
-    const location = this.locationList.find((l) => l.id === DEFAULT_LOCATION_ID);
+    const location = this.locationList.find((l) => l.id === DEFAULT_IMPORT_LOCATION_ID);
     if (location === undefined) {
       console.warn('Default location not properly set-up. This should not happen!');
       return '';
@@ -152,36 +152,37 @@ class LocationStore {
     return location.path;
   }
 
-  @computed get defaultLocation(): ClientLocation {
-    const defaultLocation = this.locationList.find((l) => l.id === DEFAULT_LOCATION_ID);
-    if (defaultLocation === undefined) {
+  @computed get defaultImportLocation(): ClientLocation | undefined {
+    const defaultImportLocation = this.locationList.find((l) => l.id === DEFAULT_IMPORT_LOCATION_ID);
+    if (defaultImportLocation === undefined) {
       throw new Error('Default location not found. This should not happen!');
     }
-    return defaultLocation;
+    return defaultImportLocation;
   }
 
   @action get(locationId: ID): ClientLocation | undefined {
     return this.locationList.find((loc) => loc.id === locationId);
   }
 
-  @action async setDefaultLocation(dir: string): Promise<void> {
-    const index = this.locationList.findIndex((l) => l.id === DEFAULT_LOCATION_ID);
+  @action async setDefaultImportLocation(dir: string): Promise<void> {
+    const index = this.locationList.findIndex((l) => l.id === DEFAULT_IMPORT_LOCATION_ID);
     let location;
     if (index > -1) {
       const defaultLocation = this.locationList[index];
       if (defaultLocation.path === dir) {
+        // If a folder was picked that already was a location, convert that to the default import location
         return;
       }
       await defaultLocation.drop();
-      location = new ClientLocation(this, DEFAULT_LOCATION_ID, dir, defaultLocation.dateAdded);
+      location = new ClientLocation(this, DEFAULT_IMPORT_LOCATION_ID, dir, defaultLocation.dateAdded);
       this.set(index, location);
     } else {
-      location = new ClientLocation(this, DEFAULT_LOCATION_ID, dir, new Date());
-      this.locationList.push(location);
+      // Create new location at the 0 date (Jan 01 1970) so that it's always the first item in the list (sorted by date)
+      location = new ClientLocation(this, DEFAULT_IMPORT_LOCATION_ID, dir, new Date(0));
+      this.locationList.splice(0, 0, location); // insert at index 0
     }
     await this.initLocation(location);
     await this.backend.saveLocation(location.serialize());
-    // // Todo: What about the files inside that loc? Keep them in DB? Move them over?
     RendererMessenger.setDownloadPath({ dir });
   }
 
