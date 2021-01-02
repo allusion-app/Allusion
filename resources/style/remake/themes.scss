@@ -4,6 +4,7 @@
   --accent-color-blue: rgb(51, 153, 255);
   --accent-color-red: rgb(250, 52, 37);
   --accent-color-green: rgb(104, 232, 188);
+  --box-shadow: 0.125rem 0.25rem 1rem rgba(0, 0, 0, 0.125);
   color: var(--text-color);
   background: var(--background-color);
 }
@@ -12,22 +13,26 @@
 .bp3-dark {
   --background-color: rgb(28, 30, 35);
   --background-color-alt: rgb(35, 37, 46);
+  --background-color-light: rgba(28, 30, 35, 0.75);
   --text-color: rgb(200, 200, 200);
   --text-muted-color: rgb(128, 128, 128);
   --border-dark: rgb(18, 18, 24);
   --border-light: rgb(35, 37, 46);
-  --button-hover-color1: rgba(255, 255, 255, 0.05);
-  --button-hover-color2: rgba(255, 255, 255, 0.075);
+  --hover-color: rgb(240, 240, 240);
+  --hover-background1: rgba(255, 255, 255, 0.1);
+  --hover-background2: rgba(255, 255, 255, 0.2);
 }
 
 // Light Theme
 .bp3-light {
   --background-color: rgb(240, 240, 240);
   --background-color-alt: rgb(248, 248, 248);
+  --background-color-light: rgba(240, 240, 240, 0.75);
   --text-color: rgb(64, 64, 64);
   --text-muted-color: rgb(128, 128, 128);
   --border-dark: rgb(200, 200, 200);
   --border-light: rgb(240, 240, 240);
-  --button-hover-color1: rgba(0, 0, 0, 0.05);
-  --button-hover-color2: rgba(0, 0, 0, 0.075);
+  --hover-color: rgb(32, 32, 32);
+  --hover-background1: rgba(0, 0, 0, 0.1);
+  --hover-background2: rgba(0, 0, 0, 0.2);
 }

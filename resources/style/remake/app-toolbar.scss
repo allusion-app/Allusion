@@ -21,19 +21,24 @@
     }
 
     &:hover {
-      background: var(--button-hover-color1);
+      color: var(--hover-color);
+      background: var(--hover-background1);
     }
     &:focus {
-      background: var(--button-hover-color1);
+      color: var(--hover-color);
+      background: var(--hover-background1);
     }
     &:active {
-      background: var(--button-hover-color2);
+      color: var(--hover-color);
+      background: var(--hover-background2);
     }
     &[aria-checked='true'] {
-      background: var(--button-hover-color1);
+      color: var(--hover-color);
+      background: var(--hover-background1);
     }
     &[aria-pressed='true'] {
-      background: var(--button-hover-color1);
+      color: var(--hover-color);
+      background: var(--hover-background1);
     }
     &[aria-disabled='true'] {
       cursor: not-allowed;

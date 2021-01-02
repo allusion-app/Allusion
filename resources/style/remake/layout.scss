@@ -31,7 +31,7 @@ body {
   padding: 0 0.5rem;
   display: flex;
   align-items: center;
-  z-index: 20;
+  z-index: 5;
 
   -webkit-app-region: drag;
   button {
@@ -53,7 +53,6 @@ body {
   padding-top: var(--toolbar-height);
   border-right: 0.0625rem solid var(--border-dark);
   background: var(--background-color-alt);
-  z-index: 10;
 }
 
 #outliner.outliner-is-closed {
@@ -72,7 +71,6 @@ body {
   display: flex;
   justify-content: stretch;
   overflow-y: hidden;
-  z-index: 10;
 }
 
 #outliner.outliner-is-closed ~ #content-view {

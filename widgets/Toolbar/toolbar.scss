@@ -18,41 +18,12 @@
   }
 }
 
-.toolbar-button {
-  &:hover {
-  }
-
-  &:focus {
-    &[aria-checked='true'] {
-    }
-
-    &[aria-pressed='true'] {
-    }
-
-    &[aria-disabled='true'] {
-    }
-  }
-}
-.toolbar-button-content {
-}
-
 .toolbar-button-icon {
   pointer-events: none;
 }
 
-.toolbar-button-icon,
-.toolbar-button-text,
-.toolbar-button-text.always {
-}
-
-// Hide text without removing it from screen readers:
-// https://stackoverflow.com/questions/12783419/hide-text-with-css-best-practice
 .toolbar-button-text.never {
   display: none;
-  margin: 0;
-  text-indent: -100vw;
-  white-space: nowrap;
-  overflow: hidden;
 }
 
 .toolbar-button-text.always {
