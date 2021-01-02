@@ -108,8 +108,13 @@ impl Layout {
                 // If it exceeds it, position all current items in the row accordingly and start a new row for this item
                 // Position all items in this row properly after the row is filled, needs to expand a little
 
-                // Now that the size of this row is definitive: Set the size of all row items
+                // Now that the size of this row is definitive: Set the actual size of all row items
                 let correction_factor = container_width as f32 / new_row_width as f32;
+
+                item.left = (item.left as f32 * correction_factor) as u16;
+                item.width = (item.width as f32 * correction_factor) as u16;
+                item.height = (item.height as f32 * correction_factor) as u16;
+
                 for j in first_row_item_index..i {
                     let prev_item = &mut self.items[j];
                     prev_item.left = (prev_item.left as f32 * correction_factor) as u16;
@@ -119,7 +124,7 @@ impl Layout {
 
                 // Start a new row
                 cur_row_width = 0;
-                first_row_item_index = i;
+                first_row_item_index = (i + 1);
                 top_offset += padding as u32 + (base_row_height as f32 * correction_factor) as u32;
             } else {
                 cur_row_width = new_row_width;

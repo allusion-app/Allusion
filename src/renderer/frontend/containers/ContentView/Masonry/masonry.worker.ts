@@ -100,8 +100,8 @@ export class Mason {
     const itemObjs = imgs.map((_, index) => ({
       width: items[index * 6 + 2],
       height: items[index * 6 + 3],
-      top: items[index * 6 + 4],
-      left: items[index * 6 + 5],
+      left: items[index * 6 + 4],
+      top: items[index * 6 + 5],
     }));
     return {
       containerHeight,

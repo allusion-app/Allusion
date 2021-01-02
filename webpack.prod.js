@@ -173,10 +173,11 @@ let rendererConfig = {
       filename: '[name].[contenthash].css',
       chunkFilename: '[id].[contenthash].css',
     }),
-    new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, './wasm/masonry'),
-      forceMode: 'production',
-    }),
+    // idem
+    // new WasmPackPlugin({
+    //   crateDirectory: path.resolve(__dirname, './wasm/masonry'),
+    //   forceMode: 'production',
+    // }),
   ],
 };
 

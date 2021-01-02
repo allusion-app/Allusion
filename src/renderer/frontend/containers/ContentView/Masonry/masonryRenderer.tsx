@@ -1,22 +1,33 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ClientFile } from 'src/renderer/entities/File';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
+import { debounce } from 'src/renderer/frontend/utils';
 import { MasonryWorkerAdapter } from '.';
+import { getThumbnailSize } from '../Gallery';
 import { ILayout } from './masonry.worker';
 import Renderer from './renderer';
 
 interface IMasonryRendererProps {
   containerWidth: number;
-  thumbnailSize: number;
 }
 
 const formatItems = (imgs: ClientFile[]) => imgs.map(x => ({ width: x.width, height: x.height }));
 
-const MasonryRenderer = observer(({ containerWidth, thumbnailSize }: IMasonryRendererProps) => {
-  const { fileStore } = useContext(StoreContext);
+const MasonryRenderer = observer(({ containerWidth }: IMasonryRendererProps) => {
+  const { fileStore, uiStore } = useContext(StoreContext);
   const [layout, setLayout] = useState<ILayout>();
   const [worker] = useState(new MasonryWorkerAdapter());
+  const [, thumbnailSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
+    uiStore.thumbnailSize,
+  ]);
+
+  // const debouncedRecompute = useCallback((containerWidth: number, thumbnailSize: number) =>
+  //   debounce(() =>
+  //     worker.recompute(containerWidth, thumbnailSize)
+  //       .then(setLayout)
+  //       .catch((e) => window.alert('Could not compute layout: ' + e)),
+  // ), [worker]);
 
   // Initialize on mount
   useEffect(() => {
@@ -48,7 +59,7 @@ const MasonryRenderer = observer(({ containerWidth, thumbnailSize }: IMasonryRen
         .catch((e) => window.alert('Could not compute layout: ' + e));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containerWidth]);
+  }, [containerWidth, thumbnailSize]);
 
   return !layout ? <p>loading...</p> : (
     <Renderer

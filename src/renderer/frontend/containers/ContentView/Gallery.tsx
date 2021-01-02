@@ -738,7 +738,7 @@ const CELL_SIZE_LARGE = 312 + PADDING;
 // can fit into one row.
 const SHRINK_FACTOR = 1;
 
-function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
+export function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {
     return [CELL_SIZE_SMALL * SHRINK_FACTOR, CELL_SIZE_SMALL];
   } else if (sizeType === 'medium') {

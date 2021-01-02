@@ -159,10 +159,11 @@ let rendererConfig = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './src/renderer/index.html'),
     }),
-    new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, './wasm/masonry'),
-      extraArgs: '--target web --mode normal',
-    }),
+    // FIXME: Doesn't seem to do anything. Need to recompile manually and copy file to build/wasm/pkg/... Webpack doesn't detect it?
+    // new WasmPackPlugin({
+    //   crateDirectory: path.resolve(__dirname, './wasm/masonry'),
+    //   extraArgs: '--target web --mode normal',
+    // }),
   ],
 };
 
