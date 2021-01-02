@@ -36,7 +36,7 @@ class FileStore {
 
   /** The origin of the current files that are shown */
   @observable private content: Content = Content.All;
-  @observable fileOrder: FileOrder = FileOrder.DESC;
+  @observable fileOrder: FileOrder = FileOrder.Desc;
   @observable orderBy: keyof IFile = 'dateAdded';
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
@@ -68,7 +68,7 @@ class FileStore {
   }
 
   @action.bound switchFileOrder() {
-    this.setFileOrder(this.fileOrder === FileOrder.DESC ? FileOrder.ASC : FileOrder.DESC);
+    this.setFileOrder(this.fileOrder === FileOrder.Desc ? FileOrder.Asc : FileOrder.Desc);
     this.refetch();
   }
 
@@ -469,7 +469,7 @@ class FileStore {
     this.numUntaggedFiles = untaggedFiles;
   }
 
-  @action private setFileOrder(order: FileOrder = FileOrder.DESC) {
+  @action private setFileOrder(order: FileOrder = FileOrder.Desc) {
     this.fileOrder = order;
   }
 

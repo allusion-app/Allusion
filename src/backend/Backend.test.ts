@@ -51,7 +51,7 @@ describe('Backend', () => {
       await backend.createFile({ ...mockFile, id: '1' });
       await backend.createFile({ ...mockFile, id: '2' });
       await backend.removeTag(mockTag.id);
-      const dbFiles = await backend.fetchFiles('id', FileOrder.DESC);
+      const dbFiles = await backend.fetchFiles('id', FileOrder.Desc);
       expect(dbFiles).toHaveLength(2);
       expect(dbFiles[0].tags).toHaveLength(0);
       expect(dbFiles[1].tags).toHaveLength(0);
