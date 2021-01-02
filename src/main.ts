@@ -119,6 +119,7 @@ function createWindow() {
         width: 640,
         height: 480,
         title: 'Settings • Allusion',
+        frame: true,
         // resizable: false,
       };
       Object.assign(options, additionalOptions);

@@ -333,8 +333,10 @@ class UiStore {
     }
   }
 
-  @action.bound selectFileRange(start: number, end: number) {
-    this.fileSelection.clear();
+  @action.bound selectFileRange(start: number, end: number, additive?: boolean) {
+    if (!additive) {
+      this.fileSelection.clear();
+    }
     for (let i = start; i <= end; i++) {
       this.fileSelection.add(this.rootStore.fileStore.fileList[i]);
     }
