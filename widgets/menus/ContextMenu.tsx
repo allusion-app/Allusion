@@ -106,7 +106,7 @@ export const ContextMenu = ({ isOpen, x, y, children, close }: IContextMenu) => 
       onClick={handleClick}
       onMouseOver={handleMouseOver}
     >
-      {children}
+      {isOpen ? children : null}
     </RawPopover>
   );
 };
