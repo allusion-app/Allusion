@@ -7,7 +7,6 @@ import StoreContext from './contexts/StoreContext';
 
 import { IconSet } from 'widgets';
 
-import DropOverlay from './containers/DropOverlay';
 import ErrorBoundary from './containers/ErrorBoundary';
 import HelpCenter from './containers/HelpCenter';
 import SplashScreen from './containers/SplashScreen';
@@ -19,7 +18,6 @@ import Inspector from './containers/Inspector';
 import Outliner from './containers/Outliner';
 import SettingsWindow from './containers/Settings';
 import AppToolbar from './containers/AppToolbar';
-import WelcomeDialog from './containers/WelcomeDialog';
 
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowsToolbar from './containers/AppToolbar/WindowsToolbar';
@@ -116,8 +114,6 @@ const App = observer(() => {
         <AdvancedSearchDialog />
 
         <CustomToaster />
-
-        {/* <WelcomeDialog /> */}
       </ErrorBoundary>
     </div>
   );

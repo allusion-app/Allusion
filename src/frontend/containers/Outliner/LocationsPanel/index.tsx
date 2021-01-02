@@ -32,6 +32,8 @@ import { Collapse } from 'src/frontend/components/Collapse';
 
 import { AppToaster } from 'src/frontend/App';
 import useFileDropper from 'src/frontend/hooks/useFileDropper';
+import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
+import { DnDAttribute } from '../TagsPanel/dnd';
 
 // Tooltip info
 const enum Tooltip {
@@ -180,6 +182,68 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
   );
 });
 
+const useFileDropHandling = (
+  expansionId: string,
+  fullPath: string,
+  expansion: IExpansionState,
+  setExpansion: (s: IExpansionState) => void,
+) => {
+  // TODO: Would probably be nice: don't expand immediately, only after hovering over it for a second or so
+  const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
+  const expandDelayed = useCallback(() => {
+    if (expandTimeoutId) clearTimeout(expandTimeoutId);
+    const t: any = setTimeout(() => {
+      setExpansion({ ...expansion, [expansionId]: true });
+    }, 1000);
+    setExpandTimeoutId(t as number);
+  }, [expandTimeoutId, expansion, expansionId, setExpansion]);
+
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      console.log(event);
+      const canDrop = onDragOver(event);
+      if (canDrop && !expansion[expansionId]) {
+        setExpansion({ ...expansion, [expansionId]: true });
+        // expandDelayed();
+      }
+    },
+    [setExpansion, expansion, expansionId],
+  );
+
+  const handleDrop = useCallback(
+    async (event: React.DragEvent<HTMLDivElement>) => {
+      event.currentTarget.dataset[DnDAttribute.Target] = 'false';
+
+      if (isAcceptableType(event)) {
+        event.dataTransfer.dropEffect = 'none';
+        console.log(event.dataTransfer, fullPath);
+        try {
+          await storeDroppedImage(event, fullPath);
+        } catch (e) {
+          console.error(e);
+          // TODO: Toast error?
+        }
+      }
+    },
+    [fullPath],
+  );
+
+  const handleDragLeaveWrapper = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      handleDragLeave(event);
+      if (expandTimeoutId) {
+        clearTimeout(expandTimeoutId);
+        setExpandTimeoutId(undefined);
+      }
+    }, [expandTimeoutId]);
+
+  return {
+    handleDragOver,
+    handleDrop,
+    handleDragLeaveWrapper,
+  };
+}
+
 const SubLocation = ({
   nodeData,
   treeData,
@@ -188,7 +252,7 @@ const SubLocation = ({
   treeData: ITreeData;
 }) => {
   const { uiStore } = useContext(StoreContext);
-  const { showContextMenu, expansion } = treeData;
+  const { showContextMenu, expansion, setExpansion } = treeData;
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) =>
       showContextMenu(
@@ -209,8 +273,21 @@ const SubLocation = ({
     [nodeData.fullPath, uiStore],
   );
 
+  const {
+    handleDragOver,
+    handleDragLeaveWrapper,
+    handleDrop,
+  } = useFileDropHandling(nodeData.fullPath, nodeData.fullPath, expansion, setExpansion);
+
   return (
-    <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
+    <div
+      className="tree-content-label"
+      onClick={handleClick}
+      onContextMenu={handleContextMenu}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onDragLeave={handleDragLeaveWrapper}
+    >
       {expansion[nodeData.fullPath] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
       {nodeData.name}
     </div>
@@ -242,8 +319,20 @@ const Location = observer(
       [nodeData.path, uiStore],
     );
 
+    const {
+      handleDragOver,
+      handleDragLeaveWrapper,
+      handleDrop,
+    } = useFileDropHandling(nodeData.id, nodeData.path, expansion, treeData.setExpansion);
+
     return (
-      <div className="tree-content-label" onContextMenu={handleContextMenu}>
+      <div
+        className="tree-content-label"
+        onContextMenu={handleContextMenu}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onDragLeave={handleDragLeaveWrapper}
+      >
         {nodeData.id === DEFAULT_LOCATION_ID
           ? IconSet.IMPORT
           : expansion[nodeData.id]

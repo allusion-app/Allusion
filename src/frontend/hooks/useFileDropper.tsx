@@ -1,13 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { IMG_EXTENSIONS } from 'src/entities/File';
+import { useEffect, useRef, useState } from 'react';
 
-const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
-const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
-
-const preventDragEvent = (e: DragEvent) => {
-  e.stopPropagation();
-  e.preventDefault();
-};
+export const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
 
 /**
  * Could go native... https://www.fileside.app/blog/2019-04-22_fixing-drag-and-drop/
@@ -25,7 +18,6 @@ const useFileDropper = () => {
       // We only have to check once, until drag leave
       if (enterCount.current > 1) return;
 
-      console.log('drop enter', enterCount);
       // Detect whether the drag event came from within Allusion
       // FIXME: Yes, this is hacky. But... The native drag event does not allow you to specify any metadata, just a list of files...
       const w = window as any;
@@ -40,22 +32,26 @@ const useFileDropper = () => {
       }
     };
 
-    const handleDragLeave = (e: DragEvent) => {
+    const handleDragLeave = () => {
       enterCount.current--;
 
       if (enterCount.current === 0) {
-        console.log('drop leave');
         setIsDropping(false);
       }
     };
 
+    const handleDrop = () => {
+      enterCount.current = 0;
+      setIsDropping(false);
+    };
+
     document.body.addEventListener('dragenter', handleDragEnter);
     document.body.addEventListener('dragleave', handleDragLeave);
-    // document.body.addEventListener('dragover', preventDragEvent);
+    document.body.addEventListener('drop', handleDrop);
     return () => {
       document.body.removeEventListener('dragenter', handleDragEnter);
       document.body.removeEventListener('dragleave', handleDragLeave);
-      // document.body.removeEventListener('dragover', preventDragEvent);
+      document.body.removeEventListener('drop', handleDrop);
     }
   }, [isDropping]);
 

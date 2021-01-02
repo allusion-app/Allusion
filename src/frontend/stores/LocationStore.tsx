@@ -143,15 +143,6 @@ class LocationStore {
     return foundNewFiles;
   }
 
-  @computed get importDirectory() {
-    const location = this.locationList.find((l) => l.id === DEFAULT_IMPORT_LOCATION_ID);
-    if (location === undefined) {
-      console.warn('Default location not properly set-up. This should not happen!');
-      return '';
-    }
-    return location.path;
-  }
-
   @action get(locationId: ID): ClientLocation | undefined {
     return this.locationList.find((loc) => loc.id === locationId);
   }
