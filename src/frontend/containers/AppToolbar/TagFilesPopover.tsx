@@ -129,11 +129,18 @@ interface FloatingDialogProps {
 const FloatingDialog = (props: FloatingDialogProps) => {
   const { onClose, isOpen, children } = props;
 
+  const handleBlur = (e: React.FocusEvent) => {
+    const button = e.currentTarget.previousElementSibling as HTMLElement;
+    if (e.relatedTarget !== button && !e.currentTarget.contains(e.relatedTarget as Node)) {
+      onClose();
+      button.focus();
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
-        e.stopPropagation();
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -141,7 +148,11 @@ const FloatingDialog = (props: FloatingDialogProps) => {
   }, [onClose]);
 
   if (isOpen) {
-    return <div className="floating-dialog">{children}</div>;
+    return (
+      <div className="floating-dialog" onBlur={handleBlur}>
+        {children}
+      </div>
+    );
   } else {
     return null;
   }
