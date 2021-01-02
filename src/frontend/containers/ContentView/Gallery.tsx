@@ -36,31 +36,52 @@ const Layout = ({
   // Todo: Select by dragging a rectangle shape
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
   // Also take into account scrolling when dragging while selecting
+
+  /** The first item that is selected in a multi-selection */
+  const initialSelectionIndex = useRef<number>();
+  /** The last item that is selected in a multi-selection */
   const lastSelectionIndex = useRef<number>();
 
-  // useComputed to listen to fileSelection changes
   const handleFileSelect = useCallback(
     (selectedFile: ClientFile, toggleSelection: boolean, rangeSelection: boolean) => {
-      if (rangeSelection && lastSelectionIndex.current !== undefined) {
-        const i = fileStore.getIndex(selectedFile.id);
+      /** The index of the actived item */
+      const i = fileStore.getIndex(selectedFile.id);
+
+      // If nothing is selected, initialize the selection range and select that single item
+      if (lastSelectionIndex.current === undefined) {
+        initialSelectionIndex.current = i;
+        lastSelectionIndex.current = i;
+        uiStore.toggleFileSelection(selectedFile);
+        return;
+      }
+      // Mark this index as the last item that was selected
+      lastSelectionIndex.current = i;
+
+      if (rangeSelection && initialSelectionIndex.current !== undefined) {
         if (i === undefined) {
           return;
         }
-        if (i < lastSelectionIndex.current) {
-          uiStore.selectFileRange(i, lastSelectionIndex.current, toggleSelection);
+        if (i < initialSelectionIndex.current) {
+          uiStore.selectFileRange(i, initialSelectionIndex.current, toggleSelection);
         } else {
-          uiStore.selectFileRange(lastSelectionIndex.current, i, toggleSelection);
+          uiStore.selectFileRange(initialSelectionIndex.current, i, toggleSelection);
         }
       } else if (toggleSelection) {
         uiStore.toggleFileSelection(selectedFile);
-        lastSelectionIndex.current = fileStore.getIndex(selectedFile.id);
+        initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
       } else {
         uiStore.selectFile(selectedFile, true);
-        lastSelectionIndex.current = fileStore.getIndex(selectedFile.id);
+        initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
       }
     },
     [fileStore, uiStore],
   );
+
+  // Reset selection range when number of items changes: Else you can get phantom files when continuing your selection
+  useEffect(() => {
+    initialSelectionIndex.current = undefined;
+    lastSelectionIndex.current = undefined;
+  }, [fileStore.fileList.length]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
