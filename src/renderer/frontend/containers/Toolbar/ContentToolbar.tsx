@@ -110,6 +110,13 @@ export const LayoutMenuItems = observer(({ uiStore }: UiStoreProp) => {
         text="Grid View"
         accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
       />
+      <MenuRadioItem
+        icon={IconSet.VIEW_MASON}
+        onClick={uiStore.setMethodMasonry}
+        checked={uiStore.isMasonry}
+        text="Masonry View"
+        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewMasonry} />}
+      />
     </MenuRadioGroup>
   );
 });
@@ -130,7 +137,7 @@ const ContentToolbar = observer(({ uiStore, fileStore }: UiStoreProp & FileStore
       <>
         <FileSelection uiStore={uiStore} fileStore={fileStore} />
 
-        
+
 
         {/* TODO: Put back tag button (or just the T hotkey) */}
         {fileStore.showsMissingContent ? (
@@ -140,7 +147,7 @@ const ContentToolbar = observer(({ uiStore, fileStore }: UiStoreProp & FileStore
             // Only show when not viewing missing files (so it is replaced by the Delete button)
             <TagFilesPopover />
           )}
-          
+
         <Searchbar />
         <ToolbarMenuButton
           showLabel="never"

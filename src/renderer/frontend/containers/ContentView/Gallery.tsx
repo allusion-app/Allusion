@@ -12,7 +12,7 @@ import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
 import { GridCell, ListCell } from './GalleryItem';
-import { computeMasonryLayout } from './Masonry';
+import MasonryRenderer from './Masonry/masonryRenderer';
 import SlideMode from './SlideMode';
 
 
@@ -101,8 +101,8 @@ const Layout = ({
           fileStore={fileStore}
         />
       );
-    // case 'masonry':
-    //   return <MasonryGallery {...props} />;
+    case ViewMethod.Masonry:
+      return <MasonryRenderer containerWidth={contentRect.width} />;
     case ViewMethod.List:
       return (
         <ListGallery
@@ -137,11 +137,6 @@ const GridGallery = observer((props: ILayoutProps) => {
 
     return () => clearTimeout(timeoutID);
   }, [contentRect.width, maxSize, minSize]);
-
-  useEffect(() => {
-    const imgs = fileList.map(x => ({ width: x.width, height: x.height }));
-    computeMasonryLayout(imgs, contentRect.width);
-  }, []);
 
   const numRows = useMemo(() => (numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0), [
     fileList.length,

@@ -5,6 +5,7 @@
 
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const path = require('path');
 
 let mainConfig = {
@@ -171,6 +172,10 @@ let rendererConfig = {
     new MiniCssExtractPlugin({
       filename: '[name].[contenthash].css',
       chunkFilename: '[id].[contenthash].css',
+    }),
+    new WasmPackPlugin({
+      crateDirectory: path.resolve(__dirname, './wasm/masonry'),
+      forceMode: 'production',
     }),
   ],
 };

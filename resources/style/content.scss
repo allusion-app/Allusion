@@ -80,7 +80,7 @@
 .thumbnail {
   border-radius: 0.25rem;
   grid-area: image;
-  max-width: calc(var(--thumbnail-size) *1.5);
+  max-width: calc(var(--thumbnail-size) * 1.5);
   height: var(--thumbnail-size);
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
@@ -224,7 +224,7 @@
     white-space: nowrap;
     display: flex;
     justify-content: stretch;
-  
+
     [role='gridcell']:last-child {
       margin-right: 0;
     }
@@ -306,4 +306,11 @@
   max-width: 480px;
   margin: 10% auto auto auto;
   text-align: center;
+}
+
+.masonry {
+  img {
+    position: absolute;
+    transition: all 0.2s ease;
+  }
 }

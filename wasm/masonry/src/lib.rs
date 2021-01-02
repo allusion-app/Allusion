@@ -27,6 +27,7 @@ pub struct Transform {
 #[wasm_bindgen]
 pub struct Layout {
     items: Vec<Transform>,
+    thumbnail_size: u32,
 }
 
 /// Public methods, exported to JavaScript.
@@ -34,7 +35,7 @@ pub struct Layout {
 impl Layout {
     // ...
 
-    pub fn new(length: u32, thumbnail_size: u32) -> Layout {
+    pub fn new(length: usize, thumbnail_size: u32) -> Layout {
         Layout {
             items: vec![
                 Transform {
@@ -42,11 +43,12 @@ impl Layout {
                     src_height: 0,
                     width: 0,
                     height: 0,
-                    top: 0,
                     left: 0,
+                    top: 0,
                 };
-                length as usize
+                length
             ],
+            thumbnail_size,
         }
     }
 
@@ -54,6 +56,15 @@ impl Layout {
 
     pub fn items(&self) -> *const Transform {
         self.items.as_ptr()
+    }
+
+    pub fn set_item_input(&mut self, index: usize, width: u16, height: u16) {
+        self.items[index].src_width = width;
+        self.items[index].src_height = height;
+    }
+
+    pub fn set_thumbnail_size(&mut self, thumbnail_size: u32) {
+        self.thumbnail_size = thumbnail_size;
     }
 
     // TODO: ???
@@ -66,11 +77,15 @@ impl Layout {
     // }
 
     pub fn compute(&mut self, container_width: u32, padding: u32) -> i32 {
-        // TODO: Loop over images until containerWidth is reached:
-        // Either adjust row height or add/remove item to make it fit full-width, whatever is the closest
+        // Main idea: Keep looping over images until containerWidth is reached, then:
+        // - Either adjust row height or add/remove item to make it fit full-width, whatever is the closest
+        // (I think this is how google photos does it)
         // Could also have an approximated version for very large lists, and just properly compute for what in and close to the viewport
+        // TODO: Look up proper masonry algorithm, e.g. https://euler.stephan-brumme.com/215/
 
-        let base_row_height = 220;
+        // Could crop images with extreme aspect ratios (e.g. > 4:1) for easier layouting
+
+        let base_row_height = self.thumbnail_size as u16;
 
         let mut top_offset = 0;
         let mut cur_row_width = 0;
@@ -79,7 +94,7 @@ impl Layout {
         for i in 0..self.items.len() {
             let item = &mut self.items[i];
             let rel_width =
-                (base_row_height as f32 / item.src_width as f32) * item.src_height as f32;
+                (base_row_height as f32 / item.src_height as f32) * item.src_width as f32;
             item.width = rel_width as u16;
             item.top = top_offset as u16;
             item.height = base_row_height;
@@ -97,15 +112,17 @@ impl Layout {
                 let correction_factor = container_width as f32 / new_row_width as f32;
                 for j in first_row_item_index..i {
                     let prev_item = &mut self.items[j];
-                    prev_item.left = (correction_factor * prev_item.left as f32) as u16;
+                    prev_item.left = (prev_item.left as f32 * correction_factor) as u16;
                     prev_item.width = (prev_item.width as f32 * correction_factor) as u16;
                     prev_item.height = (prev_item.height as f32 * correction_factor) as u16;
                 }
 
                 // Start a new row
                 cur_row_width = 0;
-                first_row_item_index = i + i;
+                first_row_item_index = i;
                 top_offset += padding as u32 + (base_row_height as f32 * correction_factor) as u32;
+            } else {
+                cur_row_width = new_row_width;
             }
         }
         // Return the height of the container: If a new row was just started, no need to add last item's height

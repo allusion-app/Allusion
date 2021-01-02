@@ -37,15 +37,15 @@ const OutlinerToggle = observer(() => {
         <div className="windowBtn" id="windowMinimize"></div>
         <div className="windowBtn" id="windowMaximize"></div>
       </div>
-    
+
       <ToolbarToggleButton
-      controls="outliner"
-      pressed={uiStore.isOutlinerOpen}
-      icon={uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
-      onClick={uiStore.toggleOutliner}
-      text="Toggle Outliner"
-      showLabel="never"
-      tabIndex={0}
+        controls="outliner"
+        pressed={uiStore.isOutlinerOpen}
+        icon={uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
+        onClick={uiStore.toggleOutliner}
+        text="Toggle Outliner"
+        showLabel="never"
+        tabIndex={0}
       />
     </div>
   );
@@ -96,6 +96,8 @@ const App = observer(() => {
           uiStore.setMethodList();
         } else if (matches(hotkeyMap.viewGrid)) {
           uiStore.setMethodGrid();
+        } else if (matches(hotkeyMap.viewMasonry)) {
+          uiStore.setMethodMasonry();
         } else if (matches(hotkeyMap.viewSlide)) {
           uiStore.toggleSlideMode();
         }

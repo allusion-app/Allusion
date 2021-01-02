@@ -14,6 +14,7 @@ export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const enum ViewMethod {
   List,
   Grid,
+  Masonry,
 }
 type ThumbnailSize = 'small' | 'medium' | 'large';
 type ThumbnailShape = 'square' | 'letterbox';
@@ -36,7 +37,7 @@ export interface IHotkeyMap {
   deselectAll: string;
   viewList: string;
   viewGrid: string;
-  // viewMason: string;
+  viewMasonry: string;
   viewSlide: string;
   advancedSearch: string;
 
@@ -57,8 +58,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   deselectAll: 'mod + d',
   viewList: 'alt + 1',
   viewGrid: 'alt + 2',
-  // TODO: Add masonry layout
-  // viewMason: 'alt + 3',
+  viewMasonry: 'alt + 3',
   viewSlide: 'alt + 3',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
@@ -154,6 +154,10 @@ class UiStore {
     return this.method === ViewMethod.Grid;
   }
 
+  @computed get isMasonry(): boolean {
+    return this.method === ViewMethod.Masonry;
+  }
+
   @action.bound setThumbnailSmall() {
     this.setThumbnailSize('small');
   }
@@ -186,6 +190,10 @@ class UiStore {
 
   @action.bound setMethodGrid() {
     this.method = ViewMethod.Grid;
+  }
+
+  @action.bound setMethodMasonry() {
+    this.method = ViewMethod.Masonry;
   }
 
   @action.bound enableSlideMode() {
