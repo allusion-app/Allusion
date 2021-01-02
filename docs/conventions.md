@@ -4,18 +4,35 @@
 
 - TODO
 
-## File names
+## Naming
 
-- TS Modules: my-module.ts
-- React Components: `UpperCammelCase.tsx`, except:
-  - For the Widgets, use `MyComponent/index.tsx`: Because they have accompanying style files
-- Styles: hyphen-case.scss [\*](https://www.hongkiat.com/blog/sass-tips-tools-for-developers/)
+### Code
+
+| Item              | Convention  | Example                          | Exception                            |
+| ----------------- | ----------- | -------------------------------- | ------------------------------------ |
+| modules           | kebab-case  | `menu-items.ts`                  | React Component/class data structure |
+| interfaces        | IPascalCase | `ISerializable`                  |
+| types             | PascalCase  | `LocationStore`                  |
+| enum variants     | PascalCase  | `enum FileOrder { Asc, Desc }`   |
+| functions/methods | camelCase   | `function generateID() { ... }`  | alternatively: arrow functions       |
+| React components  | PascalCase  | `const Outliner = () => { ... }` |
+| local variables   | camelCase   | `const myVariable = ...;`        |
+
+### Style
+
+| Item            | Convention   | Example              | Exception |
+| --------------- | ------------ | -------------------- | --------- |
+| modules         | kebab-case   | `settings.scss`      |
+| SASS-variables  | \$kebab-case | `$background-color`  |
+| CSS-variables   | --kebab-case | `--background-color` |
+| classes         | .kebab-case  | `.button`            |
+| ids             | #kebab-case  | `#outliner`          |
+| data attributes | kebab-case   | `data-dnd`           |
 
 ## Styling:
 
-- ClassNames & IDs: `.hypened-names { ... }`
 - Make use of nested SASS styling
 
 ## Folder structure:
 
-- TODO
+- For the Widgets, use `MyComponent/index.tsx`: Because they have accompanying style files
