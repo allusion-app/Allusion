@@ -68,14 +68,7 @@ export const GridCell = observer(({ file, colIndex, mounted, uiStore, fileStore 
       <Tooltip
         content="This image could not be found."
         trigger={
-          <span
-            className="thumbnail-broken-overlay"
-            onClick={(e) => {
-              e.stopPropagation(); // prevent image click event
-              fileStore.fetchMissingFiles();
-              uiStore.selectFile(file, true);
-            }}
-          >
+          <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
             {IconSet.WARNING_BROKEN_LINK}
           </span>
         }
