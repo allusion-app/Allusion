@@ -17,7 +17,7 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
   <RemovalAlert
     open
     title={`Are you sure you want to delete the location "${props.object.name}"?`}
-    information="This will permanently remove the location and all files contained in it from Allusion."
+    information="This will permanently remove the location and all data linked its images in Allusion."
     onCancel={props.onClose}
     onConfirm={() => {
       props.onClose();
@@ -75,9 +75,8 @@ export const FileRemoval = observer(() => {
   return (
     <RemovalAlert
       open={uiStore.isToolbarFileRemoverOpen}
-      title={`Are you sure you want to delete ${selection.size} missing file${
-        selection.size > 1 ? 's' : ''
-      }?`}
+      title={`Are you sure you want to delete ${selection.size} missing file${selection.size > 1 ? 's' : ''
+        }?`}
       information="Deleting files will permanently remove them from Allusion. Accidentially moved files can be recovered by returning them to their previous location."
       onCancel={uiStore.closeToolbarFileRemover}
       onConfirm={handleConfirm}

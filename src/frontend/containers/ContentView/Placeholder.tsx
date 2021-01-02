@@ -6,7 +6,7 @@ import StoreContext from '../../contexts/StoreContext';
 const Placeholder = observer(() => {
   const { fileStore, tagStore, uiStore } = useContext(StoreContext);
 
-  if (fileStore.showsAllContent && tagStore.tagList.length === 1) {
+  if (fileStore.showsAllContent && tagStore.tagList.length === 1) { // 1 tag: the root tag
     // No tags exist, and no images added: Assuming it's a new user -> Show a welcome screen
     return <Welcome />;
   } else if (fileStore.showsAllContent) {
@@ -30,14 +30,31 @@ import UiStore from '../../stores/UiStore';
 import { IconSet, Button, ButtonGroup } from 'widgets';
 
 const Welcome = () => {
+  const { uiStore } = useContext(StoreContext);
   return (
     <ContentPlaceholder title="Welcome to Allusion" icon={IconSet.LOGO}>
       <p>
         Allusion is a tool designed to help you organize your Visual Library, so you can easily find
         what you need throughout your creative process.
       </p>
-      <p>Allusion needs to know where to find your images. Click below to get started.</p>
-      <Button text="Getting Started Guide" onClick={() => window.alert('TODO: Get started')} />
+      <p>
+        Allusion needs to know where to find your images.
+        <br />
+        Add a Location to get started.
+      </p>
+
+      <div className="divider" />
+
+      <p>New to Allusion?</p>
+      <Button text="Open Help Center" onClick={uiStore.toggleHelpCenter} />
+
+      <br />
+      <br />
+      <br />
+
+      {/* Mention principles (?) */}
+      <small>Allusion is a read-only application. We'll never touch your files</small>
+
     </ContentPlaceholder>
   );
 };

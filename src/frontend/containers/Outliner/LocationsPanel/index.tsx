@@ -55,7 +55,7 @@ const isExpanded = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITr
   treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-const emptyFunction = () => {};
+const emptyFunction = () => { };
 
 const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
   const element = event.currentTarget.querySelector('.tree-content-label');
@@ -167,14 +167,14 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
 
   return (
     <>
+      <DirectoryMenu path={location.path} uiStore={uiStore} />
+      <MenuDivider />
       <MenuItem
         text="Delete"
         onClick={openDeleteDialog}
         icon={IconSet.DELETE}
         disabled={location.id === DEFAULT_LOCATION_ID}
       />
-      <MenuDivider />
-      <DirectoryMenu path={location.path} uiStore={uiStore} />
     </>
   );
 });
@@ -246,8 +246,8 @@ const Location = observer(
         {nodeData.id === DEFAULT_LOCATION_ID
           ? IconSet.IMPORT
           : expansion[nodeData.id]
-          ? IconSet.FOLDER_OPEN
-          : IconSet.FOLDER_CLOSE}
+            ? IconSet.FOLDER_OPEN
+            : IconSet.FOLDER_CLOSE}
         <div onClick={handleClick}>{nodeData.name}</div>
         {nodeData.isBroken && (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
@@ -364,7 +364,7 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
   );
 });
 
-const LocationsPanel = () => {
+const LocationsPanel = observer(() => {
   const { locationStore } = useContext(StoreContext);
   const [contextState, { show, hide }] = useContextMenu();
 
@@ -416,8 +416,10 @@ const LocationsPanel = () => {
     locationStore.create(path).then((location) => locationStore.initLocation(location));
   }, [locationStore]);
 
+  const isEmpty = !locationStore.locationList.length;
+
   return (
-    <div className="section">
+    <div className={`section ${isEmpty ? 'attention' : ''}`}>
       <header>
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list">
@@ -432,6 +434,10 @@ const LocationsPanel = () => {
       </header>
       <Collapse open={!isCollapsed}>
         <LocationsTree showContextMenu={show} onDelete={setDeletableLocation} />
+
+        {isEmpty && (
+          <i>Click + to choose a Location</i>
+        )}
       </Collapse>
       <LocationRecoveryDialog />
       {deletableLocation && (
@@ -445,6 +451,6 @@ const LocationsPanel = () => {
       </ContextMenu>
     </div>
   );
-};
+});
 
 export default LocationsPanel;

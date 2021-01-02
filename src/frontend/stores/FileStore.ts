@@ -90,7 +90,7 @@ class FileStore {
   }
 
   @action.bound async importExternalFile(path: string, dateAdded: Date) {
-    const loc = this.rootStore.locationStore.defaultImportLocation;
+    const loc = this.rootStore.locationStore.locationList[0]; // TODO: User should pick location
     const file = new ClientFile(this, {
       id: generateId(),
       locationId: loc.id,
@@ -312,8 +312,7 @@ class FileStore {
   getLocation(location: ID): ClientLocation {
     const loc = this.rootStore.locationStore.get(location);
     if (!loc) {
-      console.warn('Location of file was not found! This should never happen!', location);
-      return this.rootStore.locationStore.defaultImportLocation;
+      throw new Error(`Location of file was not found! This should never happen! Location ${location}`);
     }
     return loc;
   }

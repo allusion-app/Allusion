@@ -152,38 +152,8 @@ class LocationStore {
     return location.path;
   }
 
-  @computed get defaultImportLocation(): ClientLocation | undefined {
-    const defaultImportLocation = this.locationList.find((l) => l.id === DEFAULT_IMPORT_LOCATION_ID);
-    if (defaultImportLocation === undefined) {
-      throw new Error('Default location not found. This should not happen!');
-    }
-    return defaultImportLocation;
-  }
-
   @action get(locationId: ID): ClientLocation | undefined {
     return this.locationList.find((loc) => loc.id === locationId);
-  }
-
-  @action async setDefaultImportLocation(dir: string): Promise<void> {
-    const index = this.locationList.findIndex((l) => l.id === DEFAULT_IMPORT_LOCATION_ID);
-    let location;
-    if (index > -1) {
-      const defaultLocation = this.locationList[index];
-      if (defaultLocation.path === dir) {
-        // If a folder was picked that already was a location, convert that to the default import location
-        return;
-      }
-      await defaultLocation.drop();
-      location = new ClientLocation(this, DEFAULT_IMPORT_LOCATION_ID, dir, defaultLocation.dateAdded);
-      this.set(index, location);
-    } else {
-      // Create new location at the 0 date (Jan 01 1970) so that it's always the first item in the list (sorted by date)
-      location = new ClientLocation(this, DEFAULT_IMPORT_LOCATION_ID, dir, new Date(0));
-      this.locationList.splice(0, 0, location); // insert at index 0
-    }
-    await this.initLocation(location);
-    await this.backend.saveLocation(location.serialize());
-    RendererMessenger.setDownloadPath({ dir });
   }
 
   @action async changeLocationPath(location: ClientLocation, newPath: string): Promise<void> {
@@ -301,6 +271,8 @@ class LocationStore {
       }
       // Remove location locally
       this.locationList.remove(location);
+
+      // TODO: Update untagged image counter
     });
     this.rootStore.fileStore.refetch();
   }
