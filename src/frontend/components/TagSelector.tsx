@@ -33,6 +33,7 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
   return (
     <div
       role="combobox"
+      aria-expanded={isOpen}
       className="input"
       onBlur={(e) => {
         if (e.relatedTarget instanceof HTMLElement && e.relatedTarget.matches('[role="option"]')) {
