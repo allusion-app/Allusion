@@ -86,6 +86,26 @@ header h2 {
   margin: 0;
 }
 
+// Custom scrollbar style
+::-webkit-scrollbar {
+  width: 0.5rem;
+  box-sizing: border-box;
+  padding: 0.125rem;
+}
+
+/////////// Scroll bar (Track and handle) ///////////
+::-webkit-scrollbar-track {
+  background-color: var(--shade1);
+  border-radius: 0.25rem;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--hover-background1);
+  border-radius: 0.25rem;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--hover-background2);
+}
+
 // Conditional
 
 // Main window layout definition

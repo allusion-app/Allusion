@@ -17,6 +17,10 @@
   }
 }
 
+.section {
+  margin-bottom: 0.5rem;
+}
+
 // HIERARCHY
 
 #tree-footer {
@@ -57,6 +61,17 @@
 
   [role='toolbar']:focus-within {
     opacity: 1;
+  }
+
+  .toolbar-button {
+    color: var(--text-color);
+    cursor: pointer;
+    outline: none;
+    border: none;
+    background: transparent;
+  }
+  .toolbar-button:hover {
+    color: var(--text-color-strong);
   }
 }
 
@@ -118,5 +133,49 @@
 
   input {
     width: 100%;
+  }
+}
+
+// ACTIONBAR
+
+#actionbar {
+  // Design v3
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  // extra css (from the section previously named #system-tags)
+  flex-shrink: 0;
+
+  // TODO: the buttons are currently .toolbar-button - not .actionbarBtn
+  .toolbar-button {
+    color: var(--text-color);
+    background: none;
+    outline: none;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0.5rem 0.25rem;
+  }
+  img {
+    height: 0.8125rem;
+  }
+  .toolbar-button:active,
+  .toolbar-button:hover {
+    color: var(--accent-color-blue);
+  }
+  img {
+    height: 0.8125rem;
+  }
+  span {
+    margin: 0 0.125rem;
+    font-size: 0.6875rem;
+    font-weight: bold;
   }
 }
