@@ -259,10 +259,15 @@
   object-fit: contain;
 }
 
-// Slide view:
+// Slide mode:
+#slide-mode {
+  display: flex;
+}
+
 #zoomableImage {
   height: calc(100vh - var(--content-top));
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
 
   img {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 
@@ -8,6 +8,7 @@ import FileStore from '../../stores/FileStore';
 import { IconSet } from 'widgets';
 
 import { MissingImageFallback } from './GalleryItem';
+import Inspector from '../Inspector';
 
 interface SlideModeProps {
   contentRect: { width: number; height: number };
@@ -102,44 +103,59 @@ const SlideMode = (props: SlideModeProps) => {
     }
   }, [fileList, uiStore.firstItem]);
 
+  const inspectorWidth = 288;
+  // useMemo(() =>
+  //   parseInt(getComputedStyle(document.body).getPropertyValue('--inspector-width')) // rem value: get pixels by multplying with font size
+  //   * parseInt(getComputedStyle(document.body).getPropertyValue('font-size')),
+  //   []);
+  const contentWidth = contentRect.width - (uiStore.isInspectorOpen ? inspectorWidth : 0);
+
   if (uiStore.firstItem >= fileList.length) {
     return <p>No files available</p>;
   }
 
   const file = fileList[uiStore.firstItem];
 
-  return file.isBroken ? (
-    <MissingImageFallback
-      style={{
-        width: `${contentRect.width}px`,
-        height: `${contentRect.height}px`,
-      }}
-    />
-  ) : (
-    <ZoomableImage
-      src={file.absolutePath}
-      contentRect={contentRect}
-      prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
-      nextImage={uiStore.firstItem + 1 < fileList.length ? incrImgIndex : undefined}
-    />
+  // TODO: If image is broken, cannot go back/forward
+  return (
+    <div id="slide-mode">
+      {file.isBroken ? (
+        <MissingImageFallback
+          style={{
+            width: `${contentWidth}px`,
+            height: `${contentRect.height}px`,
+          }}
+        />
+      ) : (
+          <ZoomableImage
+            src={file.absolutePath}
+            width={contentWidth}
+            height={contentRect.height}
+            prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
+            nextImage={uiStore.firstItem + 1 < fileList.length ? incrImgIndex : undefined}
+          />
+        )}
+      <Inspector />
+    </div>
   );
 };
 
 interface IZoomableImageProps {
   src: string;
-  contentRect: { width: number; height: number };
+  width: number;
+  height: number;
   prevImage?: () => any;
   nextImage?: () => any;
 }
 
-const ZoomableImage = ({ src, contentRect, prevImage, nextImage }: IZoomableImageProps) => {
+const ZoomableImage = ({ src, width, height, prevImage, nextImage }: IZoomableImageProps) => {
   // Todo: Same context menu as GalleryItem
   return (
     <div id="zoomableImage">
       <div
         style={{
-          width: `${contentRect.width}px`,
-          maxHeight: `${contentRect.height}px`,
+          width: `${width}px`,
+          maxHeight: `${height}px`,
         }}
       >
         {/* https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}

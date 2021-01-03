@@ -3,7 +3,6 @@
   grid-area: inspector;
   width: var(--inspector-width);
   background-color: var(--background-color);
-  padding-top: var(--content-top);
 
   > * {
     // Don't squash content of aside during parent transition
@@ -65,41 +64,5 @@ table.file-info {
 
   > img {
     object-fit: contain;
-  }
-}
-
-.carousel {
-  overflow: hidden;
-  height: var(--inspector-width);
-}
-
-.carousel-slide {
-  width: 100%;
-
-  > img {
-    width: 100%;
-    max-height: var(--inspector-width);
-    box-shadow: $pt-dark-elevation-shadow-2;
-    transform-origin: center;
-    transition-duration: 0.2s;
-    transition-timing-function: ease;
-    transition-property: transform, filter;
-    object-fit: cover;
-    // TODO: Try making all images quare, to avoid having to deal with different aspect ratios
-  }
-
-  @for $i from 0 through 10 {
-    &.child-#{$i} {
-      height: 0px;
-
-      > img {
-        transform: scale(calc(0.5 + 0.1 * #{$i})) translateY(calc(32px * #{$i} - 64px));
-        filter: brightness(calc(0.4 + 0.1 * #{$i}));
-
-        &:hover {
-          filter: brightness(calc(0.5 + 0.1 * #{$i}));
-        }
-      }
-    }
   }
 }

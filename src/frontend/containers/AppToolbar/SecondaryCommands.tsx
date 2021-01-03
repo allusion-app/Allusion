@@ -1,11 +1,9 @@
-import React from 'react';
 import { KeyCombo } from '@blueprintjs/core';
 import { observer } from 'mobx-react-lite';
-
+import React from 'react';
 import UiStore from 'src/frontend/stores/UiStore';
-
 import { IconSet } from 'widgets';
-import { MenuButton, MenuItem, MenuCheckboxItem } from 'widgets/menus';
+import { MenuButton, MenuItem } from 'widgets/menus';
 
 const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
   return (
@@ -17,12 +15,6 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
       id="__secondary-menu"
       menuID="__secondary-menu-options"
     >
-      <MenuCheckboxItem
-        onClick={uiStore.toggleInspector}
-        checked={uiStore.isInspectorOpen}
-        text="Show Inspector"
-        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleInspector} />}
-      />
       <MenuItem
         icon={IconSet.SEARCH_EXTENDED}
         onClick={uiStore.toggleAdvancedSearch}

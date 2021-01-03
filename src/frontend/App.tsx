@@ -106,8 +106,6 @@ const App = observer(() => {
 
           <ContentView />
 
-          <Inspector />
-
           <SettingsWindow />
 
           <HelpCenter />

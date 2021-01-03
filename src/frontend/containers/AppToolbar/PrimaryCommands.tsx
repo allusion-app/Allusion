@@ -16,6 +16,7 @@ export const enum Tooltip {
   TagFiles = 'Quick add or delete tags to selection',
   Select = 'Selects or deselects all images',
   Delete = 'Delete selected missing images from library',
+  Inspector = 'Toggle the inspector panel',
   Back = 'Back to content panel',
 }
 
@@ -55,9 +56,9 @@ const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStor
         // Only show option to remove selected files in toolbar when viewing missing files */}
         <RemoveFilesPopover uiStore={uiStore} />
       ) : (
-        // Only show when not viewing missing files (so it is replaced by the Delete button)
-        <TagFilesPopover />
-      )}
+          // Only show when not viewing missing files (so it is replaced by the Delete button)
+          <TagFilesPopover />
+        )}
 
       <SortCommand fileStore={fileStore} />
 
@@ -70,13 +71,27 @@ export default PrimaryCommands;
 
 export const SlideModeCommand = ({ uiStore }: { uiStore: UiStore }) => {
   return (
-    <ToolbarButton
-      showLabel="always"
-      icon={IconSet.ARROW_LEFT}
-      onClick={uiStore.disableSlideMode}
-      text={Tooltip.Back}
-      tooltip={Tooltip.Back}
-    />
+    <>
+      <ToolbarButton
+        showLabel="always"
+        icon={IconSet.ARROW_LEFT}
+        onClick={uiStore.disableSlideMode}
+        text="Back"
+        tooltip={Tooltip.Back}
+      />
+
+      <div className="spacer" />
+
+      <ToolbarButton
+        showLabel="never"
+        icon={IconSet.INFO}
+        onClick={uiStore.toggleInspector}
+        checked={uiStore.isInspectorOpen}
+        text={Tooltip.Inspector}
+        tooltip={Tooltip.Inspector}
+      // accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleInspector} />}
+      />
+    </>
   );
 };
 
@@ -112,8 +127,8 @@ const RemoveFilesPopover = observer(({ uiStore }: { uiStore: UiStore }) => {
         onClick={uiStore.openToolbarFileRemover}
         text="Delete"
         tooltip={Tooltip.Delete}
-        // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
-        // intent="warning"
+      // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
+      // intent="warning"
       />
       <FileRemoval />
     </>
