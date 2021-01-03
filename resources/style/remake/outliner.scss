@@ -5,7 +5,6 @@
 #outliner-content {
   // Show y scrollbar when there's loads of tags or location list items
   overflow-x: hidden;
-  overflow-y: scroll;
   position: absolute;
   top: var(--content-top);
   bottom: 2rem;
