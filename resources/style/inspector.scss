@@ -7,7 +7,7 @@
   > * {
     // Don't squash content of aside during parent transition
     width: var(--inspector-width);
-    padding: 0.25rem 1rem 0.25rem 0.5rem;
+    padding: 0.25rem 0.5rem;
   }
 
   header {
@@ -23,21 +23,22 @@ table.file-info {
 
   th {
     color: var(--text-color-muted);
+    white-space: nowrap;
     font-weight: unset;
     text-align: unset;
+    vertical-align: baseline;
   }
 
   th,
   td {
-    white-space: nowrap;
     padding: 0;
   }
 
   td {
     padding-left: 1rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-all;
   }
+
   // TODO: New design:
   // .listContentRow {
   //   display: flex;
@@ -54,15 +55,4 @@ table.file-info {
   //   display: flex;
   //   justify-content: space-between;
   // }
-}
-
-.inspector-preview {
-  > * {
-    max-height: calc(var(--inspector-width) - 2rem);
-    width: 100%;
-  }
-
-  > img {
-    object-fit: contain;
-  }
 }

@@ -268,8 +268,8 @@ const GridGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-              <FileViewerMenuItems file={file} uiStore={uiStore} />
-            ),
+            <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });
@@ -419,8 +419,8 @@ const ListGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-              <FileViewerMenuItems file={file} uiStore={uiStore} />
-            ),
+            <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });

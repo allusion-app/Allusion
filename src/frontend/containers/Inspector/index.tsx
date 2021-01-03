@@ -19,9 +19,18 @@ const Inspector = observer(() => {
 
   return (
     <Panel isOpen={uiStore.isInspectorOpen}>
-      <Content
-        information={<ImageInfo file={first} />}
-      />
+      <section>
+        <header>
+          <h2>Information</h2>
+        </header>
+        <ImageInfo file={first} />
+      </section>
+      <section>
+        <header>
+          <h2>Tags</h2>
+        </header>
+        <FileTags />
+      </section>
     </Panel>
   );
 });
@@ -33,29 +42,6 @@ const Panel = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNod
     <aside id="inspector" style={isOpen ? undefined : { width: '0' }}>
       {isOpen ? children : null}
     </aside>
-  );
-};
-
-interface IContent {
-  information: React.ReactNode;
-}
-
-const Content = ({ information }: IContent) => {
-  return (
-    <>
-      <section>
-        <header>
-          <h2>Information</h2>
-        </header>
-        {information}
-      </section>
-      <section>
-        <header>
-          <h2>Tags</h2>
-        </header>
-        <FileTags />
-      </section>
-    </>
   );
 };
 

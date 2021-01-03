@@ -59,8 +59,6 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
     };
   }, [file, suspended]);
 
-  // TODO: long file names overflow the table, causing a scrollbar to appear across the entire bottom of the app. Couldn't figure out the darned css for this
-
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
   // Or add the units: pixels vs DPI
   return (

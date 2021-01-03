@@ -56,9 +56,9 @@ const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStor
         // Only show option to remove selected files in toolbar when viewing missing files */}
         <RemoveFilesPopover uiStore={uiStore} />
       ) : (
-          // Only show when not viewing missing files (so it is replaced by the Delete button)
-          <TagFilesPopover />
-        )}
+        // Only show when not viewing missing files (so it is replaced by the Delete button)
+        <TagFilesPopover />
+      )}
 
       <SortCommand fileStore={fileStore} />
 
@@ -89,7 +89,6 @@ export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => 
         checked={uiStore.isInspectorOpen}
         text={Tooltip.Inspector}
         tooltip={Tooltip.Inspector}
-      // accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleInspector} />}
       />
     </>
   );
@@ -127,8 +126,6 @@ const RemoveFilesPopover = observer(({ uiStore }: { uiStore: UiStore }) => {
         onClick={uiStore.openToolbarFileRemover}
         text="Delete"
         tooltip={Tooltip.Delete}
-      // Giving it a warning intent will make it stand out more - it is usually hidden so it might not be obviously discovered
-      // intent="warning"
       />
       <FileRemoval />
     </>

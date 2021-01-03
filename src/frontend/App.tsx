@@ -1,7 +1,8 @@
-import { comboMatches, getKeyCombo, parseKeyCombo, Position, Toaster } from '@blueprintjs/core';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { comboMatches, getKeyCombo, parseKeyCombo, Position, Toaster } from '@blueprintjs/core';
+
 import { Toaster as CustomToaster } from './components/Toaster';
 import AdvancedSearchDialog from './containers/AdvancedSearch';
 import AppToolbar from './containers/AppToolbar';
