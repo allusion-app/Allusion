@@ -1,9 +1,9 @@
 import fse from 'fs-extra';
 import path from 'path';
 import { IMG_EXTENSIONS } from 'src/entities/File';
-import { ALLOWED_DROP_TYPES } from 'src/frontend/hooks/useFileDropper';
+import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
 import { timeoutPromise } from 'src/frontend/utils';
-import { IStoreFileMessage } from 'src/Messaging';
+import { IStoreFileMessage, RendererMessenger } from 'src/Messaging';
 import { DnDAttribute } from '../TagsPanel/dnd';
 
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
@@ -42,7 +42,7 @@ export function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
   }
 }
 
-export async function storeDroppedImage(e: React.DragEvent, storagePath: string) {
+export async function storeDroppedImage(e: React.DragEvent, directory: string) {
   e.persist();
   const dropData = await getDropData(e);
   for (const dataItem of dropData) {
@@ -52,6 +52,7 @@ export async function storeDroppedImage(e: React.DragEvent, storagePath: string)
     if (dataItem instanceof File) {
       const file = await fse.readFile(dataItem.path);
       fileData = {
+        directory,
         filenameWithExt: path.basename(dataItem.path),
         imgBase64: file.toString('base64'),
       };
@@ -63,36 +64,32 @@ export async function storeDroppedImage(e: React.DragEvent, storagePath: string)
       const filenameWithExt = IMG_EXTENSIONS.some((ext) => filename.endsWith(ext))
         ? filename
         : `${filename}.${extension}`;
-      fileData = { imgBase64, filenameWithExt };
+      fileData = { directory, imgBase64, filenameWithExt };
     }
     if (fileData) {
       const { imgBase64, filenameWithExt } = fileData;
 
-      // New approach: Just store it
-      const outPath = path.join(storagePath, filenameWithExt);
-      const rawData = imgBase64.substr(imgBase64.indexOf(',') + 1); // remove base64 header
-      await fse.writeFile(outPath, rawData, 'base64');
-
-      // Old approach: Send base64 file to main process, get back filename where it is stored
+      // Send base64 file to main process, get back filename where it is stored
       // So it can be tagged immediately
-      // const reply = await RendererMessenger.storeFile({ filenameWithExt, imgBase64 });
+      // Filename will be incremented if file already exists, e.g. `image.jpg -> image 1.jpg`
+      const reply = await RendererMessenger.storeFile({ directory, filenameWithExt, imgBase64 });
 
-      // let rejected = false;
-      // const timeout = setTimeout(() => {
-      //   rejected = true;
-      //   console.error('Could not store dropped image in backend');
-      // }, 5000);
+      let rejected = false;
+      const timeout = setTimeout(() => {
+        rejected = true;
+        console.error('Could not store dropped image in backend');
+      }, 5000);
 
-      // if (!rejected) {
-      //   clearTimeout(timeout);
-      //   console.log('Imported file', reply.downloadPath);
+      if (!rejected) {
+        clearTimeout(timeout);
+        console.log('Imported file', reply.downloadPath);
 
-      //   // Add tag if needed
-      //   // if (tag !== undefined) {
-      //   //   const file = await fileStore.importExternalFile(reply.downloadPath, new Date());
-      //   //   file.addTag(tag);
-      //   // }
-      // }
+        // Add tag if needed
+        // if (tag !== undefined) {
+        //   const file = await fileStore.importExternalFile(reply.downloadPath, new Date());
+        //   file.addTag(tag);
+        // }
+      }
     }
   }
 }

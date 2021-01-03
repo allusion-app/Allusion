@@ -1,6 +1,29 @@
+import React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
+export interface DropState {
+  isDropping: boolean;
+}
+
 export const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
+
+const DropContext = React.createContext<DropState>({ isDropping: false });
+export default DropContext;
+
+export const DropContextProvider = (props: { children: React.ReactNode, onDragEnter?: () => void }) => {
+  const dropState = useFileDropper();
+  useEffect(() => {
+    if (dropState.isDropping) {
+      props.onDragEnter?.();
+    }
+  }, [props.onDragEnter, dropState.isDropping, props]);
+
+  return (
+    <DropContext.Provider value={dropState}>
+      {props.children}
+    </DropContext.Provider>
+  );
+};
 
 /**
  * Could go native... https://www.fileside.app/blog/2019-04-22_fixing-drag-and-drop/
@@ -17,6 +40,8 @@ const useFileDropper = () => {
 
       // We only have to check once, until drag leave
       if (enterCount.current > 1) return;
+
+      e.dataTransfer!.dropEffect = 'none'
 
       // Detect whether the drag event came from within Allusion
       // FIXME: Yes, this is hacky. But... The native drag event does not allow you to specify any metadata, just a list of files...
@@ -59,5 +84,3 @@ const useFileDropper = () => {
     isDropping,
   };
 };
-
-export default useFileDropper;

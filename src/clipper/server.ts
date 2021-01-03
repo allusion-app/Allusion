@@ -67,7 +67,6 @@ class ClipServer {
 
   private preferences = {
     isEnabled: false,
-    downloadPath: '',
     runInBackground: false,
   };
 
@@ -117,15 +116,6 @@ class ClipServer {
     return !!this.preferences.isEnabled;
   }
 
-  getDownloadPath() {
-    return this.preferences.downloadPath;
-  }
-
-  setDownloadPath(downloadPath: string) {
-    this.preferences.downloadPath = downloadPath;
-    this.savePreferences();
-  }
-
   setRunInBackground(isEnabled: boolean) {
     this.preferences.runInBackground = isEnabled;
     this.savePreferences();
@@ -151,22 +141,22 @@ class ClipServer {
     fse.remove(importQueueFilePath);
   }
 
-  async storeImageWithoutImport(filename: string, imgBase64: string) {
+  async storeImageWithoutImport(directory: string, filename: string, imgBase64: string) {
     const downloadPath = await ClipServer.createDownloadPath(
-      this.preferences.downloadPath,
+      directory,
       filename,
     );
-    await this.storeImage(downloadPath, imgBase64);
+    await this.storeImage(directory, downloadPath, imgBase64);
     return downloadPath;
   }
 
-  async storeAndImportImage(filename: string, imgBase64: string) {
+  async storeAndImportImage(directory: string, filename: string, imgBase64: string) {
     const downloadPath = await ClipServer.createDownloadPath(
-      this.preferences.downloadPath,
+      directory,
       filename,
     );
 
-    await this.storeImage(downloadPath, imgBase64);
+    await this.storeImage(directory, downloadPath, imgBase64);
 
     const item: IImportItem = {
       filePath: downloadPath,
@@ -192,17 +182,17 @@ class ClipServer {
             try {
               // Check what kind of message has been sent
               if (req.url && req.url.endsWith('import-image')) {
-                const { filename, imgBase64 } = JSON.parse(body);
+                const { directory, filename, imgBase64 } = JSON.parse(body);
                 console.log('Received file', filename);
 
-                await this.storeAndImportImage(filename, imgBase64);
+                await this.storeAndImportImage(directory, filename, imgBase64);
 
                 res.end({ message: 'OK!' });
               } else if (req.url && req.url.endsWith('/set-tags')) {
-                const { tagNames, filename } = JSON.parse(body);
+                const { directory, tagNames, filename } = JSON.parse(body);
 
                 const downloadPath = await ClipServer.createDownloadPath(
-                  this.preferences.downloadPath,
+                  directory,
                   filename,
                   true,
                 );
@@ -257,9 +247,9 @@ class ClipServer {
     await fse.writeFile(importQueueFilePath, lines.join('\n'));
   }
 
-  private async storeImage(downloadPath: string, imgBase64: string) {
+  private async storeImage(directory: string, downloadPath: string, imgBase64: string) {
     const rawData = imgBase64.substr(imgBase64.indexOf(',') + 1); // remove base64 header
-    await fse.mkdirs(this.preferences.downloadPath);
+    await fse.mkdirs(directory);
     await fse.writeFile(downloadPath, rawData, 'base64');
   }
 

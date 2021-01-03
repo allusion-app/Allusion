@@ -84,11 +84,11 @@ const App = observer(() => {
     return () => window.removeEventListener('keydown', handleGlobalShortcuts);
   }, [handleGlobalShortcuts]);
 
-  const openOutlinerOnDragEnter = useCallback(() => {
-    if (!uiStore.isOutlinerOpen) {
-      uiStore.toggleOutliner();
-    }
-  }, [uiStore]);
+  // const openOutlinerOnDragEnter = useCallback(() => {
+  //   if (!uiStore.isOutlinerOpen) {
+  //     uiStore.toggleOutliner();
+  //   }
+  // }, [uiStore]);
 
   if (!uiStore.isInitialized || showSplash) {
     return <SplashScreen />;
@@ -97,7 +97,8 @@ const App = observer(() => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    <DropContextProvider onDragEnter={openOutlinerOnDragEnter}>
+    // TODO: Open outliner on dragEnter: onDragEnter={openOutlinerOnDragEnter}. Problem: drag counter is messed up when DOM is updated: always off by one -> isDragging stays true
+    <DropContextProvider>
       <div data-os={PLATFORM} id="layout-container" className={themeClass}>
         {PLATFORM !== 'darwin' && <WindowsToolbar />}
 

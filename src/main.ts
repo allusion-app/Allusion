@@ -249,7 +249,6 @@ function createWindow() {
     if (clipServer === null || mainWindow === null) {
       return;
     }
-    clipServer.setDownloadPath((await MainMessenger.getDownloadPath(mainWindow.webContents)).dir);
     const importItems = await clipServer.getImportQueue();
     await Promise.all(importItems.map(importExternalImage));
     clipServer.clearImportQueue();
@@ -328,11 +327,9 @@ app.on('activate', () => {
 
 // Messaging: Sending and receiving messages between the main and renderer process //
 /////////////////////////////////////////////////////////////////////////////////////
-MainMessenger.onSetDownloadPath(({ dir }) => clipServer?.setDownloadPath(dir));
 MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
 MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
 
-MainMessenger.onSetDownloadPath(({ dir }) => clipServer?.setDownloadPath(dir));
 MainMessenger.onSetClipServerEnabled(({ isClipServerRunning }) =>
   clipServer?.setEnabled(isClipServerRunning),
 );
@@ -349,8 +346,8 @@ MainMessenger.onSetRunningInBackground(({ isRunInBackground }) => {
   }
 });
 
-MainMessenger.onStoreFile(({ filenameWithExt, imgBase64 }) =>
-  clipServer!.storeImageWithoutImport(filenameWithExt, imgBase64),
+MainMessenger.onStoreFile(({ directory, filenameWithExt, imgBase64 }) =>
+  clipServer!.storeImageWithoutImport(directory, filenameWithExt, imgBase64),
 );
 
 // Forward files from the main window to the preview window

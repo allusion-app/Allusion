@@ -45,6 +45,7 @@ export interface ITagsMessage {
 
 export const STORE_FILE = 'STORE_FILE';
 export interface IStoreFileMessage {
+  directory: string;
   filenameWithExt: string;
   imgBase64: string;
 }

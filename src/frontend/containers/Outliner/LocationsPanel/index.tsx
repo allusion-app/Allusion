@@ -31,9 +31,9 @@ import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
 
 import { AppToaster } from 'src/frontend/App';
-import useFileDropper from 'src/frontend/hooks/useFileDropper';
 import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
 import { DnDAttribute } from '../TagsPanel/dnd';
+import DropContext from 'src/frontend/contexts/DropContext';
 
 // Tooltip info
 const enum Tooltip {
@@ -182,32 +182,34 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
   );
 });
 
+const HOVER_TIME_TO_EXPAND = 600;
+
 const useFileDropHandling = (
   expansionId: string,
   fullPath: string,
   expansion: IExpansionState,
   setExpansion: (s: IExpansionState) => void,
 ) => {
-  // TODO: Would probably be nice: don't expand immediately, only after hovering over it for a second or so
+  // Don't expand immediately, only after hovering over it for a second or so
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(() => {
     if (expandTimeoutId) clearTimeout(expandTimeoutId);
     const t: any = setTimeout(() => {
       setExpansion({ ...expansion, [expansionId]: true });
-    }, 1000);
+    }, HOVER_TIME_TO_EXPAND);
     setExpandTimeoutId(t as number);
   }, [expandTimeoutId, expansion, expansionId, setExpansion]);
 
-  const handleDragOver = useCallback(
+  const handleDragEnter = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      console.log(event);
+      event.stopPropagation();
+      event.preventDefault();
       const canDrop = onDragOver(event);
       if (canDrop && !expansion[expansionId]) {
-        setExpansion({ ...expansion, [expansionId]: true });
-        // expandDelayed();
+        expandDelayed();
       }
     },
-    [setExpansion, expansion, expansionId],
+    [expansion, expansionId, expandDelayed],
   );
 
   const handleDrop = useCallback(
@@ -230,6 +232,8 @@ const useFileDropHandling = (
 
   const handleDragLeaveWrapper = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      event.preventDefault();
       handleDragLeave(event);
       if (expandTimeoutId) {
         clearTimeout(expandTimeoutId);
@@ -238,7 +242,7 @@ const useFileDropHandling = (
     }, [expandTimeoutId]);
 
   return {
-    handleDragOver,
+    handleDragEnter,
     handleDrop,
     handleDragLeaveWrapper,
   };
@@ -274,7 +278,7 @@ const SubLocation = ({
   );
 
   const {
-    handleDragOver,
+    handleDragEnter,
     handleDragLeaveWrapper,
     handleDrop,
   } = useFileDropHandling(nodeData.fullPath, nodeData.fullPath, expansion, setExpansion);
@@ -284,7 +288,7 @@ const SubLocation = ({
       className="tree-content-label"
       onClick={handleClick}
       onContextMenu={handleContextMenu}
-      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
       onDrop={handleDrop}
       onDragLeave={handleDragLeaveWrapper}
     >
@@ -320,7 +324,7 @@ const Location = observer(
     );
 
     const {
-      handleDragOver,
+      handleDragEnter,
       handleDragLeaveWrapper,
       handleDrop,
     } = useFileDropHandling(nodeData.id, nodeData.path, expansion, treeData.setExpansion);
@@ -329,7 +333,7 @@ const Location = observer(
       <div
         className="tree-content-label"
         onContextMenu={handleContextMenu}
-        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
         onDrop={handleDrop}
         onDragLeave={handleDragLeaveWrapper}
       >
@@ -508,7 +512,7 @@ const LocationsPanel = observer(() => {
 
   const isEmpty = !locationStore.locationList.length;
   // Detect file dropping and show a blue outline around location panel
-  const { isDropping } = useFileDropper();
+  const { isDropping } = useContext(DropContext);
 
   return (
     <div className={`section ${isEmpty || isDropping ? 'attention' : ''} ${isDropping ? 'info' : ''}`}>
