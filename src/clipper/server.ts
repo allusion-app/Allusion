@@ -113,7 +113,7 @@ class ClipServer {
   }
 
   isEnabled() {
-    return !!this.preferences.isEnabled;
+    return this.preferences.isEnabled;
   }
 
   setRunInBackground(isEnabled: boolean) {
@@ -122,7 +122,7 @@ class ClipServer {
   }
 
   isRunInBackgroundEnabled() {
-    return !!this.preferences.runInBackground;
+    return this.preferences.runInBackground;
   }
 
   async getImportQueue(): Promise<IImportItem[]> {
@@ -142,19 +142,13 @@ class ClipServer {
   }
 
   async storeImageWithoutImport(directory: string, filename: string, imgBase64: string) {
-    const downloadPath = await ClipServer.createDownloadPath(
-      directory,
-      filename,
-    );
+    const downloadPath = await ClipServer.createDownloadPath(directory, filename);
     await this.storeImage(directory, downloadPath, imgBase64);
     return downloadPath;
   }
 
   async storeAndImportImage(directory: string, filename: string, imgBase64: string) {
-    const downloadPath = await ClipServer.createDownloadPath(
-      directory,
-      filename,
-    );
+    const downloadPath = await ClipServer.createDownloadPath(directory, filename);
 
     await this.storeImage(directory, downloadPath, imgBase64);
 
@@ -191,11 +185,7 @@ class ClipServer {
               } else if (req.url && req.url.endsWith('/set-tags')) {
                 const { directory, tagNames, filename } = JSON.parse(body);
 
-                const downloadPath = await ClipServer.createDownloadPath(
-                  directory,
-                  filename,
-                  true,
-                );
+                const downloadPath = await ClipServer.createDownloadPath(directory, filename, true);
 
                 const item: IImportItem = {
                   filePath: downloadPath,

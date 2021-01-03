@@ -64,13 +64,15 @@ const Label = (props: ILabelProps) =>
         }
       }}
       onFocus={(e) => e.target.select()}
-    // TODO: Visualizing errors...
-    // Only show red outline when input field is in focus and text is invalid
-    // className={!isValidInput ? 'bp3-intent-danger' : ''}
+      // TODO: Visualizing errors...
+      // Only show red outline when input field is in focus and text is invalid
+      // className={!isValidInput ? 'bp3-intent-danger' : ''}
     />
   ) : (
-      <div onClick={props.onClick} onDoubleClick={props.onDoubleClick} >{props.text}</div>
-    );
+    <div onClick={props.onClick} onDoubleClick={props.onDoubleClick}>
+      {props.text}
+    </div>
+  );
 
 interface ITagItemProps {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
@@ -206,7 +208,10 @@ const TagItem = observer((props: ITagItemProps) => {
     [nodeData, uiStore],
   );
 
-  const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [dispatch, nodeData.id]);
+  const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
+    dispatch,
+    nodeData.id,
+  ]);
 
   return (
     <div
@@ -454,14 +459,14 @@ const TagsTree = observer(() => {
               tooltip="Clear Selection"
             />
           ) : (
-              <ToolbarButton
-                showLabel="never"
-                icon={IconSet.TAG_ADD}
-                text="New Tag"
-                onClick={handleRootAddTag}
-                tooltip="Add a new tag"
-              />
-            )}
+            <ToolbarButton
+              showLabel="never"
+              icon={IconSet.TAG_ADD}
+              text="New Tag"
+              onClick={handleRootAddTag}
+              tooltip="Add a new tag"
+            />
+          )}
         </Toolbar>
       </header>
 
@@ -473,17 +478,17 @@ const TagsTree = observer(() => {
             <i style={{ marginLeft: '1em' }}>None</i>
           </div>
         ) : (
-            <Tree
-              multiSelect
-              id="tag-hierarchy"
-              className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
-              children={root.subTags.map(mapTag)}
-              treeData={treeData}
-              toggleExpansion={toggleExpansion}
-              onBranchKeyDown={handleBranchOnKeyDown}
-              onLeafKeyDown={handleLeafOnKeyDown}
-            />
-          )}
+          <Tree
+            multiSelect
+            id="tag-hierarchy"
+            className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
+            children={root.subTags.map(mapTag)}
+            treeData={treeData}
+            toggleExpansion={toggleExpansion}
+            onBranchKeyDown={handleBranchOnKeyDown}
+            onLeafKeyDown={handleLeafOnKeyDown}
+          />
+        )}
       </Collapse>
 
       {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}

@@ -14,8 +14,6 @@ import { IconSet } from 'widgets/Icons';
 
 import { RECURSIVE_DIR_WATCH_DEPTH } from '../config';
 
-export const DEFAULT_LOCATION_ID: ID = 'default-location';
-
 export interface ILocation extends IResource {
   id: ID;
   path: string;

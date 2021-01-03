@@ -10,12 +10,7 @@ import UiStore from 'src/frontend/stores/UiStore';
 
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 
-import {
-  ClientLocation,
-  DEFAULT_LOCATION_ID,
-  getDirectoryTree,
-  IDirectoryTreeItem,
-} from 'src/entities/Location';
+import { ClientLocation, getDirectoryTree, IDirectoryTreeItem } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
 
@@ -58,7 +53,7 @@ const isExpanded = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITr
   treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-const emptyFunction = () => { };
+const emptyFunction = () => {};
 
 const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
   const element = event.currentTarget.querySelector('.tree-content-label');
@@ -156,14 +151,8 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
           text="Open Recovery Panel"
           onClick={() => uiStore.openLocationRecovery(location.id)}
           icon={IconSet.WARNING_BROKEN_LINK}
-          disabled={location.id === DEFAULT_LOCATION_ID}
         />
-        <MenuItem
-          text="Delete"
-          onClick={openDeleteDialog}
-          icon={IconSet.DELETE}
-          disabled={location.id === DEFAULT_LOCATION_ID}
-        />
+        <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
       </>
     );
   }
@@ -172,12 +161,7 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
     <>
       <DirectoryMenu path={location.path} uiStore={uiStore} />
       <MenuDivider />
-      <MenuItem
-        text="Delete"
-        onClick={openDeleteDialog}
-        icon={IconSet.DELETE}
-        disabled={location.id === DEFAULT_LOCATION_ID}
-      />
+      <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
     </>
   );
 });
@@ -239,14 +223,16 @@ const useFileDropHandling = (
         clearTimeout(expandTimeoutId);
         setExpandTimeoutId(undefined);
       }
-    }, [expandTimeoutId]);
+    },
+    [expandTimeoutId],
+  );
 
   return {
     handleDragEnter,
     handleDrop,
     handleDragLeaveWrapper,
   };
-}
+};
 
 const SubLocation = ({
   nodeData,
@@ -277,11 +263,12 @@ const SubLocation = ({
     [nodeData.fullPath, uiStore],
   );
 
-  const {
-    handleDragEnter,
-    handleDragLeaveWrapper,
-    handleDrop,
-  } = useFileDropHandling(nodeData.fullPath, nodeData.fullPath, expansion, setExpansion);
+  const { handleDragEnter, handleDragLeaveWrapper, handleDrop } = useFileDropHandling(
+    nodeData.fullPath,
+    nodeData.fullPath,
+    expansion,
+    setExpansion,
+  );
 
   return (
     <div
@@ -323,11 +310,12 @@ const Location = observer(
       [nodeData.path, uiStore],
     );
 
-    const {
-      handleDragEnter,
-      handleDragLeaveWrapper,
-      handleDrop,
-    } = useFileDropHandling(nodeData.id, nodeData.path, expansion, treeData.setExpansion);
+    const { handleDragEnter, handleDragLeaveWrapper, handleDrop } = useFileDropHandling(
+      nodeData.id,
+      nodeData.path,
+      expansion,
+      treeData.setExpansion,
+    );
 
     return (
       <div
@@ -337,11 +325,7 @@ const Location = observer(
         onDrop={handleDrop}
         onDragLeave={handleDragLeaveWrapper}
       >
-        {nodeData.id === DEFAULT_LOCATION_ID
-          ? IconSet.IMPORT
-          : expansion[nodeData.id]
-            ? IconSet.FOLDER_OPEN
-            : IconSet.FOLDER_CLOSE}
+        {expansion[nodeData.id] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
         <div onClick={handleClick}>{nodeData.name}</div>
         {nodeData.isBroken && (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
@@ -510,12 +494,14 @@ const LocationsPanel = observer(() => {
     locationStore.create(path).then((location) => locationStore.initLocation(location));
   }, [locationStore]);
 
-  const isEmpty = !locationStore.locationList.length;
+  const isEmpty = locationStore.locationList.length === 0;
   // Detect file dropping and show a blue outline around location panel
   const { isDropping } = useContext(DropContext);
 
   return (
-    <div className={`section ${isEmpty || isDropping ? 'attention' : ''} ${isDropping ? 'info' : ''}`}>
+    <div
+      className={`section ${isEmpty || isDropping ? 'attention' : ''} ${isDropping ? 'info' : ''}`}
+    >
       <header>
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list">
@@ -530,10 +516,7 @@ const LocationsPanel = observer(() => {
       </header>
       <Collapse open={!isCollapsed}>
         <LocationsTree showContextMenu={show} onDelete={setDeletableLocation} />
-
-        {isEmpty && (
-          <i>Click + to choose a Location</i>
-        )}
+        {isEmpty && <i>Click + to choose a Location</i>}
       </Collapse>
       <LocationRecoveryDialog />
       {deletableLocation && (

@@ -10,7 +10,10 @@ export const ALLOWED_DROP_TYPES = ['Files', 'text/html', 'text/plain'];
 const DropContext = React.createContext<DropState>({ isDropping: false });
 export default DropContext;
 
-export const DropContextProvider = (props: { children: React.ReactNode, onDragEnter?: () => void }) => {
+export const DropContextProvider = (props: {
+  children: React.ReactNode;
+  onDragEnter?: () => void;
+}) => {
   const dropState = useFileDropper();
   useEffect(() => {
     if (dropState.isDropping) {
@@ -18,11 +21,7 @@ export const DropContextProvider = (props: { children: React.ReactNode, onDragEn
     }
   }, [props.onDragEnter, dropState.isDropping, props]);
 
-  return (
-    <DropContext.Provider value={dropState}>
-      {props.children}
-    </DropContext.Provider>
-  );
+  return <DropContext.Provider value={dropState}>{props.children}</DropContext.Provider>;
 };
 
 /**
@@ -41,7 +40,7 @@ const useFileDropper = () => {
       // We only have to check once, until drag leave
       if (enterCount.current > 1) return;
 
-      e.dataTransfer!.dropEffect = 'none'
+      e.dataTransfer!.dropEffect = 'none';
 
       // Detect whether the drag event came from within Allusion
       // FIXME: Yes, this is hacky. But... The native drag event does not allow you to specify any metadata, just a list of files...
@@ -50,7 +49,9 @@ const useFileDropper = () => {
         w.internalDragStart &&
         new Date().getTime() - (w.internalDragStart as Date)?.getTime() < 300;
       if (!isInternalEvent) {
-        const isCorrectType = e.dataTransfer?.types.some(type => ALLOWED_DROP_TYPES.includes(type));
+        const isCorrectType = e.dataTransfer?.types.some((type) =>
+          ALLOWED_DROP_TYPES.includes(type),
+        );
         if (isCorrectType) {
           setIsDropping(true);
         }
@@ -77,7 +78,7 @@ const useFileDropper = () => {
       document.body.removeEventListener('dragenter', handleDragEnter);
       document.body.removeEventListener('dragleave', handleDragLeave);
       document.body.removeEventListener('drop', handleDrop);
-    }
+    };
   }, [isDropping]);
 
   return {
