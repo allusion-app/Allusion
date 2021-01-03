@@ -1,23 +1,24 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { comboMatches, getKeyCombo, parseKeyCombo, Position, Toaster } from '@blueprintjs/core';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { comboMatches, getKeyCombo, parseKeyCombo, Position, Toaster } from '@blueprintjs/core';
 
-import { Toaster as CustomToaster } from './components/Toaster';
-import AdvancedSearchDialog from './containers/AdvancedSearch';
-import AppToolbar from './containers/AppToolbar';
-import WindowsToolbar from './containers/AppToolbar/WindowsToolbar';
-import ContentView from './containers/ContentView';
-import DropOverlay from './containers/DropOverlay';
+import StoreContext from './contexts/StoreContext';
+
 import ErrorBoundary from './containers/ErrorBoundary';
 import HelpCenter from './containers/HelpCenter';
+import SplashScreen from './containers/SplashScreen';
+import { Toaster as CustomToaster } from './components/Toaster';
+
+import AdvancedSearchDialog from './containers/AdvancedSearch';
+import ContentView from './containers/ContentView';
 import Outliner from './containers/Outliner';
 import SettingsWindow from './containers/Settings';
-import SplashScreen from './containers/SplashScreen';
-import WelcomeDialog from './containers/WelcomeDialog';
-import StoreContext from './contexts/StoreContext';
-import { useWorkerListener } from './ThumbnailGeneration';
+import AppToolbar from './containers/AppToolbar';
 
+import { useWorkerListener } from './ThumbnailGeneration';
+import WindowsToolbar from './containers/AppToolbar/WindowsToolbar';
+import { DropContextProvider } from './contexts/DropContext';
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
@@ -81,6 +82,12 @@ const App = observer(() => {
     return () => window.removeEventListener('keydown', handleGlobalShortcuts);
   }, [handleGlobalShortcuts]);
 
+  // const openOutlinerOnDragEnter = useCallback(() => {
+  //   if (!uiStore.isOutlinerOpen) {
+  //     uiStore.toggleOutliner();
+  //   }
+  // }, [uiStore]);
+
   if (!uiStore.isInitialized || showSplash) {
     return <SplashScreen />;
   }
@@ -88,8 +95,8 @@ const App = observer(() => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    // Overlay that shows up when dragging files/images over the application
-    <DropOverlay>
+    // TODO: Open outliner on dragEnter: onDragEnter={openOutlinerOnDragEnter}. Problem: drag counter is messed up when DOM is updated: always off by one -> isDragging stays true
+    <DropContextProvider>
       <div data-os={PLATFORM} id="layout-container" className={themeClass}>
         {PLATFORM !== 'darwin' && <WindowsToolbar />}
 
@@ -107,11 +114,9 @@ const App = observer(() => {
           <AdvancedSearchDialog />
 
           <CustomToaster />
-
-          <WelcomeDialog />
         </ErrorBoundary>
       </div>
-    </DropOverlay>
+    </DropContextProvider>
   );
 });
 

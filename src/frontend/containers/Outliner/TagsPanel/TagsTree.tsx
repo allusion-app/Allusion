@@ -34,6 +34,7 @@ interface ILabelProps {
   isEditing: boolean;
   onSubmit: (target: EventTarget & HTMLInputElement) => void;
   onClick: (event: React.MouseEvent) => void;
+  onDoubleClick?: (event: React.MouseEvent) => void;
 }
 
 // const isValid = (text: string) => text.trim().length > 0;
@@ -58,6 +59,8 @@ const Label = (props: ILabelProps) =>
         if (e.key === 'Enter' && value.length > 0) {
           props.setText(value);
           props.onSubmit(e.currentTarget);
+        } else if (e.key === 'Escape') {
+          props.onSubmit(e.currentTarget); // cancel with escape
         }
       }}
       onFocus={(e) => e.target.select()}
@@ -66,7 +69,9 @@ const Label = (props: ILabelProps) =>
       // className={!isValidInput ? 'bp3-intent-danger' : ''}
     />
   ) : (
-    <div onClick={props.onClick}>{props.text}</div>
+    <div onClick={props.onClick} onDoubleClick={props.onDoubleClick}>
+      {props.text}
+    </div>
   );
 
 interface ITagItemProps {
@@ -203,6 +208,11 @@ const TagItem = observer((props: ITagItemProps) => {
     [nodeData, uiStore],
   );
 
+  const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
+    dispatch,
+    nodeData.id,
+  ]);
+
   return (
     <div
       className="tree-content-label"
@@ -221,6 +231,7 @@ const TagItem = observer((props: ITagItemProps) => {
         isEditing={isEditing}
         onSubmit={submit}
         onClick={handleQuickQuery}
+        onDoubleClick={handleRename}
       />
       {!isEditing && (
         <button onClick={handleSelect} className="btn-icon">

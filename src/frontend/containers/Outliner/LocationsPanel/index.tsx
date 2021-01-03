@@ -10,12 +10,7 @@ import UiStore from 'src/frontend/stores/UiStore';
 
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 
-import {
-  ClientLocation,
-  DEFAULT_LOCATION_ID,
-  getDirectoryTree,
-  IDirectoryTreeItem,
-} from 'src/entities/Location';
+import { ClientLocation, getDirectoryTree, IDirectoryTreeItem } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
 
@@ -31,6 +26,9 @@ import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
 
 import { AppToaster } from 'src/frontend/App';
+import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
+import { DnDAttribute } from '../TagsPanel/dnd';
+import DropContext from 'src/frontend/contexts/DropContext';
 
 // Tooltip info
 const enum Tooltip {
@@ -153,31 +151,88 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
           text="Open Recovery Panel"
           onClick={() => uiStore.openLocationRecovery(location.id)}
           icon={IconSet.WARNING_BROKEN_LINK}
-          disabled={location.id === DEFAULT_LOCATION_ID}
         />
-        <MenuItem
-          text="Delete"
-          onClick={openDeleteDialog}
-          icon={IconSet.DELETE}
-          disabled={location.id === DEFAULT_LOCATION_ID}
-        />
+        <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
       </>
     );
   }
 
   return (
     <>
-      <MenuItem
-        text="Delete"
-        onClick={openDeleteDialog}
-        icon={IconSet.DELETE}
-        disabled={location.id === DEFAULT_LOCATION_ID}
-      />
-      <MenuDivider />
       <DirectoryMenu path={location.path} uiStore={uiStore} />
+      <MenuDivider />
+      <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
     </>
   );
 });
+
+const HOVER_TIME_TO_EXPAND = 600;
+
+const useFileDropHandling = (
+  expansionId: string,
+  fullPath: string,
+  expansion: IExpansionState,
+  setExpansion: (s: IExpansionState) => void,
+) => {
+  // Don't expand immediately, only after hovering over it for a second or so
+  const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
+  const expandDelayed = useCallback(() => {
+    if (expandTimeoutId) clearTimeout(expandTimeoutId);
+    const t: any = setTimeout(() => {
+      setExpansion({ ...expansion, [expansionId]: true });
+    }, HOVER_TIME_TO_EXPAND);
+    setExpandTimeoutId(t as number);
+  }, [expandTimeoutId, expansion, expansionId, setExpansion]);
+
+  const handleDragEnter = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      event.preventDefault();
+      const canDrop = onDragOver(event);
+      if (canDrop && !expansion[expansionId]) {
+        expandDelayed();
+      }
+    },
+    [expansion, expansionId, expandDelayed],
+  );
+
+  const handleDrop = useCallback(
+    async (event: React.DragEvent<HTMLDivElement>) => {
+      event.currentTarget.dataset[DnDAttribute.Target] = 'false';
+
+      if (isAcceptableType(event)) {
+        event.dataTransfer.dropEffect = 'none';
+        console.log(event.dataTransfer, fullPath);
+        try {
+          await storeDroppedImage(event, fullPath);
+        } catch (e) {
+          console.error(e);
+          // TODO: Toast error?
+        }
+      }
+    },
+    [fullPath],
+  );
+
+  const handleDragLeaveWrapper = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      event.preventDefault();
+      handleDragLeave(event);
+      if (expandTimeoutId) {
+        clearTimeout(expandTimeoutId);
+        setExpandTimeoutId(undefined);
+      }
+    },
+    [expandTimeoutId],
+  );
+
+  return {
+    handleDragEnter,
+    handleDrop,
+    handleDragLeaveWrapper,
+  };
+};
 
 const SubLocation = ({
   nodeData,
@@ -187,7 +242,7 @@ const SubLocation = ({
   treeData: ITreeData;
 }) => {
   const { uiStore } = useContext(StoreContext);
-  const { showContextMenu, expansion } = treeData;
+  const { showContextMenu, expansion, setExpansion } = treeData;
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) =>
       showContextMenu(
@@ -208,8 +263,22 @@ const SubLocation = ({
     [nodeData.fullPath, uiStore],
   );
 
+  const { handleDragEnter, handleDragLeaveWrapper, handleDrop } = useFileDropHandling(
+    nodeData.fullPath,
+    nodeData.fullPath,
+    expansion,
+    setExpansion,
+  );
+
   return (
-    <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
+    <div
+      className="tree-content-label"
+      onClick={handleClick}
+      onContextMenu={handleContextMenu}
+      onDragEnter={handleDragEnter}
+      onDrop={handleDrop}
+      onDragLeave={handleDragLeaveWrapper}
+    >
       {expansion[nodeData.fullPath] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
       {nodeData.name}
     </div>
@@ -241,13 +310,22 @@ const Location = observer(
       [nodeData.path, uiStore],
     );
 
+    const { handleDragEnter, handleDragLeaveWrapper, handleDrop } = useFileDropHandling(
+      nodeData.id,
+      nodeData.path,
+      expansion,
+      treeData.setExpansion,
+    );
+
     return (
-      <div className="tree-content-label" onContextMenu={handleContextMenu}>
-        {nodeData.id === DEFAULT_LOCATION_ID
-          ? IconSet.IMPORT
-          : expansion[nodeData.id]
-          ? IconSet.FOLDER_OPEN
-          : IconSet.FOLDER_CLOSE}
+      <div
+        className="tree-content-label"
+        onContextMenu={handleContextMenu}
+        onDragEnter={handleDragEnter}
+        onDrop={handleDrop}
+        onDragLeave={handleDragLeaveWrapper}
+      >
+        {expansion[nodeData.id] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
         <div onClick={handleClick}>{nodeData.name}</div>
         {nodeData.isBroken && (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
@@ -364,7 +442,7 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
   );
 });
 
-const LocationsPanel = () => {
+const LocationsPanel = observer(() => {
   const { locationStore } = useContext(StoreContext);
   const [contextState, { show, hide }] = useContextMenu();
 
@@ -416,8 +494,14 @@ const LocationsPanel = () => {
     locationStore.create(path).then((location) => locationStore.initLocation(location));
   }, [locationStore]);
 
+  const isEmpty = locationStore.locationList.length === 0;
+  // Detect file dropping and show a blue outline around location panel
+  const { isDropping } = useContext(DropContext);
+
   return (
-    <div className="section">
+    <div
+      className={`section ${isEmpty || isDropping ? 'attention' : ''} ${isDropping ? 'info' : ''}`}
+    >
       <header>
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list">
@@ -432,6 +516,7 @@ const LocationsPanel = () => {
       </header>
       <Collapse open={!isCollapsed}>
         <LocationsTree showContextMenu={show} onDelete={setDeletableLocation} />
+        {isEmpty && <i>Click + to choose a Location</i>}
       </Collapse>
       <LocationRecoveryDialog />
       {deletableLocation && (
@@ -445,6 +530,6 @@ const LocationsPanel = () => {
       </ContextMenu>
     </div>
   );
-};
+});
 
 export default LocationsPanel;

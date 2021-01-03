@@ -20,25 +20,8 @@ interface ISettingsProps {
   locationStore: LocationStore;
 }
 
-const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps) => {
+const Settings = observer(({ uiStore, fileStore }: ISettingsProps) => {
   const thumbnailDirectory = uiStore.thumbnailDirectory;
-
-  const browseImportDir = async () => {
-    const { filePaths: dirs } = await RendererMessenger.openDialog({
-      properties: ['openDirectory'],
-    });
-
-    if (dirs.length === 0) {
-      return;
-    }
-
-    const chosenDir = dirs[0];
-    locationStore.setDefaultLocation(chosenDir);
-
-    // Todo: Provide option to move/copy the files in that directory (?)
-    // Since the import dir could also contain non-allusion files, not sure if a good idea
-    // But then there should be support for re-importing manually copied files
-  };
 
   const browseThumbnailDirectory = async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
@@ -52,7 +35,7 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
     const newDir = dirs[0];
 
     if (!(await isDirEmpty(newDir))) {
-      alert('Please choose an empty directory.');
+      alert('Please choose an empty directory. Allusion may delete any existing files.');
       return;
     }
 
@@ -150,21 +133,12 @@ const Settings = observer(({ uiStore, fileStore, locationStore }: ISettingsProps
         {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
         <fieldset>
           <legend>Thumbnail Directory</legend>
-
-          {/* Where to import images you drop on the app or import through the browser extension */}
           <div className="input-file">
             <span className="input input-file-value">{thumbnailDirectory}</span>
             <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
           </div>
         </fieldset>
 
-        <fieldset>
-          <legend>Import Directory</legend>
-          <div className="input-file">
-            <span className="input input-file-value">{locationStore.importDirectory}</span>
-            <Button styling="filled" text="Browse" onClick={browseImportDir} />
-          </div>
-        </fieldset>
       </div>
 
       <h2>Shortcuts Map</h2>

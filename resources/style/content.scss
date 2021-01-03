@@ -308,4 +308,11 @@
   max-width: 480px;
   margin: 10% auto auto auto;
   text-align: center;
+
+  .divider {
+    margin: auto;
+    width: 60%;
+    border-bottom: 1px solid var(--text-muted-color);
+    margin: 1rem auto;
+  }
 }
