@@ -40,7 +40,7 @@ const ContentView = () => {
   );
 
   return (
-    <main onKeyDown={handleShortcuts}>
+    <main id="content-view" onKeyDown={handleShortcuts}>
       <Gallery />
     </main>
   );

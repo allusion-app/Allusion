@@ -104,15 +104,18 @@ dialog[role='alertdialog'] {
   }
 }
 
+// DIALOG UNTIL HERE
+
 [data-popover] {
   display: none;
-  z-index: 1;
+  z-index: 15;
 
-  background-color: var(--background-color);
-  border: none;
-  border-radius: 0.25rem;
-  box-shadow: 3px 4px 6px 3px rgba(0, 0, 0, 0.2);
   color: var(--text-color);
+  backdrop-filter: blur(1rem);
+  background: var(--background-color-light);
+  border: 0.0625rem solid var(--border-dark);
+  border-radius: 0.5rem;
+  box-shadow: var(--box-shadow);
 
   &[data-open='true'] {
     display: unset;
@@ -144,6 +147,8 @@ dialog[role='alertdialog'] {
     margin: 0.5rem 1rem;
   }
 }
+
+// ALSO USED IN DIALOG
 
 @keyframes appear {
   from {

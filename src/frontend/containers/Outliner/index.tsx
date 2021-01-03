@@ -23,7 +23,7 @@ export default observer(Outliner);
 
 const Panel = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
   return (
-    <nav id="outliner" style={isOpen ? undefined : { width: '0' }}>
+    <nav id="outliner" className={isOpen ? '' : 'outliner-is-closed'}>
       {isOpen ? children : null}
     </nav>
   );
