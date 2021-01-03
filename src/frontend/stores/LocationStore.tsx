@@ -33,7 +33,7 @@ class LocationStore {
 
   @action async init() {
     // Get dirs from backend
-    const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.ASC);
+    const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.Asc);
     const locations = dirs.map((dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded));
     runInAction(() => this.locationList.replace(locations));
   }
@@ -303,7 +303,7 @@ class LocationStore {
    */
   @action async findLocationFiles(locationId: ID): Promise<IFile[]> {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
-    return this.backend.searchFiles(crit, 'id', FileOrder.ASC);
+    return this.backend.searchFiles(crit, 'id', FileOrder.Asc);
   }
 
   @action private set(index: number, location: ClientLocation) {

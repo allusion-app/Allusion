@@ -47,8 +47,8 @@ export const dbDelete = (dbName: string): void => {
 };
 
 export const enum FileOrder {
-  ASC,
-  DESC,
+  Asc,
+  Desc,
 }
 
 export interface IDbRequest<T> {
@@ -89,7 +89,7 @@ export default class BaseRepository<T extends IResource> {
 
   public async getAll({ count, order, fileOrder }: IDbRequest<T>): Promise<T[]> {
     let col = order ? this.collection.orderBy(order as string) : this.collection;
-    if (fileOrder === FileOrder.DESC) {
+    if (fileOrder === FileOrder.Desc) {
       col = col.reverse();
     }
     return (count ? col.limit(count) : col).toArray();
@@ -98,7 +98,7 @@ export default class BaseRepository<T extends IResource> {
   public async find(req: IDbQueryRequest<T>): Promise<T[]> {
     const { count, order, fileOrder } = req;
     let table = await this._find(req, req.matchAny ? 'or' : 'and');
-    table = fileOrder === FileOrder.DESC ? table.reverse() : table;
+    table = fileOrder === FileOrder.Desc ? table.reverse() : table;
     table = count ? table.limit(count) : table;
     return order ? table.sortBy(order as string) : table.toArray();
   }

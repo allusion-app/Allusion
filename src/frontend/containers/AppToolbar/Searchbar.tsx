@@ -15,7 +15,7 @@ const Searchbar = observer(() => {
     searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
 
   return (
-    <div className="toolbar-input">
+    <div className="searchbar">
       {isQuickSearch ? (
         <QuickSearchList uiStore={uiStore} tagStore={tagStore} />
       ) : (

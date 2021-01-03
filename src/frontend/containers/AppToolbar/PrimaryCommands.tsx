@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
+import StoreContext from '../../contexts/StoreContext';
 
 import UiStore from 'src/frontend/stores/UiStore';
 import FileStore from 'src/frontend/stores/FileStore';
@@ -18,11 +19,33 @@ export const enum Tooltip {
   Back = 'Back to content panel',
 }
 
+const OutlinerToggle = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+
+  return (
+    <button
+      autoFocus
+      id="outliner-toggle"
+      className="btn btn-icon"
+      aria-controls="outliner"
+      aria-pressed={uiStore.isOutlinerOpen}
+      onClick={uiStore.toggleOutliner}
+      tabIndex={0}
+    >
+      <span className="btn-content-icon" aria-hidden="true">
+        {uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
+      </span>
+      <span className="btn-content-text hidden">Toggle Outliner</span>
+    </button>
+  );
+});
+
 const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
   const { uiStore, fileStore } = props;
 
   return (
     <>
+      <OutlinerToggle />
       <FileSelectionCommand uiStore={uiStore} fileStore={fileStore} />
 
       <Searchbar />
@@ -59,13 +82,13 @@ export const SlideModeCommand = ({ uiStore }: { uiStore: UiStore }) => {
 
 const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
   const { uiStore, fileStore } = props;
+  const selectionCount = uiStore.fileSelection.size;
+  const fileCount = fileStore.fileList.length;
 
-  const allFilesSelected = uiStore.fileSelection.size === fileStore.fileList.length;
+  const allFilesSelected = selectionCount === fileCount;
   // If everything is selected, deselect all. Else, select all
   const handleToggleSelect = () => {
-    uiStore.fileSelection.size === fileStore.fileList.length
-      ? uiStore.clearFileSelection()
-      : uiStore.selectAllFiles();
+    selectionCount === fileCount ? uiStore.clearFileSelection() : uiStore.selectAllFiles();
   };
 
   return (
@@ -74,7 +97,7 @@ const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: Fil
       icon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
       onClick={handleToggleSelect}
       pressed={allFilesSelected}
-      text={uiStore.fileSelection.size}
+      text={selectionCount}
       tooltip={Tooltip.Select}
     />
   );

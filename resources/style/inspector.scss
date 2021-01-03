@@ -3,7 +3,7 @@
   grid-area: inspector;
   width: var(--inspector-width);
   background-color: var(--background-color);
-  padding-top: calc(var(--toolbar-height) + var(--frame-height));
+  padding-top: var(--content-top);
 
   > * {
     // Don't squash content of aside during parent transition
@@ -23,7 +23,7 @@ table.file-info {
   border-spacing: 0 0.25rem;
 
   th {
-    color: var(--text-muted-color);
+    color: var(--text-color-muted);
     font-weight: unset;
     text-align: unset;
   }

@@ -1,26 +1,4 @@
 // Viewport
-html,
-body,
-#app,
-#layout-container,
-#preview {
-  width: 100vw;
-  height: 100vh;
-}
-
-// Page layout
-html {
-  -webkit-font-smoothing: antialiased;
-}
-
-body {
-  margin: 0px;
-  overflow: hidden;
-  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
-
-  background: transparent;
-}
 
 header,
 header h2 {
@@ -56,9 +34,6 @@ input {
 
 // Global specific styles for the main window
 #app {
-  --outliner-width: 14rem; // new design (20em previously)
-  --inspector-width: 18rem; // new design (24em previously)
-  --toolbar-height: 3rem;
   --thumbnail-size: 250px;
   --thumbnail-margin: 0.25rem;
   --mac-system-buttons-width: 5rem;
@@ -68,6 +43,7 @@ input {
 #preview {
   --toolbar-height: 3rem;
   --frame-height: 0px; // No custom frame: Native title bar is currently enabled on all platforms
+  --content-top: var(--toolbar-height);
   display: grid;
   grid-template-areas:
     'toolbar'
@@ -77,17 +53,13 @@ input {
   #toolbar {
     left: 0; // No #outliner-toggle
   }
+  #content-view {
+    left: 0; // No outliner
+  }
 }
 
 // Main window layout definition
 #layout-container {
-  display: grid;
-  grid-template-rows: var(--toolbar-height) 1fr;
-  grid-template-columns: min-content 1fr min-content;
-  grid-template-areas:
-    'outliner main inspector'
-    'outliner main inspector';
-
   &[data-os='darwin'] {
     // Mac has traffic light buttons integrated in the AppToolbar
     --frame-height: 0px;
@@ -102,6 +74,10 @@ input {
       }
     }
   }
+
+  // The top offset where the main content of the application starts (below the custom titlebar and toolbar)
+  // Needs to be defined here instead of in the `themes.scss` file - where the OS is known
+  --content-top: calc(var(--toolbar-height) + var(--frame-height));
 }
 
 .preloader {
@@ -110,14 +86,6 @@ input {
   font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
   -webkit-font-smoothing: antialiased;
-}
-
-main {
-  grid-area: main;
-  display: flex;
-  background: var(--background-color);
-  padding-left: 0.5rem;
-  padding-top: calc(var(--toolbar-height) + var(--frame-height));
 }
 
 .contextMenuTarget {
@@ -142,13 +110,13 @@ main {
 img {
   -webkit-user-drag: none;
 }
-
+/* 
 // Custom scrollbar style
 ::-webkit-scrollbar {
   width: 10px;
 }
 
-/* ////////// Scroll bar (Track and handle) ////////// */
+/////////// Scroll bar (Track and handle) ///////////
 .bp3-light {
   ::-webkit-scrollbar-track {
     background-color: $light-gray4;
@@ -171,7 +139,7 @@ img {
   ::-webkit-scrollbar-thumb:hover {
     background-color: $dark-gray6;
   }
-}
+} */
 
 .bp3-popover-backdrop {
   background: rgba(16, 22, 26, 0); //Set 2 zero for now
@@ -210,7 +178,6 @@ img {
 .custom-icon {
   width: 1rem;
   height: 1rem;
-  margin: 0.125rem;
   flex-shrink: 0;
 
   * {

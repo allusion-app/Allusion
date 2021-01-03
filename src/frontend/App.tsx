@@ -5,8 +5,6 @@ import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
 
-import { IconSet } from 'widgets';
-
 import ErrorBoundary from './containers/ErrorBoundary';
 import HelpCenter from './containers/HelpCenter';
 import SplashScreen from './containers/SplashScreen';
@@ -21,6 +19,7 @@ import AppToolbar from './containers/AppToolbar';
 
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowsToolbar from './containers/AppToolbar/WindowsToolbar';
+import { DropContextProvider } from './contexts/DropContext';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -85,6 +84,12 @@ const App = observer(() => {
     return () => window.removeEventListener('keydown', handleGlobalShortcuts);
   }, [handleGlobalShortcuts]);
 
+  const openOutlinerOnDragEnter = useCallback(() => {
+    if (!uiStore.isOutlinerOpen) {
+      uiStore.toggleOutliner();
+    }
+  }, [uiStore]);
+
   if (!uiStore.isInitialized || showSplash) {
     return <SplashScreen />;
   }
@@ -92,52 +97,30 @@ const App = observer(() => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    <div data-os={PLATFORM} id="layout-container" className={themeClass}>
+    <DropContextProvider onDragEnter={openOutlinerOnDragEnter}>
+      <div data-os={PLATFORM} id="layout-container" className={themeClass}>
+        {PLATFORM !== 'darwin' && <WindowsToolbar />}
 
-      {PLATFORM !== 'darwin' && <WindowsToolbar />}
+        <ErrorBoundary>
+          <Outliner />
 
-      <ErrorBoundary>
-        <OutlinerToggle />
+          <AppToolbar />
 
-        <Outliner />
+          <ContentView />
 
-        <AppToolbar />
+          <Inspector />
 
-        <ContentView />
+          <SettingsWindow />
 
-        <Inspector />
+          <HelpCenter />
 
-        <SettingsWindow />
+          <AdvancedSearchDialog />
 
-        <HelpCenter />
-
-        <AdvancedSearchDialog />
-
-        <CustomToaster />
-      </ErrorBoundary>
-    </div>
+          <CustomToaster />
+        </ErrorBoundary>
+      </div>
+    </DropContextProvider>
   );
 });
 
 export default App;
-
-const OutlinerToggle = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-
-  return (
-    <button
-      autoFocus
-      id="outliner-toggle"
-      className="btn btn-icon"
-      aria-controls="outliner"
-      aria-pressed={uiStore.isOutlinerOpen}
-      onClick={uiStore.toggleOutliner}
-      tabIndex={0}
-    >
-      <span className="btn-content-icon" aria-hidden="true">
-        {uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
-      </span>
-      <span className="btn-content-text hidden">Toggle Outliner</span>
-    </button>
-  );
-});
