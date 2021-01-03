@@ -35,7 +35,7 @@ input {
 // Preview window layout definition
 #preview {
   --toolbar-height: 3rem;
-  --frame-height: 0px; // No custom frame: Native title bar is currently enabled on all platforms
+  --window-titlebar-height: 0px; // No custom frame: Native title bar is currently enabled on all platforms
   --content-top: var(--toolbar-height);
   display: grid;
   grid-template-areas:

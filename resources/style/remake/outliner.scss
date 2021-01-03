@@ -10,7 +10,7 @@
   left: 0.75rem;
   right: 0.75rem;
 
-  top: calc(var(--frame-height) + 1rem);
+  top: calc(var(--window-titlebar-height) + 1rem);
 
   &:hover header [role='toolbar'] {
     opacity: 1;

@@ -1,25 +1,15 @@
 import { remote } from 'electron';
 import React, { useEffect, useState } from 'react';
 
-const WindowsButtonCodes = {
-  Minimize: <>&#xE921;</>,
-  Maximize: <>&#xE922;</>,
-  Restore: <>&#xE923;</>,
-  Close: <>&#xE8BB;</>,
-};
+// TODO: Replace with icons for linux compatibility or ship font.
+const enum WindowsButtonCode {
+  Minimize = '\uE921',
+  Maximize = '\uE922',
+  Restore = '\uE923',
+  Close = '\uE8BB',
+}
 
-const WindowsSystemButtons = ({ win, isMaximized }: { win: Electron.BrowserWindow, isMaximized: boolean }) => {
-
-  return (
-    <div id="window-system-buttons">
-      <span onClick={() => win.minimize()}>{WindowsButtonCodes.Minimize}</span>
-      <span onClick={() => isMaximized ? win.restore() : win.maximize()}>{isMaximized ? WindowsButtonCodes.Restore : WindowsButtonCodes.Maximize}</span>
-      <span className="close" onClick={() => win.close()}>{WindowsButtonCodes.Close}</span>
-    </div>
-  );
-};
-
-const WindowsToolbar = () => {
+const WindowsSystemButtons = () => {
   const win = remote.getCurrentWindow();
 
   const [isMaximized, setMaximized] = useState(win.isMaximized());
@@ -36,12 +26,24 @@ const WindowsToolbar = () => {
   }, []);
 
   return (
-    <div id="windows-frame-bar">
-      {!isMaximized && <div id="window-resize-area" />}
-      <span>Allusion</span>
-      <WindowsSystemButtons win={win} isMaximized={isMaximized} />
-    </div >
+    <div id="window-system-buttons">
+      <button onClick={() => win.minimize()}>{WindowsButtonCode.Minimize}</button>
+      <button onClick={() => (isMaximized ? win.restore() : win.maximize())}>
+        {isMaximized ? WindowsButtonCode.Restore : WindowsButtonCode.Maximize}
+      </button>
+      <button onClick={() => win.close()}>{WindowsButtonCode.Close}</button>
+    </div>
   );
-}
+};
+
+const WindowsToolbar = () => {
+  return (
+    <div id="window-titlebar">
+      <div id="window-resize-area" />
+      <span>Allusion</span>
+      <WindowsSystemButtons />
+    </div>
+  );
+};
 
 export default WindowsToolbar;

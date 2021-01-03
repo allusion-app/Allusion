@@ -23,7 +23,7 @@ body {
 
 #toolbar {
   position: absolute;
-  top: var(--frame-height);
+  top: var(--window-titlebar-height);
   left: var(--outliner-width);
   right: 0;
   height: var(--toolbar-height);
@@ -109,7 +109,7 @@ header h2 {
 #layout-container {
   &[data-os='darwin'] {
     // Mac has traffic light buttons integrated in the AppToolbar
-    --frame-height: 0px;
+    --window-titlebar-height: 0px;
 
     // Since the toolbar is acting as the frame, it should be draggable to move the window around
     #outliner-toggle, // renamed to #togglebar in new design?
@@ -123,7 +123,7 @@ header h2 {
   }
   // The top offset where the main content of the application starts (below the custom titlebar and toolbar)
   // Needs to be defined here instead of in the `themes.scss` file - where the OS is known
-  --content-top: calc(var(--toolbar-height) + var(--frame-height));
+  --content-top: calc(var(--toolbar-height) + var(--window-titlebar-height));
 }
 
 // Default browser CSS overrides
