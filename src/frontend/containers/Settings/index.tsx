@@ -105,6 +105,11 @@ const Settings = observer(({ uiStore, fileStore }: ISettingsProps) => {
             onChange={uiStore.setThumbnailLetterbox}
           />
         </RadioGroup>
+        <Toggle
+          defaultChecked={uiStore.isThumbnailTagOverlayEnabled}
+          onChange={uiStore.toggleThumbnailTagOverlay}
+          label="Show assigned tags"
+        />
       </div>
 
       <h2>Options</h2>

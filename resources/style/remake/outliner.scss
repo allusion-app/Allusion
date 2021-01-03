@@ -1,0 +1,209 @@
+///////////////////////////////// Outliner /////////////////////////////////
+
+// CONTAINER
+
+#outliner-content {
+  // Show y scrollbar when there's loads of tags or location list items
+  overflow-x: hidden;
+  position: absolute;
+  bottom: 2rem;
+  left: 0.75rem;
+  right: 0.75rem;
+
+  top: calc(var(--frame-height) + 1rem);
+
+  &:hover header [role='toolbar'] {
+    opacity: 1;
+  }
+}
+
+// On Macs, the traffic lights take up the space of the toolbar. For other platform, extend outliner to the top
+[data-os='darwin'] {
+  #outliner-content {
+    top: var(--content-top);
+  }
+}
+
+.section {
+  margin-bottom: 0.5rem;
+
+  // Show an outline to indicate the section needs attention
+  &.attention {
+    border: 2px dashed $yellow1;
+    background-color: rgba($yellow1, 0.1);
+    &.info {
+      border: 2px dashed $blue1;
+      background-color: rgba($blue1, 0.1);
+    }
+
+    box-sizing: border-box;
+    border-radius: 1rem;
+    margin: -4px;
+    padding: 4px;
+    padding-bottom: 12px;
+
+    // Show all buttons, even without hover
+    header [role='toolbar'] {
+      opacity: 1;
+    }
+  }
+}
+
+// HIERARCHY
+
+#tree-footer {
+  flex: 1;
+  min-height: 1rem;
+}
+
+#tag-hierarchy {
+  .btn-icon {
+    display: none;
+  }
+
+  .tree-content-label:hover > .btn-icon {
+    display: flex;
+  }
+
+  &.selected {
+    .btn-icon {
+      display: flex;
+    }
+  }
+}
+
+// HEADER
+
+#outliner-content header {
+  display: flex;
+  align-items: center;
+
+  h2 {
+    cursor: pointer;
+    flex-grow: 1;
+  }
+
+  [role='toolbar'] {
+    opacity: 0;
+  }
+
+  [role='toolbar']:focus-within {
+    opacity: 1;
+  }
+
+  .toolbar-button {
+    color: var(--text-color);
+    cursor: pointer;
+    outline: none;
+    border: none;
+    background: transparent;
+  }
+  .toolbar-button:hover {
+    color: var(--text-color-strong);
+  }
+}
+
+// LIST
+
+.tree-content-label {
+  display: flex;
+  align-items: center;
+  height: 1.5rem;
+  padding: 0.25rem 0 0.25rem;
+  width: 100%;
+
+  span {
+    display: inline-flex;
+  }
+
+  &[data-dnd-target='true'] {
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+
+    &.top {
+      border: none;
+      border-top: 2px solid var(--primary-color);
+    }
+
+    &.bottom {
+      border: none;
+      border-bottom: 2px solid var(--primary-color);
+    }
+  }
+
+  &[data-dnd-source='true'] {
+    opacity: 0.25;
+  }
+
+  .custom-icon {
+    margin-right: 0.375rem;
+    pointer-events: none;
+  }
+
+  > .btn-icon {
+    cursor: pointer;
+    margin-left: 0.25rem;
+
+    > .custom-icon {
+      margin-right: 0.125rem;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  > div {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+// ACTIONBAR
+
+#actionbar {
+  // Design v3
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  // extra css (from the section previously named #system-tags)
+  flex-shrink: 0;
+
+  // TODO: the buttons are currently .toolbar-button - not .actionbarBtn
+  .toolbar-button {
+    color: var(--text-color);
+    background: none;
+    outline: none;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0.5rem 0.25rem;
+  }
+  img {
+    height: 0.8125rem;
+  }
+  .toolbar-button:active,
+  .toolbar-button:hover {
+    color: var(--accent-color-blue);
+  }
+  img {
+    height: 0.8125rem;
+  }
+  span {
+    margin: 0 0.125rem;
+    font-size: 0.6875rem;
+    font-weight: bold;
+  }
+}

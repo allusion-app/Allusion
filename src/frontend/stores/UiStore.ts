@@ -94,6 +94,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'thumbnailSize',
   'thumbnailShape',
   'hotkeyMap',
+  'isThumbnailTagOverlayEnabled',
 ];
 
 class UiStore {
@@ -115,6 +116,8 @@ class UiStore {
   @observable searchMatchAny = false;
   @observable method: ViewMethod = ViewMethod.Grid;
   @observable isSlideMode: boolean = false;
+  /** Whether to show the tags on images in the content view */
+  @observable isThumbnailTagOverlayEnabled: boolean = true;
   /** Index of the first item in the viewport */
   @observable firstItem: number = 0;
   @observable thumbnailSize: ThumbnailSize = 'medium';
@@ -201,6 +204,18 @@ class UiStore {
 
   @action.bound toggleSlideMode() {
     this.isSlideMode = !this.isSlideMode;
+  }
+
+  @action.bound enableThumbnailTagOverlay() {
+    this.isThumbnailTagOverlayEnabled = true;
+  }
+
+  @action.bound disableThumbnailTagOverlay() {
+    this.isThumbnailTagOverlayEnabled = false;
+  }
+
+  @action.bound toggleThumbnailTagOverlay() {
+    this.isThumbnailTagOverlayEnabled = !this.isThumbnailTagOverlayEnabled;
   }
 
   @action.bound openOutliner() {
@@ -573,6 +588,7 @@ class UiStore {
         this.setMethod(prefs.method);
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);
+        this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         Object.entries<string>(prefs.hotkeyMap).forEach(
           ([k, v]) => (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );
