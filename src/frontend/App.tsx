@@ -12,7 +12,6 @@ import { Toaster as CustomToaster } from './components/Toaster';
 
 import AdvancedSearchDialog from './containers/AdvancedSearch';
 import ContentView from './containers/ContentView';
-import Inspector from './containers/Inspector';
 import Outliner from './containers/Outliner';
 import SettingsWindow from './containers/Settings';
 import AppToolbar from './containers/AppToolbar';
@@ -20,7 +19,6 @@ import AppToolbar from './containers/AppToolbar';
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowsToolbar from './containers/AppToolbar/WindowsToolbar';
 import { DropContextProvider } from './contexts/DropContext';
-
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
@@ -108,8 +106,6 @@ const App = observer(() => {
           <AppToolbar />
 
           <ContentView />
-
-          <Inspector />
 
           <SettingsWindow />
 
