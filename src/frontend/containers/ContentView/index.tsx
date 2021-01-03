@@ -81,7 +81,8 @@ const Gallery = observer(() => {
       ref={container}
       id="gallery-content"
       className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
-      onClick={uiStore.clearFileSelection}
+      // Clear selection when clicking on the background, unless in slide mode: always needs an active image
+      onClick={!uiStore.isSlideMode ? uiStore.clearFileSelection : undefined}
     >
       <Layout
         contentRect={contentRect}

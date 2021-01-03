@@ -106,7 +106,7 @@ const Layout = ({
   }, [fileStore, handleFileSelect]);
 
   if (uiStore.isSlideMode) {
-    return <SlideMode contentRect={contentRect} uiStore={uiStore} fileStore={fileStore} />;
+    return <SlideMode contentRect={contentRect} />;
   }
   switch (uiStore.method) {
     case ViewMethod.Grid:
