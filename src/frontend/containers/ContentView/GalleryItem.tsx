@@ -40,11 +40,11 @@ export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
         </ButtonGroup>
       </div>
     ) : (
-      <>
-        <h2>{file.filename}</h2>
-        <ImageInfo suspended={!mounted} file={file} />
-      </>
-    )}
+        <>
+          <h2>{file.filename}</h2>
+          <ImageInfo suspended={!mounted} file={file} />
+        </>
+      )}
     {file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />}
   </div>
 ));
@@ -74,7 +74,9 @@ export const GridCell = observer(({ file, colIndex, mounted, uiStore, fileStore 
         }
       />
     )}
-    {file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />}
+    {uiStore.isThumbnailTagOverlayEnabled && (
+      file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />
+    )}
   </div>
 ));
 
