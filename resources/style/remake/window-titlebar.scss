@@ -1,9 +1,7 @@
 #window-titlebar {
   -webkit-app-region: drag; // Custom frame should be draggable for moving window around
-  position: absolute;
   height: var(--window-titlebar-height);
   width: 100%;
-  z-index: 2;
   display: flex;
 
   background-color: $dark-gray0;

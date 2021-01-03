@@ -108,7 +108,7 @@ dialog[role='alertdialog'] {
 
 [data-popover] {
   display: none;
-  z-index: 15;
+  z-index: 1;
 
   color: var(--text-color);
   backdrop-filter: blur(1rem);

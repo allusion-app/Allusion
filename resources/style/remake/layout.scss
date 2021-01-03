@@ -31,23 +31,23 @@ body {
   padding: 0 0.5rem;
   display: flex;
   align-items: center;
-  z-index: 5;
+  background: var(--background-color);
 }
 
 [data-os='darwin'] {
   #outliner.outliner-is-closed ~ #toolbar {
-    left: var(--mac-system-buttons-width);
+    padding-left: var(--mac-system-buttons-width);
   }
 }
 
 #outliner {
   position: absolute;
-  top: 0;
+  top: var(--window-titlebar-height);
   bottom: 0;
   left: 0;
   width: var(--outliner-width);
   box-sizing: border-box;
-  padding: var(--content-top) 0.75rem 2rem 0.75rem;
+  padding: var(--toolbar-height) 0.75rem 2rem 0.75rem;
   border-right: 0.0625rem solid var(--border-dark);
   background: var(--background-color-alt);
 }
@@ -58,19 +58,20 @@ body {
 
 #content-view {
   position: absolute;
-  top: 0;
+  top: var(--content-top);
   left: var(--outliner-width);
   right: 0;
   bottom: 0;
   box-sizing: border-box;
-  padding: var(--content-top) 0.5rem 0 0.5rem;
+  padding: 0 0.5rem;
   background: var(--background-color);
   display: flex;
   justify-content: stretch;
   overflow-y: hidden;
 }
 
-#outliner.outliner-is-closed ~ #content-view {
+#outliner.outliner-is-closed ~ #content-view,
+#outliner.outliner-is-closed ~ #toolbar {
   left: 0;
 }
 
