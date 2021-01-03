@@ -154,6 +154,3 @@ RendererMessenger.onAddTagsToFile(async ({ item }) => {
 });
 
 RendererMessenger.onGetTags(async () => ({ tags: await backend.fetchTags() }));
-
-// TODO: Deprecated
-RendererMessenger.onGetDownloadPath(() => rootStore.locationStore.locationList?.[0].path || '');

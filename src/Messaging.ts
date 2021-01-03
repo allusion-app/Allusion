@@ -98,13 +98,6 @@ export interface IRunInBackgroundMessage {
   isRunInBackground: boolean;
 }
 
-export const GET_DOWNLOAD_PATH = 'GET_DOWNLOAD_PATH';
-export const RECEIVE_DOWNLOAD_PATH = 'RECEIVE_DOWNLOAD_PATH';
-export const SET_DOWNLOAD_PATH = 'SET_DOWNLOAD_PATH';
-export interface IDownloadPathMessage {
-  dir: string;
-}
-
 // Static methods for type safe IPC messages between renderer and main process
 export class RendererMessenger {
   static initialized = () => ipcRenderer.send(INITIALIZED);
@@ -135,10 +128,6 @@ export class RendererMessenger {
   static isClipServerEnabled = (): boolean => ipcRenderer.sendSync(IS_CLIP_SERVER_RUNNING);
 
   static isRunningInBackground = (): boolean => ipcRenderer.sendSync(IS_RUNNING_IN_BACKGROUND);
-
-  static setDownloadPath = (msg: IDownloadPathMessage) => ipcRenderer.send(SET_DOWNLOAD_PATH, msg);
-
-  static onGetDownloadPath = (cb: () => string) => ipcRenderer.on(RECEIVE_DOWNLOAD_PATH, cb);
 
   static setClipServerEnabled = (msg: IClipServerEnabledMessage) =>
     ipcRenderer.send(SET_CLIP_SERVER_ENABLED, msg);
@@ -203,9 +192,6 @@ export class MainMessenger {
     );
   };
 
-  static onSetDownloadPath = (cb: (msg: IDownloadPathMessage) => void) =>
-    ipcMain.on(SET_DOWNLOAD_PATH, (_, msg: IDownloadPathMessage) => cb(msg));
-
   static onSetClipServerEnabled = (cb: (msg: IClipServerEnabledMessage) => void) =>
     ipcMain.on(SET_CLIP_SERVER_ENABLED, (_, msg: IClipServerEnabledMessage) => cb(msg));
 
@@ -214,13 +200,6 @@ export class MainMessenger {
 
   static onSetRunningInBackground = (cb: (msg: IRunInBackgroundMessage) => void) =>
     ipcMain.on(SET_RUN_IN_BACKGROUND, (_, msg: IRunInBackgroundMessage) => cb(msg));
-
-  static getDownloadPath = (wc: WebContents): Promise<IDownloadPathMessage> => {
-    wc.send(GET_DOWNLOAD_PATH);
-    return new Promise((resolve) =>
-      ipcMain.once(RECEIVE_DOWNLOAD_PATH, (_, msg: IDownloadPathMessage) => resolve(msg)),
-    );
-  };
 
   static onIsClipServerRunning = (cb: () => boolean) =>
     ipcMain.on(IS_CLIP_SERVER_RUNNING, (e) => (e.returnValue = cb()));
