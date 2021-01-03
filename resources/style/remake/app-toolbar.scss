@@ -62,26 +62,21 @@
 
 .floating-dialog {
   position: absolute;
-  z-index: 10;
   top: var(--toolbar-height);
-  left: calc(50% - 200px);
+  left: 0;
+  right: 0;
+  width: 400px;
+  margin: auto;
 }
 
-.tag-files-widget {
-  width: 24rem;
-  height: 12rem;
-  max-height: 12rem;
+#tag-editor {
   padding: 0.5em;
-  backdrop-filter: blur(1rem);
-  background: var(--background-color-light);
-  border: 0.0625rem solid var(--border-dark);
-  border-radius: 0.5rem;
-  box-shadow: var(--box-shadow);
-
+  height: 200px;
+  max-height: 200px;
   display: flex;
   flex-direction: column;
 
-  > ul {
+  [role='listbox'] {
     flex: 1;
     overflow: auto;
   }

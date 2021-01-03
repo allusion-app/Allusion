@@ -1,33 +1,3 @@
-// Segment control
-[role='toolbar'] [role='radiogroup'] {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.25rem;
-  margin: 0 1rem;
-
-  [role='radio'] {
-    &:first-child {
-      border-bottom-left-radius: 0.25rem;
-      border-top-left-radius: 0.25rem;
-    }
-
-    &:last-child {
-      border-bottom-right-radius: 0.25rem;
-      border-top-right-radius: 0.25rem;
-    }
-  }
-}
-
-.toolbar-button-icon {
-  pointer-events: none;
-}
-
 .toolbar-button-text.never {
   display: none;
-}
-
-.toolbar-button-text.always {
-  text-indent: unset;
-  white-space: unset;
-  overflow: unset;
 }
