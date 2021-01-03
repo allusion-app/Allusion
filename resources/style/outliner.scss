@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   width: var(--outliner-width);
-  padding-top: calc(var(--toolbar-height) + var(--frame-height));
+  padding-top: var(--content-top);
   background-color: var(--background-color-alt);
 
   // Same transparent background image as in the design mockup

@@ -23,7 +23,7 @@ body {
 
 #toolbar {
   position: absolute;
-  top: 0;
+  top: var(--frame-height);
   left: var(--outliner-width);
   right: 0;
   height: var(--toolbar-height);
@@ -50,7 +50,7 @@ body {
   left: 0;
   width: var(--outliner-width);
   box-sizing: border-box;
-  padding-top: var(--toolbar-height);
+  padding-top: var(--content-top);
   border-right: 0.0625rem solid var(--border-dark);
   background: var(--background-color-alt);
 }
@@ -66,7 +66,7 @@ body {
   right: 0;
   bottom: 0;
   box-sizing: border-box;
-  padding: var(--toolbar-height) 0.5rem 0 0.5rem;
+  padding: var(--content-top) 0.5rem 0 0.5rem;
   background: var(--background-color);
   display: flex;
   justify-content: stretch;

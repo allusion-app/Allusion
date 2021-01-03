@@ -62,7 +62,7 @@
 
 .floating-dialog {
   position: absolute;
-  top: var(--toolbar-height);
+  top: var(--content-top);
   left: 0;
   right: 0;
   width: 400px;
