@@ -17,7 +17,7 @@ import SettingsWindow from './containers/Settings';
 import AppToolbar from './containers/AppToolbar';
 
 import { useWorkerListener } from './ThumbnailGeneration';
-import WindowsToolbar from './containers/AppToolbar/WindowsToolbar';
+import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -98,7 +98,7 @@ const App = observer(() => {
     // TODO: Open outliner on dragEnter: onDragEnter={openOutlinerOnDragEnter}. Problem: drag counter is messed up when DOM is updated: always off by one -> isDragging stays true
     <DropContextProvider>
       <div data-os={PLATFORM} id="layout-container" className={themeClass}>
-        {PLATFORM !== 'darwin' && <WindowsToolbar />}
+        {PLATFORM !== 'darwin' && <WindowTitlebar />}
 
         <ErrorBoundary>
           <Outliner />

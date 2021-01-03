@@ -1,6 +1,18 @@
 import { remote } from 'electron';
 import React, { useEffect, useState } from 'react';
 
+const WindowsTitlebar = () => {
+  return (
+    <div id="window-titlebar">
+      <div id="window-resize-area" />
+      <span>Allusion</span>
+      <WindowsSystemButtons />
+    </div>
+  );
+};
+
+export default WindowsTitlebar;
+
 // TODO: Replace with icons for linux compatibility or ship font.
 const enum WindowsButtonCode {
   Minimize = '\uE921',
@@ -35,15 +47,3 @@ const WindowsSystemButtons = () => {
     </div>
   );
 };
-
-const WindowsToolbar = () => {
-  return (
-    <div id="window-titlebar">
-      <div id="window-resize-area" />
-      <span>Allusion</span>
-      <WindowsSystemButtons />
-    </div>
-  );
-};
-
-export default WindowsToolbar;
