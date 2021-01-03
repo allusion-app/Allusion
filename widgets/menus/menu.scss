@@ -67,7 +67,7 @@ a[role='menuitem'] {
 
 .item-icon,
 .item-accelerator {
-  display: inline-flex;
+  display: flex;
   pointer-events: none;
   align-items: center;
   height: 1rem;
