@@ -264,7 +264,7 @@
 
 // Slide view:
 #zoomableImage {
-  height: calc(100vh - var(--toolbar-height));
+  height: calc(100vh - var(--content-top));
   display: flex;
   flex-direction: column;
 

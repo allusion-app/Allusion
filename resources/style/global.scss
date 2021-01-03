@@ -43,6 +43,7 @@ input {
 #preview {
   --toolbar-height: 3rem;
   --frame-height: 0px; // No custom frame: Native title bar is currently enabled on all platforms
+  --content-top: var(--toolbar-height);
   display: grid;
   grid-template-areas:
     'toolbar'
@@ -51,6 +52,9 @@ input {
 
   #toolbar {
     left: 0; // No #outliner-toggle
+  }
+  #content-view {
+    left: 0; // No outliner
   }
 }
 
@@ -70,6 +74,10 @@ input {
       }
     }
   }
+
+  // The top offset where the main content of the application starts (below the custom titlebar and toolbar)
+  // Needs to be defined here instead of in the `themes.scss` file - where the OS is known
+  --content-top: calc(var(--toolbar-height) + var(--frame-height));
 }
 
 .preloader {
