@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext, useEffect, useState } from 'react';
+import React, { ReactNode, useContext, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -81,7 +81,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   });
 
   return (
-    <div className="tag-files-widget">
+    <div id="tag-editor" onKeyDown={handleKeyDown}>
       <input
         autoFocus
         type="text"
@@ -137,23 +137,63 @@ const FloatingDialog = (props: FloatingDialogProps) => {
     }
   };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      onClose();
+    }
+  };
 
-  if (isOpen) {
-    return (
-      <div className="floating-dialog" onBlur={handleBlur}>
-        {children}
-      </div>
-    );
-  } else {
-    return null;
-  }
+  return (
+    // FIXME: data attributes placeholder
+    <div
+      data-popover
+      data-open={isOpen}
+      className="floating-dialog"
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+    >
+      {isOpen ? children : null}
+    </div>
+  );
 };
+
+function handleKeyDown(e: React.KeyboardEvent) {
+  const input = e.currentTarget.firstElementChild as HTMLElement;
+  const listbox = input.nextElementSibling as HTMLElement;
+
+  switch (e.key) {
+    case 'ArrowDown':
+      if (listbox.firstElementChild !== null) {
+        e.preventDefault(); // FIXME: element.focus({ preventScroll: true}) option not working (Chrome Bug)
+        e.stopPropagation();
+        (listbox.firstElementChild as HTMLElement).focus();
+      }
+      break;
+
+    case 'ArrowUp':
+      if (listbox.lastElementChild !== null) {
+        e.preventDefault(); // FIXME: element.focus({ preventScroll: true}) option not working (Chrome Bug)
+        e.stopPropagation();
+        (listbox.lastElementChild as HTMLElement).focus();
+      }
+      break;
+
+    case 'ArrowRight':
+      if (e.target !== input) {
+        e.stopPropagation();
+        input.focus();
+      }
+      break;
+
+    case 'ArrowLeft':
+      if (e.target !== input) {
+        e.stopPropagation();
+        input.focus();
+      }
+      break;
+
+    default:
+      break;
+  }
+}

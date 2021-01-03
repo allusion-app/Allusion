@@ -60,7 +60,7 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
 
 export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) => {
   const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = fileStore;
-  const orderIcon = fileOrder === FileOrder.DESC ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
+  const orderIcon = fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
 
   return (
     <MenuRadioGroup>
