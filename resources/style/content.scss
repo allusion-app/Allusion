@@ -47,7 +47,7 @@
   }
 
   &[aria-selected='true'] .thumbnail {
-    background-color: $blue1;
+    background-color: var(--accent-color-blue);
 
     // old design
     // > img,
@@ -57,7 +57,7 @@
 
     // New design
     > img {
-      border: 0.25rem solid $blue1; // new design
+      border: 0.25rem solid var(--accent-color-blue); // new design
     }
     > .image-error {
       border: 0.25rem solid $danger; // new design
@@ -83,7 +83,9 @@
   height: var(--thumbnail-size);
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
-  background-color: var(--background-color);
+  background-color: var(--background-color-alt);
+  border: 0.0625rem solid var(--border-dark);
+  border-radius: 0.25rem;
 
   // This acts as the border-radius, but also for child elements
   :first-child {
@@ -99,6 +101,7 @@
     margin-left: auto;
     margin-right: auto;
     display: block;
+    border-radius: 0.25rem;
   }
 
   &[data-dnd-target='true'] {
