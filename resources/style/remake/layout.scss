@@ -32,15 +32,12 @@ body {
   display: flex;
   align-items: center;
   z-index: 5;
-
-  -webkit-app-region: drag;
-  button {
-    -webkit-app-region: none;
-  }
 }
 
-#outliner.outliner-is-closed ~ #toolbar {
-  left: var(--mac-system-buttons-width);
+[data-os='darwin'] {
+  #outliner.outliner-is-closed ~ #toolbar {
+    left: var(--mac-system-buttons-width);
+  }
 }
 
 #outliner {

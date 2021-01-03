@@ -6,13 +6,21 @@
   // Show y scrollbar when there's loads of tags or location list items
   overflow-x: hidden;
   position: absolute;
-  top: var(--content-top);
   bottom: 2rem;
   left: 0.75rem;
   right: 0.75rem;
 
+  top: calc(var(--frame-height) + 1rem);
+
   &:hover header [role='toolbar'] {
     opacity: 1;
+  }
+}
+
+// On Macs, the traffic lights take up the space of the toolbar. For other platform, extend outliner to the top
+[data-os='darwin'] {
+  #outliner-content {
+    top: var(--content-top);
   }
 }
 
