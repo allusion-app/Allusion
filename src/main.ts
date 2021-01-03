@@ -14,7 +14,7 @@ import AppIcon from '../resources/logo/allusion-logomark-fc-512x512.png';
 import TrayIcon from '../resources/logo/allusion-logomark-fc-256x256.png';
 import TrayIconMac from '../resources/logo/allusion-logomark-white@2x.png';
 import { isDev } from './config';
-import { MainMessenger } from './Messaging';
+import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { ITag } from './entities/Tag';
 import ClipServer, { IImportItem } from './clipper/server';
 
@@ -234,6 +234,18 @@ function createWindow() {
     }
   });
 
+  mainWindow.on('maximize', () => {
+    if (mainWindow !== null) {
+      MainMessenger.maximize(mainWindow.webContents);
+    }
+  });
+
+  mainWindow.on('unmaximize', () => {
+    if (mainWindow !== null) {
+      MainMessenger.unmaximize(mainWindow.webContents);
+    }
+  });
+
   if (!clipServer) {
     clipServer = new ClipServer(importExternalImage, addTagsToFile, getTags);
   }
@@ -408,3 +420,30 @@ MainMessenger.onGetPath(app);
 MainMessenger.onIsFullScreen(() => mainWindow?.isFullScreen() ?? false);
 
 MainMessenger.onSetFullScreen((isFullScreen) => mainWindow?.setFullScreen(isFullScreen));
+
+MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
+  if (mainWindow !== null) {
+    switch (button) {
+      case WindowSystemButtonPress.Close:
+        mainWindow.close();
+        break;
+
+      case WindowSystemButtonPress.Maximize:
+        mainWindow.maximize();
+        break;
+
+      case WindowSystemButtonPress.Minimize:
+        mainWindow.minimize();
+        break;
+
+      case WindowSystemButtonPress.Restore:
+        mainWindow.restore();
+        break;
+
+      default:
+        break;
+    }
+  }
+});
+
+MainMessenger.onIsMaximized(() => mainWindow?.isMaximized() ?? false);

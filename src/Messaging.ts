@@ -35,6 +35,18 @@ const OPEN_DIALOG = 'OPEN_DIALOG';
 const GET_PATH = 'GET_PATH';
 const SET_FULL_SCREEN = 'SET_FULL_SCREEN';
 const IS_FULL_SCREEN = 'IS_FULL_SCREEN';
+const WINDOW_MAXIMIZE = 'WINDOW_MAXIMIZE';
+const WINDOW_UNMAXIMIZE = 'WINDOW_UNMAXIMIZE';
+const IS_MAXIMIZED = 'IS_MAXIMIZED';
+
+/////////////////// Window system buttons ////////////////////
+const WINDOW_SYSTEM_BUTTON_PRESS = 'WINDOW_SYSTEM_BUTTON_PRESS';
+export const enum WindowSystemButtonPress {
+  Minimize,
+  Restore,
+  Maximize,
+  Close,
+}
 
 //////// Main proces (browser extension) ////////
 export const GET_TAGS = 'GET_TAGS';
@@ -160,6 +172,15 @@ export class RendererMessenger {
     ipcRenderer.on(RECEIEVE_PREVIEW_FILES, (_, msg: IPreviewFilesMessage) => cb(msg));
 
   static onClosedPreviewWindow = (cb: () => void) => ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
+
+  static onMaximize = (cb: () => void) => ipcRenderer.on(WINDOW_MAXIMIZE, () => cb());
+
+  static onUnmaximize = (cb: () => void) => ipcRenderer.on(WINDOW_UNMAXIMIZE, () => cb());
+
+  static pressWindowSystemButton = (button: WindowSystemButtonPress) =>
+    ipcRenderer.send(WINDOW_SYSTEM_BUTTON_PRESS, button);
+
+  static isMaximized = (): boolean => ipcRenderer.sendSync(IS_MAXIMIZED);
 }
 
 export class MainMessenger {
@@ -229,4 +250,14 @@ export class MainMessenger {
 
   static onDragExport = (cb: (msg: IDragExportMessage) => void) =>
     ipcMain.on(DRAG_EXPORT, (_, msg: IDragExportMessage) => cb(msg));
+
+  static maximize = (wc: WebContents) => wc.send(WINDOW_MAXIMIZE);
+
+  static unmaximize = (wc: WebContents) => wc.send(WINDOW_UNMAXIMIZE);
+
+  static onWindowSystemButtonPressed = (cb: (button: WindowSystemButtonPress) => void) =>
+    ipcMain.on(WINDOW_SYSTEM_BUTTON_PRESS, (_, button: WindowSystemButtonPress) => cb(button));
+
+  static onIsMaximized = (cb: () => boolean) =>
+    ipcMain.on(IS_MAXIMIZED, (e) => (e.returnValue = cb()));
 }

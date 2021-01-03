@@ -1,5 +1,5 @@
-import { remote } from 'electron';
 import React, { useEffect, useState } from 'react';
+import { RendererMessenger, WindowSystemButtonPress } from 'src/Messaging';
 
 const WindowsTitlebar = () => {
   return (
@@ -22,28 +22,35 @@ const enum WindowsButtonCode {
 }
 
 const WindowsSystemButtons = () => {
-  const win = remote.getCurrentWindow();
-
-  const [isMaximized, setMaximized] = useState(win.isMaximized());
+  const [isMaximized, setMaximized] = useState(RendererMessenger.isMaximized());
   useEffect(() => {
     const onMaximize = () => setMaximized(true);
     const onUnmaximize = () => setMaximized(false);
-    win.addListener('maximize', onMaximize);
-    win.addListener('unmaximize', onUnmaximize);
-    return () => {
-      win.removeListener('maximize', onMaximize);
-      win.removeListener('unmaximize', onUnmaximize);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    RendererMessenger.onUnmaximize(onUnmaximize);
+    RendererMessenger.onMaximize(onMaximize);
   }, []);
 
   return (
     <div id="window-system-buttons">
-      <button onClick={() => win.minimize()}>{WindowsButtonCode.Minimize}</button>
-      <button onClick={() => (isMaximized ? win.restore() : win.maximize())}>
+      <button
+        onClick={() => RendererMessenger.pressWindowSystemButton(WindowSystemButtonPress.Minimize)}
+      >
+        {WindowsButtonCode.Minimize}
+      </button>
+      <button
+        onClick={() =>
+          RendererMessenger.pressWindowSystemButton(
+            isMaximized ? WindowSystemButtonPress.Restore : WindowSystemButtonPress.Maximize,
+          )
+        }
+      >
         {isMaximized ? WindowsButtonCode.Restore : WindowsButtonCode.Maximize}
       </button>
-      <button onClick={() => win.close()}>{WindowsButtonCode.Close}</button>
+      <button
+        onClick={() => RendererMessenger.pressWindowSystemButton(WindowSystemButtonPress.Close)}
+      >
+        {WindowsButtonCode.Close}
+      </button>
     </div>
   );
 };
