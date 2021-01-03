@@ -76,8 +76,8 @@
   flex-shrink: 0;
   cursor: pointer;
   background-color: var(--text-color);
-  mask-image: url(~resources/icons/arrow-down.svg);
-  -webkit-mask-image: url(~resources/icons/arrow-down.svg);
+  mask-image: url(~resources/icons/small-arrow-down.svg);
+  -webkit-mask-image: url(~resources/icons/small-arrow-down.svg);
   transition: transform 100ms ease-out;
   margin-right: 0.25em;
 
