@@ -1,29 +1,29 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useContext, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
-
-import UiStore from '../../stores/UiStore';
-import FileStore from '../../stores/FileStore';
 
 import { IconSet } from 'widgets';
 
 import { MissingImageFallback } from './GalleryItem';
 import Inspector from '../Inspector';
+import StoreContext from 'src/frontend/contexts/StoreContext';
+import { runInAction } from 'mobx';
 
 interface SlideModeProps {
   contentRect: { width: number; height: number };
-  uiStore: UiStore;
-  fileStore: FileStore;
 }
 
-const SlideMode = (props: SlideModeProps) => {
-  const { contentRect, uiStore, fileStore } = props;
-  const { fileList } = fileStore;
+const SlideMode = observer((props: SlideModeProps) => {
+  const { contentRect } = props;
+  const { uiStore, fileStore } = useContext(StoreContext);
+
   // Go to the first selected image on load
   useEffect(() => {
-    if (uiStore.firstSelectedFile !== undefined) {
-      uiStore.setFirstItem(fileStore.getIndex(uiStore.firstSelectedFile.id));
-    }
+    runInAction(() => {
+      if (uiStore.firstSelectedFile !== undefined) {
+        uiStore.setFirstItem(fileStore.getIndex(uiStore.firstSelectedFile.id));
+      }
+    });
   }, [fileStore, uiStore]);
 
   // Go back to previous view when pressing the back button (mouse button 5)
@@ -37,17 +37,20 @@ const SlideMode = (props: SlideModeProps) => {
 
   // Automatically select the active image, so it is shown in the inspector
   useEffect(() => {
-    if (uiStore.firstItem < fileList.length) {
-      uiStore.selectFile(fileList[uiStore.firstItem], true);
-    }
-  }, [fileList, uiStore]);
+    runInAction(() => {
+      if (uiStore.firstItem < fileStore.fileList.length) {
+        uiStore.selectFile(fileStore.fileList[uiStore.firstItem], true);
+      }
+    });
+  }, [fileStore.fileList, fileStore.fileList.length, uiStore, uiStore.firstItem]);
 
-  const decrImgIndex = useCallback(() => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1)), [
-    uiStore,
-  ]);
+  const decrImgIndex = useCallback(
+    () => runInAction(() => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1))),
+    [uiStore],
+  );
   const incrImgIndex = useCallback(
-    () => uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileList.length - 1)),
-    [uiStore, fileList.length],
+    () => runInAction(() => uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1))),
+    [uiStore, fileStore.fileList.length],
   );
 
   // Detect left/right arrow keys to scroll between images
@@ -65,21 +68,21 @@ const SlideMode = (props: SlideModeProps) => {
   );
 
   // Detect scroll wheel to scroll between images
-  const handleUserWheel = useCallback(
-    (event: WheelEvent) => {
-      if (event.ctrlKey) {
-        return;
-      }
-      event.preventDefault();
+  // const handleUserWheel = useCallback(
+  //   (event: WheelEvent) => {
+  //     if (event.ctrlKey) {
+  //       return;
+  //     }
+  //     event.preventDefault();
 
-      if (event.deltaY > 0) {
-        decrImgIndex();
-      } else if (event.deltaY < 0) {
-        incrImgIndex();
-      }
-    },
-    [incrImgIndex, decrImgIndex],
-  );
+  //     if (event.deltaY > 0) {
+  //       decrImgIndex();
+  //     } else if (event.deltaY < 0) {
+  //       incrImgIndex();
+  //     }
+  //   },
+  //   [incrImgIndex, decrImgIndex],
+  // );
 
   // Set up event listeners
   useEffect(() => {
@@ -89,32 +92,34 @@ const SlideMode = (props: SlideModeProps) => {
       window.removeEventListener('keydown', handleUserKeyPress);
       // window.removeEventListener('wheel', handleUserWheel);
     };
-  }, [handleUserKeyPress, handleUserWheel]);
+  }, [handleUserKeyPress]);
 
   // Preload next and previous image for better UX
   useEffect(() => {
-    if (uiStore.firstItem + 1 < fileList.length) {
-      const nextImg = new Image();
-      nextImg.src = fileList[uiStore.firstItem + 1].absolutePath;
-    }
-    if (uiStore.firstItem - 1 >= 0) {
-      const prevImg = new Image();
-      prevImg.src = fileList[uiStore.firstItem - 1].absolutePath;
-    }
-  }, [fileList, uiStore.firstItem]);
+    runInAction(() => {
+      if (uiStore.firstItem + 1 < fileStore.fileList.length) {
+        const nextImg = new Image();
+        nextImg.src = fileStore.fileList[uiStore.firstItem + 1].absolutePath;
+      }
+      if (uiStore.firstItem - 1 >= 0) {
+        const prevImg = new Image();
+        prevImg.src = fileStore.fileList[uiStore.firstItem - 1].absolutePath;
+      }
+    });
+  }, [fileStore.fileList, uiStore.firstItem]);
 
-  const inspectorWidth = 288;
+  const inspectorWidth = 288; // TODO: Get from CSS. Something like below, but that works correctly (currently too low)
   // useMemo(() =>
   //   parseInt(getComputedStyle(document.body).getPropertyValue('--inspector-width')) // rem value: get pixels by multplying with font size
   //   * parseInt(getComputedStyle(document.body).getPropertyValue('font-size')),
   //   []);
   const contentWidth = contentRect.width - (uiStore.isInspectorOpen ? inspectorWidth : 0);
 
-  if (uiStore.firstItem >= fileList.length) {
+  if (uiStore.firstItem >= fileStore.fileList.length) {
     return <p>No files available</p>;
   }
 
-  const file = fileList[uiStore.firstItem];
+  const file = fileStore.fileList[uiStore.firstItem];
 
   // TODO: If image is broken, cannot go back/forward
   return (
@@ -132,13 +137,13 @@ const SlideMode = (props: SlideModeProps) => {
             width={contentWidth}
             height={contentRect.height}
             prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
-            nextImage={uiStore.firstItem + 1 < fileList.length ? incrImgIndex : undefined}
+            nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
           />
         )}
       <Inspector />
     </div>
   );
-};
+});
 
 interface IZoomableImageProps {
   src: string;
@@ -179,4 +184,4 @@ const ZoomableImage = ({ src, width, height, prevImage, nextImage }: IZoomableIm
   );
 };
 
-export default observer(SlideMode);
+export default SlideMode;

@@ -1,28 +1,21 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { comboMatches, getKeyCombo, parseKeyCombo, Position, Toaster } from '@blueprintjs/core';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-
-import StoreContext from './contexts/StoreContext';
-
-import { IconSet } from 'widgets';
-
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { Toaster as CustomToaster } from './components/Toaster';
+import AdvancedSearchDialog from './containers/AdvancedSearch';
+import AppToolbar from './containers/AppToolbar';
+import WindowsToolbar from './containers/AppToolbar/WindowsToolbar';
+import ContentView from './containers/ContentView';
 import DropOverlay from './containers/DropOverlay';
 import ErrorBoundary from './containers/ErrorBoundary';
 import HelpCenter from './containers/HelpCenter';
-import SplashScreen from './containers/SplashScreen';
-import { Toaster as CustomToaster } from './components/Toaster';
-
-import AdvancedSearchDialog from './containers/AdvancedSearch';
-import ContentView from './containers/ContentView';
-import Inspector from './containers/Inspector';
 import Outliner from './containers/Outliner';
 import SettingsWindow from './containers/Settings';
-import AppToolbar from './containers/AppToolbar';
+import SplashScreen from './containers/SplashScreen';
 import WelcomeDialog from './containers/WelcomeDialog';
-
+import StoreContext from './contexts/StoreContext';
 import { useWorkerListener } from './ThumbnailGeneration';
-import WindowsToolbar from './containers/AppToolbar/WindowsToolbar';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;

@@ -106,7 +106,7 @@ const Layout = ({
   }, [fileStore, handleFileSelect]);
 
   if (uiStore.isSlideMode) {
-    return <SlideMode contentRect={contentRect} uiStore={uiStore} fileStore={fileStore} />;
+    return <SlideMode contentRect={contentRect} />;
   }
   switch (uiStore.method) {
     case ViewMethod.Grid:
@@ -268,8 +268,8 @@ const GridGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
+              <FileViewerMenuItems file={file} uiStore={uiStore} />
+            ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });
@@ -419,8 +419,8 @@ const ListGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
+              <FileViewerMenuItems file={file} uiStore={uiStore} />
+            ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });

@@ -69,7 +69,7 @@ const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStor
 
 export default PrimaryCommands;
 
-export const SlideModeCommand = ({ uiStore }: { uiStore: UiStore }) => {
+export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => {
   return (
     <>
       <ToolbarButton
@@ -93,7 +93,7 @@ export const SlideModeCommand = ({ uiStore }: { uiStore: UiStore }) => {
       />
     </>
   );
-};
+});
 
 const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
   const { uiStore, fileStore } = props;
