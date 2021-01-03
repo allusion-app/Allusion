@@ -13,15 +13,15 @@
 .bp3-dark {
   --background-color: rgb(28, 30, 35);
   --background-color-alt: rgb(35, 37, 46);
-  --background-color-light: rgba(28, 30, 35, 0.75);
+  --background-color-light: rgba(28, 30, 35, 0.95);
   --text-color: rgb(200, 200, 200);
   --text-color-muted: rgb(128, 128, 128);
   --text-color-strong: rgb(255, 255, 255);
   --border-dark: rgb(18, 18, 24);
   --border-light: rgb(35, 37, 46);
   --hover-color: rgb(240, 240, 240);
-  --hover-background1: rgba(255, 255, 255, 0.1);
-  --hover-background2: rgba(255, 255, 255, 0.2);
+  --hover-background1: rgba(215, 235, 255, 0.1);
+  --hover-background2: rgba(215, 235, 255, 0.2);
   --shade1: rgba(0, 0, 0, 0.25);
   --shade2: rgba(0, 0, 0, 0.5);
   --shade3: rgba(0, 0, 0, 0.75);
@@ -31,7 +31,7 @@
 .bp3-light {
   --background-color: rgb(240, 240, 240);
   --background-color-alt: rgb(248, 248, 248);
-  --background-color-light: rgba(240, 240, 240, 0.75);
+  --background-color-light: rgba(240, 240, 240, 0.95);
   --text-color: rgb(64, 64, 64);
   --text-color-muted: rgb(128, 128, 128);
   --text-color-strong: rgb(0, 0, 0);
@@ -40,7 +40,7 @@
   --hover-color: rgb(32, 32, 32);
   --hover-background1: rgba(0, 0, 0, 0.1);
   --hover-background2: rgba(0, 0, 0, 0.2);
-  --shade1: rgba(255, 255, 255, 0.25);
-  --shade2: rgba(255, 255, 255, 0.5);
-  --shade3: rgba(255, 255, 255, 0.75);
+  --shade1: rgba(255, 255, 255, 0.5);
+  --shade2: rgba(255, 255, 255, 1);
+  --shade3: rgba(255, 255, 255, 1);
 }

@@ -22,7 +22,7 @@ export const SortCommand = ({ fileStore }: { fileStore: FileStore }) => {
   return (
     <MenuButton
       showLabel="never"
-      icon={IconSet.FILTER}
+      icon={IconSet.SORT}
       text="Sort"
       tooltip={Tooltip.Filter}
       id="__sort-menu"

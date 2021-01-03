@@ -11,8 +11,6 @@
 // Panels
 @import '~resources/style/content.scss'; // The main content area (Gallery, etc.)
 @import '~resources/style/welcome.scss'; // Welcome screen
-@import '~resources/style/sidebar.scss'; // Common styles for outliner and inspector
-@import '~resources/style/outliner.scss'; // The outliner (left toolbar)
 @import '~resources/style/inspector.scss'; // The inspector (right toolbar)
 
 // Individual components
@@ -26,3 +24,4 @@
 @import '~resources/style/remake/layout.scss';
 @import '~resources/style/remake/windows-frame-bar.scss';
 @import '~resources/style/remake/app-toolbar.scss';
+@import '~resources/style/remake/outliner.scss';

@@ -1,12 +1,5 @@
 // Viewport
 
-header,
-header h2 {
-  font-size: medium;
-  font-weight: bold;
-  margin: 0;
-}
-
 fieldset {
   margin: 0;
   margin-bottom: 0.5rem;
@@ -58,28 +51,6 @@ input {
   }
 }
 
-// Main window layout definition
-#layout-container {
-  &[data-os='darwin'] {
-    // Mac has traffic light buttons integrated in the AppToolbar
-    --frame-height: 0px;
-
-    // Since the toolbar is acting as the frame, it should be draggable to move the window around
-    #outliner-toggle, // renamed to #togglebar in new design?
-    #toolbar {
-      -webkit-app-region: drag;
-      button {
-        // But all of the buttons should not be draggable, else not clickable
-        -webkit-app-region: none;
-      }
-    }
-  }
-
-  // The top offset where the main content of the application starts (below the custom titlebar and toolbar)
-  // Needs to be defined here instead of in the `themes.scss` file - where the OS is known
-  --content-top: calc(var(--toolbar-height) + var(--frame-height));
-}
-
 .preloader {
   font-size: 18px;
   font-weight: 700;
@@ -95,21 +66,6 @@ input {
   outline-style: solid;
 }
 
-// Default browser CSS overrides
-/* Prevent text selection in all HTML elements for more native feel */
-*,
-*::after,
-*::before {
-  -webkit-user-select: none;
-}
-// Disable default outline on focused elements (e.g. clicked buttons)
-:focus {
-  outline: none !important;
-}
-// Don't allow images to be dragged from within the app
-img {
-  -webkit-user-drag: none;
-}
 /* 
 // Custom scrollbar style
 ::-webkit-scrollbar {

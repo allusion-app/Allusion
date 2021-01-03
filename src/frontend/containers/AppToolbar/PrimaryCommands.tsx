@@ -33,7 +33,7 @@ const OutlinerToggle = observer(() => {
       tabIndex={0}
     >
       <span className="btn-content-icon" aria-hidden="true">
-        {uiStore.isOutlinerOpen ? IconSet.ARROW_LEFT : IconSet.ARROW_RIGHT}
+        {uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
       </span>
       <span className="btn-content-text hidden">Toggle Outliner</span>
     </button>
