@@ -74,7 +74,8 @@ export const GridCell = observer(({ file, colIndex, mounted, uiStore, fileStore 
         }
       />
     )}
-    {uiStore.isThumbnailTagOverlayEnabled && (
+    {/* Show tags when the option is enabled, or when the file is selected */}
+    {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) && (
       file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />
     )}
   </div>

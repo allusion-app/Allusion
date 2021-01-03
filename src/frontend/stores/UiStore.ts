@@ -94,6 +94,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'thumbnailSize',
   'thumbnailShape',
   'hotkeyMap',
+  'isThumbnailTagOverlayEnabled',
 ];
 
 class UiStore {
