@@ -34,14 +34,8 @@ input {
 
 // Preview window layout definition
 #preview {
-  --toolbar-height: 3rem;
   --window-titlebar-height: 0px; // No custom frame: Native title bar is currently enabled on all platforms
   --content-top: var(--toolbar-height);
-  display: grid;
-  grid-template-areas:
-    'toolbar'
-    'main';
-  grid-template-rows: var(--toolbar-height) 1fr;
 
   #toolbar {
     left: 0; // No #outliner-toggle
@@ -121,13 +115,9 @@ input {
 
 ///////////////////////////////// Misc /////////////////////////////////
 // Error boundary (when app crashes)
-.error-boundary {
-  grid-area: main;
-
-  .message {
-    font-family: monospace;
-    max-width: 120ch;
-  }
+.error-boundary .message {
+  font-family: monospace;
+  max-width: 120ch;
 }
 
 // Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
