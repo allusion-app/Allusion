@@ -35,6 +35,21 @@ pub struct Layout {
     padding: u32,
 }
 
+// For images with extreme aspect ratios (very narrow or wide), crop them a little
+// so that they are at most X times as wide/long as they are long/wide
+// Returns a correct height value of the image
+fn aspect_ratio_correction(w: f32, h: f32) -> f32 {
+    let max_aspect_ratio = 3.; // X times as wide as narrow or vice versa
+
+    let aspect_ratio = w as f32 / h;
+    if aspect_ratio > max_aspect_ratio {
+        return max_aspect_ratio * h;
+    } else if aspect_ratio < 1. / max_aspect_ratio {
+        return max_aspect_ratio * w as f32;
+    }
+    return h;
+}
+
 /// Public methods, exported to JavaScript.
 #[wasm_bindgen]
 impl Layout {
@@ -74,14 +89,12 @@ impl Layout {
         self.padding = padding;
     }
 
-    pub fn compute(&mut self, container_width: u32) -> i32 {
+    pub fn compute_horizontal(&mut self, container_width: u32) -> i32 {
         // Main idea: Keep looping over images until containerWidth is reached, then:
         // - Either adjust row height or add/remove item to make it fit full-width, whatever is the closest
         // (I think this is how google photos does it)
         // Could also have an approximated version for very large lists, and just properly compute for what in and close to the viewport
         // TODO: Look up proper masonry algorithm, e.g. https://euler.stephan-brumme.com/215/
-
-        // Could crop images with extreme aspect ratios (e.g. > 3:1) for easier layouting. Already doing this for the vertical layout
 
         let base_row_height = self.thumbnail_size as u16;
 
@@ -91,8 +104,10 @@ impl Layout {
 
         for i in 0..self.items.len() {
             let item = &mut self.items[i];
-            let rel_width =
-                (base_row_height as f32 / item.src_height as f32) * item.src_width as f32;
+            // Correct aspect ratio for very wide/narrow images
+            let corr_height =
+                aspect_ratio_correction(item.src_width as f32, item.src_height as f32);
+            let rel_width = (base_row_height as f32 / corr_height as f32) * item.src_width as f32;
             item.width = rel_width as u16;
             item.top = top_offset as u16;
             item.height = base_row_height;
@@ -101,7 +116,6 @@ impl Layout {
             // Check if adding this image to the row would exceed the container width
             let new_row_width = cur_row_width + rel_width as u32 + self.padding;
 
-            // TODO: Edge case for last row: not always full width
             if new_row_width > container_width {
                 // If it exceeds it, position all current items in the row accordingly and start a new row for this item
                 // Position all items in this row properly after the row is filled, needs to expand a little
@@ -125,10 +139,11 @@ impl Layout {
                 first_row_item_index = i + 1;
                 top_offset += self.padding + (base_row_height as f32 * correction_factor) as u32;
             } else {
+                // Otherwise, just add its width to the current row width and continue on!
                 cur_row_width = new_row_width;
             }
         }
-        // Return the height of the container: If a new row was just started, no need to add last item's height
+        // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
         if cur_row_width != 0 {
             let last_item = self.items.last();
             return match last_item {
@@ -143,8 +158,6 @@ impl Layout {
         // Main idea: Initialize with N columns of identical widths
         // loop over images, put them in the column that has the least height filled
 
-        let max_aspect_ratio = 3.; // X times as wide as narrow or vice versa
-
         let n_columns = (container_width as f32 / self.thumbnail_size as f32) as i32;
         if n_columns == 0 {
             return 0;
@@ -155,14 +168,7 @@ impl Layout {
         let mut col_heights: Vec<i32> = vec![0; n_columns as usize];
 
         for item in self.items.iter_mut() {
-            // For images with extreme aspect ratios (very narrow or wide), crop them a little
-            let mut h = item.src_height as f32;
-            let aspect_ratio = item.src_width as f32 / h;
-            if aspect_ratio > max_aspect_ratio {
-                h = max_aspect_ratio * h;
-            } else if aspect_ratio < max_aspect_ratio / 5. {
-                h = h / max_aspect_ratio;
-            }
+            let h = aspect_ratio_correction(item.src_width as f32, item.src_height as f32);
 
             item.width = col_width - self.padding as u16;
             item.height = ((item.width as f32 / item.src_width as f32) * h as f32 + 0.5) as u16;

@@ -1,5 +1,5 @@
 import { Remote, wrap } from 'comlink';
-import { action } from 'mobx';
+import { runInAction } from 'mobx';
 import { ClientFile } from 'src/renderer/entities/File';
 import MasonryWorker, { Mason, MasonryOpts } from './masonry.worker';
 
@@ -21,19 +21,28 @@ export class MasonryWorkerAdapter {
 
     console.log('adapter initialized!');
   }
-  @action
   async compute(imgs: ClientFile[], containerWidth: number, opts: Partial<MasonryOpts>) {
+    // console.log('compute', this.items, this.worker);
     // TODO: if compute was called while not initalized, do the computation after initialization
     if (!this.items || !this.worker) return;
 
-    for (let i = 0; i < imgs.length; i++) {
-      this.items[i * 6] = imgs[i].width;
-      this.items[i * 6 + 1] = imgs[i].height;
-    }
+    const { items } = this;
+    // await new Promise<void>((resolve) =>
+    runInAction(() => {
+      for (let i = 0; i < imgs.length; i++) {
+        items[i * 6] = imgs[i].width;
+        items[i * 6 + 1] = imgs[i].height;
+      }
+      //   resolve();
+    });
+    // );
+
+    console.log('compute v2', this.items);
 
     return this.worker.computeLayout(containerWidth, opts);
   }
   async recompute(containerWidth: number, opts: Partial<MasonryOpts>) {
+    console.log('recompute');
     if (!this.items || !this.worker) return;
     return this.worker.computeLayout(containerWidth, opts);
   }

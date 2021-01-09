@@ -98,7 +98,7 @@ export class Mason {
     if (type === 'vertical') {
       return layout.compute_vertical(containerWidth);
     } else if (type === 'horizontal') {
-      return layout.compute(containerWidth, 4);
+      return layout.compute_horizontal(containerWidth);
     }
   }
 }

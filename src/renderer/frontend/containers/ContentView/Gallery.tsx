@@ -89,6 +89,9 @@ const Layout = ({
   if (uiStore.isSlideMode) {
     return <SlideMode contentRect={contentRect} uiStore={uiStore} fileStore={fileStore} />;
   }
+  if (contentRect.width < 10) {
+    return <p>Too narrow!</p>
+  }
   switch (uiStore.method) {
     case ViewMethod.Grid:
       return (

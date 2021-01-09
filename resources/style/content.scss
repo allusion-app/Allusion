@@ -309,6 +309,10 @@
 }
 
 .masonry {
+  position: relative;
+  overflow-y: auto;
+  height: 100%;
+
   img {
     position: absolute;
     transition: all 0.2s ease;
