@@ -122,6 +122,18 @@ dialog[role='alertdialog'] {
   }
 }
 
+[role='tooltip'] {
+  pointer-events: none;
+  background: var(--primary-color);
+  color: white;
+  font-size: 1rem;
+
+  .tooltip {
+    display: inline-flex;
+    margin: 0.5rem 1rem;
+  }
+}
+
 // ALSO USED IN DIALOG
 
 @keyframes appear {
