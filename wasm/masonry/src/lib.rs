@@ -1,5 +1,9 @@
 // Loosely based on https://rustwasm.github.io/book/game-of-life/implementing.html
 
+// Main idea of this package:
+// - Take in a list of image dimensions, and a base thumbnail size (e.g. S, M, L)
+// - Output a list of image positions, laid out in a masonry format
+
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -28,14 +32,13 @@ pub struct Transform {
 pub struct Layout {
     items: Vec<Transform>,
     thumbnail_size: u32,
+    padding: u32,
 }
 
 /// Public methods, exported to JavaScript.
 #[wasm_bindgen]
 impl Layout {
-    // ...
-
-    pub fn new(length: usize, thumbnail_size: u32) -> Layout {
+    pub fn new(length: usize, thumbnail_size: u32, padding: u32) -> Layout {
         Layout {
             items: vec![
                 Transform {
@@ -49,11 +52,11 @@ impl Layout {
                 length
             ],
             thumbnail_size,
+            padding,
         }
     }
 
-    // TODO: resize/re-init func
-
+    // Returns pointer to the item list
     pub fn items(&self) -> *const Transform {
         self.items.as_ptr()
     }
@@ -67,23 +70,18 @@ impl Layout {
         self.thumbnail_size = thumbnail_size;
     }
 
-    // TODO: ???
-    // pub fn get(&self, index: usize) -> Option<&'static Transform> {
-    //     self.items.get(index)
-    // }
+    pub fn set_padding(&mut self, padding: u32) {
+        self.padding = padding;
+    }
 
-    // fn get_index(&self, index: usize) -> Transform {
-    //     return self.items[index]
-    // }
-
-    pub fn compute(&mut self, container_width: u32, padding: u32) -> i32 {
+    pub fn compute(&mut self, container_width: u32) -> i32 {
         // Main idea: Keep looping over images until containerWidth is reached, then:
         // - Either adjust row height or add/remove item to make it fit full-width, whatever is the closest
         // (I think this is how google photos does it)
         // Could also have an approximated version for very large lists, and just properly compute for what in and close to the viewport
         // TODO: Look up proper masonry algorithm, e.g. https://euler.stephan-brumme.com/215/
 
-        // Could crop images with extreme aspect ratios (e.g. > 4:1) for easier layouting
+        // Could crop images with extreme aspect ratios (e.g. > 3:1) for easier layouting. Already doing this for the vertical layout
 
         let base_row_height = self.thumbnail_size as u16;
 
@@ -101,7 +99,7 @@ impl Layout {
 
             item.left = cur_row_width as u16;
             // Check if adding this image to the row would exceed the container width
-            let new_row_width = cur_row_width + rel_width as u32 + padding;
+            let new_row_width = cur_row_width + rel_width as u32 + self.padding;
 
             // TODO: Edge case for last row: not always full width
             if new_row_width > container_width {
@@ -124,8 +122,8 @@ impl Layout {
 
                 // Start a new row
                 cur_row_width = 0;
-                first_row_item_index = (i + 1);
-                top_offset += padding as u32 + (base_row_height as f32 * correction_factor) as u32;
+                first_row_item_index = i + 1;
+                top_offset += self.padding + (base_row_height as f32 * correction_factor) as u32;
             } else {
                 cur_row_width = new_row_width;
             }
@@ -141,13 +139,13 @@ impl Layout {
         top_offset as i32
     }
 
-    pub fn compute_vertical(&mut self, container_width: u32, padding: u16) -> i32 {
+    pub fn compute_vertical(&mut self, container_width: u32) -> i32 {
         // Main idea: Initialize with N columns of identical widths
         // loop over images, put them in the column that has the least height filled
 
         let max_aspect_ratio = 3.; // X times as wide as narrow or vice versa
 
-        let n_columns = (0.5 + (container_width as f32 / self.thumbnail_size as f32)) as i32;
+        let n_columns = (container_width as f32 / self.thumbnail_size as f32) as i32;
         if n_columns == 0 {
             return 0;
         }
@@ -166,7 +164,7 @@ impl Layout {
                 h = h / max_aspect_ratio;
             }
 
-            item.width = col_width - padding;
+            item.width = col_width - self.padding as u16;
             item.height = ((item.width as f32 / item.src_width as f32) * h as f32 + 0.5) as u16;
 
             let shortest_col_index = match index_of_min(&col_heights) {
@@ -177,7 +175,7 @@ impl Layout {
             item.top = col_heights[shortest_col_index] as u16;
             item.left = (shortest_col_index as u16 * col_width) as u16;
 
-            col_heights[shortest_col_index] += item.height as i32 + padding as i32;
+            col_heights[shortest_col_index] += item.height as i32 + self.padding as i32;
         }
 
         // Return height of longest column
@@ -186,8 +184,14 @@ impl Layout {
             None => 0,
         }
     }
+
+    // TODO: Could create our own Grid version as well: get rid of react-window
+    // pub fn compute_grid(&mut self, container_width: u32, padding: u16) -> i32 {
+
+    // }
 }
 
+// returns index of max value of the vector
 fn index_of_max(values: &[i32]) -> Option<usize> {
     values
         .iter()
@@ -196,6 +200,7 @@ fn index_of_max(values: &[i32]) -> Option<usize> {
         .map(|(idx, _val)| idx)
 }
 
+// returns index of min value of the vector
 fn index_of_min(values: &[i32]) -> Option<usize> {
     values
         .iter()
@@ -203,7 +208,3 @@ fn index_of_min(values: &[i32]) -> Option<usize> {
         .min_by_key(|(_idx, &val)| val)
         .map(|(idx, _val)| idx)
 }
-
-// Main idea:
-// - Take in a list of image dimensions, and a base thumbnail size (e.g. S, M, L)
-// - Output a list of image positions, laid out in a masonry format

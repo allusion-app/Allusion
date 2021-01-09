@@ -101,8 +101,9 @@ const Layout = ({
           fileStore={fileStore}
         />
       );
-    case ViewMethod.Masonry:
-      return <MasonryRenderer containerWidth={contentRect.width} />;
+    case ViewMethod.MasonryVertical:
+    case ViewMethod.MasonryHorizontal:
+      return <MasonryRenderer containerWidth={contentRect.width} type={uiStore.method} />;
     case ViewMethod.List:
       return (
         <ListGallery

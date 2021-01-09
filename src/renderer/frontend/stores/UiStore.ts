@@ -14,7 +14,8 @@ export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const enum ViewMethod {
   List,
   Grid,
-  Masonry,
+  MasonryVertical,
+  MasonryHorizontal,
 }
 type ThumbnailSize = 'small' | 'medium' | 'large';
 type ThumbnailShape = 'square' | 'letterbox';
@@ -37,7 +38,8 @@ export interface IHotkeyMap {
   deselectAll: string;
   viewList: string;
   viewGrid: string;
-  viewMasonry: string;
+  viewMasonryVertical: string;
+  viewMasonryHorizontal: string;
   viewSlide: string;
   advancedSearch: string;
 
@@ -56,10 +58,11 @@ export const defaultHotkeyMap: IHotkeyMap = {
   openTagEditor: 't',
   selectAll: 'mod + a',
   deselectAll: 'mod + d',
+  viewSlide: 'alt + 0',
   viewList: 'alt + 1',
   viewGrid: 'alt + 2',
-  viewMasonry: 'alt + 3',
-  viewSlide: 'alt + 3',
+  viewMasonryVertical: 'alt + 3',
+  viewMasonryHorizontal: 'alt + 4',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
 };
@@ -154,8 +157,12 @@ class UiStore {
     return this.method === ViewMethod.Grid;
   }
 
-  @computed get isMasonry(): boolean {
-    return this.method === ViewMethod.Masonry;
+  @computed get isMasonryVertical(): boolean {
+    return this.method === ViewMethod.MasonryVertical;
+  }
+
+  @computed get isMasonryHorizontal(): boolean {
+    return this.method === ViewMethod.MasonryHorizontal;
   }
 
   @action.bound setThumbnailSmall() {
@@ -192,8 +199,12 @@ class UiStore {
     this.method = ViewMethod.Grid;
   }
 
-  @action.bound setMethodMasonry() {
-    this.method = ViewMethod.Masonry;
+  @action.bound setMethodMasonryVertical() {
+    this.method = ViewMethod.MasonryVertical;
+  }
+
+  @action.bound setMethodMasonryHorizontal() {
+    this.method = ViewMethod.MasonryHorizontal;
   }
 
   @action.bound enableSlideMode() {
@@ -569,7 +580,7 @@ class UiStore {
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);
         Object.entries<string>(prefs.hotkeyMap).forEach(
-          ([k, v]) => (this.hotkeyMap[k as keyof IHotkeyMap] = v),
+          ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );
         console.log('recovered', prefs.hotkeyMap, this.hotkeyMap);
       } catch (e) {

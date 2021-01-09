@@ -1,4 +1,4 @@
-import { expose } from 'comlink';
+import { expose, transfer } from 'comlink';
 
 import {
   default as init,
@@ -27,88 +27,79 @@ export interface ITransform {
 
 export interface ILayout {
   containerHeight: number;
-  items: ITransform[];
+  items: Uint16Array;
 }
+
+type MasonryType = 'vertical' | 'horizontal';
+
+export interface MasonryOpts {
+  type: MasonryType;
+  thumbSize: number;
+  padding: number;
+}
+
+const defaultOpts: MasonryOpts = {
+  type: 'vertical',
+  thumbSize: 300,
+  padding: 4,
+};
 
 export class Mason {
   WASM!: InitOutput;
   layout?: Layout;
-  imgs?: ImageInput[];
+  items?: Uint16Array;
 
-  async initialize() {
-    console.log('ATTEMPT #GAZILLION');
+  /** Initializes WASM Returns the memory */
+  async initializeWASM() {
     // From: https://github.com/anderejd/electron-wasm-rust-example/blob/master/main_module.js
     this.WASM = await init('./wasm/masonry/pkg/masonry_bg.wasm');
-    console.log('DID IT WORK? IT DOES!!!', this.WASM);
   }
-  async computeLayout(imgs: ImageInput[], containerWidth: number, thumbSize: number): Promise<ILayout> {
-    const layout = Layout.new(imgs.length, thumbSize);
-    if (this.layout) this.layout.free(); // TODO: does this work?
+
+  /** Should be called whenever the input is changed.
+   * @returns A Uin16Buffer where the image input dimensions can be defined as [src_width, src_height, -, -, -, -]
+   */
+  initializeLayout(numItems: number): Uint16Array {
+    // TODO: does this work? Seems to do the job, no memory errors anymore, could maybe be more efficient
+    // E.g., no need to free() when the amount of images decreases
+    if (this.layout) this.layout.free();
+
+    // Initialize empty memory so we can put input directly into the buffer in the main thread, without allocating new memory
+    const layout = Layout.new(numItems, defaultOpts.thumbSize, defaultOpts.padding);
+    const itemsPtr = layout.items();
+    const items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, numItems * 6); // 6 uint16s per item
+
     this.layout = layout;
-    this.imgs = imgs;
+    this.items = items;
 
-    const itemsPtr = layout.items();
-    console.log(imgs, containerWidth);
-    const items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, imgs.length * 6); // 6 uint16s per item
-    console.log('Empty', items);
-    for (let i = 0; i < imgs.length; i++) {
-      layout.set_item_input(i, imgs[i].width, imgs[i].height);
-      items[i * 6 + 1] = imgs[i].height;
-    }
-    console.log('Input', items);
-
-    // TODO: Creating a copy in JS for all items is not necessary, just doing this for ease of use
-    // If there are thousands of images, we only need access to the ones in view
-    // Can we share the layout with the main thread? SharedArrayBuffer?
-    // "You can pass buffers to/from a web worker without performing a copy using Transferable objects:"
-    // Bingo
+    // We can pass the layout back to the main thread without copying, using Transferable objects
     // https://stackoverflow.com/questions/20042948/sending-multiple-array-buffers-to-a-javascript-web-worker
-    // const containerHeight = layout.compute(containerWidth, 4);
-    const containerHeight = layout.compute_vertical(containerWidth, 4);
-    const itemObjs = imgs.map((_, index) => ({
-      width: items[index * 6 + 2],
-      height: items[index * 6 + 3],
-      left: items[index * 6 + 4],
-      top: items[index * 6 + 5],
-    }));
-
-    console.log('Done', items, itemObjs);
-
-    // TODO: Clean up memory some time. Does this work? Can we delay it until after returning? (e.g. setTimeout)
-    // layout.free();
-    // or even better, reuse memory
-    // if previous_image_count === current_image_count: don't alloc new memory. If only containerWidth changes, no need to even reset the input
-
-    return {
-      containerHeight,
-      items: itemObjs,
-      // getTransform: (index: number): ITransform => ({
-      //   width: items[index * 6 + 2],
-      //   height: items[index * 6 + 3],
-      //   top: items[index * 6 + 4],
-      //   left: items[index * 6 + 5],
-      // }),
-    };
+    // Also possible with Comlink, with the transfer function: https://github.com/GoogleChromeLabs/comlink#comlinktransfervalue-transferables-and-comlinkproxyvalue
+    return transfer(items, [items.buffer]);
   }
-  /** Use this if only the container dimensions change (not the content) */
-  recomputeLayout(containerWidth: number, thumbSize: number) {
-    if (!this.layout || !this.imgs) return;
-    const { layout, imgs } = this;
-    layout.set_thumbnail_size(thumbSize);
-    const itemsPtr = layout.items();
-    const items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, imgs.length * 6);
-    // const containerHeight = layout.compute(containerWidth, 4);
-    const containerHeight = layout.compute_vertical(containerWidth, 4);
-    const itemObjs = imgs.map((_, index) => ({
-      width: items[index * 6 + 2],
-      height: items[index * 6 + 3],
-      left: items[index * 6 + 4],
-      top: items[index * 6 + 5],
-    }));
-    return {
-      containerHeight,
-      items: itemObjs,
-    };
+
+  /**
+   * Computes a layout
+   * @param containerWidth The current width of the container of the items
+   * @param thumbSize The base thumbnail size to display the items as, is used as a rough guideline.
+   * @returns The new height of the container, needed to contain all items.
+   * The actual position and size of the items can be read from the `items` array, returned from `initializeLayout`.
+   * - width: items[index * 6 + 2],
+   * - height: items[index * 6 + 3],
+   * - left: items[index * 6 + 4],
+   * - top: items[index * 6 + 5],
+   */
+  computeLayout(containerWidth: number, opts: Partial<MasonryOpts>): undefined | number {
+    if (!this.layout) return;
+    const { layout } = this;
+    layout.set_thumbnail_size(opts.thumbSize || defaultOpts.thumbSize);
+    layout.set_padding(opts.padding || defaultOpts.padding);
+
+    const type = opts.type || defaultOpts.type;
+    if (type === 'vertical') {
+      return layout.compute_vertical(containerWidth);
+    } else if (type === 'horizontal') {
+      return layout.compute(containerWidth, 4);
+    }
   }
 }
 

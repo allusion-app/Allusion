@@ -96,8 +96,10 @@ const App = observer(() => {
           uiStore.setMethodList();
         } else if (matches(hotkeyMap.viewGrid)) {
           uiStore.setMethodGrid();
-        } else if (matches(hotkeyMap.viewMasonry)) {
-          uiStore.setMethodMasonry();
+        } else if (matches(hotkeyMap.viewMasonryVertical)) {
+          uiStore.setMethodMasonryVertical();
+        } else if (matches(hotkeyMap.viewMasonryHorizontal)) {
+          uiStore.setMethodMasonryHorizontal();
         } else if (matches(hotkeyMap.viewSlide)) {
           uiStore.toggleSlideMode();
         }

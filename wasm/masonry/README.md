@@ -1,7 +1,12 @@
 # Building
 
-The default export `wasm-pack build` command doesn't play nicely with electron,
-the `wasm-pack build --target web` maybe does?
+The default export `wasm-pack build` command doesn't play nicely with electron/webpack,
+after some experimenting: `wasm-pack build --target web` does work!
 
-The WASM-pack webpack plugin doesn't seem to re-load the file in the build directory, need to copy it manually for now after every re-compile:
-`cp .\pkg\masonry_bg.wasm ..\..\build\wasm\masonry\pkg\masonry_bg.wasm`
+I added a `build:wasm` script to `package.json` that you can run to compile the Rust code to WASM.
+It will also copy it to the build folder, so you can just reload the window afterwards!
+Add `--release` for a production build!
+
+TLDR:
+
+> `yarn build:wasm`
