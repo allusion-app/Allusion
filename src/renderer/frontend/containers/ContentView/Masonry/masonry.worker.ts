@@ -63,7 +63,8 @@ export class Mason {
     // "You can pass buffers to/from a web worker without performing a copy using Transferable objects:"
     // Bingo
     // https://stackoverflow.com/questions/20042948/sending-multiple-array-buffers-to-a-javascript-web-worker
-    const containerHeight = layout.compute(containerWidth, 4);
+    // const containerHeight = layout.compute(containerWidth, 4);
+    const containerHeight = layout.compute_vertical(containerWidth, 4);
     const itemObjs = imgs.map((_, index) => ({
       width: items[index * 6 + 2],
       height: items[index * 6 + 3],
@@ -96,7 +97,8 @@ export class Mason {
     layout.set_thumbnail_size(thumbSize);
     const itemsPtr = layout.items();
     const items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, imgs.length * 6);
-    const containerHeight = layout.compute(containerWidth, 4);
+    // const containerHeight = layout.compute(containerWidth, 4);
+    const containerHeight = layout.compute_vertical(containerWidth, 4);
     const itemObjs = imgs.map((_, index) => ({
       width: items[index * 6 + 2],
       height: items[index * 6 + 3],

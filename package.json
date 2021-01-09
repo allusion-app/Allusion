@@ -14,7 +14,8 @@
     "logo": "ncp ./resources/logo/allusion-logomark-fc.icns ./build/icon.icns && ncp ./resources/logo/allusion-logomark-fc-256.ico ./build/icon.ico",
     "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "build:wasm": "wasm-pack build wasm/masonry --target web && ncp ./wasm/masonry/pkg/masonry_bg.wasm build/wasm/masonry/pkg/masonry_bg.wasm"
   },
   "build": {
     "appId": "com.allusion-app.allusion",

@@ -140,6 +140,68 @@ impl Layout {
         }
         top_offset as i32
     }
+
+    pub fn compute_vertical(&mut self, container_width: u32, padding: u16) -> i32 {
+        // Main idea: Initialize with N columns of identical widths
+        // loop over images, put them in the column that has the least height filled
+
+        let max_aspect_ratio = 3.; // X times as wide as narrow or vice versa
+
+        let n_columns = (0.5 + (container_width as f32 / self.thumbnail_size as f32)) as i32;
+        if n_columns == 0 {
+            return 0;
+        }
+
+        let col_width = (0.5 + (container_width as f32 / n_columns as f32)) as u16;
+
+        let mut col_heights: Vec<i32> = vec![0; n_columns as usize];
+
+        for item in self.items.iter_mut() {
+            // For images with extreme aspect ratios (very narrow or wide), crop them a little
+            let mut h = item.src_height as f32;
+            let aspect_ratio = item.src_width as f32 / h;
+            if aspect_ratio > max_aspect_ratio {
+                h = max_aspect_ratio * h;
+            } else if aspect_ratio < max_aspect_ratio / 5. {
+                h = h / max_aspect_ratio;
+            }
+
+            item.width = col_width - padding;
+            item.height = ((item.width as f32 / item.src_width as f32) * h as f32 + 0.5) as u16;
+
+            let shortest_col_index = match index_of_min(&col_heights) {
+                Some(index) => index,
+                None => 0,
+            };
+
+            item.top = col_heights[shortest_col_index] as u16;
+            item.left = (shortest_col_index as u16 * col_width) as u16;
+
+            col_heights[shortest_col_index] += item.height as i32 + padding as i32;
+        }
+
+        // Return height of longest column
+        match col_heights.iter().max() {
+            Some(max) => *max,
+            None => 0,
+        }
+    }
+}
+
+fn index_of_max(values: &[i32]) -> Option<usize> {
+    values
+        .iter()
+        .enumerate()
+        .max_by_key(|(_idx, &val)| val)
+        .map(|(idx, _val)| idx)
+}
+
+fn index_of_min(values: &[i32]) -> Option<usize> {
+    values
+        .iter()
+        .enumerate()
+        .min_by_key(|(_idx, &val)| val)
+        .map(|(idx, _val)| idx)
 }
 
 // Main idea:
