@@ -27,15 +27,12 @@ export class MasonryWorkerAdapter {
     if (!this.items || !this.worker) return;
 
     const { items } = this;
-    // await new Promise<void>((resolve) =>
     runInAction(() => {
       for (let i = 0; i < imgs.length; i++) {
         items[i * 6] = imgs[i].width;
         items[i * 6 + 1] = imgs[i].height;
       }
-      //   resolve();
     });
-    // );
 
     console.log('compute v2', this.items);
 

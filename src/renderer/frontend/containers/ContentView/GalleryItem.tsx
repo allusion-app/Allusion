@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, CSSProperties } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { ClientFile } from '../../../entities/File';
@@ -36,11 +36,11 @@ export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
         </ButtonGroup>
       </div>
     ) : (
-      <>
-        <h2>{file.filename}</h2>
-        <ImageInfo suspended={!mounted} file={file} />
-      </>
-    )}
+        <>
+          <h2>{file.filename}</h2>
+          <ImageInfo suspended={!mounted} file={file} />
+        </>
+      )}
     {file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />}
   </div>
 ));
@@ -50,12 +50,16 @@ interface IGridCell extends ICell {
   fileStore: FileStore;
 }
 
-export const GridCell = observer(({ file, colIndex, mounted, uiStore, fileStore }: IGridCell) => (
+export const GridCell = observer((
+  { file, colIndex, mounted, uiStore, fileStore, ...props }:
+    IGridCell & React.HTMLAttributes<HTMLDivElement>
+) => (
   <div
     role="gridcell"
     tabIndex={-1}
     aria-colindex={colIndex}
     aria-selected={uiStore.fileSelection.has(file)}
+    {...props}
   >
     <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
       <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />

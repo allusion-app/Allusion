@@ -2,17 +2,15 @@ import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import { ViewMethod } from 'src/renderer/frontend/stores/UiStore';
-import { getThumbnailSize } from '../Gallery';
+import { getThumbnailSize, ILayoutProps } from '../Gallery';
 import { MasonryWorkerAdapter } from './masonryWorkerAdapter';
 import Renderer from './renderer';
 
 interface IMasonryRendererProps {
-  containerWidth: number;
   type: ViewMethod.MasonryVertical | ViewMethod.MasonryHorizontal;
 }
 
-const MasonryRenderer = observer(({ containerWidth }: IMasonryRendererProps) => {
-  const { fileStore, uiStore } = useContext(StoreContext);
+const MasonryRenderer = observer(({ uiStore, fileStore, contentRect, select, showContextMenu, lastSelectionIndex }: IMasonryRendererProps & ILayoutProps) => {
   const [containerHeight, setContainerHeight] = useState<number>();
   // Needed in order to re-render forcefully when the layout updates
   const [layoutTimestamp, setLayoutTimestamp] = useState<Date>();
@@ -20,9 +18,12 @@ const MasonryRenderer = observer(({ containerWidth }: IMasonryRendererProps) => 
   const [, thumbnailSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
     uiStore.thumbnailSize,
   ]);
+  const containerWidth = contentRect.width;
 
   const viewMethod = uiStore.method;
   const numImages = fileStore.fileList.length;
+
+  // TODO: vertical keyboard navigation with lastSelectionIndex
 
   // const debouncedRecompute = useCallback((containerWidth: number, thumbnailSize: number) =>
   //   debounce(() =>
@@ -55,7 +56,7 @@ const MasonryRenderer = observer(({ containerWidth }: IMasonryRendererProps) => 
   // Compute new layout when content changes (new fileList, e.g. sorting, searching)
   useEffect(() => {
     if (containerHeight !== undefined && containerWidth > 100) { // todo: could debounce if needed. Or only recompute in increments?
-      console.log('Items changed!');
+      console.log('Masonry: Items changed, computing new layout!');
       (async function onItemOrderChange() {
         try {
           const containerHeight = await worker.compute(
@@ -81,7 +82,7 @@ const MasonryRenderer = observer(({ containerWidth }: IMasonryRendererProps) => 
   // Re-compute when the environment changes (container width, thumbnail size, view method)
   useEffect(() => {
     if (containerHeight !== undefined && containerWidth > 100) {
-      console.log('Container width changed!');
+      console.log('Masonry: Environment changed! Recomputing layout!');
       (async function onResize() {
         try {
           const containerHeight = await worker.recompute(
@@ -106,7 +107,9 @@ const MasonryRenderer = observer(({ containerWidth }: IMasonryRendererProps) => 
       containerHeight={containerHeight}
       images={fileStore.fileList}
       layout={worker}
-      overdraw={thumbnailSize * 4}
+      overscan={thumbnailSize * 4}
+      select={select}
+      showContextMenu={showContextMenu}
     />
   )
 });

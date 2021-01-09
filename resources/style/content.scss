@@ -311,10 +311,16 @@
 .masonry {
   position: relative;
   overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
 
-  img {
+  // img {
+  [role='gridcell'] {
     position: absolute;
     transition: all 0.2s ease;
+    .thumbnail {
+      max-width: unset;
+      height: unset;
+    }
   }
 }

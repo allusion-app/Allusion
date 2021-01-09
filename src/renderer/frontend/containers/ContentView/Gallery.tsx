@@ -20,7 +20,7 @@ type Dimension = { width: number; height: number };
 type UiStoreProp = { uiStore: UiStore };
 type FileStoreProp = { fileStore: FileStore };
 
-interface ILayoutProps extends UiStoreProp, FileStoreProp {
+export interface ILayoutProps extends UiStoreProp, FileStoreProp {
   contentRect: Dimension;
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
@@ -42,6 +42,7 @@ const Layout = ({
   // useComputed to listen to fileSelection changes
   const handleFileSelect = useCallback(
     (selectedFile: ClientFile, toggleSelection: boolean, rangeSelection: boolean) => {
+      console.log(selectedFile.serialize(), uiStore.fileSelection.toJSON());
       if (rangeSelection && lastSelectionIndex.current !== undefined) {
         const i = fileStore.getIndex(selectedFile.id);
         if (i === undefined) {
@@ -57,6 +58,7 @@ const Layout = ({
         uiStore.toggleFileSelection(selectedFile);
         lastSelectionIndex.current = fileStore.getIndex(selectedFile.id);
       } else {
+        console.log('hya!')
         uiStore.selectFile(selectedFile, true);
         lastSelectionIndex.current = fileStore.getIndex(selectedFile.id);
       }
@@ -106,7 +108,17 @@ const Layout = ({
       );
     case ViewMethod.MasonryVertical:
     case ViewMethod.MasonryHorizontal:
-      return <MasonryRenderer containerWidth={contentRect.width} type={uiStore.method} />;
+      return (
+        <MasonryRenderer
+          contentRect={contentRect}
+          type={uiStore.method}
+          lastSelectionIndex={lastSelectionIndex}
+          showContextMenu={showContextMenu}
+          select={handleFileSelect}
+          uiStore={uiStore}
+          fileStore={fileStore}
+        />
+      );
     case ViewMethod.List:
       return (
         <ListGallery
@@ -581,7 +593,7 @@ const GridRow = observer((props: IGridRow) => {
 //   );
 // });
 
-const MissingFileMenuItems = observer(({ uiStore, fileStore }: UiStoreProp & FileStoreProp) => (
+export const MissingFileMenuItems = observer(({ uiStore, fileStore }: UiStoreProp & FileStoreProp) => (
   <>
     <MenuItem
       onClick={fileStore.fetchMissingFiles}
@@ -593,7 +605,7 @@ const MissingFileMenuItems = observer(({ uiStore, fileStore }: UiStoreProp & Fil
   </>
 ));
 
-const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile } & UiStoreProp) => {
+export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile } & UiStoreProp) => {
   const handleViewFullSize = () => {
     uiStore.selectFile(file, true);
     uiStore.toggleSlideMode();
@@ -627,7 +639,7 @@ const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile } & UiStorePr
   );
 };
 
-const ExternalAppMenuItems = ({ path }: { path: string }) => (
+export const ExternalAppMenuItems = ({ path }: { path: string }) => (
   <>
     <MenuItem
       onClick={() => shell.openExternal(path)}

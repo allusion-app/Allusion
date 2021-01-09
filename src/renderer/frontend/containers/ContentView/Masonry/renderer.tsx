@@ -1,7 +1,11 @@
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { ClientFile } from 'src/renderer/entities/File';
+import StoreContext from 'src/renderer/frontend/contexts/StoreContext';
 import { debouncedThrottle } from 'src/renderer/frontend/utils';
+import { ExternalAppMenuItems, FileViewerMenuItems, ILayoutProps, MissingFileMenuItems } from '../Gallery';
+import { GridCell } from '../GalleryItem';
 import { ITransform } from './masonry.worker';
 
 export interface Layouter {
@@ -15,7 +19,8 @@ interface IRendererProps {
   layout: Layouter;
   className?: string;
   /** Render images outside of the viewport within this margin (pixels) */
-  overdraw?: number;
+  overscan?: number;
+  // TODO: initialScrollOffset
 }
 
 /**
@@ -63,7 +68,11 @@ export function binarySearch(height: number, length: number, layout: Layouter, o
  * This is the virtualized renderer: it only renders the items in the viewport.
  * It renders a scrollable viewport and a content element within it.
  */
-const Renderer = observer(({ containerHeight, containerWidth, images, layout, className, overdraw }: IRendererProps) => {
+const Renderer = observer((
+  { containerHeight, containerWidth, images, layout, className, overscan, select, showContextMenu }:
+    IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu'>,
+) => {
+  const { uiStore, fileStore } = useContext(StoreContext);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [startRenderIndex, setStartRenderIndex] = useState(0);
   const [endRenderIndex, setEndRenderIndex] = useState(0);
@@ -90,15 +99,15 @@ const Renderer = observer(({ containerHeight, containerWidth, images, layout, cl
     debouncedThrottle(
       (numImages: number, overdraw: number) =>
         determineRenderRegion(numImages, overdraw),
-      1000,
+      100,
     ));
 
   useEffect(() => {
-    throttledRedetermine.current(numImages, overdraw || 0);
+    throttledRedetermine.current(numImages, overscan || 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [numImages, containerWidth, containerHeight]);
 
-  const handleScroll = () => throttledRedetermine.current(numImages, overdraw || 0);
+  const handleScroll = () => throttledRedetermine.current(numImages, overscan || 0);
 
   // console.log({ startRenderIndex, endRenderIndex, numImages });
 
@@ -108,11 +117,35 @@ const Renderer = observer(({ containerHeight, containerWidth, images, layout, cl
       {/* One div for the content */}
       <div style={{ width: containerWidth, height: containerHeight }}>
         {images.slice(startRenderIndex, endRenderIndex).map((im, index) => (
-          <img
+          // <img
+          //   key={im.id}
+          //   src={im.thumbnailPath}
+          //   alt={im.id}
+          //   style={layout.getItemLayout(startRenderIndex + index)}
+          // />
+
+          // TODO: completely re-using GridCell probably won't work. Should make a copy
+          // and slightly adjust it
+          <GridCell
             key={im.id}
-            src={im.thumbnailPath}
-            alt={im.id}
+            file={fileStore.fileList[startRenderIndex + index]}
+            mounted
+            colIndex={0}
+            uiStore={uiStore}
+            fileStore={fileStore}
             style={layout.getItemLayout(startRenderIndex + index)}
+            onClick={(e) => runInAction(() => select(fileStore.fileList[startRenderIndex + index], e.ctrlKey || e.metaKey, e.shiftKey))}
+            onDoubleClick={() => { uiStore.selectFile(im, true); uiStore.toggleSlideMode(); }}
+            onContextMenu={(e) => showContextMenu(
+              e.clientX,
+              e.clientY,
+              [
+                im.isBroken
+                  ? (<MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />)
+                  : (<FileViewerMenuItems file={im} uiStore={uiStore} />),
+                im.isBroken ? <></> : <ExternalAppMenuItems path={im.absolutePath} />,
+              ],
+            )}
           />
         ))}
       </div>

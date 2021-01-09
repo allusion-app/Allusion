@@ -41,7 +41,7 @@ export interface MasonryOpts {
 const defaultOpts: MasonryOpts = {
   type: 'vertical',
   thumbSize: 300,
-  padding: 4,
+  padding: 8,
 };
 
 export class Mason {
