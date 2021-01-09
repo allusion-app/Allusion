@@ -5,12 +5,11 @@
 
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const path = require('path');
 
 let mainConfig = {
   mode: 'production',
-  entry: './src/main/main.ts',
+  entry: './src/main.ts',
   target: ['electron-main', 'es2020'],
   output: {
     filename: 'main.bundle.js',
@@ -53,7 +52,7 @@ let mainConfig = {
 
 let rendererConfig = {
   mode: 'production',
-  entry: './src/renderer/renderer.tsx',
+  entry: './src/renderer.tsx',
   target: ['electron-renderer', 'es2020'],
   output: {
     filename: 'renderer.bundle.js',
@@ -70,7 +69,7 @@ let rendererConfig = {
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
     alias: {
-      components: path.resolve(__dirname, 'components/'),
+      widgets: path.resolve(__dirname, 'widgets/'),
       resources: path.resolve(__dirname, 'resources/'),
       src: path.resolve(__dirname, 'src/'),
       wasm: path.resolve(__dirname, 'wasm/'),
@@ -143,10 +142,6 @@ let rendererConfig = {
         },
       },
       {
-        test: /\.wasm$/,
-        loaders: 'webassembly-loader-loader',
-      },
-      {
         test: /\.node$/,
         use: 'node-loader',
       },
@@ -167,7 +162,7 @@ let rendererConfig = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, './src/renderer/index.html'),
+      template: path.resolve(__dirname, './src/index.html'),
     }),
     new MiniCssExtractPlugin({
       filename: '[name].[contenthash].css',

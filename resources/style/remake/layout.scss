@@ -1,38 +1,29 @@
 html {
   font-size: 16px;
-  -webkit-font-smoothing: antialiased;
+}
+
+html,
+body,
+#app,
+#layout-container,
+#preview {
+  width: 100vw;
+  height: 100vh;
 }
 
 body {
   margin: 0px;
-  font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Oxygen-Sans, Ubuntu, Cantarell, ""Helvetica Neue"", sans-serif;
+  overflow: hidden;
+  font-family: -apple-system, 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Open Sans', 'Helvetica Neue', 'Icons16', sans-serif;
   font-size: 0.8125rem;
+  -webkit-font-smoothing: antialiased;
   position: relative;
-}
-
-#togglebar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: var(--outliner-width);
-  height: var(--toolbar-height);
-  box-sizing: border-box;
-  padding: 0 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 20;
-
-  -webkit-app-region: drag;
-
-  button {
-    -webkit-app-region: none;
-  }
 }
 
 #toolbar {
   position: absolute;
-  top: 0;
+  top: var(--window-titlebar-height);
   left: var(--outliner-width);
   right: 0;
   height: var(--toolbar-height);
@@ -40,45 +31,114 @@ body {
   padding: 0 0.5rem;
   display: flex;
   align-items: center;
+  background: var(--background-color);
+}
 
-  -webkit-app-region: drag;
-  
-  button {
-    -webkit-app-region: none;
+[data-os='darwin'] {
+  #outliner.outliner-is-closed ~ #toolbar {
+    padding-left: var(--mac-system-buttons-width);
   }
 }
 
 #outliner {
   position: absolute;
-  top: 0;
+  top: var(--window-titlebar-height);
   bottom: 0;
   left: 0;
   width: var(--outliner-width);
-  padding-top: var(--toolbar-height);
   box-sizing: border-box;
-  background: var(--background-color-alt);
+  padding: var(--toolbar-height) 0.75rem 2rem 0.75rem;
   border-right: 0.0625rem solid var(--border-dark);
+  background: var(--background-color-alt);
 }
 
-#contentArea {
+#outliner.outliner-is-closed {
+  transform: translateX(-100%);
+}
+
+#content-view {
   position: absolute;
-  top: var(--toolbar-height);
+  top: var(--content-top);
   left: var(--outliner-width);
-  right: var(--inspector-width);
+  right: 0;
   bottom: 0;
   box-sizing: border-box;
   padding: 0 0.5rem;
-  overflow-y: scroll;
+  background: var(--background-color);
   display: flex;
+  justify-content: stretch;
+  overflow-y: hidden;
 }
 
-#inspector {
-  position: absolute;
-  top: var(--toolbar-height);
-  bottom: 0;
-  right: 0;
-  width: var(--inspector-width);
+#outliner.outliner-is-closed ~ #content-view,
+#outliner.outliner-is-closed ~ #toolbar {
+  left: 0;
+}
+
+// Global
+
+header,
+header h2 {
+  font-size: 0.8125rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+// Custom scrollbar style
+::-webkit-scrollbar {
+  width: 0.5rem;
   box-sizing: border-box;
-  padding: 0 0.75rem 0 0;
-  overflow-y: scroll;
+  padding: 0.125rem;
+}
+
+/////////// Scroll bar (Track and handle) ///////////
+::-webkit-scrollbar-track {
+  background-color: var(--shade1);
+  border-radius: 0.25rem;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--hover-background1);
+  border-radius: 0.25rem;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--hover-background2);
+}
+
+// Conditional
+
+// Main window layout definition
+#layout-container {
+  &[data-os='darwin'] {
+    // Mac has traffic light buttons integrated in the AppToolbar
+    --window-titlebar-height: 0px;
+
+    // Since the toolbar is acting as the frame, it should be draggable to move the window around
+    #outliner-toggle, // renamed to #togglebar in new design?
+    #toolbar {
+      -webkit-app-region: drag;
+      button {
+        // But all of the buttons should not be draggable, else not clickable
+        -webkit-app-region: none;
+      }
+    }
+  }
+  // The top offset where the main content of the application starts (below the custom titlebar and toolbar)
+  // Needs to be defined here instead of in the `themes.scss` file - where the OS is known
+  --content-top: calc(var(--toolbar-height) + var(--window-titlebar-height));
+}
+
+// Default browser CSS overrides
+/* Prevent text selection in all HTML elements for more native feel */
+*,
+*::after,
+*::before {
+  -webkit-user-select: none;
+}
+// Disable default outline on focused elements (e.g. clicked buttons)
+:focus {
+  outline: none !important;
+}
+// Don't allow images to be dragged from within the app
+img {
+  -webkit-user-drag: none;
 }

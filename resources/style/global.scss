@@ -1,15 +1,4 @@
 // Viewport
-html,
-body,
-#app,
-#layout-container,
-#preview {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
-
-// Page layout
 
 fieldset {
   margin: 0;
@@ -37,11 +26,23 @@ input {
 }
 
 // Global specific styles for the main window
+#app {
+  --thumbnail-size: 250px;
+  --thumbnail-margin: 0.25rem;
+  --mac-system-buttons-width: 5rem;
+}
 
-
-// Global specific styles for the preview window
+// Preview window layout definition
 #preview {
-  --toolbar-height: 3rem;
+  --window-titlebar-height: 0px; // No custom frame: Native title bar is currently enabled on all platforms
+  --content-top: var(--toolbar-height);
+
+  #toolbar {
+    left: 0; // No #outliner-toggle
+  }
+  #content-view {
+    left: 0; // No outliner
+  }
 }
 
 .preloader {
@@ -59,28 +60,7 @@ input {
   outline-style: solid;
 }
 
-// temporary style
-h2 {
-  font-size: inherit;
-  font-weight: bold;
-}
-
-// Default browser CSS overrides
-/* Prevent text selection in all HTML elements for more native feel */
-*,
-*::after,
-*::before {
-  -webkit-user-select: none;
-}
-// Disable default outline on focused elements (e.g. clicked buttons)
-:focus {
-  outline: none !important;
-}
-// Don't allow images to be dragged from within the app
-img {
-  -webkit-user-drag: none;
-}
-
+/* 
 // Custom scrollbar style
 ::-webkit-scrollbar {
   width: 0.5rem;
@@ -91,7 +71,7 @@ img {
   max-height: 4rem;
 }
 
-/* ////////// Scroll bar (Track and handle) ////////// */
+/////////// Scroll bar (Track and handle) ///////////
 .bp3-light {
   ::-webkit-scrollbar-track {
     background-color: transparent;
@@ -114,16 +94,11 @@ img {
   ::-webkit-scrollbar-thumb:hover {
     background-color: $dark-gray6;
   }
-}
-
-.bp3-popover-backdrop {
-  background: rgba(16, 22, 26, 0); //Set 2 zero for now
-}
+} */
 
 ///////////////////////////////// Theme Colours /////////////////////////////////
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this
-
 
 ///////////////////////////////// Media Queries /////////////////////////////////
 @media (max-width: 960px) {
@@ -137,18 +112,15 @@ img {
 
 ///////////////////////////////// Misc /////////////////////////////////
 // Error boundary (when app crashes)
-.error-boundary {
-  .message {
-    font-family: monospace;
-    max-width: 120ch;
-  }
+.error-boundary .message {
+  font-family: monospace;
+  max-width: 120ch;
 }
 
 // Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
 .custom-icon {
   width: 1rem;
   height: 1rem;
-  margin: 0.125rem;
   flex-shrink: 0;
 
   * {
@@ -204,7 +176,7 @@ img {
   // bottom: 1rem;
   margin-bottom: 1rem;
   padding: 0.25rem 0.5rem;
-  z-index: 200;
+  z-index: 1;
   border-radius: 0.25rem;
   box-shadow: 3px 4px 6px 3px rgba(0, 0, 0, 0.2);
   display: flex;
@@ -238,12 +210,6 @@ img {
   button:hover {
     background: rgba(255, 255, 255, 0.15);
     color: #ffffff;
-  }
-}
-
-.toast-without-dismiss {
-  .bp3-button:last-child {
-    display: none;
   }
 }
 

@@ -1,0 +1,96 @@
+[role='menu'],
+[role='listbox'] {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem;
+  min-width: 10rem;
+}
+
+[role='menu'] [role='group'] {
+  margin: 0;
+  padding: 0;
+}
+
+[role^='menuitem'],
+[role='option'] {
+  display: flex;
+  justify-content: stretch;
+  align-items: center;
+  min-height: 1.5rem;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  margin: 0.25rem 0;
+  white-space: nowrap;
+
+  &[aria-expanded='true'],
+  &:hover,
+  &:focus {
+    color: var(--hover-color);
+    background: var(--shade1);
+  }
+
+  &[aria-disabled='true'] {
+    color: var(--text-color-muted) !important;
+    cursor: not-allowed;
+  }
+}
+
+a[role='menuitem'] {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+[role^='menuitem']:hover {
+  color: var(--hover-color);
+  background: var(--shade1);
+}
+
+[role='menuitemradio'][aria-checked='true'] {
+  color: var(--text-color-strong);
+  background: var(--accent-color-blue);
+}
+
+[role='menuitemcheckbox'][aria-checked='true'],
+[role='option'][aria-selected='true'] {
+  .item-icon {
+    background: currentColor;
+    mask-image: url(~resources/icons/checkmark.svg);
+    -webkit-mask-image: url(~resources/icons/checkmark.svg);
+  }
+}
+
+[role='menu'] [role='separator'] {
+  background: var(--text-color-muted);
+  height: 1px;
+  margin: 0.5rem 1rem;
+}
+
+.item-icon,
+.item-accelerator {
+  display: flex;
+  pointer-events: none;
+  align-items: center;
+  height: 1rem;
+  min-width: 1rem;
+
+  .custom-icon {
+    margin: 0;
+  }
+
+  * {
+    pointer-events: none;
+  }
+}
+
+.item-icon {
+  margin-right: 0.5rem;
+}
+
+.item-label {
+  flex: 1 0 auto;
+}
+
+.item-accelerator {
+  margin-left: 0.5rem;
+  justify-content: flex-end;
+}

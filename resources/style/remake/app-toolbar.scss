@@ -1,0 +1,86 @@
+#toolbar {
+  display: flex;
+  justify-content: stretch;
+  align-items: center;
+
+  .toolbar-button {
+    height: 1.5rem;
+    min-width: 1.5rem;
+    padding: 0.25rem;
+    margin: 0.25rem;
+
+    color: var(--text-color);
+    background: transparent;
+    border: none;
+    outline: none;
+    border-radius: 0.25rem;
+
+    .toolbar-button-content {
+      display: flex;
+      align-items: center;
+    }
+
+    &:hover {
+      color: var(--hover-color);
+      background: var(--shade1);
+    }
+    &:focus {
+      color: var(--hover-color);
+      background: var(--shade1);
+    }
+    &:active {
+      color: var(--hover-color);
+      background: var(--shade2);
+    }
+    &[aria-checked='true'] {
+      color: var(--hover-color);
+      background: var(--shade1);
+    }
+    &[aria-pressed='true'] {
+      color: var(--hover-color);
+      background: var(--shade1);
+    }
+    &[aria-disabled='true'] {
+      cursor: not-allowed;
+    }
+  }
+
+  .spacer {
+    display: flex;
+    flex-grow: 1;
+    flex-wrap: wrap;
+  }
+}
+
+.searchbar {
+  padding: 0.25rem;
+  flex-grow: 1;
+}
+
+.floating-dialog {
+  position: absolute;
+  top: var(--content-top);
+  left: 0;
+  right: 0;
+  width: 400px;
+  margin: auto;
+}
+
+#tag-editor {
+  padding: 0.5em;
+  height: 200px;
+  max-height: 200px;
+  display: flex;
+  flex-direction: column;
+
+  [role='listbox'] {
+    flex: 1;
+    overflow: auto;
+  }
+
+  > div:last-child {
+    margin-top: 4px;
+    max-height: 50px;
+    overflow: auto;
+  }
+}

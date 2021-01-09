@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "components/*": ["components/*"],
+      "widgets/*": ["widgets/*"],
       "resources/*": ["resources/*"],
       "src/*": ["src/*"]
     },
@@ -19,6 +19,6 @@
     "useDefineForClassFields": true,
     "strict": true
   },
-  "include": ["components/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts", "wasm/**/*"],
+  "include": ["widgets/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts", "wasm/**/*"],
   "exclude": ["node_modules", "dist", "resources", "build"]
 }

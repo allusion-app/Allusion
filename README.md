@@ -23,11 +23,11 @@ Otherwise builds are published to Github Releases by creating a git tag prefixed
 
 ### Overview
 
-Electron launches the [main process](src/main/main.ts), which sets up a window and launches the [renderer process](<(src/renderer/renderer.tsx)>).
+Electron launches the [main process](src/main.ts), which sets up a window and launches the [renderer process](<(src/renderer.tsx)>).
 The renderer process is seprated in a backend and frontend.
 
-- The [backend](src/renderer/backend/Backend.ts) has access to the database, and provides functions for the frontend to interact with it (like endpoints in an API).
-- The [frontend](src/renderer/frontend/App.tsx) fetches data from the backend based on the actions of the user, and stores this in the application state.
+- The [backend](src/backend/Backend.ts) has access to the database, and provides functions for the frontend to interact with it (like endpoints in an API).
+- The [frontend](src/frontend/App.tsx) fetches data from the backend based on the actions of the user, and stores this in the application state.
 
 More detailed information can be found in the documentation of individual files and in the readme files of subfolders.
 
@@ -61,7 +61,7 @@ All styles are defined using [SASS](https://sass-lang.com/guide).
 There are two locations where styles are defined:
 
 1. The application style sheets `/resources/style`: for the layout of panels, global styles, color definitions, etc.
-2. The component style sheets `/components/*/*.scss`: the appearance of buttons, fly-outs,
+2. The component style sheets `/components/*/*.scss`: the appearance of buttons, flyouts,
 
 For the application style sheets, there is a file per main panel (toolbar, outliner, content, inspector, etc.) and a couple of files for variable definitions and global styles. To ensure consistent colors are used across the entire application, all of the necessary colors are defined in the `colors.scss` file. These are then used in the `themes.scss` file for themes-specific colors (background, font, etc.).
 The `global.scss` file contains the root element style, layout definitions and some misc styles like the handlebars.

@@ -1,5 +1,13 @@
 ///////////////////////////////// Inspector /////////////////////////////////
 #inspector {
+  width: var(--inspector-width);
+  background-color: var(--background-color);
+
+  > * {
+    // Don't squash content of aside during parent transition
+    width: var(--inspector-width);
+    padding: 0.25rem 0.5rem;
+  }
 
   header {
     text-align: center;
@@ -14,23 +22,23 @@ table.file-info {
   padding: 0 0.25rem;
 
   th {
-    color: var(--text-muted-color);
+    color: var(--text-color-muted);
+    white-space: nowrap;
     font-weight: unset;
     text-align: unset;
+    vertical-align: baseline;
   }
 
   th,
   td {
-    white-space: nowrap;
     padding: 0;
   }
 
   td {
     padding-left: 1rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 12rem;
+    word-break: break-all;
   }
+
   // TODO: New design:
   // .listContentRow {
   //   display: flex;
@@ -47,51 +55,4 @@ table.file-info {
   //   display: flex;
   //   justify-content: space-between;
   // }
-}
-
-.inspector-preview {
-  > * {
-    max-height: calc(var(--inspector-width) - 2rem);
-    width: 100%;
-  }
-
-  > img {
-    object-fit: contain;
-  }
-}
-
-.carousel {
-  overflow: hidden;
-  height: var(--inspector-width);
-}
-
-.carousel-slide {
-  width: 100%;
-
-  > img {
-    width: 100%;
-    max-height: var(--inspector-width);
-    box-shadow: $pt-dark-elevation-shadow-2;
-    transform-origin: center;
-    transition-duration: 0.2s;
-    transition-timing-function: ease;
-    transition-property: transform, filter;
-    object-fit: cover;
-    // TODO: Try making all images quare, to avoid having to deal with different aspect ratios
-  }
-
-  @for $i from 0 through 10 {
-    &.child-#{$i} {
-      height: 0px;
-
-      > img {
-        transform: scale(calc(0.5 + 0.1 * #{$i})) translateY(calc(32px * #{$i} - 64px));
-        filter: brightness(calc(0.4 + 0.1 * #{$i}));
-
-        &:hover {
-          filter: brightness(calc(0.5 + 0.1 * #{$i}));
-        }
-      }
-    }
-  }
 }

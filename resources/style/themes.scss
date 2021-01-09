@@ -6,7 +6,10 @@
   --selection-background-color: #007bf53f;
   --selection-font-color: white;
   --treeitem-identation: 1rem;
-  --treeitem-offset: 1.25rem;
+  --treeitem-offset: 0.5rem;
+
+  // The height of the custom title bar. Will be set to 0px for MacOS in layout-container CSS: toolbar is integrated in AppToolbar
+  --window-titlebar-height: 28px;
 }
 
 // Dark Theme
@@ -17,12 +20,14 @@
 
   // Text/icon color
   --text-color: hsl(0, 0%, 80%);
-  --text-muted-color: hsl(0, 0%, 55%);
+  --text-color-muted: hsl(0, 0%, 55%);
   color: var(--text-color);
 
+  $background-color: $dark-gray3;
+  $background-color-alt: rgba($background-color, 0.85);
   // The main background color of the panels
-  --background-color: #{$dark-gray0}; // Main background color
-  --background-color-alt: #{$dark-gray1}; // Alt background color (outliner)
+  --background-color: #{$background-color}; // Main background color
+  --background-color-alt: #{$background-color-alt}; // Alt background color (outliner)
 }
 
 // Light Theme
@@ -33,14 +38,10 @@
 
   // Text/icon color
   --text-color: rgb(32, 32, 32); // hsl(0, 0%, 20%);
-  --text-muted-color: hsl(0, 0%, 45%);
+  --text-color-muted: hsl(0, 0%, 45%);
   color: var(--text-color);
 
   // The main background color of the panels
   --background-color: rgb(255, 255, 255); // Main background color {$light-gray5} ?
-  --background-color-alt: rgba(
-    240,
-    240,
-    240
-  ); // Alt background color (outliner) {$light-gray3}?
+  --background-color-alt: rgba(240, 240, 240); // Alt background color (outliner) {$light-gray3}?
 }
