@@ -4,18 +4,13 @@ import React from 'react';
 
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
-
 import { ID, generateId } from 'src/entities/ID';
 import { IFile, getMetaData } from 'src/entities/File';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
-
 import RootStore from './RootStore';
-
 import { promiseAllLimit } from '../utils';
-
-import { AppToaster } from '../App';
-import { IconSet } from 'widgets/Icons';
+import { AppToaster } from 'src/frontend/components/Toaster';
 
 class LocationStore {
   private readonly backend: Backend;
@@ -51,8 +46,6 @@ class LocationStore {
 
       AppToaster.show(
         {
-          // icon: '',
-          intent: 'none',
           message: `Looking for new images... [${i + 1} / ${len}]`,
           timeout: 0,
         },
@@ -64,12 +57,7 @@ class LocationStore {
       if (filePaths === undefined) {
         AppToaster.show(
           {
-            intent: 'warning',
             message: `Cannot find Location "${location.name}"`,
-            action: {
-              text: 'Recover',
-              onClick: () => this.rootStore.uiStore.openLocationRecovery(location.id),
-            },
             timeout: 0,
           },
           `missing-loc-${location.id}`,
@@ -135,7 +123,7 @@ class LocationStore {
     }
 
     if (foundNewFiles) {
-      AppToaster.show({ message: 'New images detected.', intent: 'primary' }, progressToastKey);
+      AppToaster.show({ message: 'New images detected.', timeout: 5000 }, progressToastKey);
     } else {
       AppToaster.dismiss(progressToastKey);
     }
@@ -185,22 +173,17 @@ class LocationStore {
   @action.bound async initLocation(location: ClientLocation) {
     const toastKey = `initialize-${location.id}`;
 
-    let isCancelled = false;
-    const handleCancelled = () => {
-      console.debug('clicked cancel');
-      isCancelled = true;
-      this.delete(location);
-    };
+    const isCancelled = false;
+    // const handleCancelled = () => {
+    //   console.debug('clicked cancel');
+    //   isCancelled = true;
+    //   this.delete(location);
+    // };
 
     AppToaster.show(
       {
         message: 'Finding all images...',
         timeout: 0,
-        className: 'toast-without-dismiss',
-        action: {
-          text: 'Cancel',
-          onClick: handleCancelled,
-        },
       },
       toastKey,
     );
@@ -216,13 +199,8 @@ class LocationStore {
       AppToaster.show(
         {
           // message: 'Gathering image metadata...',
-          message: <progress value={progress} />,
+          message: `Loading ${Math.trunc(progress * 100)}%...`,
           timeout: 0,
-          className: 'toast-without-dismiss',
-          action: {
-            text: 'Cancel',
-            onClick: handleCancelled,
-          },
         },
         toastKey,
       );
@@ -242,10 +220,7 @@ class LocationStore {
     AppToaster.show({ message: 'Updating database...', timeout: 0 }, toastKey);
     await this.backend.createFilesFromPath(location.path, files);
 
-    AppToaster.show(
-      { message: `Location "${location.name}" is ready!`, intent: 'success' },
-      toastKey,
-    );
+    AppToaster.show({ message: `Location "${location.name}" is ready!`, timeout: 5000 }, toastKey);
     this.rootStore.fileStore.refetch();
   }
 
@@ -271,7 +246,7 @@ class LocationStore {
     const file = await pathToIFile(path, location);
     await this.backend.createFilesFromPath(path, [file]);
 
-    AppToaster.show({ message: 'New images have been detected.', intent: 'primary' });
+    AppToaster.show({ message: 'New images have been detected.', timeout: 5000 });
     this.rootStore.fileStore.refetch();
   }
 
@@ -286,12 +261,7 @@ class LocationStore {
     AppToaster.show(
       {
         message: 'Some images have gone missing!',
-        intent: 'warning',
         timeout: 0,
-        action: {
-          icon: IconSet.WARNING_BROKEN_LINK,
-          onClick: fileStore.fetchMissingFiles,
-        },
       },
       'missing',
     );

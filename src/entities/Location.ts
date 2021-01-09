@@ -4,14 +4,9 @@ import fse from 'fs-extra';
 import SysPath from 'path';
 
 import LocationStore from 'src/frontend/stores/LocationStore';
-
 import { ID, IResource, ISerializable } from './ID';
 import { IMG_EXTENSIONS } from './File';
-
-import { AppToaster } from 'src/frontend/App';
-
-import { IconSet } from 'widgets/Icons';
-
+import { AppToaster } from 'src/frontend/components/Toaster';
 import { RECURSIVE_DIR_WATCH_DEPTH } from '../config';
 
 export interface ILocation extends IResource {
@@ -148,12 +143,7 @@ export class ClientLocation implements ISerializable<ILocation> {
               message: `An error has occured while ${
                 this.isReady ? 'watching' : 'initializing'
               } location "${this.name}".`,
-              intent: 'danger',
               timeout: 0,
-              action: {
-                icon: IconSet.DELETE,
-                onClick: () => this.delete(),
-              },
             },
             'location-error',
           );

@@ -4,28 +4,20 @@ import { observer } from 'mobx-react-lite';
 import { autorun } from 'mobx';
 
 import { RendererMessenger } from 'src/Messaging';
-
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
-
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
-
 import { ClientLocation, getDirectoryTree, IDirectoryTreeItem } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
-
 import { IconSet, Tree } from 'widgets';
 import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'widgets/menus';
 import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
-
 import { CustomKeyDict, IExpansionState } from '../../types';
-
 import LocationRecoveryDialog from './LocationRecoveryDialog';
-
 import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
-
-import { AppToaster } from 'src/frontend/App';
+import { AppToaster } from 'src/frontend/components/Toaster';
 import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
 import { DnDAttribute } from '../TagsPanel/dnd';
 import DropContext from 'src/frontend/contexts/DropContext';
@@ -476,7 +468,7 @@ const LocationsPanel = observer(() => {
     if (parentDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a sub-folder of an existing location.',
-        intent: 'danger',
+        timeout: 5000,
       });
       return;
     }
@@ -486,7 +478,7 @@ const LocationsPanel = observer(() => {
     if (childDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a parent-folder of an existing location.',
-        intent: 'danger',
+        timeout: 5000,
       });
       return;
     }

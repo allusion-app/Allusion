@@ -2,9 +2,6 @@
 // Custom color scheme: Imported before Blueprint's stuff to override their colors
 @import '~resources/style/colors.scss';
 
-@import '~@blueprintjs/core/src/blueprint.scss';
-@import '~@blueprintjs/core/src/common/_variables.scss';
-
 @import '~resources/style/themes.scss'; // Color schemes of themes (dark/light)
 @import '~resources/style/global.scss'; // Global styles, layout, media queries and miscellanious CSS
 
