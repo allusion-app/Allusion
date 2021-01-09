@@ -74,7 +74,9 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
       if (first !== null) {
         e.stopPropagation();
         setIsOpen(true);
-        first.focus();
+        requestAnimationFrame(() => {
+          first.focus();
+        });
       }
     } else {
       handleMenuKeyDown(e);
@@ -112,7 +114,6 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
         container="ul"
         placement="right-start"
         fallbackPlacements={['right-end', 'right']}
-        data-submenu
         role="menu"
         aria-label={text}
         className="menu"

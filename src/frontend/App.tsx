@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { comboMatches, getKeyCombo, parseKeyCombo, Position, Toaster } from '@blueprintjs/core';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -21,11 +21,6 @@ import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
-
-export const AppToaster = Toaster.create({
-  position: Position.BOTTOM_RIGHT,
-  className: 'toaster',
-});
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);

@@ -14,28 +14,6 @@
 }
 
 #help-center {
-  .bp3-panel-stack-view {
-    color: var(--text-color) !important;
-    background: var(--background-color) !important;
-    margin: 0;
-    border: none;
-    position: initial;
-  }
-
-  .stack-paragraph {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .bp3-panel-stack-header {
-    box-shadow: none;
-
-    .bp3-panel-stack-header-back .sticky {
-      position: fixed;
-      top: 1rem;
-    }
-  }
-
   .btn-group {
     margin: 0;
     float: right;
@@ -43,11 +21,6 @@
 
   button {
     min-width: 75px;
-  }
-
-  .bp3-text-overflow-ellipsis {
-    // blueprint cuts of the header by default...
-    overflow: inherit;
   }
 
   img {

@@ -4,18 +4,13 @@ import { observer } from 'mobx-react-lite';
 import Path from 'path';
 
 import { RendererMessenger } from 'src/Messaging';
-
 import { IMG_EXTENSIONS } from 'src/entities/File';
 import { ClientLocation } from 'src/entities/Location';
-
 import StoreContext from 'src/frontend/contexts/StoreContext';
-
 import LocationStore from 'src/frontend/stores/LocationStore';
-
 import { Button, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
-
-import { AppToaster } from 'src/frontend/App';
+import { AppToaster } from 'src/frontend/components/Toaster';
 
 interface IMatch {
   locationImageCount: number;
@@ -209,7 +204,7 @@ const LocationRecoveryDialog = () => {
 
   const handleChangeLocationPath = (location: ClientLocation, path: string) => {
     locationStore.changeLocationPath(location, path);
-    AppToaster.show({ intent: 'success', message: `Recovered Location ${path}!` });
+    AppToaster.show({ message: `Recovered Location ${path}!`, timeout: 5000 });
   };
 
   const handleLocate = async () => {
@@ -244,9 +239,9 @@ const LocationRecoveryDialog = () => {
       } else {
         fileStore.refetch();
       }
-      AppToaster.show({ intent: 'success', message: `Re-discovered ${location.path}!` });
+      AppToaster.show({ message: `Re-discovered ${location.path}!`, timeout: 5000 });
     } else {
-      AppToaster.show({ intent: 'warning', message: `Location ${location.path} still not found` });
+      AppToaster.show({ message: `Location ${location.path} still not found`, timeout: 5000 });
     }
   };
 

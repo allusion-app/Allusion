@@ -49,7 +49,10 @@ const SlideMode = observer((props: SlideModeProps) => {
     [uiStore],
   );
   const incrImgIndex = useCallback(
-    () => runInAction(() => uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1))),
+    () =>
+      runInAction(() =>
+        uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1)),
+      ),
     [uiStore, fileStore.fileList.length],
   );
 
@@ -115,10 +118,6 @@ const SlideMode = observer((props: SlideModeProps) => {
   //   []);
   const contentWidth = contentRect.width - (uiStore.isInspectorOpen ? inspectorWidth : 0);
 
-  if (uiStore.firstItem >= fileStore.fileList.length) {
-    return <p>No files available</p>;
-  }
-
   const file = fileStore.fileList[uiStore.firstItem];
 
   // TODO: If image is broken, cannot go back/forward
@@ -132,14 +131,14 @@ const SlideMode = observer((props: SlideModeProps) => {
           }}
         />
       ) : (
-          <ZoomableImage
-            src={file.absolutePath}
-            width={contentWidth}
-            height={contentRect.height}
-            prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
-            nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
-          />
-        )}
+        <ZoomableImage
+          src={file.absolutePath}
+          width={contentWidth}
+          height={contentRect.height}
+          prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
+          nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
+        />
+      )}
       <Inspector />
     </div>
   );

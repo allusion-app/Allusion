@@ -25,11 +25,9 @@ const Toolbar = (props: IToolbar) => {
       return;
     }
 
-    const lastFocusedItem = toolbar.current.querySelector('[data-toolbaritem][tabindex="0"]');
+    const lastFocusedItem = toolbar.current.querySelector('[tabindex="0"]');
     if (lastFocusedItem === null) {
-      const firstToolbarItem: HTMLElement | null = toolbar.current.querySelector(
-        '[data-toolbaritem][tabindex="-1"]',
-      );
+      const firstToolbarItem: HTMLElement | null = toolbar.current.querySelector('[tabindex="-1"]');
       if (firstToolbarItem !== null) {
         firstToolbarItem.tabIndex = 0;
       }
@@ -96,7 +94,6 @@ const ToolbarButton = (props: IToolbarButton) => {
   return (
     <button
       id={id}
-      data-toolbaritem
       className="toolbar-button"
       onClick={disabled ? undefined : onClick}
       role={role}

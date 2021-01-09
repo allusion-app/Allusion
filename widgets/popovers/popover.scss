@@ -122,32 +122,6 @@ dialog[role='alertdialog'] {
   }
 }
 
-/*
-  Ugly workaround for submenu focus
-
-  Elements set to `display: none` cannot be focused before they become visible
-  again because those elements are removed from the dom tree. Using the
-  visibility property also results in the same, so all that is left is to paint
-  it invisible.
-*/
-[data-submenu][data-open='false'] {
-  display: unset;
-  opacity: 0;
-  pointer-events: none;
-}
-
-[role='tooltip'] {
-  pointer-events: none;
-  background: var(--primary-color);
-  color: white;
-  font-size: 1rem;
-
-  .tooltip {
-    display: inline-flex;
-    margin: 0.5rem 1rem;
-  }
-}
-
 // ALSO USED IN DIALOG
 
 @keyframes appear {

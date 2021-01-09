@@ -15,8 +15,11 @@ import Layout from './Gallery';
 
 import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
 
-const ContentView = () => {
-  const { uiStore } = useContext(StoreContext);
+const ContentView = observer(() => {
+  const {
+    uiStore,
+    fileStore: { fileList },
+  } = useContext(StoreContext);
 
   const handleShortcuts = useCallback(
     (e: React.KeyboardEvent) => {
@@ -41,10 +44,10 @@ const ContentView = () => {
 
   return (
     <main id="content-view" onKeyDown={handleShortcuts}>
-      <Gallery />
+      {fileList.length === 0 ? <Placeholder /> : <Gallery />}
     </main>
   );
-};
+});
 
 const Gallery = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
@@ -71,10 +74,6 @@ const Gallery = observer(() => {
     }
     return () => observer.disconnect();
   }, [fileList.length]);
-
-  if (fileList.length === 0) {
-    return <Placeholder />;
-  }
 
   return (
     <div
