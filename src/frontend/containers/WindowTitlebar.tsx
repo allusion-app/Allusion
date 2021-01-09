@@ -6,7 +6,7 @@ const WindowsTitlebar = () => {
     <div id="window-titlebar">
       <div id="window-resize-area" />
       <span>Allusion</span>
-      <WindowsSystemButtons />
+      <WindowSystemButtons />
     </div>
   );
 };
@@ -21,7 +21,7 @@ const enum WindowsButtonCode {
   Close = '\uE8BB',
 }
 
-const WindowsSystemButtons = () => {
+const WindowSystemButtons = () => {
   const [isMaximized, setMaximized] = useState(RendererMessenger.isMaximized());
   useEffect(() => {
     const onMaximize = () => setMaximized(true);
