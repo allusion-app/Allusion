@@ -42,7 +42,6 @@ const MasonryRenderer = observer(({ uiStore, fileStore, contentRect, select, sho
           containerWidth,
           { thumbSize: thumbnailSize, type: viewMethod === ViewMethod.MasonryVertical ? 'vertical' : 'horizontal' },
         );
-        console.log('computed v3', containerWidth, worker.items);
         setContainerHeight(containerHeight);
         setLayoutTimestamp(new Date());
       } catch (e) {
@@ -97,6 +96,8 @@ const MasonryRenderer = observer(({ uiStore, fileStore, contentRect, select, sho
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerWidth, thumbnailSize, viewMethod]);
+
+  console.log({ containerHeight });
 
   return !(containerHeight && layoutTimestamp) ? <p>loading...</p> : (
     <Renderer

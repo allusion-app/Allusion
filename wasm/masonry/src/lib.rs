@@ -71,6 +71,21 @@ impl Layout {
         }
     }
 
+    pub fn resize(&mut self, new_len: usize) -> *const Transform {
+        self.items.resize(
+            new_len,
+            Transform {
+                src_width: 0,
+                src_height: 0,
+                width: 0,
+                height: 0,
+                left: 0,
+                top: 0,
+            },
+        );
+        self.items.as_ptr()
+    }
+
     // Returns pointer to the item list
     pub fn items(&self) -> *const Transform {
         self.items.as_ptr()

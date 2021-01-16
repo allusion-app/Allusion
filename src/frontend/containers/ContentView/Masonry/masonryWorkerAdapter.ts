@@ -6,6 +6,9 @@ import MasonryWorker, { Mason, MasonryOpts } from './masonry.worker';
 export class MasonryWorkerAdapter {
   worker?: Remote<Mason>;
   items?: Uint16Array;
+
+  private prevNumImgs: number = 0;
+
   async initialize(numItems: number) {
     console.log('adapter initializing');
 
@@ -18,19 +21,24 @@ export class MasonryWorkerAdapter {
     }
 
     this.items = await this.worker.initializeLayout(numItems);
+    this.prevNumImgs = numItems;
 
     console.log('adapter initialized!');
   }
   async compute(imgs: ClientFile[], containerWidth: number, opts: Partial<MasonryOpts>) {
-    // console.log('compute', this.items, this.worker);
-    // TODO: if compute was called while not initalized, do the computation after initialization
+    console.log('compute', this.items, this.worker);
     if (!this.items || !this.worker) return;
 
-    const { items } = this;
+    if (this.prevNumImgs !== imgs.length) {
+      // await this.worker.initializeLayout(imgs.length);
+      await this.worker.reinit(imgs.length);
+    }
+    this.prevNumImgs = imgs.length;
+
     runInAction(() => {
       for (let i = 0; i < imgs.length; i++) {
-        items[i * 6] = imgs[i].width;
-        items[i * 6 + 1] = imgs[i].height;
+        this.items![i * 6] = imgs[i].width;
+        this.items![i * 6 + 1] = imgs[i].height;
       }
     });
 

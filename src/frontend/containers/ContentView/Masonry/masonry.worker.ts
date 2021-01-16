@@ -61,20 +61,38 @@ export class Mason {
   initializeLayout(numItems: number): Uint16Array {
     // TODO: does this work? Seems to do the job, no memory errors anymore, could maybe be more efficient
     // E.g., no need to free() when the amount of images decreases
-    if (this.layout) this.layout.free();
+    // if (this.layout) this.layout.free();
+
+    // having trouble with transferring the Uint16Array after re-assigning it
+    // can the wasm.memory.buffer only be transferred once?
+    // fix: assign memory once, keep track of numItems manually in rust
+
+    let itemsPtr = 0;
+    if (!this.layout) {
+      this.layout = Layout.new(numItems, defaultOpts.thumbSize, defaultOpts.padding);
+      itemsPtr = this.layout.items();
+    } else {
+      itemsPtr = this.layout.resize(numItems);
+    }
+
+    // console.log({ bla: this.WASM.memory.buffer.byteLength, bla2: this.items?.byteLength });
 
     // Initialize empty memory so we can put input directly into the buffer in the main thread, without allocating new memory
-    const layout = Layout.new(numItems, defaultOpts.thumbSize, defaultOpts.padding);
-    const itemsPtr = layout.items();
-    const items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, numItems * 6); // 6 uint16s per item
 
-    this.layout = layout;
-    this.items = items;
+
+    if (!this.items)
+      this.items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, numItems * 6); // 6 uint16s per item
+
+    // console.log({ itemsPtr, items: this.items, byteLength: this.items.byteLength, buff: this.items.buffer, });
 
     // We can pass the layout back to the main thread without copying, using Transferable objects
     // https://stackoverflow.com/questions/20042948/sending-multiple-array-buffers-to-a-javascript-web-worker
     // Also possible with Comlink, with the transfer function: https://github.com/GoogleChromeLabs/comlink#comlinktransfervalue-transferables-and-comlinkproxyvalue
-    return transfer(items, [items.buffer]);
+    return transfer(this.items, [this.items!.buffer]);
+  }
+
+  reinit(numItems: number) {
+    this.layout!.resize(numItems);
   }
 
   /**
