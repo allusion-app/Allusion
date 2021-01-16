@@ -6,7 +6,6 @@
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 
 let mainConfig = {
   mode: 'development',
@@ -159,11 +158,6 @@ let rendererConfig = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './src/index.html'),
     }),
-    // FIXME: Doesn't seem to do anything. Need to recompile manually and copy file to build/wasm/pkg/... Webpack doesn't detect it?
-    // new WasmPackPlugin({
-    //   crateDirectory: path.resolve(__dirname, './wasm/masonry'),
-    //   extraArgs: '--target web --mode normal',
-    // }),
   ],
 };
 

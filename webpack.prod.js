@@ -64,10 +64,9 @@ let rendererConfig = {
   },
   experiments: {
     asyncWebAssembly: true,
-    importAsync: true,
   },
   resolve: {
-    extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
+    extensions: ['.js', '.json', '.ts', '.tsx', '.svg', '.wasm'],
     alias: {
       widgets: path.resolve(__dirname, 'widgets/'),
       resources: path.resolve(__dirname, 'resources/'),
@@ -142,6 +141,14 @@ let rendererConfig = {
         },
       },
       {
+        test: /\.wasm$/,
+        loader: 'file-loader',
+        type: 'javascript/auto',
+        options: {
+          name: '[path][name].[ext]',
+        },
+      },
+      {
         test: /\.node$/,
         use: 'node-loader',
       },
@@ -168,11 +175,6 @@ let rendererConfig = {
       filename: '[name].[contenthash].css',
       chunkFilename: '[id].[contenthash].css',
     }),
-    // idem
-    // new WasmPackPlugin({
-    //   crateDirectory: path.resolve(__dirname, './wasm/masonry'),
-    //   forceMode: 'production',
-    // }),
   ],
 };
 
