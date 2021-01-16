@@ -25,13 +25,14 @@ pub struct Transform {
     width: u16,
     height: u16,
     left: u16,
-    top: u16,
 }
 
 #[wasm_bindgen]
 pub struct Layout {
     num_items: usize,
     items: Vec<Transform>,
+    // TODO: Could maybe interwine u32 top offset in other u16 attributes for avoiding cache misses but this is already too much micro optimization
+    top_offsets: Vec<u32>,
     thumbnail_size: u32,
     padding: u32,
 }
@@ -51,7 +52,7 @@ fn aspect_ratio_correction(w: f32, h: f32) -> f32 {
     return h;
 }
 
-const MAX_ITEMS: usize = 833333; // Reserving 1MB memory for the image layouts,
+const MAX_ITEMS: usize = 100000; // Reserving 1MB memory for the image layouts,
                                  // so we don't have to re-allocate memory when images are removed/added.
                                  // That was my initial approach, but re-transferring the WASM memory from the
                                  // web-worker to the main thread after freeing the memory caused issues:
@@ -70,10 +71,10 @@ impl Layout {
                     width: 0,
                     height: 0,
                     left: 0,
-                    top: 0,
                 };
                 MAX_ITEMS
             ],
+            top_offsets: vec![0; MAX_ITEMS],
             thumbnail_size,
             padding,
         }
@@ -86,6 +87,11 @@ impl Layout {
     // Returns pointer to the item list
     pub fn items(&self) -> *const Transform {
         self.items.as_ptr()
+    }
+
+    // Returns pointer to the item list
+    pub fn top_offsets(&self) -> *const u32 {
+        self.top_offsets.as_ptr()
     }
 
     pub fn set_item_input(&mut self, index: usize, width: u16, height: u16) {
@@ -121,8 +127,8 @@ impl Layout {
                 aspect_ratio_correction(item.src_width as f32, item.src_height as f32);
             let rel_width = (base_row_height as f32 / corr_height as f32) * item.src_width as f32;
             item.width = rel_width as u16;
-            item.top = top_offset as u16;
             item.height = base_row_height;
+            self.top_offsets[i] = top_offset as u32;
 
             item.left = cur_row_width as u16;
             // Check if adding this image to the row would exceed the container width
@@ -179,7 +185,8 @@ impl Layout {
 
         let mut col_heights: Vec<i32> = vec![0; n_columns as usize];
 
-        for item in self.items.split_at_mut(self.num_items).0 {
+        let (current_items, _) = &mut self.items.split_at_mut(self.num_items);
+        for (i, item) in current_items.iter_mut().enumerate() {
             let h = aspect_ratio_correction(item.src_width as f32, item.src_height as f32);
 
             item.width = col_width - self.padding as u16;
@@ -190,8 +197,8 @@ impl Layout {
                 None => 0,
             };
 
-            item.top = col_heights[shortest_col_index] as u16;
             item.left = (shortest_col_index as u16 * col_width) as u16;
+            self.top_offsets[i] = col_heights[shortest_col_index] as u32;
 
             col_heights[shortest_col_index] += item.height as i32 + self.padding as i32;
         }

@@ -5,7 +5,7 @@ import { default as init, InitOutput, Layout } from 'wasm/masonry/pkg/masonry';
 // Force Webpack to include wasm file in the build folder, so we can load it using `init` later
 import 'wasm/masonry/pkg/masonry_bg.wasm';
 
-const MAX_ITEMS = 83333; // reserving 1 MB of memory. each item is 6 uint16 = 12 bytes, 1MB / 12B = 83.333 items
+const MAX_ITEMS = 100000; // reserving 1 MB of memory. each item is 5 uint16 = 12 bytes, 1MB / 10B = 100.000 items
 
 interface ImageInput {
   width: number;
@@ -26,6 +26,7 @@ export interface ITransform {
 export interface ILayout {
   containerHeight: number;
   items: Uint16Array;
+  topOffsets: Uint32Array;
 }
 
 type MasonryType = 'vertical' | 'horizontal';
@@ -46,6 +47,7 @@ export class Mason {
   WASM!: InitOutput;
   layout?: Layout;
   items?: Uint16Array;
+  topOffsets?: Uint32Array;
 
   /** Initializes WASM Returns the memory */
   async initializeWASM() {
@@ -57,18 +59,20 @@ export class Mason {
    * Be sure to free the memory when you're done with it!
    * @returns A Uin16Buffer where the image input dimensions can be defined as [src_width, src_height, -, -, -, -]
    */
-  initializeLayout(numItems: number): Uint16Array {
+  initializeLayout(numItems: number): [Uint16Array, Uint32Array] {
     let itemsPtr = 0;
+    let topOffsetsPtr = 0;
     if (!this.layout) {
       this.layout = Layout.new(numItems, defaultOpts.thumbSize, defaultOpts.padding);
       itemsPtr = this.layout.items();
-    } else {
-      itemsPtr = this.layout.resize(numItems);
-    }
+      topOffsetsPtr = this.layout.top_offsets();
 
-    // Initialize empty memory so we can put input directly into the buffer in the main thread, without allocating new memory
-    if (!this.items) {
-      this.items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, numItems * 6); // 6 uint16s per item
+      console.log('ptrs', itemsPtr, topOffsetsPtr);
+
+      this.items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, MAX_ITEMS); // 5 uint16s per item
+      this.topOffsets = new Uint32Array(this.WASM.memory.buffer, topOffsetsPtr, MAX_ITEMS); // 1 uint32 for top offset
+    } else {
+      this.layout.resize(numItems);
     }
 
     // console.log({ itemsPtr, items: this.items, byteLength: this.items.byteLength, buff: this.items.buffer, });
@@ -76,7 +80,7 @@ export class Mason {
     // We can pass the layout back to the main thread without copying, using Transferable objects
     // https://stackoverflow.com/questions/20042948/sending-multiple-array-buffers-to-a-javascript-web-worker
     // Also possible with Comlink, with the transfer function: https://github.com/GoogleChromeLabs/comlink#comlinktransfervalue-transferables-and-comlinkproxyvalue
-    return transfer(this.items, [this.items!.buffer]);
+    return transfer([this.items, this.topOffsets], [this.WASM.memory.buffer]);
   }
 
   resize(numItems: number) {

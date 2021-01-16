@@ -107,15 +107,15 @@ const Renderer = observer(
       const start = binarySearch(yOffset - overdraw, numImages, layout, false);
       const end = binarySearch(yOffset + viewportHeight + overdraw, numImages, layout, true);
 
-      console.log('determineRenderRegion', {
-        yOffset,
-        viewportHeight,
-        start,
-        end,
-        overdraw,
-        numImages,
-        images,
-      });
+      // console.log('determineRenderRegion', {
+      //   yOffset,
+      //   viewportHeight,
+      //   start,
+      //   end,
+      //   overdraw,
+      //   numImages,
+      //   images,
+      // });
 
       setStartRenderIndex(start);
       setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons
@@ -135,8 +135,6 @@ const Renderer = observer(
     }, [numImages, containerWidth, containerHeight]);
 
     const handleScroll = () => throttledRedetermine.current(numImages, overscan || 0);
-
-    console.log({ startRenderIndex, endRenderIndex, numImages });
 
     return (
       // One div as the scrollable viewport
