@@ -4,5 +4,6 @@
   "tabWidth": 2,
   "jsxBracketSameLine": false,
   "printWidth": 100,
-  "arrowParens": "always"
+  "arrowParens": "always",
+  "endOfLine": "auto"
 }

@@ -59,7 +59,7 @@ export function debouncedThrottle<F extends (...args: any) => any>(fn: F, wait =
       }, wait) as any;
     } else {
       last = now;
-      fn.apply(this, args);
+      fn.apply(this, args)
     }
   }
 }

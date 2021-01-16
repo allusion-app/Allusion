@@ -13,8 +13,8 @@ export class MasonryWorkerAdapter {
     console.log('adapter initializing');
 
     if (!this.worker) {
-      console.log('Loading worker')
-      const WorkerFactory = wrap<{ new(): Mason }>(new MasonryWorker());
+      console.log('Loading worker');
+      const WorkerFactory = wrap<{ new (): Mason }>(new MasonryWorker());
       this.worker = await new WorkerFactory();
       console.log('Loading wasm...');
       await this.worker.initializeWASM();
@@ -23,15 +23,13 @@ export class MasonryWorkerAdapter {
     this.items = await this.worker.initializeLayout(numItems);
     this.prevNumImgs = numItems;
 
-    console.log('adapter initialized!');
+    (window as any).layout = this.getItemLayout.bind(this);
   }
   async compute(imgs: ClientFile[], containerWidth: number, opts: Partial<MasonryOpts>) {
-    console.log('compute', this.items, this.worker);
     if (!this.items || !this.worker) return;
 
     if (this.prevNumImgs !== imgs.length) {
-      // await this.worker.initializeLayout(imgs.length);
-      await this.worker.reinit(imgs.length);
+      await this.worker.resize(imgs.length);
     }
     this.prevNumImgs = imgs.length;
 
@@ -45,17 +43,20 @@ export class MasonryWorkerAdapter {
     return this.worker.computeLayout(containerWidth, opts);
   }
   async recompute(containerWidth: number, opts: Partial<MasonryOpts>) {
-    console.log('recompute');
     if (!this.items || !this.worker) return;
     return this.worker.computeLayout(containerWidth, opts);
   }
+  free() {
+    return this.worker?.free();
+  }
   getItemLayout(index: number) {
-    if (!this.items) return {
-      width: 0,
-      height: 0,
-      left: 0,
-      top: 0,
-    }
+    if (!this.items)
+      return {
+        width: 0,
+        height: 0,
+        left: 0,
+        top: 0,
+      };
     return {
       width: this.items[index * 6 + 2],
       height: this.items[index * 6 + 3],

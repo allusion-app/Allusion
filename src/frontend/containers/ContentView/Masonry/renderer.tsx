@@ -4,7 +4,12 @@ import React, { useCallback, useContext, useEffect, useRef, useState } from 'rea
 import { ClientFile } from 'src/entities/File';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import { debouncedThrottle } from 'src/frontend/utils';
-import { ExternalAppMenuItems, FileViewerMenuItems, ILayoutProps, MissingFileMenuItems } from '../Gallery';
+import {
+  ExternalAppMenuItems,
+  FileViewerMenuItems,
+  ILayoutProps,
+  MissingFileMenuItems,
+} from '../Gallery';
 import { GridCell } from '../GalleryItem';
 import { ITransform } from './masonry.worker';
 
@@ -32,7 +37,12 @@ interface IRendererProps {
  * @param layout The layout of the images
  * @param overshoot Whether to overshoot: return the first or last image at the specified height
  */
-export function binarySearch(height: number, length: number, layout: Layouter, overshoot: boolean): number {
+export function binarySearch(
+  height: number,
+  length: number,
+  layout: Layouter,
+  overshoot: boolean,
+): number {
   if (height <= 0) return 0; // easy base case
 
   // TODO: Could exploit the assumption that the images are ordered linearly in top-offset,
@@ -44,18 +54,21 @@ export function binarySearch(height: number, length: number, layout: Layouter, o
   let nextLookup = Math.round(length / 2);
   while (true) {
     iteration++;
-    let stepSize = (length / Math.pow(2, iteration));
+    let stepSize = length / Math.pow(2, iteration);
     if (stepSize < 1) return nextLookup;
     stepSize = Math.round(stepSize);
     const t = layout.getItemLayout(nextLookup);
     if (t.top > height) {
-      if (t.top + t.height > height) { // looked up too far, go back:
+      if (t.top + t.height > height) {
+        // looked up too far, go back:
         nextLookup -= stepSize;
-      } else { // TODO: this image is intersecting with the target heigth: check whether to over/undershoot
+      } else {
+        // TODO: this image is intersecting with the target heigth: check whether to over/undershoot
         return nextLookup;
       }
     } else {
-      if (t.top + t.height > height) { // TODO: this image is intersecting with the target heigth: check whether to over/undershoot
+      if (t.top + t.height > height) {
+        // TODO: this image is intersecting with the target heigth: check whether to over/undershoot
         return nextLookup;
       } else {
         nextLookup += stepSize;
@@ -68,89 +81,108 @@ export function binarySearch(height: number, length: number, layout: Layouter, o
  * This is the virtualized renderer: it only renders the items in the viewport.
  * It renders a scrollable viewport and a content element within it.
  */
-const Renderer = observer((
-  { containerHeight, containerWidth, images, layout, className, overscan, select, showContextMenu }:
-    IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu'>,
-) => {
-  const { uiStore, fileStore } = useContext(StoreContext);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [startRenderIndex, setStartRenderIndex] = useState(0);
-  const [endRenderIndex, setEndRenderIndex] = useState(0);
+const Renderer = observer(
+  ({
+    containerHeight,
+    containerWidth,
+    images,
+    layout,
+    className,
+    overscan,
+    select,
+    showContextMenu,
+  }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu'>) => {
+    const { uiStore, fileStore } = useContext(StoreContext);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const [startRenderIndex, setStartRenderIndex] = useState(0);
+    const [endRenderIndex, setEndRenderIndex] = useState(0);
 
+    const numImages = images.length;
 
-  const numImages = images.length;
+    const determineRenderRegion = useCallback((numImages: number, overdraw: number) => {
+      const viewport = wrapperRef.current;
+      const yOffset = viewport?.scrollTop || 0;
+      const viewportHeight = viewport?.clientHeight || 0;
 
-  const determineRenderRegion = useCallback((numImages: number, overdraw: number) => {
-    const viewport = (wrapperRef.current);
-    const yOffset = viewport?.scrollTop || 0;
-    const viewportHeight = viewport?.clientHeight || 0;
+      const start = binarySearch(yOffset - overdraw, numImages, layout, false);
+      const end = binarySearch(yOffset + viewportHeight + overdraw, numImages, layout, true);
 
-    const start = binarySearch(yOffset - overdraw, numImages, layout, false);
-    const end = binarySearch(yOffset + viewportHeight + overdraw, numImages, layout, true);
+      console.log('determineRenderRegion', {
+        yOffset,
+        viewportHeight,
+        start,
+        end,
+        overdraw,
+        numImages,
+        images,
+      });
 
-    // console.log('determineRenderRegion', { yOffset, viewportHeight, start, end, overdraw, numImages });
+      setStartRenderIndex(start);
+      setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    setStartRenderIndex(start);
-    setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const throttledRedetermine = useRef(
+      debouncedThrottle(
+        (numImages: number, overdraw: number) => determineRenderRegion(numImages, overdraw),
+        100,
+      ),
+    );
 
-  const throttledRedetermine = useRef(
-    debouncedThrottle(
-      (numImages: number, overdraw: number) =>
-        determineRenderRegion(numImages, overdraw),
-      100,
-    ));
+    useEffect(() => {
+      throttledRedetermine.current(numImages, overscan || 0);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [numImages, containerWidth, containerHeight]);
 
-  useEffect(() => {
-    throttledRedetermine.current(numImages, overscan || 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [numImages, containerWidth, containerHeight]);
+    const handleScroll = () => throttledRedetermine.current(numImages, overscan || 0);
 
-  const handleScroll = () => throttledRedetermine.current(numImages, overscan || 0);
+    console.log({ startRenderIndex, endRenderIndex, numImages });
 
-  // console.log({ startRenderIndex, endRenderIndex, numImages });
-
-  return (
-    // One div as the scrollable viewport
-    <div className={className} onScroll={handleScroll} ref={wrapperRef}>
-      {/* One div for the content */}
-      <div style={{ width: containerWidth, height: containerHeight }}>
-        {images.slice(startRenderIndex, endRenderIndex).map((im, index) => (
-          // <img
-          //   key={im.id}
-          //   src={im.thumbnailPath}
-          //   alt={im.id}
-          //   style={layout.getItemLayout(startRenderIndex + index)}
-          // />
-
-          // TODO: completely re-using GridCell probably won't work. Should make a copy
-          // and slightly adjust it
-          <GridCell
-            key={im.id}
-            file={fileStore.fileList[startRenderIndex + index]}
-            mounted
-            colIndex={0}
-            uiStore={uiStore}
-            fileStore={fileStore}
-            style={layout.getItemLayout(startRenderIndex + index)}
-            onClick={(e) => runInAction(() => select(fileStore.fileList[startRenderIndex + index], e.ctrlKey || e.metaKey, e.shiftKey))}
-            onDoubleClick={() => { uiStore.selectFile(im, true); uiStore.toggleSlideMode(); }}
-            onContextMenu={(e) => showContextMenu(
-              e.clientX,
-              e.clientY,
-              [
-                im.isBroken
-                  ? (<MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />)
-                  : (<FileViewerMenuItems file={im} uiStore={uiStore} />),
-                im.isBroken ? <></> : <ExternalAppMenuItems path={im.absolutePath} />,
-              ],
-            )}
-          />
-        ))}
+    return (
+      // One div as the scrollable viewport
+      <div className={className} onScroll={handleScroll} ref={wrapperRef}>
+        {/* One div for the content */}
+        <div style={{ width: containerWidth, height: containerHeight }}>
+          {images.slice(startRenderIndex, endRenderIndex).map((im, index) => (
+            // TODO: completely re-using GridCell probably won't work. Should make a copy
+            // and slightly adjust it
+            <GridCell
+              key={im.id}
+              file={fileStore.fileList[startRenderIndex + index]}
+              mounted
+              colIndex={0}
+              uiStore={uiStore}
+              fileStore={fileStore}
+              style={layout.getItemLayout(startRenderIndex + index)}
+              onClick={(e) =>
+                runInAction(() =>
+                  select(
+                    fileStore.fileList[startRenderIndex + index],
+                    e.ctrlKey || e.metaKey,
+                    e.shiftKey,
+                  ),
+                )
+              }
+              onDoubleClick={() => {
+                uiStore.selectFile(im, true);
+                uiStore.toggleSlideMode();
+              }}
+              onContextMenu={(e) =>
+                showContextMenu(e.clientX, e.clientY, [
+                  im.isBroken ? (
+                    <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+                  ) : (
+                    <FileViewerMenuItems file={im} uiStore={uiStore} />
+                  ),
+                  im.isBroken ? <></> : <ExternalAppMenuItems path={im.absolutePath} />,
+                ])
+              }
+            />
+          ))}
+        </div>
       </div>
-    </div >
-  )
-});
+    );
+  },
+);
 
 export default Renderer;

@@ -1,13 +1,11 @@
 import { expose, transfer } from 'comlink';
 
-import {
-  default as init,
-  InitOutput,
-  Layout,
-} from 'wasm/masonry/pkg/masonry';
+import { default as init, InitOutput, Layout } from 'wasm/masonry/pkg/masonry';
 
 // Force Webpack to include wasm file in the build folder, so we can load it using `init` later
 import 'wasm/masonry/pkg/masonry_bg.wasm';
+
+const MAX_ITEMS = 83333; // reserving 1 MB of memory. each item is 6 uint16 = 12 bytes, 1MB / 12B = 83.333 items
 
 interface ImageInput {
   width: number;
@@ -56,17 +54,10 @@ export class Mason {
   }
 
   /** Should be called whenever the input is changed.
+   * Be sure to free the memory when you're done with it!
    * @returns A Uin16Buffer where the image input dimensions can be defined as [src_width, src_height, -, -, -, -]
    */
   initializeLayout(numItems: number): Uint16Array {
-    // TODO: does this work? Seems to do the job, no memory errors anymore, could maybe be more efficient
-    // E.g., no need to free() when the amount of images decreases
-    // if (this.layout) this.layout.free();
-
-    // having trouble with transferring the Uint16Array after re-assigning it
-    // can the wasm.memory.buffer only be transferred once?
-    // fix: assign memory once, keep track of numItems manually in rust
-
     let itemsPtr = 0;
     if (!this.layout) {
       this.layout = Layout.new(numItems, defaultOpts.thumbSize, defaultOpts.padding);
@@ -75,13 +66,10 @@ export class Mason {
       itemsPtr = this.layout.resize(numItems);
     }
 
-    // console.log({ bla: this.WASM.memory.buffer.byteLength, bla2: this.items?.byteLength });
-
     // Initialize empty memory so we can put input directly into the buffer in the main thread, without allocating new memory
-
-
-    if (!this.items)
+    if (!this.items) {
       this.items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, numItems * 6); // 6 uint16s per item
+    }
 
     // console.log({ itemsPtr, items: this.items, byteLength: this.items.byteLength, buff: this.items.buffer, });
 
@@ -91,8 +79,21 @@ export class Mason {
     return transfer(this.items, [this.items!.buffer]);
   }
 
-  reinit(numItems: number) {
-    this.layout!.resize(numItems);
+  resize(numItems: number) {
+    if (numItems > MAX_ITEMS) {
+      console.error(
+        `Maximum amount of items exceeded (${
+          numItems > MAX_ITEMS
+        }). Never considered we'd get to this point...`,
+      );
+      this.layout?.resize(MAX_ITEMS);
+    } else {
+      this.layout!.resize(numItems);
+    }
+  }
+
+  free() {
+    this.layout?.free();
   }
 
   /**
