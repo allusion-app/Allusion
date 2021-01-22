@@ -26,6 +26,7 @@
 
 .section {
   margin-bottom: 0.5rem;
+  overflow: hidden;
 
   // Show an outline to indicate the section needs attention
   &.attention {
@@ -39,6 +40,7 @@
     box-sizing: border-box;
     border-radius: 1rem;
     margin: -4px;
+    margin-bottom: 1em;
     padding: 4px;
     padding-bottom: 12px;
 

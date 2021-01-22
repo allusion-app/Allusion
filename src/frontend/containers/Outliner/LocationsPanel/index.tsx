@@ -45,7 +45,7 @@ const isExpanded = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITr
   treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-const emptyFunction = () => {};
+const emptyFunction = () => { };
 
 const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
   const element = event.currentTarget.querySelector('.tree-content-label');
@@ -184,6 +184,7 @@ const useFileDropHandling = (
       if (canDrop && !expansion[expansionId]) {
         expandDelayed();
       }
+      console.log('enter');
     },
     [expansion, expansionId, expandDelayed],
   );
@@ -199,8 +200,10 @@ const useFileDropHandling = (
           await storeDroppedImage(event, fullPath);
         } catch (e) {
           console.error(e);
-          // TODO: Toast error?
+          AppToaster.show({ message: 'Something went wrong, could not import image :(', timeout: 100 });
         }
+      } else {
+        AppToaster.show({ message: 'File type not supported :(', timeout: 100 });
       }
     },
     [fullPath],
