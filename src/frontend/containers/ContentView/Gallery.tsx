@@ -24,7 +24,7 @@ interface ILayoutProps extends UiStoreProp, FileStoreProp {
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
   /** menu: [fileMenu, externalMenu] */
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element] | []) => void;
 }
 
 const Layout = ({
@@ -259,19 +259,20 @@ const GridGallery = observer((props: ILayoutProps) => {
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
       const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
-      if (index === undefined) {
-        return;
-      }
       runInAction(() => {
-        const file = fileList[index];
-        showContextMenu(e.clientX, e.clientY, [
-          file.isBroken ? (
-            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-          ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
-          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-        ]);
+        const file = index !== undefined && fileList[index];
+        if (file) {
+          showContextMenu(e.clientX, e.clientY, [
+            file.isBroken ? (
+              <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+            ) : (
+                <FileViewerMenuItems file={file} uiStore={uiStore} />
+              ),
+            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+          ]);
+        } else {
+          showContextMenu(e.clientX, e.clientY, []);// background menu
+        }
       });
     },
     [fileList, fileStore, numColumns, showContextMenu, uiStore],
@@ -419,8 +420,8 @@ const ListGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
+              <FileViewerMenuItems file={file} uiStore={uiStore} />
+            ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });

@@ -13,7 +13,7 @@ import { ContextMenu, MenuSubItem, Menu, MenuDivider, MenuChild } from 'widgets/
 import Placeholder from './Placeholder';
 import Layout from './Gallery';
 
-import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
+import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
 
 const ContentView = observer(() => {
   const {
@@ -93,14 +93,17 @@ const Gallery = observer(() => {
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}
-          <MenuDivider />
+          {fileMenu && <MenuDivider />}
           <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
             <LayoutMenuItems uiStore={uiStore} />
           </MenuSubItem>
           <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
             <SortMenuItems fileStore={fileStore} />
           </MenuSubItem>
-          <MenuDivider />
+          <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
+            <ThumbnailSizeMenuItems uiStore={uiStore} />
+          </MenuSubItem>
+          {externalMenu && <MenuDivider />}
           {externalMenu}
         </Menu>
       </ContextMenu>
