@@ -56,6 +56,18 @@ body {
   transform: translateX(-100%);
 }
 
+#outliner-splitter {
+  position: absolute;
+  top: var(--window-titlebar-height);
+  left: var(--outliner-width);
+  height: calc(100% - var(--window-titlebar-height));
+  z-index: 1;
+
+  width: 5px;
+  background-color: red;
+  cursor: col-resize;
+}
+
 #content-view {
   position: absolute;
   top: var(--content-top);
