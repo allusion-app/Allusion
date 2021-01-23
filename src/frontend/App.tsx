@@ -52,6 +52,7 @@ const App = observer(() => {
           uiStore.toggleHelpCenter();
         } else if (matches(hotkeyMap.openPreviewWindow)) {
           uiStore.openPreviewWindow();
+          e.preventDefault(); // prevent scrolling with space when opening the preview window
           // Search
         } else if (matches(hotkeyMap.advancedSearch)) {
           uiStore.toggleAdvancedSearch();
@@ -71,7 +72,7 @@ const App = observer(() => {
   useEffect(() => {
     setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
 
-    // Prevent scrolling with Space, instead used to open preview window
+    // Add listener for global keyboard shortcuts
     window.addEventListener('keydown', handleGlobalShortcuts);
 
     return () => window.removeEventListener('keydown', handleGlobalShortcuts);
