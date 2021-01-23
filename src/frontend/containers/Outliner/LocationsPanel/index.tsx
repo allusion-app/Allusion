@@ -178,13 +178,13 @@ const useFileDropHandling = (
 
   const handleDragEnter = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      // if (event.target
       event.stopPropagation();
       event.preventDefault();
       const canDrop = onDragOver(event);
       if (canDrop && !expansion[expansionId]) {
         expandDelayed();
       }
-      console.log('enter');
     },
     [expansion, expansionId, expandDelayed],
   );
@@ -195,7 +195,6 @@ const useFileDropHandling = (
 
       if (isAcceptableType(event)) {
         event.dataTransfer.dropEffect = 'none';
-        console.log(event.dataTransfer, fullPath);
         try {
           await storeDroppedImage(event, fullPath);
         } catch (e) {
@@ -211,6 +210,10 @@ const useFileDropHandling = (
 
   const handleDragLeaveWrapper = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      // Drag events are also triggered for children??
+      // We don't want to detect dragLeave of a child as a dragLeave of the target element, so return immmediately
+      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) return;
+
       event.stopPropagation();
       event.preventDefault();
       handleDragLeave(event);
@@ -225,7 +228,7 @@ const useFileDropHandling = (
   return {
     handleDragEnter,
     handleDrop,
-    handleDragLeaveWrapper,
+    handleDragLeave: handleDragLeaveWrapper,
   };
 };
 
@@ -258,7 +261,7 @@ const SubLocation = ({
     [nodeData.fullPath, uiStore],
   );
 
-  const { handleDragEnter, handleDragLeaveWrapper, handleDrop } = useFileDropHandling(
+  const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
     nodeData.fullPath,
     nodeData.fullPath,
     expansion,
@@ -272,7 +275,9 @@ const SubLocation = ({
       onContextMenu={handleContextMenu}
       onDragEnter={handleDragEnter}
       onDrop={handleDrop}
-      onDragLeave={handleDragLeaveWrapper}
+      onDragLeave={handleDragLeave}
+      // Note: onDragOver is not needed here, but need to preventDefault() for onDrop to work 🙃
+      onDragOver={onDragOver}
     >
       {expansion[nodeData.fullPath] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
       {nodeData.name}
@@ -305,7 +310,7 @@ const Location = observer(
       [nodeData.path, uiStore],
     );
 
-    const { handleDragEnter, handleDragLeaveWrapper, handleDrop } = useFileDropHandling(
+    const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
       nodeData.id,
       nodeData.path,
       expansion,
@@ -318,7 +323,7 @@ const Location = observer(
         onContextMenu={handleContextMenu}
         onDragEnter={handleDragEnter}
         onDrop={handleDrop}
-        onDragLeave={handleDragLeaveWrapper}
+        onDragLeave={handleDragLeave}
       >
         {expansion[nodeData.id] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
         <div onClick={handleClick}>{nodeData.name}</div>
