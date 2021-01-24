@@ -104,8 +104,6 @@ const App = observer(() => {
 
           <AppToolbar />
 
-          <Outliner />
-
           <ContentView />
 
           <SettingsWindow />

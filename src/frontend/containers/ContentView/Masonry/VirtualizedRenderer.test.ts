@@ -1,4 +1,4 @@
-import { binarySearch, Layouter } from './renderer';
+import { binarySearch, Layouter } from './VirtualizedRenderer';
 
 // Simple linear layout: One image per row
 const linearLayout: Layouter = {
@@ -7,7 +7,7 @@ const linearLayout: Layouter = {
     left: 0,
     height: 10,
     width: 10,
-  })
+  }),
 };
 
 // Multiple images per row, with different heights
@@ -17,7 +17,7 @@ const dynamicLayout: Layouter = {
     left: (i % 4) * 10,
     height: 10,
     width: 10,
-  })
+  }),
 };
 
 describe('masonry > renderer', () => {
@@ -37,7 +37,7 @@ describe('masonry > renderer', () => {
       });
     });
     describe('dynamic layout', () => {
-
+      // TODO: More tests, after implementing over/under-shooting
     });
   });
-})
+});

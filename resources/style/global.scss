@@ -99,6 +99,10 @@ input {
 ///////////////////////////////// Theme Colours /////////////////////////////////
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this
+#preview,	
+#layout-container {	
+  background-color: transparent;	
+}
 
 ///////////////////////////////// Media Queries /////////////////////////////////
 @media (max-width: 960px) {

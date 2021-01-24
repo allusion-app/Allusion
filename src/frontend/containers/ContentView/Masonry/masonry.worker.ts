@@ -5,16 +5,16 @@ import { default as init, InitOutput, Layout } from 'wasm/masonry/pkg/masonry';
 // Force Webpack to include wasm file in the build folder, so we can load it using `init` later
 import 'wasm/masonry/pkg/masonry_bg.wasm';
 
-const MAX_ITEMS = 100000; // reserving 1 MB of memory. each item is 5 uint16 = 12 bytes, 1MB / 10B = 100.000 items
+const MAX_ITEMS = 40000; // Reserving 200.000 uints by default (see lib.rs), each image items takes up 5 uin16s, so max items = 200.000 / 5 = 40.000
 
-interface ImageInput {
-  width: number;
-  height: number;
+// interface ImageInput {
+//   width: number;
+//   height: number;
 
-  // TODO: Could add the sorted value in here, so we could add headers just like GPhotos
-  // also for file size, e.g. dividers at 1 MB, 2 MB
-  date?: Date;
-}
+//   // TODO: Could add the sorted value in here, so we could add headers just like GPhotos
+//   // also for file size, e.g. dividers at 1 MB, 2 MB
+//   date?: Date;
+// }
 
 export interface ITransform {
   width: number;
@@ -43,8 +43,8 @@ const defaultOpts: MasonryOpts = {
   padding: 8,
 };
 
-export class Mason {
-  WASM!: InitOutput;
+export class MasonryWorker {
+  WASM?: InitOutput;
   layout?: Layout;
   items?: Uint16Array;
   topOffsets?: Uint32Array;
@@ -60,14 +60,13 @@ export class Mason {
    * @returns A Uin16Buffer where the image input dimensions can be defined as [src_width, src_height, -, -, -, -]
    */
   initializeLayout(numItems: number): [Uint16Array, Uint32Array] {
+    if (!this.WASM) throw new Error('WASM not initialized!');
     let itemsPtr = 0;
     let topOffsetsPtr = 0;
     if (!this.layout) {
       this.layout = Layout.new(numItems, defaultOpts.thumbSize, defaultOpts.padding);
       itemsPtr = this.layout.items();
       topOffsetsPtr = this.layout.top_offsets();
-
-      console.log('ptrs', itemsPtr, topOffsetsPtr);
 
       this.items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, MAX_ITEMS); // 5 uint16s per item
       this.topOffsets = new Uint32Array(this.WASM.memory.buffer, topOffsetsPtr, MAX_ITEMS); // 1 uint32 for top offset
@@ -127,6 +126,6 @@ export class Mason {
 }
 
 // https://lorefnon.tech/2019/03/24/using-comlink-with-typescript-and-worker-loader/
-expose(Mason, self);
+expose(MasonryWorker, self);
 
 export default null as any;

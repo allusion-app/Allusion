@@ -2,8 +2,8 @@ import { observer } from 'mobx-react-lite';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
 import { getThumbnailSize, ILayoutProps } from '../Gallery';
-import { MasonryWorkerAdapter } from './masonryWorkerAdapter';
-import Renderer from './renderer';
+import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
+import VirtualizedRenderer from './VirtualizedRenderer';
 
 interface IMasonryRendererProps {
   type: ViewMethod.MasonryVertical | ViewMethod.MasonryHorizontal;
@@ -105,10 +105,12 @@ const MasonryRenderer = observer(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [containerWidth, thumbnailSize, viewMethod]);
 
+    console.log(fileStore.fileList);
+
     return !(containerHeight && layoutTimestamp) ? (
       <p>loading...</p>
     ) : (
-      <Renderer
+      <VirtualizedRenderer
         className="masonry"
         key={layoutTimestamp.getTime()}
         containerWidth={containerWidth}

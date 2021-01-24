@@ -1,10 +1,10 @@
 import { Remote, wrap } from 'comlink';
 import { runInAction } from 'mobx';
 import { ClientFile } from 'src/entities/File';
-import MasonryWorker, { Mason, MasonryOpts } from './masonry.worker';
+import MasonryWorkerClass, { MasonryWorker, MasonryOpts } from './masonry.worker';
 
 export class MasonryWorkerAdapter {
-  worker?: Remote<Mason>;
+  worker?: Remote<MasonryWorker>;
   items?: Uint16Array;
   topOffsets?: Uint32Array;
 
@@ -15,7 +15,7 @@ export class MasonryWorkerAdapter {
 
     if (!this.worker) {
       console.log('Loading worker');
-      const WorkerFactory = wrap<{ new (): Mason }>(new MasonryWorker());
+      const WorkerFactory = wrap<{ new (): MasonryWorker }>(new MasonryWorkerClass());
       this.worker = await new WorkerFactory();
       console.log('Loading wasm...');
       await this.worker.initializeWASM();

@@ -495,7 +495,7 @@ const LocationsPanel = observer(() => {
       className={`section ${isEmpty || isDropping ? 'attention' : ''} ${isDropping ? 'info' : ''}`}
     >
       <header>
-        <span onClick={() => setCollapsed(!isCollapsed)}>Locations</span>
+        <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list">
           <ToolbarButton
             showLabel="never"

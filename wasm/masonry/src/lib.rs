@@ -6,17 +6,7 @@
 
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
-}
-
-#[wasm_bindgen]
-pub fn greet(name: &str) {
-    alert(&format!("Hello, {}!", name));
-}
-
-// TODO: Could also use the google photos layout: Rows of masonry layouts, each with a header (e.g. the date)
+// TODO: Could also use the google photos layout: Groups of masonry layouts, each with a header (e.g. the date)
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct Transform {
@@ -33,27 +23,31 @@ pub struct Layout {
     items: Vec<Transform>,
     // TODO: Could maybe interwine u32 top offset in other u16 attributes for avoiding cache misses but this is already too much micro optimization
     top_offsets: Vec<u32>,
-    thumbnail_size: u32,
-    padding: u32,
+    thumbnail_size: u16,
+    padding: u16,
 }
 
 // For images with extreme aspect ratios (very narrow or wide), crop them a little
 // so that they are at most X times as wide/long as they are long/wide
 // Returns a correct height value of the image
-fn aspect_ratio_correction(w: f32, h: f32) -> f32 {
+fn aspect_ratio_correction(w: u16, h: u16) -> f32 {
     let max_aspect_ratio = 3.; // X times as wide as narrow or vice versa
+    let w = f32::from(w);
+    let h = f32::from(h);
 
-    let aspect_ratio = w as f32 / h;
+    let aspect_ratio = w / h;
     if aspect_ratio > max_aspect_ratio {
-        return max_aspect_ratio * h;
+        max_aspect_ratio * h
     } else if aspect_ratio < 1. / max_aspect_ratio {
-        return max_aspect_ratio * w as f32;
+        max_aspect_ratio * w
+    } else {
+        h
     }
-    return h;
 }
 
-const MAX_ITEMS: usize = 100000; // Reserving 1MB memory for the image layouts,
+const MAX_ITEMS: usize = 200000; // Reserving 200.000 uint16s of memory for the image layouts,
                                  // so we don't have to re-allocate memory when images are removed/added.
+                                 // each image items takes up 5 uin16s, so max items = 200.000 / 5 = 40.000
                                  // That was my initial approach, but re-transferring the WASM memory from the
                                  // web-worker to the main thread after freeing the memory caused issues:
                                  // "ArrayBuffer at index 0 is already detached"
@@ -61,7 +55,7 @@ const MAX_ITEMS: usize = 100000; // Reserving 1MB memory for the image layouts,
 /// Public methods, exported to JavaScript.
 #[wasm_bindgen]
 impl Layout {
-    pub fn new(length: usize, thumbnail_size: u32, padding: u32) -> Layout {
+    pub fn new(length: usize, thumbnail_size: u16, padding: u16) -> Layout {
         Layout {
             num_items: length,
             items: vec![
@@ -94,68 +88,64 @@ impl Layout {
         self.top_offsets.as_ptr()
     }
 
-    pub fn set_item_input(&mut self, index: usize, width: u16, height: u16) {
-        self.items[index].src_width = width;
-        self.items[index].src_height = height;
-    }
-
-    pub fn set_thumbnail_size(&mut self, thumbnail_size: u32) {
+    pub fn set_thumbnail_size(&mut self, thumbnail_size: u16) {
         self.thumbnail_size = thumbnail_size;
     }
 
-    pub fn set_padding(&mut self, padding: u32) {
+    pub fn set_padding(&mut self, padding: u16) {
         self.padding = padding;
     }
 
-    pub fn compute_horizontal(&mut self, container_width: u32) -> i32 {
+    pub fn compute_horizontal(&mut self, container_width: u16) -> u32 {
         // Main idea: Keep looping over images until containerWidth is reached, then:
         // - Either adjust row height or add/remove item to make it fit full-width, whatever is the closest
         // (I think this is how google photos does it)
         // Could also have an approximated version for very large lists, and just properly compute for what in and close to the viewport
         // TODO: Look up proper masonry algorithm, e.g. https://euler.stephan-brumme.com/215/
+        // TODO: Alternatively, could layout based on aspect ratio blogpost https://medium.com/@danrschlosser/building-the-image-grid-from-google-photos-6a09e193c74a
 
-        let base_row_height = self.thumbnail_size as u16;
+        let base_row_height = self.thumbnail_size;
 
-        let mut top_offset = 0;
-        let mut cur_row_width = 0;
-        let mut first_row_item_index = 0;
+        let mut top_offset: u32 = 0;
+        let mut cur_row_width: u16 = 0;
+        let mut first_row_item_index: usize = 0;
 
         for i in 0..self.num_items {
             let item = &mut self.items[i];
             // Correct aspect ratio for very wide/narrow images
             let corr_height =
-                aspect_ratio_correction(item.src_width as f32, item.src_height as f32);
-            let rel_width = (base_row_height as f32 / corr_height as f32) * item.src_width as f32;
-            item.width = rel_width as u16;
+                aspect_ratio_correction(item.src_width, item.src_height);
+            let rel_width = ((f32::from(base_row_height) / f32::from(corr_height)) * f32::from(item.src_width)).round() as u16;
+            item.width = rel_width;
             item.height = base_row_height;
-            self.top_offsets[i] = top_offset as u32;
+            self.top_offsets[i] = top_offset;
 
-            item.left = cur_row_width as u16;
+            item.left = cur_row_width;
             // Check if adding this image to the row would exceed the container width
-            let new_row_width = cur_row_width + rel_width as u32 + self.padding;
+            let new_row_width = cur_row_width + rel_width + self.padding;
 
             if new_row_width > container_width {
                 // If it exceeds it, position all current items in the row accordingly and start a new row for this item
                 // Position all items in this row properly after the row is filled, needs to expand a little
 
                 // Now that the size of this row is definitive: Set the actual size of all row items
-                let correction_factor = container_width as f32 / new_row_width as f32;
+                let correction_factor = f32::from(container_width) / f32::from(new_row_width);
 
-                item.left = (item.left as f32 * correction_factor) as u16;
-                item.width = (item.width as f32 * correction_factor) as u16;
-                item.height = (item.height as f32 * correction_factor) as u16;
+                item.left = (f32::from(item.left) * correction_factor).round() as u16;
+                item.width = (f32::from(item.width) * correction_factor).round() as u16;
+                item.height = (f32::from(item.height) * correction_factor).round() as u16;
 
                 for j in first_row_item_index..i {
                     let prev_item = &mut self.items[j];
-                    prev_item.left = (prev_item.left as f32 * correction_factor) as u16;
-                    prev_item.width = (prev_item.width as f32 * correction_factor) as u16;
-                    prev_item.height = (prev_item.height as f32 * correction_factor) as u16;
+                    prev_item.left = (f32::from(prev_item.left) * correction_factor).round() as u16;
+                    prev_item.width = (f32::from(prev_item.width) * correction_factor).round() as u16;
+                    prev_item.height = (f32::from(prev_item.height) * correction_factor).round() as u16;
                 }
 
                 // Start a new row
                 cur_row_width = 0;
                 first_row_item_index = i + 1;
-                top_offset += self.padding + (base_row_height as f32 * correction_factor) as u32;
+                top_offset += self.padding as u32 + (f32::from(base_row_height) * correction_factor).round() as u32;
             } else {
                 // Otherwise, just add its width to the current row width and continue on!
                 cur_row_width = new_row_width;
@@ -164,72 +154,88 @@ impl Layout {
         // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
         if cur_row_width != 0 {
             if self.num_items == 0 {
-                return 0
+                0
+            } else {
+                let last_item = &self.items[self.num_items - 1];
+                top_offset + last_item.height as u32
             }
-            let last_item = &self.items[self.num_items - 1];
-            return top_offset as i32 + last_item.height as i32;
+        } else {
+            top_offset
         }
-        top_offset as i32
     }
 
-    pub fn compute_vertical(&mut self, container_width: u32) -> i32 {
+    pub fn compute_vertical(&mut self, container_width: u16) -> u32 {
         // Main idea: Initialize with N columns of identical widths
         // loop over images, put them in the column that has the least height filled
 
-        let n_columns = (container_width as f32 / self.thumbnail_size as f32) as i32;
-        if n_columns == 0 {
+        let n_columns = (f32::from(container_width) / f32::from(self.thumbnail_size)).round();
+        if n_columns == 0.0 {
             return 0;
         }
 
-        let col_width = (0.5 + (container_width as f32 / n_columns as f32)) as u16;
+        let col_width = (f32::from(container_width) / n_columns).round() as u16;
 
-        let mut col_heights: Vec<i32> = vec![0; n_columns as usize];
+        let mut col_heights: Vec<u32> = vec![0; n_columns as usize];
 
         let (current_items, _) = &mut self.items.split_at_mut(self.num_items);
         for (i, item) in current_items.iter_mut().enumerate() {
-            let h = aspect_ratio_correction(item.src_width as f32, item.src_height as f32);
+            let h = aspect_ratio_correction(item.src_width, item.src_height);
 
-            item.width = col_width - self.padding as u16;
-            item.height = ((item.width as f32 / item.src_width as f32) * h as f32 + 0.5) as u16;
+            item.width = col_width - self.padding;
+            item.height = ((f32::from(item.width) / f32::from(item.src_width)) * h).round() as u16;
 
-            let shortest_col_index = match index_of_min(&col_heights) {
-                Some(index) => index,
-                None => 0,
-            };
+            let shortest_col_index = col_heights
+                .iter()
+                .enumerate()
+                .min_by_key(|(_idx, &val)| val)
+                .map_or(0, |(idx, _val)| idx);
 
             item.left = (shortest_col_index as u16 * col_width) as u16;
             self.top_offsets[i] = col_heights[shortest_col_index] as u32;
 
-            col_heights[shortest_col_index] += item.height as i32 + self.padding as i32;
+            col_heights[shortest_col_index] += item.height as u32 + self.padding as u32;
         }
 
         // Return height of longest column
-        match col_heights.iter().max() {
-            Some(max) => *max,
-            None => 0,
-        }
+        col_heights
+            .iter()
+            .max()
+            .map_or(0, |max| *max)
     }
 
     // TODO: Could create our own Grid version as well: get rid of react-window
-    // pub fn compute_grid(&mut self, container_width: u32, padding: u16) -> i32 {
+    pub fn compute_grid(&mut self, container_width: u16) -> u32 {
+        // Main idea: Put items in a grid.
 
-    // }
-}
+        let n_columns = (f32::from(container_width) / f32::from(self.thumbnail_size)).round() as u16;
+        if n_columns == 0 {
+            return 0;
+        }
 
-// returns index of max value of the vector
-fn index_of_max(values: &[i32]) -> Option<usize> {
-    values
-        .iter()
-        .enumerate()
-        .max_by_key(|(_idx, &val)| val)
-        .map(|(idx, _val)| idx)
-}
+        let cell_size = (f32::from(container_width) /f32::from(n_columns)).round() as u16;
 
-// returns index of min value of the vector
-fn index_of_min(values: &[i32]) -> Option<usize> {
-    values
-        .iter()
-        .enumerate()
-        .min_by_key(|(_idx, &val)| val)
-        .map(|(idx, _val)| idx)
+        // The column where the current item should be inserted
+        let mut cur_col = 0;
+        let mut cur_row = 0;
+
+        let (current_items, _) = &mut self.items.split_at_mut(self.num_items);
+        for (i, item) in current_items.iter_mut().enumerate() {
+
+            item.width = cell_size - self.padding;
+            item.height = item.width;
+
+            item.left = cur_col * cell_size;
+            self.top_offsets[i] = cur_row * (cell_size + self.padding) as u32;
+
+            if cur_col == n_columns - 1 {
+                cur_col = 0;
+                cur_row += 1;
+            } else {
+                cur_col += 1;
+            }
+        }
+
+        // Return height of longest column
+        cur_row * (cell_size + self.padding) as u32
+    }
 }

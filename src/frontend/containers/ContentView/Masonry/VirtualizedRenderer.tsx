@@ -4,13 +4,9 @@ import React, { useCallback, useContext, useEffect, useRef, useState } from 'rea
 import { ClientFile } from 'src/entities/File';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import { debouncedThrottle } from 'src/frontend/utils';
-import {
-  ExternalAppMenuItems,
-  FileViewerMenuItems,
-  ILayoutProps,
-  MissingFileMenuItems,
-} from '../Gallery';
+import { ILayoutProps } from '../Gallery';
 import { GridCell } from '../GalleryItem';
+import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from '../menu-items';
 import { ITransform } from './masonry.worker';
 
 export interface Layouter {
@@ -81,7 +77,7 @@ export function binarySearch(
  * This is the virtualized renderer: it only renders the items in the viewport.
  * It renders a scrollable viewport and a content element within it.
  */
-const Renderer = observer(
+const VirtualizedRenderer = observer(
   ({
     containerHeight,
     containerWidth,
@@ -183,4 +179,4 @@ const Renderer = observer(
   },
 );
 
-export default Renderer;
+export default VirtualizedRenderer;

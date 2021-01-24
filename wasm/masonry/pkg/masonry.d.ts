@@ -1,10 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* @param {string} name
-*/
-export function greet(name: string): void;
-/**
 */
 export class Layout {
   free(): void;
@@ -28,12 +24,6 @@ export class Layout {
 */
   top_offsets(): number;
 /**
-* @param {number} index
-* @param {number} width
-* @param {number} height
-*/
-  set_item_input(index: number, width: number, height: number): void;
-/**
 * @param {number} thumbnail_size
 */
   set_thumbnail_size(thumbnail_size: number): void;
@@ -51,6 +41,11 @@ export class Layout {
 * @returns {number}
 */
   compute_vertical(container_width: number): number;
+/**
+* @param {number} container_width
+* @returns {number}
+*/
+  compute_grid(container_width: number): number;
 }
 /**
 */
@@ -62,20 +57,17 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly greet: (a: number, b: number) => void;
   readonly __wbg_transform_free: (a: number) => void;
   readonly __wbg_layout_free: (a: number) => void;
   readonly layout_new: (a: number, b: number, c: number) => number;
   readonly layout_resize: (a: number, b: number) => void;
   readonly layout_items: (a: number) => number;
   readonly layout_top_offsets: (a: number) => number;
-  readonly layout_set_item_input: (a: number, b: number, c: number, d: number) => void;
   readonly layout_set_thumbnail_size: (a: number, b: number) => void;
   readonly layout_set_padding: (a: number, b: number) => void;
   readonly layout_compute_horizontal: (a: number, b: number) => number;
   readonly layout_compute_vertical: (a: number, b: number) => number;
-  readonly __wbindgen_malloc: (a: number) => number;
-  readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
+  readonly layout_compute_grid: (a: number, b: number) => number;
 }
 
 /**

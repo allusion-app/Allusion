@@ -312,7 +312,9 @@ class FileStore {
   getLocation(location: ID): ClientLocation {
     const loc = this.rootStore.locationStore.get(location);
     if (!loc) {
-      throw new Error(`Location of file was not found! This should never happen! Location ${location}`);
+      throw new Error(
+        `Location of file was not found! This should never happen! Location ${location}`,
+      );
     }
     return loc;
   }
@@ -372,6 +374,16 @@ class FileStore {
       if (!reusedStatus.has(file.id)) {
         file.dispose();
       }
+      // if (!file.width) {
+      // TODO: Sometimes, getMetadata cannot determine the dimensions of the file while importing. Trying again naively here, should have a better alternative
+      // Maybe offer a `re-index` options, for resetting file all dimensions etc.
+      // getMetaData(file.absolutePath).then((data) => {
+      //   console.log(data);
+      //   runInAction(() => {
+      //     this.save({ ...file.serialize(), ...data });
+      //   });
+      // });
+      // }
     }
 
     // Check existence of new files asynchronously, no need to wait until they can be showed

@@ -1,21 +1,17 @@
-
-import { shell } from 'electron';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FixedSizeList } from 'react-window';
 import { RendererMessenger } from 'src/Messaging';
-import { IconSet } from 'widgets';
-import { MenuItem } from 'widgets/menus';
 import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
 import { GridCell, ListCell } from './GalleryItem';
-import MasonryRenderer from './Masonry/masonryRenderer';
+import MasonryRenderer from './Masonry/MasonryRenderer';
+import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from './menu-items';
 import SlideMode from './SlideMode';
-
 
 type Dimension = { width: number; height: number };
 type UiStoreProp = { uiStore: UiStore };
@@ -72,7 +68,6 @@ const Layout = ({
         uiStore.toggleFileSelection(selectedFile);
         initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
       } else {
-        console.log('hya!')
         uiStore.selectFile(selectedFile, true);
         initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
       }
@@ -112,7 +107,7 @@ const Layout = ({
     return <SlideMode contentRect={contentRect} />;
   }
   if (contentRect.width < 10) {
-    return <p>Too narrow!</p>
+    return null;
   }
   switch (uiStore.method) {
     case ViewMethod.Grid:
@@ -156,8 +151,9 @@ const Layout = ({
 };
 
 // Some extra padding in the Grid view, so that the scrollbar will not overlap with the content
-const CONTENT_PADDING_RIGHT = 0;
+const CONTENT_PADDING_RIGHT = 12;
 
+// TODO: Move views to separate files
 const GridGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
   const { fileList } = fileStore;
@@ -285,8 +281,8 @@ const GridGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-              <FileViewerMenuItems file={file} uiStore={uiStore} />
-            ),
+            <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });
@@ -436,8 +432,8 @@ const ListGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-              <FileViewerMenuItems file={file} uiStore={uiStore} />
-            ),
+            <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });
@@ -591,83 +587,6 @@ const GridRow = observer((props: IGridRow) => {
   );
 });
 
-// const MasonryGallery = observer(({ }: ILayoutProps) => {
-//   const Styles: any = {
-//     textAlign: 'center',
-//     display: 'flex',
-//     flexDirection: 'column',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     width: '100%',
-//     height: '65%',
-//   };
-
-//   return (
-//     <div style={Styles}>
-//       <span className="custom-icon-64" style={{ marginBottom: '1rem' }}>
-//         {IconSet.DB_ERROR}
-//       </span>
-//       <p>This view is currently not supported</p>
-//     </div>
-//   );
-// });
-
-export const MissingFileMenuItems = observer(({ uiStore, fileStore }: UiStoreProp & FileStoreProp) => (
-  <>
-    <MenuItem
-      onClick={fileStore.fetchMissingFiles}
-      text="Open Recovery Panel"
-      icon={IconSet.WARNING_BROKEN_LINK}
-      disabled={fileStore.showsMissingContent}
-    />
-    <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
-  </>
-));
-
-export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile } & UiStoreProp) => {
-  const handleViewFullSize = () => {
-    uiStore.selectFile(file, true);
-    uiStore.toggleSlideMode();
-  };
-
-  const handlePreviewWindow = () => {
-    uiStore.selectFile(file, true);
-    uiStore.openPreviewWindow();
-  };
-
-  const handleInspect = () => {
-    uiStore.selectFile(file, true);
-    uiStore.openInspector();
-  };
-
-  return (
-    <>
-      <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.SEARCH} />
-      <MenuItem
-        onClick={handlePreviewWindow}
-        text="Open In Preview Window"
-        icon={IconSet.PREVIEW}
-      />
-      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-    </>
-  );
-};
-
-export const ExternalAppMenuItems = ({ path }: { path: string }) => (
-  <>
-    <MenuItem
-      onClick={() => shell.openExternal(path)}
-      text="Open External"
-      icon={IconSet.OPEN_EXTERNAL}
-    />
-    <MenuItem
-      onClick={() => shell.showItemInFolder(path)}
-      text="Reveal in File Browser"
-      icon={IconSet.FOLDER_CLOSE}
-    />
-  </>
-);
-
 export default observer(Layout);
 
 function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
@@ -761,12 +680,12 @@ const onDrop = action(
 // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
 // TODO: Use computed styles to access the CSS variables
 const PADDING = 8;
-const CELL_SIZE_SMALL = 152 + PADDING;
-const CELL_SIZE_MEDIUM = 232 + PADDING;
-const CELL_SIZE_LARGE = 312 + PADDING;
+const CELL_SIZE_SMALL = 160 + PADDING;
+const CELL_SIZE_MEDIUM = 240 + PADDING;
+const CELL_SIZE_LARGE = 320 + PADDING;
 // Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
 // can fit into one row.
-const SHRINK_FACTOR = 1;
+const SHRINK_FACTOR = 0.9;
 
 export function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {
