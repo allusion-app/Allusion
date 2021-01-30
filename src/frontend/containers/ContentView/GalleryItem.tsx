@@ -55,18 +55,53 @@ interface IGridCell extends ICell {
 }
 
 export const GridCell = observer(
-  ({
-    file,
-    colIndex,
-    mounted,
-    uiStore,
-    fileStore,
-    ...props
-  }: IGridCell & React.HTMLAttributes<HTMLDivElement>) => (
+  ({ file, colIndex, mounted, uiStore, fileStore, ...props }: IGridCell) => (
     <div
       role="gridcell"
       tabIndex={-1}
       aria-colindex={colIndex}
+      aria-selected={uiStore.fileSelection.has(file)}
+      {...props}
+    >
+      <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+        <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
+      </div>
+      {file.isBroken === true && (
+        <Tooltip
+          content="This image could not be found."
+          trigger={
+            <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
+              {IconSet.WARNING_BROKEN_LINK}
+            </span>
+          }
+        />
+      )}
+      {/* Show tags when the option is enabled, or when the file is selected */}
+      {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
+        (file.tags.size == 0 || !mounted ? (
+          <span className="thumbnail-tags" />
+        ) : (
+          <Tags file={file} />
+        ))}
+    </div>
+  ),
+);
+
+interface IMasonryCell extends ICell {
+  fileStore: FileStore;
+}
+
+export const MasonryCell = observer(
+  ({
+    file,
+    mounted,
+    uiStore,
+    fileStore,
+    ...props
+  }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => (
+    <div
+      role="masonrycell"
+      tabIndex={-1}
       aria-selected={uiStore.fileSelection.has(file)}
       {...props}
     >

@@ -50,6 +50,7 @@ export class MasonryWorkerAdapter {
   free() {
     return this.worker?.free();
   }
+  // This method will be available in the custom VirtualizedRenderer component as layout.getItemLayout
   getItemLayout(index: number) {
     if (!this.items || !this.topOffsets)
       return {

@@ -1,18 +1,24 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ClientFile } from 'src/entities/File';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { ILayoutProps } from '../Gallery';
-import { GridCell } from '../GalleryItem';
+import { MasonryCell } from '../GalleryItem';
 import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from '../menu-items';
 import { ITransform } from './masonry.worker';
 
 export interface Layouter {
   getItemLayout: (index: number) => ITransform;
 }
-
 interface IRendererProps {
   containerHeight: number;
   containerWidth: number;
@@ -21,7 +27,7 @@ interface IRendererProps {
   className?: string;
   /** Render images outside of the viewport within this margin (pixels) */
   overscan?: number;
-  // TODO: initialScrollOffset
+  layoutUpdateDate: Date;
 }
 
 /**
@@ -73,6 +79,13 @@ export function binarySearch(
   }
 }
 
+// const styleFromTransform = (t: ITransform) => ({
+//   width: t.width,
+//   height: t.height,
+//   // Google Photos is using this, they probably researched it. Could be just for old browsers or something
+//   transform: `translate3d(${t.left}px, ${t.top}px, 0px)`,
+// });
+
 /**
  * This is the virtualized renderer: it only renders the items in the viewport.
  * It renders a scrollable viewport and a content element within it.
@@ -87,9 +100,12 @@ const VirtualizedRenderer = observer(
     overscan,
     select,
     showContextMenu,
-  }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu'>) => {
+    lastSelectionIndex,
+    layoutUpdateDate,
+  }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
     const { uiStore, fileStore } = useContext(StoreContext);
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const invisLastSelectedItemForScrollRef = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
     const [endRenderIndex, setEndRenderIndex] = useState(0);
 
@@ -103,16 +119,6 @@ const VirtualizedRenderer = observer(
       const start = binarySearch(yOffset - overdraw, numImages, layout, false);
       const end = binarySearch(yOffset + viewportHeight + overdraw, numImages, layout, true);
 
-      // console.log('determineRenderRegion', {
-      //   yOffset,
-      //   viewportHeight,
-      //   start,
-      //   end,
-      //   overdraw,
-      //   numImages,
-      //   images,
-      // });
-
       setStartRenderIndex(start);
       setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,12 +131,35 @@ const VirtualizedRenderer = observer(
       ),
     );
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       throttledRedetermine.current(numImages, overscan || 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [numImages, containerWidth, containerHeight]);
 
     const handleScroll = () => throttledRedetermine.current(numImages, overscan || 0);
+
+    // Scroll to the first item in the view any time it is changed
+    const lastSelIndex = lastSelectionIndex.current;
+    useEffect(() => {
+      if (lastSelIndex !== undefined && invisLastSelectedItemForScrollRef?.current !== null) {
+        // Scroll to invisible element, positioned at selected element,
+        // just for scroll automatisation with scrollIntoView
+        const s = layout.getItemLayout(lastSelIndex);
+        invisLastSelectedItemForScrollRef.current.style.top = s.top + 'px';
+        invisLastSelectedItemForScrollRef.current.style.left = s.left + 'px';
+        invisLastSelectedItemForScrollRef.current.style.width = s.width + 'px';
+        invisLastSelectedItemForScrollRef.current.style.height = s.height + 'px';
+        invisLastSelectedItemForScrollRef.current?.scrollIntoView({
+          block: 'nearest',
+        });
+
+        console.log(layoutUpdateDate);
+        // TODO: Problem with switching from one masonry view to another:
+        // the layout is not computed yet, but scroll already happens using old layout
+        // Need to know when the layout is available first time after the view method changes
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lastSelIndex, layout, uiStore.fileSelection.size, layoutUpdateDate]);
 
     return (
       // One div as the scrollable viewport
@@ -138,26 +167,26 @@ const VirtualizedRenderer = observer(
         {/* One div for the content */}
         <div style={{ width: containerWidth, height: containerHeight }}>
           {images.slice(startRenderIndex, endRenderIndex).map((im, index) => (
-            // TODO: completely re-using GridCell probably won't work. Should make a copy
-            // and slightly adjust it
-            <GridCell
+            <MasonryCell
               key={im.id}
               file={fileStore.fileList[startRenderIndex + index]}
               mounted
-              colIndex={0}
               uiStore={uiStore}
               fileStore={fileStore}
+              // TODO: Might be better to do translate3d instead of setting top & left offset, not a clear winner, should research maybe. See styleFromTransform
               style={layout.getItemLayout(startRenderIndex + index)}
-              onClick={(e) =>
+              onClick={(e) => {
+                e.stopPropagation();
                 runInAction(() =>
                   select(
                     fileStore.fileList[startRenderIndex + index],
                     e.ctrlKey || e.metaKey,
                     e.shiftKey,
                   ),
-                )
-              }
-              onDoubleClick={() => {
+                );
+              }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
                 uiStore.selectFile(im, true);
                 uiStore.toggleSlideMode();
               }}
@@ -173,6 +202,13 @@ const VirtualizedRenderer = observer(
               }
             />
           ))}
+          {lastSelIndex !== undefined && (
+            <div
+              ref={invisLastSelectedItemForScrollRef}
+              // style={layout.getItemLayout(lastSelIndex)}
+              id="invis-last-selected-item-for-scroll"
+            />
+          )}
         </div>
       </div>
     );

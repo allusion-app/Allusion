@@ -35,7 +35,7 @@
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
-[role='gridcell'] {
+[role='gridcell'], [role='masonrycell'] {
   position: relative;
   margin: 4px;
 
@@ -323,8 +323,7 @@
   overflow-x: hidden;
   height: 100%;
 
-  // img {
-  [role='gridcell'] {
+  [role='masonrycell'] {
     position: absolute;
     transition: all 0.2s ease;
     .thumbnail {
@@ -333,5 +332,11 @@
       width: unset;
       height: inherit;
     }
+  }
+
+  #invis-last-selected-item-for-scroll {
+    position: absolute;
+    pointer-events: none;
+    z-index: -1;
   }
 }

@@ -47,10 +47,10 @@ export function debouncedThrottle<F extends (...args: any) => any>(fn: F, wait =
   let last: Date;
   let deferTimer = 0;
 
-  const db = debounce(fn)
+  const db = debounce(fn);
   return function debouncedThrottleFn(this: any, ...args: any) {
     const now = new Date();
-    if (!last || (now.getTime() < last.getTime() + wait)) {
+    if (!last || now.getTime() < last.getTime() + wait) {
       clearTimeout(deferTimer);
       db.apply(this, args);
       deferTimer = setTimeout(() => {
@@ -59,9 +59,9 @@ export function debouncedThrottle<F extends (...args: any) => any>(fn: F, wait =
       }, wait) as any;
     } else {
       last = now;
-      fn.apply(this, args)
+      fn.apply(this, args);
     }
-  }
+  };
 }
 
 export const timeoutPromise = <T>(timeMS: number, promise: Promise<T>): Promise<T> => {
