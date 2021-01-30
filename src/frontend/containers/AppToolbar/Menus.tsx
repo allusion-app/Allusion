@@ -107,7 +107,7 @@ export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
         icon={IconSet.VIEW_MASON}
         onClick={uiStore.setMethodMasonryHorizontal}
         checked={uiStore.isMasonryHorizontal}
-        text="Horizontal Maonsry"
+        text="Horizontal Masonry"
         accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
       />
     </MenuRadioGroup>
