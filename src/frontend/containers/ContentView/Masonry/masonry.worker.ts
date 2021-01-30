@@ -91,7 +91,7 @@ export class MasonryWorker {
       );
       this.layout?.resize(MAX_ITEMS);
     } else {
-      this.layout!.resize(numItems);
+      this.layout?.resize(numItems);
     }
   }
 

@@ -15,7 +15,7 @@
     "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "build:wasm": "wasm-pack build wasm/masonry --target web && ncp ./wasm/masonry/pkg/masonry_bg.wasm build/wasm/masonry/pkg/masonry_bg.wasm"
+    "build:wasm": "wasm-pack build wasm/masonry --target web"
   },
   "build": {
     "appId": "com.allusion-app.allusion",
