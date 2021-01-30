@@ -10,7 +10,7 @@ import { ClientFile } from 'src/entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { IconSet } from 'widgets';
-import { MenuItem } from 'widgets/menus';
+import { MenuItem, MenuDivider } from 'widgets/menus';
 import { GridCell, ListCell } from './GalleryItem';
 import SlideMode from './SlideMode';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/dnd';
@@ -24,7 +24,7 @@ interface ILayoutProps extends UiStoreProp, FileStoreProp {
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
   /** menu: [fileMenu, externalMenu] */
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element] | []) => void;
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
 const Layout = ({
@@ -259,20 +259,20 @@ const GridGallery = observer((props: ILayoutProps) => {
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
       const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
+      if (index === undefined) {
+        return;
+      }
+      e.stopPropagation();
       runInAction(() => {
-        const file = index !== undefined && fileList[index];
-        if (file) {
-          showContextMenu(e.clientX, e.clientY, [
-            file.isBroken ? (
-              <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-            ) : (
-              <FileViewerMenuItems file={file} uiStore={uiStore} />
-            ),
-            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-          ]);
-        } else {
-          showContextMenu(e.clientX, e.clientY, []); // background menu
-        }
+        const file = fileList[index];
+        showContextMenu(e.clientX, e.clientY, [
+          file.isBroken ? (
+            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+          ) : (
+            <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
+          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+        ]);
       });
     },
     [fileList, fileStore, numColumns, showContextMenu, uiStore],
@@ -414,6 +414,7 @@ const ListGallery = observer((props: ILayoutProps) => {
       if (index === undefined) {
         return;
       }
+      e.stopPropagation();
       runInAction(() => {
         const file = fileStore.fileList[index];
         showContextMenu(e.clientX, e.clientY, [
@@ -633,12 +634,14 @@ const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile } & UiStorePr
         icon={IconSet.PREVIEW}
       />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
+      <MenuDivider />
     </>
   );
 };
 
 const ExternalAppMenuItems = ({ path }: { path: string }) => (
   <>
+    <MenuDivider />
     <MenuItem
       onClick={() => shell.openExternal(path)}
       text="Open External"
