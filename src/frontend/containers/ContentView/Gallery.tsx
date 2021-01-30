@@ -7,7 +7,7 @@ import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
-import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/DnD';
+import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/dnd';
 import { GridCell, ListCell } from './GalleryItem';
 import MasonryRenderer from './Masonry/MasonryRenderer';
 import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from './menu-items';
