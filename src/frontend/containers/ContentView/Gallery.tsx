@@ -266,12 +266,12 @@ const GridGallery = observer((props: ILayoutProps) => {
             file.isBroken ? (
               <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
             ) : (
-                <FileViewerMenuItems file={file} uiStore={uiStore} />
-              ),
+              <FileViewerMenuItems file={file} uiStore={uiStore} />
+            ),
             file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
           ]);
         } else {
-          showContextMenu(e.clientX, e.clientY, []);// background menu
+          showContextMenu(e.clientX, e.clientY, []); // background menu
         }
       });
     },
@@ -420,8 +420,8 @@ const ListGallery = observer((props: ILayoutProps) => {
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-              <FileViewerMenuItems file={file} uiStore={uiStore} />
-            ),
+            <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
       });

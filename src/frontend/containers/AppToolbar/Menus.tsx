@@ -99,7 +99,6 @@ export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
   );
 });
 
-
 export const ThumbnailSizeMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
   return (
     <MenuRadioGroup>
