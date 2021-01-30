@@ -1,19 +1,13 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useLayoutEffect, useRef, useState } from 'react';
+import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { ILayoutProps } from '../Gallery';
 import { MasonryCell } from '../GalleryItem';
-import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from '../menu-items';
+import { ExternalAppMenuItems, FileViewerMenuItems, MissingFileMenuItems } from '../menu-items';
 import { ITransform } from './masonry.worker';
 
 export interface Layouter {
@@ -140,7 +134,7 @@ const VirtualizedRenderer = observer(
 
     // Scroll to the first item in the view any time it is changed
     const lastSelIndex = lastSelectionIndex.current;
-    useEffect(() => {
+    useLayoutEffect(() => {
       if (lastSelIndex !== undefined && invisLastSelectedItemForScrollRef?.current !== null) {
         // Scroll to invisible element, positioned at selected element,
         // just for scroll automatisation with scrollIntoView
@@ -152,56 +146,58 @@ const VirtualizedRenderer = observer(
         invisLastSelectedItemForScrollRef.current?.scrollIntoView({
           block: 'nearest',
         });
-
-        console.log(layoutUpdateDate);
-        // TODO: Problem with switching from one masonry view to another:
-        // the layout is not computed yet, but scroll already happens using old layout
-        // Need to know when the layout is available first time after the view method changes
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastSelIndex, layout, uiStore.fileSelection.size, layoutUpdateDate]);
+    }, [lastSelIndex, layoutUpdateDate]);
 
     return (
       // One div as the scrollable viewport
       <div className={className} onScroll={handleScroll} ref={wrapperRef}>
         {/* One div for the content */}
         <div style={{ width: containerWidth, height: containerHeight }}>
-          {images.slice(startRenderIndex, endRenderIndex).map((im, index) => (
-            <MasonryCell
-              key={im.id}
-              file={fileStore.fileList[startRenderIndex + index]}
-              mounted
-              uiStore={uiStore}
-              fileStore={fileStore}
-              // TODO: Might be better to do translate3d instead of setting top & left offset, not a clear winner, should research maybe. See styleFromTransform
-              style={layout.getItemLayout(startRenderIndex + index)}
-              onClick={(e) => {
-                e.stopPropagation();
-                runInAction(() =>
-                  select(
-                    fileStore.fileList[startRenderIndex + index],
-                    e.ctrlKey || e.metaKey,
-                    e.shiftKey,
-                  ),
-                );
-              }}
-              onDoubleClick={(e) => {
-                e.stopPropagation();
-                uiStore.selectFile(im, true);
-                uiStore.toggleSlideMode();
-              }}
-              onContextMenu={(e) =>
-                showContextMenu(e.clientX, e.clientY, [
-                  im.isBroken ? (
-                    <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-                  ) : (
-                    <FileViewerMenuItems file={im} uiStore={uiStore} />
-                  ),
-                  im.isBroken ? <></> : <ExternalAppMenuItems path={im.absolutePath} />,
-                ])
-              }
-            />
-          ))}
+          {images.slice(startRenderIndex, endRenderIndex).map((im, index) => {
+            const style = layout.getItemLayout(startRenderIndex + index);
+            return (
+              <MasonryCell
+                key={im.id}
+                file={fileStore.fileList[startRenderIndex + index]}
+                mounted
+                uiStore={uiStore}
+                fileStore={fileStore}
+                // TODO: Might be better to do translate3d instead of setting top & left offset, not a clear winner, should research maybe. See styleFromTransform
+                style={style}
+                // Force to load the full resolution image when the img dimensions on screen are larger than the thumbnail image resolution
+                // Otherwise you'll see very low res images. This is usually only the case for images with extreme aspect ratios
+                // TODO: Not the best solution; could generate multiple thumbnails of other resolutions
+                forceNoThumbnail={style.width > thumbnailMaxSize || style.height > thumbnailMaxSize}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  runInAction(() =>
+                    select(
+                      fileStore.fileList[startRenderIndex + index],
+                      e.ctrlKey || e.metaKey,
+                      e.shiftKey,
+                    ),
+                  );
+                }}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  uiStore.selectFile(im, true);
+                  uiStore.toggleSlideMode();
+                }}
+                onContextMenu={(e) =>
+                  showContextMenu(e.clientX, e.clientY, [
+                    im.isBroken ? (
+                      <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+                    ) : (
+                      <FileViewerMenuItems file={im} uiStore={uiStore} />
+                    ),
+                    im.isBroken ? <></> : <ExternalAppMenuItems path={im.absolutePath} />,
+                  ])
+                }
+              />
+            );
+          })}
           {lastSelIndex !== undefined && (
             <div
               ref={invisLastSelectedItemForScrollRef}

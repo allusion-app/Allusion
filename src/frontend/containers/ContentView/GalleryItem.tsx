@@ -17,6 +17,8 @@ interface ICell {
   file: ClientFile;
   mounted: boolean;
   uiStore: UiStore;
+  // Will use the original image instead of the thumbnail
+  forceNoThumbnail?: boolean;
 }
 
 export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
@@ -89,6 +91,7 @@ export const GridCell = observer(
 
 interface IMasonryCell extends ICell {
   fileStore: FileStore;
+  forceNoThumbnail: boolean;
 }
 
 export const MasonryCell = observer(
@@ -97,6 +100,7 @@ export const MasonryCell = observer(
     mounted,
     uiStore,
     fileStore,
+    forceNoThumbnail,
     ...props
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => (
     <div
@@ -106,7 +110,12 @@ export const MasonryCell = observer(
       {...props}
     >
       <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-        <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
+        <Thumbnail
+          uiStore={uiStore}
+          mounted={!mounted}
+          file={file}
+          forceNoThumbnail={forceNoThumbnail}
+        />
       </div>
       {file.isBroken === true && (
         <Tooltip
@@ -137,7 +146,7 @@ const enum ThumbnailState {
 
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-const Thumbnail = observer(({ file, mounted, uiStore }: ICell) => {
+const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: ICell) => {
   const { thumbnailDirectory } = uiStore;
   const { thumbnailPath, isBroken } = file;
 
@@ -182,7 +191,13 @@ const Thumbnail = observer(({ file, mounted, uiStore }: ICell) => {
       console.log('Could not load image:', thumbnailPath);
       setState(ThumbnailState.Error);
     };
-    return <img src={thumbnailPath} onError={handleImageError} alt="" />;
+    return (
+      <img
+        src={forceNoThumbnail ? file.absolutePath : thumbnailPath}
+        onError={handleImageError}
+        alt=""
+      />
+    );
   } else if (state === ThumbnailState.Loading) {
     return <div className="donut-loading" />;
   } else {
