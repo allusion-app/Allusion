@@ -21,8 +21,11 @@ const MasonryRenderer = observer(
     lastSelectionIndex,
   }: IMasonryRendererProps & ILayoutProps) => {
     const [containerHeight, setContainerHeight] = useState<number>();
+    // The timestamp from when the layout was last updated
+    const [layoutTimestamp, setLayoutTimestamp] = useState<Date>(new Date());
     // Needed in order to re-render forcefully when the layout updates
-    const [layoutTimestamp, setLayoutTimestamp] = useState<Date>();
+    // Identical to layoutTimestamp, except it is not set when the environment (e.g. container width) changes
+    const [forceRerenderObj, setForceRerenderObj] = useState<Date>(new Date());
     const [worker] = useState(new MasonryWorkerAdapter());
     const [, thumbnailSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
       uiStore.thumbnailSize,
@@ -45,6 +48,7 @@ const MasonryRenderer = observer(
           });
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
+          setForceRerenderObj(new Date());
         } catch (e) {
           console.error(e);
         }
@@ -68,20 +72,14 @@ const MasonryRenderer = observer(
             console.timeEnd('recompute-layout');
             setContainerHeight(containerHeight);
             setLayoutTimestamp(new Date());
+            setForceRerenderObj(new Date());
           } catch (e) {
             console.error(e);
           }
         })();
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-      numImages,
-      // check 1st and last ID for changes
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      fileStore.fileList[0]?.id,
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      fileStore.fileList[numImages - 1].id,
-    ]);
+    }, [numImages, fileStore.fileListLastModified]);
 
     // Re-compute when the environment changes (container width, thumbnail size, view method)
     useEffect(() => {
@@ -96,7 +94,8 @@ const MasonryRenderer = observer(
             });
             console.timeEnd('recompute-layout');
             setContainerHeight(containerHeight);
-            // setLayoutTimestamp(new Date()); // no need for force rerender: the containerHeight must already have changed
+            setLayoutTimestamp(new Date());
+            // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
           } catch (e) {
             console.error(e);
           }
@@ -105,14 +104,13 @@ const MasonryRenderer = observer(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [containerWidth, thumbnailSize, viewMethod]);
 
-    console.log(fileStore.fileList);
-
     return !(containerHeight && layoutTimestamp) ? (
       <p>loading...</p>
     ) : (
       <VirtualizedRenderer
         className="masonry"
-        key={layoutTimestamp.getTime()}
+        // Force a complete re-render when the layout has been changed
+        key={forceRerenderObj.getTime()}
         containerWidth={containerWidth}
         containerHeight={containerHeight}
         images={fileStore.fileList}
@@ -120,6 +118,8 @@ const MasonryRenderer = observer(
         overscan={thumbnailSize * 4}
         select={select}
         showContextMenu={showContextMenu}
+        lastSelectionIndex={lastSelectionIndex}
+        layoutUpdateDate={layoutTimestamp}
       />
     );
   },

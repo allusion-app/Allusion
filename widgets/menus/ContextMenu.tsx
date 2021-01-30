@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { RawPopover } from '../popovers/RawPopover';
 import { IMenu } from './menus';
 
@@ -40,7 +39,8 @@ export const ContextMenu = ({ isOpen, x, y, children, close }: IContextMenu) => 
     getBoundingClientRect: () => boundingRect.current,
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    // layoutEffect to avoid the flicker where the placement is wrong at the start
     if (container.current && isOpen) {
       // Focus container so the keydown event can be handled even without a mouse.
       container.current.focus();
