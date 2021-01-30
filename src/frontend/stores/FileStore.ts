@@ -426,10 +426,6 @@ class FileStore {
       // Might already exist!
       const existingFile = this.get(f.id);
       if (existingFile !== undefined) {
-        // @Chi: why was this needed? this was causing the saveFile when searching
-        // Can't think of a reason so commented it out for now
-        // existingFile.update((file) => file.tags.replace(this.getTags(f.tags)));
-
         reusedStatus.add(existingFile.id);
         return existingFile;
       }

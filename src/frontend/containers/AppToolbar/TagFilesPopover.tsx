@@ -158,9 +158,6 @@ const FloatingDialog = (props: FloatingDialogProps) => {
     const button = e.currentTarget.previousElementSibling as HTMLElement;
     if (e.relatedTarget !== button && !e.currentTarget.contains(e.relatedTarget as Node)) {
       onClose();
-      // FIXME: @Chi why was this needed? Problematic after closing the tag popover: focuses the button, so ContentView hotkeys no longer work
-      // The real issue may be that the ContentView is not focused when selecting an item
-      // button.focus();
     }
   };
 
