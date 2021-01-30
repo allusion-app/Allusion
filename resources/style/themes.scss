@@ -43,5 +43,10 @@
 
   // The main background color of the panels
   --background-color: rgb(255, 255, 255); // Main background color {$light-gray5} ?
-  --background-color-alt: rgba(240, 240, 240); // Alt background color (outliner) {$light-gray3}?
+  --background-color-alt: rgba(
+    255,
+    255,
+    255,
+    0.85
+  ); // Alt background color (outliner) {$light-gray3}?
 }

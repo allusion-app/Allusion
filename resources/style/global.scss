@@ -63,24 +63,19 @@ input {
 /* 
 // Custom scrollbar style
 ::-webkit-scrollbar {
-  width: 0.5rem;
-  display: none;
-}
-::-webkit-scrollbar-thumb {
-  border-radius: 0.5rem;
-  max-height: 4rem;
+  width: 10px;
 }
 
 /////////// Scroll bar (Track and handle) ///////////
 .bp3-light {
   ::-webkit-scrollbar-track {
-    background-color: transparent;
+    background-color: $light-gray4;
   }
   ::-webkit-scrollbar-thumb {
-    background-color: var(--text-muted-color);
+    background-color: $light-gray2;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--text-color);
+    background-color: $light-gray5;
   }
 }
 
@@ -99,9 +94,9 @@ input {
 ///////////////////////////////// Theme Colours /////////////////////////////////
 // Todo: The nice thing about variables is that we can change them depending on the theme,
 // instead of switching colors around like this
-#preview,	
-#layout-container {	
-  background-color: transparent;	
+#preview,
+#layout-container {
+  background-color: transparent;
 }
 
 ///////////////////////////////// Media Queries /////////////////////////////////

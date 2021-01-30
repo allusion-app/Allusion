@@ -23,8 +23,9 @@
   > .label {
     height: 1.5rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    padding-left: calc(var(--level) * var(--treeitem-identation) + var(--treeitem-offset));
+    padding-right: 0.5rem;
 
     &:hover {
       background-color: var(--shade1);
