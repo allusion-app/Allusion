@@ -99,7 +99,7 @@ const VirtualizedRenderer = observer(
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
     const { uiStore, fileStore } = useContext(StoreContext);
     const wrapperRef = useRef<HTMLDivElement>(null);
-    const invisLastSelectedItemForScrollRef = useRef<HTMLDivElement>(null);
+    const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
     const [endRenderIndex, setEndRenderIndex] = useState(0);
 
@@ -132,79 +132,112 @@ const VirtualizedRenderer = observer(
 
     const handleScroll = () => throttledRedetermine.current(numImages, overscan || 0);
 
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const target = (e.target as HTMLElement).closest('[data-masonrycell]');
+        if (target === null) {
+          return;
+        }
+        e.stopPropagation();
+        const index = parseInt(target.getAttribute('data-fileindex')!);
+        runInAction(() => select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
+      },
+      [fileStore.fileList, select],
+    );
+
+    const handleDoubleClick = useCallback(
+      (e: React.MouseEvent) => {
+        const target = (e.target as HTMLElement).closest('[data-masonrycell]');
+        if (target === null) {
+          return;
+        }
+        e.stopPropagation();
+        const index = parseInt(target.getAttribute('data-fileindex')!);
+        runInAction(() => {
+          uiStore.selectFile(fileStore.fileList[index], true);
+          uiStore.toggleSlideMode();
+        });
+      },
+      [fileStore.fileList, uiStore],
+    );
+
+    const handleContextMenu = useCallback(
+      (e: React.MouseEvent) => {
+        const target = (e.target as HTMLElement).closest('[data-masonrycell]');
+        if (target === null) {
+          return;
+        }
+        e.stopPropagation();
+        const index = parseInt(target.getAttribute('data-fileindex')!);
+        runInAction(() => {
+          const file = fileStore.fileList[index];
+          showContextMenu(e.clientX, e.clientY, [
+            file.isBroken ? (
+              <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+            ) : (
+              <FileViewerMenuItems file={file} uiStore={uiStore} />
+            ),
+            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+          ]);
+        });
+      },
+      [fileStore, showContextMenu, uiStore],
+    );
+
     // Scroll to the first item in the view any time it is changed
     const lastSelIndex = lastSelectionIndex.current;
     useLayoutEffect(() => {
-      if (lastSelIndex !== undefined && invisLastSelectedItemForScrollRef?.current !== null) {
+      if (lastSelIndex !== undefined && scrollAnchor?.current !== null) {
         // Scroll to invisible element, positioned at selected element,
         // just for scroll automatisation with scrollIntoView
         const s = layout.getItemLayout(lastSelIndex);
-        invisLastSelectedItemForScrollRef.current.style.top = s.top + 'px';
-        invisLastSelectedItemForScrollRef.current.style.left = s.left + 'px';
-        invisLastSelectedItemForScrollRef.current.style.width = s.width + 'px';
-        invisLastSelectedItemForScrollRef.current.style.height = s.height + 'px';
-        invisLastSelectedItemForScrollRef.current?.scrollIntoView({
+        scrollAnchor.current.style.transform = `translate(${s.left + 4}px,${s.top + 4}px)`;
+        scrollAnchor.current.style.width = s.width + 'px';
+        scrollAnchor.current.style.height = s.height + 'px';
+        scrollAnchor.current?.scrollIntoView({
           block: 'nearest',
         });
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastSelIndex, layoutUpdateDate]);
+    }, [lastSelIndex, layoutUpdateDate, uiStore.fileSelection.size]);
 
     return (
       // One div as the scrollable viewport
-      <div className={className} onScroll={handleScroll} ref={wrapperRef}>
+      <div
+        className={className}
+        onScroll={handleScroll}
+        ref={wrapperRef}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
+      >
         {/* One div for the content */}
         <div style={{ width: containerWidth, height: containerHeight }}>
           {images.slice(startRenderIndex, endRenderIndex).map((im, index) => {
-            const style = layout.getItemLayout(startRenderIndex + index);
+            const transform = layout.getItemLayout(startRenderIndex + index);
             return (
               <MasonryCell
+                index={startRenderIndex + index}
                 key={im.id}
                 file={fileStore.fileList[startRenderIndex + index]}
                 mounted
                 uiStore={uiStore}
                 fileStore={fileStore}
-                // TODO: Might be better to do translate3d instead of setting top & left offset, not a clear winner, should research maybe. See styleFromTransform
-                style={style}
+                transform={transform}
                 // Force to load the full resolution image when the img dimensions on screen are larger than the thumbnail image resolution
                 // Otherwise you'll see very low res images. This is usually only the case for images with extreme aspect ratios
                 // TODO: Not the best solution; could generate multiple thumbnails of other resolutions
-                forceNoThumbnail={style.width > thumbnailMaxSize || style.height > thumbnailMaxSize}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  runInAction(() =>
-                    select(
-                      fileStore.fileList[startRenderIndex + index],
-                      e.ctrlKey || e.metaKey,
-                      e.shiftKey,
-                    ),
-                  );
-                }}
-                onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  uiStore.selectFile(im, true);
-                  uiStore.toggleSlideMode();
-                }}
-                onContextMenu={(e) =>
-                  showContextMenu(e.clientX, e.clientY, [
-                    im.isBroken ? (
-                      <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-                    ) : (
-                      <FileViewerMenuItems file={im} uiStore={uiStore} />
-                    ),
-                    im.isBroken ? <></> : <ExternalAppMenuItems path={im.absolutePath} />,
-                  ])
+                forceNoThumbnail={
+                  transform.width > thumbnailMaxSize || transform.height > thumbnailMaxSize
                 }
               />
             );
           })}
-          {lastSelIndex !== undefined && (
-            <div
-              ref={invisLastSelectedItemForScrollRef}
-              // style={layout.getItemLayout(lastSelIndex)}
-              id="invis-last-selected-item-for-scroll"
-            />
-          )}
+          <div
+            ref={scrollAnchor}
+            // style={layout.getItemLayout(lastSelIndex)}
+            id="invis-last-selected-item-for-scroll"
+          />
         </div>
       </div>
     );

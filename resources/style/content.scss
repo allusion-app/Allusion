@@ -35,16 +35,10 @@
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
-[role='gridcell'], [role='masonrycell'] {
+[role='gridcell'],
+[data-masonrycell] {
   position: relative;
   margin: 4px;
-
-  h2 {
-    grid-area: title;
-    font-size: medium;
-    margin: 0;
-    white-space: nowrap;
-  }
 
   &[aria-selected='true'] .thumbnail {
     background-color: var(--accent-color-blue);
@@ -203,6 +197,10 @@
   }
 
   h2 {
+    grid-area: title;
+    font-size: medium;
+    margin: 0;
+    white-space: nowrap;
     align-self: end;
   }
 
@@ -323,9 +321,9 @@
   overflow-x: hidden;
   height: 100%;
 
-  [role='masonrycell'] {
+  [data-masonrycell] {
     position: absolute;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease;
     .thumbnail {
       // Inherit size from parent style={} attribute
       max-width: inherit;

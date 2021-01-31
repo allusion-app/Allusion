@@ -12,6 +12,7 @@ import { Button, ButtonGroup, IconSet, Tag } from 'widgets';
 import { Tooltip } from 'widgets/popovers';
 
 import ImageInfo from '../../components/ImageInfo';
+import { ITransform } from './Masonry/masonry.worker';
 
 interface ICell {
   file: ClientFile;
@@ -56,86 +57,90 @@ interface IGridCell extends ICell {
   fileStore: FileStore;
 }
 
-export const GridCell = observer(
-  ({ file, colIndex, mounted, uiStore, fileStore, ...props }: IGridCell) => (
-    <div
-      role="gridcell"
-      tabIndex={-1}
-      aria-colindex={colIndex}
-      aria-selected={uiStore.fileSelection.has(file)}
-      {...props}
-    >
-      <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-        <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
-      </div>
-      {file.isBroken === true && (
-        <Tooltip
-          content="This image could not be found."
-          trigger={
-            <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
-              {IconSet.WARNING_BROKEN_LINK}
-            </span>
-          }
-        />
-      )}
-      {/* Show tags when the option is enabled, or when the file is selected */}
-      {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
-        (file.tags.size == 0 || !mounted ? (
-          <span className="thumbnail-tags" />
-        ) : (
-          <Tags file={file} />
-        ))}
+export const GridCell = observer(({ file, colIndex, mounted, uiStore, fileStore }: IGridCell) => (
+  <div
+    role="gridcell"
+    tabIndex={-1}
+    aria-colindex={colIndex}
+    aria-selected={uiStore.fileSelection.has(file)}
+  >
+    <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+      <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
     </div>
-  ),
-);
+    {file.isBroken === true && (
+      <Tooltip
+        content="This image could not be found."
+        trigger={
+          <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
+            {IconSet.WARNING_BROKEN_LINK}
+          </span>
+        }
+      />
+    )}
+    {/* Show tags when the option is enabled, or when the file is selected */}
+    {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
+      (file.tags.size == 0 || !mounted ? (
+        <span className="thumbnail-tags" />
+      ) : (
+        <Tags file={file} />
+      ))}
+  </div>
+));
 
 interface IMasonryCell extends ICell {
+  index: number;
   fileStore: FileStore;
   forceNoThumbnail: boolean;
+  transform: ITransform;
 }
 
 export const MasonryCell = observer(
   ({
     file,
     mounted,
+    index,
     uiStore,
     fileStore,
     forceNoThumbnail,
-    ...props
-  }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => (
-    <div
-      role="masonrycell"
-      tabIndex={-1}
-      aria-selected={uiStore.fileSelection.has(file)}
-      {...props}
-    >
-      <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-        <Thumbnail
-          uiStore={uiStore}
-          mounted={!mounted}
-          file={file}
-          forceNoThumbnail={forceNoThumbnail}
-        />
+    transform: { height, width, left, top },
+  }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
+    const style = { height, width, transform: `translate(${left}px,${top}px)` };
+    return (
+      <div
+        data-masonrycell
+        data-fileindex={index}
+        tabIndex={-1}
+        aria-selected={uiStore.fileSelection.has(file)}
+        style={style}
+      >
+        <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+          <Thumbnail
+            uiStore={uiStore}
+            mounted={!mounted}
+            file={file}
+            forceNoThumbnail={forceNoThumbnail}
+          />
+        </div>
+        {file.isBroken === true && (
+          <Tooltip
+            content="This image could not be found."
+            trigger={
+              <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
+                {IconSet.WARNING_BROKEN_LINK}
+              </span>
+            }
+          />
+        )}
+        {/* Show tags when the option is enabled, or when the file is selected */}
+        {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
+          (file.tags.size == 0 || !mounted ? (
+            <span className="thumbnail-tags" />
+          ) : (
+            <Tags file={file} />
+          ))}
       </div>
-      {file.isBroken === true && (
-        <Tooltip
-          content="This image could not be found."
-          trigger={
-            <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
-              {IconSet.WARNING_BROKEN_LINK}
-            </span>
-          }
-        />
-      )}
-      {/* Show tags when the option is enabled, or when the file is selected */}
-      {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
-        (file.tags.size == 0 || !mounted ? (
-          <span className="thumbnail-tags" />
-        ) : (
-          <Tags file={file} />
-        ))}
-    </div>
-  ),
+    );
+  },
 );
 
 const enum ThumbnailState {
