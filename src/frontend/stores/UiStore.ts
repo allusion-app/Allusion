@@ -251,10 +251,11 @@ class UiStore {
     }
 
     // If only one image was selected, open all images, but focus on the selected image. Otherwise, open selected images
-    const previewFiles =
-      this.fileSelection.size === 1
-        ? this.rootStore.fileStore.fileList
-        : Array.from(this.fileSelection);
+    // TODO: FIXME: Disabled for now: makes it a lot less "snappy", takes a while for the message to come through
+    const previewFiles = Array.from(this.fileSelection);
+    // this.fileSelection.size === 1
+    //   ? this.rootStore.fileStore.fileList
+    //   : Array.from(this.fileSelection);
 
     RendererMessenger.sendPreviewFiles({
       ids: previewFiles.map((file) => file.id),

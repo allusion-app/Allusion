@@ -12,12 +12,12 @@ export default DropContext;
 
 export const DropContextProvider = (props: {
   children: React.ReactNode;
-  onDragEnter?: () => void;
+  onDragEnter: () => void;
 }) => {
   const dropState = useFileDropper();
   useEffect(() => {
     if (dropState.isDropping) {
-      props.onDragEnter?.();
+      props.onDragEnter();
     }
   }, [props.onDragEnter, dropState.isDropping, props]);
 
@@ -71,12 +71,17 @@ const useFileDropper = () => {
       setIsDropping(false);
     };
 
+    const handleDragOver = (e: DragEvent) => e.preventDefault();
+
     document.body.addEventListener('dragenter', handleDragEnter);
     document.body.addEventListener('dragleave', handleDragLeave);
+    // defaultPreventing dragOver is required for detecting drop events apparently
+    document.body.addEventListener('dragover', handleDragOver);
     document.body.addEventListener('drop', handleDrop);
     return () => {
       document.body.removeEventListener('dragenter', handleDragEnter);
       document.body.removeEventListener('dragleave', handleDragLeave);
+      document.body.removeEventListener('dragover', handleDragOver);
       document.body.removeEventListener('drop', handleDrop);
     };
   }, [isDropping]);

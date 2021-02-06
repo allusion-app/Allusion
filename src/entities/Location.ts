@@ -114,7 +114,7 @@ export class ClientLocation implements ISerializable<ILocation> {
             console.log('Cancelling file watching');
             await watcher.close();
           }
-          if (IMG_EXTENSIONS.some((ext) => SysPath.extname(path).endsWith(ext))) {
+          if (IMG_EXTENSIONS.some((ext) => SysPath.extname(path).toLowerCase().endsWith(ext))) {
             // Todo: ignore dot files/dirs?
             if (this.isReady) {
               console.log(`File ${path} has been added after initialization`);

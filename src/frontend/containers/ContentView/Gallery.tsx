@@ -275,6 +275,7 @@ const GridGallery = observer((props: ILayoutProps) => {
       if (index === undefined) {
         return;
       }
+      e.stopPropagation();
       runInAction(() => {
         const file = fileList[index];
         showContextMenu(e.clientX, e.clientY, [
@@ -426,6 +427,7 @@ const ListGallery = observer((props: ILayoutProps) => {
       if (index === undefined) {
         return;
       }
+      e.stopPropagation();
       runInAction(() => {
         const file = fileStore.fileList[index];
         showContextMenu(e.clientX, e.clientY, [
