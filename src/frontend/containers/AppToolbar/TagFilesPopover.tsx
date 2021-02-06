@@ -1,5 +1,5 @@
 import React, { ReactNode, useContext, useRef, useState } from 'react';
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { ClientTag } from 'src/entities/Tag';
@@ -86,7 +86,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     const newTag = await tagStore.create(tagStore.root, inputText);
     onSelect(newTag);
     setInputText('');
-    setMatchingTags([...tagStore.tagListWithoutRoot]);
+    runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
     inputRef.current?.focus();
   });
 

@@ -40,6 +40,7 @@ const App = observer(() => {
       };
       runInAction(() => {
         const { hotkeyMap } = uiStore;
+        let isMatch = true;
         // UI
         if (matches(hotkeyMap.toggleOutliner)) {
           uiStore.toggleOutliner();
@@ -52,7 +53,6 @@ const App = observer(() => {
           uiStore.toggleHelpCenter();
         } else if (matches(hotkeyMap.openPreviewWindow)) {
           uiStore.openPreviewWindow();
-          e.preventDefault(); // prevent scrolling with space when opening the preview window
           // Search
         } else if (matches(hotkeyMap.advancedSearch)) {
           uiStore.toggleAdvancedSearch();
@@ -63,6 +63,12 @@ const App = observer(() => {
           uiStore.setMethodGrid();
         } else if (matches(hotkeyMap.viewSlide)) {
           uiStore.toggleSlideMode();
+        } else {
+          isMatch = false;
+        }
+
+        if (isMatch) {
+          e.preventDefault();
         }
       });
     },

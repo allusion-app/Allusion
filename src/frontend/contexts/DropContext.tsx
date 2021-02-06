@@ -12,12 +12,12 @@ export default DropContext;
 
 export const DropContextProvider = (props: {
   children: React.ReactNode;
-  onDragEnter?: () => void;
+  onDragEnter: () => void;
 }) => {
   const dropState = useFileDropper();
   useEffect(() => {
     if (dropState.isDropping) {
-      props.onDragEnter?.();
+      props.onDragEnter();
     }
   }, [props.onDragEnter, dropState.isDropping, props]);
 
