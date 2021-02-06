@@ -1,3 +1,4 @@
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import StoreContext from 'src/frontend/contexts/StoreContext';
@@ -17,39 +18,41 @@ const OutlinerSplitter = observer(() => {
     document.body.style.cursor = 'col-resize';
   }, []);
 
-  useEffect(() => {
+  const handleMouseUp = useCallback(() => {
+    setDragging(false);
+    document.body.style.cursor = 'inherit';
+  }, []);
+
+  const handleMouseMove = action((e: MouseEvent) => {
     if (!isDragging) {
       return;
     }
-    const handleMove = (e: MouseEvent) => {
-      if (uiStore.isOutlinerOpen) {
-        const w = clamp(e.clientX, MIN_OUTLINER_WIDTH, MAX_OUTLINER_WIDTH);
-        document.body.style.setProperty('--outliner-width', `${w}px`);
 
-        // TODO: Automatically collapse if less than 3/4 of min-width?
-        if (e.clientX < (MIN_OUTLINER_WIDTH * 3) / 4) {
-          uiStore.toggleOutliner();
-        }
-      } else if (e.clientX >= MIN_OUTLINER_WIDTH) {
+    if (uiStore.isOutlinerOpen) {
+      const w = clamp(e.clientX, MIN_OUTLINER_WIDTH, MAX_OUTLINER_WIDTH);
+      document.body.style.setProperty('--outliner-width', `${w}px`);
+
+      // TODO: Automatically collapse if less than 3/4 of min-width?
+      if (e.clientX < (MIN_OUTLINER_WIDTH * 3) / 4) {
         uiStore.toggleOutliner();
       }
-    };
+    } else if (e.clientX >= MIN_OUTLINER_WIDTH) {
+      uiStore.toggleOutliner();
+    }
+  });
 
-    const handleUp = () => {
-      setDragging(false);
-      document.body.style.cursor = 'inherit';
-    };
-    document.body.addEventListener('mousemove', handleMove);
-    document.body.addEventListener('mouseup', handleUp);
+  useEffect(() => {
+    document.body.addEventListener('mousemove', handleMouseMove);
+    document.body.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      document.body.removeEventListener('mousemove', handleMove);
-      document.body.removeEventListener('mouseup', handleUp);
+      document.body.removeEventListener('mousemove', handleMouseMove);
+      document.body.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, uiStore]);
+  }, [handleMouseMove, handleMouseUp]);
 
   return uiStore.isOutlinerOpen ? (
-    <div id="outliner-splitter" onMouseDown={handleMouseDown} />
+    <div id="outliner-splitter" onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} />
   ) : null;
 });
 
