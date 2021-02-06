@@ -16,7 +16,7 @@ import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
 import FileStore from 'src/frontend/stores/FileStore';
 import { ID, IResource, ISerializable } from './ID';
-import { ClientTag } from './Tag';
+import { ClientTag, ROOT_TAG_ID } from './Tag';
 import { RendererMessenger } from 'src/Messaging';
 
 export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
@@ -174,11 +174,15 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   writeTagsToFile() {
-    console.log('Writing tags to file...');
+    const getTagHierarchy = (tag: ClientTag): string =>
+      tag.parent.id === ROOT_TAG_ID ? tag.name : `${getTagHierarchy(tag.parent)} | ${tag.name}`;
+    // Also put parents in here, separated by | symbols
+    const tagHierarchy = Array.from(this.tags).map((tag) => getTagHierarchy(tag));
+    console.log('Writing tags to file...', this.absolutePath, this.tags);
+
     RendererMessenger.writeExifTags({
       absolutePath: this.absolutePath,
-      // TODO: Also put parents in here, separated by | symbols
-      tagHierarchy: Array.from(this.tags).map((t) => t.name),
+      tagHierarchy,
     });
   }
 
