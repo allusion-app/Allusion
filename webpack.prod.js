@@ -7,10 +7,18 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
+// Required for exiftool: https://github.com/photostructure/exiftool-vendored.js/wiki/FAQ#how-do-you-make-this-work-with-electron
+const nodeExternals = require('webpack-node-externals');
+
 let mainConfig = {
   mode: 'production',
   entry: './src/main.ts',
   target: ['electron-main', 'es2020'],
+  externals: [
+    nodeExternals({
+      allowlist: ['node_modules/exiftool-vendored.*'],
+    }),
+  ],
   output: {
     filename: 'main.bundle.js',
     path: __dirname + '/build',
@@ -159,7 +167,10 @@ let rendererConfig = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './src/index.html'),
     }),
-    new MiniCssExtractPlugin({ filename: '[name].[contenthash].css', chunkFilename: '[id].[contenthash].css' }),
+    new MiniCssExtractPlugin({
+      filename: '[name].[contenthash].css',
+      chunkFilename: '[id].[contenthash].css',
+    }),
   ],
 };
 

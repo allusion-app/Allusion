@@ -17,6 +17,7 @@ import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import FileStore from 'src/frontend/stores/FileStore';
 import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
+import { RendererMessenger } from 'src/Messaging';
 
 export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
@@ -107,11 +108,17 @@ export class ClientFile implements ISerializable<IFile> {
         if (this.autoSave) {
           // Remove reactive properties, since observable props are not accepted in the backend
           this.store.save(file);
+
+          if (this.store.writeTagsToFileMetadata) {
+            this.writeTagsToFile();
+          }
         }
       },
     );
 
     makeObservable(this);
+
+    this.readTagsFromFile();
   }
 
   @action.bound setThumbnailPath(thumbnailPath: string): void {
@@ -148,6 +155,31 @@ export class ClientFile implements ISerializable<IFile> {
     this.autoSave = false;
     update(this);
     this.autoSave = true;
+  }
+
+  readTagsFromFile() {
+    // Observations from adobe bridge + looking at files through exiftool:
+    // - Terminology:
+    //   - the fields in exif metadata are called "tags". yes this is confusing
+    //   - tags are stored in exif data under "Subject", sometimes as "Keywords"
+    //   - Tag hierarchy is stored under "Hierarchical Subject", as "TopTag|ChildTag, RootTag, OtherTag|OtherChildTag"
+    // JPG
+    // - Most extensive exif data support, accessible in Windows explorer
+    // - Tags are stored as both as "Subject", "Keywords", and even as
+    // PNG:
+    // - Relatively recently gained support for exif metadata - not available in windows, probably is there on macs
+    RendererMessenger.readExifTags({ absolutePath: this.absolutePath })
+      .then(console.log)
+      .catch(console.error);
+  }
+
+  writeTagsToFile() {
+    console.log('Writing tags to file...');
+    RendererMessenger.writeExifTags({
+      absolutePath: this.absolutePath,
+      // TODO: Also put parents in here, separated by | symbols
+      tagHierarchy: Array.from(this.tags).map((t) => t.name),
+    });
   }
 
   serialize(): IFile {

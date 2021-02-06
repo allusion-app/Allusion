@@ -95,9 +95,13 @@ export class ClientLocation implements ISerializable<ILocation> {
     // Watch for folder changes
     this.watcher = chokidar.watch(directory, {
       depth: RECURSIVE_DIR_WATCH_DEPTH,
-      // Ignore dot files. Also dot folders?
-      // Todo: Ignore everything but image files
-      ignored: /(^|[\/\\])\../,
+      ignored: [
+        // Ignore dot files. Also dot folders?
+        /(^|[\/\\])\../,
+        // ExifTool apparently works by temporarily copying the file with "exiftool_temp" at the end before it changes it
+        /.+_exiftool_tmp$/,
+        // TODO: Ignore everything but image files
+      ],
     });
 
     const watcher = this.watcher;

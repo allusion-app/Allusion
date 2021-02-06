@@ -41,6 +41,8 @@ class FileStore {
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
 
+  @observable writeTagsToFileMetadata = true; // TODO: Make toggle-able
+
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
@@ -312,7 +314,9 @@ class FileStore {
   getLocation(location: ID): ClientLocation {
     const loc = this.rootStore.locationStore.get(location);
     if (!loc) {
-      throw new Error(`Location of file was not found! This should never happen! Location ${location}`);
+      throw new Error(
+        `Location of file was not found! This should never happen! Location ${location}`,
+      );
     }
     return loc;
   }
