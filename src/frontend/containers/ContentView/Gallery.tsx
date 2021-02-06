@@ -10,7 +10,7 @@ import { ClientFile } from 'src/entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { IconSet } from 'widgets';
-import { MenuItem } from 'widgets/menus';
+import { MenuItem, MenuDivider } from 'widgets/menus';
 import { GridCell, ListCell } from './GalleryItem';
 import SlideMode from './SlideMode';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/dnd';
@@ -262,6 +262,7 @@ const GridGallery = observer((props: ILayoutProps) => {
       if (index === undefined) {
         return;
       }
+      e.stopPropagation();
       runInAction(() => {
         const file = fileList[index];
         showContextMenu(e.clientX, e.clientY, [
@@ -413,6 +414,7 @@ const ListGallery = observer((props: ILayoutProps) => {
       if (index === undefined) {
         return;
       }
+      e.stopPropagation();
       runInAction(() => {
         const file = fileStore.fileList[index];
         showContextMenu(e.clientX, e.clientY, [
@@ -632,12 +634,14 @@ const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile } & UiStorePr
         icon={IconSet.PREVIEW}
       />
       <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
+      <MenuDivider />
     </>
   );
 };
 
 const ExternalAppMenuItems = ({ path }: { path: string }) => (
   <>
+    <MenuDivider />
     <MenuItem
       onClick={() => shell.openExternal(path)}
       text="Open External"

@@ -143,13 +143,6 @@ export class ClientFile implements ISerializable<IFile> {
     this.autoSave = !state;
   }
 
-  /** Update observable properties without updating the database */
-  @action update(update: (file: ClientFile) => void): void {
-    this.autoSave = false;
-    update(this);
-    this.autoSave = true;
-  }
-
   serialize(): IFile {
     return {
       id: this.id,

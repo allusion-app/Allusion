@@ -27,7 +27,6 @@ body {
   left: var(--outliner-width);
   right: 0;
   height: var(--toolbar-height);
-  box-sizing: border-box;
   padding: 0 0.5rem;
   display: flex;
   align-items: center;
@@ -46,7 +45,6 @@ body {
   bottom: 0;
   left: 0;
   width: var(--outliner-width);
-  box-sizing: border-box;
   padding: var(--toolbar-height) 0.75rem 2rem 0.75rem;
   border-right: 0.0625rem solid var(--border-dark);
   background: var(--background-color-alt);
@@ -62,7 +60,6 @@ body {
   left: var(--outliner-width);
   right: 0;
   bottom: 0;
-  box-sizing: border-box;
   padding: 0 0.5rem;
   background: var(--background-color);
   display: flex;
@@ -87,7 +84,6 @@ header h2 {
 // Custom scrollbar style
 ::-webkit-scrollbar {
   width: 0.5rem;
-  box-sizing: border-box;
   padding: 0.125rem;
 }
 

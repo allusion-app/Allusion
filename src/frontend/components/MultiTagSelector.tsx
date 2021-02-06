@@ -109,7 +109,8 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
             <Option
               key="create"
               selected={false}
-              value={`Create Tag ${query}`}
+              value={`Create Tag "${query}"`}
+              icon={IconSet.TAG_ADD}
               onClick={async () => {
                 onSelect(await onCreate(query));
                 setQuery('');

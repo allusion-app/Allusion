@@ -8,12 +8,12 @@ import StoreContext from '../../contexts/StoreContext';
 import useContextMenu from '../../hooks/useContextMenu';
 
 import { IconSet } from 'widgets';
-import { ContextMenu, MenuSubItem, Menu, MenuDivider, MenuChild } from 'widgets/menus';
+import { ContextMenu, MenuSubItem, Menu, MenuChild } from 'widgets/menus';
 
 import Placeholder from './Placeholder';
 import Layout from './Gallery';
 
-import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
+import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
 
 const ContentView = observer(() => {
   const {
@@ -35,6 +35,7 @@ const ContentView = observer(() => {
         } else if (matches(hotkeyMap.deselectAll)) {
           uiStore.clearFileSelection();
         } else if (matches(hotkeyMap.openTagEditor)) {
+          e.preventDefault();
           uiStore.openToolbarTagPopover();
         }
       });
@@ -57,6 +58,13 @@ const Gallery = observer(() => {
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState({ width: 1, height: 1 });
   const container = useRef<HTMLDivElement>(null);
+
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      show(e.clientX, e.clientY, []);
+    },
+    [show],
+  );
 
   const resizeObserver = useRef(
     new ResizeObserver((entries) => {
@@ -82,6 +90,7 @@ const Gallery = observer(() => {
       className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
       onClick={!uiStore.isSlideMode ? uiStore.clearFileSelection : undefined}
+      onContextMenu={handleContextMenu} // Background clicks
     >
       <Layout
         contentRect={contentRect}
@@ -92,14 +101,15 @@ const Gallery = observer(() => {
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}
-          <MenuDivider />
           <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
             <LayoutMenuItems uiStore={uiStore} />
           </MenuSubItem>
           <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
             <SortMenuItems fileStore={fileStore} />
           </MenuSubItem>
-          <MenuDivider />
+          <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
+            <ThumbnailSizeMenuItems uiStore={uiStore} />
+          </MenuSubItem>
           {externalMenu}
         </Menu>
       </ContextMenu>
