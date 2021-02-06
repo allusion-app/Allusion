@@ -19,6 +19,7 @@ import AppToolbar from './containers/AppToolbar';
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
+import OutlinerSplitter from './containers/Outliner/OutlinerSplitter';
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
@@ -53,6 +54,7 @@ const App = observer(() => {
           uiStore.toggleHelpCenter();
         } else if (matches(hotkeyMap.openPreviewWindow)) {
           uiStore.openPreviewWindow();
+          e.preventDefault(); // prevent scrolling with space when opening the preview window
           // Search
         } else if (matches(hotkeyMap.advancedSearch)) {
           uiStore.toggleAdvancedSearch();
@@ -104,6 +106,8 @@ const App = observer(() => {
 
         <ErrorBoundary>
           <Outliner />
+
+          <OutlinerSplitter />
 
           <AppToolbar />
 
