@@ -41,6 +41,7 @@ const App = observer(() => {
       };
       runInAction(() => {
         const { hotkeyMap } = uiStore;
+        let isMatch = true;
         // UI
         if (matches(hotkeyMap.toggleOutliner)) {
           uiStore.toggleOutliner();
@@ -64,6 +65,12 @@ const App = observer(() => {
           uiStore.setMethodGrid();
         } else if (matches(hotkeyMap.viewSlide)) {
           uiStore.toggleSlideMode();
+        } else {
+          isMatch = false;
+        }
+
+        if (isMatch) {
+          e.preventDefault();
         }
       });
     },

@@ -1,5 +1,5 @@
 import React, { ReactNode, useContext, useRef, useState } from 'react';
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { ClientTag } from 'src/entities/Tag';
@@ -86,7 +86,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     const newTag = await tagStore.create(tagStore.root, inputText);
     onSelect(newTag);
     setInputText('');
-    setMatchingTags([...tagStore.tagListWithoutRoot]);
+    runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
     inputRef.current?.focus();
   });
 
@@ -158,9 +158,6 @@ const FloatingDialog = (props: FloatingDialogProps) => {
     const button = e.currentTarget.previousElementSibling as HTMLElement;
     if (e.relatedTarget !== button && !e.currentTarget.contains(e.relatedTarget as Node)) {
       onClose();
-      // FIXME: @Chi why was this needed? Problematic after closing the tag popover: focuses the button, so ContentView hotkeys no longer work
-      // The real issue may be that the ContentView is not focused when selecting an item
-      // button.focus();
     }
   };
 

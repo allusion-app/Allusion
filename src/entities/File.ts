@@ -143,16 +143,6 @@ export class ClientFile implements ISerializable<IFile> {
     this.autoSave = !state;
   }
 
-  /**
-   * Update observable properties without updating the database
-   * @deprecated Does not work as intended: still updates to the DB. Can't figure out why at first glance
-   * */
-  @action update(update: (file: ClientFile) => void): void {
-    this.autoSave = false;
-    update(this);
-    this.autoSave = true;
-  }
-
   serialize(): IFile {
     return {
       id: this.id,

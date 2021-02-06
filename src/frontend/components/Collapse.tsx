@@ -15,7 +15,6 @@ export const Collapse = ({ id, element: Element = 'div', open, children }: IColl
     const container = transition.current;
     if (container !== null) {
       container.style.transition = 'height 0.2s ease-out';
-      // container.style.overflowX = 'hidden';
     }
   }, []);
 
@@ -50,7 +49,6 @@ export const Collapse = ({ id, element: Element = 'div', open, children }: IColl
           // Reset overflow on expand transition end.
           timerId = window.setTimeout(() => {
             frameId = requestAnimationFrame(() => {
-              // container.style.overflowY = 'auto';
               container.style.overflowY = '';
               frameId = undefined;
               timerId = undefined;
