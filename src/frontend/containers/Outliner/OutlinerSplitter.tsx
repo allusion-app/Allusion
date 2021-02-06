@@ -27,7 +27,7 @@ const OutlinerSplitter = observer(() => {
         document.body.style.setProperty('--outliner-width', `${w}px`);
 
         // TODO: Automatically collapse if less than 3/4 of min-width?
-        if (e.clientX < MIN_OUTLINER_WIDTH * 3 / 4) {
+        if (e.clientX < (MIN_OUTLINER_WIDTH * 3) / 4) {
           uiStore.toggleOutliner();
         }
       } else if (e.clientX >= MIN_OUTLINER_WIDTH) {
@@ -45,14 +45,11 @@ const OutlinerSplitter = observer(() => {
     return () => {
       document.body.removeEventListener('mousemove', handleMove);
       document.body.removeEventListener('mouseup', handleUp);
-    }
+    };
   }, [isDragging, uiStore]);
 
   return uiStore.isOutlinerOpen ? (
-    <div
-      id="outliner-splitter"
-      onMouseDown={handleMouseDown}
-    />
+    <div id="outliner-splitter" onMouseDown={handleMouseDown} />
   ) : null;
 });
 

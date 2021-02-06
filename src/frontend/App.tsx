@@ -19,7 +19,7 @@ import AppToolbar from './containers/AppToolbar';
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
-import OutlinerSplitter from './containers/Outliner/splitter';
+import OutlinerSplitter from './containers/Outliner/OutlinerSplitter';
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
