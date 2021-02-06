@@ -24,7 +24,7 @@ interface ILayoutProps extends UiStoreProp, FileStoreProp {
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
   /** menu: [fileMenu, externalMenu] */
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element] | []) => void;
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
 const Layout = ({
@@ -264,19 +264,15 @@ const GridGallery = observer((props: ILayoutProps) => {
       }
       e.stopPropagation();
       runInAction(() => {
-        const file = index !== undefined && fileList[index];
-        if (file) {
-          showContextMenu(e.clientX, e.clientY, [
-            file.isBroken ? (
-              <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-            ) : (
-              <FileViewerMenuItems file={file} uiStore={uiStore} />
-            ),
-            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-          ]);
-        } else {
-          showContextMenu(e.clientX, e.clientY, []); // background menu
-        }
+        const file = fileList[index];
+        showContextMenu(e.clientX, e.clientY, [
+          file.isBroken ? (
+            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+          ) : (
+            <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
+          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+        ]);
       });
     },
     [fileList, fileStore, numColumns, showContextMenu, uiStore],
