@@ -178,7 +178,6 @@ const useFileDropHandling = (
 
   const handleDragEnter = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      // if (event.target
       event.stopPropagation();
       event.preventDefault();
       const canDrop = onDragOver(event);
