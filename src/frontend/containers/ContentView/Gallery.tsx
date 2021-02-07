@@ -1,25 +1,23 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { FixedSizeList } from 'react-window';
-import { observer } from 'mobx-react-lite';
 import { action, runInAction } from 'mobx';
-import { shell } from 'electron';
-
-import { throttle } from '../../utils';
+import { observer } from 'mobx-react-lite';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FixedSizeList } from 'react-window';
 import { RendererMessenger } from 'src/Messaging';
-import { ClientFile } from 'src/entities/File';
+import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
-import { IconSet } from 'widgets';
-import { MenuItem, MenuDivider } from 'widgets/menus';
-import { GridCell, ListCell } from './GalleryItem';
-import SlideMode from './SlideMode';
+import { throttle } from '../../utils';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/dnd';
+import { GridCell, ListCell } from './GalleryItem';
+import MasonryRenderer from './Masonry/MasonryRenderer';
+import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from './menu-items';
+import SlideMode from './SlideMode';
 
 type Dimension = { width: number; height: number };
 type UiStoreProp = { uiStore: UiStore };
 type FileStoreProp = { fileStore: FileStore };
 
-interface ILayoutProps extends UiStoreProp, FileStoreProp {
+export interface ILayoutProps extends UiStoreProp, FileStoreProp {
   contentRect: Dimension;
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
@@ -108,6 +106,9 @@ const Layout = ({
   if (uiStore.isSlideMode) {
     return <SlideMode contentRect={contentRect} />;
   }
+  if (contentRect.width < 10) {
+    return null;
+  }
   switch (uiStore.method) {
     case ViewMethod.Grid:
       return (
@@ -120,8 +121,19 @@ const Layout = ({
           fileStore={fileStore}
         />
       );
-    // case 'masonry':
-    //   return <MasonryGallery {...props} />;
+    case ViewMethod.MasonryVertical:
+    case ViewMethod.MasonryHorizontal:
+      return (
+        <MasonryRenderer
+          contentRect={contentRect}
+          type={uiStore.method}
+          lastSelectionIndex={lastSelectionIndex}
+          showContextMenu={showContextMenu}
+          select={handleFileSelect}
+          uiStore={uiStore}
+          fileStore={fileStore}
+        />
+      );
     case ViewMethod.List:
       return (
         <ListGallery
@@ -141,6 +153,7 @@ const Layout = ({
 // Some extra padding in the Grid view, so that the scrollbar will not overlap with the content
 const CONTENT_PADDING_RIGHT = 12;
 
+// TODO: Move views to separate files
 const GridGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
   const { fileList } = fileStore;
@@ -576,85 +589,6 @@ const GridRow = observer((props: IGridRow) => {
   );
 });
 
-// const MasonryGallery = observer(({}: ILayoutProps) => {
-//   const Styles: any = {
-//     textAlign: 'center',
-//     display: 'flex',
-//     flexDirection: 'column',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     width: '100%',
-//     height: '65%',
-//   };
-
-//   return (
-//     <div style={Styles}>
-//       <span className="custom-icon-64" style={{ marginBottom: '1rem' }}>
-//         {IconSet.DB_ERROR}
-//       </span>
-//       <p>This view is currently not supported</p>
-//     </div>
-//   );
-// });
-
-const MissingFileMenuItems = observer(({ uiStore, fileStore }: UiStoreProp & FileStoreProp) => (
-  <>
-    <MenuItem
-      onClick={fileStore.fetchMissingFiles}
-      text="Open Recovery Panel"
-      icon={IconSet.WARNING_BROKEN_LINK}
-      disabled={fileStore.showsMissingContent}
-    />
-    <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
-  </>
-));
-
-const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile } & UiStoreProp) => {
-  const handleViewFullSize = () => {
-    uiStore.selectFile(file, true);
-    uiStore.toggleSlideMode();
-  };
-
-  const handlePreviewWindow = () => {
-    uiStore.selectFile(file, true);
-    uiStore.openPreviewWindow();
-  };
-
-  const handleInspect = () => {
-    uiStore.selectFile(file, true);
-    uiStore.openInspector();
-  };
-
-  return (
-    <>
-      <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.SEARCH} />
-      <MenuItem
-        onClick={handlePreviewWindow}
-        text="Open In Preview Window"
-        icon={IconSet.PREVIEW}
-      />
-      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
-      <MenuDivider />
-    </>
-  );
-};
-
-const ExternalAppMenuItems = ({ path }: { path: string }) => (
-  <>
-    <MenuDivider />
-    <MenuItem
-      onClick={() => shell.openExternal(path)}
-      text="Open External"
-      icon={IconSet.OPEN_EXTERNAL}
-    />
-    <MenuItem
-      onClick={() => shell.showItemInFolder(path)}
-      text="Reveal in File Browser"
-      icon={IconSet.FOLDER_CLOSE}
-    />
-  </>
-);
-
 export default observer(Layout);
 
 function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
@@ -736,8 +670,8 @@ const onDrop = action(
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
 // https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
-// const { screen } = remote;
-// const { width } = screen.getPrimaryDisplay().workAreaSize;
+// const {screen} = remote;
+// const {width} = screen.getPrimaryDisplay().workAreaSize;
 // const CELL_SMALL = (width / 10) - 16;
 // const CELL_MEDIUM = (width / 6) - 8;
 // const CELL_LARGE = (width / 4) - 8;
@@ -755,7 +689,7 @@ const CELL_SIZE_LARGE = 320 + PADDING;
 // can fit into one row.
 const SHRINK_FACTOR = 0.9;
 
-function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
+export function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {
     return [CELL_SIZE_SMALL * SHRINK_FACTOR, CELL_SIZE_SMALL];
   } else if (sizeType === 'medium') {

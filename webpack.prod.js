@@ -62,12 +62,16 @@ let rendererConfig = {
     __dirname: false,
     __filename: false,
   },
+  experiments: {
+    asyncWebAssembly: true,
+  },
   resolve: {
-    extensions: ['.js', '.json', '.ts', '.tsx', '.svg'],
+    extensions: ['.js', '.json', '.ts', '.tsx', '.svg', '.wasm'],
     alias: {
       widgets: path.resolve(__dirname, 'widgets/'),
       resources: path.resolve(__dirname, 'resources/'),
       src: path.resolve(__dirname, 'src/'),
+      wasm: path.resolve(__dirname, 'wasm/'),
     },
   },
   module: {
@@ -137,6 +141,14 @@ let rendererConfig = {
         },
       },
       {
+        test: /\.wasm$/,
+        loader: 'file-loader',
+        type: 'javascript/auto',
+        options: {
+          name: '[path][name].[ext]',
+        },
+      },
+      {
         test: /\.node$/,
         use: 'node-loader',
       },
@@ -159,7 +171,10 @@ let rendererConfig = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './src/index.html'),
     }),
-    new MiniCssExtractPlugin({ filename: '[name].[contenthash].css', chunkFilename: '[id].[contenthash].css' }),
+    new MiniCssExtractPlugin({
+      filename: '[name].[contenthash].css',
+      chunkFilename: '[id].[contenthash].css',
+    }),
   ],
 };
 

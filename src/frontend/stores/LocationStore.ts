@@ -52,6 +52,7 @@ class LocationStore {
         progressToastKey,
       );
 
+      // TODO: Add a maximum timeout for init: sometimes it's hanging for me. Could also be some of the following steps though
       const filePaths = await location.init();
 
       if (filePaths === undefined) {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 // Debounced a state, from https://usehooks.com/useDebounce/
 /** WARNING: Do not use this hook until dependencies outside this hook are tracked! */
-function useDebounce<T>(value: T, delay: number) {
+export default function useDebounce<T>(value: T, delay: number) {
   // State and setters for debounced value
   const [debouncedValue, setDebouncedValue] = useState(value);
 

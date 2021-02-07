@@ -35,16 +35,10 @@
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
-[role='gridcell'] {
+[role='gridcell'],
+[data-masonrycell] {
   position: relative;
   margin: 4px;
-
-  h2 {
-    grid-area: title;
-    font-size: medium;
-    margin: 0;
-    white-space: nowrap;
-  }
 
   &[aria-selected='true'] .thumbnail {
     background-color: var(--accent-color-blue);
@@ -203,6 +197,10 @@
   }
 
   h2 {
+    grid-area: title;
+    font-size: medium;
+    margin: 0;
+    white-space: nowrap;
     align-self: end;
   }
 
@@ -314,5 +312,29 @@
     width: 60%;
     border-bottom: 1px solid var(--text-muted-color);
     margin: 1rem auto;
+  }
+}
+
+.masonry {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+
+  [data-masonrycell] {
+    position: absolute;
+    transition: transform 0.2s ease;
+    .thumbnail {
+      // Inherit size from parent style={} attribute
+      max-width: inherit;
+      width: unset;
+      height: inherit;
+    }
+  }
+
+  #invis-last-selected-item-for-scroll {
+    position: absolute;
+    pointer-events: none;
+    z-index: -1;
   }
 }

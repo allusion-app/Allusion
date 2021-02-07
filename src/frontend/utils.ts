@@ -36,6 +36,34 @@ export const throttle = (fn: (...args: any) => any, wait: number = 300) => {
   };
 };
 
+/**
+ * Throttle debounce combo. Basically, same as throttle, but also calls fn at the end.
+ * https://trungk18.com/experience/debounce-throttle-combination/
+ * fixme: the fn is called one extra time at the end, but whatevs, good enough
+ * @param fn The function to be called
+ * @param wait How long to wait in between calls
+ */
+export function debouncedThrottle<F extends (...args: any) => any>(fn: F, wait = 300) {
+  let last: Date;
+  let deferTimer = 0;
+
+  const db = debounce(fn);
+  return function debouncedThrottleFn(this: any, ...args: any) {
+    const now = new Date();
+    if (!last || now.getTime() < last.getTime() + wait) {
+      clearTimeout(deferTimer);
+      db.apply(this, args);
+      deferTimer = setTimeout(() => {
+        last = now;
+        fn.apply(this, args);
+      }, wait) as any;
+    } else {
+      last = now;
+      fn.apply(this, args);
+    }
+  };
+}
+
 export const timeoutPromise = <T>(timeMS: number, promise: Promise<T>): Promise<T> => {
   return new Promise((resolve, reject) => {
     promise.then(resolve, reject);
