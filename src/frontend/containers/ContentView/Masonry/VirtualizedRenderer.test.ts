@@ -1,4 +1,4 @@
-import { binarySearch, Layouter } from './VirtualizedRenderer';
+import { binarySearch, Layouter } from './renderer-helpers';
 
 // Simple linear layout: One image per row
 const linearLayout: Layouter = {
@@ -37,6 +37,10 @@ describe('masonry > renderer', () => {
       });
     });
     describe('dynamic layout', () => {
+      it('should return 0 when viewport is at the top', () => {
+        const index = binarySearch(0, 10, dynamicLayout, false);
+        expect(index).toBe(0);
+      });
       // TODO: More tests, after implementing over/under-shooting
     });
   });
