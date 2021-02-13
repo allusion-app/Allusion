@@ -19,6 +19,7 @@ import AppToolbar from './containers/AppToolbar';
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
+import OutlinerSplitter from './containers/Outliner/OutlinerSplitter';
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
@@ -40,6 +41,7 @@ const App = observer(() => {
       };
       runInAction(() => {
         const { hotkeyMap } = uiStore;
+        let isMatch = true;
         // UI
         if (matches(hotkeyMap.toggleOutliner)) {
           uiStore.toggleOutliner();
@@ -52,6 +54,7 @@ const App = observer(() => {
           uiStore.toggleHelpCenter();
         } else if (matches(hotkeyMap.openPreviewWindow)) {
           uiStore.openPreviewWindow();
+          e.preventDefault(); // prevent scrolling with space when opening the preview window
           // Search
         } else if (matches(hotkeyMap.advancedSearch)) {
           uiStore.toggleAdvancedSearch();
@@ -60,8 +63,18 @@ const App = observer(() => {
           uiStore.setMethodList();
         } else if (matches(hotkeyMap.viewGrid)) {
           uiStore.setMethodGrid();
+        } else if (matches(hotkeyMap.viewMasonryVertical)) {
+          uiStore.setMethodMasonryVertical();
+        } else if (matches(hotkeyMap.viewMasonryHorizontal)) {
+          uiStore.setMethodMasonryHorizontal();
         } else if (matches(hotkeyMap.viewSlide)) {
           uiStore.toggleSlideMode();
+        } else {
+          isMatch = false;
+        }
+
+        if (isMatch) {
+          e.preventDefault();
         }
       });
     },
@@ -71,17 +84,18 @@ const App = observer(() => {
   useEffect(() => {
     setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
 
-    // Prevent scrolling with Space, instead used to open preview window
+    // Add listener for global keyboard shortcuts
     window.addEventListener('keydown', handleGlobalShortcuts);
 
     return () => window.removeEventListener('keydown', handleGlobalShortcuts);
   }, [handleGlobalShortcuts]);
 
-  // const openOutlinerOnDragEnter = useCallback(() => {
-  //   if (!uiStore.isOutlinerOpen) {
-  //     uiStore.toggleOutliner();
-  //   }
-  // }, [uiStore]);
+  // Automatically expand outliner when detecting a drag event
+  const openOutlinerOnDragEnter = useCallback(() => {
+    if (!uiStore.isOutlinerOpen) {
+      uiStore.toggleOutliner();
+    }
+  }, [uiStore]);
 
   if (!uiStore.isInitialized || showSplash) {
     return <SplashScreen />;
@@ -90,13 +104,14 @@ const App = observer(() => {
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   return (
-    // TODO: Open outliner on dragEnter: onDragEnter={openOutlinerOnDragEnter}. Problem: drag counter is messed up when DOM is updated: always off by one -> isDragging stays true
-    <DropContextProvider>
+    <DropContextProvider onDragEnter={openOutlinerOnDragEnter}>
       <div data-os={PLATFORM} id="layout-container" className={themeClass}>
         {PLATFORM !== 'darwin' && <WindowTitlebar />}
 
         <ErrorBoundary>
           <Outliner />
+
+          <OutlinerSplitter />
 
           <AppToolbar />
 

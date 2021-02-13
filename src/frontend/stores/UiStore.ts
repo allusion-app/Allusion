@@ -16,6 +16,8 @@ export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const enum ViewMethod {
   List,
   Grid,
+  MasonryVertical,
+  MasonryHorizontal,
 }
 type ThumbnailSize = 'small' | 'medium' | 'large';
 type ThumbnailShape = 'square' | 'letterbox';
@@ -38,7 +40,8 @@ export interface IHotkeyMap {
   deselectAll: string;
   viewList: string;
   viewGrid: string;
-  // viewMason: string;
+  viewMasonryVertical: string;
+  viewMasonryHorizontal: string;
   viewSlide: string;
   advancedSearch: string;
 
@@ -57,11 +60,11 @@ export const defaultHotkeyMap: IHotkeyMap = {
   openTagEditor: 't',
   selectAll: 'mod + a',
   deselectAll: 'mod + d',
+  viewSlide: 'alt + 0',
   viewList: 'alt + 1',
   viewGrid: 'alt + 2',
-  // TODO: Add masonry layout
-  // viewMason: 'alt + 3',
-  viewSlide: 'alt + 3',
+  viewMasonryVertical: 'alt + 3',
+  viewMasonryHorizontal: 'alt + 4',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
 };
@@ -88,7 +91,6 @@ export const defaultHotkeyMap: IHotkeyMap = {
 const PersistentPreferenceFields: Array<keyof UiStore> = [
   'theme',
   'isOutlinerOpen',
-  'isInspectorOpen',
   'thumbnailDirectory',
   'method',
   'thumbnailSize',
@@ -160,6 +162,14 @@ class UiStore {
     return this.method === ViewMethod.Grid;
   }
 
+  @computed get isMasonryVertical(): boolean {
+    return this.method === ViewMethod.MasonryVertical;
+  }
+
+  @computed get isMasonryHorizontal(): boolean {
+    return this.method === ViewMethod.MasonryHorizontal;
+  }
+
   @action.bound setThumbnailSmall() {
     this.setThumbnailSize('small');
   }
@@ -192,6 +202,14 @@ class UiStore {
 
   @action.bound setMethodGrid() {
     this.method = ViewMethod.Grid;
+  }
+
+  @action.bound setMethodMasonryVertical() {
+    this.method = ViewMethod.MasonryVertical;
+  }
+
+  @action.bound setMethodMasonryHorizontal() {
+    this.method = ViewMethod.MasonryHorizontal;
   }
 
   @action.bound enableSlideMode() {
@@ -233,10 +251,11 @@ class UiStore {
     }
 
     // If only one image was selected, open all images, but focus on the selected image. Otherwise, open selected images
-    const previewFiles =
-      this.fileSelection.size === 1
-        ? this.rootStore.fileStore.fileList
-        : Array.from(this.fileSelection);
+    // TODO: FIXME: Disabled for now: makes it a lot less "snappy", takes a while for the message to come through
+    const previewFiles = Array.from(this.fileSelection);
+    // this.fileSelection.size === 1
+    //   ? this.rootStore.fileStore.fileList
+    //   : Array.from(this.fileSelection);
 
     RendererMessenger.sendPreviewFiles({
       ids: previewFiles.map((file) => file.id),
@@ -590,7 +609,7 @@ class UiStore {
         this.setThumbnailShape(prefs.thumbnailShape);
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         Object.entries<string>(prefs.hotkeyMap).forEach(
-          ([k, v]) => (this.hotkeyMap[k as keyof IHotkeyMap] = v),
+          ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );
         console.log('recovered', prefs.hotkeyMap, this.hotkeyMap);
       } catch (e) {

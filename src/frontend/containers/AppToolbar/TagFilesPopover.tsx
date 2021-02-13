@@ -1,5 +1,5 @@
-import React, { ReactNode, useContext, useState } from 'react';
-import { action } from 'mobx';
+import React, { ReactNode, useContext, useRef, useState } from 'react';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { ClientTag } from 'src/entities/Tag';
@@ -53,6 +53,8 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const { counter, sortedTags } = countFileTags(files);
   const [matchingTags, setMatchingTags] = useState([...tagStore.tagListWithoutRoot]);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const onSelect = action((tag: ClientTag) => {
     for (const f of files) {
       f.addTag(tag);
@@ -80,6 +82,21 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     }
   });
 
+  const handleCreate = action(async () => {
+    const newTag = await tagStore.create(tagStore.root, inputText);
+    onSelect(newTag);
+    setInputText('');
+    runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
+    inputRef.current?.focus();
+  });
+
+  const handleInputKeyDown = action((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleCreate();
+      e.stopPropagation();
+    }
+  });
+
   return (
     <div id="tag-editor" onKeyDown={handleKeyDown}>
       <input
@@ -88,8 +105,10 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         value={inputText}
         aria-autocomplete="list"
         onChange={handleInput}
+        onKeyDown={handleInputKeyDown}
         className="input"
         aria-controls="tag-files-listbox"
+        ref={inputRef}
       />
       <Listbox id="tag-files-listbox" multiselectable={true}>
         {matchingTags.map((t) => (
@@ -101,8 +120,14 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
             onClick={() => (counter.get(t) ? onDeselect(t) : onSelect(t))}
           />
         ))}
-        {matchingTags.length === 0 && (
-          <Option value={`No tags found matching "${inputText}"`} selected={false} />
+        {inputText && (
+          <Option
+            key="create"
+            selected={false}
+            value={`Create Tag "${inputText}"`}
+            onClick={handleCreate}
+            icon={IconSet.TAG_ADD}
+          />
         )}
       </Listbox>
       <div>
@@ -133,7 +158,6 @@ const FloatingDialog = (props: FloatingDialogProps) => {
     const button = e.currentTarget.previousElementSibling as HTMLElement;
     if (e.relatedTarget !== button && !e.currentTarget.contains(e.relatedTarget as Node)) {
       onClose();
-      button.focus();
     }
   };
 

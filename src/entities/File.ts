@@ -150,13 +150,6 @@ export class ClientFile implements ISerializable<IFile> {
     this.autoSave = !state;
   }
 
-  /** Update observable properties without updating the database */
-  @action update(update: (file: ClientFile) => void): void {
-    this.autoSave = false;
-    update(this);
-    this.autoSave = true;
-  }
-
   readTagsFromFile() {
     // Observations from adobe bridge + looking at files through exiftool:
     // - Terminology:

@@ -1,0 +1,22 @@
+[package]
+name = "masonry"
+version = "0.1.0"
+authors = ["Remi van der Laan <rrm-remi@hotmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wasm-bindgen = "0.2.69"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+# Optimize for size but still uses vectorization (SIMD loops)
+opt-level = "s"
+# Compile times can increase but inling might be better
+codegen-units = 1
+# Compile times can increase but inling across crates might be better
+lto = true
+# TODO: Look into wasm-opt tool to further optimize binary size!

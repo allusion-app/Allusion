@@ -12,11 +12,14 @@ import { Button, ButtonGroup, IconSet, Tag } from 'widgets';
 import { Tooltip } from 'widgets/popovers';
 
 import ImageInfo from '../../components/ImageInfo';
+import { ITransform } from './Masonry/masonry.worker';
 
 interface ICell {
   file: ClientFile;
   mounted: boolean;
   uiStore: UiStore;
+  // Will use the original image instead of the thumbnail
+  forceNoThumbnail?: boolean;
 }
 
 export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
@@ -40,11 +43,11 @@ export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
         </ButtonGroup>
       </div>
     ) : (
-        <>
-          <h2>{file.filename}</h2>
-          <ImageInfo suspended={!mounted} file={file} />
-        </>
-      )}
+      <>
+        <h2>{file.filename}</h2>
+        <ImageInfo suspended={!mounted} file={file} />
+      </>
+    )}
     {file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />}
   </div>
 ));
@@ -75,11 +78,70 @@ export const GridCell = observer(({ file, colIndex, mounted, uiStore, fileStore 
       />
     )}
     {/* Show tags when the option is enabled, or when the file is selected */}
-    {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) && (
-      file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />
-    )}
+    {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
+      (file.tags.size == 0 || !mounted ? (
+        <span className="thumbnail-tags" />
+      ) : (
+        <Tags file={file} />
+      ))}
   </div>
 ));
+
+interface IMasonryCell extends ICell {
+  index: number;
+  fileStore: FileStore;
+  forceNoThumbnail: boolean;
+  transform: ITransform;
+}
+
+export const MasonryCell = observer(
+  ({
+    file,
+    mounted,
+    index,
+    uiStore,
+    fileStore,
+    forceNoThumbnail,
+    transform: { height, width, left, top },
+  }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
+    const style = { height, width, transform: `translate(${left}px,${top}px)` };
+    return (
+      <div
+        data-masonrycell
+        data-fileindex={index}
+        tabIndex={-1}
+        aria-selected={uiStore.fileSelection.has(file)}
+        style={style}
+      >
+        <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+          <Thumbnail
+            uiStore={uiStore}
+            mounted={!mounted}
+            file={file}
+            forceNoThumbnail={forceNoThumbnail}
+          />
+        </div>
+        {file.isBroken === true && (
+          <Tooltip
+            content="This image could not be found."
+            trigger={
+              <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
+                {IconSet.WARNING_BROKEN_LINK}
+              </span>
+            }
+          />
+        )}
+        {/* Show tags when the option is enabled, or when the file is selected */}
+        {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
+          (file.tags.size == 0 || !mounted ? (
+            <span className="thumbnail-tags" />
+          ) : (
+            <Tags file={file} />
+          ))}
+      </div>
+    );
+  },
+);
 
 const enum ThumbnailState {
   Ok,
@@ -89,7 +151,7 @@ const enum ThumbnailState {
 
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-const Thumbnail = observer(({ file, mounted, uiStore }: ICell) => {
+const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: ICell) => {
   const { thumbnailDirectory } = uiStore;
   const { thumbnailPath, isBroken } = file;
 
@@ -134,7 +196,13 @@ const Thumbnail = observer(({ file, mounted, uiStore }: ICell) => {
       console.log('Could not load image:', thumbnailPath);
       setState(ThumbnailState.Error);
     };
-    return <img src={thumbnailPath} onError={handleImageError} alt="" />;
+    return (
+      <img
+        src={forceNoThumbnail ? file.absolutePath : thumbnailPath}
+        onError={handleImageError}
+        alt=""
+      />
+    );
   } else if (state === ThumbnailState.Loading) {
     return <div className="donut-loading" />;
   } else {

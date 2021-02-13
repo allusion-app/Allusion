@@ -31,6 +31,11 @@ class FileStore {
   private readonly rootStore: RootStore;
 
   readonly fileList = observable<ClientFile>([]);
+  /**
+   * The timestamp when the fileList was last modified.
+   * Useful for in react component dependencies that need to trigger logic when the fileList changes
+   */
+  fileListLastModified = observable<Date>(new Date());
   /** A map of file ID to its index in the file list, for quick lookups by ID */
   private readonly index = new Map<ID, number>();
 
@@ -238,6 +243,7 @@ class FileStore {
           const file = this.fileList[index];
           this.index.set(file.id, index);
         }
+        this.fileListLastModified = new Date();
       });
       this.cleanFileSelection();
     } catch (err) {
@@ -362,6 +368,7 @@ class FileStore {
   @action private async updateFromBackend(backendFiles: IFile[]): Promise<void> {
     if (backendFiles.length === 0) {
       this.rootStore.uiStore.clearFileSelection();
+      this.fileListLastModified = new Date();
       return this.clearFileList();
     }
 
@@ -376,6 +383,16 @@ class FileStore {
       if (!reusedStatus.has(file.id)) {
         file.dispose();
       }
+      // if (!file.width) {
+      // TODO: Sometimes, getMetadata cannot determine the dimensions of the file while importing. Trying again naively here, should have a better alternative
+      // Maybe offer a `re-index` options, for resetting file all dimensions etc.
+      // getMetaData(file.absolutePath).then((data) => {
+      //   console.log(data);
+      //   runInAction(() => {
+      //     this.save({ ...file.serialize(), ...data });
+      //   });
+      // });
+      // }
     }
 
     // Check existence of new files asynchronously, no need to wait until they can be showed
@@ -396,7 +413,10 @@ class FileStore {
     // Run the existence check with at most N checks in parallel
     // TODO: Should make N configurable, or determine based on the system/disk performance
     // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
-    runInAction(() => this.fileList.replace(newClientFiles));
+    runInAction(() => {
+      this.fileList.replace(newClientFiles);
+      this.fileListLastModified = new Date();
+    });
     const N = 50;
     return promiseAllLimit(existenceCheckPromises, N)
       .then(() => {
@@ -428,7 +448,6 @@ class FileStore {
       // Might already exist!
       const existingFile = this.get(f.id);
       if (existingFile !== undefined) {
-        existingFile.update((file) => file.tags.replace(this.getTags(f.tags)));
         reusedStatus.add(existingFile.id);
         return existingFile;
       }

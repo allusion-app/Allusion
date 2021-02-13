@@ -1,0 +1,15 @@
+{
+  "name": "masonry",
+  "collaborators": [
+    "Remi van der Laan <rrm-remi@hotmail.com>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "masonry_bg.wasm",
+    "masonry.js",
+    "masonry.d.ts"
+  ],
+  "module": "masonry.js",
+  "types": "masonry.d.ts",
+  "sideEffects": false
+}
