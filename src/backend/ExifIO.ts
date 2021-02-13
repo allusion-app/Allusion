@@ -4,6 +4,10 @@ import { exiftool } from 'exiftool-vendored';
 // Looks like the best modern exif-tool wrapper that is being maintained
 // And has (some) support for Electron
 // See https://github.com/photostructure/exiftool-vendored.js
+// Update: Still haven't managed to get it working in a packeged set-up, but I'm getting errors about different things now (electron-updater)
+// But while debugging, I came across this post: https://stackoverflow.com/a/56296986/2350481
+// "Since I never found a way to get exiftool-vendored to work with electron on Mac, I accepted the above answer, as essentially a warning to steer clear of exiftool-vendored for electron on Mac."
+// They went with https://www.npmjs.com/package/node-exiftool in the end. Even seems to work in the renderer process!
 
 class ExifIO {
   async initialize() {
