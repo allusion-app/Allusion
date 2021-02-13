@@ -103,6 +103,7 @@ export const MasonryCell = observer(
     fileStore,
     forceNoThumbnail,
     transform: { height, width, left, top },
+    ...restProps
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
     return (
@@ -112,6 +113,7 @@ export const MasonryCell = observer(
         tabIndex={-1}
         aria-selected={uiStore.fileSelection.has(file)}
         style={style}
+        {...restProps}
       >
         <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
           <Thumbnail

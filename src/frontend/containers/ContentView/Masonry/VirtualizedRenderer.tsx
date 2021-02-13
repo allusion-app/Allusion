@@ -9,7 +9,7 @@ import { ILayoutProps } from '../Gallery';
 import { MasonryCell } from '../GalleryItem';
 import { ExternalAppMenuItems, FileViewerMenuItems, MissingFileMenuItems } from '../menu-items';
 
-import { binarySearch, Layouter } from './renderer-helpers';
+import { findViewportEdge, Layouter } from './layout-helpers';
 
 interface IRendererProps {
   containerHeight: number;
@@ -20,6 +20,11 @@ interface IRendererProps {
   /** Render images outside of the viewport within this margin (pixels) */
   overscan?: number;
   layoutUpdateDate: Date;
+  onDrop?: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+  onDragEnter?: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+  onDragOver?: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+  onDragLeave?: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
 }
 
 // const styleFromTransform = (t: ITransform) => ({
@@ -45,6 +50,7 @@ const VirtualizedRenderer = observer(
     showContextMenu,
     lastSelectionIndex,
     layoutUpdateDate,
+    ...restProps
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
     const { uiStore, fileStore } = useContext(StoreContext);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -59,8 +65,8 @@ const VirtualizedRenderer = observer(
       const yOffset = viewport?.scrollTop || 0;
       const viewportHeight = viewport?.clientHeight || 0;
 
-      const start = binarySearch(yOffset - overdraw, numImages, layout, false);
-      const end = binarySearch(yOffset + viewportHeight + overdraw, numImages, layout, true);
+      const start = findViewportEdge(yOffset - overdraw, numImages, layout, false);
+      const end = findViewportEdge(yOffset + viewportHeight + overdraw, numImages, layout, true);
 
       setStartRenderIndex(start);
       setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons
@@ -163,12 +169,13 @@ const VirtualizedRenderer = observer(
         {/* One div for the content */}
         <div style={{ width: containerWidth, height: containerHeight }}>
           {images.slice(startRenderIndex, endRenderIndex).map((im, index) => {
-            const transform = layout.getItemLayout(startRenderIndex + index);
+            const fileListIndex = startRenderIndex + index;
+            const transform = layout.getItemLayout(fileListIndex);
             return (
               <MasonryCell
-                index={startRenderIndex + index}
+                index={fileListIndex}
                 key={im.id}
-                file={fileStore.fileList[startRenderIndex + index]}
+                file={fileStore.fileList[fileListIndex]}
                 mounted
                 uiStore={uiStore}
                 fileStore={fileStore}
@@ -179,6 +186,11 @@ const VirtualizedRenderer = observer(
                 forceNoThumbnail={
                   transform.width > thumbnailMaxSize || transform.height > thumbnailMaxSize
                 }
+                onDragStart={(e) => restProps.onDragStart?.(e, fileListIndex)}
+                onDragEnter={(e) => restProps.onDragEnter?.(e, fileListIndex)}
+                onDragOver={(e) => restProps.onDragOver?.(e, fileListIndex)}
+                onDragLeave={(e) => restProps.onDragLeave?.(e, fileListIndex)}
+                onDrop={(e) => restProps.onDrop?.(e, fileListIndex)}
               />
             );
           })}

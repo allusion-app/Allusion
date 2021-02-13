@@ -61,6 +61,8 @@ body {
   height: calc(100% - var(--window-titlebar-height));
   z-index: 1;
 
+  margin-left: -2px; // align it with the actual outliner edge
+
   width: 4px;
   opacity: 0;
   cursor: col-resize;

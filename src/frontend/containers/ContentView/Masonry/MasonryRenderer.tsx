@@ -1,9 +1,18 @@
 import { observer } from 'mobx-react-lite';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
-import { getThumbnailSize, ILayoutProps } from '../Gallery';
+import {
+  getThumbnailSize,
+  ILayoutProps,
+  onDrop,
+  onDragStart,
+  handleDragEnter,
+  handleDragOver,
+  handleDragLeave,
+} from '../Gallery';
 import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';
+import { DnDType } from '../../Outliner/TagsPanel/dnd';
 
 interface IMasonryRendererProps {
   type: ViewMethod.MasonryVertical | ViewMethod.MasonryHorizontal;
@@ -104,6 +113,24 @@ const MasonryRenderer = observer(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [containerWidth, thumbnailSize, viewMethod]);
 
+    const handleDragStart = useCallback(
+      (e: React.DragEvent<HTMLElement>, index: number) => {
+        if (e.dataTransfer.types.includes(DnDType)) {
+          onDragStart(e, index, uiStore, fileStore.fileList);
+        }
+      },
+      [fileStore.fileList, uiStore],
+    );
+
+    const handleDrop = useCallback(
+      (e: React.DragEvent<HTMLElement>, index: number) => {
+        if (e.dataTransfer.types.includes(DnDType)) {
+          onDrop(e, index, uiStore, fileStore.fileList);
+        }
+      },
+      [fileStore.fileList, uiStore],
+    );
+
     return !(containerHeight && layoutTimestamp) ? (
       <p>loading...</p>
     ) : (
@@ -120,6 +147,11 @@ const MasonryRenderer = observer(
         showContextMenu={showContextMenu}
         lastSelectionIndex={lastSelectionIndex}
         layoutUpdateDate={layoutTimestamp}
+        onDrop={handleDrop}
+        onDragStart={handleDragStart}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
       />
     );
   },

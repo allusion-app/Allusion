@@ -8,7 +8,8 @@ import { DnDAttribute } from '../TagsPanel/dnd';
 
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 
-export const isAcceptableType = (e: React.DragEvent) => e.dataTransfer?.types.some(type => ALLOWED_DROP_TYPES.includes(type));
+export const isAcceptableType = (e: React.DragEvent) =>
+  e.dataTransfer?.types.some((type) => ALLOWED_DROP_TYPES.includes(type));
 
 /**
  * Executed callback function while dragging over a target.
@@ -16,9 +17,7 @@ export const isAcceptableType = (e: React.DragEvent) => e.dataTransfer?.types.so
  * Do not pass an expansive function into the sideEffect parameter. The dragOver
  * event is fired constantly unlike dragEnter which is only fired once.
  */
-export function onDragOver(
-  event: React.DragEvent<HTMLDivElement>
-): boolean {
+export function onDragOver(event: React.DragEvent<HTMLDivElement>): boolean {
   const dropTarget = event.currentTarget;
 
   const isFile = isAcceptableType(event);

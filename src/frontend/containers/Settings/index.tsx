@@ -138,7 +138,6 @@ const Settings = observer(({ uiStore, fileStore }: ISettingsProps) => {
             <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
           </div>
         </fieldset>
-
       </div>
 
       <h2>Shortcuts Map</h2>

@@ -591,28 +591,48 @@ const GridRow = observer((props: IGridRow) => {
 
 export default observer(Layout);
 
-function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
+export function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
+    const thumbnail = e.target as HTMLElement;
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = 'link';
-    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'true';
+    thumbnail.dataset[DnDAttribute.Target] = 'true';
+
+    // If selected, apply class to gallery-content to mark all files as yellow ->
+    // indicating tag will be applied to all selected files
+    // TODO:: This should be based on application state, not on DOM attributes... But the whole DnD approach currently works like this 🤷
+    // it appears sometimes the dragLeave is fired after the next dragEnter when dragging quickly in between thumbnails
+    if ((thumbnail.parentElement as HTMLElement).getAttribute('aria-selected') === 'true') {
+      const galleryContent = thumbnail.closest('#gallery-content');
+      if (galleryContent) {
+        galleryContent.classList.add('selected-file-dropping');
+      }
+    }
   }
 }
 
-function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+export function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
     e.stopPropagation();
     e.preventDefault();
   }
 }
 
-function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+export function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
+    const thumbnail = e.target as HTMLElement;
     e.stopPropagation();
     e.preventDefault();
     e.dataTransfer.dropEffect = 'none';
-    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
+    thumbnail.dataset[DnDAttribute.Target] = 'false';
+
+    if ((thumbnail.parentElement as HTMLElement).getAttribute('aria-selected') === 'true') {
+      const galleryContent = thumbnail.closest('#gallery-content');
+      if (galleryContent) {
+        galleryContent.classList.remove('selected-file-dropping');
+      }
+    }
   }
 }
 
@@ -622,7 +642,7 @@ function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
 // did many experiments with drag event content types. Creating a drag
 // event with multiple images did not work correctly from the browser side
 // (e.g. only limited to thumbnails, not full images).
-const onDragStart = action(
+export const onDragStart = action(
   (e: React.DragEvent, index: number | undefined, uiStore: UiStore, fileList: ClientFile[]) => {
     if (index === undefined) {
       return;
@@ -645,7 +665,7 @@ const onDragStart = action(
   },
 );
 
-const onDrop = action(
+export const onDrop = action(
   (
     e: React.DragEvent<HTMLElement>,
     index: number | undefined,
@@ -656,14 +676,29 @@ const onDrop = action(
       return;
     }
     e.stopPropagation();
-    const file = files[index];
+    const dropFile = files[index];
     const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
-    ctx.tags.forEach((tag) => {
-      file.addTag(tag);
-      tag.subTags.forEach(file.addTag);
-    });
+
+    // Tag all selected files - unless the file that is being tagged is not selected
+    const filesToTag = uiStore.fileSelection.has(dropFile)
+      ? [...uiStore.fileSelection]
+      : [dropFile];
+
+    for (const tag of ctx.tags) {
+      for (const file of filesToTag) {
+        file.addTag(tag);
+        // tag.subTags.forEach(file.addTag); // TODO: Is this desired? Also tagging with sub-tag? Don't think so - but if so - why not also sub-sub-tags?
+      }
+    }
+
+    const thumbnail = e.target as HTMLElement;
     e.dataTransfer.dropEffect = 'none';
-    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
+    thumbnail.dataset[DnDAttribute.Target] = 'false';
+
+    const galleryContent = thumbnail.closest('#gallery-content');
+    if (galleryContent) {
+      galleryContent.classList.remove('selected-file-dropping');
+    }
   },
 );
 
