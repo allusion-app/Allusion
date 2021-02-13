@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { usePopper } from 'react-popper';
 import { VirtualElement } from '@popperjs/core';
 import { Placement } from '@popperjs/core/lib/enums';
+import { Portal } from 'src/frontend/hooks/usePortal';
 
 export interface IRawPopover extends React.HTMLAttributes<HTMLElement> {
   /** Controls whether the popover is shown or not. */
@@ -23,6 +24,10 @@ export interface IRawPopover extends React.HTMLAttributes<HTMLElement> {
   /** Flip modifier settings */
   fallbackPlacements?: Placement[];
   allowedAutoPlacements?: Placement[];
+  /** Whether to use a React.Portal: Renders the element in the native DOM tree as a child of document.body. Useful for overflow: hidden situations **/
+  usePortal?: boolean;
+  /** A unique ID for this portal, used as HTMLElement id */
+  portalId?: string;
 }
 
 /**
@@ -50,6 +55,8 @@ export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
     fallbackPlacements,
     allowedAutoPlacements,
     container: Container = 'div',
+    usePortal,
+    portalId,
     ...restProperties
   } = props;
 
@@ -77,10 +84,12 @@ export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
     attributes.popper,
   );
 
+  const container = <Container {...properties}>{children}</Container>;
+
   return (
     <>
       {target}
-      <Container {...properties}>{children}</Container>
+      {usePortal ? <Portal id={portalId}>{container}</Portal> : container}
     </>
   );
 });

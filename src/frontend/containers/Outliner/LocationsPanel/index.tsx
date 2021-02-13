@@ -527,7 +527,13 @@ const LocationsPanel = observer(() => {
           onClose={() => setDeletableLocation(undefined)}
         />
       )}
-      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
+      <ContextMenu
+        isOpen={contextState.open}
+        x={contextState.x}
+        y={contextState.y}
+        close={hide}
+        usePortal
+      >
         <Menu>{contextState.menu}</Menu>
       </ContextMenu>
     </div>
