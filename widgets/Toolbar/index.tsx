@@ -105,7 +105,7 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-expanded={expanded}
       tabIndex={-1}
     >
-      {tooltip ? <Tooltip content={tooltip} hoverDelay={1500} trigger={content} /> : content}
+      {tooltip ? <Tooltip content={tooltip} trigger={content} /> : content}
     </button>
   );
 };

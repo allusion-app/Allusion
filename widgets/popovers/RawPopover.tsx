@@ -12,7 +12,9 @@ export interface IRawPopover extends React.HTMLAttributes<HTMLElement> {
   /** The reference to the popover native element. */
   popoverRef: React.RefObject<HTMLElement>;
   /** The element that is used as an anchor point for the popover to decide where to position. */
-  target?: React.ReactElement<HTMLElement>;
+  target: React.ReactElement<HTMLElement>;
+  /** The reference to the target native element. */
+  targetRef?: React.RefObject<HTMLElement>;
   /** The actual popover content. */
   children: React.ReactNode;
   /**
@@ -50,6 +52,7 @@ export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
     anchorElement,
     popoverRef,
     target,
+    targetRef,
     children,
     placement,
     fallbackPlacements,
@@ -64,7 +67,7 @@ export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
   const options = useRef(createPopperOptions(placement, fallbackPlacements, allowedAutoPlacements));
 
   const { styles, attributes, update } = usePopper(
-    anchorElement ?? popoverRef.current?.previousElementSibling,
+    anchorElement ?? targetRef?.current ?? popoverRef.current?.previousElementSibling,
     popoverRef.current,
     options.current,
   );
@@ -85,10 +88,9 @@ export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
   );
 
   const container = <Container {...properties}>{children}</Container>;
-
   return (
     <>
-      {target}
+      {target && targetRef ? React.cloneElement(target, { ref: targetRef } as any) : target}
       {usePortal ? <Portal id={portalId}>{container}</Portal> : container}
     </>
   );

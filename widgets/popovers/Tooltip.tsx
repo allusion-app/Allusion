@@ -14,20 +14,24 @@ export interface ITooltip {
   placement?: Placement;
   fallbackPlacements?: Placement[];
   allowedAutoPlacements?: Placement[];
+  usePortal?: boolean;
 }
 
 export const Tooltip = (props: ITooltip) => {
   const {
     content,
     trigger,
-    hoverDelay = 100,
+    // 500ms feels about right: https://ux.stackexchange.com/questions/358/how-long-should-the-delay-be-before-a-tooltip-pops-up
+    hoverDelay = 500,
     placement = 'auto',
     allowedAutoPlacements,
     fallbackPlacements,
+    usePortal = true,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
   const timerID = useRef<number>();
   const popover = useRef<HTMLDivElement>(null);
+  const targetRef = useRef<HTMLDivElement>(null);
 
   // Add event listeners to target element to show tooltip on hover
   useEffect(() => {
@@ -36,7 +40,11 @@ export const Tooltip = (props: ITooltip) => {
     }
     // SAFETY: It the trigger element does not exist or it is not an element,
     // this is a developer error.
-    const target = popover.current.previousElementSibling as HTMLElement;
+    const target = targetRef.current;
+    if (!target) {
+      console.error('Tooltip target not set', content, trigger);
+      return;
+    }
 
     const handleMouseEnter = () => {
       timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
@@ -62,17 +70,20 @@ export const Tooltip = (props: ITooltip) => {
       target.removeEventListener('mouseenter', handleMouseEnter);
       target.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [hoverDelay]);
+  }, [content, hoverDelay, trigger, usePortal]);
 
   return (
     <RawPopover
       popoverRef={popover}
       isOpen={isOpen}
       target={trigger}
+      targetRef={targetRef}
       role="tooltip"
       placement={placement}
       fallbackPlacements={fallbackPlacements}
       allowedAutoPlacements={allowedAutoPlacements}
+      usePortal={usePortal}
+      portalId="tooltip-portal"
     >
       <div className="tooltip">{content}</div>
     </RawPopover>
