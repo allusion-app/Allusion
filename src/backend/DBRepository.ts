@@ -188,10 +188,11 @@ export default class BaseRepository<T extends IResource> {
     table =
       typeof whereOrFilter !== 'function' ? whereOrFilter : this.collection.filter(whereOrFilter);
 
-    // Then just chain a loop of and() calls, not sure if more efficient than doing filter(t => crits.every(...))
-    for (const crit of otherCrits) {
-      table = table.and(this._filterLambda(crit));
-    }
+    // Then just chain a loop of and() calls. A .every() feels more efficient than chaining table.and() calls
+    table = table.and((item) => otherCrits.every((crit) => this._filterLambda(crit)(item)));
+    // for (const crit of otherCrits) {
+    //   table = table.and(this._filterLambda(crit));
+    // }
     return table;
   }
 
@@ -237,8 +238,15 @@ export default class BaseRepository<T extends IResource> {
         ? (val: T): boolean => (val as any)[crit.key as string].length === 0
         : (val: T): boolean => (val as any)[crit.key as string].length !== 0;
     } else {
-      const idsFuncName = crit.operator === 'contains' ? 'anyOf' : 'noneOf';
-      return where[idsFuncName](crit.value).distinct();
+      // contains/notContains 1 or more elements
+      if (crit.operator === 'contains') {
+        return where.anyOf(crit.value).distinct();
+      } else {
+        // not contains: there as a noneOf() function we used to use, but it matches every item individually, e.g.
+        // an item with tags "Apple, Pear" is matched twice: once as Apple, once as Pear; A "notContains Apple" still matches for Pear
+        return (val: T): boolean =>
+          (val as any)[crit.key as string].every((val: string) => !crit.value.includes(val));
+      }
     }
   }
 

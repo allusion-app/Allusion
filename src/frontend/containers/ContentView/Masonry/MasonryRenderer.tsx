@@ -24,7 +24,7 @@ const MasonryRenderer = observer(
     // The timestamp from when the layout was last updated
     const [layoutTimestamp, setLayoutTimestamp] = useState<Date>(new Date());
     // Needed in order to re-render forcefully when the layout updates
-    // Identical to layoutTimestamp, except it is not set when the environment (e.g. container width) changes
+    // TODO: Should re-evaluate (and document) why this was necessary. I think it might have something to do with some logic still being performed on the old layout
     const [forceRerenderObj, setForceRerenderObj] = useState<Date>(new Date());
     const [worker] = useState(new MasonryWorkerAdapter());
     const [, thumbnailSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
@@ -72,7 +72,7 @@ const MasonryRenderer = observer(
             console.timeEnd('recompute-layout');
             setContainerHeight(containerHeight);
             setLayoutTimestamp(new Date());
-            setForceRerenderObj(new Date());
+            // setForceRerenderObj(new Date()); // doesn't seem necessary anymore, which is nice, because it caused flickering when refetching
           } catch (e) {
             console.error(e);
           }

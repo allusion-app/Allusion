@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from 'react';
+import React, { useContext, useMemo, useRef, useState } from 'react';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -26,9 +26,9 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
   const listboxId = useRef(generateId());
   const { tagStore } = useContext(StoreContext);
   const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(selection?.name || '');
 
-  const normalizedQuery = query.toLowerCase();
+  const normalizedQuery = useMemo(() => query.toLowerCase(), [query]);
 
   return (
     <div

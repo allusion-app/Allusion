@@ -15,6 +15,7 @@ interface IMultiTagSelector {
   selection: ClientTag[];
   onSelect: (item: ClientTag) => void;
   onDeselect: (item: ClientTag) => void;
+  onTagClick?: (item: ClientTag) => void;
   onClear: () => void;
   onCreate?: (name: string) => Promise<ClientTag>;
   tagLabel?: (item: ClientTag) => string;
@@ -27,6 +28,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     selection,
     onSelect,
     onDeselect,
+    onTagClick,
     onClear,
     onCreate,
     tagLabel = action((t: ClientTag) => t.name),
@@ -67,6 +69,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                   text={tagLabel(t)}
                   color={t.viewColor}
                   onRemove={() => onDeselect(t)}
+                  onClick={onTagClick ? () => onTagClick(t) : undefined}
                 />
               ))}
               <input
