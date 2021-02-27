@@ -12,7 +12,7 @@ export interface IRawPopover extends React.HTMLAttributes<HTMLElement> {
   /** The reference to the popover native element. */
   popoverRef: React.RefObject<HTMLElement>;
   /** The element that is used as an anchor point for the popover to decide where to position. */
-  target: React.ReactElement<HTMLElement>;
+  target?: React.ReactElement<HTMLElement>;
   /** The reference to the target native element. */
   targetRef?: React.RefObject<HTMLElement>;
   /** The actual popover content. */
