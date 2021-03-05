@@ -14,18 +14,19 @@ const Tabs = ({ items }: ITabs) => {
 
   return (
     <div className="tabs">
-      <div>
+      <div role="tablist">
         {items.map((item, index) => (
-          <span
-            key={`${item.label}-${index}`}
+          <button
+            role="tab"
+            key={item.label}
             aria-selected={index === selection}
             onClick={() => setSelection(index)}
           >
             {item.label}
-          </span>
+          </button>
         ))}
       </div>
-      <div>{items[selection].content}</div>
+      <div role="tabpanel">{items[selection].content}</div>
     </div>
   );
 };

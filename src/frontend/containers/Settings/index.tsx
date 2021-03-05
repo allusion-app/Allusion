@@ -77,7 +77,7 @@ const Appearance = observer(() => {
   );
 });
 
-const Options = () => (
+const BackgroundProcesses = () => (
   <>
     <h2>Options</h2>
     <fieldset>
@@ -168,18 +168,18 @@ const Advanced = observer(() => {
   );
 });
 
-const settingsTabs: TabItem[] = [
+const SETTINGS_TABS: TabItem[] = [
   {
     label: 'Appearance',
     content: <Appearance />,
   },
   {
-    label: 'Options',
-    content: <Options />,
-  },
-  {
     label: 'Shortcuts',
     content: <Shortcuts />,
+  },
+  {
+    label: 'Background Processes',
+    content: <BackgroundProcesses />,
   },
   {
     label: 'Advanced',
@@ -189,8 +189,8 @@ const settingsTabs: TabItem[] = [
 
 const Settings = () => {
   return (
-    <div className="settings-form">
-      <Tabs items={settingsTabs} />
+    <div id="settings">
+      <Tabs items={SETTINGS_TABS} />
     </div>
   );
 };
@@ -209,7 +209,7 @@ const SettingsWindow = () => {
       closeOnEscape
       additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
     >
-      <div id="settings-window" className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
+      <div className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
         <Settings />
       </div>
     </PopupWindow>

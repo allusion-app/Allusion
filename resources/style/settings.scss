@@ -1,15 +1,13 @@
-.settings-form {
+#settings {
+  background-color: var(--background-color);
+
   // For the hotkeys tip
   .bp3-key-combo {
     display: inline;
-  }
-
-  .input-file {
-    width: 100%;
+    color: inherit;
   }
 
   table {
-    min-width: 50%;
     color: inherit;
     font-size: small;
   }
@@ -28,45 +26,40 @@
   }
 }
 
-#settings-window {
-  background-color: var(--background-color);
-  overflow-y: auto;
-  height: 100%;
-}
-
-
 .tabs {
   display: flex;
   height: 100%;
+}
 
-  > :first-child {
-    min-width: 120px;
+[role='tablist'] {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background-color: var(--background-color-alt);
+  padding: 0.5rem 0;
+  height: 100%;
+}
 
-    background-color: var(--background-color-alt);
-    padding-top: 8px;
+[role='tab'] {
+  background: inherit;
+  border: none;
+  color: var(--text-color-muted);
+  padding: 0.5rem 1.25rem;
+  width: 100%;
+  text-align: start;
 
-    > span {
-      display: block;
-      cursor: pointer;
-      color: var(--text-color-muted);
-      padding: 8px;
-      padding-left: 16px;
-      width: 100%;
-
-      &[aria-selected='true'] {
-        color: var(--text-color);
-        background-color: var(--background-color);
-      }
-
-      &:hover {
-        // background-color: var(--hover-background);
-        color: var(--hover-color);
-      }
-    }
+  &[aria-selected='true'] {
+    color: var(--text-color);
+    background-color: var(--background-color);
   }
-  > :nth-child(2) {
-    flex: 1 0 auto;
-    overflow: auto;
-    padding: 8px;
+
+  &:hover {
+    color: var(--hover-color);
   }
+}
+
+[role='tabpanel'] {
+  flex-grow: 1;
+  overflow: auto;
+  padding: 0.5rem 1.25rem;
 }
