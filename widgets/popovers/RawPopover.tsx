@@ -26,9 +26,7 @@ export interface IRawPopover extends React.HTMLAttributes<HTMLElement> {
   /** Flip modifier settings */
   fallbackPlacements?: Placement[];
   allowedAutoPlacements?: Placement[];
-  /** Whether to use a React.Portal: Renders the element in the native DOM tree as a child of document.body. Useful for overflow: hidden situations **/
-  usePortal?: boolean;
-  /** A unique ID for this portal, used as HTMLElement id */
+  /** Renders the element in the native DOM tree as a child of document.body if a unique ID is passed. (Useful for overflow: hidden situations) */
   portalId?: string;
 }
 
@@ -58,7 +56,6 @@ export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
     fallbackPlacements,
     allowedAutoPlacements,
     container: Container = 'div',
-    usePortal,
     portalId,
     ...restProperties
   } = props;
@@ -90,8 +87,8 @@ export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
   const container = <Container {...properties}>{children}</Container>;
   return (
     <>
-      {target && targetRef ? React.cloneElement(target, { ref: targetRef } as any) : target}
-      {usePortal ? <Portal id={portalId}>{container}</Portal> : container}
+      {target}
+      {portalId ? <Portal id={portalId}>{container}</Portal> : container}
     </>
   );
 });

@@ -126,7 +126,6 @@ dialog[role='alertdialog'] {
   pointer-events: none;
   background: var(--primary-color);
   color: white;
-  // font-size: 1rem; // this felt too big, leaving at default for now
 
   .tooltip {
     display: inline-flex;

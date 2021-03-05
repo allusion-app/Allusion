@@ -8,13 +8,14 @@ export interface ITooltip {
   content: React.ReactText;
   /** The element that triggers the tooltip when hovered over. */
   trigger: React.ReactElement<HTMLElement>;
+  /** The reference to the native element trigger. This is necessary for the portal! */
+  portalTriggerRef: React.RefObject<HTMLElement>;
   /** @default 100 */
   hoverDelay?: number;
   /** @default 'auto' */
   placement?: Placement;
   fallbackPlacements?: Placement[];
   allowedAutoPlacements?: Placement[];
-  usePortal?: boolean;
 }
 
 export const Tooltip = (props: ITooltip) => {
@@ -26,25 +27,20 @@ export const Tooltip = (props: ITooltip) => {
     placement = 'auto',
     allowedAutoPlacements,
     fallbackPlacements,
-    usePortal = true,
+    portalTriggerRef,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
   const timerID = useRef<number>();
   const popover = useRef<HTMLDivElement>(null);
-  const targetRef = useRef<HTMLDivElement>(null);
 
   // Add event listeners to target element to show tooltip on hover
   useEffect(() => {
-    if (popover.current === null) {
+    if (portalTriggerRef.current === null) {
       return;
     }
     // SAFETY: It the trigger element does not exist or it is not an element,
     // this is a developer error.
-    const target = targetRef.current;
-    if (!target) {
-      console.error('Tooltip target not set', content, trigger);
-      return;
-    }
+    const target = portalTriggerRef.current;
 
     const handleMouseEnter = () => {
       timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
@@ -70,19 +66,18 @@ export const Tooltip = (props: ITooltip) => {
       target.removeEventListener('mouseenter', handleMouseEnter);
       target.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [content, hoverDelay, trigger, usePortal]);
+  }, [content, hoverDelay, portalTriggerRef, trigger]);
 
   return (
     <RawPopover
       popoverRef={popover}
       isOpen={isOpen}
       target={trigger}
-      targetRef={targetRef}
+      targetRef={portalTriggerRef}
       role="tooltip"
       placement={placement}
       fallbackPlacements={fallbackPlacements}
       allowedAutoPlacements={allowedAutoPlacements}
-      usePortal={usePortal}
       portalId="tooltip-portal"
     >
       <div className="tooltip">{content}</div>

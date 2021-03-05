@@ -106,8 +106,7 @@ export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = false }
       onKeyDown={handleKeyDown}
       onClick={handleClick}
       onMouseOver={handleMouseOver}
-      usePortal={usePortal}
-      portalId="context-menu-portal"
+      portalId={usePortal ? 'context-menu-portal' : undefined}
     >
       {isOpen ? children : null}
     </RawPopover>

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useContext } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import StoreContext from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
@@ -9,19 +9,13 @@ import { observer } from 'mobx-react-lite';
  * Creates DOM element to be used as React root.
  * @returns {HTMLElement}
  */
-function createRootElement(id: string, className?: string) {
+function createParentElement(id: string, className?: string) {
   const rootContainer = document.createElement('div');
   rootContainer.setAttribute('id', id);
-  rootContainer.setAttribute('class', className || '');
+  if (className !== undefined && className.length > 0) {
+    rootContainer.classList.add(className);
+  }
   return rootContainer;
-}
-
-/**
- * Appends element as last child of body.
- * @param {HTMLElement} rootElem
- */
-function addRootElement(rootElem: HTMLElement) {
-  document.body.insertBefore(rootElem, document.body.lastElementChild!.nextElementSibling);
 }
 
 /**
@@ -36,31 +30,40 @@ function addRootElement(rootElem: HTMLElement) {
  * @returns {HTMLElement} The DOM node to use as the Portal target.
  */
 function usePortal(id: string, className?: string) {
-  const rootElemRef = useRef<HTMLElement>();
+  const rootElementRef = useRef<HTMLElement>();
 
   useEffect(
     function setupElement() {
       // Look for existing target dom element to append to
-      const existingParent = document.querySelector(`#${id}`) as HTMLElement;
+      const existingParent = document.querySelector(`#${id}`) as HTMLElement | null;
       // Parent is either a new root or the existing dom element
-      const parentElem = existingParent || createRootElement(id, className);
+      const parentElement = existingParent ?? createParentElement(id, className);
 
-      // If there is no existing DOM element, add a new one.
-      if (!existingParent) {
-        addRootElement(parentElem);
+      if (existingParent === null) {
+        document.body.appendChild(parentElement);
+      } else if (className !== undefined && className.length > 0) {
+        existingParent.classList.add(className);
       }
 
       // Add the detached element to the parent
-      parentElem.appendChild(rootElemRef.current!);
+      if (
+        rootElementRef.current !== undefined &&
+        rootElementRef.current.parentElement !== parentElement
+      ) {
+        parentElement.appendChild(rootElementRef.current);
+      }
 
       return function removeElement() {
-        rootElemRef.current!.remove();
-        if (!parentElem.childElementCount) {
-          parentElem.remove();
+        rootElementRef.current?.remove();
+        if (className !== undefined) {
+          parentElement.classList.remove(className);
+        }
+        if (parentElement.childElementCount === 0) {
+          parentElement.remove();
         }
       };
     },
-    [id],
+    [className, id],
   );
 
   /**
@@ -73,17 +76,15 @@ function usePortal(id: string, className?: string) {
    *   ever run once.
    * @link https://reactjs.org/docs/hooks-faq.html#how-to-create-expensive-objects-lazily
    */
-  function getRootElem() {
-    if (!rootElemRef.current) {
-      rootElemRef.current = document.createElement('div');
+  function getRootElement(): HTMLElement {
+    if (rootElementRef.current === undefined) {
+      rootElementRef.current = document.createElement('div');
     }
-    return rootElemRef.current;
+    return rootElementRef.current;
   }
 
-  return getRootElem();
+  return getRootElement();
 }
-
-let portalIndex = 0;
 
 /**
  * @example
@@ -91,12 +92,11 @@ let portalIndex = 0;
  *   <p>Thinking with portals</p>
  * </Portal>
  */
-export const Portal = observer(({ id, children }: { id?: string; children: React.ReactNode }) => {
+export const Portal = observer(({ id, children }: { id: string; children: React.ReactNode }) => {
   const { uiStore } = useContext(StoreContext);
-  const [portalId] = useState(id || `portal-${portalIndex++}`); // create a default unique portal ID as fallback
 
   const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-  const target = usePortal(id || portalId, themeClass);
+  const target = usePortal(id, themeClass);
   return createPortal(children, target);
 });
 
