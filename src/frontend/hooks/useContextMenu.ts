@@ -32,7 +32,7 @@ export default function useContextMenu(
 ): [IContextMenuState, IContextMenuMethods] {
   const config = useRef({
     resetOnClose: options?.resetOnClose ?? true,
-    initialMenu: options?.initialMenu ?? <></>,
+    initialMenu: options?.initialMenu ?? {},
   });
   const [state, dispatch] = useState({
     open: false,
