@@ -223,6 +223,7 @@ class LocationStore {
 
     AppToaster.show({ message: `Location "${location.name}" is ready!`, timeout: 5000 }, toastKey);
     this.rootStore.fileStore.refetch();
+    this.rootStore.fileStore.refetchFileCounts();
   }
 
   @action.bound async delete(location: ClientLocation) {
@@ -237,10 +238,9 @@ class LocationStore {
       }
       // Remove location locally
       this.locationList.remove(location);
-
-      // TODO: Update untagged image counter
     });
     this.rootStore.fileStore.refetch();
+    this.rootStore.fileStore.refetchFileCounts();
   }
 
   @action async addFile(path: string, location: ClientLocation) {
