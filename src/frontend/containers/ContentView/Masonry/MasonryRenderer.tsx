@@ -11,6 +11,8 @@ interface IMasonryRendererProps {
 
 const SCROLL_BAR_WIDTH = 8;
 
+const worker = new MasonryWorkerAdapter();
+
 const MasonryRenderer = observer(
   ({
     uiStore,
@@ -24,9 +26,8 @@ const MasonryRenderer = observer(
     // The timestamp from when the layout was last updated
     const [layoutTimestamp, setLayoutTimestamp] = useState<Date>(new Date());
     // Needed in order to re-render forcefully when the layout updates
-    // TODO: Should re-evaluate (and document) why this was necessary. I think it might have something to do with some logic still being performed on the old layout
+    // Doesn't seem to be necessary anymore - might cause overlapping thumbnails, but could not reproduce
     const [forceRerenderObj, setForceRerenderObj] = useState<Date>(new Date());
-    const [worker] = useState(new MasonryWorkerAdapter());
     const [, thumbnailSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
       uiStore.thumbnailSize,
     ]);
@@ -41,7 +42,9 @@ const MasonryRenderer = observer(
     useEffect(() => {
       (async function onMount() {
         try {
-          await worker.initialize(numImages);
+          if (!worker.isInitialized) {
+            await worker.initialize(numImages);
+          }
           const containerHeight = await worker.compute(fileStore.fileList, containerWidth, {
             thumbSize: thumbnailSize,
             type: viewMethod === ViewMethod.MasonryVertical ? 'vertical' : 'horizontal',
@@ -53,7 +56,7 @@ const MasonryRenderer = observer(
           console.error(e);
         }
       })();
-      return () => void worker.free()?.catch(console.error); // free memory when unmounting
+      // return () => void worker.free()?.catch(console.error); // free memory when unmounting
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
