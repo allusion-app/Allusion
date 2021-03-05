@@ -26,7 +26,7 @@ export interface IContextMenu {
  * `useContextMenu` hook can be used to create all the necessary state and
  * callbacks which can be used to set the state from deep within a tree.
  */
-export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = false }: IContextMenu) => {
+export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }: IContextMenu) => {
   const container = useRef<HTMLDivElement>(null);
   const boundingRect = useRef({
     width: 0,
