@@ -8,6 +8,8 @@ export interface ITooltip {
   content: React.ReactText;
   /** The element that triggers the tooltip when hovered over. */
   trigger: React.ReactElement<HTMLElement>;
+  /** The reference to the native element trigger. This is necessary for the portal! */
+  portalTriggerRef: React.RefObject<HTMLElement>;
   /** @default 100 */
   hoverDelay?: number;
   /** @default 'auto' */
@@ -20,10 +22,12 @@ export const Tooltip = (props: ITooltip) => {
   const {
     content,
     trigger,
-    hoverDelay = 100,
+    // 500ms feels about right: https://ux.stackexchange.com/questions/358/how-long-should-the-delay-be-before-a-tooltip-pops-up
+    hoverDelay = 500,
     placement = 'auto',
     allowedAutoPlacements,
     fallbackPlacements,
+    portalTriggerRef,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
   const timerID = useRef<number>();
@@ -31,12 +35,12 @@ export const Tooltip = (props: ITooltip) => {
 
   // Add event listeners to target element to show tooltip on hover
   useEffect(() => {
-    if (popover.current === null) {
+    if (portalTriggerRef.current === null) {
       return;
     }
     // SAFETY: It the trigger element does not exist or it is not an element,
     // this is a developer error.
-    const target = popover.current.previousElementSibling as HTMLElement;
+    const target = portalTriggerRef.current;
 
     const handleMouseEnter = () => {
       timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
@@ -62,17 +66,19 @@ export const Tooltip = (props: ITooltip) => {
       target.removeEventListener('mouseenter', handleMouseEnter);
       target.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [hoverDelay]);
+  }, [content, hoverDelay, portalTriggerRef, trigger]);
 
   return (
     <RawPopover
       popoverRef={popover}
       isOpen={isOpen}
       target={trigger}
+      targetRef={portalTriggerRef}
       role="tooltip"
       placement={placement}
       fallbackPlacements={fallbackPlacements}
       allowedAutoPlacements={allowedAutoPlacements}
+      portalId="tooltip-portal"
     >
       <div className="tooltip">{content}</div>
     </RawPopover>
