@@ -83,8 +83,9 @@ const ToolbarButton = (props: IToolbarButton) => {
     controls,
     haspopup,
   } = props;
+  const portalTriggerRef = useRef<HTMLSpanElement>(null);
   const content = (
-    <span className="toolbar-button-content">
+    <span ref={portalTriggerRef} className="toolbar-button-content">
       <span className="toolbar-button-icon" aria-hidden>
         {icon}
       </span>
@@ -105,7 +106,11 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-expanded={expanded}
       tabIndex={-1}
     >
-      {tooltip ? <Tooltip content={tooltip} hoverDelay={1500} trigger={content} /> : content}
+      {tooltip ? (
+        <Tooltip content={tooltip} trigger={content} portalTriggerRef={portalTriggerRef} />
+      ) : (
+        content
+      )}
     </button>
   );
 };

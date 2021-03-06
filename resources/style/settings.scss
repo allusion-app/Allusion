@@ -10,6 +10,15 @@
     height: 2em;
     vertical-align: top;
   }
+  
+  .scale-widget {
+    display: flex;
+    justify-content: start;
+
+    > span {
+      padding: 8px;
+    }
+  }
 }
 
 .settings-thumbnail {

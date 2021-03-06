@@ -552,7 +552,13 @@ const TagsTree = observer(() => {
           onClose={() => dispatch(Factory.abortDeletion())}
         />
       )}
-      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
+      <ContextMenu
+        isOpen={contextState.open}
+        x={contextState.x}
+        y={contextState.y}
+        close={hide}
+        usePortal
+      >
         {contextState.menu}
       </ContextMenu>
     </>

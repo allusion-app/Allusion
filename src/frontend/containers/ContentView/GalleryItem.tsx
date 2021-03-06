@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { ensureThumbnail } from '../../ThumbnailGeneration';
@@ -62,35 +62,43 @@ interface IGridCell extends ICell {
 }
 
 export const GridCell = observer(
-  ({ file, colIndex, mounted, uiStore, fileStore, submitCommand }: IGridCell) => (
-    <div
-      role="gridcell"
-      tabIndex={-1}
-      aria-colindex={colIndex}
-      aria-selected={uiStore.fileSelection.has(file)}
-    >
-      <ThumbnailContainer file={file} submitCommand={submitCommand}>
-        <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
-      </ThumbnailContainer>
-      {file.isBroken === true && (
-        <Tooltip
-          content="This image could not be found."
-          trigger={
-            <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
-              {IconSet.WARNING_BROKEN_LINK}
-            </span>
-          }
-        />
-      )}
-      {/* Show tags when the option is enabled, or when the file is selected */}
-      {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
-        (file.tags.size == 0 || !mounted ? (
-          <span className="thumbnail-tags" />
-        ) : (
-          <Tags file={file} />
-        ))}
-    </div>
-  ),
+  ({ file, colIndex, mounted, uiStore, fileStore, submitCommand }: IGridCell) => {
+    const portalTriggerRef = useRef<HTMLSpanElement>(null);
+    return (
+      <div
+        role="gridcell"
+        tabIndex={-1}
+        aria-colindex={colIndex}
+        aria-selected={uiStore.fileSelection.has(file)}
+      >
+        <ThumbnailContainer file={file} submitCommand={submitCommand}>
+          <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
+        </ThumbnailContainer>
+        {file.isBroken === true && (
+          <Tooltip
+            content="This image could not be found."
+            trigger={
+              <span
+                ref={portalTriggerRef}
+                className="thumbnail-broken-overlay"
+                onClick={fileStore.fetchMissingFiles}
+              >
+                {IconSet.WARNING_BROKEN_LINK}
+              </span>
+            }
+            portalTriggerRef={portalTriggerRef}
+          />
+        )}
+        {/* Show tags when the option is enabled, or when the file is selected */}
+        {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
+          (file.tags.size == 0 || !mounted ? (
+            <span className="thumbnail-tags" />
+          ) : (
+            <Tags file={file} />
+          ))}
+      </div>
+    );
+  },
 );
 
 interface IMasonryCell extends ICell {
@@ -110,6 +118,7 @@ export const MasonryCell = observer(
     submitCommand,
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
+    const portalTriggerRef = useRef<HTMLSpanElement>(null);
     return (
       <div
         data-masonrycell
@@ -129,10 +138,15 @@ export const MasonryCell = observer(
           <Tooltip
             content="This image could not be found."
             trigger={
-              <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
+              <span
+                ref={portalTriggerRef}
+                className="thumbnail-broken-overlay"
+                onClick={fileStore.fetchMissingFiles}
+              >
                 {IconSet.WARNING_BROKEN_LINK}
               </span>
             }
+            portalTriggerRef={portalTriggerRef}
           />
         )}
         {/* Show tags when the option is enabled, or when the file is selected */}

@@ -8,7 +8,7 @@ import StoreContext from '../../contexts/StoreContext';
 import useContextMenu from '../../hooks/useContextMenu';
 
 import { IconSet } from 'widgets';
-import { ContextMenu, MenuSubItem, Menu, MenuChild } from 'widgets/menus';
+import { ContextMenu, MenuSubItem, Menu, MenuChild, MenuDivider } from 'widgets/menus';
 
 import Placeholder from './Placeholder';
 import Layout from './Gallery';
@@ -101,6 +101,9 @@ const Gallery = observer(() => {
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}
+
+          {fileMenu && <MenuDivider />}
+
           <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
             <LayoutMenuItems uiStore={uiStore} />
           </MenuSubItem>
@@ -110,6 +113,9 @@ const Gallery = observer(() => {
           <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
             <ThumbnailSizeMenuItems uiStore={uiStore} />
           </MenuSubItem>
+
+          {externalMenu && <MenuDivider />}
+
           {externalMenu}
         </Menu>
       </ContextMenu>
