@@ -21,7 +21,7 @@ import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
 import OutlinerSplitter from './containers/Outliner/OutlinerSplitter';
 import TagDnDContext from './contexts/TagDnDContext';
-import { DnDAttribute } from './containers/Outliner/TagsPanel/dnd';
+import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;

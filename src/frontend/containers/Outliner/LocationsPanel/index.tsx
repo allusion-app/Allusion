@@ -19,7 +19,7 @@ import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
-import { DnDAttribute } from '../TagsPanel/dnd';
+import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import DropContext from 'src/frontend/contexts/DropContext';
 
 // Tooltip info
