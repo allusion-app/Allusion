@@ -422,6 +422,10 @@ MainMessenger.onIsFullScreen(() => mainWindow?.isFullScreen() ?? false);
 
 MainMessenger.onSetFullScreen((isFullScreen) => mainWindow?.setFullScreen(isFullScreen));
 
+MainMessenger.onGetZoomFactor(() => mainWindow?.webContents.zoomFactor ?? 1);
+
+MainMessenger.onSetZoomFactor((level: number) => mainWindow?.webContents.setZoomFactor(level));
+
 MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
   if (mainWindow !== null) {
     switch (button) {

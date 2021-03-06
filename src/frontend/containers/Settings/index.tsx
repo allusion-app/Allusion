@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
@@ -13,6 +13,21 @@ import Tabs, { TabItem } from './Tabs';
 
 const Appearance = observer(() => {
   const { uiStore } = useContext(StoreContext);
+  const [localZoomFactor, setLocalZoomFactor] = useState(RendererMessenger.getZoomFactor());
+
+  const incrementZoomFactor = useCallback(() => {
+    RendererMessenger.setZoomFactor(localZoomFactor + 0.1);
+    setLocalZoomFactor(localZoomFactor + 0.1);
+  }, [localZoomFactor]);
+  const decrementZoomFactor = useCallback(() => {
+    RendererMessenger.setZoomFactor(localZoomFactor - 0.1);
+    setLocalZoomFactor(localZoomFactor - 0.1);
+  }, [localZoomFactor]);
+  const resetZoomFactor = useCallback(() => {
+    RendererMessenger.setZoomFactor(1);
+    setLocalZoomFactor(1);
+  }, []);
+
   return (
     <>
       <h2>Appearance</h2>
@@ -29,6 +44,17 @@ const Appearance = observer(() => {
           onChange={toggleFullScreen}
           label="Full screen"
         />
+
+        <br />
+
+        <div className="scale-widget">
+          <ButtonGroup>
+            <Button onClick={decrementZoomFactor} text="-" styling="outlined" />
+            <Button onClick={incrementZoomFactor} text="+" styling="outlined" />
+            <Button onClick={resetZoomFactor} icon={IconSet.RELOAD} text="" styling="outlined" />
+          </ButtonGroup>
+          <span>Scale: {Math.round(100 * localZoomFactor)}%</span>
+        </div>
       </fieldset>
 
       <h3>Thumbnail</h3>
