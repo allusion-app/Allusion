@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
-import { runInAction } from 'mobx';
+import { runInAction, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
@@ -20,8 +20,24 @@ import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
 import OutlinerSplitter from './containers/Outliner/OutlinerSplitter';
+import TagDnDContext from './contexts/TagDnDContext';
+import { DnDAttribute } from './containers/Outliner/TagsPanel/dnd';
+
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
+
+const TagDnDContextData = observable({ item: undefined });
+
+window.addEventListener(
+  'dragend',
+  (event: DragEvent) => {
+    TagDnDContextData.item = undefined;
+    if (event.target instanceof HTMLElement) {
+      event.target.dataset[DnDAttribute.Source] = 'false';
+    }
+  },
+  true,
+);
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -109,13 +125,15 @@ const App = observer(() => {
         {PLATFORM !== 'darwin' && <WindowTitlebar />}
 
         <ErrorBoundary>
-          <Outliner />
+          <TagDnDContext.Provider value={TagDnDContextData}>
+            <Outliner />
 
-          <OutlinerSplitter />
+            <OutlinerSplitter />
 
-          <AppToolbar />
+            <AppToolbar />
 
-          <ContentView />
+            <ContentView />
+          </TagDnDContext.Provider>
 
           <SettingsWindow />
 
