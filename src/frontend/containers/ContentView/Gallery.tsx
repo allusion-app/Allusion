@@ -42,7 +42,7 @@ const Layout = ({
 
   const handleFileSelect = useCallback(
     (selectedFile: ClientFile, toggleSelection: boolean, rangeSelection: boolean) => {
-      /** The index of the actived item */
+      /** The index of the active (newly selected) item */
       const i = fileStore.getIndex(selectedFile.id);
 
       // If nothing is selected, initialize the selection range and select that single item
@@ -66,10 +66,10 @@ const Layout = ({
         }
       } else if (toggleSelection) {
         uiStore.toggleFileSelection(selectedFile);
-        initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
+        initialSelectionIndex.current = i;
       } else {
         uiStore.selectFile(selectedFile, true);
-        initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
+        initialSelectionIndex.current = i;
       }
     },
     [fileStore, uiStore],

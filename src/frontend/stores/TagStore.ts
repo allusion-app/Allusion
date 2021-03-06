@@ -52,6 +52,22 @@ class TagStore {
     return this.tagList.filter((t) => t.id !== ROOT_TAG_ID);
   }
 
+  /**
+   * Returns all tags as a single flattened list, as it would appear in the tag outliner when all tags have been expanded.
+   * Does not include the root tag.
+   **/
+  @computed get flatTagList() {
+    const flattenSubtags = (tag: ClientTag): ClientTag[] => [
+      tag,
+      ...tag.subTags.flatMap(flattenSubtags),
+    ];
+    return this.root.subTags.flatMap(flattenSubtags);
+  }
+
+  @action findFlatTagListIndex(target: ClientTag) {
+    return this.flatTagList.findIndex((tag) => tag.id === target.id);
+  }
+
   @action isSelected(tag: ClientTag): boolean {
     return this.rootStore.uiStore.tagSelection.has(tag);
   }
