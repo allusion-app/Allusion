@@ -13,6 +13,8 @@ import { Tooltip } from 'widgets/popovers';
 
 import ImageInfo from '../../components/ImageInfo';
 import { ITransform } from './Masonry/masonry.worker';
+import { GalleryCommand, GallerySelector } from './Gallery';
+import { DnDAttribute } from '../Outliner/TagsPanel/dnd';
 
 interface ICell {
   file: ClientFile;
@@ -22,9 +24,41 @@ interface ICell {
   forceNoThumbnail?: boolean;
 }
 
-export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
+interface IListCell extends ICell {
+  submitCommand: (command: GalleryCommand) => void;
+}
+
+export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: IListCell) => (
   <div role="gridcell" tabIndex={-1} aria-selected={uiStore.fileSelection.has(file)}>
-    <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+    <div
+      className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        submitCommand({
+          selector: GallerySelector.Click,
+          payload: [file, e.ctrlKey || e.metaKey, e.shiftKey],
+        });
+      }}
+      onDoubleClick={() => submitCommand({ selector: GallerySelector.DoubleClick, payload: file })}
+      onContextMenu={(e) => {
+        e.stopPropagation();
+        submitCommand({
+          selector: GallerySelector.ContextMenu,
+          payload: [file, e.clientX, e.clientY],
+        });
+      }}
+      onDragStart={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        submitCommand({ selector: GallerySelector.DragStart, payload: file });
+      }}
+      onDrop={(e) => {
+        e.stopPropagation();
+        submitCommand({ selector: GallerySelector.DragStart, payload: file });
+        e.dataTransfer.dropEffect = 'none';
+        e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+      }}
+    >
       <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
     </div>
     {file.isBroken === true ? (
@@ -55,37 +89,66 @@ export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
 interface IGridCell extends ICell {
   colIndex: number;
   fileStore: FileStore;
+  submitCommand: (command: GalleryCommand) => void;
 }
 
-export const GridCell = observer(({ file, colIndex, mounted, uiStore, fileStore }: IGridCell) => (
-  <div
-    role="gridcell"
-    tabIndex={-1}
-    aria-colindex={colIndex}
-    aria-selected={uiStore.fileSelection.has(file)}
-  >
-    <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-      <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
+export const GridCell = observer(
+  ({ file, colIndex, mounted, uiStore, fileStore, submitCommand }: IGridCell) => (
+    <div
+      role="gridcell"
+      tabIndex={-1}
+      aria-colindex={colIndex}
+      aria-selected={uiStore.fileSelection.has(file)}
+      onClick={(e) => {
+        e.stopPropagation();
+        submitCommand({
+          selector: GallerySelector.Click,
+          payload: [file, e.ctrlKey || e.metaKey, e.shiftKey],
+        });
+      }}
+      onDoubleClick={() => submitCommand({ selector: GallerySelector.DoubleClick, payload: file })}
+      onContextMenu={(e) => {
+        e.stopPropagation();
+        submitCommand({
+          selector: GallerySelector.ContextMenu,
+          payload: [file, e.clientX, e.clientY],
+        });
+      }}
+      onDragStart={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        submitCommand({ selector: GallerySelector.DragStart, payload: file });
+      }}
+      onDrop={(e) => {
+        e.stopPropagation();
+        submitCommand({ selector: GallerySelector.DragStart, payload: file });
+        e.dataTransfer.dropEffect = 'none';
+        e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+      }}
+    >
+      <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+        <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
+      </div>
+      {file.isBroken === true && (
+        <Tooltip
+          content="This image could not be found."
+          trigger={
+            <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
+              {IconSet.WARNING_BROKEN_LINK}
+            </span>
+          }
+        />
+      )}
+      {/* Show tags when the option is enabled, or when the file is selected */}
+      {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
+        (file.tags.size == 0 || !mounted ? (
+          <span className="thumbnail-tags" />
+        ) : (
+          <Tags file={file} />
+        ))}
     </div>
-    {file.isBroken === true && (
-      <Tooltip
-        content="This image could not be found."
-        trigger={
-          <span className="thumbnail-broken-overlay" onClick={fileStore.fetchMissingFiles}>
-            {IconSet.WARNING_BROKEN_LINK}
-          </span>
-        }
-      />
-    )}
-    {/* Show tags when the option is enabled, or when the file is selected */}
-    {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
-      (file.tags.size == 0 || !mounted ? (
-        <span className="thumbnail-tags" />
-      ) : (
-        <Tags file={file} />
-      ))}
-  </div>
-));
+  ),
+);
 
 interface IMasonryCell extends ICell {
   index: number;

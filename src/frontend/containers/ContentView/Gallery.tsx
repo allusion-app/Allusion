@@ -1,7 +1,8 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FixedSizeList } from 'react-window';
+import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { RendererMessenger } from 'src/Messaging';
 import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
@@ -157,10 +158,80 @@ const CONTENT_PADDING_RIGHT = 12;
 const GridGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
   const { fileList } = fileStore;
+  const dragData = useContext(TagDnDContext);
   const [minSize, maxSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
     uiStore.thumbnailSize,
   ]);
   const [[numColumns, cellSize], setDimensions] = useState([0, 0]);
+
+  const submitCommand = useCallback(
+    (command: GalleryCommand) => {
+      switch (command.selector) {
+        case GallerySelector.Click: {
+          const [file, metaKey, shitfKey] = command.payload;
+          select(file, metaKey, shitfKey);
+          break;
+        }
+
+        case GallerySelector.DoubleClick:
+          uiStore.selectFile(command.payload, true);
+          uiStore.enableSlideMode();
+          break;
+
+        case GallerySelector.ContextMenu: {
+          const [file, x, y] = command.payload;
+          runInAction(() => {
+            showContextMenu(x, y, [
+              file.isBroken ? (
+                <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+              ) : (
+                <FileViewerMenuItems file={file} uiStore={uiStore} />
+              ),
+              file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+            ]);
+          });
+          break;
+        }
+
+        case GallerySelector.DragStart: {
+          const file = command.payload;
+          runInAction(() => {
+            if (!uiStore.fileSelection.has(file)) {
+              return;
+            }
+            if (uiStore.fileSelection.size > 1) {
+              RendererMessenger.startDragExport(
+                Array.from(uiStore.fileSelection, (f) => f.absolutePath),
+              );
+            } else {
+              RendererMessenger.startDragExport([file.absolutePath]);
+            }
+          });
+
+          // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+          // So we can store the date when the event starts... Hacky but it works :)
+          (window as any).internalDragStart = new Date();
+        }
+
+        case GallerySelector.Drop: {
+          runInAction(() => {
+            if (dragData.item !== undefined) {
+              const file = command.payload;
+              const ctx = uiStore.getTagContextItems(dragData.item.id);
+              ctx.tags.forEach((tag) => {
+                file.addTag(tag);
+                tag.subTags.forEach(file.addTag);
+              });
+            }
+          });
+        }
+
+        default:
+          break;
+      }
+    },
+    [dragData, fileStore, select, showContextMenu, uiStore],
+  );
 
   useEffect(() => {
     const timeoutID = setTimeout(() => {
@@ -245,70 +316,6 @@ const GridGallery = observer((props: ILayoutProps) => {
     return () => window.removeEventListener('keydown', throttledKeyDown);
   }, [fileList, uiStore, numColumns, select, lastSelectionIndex]);
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
-      if (index !== undefined) {
-        runInAction(() => select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
-      }
-    },
-    [fileList, numColumns, select],
-  );
-
-  const handleDoubleClick = useCallback(
-    (e: React.MouseEvent) => {
-      const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
-      if (index === undefined) {
-        return;
-      }
-      runInAction(() => {
-        uiStore.selectFile(fileList[index], true);
-        uiStore.enableSlideMode();
-      });
-    },
-    [fileList, numColumns, uiStore],
-  );
-
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent) => {
-      const index = getGridItemIndex(e, numColumns, (t) => t.matches('[role="gridcell"] *'));
-      if (index === undefined) {
-        return;
-      }
-      e.stopPropagation();
-      runInAction(() => {
-        const file = fileList[index];
-        showContextMenu(e.clientX, e.clientY, [
-          file.isBroken ? (
-            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-          ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
-          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-        ]);
-      });
-    },
-    [fileList, fileStore, numColumns, showContextMenu, uiStore],
-  );
-
-  const handleDragStart = useCallback(
-    (e: React.DragEvent) => {
-      const index = getGridItemIndex(e, numColumns, (t) => t.matches('.thumbnail'));
-      onDragStart(e, index, uiStore, fileList);
-    },
-    [fileList, numColumns, uiStore],
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLElement>) => {
-      if (e.dataTransfer.types.includes(DnDType)) {
-        const index = getGridItemIndex(e, numColumns, (t) => t.matches('.thumbnail'));
-        onDrop(e, index, uiStore, fileList);
-      }
-    },
-    [fileList, numColumns, uiStore],
-  );
-
   const Row = useCallback(
     ({ index, style, data, isScrolling }) => (
       <GridRow
@@ -320,9 +327,10 @@ const GridGallery = observer((props: ILayoutProps) => {
         columns={numColumns}
         uiStore={uiStore}
         fileStore={fileStore}
+        submitCommand={submitCommand}
       />
     ),
-    [fileStore, numColumns, uiStore],
+    [fileStore, numColumns, submitCommand, uiStore],
   );
 
   return (
@@ -331,14 +339,9 @@ const GridGallery = observer((props: ILayoutProps) => {
       role="grid"
       aria-rowcount={numRows}
       aria-colcount={numColumns}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      onContextMenu={handleContextMenu}
-      onDragStart={handleDragStart}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
     >
       <FixedSizeList
         useIsScrolling
@@ -360,6 +363,7 @@ const GridGallery = observer((props: ILayoutProps) => {
 
 const ListGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
+  const dragData = useContext(TagDnDContext);
   const cellSize = useMemo(() => getThumbnailSize(uiStore.thumbnailSize)[1], [
     uiStore.thumbnailSize,
   ]);
@@ -388,6 +392,75 @@ const ListGallery = observer((props: ILayoutProps) => {
     ),
   );
 
+  const submitCommand = useCallback(
+    (command: GalleryCommand) => {
+      switch (command.selector) {
+        case GallerySelector.Click: {
+          const [file, metaKey, shitfKey] = command.payload;
+          select(file, metaKey, shitfKey);
+          break;
+        }
+
+        case GallerySelector.DoubleClick:
+          uiStore.selectFile(command.payload, true);
+          uiStore.enableSlideMode();
+          break;
+
+        case GallerySelector.ContextMenu: {
+          const [file, x, y] = command.payload;
+          runInAction(() => {
+            showContextMenu(x, y, [
+              file.isBroken ? (
+                <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+              ) : (
+                <FileViewerMenuItems file={file} uiStore={uiStore} />
+              ),
+              file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+            ]);
+          });
+          break;
+        }
+
+        case GallerySelector.DragStart: {
+          const file = command.payload;
+          runInAction(() => {
+            if (!uiStore.fileSelection.has(file)) {
+              return;
+            }
+            if (uiStore.fileSelection.size > 1) {
+              RendererMessenger.startDragExport(
+                Array.from(uiStore.fileSelection, (f) => f.absolutePath),
+              );
+            } else {
+              RendererMessenger.startDragExport([file.absolutePath]);
+            }
+          });
+
+          // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+          // So we can store the date when the event starts... Hacky but it works :)
+          (window as any).internalDragStart = new Date();
+        }
+
+        case GallerySelector.Drop: {
+          runInAction(() => {
+            if (dragData.item !== undefined) {
+              const file = command.payload;
+              const ctx = uiStore.getTagContextItems(dragData.item.id);
+              ctx.tags.forEach((tag) => {
+                file.addTag(tag);
+                tag.subTags.forEach(file.addTag);
+              });
+            }
+          });
+        }
+
+        default:
+          break;
+      }
+    },
+    [dragData, fileStore, select, showContextMenu, uiStore],
+  );
+
   useEffect(() => () => intersectionObserver.current.disconnect(), []);
 
   const index = lastSelectionIndex.current;
@@ -396,70 +469,6 @@ const ListGallery = observer((props: ILayoutProps) => {
       ref.current.scrollToItem(Math.floor(index));
     }
   }, [index, uiStore.fileSelection.size]);
-
-  const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
-      if (index !== undefined) {
-        runInAction(() => select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
-      }
-    },
-    [fileStore, select],
-  );
-
-  const handleDoubleClick = useCallback(
-    (e: React.MouseEvent) => {
-      const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
-      if (index === undefined) {
-        return;
-      }
-      runInAction(() => {
-        uiStore.selectFile(fileStore.fileList[index], true);
-        uiStore.enableSlideMode();
-      });
-    },
-    [fileStore, uiStore],
-  );
-
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent) => {
-      const index = getListItemIndex(e, () => true);
-      if (index === undefined) {
-        return;
-      }
-      e.stopPropagation();
-      runInAction(() => {
-        const file = fileStore.fileList[index];
-        showContextMenu(e.clientX, e.clientY, [
-          file.isBroken ? (
-            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-          ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
-          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-        ]);
-      });
-    },
-    [fileStore, showContextMenu, uiStore],
-  );
-
-  const handleDragStart = useCallback(
-    (e: React.DragEvent) => {
-      const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
-      runInAction(() => onDragStart(e, index, uiStore, fileStore.fileList));
-    },
-    [fileStore, uiStore],
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLElement>) => {
-      if (e.dataTransfer.types.includes(DnDType)) {
-        const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
-        runInAction(() => onDrop(e, index, uiStore, fileStore.fileList));
-      }
-    },
-    [fileStore, uiStore],
-  );
 
   const Row = useCallback(
     ({ index, style, data, isScrolling }) => (
@@ -470,9 +479,10 @@ const ListGallery = observer((props: ILayoutProps) => {
         isScrolling={isScrolling}
         observer={intersectionObserver.current}
         uiStore={uiStore}
+        submitCommand={submitCommand}
       />
     ),
-    [uiStore],
+    [submitCommand, uiStore],
   );
 
   return (
@@ -480,14 +490,9 @@ const ListGallery = observer((props: ILayoutProps) => {
       className="list"
       role="grid"
       aria-rowcount={fileStore.fileList.length}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      onContextMenu={handleContextMenu}
-      onDragStart={handleDragStart}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
     >
       <FixedSizeList
         useIsScrolling
@@ -513,10 +518,11 @@ interface IListItem {
   isScrolling: true;
   observer: IntersectionObserver;
   uiStore: UiStore;
+  submitCommand: (command: GalleryCommand) => void;
 }
 
 const ListItem = observer((props: IListItem) => {
-  const { index, data, style, isScrolling, observer, uiStore } = props;
+  const { index, data, style, isScrolling, observer, uiStore, submitCommand } = props;
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
@@ -540,7 +546,7 @@ const ListItem = observer((props: IListItem) => {
 
   return (
     <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
-      <ListCell mounted={isMounted} file={file} uiStore={uiStore} />
+      <ListCell mounted={isMounted} file={file} uiStore={uiStore} submitCommand={submitCommand} />
     </div>
   );
 });
@@ -548,10 +554,21 @@ const ListItem = observer((props: IListItem) => {
 interface IGridRow extends IListItem {
   columns: number;
   fileStore: FileStore;
+  submitCommand: (command: GalleryCommand) => void;
 }
 
 const GridRow = observer((props: IGridRow) => {
-  const { index, data, style, isScrolling, observer, columns, uiStore, fileStore } = props;
+  const {
+    index,
+    data,
+    style,
+    isScrolling,
+    observer,
+    columns,
+    uiStore,
+    fileStore,
+    submitCommand,
+  } = props;
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -583,6 +600,7 @@ const GridRow = observer((props: IGridRow) => {
           file={file}
           uiStore={uiStore}
           fileStore={fileStore}
+          submitCommand={submitCommand}
         />
       ))}
     </div>
@@ -728,21 +746,22 @@ function getListItemIndex(
   return undefined;
 }
 
-function getGridItemIndex(
-  e: React.MouseEvent,
-  numColumns: number,
-  matches: (target: HTMLElement) => boolean,
-): number | undefined {
-  const target = e.target as HTMLElement;
-  if (matches(target)) {
-    e.stopPropagation();
-    // Each thumbnail is in a gridcell which is owned by a row.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const rowIndex = target.closest('[role="row"]')!.getAttribute('aria-rowindex')!;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const colIndex = target.closest('[role="gridcell"')!.getAttribute('aria-colindex')!;
-    const offset = (parseInt(rowIndex) - 1) * numColumns;
-    return offset + parseInt(colIndex) - 1;
-  }
-  return undefined;
+export const enum GallerySelector {
+  Click,
+  DoubleClick,
+  ContextMenu,
+  DragStart,
+  Drop,
 }
+
+export interface ICommand<S, P> {
+  selector: S;
+  payload: P;
+}
+
+export type GalleryCommand =
+  | ICommand<GallerySelector.Click, [file: ClientFile, metaKey: boolean, shiftKey: boolean]>
+  | ICommand<GallerySelector.DoubleClick, ClientFile>
+  | ICommand<GallerySelector.ContextMenu, [file: ClientFile, x: number, y: number]>
+  | ICommand<GallerySelector.DragStart, ClientFile>
+  | ICommand<GallerySelector.Drop, ClientFile>;
