@@ -1,14 +1,12 @@
-import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
 import StoreContext from 'src/frontend/contexts/StoreContext';
+import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { debouncedThrottle } from 'src/frontend/utils';
-import { ILayoutProps } from '../Gallery';
+import { createSubmitCommand, ILayoutProps } from '../Gallery';
 import { MasonryCell } from '../GalleryItem';
-import { ExternalAppMenuItems, FileViewerMenuItems, MissingFileMenuItems } from '../menu-items';
-
 import { binarySearch, Layouter } from './renderer-helpers';
 
 interface IRendererProps {
@@ -51,7 +49,11 @@ const VirtualizedRenderer = observer(
     const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
     const [endRenderIndex, setEndRenderIndex] = useState(0);
-
+    const dragData = useContext(TagDnDContext);
+    const submitCommand = useMemo(
+      () => createSubmitCommand(dragData, fileStore, select, showContextMenu, uiStore),
+      [dragData, fileStore, select, showContextMenu, uiStore],
+    );
     const numImages = images.length;
 
     const determineRenderRegion = useCallback((numImages: number, overdraw: number) => {
@@ -81,58 +83,6 @@ const VirtualizedRenderer = observer(
 
     const handleScroll = () => throttledRedetermine.current(numImages, overscan || 0);
 
-    const handleClick = useCallback(
-      (e: React.MouseEvent) => {
-        const target = (e.target as HTMLElement).closest('[data-masonrycell]');
-        if (target === null) {
-          return;
-        }
-        e.stopPropagation();
-        const index = parseInt(target.getAttribute('data-fileindex')!);
-        runInAction(() => select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
-      },
-      [fileStore.fileList, select],
-    );
-
-    const handleDoubleClick = useCallback(
-      (e: React.MouseEvent) => {
-        const target = (e.target as HTMLElement).closest('[data-masonrycell]');
-        if (target === null) {
-          return;
-        }
-        e.stopPropagation();
-        const index = parseInt(target.getAttribute('data-fileindex')!);
-        runInAction(() => {
-          uiStore.selectFile(fileStore.fileList[index], true);
-          uiStore.toggleSlideMode();
-        });
-      },
-      [fileStore.fileList, uiStore],
-    );
-
-    const handleContextMenu = useCallback(
-      (e: React.MouseEvent) => {
-        const target = (e.target as HTMLElement).closest('[data-masonrycell]');
-        if (target === null) {
-          return;
-        }
-        e.stopPropagation();
-        const index = parseInt(target.getAttribute('data-fileindex')!);
-        runInAction(() => {
-          const file = fileStore.fileList[index];
-          showContextMenu(e.clientX, e.clientY, [
-            file.isBroken ? (
-              <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-            ) : (
-              <FileViewerMenuItems file={file} uiStore={uiStore} />
-            ),
-            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-          ]);
-        });
-      },
-      [fileStore, showContextMenu, uiStore],
-    );
-
     // Scroll to the first item in the view any time it is changed
     const lastSelIndex = lastSelectionIndex.current;
     useLayoutEffect(() => {
@@ -152,21 +102,13 @@ const VirtualizedRenderer = observer(
 
     return (
       // One div as the scrollable viewport
-      <div
-        className={className}
-        onScroll={handleScroll}
-        ref={wrapperRef}
-        onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
-        onContextMenu={handleContextMenu}
-      >
+      <div className={className} onScroll={handleScroll} ref={wrapperRef}>
         {/* One div for the content */}
         <div style={{ width: containerWidth, height: containerHeight }}>
           {images.slice(startRenderIndex, endRenderIndex).map((im, index) => {
             const transform = layout.getItemLayout(startRenderIndex + index);
             return (
               <MasonryCell
-                index={startRenderIndex + index}
                 key={im.id}
                 file={fileStore.fileList[startRenderIndex + index]}
                 mounted
@@ -179,6 +121,7 @@ const VirtualizedRenderer = observer(
                 forceNoThumbnail={
                   transform.width > thumbnailMaxSize || transform.height > thumbnailMaxSize
                 }
+                submitCommand={submitCommand}
               />
             );
           })}

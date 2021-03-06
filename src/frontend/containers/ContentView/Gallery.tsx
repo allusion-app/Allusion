@@ -1,15 +1,14 @@
-import { action, runInAction } from 'mobx';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FixedSizeList } from 'react-window';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import TagDnDContext, { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import { RendererMessenger } from 'src/Messaging';
 import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
-import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/dnd';
-import { GridCell, ListCell } from './GalleryItem';
+import { GalleryCommand, GallerySelector, GridCell, ListCell } from './GalleryItem';
 import MasonryRenderer from './Masonry/MasonryRenderer';
 import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from './menu-items';
 import SlideMode from './SlideMode';
@@ -164,72 +163,8 @@ const GridGallery = observer((props: ILayoutProps) => {
   ]);
   const [[numColumns, cellSize], setDimensions] = useState([0, 0]);
 
-  const submitCommand = useCallback(
-    (command: GalleryCommand) => {
-      switch (command.selector) {
-        case GallerySelector.Click: {
-          const [file, metaKey, shitfKey] = command.payload;
-          select(file, metaKey, shitfKey);
-          break;
-        }
-
-        case GallerySelector.DoubleClick:
-          uiStore.selectFile(command.payload, true);
-          uiStore.enableSlideMode();
-          break;
-
-        case GallerySelector.ContextMenu: {
-          const [file, x, y] = command.payload;
-          runInAction(() => {
-            showContextMenu(x, y, [
-              file.isBroken ? (
-                <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-              ) : (
-                <FileViewerMenuItems file={file} uiStore={uiStore} />
-              ),
-              file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-            ]);
-          });
-          break;
-        }
-
-        case GallerySelector.DragStart: {
-          const file = command.payload;
-          runInAction(() => {
-            if (!uiStore.fileSelection.has(file)) {
-              return;
-            }
-            if (uiStore.fileSelection.size > 1) {
-              RendererMessenger.startDragExport(
-                Array.from(uiStore.fileSelection, (f) => f.absolutePath),
-              );
-            } else {
-              RendererMessenger.startDragExport([file.absolutePath]);
-            }
-          });
-
-          // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
-          // So we can store the date when the event starts... Hacky but it works :)
-          (window as any).internalDragStart = new Date();
-        }
-
-        case GallerySelector.Drop: {
-          runInAction(() => {
-            if (dragData.item !== undefined) {
-              const file = command.payload;
-              const ctx = uiStore.getTagContextItems(dragData.item.id);
-              ctx.tags.forEach((tag) => {
-                file.addTag(tag);
-                tag.subTags.forEach(file.addTag);
-              });
-            }
-          });
-        }
-
-        default:
-          break;
-      }
-    },
+  const submitCommand = useMemo(
+    () => createSubmitCommand(dragData, fileStore, select, showContextMenu, uiStore),
     [dragData, fileStore, select, showContextMenu, uiStore],
   );
 
@@ -334,15 +269,7 @@ const GridGallery = observer((props: ILayoutProps) => {
   );
 
   return (
-    <div
-      className="grid"
-      role="grid"
-      aria-rowcount={numRows}
-      aria-colcount={numColumns}
-      onDragEnter={handleDragEnter}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-    >
+    <div className="grid" role="grid" aria-rowcount={numRows} aria-colcount={numColumns}>
       <FixedSizeList
         useIsScrolling
         height={contentRect.height}
@@ -367,6 +294,10 @@ const ListGallery = observer((props: ILayoutProps) => {
   const cellSize = useMemo(() => getThumbnailSize(uiStore.thumbnailSize)[1], [
     uiStore.thumbnailSize,
   ]);
+  const submitCommand = useMemo(
+    () => createSubmitCommand(dragData, fileStore, select, showContextMenu, uiStore),
+    [dragData, fileStore, select, showContextMenu, uiStore],
+  );
   const ref = useRef<FixedSizeList>(null);
   // FIXME: Hardcoded until responsive design is done.
   const TOOLBAR_HEIGHT = 48;
@@ -390,75 +321,6 @@ const ListGallery = observer((props: ILayoutProps) => {
       },
       { threshold: [0, 1] },
     ),
-  );
-
-  const submitCommand = useCallback(
-    (command: GalleryCommand) => {
-      switch (command.selector) {
-        case GallerySelector.Click: {
-          const [file, metaKey, shitfKey] = command.payload;
-          select(file, metaKey, shitfKey);
-          break;
-        }
-
-        case GallerySelector.DoubleClick:
-          uiStore.selectFile(command.payload, true);
-          uiStore.enableSlideMode();
-          break;
-
-        case GallerySelector.ContextMenu: {
-          const [file, x, y] = command.payload;
-          runInAction(() => {
-            showContextMenu(x, y, [
-              file.isBroken ? (
-                <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-              ) : (
-                <FileViewerMenuItems file={file} uiStore={uiStore} />
-              ),
-              file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-            ]);
-          });
-          break;
-        }
-
-        case GallerySelector.DragStart: {
-          const file = command.payload;
-          runInAction(() => {
-            if (!uiStore.fileSelection.has(file)) {
-              return;
-            }
-            if (uiStore.fileSelection.size > 1) {
-              RendererMessenger.startDragExport(
-                Array.from(uiStore.fileSelection, (f) => f.absolutePath),
-              );
-            } else {
-              RendererMessenger.startDragExport([file.absolutePath]);
-            }
-          });
-
-          // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
-          // So we can store the date when the event starts... Hacky but it works :)
-          (window as any).internalDragStart = new Date();
-        }
-
-        case GallerySelector.Drop: {
-          runInAction(() => {
-            if (dragData.item !== undefined) {
-              const file = command.payload;
-              const ctx = uiStore.getTagContextItems(dragData.item.id);
-              ctx.tags.forEach((tag) => {
-                file.addTag(tag);
-                tag.subTags.forEach(file.addTag);
-              });
-            }
-          });
-        }
-
-        default:
-          break;
-      }
-    },
-    [dragData, fileStore, select, showContextMenu, uiStore],
   );
 
   useEffect(() => () => intersectionObserver.current.disconnect(), []);
@@ -486,14 +348,7 @@ const ListGallery = observer((props: ILayoutProps) => {
   );
 
   return (
-    <div
-      className="list"
-      role="grid"
-      aria-rowcount={fileStore.fileList.length}
-      onDragEnter={handleDragEnter}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-    >
+    <div className="list" role="grid" aria-rowcount={fileStore.fileList.length}>
       <FixedSizeList
         useIsScrolling
         height={contentRect.height}
@@ -609,82 +464,6 @@ const GridRow = observer((props: IGridRow) => {
 
 export default observer(Layout);
 
-function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
-  if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = 'link';
-    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'true';
-  }
-}
-
-function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
-  if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
-    e.stopPropagation();
-    e.preventDefault();
-  }
-}
-
-function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
-  if (e.dataTransfer.types.includes(DnDType) && (e.target as HTMLElement).matches('.thumbnail')) {
-    e.stopPropagation();
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'none';
-    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
-  }
-}
-
-// If the file is selected, add all selected items to the drag event, for
-// exporting to your file explorer or programs like PureRef.
-// Creating an event in the main process turned out to be the most robust,
-// did many experiments with drag event content types. Creating a drag
-// event with multiple images did not work correctly from the browser side
-// (e.g. only limited to thumbnails, not full images).
-const onDragStart = action(
-  (e: React.DragEvent, index: number | undefined, uiStore: UiStore, fileList: ClientFile[]) => {
-    if (index === undefined) {
-      return;
-    }
-    e.stopPropagation();
-    const file = fileList[index];
-    if (!uiStore.fileSelection.has(file)) {
-      return;
-    }
-    e.preventDefault();
-    if (uiStore.fileSelection.size > 1) {
-      RendererMessenger.startDragExport(Array.from(uiStore.fileSelection, (f) => f.absolutePath));
-    } else {
-      RendererMessenger.startDragExport([file.absolutePath]);
-    }
-
-    // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
-    // So we can store the date when the event starts... Hacky but it works :)
-    (window as any).internalDragStart = new Date();
-  },
-);
-
-const onDrop = action(
-  (
-    e: React.DragEvent<HTMLElement>,
-    index: number | undefined,
-    uiStore: UiStore,
-    files: ClientFile[],
-  ) => {
-    if (index === undefined) {
-      return;
-    }
-    e.stopPropagation();
-    const file = files[index];
-    const ctx = uiStore.getTagContextItems(e.dataTransfer.getData(DnDType));
-    ctx.tags.forEach((tag) => {
-      file.addTag(tag);
-      tag.subTags.forEach(file.addTag);
-    });
-    e.dataTransfer.dropEffect = 'none';
-    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
-  },
-);
-
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
 // https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
@@ -731,37 +510,69 @@ const getItemKey = action((index: number, data: ClientFile[]): string => {
   return data[index].id;
 });
 
-function getListItemIndex(
-  e: React.MouseEvent,
-  matches: (target: HTMLElement) => boolean,
-): number | undefined {
-  const target = e.target as HTMLElement;
-  if (matches(target)) {
-    e.stopPropagation();
-    // Each thumbnail is in a gridcell which is owned by a row.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const rowIndex = target.closest('[role="row"]')!.getAttribute('aria-rowindex')!;
-    return parseInt(rowIndex) - 1;
-  }
-  return undefined;
-}
+export function createSubmitCommand(
+  dragData: ITagDnDData,
+  fileStore: FileStore,
+  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void,
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void,
+  uiStore: UiStore,
+): (command: GalleryCommand) => void {
+  return action((command: GalleryCommand) => {
+    switch (command.selector) {
+      case GallerySelector.Click: {
+        const [file, metaKey, shitfKey] = command.payload;
+        select(file, metaKey, shitfKey);
+        break;
+      }
 
-export const enum GallerySelector {
-  Click,
-  DoubleClick,
-  ContextMenu,
-  DragStart,
-  Drop,
-}
+      case GallerySelector.DoubleClick:
+        uiStore.selectFile(command.payload, true);
+        uiStore.enableSlideMode();
+        break;
 
-export interface ICommand<S, P> {
-  selector: S;
-  payload: P;
-}
+      case GallerySelector.ContextMenu: {
+        const [file, x, y] = command.payload;
+        showContextMenu(x, y, [
+          file.isBroken ? (
+            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+          ) : (
+            <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
+          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+        ]);
+        break;
+      }
 
-export type GalleryCommand =
-  | ICommand<GallerySelector.Click, [file: ClientFile, metaKey: boolean, shiftKey: boolean]>
-  | ICommand<GallerySelector.DoubleClick, ClientFile>
-  | ICommand<GallerySelector.ContextMenu, [file: ClientFile, x: number, y: number]>
-  | ICommand<GallerySelector.DragStart, ClientFile>
-  | ICommand<GallerySelector.Drop, ClientFile>;
+      case GallerySelector.DragStart: {
+        const file = command.payload;
+        if (!uiStore.fileSelection.has(file)) {
+          return;
+        }
+        if (uiStore.fileSelection.size > 1) {
+          RendererMessenger.startDragExport(
+            Array.from(uiStore.fileSelection, (f) => f.absolutePath),
+          );
+        } else {
+          RendererMessenger.startDragExport([file.absolutePath]);
+        }
+
+        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
+        // So we can store the date when the event starts... Hacky but it works :)
+        (window as any).internalDragStart = new Date();
+      }
+
+      case GallerySelector.Drop:
+        if (dragData.item !== undefined) {
+          const file = command.payload;
+          const ctx = uiStore.getTagContextItems(dragData.item.id);
+          ctx.tags.forEach((tag) => {
+            file.addTag(tag);
+            tag.subTags.forEach(file.addTag);
+          });
+        }
+
+      default:
+        break;
+    }
+  });
+}

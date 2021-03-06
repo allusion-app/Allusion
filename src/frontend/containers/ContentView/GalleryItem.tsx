@@ -13,8 +13,7 @@ import { Tooltip } from 'widgets/popovers';
 
 import ImageInfo from '../../components/ImageInfo';
 import { ITransform } from './Masonry/masonry.worker';
-import { GalleryCommand, GallerySelector } from './Gallery';
-import { DnDAttribute } from '../Outliner/TagsPanel/dnd';
+import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 
 interface ICell {
   file: ClientFile;
@@ -22,45 +21,16 @@ interface ICell {
   uiStore: UiStore;
   // Will use the original image instead of the thumbnail
   forceNoThumbnail?: boolean;
-}
-
-interface IListCell extends ICell {
   submitCommand: (command: GalleryCommand) => void;
 }
 
+type IListCell = ICell;
+
 export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: IListCell) => (
   <div role="gridcell" tabIndex={-1} aria-selected={uiStore.fileSelection.has(file)}>
-    <div
-      className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        submitCommand({
-          selector: GallerySelector.Click,
-          payload: [file, e.ctrlKey || e.metaKey, e.shiftKey],
-        });
-      }}
-      onDoubleClick={() => submitCommand({ selector: GallerySelector.DoubleClick, payload: file })}
-      onContextMenu={(e) => {
-        e.stopPropagation();
-        submitCommand({
-          selector: GallerySelector.ContextMenu,
-          payload: [file, e.clientX, e.clientY],
-        });
-      }}
-      onDragStart={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        submitCommand({ selector: GallerySelector.DragStart, payload: file });
-      }}
-      onDrop={(e) => {
-        e.stopPropagation();
-        submitCommand({ selector: GallerySelector.DragStart, payload: file });
-        e.dataTransfer.dropEffect = 'none';
-        e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-      }}
-    >
+    <ThumbnailContainer file={file} submitCommand={submitCommand}>
       <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
-    </div>
+    </ThumbnailContainer>
     {file.isBroken === true ? (
       <div>
         <p>The file {file.name} could not be found.</p>
@@ -89,7 +59,6 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ILi
 interface IGridCell extends ICell {
   colIndex: number;
   fileStore: FileStore;
-  submitCommand: (command: GalleryCommand) => void;
 }
 
 export const GridCell = observer(
@@ -99,36 +68,10 @@ export const GridCell = observer(
       tabIndex={-1}
       aria-colindex={colIndex}
       aria-selected={uiStore.fileSelection.has(file)}
-      onClick={(e) => {
-        e.stopPropagation();
-        submitCommand({
-          selector: GallerySelector.Click,
-          payload: [file, e.ctrlKey || e.metaKey, e.shiftKey],
-        });
-      }}
-      onDoubleClick={() => submitCommand({ selector: GallerySelector.DoubleClick, payload: file })}
-      onContextMenu={(e) => {
-        e.stopPropagation();
-        submitCommand({
-          selector: GallerySelector.ContextMenu,
-          payload: [file, e.clientX, e.clientY],
-        });
-      }}
-      onDragStart={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        submitCommand({ selector: GallerySelector.DragStart, payload: file });
-      }}
-      onDrop={(e) => {
-        e.stopPropagation();
-        submitCommand({ selector: GallerySelector.DragStart, payload: file });
-        e.dataTransfer.dropEffect = 'none';
-        e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-      }}
     >
-      <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+      <ThumbnailContainer file={file} submitCommand={submitCommand}>
         <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
-      </div>
+      </ThumbnailContainer>
       {file.isBroken === true && (
         <Tooltip
           content="This image could not be found."
@@ -151,7 +94,6 @@ export const GridCell = observer(
 );
 
 interface IMasonryCell extends ICell {
-  index: number;
   fileStore: FileStore;
   forceNoThumbnail: boolean;
   transform: ITransform;
@@ -161,29 +103,28 @@ export const MasonryCell = observer(
   ({
     file,
     mounted,
-    index,
     uiStore,
     fileStore,
     forceNoThumbnail,
     transform: { height, width, left, top },
+    submitCommand,
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
     return (
       <div
         data-masonrycell
-        data-fileindex={index}
         tabIndex={-1}
         aria-selected={uiStore.fileSelection.has(file)}
         style={style}
       >
-        <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+        <ThumbnailContainer file={file} submitCommand={submitCommand}>
           <Thumbnail
             uiStore={uiStore}
             mounted={!mounted}
             file={file}
             forceNoThumbnail={forceNoThumbnail}
           />
-        </div>
+        </ThumbnailContainer>
         {file.isBroken === true && (
           <Tooltip
             content="This image could not be found."
@@ -206,15 +147,88 @@ export const MasonryCell = observer(
   },
 );
 
+interface IThumbnailContainer {
+  file: ClientFile;
+  children: React.ReactNode;
+  submitCommand: (command: GalleryCommand) => void;
+}
+
+const ThumbnailContainer = observer(({ file, children, submitCommand }: IThumbnailContainer) => {
+  return (
+    <div
+      className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        submitCommand({
+          selector: GallerySelector.Click,
+          payload: [file, e.ctrlKey || e.metaKey, e.shiftKey],
+        });
+      }}
+      onDoubleClick={() => submitCommand({ selector: GallerySelector.DoubleClick, payload: file })}
+      onContextMenu={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        submitCommand({
+          selector: GallerySelector.ContextMenu,
+          payload: [file, e.clientX, e.clientY],
+        });
+      }}
+      onDragStart={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        submitCommand({ selector: GallerySelector.DragStart, payload: file });
+      }}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={(e) => {
+        e.stopPropagation();
+        submitCommand({ selector: GallerySelector.DragStart, payload: file });
+        e.dataTransfer.dropEffect = 'none';
+        e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+      }}
+    >
+      {children}
+    </div>
+  );
+});
+
+function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
+  if (e.dataTransfer.types.includes(DnDTagType)) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'link';
+    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'true';
+  }
+}
+
+function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+  if (e.dataTransfer.types.includes(DnDTagType)) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+}
+
+function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+  if (e.dataTransfer.types.includes(DnDTagType)) {
+    e.stopPropagation();
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'none';
+    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
+  }
+}
+
 const enum ThumbnailState {
   Ok,
   Loading,
   Error,
 }
 
+type IThumbnail = Omit<ICell, 'submitCommand'>;
+
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: ICell) => {
+const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: IThumbnail) => {
   const { thumbnailDirectory } = uiStore;
   const { thumbnailPath, isBroken } = file;
 
@@ -286,3 +300,23 @@ const Tags = observer(({ file }: { file: ClientFile }) => (
     ))}
   </span>
 ));
+
+export const enum GallerySelector {
+  Click,
+  DoubleClick,
+  ContextMenu,
+  DragStart,
+  Drop,
+}
+
+export interface ICommand<S, P> {
+  selector: S;
+  payload: P;
+}
+
+export type GalleryCommand =
+  | ICommand<GallerySelector.Click, [file: ClientFile, metaKey: boolean, shiftKey: boolean]>
+  | ICommand<GallerySelector.DoubleClick, ClientFile>
+  | ICommand<GallerySelector.ContextMenu, [file: ClientFile, x: number, y: number]>
+  | ICommand<GallerySelector.DragStart, ClientFile>
+  | ICommand<GallerySelector.Drop, ClientFile>;

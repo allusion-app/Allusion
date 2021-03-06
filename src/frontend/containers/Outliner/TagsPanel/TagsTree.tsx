@@ -14,11 +14,10 @@ import { ITreeItem, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/T
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { TagItemContextMenu } from './ContextMenu';
-import { DnDAttribute } from './dnd';
 import { formatTagCountText } from 'src/frontend/utils';
 import { IExpansionState } from '../../types';
 import { Action, State, Factory, reducer } from './state';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import TagDnDContext, { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 
 interface ILabelProps {
   text: string;
@@ -133,6 +132,7 @@ const TagItem = observer((props: ITagItemProps) => {
           }
         }
         PreviewTag.innerText = name;
+        event.dataTransfer.setData(DnDTagType, nodeData.id);
         event.dataTransfer.setDragImage(PreviewTag, 0, 0);
         event.dataTransfer.effectAllowed = 'linkMove';
         event.dataTransfer.dropEffect = 'move';
