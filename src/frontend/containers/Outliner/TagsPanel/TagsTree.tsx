@@ -126,8 +126,6 @@ const TagItem = observer((props: ITagItemProps) => {
         let name = nodeData.name;
         if (nodeData.isSelected) {
           const ctx = uiStore.getTagContextItems(nodeData.id);
-          // There could be 1 tag in the context, that is different from the original tag
-          // e.g. when all selected tags fall under the same parent
           if (ctx.length === 1) {
             name = ctx[0].name;
           } else {

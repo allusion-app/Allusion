@@ -116,6 +116,7 @@ export const MasonryCell = observer(
     forceNoThumbnail,
     transform: { height, width, left, top },
     submitCommand,
+    ...restProps
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
     const portalTriggerRef = useRef<HTMLSpanElement>(null);
@@ -125,6 +126,7 @@ export const MasonryCell = observer(
         tabIndex={-1}
         aria-selected={uiStore.fileSelection.has(file)}
         style={style}
+        {...restProps}
       >
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           <Thumbnail
@@ -198,8 +200,15 @@ const ThumbnailContainer = observer(({ file, children, submitCommand }: IThumbna
       onDrop={(e) => {
         e.stopPropagation();
         submitCommand({ selector: GallerySelector.Drop, payload: file });
+        const thumbnail = e.currentTarget as HTMLElement;
         e.dataTransfer.dropEffect = 'none';
-        e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+        thumbnail.dataset[DnDAttribute.Target] = 'false';
+        thumbnail.dataset[DnDAttribute.Target] = 'false';
+
+        const galleryContent = thumbnail.closest('#gallery-content');
+        if (galleryContent) {
+          galleryContent.classList.remove('selected-file-dropping');
+        }
       }}
     >
       {children}
@@ -220,15 +229,35 @@ function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDTagType)) {
     e.stopPropagation();
     e.preventDefault();
+
+    // If selected, apply class to gallery-content to mark all files as yellow ->
+    // indicating tag will be applied to all selected files
+    // TODO:: This should be based on application state, not on DOM attributes... But the whole DnD approach currently works like this 🤷
+    // it appears sometimes the dragLeave is fired after the next dragEnter when dragging quickly in between thumbnails
+    const thumbnail = e.target as HTMLElement;
+    if ((thumbnail.parentElement as HTMLElement).getAttribute('aria-selected') === 'true') {
+      const galleryContent = thumbnail.closest('#gallery-content');
+      if (galleryContent && !galleryContent.classList.contains('selected-file-dropping')) {
+        galleryContent.classList.add('selected-file-dropping');
+      }
+    }
   }
 }
 
 function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
   if (e.dataTransfer.types.includes(DnDTagType)) {
+    const thumbnail = e.target as HTMLElement;
     e.stopPropagation();
     e.preventDefault();
     e.dataTransfer.dropEffect = 'none';
-    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'false';
+    thumbnail.dataset[DnDAttribute.Target] = 'false';
+
+    if ((thumbnail.parentElement as HTMLElement).getAttribute('aria-selected') === 'true') {
+      const galleryContent = thumbnail.closest('#gallery-content');
+      if (galleryContent) {
+        galleryContent.classList.remove('selected-file-dropping');
+      }
+    }
   }
 }
 

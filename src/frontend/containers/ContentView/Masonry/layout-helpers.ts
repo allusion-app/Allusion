@@ -13,7 +13,7 @@ export interface Layouter {
  * @param layout The layout of the images
  * @param overshoot Whether to overshoot: return the first or last image at the specified height
  */
-export function binarySearch(
+export function findViewportEdge(
   height: number,
   length: number,
   layout: Layouter,

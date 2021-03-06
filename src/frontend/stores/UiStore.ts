@@ -480,6 +480,7 @@ class UiStore {
     // If no id is given or when the selected tag or collection is selected, the context is the whole selection
     if (isContextTheSelection) {
       const selectedTags = tagStore.tagList.filter((c) => c.isSelected);
+      console.log({ selected: selectedTags });
 
       // root tag may not be present in the context
       const rootTagIndex = selectedTags.findIndex((tag) => tag.id === ROOT_TAG_ID);
@@ -496,6 +497,7 @@ class UiStore {
       // );
       // contextTags.push(...selectedTagsInUnselectedParent);
     }
+    console.log({ context: contextTags });
 
     return contextTags;
   }

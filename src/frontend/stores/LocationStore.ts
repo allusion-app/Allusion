@@ -1,16 +1,14 @@
-import { action, observable, runInAction, makeObservable } from 'mobx';
+import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
-import React from 'react';
-
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
-import { ID, generateId } from 'src/entities/ID';
-import { IFile, getMetaData } from 'src/entities/File';
+import { getMetaData, IFile } from 'src/entities/File';
+import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
-import RootStore from './RootStore';
-import { promiseAllLimit } from '../utils';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { promiseAllLimit } from '../utils';
+import RootStore from './RootStore';
 
 class LocationStore {
   private readonly backend: Backend;

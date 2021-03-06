@@ -563,14 +563,19 @@ export function createSubmitCommand(
 
       case GallerySelector.Drop:
         if (dragData.item !== undefined) {
-          const file = command.payload;
+          const dropFile = command.payload;
           const ctx = uiStore.getTagContextItems(dragData.item.id);
-          console.log(
-            file.name,
-            ctx.length,
-            ctx.map((x) => x.name),
-          );
-          ctx.forEach((tag) => file.addTag(tag));
+
+          // Tag all selected files - unless the file that is being tagged is not selected
+          const filesToTag = uiStore.fileSelection.has(dropFile)
+            ? [...uiStore.fileSelection]
+            : [dropFile];
+
+          for (const tag of ctx) {
+            for (const file of filesToTag) {
+              file.addTag(tag);
+            }
+          }
         }
 
       default:

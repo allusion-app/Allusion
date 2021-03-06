@@ -7,7 +7,7 @@ import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { createSubmitCommand, ILayoutProps } from '../Gallery';
 import { MasonryCell } from '../GalleryItem';
-import { binarySearch, Layouter } from './renderer-helpers';
+import { findViewportEdge, Layouter } from './layout-helpers';
 
 interface IRendererProps {
   containerHeight: number;
@@ -19,13 +19,6 @@ interface IRendererProps {
   overscan?: number;
   layoutUpdateDate: Date;
 }
-
-// const styleFromTransform = (t: ITransform) => ({
-//   width: t.width,
-//   height: t.height,
-//   // Google Photos is using this, they probably researched it. Could be just for old browsers or something
-//   transform: `translate3d(${t.left}px, ${t.top}px, 0px)`,
-// });
 
 /**
  * This is the virtualized renderer: it only renders the items in the viewport.
@@ -61,8 +54,8 @@ const VirtualizedRenderer = observer(
       const yOffset = viewport?.scrollTop || 0;
       const viewportHeight = viewport?.clientHeight || 0;
 
-      const start = binarySearch(yOffset - overdraw, numImages, layout, false);
-      const end = binarySearch(yOffset + viewportHeight + overdraw, numImages, layout, true);
+      const start = findViewportEdge(yOffset - overdraw, numImages, layout, false);
+      const end = findViewportEdge(yOffset + viewportHeight + overdraw, numImages, layout, true);
 
       setStartRenderIndex(start);
       setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons
@@ -106,11 +99,12 @@ const VirtualizedRenderer = observer(
         {/* One div for the content */}
         <div style={{ width: containerWidth, height: containerHeight }}>
           {images.slice(startRenderIndex, endRenderIndex).map((im, index) => {
-            const transform = layout.getItemLayout(startRenderIndex + index);
+            const fileListIndex = startRenderIndex + index;
+            const transform = layout.getItemLayout(fileListIndex);
             return (
               <MasonryCell
                 key={im.id}
-                file={fileStore.fileList[startRenderIndex + index]}
+                file={fileStore.fileList[fileListIndex]}
                 mounted
                 uiStore={uiStore}
                 fileStore={fileStore}
@@ -125,11 +119,7 @@ const VirtualizedRenderer = observer(
               />
             );
           })}
-          <div
-            ref={scrollAnchor}
-            // style={layout.getItemLayout(lastSelIndex)}
-            id="invis-last-selected-item-for-scroll"
-          />
+          <div ref={scrollAnchor} id="invis-last-selected-item-for-scroll" />
         </div>
       </div>
     );
