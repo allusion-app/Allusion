@@ -2,15 +2,17 @@ import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FixedSizeList } from 'react-window';
+import { FileOrder } from 'src/backend/DBRepository';
 import { RendererMessenger } from 'src/Messaging';
+import { IconSet } from 'widgets';
 import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
 import { DnDAttribute, DnDType } from '../Outliner/TagsPanel/dnd';
-import { GridCell, ListCell } from './GalleryItem';
+import { GridCell, ListCell, listColumns } from './GalleryItem';
 import MasonryRenderer from './Masonry/MasonryRenderer';
-import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from './menu-items';
+import { ExternalAppMenuItems, FileViewerMenuItems, MissingFileMenuItems } from './menu-items';
 import SlideMode from './SlideMode';
 
 type Dimension = { width: number; height: number };
@@ -360,9 +362,7 @@ const GridGallery = observer((props: ILayoutProps) => {
 
 const ListGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
-  const cellSize = useMemo(() => getThumbnailSize(uiStore.thumbnailSize)[1], [
-    uiStore.thumbnailSize,
-  ]);
+  const cellSize = 24;
   const ref = useRef<FixedSizeList>(null);
   // FIXME: Hardcoded until responsive design is done.
   const TOOLBAR_HEIGHT = 48;
@@ -399,7 +399,10 @@ const ListGallery = observer((props: ILayoutProps) => {
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
-      const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+      const index = getListItemIndex(
+        e,
+        (t) => t.matches('.thumbnail') || t.matches('[role="row"]'),
+      );
       if (index !== undefined) {
         runInAction(() => select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
       }
@@ -409,7 +412,10 @@ const ListGallery = observer((props: ILayoutProps) => {
 
   const handleDoubleClick = useCallback(
     (e: React.MouseEvent) => {
-      const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+      const index = getListItemIndex(
+        e,
+        (t) => t.matches('.thumbnail') || t.matches('[role="row"]'),
+      );
       if (index === undefined) {
         return;
       }
@@ -445,7 +451,10 @@ const ListGallery = observer((props: ILayoutProps) => {
 
   const handleDragStart = useCallback(
     (e: React.DragEvent) => {
-      const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+      const index = getListItemIndex(
+        e,
+        (t) => t.matches('.thumbnail') || t.matches('[role="row"]'),
+      );
       runInAction(() => onDragStart(e, index, uiStore, fileStore.fileList));
     },
     [fileStore, uiStore],
@@ -454,7 +463,10 @@ const ListGallery = observer((props: ILayoutProps) => {
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLElement>) => {
       if (e.dataTransfer.types.includes(DnDType)) {
-        const index = getListItemIndex(e, (t) => t.matches('.thumbnail'));
+        const index = getListItemIndex(
+          e,
+          (t) => t.matches('.thumbnail') || t.matches('[role="row"]'),
+        );
         runInAction(() => onDrop(e, index, uiStore, fileStore.fileList));
       }
     },
@@ -470,39 +482,69 @@ const ListGallery = observer((props: ILayoutProps) => {
         isScrolling={isScrolling}
         observer={intersectionObserver.current}
         uiStore={uiStore}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
       />
     ),
-    [uiStore],
+    [handleClick, handleDoubleClick, uiStore],
   );
 
   return (
-    <div
-      className="list"
-      role="grid"
-      aria-rowcount={fileStore.fileList.length}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      onContextMenu={handleContextMenu}
-      onDragStart={handleDragStart}
-      onDragEnter={handleDragEnter}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      <FixedSizeList
-        useIsScrolling
-        height={contentRect.height}
-        width={contentRect.width}
-        itemSize={cellSize}
-        itemCount={fileStore.fileList.length}
-        itemData={fileStore.fileList}
-        itemKey={getItemKey}
-        overscanCount={2}
-        children={Row}
-        initialScrollOffset={uiStore.firstItem * cellSize}
-        ref={ref}
-      />
-    </div>
+    <>
+      <div className="list-header" style={{ width: `${contentRect.width}px` }}>
+        {listColumns.map((col) => (
+          <div
+            key={col.title}
+            className={col.sortKey ? 'sortable' : ''}
+            // Click to sort by this key. If already sorting by this key, swap order around.
+            onClick={
+              col.sortKey
+                ? fileStore.orderBy === col.sortKey
+                  ? fileStore.switchFileOrder
+                  : () => fileStore.orderFilesBy(col.sortKey)
+                : undefined
+            }
+          >
+            <span>{col.title}</span>
+
+            {fileStore.orderBy === col.sortKey && (
+              <span>
+                {fileStore.fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+      <div
+        className="list"
+        role="grid"
+        aria-rowcount={fileStore.fileList.length}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
+        onDragStart={handleDragStart}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <FixedSizeList
+          useIsScrolling
+          // Subtract 24 for header
+          // TODO: Also subtract scroll bar width if visible
+          height={contentRect.height - 24}
+          width={contentRect.width}
+          itemSize={cellSize}
+          itemCount={fileStore.fileList.length}
+          itemData={fileStore.fileList}
+          itemKey={getItemKey}
+          overscanCount={2}
+          children={Row}
+          initialScrollOffset={uiStore.firstItem * cellSize}
+          ref={ref}
+        />
+      </div>
+    </>
   );
 });
 
@@ -513,6 +555,8 @@ interface IListItem {
   isScrolling: true;
   observer: IntersectionObserver;
   uiStore: UiStore;
+  onClick: (e: React.MouseEvent) => void;
+  onDoubleClick: (e: React.MouseEvent) => void;
 }
 
 const ListItem = observer((props: IListItem) => {
@@ -539,13 +583,26 @@ const ListItem = observer((props: IListItem) => {
   }, [observer]);
 
   return (
-    <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
+    <div
+      ref={row}
+      role="row"
+      aria-rowindex={index + 1}
+      style={style}
+      onClick={props.onClick}
+      onDoubleClick={props.onDoubleClick}
+    >
       <ListCell mounted={isMounted} file={file} uiStore={uiStore} />
     </div>
   );
 });
 
-interface IGridRow extends IListItem {
+interface IGridRow {
+  index: number;
+  data: ClientFile[];
+  style: React.CSSProperties;
+  isScrolling: true;
+  observer: IntersectionObserver;
+  uiStore: UiStore;
   columns: number;
   fileStore: FileStore;
 }
@@ -718,11 +775,13 @@ function getListItemIndex(
   matches: (target: HTMLElement) => boolean,
 ): number | undefined {
   const target = e.target as HTMLElement;
-  if (matches(target)) {
+  const currentTarget = e.currentTarget as HTMLElement;
+  if (matches(target) || matches(currentTarget)) {
     e.stopPropagation();
     // Each thumbnail is in a gridcell which is owned by a row.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const rowIndex = target.closest('[role="row"]')!.getAttribute('aria-rowindex')!;
+    const rowIndex = (target.closest('[role="row"]') ||
+      currentTarget.closest('[role="row"]'))!.getAttribute('aria-rowindex')!;
     return parseInt(rowIndex) - 1;
   }
   return undefined;

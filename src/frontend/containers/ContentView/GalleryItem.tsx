@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-
-import { ensureThumbnail } from '../../ThumbnailGeneration';
-
-import { ClientFile } from 'src/entities/File';
-
-import UiStore from '../../stores/UiStore';
-import FileStore from '../../stores/FileStore';
-
-import { Button, ButtonGroup, IconSet, Tag } from 'widgets';
+import React, { useEffect, useState } from 'react';
+import { ClientFile, IFile } from 'src/entities/File';
+import { ellipsize, formatDateTime, humanFileSize } from 'src/frontend/utils';
+import { IconSet, Tag } from 'widgets';
 import { Tooltip } from 'widgets/popovers';
-
-import ImageInfo from '../../components/ImageInfo';
+import FileStore from '../../stores/FileStore';
+import UiStore from '../../stores/UiStore';
+import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/masonry.worker';
 
 interface ICell {
@@ -22,12 +17,79 @@ interface ICell {
   forceNoThumbnail?: boolean;
 }
 
+interface ICellContentProps {
+  file: ClientFile;
+  isMounted: boolean;
+  uiStore: UiStore;
+}
+
+interface IListColumn {
+  title: string;
+  // Also indicates whether this column _can_ be sorted on
+  sortKey?: keyof IFile;
+  // cellContent: (props: ICellContentProps) => ReactNode;
+}
+
+export const listColumns: IListColumn[] = [
+  {
+    title: 'Name',
+    sortKey: 'name',
+    // cellContent: function NameCell({ file, isMounted, uiStore }: ICellContentProps) {
+    //   return (
+    //     <div key={`${file.id}-name`}>
+    //       <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+    //         {isMounted ? (
+    //           <Thumbnail uiStore={uiStore} mounted={isMounted} file={file} />
+    //         ) : (
+    //           <div className="thumbnail-placeholder" />
+    //         )}
+    //       </div>{' '}
+    //       <span className="filename">{file.name}</span>
+    //     </div>
+    //   );
+    // },
+  },
+  { title: 'Dimensions' },
+  { title: 'Date added', sortKey: 'dateAdded' },
+  { title: 'Size', sortKey: 'size' },
+  { title: 'Tags' },
+];
+
 export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
   <div role="gridcell" tabIndex={-1} aria-selected={uiStore.fileSelection.has(file)}>
-    <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-      <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
+    {/* Filename */}
+    {/* TODO: Tooltip with full file name / path and expanded thumbnail */}
+    <div key={`${file.id}-name`}>
+      <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
+        {mounted ? (
+          <Thumbnail uiStore={uiStore} mounted={mounted} file={file} />
+        ) : (
+          <div className="thumbnail-placeholder" />
+        )}
+      </div>{' '}
+      <Tooltip
+        content={ellipsize(file.absolutePath, 80, 'middle')}
+        trigger={<span className="filename">{file.name}</span>}
+        placement="bottom-start"
+      />
     </div>
-    {file.isBroken === true ? (
+
+    {/* Dimensions */}
+    <div>
+      {file.width} x {file.height}
+    </div>
+
+    {/* Import date */}
+    <div>{formatDateTime(file.dateAdded)}</div>
+
+    {/* Size */}
+    <div>{humanFileSize(file.size)}</div>
+
+    {/* Tags */}
+    <div>{file.tags.size == 0 ? <span className="thumbnail-tags" /> : <Tags file={file} />}</div>
+
+    {/* TODO: Broken/missing indicator. Red/orange-ish background? */}
+    {/* {file.isBroken === true ? (
       <div>
         <p>The file {file.name} could not be found.</p>
         <p>Would you like to remove it from your library?</p>
@@ -43,12 +105,8 @@ export const ListCell = observer(({ file, mounted, uiStore }: ICell) => (
         </ButtonGroup>
       </div>
     ) : (
-      <>
-        <h2>{file.filename}</h2>
-        <ImageInfo suspended={!mounted} file={file} />
-      </>
-    )}
-    {file.tags.size == 0 || !mounted ? <span className="thumbnail-tags" /> : <Tags file={file} />}
+      <></>
+    )} */}
   </div>
 ));
 

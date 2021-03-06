@@ -173,6 +173,8 @@
 
 /////////////////////// View methods //////////////////////////////////
 .list {
+  top: 24px; // space for header
+
   // Stripe pattern
   [aria-rowindex$='0'],
   [aria-rowindex$='2'],
@@ -183,17 +185,54 @@
   }
 
   [role='gridcell'] {
-    display: grid;
-    grid-column-gap: 1.5em;
-    grid-template-columns: min-content 1fr;
-    grid-template-areas:
-      'image title'
-      'image info'
-      'image tags';
+    > div { // cell container
+      display: inline-block;
+      width: 20%; // TODO: variable width. Currently 5 columns, so 20% each
+      // overflow: hidden;
+      text-overflow: ellipsis;
+      // line-height: 24px;
+      vertical-align: middle;
+      white-space: nowrap;
+
+      // Overflow is needed for the first child for allowing the thumbnail to expand on hover
+      &:not(:first-child) {
+        overflow: hidden;
+      }
+
+      > .filename {
+        display: inline-block;
+        vertical-align: top;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: calc(100% - 32px); // minus thumbnail and some padding
+      }
+    }
+
+    &[aria-selected='true'] {
+      background-color: var(--accent-color-blue-transp);
+    }
   }
+
+  // Force thumbnail size of 24 pixels
+  --thumbnail-size: 24px;
 
   .thumbnail {
     align-self: center;
+    display: inline-block;
+
+    img {
+      transition: transform 0.2s ease;
+      transform-origin: top left;
+    }
+    &:hover {
+      img {
+        transform: scale(10);
+        z-index: 9000; // >:)
+        position: relative;
+        border: unset;
+        // object-fit: contain; // would be nice, but not sure how to align to top left
+      }
+    }
   }
 
   h2 {
@@ -212,6 +251,29 @@
     min-height: 1.5rem;
     position: unset;
     padding: 0;
+  }
+}
+
+.list-header {
+  height: 24px;
+  width: 100%;
+  border-bottom: 1px solid var(--background-color);
+  // TODO: Drop-shadow, but only when not scrolled all the way at the top
+  
+  box-shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.2);
+
+  > div {
+    width: 20%;
+    padding: 4px;
+    font-weight: bold;
+    overflow: hidden;
+
+    display: inline-flex;
+    justify-content: space-between;
+
+    &.sortable {
+      cursor: pointer;
+    }
   }
 }
 
