@@ -183,7 +183,7 @@ const ThumbnailContainer = observer(({ file, children, submitCommand }: IThumbna
       onDragLeave={handleDragLeave}
       onDrop={(e) => {
         e.stopPropagation();
-        submitCommand({ selector: GallerySelector.DragStart, payload: file });
+        submitCommand({ selector: GallerySelector.Drop, payload: file });
         e.dataTransfer.dropEffect = 'none';
         e.currentTarget.dataset[DnDAttribute.Target] = 'false';
       }}
@@ -302,11 +302,11 @@ const Tags = observer(({ file }: { file: ClientFile }) => (
 ));
 
 export const enum GallerySelector {
-  Click,
-  DoubleClick,
-  ContextMenu,
-  DragStart,
-  Drop,
+  Click = 'click',
+  DoubleClick = 'doubleClick',
+  ContextMenu = 'contextMenu',
+  DragStart = 'dragStart',
+  Drop = 'drop',
 }
 
 export interface ICommand<S, P> {

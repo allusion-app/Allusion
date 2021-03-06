@@ -438,7 +438,7 @@ class UiStore {
 
   @action.bound async removeSelectedTags() {
     const ctx = this.getTagContextItems();
-    return this.rootStore.tagStore.deleteTags(ctx.tags);
+    return this.rootStore.tagStore.deleteTags(ctx);
   }
 
   @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
@@ -447,7 +447,7 @@ class UiStore {
       tag.setColor(color);
       tag.subTags.forEach((tag) => tag.setColor(color));
     };
-    ctx.tags.forEach(colorCollection);
+    ctx.forEach(colorCollection);
   }
 
   /**
@@ -482,27 +482,22 @@ class UiStore {
       const selectedTags = tagStore.tagList.filter((c) => c.isSelected);
 
       // root tag may not be present in the context
-      const rootTagIndex = selectedTags.findIndex((col) => col.id === ROOT_TAG_ID);
+      const rootTagIndex = selectedTags.findIndex((tag) => tag.id === ROOT_TAG_ID);
       if (rootTagIndex >= 0) {
         selectedTags.splice(rootTagIndex, 1);
       }
+      contextTags.push(...selectedTags);
 
       // Only include selected tags of which their parent is not selected
-      const selectedColsNotInSelectedCols = selectedTags.filter((col) =>
-        selectedTags.every((parent) => !parent.subTags.includes(col)),
-      );
-      contextTags.push(...selectedColsNotInSelectedCols);
-
-      // Only include the selected tags that are not in a selected collection
-      // const selectedTagsNotInSelectedCols = this.clientTagSelection.filter((t) =>
-      //   selectedTags.every((col) => !col.tags.includes(t.id)),
+      // EDIT: This was a limitation back from when you could not select a collection without also selecting all its children
+      // Not needed anymore - unintuitive
+      // const selectedTagsInUnselectedParent = selectedTags.filter((tag) =>
+      //   selectedTags.every((parent) => !parent.subTags.includes(tag)),
       // );
-      // contextTags.push(...selectedTagsNotInSelectedCols);
+      // contextTags.push(...selectedTagsInUnselectedParent);
     }
 
-    return {
-      tags: contextTags,
-    };
+    return contextTags;
   }
 
   /**
@@ -520,7 +515,7 @@ class UiStore {
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.tags.forEach((tag) => target.insertSubTag(tag, 0));
+    ctx.forEach((tag) => target.insertSubTag(tag, 0));
   }
 
   /////////////////// Search Actions ///////////////////

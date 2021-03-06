@@ -565,10 +565,12 @@ export function createSubmitCommand(
         if (dragData.item !== undefined) {
           const file = command.payload;
           const ctx = uiStore.getTagContextItems(dragData.item.id);
-          ctx.tags.forEach((tag) => {
-            file.addTag(tag);
-            tag.subTags.forEach(file.addTag);
-          });
+          console.log(
+            file.name,
+            ctx.length,
+            ctx.map((x) => x.name),
+          );
+          ctx.forEach((tag) => file.addTag(tag));
         }
 
       default:
