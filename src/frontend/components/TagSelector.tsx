@@ -27,8 +27,7 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
   const { tagStore } = useContext(StoreContext);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState(selection?.name || '');
-
-  const normalizedQuery = useMemo(() => query.toLowerCase(), [query]);
+  const normalizedQuery = query.toLowerCase();
 
   return (
     <div

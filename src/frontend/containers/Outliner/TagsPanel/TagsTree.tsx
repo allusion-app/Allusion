@@ -406,19 +406,49 @@ const TagsTree = observer(() => {
     target.setSelectionRange(0, 0);
   }, []);
 
+  /** The first item that is selected in a multi-selection */
+  const initialSelectionIndex = useRef<number>();
+  /** The last item that is selected in a multi-selection */
+  const lastSelectionIndex = useRef<number>();
   // Handles selection via click event
-  const lastSelection = useRef<ID | null>(null);
   const select = useCallback(
-    (e: React.MouseEvent, nodeData: ClientTag) => {
-      if (e.shiftKey && lastSelection.current !== null && lastSelection.current !== nodeData.id) {
-        uiStore.selectTagRange(nodeData, lastSelection.current);
-        lastSelection.current = nodeData.id;
+    (e: React.MouseEvent, selectedTag: ClientTag) => {
+      // Note: selection logic is copied from Gallery.tsx
+      const rangeSelection = e.shiftKey;
+      const expandSelection = e.ctrlKey;
+
+      /** The index of the active (newly selected) item */
+      const i = tagStore.findFlatTagListIndex(selectedTag);
+
+      // If nothing is selected, initialize the selection range and select that single item
+      if (lastSelectionIndex.current === undefined) {
+        initialSelectionIndex.current = i;
+        lastSelectionIndex.current = i;
+        uiStore.toggleTagSelection(selectedTag);
+        return;
+      }
+
+      // Mark this index as the last item that was selected
+      lastSelectionIndex.current = i;
+
+      if (rangeSelection && initialSelectionIndex.current !== undefined) {
+        if (i === undefined) {
+          return;
+        }
+        if (i < initialSelectionIndex.current) {
+          uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
+        } else {
+          uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
+        }
+      } else if (expandSelection) {
+        uiStore.toggleTagSelection(selectedTag);
+        initialSelectionIndex.current = i;
       } else {
-        uiStore.toggleTagSelection(nodeData);
-        lastSelection.current = nodeData.id;
+        uiStore.selectTag(selectedTag, true);
+        initialSelectionIndex.current = i;
       }
     },
-    [uiStore],
+    [tagStore, uiStore],
   );
 
   const treeData: ITreeData = useMemo(

@@ -161,9 +161,7 @@ const GridGallery = observer((props: ILayoutProps) => {
   const [minSize, maxSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
     uiStore.thumbnailSize,
   ]);
-  const [[numColumns, cellSize], setDimensions] = useState(
-    get_column_layout(contentRect.width - CONTENT_PADDING_RIGHT, minSize, maxSize),
-  );
+  const [[numColumns, cellSize], setDimensions] = useState([0, 0]);
 
   const submitCommand = useMemo(
     () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
@@ -187,15 +185,12 @@ const GridGallery = observer((props: ILayoutProps) => {
   const innerRef = useRef<HTMLElement>(null);
   // FIXME: Hardcoded until responsive design is done.
   const TOOLBAR_HEIGHT = 48;
-
-  // An intersection observer for detecting the first row (the one that intersects with the toolbar) (?)
-  // TODO: this seems a bit overkill, why not do a simple check in a scroll callback?
   const intersectionObserver = useRef(
     new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
-          // Rounding is expensive, so we check if it within the toolbar bottom edge.
-          if (e.intersectionRect.y < TOOLBAR_HEIGHT + 1) {
+          // Rounding is expensive, so we check if it whithin the toolbar bottom edge.
+          if (e.isIntersecting && e.intersectionRect.y < TOOLBAR_HEIGHT + 1) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const rowIndex = parseInt(e.target.getAttribute('aria-rowindex')!) - 1;
             const index = rowIndex * e.target.childElementCount;
@@ -209,8 +204,7 @@ const GridGallery = observer((props: ILayoutProps) => {
           }
         }
       },
-      // Callback is only invoked when intersecting at the top of the viewport
-      { threshold: [0] },
+      { threshold: [0, 1] },
     ),
   );
 
@@ -307,9 +301,6 @@ const ListGallery = observer((props: ILayoutProps) => {
   const ref = useRef<FixedSizeList>(null);
   // FIXME: Hardcoded until responsive design is done.
   const TOOLBAR_HEIGHT = 48;
-
-  // TODO: FIXME: Again, intersection observer seems overkill. Current implementation here doesn't even seem to work:
-  // e.isIntersecting is never true when rect.y < toolbar_height
   const intersectionObserver = useRef(
     new IntersectionObserver(
       (entries) => {
