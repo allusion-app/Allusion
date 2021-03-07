@@ -1,61 +1,38 @@
-import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
-
+import React, { useCallback, useContext, useState } from 'react';
 import { RendererMessenger } from 'src/Messaging';
-import StoreContext from '../../contexts/StoreContext';
-import UiStore from '../../stores/UiStore';
-import FileStore from '../../stores/FileStore';
-import LocationStore from '../../stores/LocationStore';
+import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
+import StoreContext from '../../contexts/StoreContext';
+import { moveThumbnailDir } from '../../ThumbnailGeneration';
+import { getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import PopupWindow from './PopupWindow';
-import { moveThumbnailDir } from '../../ThumbnailGeneration';
-import { getThumbnailPath, isDirEmpty } from '../../utils';
-import { WINDOW_STORAGE_KEY } from 'src/renderer';
+import Tabs, { TabItem } from './Tabs';
 
-interface ISettingsProps {
-  uiStore: UiStore;
-  fileStore: FileStore;
-  locationStore: LocationStore;
-}
+const Appearance = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  const [localZoomFactor, setLocalZoomFactor] = useState(RendererMessenger.getZoomFactor());
 
-const Settings = observer(({ uiStore, fileStore }: ISettingsProps) => {
-  const thumbnailDirectory = uiStore.thumbnailDirectory;
-
-  const browseThumbnailDirectory = async () => {
-    const { filePaths: dirs } = await RendererMessenger.openDialog({
-      properties: ['openDirectory'],
-      defaultPath: thumbnailDirectory,
-    });
-
-    if (dirs.length === 0) {
-      return;
-    }
-    const newDir = dirs[0];
-
-    if (!(await isDirEmpty(newDir))) {
-      alert('Please choose an empty directory. Allusion may delete any existing files.');
-      return;
-    }
-
-    const oldDir = thumbnailDirectory;
-
-    // Move thumbnail files
-    await moveThumbnailDir(oldDir, newDir);
-    uiStore.setThumbnailDirectory(newDir);
-
-    // Reset thumbnail paths for those that already have one
-    fileStore.fileList.forEach((f) => {
-      if (f.thumbnailPath) {
-        f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
-      }
-    });
-  };
+  const incrementZoomFactor = useCallback(() => {
+    RendererMessenger.setZoomFactor(localZoomFactor + 0.1);
+    setLocalZoomFactor(localZoomFactor + 0.1);
+  }, [localZoomFactor]);
+  const decrementZoomFactor = useCallback(() => {
+    RendererMessenger.setZoomFactor(localZoomFactor - 0.1);
+    setLocalZoomFactor(localZoomFactor - 0.1);
+  }, [localZoomFactor]);
+  const resetZoomFactor = useCallback(() => {
+    RendererMessenger.setZoomFactor(1);
+    setLocalZoomFactor(1);
+  }, []);
 
   return (
-    <div className="settings-form">
+    <>
       <h2>Appearance</h2>
+
+      <h3>Interface</h3>
       <fieldset>
         <Toggle
           checked={uiStore.theme === 'DARK'}
@@ -67,6 +44,17 @@ const Settings = observer(({ uiStore, fileStore }: ISettingsProps) => {
           onChange={toggleFullScreen}
           label="Full screen"
         />
+
+        <br />
+
+        <div className="scale-widget">
+          <ButtonGroup>
+            <Button onClick={decrementZoomFactor} text="-" styling="outlined" />
+            <Button onClick={incrementZoomFactor} text="+" styling="outlined" />
+            <Button onClick={resetZoomFactor} icon={IconSet.RELOAD} text="" styling="outlined" />
+          </ButtonGroup>
+          <span>Scale: {Math.round(100 * localZoomFactor)}%</span>
+        </div>
       </fieldset>
 
       <h3>Thumbnail</h3>
@@ -111,22 +99,74 @@ const Settings = observer(({ uiStore, fileStore }: ISettingsProps) => {
           label="Show assigned tags"
         />
       </div>
+    </>
+  );
+});
 
-      <h2>Options</h2>
-      <fieldset>
-        <Toggle
-          defaultChecked={RendererMessenger.isRunningInBackground()}
-          onChange={toggleRunInBackground}
-          label="Run in background"
-        />
+const BackgroundProcesses = () => (
+  <>
+    <h2>Options</h2>
+    <fieldset>
+      <Toggle
+        defaultChecked={RendererMessenger.isRunningInBackground()}
+        onChange={toggleRunInBackground}
+        label="Run in background"
+      />
 
-        <Toggle
-          defaultChecked={RendererMessenger.isClipServerEnabled()}
-          onChange={toggleClipServer}
-          label="Browser extension support"
-        />
-      </fieldset>
+      <Toggle
+        defaultChecked={RendererMessenger.isClipServerEnabled()}
+        onChange={toggleClipServer}
+        label="Browser extension support"
+      />
+    </fieldset>
+  </>
+);
 
+const Shortcuts = () => (
+  <>
+    <h2>Shortcuts Map</h2>
+    <p>
+      Click on a key combination to modify it. After typing your new combination, press Enter to
+      confirm or Escape to cancel.
+    </p>
+    <HotkeyMapper />
+  </>
+);
+
+const Advanced = observer(() => {
+  const { uiStore, fileStore } = useContext(StoreContext);
+  const thumbnailDirectory = uiStore.thumbnailDirectory;
+  const browseThumbnailDirectory = async () => {
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
+      properties: ['openDirectory'],
+      defaultPath: thumbnailDirectory,
+    });
+
+    if (dirs.length === 0) {
+      return;
+    }
+    const newDir = dirs[0];
+
+    if (!(await isDirEmpty(newDir))) {
+      alert('Please choose an empty directory. Allusion may delete any existing files.');
+      return;
+    }
+
+    const oldDir = thumbnailDirectory;
+
+    // Move thumbnail files
+    await moveThumbnailDir(oldDir, newDir);
+    uiStore.setThumbnailDirectory(newDir);
+
+    // Reset thumbnail paths for those that already have one
+    fileStore.fileList.forEach((f) => {
+      if (f.thumbnailPath) {
+        f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
+      }
+    });
+  };
+  return (
+    <>
       <h2>Storage</h2>
       <div>
         {/* Todo: Add support to toggle this */}
@@ -138,15 +178,7 @@ const Settings = observer(({ uiStore, fileStore }: ISettingsProps) => {
             <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
           </div>
         </fieldset>
-
       </div>
-
-      <h2>Shortcuts Map</h2>
-      <p>
-        Click on a key combination to modify it. After typing your new combination, press Enter to
-        confirm or Escape to cancel.
-      </p>
-      <HotkeyMapper />
 
       <h2>Development</h2>
       <ButtonGroup>
@@ -158,12 +190,39 @@ const Settings = observer(({ uiStore, fileStore }: ISettingsProps) => {
           text="Toggle DevTools"
         />
       </ButtonGroup>
-    </div>
+    </>
   );
 });
 
+const SETTINGS_TABS: TabItem[] = [
+  {
+    label: 'Appearance',
+    content: <Appearance />,
+  },
+  {
+    label: 'Shortcuts',
+    content: <Shortcuts />,
+  },
+  {
+    label: 'Background Processes',
+    content: <BackgroundProcesses />,
+  },
+  {
+    label: 'Advanced',
+    content: <Advanced />,
+  },
+];
+
+const Settings = () => {
+  return (
+    <div id="settings">
+      <Tabs items={SETTINGS_TABS} />
+    </div>
+  );
+};
+
 const SettingsWindow = () => {
-  const { uiStore, fileStore, locationStore } = useContext(StoreContext);
+  const { uiStore } = useContext(StoreContext);
 
   if (!uiStore.isSettingsOpen) {
     return null;
@@ -176,8 +235,8 @@ const SettingsWindow = () => {
       closeOnEscape
       additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
     >
-      <div id="settings-window" className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
-        <Settings uiStore={uiStore} fileStore={fileStore} locationStore={locationStore} />
+      <div className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
+        <Settings />
       </div>
     </PopupWindow>
   );

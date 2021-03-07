@@ -1,4 +1,4 @@
-import { binarySearch, Layouter } from './renderer-helpers';
+import { findViewportEdge, Layouter } from './layout-helpers';
 
 // Simple linear layout: One image per row
 const linearLayout: Layouter = {
@@ -24,21 +24,21 @@ describe('masonry > renderer', () => {
   describe('binarySearch', () => {
     describe('linear layout', () => {
       it('should return 0 when viewport is at the top', () => {
-        const index = binarySearch(0, 10, linearLayout, false);
+        const index = findViewportEdge(0, 10, linearLayout, false);
         expect(index).toBe(0);
       });
       it('should correctly find the second image at height 15', () => {
-        const index = binarySearch(15, 10, linearLayout, false);
+        const index = findViewportEdge(15, 10, linearLayout, false);
         expect(index).toBe(1);
       });
       it('should correctly find the last image at max height', () => {
-        const index = binarySearch(999, 10, linearLayout, false);
+        const index = findViewportEdge(999, 10, linearLayout, false);
         expect(index).toBe(9);
       });
     });
     describe('dynamic layout', () => {
       it('should return 0 when viewport is at the top', () => {
-        const index = binarySearch(0, 10, dynamicLayout, false);
+        const index = findViewportEdge(0, 10, dynamicLayout, false);
         expect(index).toBe(0);
       });
       // TODO: More tests, after implementing over/under-shooting

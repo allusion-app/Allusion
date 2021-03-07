@@ -1,14 +1,13 @@
-import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
 import StoreContext from 'src/frontend/contexts/StoreContext';
+import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { debouncedThrottle } from 'src/frontend/utils';
-import { ILayoutProps } from '../Gallery';
+import { createSubmitCommand, ILayoutProps } from '../Gallery';
 import { MasonryCell } from '../GalleryItem';
-import { ExternalAppMenuItems, FileViewerMenuItems, MissingFileMenuItems } from '../menu-items';
-import { binarySearch, Layouter } from './renderer-helpers';
+import { findViewportEdge, Layouter } from './layout-helpers';
 
 interface IRendererProps {
   containerHeight: number;
@@ -20,13 +19,6 @@ interface IRendererProps {
   overscan?: number;
   layoutUpdateDate: Date;
 }
-
-// const styleFromTransform = (t: ITransform) => ({
-//   width: t.width,
-//   height: t.height,
-//   // Google Photos is using this, they probably researched it. Could be just for old browsers or something
-//   transform: `translate3d(${t.left}px, ${t.top}px, 0px)`,
-// });
 
 /**
  * This is the virtualized renderer: it only renders the items in the viewport.
@@ -50,7 +42,11 @@ const VirtualizedRenderer = observer(
     const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
     const [endRenderIndex, setEndRenderIndex] = useState(0);
-
+    const dndData = useContext(TagDnDContext);
+    const submitCommand = useMemo(
+      () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
+      [dndData, fileStore, select, showContextMenu, uiStore],
+    );
     const numImages = images.length;
 
     const determineRenderRegion = useCallback((numImages: number, overdraw: number) => {
@@ -58,13 +54,12 @@ const VirtualizedRenderer = observer(
       const yOffset = viewport?.scrollTop || 0;
       const viewportHeight = viewport?.clientHeight || 0;
 
-      const start = binarySearch(yOffset - overdraw, numImages, layout, false);
-      const end = binarySearch(yOffset + viewportHeight + overdraw, numImages, layout, true);
+      const start = findViewportEdge(yOffset - overdraw, numImages, layout, false);
+      const end = findViewportEdge(yOffset + viewportHeight + overdraw, numImages, layout, true);
 
       setStartRenderIndex(start);
       setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons (we don't want any exploding computers). Might be bad for people with 4k screens and small thumbnails...
 
-      // TODO: use the other binarySearch function for this (in the multi-tag-dnd branch). This one has underdraw
       uiStore.setFirstItem(start); // store the first item in the viewport in the UIStore so that switching between view modes retains the scroll position
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -86,58 +81,6 @@ const VirtualizedRenderer = observer(
       numImages,
       overscan,
     ]);
-
-    const handleClick = useCallback(
-      (e: React.MouseEvent) => {
-        const target = (e.target as HTMLElement).closest('[data-masonrycell]');
-        if (target === null) {
-          return;
-        }
-        e.stopPropagation();
-        const index = parseInt(target.getAttribute('data-fileindex')!);
-        runInAction(() => select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
-      },
-      [fileStore.fileList, select],
-    );
-
-    const handleDoubleClick = useCallback(
-      (e: React.MouseEvent) => {
-        const target = (e.target as HTMLElement).closest('[data-masonrycell]');
-        if (target === null) {
-          return;
-        }
-        e.stopPropagation();
-        const index = parseInt(target.getAttribute('data-fileindex')!);
-        runInAction(() => {
-          uiStore.selectFile(fileStore.fileList[index], true);
-          uiStore.toggleSlideMode();
-        });
-      },
-      [fileStore.fileList, uiStore],
-    );
-
-    const handleContextMenu = useCallback(
-      (e: React.MouseEvent) => {
-        const target = (e.target as HTMLElement).closest('[data-masonrycell]');
-        if (target === null) {
-          return;
-        }
-        e.stopPropagation();
-        const index = parseInt(target.getAttribute('data-fileindex')!);
-        runInAction(() => {
-          const file = fileStore.fileList[index];
-          showContextMenu(e.clientX, e.clientY, [
-            file.isBroken ? (
-              <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-            ) : (
-              <FileViewerMenuItems file={file} uiStore={uiStore} />
-            ),
-            file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-          ]);
-        });
-      },
-      [fileStore, showContextMenu, uiStore],
-    );
 
     const scrollToIndex = useCallback(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
@@ -176,23 +119,16 @@ const VirtualizedRenderer = observer(
 
     return (
       // One div as the scrollable viewport
-      <div
-        className={className}
-        onScroll={handleScroll}
-        ref={wrapperRef}
-        onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
-        onContextMenu={handleContextMenu}
-      >
+      <div className={className} onScroll={handleScroll} ref={wrapperRef}>
         {/* One div for the content */}
         <div style={{ width: containerWidth, height: containerHeight }}>
           {images.slice(startRenderIndex, endRenderIndex).map((im, index) => {
-            const transform = layout.getItemLayout(startRenderIndex + index);
+            const fileListIndex = startRenderIndex + index;
+            const transform = layout.getItemLayout(fileListIndex);
             return (
               <MasonryCell
-                index={startRenderIndex + index}
                 key={im.id}
-                file={fileStore.fileList[startRenderIndex + index]}
+                file={fileStore.fileList[fileListIndex]}
                 mounted
                 uiStore={uiStore}
                 fileStore={fileStore}
@@ -203,6 +139,7 @@ const VirtualizedRenderer = observer(
                 forceNoThumbnail={
                   transform.width > thumbnailMaxSize || transform.height > thumbnailMaxSize
                 }
+                submitCommand={submitCommand}
               />
             );
           })}

@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
-import { runInAction } from 'mobx';
+import { runInAction, observable, action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
@@ -20,8 +20,33 @@ import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
 import OutlinerSplitter from './containers/Outliner/OutlinerSplitter';
+import TagDnDContext from './contexts/TagDnDContext';
+import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
+
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
+
+const TagDnDContextData = observable({ source: undefined, target: undefined });
+
+window.addEventListener(
+  'dragend',
+  action((event: DragEvent) => {
+    TagDnDContextData.source = undefined;
+    if (event.target instanceof HTMLElement) {
+      event.target.dataset[DnDAttribute.Source] = 'false';
+    }
+  }),
+);
+
+window.addEventListener(
+  'drop',
+  action((event: DragEvent) => {
+    TagDnDContextData.target = undefined;
+    if (event.target instanceof HTMLElement) {
+      event.target.dataset[DnDAttribute.Target] = 'false';
+    }
+  }),
+);
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -109,13 +134,15 @@ const App = observer(() => {
         {PLATFORM !== 'darwin' && <WindowTitlebar />}
 
         <ErrorBoundary>
-          <Outliner />
+          <TagDnDContext.Provider value={TagDnDContextData}>
+            <Outliner />
 
-          <OutlinerSplitter />
+            <OutlinerSplitter />
 
-          <AppToolbar />
+            <AppToolbar />
 
-          <ContentView />
+            <ContentView />
+          </TagDnDContext.Provider>
 
           <SettingsWindow />
 
