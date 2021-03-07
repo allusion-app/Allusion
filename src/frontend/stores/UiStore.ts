@@ -356,9 +356,6 @@ class UiStore {
     this.fileSelection.delete(file);
   }
 
-  /**
-   * Returns true if the file was selected.
-   */
   @action.bound toggleFileSelection(file: ClientFile) {
     if (this.fileSelection.has(file)) {
       this.fileSelection.delete(file);
@@ -384,13 +381,17 @@ class UiStore {
     this.fileSelection.clear();
   }
 
+  @action.bound selectTag(tag: ClientTag, clear?: boolean) {
+    if (clear === true) {
+      this.clearTagSelection();
+    }
+    this.tagSelection.add(tag);
+  }
+
   @action.bound deselectTag(tag: ClientTag) {
     this.tagSelection.delete(tag);
   }
 
-  /**
-   * Returns true if the tag was selected.
-   */
   @action.bound toggleTagSelection(tag: ClientTag) {
     if (this.tagSelection.has(tag)) {
       this.tagSelection.delete(tag);
@@ -399,32 +400,26 @@ class UiStore {
     }
   }
 
-  // Range Selection using pre-order tree traversal
-  @action.bound selectTagRange(tag: ClientTag, lastSelection: ID) {
-    this.tagSelection.clear();
-    let isSelecting = false;
-    const selectRange = (node: ClientTag) => {
-      if (node.id === lastSelection || node.id === tag.id) {
-        if (!isSelecting) {
-          // Start selection
-          isSelecting = true;
-        } else {
-          // End selection
-          this.tagSelection.add(node);
-          isSelecting = false;
-          return;
-        }
+  /** Selects a range of tags, where indices correspond to the flattened tag list, see {@link TagStore.findFlatTagListIndex} */
+  @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
+    if (!additive) {
+      this.tagSelection.clear();
+    }
+    // Iterative DFS algorithm
+    const stack: ClientTag[] = [];
+    let tag: ClientTag | undefined = this.rootStore.tagStore.root;
+    let index = -1;
+    do {
+      if (index >= start) {
+        this.tagSelection.add(tag);
       }
-
-      if (isSelecting) {
-        this.tagSelection.add(node);
+      for (let i = tag.subTags.length - 1; i >= 0; i--) {
+        const subTag = tag.subTags[i];
+        stack.push(subTag);
       }
-
-      for (const subTag of node.subTags) {
-        selectRange(subTag);
-      }
-    };
-    selectRange(this.rootStore.tagStore.root);
+      tag = stack.pop();
+      index += 1;
+    } while (tag !== undefined && index <= end);
   }
 
   @action.bound selectAllTags() {

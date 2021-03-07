@@ -58,7 +58,9 @@ const VirtualizedRenderer = observer(
       const end = findViewportEdge(yOffset + viewportHeight + overdraw, numImages, layout, true);
 
       setStartRenderIndex(start);
-      setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons
+      setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons (we don't want any exploding computers). Might be bad for people with 4k screens and small thumbnails...
+
+      uiStore.setFirstItem(start); // store the first item in the viewport in the UIStore so that switching between view modes retains the scroll position
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -69,26 +71,48 @@ const VirtualizedRenderer = observer(
       ),
     );
 
+    // Redetermine images in viewport when amount of images or the container dimensions change
     useLayoutEffect(() => {
       throttledRedetermine.current(numImages, overscan || 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [numImages, containerWidth, containerHeight]);
 
-    const handleScroll = () => throttledRedetermine.current(numImages, overscan || 0);
+    const handleScroll = useCallback(() => throttledRedetermine.current(numImages, overscan || 0), [
+      numImages,
+      overscan,
+    ]);
 
-    // Scroll to the first item in the view any time it is changed
-    const lastSelIndex = lastSelectionIndex.current;
-    useLayoutEffect(() => {
-      if (lastSelIndex !== undefined && scrollAnchor?.current !== null) {
+    const scrollToIndex = useCallback(
+      (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
+        if (!scrollAnchor.current) return;
+        const s = layout.getItemLayout(index);
         // Scroll to invisible element, positioned at selected element,
         // just for scroll automatisation with scrollIntoView
-        const s = layout.getItemLayout(lastSelIndex);
         scrollAnchor.current.style.transform = `translate(${s.left + 4}px,${s.top + 4}px)`;
         scrollAnchor.current.style.width = s.width + 'px';
         scrollAnchor.current.style.height = s.height + 'px';
-        scrollAnchor.current?.scrollIntoView({
-          block: 'nearest',
-        });
+        scrollAnchor.current?.scrollIntoView({ block });
+      },
+      [layout],
+    );
+
+    const lastSelIndex = lastSelectionIndex.current
+      ? Math.min(lastSelectionIndex.current, numImages - 1)
+      : undefined;
+
+    // Set the initial scroll position on initial render, for when coming from another view mode
+    useLayoutEffect(() => {
+      if (lastSelIndex === undefined) {
+        // if an element is selected, we'll scroll to that anyways using the next useLayoutEffect
+        scrollToIndex(uiStore.firstItem, 'start');
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Scroll to the first item in the view any time it is changed
+    useLayoutEffect(() => {
+      if (lastSelIndex !== undefined) {
+        scrollToIndex(lastSelIndex);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastSelIndex, layoutUpdateDate, uiStore.fileSelection.size]);

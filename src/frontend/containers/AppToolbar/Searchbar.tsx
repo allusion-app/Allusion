@@ -71,6 +71,7 @@ const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
       selection={selectedItems}
       onSelect={handleSelect}
       onDeselect={handleDeselect}
+      onTagClick={uiStore.toggleAdvancedSearch}
       onClear={uiStore.clearSearchCriteriaList}
       extraOption={{
         label: 'Advanced search',
@@ -81,7 +82,7 @@ const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   );
 });
 
-const CriteriaList = observer(({ uiStore, tagStore }: ISearchListProps) => {
+const CriteriaList = observer(({ uiStore }: ISearchListProps) => {
   // Open advanced search when clicking one of the criteria (but not their delete buttons)
   const handleTagClick = (e: React.MouseEvent) => {
     if (e.currentTarget === e.target || (e.target as HTMLElement).matches('.tag')) {
@@ -92,14 +93,13 @@ const CriteriaList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   return (
     <div className="input" onClick={handleTagClick}>
       {uiStore.searchCriteriaList.map((c, i) => {
-        let label = c.toString();
-        if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
-          const tag = tagStore.get(c.value[0]);
-          if (tag !== undefined) {
-            label = label.concat(tag.name);
-          }
-        }
-        return <Tag key={i} text={label} onRemove={() => uiStore.removeSearchCriteriaByIndex(i)} />;
+        return (
+          <Tag
+            key={i}
+            text={c.toString()}
+            onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
+          />
+        );
       })}
     </div>
   );
