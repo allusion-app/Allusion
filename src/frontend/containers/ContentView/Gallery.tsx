@@ -1,13 +1,13 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { FixedSizeList } from 'react-window';
+import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import TagDnDContext, { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import { RendererMessenger } from 'src/Messaging';
 import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
-import { throttle } from '../../utils';
+import { debouncedThrottle, throttle } from '../../utils';
 import { GalleryCommand, GallerySelector, GridCell, ListCell } from './GalleryItem';
 import MasonryRenderer from './Masonry/MasonryRenderer';
 import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from './menu-items';
@@ -183,32 +183,16 @@ const GridGallery = observer((props: ILayoutProps) => {
 
   const ref = useRef<FixedSizeList>(null);
   const innerRef = useRef<HTMLElement>(null);
-  // FIXME: Hardcoded until responsive design is done.
-  const TOOLBAR_HEIGHT = 48;
-  const intersectionObserver = useRef(
-    new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          // Rounding is expensive, so we check if it whithin the toolbar bottom edge.
-          if (e.isIntersecting && e.intersectionRect.y < TOOLBAR_HEIGHT + 1) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const rowIndex = parseInt(e.target.getAttribute('aria-rowindex')!) - 1;
-            const index = rowIndex * e.target.childElementCount;
-            uiStore.setFirstItem(index);
-            // Make first item in viewport focusable if there is nothing to tab to.
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (e.target.parentElement!.querySelector('[tabindex="0"]') === null) {
-              (e.target.firstElementChild as HTMLElement).tabIndex = 0;
-            }
-            break;
-          }
-        }
-      },
-      { threshold: [0, 1] },
-    ),
+
+  const throttledScrollHandler = useRef(
+    debouncedThrottle((index: number) => uiStore.setFirstItem(index), 100),
   );
 
-  useEffect(() => () => intersectionObserver.current.disconnect(), []);
+  const handleScroll = useCallback(
+    (props: ListOnScrollProps) =>
+      throttledScrollHandler.current(Math.round(props.scrollOffset / cellSize) * numColumns),
+    [cellSize, numColumns],
+  );
 
   useEffect(() => {
     if (innerRef.current !== null) {
@@ -258,7 +242,6 @@ const GridGallery = observer((props: ILayoutProps) => {
         data={data}
         style={style}
         isScrolling={isScrolling}
-        observer={intersectionObserver.current}
         columns={numColumns}
         uiStore={uiStore}
         fileStore={fileStore}
@@ -280,6 +263,7 @@ const GridGallery = observer((props: ILayoutProps) => {
         itemKey={getItemKey}
         overscanCount={2}
         children={Row}
+        onScroll={handleScroll}
         initialScrollOffset={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
         ref={ref}
         innerRef={innerRef}
@@ -299,31 +283,16 @@ const ListGallery = observer((props: ILayoutProps) => {
     [dndData, fileStore, select, showContextMenu, uiStore],
   );
   const ref = useRef<FixedSizeList>(null);
-  // FIXME: Hardcoded until responsive design is done.
-  const TOOLBAR_HEIGHT = 48;
-  const intersectionObserver = useRef(
-    new IntersectionObserver(
-      (entries) => {
-        // Rounding is expensive, so we check if it whithin the toolbar bottom edge.
-        for (const e of entries) {
-          if (e.isIntersecting && e.intersectionRect.y < TOOLBAR_HEIGHT + 1) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const rowIndex = e.target.getAttribute('aria-rowindex')!;
-            uiStore.setFirstItem(parseInt(rowIndex) - 1);
-            // Make first item in viewport focusable if there is nothing to tab to.
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            if (e.target.parentElement!.querySelector('[tabindex="0"]') === null) {
-              (e.target.firstElementChild as HTMLElement).tabIndex = 0;
-            }
-            break;
-          }
-        }
-      },
-      { threshold: [0, 1] },
-    ),
+
+  const throttledScrollHandler = useRef(
+    debouncedThrottle((index: number) => uiStore.setFirstItem(index), 100),
   );
 
-  useEffect(() => () => intersectionObserver.current.disconnect(), []);
+  const handleScroll = useCallback(
+    (props: ListOnScrollProps) =>
+      throttledScrollHandler.current(Math.round(props.scrollOffset / cellSize)),
+    [cellSize],
+  );
 
   const index = lastSelectionIndex.current;
   useEffect(() => {
@@ -339,7 +308,6 @@ const ListGallery = observer((props: ILayoutProps) => {
         data={data}
         style={style}
         isScrolling={isScrolling}
-        observer={intersectionObserver.current}
         uiStore={uiStore}
         submitCommand={submitCommand}
       />
@@ -359,6 +327,7 @@ const ListGallery = observer((props: ILayoutProps) => {
         itemKey={getItemKey}
         overscanCount={2}
         children={Row}
+        onScroll={handleScroll}
         initialScrollOffset={uiStore.firstItem * cellSize}
         ref={ref}
       />
@@ -371,13 +340,12 @@ interface IListItem {
   data: ClientFile[];
   style: React.CSSProperties;
   isScrolling: true;
-  observer: IntersectionObserver;
   uiStore: UiStore;
   submitCommand: (command: GalleryCommand) => void;
 }
 
 const ListItem = observer((props: IListItem) => {
-  const { index, data, style, isScrolling, observer, uiStore, submitCommand } = props;
+  const { index, data, style, isScrolling, uiStore, submitCommand } = props;
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
@@ -386,18 +354,8 @@ const ListItem = observer((props: IListItem) => {
     const element = row.current;
     if (element !== null && !isMounted && !isScrolling) {
       setIsMounted(true);
-      observer.observe(element);
     }
-  }, [isMounted, isScrolling, observer]);
-
-  useEffect(() => {
-    const unobserveTarget = () => {
-      if (row.current) {
-        observer.unobserve(row.current);
-      }
-    };
-    return unobserveTarget;
-  }, [observer]);
+  }, [isMounted, isScrolling]);
 
   return (
     <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
@@ -413,36 +371,16 @@ interface IGridRow extends IListItem {
 }
 
 const GridRow = observer((props: IGridRow) => {
-  const {
-    index,
-    data,
-    style,
-    isScrolling,
-    observer,
-    columns,
-    uiStore,
-    fileStore,
-    submitCommand,
-  } = props;
+  const { index, data, style, isScrolling, columns, uiStore, fileStore, submitCommand } = props;
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     const element = row.current;
     if (element !== null && !isMounted && !isScrolling) {
-      observer.observe(element);
       setIsMounted(true);
     }
-  }, [isMounted, isScrolling, observer]);
-
-  useEffect(() => {
-    const unobserveTarget = () => {
-      if (row.current) {
-        observer.unobserve(row.current);
-      }
-    };
-    return unobserveTarget;
-  }, [observer]);
+  }, [isMounted, isScrolling]);
 
   const offset = index * columns;
   return (
