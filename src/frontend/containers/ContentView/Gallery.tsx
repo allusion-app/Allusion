@@ -157,15 +157,15 @@ const CONTENT_PADDING_RIGHT = 12;
 const GridGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
   const { fileList } = fileStore;
-  const dragData = useContext(TagDnDContext);
+  const dndData = useContext(TagDnDContext);
   const [minSize, maxSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
     uiStore.thumbnailSize,
   ]);
   const [[numColumns, cellSize], setDimensions] = useState([0, 0]);
 
   const submitCommand = useMemo(
-    () => createSubmitCommand(dragData, fileStore, select, showContextMenu, uiStore),
-    [dragData, fileStore, select, showContextMenu, uiStore],
+    () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
+    [dndData, fileStore, select, showContextMenu, uiStore],
   );
 
   useEffect(() => {
@@ -290,13 +290,13 @@ const GridGallery = observer((props: ILayoutProps) => {
 
 const ListGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
-  const dragData = useContext(TagDnDContext);
+  const dndData = useContext(TagDnDContext);
   const cellSize = useMemo(() => getThumbnailSize(uiStore.thumbnailSize)[1], [
     uiStore.thumbnailSize,
   ]);
   const submitCommand = useMemo(
-    () => createSubmitCommand(dragData, fileStore, select, showContextMenu, uiStore),
-    [dragData, fileStore, select, showContextMenu, uiStore],
+    () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
+    [dndData, fileStore, select, showContextMenu, uiStore],
   );
   const ref = useRef<FixedSizeList>(null);
   // FIXME: Hardcoded until responsive design is done.
@@ -511,7 +511,7 @@ const getItemKey = action((index: number, data: ClientFile[]): string => {
 });
 
 export function createSubmitCommand(
-  dragData: ITagDnDData,
+  dndData: ITagDnDData,
   fileStore: FileStore,
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void,
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void,
@@ -543,6 +543,12 @@ export function createSubmitCommand(
         break;
       }
 
+      // If the file is selected, add all selected items to the drag event, for
+      // exporting to your file explorer or programs like PureRef.
+      // Creating an event in the main process turned out to be the most robust,
+      // did many experiments with drag event content types. Creating a drag
+      // event with multiple images did not work correctly from the browser side
+      // (e.g. only limited to thumbnails, not full images).
       case GallerySelector.DragStart: {
         const file = command.payload;
         if (!uiStore.fileSelection.has(file)) {
@@ -561,10 +567,18 @@ export function createSubmitCommand(
         (window as any).internalDragStart = new Date();
       }
 
+      case GallerySelector.DragOver:
+        dndData.target = command.payload;
+        break;
+
+      case GallerySelector.DragLeave:
+        dndData.target = command.payload;
+        break;
+
       case GallerySelector.Drop:
-        if (dragData.item !== undefined) {
+        if (dndData.source !== undefined) {
           const dropFile = command.payload;
-          const ctx = uiStore.getTagContextItems(dragData.item.id);
+          const ctx = uiStore.getTagContextItems(dndData.source.id);
 
           // Tag all selected files - unless the file that is being tagged is not selected
           const filesToTag = uiStore.fileSelection.has(dropFile)

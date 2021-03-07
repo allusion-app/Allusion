@@ -1,8 +1,10 @@
 import React from 'react';
+import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 
 export interface ITagDnDData {
-  item: ClientTag | undefined;
+  source: ClientTag | undefined;
+  target: ClientFile | undefined;
 }
 
 /** Data transfer type of tag items. */

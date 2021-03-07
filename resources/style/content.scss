@@ -35,44 +35,17 @@
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
-#gallery-content.selected-file-dropping {
-  [role='gridcell'],
-  [data-masonrycell] {
-    &[aria-selected='true'] .thumbnail {
-      // If selected, and any other selected image is a drop target: normal yellow border
-      // (as an indication that dropping a tag will apply it to all selected files)
-      background-color: $yellow1;
-    }
-  }
+#gallery-content.selected-file-dropping [aria-selected='true'] > .thumbnail {
+  // If selected, and any other selected image is a drop target: normal yellow border
+  // (as an indication that dropping a tag will apply it to all selected files)
+  background-color: $yellow1;
 }
 
-// Wrapper around .thumbnail:
+// Gallery Item Container
 [role='gridcell'],
 [data-masonrycell] {
   position: relative;
   margin: 4px;
-
-  &[aria-selected='true'] .thumbnail {
-    // If selected, show a blue border
-    background-color: var(--accent-color-blue);
-    > img,
-    > .image-error {
-      clip-path: inset(0.25rem round 0.125rem); // old design
-    }
-    
-    // If selected AND drop target: big yellow border
-    &[data-dnd-target='true'] {
-      background-color: $yellow1;
-      > img,
-      > .image-error {
-        clip-path: inset(0.5rem round 0.125rem);
-      }
-    }
-
-    > .image-error {
-      border: 0.25rem solid $danger; // new design
-    }
-  }
 
   &:hover .thumbnail-tags {
     max-height: var(--thumbnail-size);
@@ -115,6 +88,28 @@
     img {
       clip-path: inset(0.5rem round 0.125rem);
     }
+  }
+}
+
+[aria-selected='true'] > .thumbnail {
+  // If selected, show a blue border
+  background-color: var(--accent-color-blue);
+  > img,
+  > .image-error {
+    clip-path: inset(0.25rem round 0.125rem); // old design
+  }
+
+  // If selected AND drop target: big yellow border
+  &[data-dnd-target='true'] {
+    background-color: $yellow1;
+    > img,
+    > .image-error {
+      clip-path: inset(0.5rem round 0.125rem);
+    }
+  }
+
+  > .image-error {
+    border: 0.25rem solid $danger; // new design
   }
 }
 

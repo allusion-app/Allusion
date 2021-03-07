@@ -195,15 +195,28 @@ const ThumbnailContainer = observer(({ file, children, submitCommand }: IThumbna
         submitCommand({ selector: GallerySelector.DragStart, payload: file });
       }}
       onDragEnter={handleDragEnter}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
+      onDragOver={(e) => {
+        if (e.dataTransfer.types.includes(DnDTagType)) {
+          e.stopPropagation();
+          e.preventDefault();
+          e.currentTarget.dataset[DnDAttribute.Target] = 'true';
+          submitCommand({ selector: GallerySelector.DragOver, payload: file });
+        }
+      }}
+      onDragLeave={(e) => {
+        if (e.dataTransfer.types.includes(DnDTagType)) {
+          e.stopPropagation();
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'none';
+          e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+          submitCommand({ selector: GallerySelector.DragOver, payload: file });
+        }
+      }}
       onDrop={(e) => {
         e.stopPropagation();
         submitCommand({ selector: GallerySelector.Drop, payload: file });
         const thumbnail = e.currentTarget as HTMLElement;
         e.dataTransfer.dropEffect = 'none';
-        thumbnail.dataset[DnDAttribute.Target] = 'false';
-        thumbnail.dataset[DnDAttribute.Target] = 'false';
 
         const galleryContent = thumbnail.closest('#gallery-content');
         if (galleryContent) {
@@ -222,42 +235,6 @@ function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
     e.stopPropagation();
     e.dataTransfer.dropEffect = 'link';
     (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'true';
-  }
-}
-
-function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
-  if (e.dataTransfer.types.includes(DnDTagType)) {
-    e.stopPropagation();
-    e.preventDefault();
-
-    // If selected, apply class to gallery-content to mark all files as yellow ->
-    // indicating tag will be applied to all selected files
-    // TODO:: This should be based on application state, not on DOM attributes... But the whole DnD approach currently works like this 🤷
-    // it appears sometimes the dragLeave is fired after the next dragEnter when dragging quickly in between thumbnails
-    const thumbnail = e.target as HTMLElement;
-    if ((thumbnail.parentElement as HTMLElement).getAttribute('aria-selected') === 'true') {
-      const galleryContent = thumbnail.closest('#gallery-content');
-      if (galleryContent && !galleryContent.classList.contains('selected-file-dropping')) {
-        galleryContent.classList.add('selected-file-dropping');
-      }
-    }
-  }
-}
-
-function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
-  if (e.dataTransfer.types.includes(DnDTagType)) {
-    const thumbnail = e.target as HTMLElement;
-    e.stopPropagation();
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'none';
-    thumbnail.dataset[DnDAttribute.Target] = 'false';
-
-    if ((thumbnail.parentElement as HTMLElement).getAttribute('aria-selected') === 'true') {
-      const galleryContent = thumbnail.closest('#gallery-content');
-      if (galleryContent) {
-        galleryContent.classList.remove('selected-file-dropping');
-      }
-    }
   }
 }
 
@@ -349,6 +326,8 @@ export const enum GallerySelector {
   DoubleClick = 'doubleClick',
   ContextMenu = 'contextMenu',
   DragStart = 'dragStart',
+  DragOver = 'dragOver',
+  DragLeave = 'dragLeave',
   Drop = 'drop',
 }
 
@@ -362,4 +341,6 @@ export type GalleryCommand =
   | ICommand<GallerySelector.DoubleClick, ClientFile>
   | ICommand<GallerySelector.ContextMenu, [file: ClientFile, x: number, y: number]>
   | ICommand<GallerySelector.DragStart, ClientFile>
+  | ICommand<GallerySelector.DragOver, ClientFile>
+  | ICommand<GallerySelector.DragLeave, undefined>
   | ICommand<GallerySelector.Drop, ClientFile>;

@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
-import { runInAction, observable } from 'mobx';
+import { runInAction, observable, action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
@@ -26,17 +26,26 @@ import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
-const TagDnDContextData = observable({ item: undefined });
+const TagDnDContextData = observable({ source: undefined, target: undefined });
 
 window.addEventListener(
   'dragend',
-  (event: DragEvent) => {
-    TagDnDContextData.item = undefined;
+  action((event: DragEvent) => {
+    TagDnDContextData.source = undefined;
     if (event.target instanceof HTMLElement) {
       event.target.dataset[DnDAttribute.Source] = 'false';
     }
-  },
-  true,
+  }),
+);
+
+window.addEventListener(
+  'drop',
+  action((event: DragEvent) => {
+    TagDnDContextData.target = undefined;
+    if (event.target instanceof HTMLElement) {
+      event.target.dataset[DnDAttribute.Target] = 'false';
+    }
+  }),
 );
 
 const App = observer(() => {

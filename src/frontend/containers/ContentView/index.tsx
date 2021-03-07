@@ -14,6 +14,7 @@ import Placeholder from './Placeholder';
 import Layout from './Gallery';
 
 import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
+import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 
 const ContentView = observer(() => {
   const {
@@ -44,7 +45,11 @@ const ContentView = observer(() => {
   );
 
   return (
-    <main id="content-view" onKeyDown={handleShortcuts}>
+    <main
+      id="content-view"
+      className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
+      onKeyDown={handleShortcuts}
+    >
       {fileList.length === 0 ? <Placeholder /> : <Gallery />}
     </main>
   );
@@ -52,6 +57,7 @@ const ContentView = observer(() => {
 
 const Gallery = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
+  const dndData = useContext(TagDnDContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
   const { open, x, y, menu } = contextState;
   const [fileMenu, externalMenu] = menu as [MenuChild, MenuChild];
@@ -83,11 +89,14 @@ const Gallery = observer(() => {
     return () => observer.disconnect();
   }, [fileList.length]);
 
+  const isDroppingTagOnSelection =
+    dndData.target !== undefined && uiStore.fileSelection.has(dndData.target);
+
   return (
     <div
       ref={container}
       id="gallery-content"
-      className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
+      className={isDroppingTagOnSelection ? 'selected-file-dropping' : undefined}
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
       onClick={!uiStore.isSlideMode ? uiStore.clearFileSelection : undefined}
       onContextMenu={handleContextMenu} // Background clicks

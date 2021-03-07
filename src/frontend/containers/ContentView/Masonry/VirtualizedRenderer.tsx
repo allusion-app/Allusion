@@ -42,10 +42,10 @@ const VirtualizedRenderer = observer(
     const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
     const [endRenderIndex, setEndRenderIndex] = useState(0);
-    const dragData = useContext(TagDnDContext);
+    const dndData = useContext(TagDnDContext);
     const submitCommand = useMemo(
-      () => createSubmitCommand(dragData, fileStore, select, showContextMenu, uiStore),
-      [dragData, fileStore, select, showContextMenu, uiStore],
+      () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
+      [dndData, fileStore, select, showContextMenu, uiStore],
     );
     const numImages = images.length;
 

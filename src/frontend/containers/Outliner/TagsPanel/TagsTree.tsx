@@ -108,7 +108,7 @@ document.body.appendChild(PreviewTag);
 const TagItem = observer((props: ITagItemProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
   const { uiStore } = useContext(StoreContext);
-  const dragData = useContext(TagDnDContext);
+  const dndData = useContext(TagDnDContext);
 
   const handleContextMenu = useCallback(
     (e) =>
@@ -141,24 +141,24 @@ const TagItem = observer((props: ITagItemProps) => {
         event.dataTransfer.effectAllowed = 'linkMove';
         event.dataTransfer.dropEffect = 'move';
         event.currentTarget.dataset[DnDAttribute.Source] = 'true';
-        dragData.item = nodeData;
+        dndData.source = nodeData;
       });
     },
-    [dragData, nodeData, uiStore],
+    [dndData, nodeData, uiStore],
   );
 
   const handleDragOver = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       runInAction(() => {
-        if (dragData.item === undefined) {
+        if (dndData.source === undefined) {
           return;
         }
         const dropTarget = event.currentTarget;
         const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
         if (
           isSource ||
-          (dragData.item.isSelected && nodeData.isSelected) ||
-          nodeData.isAncestor(dragData.item)
+          (dndData.source.isSelected && nodeData.isSelected) ||
+          nodeData.isAncestor(dndData.source)
         ) {
           return;
         }
@@ -186,12 +186,12 @@ const TagItem = observer((props: ITagItemProps) => {
         }
       });
     },
-    [dispatch, dragData, expansion, nodeData],
+    [dispatch, dndData, expansion, nodeData],
   );
 
   const handleDragLeave = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      if (runInAction(() => dragData.item !== undefined)) {
+      if (runInAction(() => dndData.source !== undefined)) {
         event.dataTransfer.dropEffect = 'none';
         event.preventDefault();
         event.stopPropagation();
@@ -200,30 +200,28 @@ const TagItem = observer((props: ITagItemProps) => {
         event.currentTarget.classList.remove('bottom');
       }
     },
-    [dragData],
+    [dndData],
   );
 
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      const dataSet = event.currentTarget.dataset;
       runInAction(() => {
-        if (dragData.item?.isSelected) {
+        if (dndData.source?.isSelected) {
           uiStore.moveSelectedTagItems(nodeData.id);
-        } else if (dragData.item !== undefined) {
+        } else if (dndData.source !== undefined) {
           if (event.currentTarget.classList.contains('top')) {
-            nodeData.parent.insertSubTag(dragData.item, pos - 1); // 'pos' does not start from 0!
+            nodeData.parent.insertSubTag(dndData.source, pos - 1); // 'pos' does not start from 0!
           } else if (event.currentTarget.classList.contains('bottom')) {
-            nodeData.parent.insertSubTag(dragData.item, pos);
+            nodeData.parent.insertSubTag(dndData.source, pos);
           } else {
-            nodeData.insertSubTag(dragData.item, 0);
+            nodeData.insertSubTag(dndData.source, 0);
           }
         }
       });
-      dataSet[DnDAttribute.Target] = 'false';
       event.currentTarget.classList.remove('top');
       event.currentTarget.classList.remove('bottom');
     },
-    [dragData, nodeData, pos, uiStore],
+    [dndData, nodeData, pos, uiStore],
   );
 
   const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
@@ -388,17 +386,17 @@ const TagsTree = observer(() => {
     deletableNode: undefined,
   });
   const [contextState, { show, hide }] = useContextMenu();
-  const dragData = useContext(TagDnDContext);
+  const dndData = useContext(TagDnDContext);
 
   /** Header and Footer drop zones of the root node */
   const handleDragOverAndLeave = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      if (runInAction(() => dragData.item !== undefined)) {
+      if (runInAction(() => dndData.source !== undefined)) {
         event.preventDefault();
         event.stopPropagation();
       }
     },
-    [dragData],
+    [dndData],
   );
 
   const submit = useCallback((target: EventTarget & HTMLInputElement) => {
@@ -444,20 +442,15 @@ const TagsTree = observer(() => {
     [root, tagStore],
   );
 
-  const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      const dataSet = event.currentTarget.dataset;
-      runInAction(() => {
-        if (dragData.item?.isSelected) {
-          uiStore.moveSelectedTagItems(ROOT_TAG_ID);
-        } else if (dragData.item !== undefined) {
-          root.insertSubTag(dragData.item, tagStore.tagList.length);
-        }
-        dataSet[DnDAttribute.Target] = 'false';
-      });
-    },
-    [dragData, root, tagStore, uiStore],
-  );
+  const handleDrop = useCallback(() => {
+    runInAction(() => {
+      if (dndData.source?.isSelected) {
+        uiStore.moveSelectedTagItems(ROOT_TAG_ID);
+      } else if (dndData.source !== undefined) {
+        root.insertSubTag(dndData.source, tagStore.tagList.length);
+      }
+    });
+  }, [dndData, root, tagStore, uiStore]);
 
   const handleBranchOnKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
