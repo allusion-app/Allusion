@@ -19,7 +19,7 @@ import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
-import { DnDAttribute } from '../TagsPanel/dnd';
+import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import DropContext from 'src/frontend/contexts/DropContext';
 
 // Tooltip info
@@ -47,20 +47,21 @@ const isExpanded = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITr
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const emptyFunction = () => {};
 
-const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
-  const element = event.currentTarget.querySelector('.tree-content-label');
-  if (element) {
-    // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
-    // Why not trigger context menus through `ContextMenu.show()`?
-    event.stopPropagation();
-    element.dispatchEvent(
-      new MouseEvent('contextmenu', {
-        clientX: element.getBoundingClientRect().right,
-        clientY: element.getBoundingClientRect().top,
-      }),
-    );
-  }
-};
+// FIXME: React broke Element.dispatchevent(). Alternative: Pass show context menu method.
+// const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+//   const element = event.currentTarget.querySelector('.tree-content-label');
+//   if (element) {
+//     // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
+//     // Why not trigger context menus through `ContextMenu.show()`?
+//     event.stopPropagation();
+//     element.dispatchEvent(
+//       new MouseEvent('contextmenu', {
+//         clientX: element.getBoundingClientRect().right,
+//         clientY: element.getBoundingClientRect().top,
+//       }),
+//     );
+//   }
+// };
 
 const criteria = (path: string) =>
   new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict);
@@ -72,11 +73,11 @@ const customKeys = (
   treeData: ITreeData,
 ) => {
   switch (event.key) {
-    case 'F10':
-      if (event.shiftKey) {
-        triggerContextMenuEvent(event);
-      }
-      break;
+    // case 'F10':
+    //   if (event.shiftKey) {
+    //     triggerContextMenuEvent(event);
+    //   }
+    //   break;
 
     case 'Enter':
       event.stopPropagation();
@@ -90,9 +91,9 @@ const customKeys = (
       }
       break;
 
-    case 'ContextMenu':
-      triggerContextMenuEvent(event);
-      break;
+    // case 'ContextMenu':
+    //   triggerContextMenuEvent(event);
+    //   break;
 
     default:
       break;
