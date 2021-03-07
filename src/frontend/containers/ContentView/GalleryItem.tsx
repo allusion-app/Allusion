@@ -116,7 +116,6 @@ export const MasonryCell = observer(
     forceNoThumbnail,
     transform: { height, width, left, top },
     submitCommand,
-    ...restProps
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
     const portalTriggerRef = useRef<HTMLSpanElement>(null);
@@ -126,7 +125,6 @@ export const MasonryCell = observer(
         tabIndex={-1}
         aria-selected={uiStore.fileSelection.has(file)}
         style={style}
-        {...restProps}
       >
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           <Thumbnail
