@@ -2,7 +2,6 @@ import React, { useMemo, useState, useCallback, useReducer, useContext, useRef }
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-import { ID } from 'src/entities/ID';
 import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import StoreContext from 'src/frontend/contexts/StoreContext';
@@ -426,6 +425,8 @@ const TagsTree = observer(() => {
         lastSelectionIndex.current = i;
         uiStore.toggleTagSelection(selectedTag);
         return;
+      } else {
+        initialSelectionIndex.current = lastSelectionIndex.current;
       }
 
       // Mark this index as the last item that was selected

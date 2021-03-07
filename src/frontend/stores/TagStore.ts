@@ -52,20 +52,23 @@ class TagStore {
     return this.tagList.filter((t) => t.id !== ROOT_TAG_ID);
   }
 
-  /**
-   * Returns all tags as a single flattened list, as it would appear in the tag outliner when all tags have been expanded.
-   * Does not include the root tag.
-   **/
-  @computed get flatTagList() {
-    const flattenSubtags = (tag: ClientTag): ClientTag[] => [
-      tag,
-      ...tag.subTags.flatMap(flattenSubtags),
-    ];
-    return this.root.subTags.flatMap(flattenSubtags);
-  }
-
   @action findFlatTagListIndex(target: ClientTag) {
-    return this.flatTagList.findIndex((tag) => tag.id === target.id);
+    // Iterative DFS algorithm
+    const stack: ClientTag[] = [];
+    let tag: ClientTag | undefined = this.root;
+    let index = -1;
+    do {
+      if (tag === target) {
+        break;
+      }
+      for (let i = tag.subTags.length - 1; i >= 0; i--) {
+        const subTag = tag.subTags[i];
+        stack.push(subTag);
+      }
+      tag = stack.pop();
+      index += 1;
+    } while (tag !== undefined);
+    return index > -1 ? index : undefined;
   }
 
   @action isSelected(tag: ClientTag): boolean {

@@ -405,9 +405,21 @@ class UiStore {
     if (!additive) {
       this.tagSelection.clear();
     }
-    for (let i = start; i <= end; i++) {
-      this.tagSelection.add(this.rootStore.tagStore.flatTagList[i]);
-    }
+    // Iterative DFS algorithm
+    const stack: ClientTag[] = [];
+    let tag: ClientTag | undefined = this.rootStore.tagStore.root;
+    let index = -1;
+    do {
+      if (index >= start) {
+        this.tagSelection.add(tag);
+      }
+      for (let i = tag.subTags.length - 1; i >= 0; i--) {
+        const subTag = tag.subTags[i];
+        stack.push(subTag);
+      }
+      tag = stack.pop();
+      index += 1;
+    } while (tag !== undefined && index <= end);
   }
 
   @action.bound selectAllTags() {
