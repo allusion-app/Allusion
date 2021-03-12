@@ -45,8 +45,8 @@
 }
 
 .input {
-  background: var(--shade1);
-  border: 0.0625rem solid var(--border-dark);
+  background: var(--input-color);
+  border: 0.0625rem solid var(--border-color);
   outline: none;
   border-radius: 0.25rem;
   margin: 0.125rem 0.25rem;
@@ -54,12 +54,12 @@
   line-height: 1.5rem;
 
   &:hover {
-    background: var(--shade2);
+    background: var(--input-color-hover);
   }
 
   &:focus-within {
-    background: var(--shade1);
-    box-shadow: 0 0 0 0.125rem rgb(51, 153, 255);
+    background: var(--input-color);
+    box-shadow: 0 0 0 0.125rem var(--accent-color-blue);
   }
 }
 
@@ -89,7 +89,7 @@
     flex-grow: 1;
 
     &:hover {
-      background: var(--shade2);
+      background: var(--input-color-hover);
     }
   }
 }

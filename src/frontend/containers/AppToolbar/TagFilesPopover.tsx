@@ -23,7 +23,7 @@ const TagFilesPopover = observer(() => {
     <>
       <ToolbarButton
         showLabel="never"
-        icon={IconSet.TAG}
+        icon={IconSet.TAG_LINE}
         disabled={uiStore.fileSelection.size === 0 && !uiStore.isToolbarTagPopoverOpen}
         onClick={uiStore.toggleToolbarTagPopover}
         text="Tag selected files"

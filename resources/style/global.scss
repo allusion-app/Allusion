@@ -62,7 +62,7 @@ table {
 }
 
 .contextMenuTarget {
-  outline-color: $pt-intent-primary;
+  outline-color: red;
   outline-width: 2px;
   outline-offset: -2px;
   outline-style: solid;
@@ -155,7 +155,7 @@ table {
   margin: auto;
 
   &::backdrop {
-    background-color: $blue-trans1;
+    background-color: red;
   }
 
   > .dialog-content {

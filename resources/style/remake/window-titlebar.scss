@@ -4,8 +4,8 @@
   width: 100%;
   display: flex;
 
-  background-color: $dark-gray0;
-  color: $dark-gray6;
+  background-color: red;
+  color: red;
 
   span {
     height: 100%;
@@ -30,12 +30,12 @@
     width: 36px;
 
     &:hover {
-      background-color: $dark-gray1;
+      background-color: red;
     }
 
     &:last-child:hover {
-      background-color: $danger;
-      color: $white;
+      background-color: red;
+      color: red;
     }
   }
 }

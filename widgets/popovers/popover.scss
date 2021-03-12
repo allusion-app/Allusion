@@ -111,9 +111,8 @@ dialog[role='alertdialog'] {
   z-index: 1;
 
   color: var(--text-color);
-  backdrop-filter: blur(1rem);
-  background: var(--background-color-light);
-  border: 0.0625rem solid var(--border-dark);
+  background: var(--background-color-alt);
+  border: 0.0625rem solid var(--border-color);
   border-radius: 0.5rem;
   box-shadow: var(--box-shadow);
 
