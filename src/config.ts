@@ -1,10 +1,5 @@
-/**
- * Easy way to check whether the application is running in development or production.
- * From https://github.com/electron/electron/issues/7714#issuecomment-255835799
- */
 export function isDev() {
-  // This arg is passed in the `yarn start` script (package.json)
-  return process.argv[2] == '--dev';
+  return process.env.NODE_ENV === 'development';
 }
 
 // Randomly chosen, hopefully no conflicts with other apps/services

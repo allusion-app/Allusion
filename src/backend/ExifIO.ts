@@ -14,18 +14,23 @@
  * When to read:
  * - When adding new location, like we currently do with image resolution (could replace that with exiftool)
  * - On start-up, look for changed tags (like we do with checking whether files still exist)
- * -
+ * - On file-change (file watcher)
+ *
+ * Other things:
+ * - Would be cool to show all exif info in inspector
  */
 
 import exiftool from 'node-exiftool';
 import path from 'path';
 import { isDev } from '../config';
 
+console.log({ isDev: isDev() });
+
 // Load the native exiftool executable. In production mode, it's one extra folder up, since it starts in the asar archive
 const exiftoolFolderAndFile = process.platform === 'win32' ? 'win/exiftool.exe' : 'nix/exiftool.pl';
 const exiftoolPath = path.resolve(
   __dirname,
-  isDev() ? '' : '../' + '../resources/exiftool',
+  (isDev() ? '' : '../') + '../resources/exiftool',
   exiftoolFolderAndFile,
 );
 
@@ -48,7 +53,7 @@ class ExifIO {
     await ep.close();
     console.log('Closed Exiftool');
   }
-  async readTags(filepath: string) {
+  async readTags(filepath: string, separator = ' | ') {
     // V1: exiftool vendored
     // const metadata = await exiftool.read(filepath);
 
@@ -66,21 +71,29 @@ class ExifIO {
 
     const entry = metadata.data[0];
 
-    const tagHierarchy = entry.HierarchicalSubject || [];
+    const tagHierarchy =
+      typeof entry.HierarchicalSubject === 'string'
+        ? [entry.HierarchicalSubject]
+        : entry.HierarchicalSubject || [];
     const subject = typeof entry.Subject === 'string' ? [entry.Subject] : entry.Subject || [];
     const keywords = typeof entry.Keywords === 'string' ? [entry.Keywords] : entry.Keywords || [];
 
-    const allTags = Array.from(new Set([...subject, ...keywords]));
-    // TODO: Need to filter out duplicates of tagHierarchy and the other plain tags
-    // const filteredHierarchy = tagHierarchy.filter((x) => allTags.some(t => x.endsWith(t)));
-
+    // these toString() methods are here because they are automatically parsed to numbers if they could be numbers :/
+    const splitHierarchy = tagHierarchy.map((h) => h.toString().split(separator));
+    const allTags = Array.from(
+      new Set([...subject.map((s) => s.toString()), ...keywords.map((s) => s.toString())]),
+    );
     // TODO: Need to make a decision: if TagHierarchy is defined, use that. Otherwise, fall back to Subject or Keywords.
     // But what if they both have entries, without overlap? Join them?
+    // Filter out duplicates of tagHierarchy and the other plain tags:
+    const filteredTags = allTags.filter((tag) =>
+      splitHierarchy.every((h) => h[h.length - 1] !== tag),
+    );
 
-    if (tagHierarchy.length + subject.length + keywords.length > 0) {
+    if (tagHierarchy.length + filteredTags.length > 0) {
       console.log(JSON.stringify({ tagHierarchy, subject, keywords }, null, 2));
     }
-    return [...tagHierarchy, ...allTags];
+    return [...tagHierarchy, ...filteredTags];
   }
 
   async writeTags(filepath: string, tagHierarchy: string[]) {
@@ -105,7 +118,7 @@ class ExifIO {
       ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
     );
     console.log(res);
-    if (res.error !== '1 image files updated') {
+    if (!res.error?.endsWith('1 image files updated')) {
       console.error('Could not update file metadata', res);
     }
   }

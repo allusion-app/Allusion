@@ -103,6 +103,64 @@ const Appearance = observer(() => {
   );
 });
 
+const ImportExport = observer(() => {
+  const { fileStore } = useContext(StoreContext);
+  return (
+    <>
+      <h2>Import/Export</h2>
+
+      <h3>Metadata</h3>
+      <p>
+        {IconSet.INFO} This option is useful for importing/exporting tags from/to other software, or
+        when you use Allusion for images on multiple devices synchronized using a service such as
+        Dropbox or Google Drive.
+      </p>
+      <fieldset>
+        <Toggle
+          checked={fileStore.writeTagsToFileMetadata}
+          onChange={() => {
+            fileStore.toggleWriteTagsToFileMetadata();
+            if (
+              fileStore.writeTagsToFileMetadata &&
+              window.confirm(
+                'Would you like to import tags right now? If not, you might lose the tags saved in file metadata when you change the tags on a file in Allusion',
+              )
+            ) {
+              window.alert('TODO: Index files now');
+            }
+          }}
+          label="Read/write tags to file metadata"
+        />
+        <label>
+          <select
+            style={{ width: '40px', marginRight: '8px' }}
+            disabled={!fileStore.writeTagsToFileMetadata}
+          >
+            <option value="|">&apos;|&apos;</option>
+            <option value="/">&apos;/&apos;</option>
+            <option value="\">&apos;\&apos;</option>
+            <option value=":">&apos;:&apos;</option>
+          </select>
+          Hierarchical separator
+        </label>
+        {/* TODO: adobe bridge has option to read with multiple separators */}
+      </fieldset>
+
+      <h3>Backup</h3>
+      {/* TODO */}
+      <fieldset>
+        <Button text="Export database..." onClick={console.log} icon={IconSet.OPEN_EXTERNAL} />
+        <Button text="Import database..." onClick={console.log} icon={IconSet.IMPORT} />
+        <Button
+          text="Full export (including images)..."
+          onClick={console.log}
+          icon={IconSet.MEDIA}
+        />
+      </fieldset>
+    </>
+  );
+});
+
 const BackgroundProcesses = () => (
   <>
     <h2>Options</h2>
@@ -124,7 +182,7 @@ const BackgroundProcesses = () => (
 
 const Shortcuts = () => (
   <>
-    <h2>Shortcuts Map</h2>
+    <h2>Keyboard shortcuts</h2>
     <p>
       Click on a key combination to modify it. After typing your new combination, press Enter to
       confirm or Escape to cancel.
@@ -198,6 +256,10 @@ const SETTINGS_TABS: TabItem[] = [
   {
     label: 'Appearance',
     content: <Appearance />,
+  },
+  {
+    label: 'Import/Export',
+    content: <ImportExport />,
   },
   {
     label: 'Shortcuts',

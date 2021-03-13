@@ -7,6 +7,12 @@ import { ILocation } from '../entities/Location';
 import { ITag, ROOT_TAG_ID } from '../entities/Tag';
 import { SearchCriteria, IStringSearchCriteria } from '../entities/SearchCriteria';
 
+// TODO: Move ExifTool stuff in here: this is where we know when tags/files change
+// ... but we don't know tag names, we need a hybrid method. Return affected files for operations in backend?
+// Hmm, for some operations that's true.
+// For adding or removing tags to multiple files: should use batch operation in exiftool:
+// If you do `Keywords+=MyTag` you can add it do multiple file at once. Probably also remove?
+
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
  * This helps code organization by enforcing a clear seperation between backend/frontend logic.
@@ -89,11 +95,13 @@ export default class Backend {
 
   async saveTag(tag: ITag): Promise<ITag> {
     console.info('Backend: Saving tag...', tag);
+    // TODO: if tag name or parent changed, re-write exifdata
     return this.tagRepository.update(tag);
   }
 
   async saveFile(file: IFile): Promise<IFile> {
     console.info('Backend: Saving file...', file);
+    // TODO: if tags on file changed, re-write exifdata
     return this.fileRepository.update(file);
   }
 
@@ -118,6 +126,7 @@ export default class Backend {
     for (const file of filesWithTag) {
       file.tags.splice(file.tags.indexOf(tag));
     }
+    // TODO: re-write exifdata
     // Update files in db
     await this.saveFiles(filesWithTag);
     // Remove tag from db
@@ -136,6 +145,7 @@ export default class Backend {
     for (const file of filesWithTags) {
       file.tags = file.tags.filter((t) => deletedTags.has(t));
     }
+    // TODO: re-write exifdata
     // Update files in db
     await this.saveFiles(filesWithTags);
     // Remove tag from db

@@ -62,15 +62,25 @@ class FileStore {
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
 
     this.exifTool = new ExifIO();
-    this.exifTool.initialize().then(async () => {
-      // console.log('Initialized!');
-      for (const file of this.fileList) {
-        const tags = await this.exifTool.readTags(file.absolutePath);
-        // if (tags.length) {
-        //   console.log(file.name, tags);
-        // }
-      }
-    });
+    this.exifTool.initialize().then(() => this.readTagsFromFiles());
+  }
+
+  @action readTagsFromFiles() {
+    for (const file of this.fileList) {
+      // TODO: batched promise?
+      // this.exifTool
+      //   .readTags(file.absolutePath)
+      //   .then((tags) => {
+      //     if (tags.length) {
+      //       console.log(tags);
+      //       // parse tag hierarchy into existing tags:
+      //       // const clientTags = tags.map(tag => this.rootStore.tagStore.tagList.find(clientTag => tag === clientTag.name && clientTag.parent.name === tag))
+      //     }
+      //   })
+      //   .catch((e) => {
+      //     console.error('Could not read exif tags', file.name, e);
+      //   });
+    }
   }
 
   @computed get showsAllContent() {
@@ -541,6 +551,10 @@ class FileStore {
 
   @action private incrementNumMissingFiles() {
     this.numMissingFiles++;
+  }
+
+  @action toggleWriteTagsToFileMetadata() {
+    this.writeTagsToFileMetadata = !this.writeTagsToFileMetadata;
   }
 }
 
