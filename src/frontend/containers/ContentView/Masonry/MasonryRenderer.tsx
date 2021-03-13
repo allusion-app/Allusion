@@ -1,18 +1,21 @@
 import { observer } from 'mobx-react-lite';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
+import { debounce } from 'src/frontend/utils';
 import { getThumbnailSize, ILayoutProps } from '../Gallery';
 import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';
 
+type SupportedViewMethod =
+  | ViewMethod.MasonryVertical
+  | ViewMethod.MasonryHorizontal
+  | ViewMethod.Grid;
+
 interface IMasonryRendererProps {
-  type: ViewMethod.MasonryVertical | ViewMethod.MasonryHorizontal | ViewMethod.Grid;
+  type: SupportedViewMethod;
 }
 
-const ViewMethodLayoutDict: Record<
-  ViewMethod.MasonryVertical | ViewMethod.MasonryHorizontal | ViewMethod.Grid,
-  'vertical' | 'horizontal' | 'grid'
-> = {
+const ViewMethodLayoutDict: Record<SupportedViewMethod, 'vertical' | 'horizontal' | 'grid'> = {
   [ViewMethod.MasonryVertical]: 'vertical',
   [ViewMethod.MasonryHorizontal]: 'horizontal',
   [ViewMethod.Grid]: 'grid',
@@ -42,8 +45,10 @@ const MasonryRenderer = observer(
     ]);
     const containerWidth = contentRect.width - SCROLL_BAR_WIDTH;
 
-    const viewMethod = uiStore.method;
+    const viewMethod = uiStore.method as SupportedViewMethod;
     const numImages = fileStore.fileList.length;
+
+    const debouncedRecompute = useMemo(() => debounce(worker.recompute, 200), []);
 
     // TODO: vertical keyboard navigation with lastSelectionIndex
 
@@ -93,28 +98,40 @@ const MasonryRenderer = observer(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [numImages, fileStore.fileListLastModified]);
 
+    const handleResize = useMemo(() => {
+      async function onResize(
+        containerWidth: number,
+        thumbnailSize: number,
+        viewMethod: SupportedViewMethod,
+      ) {
+        console.log('Masonry: Environment changed! Recomputing layout!');
+        try {
+          console.time('recompute-layout');
+          const containerHeight = await worker.recompute(containerWidth, {
+            thumbSize: thumbnailSize,
+            type: ViewMethodLayoutDict[viewMethod],
+          });
+          console.timeEnd('recompute-layout');
+          setContainerHeight(containerHeight);
+          setLayoutTimestamp(new Date());
+          // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Debounce is not needed due to performance, but images are
+      // sometimes repeatedly swapping columns every recomputation, which looks awful
+      return debounce(onResize, 50);
+    }, []);
+
     // Re-compute when the environment changes (container width, thumbnail size, view method)
     useEffect(() => {
       if (containerHeight !== undefined && containerWidth > 100) {
-        console.log('Masonry: Environment changed! Recomputing layout!');
-        (async function onResize() {
-          try {
-            console.time('recompute-layout');
-            const containerHeight = await worker.recompute(containerWidth, {
-              thumbSize: thumbnailSize,
-              type: ViewMethodLayoutDict[viewMethod],
-            });
-            console.timeEnd('recompute-layout');
-            setContainerHeight(containerHeight);
-            setLayoutTimestamp(new Date());
-            // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
-          } catch (e) {
-            console.error(e);
-          }
-        })();
+        handleResize(containerWidth, thumbnailSize, viewMethod);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [containerWidth, thumbnailSize, viewMethod]);
+    }, [containerWidth, handleResize, thumbnailSize, viewMethod]);
 
     return !(containerHeight && layoutTimestamp) ? (
       <p>loading...</p>
