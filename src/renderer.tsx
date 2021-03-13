@@ -19,6 +19,7 @@ import RootStore from './frontend/stores/RootStore';
 
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
+import ExifIO from './backend/ExifIO';
 
 // Window State
 export const WINDOW_STORAGE_KEY = 'Allusion_Window';

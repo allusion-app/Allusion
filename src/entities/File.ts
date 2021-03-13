@@ -108,10 +108,6 @@ export class ClientFile implements ISerializable<IFile> {
         if (this.autoSave) {
           // Remove reactive properties, since observable props are not accepted in the backend
           this.store.save(file);
-
-          if (this.store.writeTagsToFileMetadata) {
-            this.writeTagsToFile();
-          }
         }
       },
     );
@@ -161,22 +157,18 @@ export class ClientFile implements ISerializable<IFile> {
     // - Tags are stored as both as "Subject", "Keywords", and even as
     // PNG:
     // - Relatively recently gained support for exif metadata - not available in windows, probably is there on macs
-    RendererMessenger.readExifTags({ absolutePath: this.absolutePath })
-      .then(console.log)
-      .catch(console.error);
+    // RendererMessenger.readExifTags({ absolutePath: this.absolutePath })
+    //   .then(console.log)
+    //   .catch(console.error);
   }
 
-  writeTagsToFile() {
+  getExifTagHierachies(separator = '|'): string[] {
     const getTagHierarchy = (tag: ClientTag): string =>
-      tag.parent.id === ROOT_TAG_ID ? tag.name : `${getTagHierarchy(tag.parent)} | ${tag.name}`;
-    // Also put parents in here, separated by | symbols
-    const tagHierarchy = Array.from(this.tags).map((tag) => getTagHierarchy(tag));
-    console.log('Writing tags to file...', this.absolutePath, this.tags);
-
-    RendererMessenger.writeExifTags({
-      absolutePath: this.absolutePath,
-      tagHierarchy,
-    });
+      tag.parent.id === ROOT_TAG_ID
+        ? tag.name
+        : `${getTagHierarchy(tag.parent)} ${separator} ${tag.name}`;
+    const tagHierarchies = Array.from(this.tags).map((tag) => getTagHierarchy(tag));
+    return tagHierarchies;
   }
 
   serialize(): IFile {

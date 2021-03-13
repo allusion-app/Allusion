@@ -14,8 +14,16 @@
 
 import exiftool from 'node-exiftool';
 import path from 'path';
+import { isDev } from '../config';
+
+// Load the native exiftool executable. In production mode, it's one extra folder up, since it starts in the asar archive
 const exiftoolFolderAndFile = process.platform === 'win32' ? 'win/exiftool.exe' : 'nix/exiftool.pl';
-const exiftoolPath = path.resolve(__dirname, '../../resources/exiftool', exiftoolFolderAndFile);
+const exiftoolPath = path.resolve(
+  __dirname,
+  isDev() ? '' : '../' + '../resources/exiftool',
+  exiftoolFolderAndFile,
+);
+
 console.log(exiftoolPath);
 const ep = new exiftool.ExiftoolProcess(exiftoolPath);
 
@@ -28,6 +36,9 @@ class ExifIO {
     // display pid
     console.log('Started exiftool process %s', pid);
   }
+  print() {
+    console.log(ep);
+  }
   async close() {
     await ep.close();
     console.log('Closed Exiftool');
@@ -37,13 +48,22 @@ class ExifIO {
     // const metadata = await exiftool.read(filepath);
 
     // v2: node exitfool
-    const metadata = await ep.readMetadata(filepath, ['-File:all']);
+    // TODO: Can read whole folder (batching): https://www.npmjs.com/package/node-exiftool#reading-directory
+    // const metadata = await ep.readMetadata(filepath, ['-File:all']);
+    const metadata = await ep.readMetadata(filepath, [
+      'HierarchicalSubject',
+      'Subject',
+      'Keywords',
+    ]);
+    if (metadata.error || !metadata.data?.[0]) {
+      throw new Error(metadata.error || 'No metadata entry');
+    }
 
-    const tagHierarchy = metadata.HierarchicalSubject || [];
-    const subject =
-      typeof metadata.Subject === 'string' ? [metadata.Subject] : metadata.Subject || [];
-    const keywords =
-      typeof metadata.Keywords === 'string' ? [metadata.Keywords] : metadata.Keywords || [];
+    const entry = metadata.data[0];
+
+    const tagHierarchy = entry.HierarchicalSubject || [];
+    const subject = typeof entry.Subject === 'string' ? [entry.Subject] : entry.Subject || [];
+    const keywords = typeof entry.Keywords === 'string' ? [entry.Keywords] : entry.Keywords || [];
 
     const allTags = Array.from(new Set([...subject, ...keywords]));
     // TODO: Need to filter out duplicates of tagHierarchy and the other plain tags
@@ -68,20 +88,21 @@ class ExifIO {
     const subject = tagHierarchy.map((entry) => entry.split('|').pop()!);
 
     console.log('Writing', tagHierarchy.join(', '), 'to', filepath);
-    await exiftool.write(filepath, {
-      HierarchicalSubject: tagHierarchy,
-      Subject: subject,
-      Keywords: subject,
-      // History: {},
-    });
-    console.log('done!');
 
-    // V2: https://www.npmjs.com/package/node-exiftool
-    const data = {
-      all: '',
-      comment: 'Exiftool rules!', // has to come after `all` in order not to be removed
-      'Keywords+': ['keywordA', 'keywordB'],
-    };
+    const res = await ep.writeMetadata(
+      filepath,
+      {
+        HierarchicalSubject: tagHierarchy,
+        Subject: subject,
+        Keywords: subject,
+        // History: {},
+      },
+      ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
+    );
+    console.log(res);
+    if (res.error !== '1 image files updated') {
+      console.error('Could not update file metadata', res);
+    }
   }
 }
 

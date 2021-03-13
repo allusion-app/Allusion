@@ -106,6 +106,12 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         text="Rename"
         icon={IconSet.EDIT}
       />
+      {/* TODO: a merge option would be nice */}
+      <MenuItem
+        onClick={() => window.alert('todo')}
+        text="Merge with..."
+        icon={IconSet.TAG_GROUP}
+      />
       <MenuItem
         onClick={() => dispatch(Factory.confirmDeletion(tag))}
         text={`Delete${contextText}`}

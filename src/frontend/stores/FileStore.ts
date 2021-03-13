@@ -13,6 +13,7 @@ import { ClientTag } from 'src/entities/Tag';
 import RootStore from './RootStore';
 
 import { getThumbnailPath, debounce, needsThumbnail, promiseAllLimit } from '../utils';
+import ExifIO from 'src/backend/ExifIO';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
 
@@ -29,6 +30,8 @@ const enum Content {
 class FileStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
+
+  protected exifTool: ExifIO;
 
   readonly fileList = observable<ClientFile>([]);
   /**
@@ -56,6 +59,17 @@ class FileStore {
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+
+    this.exifTool = new ExifIO();
+    this.exifTool.initialize().then(async () => {
+      // console.log('Initialized!');
+      for (const file of this.fileList) {
+        const tags = await this.exifTool.readTags(file.absolutePath);
+        // if (tags.length) {
+        //   console.log(file.name, tags);
+        // }
+      }
+    });
   }
 
   @computed get showsAllContent() {
@@ -330,6 +344,11 @@ class FileStore {
   save(file: IFile) {
     file.dateModified = new Date();
     this.backend.saveFile(file);
+
+    if (this.writeTagsToFileMetadata) {
+      const clientFile = this.get(file.id)!;
+      this.exifTool.writeTags(file.absolutePath, clientFile.getExifTagHierachies());
+    }
   }
 
   @action recoverPersistentPreferences() {
