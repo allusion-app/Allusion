@@ -6,8 +6,17 @@ import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';
 
 interface IMasonryRendererProps {
-  type: ViewMethod.MasonryVertical | ViewMethod.MasonryHorizontal;
+  type: ViewMethod.MasonryVertical | ViewMethod.MasonryHorizontal | ViewMethod.Grid;
 }
+
+const ViewMethodLayoutDict: Record<
+  ViewMethod.MasonryVertical | ViewMethod.MasonryHorizontal | ViewMethod.Grid,
+  'vertical' | 'horizontal' | 'grid'
+> = {
+  [ViewMethod.MasonryVertical]: 'vertical',
+  [ViewMethod.MasonryHorizontal]: 'horizontal',
+  [ViewMethod.Grid]: 'grid',
+};
 
 const SCROLL_BAR_WIDTH = 8;
 
@@ -47,7 +56,7 @@ const MasonryRenderer = observer(
           }
           const containerHeight = await worker.compute(fileStore.fileList, containerWidth, {
             thumbSize: thumbnailSize,
-            type: viewMethod === ViewMethod.MasonryVertical ? 'vertical' : 'horizontal',
+            type: ViewMethodLayoutDict[viewMethod],
           });
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
@@ -70,7 +79,7 @@ const MasonryRenderer = observer(
             console.time('recompute-layout');
             const containerHeight = await worker.compute(fileStore.fileList, containerWidth, {
               thumbSize: thumbnailSize,
-              type: viewMethod === ViewMethod.MasonryVertical ? 'vertical' : 'horizontal',
+              type: ViewMethodLayoutDict[viewMethod],
             });
             console.timeEnd('recompute-layout');
             setContainerHeight(containerHeight);
@@ -93,7 +102,7 @@ const MasonryRenderer = observer(
             console.time('recompute-layout');
             const containerHeight = await worker.recompute(containerWidth, {
               thumbSize: thumbnailSize,
-              type: viewMethod === ViewMethod.MasonryVertical ? 'vertical' : 'horizontal',
+              type: ViewMethodLayoutDict[viewMethod],
             });
             console.timeEnd('recompute-layout');
             setContainerHeight(containerHeight);

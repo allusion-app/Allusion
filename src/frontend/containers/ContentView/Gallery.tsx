@@ -113,16 +113,6 @@ const Layout = ({
   }
   switch (uiStore.method) {
     case ViewMethod.Grid:
-      return (
-        <GridGallery
-          contentRect={contentRect}
-          select={handleFileSelect}
-          lastSelectionIndex={lastSelectionIndex}
-          showContextMenu={showContextMenu}
-          uiStore={uiStore}
-          fileStore={fileStore}
-        />
-      );
     case ViewMethod.MasonryVertical:
     case ViewMethod.MasonryHorizontal:
       return (

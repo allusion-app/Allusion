@@ -232,7 +232,7 @@ impl Layout {
         let n_rows = self.num_items / usize::from(n_columns);
         let rest = self.num_items % usize::from(n_columns);
         let item_size = column_width - self.padding;
-        let row_height = u32::from(column_width + self.padding);
+        let row_height = u32::from(column_width);
 
         let (current_items, _) = self.items.split_at_mut(self.num_items);
 
@@ -250,8 +250,8 @@ impl Layout {
 
                 index += 1;
                 left += column_width;
-                top_offset += row_height;
             }
+            top_offset += row_height;
         }
 
         left = 0;
