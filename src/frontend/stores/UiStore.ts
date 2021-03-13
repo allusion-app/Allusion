@@ -356,9 +356,6 @@ class UiStore {
     this.fileSelection.delete(file);
   }
 
-  /**
-   * Returns true if the file was selected.
-   */
   @action.bound toggleFileSelection(file: ClientFile) {
     if (this.fileSelection.has(file)) {
       this.fileSelection.delete(file);
@@ -384,13 +381,17 @@ class UiStore {
     this.fileSelection.clear();
   }
 
+  @action.bound selectTag(tag: ClientTag, clear?: boolean) {
+    if (clear === true) {
+      this.clearTagSelection();
+    }
+    this.tagSelection.add(tag);
+  }
+
   @action.bound deselectTag(tag: ClientTag) {
     this.tagSelection.delete(tag);
   }
 
-  /**
-   * Returns true if the tag was selected.
-   */
   @action.bound toggleTagSelection(tag: ClientTag) {
     if (this.tagSelection.has(tag)) {
       this.tagSelection.delete(tag);
@@ -399,32 +400,26 @@ class UiStore {
     }
   }
 
-  // Range Selection using pre-order tree traversal
-  @action.bound selectTagRange(tag: ClientTag, lastSelection: ID) {
-    this.tagSelection.clear();
-    let isSelecting = false;
-    const selectRange = (node: ClientTag) => {
-      if (node.id === lastSelection || node.id === tag.id) {
-        if (!isSelecting) {
-          // Start selection
-          isSelecting = true;
-        } else {
-          // End selection
-          this.tagSelection.add(node);
-          isSelecting = false;
-          return;
-        }
+  /** Selects a range of tags, where indices correspond to the flattened tag list, see {@link TagStore.findFlatTagListIndex} */
+  @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
+    if (!additive) {
+      this.tagSelection.clear();
+    }
+    // Iterative DFS algorithm
+    const stack: ClientTag[] = [];
+    let tag: ClientTag | undefined = this.rootStore.tagStore.root;
+    let index = -1;
+    do {
+      if (index >= start) {
+        this.tagSelection.add(tag);
       }
-
-      if (isSelecting) {
-        this.tagSelection.add(node);
+      for (let i = tag.subTags.length - 1; i >= 0; i--) {
+        const subTag = tag.subTags[i];
+        stack.push(subTag);
       }
-
-      for (const subTag of node.subTags) {
-        selectRange(subTag);
-      }
-    };
-    selectRange(this.rootStore.tagStore.root);
+      tag = stack.pop();
+      index += 1;
+    } while (tag !== undefined && index <= end);
   }
 
   @action.bound selectAllTags() {
@@ -438,7 +433,7 @@ class UiStore {
 
   @action.bound async removeSelectedTags() {
     const ctx = this.getTagContextItems();
-    return this.rootStore.tagStore.deleteTags(ctx.tags);
+    return this.rootStore.tagStore.deleteTags(ctx);
   }
 
   @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
@@ -447,7 +442,7 @@ class UiStore {
       tag.setColor(color);
       tag.subTags.forEach((tag) => tag.setColor(color));
     };
-    ctx.tags.forEach(colorCollection);
+    ctx.forEach(colorCollection);
   }
 
   /**
@@ -480,29 +475,26 @@ class UiStore {
     // If no id is given or when the selected tag or collection is selected, the context is the whole selection
     if (isContextTheSelection) {
       const selectedTags = tagStore.tagList.filter((c) => c.isSelected);
+      console.log({ selected: selectedTags });
 
       // root tag may not be present in the context
-      const rootTagIndex = selectedTags.findIndex((col) => col.id === ROOT_TAG_ID);
+      const rootTagIndex = selectedTags.findIndex((tag) => tag.id === ROOT_TAG_ID);
       if (rootTagIndex >= 0) {
         selectedTags.splice(rootTagIndex, 1);
       }
+      contextTags.push(...selectedTags);
 
       // Only include selected tags of which their parent is not selected
-      const selectedColsNotInSelectedCols = selectedTags.filter((col) =>
-        selectedTags.every((parent) => !parent.subTags.includes(col)),
-      );
-      contextTags.push(...selectedColsNotInSelectedCols);
-
-      // Only include the selected tags that are not in a selected collection
-      // const selectedTagsNotInSelectedCols = this.clientTagSelection.filter((t) =>
-      //   selectedTags.every((col) => !col.tags.includes(t.id)),
+      // EDIT: This was a limitation back from when you could not select a collection without also selecting all its children
+      // Not needed anymore - unintuitive
+      // const selectedTagsInUnselectedParent = selectedTags.filter((tag) =>
+      //   selectedTags.every((parent) => !parent.subTags.includes(tag)),
       // );
-      // contextTags.push(...selectedTagsNotInSelectedCols);
+      // contextTags.push(...selectedTagsInUnselectedParent);
     }
+    console.log({ context: contextTags });
 
-    return {
-      tags: contextTags,
-    };
+    return contextTags;
   }
 
   /**
@@ -520,7 +512,7 @@ class UiStore {
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.tags.forEach((tag) => target.insertSubTag(tag, 0));
+    ctx.forEach((tag) => target.insertSubTag(tag, 0));
   }
 
   /////////////////// Search Actions ///////////////////

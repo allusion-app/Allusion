@@ -35,35 +35,17 @@
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
+#gallery-content.selected-file-dropping [aria-selected='true'] > .thumbnail {
+  // If selected, and any other selected image is a drop target: normal yellow border
+  // (as an indication that dropping a tag will apply it to all selected files)
+  background-color: $yellow1;
+}
+
+// Gallery Item Container
 [role='gridcell'],
 [data-masonrycell] {
   position: relative;
   margin: 4px;
-
-  &[aria-selected='true'] .thumbnail {
-    background-color: var(--accent-color-blue);
-
-    // old design
-    // > img,
-    // > .image-error {
-    //   clip-path: inset(0.25rem round 0.125rem); // old design
-    // }
-
-    // New design
-    > img {
-      border: 0.25rem solid var(--accent-color-blue); // new design
-    }
-    > .image-error {
-      border: 0.25rem solid $danger; // new design
-    }
-  }
-
-  &.open img {
-    outline-color: red;
-    outline-width: 5px;
-    outline-offset: -5px;
-    outline-style: solid;
-  }
 
   &:hover .thumbnail-tags {
     max-height: var(--thumbnail-size);
@@ -80,6 +62,8 @@
   background-color: var(--background-color-alt);
   border: 0.0625rem solid var(--border-dark);
   border-radius: 0.25rem;
+
+  transition: background-color 0.2s $pt-transition-cubic2;
 
   // This acts as the border-radius, but also for child elements
   :first-child {
@@ -99,11 +83,33 @@
   }
 
   &[data-dnd-target='true'] {
-    background: $yellow1;
+    background-color: $yellow1;
 
     img {
       clip-path: inset(0.5rem round 0.125rem);
     }
+  }
+}
+
+[aria-selected='true'] > .thumbnail {
+  // If selected, show a blue border
+  background-color: var(--accent-color-blue);
+  > img,
+  > .image-error {
+    clip-path: inset(0.25rem round 0.125rem); // old design
+  }
+
+  // If selected AND drop target: big yellow border
+  &[data-dnd-target='true'] {
+    background-color: $yellow1;
+    > img,
+    > .image-error {
+      clip-path: inset(0.5rem round 0.125rem);
+    }
+  }
+
+  > .image-error {
+    border: 0.25rem solid $danger; // new design
   }
 }
 
@@ -187,12 +193,18 @@
   [role='gridcell'] {
     > div { // cell container
       display: inline-block;
-      width: 20%; // TODO: variable width. Currently 5 columns, so 20% each
-      // overflow: hidden;
       text-overflow: ellipsis;
-      // line-height: 24px;
       vertical-align: middle;
       white-space: nowrap;
+
+      // Column widths: 
+      // - base width of 120px
+      width: 120px;
+      // - first and last column (filename and tags): fill rest of width
+      &:first-child, &:last-child {
+        // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
+        width: calc(50% - 180px);
+      }
 
       // Overflow is needed for the first child for allowing the thumbnail to expand on hover
       &:not(:first-child) {
@@ -258,12 +270,20 @@
   height: 24px;
   width: 100%;
   border-bottom: 1px solid var(--background-color);
-  // TODO: Drop-shadow, but only when not scrolled all the way at the top
   
+  // TODO: Drop-shadow, but only when not scrolled all the way at the top
   box-shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.2);
 
   > div {
-    width: 20%;
+    // Column widths: 
+    // - base width of 120px
+    width: 120px;
+    // - first and last column (filename and tags): fill rest of width
+    &:first-child, &:last-child {
+      // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
+      width: calc(50% - 180px);
+    }
+
     padding: 4px;
     font-weight: bold;
     overflow: hidden;

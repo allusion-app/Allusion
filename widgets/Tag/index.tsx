@@ -28,7 +28,16 @@ const Tag = (props: ITag) => {
   return (
     <span {...properties}>
       {text}
-      {onRemove ? <IconButton icon={IconSet.CLOSE} text="Remove" onClick={onRemove} /> : null}
+      {onRemove ? (
+        <IconButton
+          icon={IconSet.CLOSE}
+          text="Remove"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        />
+      ) : null}
     </span>
   );
 };

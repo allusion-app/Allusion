@@ -1,16 +1,14 @@
-import { action, observable, runInAction, makeObservable } from 'mobx';
+import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
-import React from 'react';
-
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
-import { ID, generateId } from 'src/entities/ID';
-import { IFile, getMetaData } from 'src/entities/File';
+import { getMetaData, IFile } from 'src/entities/File';
+import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
-import RootStore from './RootStore';
-import { promiseAllLimit } from '../utils';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { promiseAllLimit } from '../utils';
+import RootStore from './RootStore';
 
 class LocationStore {
   private readonly backend: Backend;
@@ -223,6 +221,7 @@ class LocationStore {
 
     AppToaster.show({ message: `Location "${location.name}" is ready!`, timeout: 5000 }, toastKey);
     this.rootStore.fileStore.refetch();
+    this.rootStore.fileStore.refetchFileCounts();
   }
 
   @action.bound async delete(location: ClientLocation) {
@@ -237,10 +236,9 @@ class LocationStore {
       }
       // Remove location locally
       this.locationList.remove(location);
-
-      // TODO: Update untagged image counter
     });
     this.rootStore.fileStore.refetch();
+    this.rootStore.fileStore.refetchFileCounts();
   }
 
   @action async addFile(path: string, location: ClientLocation) {

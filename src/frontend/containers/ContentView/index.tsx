@@ -8,12 +8,13 @@ import StoreContext from '../../contexts/StoreContext';
 import useContextMenu from '../../hooks/useContextMenu';
 
 import { IconSet } from 'widgets';
-import { ContextMenu, MenuSubItem, Menu, MenuChild } from 'widgets/menus';
+import { ContextMenu, MenuSubItem, Menu, MenuChild, MenuDivider } from 'widgets/menus';
 
 import Placeholder from './Placeholder';
 import Layout from './Gallery';
 
 import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
+import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 
 const ContentView = observer(() => {
   const {
@@ -44,7 +45,11 @@ const ContentView = observer(() => {
   );
 
   return (
-    <main id="content-view" onKeyDown={handleShortcuts}>
+    <main
+      id="content-view"
+      className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
+      onKeyDown={handleShortcuts}
+    >
       {fileList.length === 0 ? <Placeholder /> : <Gallery />}
     </main>
   );
@@ -52,6 +57,7 @@ const ContentView = observer(() => {
 
 const Gallery = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
+  const dndData = useContext(TagDnDContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
   const { open, x, y, menu } = contextState;
   const [fileMenu, externalMenu] = menu as [MenuChild, MenuChild];
@@ -83,11 +89,14 @@ const Gallery = observer(() => {
     return () => observer.disconnect();
   }, [fileList.length]);
 
+  const isDroppingTagOnSelection =
+    dndData.target !== undefined && uiStore.fileSelection.has(dndData.target);
+
   return (
     <div
       ref={container}
       id="gallery-content"
-      className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
+      className={isDroppingTagOnSelection ? 'selected-file-dropping' : undefined}
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
       onClick={!uiStore.isSlideMode ? uiStore.clearFileSelection : undefined}
       onContextMenu={handleContextMenu} // Background clicks
@@ -101,6 +110,9 @@ const Gallery = observer(() => {
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}
+
+          {fileMenu && <MenuDivider />}
+
           <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
             <LayoutMenuItems uiStore={uiStore} />
           </MenuSubItem>
@@ -110,6 +122,9 @@ const Gallery = observer(() => {
           <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
             <ThumbnailSizeMenuItems uiStore={uiStore} />
           </MenuSubItem>
+
+          {externalMenu && <MenuDivider />}
+
           {externalMenu}
         </Menu>
       </ContextMenu>

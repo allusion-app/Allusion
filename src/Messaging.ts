@@ -35,6 +35,8 @@ const OPEN_DIALOG = 'OPEN_DIALOG';
 const GET_PATH = 'GET_PATH';
 const SET_FULL_SCREEN = 'SET_FULL_SCREEN';
 const IS_FULL_SCREEN = 'IS_FULL_SCREEN';
+const SET_ZOOM_FACTOR = 'SET_ZOOM_FACTOR';
+const GET_ZOOM_FACTOR = 'GET_ZOOM_FACTOR';
 const WINDOW_MAXIMIZE = 'WINDOW_MAXIMIZE';
 const WINDOW_UNMAXIMIZE = 'WINDOW_UNMAXIMIZE';
 const IS_MAXIMIZED = 'IS_MAXIMIZED';
@@ -131,6 +133,10 @@ export class RendererMessenger {
 
   static isFullScreen = (): boolean => ipcRenderer.sendSync(IS_FULL_SCREEN);
 
+  static setZoomFactor = (level: number) => ipcRenderer.invoke(SET_ZOOM_FACTOR, level);
+
+  static getZoomFactor = (): number => ipcRenderer.sendSync(GET_ZOOM_FACTOR);
+
   static onGetTags = (fetchTags: () => Promise<ITagsMessage>) =>
     ipcRenderer.on(GET_TAGS, async () => {
       const msg = await fetchTags();
@@ -205,6 +211,12 @@ export class MainMessenger {
 
   static onIsFullScreen = (cb: () => boolean) =>
     ipcMain.on(IS_FULL_SCREEN, (e) => (e.returnValue = cb()));
+
+  static onSetZoomFactor = (cb: (level: number) => void) =>
+    ipcMain.handle(SET_ZOOM_FACTOR, (_, level) => cb(level));
+
+  static onGetZoomFactor = (cb: () => number) =>
+    ipcMain.on(GET_ZOOM_FACTOR, (e) => (e.returnValue = cb()));
 
   static getTags = async (wc: WebContents): Promise<ITagsMessage> => {
     wc.send(GET_TAGS);

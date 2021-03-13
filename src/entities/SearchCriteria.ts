@@ -305,33 +305,3 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.value = date;
   }
 }
-
-export class ClientCollectionSearchCriteria extends ClientArraySearchCriteria<IFile> {
-  @observable public collectionId: ID;
-  @observable public label: string;
-
-  constructor(
-    collectionId: ID,
-    tagIDs: ID[],
-    label: string,
-    operator?: ArrayOperatorType,
-    dict?: SearchKeyDict<IFile>,
-  ) {
-    super('tags', tagIDs, operator, dict);
-    this.collectionId = collectionId;
-    this.label = label;
-    makeObservable(this);
-  }
-
-  toString: () => string = () =>
-    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
-      this.operator,
-    )} ${this.label}`;
-
-  @action.bound setValue(collectionId: ID, tagIDs: ID[], label: string): void {
-    this.collectionId = collectionId;
-    this.value.clear();
-    this.value.push(...tagIDs);
-    this.label = label;
-  }
-}

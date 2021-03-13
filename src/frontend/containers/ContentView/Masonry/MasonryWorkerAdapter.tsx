@@ -7,6 +7,7 @@ export class MasonryWorkerAdapter {
   worker?: Remote<MasonryWorker>;
   items?: Uint16Array;
   topOffsets?: Uint32Array;
+  isInitialized = false;
 
   private prevNumImgs: number = 0;
 
@@ -25,6 +26,7 @@ export class MasonryWorkerAdapter {
     this.prevNumImgs = numItems;
 
     (window as any).layout = this.getItemLayout.bind(this);
+    this.isInitialized = true;
   }
   async compute(imgs: ClientFile[], containerWidth: number, opts: Partial<MasonryOpts>) {
     if (!this.items || !this.worker) return;

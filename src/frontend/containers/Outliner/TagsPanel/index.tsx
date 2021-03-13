@@ -23,7 +23,7 @@ export const OutlinerActionBar = observer(() => {
     <Toolbar id="actionbar" label="Action Bar" controls="content-view">
       <ToolbarToggleButton
         showLabel="always"
-        text={fileStore.fileList.length}
+        text={fileStore.numTotalFiles}
         icon={IconSet.MEDIA}
         onClick={fileStore.fetchAllFiles}
         pressed={fileStore.showsAllContent}

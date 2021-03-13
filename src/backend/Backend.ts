@@ -157,14 +157,18 @@ export default class Backend {
   }
 
   async countFiles(
-    criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
+    criteria?: SearchCriteria<IFile> | [SearchCriteria<IFile>],
     matchAny?: boolean,
   ): Promise<number> {
     console.info('Get number of files...', criteria, matchAny);
-    return this.fileRepository.count({
-      criteria,
-      matchAny,
-    });
+    return this.fileRepository.count(
+      criteria
+        ? {
+            criteria,
+            matchAny,
+          }
+        : undefined,
+    );
   }
 
   // Creates many files at once, and checks for duplicates in the path they are in
