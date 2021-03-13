@@ -4,8 +4,8 @@
   width: 100%;
   display: flex;
 
-  background-color: red;
-  color: red;
+  background-color: #14181a;
+  color: #3e3e3e;
 
   span {
     height: 100%;
@@ -30,12 +30,12 @@
     width: 36px;
 
     &:hover {
-      background-color: red;
+      background-color: #1f2224;
     }
 
     &:last-child:hover {
-      background-color: red;
-      color: red;
+      background-color: var(--accent-color-red);
+      color: white;
     }
   }
 }

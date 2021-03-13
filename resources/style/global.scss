@@ -62,7 +62,7 @@ table {
 }
 
 .contextMenuTarget {
-  outline-color: red;
+  outline-color: var(--accent-color-blue);
   outline-width: 2px;
   outline-offset: -2px;
   outline-style: solid;
@@ -99,63 +99,11 @@ table {
   }
 } */
 
-///////////////////////////////// Theme Colours /////////////////////////////////
-// Todo: The nice thing about variables is that we can change them depending on the theme,
-// instead of switching colors around like this
-#preview,
-#layout-container {
-  background-color: transparent;
-}
-
-///////////////////////////////// Media Queries /////////////////////////////////
-@media (max-width: 960px) {
-  .toolbar-button-text:not(.always) {
-    margin: 0;
-    text-indent: -100vw;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-}
-
-///////////////////////////////// Misc /////////////////////////////////
-// Error boundary (when app crashes)
-.error-boundary .message {
-  font-family: monospace;
-  max-width: 120ch;
-}
-
-// Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
-.custom-icon {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
-
-  * {
-    fill: currentColor;
-  }
-}
-.custom-icon-128 > * {
-  height: 8rem;
-  width: 8rem;
-}
-.custom-icon-64 > * {
-  height: 4rem;
-  width: 4rem;
-}
-.custom-icon-48 > * {
-  height: 3rem;
-  width: 3rem;
-}
-.custom-icon-32 > * {
-  height: 2rem;
-  width: 2rem;
-}
-
 .file-dropper-overlay {
   margin: auto;
 
   &::backdrop {
-    background-color: red;
+    //Transparent bg color here
   }
 
   > .dialog-content {
@@ -176,8 +124,8 @@ table {
 
 // TODO: Fix this when we have our own custom toaster, currently intefering with Blueprint
 .toast {
-  background: #3399ff;
-  color: #ffffff;
+  background: var(--accent-color-blue);
+  color: var(--text-color-alt);
   width: 22.5rem;
   // right: 1rem;
   // bottom: 1rem;

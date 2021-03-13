@@ -3,6 +3,11 @@
   justify-content: stretch;
   align-items: center;
 
+  > .btn:first-child {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+
   .toolbar-button {
     height: 1.5rem;
     min-width: 1.5rem;
