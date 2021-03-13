@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ellipsize, formatDateTime, humanFileSize } from 'src/frontend/utils';
@@ -19,12 +19,6 @@ interface ICell {
   submitCommand: (command: GalleryCommand) => void;
 }
 
-interface ICellContentProps {
-  file: ClientFile;
-  isMounted: boolean;
-  uiStore: UiStore;
-}
-
 interface IListColumn {
   title: string;
   // Also indicates whether this column _can_ be sorted on
@@ -36,6 +30,7 @@ export const listColumns: IListColumn[] = [
   {
     title: 'Name',
     sortKey: 'name',
+    // Placeholder for when we want dynamic table (e.g. draggable/toggleable columns)
     // cellContent: function NameCell({ file, isMounted, uiStore }: ICellContentProps) {
     //   return (
     //     <div key={`${file.id}-name`}>
@@ -59,8 +54,17 @@ export const listColumns: IListColumn[] = [
 
 export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICell) => {
   const portalTriggerRef = useRef<HTMLSpanElement>(null);
+  const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
+    file,
+    submitCommand,
+  ]);
   return (
-    <div role="gridcell" tabIndex={-1} aria-selected={uiStore.fileSelection.has(file)}>
+    <div
+      role="gridcell"
+      tabIndex={-1}
+      aria-selected={uiStore.fileSelection.has(file)}
+      {...eventHandlers}
+    >
       {/* Filename */}
       {/* TODO: Tooltip with full file name / path and expanded thumbnail */}
       <div key={`${file.id}-name`}>
@@ -224,6 +228,91 @@ export const MasonryCell = observer(
   },
 );
 
+class GalleryEventHandler {
+  constructor(public file: ClientFile, public submitCommand: (command: GalleryCommand) => void) {}
+  get handlers() {
+    return {
+      onClick: this.onClick.bind(this),
+      onDoubleClick: this.onDoubleClick.bind(this),
+      onContextMenu: this.onContextMenu.bind(this),
+      onDragStart: this.onDragStart.bind(this),
+      onDragEnter: this.onDragEnter.bind(this),
+      onDragOver: this.onDragOver.bind(this),
+      onDragLeave: this.onDragLeave.bind(this),
+      onDrop: this.onDrop.bind(this),
+      onDragEnd: this.onDragEnd.bind(this),
+    };
+  }
+  onClick(e: React.MouseEvent<HTMLElement>) {
+    e.stopPropagation();
+    this.submitCommand({
+      selector: GallerySelector.Click,
+      payload: [this.file, e.ctrlKey || e.metaKey, e.shiftKey],
+    });
+  }
+  onDoubleClick() {
+    this.submitCommand({ selector: GallerySelector.DoubleClick, payload: this.file });
+  }
+  onContextMenu(e: React.MouseEvent<HTMLElement>) {
+    e.stopPropagation();
+    e.preventDefault();
+    this.submitCommand({
+      selector: GallerySelector.ContextMenu,
+      payload: [this.file, e.clientX, e.clientY],
+    });
+  }
+  onDragStart(e: React.MouseEvent<HTMLElement>) {
+    e.stopPropagation();
+    e.preventDefault();
+    this.submitCommand({ selector: GallerySelector.DragStart, payload: this.file });
+  }
+  onDragEnter(e: React.DragEvent<HTMLElement>) {
+    handleDragEnter(e);
+  }
+  onDragOver(e: React.DragEvent<HTMLElement>) {
+    if (e.dataTransfer.types.includes(DnDTagType)) {
+      e.stopPropagation();
+      e.preventDefault();
+      e.currentTarget.dataset[DnDAttribute.Target] = 'true';
+      this.submitCommand({ selector: GallerySelector.DragOver, payload: this.file });
+    }
+  }
+  onDragLeave(e: React.DragEvent<HTMLElement>) {
+    if (e.dataTransfer.types.includes(DnDTagType)) {
+      e.stopPropagation();
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'none';
+      e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+      this.submitCommand({ selector: GallerySelector.DragOver, payload: this.file });
+    }
+  }
+  onDrop(e: React.DragEvent<HTMLElement>) {
+    e.stopPropagation();
+    this.submitCommand({ selector: GallerySelector.Drop, payload: this.file });
+    const thumbnail = e.currentTarget as HTMLElement;
+    e.dataTransfer.dropEffect = 'none';
+    e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+
+    const galleryContent = thumbnail.closest('#gallery-content');
+    if (galleryContent) {
+      galleryContent.classList.remove('selected-file-dropping');
+    }
+  }
+  // TODO: Doesn't seem to every be firing. Bug: Pressing escape while dropping tag on gallery item
+  onDragEnd(e: React.DragEvent<HTMLElement>) {
+    console.log('on drag end called!');
+    e.stopPropagation();
+    const thumbnail = e.currentTarget as HTMLElement;
+    e.dataTransfer.dropEffect = 'none';
+    e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+
+    const galleryContent = thumbnail.closest('#gallery-content');
+    if (galleryContent) {
+      galleryContent.classList.remove('selected-file-dropping');
+    }
+  }
+}
+
 interface IThumbnailContainer {
   file: ClientFile;
   children: React.ReactNode;
@@ -231,66 +320,18 @@ interface IThumbnailContainer {
 }
 
 const ThumbnailContainer = observer(({ file, children, submitCommand }: IThumbnailContainer) => {
+  const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
+    file,
+    submitCommand,
+  ]);
   return (
-    <div
-      className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        submitCommand({
-          selector: GallerySelector.Click,
-          payload: [file, e.ctrlKey || e.metaKey, e.shiftKey],
-        });
-      }}
-      onDoubleClick={() => submitCommand({ selector: GallerySelector.DoubleClick, payload: file })}
-      onContextMenu={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        submitCommand({
-          selector: GallerySelector.ContextMenu,
-          payload: [file, e.clientX, e.clientY],
-        });
-      }}
-      onDragStart={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        submitCommand({ selector: GallerySelector.DragStart, payload: file });
-      }}
-      onDragEnter={handleDragEnter}
-      onDragOver={(e) => {
-        if (e.dataTransfer.types.includes(DnDTagType)) {
-          e.stopPropagation();
-          e.preventDefault();
-          e.currentTarget.dataset[DnDAttribute.Target] = 'true';
-          submitCommand({ selector: GallerySelector.DragOver, payload: file });
-        }
-      }}
-      onDragLeave={(e) => {
-        if (e.dataTransfer.types.includes(DnDTagType)) {
-          e.stopPropagation();
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'none';
-          e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-          submitCommand({ selector: GallerySelector.DragOver, payload: file });
-        }
-      }}
-      onDrop={(e) => {
-        e.stopPropagation();
-        submitCommand({ selector: GallerySelector.Drop, payload: file });
-        const thumbnail = e.currentTarget as HTMLElement;
-        e.dataTransfer.dropEffect = 'none';
-
-        const galleryContent = thumbnail.closest('#gallery-content');
-        if (galleryContent) {
-          galleryContent.classList.remove('selected-file-dropping');
-        }
-      }}
-    >
+    <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`} {...eventHandlers}>
       {children}
     </div>
   );
 });
 
-function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
+function handleDragEnter(e: React.DragEvent<HTMLElement>) {
   if (e.dataTransfer.types.includes(DnDTagType)) {
     e.preventDefault();
     e.stopPropagation();

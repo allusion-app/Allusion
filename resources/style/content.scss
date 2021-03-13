@@ -35,10 +35,19 @@
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
-#gallery-content.selected-file-dropping [aria-selected='true'] > .thumbnail {
-  // If selected, and any other selected image is a drop target: normal yellow border
-  // (as an indication that dropping a tag will apply it to all selected files)
-  background-color: $yellow1;
+// If item is selected, and any other selected item is a drop target:
+// Provide indication that dropping a tag will apply it to all selected items
+#gallery-content.selected-file-dropping {
+  .grid, .masonry {
+    [aria-selected='true'] > .thumbnail {
+      background-color: $yellow1;
+    }
+  }
+  .list {
+    [aria-selected='true'] {
+      background-color: rgba($yellow1, 0.3);
+    }
+  }
 }
 
 // Gallery Item Container
@@ -191,6 +200,8 @@
   }
 
   [role='gridcell'] {
+    max-height: 24px;
+    
     > div { // cell container
       display: inline-block;
       text-overflow: ellipsis;
@@ -222,6 +233,11 @@
 
     &[aria-selected='true'] {
       background-color: var(--accent-color-blue-transp);
+    }
+
+    &[data-dnd-target='true'] {
+      // Yellow background when DnD target
+      background-color: rgba($yellow1, 0.6) !important;
     }
   }
 
@@ -342,6 +358,7 @@
   object-fit: contain;
 }
 
+///////////////////////////
 // Slide mode:
 #slide-mode {
   display: flex;

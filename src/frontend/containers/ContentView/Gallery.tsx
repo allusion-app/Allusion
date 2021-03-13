@@ -301,82 +301,6 @@ const ListGallery = observer((props: ILayoutProps) => {
     }
   }, [index, uiStore.fileSelection.size]);
 
-  // const handleClick = useCallback(
-  //   (e: React.MouseEvent) => {
-  //     const index = getListItemIndex(
-  //       e,
-  //       (t) => t.matches('.thumbnail') || t.matches('[role="row"]'),
-  //     );
-  //     if (index !== undefined) {
-  //       runInAction(() => select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey));
-  //     }
-  //   },
-  //   [fileStore, select],
-  // );
-
-  // const handleDoubleClick = useCallback(
-  //   (e: React.MouseEvent) => {
-  //     const index = getListItemIndex(
-  //       e,
-  //       (t) => t.matches('.thumbnail') || t.matches('[role="row"]'),
-  //     );
-  //     if (index === undefined) {
-  //       return;
-  //     }
-  //     runInAction(() => {
-  //       uiStore.selectFile(fileStore.fileList[index], true);
-  //       uiStore.enableSlideMode();
-  //     });
-  //   },
-  //   [fileStore, uiStore],
-  // );
-
-  // const handleContextMenu = useCallback(
-  //   (e: React.MouseEvent) => {
-  //     const index = getListItemIndex(e, () => true);
-  //     if (index === undefined) {
-  //       return;
-  //     }
-  //     e.stopPropagation();
-  //     runInAction(() => {
-  //       const file = fileStore.fileList[index];
-  //       showContextMenu(e.clientX, e.clientY, [
-  //         file.isBroken ? (
-  //           <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-  //         ) : (
-  //           <FileViewerMenuItems file={file} uiStore={uiStore} />
-  //         ),
-  //         file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
-  //       ]);
-  //     });
-  //   },
-  //   [fileStore, showContextMenu, uiStore],
-  // );
-
-  // const handleDragStart = useCallback(
-  //   (e: React.DragEvent) => {
-  //     const index = getListItemIndex(
-  //       e,
-  //       (t) => t.matches('.thumbnail') || t.matches('[role="row"]'),
-  //     );
-  //     runInAction(() => onDragStart(e, index, uiStore, fileStore.fileList));
-  //   },
-  //   [fileStore, uiStore],
-  // );
-
-  // const handleDrop = useCallback(
-  //   (e: React.DragEvent<HTMLElement>) => {
-  //     if (e.dataTransfer.types.includes(DnDType)) {
-  //       const index = getListItemIndex(
-  //         e,
-  //         (t) => t.matches('.thumbnail') || t.matches('[role="row"]'),
-  //       );
-  //       runInAction(() => onDrop(e, index, uiStore, fileStore.fileList));
-  //     }
-  //   },
-  //   [fileStore, uiStore],
-  // );
-
   const Row = useCallback(
     ({ index, style, data, isScrolling }) => (
       <ListItem
@@ -385,8 +309,6 @@ const ListGallery = observer((props: ILayoutProps) => {
         style={style}
         isScrolling={isScrolling}
         uiStore={uiStore}
-        // onClick={handleClick}
-        // onDoubleClick={handleDoubleClick}
         submitCommand={submitCommand}
       />
     ),
@@ -410,7 +332,6 @@ const ListGallery = observer((props: ILayoutProps) => {
             }
           >
             <span>{col.title}</span>
-
             {fileStore.orderBy === col.sortKey && (
               <span>
                 {fileStore.fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP}
@@ -419,19 +340,7 @@ const ListGallery = observer((props: ILayoutProps) => {
           </div>
         ))}
       </div>
-      <div
-        className="list"
-        role="grid"
-        aria-rowcount={fileStore.fileList.length}
-        // onClick={handleClick}
-        // onDoubleClick={handleDoubleClick}
-        // onContextMenu={handleContextMenu}
-        // onDragStart={handleDragStart}
-        // onDragEnter={handleDragEnter}
-        // onDragOver={handleDragOver}
-        // onDragLeave={handleDragLeave}
-        // onDrop={handleDrop}
-      >
+      <div className="list" role="grid" aria-rowcount={fileStore.fileList.length}>
         <FixedSizeList
           useIsScrolling
           // Subtract 24 for header
