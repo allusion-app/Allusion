@@ -1,5 +1,6 @@
-import { exiftool } from 'exiftool-vendored';
+// import { exiftool } from 'exiftool-vendored';
 
+// Attempt 1:
 // Using exiftool-vendored for reading/writing exif data to images
 // Looks like the best modern exif-tool wrapper that is being maintained
 // And has (some) support for Electron
@@ -9,13 +10,35 @@ import { exiftool } from 'exiftool-vendored';
 // "Since I never found a way to get exiftool-vendored to work with electron on Mac, I accepted the above answer, as essentially a warning to steer clear of exiftool-vendored for electron on Mac."
 // They went with https://www.npmjs.com/package/node-exiftool in the end. Even seems to work in the renderer process!
 
+// Attempt 2: node-exiftool
+
+import exiftool from 'node-exiftool';
+import path from 'path';
+const exiftoolFolderAndFile = process.platform === 'win32' ? 'win/exiftool.exe' : 'nix/exiftool.pl';
+const exiftoolPath = path.resolve(__dirname, '../../resources/exiftool', exiftoolFolderAndFile);
+console.log(exiftoolPath);
+const ep = new exiftool.ExiftoolProcess(exiftoolPath);
+
 class ExifIO {
   async initialize() {
-    const version = await exiftool.version();
-    console.log(`We're running ExifTool v${version}`);
+    // const version = await exiftool.version();
+    // console.log(`We're running ExifTool v${version}`);
+    const pid = await ep.open();
+
+    // display pid
+    console.log('Started exiftool process %s', pid);
+  }
+  async close() {
+    await ep.close();
+    console.log('Closed Exiftool');
   }
   async readTags(filepath: string) {
-    const metadata = await exiftool.read(filepath);
+    // V1: exiftool vendored
+    // const metadata = await exiftool.read(filepath);
+
+    // v2: node exitfool
+    const metadata = await ep.readMetadata(filepath, ['-File:all']);
+
     const tagHierarchy = metadata.HierarchicalSubject || [];
     const subject =
       typeof metadata.Subject === 'string' ? [metadata.Subject] : metadata.Subject || [];
@@ -52,6 +75,13 @@ class ExifIO {
       // History: {},
     });
     console.log('done!');
+
+    // V2: https://www.npmjs.com/package/node-exiftool
+    const data = {
+      all: '',
+      comment: 'Exiftool rules!', // has to come after `all` in order not to be removed
+      'Keywords+': ['keywordA', 'keywordB'],
+    };
   }
 }
 

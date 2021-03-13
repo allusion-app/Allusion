@@ -35,3 +35,8 @@ declare module 'react-responsive-pinch-zoom-pan' {
   const PinchZoomPan: any;
   export default PinchZoomPan;
 }
+
+declare module 'node-exiftool' {
+  const NodeExifTool: any;
+  export default NodeExifTool;
+}

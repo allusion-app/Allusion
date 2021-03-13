@@ -21,7 +21,8 @@
     "appId": "com.allusion-app.allusion",
     "productName": "Allusion",
     "mac": {
-      "category": "public.app-category.graphics-design"
+      "category": "public.app-category.graphics-design",
+      "extraResources": "resources/exiftool/nix/**/*"
     },
     "dmg": {
       "icon": false
@@ -30,18 +31,18 @@
       "target": [
         "AppImage"
       ],
-      "category": "Graphics"
+      "category": "Graphics",
+      "extraResources": "resources/exiftool/nix/**/*"
+    },
+    "win": {
+      "extraResources": "resources/exiftool/win/**/*"
     },
     "files": [
       "!node_modules",
       "build/**/*",
       "package.json"
     ],
-    "asar": true,
-    "asarUnpack": [
-      "exiftool-vendored.pl",
-      "exiftool-vendored.exe"
-    ]
+    "asar": true
   },
   "repository": {
     "type": "git",
@@ -107,6 +108,7 @@
     "image-size": "^0.8.3",
     "mobx": "^6.0.4",
     "mobx-react-lite": "^3.0.0",
+    "node-exiftool": "^2.3.0",
     "react": "^16.14.0",
     "react-colorful": "^4.4.2",
     "react-dom": "^16.14.0",
