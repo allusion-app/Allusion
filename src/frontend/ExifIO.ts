@@ -1,16 +1,21 @@
-// import { exiftool } from 'exiftool-vendored';
+// This file is our connector for reading/writing EXIF metadata, using ExifTool under the hood.
+// Initially I wanted to make use of the exiftool-vendored dependency, since it's seems
+// quite nicely set-up and is still being maintained. Getting it to work in Electron
+// was a real pain and I gave up. I read about others not being able to get it to work on MacOS
+// and I can't test that personally, so I want with an alternative: node-exiftool
 
-// Attempt 1:
-// Using exiftool-vendored for reading/writing exif data to images
-// Looks like the best modern exif-tool wrapper that is being maintained
-// And has (some) support for Electron
-// See https://github.com/photostructure/exiftool-vendored.js
-// Update: Still haven't managed to get it working in a packeged set-up, but I'm getting errors about different things now (electron-updater)
-// But while debugging, I came across this post: https://stackoverflow.com/a/56296986/2350481
-// "Since I never found a way to get exiftool-vendored to work with electron on Mac, I accepted the above answer, as essentially a warning to steer clear of exiftool-vendored for electron on Mac."
-// They went with https://www.npmjs.com/package/node-exiftool in the end. Even seems to work in the renderer process!
-
-// Attempt 2: node-exiftool
+/**
+ * Braindump:
+ * When we need to write:
+ * - When tags are added/removed to a file (duh)
+ * - When a tag is renamed: write it to all files
+ * - When a tag is moved in the hierarchy
+ *
+ * When to read:
+ * - When adding new location, like we currently do with image resolution (could replace that with exiftool)
+ * - On start-up, look for changed tags (like we do with checking whether files still exist)
+ * -
+ */
 
 import exiftool from 'node-exiftool';
 import path from 'path';

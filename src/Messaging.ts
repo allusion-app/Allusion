@@ -77,24 +77,6 @@ export interface IAddTagsToFileMessage {
   item: IImportItem;
 }
 
-export const READ_EXIF_TAGS = 'READ_EXIF_TAGS';
-export interface IReadExifTagsMessage {
-  absolutePath: string;
-}
-
-export const READ_EXIF_TAGS_REPLY = 'READ_EXIF_TAGS_REPLY';
-export interface IReadExifTagsReplyMessage {
-  /** A list of tags, where parent tags are denoted with | symbols. E.g. "Body|Head|Nose" */
-  tagHierarchy: string[];
-}
-
-export const WRITE_EXIF_TAGS = 'WRITE_EXIF_TAGS';
-export interface IWriteExifTagsMessage {
-  absolutePath: string;
-  /** A list of tags, where parent tags are denoted with | symbols. E.g. "Body|Head|Nose" */
-  tagHierarchy: string[];
-}
-
 //////////////// Preview window ////////////////
 export const CLOSED_PREVIEW_WINDOW = 'CLOSED_PREVIEW_WINDOW';
 
@@ -182,18 +164,6 @@ export class RendererMessenger {
   static onAddTagsToFile = (cb: (msg: IAddTagsToFileMessage) => void) =>
     ipcRenderer.on(ADD_TAGS_TO_FILE, (_, msg: IAddTagsToFileMessage) => cb(msg));
 
-  static readExifTags = (msg: IReadExifTagsMessage): Promise<IReadExifTagsReplyMessage> => {
-    ipcRenderer.send(READ_EXIF_TAGS, msg);
-    return new Promise<IReadExifTagsReplyMessage>((resolve) =>
-      ipcRenderer.once(READ_EXIF_TAGS_REPLY, (_, msg: IReadExifTagsReplyMessage) => resolve(msg)),
-    );
-  };
-
-  static writeExifTags = (msg: IWriteExifTagsMessage) => {
-    ipcRenderer.send(WRITE_EXIF_TAGS, msg);
-    // TODO: what to do if it errors?
-  };
-
   static sendPreviewFiles = (msg: IPreviewFilesMessage) => {
     ipcRenderer.send(SEND_PREVIEW_FILES, msg);
   };
@@ -276,22 +246,6 @@ export class MainMessenger {
     ipcMain.on(STORE_FILE, async (e, msg: IStoreFileMessage) => {
       const downloadPath = await getDownloadPath(msg);
       e.sender.send(STORE_FILE_REPLY, { downloadPath } as IStoreFileReplyMessage);
-    });
-
-  static onReadExifTags = (
-    readExiftags: (msg: IReadExifTagsMessage) => Promise<IReadExifTagsReplyMessage>,
-  ) =>
-    ipcMain.on(READ_EXIF_TAGS, async (e, msg: IReadExifTagsMessage) =>
-      e.sender.send(READ_EXIF_TAGS_REPLY, await readExiftags(msg)),
-    );
-
-  static onWriteExifTags = (writExifTags: (msg: IWriteExifTagsMessage) => Promise<void>) =>
-    ipcMain.on(WRITE_EXIF_TAGS, async (e, msg: IWriteExifTagsMessage) => {
-      try {
-        await writExifTags(msg);
-      } catch (e) {
-        console.error('Could not write exif tags to file: ', e);
-      }
     });
 
   static onDragExport = (cb: (msg: IDragExportMessage) => void) =>

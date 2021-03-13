@@ -17,13 +17,11 @@ import { isDev } from './config';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { ITag } from './entities/Tag';
 import ClipServer, { IImportItem } from './clipper/server';
-import ExifIO from './backend/ExifIO';
 
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
 let tray: Tray | null;
 let clipServer: ClipServer | null;
-let exifIO: ExifIO | null;
 
 const isMac = process.platform === 'darwin';
 
@@ -251,9 +249,6 @@ function createWindow() {
   if (!clipServer) {
     clipServer = new ClipServer(importExternalImage, addTagsToFile, getTags);
   }
-  if (!exifIO) {
-    exifIO = new ExifIO();
-  }
 
   // System tray icon: Always show on Mac, or other platforms when the app is running in the background
   // Useful for browser extension, so it will work even when the window is closed
@@ -365,14 +360,6 @@ MainMessenger.onSetRunningInBackground(({ isRunInBackground }) => {
 
 MainMessenger.onStoreFile(({ directory, filenameWithExt, imgBase64 }) =>
   clipServer!.storeImageWithoutImport(directory, filenameWithExt, imgBase64),
-);
-
-MainMessenger.onReadExifTags(async ({ absolutePath }) => ({
-  tagHierarchy: await exifIO!.readTags(absolutePath),
-}));
-
-MainMessenger.onWriteExifTags(async ({ absolutePath, tagHierarchy }) =>
-  exifIO!.writeTags(absolutePath, tagHierarchy),
 );
 
 // Forward files from the main window to the preview window
