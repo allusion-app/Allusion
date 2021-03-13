@@ -118,10 +118,10 @@ function createWindow() {
       const additionalOptions: Electron.BrowserWindowConstructorOptions = {
         modal: true,
         parent: mainWindow!,
-        width: 640,
+        width: 680,
         height: 480,
         title: 'Settings • Allusion',
-        frame: true,
+        frame: true, // TODO: It appears on OSX that this window does not have a frame (no close button)
         // resizable: false,
       };
       Object.assign(options, additionalOptions);
@@ -130,7 +130,8 @@ function createWindow() {
       settingsWindow.setMenu(null); // no toolbar needed
       (event as any).newGuest = settingsWindow;
 
-      // if (isDev()) { // For when you need devtools in settings
+      // if (isDev()) {
+      //   // For when you need devtools in settings
       //   settingsWindow.webContents.openDevTools();
       // }
 
@@ -420,6 +421,10 @@ MainMessenger.onGetPath(app);
 MainMessenger.onIsFullScreen(() => mainWindow?.isFullScreen() ?? false);
 
 MainMessenger.onSetFullScreen((isFullScreen) => mainWindow?.setFullScreen(isFullScreen));
+
+MainMessenger.onGetZoomFactor(() => mainWindow?.webContents.zoomFactor ?? 1);
+
+MainMessenger.onSetZoomFactor((level: number) => mainWindow?.webContents.setZoomFactor(level));
 
 MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
   if (mainWindow !== null) {

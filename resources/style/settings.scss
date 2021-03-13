@@ -1,21 +1,23 @@
-.settings-form {
+#settings {
+  background-color: var(--background-color);
+
   // For the hotkeys tip
   .bp3-key-combo {
     display: inline;
   }
 
-  .input-file {
-    width: 100%;
-  }
-
-  table {
-    width: 100%;
-    color: inherit;
-  }
-
   td {
     height: 2em;
     vertical-align: top;
+  }
+  
+  .scale-widget {
+    display: flex;
+    justify-content: start;
+
+    > span {
+      padding: 8px;
+    }
   }
 }
 
@@ -27,9 +29,40 @@
   }
 }
 
-#settings-window {
-  background-color: var(--background-color);
-  overflow-y: auto;
-  padding: 1em;
+.tabs {
+  display: flex;
   height: 100%;
+}
+
+[role='tablist'] {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background-color: var(--background-color-alt);
+  padding: 0.5rem 0;
+  height: 100%;
+}
+
+[role='tab'] {
+  background: inherit;
+  border: none;
+  color: var(--text-color-muted);
+  padding: 0.5rem 1.25rem;
+  width: 100%;
+  text-align: start;
+
+  &[aria-selected='true'] {
+    color: var(--text-color);
+    background-color: var(--background-color);
+  }
+
+  &:hover {
+    color: var(--hover-color);
+  }
+}
+
+[role='tabpanel'] {
+  flex-grow: 1;
+  overflow: auto;
+  padding: 0.5rem 1.25rem;
 }

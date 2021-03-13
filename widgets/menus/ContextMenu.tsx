@@ -8,6 +8,7 @@ export interface IContextMenu {
   y: number;
   children?: React.ReactElement<IMenu> | React.ReactFragment;
   close: () => void;
+  usePortal?: boolean;
 }
 
 /**
@@ -25,7 +26,7 @@ export interface IContextMenu {
  * `useContextMenu` hook can be used to create all the necessary state and
  * callbacks which can be used to set the state from deep within a tree.
  */
-export const ContextMenu = ({ isOpen, x, y, children, close }: IContextMenu) => {
+export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }: IContextMenu) => {
   const container = useRef<HTMLDivElement>(null);
   const boundingRect = useRef({
     width: 0,
@@ -105,6 +106,7 @@ export const ContextMenu = ({ isOpen, x, y, children, close }: IContextMenu) => 
       onKeyDown={handleKeyDown}
       onClick={handleClick}
       onMouseOver={handleMouseOver}
+      portalId={usePortal ? 'context-menu-portal' : undefined}
     >
       {isOpen ? children : null}
     </RawPopover>

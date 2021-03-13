@@ -13,11 +13,12 @@ fieldset {
     font-weight: lighter;
     margin-bottom: 0.5rem;
   }
+}
 
-  label {
-    display: block;
-    margin-bottom: 0.25rem;
-  }
+label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
 }
 
 input {
@@ -25,6 +26,11 @@ input {
   padding: 0;
   padding-left: 0.25rem;
   line-height: 1.5rem;
+}
+
+table {
+  color: inherit;
+  font-size: inherit;
 }
 
 // Global specific styles for the main window

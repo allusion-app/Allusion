@@ -85,7 +85,7 @@ interface IContextMenuProps {
 export const TagItemContextMenu = observer((props: IContextMenuProps) => {
   const { tag, dispatch, pos } = props;
   const { tagStore, uiStore } = useContext(StoreContext);
-  const { tags } = uiStore.getTagContextItems(tag.id);
+  const tags = uiStore.getTagContextItems(tag.id);
   let contextText = formatTagCountText(tags.length);
   contextText = contextText && ` (${contextText})`;
 
@@ -151,6 +151,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         icon={IconSet.ITEM_MOVE_DOWN}
         disabled={pos === tag.parent.subTags.length}
       />
+      {/* TODO: Sort alphanumerically option. Maybe in modal for more options (e.g. all levels or just 1 level) and for previewing without immediately saving */}
     </Menu>
   );
 });

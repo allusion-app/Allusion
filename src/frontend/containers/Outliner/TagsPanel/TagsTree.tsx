@@ -2,7 +2,6 @@ import React, { useMemo, useState, useCallback, useReducer, useContext, useRef }
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-import { ID } from 'src/entities/ID';
 import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import StoreContext from 'src/frontend/contexts/StoreContext';
@@ -14,19 +13,10 @@ import { ITreeItem, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/T
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { TagItemContextMenu } from './ContextMenu';
-import {
-  DnDType,
-  onDragOver,
-  onDragStart,
-  handleDragLeave,
-  handleDragEnd,
-  DnDAttribute,
-  DragItem,
-  handleDragOverAndLeave,
-} from './dnd';
 import { formatTagCountText } from 'src/frontend/utils';
 import { IExpansionState } from '../../types';
 import { Action, State, Factory, reducer } from './state';
+import TagDnDContext, { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 
 interface ILabelProps {
   text: string;
@@ -108,9 +98,16 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   }
 };
 
+const PreviewTag = document.createElement('span');
+PreviewTag.classList.add('tag');
+PreviewTag.style.position = 'absolute';
+PreviewTag.style.top = '-100vh';
+document.body.appendChild(PreviewTag);
+
 const TagItem = observer((props: ITagItemProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { uiStore } = useContext(StoreContext);
+  const dndData = useContext(TagDnDContext);
 
   const handleContextMenu = useCallback(
     (e) =>
@@ -128,63 +125,102 @@ const TagItem = observer((props: ITagItemProps) => {
         let name = nodeData.name;
         if (nodeData.isSelected) {
           const ctx = uiStore.getTagContextItems(nodeData.id);
-          const extraText = formatTagCountText(ctx.tags.length);
-          if (extraText.length > 0) {
-            name = name + `(${extraText})`;
+          if (ctx.length === 1) {
+            name = ctx[0].name;
+          } else {
+            const extraText = formatTagCountText(ctx.length - 1);
+            if (extraText.length > 0) {
+              name += ` (${extraText})`;
+            }
           }
         }
-        onDragStart(event, name, nodeData.id, nodeData.isSelected);
+        PreviewTag.innerText = name;
+        event.dataTransfer.setData(DnDTagType, nodeData.id);
+        event.dataTransfer.setDragImage(PreviewTag, 0, 0);
+        event.dataTransfer.effectAllowed = 'linkMove';
+        event.dataTransfer.dropEffect = 'move';
+        event.currentTarget.dataset[DnDAttribute.Source] = 'true';
+        dndData.source = nodeData;
       });
     },
-    [nodeData, uiStore],
+    [dndData, nodeData, uiStore],
   );
 
   const handleDragOver = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      const canDrop = onDragOver(event, nodeData.isSelected, () => {
-        const draggedTag = tagStore.get(DragItem.id);
-        if (draggedTag !== undefined) {
-          // Cannot drop on a descendant!
-          return !nodeData.isAncestor(draggedTag);
+      runInAction(() => {
+        if (dndData.source === undefined) {
+          return;
         }
-        return true;
+        const dropTarget = event.currentTarget;
+        const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
+        if (
+          isSource ||
+          (dndData.source.isSelected && nodeData.isSelected) ||
+          nodeData.isAncestor(dndData.source)
+        ) {
+          return;
+        }
+
+        event.dataTransfer.dropEffect = 'move';
+        event.preventDefault();
+        event.stopPropagation();
+        dropTarget.dataset[DnDAttribute.Target] = 'true';
+        const posY = event.clientY;
+        const rect = dropTarget.getBoundingClientRect();
+        const [top, bottom] = [rect.top + 8, rect.bottom - 8];
+        if (posY <= top) {
+          dropTarget.classList.add('top');
+          dropTarget.classList.remove('bottom');
+        } else if (posY >= bottom) {
+          dropTarget.classList.add('bottom');
+          dropTarget.classList.remove('top');
+        } else {
+          dropTarget.classList.remove('top');
+          dropTarget.classList.remove('bottom');
+        }
+
+        if (!expansion[nodeData.id]) {
+          dispatch(Factory.expandNode(nodeData.id));
+        }
       });
-      if (canDrop && !expansion[nodeData.id]) {
-        dispatch(Factory.expandNode(nodeData.id));
+    },
+    [dispatch, dndData, expansion, nodeData],
+  );
+
+  const handleDragLeave = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      if (runInAction(() => dndData.source !== undefined)) {
+        event.dataTransfer.dropEffect = 'none';
+        event.preventDefault();
+        event.stopPropagation();
+        event.currentTarget.dataset[DnDAttribute.Target] = 'false';
+        event.currentTarget.classList.remove('top');
+        event.currentTarget.classList.remove('bottom');
       }
     },
-    [dispatch, expansion, nodeData, tagStore],
+    [dndData],
   );
 
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      const dataSet = event.currentTarget.dataset;
-      if (DragItem.isSelected) {
-        uiStore.moveSelectedTagItems(nodeData.id);
-        dataSet[DnDAttribute.Target] = 'false';
-        event.currentTarget.classList.remove('top');
-        event.currentTarget.classList.remove('bottom');
-        return;
-      }
-      if (event.dataTransfer.types.includes(DnDType)) {
-        event.dataTransfer.dropEffect = 'none';
-        const id = event.dataTransfer.getData(DnDType);
-        const tag = tagStore.get(id);
-        if (tag !== undefined) {
+      runInAction(() => {
+        if (dndData.source?.isSelected) {
+          uiStore.moveSelectedTagItems(nodeData.id);
+        } else if (dndData.source !== undefined) {
           if (event.currentTarget.classList.contains('top')) {
-            runInAction(() => nodeData.parent.insertSubTag(tag, pos - 1)); // 'pos' does not start from 0!
+            nodeData.parent.insertSubTag(dndData.source, pos - 1); // 'pos' does not start from 0!
           } else if (event.currentTarget.classList.contains('bottom')) {
-            runInAction(() => nodeData.parent.insertSubTag(tag, pos));
+            nodeData.parent.insertSubTag(dndData.source, pos);
           } else {
-            nodeData.insertSubTag(tag, 0);
+            nodeData.insertSubTag(dndData.source, 0);
           }
         }
-        dataSet[DnDAttribute.Target] = 'false';
-        event.currentTarget.classList.remove('top');
-        event.currentTarget.classList.remove('bottom');
-      }
+      });
+      event.currentTarget.classList.remove('top');
+      event.currentTarget.classList.remove('bottom');
     },
-    [nodeData, pos, tagStore, uiStore],
+    [dndData, nodeData, pos, uiStore],
   );
 
   const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
@@ -221,7 +257,6 @@ const TagItem = observer((props: ITagItemProps) => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      onDragEnd={handleDragEnd}
       onContextMenu={handleContextMenu}
     >
       {!nodeData.subTags.length && <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>}
@@ -280,20 +315,21 @@ const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
 const toggleSelection = (uiStore: UiStore, nodeData: ClientTag) =>
   uiStore.toggleTagSelection(nodeData);
 
-const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
-  const element = event.currentTarget.querySelector('.tree-content-label');
-  if (element) {
-    // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
-    // Why not trigger context menus through `ContextMenu.show()`?
-    event.stopPropagation();
-    element.dispatchEvent(
-      new MouseEvent('contextmenu', {
-        clientX: element.getBoundingClientRect().right,
-        clientY: element.getBoundingClientRect().top,
-      }),
-    );
-  }
-};
+// FIXME: React broke Element.dispatchevent(). Alternative: Pass show context menu method.
+// const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+//   const element = event.currentTarget.querySelector('.tree-content-label');
+//   if (element) {
+//     // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
+//     // Why not trigger context menus through `ContextMenu.show()`?
+//     event.stopPropagation();
+//     element.dispatchEvent(
+//       new MouseEvent('contextmenu', {
+//         clientX: element.getBoundingClientRect().right,
+//         clientY: element.getBoundingClientRect().top,
+//       }),
+//     );
+//   }
+// };
 
 const customKeys = (
   uiStore: UiStore,
@@ -307,11 +343,11 @@ const customKeys = (
       treeData.dispatch(Factory.enableEditing(nodeData.id));
       break;
 
-    case 'F10':
-      if (event.shiftKey) {
-        triggerContextMenuEvent(event);
-      }
-      break;
+    // case 'F10':
+    //   if (event.shiftKey) {
+    //     triggerContextMenuEvent(event);
+    //   }
+    //   break;
 
     case 'Enter':
       event.stopPropagation();
@@ -322,9 +358,9 @@ const customKeys = (
       treeData.dispatch(Factory.confirmDeletion(nodeData));
       break;
 
-    case 'ContextMenu':
-      triggerContextMenuEvent(event);
-      break;
+    // case 'ContextMenu':
+    //   triggerContextMenuEvent(event);
+    //   break;
 
     default:
       break;
@@ -350,6 +386,18 @@ const TagsTree = observer(() => {
     deletableNode: undefined,
   });
   const [contextState, { show, hide }] = useContextMenu();
+  const dndData = useContext(TagDnDContext);
+
+  /** Header and Footer drop zones of the root node */
+  const handleDragOverAndLeave = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      if (runInAction(() => dndData.source !== undefined)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    },
+    [dndData],
+  );
 
   const submit = useCallback((target: EventTarget & HTMLInputElement) => {
     target.focus();
@@ -357,19 +405,51 @@ const TagsTree = observer(() => {
     target.setSelectionRange(0, 0);
   }, []);
 
+  /** The first item that is selected in a multi-selection */
+  const initialSelectionIndex = useRef<number>();
+  /** The last item that is selected in a multi-selection */
+  const lastSelectionIndex = useRef<number>();
   // Handles selection via click event
-  const lastSelection = useRef<ID | null>(null);
   const select = useCallback(
-    (e: React.MouseEvent, nodeData: ClientTag) => {
-      if (e.shiftKey && lastSelection.current !== null && lastSelection.current !== nodeData.id) {
-        uiStore.selectTagRange(nodeData, lastSelection.current);
-        lastSelection.current = nodeData.id;
+    (e: React.MouseEvent, selectedTag: ClientTag) => {
+      // Note: selection logic is copied from Gallery.tsx
+      const rangeSelection = e.shiftKey;
+      const expandSelection = e.ctrlKey;
+
+      /** The index of the active (newly selected) item */
+      const i = tagStore.findFlatTagListIndex(selectedTag);
+
+      // If nothing is selected, initialize the selection range and select that single item
+      if (lastSelectionIndex.current === undefined) {
+        initialSelectionIndex.current = i;
+        lastSelectionIndex.current = i;
+        uiStore.toggleTagSelection(selectedTag);
+        return;
       } else {
-        uiStore.toggleTagSelection(nodeData);
-        lastSelection.current = nodeData.id;
+        initialSelectionIndex.current = lastSelectionIndex.current;
+      }
+
+      // Mark this index as the last item that was selected
+      lastSelectionIndex.current = i;
+
+      if (rangeSelection && initialSelectionIndex.current !== undefined) {
+        if (i === undefined) {
+          return;
+        }
+        if (i < initialSelectionIndex.current) {
+          uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
+        } else {
+          uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
+        }
+      } else if (expandSelection) {
+        uiStore.toggleTagSelection(selectedTag);
+        initialSelectionIndex.current = i;
+      } else {
+        uiStore.selectTag(selectedTag, true);
+        initialSelectionIndex.current = i;
       }
     },
-    [uiStore],
+    [tagStore, uiStore],
   );
 
   const treeData: ITreeData = useMemo(
@@ -394,26 +474,15 @@ const TagsTree = observer(() => {
     [root, tagStore],
   );
 
-  const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      const dataSet = event.currentTarget.dataset;
-      if (DragItem.isSelected) {
+  const handleDrop = useCallback(() => {
+    runInAction(() => {
+      if (dndData.source?.isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_ID);
-        dataSet[DnDAttribute.Target] = 'false';
-        return;
+      } else if (dndData.source !== undefined) {
+        root.insertSubTag(dndData.source, tagStore.tagList.length);
       }
-      if (event.dataTransfer.types.includes(DnDType)) {
-        event.dataTransfer.dropEffect = 'none';
-        const data = event.dataTransfer.getData(DnDType);
-        const tag = tagStore.get(data);
-        if (tag) {
-          runInAction(() => root.insertSubTag(tag, tagStore.tagList.length));
-        }
-        dataSet[DnDAttribute.Target] = 'false';
-      }
-    },
-    [root, tagStore, uiStore],
-  );
+    });
+  }, [dndData, root, tagStore, uiStore]);
 
   const handleBranchOnKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
@@ -506,7 +575,13 @@ const TagsTree = observer(() => {
           onClose={() => dispatch(Factory.abortDeletion())}
         />
       )}
-      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
+      <ContextMenu
+        isOpen={contextState.open}
+        x={contextState.x}
+        y={contextState.y}
+        close={hide}
+        usePortal
+      >
         {contextState.menu}
       </ContextMenu>
     </>

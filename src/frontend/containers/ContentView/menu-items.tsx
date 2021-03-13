@@ -32,11 +32,6 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
     uiStore.openPreviewWindow();
   };
 
-  const handleInspect = () => {
-    uiStore.selectFile(file, true);
-    uiStore.openInspector();
-  };
-
   return (
     <>
       <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.SEARCH} />
@@ -45,7 +40,6 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
         text="Open In Preview Window"
         icon={IconSet.PREVIEW}
       />
-      <MenuItem onClick={handleInspect} text="Inspect" icon={IconSet.INFO} />
     </>
   );
 };

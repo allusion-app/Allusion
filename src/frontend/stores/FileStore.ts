@@ -46,6 +46,7 @@ class FileStore {
   @observable private content: Content = Content.All;
   @observable fileOrder: FileOrder = FileOrder.Desc;
   @observable orderBy: keyof IFile = 'dateAdded';
+  @observable numTotalFiles = 0;
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
 
@@ -507,7 +508,23 @@ class FileStore {
       this.index.set(file.id, index);
     }
     this.numMissingFiles = missingFiles;
-    this.numUntaggedFiles = untaggedFiles;
+    if (this.showsAllContent) {
+      this.numTotalFiles = this.fileList.length;
+      this.numUntaggedFiles = untaggedFiles;
+    } else if (this.showsUntaggedContent) {
+      this.numUntaggedFiles = this.fileList.length;
+    }
+  }
+
+  /** Initializes the total and untagged file counters by querying the database with count operations */
+  async refetchFileCounts() {
+    const noTagsCriteria = new ClientArraySearchCriteria('tags', []).serialize();
+    const numUntaggedFiles = await this.backend.countFiles(noTagsCriteria);
+    const numTotalFiles = await this.backend.countFiles();
+    runInAction(() => {
+      this.numUntaggedFiles = numUntaggedFiles;
+      this.numTotalFiles = numTotalFiles;
+    });
   }
 
   @action private setFileOrder(order: FileOrder = FileOrder.Desc) {
