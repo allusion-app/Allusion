@@ -29,19 +29,15 @@
 
   // Show an outline to indicate the section needs attention
   &.attention {
-    border: 2px dashed var(--accent-color-blue);
-    &.info {
-      border: 2px dashed var(--accent-color-blue);
+    > div {
+      padding: 1rem;
+      i {
+        text-decoration: none;
+        color: var(--text-color);
+      }
     }
-
-    border-radius: 1rem;
-    margin: -4px;
-    margin-bottom: 1em;
-    padding: 4px;
-    padding-bottom: 12px;
-
     // Show all buttons, even without hover
-    header [role='toolbar'] {
+    header div {
       opacity: 1;
     }
   }

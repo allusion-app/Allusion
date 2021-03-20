@@ -19,7 +19,7 @@
 
   --scrollbar-track-color: var(--shade1);
   --scrollbar-thumb-color: var(--background-color-alt);
-  --scrollbar-thumb-hover-color: var(--text-color);
+  --scrollbar-thumb-hover-color: var(--text-color-muted);
 
   --border-color: var(--shade2);
 }
@@ -42,6 +42,10 @@
 
   --hover-color: var(--shade1);
   --hover-color-alt: var(--shade2);
+
+  --scrollbar-track-color: var(--shade1);
+  --scrollbar-thumb-color: var(--background-color-alt);
+  --scrollbar-thumb-hover-color: var(--text-color-muted);
 
   --border-color: var(--shade2);
 }
