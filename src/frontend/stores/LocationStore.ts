@@ -8,7 +8,6 @@ import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
-import { IconSet } from 'widgets';
 import { promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
@@ -60,7 +59,6 @@ class LocationStore {
           timeout: 0,
           action: RendererMessenger.reload,
           actionLabel: 'Retry?',
-          icon: IconSet.RELOAD,
         });
       }, 5000);
 

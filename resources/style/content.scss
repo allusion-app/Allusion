@@ -35,18 +35,18 @@
 }
 
 /////////////////////// Thumbnail //////////////////////////////////
-// If item is selected, and any other selected item is a drop target:
-// Provide indication that dropping a tag will apply it to all selected items
+// If selected, and any other selected image is a drop target: normal yellow border
+// (as an indication that dropping a tag will apply it to all selected files)
 #gallery-content.selected-file-dropping {
-  .grid, .masonry {
+  .grid,
+  .masonry {
     [aria-selected='true'] > .thumbnail {
-      background-color: $yellow1;
+      background-color: var(--accent-color-yellow);
     }
   }
-  .list {
-    [aria-selected='true'] {
-      background-color: rgba($yellow1, 0.3);
-    }
+
+  .list [aria-selected='true'] {
+    background-color: rgba(255, 193, 47, 0.3);
   }
 }
 
@@ -92,7 +92,7 @@
   }
 
   &[data-dnd-target='true'] {
-    background-color: $yellow1;
+    background-color: var(--accent-color-yellow);
 
     img {
       clip-path: inset(0.5rem round 0.125rem);
@@ -110,7 +110,7 @@
 
   // If selected AND drop target: big yellow border
   &[data-dnd-target='true'] {
-    background-color: $yellow1;
+    background-color: var(--accent-color-yellow);
     > img,
     > .image-error {
       clip-path: inset(0.5rem round 0.125rem);
@@ -118,7 +118,7 @@
   }
 
   > .image-error {
-    border: 0.25rem solid $danger; // new design
+    border: 0.25rem solid var(--accent-color-red); // new design
   }
 }
 
@@ -137,7 +137,7 @@
   height: 2.5rem;
   top: 0.5rem;
   left: calc(var(--thumbnail-size) - 3rem);
-  color: $danger;
+  color: var(--accent-color-red);
 
   svg {
     width: 2rem !important;
@@ -201,18 +201,20 @@
 
   [role='gridcell'] {
     max-height: 24px;
-    
-    > div { // cell container
+
+    > div {
+      // cell container
       display: inline-block;
       text-overflow: ellipsis;
       vertical-align: middle;
       white-space: nowrap;
 
-      // Column widths: 
+      // Column widths:
       // - base width of 120px
       width: 120px;
       // - first and last column (filename and tags): fill rest of width
-      &:first-child, &:last-child {
+      &:first-child,
+      &:last-child {
         // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
         width: calc(50% - 180px);
       }
@@ -237,7 +239,7 @@
 
     &[data-dnd-target='true'] {
       // Yellow background when DnD target
-      background-color: rgba($yellow1, 0.6) !important;
+      background-color: rgba(255, 193, 47, 0.6) !important;
     }
   }
 
@@ -286,16 +288,16 @@
   height: 24px;
   width: 100%;
   border-bottom: 1px solid var(--background-color);
-  
   // TODO: Drop-shadow, but only when not scrolled all the way at the top
   box-shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.2);
 
   > div {
-    // Column widths: 
+    // Column widths:
     // - base width of 120px
     width: 120px;
     // - first and last column (filename and tags): fill rest of width
-    &:first-child, &:last-child {
+    &:first-child,
+    &:last-child {
       // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
       width: calc(50% - 180px);
     }
