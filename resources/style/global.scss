@@ -68,43 +68,8 @@ table {
   outline-style: solid;
 }
 
-/* 
-// Custom scrollbar style
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-/////////// Scroll bar (Track and handle) ///////////
-.bp3-light {
-  ::-webkit-scrollbar-track {
-    background-color: $light-gray4;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: $light-gray2;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: $light-gray5;
-  }
-}
-
-.bp3-dark {
-  ::-webkit-scrollbar-track {
-    background-color: $dark-gray3;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: $dark-gray5;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: $dark-gray6;
-  }
-} */
-
 .file-dropper-overlay {
   margin: auto;
-
-  &::backdrop {
-    //Transparent bg color here
-  }
 
   > .dialog-content {
     width: 400px;
@@ -125,10 +90,8 @@ table {
 // TODO: Fix this when we have our own custom toaster, currently intefering with Blueprint
 .toast {
   background: var(--accent-color-blue);
-  color: var(--text-color-alt);
+  color: white;
   width: 22.5rem;
-  // right: 1rem;
-  // bottom: 1rem;
   margin-bottom: 1rem;
   padding: 0.25rem 0.5rem;
   z-index: 1;
@@ -137,34 +100,18 @@ table {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  img,
+
   span {
     height: 1rem;
     margin: 0.25rem;
   }
-  button {
-    height: 1.5rem;
-    min-width: 1.5rem;
-    padding: 0.25rem;
-    margin: 0.25rem;
-    display: flex;
-    align-items: center;
 
-    background: rgba(0, 0, 0, 0);
-    color: #ffffff;
-    font-weight: bold;
-    border: none;
-    outline: none;
-    border-radius: 0.25rem;
-  }
-  button:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
+  button {
+    color: white;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
   }
 }
 
