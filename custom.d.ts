@@ -41,7 +41,7 @@ declare module 'node-exiftool' {
    * Custom type definition based on https://www.npmjs.com/package/node-exiftool
    */
   namespace exiftool {
-    interface IMetadata {
+    export interface IMetadata {
       [key: string]: any;
       SourceFile?: string;
       HierarchicalSubject?: string | string[];

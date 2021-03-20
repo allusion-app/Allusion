@@ -1,0 +1,23 @@
+# Example config: https://www.exiftool.org/config.html
+
+%Image::ExifTool::UserDefined = (
+  # Composite tags are added to the Composite table:
+  'Image::ExifTool::Composite' => {
+    MyHS => {
+    # Writes string to HierarchicalSubject and leaf keywords to IPTC:Keywords and XMP:Subject.
+    # Requires exiftool ver 10.13 or earlier, or 10.98 or later
+    # Ver 1.1
+    #	Added temp variable to avoid random hash(?) based error
+    # From: https://exiftool.org/forum/index.php?topic=9208.0
+      Require => 'XMP:HierarchicalSubject',
+      Writable => 1,
+      List => 'Bag',
+      WriteAlso => {
+        'XMP:HierarchicalSubject' =>'$val',
+        'IPTC:Keywords' => q{ return undef if not defined $val; my $x = $val; $x=~s/.*(?:^|\|)([^|]*)$/$1/; return $x;},
+        'XMP:Subject' => q{ return undef if not defined $val; my $x = $val; $x=~s/.*(?:^|\|)([^|]*)$/$1/; return $x;},
+      },
+      ValueConv => '$val',
+    },
+  },
+);

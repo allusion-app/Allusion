@@ -31,7 +31,7 @@ class FileStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
 
-  protected exifTool: ExifIO;
+  public exifTool: ExifIO;
 
   readonly fileList = observable<ClientFile>([]);
   /**
@@ -61,6 +61,7 @@ class FileStore {
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
 
+    // TODO: do we want this in the FileStore? If so, don't open this in preview window
     this.exifTool = new ExifIO();
     this.exifTool.initialize().then(() => this.readTagsFromFiles());
   }

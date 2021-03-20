@@ -22,7 +22,10 @@
     "productName": "Allusion",
     "mac": {
       "category": "public.app-category.graphics-design",
-      "extraResources": "resources/exiftool/nix/**/*"
+      "extraResources": [
+        "resources/exiftool/exiftool.pl",
+        "resources/exiftool/.Exiftool_config"
+      ]
     },
     "dmg": {
       "icon": false
@@ -32,10 +35,16 @@
         "AppImage"
       ],
       "category": "Graphics",
-      "extraResources": "resources/exiftool/nix/**/*"
+      "extraResources": [
+        "resources/exiftool/exiftool.pl",
+        "resources/exiftool/.Exiftool_config"
+      ]
     },
     "win": {
-      "extraResources": "resources/exiftool/win/**/*"
+      "extraResources": [
+        "resources/exiftool/exiftool.exe",
+        "resources/exiftool/.Exiftool_config"
+      ]
     },
     "files": [
       "!node_modules",
