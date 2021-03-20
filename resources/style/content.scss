@@ -38,7 +38,7 @@
 #gallery-content.selected-file-dropping [aria-selected='true'] > .thumbnail {
   // If selected, and any other selected image is a drop target: normal yellow border
   // (as an indication that dropping a tag will apply it to all selected files)
-  background-color: $yellow1;
+  background-color: var(--accent-color-yellow);
 }
 
 // Gallery Item Container
@@ -83,7 +83,7 @@
   }
 
   &[data-dnd-target='true'] {
-    background-color: $yellow1;
+    background-color: var(--accent-color-yellow);
 
     img {
       clip-path: inset(0.5rem round 0.125rem);
@@ -101,7 +101,7 @@
 
   // If selected AND drop target: big yellow border
   &[data-dnd-target='true'] {
-    background-color: $yellow1;
+    background-color: var(--accent-color-yellow);
     > img,
     > .image-error {
       clip-path: inset(0.5rem round 0.125rem);
@@ -109,7 +109,7 @@
   }
 
   > .image-error {
-    border: 0.25rem solid $danger; // new design
+    border: 0.25rem solid var(--accent-color-red); // new design
   }
 }
 
@@ -128,7 +128,7 @@
   height: 2.5rem;
   top: 0.5rem;
   left: calc(var(--thumbnail-size) - 3rem);
-  color: $danger;
+  color: var(--accent-color-red);
 
   svg {
     width: 2rem !important;

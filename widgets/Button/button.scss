@@ -52,7 +52,9 @@
 .btn-content-icon,
 .btn-content-text {
   display: inline-flex;
-  margin: 0.125rem;
+}
+.btn-content-text {
+  margin-left: 0.25rem;
 }
 
 .btn-content-text.hidden {

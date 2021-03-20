@@ -62,101 +62,14 @@ table {
 }
 
 .contextMenuTarget {
-  outline-color: $pt-intent-primary;
+  outline-color: var(--accent-color-blue);
   outline-width: 2px;
   outline-offset: -2px;
   outline-style: solid;
 }
 
-/* 
-// Custom scrollbar style
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-/////////// Scroll bar (Track and handle) ///////////
-.bp3-light {
-  ::-webkit-scrollbar-track {
-    background-color: $light-gray4;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: $light-gray2;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: $light-gray5;
-  }
-}
-
-.bp3-dark {
-  ::-webkit-scrollbar-track {
-    background-color: $dark-gray3;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: $dark-gray5;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: $dark-gray6;
-  }
-} */
-
-///////////////////////////////// Theme Colours /////////////////////////////////
-// Todo: The nice thing about variables is that we can change them depending on the theme,
-// instead of switching colors around like this
-#preview,
-#layout-container {
-  background-color: transparent;
-}
-
-///////////////////////////////// Media Queries /////////////////////////////////
-@media (max-width: 960px) {
-  .toolbar-button-text:not(.always) {
-    margin: 0;
-    text-indent: -100vw;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-}
-
-///////////////////////////////// Misc /////////////////////////////////
-// Error boundary (when app crashes)
-.error-boundary .message {
-  font-family: monospace;
-  max-width: 120ch;
-}
-
-// Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
-.custom-icon {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
-
-  * {
-    fill: currentColor;
-  }
-}
-.custom-icon-128 > * {
-  height: 8rem;
-  width: 8rem;
-}
-.custom-icon-64 > * {
-  height: 4rem;
-  width: 4rem;
-}
-.custom-icon-48 > * {
-  height: 3rem;
-  width: 3rem;
-}
-.custom-icon-32 > * {
-  height: 2rem;
-  width: 2rem;
-}
-
 .file-dropper-overlay {
   margin: auto;
-
-  &::backdrop {
-    background-color: $blue-trans1;
-  }
 
   > .dialog-content {
     width: 400px;
@@ -176,11 +89,9 @@ table {
 
 // TODO: Fix this when we have our own custom toaster, currently intefering with Blueprint
 .toast {
-  background: #3399ff;
-  color: #ffffff;
+  background: var(--accent-color-blue);
+  color: white;
   width: 22.5rem;
-  // right: 1rem;
-  // bottom: 1rem;
   margin-bottom: 1rem;
   padding: 0.25rem 0.5rem;
   z-index: 1;
@@ -189,34 +100,18 @@ table {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  img,
+
   span {
     height: 1rem;
     margin: 0.25rem;
   }
-  button {
-    height: 1.5rem;
-    min-width: 1.5rem;
-    padding: 0.25rem;
-    margin: 0.25rem;
-    display: flex;
-    align-items: center;
 
-    background: rgba(0, 0, 0, 0);
-    color: #ffffff;
-    font-weight: bold;
-    border: none;
-    outline: none;
-    border-radius: 0.25rem;
-  }
-  button:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
+  button {
+    color: white;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
   }
 }
 
