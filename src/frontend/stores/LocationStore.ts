@@ -53,6 +53,7 @@ class LocationStore {
 
       // TODO: Add a maximum timeout for init: sometimes it's hanging for me. Could also be some of the following steps though
       // added a retry toast for now, can't figure out the cause, and it's hard to reproduce
+      // FIXME: Toasts should not be abused for error handling. Create some error messaging mechanism.
       const readyTimeout = setTimeout(() => {
         AppToaster.show({
           message: 'This appears to be taking longer than usual.',
