@@ -7,6 +7,7 @@ import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { RendererMessenger } from 'src/Messaging';
 import { promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
@@ -51,7 +52,20 @@ class LocationStore {
       );
 
       // TODO: Add a maximum timeout for init: sometimes it's hanging for me. Could also be some of the following steps though
+      // added a retry toast for now, can't figure out the cause, and it's hard to reproduce
+      // FIXME: Toasts should not be abused for error handling. Create some error messaging mechanism.
+      const readyTimeout = setTimeout(() => {
+        AppToaster.show({
+          message: 'This appears to be taking longer than usual.',
+          timeout: 0,
+          action: RendererMessenger.reload,
+          actionLabel: 'Retry?',
+        });
+      }, 5000);
+
       const filePaths = await location.init();
+
+      clearTimeout(readyTimeout);
 
       if (filePaths === undefined) {
         AppToaster.show(

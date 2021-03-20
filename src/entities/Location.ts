@@ -106,7 +106,6 @@ export class ClientLocation implements ISerializable<ILocation> {
     const initialFiles: string[] = [];
 
     // TODO: Maybe do this on a web worker? Could hang the app for large folders
-
     return new Promise<string[]>((resolve) => {
       watcher
         .on('add', async (path: string) => {

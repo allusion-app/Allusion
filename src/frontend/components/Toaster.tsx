@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { action, makeObservable, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -55,15 +55,18 @@ export const AppToaster = new ToastManager();
 
 interface IToastProps {
   message: string;
+  action?: () => void;
+  actionLabel?: string;
   timeout: number;
 }
 
 type IdentifiableToast = IToastProps & { id: ID };
 
-const Toast = ({ message, id }: IdentifiableToast) => {
+const Toast = ({ message, id, actionLabel, action }: IdentifiableToast) => {
   return (
     <div className="toast">
       <span>{message}</span>
+      {action && <Button text={actionLabel || ''} onClick={action} />}
       <Button text="Dismiss" onClick={() => AppToaster.dismiss(id)} />
     </div>
   );
