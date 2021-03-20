@@ -28,14 +28,20 @@
     padding-right: 0.5rem;
 
     &:hover {
-      background-color: var(--shade1);
-      color: var(--hover-color);
+      background-color: var(--hover-color);
+      color: var(--text-color-strong);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     &:hover [class*='custom-icon'] {
-      color: var(--hover-color);
+      color: var(--text-color-strong);
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .spacer {
+      height: 1rem;
+      width: 1rem;
+      margin-right: 0.25rem;
+      flex-shrink: 0;
     }
   }
 
@@ -64,7 +70,7 @@
     }
 
     > .label {
-      background-color: var(--shade1);
+      background-color: var(--hover-color);
       border-color: var(--accent-color-blue);
     }
   }
@@ -79,7 +85,7 @@
   mask-image: url(~resources/icons/small-arrow-down.svg);
   -webkit-mask-image: url(~resources/icons/small-arrow-down.svg);
   transition: transform 100ms ease-out;
-  margin-right: 0.25em;
+  margin-right: 0.25rem;
 
   &[aria-pressed='false'] {
     transform: rotateZ(-90deg);

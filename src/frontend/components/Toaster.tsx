@@ -55,16 +55,14 @@ export const AppToaster = new ToastManager();
 
 interface IToastProps {
   message: string;
-  icon?: ReactNode;
   timeout: number;
 }
 
 type IdentifiableToast = IToastProps & { id: ID };
 
-const Toast = ({ message, icon, id }: IdentifiableToast) => {
+const Toast = ({ message, id }: IdentifiableToast) => {
   return (
     <div className="toast">
-      {icon}
       <span>{message}</span>
       <Button text="Dismiss" onClick={() => AppToaster.dismiss(id)} />
     </div>

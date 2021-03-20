@@ -283,6 +283,7 @@ const TreeLeaf = ({
       tabIndex={-1}
     >
       <div className="label">
+        <div className="spacer"></div>
         {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
       </div>
     </li>

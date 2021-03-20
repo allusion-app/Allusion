@@ -6,13 +6,13 @@ input[type='checkbox'] {
   vertical-align: bottom;
   margin-right: 0.5rem;
   transition: background-color 0.3s;
-  border: 2px solid var(--stroke-color);
+  border: 2px solid var(--text-color);
   border-radius: 12.25%;
   padding: 0.125rem;
 
   &:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--accent-color-blue);
+    border-color: var(--accent-color-blue);
 
     &:hover {
       filter: saturate(200%);
@@ -41,7 +41,7 @@ input[type='checkbox'] {
 
   &:focus {
     outline: none;
-    border-color: var(--focus-color);
+    border-color: var(--accent-color-blue);
   }
 }
 
@@ -57,13 +57,13 @@ input[type='checkbox'][data-toggle='true'] {
     background-image: none;
     mask-image: none;
     -webkit-mask-image: none;
-    background-color: var(--stroke-color);
+    background-color: var(--text-color);
     transform: translateX(0);
     transition: transform 0.4s;
   }
 
   &:focus::before {
-    background-color: var(--focus-color);
+    background-color: var(--accent-color-blue);
   }
 
   &:checked::before {

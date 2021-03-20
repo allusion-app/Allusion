@@ -1,6 +1,6 @@
 dialog {
   background-color: var(--background-color);
-  border: none;
+  border: 0.0625rem solid var(--border-color);
   border-radius: 0.25rem;
   box-shadow: 3px 4px 6px 3px rgba(0, 0, 0, 0.2);
   color: var(--text-color);
@@ -24,7 +24,7 @@ dialog {
   &[data-tooltip] {
     opacity: unset;
     pointer-events: none;
-    background: var(--primary-color);
+    background: var(--accent-color-blue);
     color: white;
   }
 }
@@ -70,7 +70,7 @@ dialog[role='alertdialog'] {
 }
 
 .dialog-icon {
-  color: var(--primary-color);
+  color: var(--accent-color-blue);
   grid-area: dialog-icon;
 
   > .custom-icon {
@@ -79,7 +79,7 @@ dialog[role='alertdialog'] {
 }
 
 .dialog-title {
-  color: var(--primary-color);
+  color: var(--accent-color-blue);
   font-size: medium;
   font-weight: 700;
   grid-area: dialog-title;
@@ -111,10 +111,9 @@ dialog[role='alertdialog'] {
   z-index: 1;
 
   color: var(--text-color);
-  backdrop-filter: blur(1rem);
-  background: var(--background-color-light);
-  border: 0.0625rem solid var(--border-dark);
-  border-radius: 0.5rem;
+  background: var(--background-color-alt);
+  border: 0.0625rem solid var(--border-color);
+  border-radius: 0.25rem;
   box-shadow: var(--box-shadow);
 
   &[data-open='true'] {
@@ -124,12 +123,12 @@ dialog[role='alertdialog'] {
 
 [role='tooltip'] {
   pointer-events: none;
-  background: var(--primary-color);
+  background: var(--accent-color-blue);
   color: white;
 
   .tooltip {
     display: inline-flex;
-    margin: 0.5rem 1rem;
+    margin: 0.25rem 0.5rem;
   }
 }
 

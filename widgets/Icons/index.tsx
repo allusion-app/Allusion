@@ -59,6 +59,7 @@ import META_INFO_2 from 'resources/icons/meta-info-2.svg';
 import MORE from 'resources/icons/more.svg';
 import OPEN_EXTERNAL from 'resources/icons/open-external.svg';
 import OUTLINER from 'resources/icons/outliner.svg';
+import PLUS from 'resources/icons/plus.svg';
 import PREVIEW from 'resources/icons/preview.svg';
 import RELOAD from 'resources/icons/reload.svg';
 import REPLACE from 'resources/icons/replace.svg';
@@ -72,16 +73,20 @@ import SELECT_ALL_ROUND_CHECKED from 'resources/icons/select-all-round-checked.s
 import SELECT_ALL_TRANS from 'resources/icons/select-all-trans.svg';
 import SELECT_ALL_TRANS_CHECKED from 'resources/icons/select-all-trans-checked.svg';
 import SELECT_ALL from 'resources/icons/select-all.svg';
+import SELECT from 'resources/icons/select.svg';
+import SELECT_CHECKED from 'resources/icons/select-checked.svg';
 import SETTINGS from 'resources/icons/settings.svg';
 import SMALL_ARROW_DOWN from 'resources/icons/small-arrow-down.svg';
 import SMALL_ARROW_RIGHT from 'resources/icons/small-arrow-right.svg';
 import SORT from 'resources/icons/sort.svg';
+import SPACER from 'resources/icons/spacer.svg';
 import TAG_ADD from 'resources/icons/tag-add.svg';
 import TAG_ADD_COLLECTION from 'resources/icons/tag-add-collection.svg';
 import TAG_BLANCO from 'resources/icons/tag-blanco.svg';
 import TAG_GROUP_OPEN from 'resources/icons/tag-group-open.svg';
 import TAG_GROUP from 'resources/icons/tag-group.svg';
 import TAG from 'resources/icons/tag.svg';
+import TAG_LINE from 'resources/icons/tag-line.svg';
 import THUMB_SM from 'resources/icons/thumb-sm.svg';
 import THUMB_MD from 'resources/icons/thumb-md.svg';
 import THUMB_BG from 'resources/icons/thumb-bg.svg';
@@ -146,6 +151,7 @@ const IconSet = {
   META_INFO_2: toSvg(META_INFO_2),
   MORE: toSvg(MORE),
   OPEN_EXTERNAL: toSvg(OPEN_EXTERNAL),
+  PLUS: toSvg(PLUS),
   PREVIEW: toSvg(PREVIEW),
   RELOAD: toSvg(RELOAD),
   REPLACE: toSvg(REPLACE),
@@ -159,16 +165,20 @@ const IconSet = {
   SELECT_ALL_TRANS: toSvg(SELECT_ALL_TRANS),
   SELECT_ALL_TRANS_CHECKED: toSvg(SELECT_ALL_TRANS_CHECKED),
   SELECT_ALL: toSvg(SELECT_ALL),
+  SELECT: toSvg(SELECT),
+  SELECT_CHECKED: toSvg(SELECT_CHECKED),
   SETTINGS: toSvg(SETTINGS),
   SMALL_ARROW_DOWN: toSvg(SMALL_ARROW_DOWN),
   SMALL_ARROW_RIGHT: toSvg(SMALL_ARROW_RIGHT),
   SORT: toSvg(SORT),
+  SPACER: toSvg(SPACER),
   TAG_ADD: toSvg(TAG_ADD),
   TAG_ADD_COLLECTION: toSvg(TAG_ADD_COLLECTION),
   TAG_BLANCO: toSvg(TAG_BLANCO),
   TAG_GROUP_OPEN: toSvg(TAG_GROUP_OPEN),
   TAG_GROUP: toSvg(TAG_GROUP),
   TAG: toSvg(TAG),
+  TAG_LINE: toSvg(TAG_LINE),
   THUMB_SM: toSvg(THUMB_SM),
   THUMB_MD: toSvg(THUMB_MD),
   THUMB_BG: toSvg(THUMB_BG),

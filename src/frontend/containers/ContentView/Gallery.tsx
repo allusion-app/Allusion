@@ -1,17 +1,19 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
-import TagDnDContext, { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
+import { FileOrder } from 'src/backend/DBRepository';
 import { RendererMessenger } from 'src/Messaging';
+import { IconSet } from 'widgets';
 import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
-import { debouncedThrottle, throttle } from '../../utils';
-import { GalleryCommand, GallerySelector, GridCell, ListCell } from './GalleryItem';
+import { throttle, debouncedThrottle } from '../../utils';
+import { GalleryCommand, GridCell, ListCell, listColumns, GallerySelector } from './GalleryItem';
 import MasonryRenderer from './Masonry/MasonryRenderer';
-import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from './menu-items';
+import { ExternalAppMenuItems, FileViewerMenuItems, MissingFileMenuItems } from './menu-items';
 import SlideMode from './SlideMode';
+import TagDnDContext, { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 
 type Dimension = { width: number; height: number };
 type UiStoreProp = { uiStore: UiStore };
@@ -274,10 +276,8 @@ const GridGallery = observer((props: ILayoutProps) => {
 
 const ListGallery = observer((props: ILayoutProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
+  const cellSize = 24;
   const dndData = useContext(TagDnDContext);
-  const cellSize = useMemo(() => getThumbnailSize(uiStore.thumbnailSize)[1], [
-    uiStore.thumbnailSize,
-  ]);
   const submitCommand = useMemo(
     () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
     [dndData, fileStore, select, showContextMenu, uiStore],
@@ -316,22 +316,49 @@ const ListGallery = observer((props: ILayoutProps) => {
   );
 
   return (
-    <div className="list" role="grid" aria-rowcount={fileStore.fileList.length}>
-      <FixedSizeList
-        useIsScrolling
-        height={contentRect.height}
-        width={contentRect.width}
-        itemSize={cellSize}
-        itemCount={fileStore.fileList.length}
-        itemData={fileStore.fileList}
-        itemKey={getItemKey}
-        overscanCount={2}
-        children={Row}
-        onScroll={handleScroll}
-        initialScrollOffset={uiStore.firstItem * cellSize}
-        ref={ref}
-      />
-    </div>
+    <>
+      <div className="list-header" style={{ width: `${contentRect.width}px` }}>
+        {listColumns.map((col) => (
+          <div
+            key={col.title}
+            className={col.sortKey ? 'sortable' : ''}
+            // Click to sort by this key. If already sorting by this key, swap order around.
+            onClick={
+              col.sortKey
+                ? fileStore.orderBy === col.sortKey
+                  ? fileStore.switchFileOrder
+                  : () => fileStore.orderFilesBy(col.sortKey)
+                : undefined
+            }
+          >
+            <span>{col.title}</span>
+            {fileStore.orderBy === col.sortKey && (
+              <span>
+                {fileStore.fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="list" role="grid" aria-rowcount={fileStore.fileList.length}>
+        <FixedSizeList
+          useIsScrolling
+          // Subtract 24 for header
+          // TODO: Also subtract scroll bar width if visible
+          height={contentRect.height - 24}
+          width={contentRect.width}
+          itemSize={cellSize}
+          itemCount={fileStore.fileList.length}
+          itemData={fileStore.fileList}
+          itemKey={getItemKey}
+          overscanCount={8}
+          children={Row}
+          onScroll={handleScroll}
+          initialScrollOffset={uiStore.firstItem * cellSize}
+          ref={ref}
+        />
+      </div>
+    </>
   );
 });
 
@@ -341,6 +368,8 @@ interface IListItem {
   style: React.CSSProperties;
   isScrolling: true;
   uiStore: UiStore;
+  // onClick: (e: React.MouseEvent) => void;
+  // onDoubleClick: (e: React.MouseEvent) => void;
   submitCommand: (command: GalleryCommand) => void;
 }
 
@@ -358,13 +387,25 @@ const ListItem = observer((props: IListItem) => {
   }, [isMounted, isScrolling]);
 
   return (
-    <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
+    <div
+      ref={row}
+      role="row"
+      aria-rowindex={index + 1}
+      style={style}
+      // onClick={props.onClick}
+      // onDoubleClick={props.onDoubleClick}
+    >
       <ListCell mounted={isMounted} file={file} uiStore={uiStore} submitCommand={submitCommand} />
     </div>
   );
 });
 
-interface IGridRow extends IListItem {
+interface IGridRow {
+  index: number;
+  data: ClientFile[];
+  style: React.CSSProperties;
+  isScrolling: true;
+  uiStore: UiStore;
   columns: number;
   fileStore: FileStore;
   submitCommand: (command: GalleryCommand) => void;
@@ -447,6 +488,23 @@ function get_column_layout(width: number, minSize: number, maxSize: number): [nu
 const getItemKey = action((index: number, data: ClientFile[]): string => {
   return data[index].id;
 });
+
+function getListItemIndex(
+  e: React.MouseEvent,
+  matches: (target: HTMLElement) => boolean,
+): number | undefined {
+  const target = e.target as HTMLElement;
+  const currentTarget = e.currentTarget as HTMLElement;
+  if (matches(target) || matches(currentTarget)) {
+    e.stopPropagation();
+    // Each thumbnail is in a gridcell which is owned by a row.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const rowIndex = (target.closest('[role="row"]') ||
+      currentTarget.closest('[role="row"]'))!.getAttribute('aria-rowindex')!;
+    return parseInt(rowIndex) - 1;
+  }
+  return undefined;
+}
 
 export function createSubmitCommand(
   dndData: ITagDnDData,

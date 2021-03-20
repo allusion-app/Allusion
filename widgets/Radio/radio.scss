@@ -6,11 +6,11 @@ input[type='radio'] {
   vertical-align: text-bottom;
   margin-right: 0.5rem;
   transition: background-color 0.3s;
-  border: 2px solid var(--stroke-color);
+  border: 2px solid var(--text-color);
   border-radius: 50%;
 
   &:checked {
-    border-color: var(--primary-color);
+    border-color: var(--text-color);
 
     &:hover {
       filter: saturate(200%);
@@ -23,7 +23,7 @@ input[type='radio'] {
     width: 1rem;
     height: 1rem;
     border-radius: 50%;
-    background-color: var(--primary-color);
+    background-color: var(--accent-color-blue);
     transform: scale(0);
     transform-origin: center;
     transition: transform 0.3s ease-in;
@@ -40,6 +40,6 @@ input[type='radio'] {
 
   &:focus {
     outline: none;
-    border-color: var(--focus-color);
+    border-color: var(--accent-color-blue);
   }
 }
