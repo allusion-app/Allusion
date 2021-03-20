@@ -1,3 +1,14 @@
+.toolbar-button-content {
+  display: flex;
+  align-items: center;
+}
+.toolbar-button-icon svg {
+  display: block;
+}
+.toolbar-button-text {
+  margin-left: 0.125rem;
+}
+
 .toolbar-button-text.never {
   display: none;
 }

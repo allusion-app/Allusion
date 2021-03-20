@@ -80,7 +80,7 @@ function createWindow() {
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons (is this still relevant?)
     // Documentation: https://www.electronjs.org/docs/all#alternatives-on-macos
     // could go entirely custom with 'customButtonsOnHover'
-    titleBarStyle: 'hiddenInset',
+    titleBarStyle: 'hidden',
     // Disable native frame: we use a custom titlebar for all platforms: a unique one for MacOS, and one for windows/linux
     frame: false,
     webPreferences: {
@@ -94,15 +94,10 @@ function createWindow() {
     height,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
-    backgroundColor: '#14181a',
+    backgroundColor: '#1c1e23',
     title: 'Allusion',
     show: false, // only show once initial loading is finished
   };
-
-  // Vibrancy effect for MacOS
-  if (isMac) {
-    mainOptions = { ...mainOptions, vibrancy: 'window', transparent: true, hasShadow: true };
-  }
 
   // Create the browser window.
   mainWindow = new BrowserWindow(mainOptions);

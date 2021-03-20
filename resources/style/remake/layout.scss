@@ -45,8 +45,7 @@ body {
   bottom: 0;
   left: 0;
   width: var(--outliner-width);
-  padding: var(--toolbar-height) 0.75rem 2rem 0.75rem;
-  border-right: 0.0625rem solid var(--border-dark);
+  border-right: 0.0625rem solid var(--border-color);
   background: var(--background-color-alt);
 }
 
@@ -58,12 +57,12 @@ body {
   position: absolute;
   top: var(--window-titlebar-height);
   left: var(--outliner-width);
-  height: calc(100% - var(--window-titlebar-height));
+  bottom: 0;
   z-index: 1;
 
-  margin-left: -2px; // align it with the actual outliner edge
+  margin-left: -0.125rem; // align it with the actual outliner edge
 
-  width: 4px;
+  width: 0.25rem;
   opacity: 0;
   cursor: col-resize;
 }
@@ -103,15 +102,17 @@ header h2 {
 
 /////////// Scroll bar (Track and handle) ///////////
 ::-webkit-scrollbar-track {
-  background-color: var(--shade1);
+  background-color: var(--scrollbar-track-color);
+  border: 0.0625rem solid var(--border-color);
   border-radius: 0.25rem;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: var(--hover-background1);
+  background-color: var(--scrollbar-thumb-color);
+  border: 0.0625rem solid var(--border-color);
   border-radius: 0.25rem;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--hover-background2);
+  background-color: var(--scrollbar-thumb-hover-color);
 }
 
 // Conditional

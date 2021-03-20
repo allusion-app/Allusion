@@ -259,7 +259,7 @@ const TagItem = observer((props: ITagItemProps) => {
       onDrop={handleDrop}
       onContextMenu={handleContextMenu}
     >
-      {!nodeData.subTags.length && <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>}
+      <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>
       <Label
         text={nodeData.name}
         setText={nodeData.rename}
@@ -270,7 +270,7 @@ const TagItem = observer((props: ITagItemProps) => {
       />
       {!isEditing && (
         <button onClick={handleSelect} className="btn-icon">
-          {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
+          {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
         </button>
       )}
     </div>
@@ -530,7 +530,7 @@ const TagsTree = observer(() => {
           ) : (
             <ToolbarButton
               showLabel="never"
-              icon={IconSet.TAG_ADD}
+              icon={IconSet.PLUS}
               text="New Tag"
               onClick={handleRootAddTag}
               tooltip="Add a new tag"

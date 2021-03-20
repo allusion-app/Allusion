@@ -510,7 +510,7 @@ const LocationsPanel = observer(() => {
         <Toolbar controls="location-list">
           <ToolbarButton
             showLabel="never"
-            icon={IconSet.FOLDER_CLOSE_ADD}
+            icon={IconSet.PLUS}
             text="New Location"
             onClick={handleChooseWatchedDir}
             tooltip={Tooltip.Location}
