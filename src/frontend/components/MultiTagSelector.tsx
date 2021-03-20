@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from 'react';
+import React, { ReactElement, useContext, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
@@ -21,6 +21,7 @@ interface IMultiTagSelector {
   tagLabel?: (item: ClientTag) => string;
   disabled?: boolean;
   extraOption?: { label: string; action: () => void; icon?: JSX.Element };
+  extraIconButtons?: ReactElement;
 }
 
 const MultiTagSelector = observer((props: IMultiTagSelector) => {
@@ -34,6 +35,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     tagLabel = action((t: ClientTag) => t.name),
     disabled,
     extraOption,
+    extraIconButtons,
   } = props;
   const listboxID = useRef(generateId());
   const { tagStore } = useContext(StoreContext);
@@ -84,6 +86,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                 aria-controls={listboxID.current}
               />
             </div>
+            {extraIconButtons}
             <IconButton icon={IconSet.CLOSE} text="Close" onClick={onClear} />
           </div>
         }

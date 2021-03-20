@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 
 const Searchbar = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { uiStore, tagStore, fileStore } = useContext(StoreContext);
   const searchCriteriaList = uiStore.searchCriteriaList;
 
   // Only show quick search bar when all criteria are tags or collections, else
@@ -17,9 +17,9 @@ const Searchbar = observer(() => {
   return (
     <div className="searchbar">
       {isQuickSearch ? (
-        <QuickSearchList uiStore={uiStore} tagStore={tagStore} />
+        <QuickSearchList uiStore={uiStore} tagStore={tagStore} fileStore={fileStore} />
       ) : (
-        <CriteriaList uiStore={uiStore} tagStore={tagStore} />
+        <CriteriaList uiStore={uiStore} tagStore={tagStore} fileStore={fileStore} />
       )}
     </div>
   );
@@ -33,16 +33,18 @@ import { ClientTag } from 'src/entities/Tag';
 import UiStore from 'src/frontend/stores/UiStore';
 import TagStore from 'src/frontend/stores/TagStore';
 
-import { IconSet, Tag } from 'widgets';
+import { IconButton, IconSet, Tag } from 'widgets';
 
 import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
+import FileStore from 'src/frontend/stores/FileStore';
 
 interface ISearchListProps {
   uiStore: UiStore;
   tagStore: TagStore;
+  fileStore: FileStore;
 }
 
-const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
+const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListProps) => {
   const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
     if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
@@ -78,11 +80,29 @@ const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
         action: uiStore.toggleAdvancedSearch,
         icon: IconSet.SEARCH_EXTENDED,
       }}
+      extraIconButtons={
+        selectedItems.length > 1 ? (
+          <IconButton
+            icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
+            text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
+            // TODO: Add this as tooltip. Current set-up sucks
+            // title={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
+            onClick={() => {
+              uiStore.toggleSearchMatchAny();
+              fileStore.refetch();
+            }}
+            large
+            disabled={selectedItems.length === 0}
+          />
+        ) : (
+          <> </>
+        )
+      }
     />
   );
 });
 
-const CriteriaList = observer(({ uiStore }: ISearchListProps) => {
+const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
   // Open advanced search when clicking one of the criteria (but not their delete buttons)
   const handleTagClick = (e: React.MouseEvent) => {
     if (e.currentTarget === e.target || (e.target as HTMLElement).matches('.tag')) {
@@ -91,16 +111,37 @@ const CriteriaList = observer(({ uiStore }: ISearchListProps) => {
   };
 
   return (
-    <div className="input" onClick={handleTagClick}>
-      {uiStore.searchCriteriaList.map((c, i) => {
-        return (
-          <Tag
-            key={i}
-            text={c.toString()}
-            onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
+    <div className="input">
+      <div className="multiautocomplete-input" onClick={handleTagClick}>
+        <div className="input-wrapper">
+          {uiStore.searchCriteriaList.map((c, i) => (
+            <Tag
+              key={`${i}-${c.toString()}`}
+              text={c.toString()}
+              onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
+            />
+          ))}
+        </div>
+
+        {uiStore.searchCriteriaList.length > 1 ? (
+          <IconButton
+            icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
+            text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
+            // TODO: Add this as tooltip. Current set-up sucks
+            // title={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
+            onClick={() => {
+              uiStore.toggleSearchMatchAny();
+              fileStore.refetch();
+            }}
+            large
+            disabled={uiStore.searchCriteriaList.length === 0}
           />
-        );
-      })}
+        ) : (
+          <> </>
+        )}
+
+        <IconButton icon={IconSet.CLOSE} text="Close" onClick={uiStore.clearSearchCriteriaList} />
+      </div>
     </div>
   );
 });
