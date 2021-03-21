@@ -170,7 +170,7 @@ export function promiseAllLimit<T>(
 //// Text formatting utils ////
 ///////////////////////////////
 export const formatTagCountText = (numTags: number) => {
-  const extraTagsText = numTags >= 1 ? `+${numTags} tag${numTags === 1 ? '' : 's'}` : '';
+  const extraTagsText = numTags > 1 ? `+${numTags} tag${numTags === 1 ? '' : 's'}` : '';
   return `${extraTagsText}`;
 };
 

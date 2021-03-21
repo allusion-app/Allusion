@@ -128,7 +128,7 @@ const TagItem = observer((props: ITagItemProps) => {
           if (ctx.length === 1) {
             name = ctx[0].name;
           } else {
-            const extraText = formatTagCountText(ctx.length - 1);
+            const extraText = formatTagCountText(ctx.length);
             if (extraText.length > 0) {
               name += ` (${extraText})`;
             }
