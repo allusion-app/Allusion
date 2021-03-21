@@ -117,11 +117,21 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       <MenuItem
         onClick={() =>
           tag.isSelected
-            ? uiStore.replaceCriteriaWithTagSelection()
+            ? uiStore.addTagSelectionToCriteria()
             : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
         }
-        text="Add to Search Query"
+        text="Add to Search"
         icon={IconSet.SEARCH}
+      />
+      <MenuItem
+        onClick={() =>
+          tag.isSelected
+            ? uiStore.addTagSelectionToCriteria(true)
+            : uiStore.addSearchCriterias(
+                tag.recursiveSubTags.map((t) => new ClientIDSearchCriteria('tags', t.id)),
+              )
+        }
+        text="Add to Search (incl. subtags)"
       />
       <MenuItem
         onClick={() =>
@@ -129,8 +139,18 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
             ? uiStore.replaceCriteriaWithTagSelection()
             : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
         }
-        text="Replace Search Query"
+        text="Replace Search"
         icon={IconSet.REPLACE}
+      />
+      <MenuItem
+        onClick={() =>
+          tag.isSelected
+            ? uiStore.replaceCriteriaWithTagSelection(true)
+            : uiStore.replaceSearchCriterias(
+                tag.recursiveSubTags.map((t) => new ClientIDSearchCriteria('tags', t.id)),
+              )
+        }
+        text="Replace Search (incl. subtags)"
       />
       <MenuDivider />
       <MenuItem

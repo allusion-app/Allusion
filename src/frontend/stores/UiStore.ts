@@ -109,7 +109,7 @@ class UiStore {
 
   // UI
   @observable isOutlinerOpen: boolean = true;
-  @observable isInspectorOpen: boolean = false;
+  @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
   @observable isHelpCenterOpen: boolean = false;
   @observable isLocationRecoveryOpen: ID | null = null;
@@ -549,10 +549,19 @@ class UiStore {
     }
   }
 
-  @action.bound replaceCriteriaWithTagSelection() {
-    this.replaceSearchCriterias(
-      Array.from(this.tagSelection, (tag) => new ClientIDSearchCriteria('tags', tag.id)),
-    );
+  @action.bound addTagSelectionToCriteria(includeSubtags = false) {
+    const tags = includeSubtags
+      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
+      : Array.from(this.tagSelection);
+    this.addSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
+    this.clearTagSelection();
+  }
+
+  @action.bound replaceCriteriaWithTagSelection(includeSubtags = false) {
+    const tags = includeSubtags
+      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
+      : Array.from(this.tagSelection);
+    this.replaceSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
     this.clearTagSelection();
   }
 

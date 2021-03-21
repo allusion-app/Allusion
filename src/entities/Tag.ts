@@ -64,6 +64,11 @@ export class ClientTag implements ISerializable<ITag> {
     return this._parent;
   }
 
+  /** Returns this tag and all of its sub-tags, sub-sub-tags, etc., ordered depth-first */
+  @computed get recursiveSubTags(): ClientTag[] {
+    return [this, ...this.subTags.flatMap((t) => t.recursiveSubTags)];
+  }
+
   get isSelected(): boolean {
     return this.store.isSelected(this);
   }
