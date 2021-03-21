@@ -45,6 +45,7 @@ if (IS_PREVIEW_WINDOW) {
     rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
     rootStore.uiStore.enableSlideMode();
+    rootStore.uiStore.isInspectorOpen && rootStore.uiStore.toggleInspector();
     rootStore.fileStore.fetchFilesByIDs(ids);
   });
 
