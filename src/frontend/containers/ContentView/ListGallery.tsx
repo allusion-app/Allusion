@@ -37,11 +37,12 @@ const ListGallery = observer((props: ILayoutProps) => {
   );
 
   const index = lastSelectionIndex.current;
+  const fileSelectionSize = uiStore.fileSelection.size;
   useEffect(() => {
-    if (index !== undefined && ref.current !== null) {
+    if (index !== undefined && ref.current !== null && fileSelectionSize > 0) {
       ref.current.scrollToItem(Math.floor(index));
     }
-  }, [index, uiStore.fileSelection.size]);
+  }, [index, fileSelectionSize]);
 
   const Row = useCallback(
     ({ index, style, data, isScrolling }) => (

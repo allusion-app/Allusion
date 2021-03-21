@@ -20,8 +20,8 @@ type FileStoreProp = { fileStore: FileStore };
 export interface ILayoutProps extends UiStoreProp, FileStoreProp {
   contentRect: Dimension;
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
+  /** The index of the currently selected image, or the "last selected" image when a range is selected */
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
-  /** menu: [fileMenu, externalMenu] */
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
