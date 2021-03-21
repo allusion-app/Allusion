@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { RendererMessenger, WindowSystemButtonPress } from 'src/Messaging';
+import { IconSet } from 'widgets/Icons';
 
 const WindowsTitlebar = () => {
   return (
@@ -12,14 +13,6 @@ const WindowsTitlebar = () => {
 };
 
 export default WindowsTitlebar;
-
-// TODO: Replace with icons for linux compatibility or ship font.
-const enum WindowsButtonCode {
-  Minimize = '\uE921',
-  Maximize = '\uE922',
-  Restore = '\uE923',
-  Close = '\uE8BB',
-}
 
 const WindowSystemButtons = () => {
   const [isMaximized, setMaximized] = useState(RendererMessenger.isMaximized());
@@ -35,7 +28,7 @@ const WindowSystemButtons = () => {
       <button
         onClick={() => RendererMessenger.pressWindowSystemButton(WindowSystemButtonPress.Minimize)}
       >
-        {WindowsButtonCode.Minimize}
+        {IconSet.CHROME_MINIMIZE}
       </button>
       <button
         onClick={() =>
@@ -44,12 +37,12 @@ const WindowSystemButtons = () => {
           )
         }
       >
-        {isMaximized ? WindowsButtonCode.Restore : WindowsButtonCode.Maximize}
+        {isMaximized ? IconSet.CHROME_RESTORE : IconSet.CHROME_MAXIMIZE}
       </button>
       <button
         onClick={() => RendererMessenger.pressWindowSystemButton(WindowSystemButtonPress.Close)}
       >
-        {WindowsButtonCode.Close}
+        {IconSet.CHROME_CLOSE}
       </button>
     </div>
   );
