@@ -350,6 +350,7 @@ class UiStore {
       this.clearFileSelection();
     }
     this.fileSelection.add(file);
+    this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
   }
 
   @action.bound deselectFile(file: ClientFile) {
