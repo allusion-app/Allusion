@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 
 import { ID } from 'src/entities/ID';
-import { Button } from 'widgets';
+import { Button, IconButton, IconSet } from 'widgets';
 import { defaultQuery, Query, QueryKey, QueryOperator, QueryValue, TagValue } from './query';
 
 type FormState = Map<string, Query>;
@@ -21,8 +21,9 @@ export const Field = ({ id, query, dispatch, removable }: IFieldProps) => (
       <KeySelector id={id} keyValue={query.key} dispatch={dispatch} />
       <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
       <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
-      <Button
-        text="-"
+      <IconButton
+        text=""
+        icon={IconSet.DELETE}
         onClick={() =>
           dispatch((form) => {
             form.delete(id);
@@ -30,7 +31,7 @@ export const Field = ({ id, query, dispatch, removable }: IFieldProps) => (
           })
         }
         disabled={!removable}
-        styling="filled"
+        // styling="filled"
       />
     </div>
   </fieldset>

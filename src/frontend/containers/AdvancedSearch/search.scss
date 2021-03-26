@@ -15,10 +15,13 @@
 
     > .btn {
       flex-grow: 0;
-      margin-left: 0.5rem;
       line-height: 0;
       font-size: 1rem;
       max-width: 2rem;
+
+      &:disabled {
+        color: var(--text-color-muted);
+      }
     }
   }
   select {
