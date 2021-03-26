@@ -23,11 +23,7 @@ interface ILabelProps {
   setText: (value: string) => void;
   isEditing: boolean;
   onSubmit: (target: EventTarget & HTMLInputElement) => void;
-  onClick: (event: React.MouseEvent) => void;
-  onDoubleClick?: (event: React.MouseEvent) => void;
 }
-
-// const isValid = (text: string) => text.trim().length > 0;
 
 const Label = (props: ILabelProps) =>
   props.isEditing ? (
@@ -59,9 +55,7 @@ const Label = (props: ILabelProps) =>
       // className={!isValidInput ? 'bp3-intent-danger' : ''}
     />
   ) : (
-    <div onClick={props.onClick} onDoubleClick={props.onDoubleClick}>
-      {props.text}
-    </div>
+    <div>{props.text}</div>
   );
 
 interface ITagItemProps {
@@ -258,6 +252,8 @@ const TagItem = observer((props: ITagItemProps) => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onContextMenu={handleContextMenu}
+      onClick={handleQuickQuery}
+      onDoubleClick={handleRename}
     >
       <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>
       <Label
@@ -265,8 +261,6 @@ const TagItem = observer((props: ITagItemProps) => {
         setText={nodeData.rename}
         isEditing={isEditing}
         onSubmit={submit}
-        onClick={handleQuickQuery}
-        onDoubleClick={handleRename}
       />
       {!isEditing && (
         <button onClick={handleSelect} className="btn-icon">
