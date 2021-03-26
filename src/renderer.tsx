@@ -38,7 +38,7 @@ backend
     await rootStore.init(IS_PREVIEW_WINDOW);
     RendererMessenger.initialized();
   })
-  .catch((err) => console.log('Could not initialize backend!', err));
+  .catch((err) => console.error('Could not initialize backend!', err));
 
 if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory, activeImgId }) => {
@@ -103,7 +103,7 @@ if (IS_PREVIEW_WINDOW) {
       }
     }
   } catch (e) {
-    console.log('Cannot load window preferences', e);
+    console.error('Cannot load window preferences', e);
   }
 }
 
@@ -115,6 +115,10 @@ ReactDOM.render(
   </StoreContext.Provider>,
   document.getElementById('app'),
 );
+
+// -------------------------------------------
+// Messaging with the main process
+// -------------------------------------------
 
 /**
  * Adds tags to a file, given its name and the names of the tags
@@ -128,7 +132,6 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
     const tags = await Promise.all(
       tagNames.map(async (tagName) => {
         const clientTag = tagStore.tagList.find((tag) => tag.name === tagName);
-        console.log(clientTag);
         if (clientTag !== undefined) {
           return clientTag;
         } else {
