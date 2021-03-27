@@ -217,10 +217,13 @@ const TagItem = observer((props: ITagItemProps) => {
     [dndData, nodeData, pos, uiStore],
   );
 
-  const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
-    nodeData,
-    select,
-  ]);
+  const handleSelect = useCallback(
+    (event: React.MouseEvent) => {
+      event.stopPropagation();
+      select(event, nodeData);
+    },
+    [nodeData, select],
+  );
 
   const handleQuickQuery = useCallback(
     (event: React.MouseEvent) => {
