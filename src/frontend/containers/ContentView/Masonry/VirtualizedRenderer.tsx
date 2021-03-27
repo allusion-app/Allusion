@@ -5,6 +5,7 @@ import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { createSubmitCommand, ILayoutProps } from '../Gallery';
 import { MasonryCell } from '../GalleryItem';
@@ -39,6 +40,7 @@ const VirtualizedRenderer = observer(
     layoutUpdateDate,
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
     const { uiStore, fileStore } = useContext(StoreContext);
+    const [, isMountedRef] = useMountState();
     const wrapperRef = useRef<HTMLDivElement>(null);
     const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
@@ -51,6 +53,7 @@ const VirtualizedRenderer = observer(
     const numImages = images.length;
 
     const determineRenderRegion = useCallback((numImages: number, overdraw: number) => {
+      if (!isMountedRef.current) return;
       const viewport = wrapperRef.current;
       const yOffset = viewport?.scrollTop || 0;
       const viewportHeight = viewport?.clientHeight || 0;
