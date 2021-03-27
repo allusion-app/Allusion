@@ -44,7 +44,7 @@ interface IIconButton {
 
 const IconButton = ({ text, icon, onClick, disabled }: IIconButton) => {
   return (
-    <button className="btn btn-icon" onClick={onClick} disabled={disabled}>
+    <button className="btn btn-icon" onClick={onClick} disabled={disabled} type="button">
       <span className="btn-content-icon" aria-hidden="true">
         {icon}
       </span>
