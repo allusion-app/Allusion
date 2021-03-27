@@ -134,7 +134,7 @@ const MasonryRenderer = observer(
     }, [containerWidth, handleResize, thumbnailSize, viewMethod]);
 
     return !(containerHeight && layoutTimestamp) ? (
-      <p>loading...</p>
+      <i>Loading layout...</i>
     ) : (
       <VirtualizedRenderer
         className="masonry"
