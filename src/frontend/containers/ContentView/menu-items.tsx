@@ -44,6 +44,29 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
   );
 };
 
+export const SlideFileViewerMenuItems = ({
+  file,
+  uiStore,
+}: {
+  file: ClientFile;
+  uiStore: UiStore;
+}) => {
+  const handlePreviewWindow = () => {
+    uiStore.selectFile(file, true);
+    uiStore.openPreviewWindow();
+  };
+
+  return (
+    <>
+      <MenuItem
+        onClick={handlePreviewWindow}
+        text="Open In Preview Window"
+        icon={IconSet.PREVIEW}
+      />
+    </>
+  );
+};
+
 export const ExternalAppMenuItems = ({ path }: { path: string }) => (
   <>
     <MenuItem

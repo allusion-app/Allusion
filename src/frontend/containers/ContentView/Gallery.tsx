@@ -10,7 +10,12 @@ import { throttle } from '../../utils';
 import { GalleryCommand, GallerySelector } from './GalleryItem';
 import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';
-import { ExternalAppMenuItems, FileViewerMenuItems, MissingFileMenuItems } from './menu-items';
+import {
+  ExternalAppMenuItems,
+  FileViewerMenuItems,
+  MissingFileMenuItems,
+  SlideFileViewerMenuItems,
+} from './menu-items';
 import SlideMode from './SlideMode';
 
 type Dimension = { width: number; height: number };
@@ -106,7 +111,16 @@ const Layout = ({
   }, [fileStore, handleFileSelect]);
 
   if (uiStore.isSlideMode) {
-    return <SlideMode contentRect={contentRect} />;
+    return (
+      <SlideMode
+        contentRect={contentRect}
+        lastSelectionIndex={lastSelectionIndex}
+        showContextMenu={showContextMenu}
+        select={handleFileSelect}
+        uiStore={uiStore}
+        fileStore={fileStore}
+      />
+    );
   }
   if (contentRect.width < 10) {
     return null;
@@ -202,6 +216,19 @@ export function createSubmitCommand(
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
             <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
+          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+        ]);
+        break;
+      }
+
+      case GallerySelector.ContextMenuSlide: {
+        const [file, x, y] = command.payload;
+        showContextMenu(x, y, [
+          file.isBroken ? (
+            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+          ) : (
+            <SlideFileViewerMenuItems file={file} uiStore={uiStore} />
           ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);

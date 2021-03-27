@@ -228,7 +228,7 @@ export const MasonryCell = observer(
   },
 );
 
-class GalleryEventHandler {
+export class GalleryEventHandler {
   constructor(public file: ClientFile, public submitCommand: (command: GalleryCommand) => void) {}
   get handlers() {
     return {
@@ -427,6 +427,7 @@ export const enum GallerySelector {
   Click = 'click',
   DoubleClick = 'doubleClick',
   ContextMenu = 'contextMenu',
+  ContextMenuSlide = 'contextMenuSlide',
   DragStart = 'dragStart',
   DragOver = 'dragOver',
   DragLeave = 'dragLeave',
@@ -442,6 +443,7 @@ export type GalleryCommand =
   | ICommand<GallerySelector.Click, [file: ClientFile, metaKey: boolean, shiftKey: boolean]>
   | ICommand<GallerySelector.DoubleClick, ClientFile>
   | ICommand<GallerySelector.ContextMenu, [file: ClientFile, x: number, y: number]>
+  | ICommand<GallerySelector.ContextMenuSlide, [file: ClientFile, x: number, y: number]>
   | ICommand<GallerySelector.DragStart, ClientFile>
   | ICommand<GallerySelector.DragOver, ClientFile>
   | ICommand<GallerySelector.DragLeave, undefined>

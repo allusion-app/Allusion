@@ -1,21 +1,34 @@
-import React, { useCallback, useContext, useEffect } from 'react';
-import { observer } from 'mobx-react-lite';
-import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
-
-import { IconSet } from 'widgets';
-
-import { MissingImageFallback } from './GalleryItem';
-import Inspector from '../Inspector';
-import StoreContext from 'src/frontend/contexts/StoreContext';
 import { runInAction } from 'mobx';
+import { observer } from 'mobx-react-lite';
+import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
+import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import { IconSet } from 'widgets';
+import Inspector from '../Inspector';
+import { createSubmitCommand, ILayoutProps } from './Gallery';
+import { GallerySelector, MissingImageFallback } from './GalleryItem';
 
-interface SlideModeProps {
-  contentRect: { width: number; height: number };
-}
+const SlideMode = observer((props: ILayoutProps) => {
+  const { contentRect, uiStore, fileStore, showContextMenu } = props;
 
-const SlideMode = observer((props: SlideModeProps) => {
-  const { contentRect } = props;
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const file = fileStore.fileList[uiStore.firstItem];
+
+  const dndData = useContext(TagDnDContext);
+  const submitCommand = useMemo(
+    () => createSubmitCommand(dndData, fileStore, () => null, showContextMenu, uiStore),
+    [dndData, fileStore, showContextMenu, uiStore],
+  );
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      submitCommand({
+        selector: GallerySelector.ContextMenuSlide,
+        payload: [file, e.clientX, e.clientY],
+      });
+    },
+    [file, submitCommand],
+  );
 
   // Go to the first selected image on load
   useEffect(() => {
@@ -118,11 +131,9 @@ const SlideMode = observer((props: SlideModeProps) => {
   //   []);
   const contentWidth = contentRect.width - (uiStore.isInspectorOpen ? inspectorWidth : 0);
 
-  const file = fileStore.fileList[uiStore.firstItem];
-
   // TODO: If image is broken, cannot go back/forward
   return (
-    <div id="slide-mode">
+    <div id="slide-mode" onContextMenu={handleContextMenu}>
       {file.isBroken ? (
         <MissingImageFallback
           style={{
