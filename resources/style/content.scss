@@ -206,6 +206,8 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: calc(100% - 32px); // minus thumbnail and some padding
+        margin-top: 4px; // align with other text cells
+        padding: 2px;
       }
     }
 
@@ -278,7 +280,8 @@
       width: calc(50% - 180px);
     }
 
-    padding: 4px;
+    padding: 4px 8px 4px 0px;
+    padding-left: 0;
     font-weight: bold;
     overflow: hidden;
 

@@ -75,7 +75,11 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
             <div className="thumbnail-placeholder" />
           )}
         </ThumbnailContainer>{' '}
-        <Tooltip
+        <span className="filename" ref={portalTriggerRef}>
+          {file.name}
+        </span>
+        {/* TODO: Tooltip would be nice, but it's mega sloowwww. a title attribute would be nice */}
+        {/* <Tooltip
           portalTriggerRef={portalTriggerRef}
           content={ellipsize(file.absolutePath, 80, 'middle')}
           trigger={
@@ -84,7 +88,7 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
             </span>
           }
           placement="bottom-start"
-        />
+        /> */}
       </div>
 
       {/* Dimensions */}
