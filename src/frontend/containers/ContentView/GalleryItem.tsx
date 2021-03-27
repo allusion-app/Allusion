@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
-import { ellipsize, formatDateTime, humanFileSize } from 'src/frontend/utils';
+import { encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
 import { IconSet, Tag } from 'widgets';
 import { Tooltip } from 'widgets/popovers';
 import FileStore from '../../stores/FileStore';
@@ -356,7 +356,7 @@ const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: IThumb
     };
     return (
       <img
-        src={forceNoThumbnail ? file.absolutePath : thumbnailPath}
+        src={encodeFilePath(forceNoThumbnail ? file.absolutePath : thumbnailPath)}
         onError={handleImageError}
         alt=""
       />

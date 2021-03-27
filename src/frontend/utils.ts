@@ -357,6 +357,13 @@ export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): 
   return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailType}`);
 };
 
+/** Use this for any <img src attribute! */
+export function encodeFilePath(filePath: string): string {
+  // Take into account weird file names like "C:/Images/https_%2F%2Fcdn/.../my-image.jpg"
+  const basename = path.basename(filePath);
+  return filePath.substr(0, filePath.length - basename.length) + encodeURI(basename);
+}
+
 export function needsThumbnail(width: number, height: number) {
   return width > thumbnailMaxSize || height > thumbnailMaxSize;
 }
