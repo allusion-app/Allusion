@@ -1,4 +1,4 @@
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
@@ -83,18 +83,20 @@ const Layout = ({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      let index = lastSelectionIndex.current;
-      if (index === undefined) {
-        return;
-      }
-      if (e.key === 'ArrowLeft' && index > 0) {
-        index -= 1;
-      } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
-        index += 1;
-      } else {
-        return;
-      }
-      handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      runInAction(() => {
+        let index = lastSelectionIndex.current;
+        if (index === undefined) {
+          return;
+        }
+        if (e.key === 'ArrowLeft' && index > 0) {
+          index -= 1;
+        } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
+          index += 1;
+        } else {
+          return;
+        }
+        handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      });
     };
 
     const throttledKeyDown = throttle(onKeyDown, 50);

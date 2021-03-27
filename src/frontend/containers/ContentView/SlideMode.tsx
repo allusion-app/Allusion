@@ -163,7 +163,13 @@ const ZoomableImage = ({ src, width, height, prevImage, nextImage }: IZoomableIm
         }}
       >
         {/* https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
-        <PinchZoomPan position="center" zoomButtons={false} doubleTapBehavior="zoom">
+        <PinchZoomPan
+          position="center"
+          zoomButtons={false}
+          doubleTapBehavior="zoom"
+          // Force a re-render when the image changes, in order to reset the zoom level
+          key={src}
+        >
           <img src={src} alt={src} />
         </PinchZoomPan>
 
