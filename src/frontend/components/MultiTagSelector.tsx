@@ -2,6 +2,8 @@ import React, { useContext, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
+import { InputGroup } from '@blueprintjs/core';
+
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { generateId } from 'src/entities/ID';
 
@@ -21,6 +23,7 @@ interface IMultiTagSelector {
   tagLabel?: (item: ClientTag) => string;
   disabled?: boolean;
   extraOption?: { label: string; action: () => void; icon?: JSX.Element };
+  defaultPrevented?: boolean;
 }
 
 const MultiTagSelector = observer((props: IMultiTagSelector) => {
@@ -80,6 +83,12 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                 onChange={(e) => {
                   setIsOpen(true);
                   setQuery(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
                 }}
                 aria-controls={listboxID.current}
               />
