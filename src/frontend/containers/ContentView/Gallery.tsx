@@ -110,6 +110,7 @@ const Layout = ({
     return () => window.removeEventListener('keydown', throttledKeyDown);
   }, [fileStore, handleFileSelect]);
 
+  // TODO: Keep masonry layout active while slide is open: no loading time when returning
   if (uiStore.isSlideMode) {
     return (
       <SlideMode

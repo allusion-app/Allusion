@@ -62,11 +62,11 @@ interface IToastProps {
 
 type IdentifiableToast = IToastProps & { id: ID };
 
-const Toast = ({ message, id, actionLabel, action }: IdentifiableToast) => {
+const Toast = ({ message, id, actionLabel, action: toastAction }: IdentifiableToast) => {
   return (
     <div className="toast">
       <span>{message}</span>
-      {action && <Button text={actionLabel || ''} onClick={action} />}
+      {toastAction && <Button text={actionLabel || ''} onClick={toastAction} />}
       <Button text="Dismiss" onClick={() => AppToaster.dismiss(id)} />
     </div>
   );
