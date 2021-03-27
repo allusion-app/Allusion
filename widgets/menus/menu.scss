@@ -23,7 +23,10 @@
 
   &[aria-expanded='true'],
   &:hover,
-  &:focus {
+  &:focus,
+  &.focused {
+    // TODO: different style for .focused than :hover:
+    // Blueprint makes text-color primary for hover, only background for focused
     color: var(--text-color-strong);
     background: var(--hover-color);
   }

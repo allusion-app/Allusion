@@ -132,7 +132,7 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
       key: this.key,
       valueType: this.valueType,
       operator: this.operator as ArrayOperatorType,
-      value: this.value.slice(),
+      value: this.value.toJSON(),
     };
   };
 
@@ -154,7 +154,7 @@ export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
 }
 
 export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
-  @observable public value: ID[];
+  public readonly value = observable<ID>([]);
   @observable public label: string;
 
   constructor(
@@ -165,7 +165,9 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
     dict?: SearchKeyDict<T>,
   ) {
     super(key, 'array', operator, dict);
-    this.value = id ? [id] : [];
+    if (id) {
+      this.value.push(id);
+    }
     this.label = label;
     makeObservable(this);
   }
@@ -180,7 +182,7 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
       key: this.key,
       valueType: this.valueType,
       operator: this.operator as ArrayOperatorType,
-      value: this.value,
+      value: this.value.toJSON(),
     };
   };
 
@@ -189,7 +191,7 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 
   @action.bound setValue(value: ID, label: string): void {
-    this.value = value ? [value] : [];
+    this.value.replace([value]);
     this.label = label;
   }
 }

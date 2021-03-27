@@ -1,17 +1,13 @@
-import React, { useContext, useRef, useState } from 'react';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { action } from 'mobx';
-
-import { InputGroup } from '@blueprintjs/core';
-
-import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
-
-import StoreContext from '../contexts/StoreContext';
-
-import { IconButton, IconSet, Listbox, Option, Tag } from 'widgets';
-import { MenuDivider } from 'widgets/menus';
+import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { IconButton, IconSet, Option, Tag } from 'widgets';
+import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
+import { IOption } from 'widgets/Combobox/Listbox';
 import { Flyout } from 'widgets/popovers';
+import StoreContext from '../contexts/StoreContext';
 
 interface IMultiTagSelector {
   selection: ClientTag[];
@@ -43,8 +39,71 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const normalizedQuery = query.toLowerCase();
+
   const suggestions = tagStore.tagList.filter(
     (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
+  );
+
+  // Assemble list of options
+  const options = useMemo(() => {
+    const res: (IOption & { id: string })[] = suggestions.map((t) => {
+      const isSelected = selection.includes(t);
+      return {
+        id: t.id,
+        selected: isSelected,
+        value: t.name,
+        onClick: () => {
+          if (!isSelected) {
+            onSelect(t);
+          } else {
+            onDeselect(t);
+          }
+          // setIsOpen(false);
+          setQuery('');
+        },
+      };
+    });
+
+    if (onCreate && suggestions.length === 0) {
+      res.push({
+        id: 'create',
+        selected: false,
+        value: `Create Tag "${query}"`,
+        icon: IconSet.TAG_ADD,
+        onClick: async () => {
+          onSelect(await onCreate(query));
+          setQuery('');
+          // setIsOpen(false);
+        },
+      });
+    }
+    if (extraOption) {
+      res.push({
+        id: 'extra-option',
+        value: extraOption.label,
+        onClick: extraOption.action,
+        icon: extraOption.icon,
+      });
+    }
+    return res;
+  }, [extraOption, onCreate, onDeselect, onSelect, query, selection, suggestions]);
+
+  // Todo: clamp this value when list size changes
+  const [focusedOption, setFocusedOption] = useState(0);
+  const listRef = useRef<HTMLUListElement>(null);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Backspace') {
+        e.stopPropagation();
+
+        // Remove last item from selection with backspace
+        if (query.length === 0 && selection.length > 0) {
+          onDeselect(selection[selection.length - 1]);
+        }
+      }
+      controlledListBoxKeyDown(e, listRef, setFocusedOption, focusedOption, options.length);
+    },
+    [focusedOption, onDeselect, options.length, query.length, selection],
   );
 
   return (
@@ -84,12 +143,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                   setIsOpen(true);
                   setQuery(e.target.value);
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Backspace') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }
-                }}
+                onKeyDown={handleKeyDown}
                 aria-controls={listboxID.current}
               />
             </div>
@@ -97,50 +151,11 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
           </div>
         }
       >
-        <Listbox id={listboxID.current} multiselectable>
-          {suggestions.map((t) => {
-            const isSelected = selection.includes(t);
-            return (
-              <Option
-                key={t.id}
-                selected={isSelected}
-                value={t.name}
-                onClick={() => {
-                  if (!isSelected) {
-                    onSelect(t);
-                  } else {
-                    onDeselect(t);
-                  }
-                  setIsOpen(false);
-                  setQuery('');
-                }}
-              />
-            );
+        <ControlledListbox id={listboxID.current} multiselectable listRef={listRef}>
+          {options.map((o, i) => {
+            return <Option key={o.id} {...o} focused={focusedOption === i} />;
           })}
-          {onCreate && suggestions.length === 0 ? (
-            <Option
-              key="create"
-              selected={false}
-              value={`Create Tag "${query}"`}
-              icon={IconSet.TAG_ADD}
-              onClick={async () => {
-                onSelect(await onCreate(query));
-                setQuery('');
-                setIsOpen(false);
-              }}
-            />
-          ) : null}
-          {extraOption && (
-            <>
-              <MenuDivider />
-              <Option
-                value={extraOption.label}
-                onClick={extraOption.action}
-                icon={extraOption.icon}
-              />
-            </>
-          )}
-        </Listbox>
+        </ControlledListbox>
       </Flyout>
     </div>
   );
