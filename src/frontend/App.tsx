@@ -81,6 +81,8 @@ const App = observer(() => {
           uiStore.openPreviewWindow();
           e.preventDefault(); // prevent scrolling with space when opening the preview window
           // Search
+        } else if (matches(hotkeyMap.search)) {
+          (document.querySelector('.searchbar input') as HTMLElement)?.focus();
         } else if (matches(hotkeyMap.advancedSearch)) {
           uiStore.toggleAdvancedSearch();
           // View

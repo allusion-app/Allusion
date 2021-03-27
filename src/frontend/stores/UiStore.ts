@@ -43,6 +43,7 @@ export interface IHotkeyMap {
   viewMasonryVertical: string;
   viewMasonryHorizontal: string;
   viewSlide: string;
+  search: string;
   advancedSearch: string;
 
   // Other
@@ -65,6 +66,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   viewGrid: 'alt + 2',
   viewMasonryVertical: 'alt + 3',
   viewMasonryHorizontal: 'alt + 4',
+  search: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
 };
