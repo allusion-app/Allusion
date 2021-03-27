@@ -1,3 +1,4 @@
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
@@ -105,7 +106,9 @@ const VirtualizedRenderer = observer(
     useLayoutEffect(() => {
       if (lastSelIndex === undefined) {
         // if an element is selected, we'll scroll to that anyways using the next useLayoutEffect
-        scrollToIndex(uiStore.firstItem, 'start');
+        runInAction(() => {
+          scrollToIndex(uiStore.firstItem, 'start');
+        });
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

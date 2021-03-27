@@ -598,7 +598,7 @@ class UiStore {
         Object.entries<string>(prefs.hotkeyMap).forEach(
           ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );
-        console.log('recovered', prefs.hotkeyMap, this.hotkeyMap);
+        console.info('recovered', prefs.hotkeyMap);
       } catch (e) {
         console.error('Cannot parse persistent preferences', e);
       }

@@ -1,7 +1,6 @@
 import { action, observable, makeObservable } from 'mobx';
 
 import { ID, ISerializable } from './ID';
-import { IFile } from './File';
 
 import { camelCaseToSpaced } from 'src/frontend/utils';
 

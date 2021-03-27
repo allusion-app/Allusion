@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
 import { debounce } from 'src/frontend/utils';
 import { getThumbnailSize, ILayoutProps } from '../Gallery';
@@ -48,8 +48,6 @@ const MasonryRenderer = observer(
     const viewMethod = uiStore.method as SupportedViewMethod;
     const numImages = fileStore.fileList.length;
 
-    const debouncedRecompute = useMemo(() => debounce(worker.recompute, 200), []);
-
     // TODO: vertical keyboard navigation with lastSelectionIndex
 
     // Initialize on mount
@@ -59,10 +57,15 @@ const MasonryRenderer = observer(
           if (!worker.isInitialized) {
             await worker.initialize(numImages);
           }
-          const containerHeight = await worker.compute(fileStore.fileList, containerWidth, {
-            thumbSize: thumbnailSize,
-            type: ViewMethodLayoutDict[viewMethod],
-          });
+          const containerHeight = await worker.compute(
+            fileStore.fileList,
+            numImages,
+            containerWidth,
+            {
+              thumbSize: thumbnailSize,
+              type: ViewMethodLayoutDict[viewMethod],
+            },
+          );
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
           setForceRerenderObj(new Date());
@@ -70,7 +73,6 @@ const MasonryRenderer = observer(
           console.error(e);
         }
       })();
-      // return () => void worker.free()?.catch(console.error); // free memory when unmounting
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -78,14 +80,19 @@ const MasonryRenderer = observer(
     useEffect(() => {
       if (containerHeight !== undefined && containerWidth > 100) {
         // todo: could debounce if needed. Or only recompute in increments?
-        console.log('Masonry: Items changed, computing new layout!');
+        console.debug('Masonry: Items changed, computing new layout!');
         (async function onItemOrderChange() {
           try {
             console.time('recompute-layout');
-            const containerHeight = await worker.compute(fileStore.fileList, containerWidth, {
-              thumbSize: thumbnailSize,
-              type: ViewMethodLayoutDict[viewMethod],
-            });
+            const containerHeight = await worker.compute(
+              fileStore.fileList,
+              numImages,
+              containerWidth,
+              {
+                thumbSize: thumbnailSize,
+                type: ViewMethodLayoutDict[viewMethod],
+              },
+            );
             console.timeEnd('recompute-layout');
             setContainerHeight(containerHeight);
             setLayoutTimestamp(new Date());
@@ -104,7 +111,7 @@ const MasonryRenderer = observer(
         thumbnailSize: number,
         viewMethod: SupportedViewMethod,
       ) {
-        console.log('Masonry: Environment changed! Recomputing layout!');
+        console.debug('Masonry: Environment changed! Recomputing layout!');
         try {
           console.time('recompute-layout');
           const containerHeight = await worker.recompute(containerWidth, {

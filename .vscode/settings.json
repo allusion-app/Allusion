@@ -1,12 +1,5 @@
 {
-  "eslint.validate": [
-    "javascript",
-    "typescript",
-    "javascriptreact",
-    "typescriptreact"
-  ],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true,
     "source.fixAll": true
   },
   "prettier.configPath": ".prettierrc.json"

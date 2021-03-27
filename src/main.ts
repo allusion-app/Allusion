@@ -1,3 +1,8 @@
+import log from 'electron-log';
+console.log = log.log;
+console.warn = log.warn;
+console.error = log.error;
+
 import {
   app,
   BrowserWindow,
@@ -76,7 +81,7 @@ function createTrayMenu() {
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-  let mainOptions: BrowserWindowConstructorOptions = {
+  const mainOptions: BrowserWindowConstructorOptions = {
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons (is this still relevant?)
     // Documentation: https://www.electronjs.org/docs/all#alternatives-on-macos
     // could go entirely custom with 'customButtonsOnHover'

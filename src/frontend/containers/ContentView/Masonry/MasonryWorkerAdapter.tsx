@@ -28,14 +28,19 @@ export class MasonryWorkerAdapter {
     (window as any).layout = this.getItemLayout.bind(this);
     this.isInitialized = true;
   }
-  async compute(imgs: ClientFile[], containerWidth: number, opts: Partial<MasonryOpts>) {
+  async compute(
+    imgs: ClientFile[],
+    numImgs: number,
+    containerWidth: number,
+    opts: Partial<MasonryOpts>,
+  ) {
     if (!this.items || !this.worker) return;
 
-    if (this.prevNumImgs !== imgs.length) {
-      await this.worker.resize(imgs.length);
+    if (this.prevNumImgs !== numImgs) {
+      await this.worker.resize(numImgs);
     }
-    this.prevNumImgs = imgs.length;
 
+    this.prevNumImgs = numImgs;
     runInAction(() => {
       for (let i = 0; i < imgs.length; i++) {
         this.items![i * 5 + 0] = imgs[i].width;
