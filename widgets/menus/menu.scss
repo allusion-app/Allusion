@@ -4,6 +4,9 @@
   margin: 0;
   padding: 0.5rem;
   min-width: 10rem;
+  max-height: 20rem;
+  max-width: 20rem;
+  overflow: hidden auto;
 }
 
 [role='menu'] [role='group'] {

@@ -219,6 +219,10 @@ export function createSubmitCommand(
           ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);
+        if (!uiStore.fileSelection.has(file)) {
+          // replace selection with context menu, like Windows file explorer
+          uiStore.selectFile(file, true);
+        }
         break;
       }
 

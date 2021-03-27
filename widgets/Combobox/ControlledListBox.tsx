@@ -20,6 +20,7 @@ export const ControlledListbox = (props: IControlledListBox) => {
   );
 };
 
+const scrollOpts: ScrollIntoViewOptions = { block: 'nearest' };
 export function controlledListBoxKeyDown(
   event: React.KeyboardEvent,
   listRef: React.RefObject<HTMLUListElement>,
@@ -39,7 +40,7 @@ export function controlledListBoxKeyDown(
       const prevIndex = (activeIndex - 1 + numItems) % numItems;
       setActiveIndex(prevIndex);
       const prevElement = listRef.current?.childNodes[prevIndex] as HTMLElement | undefined;
-      prevElement?.scrollIntoView();
+      prevElement?.scrollIntoView(scrollOpts);
       break;
 
     case 'ArrowDown':
@@ -47,7 +48,7 @@ export function controlledListBoxKeyDown(
       const nextIndex = (activeIndex + 1) % numItems;
       setActiveIndex(nextIndex);
       const nextElement = listRef.current?.childNodes[nextIndex] as HTMLElement | undefined;
-      nextElement?.scrollIntoView();
+      nextElement?.scrollIntoView(scrollOpts);
       break;
 
     case ' ':

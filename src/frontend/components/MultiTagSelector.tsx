@@ -1,4 +1,4 @@
-import { action, runInAction } from 'mobx';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
@@ -59,7 +59,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
             onDeselect(t);
           }
           // setIsOpen(false);
-          setQuery('');
+          // setQuery('');
         },
       };
     });
