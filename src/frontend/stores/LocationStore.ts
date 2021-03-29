@@ -58,8 +58,10 @@ class LocationStore {
         AppToaster.show({
           message: 'This appears to be taking longer than usual.',
           timeout: 0,
-          action: RendererMessenger.reload,
-          actionLabel: 'Retry?',
+          clickAction: {
+            onClick: RendererMessenger.reload,
+            label: 'Retry?',
+          },
         });
       }, 5000);
 

@@ -6,6 +6,7 @@ import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { IconButton, IconSet, Option, Tag } from 'widgets';
 import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
 import { IOption } from 'widgets/Combobox/Listbox';
+import { MenuDivider } from 'widgets/menus';
 import { Flyout } from 'widgets/popovers';
 import StoreContext from '../contexts/StoreContext';
 
@@ -46,7 +47,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
 
   // Assemble list of options
   const options = useMemo(() => {
-    const res: (IOption & { id: string })[] = suggestions.map((t) => {
+    const res: (IOption & { id: string; divider?: boolean })[] = suggestions.map((t) => {
       const isSelected = selection.includes(t);
       return {
         id: t.id,
@@ -83,6 +84,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
         value: extraOption.label,
         onClick: extraOption.action,
         icon: extraOption.icon,
+        divider: true,
       });
     }
     return res;
@@ -153,7 +155,12 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
       >
         <ControlledListbox id={listboxID.current} multiselectable listRef={listRef}>
           {options.map((o, i) => {
-            return <Option key={o.id} {...o} focused={focusedOption === i} />;
+            return (
+              <>
+                {o.divider && <MenuDivider />}
+                <Option key={o.id} {...o} focused={focusedOption === i} />
+              </>
+            );
           })}
         </ControlledListbox>
       </Flyout>

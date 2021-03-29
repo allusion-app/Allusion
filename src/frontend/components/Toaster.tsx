@@ -15,6 +15,7 @@ class ToastManager {
   }
 
   @action show(toast: IToastProps, id?: ID): ID {
+    console.log('adding', toast);
     if (id !== undefined) {
       const existing = this.toastList.findIndex((t) => t.id === id);
       if (existing !== -1) {
@@ -34,6 +35,7 @@ class ToastManager {
       id: id ?? generateId(),
     };
     this.toastList.push(toastWithKey);
+    console.log(toastWithKey, toast, this.toastList);
     if (toast.timeout > 0) {
       const timerId = window.setTimeout(() => this.dismiss(toastWithKey.id), toast.timeout);
       this.timeouts.set(toastWithKey.id, timerId);
@@ -55,18 +57,21 @@ export const AppToaster = new ToastManager();
 
 interface IToastProps {
   message: string;
-  action?: () => void;
-  actionLabel?: string;
+  // "action" apparently is a reserverd keyword, it gets removed by mobx...
+  clickAction?: {
+    label: string;
+    onClick: () => void;
+  };
   timeout: number;
 }
 
 type IdentifiableToast = IToastProps & { id: ID };
 
-const Toast = ({ message, id, actionLabel, action: toastAction }: IdentifiableToast) => {
+const Toast = ({ message, id, clickAction }: IdentifiableToast) => {
   return (
     <div className="toast">
       <span>{message}</span>
-      {toastAction && <Button text={actionLabel || ''} onClick={toastAction} />}
+      {clickAction?.onClick && <Button text={clickAction.label} onClick={clickAction.onClick} />}
       <Button text="Dismiss" onClick={() => AppToaster.dismiss(id)} />
     </div>
   );
