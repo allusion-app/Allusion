@@ -116,6 +116,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       });
     });
     observer.observe(panelRef.current, { attributes: true });
+    return () => observer.disconnect();
   }, []);
 
   return (

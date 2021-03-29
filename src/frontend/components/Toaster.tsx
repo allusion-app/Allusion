@@ -15,7 +15,6 @@ class ToastManager {
   }
 
   @action show(toast: IToastProps, id?: ID): ID {
-    console.log('adding', toast);
     if (id !== undefined) {
       const existing = this.toastList.findIndex((t) => t.id === id);
       if (existing !== -1) {
@@ -35,7 +34,6 @@ class ToastManager {
       id: id ?? generateId(),
     };
     this.toastList.push(toastWithKey);
-    console.log(toastWithKey, toast, this.toastList);
     if (toast.timeout > 0) {
       const timerId = window.setTimeout(() => this.dismiss(toastWithKey.id), toast.timeout);
       this.timeouts.set(toastWithKey.id, timerId);
