@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext, useRef, useState } from 'react';
+import React, { ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -15,6 +15,7 @@ import { countFileTags } from '../../components/FileTag';
 import { Tooltip } from './PrimaryCommands';
 import UiStore from 'src/frontend/stores/UiStore';
 import TagStore from 'src/frontend/stores/TagStore';
+import { debounce } from 'src/frontend/utils';
 
 const TagFilesPopover = observer(() => {
   const { uiStore, tagStore } = useContext(StoreContext);
@@ -97,8 +98,33 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     }
   });
 
+  // Remember the height when panel is resized
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [storedHeight] = useState(localStorage.getItem('tag-editor-height'));
+  useEffect(() => {
+    if (!panelRef.current) return;
+    const storeHeight = debounce((val: string) => localStorage.setItem('tag-editor-height', val));
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (
+          mutation.type == 'attributes' &&
+          mutation.attributeName === 'style' &&
+          panelRef.current
+        ) {
+          storeHeight(panelRef.current.style.height);
+        }
+      });
+    });
+    observer.observe(panelRef.current, { attributes: true });
+  }, []);
+
   return (
-    <div id="tag-editor" onKeyDown={handleKeyDown}>
+    <div
+      id="tag-editor"
+      onKeyDown={handleKeyDown}
+      ref={panelRef}
+      style={{ height: storedHeight || undefined }}
+    >
       <input
         autoFocus
         type="text"
