@@ -19,6 +19,7 @@ interface IMultiTagSelector {
   onCreate?: (name: string) => Promise<ClientTag>;
   tagLabel?: (item: ClientTag) => string;
   disabled?: boolean;
+  autoFocus?: boolean;
   extraOption?: { label: string; action: () => void; icon?: JSX.Element };
   defaultPrevented?: boolean;
 }
@@ -34,6 +35,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     tagLabel = action((t: ClientTag) => t.name),
     disabled,
     extraOption,
+    autoFocus,
   } = props;
   const listboxID = useRef(generateId());
   const { tagStore } = useContext(StoreContext);
@@ -147,6 +149,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                 }}
                 onKeyDown={handleKeyDown}
                 aria-controls={listboxID.current}
+                autoFocus={autoFocus}
               />
             </div>
             <IconButton icon={IconSet.CLOSE} text="Close" onClick={onClear} />
@@ -156,10 +159,10 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
         <ControlledListbox id={listboxID.current} multiselectable listRef={listRef}>
           {options.map((o, i) => {
             return (
-              <>
+              <React.Fragment key={o.id}>
                 {o.divider && <MenuDivider />}
-                <Option key={o.id} {...o} focused={focusedOption === i} />
-              </>
+                <Option {...o} focused={focusedOption === i} />
+              </React.Fragment>
             );
           })}
         </ControlledListbox>

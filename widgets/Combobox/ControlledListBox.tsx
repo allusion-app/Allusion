@@ -11,16 +11,12 @@ export const ControlledListbox = (props: IControlledListBox) => {
   return (
     <ul id={id} tabIndex={-1} role="listbox" aria-multiselectable={multiselectable} ref={listRef}>
       {children}
-      {/* {React.Children.map(children, (child, index) =>
-        React.isValidElement(child)
-          ? React.cloneElement(child, { focused: index === activeIndex })
-          : child,
-      )} */}
     </ul>
   );
 };
 
 const scrollOpts: ScrollIntoViewOptions = { block: 'nearest' };
+
 export function controlledListBoxKeyDown(
   event: React.KeyboardEvent,
   listRef: React.RefObject<HTMLUListElement>,
@@ -28,7 +24,8 @@ export function controlledListBoxKeyDown(
   activeIndex: number,
   numItems: number,
 ) {
-  const activeElement = listRef.current?.childNodes[activeIndex] as HTMLElement | undefined;
+  const optionElems = listRef.current?.querySelectorAll('li:not([role="separator"])') || [];
+  const activeElement = optionElems[activeIndex] as HTMLElement | undefined;
   switch (event.key) {
     case 'Enter':
       event.stopPropagation();
@@ -37,25 +34,35 @@ export function controlledListBoxKeyDown(
 
     case 'ArrowUp':
       event.stopPropagation();
+      event.preventDefault();
       const prevIndex = (activeIndex - 1 + numItems) % numItems;
       setActiveIndex(prevIndex);
-      const prevElement = listRef.current?.childNodes[prevIndex] as HTMLElement | undefined;
-      prevElement?.scrollIntoView(scrollOpts);
+      if (prevIndex === numItems - 1 && listRef.current) {
+        listRef.current.scrollTop = listRef.current.scrollHeight;
+      } else {
+        const prevElement = optionElems[prevIndex] as HTMLElement | undefined;
+        prevElement?.scrollIntoView(scrollOpts);
+      }
       break;
 
     case 'ArrowDown':
       event.stopPropagation();
+      event.preventDefault();
       const nextIndex = (activeIndex + 1) % numItems;
       setActiveIndex(nextIndex);
-      const nextElement = listRef.current?.childNodes[nextIndex] as HTMLElement | undefined;
-      nextElement?.scrollIntoView(scrollOpts);
+      if (nextIndex === 0 && listRef.current) {
+        listRef.current.scrollTop = 0;
+      } else {
+        const nextElement = optionElems[nextIndex] as HTMLElement | undefined;
+        nextElement?.scrollIntoView(scrollOpts);
+      }
       break;
 
     case ' ':
       // Prevents scroll behaviour
       event.preventDefault();
       // If the listbox allows multi selection, the click event will toggle the selection.
-      if (event.currentTarget.getAttribute('aria-multiselectable') === 'true') {
+      if (listRef.current?.getAttribute('aria-multiselectable') === 'true') {
         event.stopPropagation();
         activeElement?.click();
       }
