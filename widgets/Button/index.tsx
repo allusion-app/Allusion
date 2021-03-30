@@ -49,6 +49,7 @@ const IconButton = ({ text, icon, onClick, disabled, large }: IIconButton) => {
       className={`btn btn-icon${large ? ' btn-icon-large' : ''}`}
       onClick={onClick}
       disabled={disabled}
+      type="button"
     >
       <span className="btn-content-icon" aria-hidden="true">
         {icon}

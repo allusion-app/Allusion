@@ -217,7 +217,7 @@ impl Layout {
         col_heights.iter().max().map_or(0, |max| *max)
     }
 
-    // TODO: Could create our own Grid version as well: get rid of react-window
+    // Simple Grid layout, replacement for the react-window dependency
     pub fn compute_grid(&mut self, container_width: u16) -> u32 {
         // Main idea: Put items in a grid.
         let (n_columns, column_width) = {
@@ -232,7 +232,7 @@ impl Layout {
         let n_rows = self.num_items / usize::from(n_columns);
         let rest = self.num_items % usize::from(n_columns);
         let item_size = column_width - self.padding;
-        let row_height = u32::from(column_width + self.padding);
+        let row_height = u32::from(column_width);
 
         let (current_items, _) = self.items.split_at_mut(self.num_items);
 
@@ -250,8 +250,8 @@ impl Layout {
 
                 index += 1;
                 left += column_width;
-                top_offset += row_height;
             }
+            top_offset += row_height;
         }
 
         left = 0;
@@ -264,10 +264,14 @@ impl Layout {
 
             index += 1;
             left += column_width;
+        }
+
+        // If there are items in the last extra row, the height increases by one row
+        if rest > 0 {
             top_offset += row_height;
         }
 
-        // Return height of longest column
+        // Return total height of the grid
         top_offset
     }
 }

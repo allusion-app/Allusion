@@ -55,6 +55,7 @@ interface IBaseButton {
   onClick?: (event: React.MouseEvent) => void;
   showLabel?: 'always' | 'never';
   tooltip?: string;
+  disabled?: boolean;
 }
 
 interface IToolbarButton extends IBaseButton {
@@ -121,7 +122,7 @@ interface IToolbarToggleButton extends IBaseButton {
 }
 
 const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls } = props;
+  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls, disabled } = props;
   return (
     <ToolbarButton
       id={id}
@@ -132,6 +133,7 @@ const ToolbarToggleButton = (props: IToolbarToggleButton) => {
       showLabel={showLabel}
       tooltip={tooltip}
       controls={controls}
+      disabled={disabled}
     />
   );
 };

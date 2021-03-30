@@ -1,33 +1,29 @@
-import React, { useMemo, useState, useCallback, useReducer, useContext, useRef } from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-
+import React, { useCallback, useContext, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import UiStore from 'src/frontend/stores/UiStore';
-import useContextMenu from 'src/frontend/hooks/useContextMenu';
-import { IconSet, Tree } from 'widgets';
-import { Toolbar, ToolbarButton, ContextMenu } from 'widgets/menus';
-import { ITreeItem, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/Tree';
-import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
-import { TagItemContextMenu } from './ContextMenu';
-import { formatTagCountText } from 'src/frontend/utils';
-import { IExpansionState } from '../../types';
-import { Action, State, Factory, reducer } from './state';
+import { TagRemoval } from 'src/frontend/components/RemovalAlert';
+import StoreContext from 'src/frontend/contexts/StoreContext';
 import TagDnDContext, { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
+import useContextMenu from 'src/frontend/hooks/useContextMenu';
+import UiStore from 'src/frontend/stores/UiStore';
+import { formatTagCountText } from 'src/frontend/utils';
+import { IconSet, Tree } from 'widgets';
+import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
+import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
+import { IExpansionState } from '../../types';
+import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
+import { TagItemContextMenu } from './ContextMenu';
+import { Action, Factory, reducer, State } from './state';
 
 interface ILabelProps {
   text: string;
   setText: (value: string) => void;
   isEditing: boolean;
   onSubmit: (target: EventTarget & HTMLInputElement) => void;
-  onClick: (event: React.MouseEvent) => void;
-  onDoubleClick?: (event: React.MouseEvent) => void;
 }
-
-// const isValid = (text: string) => text.trim().length > 0;
 
 const Label = (props: ILabelProps) =>
   props.isEditing ? (
@@ -59,9 +55,7 @@ const Label = (props: ILabelProps) =>
       // className={!isValidInput ? 'bp3-intent-danger' : ''}
     />
   ) : (
-    <div onClick={props.onClick} onDoubleClick={props.onDoubleClick}>
-      {props.text}
-    </div>
+    <div>{props.text}</div>
   );
 
 interface ITagItemProps {
@@ -128,7 +122,7 @@ const TagItem = observer((props: ITagItemProps) => {
           if (ctx.length === 1) {
             name = ctx[0].name;
           } else {
-            const extraText = formatTagCountText(ctx.length - 1);
+            const extraText = formatTagCountText(ctx.length);
             if (extraText.length > 0) {
               name += ` (${extraText})`;
             }
@@ -144,6 +138,19 @@ const TagItem = observer((props: ITagItemProps) => {
       });
     },
     [dndData, nodeData, uiStore],
+  );
+
+  // Don't expand immediately on drag-over, only after hovering over it for a second or so
+  const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
+  const expandDelayed = useCallback(
+    (nodeId: string) => {
+      if (expandTimeoutId) clearTimeout(expandTimeoutId);
+      const t = window.setTimeout(() => {
+        dispatch(Factory.expandNode(nodeId));
+      }, HOVER_TIME_TO_EXPAND);
+      setExpandTimeoutId(t);
+    },
+    [expandTimeoutId, dispatch],
   );
 
   const handleDragOver = useCallback(
@@ -171,21 +178,24 @@ const TagItem = observer((props: ITagItemProps) => {
         const [top, bottom] = [rect.top + 8, rect.bottom - 8];
         if (posY <= top) {
           dropTarget.classList.add('top');
+          dropTarget.classList.remove('center');
           dropTarget.classList.remove('bottom');
         } else if (posY >= bottom) {
           dropTarget.classList.add('bottom');
+          dropTarget.classList.remove('center');
           dropTarget.classList.remove('top');
         } else {
           dropTarget.classList.remove('top');
+          dropTarget.classList.add('center');
           dropTarget.classList.remove('bottom');
         }
 
-        if (!expansion[nodeData.id]) {
-          dispatch(Factory.expandNode(nodeData.id));
+        if (!expansion[nodeData.id] && !expandTimeoutId) {
+          expandDelayed(nodeData.id);
         }
       });
     },
-    [dispatch, dndData, expansion, nodeData],
+    [dndData.source, expandDelayed, expandTimeoutId, expansion, nodeData],
   );
 
   const handleDragLeave = useCallback(
@@ -197,9 +207,13 @@ const TagItem = observer((props: ITagItemProps) => {
         event.currentTarget.dataset[DnDAttribute.Target] = 'false';
         event.currentTarget.classList.remove('top');
         event.currentTarget.classList.remove('bottom');
+        if (expandTimeoutId) {
+          clearTimeout(expandTimeoutId);
+          setExpandTimeoutId(undefined);
+        }
       }
     },
-    [dndData],
+    [dndData.source, expandTimeoutId],
   );
 
   const handleDrop = useCallback(
@@ -217,16 +231,20 @@ const TagItem = observer((props: ITagItemProps) => {
           }
         }
       });
+      event.currentTarget.dataset[DnDAttribute.Target] = 'false';
       event.currentTarget.classList.remove('top');
       event.currentTarget.classList.remove('bottom');
     },
     [dndData, nodeData, pos, uiStore],
   );
 
-  const handleSelect = useCallback((event: React.MouseEvent) => select(event, nodeData), [
-    nodeData,
-    select,
-  ]);
+  const handleSelect = useCallback(
+    (event: React.MouseEvent) => {
+      event.stopPropagation();
+      select(event, nodeData);
+    },
+    [nodeData, select],
+  );
 
   const handleQuickQuery = useCallback(
     (event: React.MouseEvent) => {
@@ -258,6 +276,8 @@ const TagItem = observer((props: ITagItemProps) => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onContextMenu={handleContextMenu}
+      onClick={handleQuickQuery}
+      onDoubleClick={handleRename}
     >
       <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>
       <Label
@@ -265,8 +285,6 @@ const TagItem = observer((props: ITagItemProps) => {
         setText={nodeData.rename}
         isEditing={isEditing}
         onSubmit={submit}
-        onClick={handleQuickQuery}
-        onDoubleClick={handleRename}
       />
       {!isEditing && (
         <button onClick={handleSelect} className="btn-icon">

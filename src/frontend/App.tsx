@@ -72,6 +72,11 @@ const App = observer(() => {
           uiStore.toggleOutliner();
         } else if (matches(hotkeyMap.toggleInspector)) {
           uiStore.toggleInspector();
+        } else if (matches(hotkeyMap.openTagEditor)) {
+          // note: this should be a ContentView-specific toggle, but also in toolbar
+          // easiest to make it global for now
+          e.preventDefault();
+          uiStore.openToolbarTagPopover();
           // Windows
         } else if (matches(hotkeyMap.toggleSettings)) {
           uiStore.toggleSettings();
@@ -81,6 +86,8 @@ const App = observer(() => {
           uiStore.openPreviewWindow();
           e.preventDefault(); // prevent scrolling with space when opening the preview window
           // Search
+        } else if (matches(hotkeyMap.search)) {
+          (document.querySelector('.searchbar input') as HTMLElement)?.focus();
         } else if (matches(hotkeyMap.advancedSearch)) {
           uiStore.toggleAdvancedSearch();
           // View
@@ -116,11 +123,12 @@ const App = observer(() => {
   }, [handleGlobalShortcuts]);
 
   // Automatically expand outliner when detecting a drag event
+  const isOutlinerOpen = uiStore.isOutlinerOpen;
   const openOutlinerOnDragEnter = useCallback(() => {
-    if (!uiStore.isOutlinerOpen) {
+    if (!isOutlinerOpen) {
       uiStore.toggleOutliner();
     }
-  }, [uiStore]);
+  }, [uiStore, isOutlinerOpen]);
 
   if (!uiStore.isInitialized || showSplash) {
     return <SplashScreen />;

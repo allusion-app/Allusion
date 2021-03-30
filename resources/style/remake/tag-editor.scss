@@ -8,9 +8,12 @@
 
 #tag-editor {
   height: 14rem;
+  min-height: 10rem;
   max-height: 20rem;
   display: flex;
   flex-direction: column;
+  overflow: auto;
+  resize: vertical;
 
   > input:first-child {
     margin: 0.5rem;
@@ -18,9 +21,15 @@
 
   [role='listbox'] {
     flex: 1;
-    overflow: auto;
     border-top: 0.0625rem solid var(--border-color);
     border-bottom: 0.0625rem solid var(--border-color);
+    max-width: unset;
+
+    [role='separator'] {
+      background: var(--text-color-muted);
+      height: 1px;
+      margin: 0.5rem 1rem;
+    }
   }
 
   > div:last-child {

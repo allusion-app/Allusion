@@ -43,6 +43,7 @@ export interface IHotkeyMap {
   viewMasonryVertical: string;
   viewMasonryHorizontal: string;
   viewSlide: string;
+  search: string;
   advancedSearch: string;
 
   // Other
@@ -65,6 +66,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   viewGrid: 'alt + 2',
   viewMasonryVertical: 'alt + 3',
   viewMasonryHorizontal: 'alt + 4',
+  search: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
 };
@@ -109,7 +111,7 @@ class UiStore {
 
   // UI
   @observable isOutlinerOpen: boolean = true;
-  @observable isInspectorOpen: boolean = false;
+  @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
   @observable isHelpCenterOpen: boolean = false;
   @observable isLocationRecoveryOpen: ID | null = null;
@@ -350,6 +352,7 @@ class UiStore {
       this.clearFileSelection();
     }
     this.fileSelection.add(file);
+    this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
   }
 
   @action.bound deselectFile(file: ClientFile) {
@@ -549,10 +552,19 @@ class UiStore {
     }
   }
 
-  @action.bound replaceCriteriaWithTagSelection() {
-    this.replaceSearchCriterias(
-      Array.from(this.tagSelection, (tag) => new ClientIDSearchCriteria('tags', tag.id)),
-    );
+  @action.bound addTagSelectionToCriteria(includeSubtags = false) {
+    const tags = includeSubtags
+      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
+      : Array.from(this.tagSelection);
+    this.addSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
+    this.clearTagSelection();
+  }
+
+  @action.bound replaceCriteriaWithTagSelection(includeSubtags = false) {
+    const tags = includeSubtags
+      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
+      : Array.from(this.tagSelection);
+    this.replaceSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
     this.clearTagSelection();
   }
 
@@ -588,7 +600,7 @@ class UiStore {
         Object.entries<string>(prefs.hotkeyMap).forEach(
           ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );
-        console.log('recovered', prefs.hotkeyMap, this.hotkeyMap);
+        console.info('recovered', prefs.hotkeyMap);
       } catch (e) {
         console.error('Cannot parse persistent preferences', e);
       }

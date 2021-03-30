@@ -1,7 +1,17 @@
 import React, { useContext, useState } from 'react';
-
+import { IMG_EXTENSIONS } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
-import { Button } from 'widgets';
+import {
+  ArrayOperators,
+  BinaryOperators,
+  NumberOperators,
+  StringOperators,
+} from 'src/entities/SearchCriteria';
+import { ClientTag } from 'src/entities/Tag';
+import TagSelector from 'src/frontend/components/TagSelector';
+import StoreContext from 'src/frontend/contexts/StoreContext';
+import { camelCaseToSpaced } from 'src/frontend/utils';
+import { IconButton, IconSet } from 'widgets';
 import { defaultQuery, Query, QueryKey, QueryOperator, QueryValue, TagValue } from './query';
 
 type FormState = Map<string, Query>;
@@ -21,8 +31,9 @@ export const Field = ({ id, query, dispatch, removable }: IFieldProps) => (
       <KeySelector id={id} keyValue={query.key} dispatch={dispatch} />
       <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
       <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
-      <Button
-        text="-"
+      <IconButton
+        text=""
+        icon={IconSet.DELETE}
         onClick={() =>
           dispatch((form) => {
             form.delete(id);
@@ -30,7 +41,7 @@ export const Field = ({ id, query, dispatch, removable }: IFieldProps) => (
           })
         }
         disabled={!removable}
-        styling="filled"
+        // styling="filled"
       />
     </div>
   </fieldset>
@@ -138,10 +149,6 @@ const PathInput = ({ id, value, dispatch }: ValueInput<string>) => {
   );
 };
 
-import { ClientTag } from 'src/entities/Tag';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import TagSelector from 'src/frontend/components/TagSelector';
-
 const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
   const { tagStore } = useContext(StoreContext);
   const [selection, setSelection] = useState(
@@ -155,8 +162,6 @@ const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
 
   return <TagSelector selection={selection} onSelect={handleSelect} />;
 };
-
-import { IMG_EXTENSIONS } from 'src/entities/File';
 
 const ExtensionInput = ({ id, value, dispatch }: ValueInput<string>) => (
   <select onChange={(e) => dispatch(setValue(id, e.target.value))} defaultValue={value}>
@@ -208,14 +213,6 @@ function getOperatorOptions(key: QueryKey) {
   }
   return [];
 }
-
-import {
-  NumberOperators,
-  BinaryOperators,
-  StringOperators,
-  ArrayOperators,
-} from 'src/entities/SearchCriteria';
-import { camelCaseToSpaced } from 'src/frontend/utils';
 
 const OperatorOptions = (function () {
   const toOption = (o: string) => (

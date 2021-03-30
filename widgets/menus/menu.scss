@@ -4,6 +4,7 @@
   margin: 0;
   padding: 0.5rem;
   min-width: 10rem;
+  overflow: hidden auto;
 }
 
 [role='menu'] [role='group'] {
@@ -23,7 +24,10 @@
 
   &[aria-expanded='true'],
   &:hover,
-  &:focus {
+  &:focus,
+  &.focused {
+    // TODO: different style for .focused than :hover:
+    // Blueprint makes text-color primary for hover, only background for focused
     color: var(--text-color-strong);
     background: var(--hover-color);
   }

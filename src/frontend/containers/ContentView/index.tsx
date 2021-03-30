@@ -35,9 +35,6 @@ const ContentView = observer(() => {
           uiStore.selectAllFiles();
         } else if (matches(hotkeyMap.deselectAll)) {
           uiStore.clearFileSelection();
-        } else if (matches(hotkeyMap.openTagEditor)) {
-          e.preventDefault();
-          uiStore.openToolbarTagPopover();
         }
       });
     },
@@ -110,22 +107,22 @@ const Gallery = observer(() => {
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}
-
-          {fileMenu && <MenuDivider />}
-
-          <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
-            <LayoutMenuItems uiStore={uiStore} />
-          </MenuSubItem>
-          <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-            <SortMenuItems fileStore={fileStore} />
-          </MenuSubItem>
-          <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
-            <ThumbnailSizeMenuItems uiStore={uiStore} />
-          </MenuSubItem>
-
+          {!uiStore.isSlideMode && (
+            <>
+              {fileMenu && <MenuDivider />}
+              <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
+                <LayoutMenuItems uiStore={uiStore} />
+              </MenuSubItem>
+              <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+                <SortMenuItems fileStore={fileStore} />
+              </MenuSubItem>
+              <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
+                <ThumbnailSizeMenuItems uiStore={uiStore} />
+              </MenuSubItem>
+            </>
+          )}
           {externalMenu && <MenuDivider />}
-
-          {externalMenu}
+          {externalMenu}{' '}
         </Menu>
       </ContextMenu>
     </div>

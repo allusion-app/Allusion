@@ -29,7 +29,7 @@ export interface ILayout {
   topOffsets: Uint32Array;
 }
 
-type MasonryType = 'vertical' | 'horizontal';
+type MasonryType = 'vertical' | 'horizontal' | 'grid';
 
 export interface MasonryOpts {
   type: MasonryType;
@@ -121,6 +121,10 @@ export class MasonryWorker {
       return layout.compute_vertical(containerWidth);
     } else if (type === 'horizontal') {
       return layout.compute_horizontal(containerWidth);
+    } else if (type === 'grid') {
+      return layout.compute_grid(containerWidth);
+    } else {
+      console.warn('Invalid layout type passed on masonry worker!', type);
     }
   }
 }

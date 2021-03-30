@@ -15,6 +15,11 @@
     height: 1px;
     margin: 0.5rem 1rem;
   }
+
+  [role='listbox'] {
+    max-height: 20rem;
+    max-width: 20rem;
+  }
 }
 
 .multiautocomplete-input {

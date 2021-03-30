@@ -1,14 +1,14 @@
 import React from 'react';
 
-interface IListbox {
+export interface IListbox {
   id?: string;
   /** When multiselectable is set to true, the click event handlers on the option elements must togggle the select state. */
   multiselectable?: boolean;
   children: ListboxChildren;
 }
 
-type ListboxChildren = ListboxChild | ListboxChild[] | React.ReactFragment;
-type ListboxChild = React.ReactElement<IOption>;
+export type ListboxChild = React.ReactElement<IOption>;
+export type ListboxChildren = ListboxChild | ListboxChild[] | React.ReactFragment;
 
 export const Listbox = (props: IListbox) => {
   const { id, multiselectable, children } = props;
@@ -27,22 +27,24 @@ export const Listbox = (props: IListbox) => {
   );
 };
 
-interface IOption {
+export interface IOption {
   value: string;
   selected?: boolean;
   /** The icon on the right side of the label because on the left is the checkmark already. */
   icon?: JSX.Element;
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   disabled?: boolean;
+  focused?: boolean;
 }
 
-export const Option = ({ value, selected, onClick, icon, disabled }: IOption) => (
+export const Option = ({ value, selected, onClick, icon, disabled, focused }: IOption) => (
   <li
     role="option"
     aria-selected={selected}
     aria-disabled={disabled}
     onClick={disabled ? undefined : onClick}
     tabIndex={-1}
+    className={focused ? 'focused' : undefined}
   >
     <span className="item-icon" aria-hidden />
     {value}
