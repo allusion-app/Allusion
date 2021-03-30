@@ -118,11 +118,12 @@ const App = observer(() => {
   }, [handleGlobalShortcuts]);
 
   // Automatically expand outliner when detecting a drag event
+  const isOutlinerOpen = uiStore.isOutlinerOpen;
   const openOutlinerOnDragEnter = useCallback(() => {
-    if (!uiStore.isOutlinerOpen) {
+    if (!isOutlinerOpen) {
       uiStore.toggleOutliner();
     }
-  }, [uiStore]);
+  }, [uiStore, isOutlinerOpen]);
 
   if (!uiStore.isInitialized || showSplash) {
     return <SplashScreen />;

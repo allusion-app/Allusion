@@ -1,22 +1,22 @@
-import React, { useMemo, useState, useCallback, useReducer, useContext, useRef } from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-
+import React, { useCallback, useContext, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import UiStore from 'src/frontend/stores/UiStore';
-import useContextMenu from 'src/frontend/hooks/useContextMenu';
-import { IconSet, Tree } from 'widgets';
-import { Toolbar, ToolbarButton, ContextMenu } from 'widgets/menus';
-import { ITreeItem, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/Tree';
-import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
-import { TagItemContextMenu } from './ContextMenu';
-import { formatTagCountText } from 'src/frontend/utils';
-import { IExpansionState } from '../../types';
-import { Action, State, Factory, reducer } from './state';
+import { TagRemoval } from 'src/frontend/components/RemovalAlert';
+import StoreContext from 'src/frontend/contexts/StoreContext';
 import TagDnDContext, { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
+import useContextMenu from 'src/frontend/hooks/useContextMenu';
+import UiStore from 'src/frontend/stores/UiStore';
+import { formatTagCountText } from 'src/frontend/utils';
+import { IconSet, Tree } from 'widgets';
+import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
+import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
+import { IExpansionState } from '../../types';
+import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
+import { TagItemContextMenu } from './ContextMenu';
+import { Action, Factory, reducer, State } from './state';
 
 interface ILabelProps {
   text: string;
@@ -140,6 +140,19 @@ const TagItem = observer((props: ITagItemProps) => {
     [dndData, nodeData, uiStore],
   );
 
+  // Don't expand immediately on drag-over, only after hovering over it for a second or so
+  const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
+  const expandDelayed = useCallback(
+    (nodeId: string) => {
+      if (expandTimeoutId) clearTimeout(expandTimeoutId);
+      const t = window.setTimeout(() => {
+        dispatch(Factory.expandNode(nodeId));
+      }, HOVER_TIME_TO_EXPAND);
+      setExpandTimeoutId(t);
+    },
+    [expandTimeoutId, dispatch],
+  );
+
   const handleDragOver = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       runInAction(() => {
@@ -177,12 +190,12 @@ const TagItem = observer((props: ITagItemProps) => {
           dropTarget.classList.remove('bottom');
         }
 
-        if (!expansion[nodeData.id]) {
-          dispatch(Factory.expandNode(nodeData.id));
+        if (!expansion[nodeData.id] && !expandTimeoutId) {
+          expandDelayed(nodeData.id);
         }
       });
     },
-    [dispatch, dndData, expansion, nodeData],
+    [dndData.source, expandDelayed, expandTimeoutId, expansion, nodeData],
   );
 
   const handleDragLeave = useCallback(
@@ -194,9 +207,13 @@ const TagItem = observer((props: ITagItemProps) => {
         event.currentTarget.dataset[DnDAttribute.Target] = 'false';
         event.currentTarget.classList.remove('top');
         event.currentTarget.classList.remove('bottom');
+        if (expandTimeoutId) {
+          clearTimeout(expandTimeoutId);
+          setExpandTimeoutId(undefined);
+        }
       }
     },
-    [dndData],
+    [dndData.source, expandTimeoutId],
   );
 
   const handleDrop = useCallback(
