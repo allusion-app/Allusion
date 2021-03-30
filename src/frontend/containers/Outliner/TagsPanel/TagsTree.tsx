@@ -211,6 +211,7 @@ const TagItem = observer((props: ITagItemProps) => {
           }
         }
       });
+      event.currentTarget.dataset[DnDAttribute.Target] = 'false';
       event.currentTarget.classList.remove('top');
       event.currentTarget.classList.remove('bottom');
     },

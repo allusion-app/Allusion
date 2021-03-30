@@ -123,7 +123,7 @@
   width: 2.5rem;
   height: 2.5rem;
   top: 0.5rem;
-  left: calc(var(--thumbnail-size) - 3rem);
+  right: 0.5rem;
   color: var(--accent-color-red);
 
   svg {
@@ -131,8 +131,6 @@
     height: 2rem !important;
   }
 }
-
-
 
 .image-error {
   display: flex;
