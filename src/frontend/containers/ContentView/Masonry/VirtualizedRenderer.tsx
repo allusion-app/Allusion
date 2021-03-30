@@ -92,7 +92,7 @@ const VirtualizedRenderer = observer(
         const s = layout.getItemLayout(index);
         // Scroll to invisible element, positioned at selected item,
         // just for scroll automatisation with scrollIntoView
-        scrollAnchor.current.style.transform = `translate(${s.left + 4}px,${s.top + 4}px)`;
+        scrollAnchor.current.style.transform = `translate(${s.left}px,${s.top}px)`;
         scrollAnchor.current.style.width = s.width + 'px';
         scrollAnchor.current.style.height = s.height + 'px';
         scrollAnchor.current?.scrollIntoView({ block });
