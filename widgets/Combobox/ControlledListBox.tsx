@@ -22,9 +22,9 @@ export function controlledListBoxKeyDown(
   listRef: React.RefObject<HTMLUListElement>,
   setActiveIndex: (index: number) => void,
   activeIndex: number,
-  numItems: number,
 ) {
   const optionElems = listRef.current?.querySelectorAll('li:not([role="separator"])') || [];
+  const numItems = optionElems.length;
   const activeElement = optionElems[activeIndex] as HTMLElement | undefined;
   switch (event.key) {
     case 'Enter':

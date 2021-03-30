@@ -1,21 +1,18 @@
-import React, { ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-
+import React, { ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientTag } from 'src/entities/Tag';
-
-import StoreContext from '../../contexts/StoreContext';
-
-import { IconSet } from 'widgets/Icons';
-import { ToolbarButton } from 'widgets/menus';
-import { Tag, Listbox, Option } from 'widgets';
-
-import { countFileTags } from '../../components/FileTag';
-
-import { Tooltip } from './PrimaryCommands';
-import UiStore from 'src/frontend/stores/UiStore';
 import TagStore from 'src/frontend/stores/TagStore';
+import UiStore from 'src/frontend/stores/UiStore';
 import { debounce } from 'src/frontend/utils';
+import { Option, Tag } from 'widgets';
+import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
+import { IOption } from 'widgets/Combobox/Listbox';
+import { IconSet } from 'widgets/Icons';
+import { MenuDivider, ToolbarButton } from 'widgets/menus';
+import { countFileTags } from '../../components/FileTag';
+import StoreContext from '../../contexts/StoreContext';
+import { Tooltip } from './PrimaryCommands';
 
 const TagFilesPopover = observer(() => {
   const { uiStore, tagStore } = useContext(StoreContext);
@@ -86,16 +83,38 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const handleCreate = action(async () => {
     const newTag = await tagStore.create(tagStore.root, inputText);
     onSelect(newTag);
-    setInputText('');
-    runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
+    // setInputText('');
+    // runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
     inputRef.current?.focus();
   });
 
-  const handleInputKeyDown = action((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleCreate();
-      e.stopPropagation();
+  const options = useMemo(() => {
+    const res: (IOption & { id: string; divider?: boolean })[] = matchingTags.map((t) => ({
+      id: t.id,
+      value: t.name,
+      selected: counter.get(t) !== undefined,
+      icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
+      onClick: () => (counter.get(t) ? onDeselect(t) : onSelect(t)),
+    }));
+
+    if (inputText) {
+      res.push({
+        id: 'create',
+        selected: false,
+        value: `Create Tag "${inputText}"`,
+        onClick: handleCreate,
+        icon: IconSet.TAG_ADD,
+        divider: matchingTags.length !== 0,
+      });
     }
+    return res;
+  }, [counter, handleCreate, inputText, matchingTags, onDeselect, onSelect]);
+
+  // Todo: clamp this value when list size changes
+  const [focusedOption, setFocusedOption] = useState(0);
+  const listRef = useRef<HTMLUListElement>(null);
+  const handleInputKeyDown = action((e: React.KeyboardEvent<HTMLInputElement>) => {
+    controlledListBoxKeyDown(e, listRef, setFocusedOption, focusedOption);
   });
 
   // Remember the height when panel is resized
@@ -137,33 +156,26 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         aria-controls="tag-files-listbox"
         ref={inputRef}
       />
-      <Listbox id="tag-files-listbox" multiselectable={true}>
-        {matchingTags.map((t) => (
-          <Option
-            key={t.id}
-            value={t.name}
-            selected={counter.get(t) !== undefined}
-            icon={<span style={{ color: t.viewColor }}>{IconSet.TAG}</span>}
-            onClick={() => (counter.get(t) ? onDeselect(t) : onSelect(t))}
-          />
-        ))}
-        {inputText && (
-          <Option
-            key="create"
-            selected={false}
-            value={`Create Tag "${inputText}"`}
-            onClick={handleCreate}
-            icon={IconSet.TAG_ADD}
-          />
-        )}
-      </Listbox>
+      <ControlledListbox id="tag-files-listbox" multiselectable={true} listRef={listRef}>
+        {options.map((o, i) => {
+          return (
+            <React.Fragment key={o.id}>
+              {o.divider && <MenuDivider />}
+              <Option {...o} focused={focusedOption === i} />
+            </React.Fragment>
+          );
+        })}
+      </ControlledListbox>
       <div>
         {sortedTags.map((t) => (
           <Tag
             key={t.id}
             text={`${t.name}${files.size > 1 ? ` (${counter.get(t)})` : ''}`}
             color={t.viewColor}
-            onRemove={() => onDeselect(t)}
+            onRemove={() => {
+              onDeselect(t);
+              inputRef.current?.focus();
+            }}
           />
         ))}
         {sortedTags.length === 0 && <i>No tags added yet</i>}

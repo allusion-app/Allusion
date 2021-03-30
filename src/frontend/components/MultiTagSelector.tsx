@@ -86,7 +86,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
         value: extraOption.label,
         onClick: extraOption.action,
         icon: extraOption.icon,
-        divider: true,
+        divider: suggestions.length !== 0,
       });
     }
     return res;
@@ -105,9 +105,9 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
           onDeselect(selection[selection.length - 1]);
         }
       }
-      controlledListBoxKeyDown(e, listRef, setFocusedOption, focusedOption, options.length);
+      controlledListBoxKeyDown(e, listRef, setFocusedOption, focusedOption);
     },
-    [focusedOption, onDeselect, options.length, query.length, selection],
+    [focusedOption, onDeselect, query.length, selection],
   );
 
   return (
@@ -152,7 +152,14 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                 autoFocus={autoFocus}
               />
             </div>
-            <IconButton icon={IconSet.CLOSE} text="Close" onClick={onClear} />
+            <IconButton
+              icon={IconSet.CLOSE}
+              text="Close"
+              onClick={() => {
+                setQuery('');
+                onClear();
+              }}
+            />
           </div>
         }
       >

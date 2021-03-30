@@ -24,6 +24,12 @@
     border-top: 0.0625rem solid var(--border-color);
     border-bottom: 0.0625rem solid var(--border-color);
     max-width: unset;
+
+    [role='separator'] {
+      background: var(--text-color-muted);
+      height: 1px;
+      margin: 0.5rem 1rem;
+    }
   }
 
   > div:last-child {
