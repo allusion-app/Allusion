@@ -35,9 +35,6 @@ const ContentView = observer(() => {
           uiStore.selectAllFiles();
         } else if (matches(hotkeyMap.deselectAll)) {
           uiStore.clearFileSelection();
-        } else if (matches(hotkeyMap.openTagEditor)) {
-          e.preventDefault();
-          uiStore.openToolbarTagPopover();
         }
       });
     },

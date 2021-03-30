@@ -72,6 +72,11 @@ const App = observer(() => {
           uiStore.toggleOutliner();
         } else if (matches(hotkeyMap.toggleInspector)) {
           uiStore.toggleInspector();
+        } else if (matches(hotkeyMap.openTagEditor)) {
+          // note: this should be a ContentView-specific toggle, but also in toolbar
+          // easiest to make it global for now
+          e.preventDefault();
+          uiStore.openToolbarTagPopover();
           // Windows
         } else if (matches(hotkeyMap.toggleSettings)) {
           uiStore.toggleSettings();
