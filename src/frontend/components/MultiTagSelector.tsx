@@ -1,6 +1,6 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, { ReactElement, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { IconButton, IconSet, Option, Tag } from 'widgets';
@@ -21,6 +21,7 @@ interface IMultiTagSelector {
   disabled?: boolean;
   autoFocus?: boolean;
   extraOption?: { label: string; action: () => void; icon?: JSX.Element };
+  extraIconButtons?: ReactElement;
   defaultPrevented?: boolean;
 }
 
@@ -35,6 +36,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     tagLabel = action((t: ClientTag) => t.name),
     disabled,
     extraOption,
+    extraIconButtons,
     autoFocus,
   } = props;
   const listboxID = useRef(generateId());
@@ -152,6 +154,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                 autoFocus={autoFocus}
               />
             </div>
+            {extraIconButtons}
             <IconButton
               icon={IconSet.CLOSE}
               text="Close"

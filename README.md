@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.com/allusion-app/Allusion.svg?token=a7yw4czL1Lye2zty617R&branch=master)](https://travis-ci.com/allusion-app/Allusion)
 
-
+<!-- TODO: Put these on the website, not really suited for GitHub
 temporary list: Things we should note somewhere:
 - It's free! And open source! 
 - We are open to contributions, but please get in touch first: See [here](TODO:contributing.md)
@@ -8,7 +8,7 @@ temporary list: Things we should note somewhere:
 - Features a modern, clean and slick design
 - Designed to be part of your creative process, for use in combination with other tools
 - What Allusion is NOT: 
- - related software: PureRef, TagSpaces, AdobeBridge, Elyse. Comparison?
+ - related software: PureRef, TagSpaces, AdobeBridge, Elyse. Comparison? -->
 
 # Allusion
 
