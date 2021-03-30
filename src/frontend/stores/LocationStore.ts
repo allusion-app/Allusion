@@ -55,19 +55,23 @@ class LocationStore {
       // added a retry toast for now, can't figure out the cause, and it's hard to reproduce
       // FIXME: Toasts should not be abused for error handling. Create some error messaging mechanism.
       const readyTimeout = setTimeout(() => {
-        AppToaster.show({
-          message: 'This appears to be taking longer than usual.',
-          timeout: 0,
-          clickAction: {
-            onClick: RendererMessenger.reload,
-            label: 'Retry?',
+        AppToaster.show(
+          {
+            message: 'This appears to be taking longer than usual.',
+            timeout: 0,
+            clickAction: {
+              onClick: RendererMessenger.reload,
+              label: 'Retry?',
+            },
           },
-        });
-      }, 5000);
+          'retry-init',
+        );
+      }, 3000);
 
       const filePaths = await location.init();
 
       clearTimeout(readyTimeout);
+      AppToaster.dismiss('retry-init');
 
       if (filePaths === undefined) {
         AppToaster.show(

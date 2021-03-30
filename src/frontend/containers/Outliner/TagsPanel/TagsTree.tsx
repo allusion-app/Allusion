@@ -165,12 +165,15 @@ const TagItem = observer((props: ITagItemProps) => {
         const [top, bottom] = [rect.top + 8, rect.bottom - 8];
         if (posY <= top) {
           dropTarget.classList.add('top');
+          dropTarget.classList.remove('center');
           dropTarget.classList.remove('bottom');
         } else if (posY >= bottom) {
           dropTarget.classList.add('bottom');
+          dropTarget.classList.remove('center');
           dropTarget.classList.remove('top');
         } else {
           dropTarget.classList.remove('top');
+          dropTarget.classList.add('center');
           dropTarget.classList.remove('bottom');
         }
 
