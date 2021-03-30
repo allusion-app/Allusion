@@ -131,22 +131,29 @@
   align-items: center;
   height: 1.5rem;
   width: 100%;
+  white-space: nowrap;
 
   span {
     display: inline-flex;
   }
 
+  // Invisible border for elimitating content resizing when adding border
+  border: 2px solid transparent;
+  margin-left: -2px;
+
   &[data-dnd-target='true'] {
     color: var(--accent-color-blue);
-    border: 2px solid var(--accent-color-blue);
+    border: 2px solid transparent;
+
+    &.center {
+      border: 2px solid var(--accent-color-blue);
+    }
 
     &.top {
-      border: none;
       border-top: 2px solid var(--accent-color-blue);
     }
 
     &.bottom {
-      border: none;
       border-bottom: 2px solid var(--accent-color-blue);
     }
   }

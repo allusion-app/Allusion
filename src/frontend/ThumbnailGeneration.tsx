@@ -62,7 +62,7 @@ export const useWorkerListener = () => {
     };
 
     thumbnailWorker.onerror = (err: { fileId: ID; error: Error }) => {
-      console.log('Could not generate thumbnail', err);
+      console.error('Could not generate thumbnail', err);
       const { fileId } = err;
       const clientFile = fileStore.get(fileId);
       if (clientFile) {

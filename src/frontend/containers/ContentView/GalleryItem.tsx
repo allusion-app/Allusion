@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
-import { ellipsize, formatDateTime, humanFileSize } from 'src/frontend/utils';
+import { encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
 import { IconSet, Tag } from 'widgets';
 import { Tooltip } from 'widgets/popovers';
 import FileStore from '../../stores/FileStore';
@@ -75,7 +75,11 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
             <div className="thumbnail-placeholder" />
           )}
         </ThumbnailContainer>{' '}
-        <Tooltip
+        <span className="filename" ref={portalTriggerRef}>
+          {file.name}
+        </span>
+        {/* TODO: Tooltip would be nice, but it's mega sloowwww. a title attribute would be nice */}
+        {/* <Tooltip
           portalTriggerRef={portalTriggerRef}
           content={ellipsize(file.absolutePath, 80, 'middle')}
           trigger={
@@ -84,7 +88,7 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
             </span>
           }
           placement="bottom-start"
-        />
+        /> */}
       </div>
 
       {/* Dimensions */}
@@ -122,51 +126,6 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
     </div>
   );
 });
-
-interface IGridCell extends ICell {
-  colIndex: number;
-  fileStore: FileStore;
-}
-
-export const GridCell = observer(
-  ({ file, colIndex, mounted, uiStore, fileStore, submitCommand }: IGridCell) => {
-    const portalTriggerRef = useRef<HTMLSpanElement>(null);
-    return (
-      <div
-        role="gridcell"
-        tabIndex={-1}
-        aria-colindex={colIndex}
-        aria-selected={uiStore.fileSelection.has(file)}
-      >
-        <ThumbnailContainer file={file} submitCommand={submitCommand}>
-          <Thumbnail uiStore={uiStore} mounted={!mounted} file={file} />
-        </ThumbnailContainer>
-        {file.isBroken === true && (
-          <Tooltip
-            content="This image could not be found."
-            trigger={
-              <span
-                ref={portalTriggerRef}
-                className="thumbnail-broken-overlay"
-                onClick={fileStore.fetchMissingFiles}
-              >
-                {IconSet.WARNING_BROKEN_LINK}
-              </span>
-            }
-            portalTriggerRef={portalTriggerRef}
-          />
-        )}
-        {/* Show tags when the option is enabled, or when the file is selected */}
-        {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
-          (file.tags.size == 0 || !mounted ? (
-            <span className="thumbnail-tags" />
-          ) : (
-            <Tags file={file} />
-          ))}
-      </div>
-    );
-  },
-);
 
 interface IMasonryCell extends ICell {
   fileStore: FileStore;
@@ -228,7 +187,7 @@ export const MasonryCell = observer(
   },
 );
 
-class GalleryEventHandler {
+export class GalleryEventHandler {
   constructor(public file: ClientFile, public submitCommand: (command: GalleryCommand) => void) {}
   get handlers() {
     return {
@@ -397,7 +356,7 @@ const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: IThumb
     };
     return (
       <img
-        src={forceNoThumbnail ? file.absolutePath : thumbnailPath}
+        src={encodeFilePath(forceNoThumbnail ? file.absolutePath : thumbnailPath)}
         onError={handleImageError}
         alt=""
       />
@@ -427,6 +386,7 @@ export const enum GallerySelector {
   Click = 'click',
   DoubleClick = 'doubleClick',
   ContextMenu = 'contextMenu',
+  ContextMenuSlide = 'contextMenuSlide',
   DragStart = 'dragStart',
   DragOver = 'dragOver',
   DragLeave = 'dragLeave',
@@ -442,6 +402,7 @@ export type GalleryCommand =
   | ICommand<GallerySelector.Click, [file: ClientFile, metaKey: boolean, shiftKey: boolean]>
   | ICommand<GallerySelector.DoubleClick, ClientFile>
   | ICommand<GallerySelector.ContextMenu, [file: ClientFile, x: number, y: number]>
+  | ICommand<GallerySelector.ContextMenuSlide, [file: ClientFile, x: number, y: number]>
   | ICommand<GallerySelector.DragStart, ClientFile>
   | ICommand<GallerySelector.DragOver, ClientFile>
   | ICommand<GallerySelector.DragLeave, undefined>

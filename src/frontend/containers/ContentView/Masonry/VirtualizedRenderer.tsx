@@ -1,9 +1,11 @@
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { createSubmitCommand, ILayoutProps } from '../Gallery';
 import { MasonryCell } from '../GalleryItem';
@@ -38,6 +40,7 @@ const VirtualizedRenderer = observer(
     layoutUpdateDate,
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
     const { uiStore, fileStore } = useContext(StoreContext);
+    const [, isMountedRef] = useMountState();
     const wrapperRef = useRef<HTMLDivElement>(null);
     const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
@@ -50,6 +53,7 @@ const VirtualizedRenderer = observer(
     const numImages = images.length;
 
     const determineRenderRegion = useCallback((numImages: number, overdraw: number) => {
+      if (!isMountedRef.current) return;
       const viewport = wrapperRef.current;
       const yOffset = viewport?.scrollTop || 0;
       const viewportHeight = viewport?.clientHeight || 0;
@@ -86,7 +90,7 @@ const VirtualizedRenderer = observer(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
         if (!scrollAnchor.current) return;
         const s = layout.getItemLayout(index);
-        // Scroll to invisible element, positioned at selected element,
+        // Scroll to invisible element, positioned at selected item,
         // just for scroll automatisation with scrollIntoView
         scrollAnchor.current.style.transform = `translate(${s.left + 4}px,${s.top + 4}px)`;
         scrollAnchor.current.style.width = s.width + 'px';
@@ -96,6 +100,7 @@ const VirtualizedRenderer = observer(
       [layout],
     );
 
+    // The index currently selected image, or the "last selected" image when a range is selected,
     const lastSelIndex = lastSelectionIndex.current
       ? Math.min(lastSelectionIndex.current, numImages - 1)
       : undefined;
@@ -104,18 +109,23 @@ const VirtualizedRenderer = observer(
     useLayoutEffect(() => {
       if (lastSelIndex === undefined) {
         // if an element is selected, we'll scroll to that anyways using the next useLayoutEffect
-        scrollToIndex(uiStore.firstItem, 'start');
+        runInAction(() => {
+          scrollToIndex(uiStore.firstItem, 'start');
+        });
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Scroll to the first item in the view any time it is changed
+    const fileSelectionSize = uiStore.fileSelection.size;
     useLayoutEffect(() => {
-      if (lastSelIndex !== undefined) {
+      // But don't scroll when there are no files selected:
+      // else you will scroll when the user deselects everything
+      if (lastSelIndex !== undefined && fileSelectionSize > 0) {
         scrollToIndex(lastSelIndex);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastSelIndex, layoutUpdateDate, uiStore.fileSelection.size]);
+    }, [lastSelIndex, layoutUpdateDate, fileSelectionSize]);
 
     return (
       // One div as the scrollable viewport

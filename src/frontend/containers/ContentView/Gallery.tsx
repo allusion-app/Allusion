@@ -1,4 +1,4 @@
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
@@ -10,7 +10,12 @@ import { throttle } from '../../utils';
 import { GalleryCommand, GallerySelector } from './GalleryItem';
 import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';
-import { ExternalAppMenuItems, FileViewerMenuItems, MissingFileMenuItems } from './menu-items';
+import {
+  ExternalAppMenuItems,
+  FileViewerMenuItems,
+  MissingFileMenuItems,
+  SlideFileViewerMenuItems,
+} from './menu-items';
 import SlideMode from './SlideMode';
 
 type Dimension = { width: number; height: number };
@@ -20,8 +25,8 @@ type FileStoreProp = { fileStore: FileStore };
 export interface ILayoutProps extends UiStoreProp, FileStoreProp {
   contentRect: Dimension;
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
+  /** The index of the currently selected image, or the "last selected" image when a range is selected */
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
-  /** menu: [fileMenu, externalMenu] */
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
@@ -83,18 +88,20 @@ const Layout = ({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      let index = lastSelectionIndex.current;
-      if (index === undefined) {
-        return;
-      }
-      if (e.key === 'ArrowLeft' && index > 0) {
-        index -= 1;
-      } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
-        index += 1;
-      } else {
-        return;
-      }
-      handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      runInAction(() => {
+        let index = lastSelectionIndex.current;
+        if (index === undefined) {
+          return;
+        }
+        if (e.key === 'ArrowLeft' && index > 0) {
+          index -= 1;
+        } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
+          index += 1;
+        } else {
+          return;
+        }
+        handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      });
     };
 
     const throttledKeyDown = throttle(onKeyDown, 50);
@@ -103,8 +110,18 @@ const Layout = ({
     return () => window.removeEventListener('keydown', throttledKeyDown);
   }, [fileStore, handleFileSelect]);
 
+  // TODO: Keep masonry layout active while slide is open: no loading time when returning
   if (uiStore.isSlideMode) {
-    return <SlideMode contentRect={contentRect} />;
+    return (
+      <SlideMode
+        contentRect={contentRect}
+        lastSelectionIndex={lastSelectionIndex}
+        showContextMenu={showContextMenu}
+        select={handleFileSelect}
+        uiStore={uiStore}
+        fileStore={fileStore}
+      />
+    );
   }
   if (contentRect.width < 10) {
     return null;
@@ -200,6 +217,23 @@ export function createSubmitCommand(
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
             <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
+          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+        ]);
+        if (!uiStore.fileSelection.has(file)) {
+          // replace selection with context menu, like Windows file explorer
+          uiStore.selectFile(file, true);
+        }
+        break;
+      }
+
+      case GallerySelector.ContextMenuSlide: {
+        const [file, x, y] = command.payload;
+        showContextMenu(x, y, [
+          file.isBroken ? (
+            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+          ) : (
+            <SlideFileViewerMenuItems file={file} uiStore={uiStore} />
           ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);

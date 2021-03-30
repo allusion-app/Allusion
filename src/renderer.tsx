@@ -1,6 +1,10 @@
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
+import log from 'electron-log';
+console.log = log.log;
+console.warn = log.warn;
+console.error = log.error;
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -38,13 +42,14 @@ backend
     await rootStore.init(IS_PREVIEW_WINDOW);
     RendererMessenger.initialized();
   })
-  .catch((err) => console.log('Could not initialize backend!', err));
+  .catch((err) => console.error('Could not initialize backend!', err));
 
 if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory, activeImgId }) => {
     rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
     rootStore.uiStore.enableSlideMode();
+    rootStore.uiStore.isInspectorOpen && rootStore.uiStore.toggleInspector();
     rootStore.fileStore.fetchFilesByIDs(ids);
   });
 
@@ -102,7 +107,7 @@ if (IS_PREVIEW_WINDOW) {
       }
     }
   } catch (e) {
-    console.log('Cannot load window preferences', e);
+    console.error('Cannot load window preferences', e);
   }
 }
 
@@ -114,6 +119,10 @@ ReactDOM.render(
   </StoreContext.Provider>,
   document.getElementById('app'),
 );
+
+// -------------------------------------------
+// Messaging with the main process
+// -------------------------------------------
 
 /**
  * Adds tags to a file, given its name and the names of the tags
@@ -127,7 +136,6 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
     const tags = await Promise.all(
       tagNames.map(async (tagName) => {
         const clientTag = tagStore.tagList.find((tag) => tag.name === tagName);
-        console.log(clientTag);
         if (clientTag !== undefined) {
           return clientTag;
         } else {

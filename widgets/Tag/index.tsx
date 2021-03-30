@@ -7,7 +7,7 @@ import { IconSet } from '../Icons';
 
 import { getColorFromBackground } from 'src/frontend/utils';
 
-interface ITag extends React.DOMAttributes<HTMLSpanElement> {
+interface ITag extends React.HTMLAttributes<HTMLSpanElement> {
   text: string;
   /** background-color in CSS */
   color?: string;

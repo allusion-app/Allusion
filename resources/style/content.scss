@@ -38,7 +38,6 @@
 // If selected, and any other selected image is a drop target: normal yellow border
 // (as an indication that dropping a tag will apply it to all selected files)
 #gallery-content.selected-file-dropping {
-  .grid,
   .masonry {
     [aria-selected='true'] > .thumbnail {
       background-color: var(--accent-color-yellow);
@@ -47,18 +46,6 @@
 
   .list [aria-selected='true'] {
     background-color: rgba(255, 193, 47, 0.3);
-  }
-}
-
-// Gallery Item Container
-[role='gridcell'],
-[data-masonrycell] {
-  position: relative;
-  margin: 4px;
-
-  &:hover .thumbnail-tags {
-    max-height: var(--thumbnail-size);
-    overflow-y: auto;
   }
 }
 
@@ -136,25 +123,12 @@
   width: 2.5rem;
   height: 2.5rem;
   top: 0.5rem;
-  left: calc(var(--thumbnail-size) - 3rem);
+  right: 0.5rem;
   color: var(--accent-color-red);
 
   svg {
     width: 2rem !important;
     height: 2rem !important;
-  }
-}
-
-.thumbnail-tags {
-  grid-area: tags;
-  display: block;
-  position: absolute;
-  bottom: 0;
-  overflow: hidden;
-
-  > * {
-    pointer-events: none;
-    margin: 0.25em;
   }
 }
 
@@ -230,6 +204,8 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: calc(100% - 32px); // minus thumbnail and some padding
+        margin-top: 4px; // align with other text cells
+        padding: 2px;
       }
     }
 
@@ -302,7 +278,8 @@
       width: calc(50% - 180px);
     }
 
-    padding: 4px;
+    padding: 4px 8px 4px 0px;
+    padding-left: 0;
     font-weight: bold;
     overflow: hidden;
 
@@ -319,38 +296,6 @@
   border-spacing: 0;
 }
 
-.grid {
-  [role='row'] {
-    white-space: nowrap;
-
-    [role='gridcell']:last-child {
-      margin-right: 0;
-    }
-  }
-
-  [role='gridcell'] {
-    display: inline-block;
-
-    &:hover .thumbnail-tags {
-      max-height: var(--thumbnail-size);
-      background-color: rgba(0, 0, 0, 0.25);
-    }
-  }
-
-  .thumbnail[data-dnd-target='true'] + .thumbnail-tags {
-    pointer-events: none;
-    max-height: var(--thumbnail-size);
-    overflow: hidden; // can't scroll while dropping
-  }
-
-  .thumbnail-tags {
-    white-space: initial;
-    border-radius: 0 0 0.25rem 0.25rem;
-    transition: 0.25s $pt-transition-cubic2;
-    max-height: 2.8em;
-    width: var(--thumbnail-size);
-  }
-}
 
 .thumbnail-square img {
   background-position: center;
@@ -430,6 +375,34 @@
       max-width: inherit;
       width: unset;
       height: inherit;
+    }
+
+    &:hover .thumbnail-tags {
+      max-height: 100%;
+      overflow-y: overlay; // overlay scrollbar so it doesn't push tags away
+
+      // Hide scrollbar while tags transition upwards
+      // TODO: Would be nice to have an opacity transition on the scrollbar, but can't get it to work
+      animation: hide-scroll 0.25s backwards;
+      @keyframes hide-scroll {
+        from, to { overflow: hidden; } 
+      }
+    }
+
+    .thumbnail-tags {
+      grid-area: tags;
+      display: block;
+      position: absolute;
+      bottom: 0;
+      overflow: hidden;
+      transition: 0.25s $pt-transition-cubic2;
+      max-height: 2.8em;
+      max-width: 100%;
+
+      > * {
+        pointer-events: none;
+        margin: 0.25em;
+      }
     }
   }
 

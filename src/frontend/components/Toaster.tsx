@@ -55,18 +55,21 @@ export const AppToaster = new ToastManager();
 
 interface IToastProps {
   message: string;
-  action?: () => void;
-  actionLabel?: string;
+  // "action" apparently is a reserverd keyword, it gets removed by mobx...
+  clickAction?: {
+    label: string;
+    onClick: () => void;
+  };
   timeout: number;
 }
 
 type IdentifiableToast = IToastProps & { id: ID };
 
-const Toast = ({ message, id, actionLabel, action }: IdentifiableToast) => {
+const Toast = ({ message, id, clickAction }: IdentifiableToast) => {
   return (
     <div className="toast">
       <span>{message}</span>
-      {action && <Button text={actionLabel || ''} onClick={action} />}
+      {clickAction?.onClick && <Button text={clickAction.label} onClick={clickAction.onClick} />}
       <Button text="Dismiss" onClick={() => AppToaster.dismiss(id)} />
     </div>
   );

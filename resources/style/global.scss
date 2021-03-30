@@ -87,7 +87,6 @@ table {
   bottom: 0rem;
 }
 
-// TODO: Fix this when we have our own custom toaster, currently intefering with Blueprint
 .toast {
   background: var(--accent-color-blue);
   color: white;
@@ -102,7 +101,8 @@ table {
   justify-content: space-between;
 
   span {
-    height: 1rem;
+    min-height: 1rem;
+    max-height: 2rem;
     margin: 0.25rem;
   }
 

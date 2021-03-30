@@ -159,7 +159,7 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
   );
 });
 
-const HOVER_TIME_TO_EXPAND = 600;
+export const HOVER_TIME_TO_EXPAND = 600;
 
 const useFileDropHandling = (
   expansionId: string,
@@ -171,10 +171,10 @@ const useFileDropHandling = (
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(() => {
     if (expandTimeoutId) clearTimeout(expandTimeoutId);
-    const t: any = setTimeout(() => {
+    const t = window.setTimeout(() => {
       setExpansion({ ...expansion, [expansionId]: true });
     }, HOVER_TIME_TO_EXPAND);
-    setExpandTimeoutId(t as number);
+    setExpandTimeoutId(t);
   }, [expandTimeoutId, expansion, expansionId, setExpansion]);
 
   const handleDragEnter = useCallback(
