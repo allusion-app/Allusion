@@ -10,9 +10,21 @@
 
 ///////////////////////////////// Misc /////////////////////////////////
 // Error boundary (when app crashes)
-.error-boundary .message {
-  font-family: monospace;
-  max-width: 120ch;
+.error-boundary {
+  padding: 3rem;
+  min-width: 600px;
+  width: 80%;
+  margin: auto;
+
+  > .custom-icon-64 {
+    display: flex;
+    justify-content: center;
+  }
+
+  .message {
+    font-family: monospace;
+    max-width: 120ch;
+  }
 }
 
 // Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
