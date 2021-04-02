@@ -12,13 +12,13 @@ export class MasonryWorkerAdapter {
   private prevNumImgs: number = 0;
 
   async initialize(numItems: number) {
-    console.log('adapter initializing');
+    console.debug('adapter initializing');
 
     if (!this.worker) {
-      console.log('Loading worker');
+      console.debug('Loading worker');
       const WorkerFactory = wrap<{ new (): MasonryWorker }>(new MasonryWorkerClass());
       this.worker = await new WorkerFactory();
-      console.log('Loading wasm...');
+      console.debug('Loading wasm...');
       await this.worker.initializeWASM();
     }
 

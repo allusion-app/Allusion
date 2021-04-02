@@ -93,6 +93,9 @@ const Layout = ({
         if (index === undefined) {
           return;
         }
+        if (runInAction(() => uiStore.isSlideMode)) {
+          return;
+        }
         if (e.key === 'ArrowLeft' && index > 0) {
           index -= 1;
         } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
@@ -108,6 +111,7 @@ const Layout = ({
 
     window.addEventListener('keydown', throttledKeyDown);
     return () => window.removeEventListener('keydown', throttledKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileStore, handleFileSelect]);
 
   // TODO: Keep masonry layout active while slide is open: no loading time when returning
