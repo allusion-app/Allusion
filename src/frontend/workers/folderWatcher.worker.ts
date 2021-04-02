@@ -23,15 +23,23 @@ export class FolderWatcherWorker {
   /** Returns all supported image files in the given directly, and callbacks for new or removed files */
   async watch(directory: string) {
     this.isCancelled = false;
-    // Only watch for images files
-    const watchPattern = `${directory}/**/*.{
-          ${IMG_EXTENSIONS.join(',')},${IMG_EXTENSIONS.map((s) => s.toUpperCase()).join(',')}}`;
+    // Only watch for images files, something like /^.*\.(?!jpg$|png$)[^.]+$/i -> https://regexr.com/5pvbu
+    const imageExtensionIgnorePattern = new RegExp(
+      `^.*\\.(?!${IMG_EXTENSIONS.join('$|')}$)[^.]+$`,
+      'i',
+    );
 
     // Watch for changes
-    this.watcher = chokidar.watch(watchPattern, {
+    this.watcher = chokidar.watch(directory, {
+      // cwd: directory,
+      disableGlobbing: true, // needed in order to support folders with brackets, quotes, etc.
       depth: RECURSIVE_DIR_WATCH_DEPTH,
-      // Ignore dot files. Also dot folders?
-      ignored: /(^|[\/\\])\../,
+      ignored: [
+        // Ignore dot files. Also dot folders?
+        /(^|[\/\\])\../,
+        // And non-image files
+        imageExtensionIgnorePattern,
+      ],
     });
 
     const watcher = this.watcher;
