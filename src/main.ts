@@ -153,70 +153,70 @@ function createWindow() {
 
   // Mac App menu - used for styling so shortcuts work
   // https://livebook.manning.com/book/cross-platform-desktop-applications/chapter-9/78
-  if (isMac || isDev()) {
-    // Create our menu entries so that we can use MAC shortcuts
-    const menuBar: Electron.MenuItemConstructorOptions[] = [];
 
-    menuBar.push({
-      label: 'Allusion',
-      submenu: [
-        { role: 'about' },
-        { type: 'separator' },
-        { role: 'services', submenu: [] },
-        { type: 'separator' },
-        { role: 'hide' },
-        { role: 'hideOthers' },
-        { role: 'unhide' },
-        { type: 'separator' },
-        {
-          label: 'Quit',
-          accelerator: 'Command+Q',
-          click: () => process.exit(0),
-        },
-      ],
-    });
+  // Create our menu entries so that we can use MAC shortcuts
+  const menuBar: Electron.MenuItemConstructorOptions[] = [];
 
-    menuBar.push({
-      label: 'Edit',
-      submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
-    });
+  menuBar.push({
+    label: 'Allusion',
+    submenu: [
+      { role: 'about' },
+      { type: 'separator' },
+      { role: 'services', submenu: [] },
+      { type: 'separator' },
+      { role: 'hide' },
+      { role: 'hideOthers' },
+      { role: 'unhide' },
+      { type: 'separator' },
+      {
+        label: 'Quit',
+        accelerator: 'Command+Q',
+        click: () => process.exit(0),
+      },
+    ],
+  });
 
-    menuBar.push({
-      label: 'View',
-      submenu: [
-        { role: 'reload' },
-        { role: 'forceReload' },
-        { role: 'toggleDevTools' },
-        { type: 'separator' },
-        {
-          label: 'Actual Size',
-          accelerator: 'CommandOrControl+0',
-          click: (_, browserWindow) => {
-            browserWindow!.webContents.zoomFactor = 1;
-          },
-        },
-        {
-          label: 'Zoom In',
-          // TODO: Fix by using custom solution...
-          accelerator: 'CommandOrControl+=',
-          click: (_, browserWindow) => {
-            browserWindow!.webContents.zoomFactor += 0.1;
-          },
-        },
-        {
-          label: 'Zoom Out',
-          accelerator: 'CommandOrControl+-',
-          click: (_, browserWindow) => {
-            browserWindow!.webContents.zoomFactor -= 0.1;
-          },
-        },
-        { type: 'separator' },
-        { role: 'togglefullscreen' },
-      ],
-    });
+  menuBar.push({
+    label: 'Edit',
+    submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }],
+  });
 
-    menu = Menu.buildFromTemplate(menuBar);
-  }
+  menuBar.push({
+    label: 'View',
+    submenu: [
+      { role: 'reload' },
+      { role: 'forceReload' },
+      { role: 'toggleDevTools' },
+      { type: 'separator' },
+      {
+        label: 'Actual Size',
+        accelerator: 'CommandOrControl+0',
+        click: (_, browserWindow) => {
+          browserWindow!.webContents.zoomFactor = 1;
+        },
+      },
+      {
+        label: 'Zoom In',
+        // TODO: Fix by using custom solution...
+        accelerator: 'CommandOrControl+=',
+        click: (_, browserWindow) => {
+          browserWindow!.webContents.zoomFactor += 0.1;
+        },
+      },
+      {
+        label: 'Zoom Out',
+        accelerator: 'CommandOrControl+-',
+        click: (_, browserWindow) => {
+          browserWindow!.webContents.zoomFactor -= 0.1;
+        },
+      },
+      { type: 'separator' },
+      { role: 'togglefullscreen' },
+    ],
+  });
+
+  menu = Menu.buildFromTemplate(menuBar);
+
   Menu.setApplicationMenu(menu);
 
   // and load the index.html of the app.
