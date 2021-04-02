@@ -27,7 +27,7 @@ export interface IThumbnailMessageResponse {
 
 // Set up multiple workers for max performance
 const NUM_THUMBNAIL_WORKERS = 4;
-const workers: typeof ThumbnailWorker[] = [];
+const workers: Worker[] = [];
 for (let i = 0; i < NUM_THUMBNAIL_WORKERS; i++) {
   workers[i] = new ThumbnailWorker({ type: 'module' });
 }
@@ -66,9 +66,9 @@ export const useWorkerListener = () => {
         }
       };
 
-      workers[i].onerror = (err: { fileId: ID; error: Error }) => {
+      workers[i].onerror = (err) => {
         console.error('Could not generate thumbnail', `worker ${i}`, err);
-        const { fileId } = err;
+        const fileId = err.message;
         const clientFile = fileStore.get(fileId);
         if (clientFile) {
           // Load normal image as fallback, with v=1 to indicate it has changed

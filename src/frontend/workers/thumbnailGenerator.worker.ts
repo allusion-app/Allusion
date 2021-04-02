@@ -88,7 +88,9 @@ async function processMessage(data: IThumbnailMessage) {
     }
   } catch (err) {
     curParallelThumbnails--;
-    throw { fileId, error: err };
+    console.error('Could not generate image thumbnail', data.filePath, err);
+    // If an error occurs, just load the real file
+    ctx.postMessage({ fileId, thumbnailPath: filePath });
   }
   if (curParallelThumbnails < MAX_PARALLEL_THUMBNAILS && queue.length > 0) {
     processMessage(queue.shift()!); // "pop" from the queue. First elements are at the start, so shift em
