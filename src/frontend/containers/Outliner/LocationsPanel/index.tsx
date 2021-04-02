@@ -323,13 +323,14 @@ const Location = observer(
     return (
       <div
         className="tree-content-label"
+        onClick={handleClick}
         onContextMenu={handleContextMenu}
         onDragEnter={handleDragEnter}
         onDrop={handleDrop}
         onDragLeave={handleDragLeave}
       >
         {expansion[nodeData.id] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
-        <div onClick={handleClick}>{nodeData.name}</div>
+        <div>{nodeData.name}</div>
         {nodeData.isBroken && (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
         )}

@@ -124,7 +124,7 @@ export class ClientLocation implements ISerializable<ILocation> {
             }
           }
         })
-        .on('change', (path: string) => console.log(`File ${path} has been changed`))
+        .on('change', (path: string) => console.debug(`File ${path} has been changed`))
         .on('unlink', (path: string) => {
           console.log(`Location "${this.name}": File ${path} has been removed.`);
           this.store.hideFile(path);
@@ -132,7 +132,6 @@ export class ClientLocation implements ISerializable<ILocation> {
         .on('ready', () => {
           this.isReady = true;
           console.log(`Location "${this.name}" ready. Detected files:`, initialFiles.length);
-          // Todo: Compare this in DB, add new files and mark missing files as missing
           resolve(initialFiles);
         })
         .on('error', (error: Error) => {

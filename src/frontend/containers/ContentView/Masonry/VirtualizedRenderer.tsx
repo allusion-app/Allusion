@@ -132,7 +132,7 @@ const VirtualizedRenderer = observer(
       <div className={className} onScroll={handleScroll} ref={wrapperRef}>
         {/* One div for the content */}
         <div style={{ width: containerWidth, height: containerHeight }}>
-          {images.slice(startRenderIndex, endRenderIndex).map((im, index) => {
+          {images.slice(startRenderIndex, endRenderIndex + 1).map((im, index) => {
             const fileListIndex = startRenderIndex + index;
             const transform = layout.getItemLayout(fileListIndex);
             return (
