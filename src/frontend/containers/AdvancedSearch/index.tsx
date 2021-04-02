@@ -12,7 +12,7 @@ import { Query, defaultQuery, fromCriteria, intoCriteria } from './query';
 import './search.scss';
 
 export const AdvancedSearchDialog = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
   const { searchCriteriaList, isAdvancedSearchOpen } = uiStore;
   const [form, setForm] = useState(new Map<ID, Query>());
 
@@ -42,7 +42,9 @@ export const AdvancedSearchDialog = observer(() => {
   }, []);
 
   const search = useCallback(() => {
-    uiStore.replaceSearchCriterias(Array.from(form.values(), intoCriteria));
+    uiStore.replaceSearchCriterias(
+      Array.from(form.values(), (vals) => intoCriteria(vals, tagStore)),
+    );
     uiStore.closeAdvancedSearch();
   }, [form, uiStore]);
 

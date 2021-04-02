@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { IMG_EXTENSIONS } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import {
-  ArrayOperators,
+  TagOperators,
   BinaryOperators,
   NumberOperators,
   StringOperators,
@@ -209,7 +209,7 @@ function getOperatorOptions(key: QueryKey) {
   } else if (key === 'name' || key === 'absolutePath') {
     return OperatorOptions.STRING;
   } else if (key === 'tags') {
-    return OperatorOptions.ARRAY;
+    return OperatorOptions.TAG;
   }
   return [];
 }
@@ -221,7 +221,7 @@ const OperatorOptions = (function () {
     </option>
   );
   return {
-    ARRAY: ArrayOperators.map(toOption),
+    TAG: TagOperators.map(toOption),
     BINARY: BinaryOperators.map(toOption),
     NUMBER: NumberOperators.map(toOption),
     STRING: StringOperators.map(toOption),

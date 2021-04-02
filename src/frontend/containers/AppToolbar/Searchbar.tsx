@@ -27,7 +27,7 @@ const Searchbar = observer(() => {
 
 export default Searchbar;
 
-import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 
 import UiStore from 'src/frontend/stores/UiStore';
@@ -47,7 +47,7 @@ interface ISearchListProps {
 const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListProps) => {
   const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
-    if (c instanceof ClientIDSearchCriteria && c.value.length === 1) {
+    if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
       const item = tagStore.get(c.value[0]);
       if (item) {
         selectedItems.push(item);
@@ -56,12 +56,12 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
   });
 
   const handleSelect = action((item: ClientTag) =>
-    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', item.id, item.name)),
+    uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', item.id, item.name)),
   );
 
   const handleDeselect = action((item: ClientTag) => {
     const crit = uiStore.searchCriteriaList.find(
-      (c) => c instanceof ClientIDSearchCriteria && c.value.includes(item.id),
+      (c) => c instanceof ClientTagSearchCriteria && c.value.includes(item.id),
     );
     if (crit) {
       uiStore.removeSearchCriteria(crit);
