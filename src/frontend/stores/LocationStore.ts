@@ -32,6 +32,7 @@ class LocationStore {
   }
 
   // E.g. in preview window, it's not needed to watch the locations
+  // Returns whether files have been added, changed or removed
   @action async watchLocations() {
     const progressToastKey = 'progress';
     let foundNewFiles = false;
@@ -136,7 +137,9 @@ class LocationStore {
 
       // For createdFiles without a match, insert them in the DB as new files
       const newFiles = createdFiles.filter((cf) => !foundMatches.includes(cf));
-      await this.backend.createFilesFromPath(location.path, newFiles);
+      if (newFiles.length) {
+        await this.backend.createFilesFromPath(location.path, newFiles);
+      }
 
       // TODO: Also update files that have changed, e.g. when overwriting a file (with same filename)
       // Look at modified date? Or file size? For these ones, update metadata (resolution, size) and recreate thumbnail
@@ -194,22 +197,27 @@ class LocationStore {
   @action.bound async initLocation(location: ClientLocation) {
     const toastKey = `initialize-${location.id}`;
 
-    const isCancelled = false;
-    // const handleCancelled = () => {
-    //   console.debug('clicked cancel');
-    //   isCancelled = true;
-    //   this.delete(location);
-    // };
+    let isCancelled = false;
+    const handleCancelled = () => {
+      console.debug('Aborting location initialization', location.name);
+      isCancelled = true;
+      location.delete();
+    };
 
     AppToaster.show(
       {
         message: 'Finding all images...',
         timeout: 0,
+        clickAction: {
+          label: 'Cancel',
+          onClick: handleCancelled,
+        },
       },
       toastKey,
     );
 
-    const filePaths = await location.init(() => isCancelled);
+    const filePaths = await location.init();
+    console.debug('!!! finished location loading', location.path, filePaths);
 
     if (isCancelled || filePaths === undefined) {
       return;
