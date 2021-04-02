@@ -27,7 +27,7 @@ const Searchbar = observer(() => {
 
 export default Searchbar;
 
-import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 
 import UiStore from 'src/frontend/stores/UiStore';
@@ -37,6 +37,7 @@ import { IconButton, IconSet, Tag } from 'widgets';
 
 import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
 import FileStore from 'src/frontend/stores/FileStore';
+import { CustomKeyDict } from '../types';
 
 interface ISearchListProps {
   uiStore: UiStore;
@@ -75,11 +76,24 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
       onDeselect={handleDeselect}
       onTagClick={uiStore.toggleAdvancedSearch}
       onClear={uiStore.clearSearchCriteriaList}
-      extraOption={{
-        label: 'Advanced search',
-        action: uiStore.toggleAdvancedSearch,
-        icon: IconSet.SEARCH_EXTENDED,
-      }}
+      extraOptions={[
+        {
+          id: 'search-in-path',
+          label: (input) => `Search in file paths for "${input}"`,
+          action: (query) =>
+            uiStore.addSearchCriteria(
+              new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
+            ),
+          icon: IconSet.FILTER_NAME_DOWN,
+          resetQueryOnAction: true,
+        },
+        {
+          id: 'advanced-search',
+          label: 'Advanced search',
+          action: uiStore.toggleAdvancedSearch,
+          icon: IconSet.SEARCH_EXTENDED,
+        },
+      ]}
       extraIconButtons={
         selectedItems.length > 1 ? (
           <IconButton

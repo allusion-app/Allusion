@@ -16,11 +16,18 @@ interface IMultiTagSelector {
   onDeselect: (item: ClientTag) => void;
   onTagClick?: (item: ClientTag) => void;
   onClear: () => void;
-  onCreate?: (name: string) => Promise<ClientTag>;
   tagLabel?: (item: ClientTag) => string;
   disabled?: boolean;
   autoFocus?: boolean;
-  extraOption?: { label: string; action: () => void; icon?: JSX.Element };
+  extraOptions?: {
+    id: string;
+    label: string | ((input: string) => string);
+    // TODO: couldn't figure out how to type is properly. Should just return whatever is returned where it's being defined
+    action: (input: string) => any | Promise<any>;
+    icon?: JSX.Element;
+    resetQueryOnAction?: boolean;
+    onlyShowWithoutSuggestions?: boolean;
+  }[];
   extraIconButtons?: ReactElement;
   defaultPrevented?: boolean;
 }
@@ -32,10 +39,9 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     onDeselect,
     onTagClick,
     onClear,
-    onCreate,
     tagLabel = action((t: ClientTag) => t.name),
     disabled,
-    extraOption,
+    extraOptions = [],
     extraIconButtons,
     autoFocus,
   } = props;
@@ -69,30 +75,35 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
       };
     });
 
-    if (onCreate && suggestions.length === 0) {
-      res.push({
-        id: 'create',
-        selected: false,
-        value: `Create Tag "${query}"`,
-        icon: IconSet.TAG_ADD,
-        onClick: async () => {
-          onSelect(await onCreate(query));
-          setQuery('');
-          // setIsOpen(false);
-        },
-      });
+    for (const opt of extraOptions) {
+      if (!opt.onlyShowWithoutSuggestions || suggestions.length === 0) {
+        res.push({
+          id: opt.id,
+          value: typeof opt.label === 'string' ? opt.label : opt.label(query),
+          onClick: () => {
+            if (opt.resetQueryOnAction) setQuery('');
+            return opt.action(query);
+          },
+          icon: opt.icon,
+          divider: opt === extraOptions[0] && res.length !== 0,
+        });
+      }
     }
-    if (extraOption) {
-      res.push({
-        id: 'extra-option',
-        value: extraOption.label,
-        onClick: extraOption.action,
-        icon: extraOption.icon,
-        divider: suggestions.length !== 0,
-      });
-    }
+    // if (onCreate && suggestions.length === 0) {
+    //   res.push({
+    //     id: 'create',
+    //     selected: false,
+    //     value: `Create Tag "${query}"`,
+    //     icon: IconSet.TAG_ADD,
+    //     onClick: async () => {
+    //       onSelect(await onCreate(query));
+    //       setQuery('');
+    //       // setIsOpen(false);
+    //     },
+    //   });
+    // }
     return res;
-  }, [extraOption, onCreate, onDeselect, onSelect, query, selection, suggestions]);
+  }, [extraOptions, onDeselect, onSelect, query, selection, suggestions]);
 
   // Todo: clamp this value when list size changes
   const [focusedOption, setFocusedOption] = useState(0);
