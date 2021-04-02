@@ -144,6 +144,16 @@ function createWindow() {
     }
   });
 
+  mainWindow.addListener(
+    'enter-full-screen',
+    () => mainWindow && MainMessenger.fullscreenChanged(mainWindow.webContents, true),
+  );
+
+  mainWindow.addListener(
+    'leave-full-screen',
+    () => mainWindow && MainMessenger.fullscreenChanged(mainWindow.webContents, false),
+  );
+
   let menu = null;
 
   // Mac App menu - used for styling so shortcuts work

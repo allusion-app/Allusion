@@ -103,7 +103,8 @@ if (IS_PREVIEW_WINDOW) {
     } else {
       const prefs = JSON.parse(window_preferences);
       if (prefs.isFullScreen === true) {
-        RendererMessenger.setFullScreen(prefs.isFullScreen);
+        RendererMessenger.setFullScreen(true);
+        rootStore.uiStore.setFullScreen(true);
       }
     }
   } catch (e) {
@@ -162,3 +163,5 @@ RendererMessenger.onAddTagsToFile(async ({ item }) => {
 });
 
 RendererMessenger.onGetTags(async () => ({ tags: await backend.fetchTags() }));
+
+RendererMessenger.onFullScreenChanged((val) => rootStore.uiStore.setFullScreen(val));

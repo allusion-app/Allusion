@@ -40,7 +40,7 @@ const Appearance = observer(() => {
           label="Dark theme"
         />
         <Toggle
-          defaultChecked={RendererMessenger.isFullScreen()}
+          defaultChecked={uiStore.isFullScreen}
           onChange={toggleFullScreen}
           label="Full screen"
         />
