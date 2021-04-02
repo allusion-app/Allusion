@@ -92,11 +92,15 @@ export class ClientLocation implements ISerializable<ILocation> {
       await this.watcher.close();
       this.watcher = undefined;
     }
-    // Watch for folder changes
-    this.watcher = chokidar.watch(directory, {
+
+    // Only watch for images files
+    const watchPattern = `${directory}/**/*.{
+      ${IMG_EXTENSIONS.join(',')},${IMG_EXTENSIONS.map((s) => s.toUpperCase()).join(',')}}`;
+
+    // Watch for changes
+    this.watcher = chokidar.watch(watchPattern, {
       depth: RECURSIVE_DIR_WATCH_DEPTH,
       // Ignore dot files. Also dot folders?
-      // Todo: Ignore everything but image files
       ignored: /(^|[\/\\])\../,
     });
 
