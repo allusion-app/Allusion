@@ -8,11 +8,18 @@ const Searchbar = observer(() => {
   const { uiStore, tagStore, fileStore } = useContext(StoreContext);
   const searchCriteriaList = uiStore.searchCriteriaList;
 
-  // Only show quick search bar when all criteria are tags or collections, else
-  // show a search bar that opens to the advanced search form
+  // Only show quick search bar when all criteria are tags,
+  // otherwise show a search bar that opens to the advanced search form
+  // Exception: Searching for untagged files (tag contains empty value)
+  // -> show as custom label in CriteriaList
   const isQuickSearch =
     searchCriteriaList.length === 0 ||
-    searchCriteriaList.every((crit) => crit.key === 'tags' && crit.operator === 'contains');
+    searchCriteriaList.every(
+      (crit) =>
+        crit.key === 'tags' &&
+        crit.operator === 'contains' &&
+        (crit as ClientTagSearchCriteria<any>).value.length,
+    );
 
   return (
     <div className="searchbar">
@@ -117,16 +124,9 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
 });
 
 const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
-  // Open advanced search when clicking one of the criteria (but not their delete buttons)
-  const handleTagClick = (e: React.MouseEvent) => {
-    if (e.currentTarget === e.target || (e.target as HTMLElement).matches('.tag')) {
-      uiStore.toggleAdvancedSearch();
-    }
-  };
-
   return (
-    <div className="input">
-      <div className="multiautocomplete-input" onClick={handleTagClick}>
+    <div className="input" onClick={uiStore.toggleAdvancedSearch}>
+      <div className="multiautocomplete-input">
         <div className="input-wrapper">
           {uiStore.searchCriteriaList.map((c, i) => (
             <Tag

@@ -137,10 +137,14 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     makeObservable(this);
   }
 
-  toString: () => string = () =>
-    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
+  toString: () => string = () => {
+    if (!this.value.length && !this.operator.toLowerCase().includes('not')) {
+      return 'Untagged images';
+    }
+    return `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
       this.operator,
-    )} ${this.label}`;
+    )} ${this.value.length === 0 ? 'no tags' : this.label}`;
+  };
 
   @action.bound
   serialize = (): ITagSearchCriteria<T> => {

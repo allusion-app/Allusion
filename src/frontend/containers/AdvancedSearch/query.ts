@@ -36,7 +36,7 @@ export type QueryKey = keyof Pick<
 >;
 export type QueryOperator = OperatorType;
 export type QueryValue = string | number | Date | TagValue;
-export type TagValue = { id: ID; label: string } | undefined;
+export type TagValue = { id?: ID; label: string } | undefined;
 
 export function defaultQuery(key: QueryKey): Query {
   if (key === 'name' || key === 'absolutePath') {
@@ -73,11 +73,7 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Query] {
     query.value = criteria.value;
   } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
     query.value = criteria.value / BYTES_IN_MB;
-  } else if (
-    criteria instanceof ClientTagSearchCriteria &&
-    criteria.key === 'tags' &&
-    criteria.value.length > 0
-  ) {
+  } else if (criteria instanceof ClientTagSearchCriteria && criteria.key === 'tags') {
     query.value = { id: criteria.value[0], label: criteria.label };
   } else {
     return [generateId(), query];

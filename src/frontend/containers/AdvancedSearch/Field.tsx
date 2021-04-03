@@ -152,7 +152,7 @@ const PathInput = ({ id, value, dispatch }: ValueInput<string>) => {
 const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
   const { tagStore } = useContext(StoreContext);
   const [selection, setSelection] = useState(
-    value !== undefined ? tagStore.get(value.id) : undefined,
+    value?.id !== undefined ? tagStore.get(value.id) : undefined,
   );
 
   const handleSelect = action((t: ClientTag) => {

@@ -185,9 +185,10 @@ class FileStore {
     try {
       const { uiStore } = this.rootStore;
       uiStore.clearSearchCriteriaList();
-      const criteria = new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags').serialize();
+      const criteria = new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags');
+      uiStore.searchCriteriaList.push(criteria);
       const fetchedFiles = await this.backend.searchFiles(
-        criteria,
+        criteria.serialize(),
         this.orderBy,
         this.fileOrder,
         uiStore.searchMatchAny,
