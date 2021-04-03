@@ -134,11 +134,15 @@ const ImportExport = observer(() => {
         {/* TODO: adobe bridge has option to read with multiple separators */}
 
         <ButtonGroup>
-          <Button text="Import tags from file metadata" onClick={fileStore.readTagsFromFiles} />
+          <Button
+            text="Import tags from file metadata"
+            onClick={fileStore.readTagsFromFiles}
+            styling="outlined"
+          />
           <Button
             text="Write tags to file metadata"
             onClick={() => setConfirmingExport(true)}
-            styling="minimal"
+            styling="outlined"
           />
           <Alert
             open={isConfirmingExport}
