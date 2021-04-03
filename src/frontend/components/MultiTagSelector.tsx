@@ -30,6 +30,8 @@ interface IMultiTagSelector {
   }[];
   extraIconButtons?: ReactElement;
   defaultPrevented?: boolean;
+  // Whether to automatically open the fly-out on focus. Otherwise, opens when pressing any key
+  defaultOpen?: boolean;
 }
 
 const MultiTagSelector = observer((props: IMultiTagSelector) => {
@@ -44,6 +46,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     extraOptions = [],
     extraIconButtons,
     autoFocus,
+    defaultOpen = true,
   } = props;
   const listboxID = useRef(generateId());
   const inputRef = useRef<HTMLInputElement>(null);
@@ -158,6 +161,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                 aria-controls={listboxID.current}
                 autoFocus={autoFocus}
                 ref={inputRef}
+                onFocus={defaultOpen ? () => setIsOpen(true) : undefined}
               />
             </div>
             {extraIconButtons}

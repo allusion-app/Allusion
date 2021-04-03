@@ -1,4 +1,4 @@
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientTag } from 'src/entities/Tag';
@@ -84,7 +84,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     const newTag = await tagStore.create(tagStore.root, inputText);
     onSelect(newTag);
     setInputText('');
-    setMatchingTags([...tagStore.tagListWithoutRoot]);
+    runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
     inputRef.current?.focus();
   });
 
@@ -160,11 +160,11 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         ref={inputRef}
       />
       <ControlledListbox id="tag-files-listbox" multiselectable={true} listRef={listRef}>
-        {options.map((o, i) => {
+        {options.map(({ divider, id, ...optionProps }, i) => {
           return (
-            <React.Fragment key={o.id}>
-              {o.divider && <MenuDivider />}
-              <Option {...o} focused={focusedOption === i} />
+            <React.Fragment key={id}>
+              {divider && <MenuDivider />}
+              <Option {...optionProps} focused={focusedOption === i} />
             </React.Fragment>
           );
         })}
