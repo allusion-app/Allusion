@@ -1,14 +1,15 @@
+import { action } from 'mobx';
 import React, { useContext, useState } from 'react';
 import { IMG_EXTENSIONS } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import {
-  TagOperators,
   BinaryOperators,
   NumberOperators,
   StringOperators,
+  TagOperators,
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import TagSelector from 'src/frontend/components/TagSelector';
+import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
 import { IconButton, IconSet } from 'widgets';
@@ -41,7 +42,6 @@ export const Field = ({ id, query, dispatch, removable }: IFieldProps) => (
           })
         }
         disabled={!removable}
-        // styling="filled"
       />
     </div>
   </fieldset>
@@ -155,12 +155,24 @@ const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
     value !== undefined ? tagStore.get(value.id) : undefined,
   );
 
-  const handleSelect = (t: ClientTag) => {
+  const handleSelect = action((t: ClientTag) => {
     dispatch(setValue(id, { id: t.id, label: t.name }));
     setSelection(t);
+  });
+
+  const handleDeselect = () => {
+    dispatch(setValue(id, undefined));
+    setSelection(undefined);
   };
 
-  return <TagSelector selection={selection} onSelect={handleSelect} />;
+  return (
+    <MultiTagSelector
+      selection={selection ? [selection] : []}
+      onSelect={handleSelect}
+      onDeselect={handleDeselect}
+      onClear={handleDeselect}
+    />
+  );
 };
 
 const ExtensionInput = ({ id, value, dispatch }: ValueInput<string>) => (

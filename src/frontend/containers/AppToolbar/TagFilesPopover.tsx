@@ -1,4 +1,4 @@
-import { action, runInAction } from 'mobx';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientTag } from 'src/entities/Tag';
@@ -83,8 +83,8 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const handleCreate = action(async () => {
     const newTag = await tagStore.create(tagStore.root, inputText);
     onSelect(newTag);
-    // setInputText('');
-    // runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
+    setInputText('');
+    setMatchingTags([...tagStore.tagListWithoutRoot]);
     inputRef.current?.focus();
   });
 
@@ -94,7 +94,10 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       value: t.name,
       selected: counter.get(t) !== undefined,
       icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
-      onClick: () => (counter.get(t) ? onDeselect(t) : onSelect(t)),
+      onClick: () => {
+        counter.get(t) ? onDeselect(t) : onSelect(t);
+        inputRef.current?.focus();
+      },
     }));
 
     if (inputText) {

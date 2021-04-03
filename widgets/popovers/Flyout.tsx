@@ -13,6 +13,8 @@ export interface IFlyout {
   children: React.ReactNode;
   /** Closes the flyout when the `Escape` key is pressed or clicked outside. */
   cancel: () => void;
+  /** When this specific element is focused, the FlyOut is not closed */
+  ignoreCloseForElementOnBlur?: HTMLElement;
   placement?: Placement;
   /** Flip modifier settings */
   fallbackPlacements?: Placement[];
@@ -29,6 +31,7 @@ export const Flyout = (props: IFlyout) => {
     labelledby,
     describedby,
     cancel,
+    ignoreCloseForElementOnBlur,
     target,
     children,
     placement,
@@ -39,6 +42,7 @@ export const Flyout = (props: IFlyout) => {
   const popover = useRef<HTMLDivElement>(null);
 
   const handleBlur = (e: React.FocusEvent) => {
+    if (e.relatedTarget === ignoreCloseForElementOnBlur) return;
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       cancel();
     }

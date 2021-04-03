@@ -46,7 +46,7 @@ export const AdvancedSearchDialog = observer(() => {
       Array.from(form.values(), (vals) => intoCriteria(vals, tagStore)),
     );
     uiStore.closeAdvancedSearch();
-  }, [form, uiStore]);
+  }, [form, tagStore, uiStore]);
 
   const reset = useCallback(() => {
     setForm(new Map().set(generateId(), defaultQuery('tags')));
@@ -64,34 +64,39 @@ export const AdvancedSearchDialog = observer(() => {
         Advanced Search
       </h2>
       <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={uiStore.closeAdvancedSearch} />
-      <form role="search" id="search-form" className="dialog-information">
+      <form
+        role="search"
+        id="search-form"
+        className="dialog-information"
+        onSubmit={(e) => e.preventDefault()}
+      >
         {Array.from(form.entries(), ([id, query]) => (
           <Field key={id} id={id} query={query} dispatch={setForm} removable={form.size > 1} />
         ))}
+        <div className="dialog-footer">
+          <div id="functions-bar">
+            <Button text="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
+            <RadioGroup name="Match">
+              <Radio
+                label="Any"
+                value="any"
+                checked={uiStore.searchMatchAny}
+                onChange={uiStore.toggleSearchMatchAny}
+              />
+              <Radio
+                label="All"
+                value="all"
+                checked={!uiStore.searchMatchAny}
+                onChange={uiStore.toggleSearchMatchAny}
+              />
+            </RadioGroup>
+          </div>
+          <div className="btn-group dialog-actions">
+            <Button text="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
+            <Button text="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
+          </div>
+        </div>
       </form>
-      <div className="dialog-footer">
-        <div id="functions-bar">
-          <Button text="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
-          <RadioGroup name="Match">
-            <Radio
-              label="Any"
-              value="any"
-              checked={uiStore.searchMatchAny}
-              onChange={uiStore.toggleSearchMatchAny}
-            />
-            <Radio
-              label="All"
-              value="all"
-              checked={!uiStore.searchMatchAny}
-              onChange={uiStore.toggleSearchMatchAny}
-            />
-          </RadioGroup>
-        </div>
-        <div className="btn-group dialog-actions">
-          <Button text="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
-          <Button text="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
-        </div>
-      </div>
     </Dialog>
   );
 });

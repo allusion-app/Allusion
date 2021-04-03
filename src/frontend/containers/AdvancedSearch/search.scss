@@ -23,6 +23,12 @@
         color: var(--text-color-muted);
       }
     }
+
+    .multiautocomplete-input {
+      input {
+        width: 0; // for it to align with other criteria types
+      }
+    }
   }
   select {
     background: var(--input-color);

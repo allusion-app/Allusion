@@ -46,6 +46,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     autoFocus,
   } = props;
   const listboxID = useRef(generateId());
+  const inputRef = useRef<HTMLInputElement>(null);
   const { tagStore } = useContext(StoreContext);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -69,8 +70,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
           } else {
             onDeselect(t);
           }
-          // setIsOpen(false);
-          // setQuery('');
+          inputRef.current?.focus();
         },
       };
     });
@@ -81,6 +81,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
           id: opt.id,
           value: typeof opt.label === 'string' ? opt.label : opt.label(query),
           onClick: () => {
+            inputRef.current?.focus();
             if (opt.resetQueryOnAction) setQuery('');
             return opt.action(query);
           },
@@ -89,19 +90,6 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
         });
       }
     }
-    // if (onCreate && suggestions.length === 0) {
-    //   res.push({
-    //     id: 'create',
-    //     selected: false,
-    //     value: `Create Tag "${query}"`,
-    //     icon: IconSet.TAG_ADD,
-    //     onClick: async () => {
-    //       onSelect(await onCreate(query));
-    //       setQuery('');
-    //       // setIsOpen(false);
-    //     },
-    //   });
-    // }
     return res;
   }, [extraOptions, onDeselect, onSelect, query, selection, suggestions]);
 
@@ -129,9 +117,14 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
       aria-expanded={isOpen}
       className="input"
       onBlur={(e) => {
-        if (e.relatedTarget instanceof HTMLElement && e.relatedTarget.matches('[role="option"]')) {
+        // If anything is blurred, and the new focus is not the input nor the flyout, close the flyout
+        const isFocusingFlyOut =
+          e.relatedTarget instanceof HTMLElement && e.relatedTarget.matches('[role="option"]');
+        const isFocusingInput = e.relatedTarget === inputRef.current;
+        if (isFocusingFlyOut || isFocusingInput) {
           return;
         }
+        setQuery('');
         setIsOpen(false);
       }}
     >
@@ -139,6 +132,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
         isOpen={isOpen}
         cancel={() => setIsOpen(false)}
         placement="bottom-start"
+        ignoreCloseForElementOnBlur={inputRef.current || undefined}
         target={
           <div className="multiautocomplete-input">
             <div className="input-wrapper">
@@ -163,6 +157,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                 onKeyDown={handleKeyDown}
                 aria-controls={listboxID.current}
                 autoFocus={autoFocus}
+                ref={inputRef}
               />
             </div>
             {extraIconButtons}
@@ -178,11 +173,11 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
         }
       >
         <ControlledListbox id={listboxID.current} multiselectable listRef={listRef}>
-          {options.map((o, i) => {
+          {options.map(({ divider, id, ...optionProps }, i) => {
             return (
-              <React.Fragment key={o.id}>
-                {o.divider && <MenuDivider />}
-                <Option {...o} focused={focusedOption === i} />
+              <React.Fragment key={id}>
+                {divider && <MenuDivider />}
+                <Option {...optionProps} focused={focusedOption === i} />
               </React.Fragment>
             );
           })}
