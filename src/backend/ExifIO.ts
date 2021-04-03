@@ -41,6 +41,7 @@
 // - execute option may be used to perform multiple independent operations with a single invocation of exiftool
 // finds:
 // - automatically update Subject/Keywords when updating HierarchicalSubject: https://exiftool.org/forum/index.php?topic=9208.0
+// Update: only doing an export/import for all images for now, not real-time updates
 
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
@@ -67,46 +68,31 @@ class ExifIO {
     makeObservable(this);
   }
 
-  async initialize() {
-    // const version = await exiftool.version();
-    // console.log(`We're running ExifTool v${version}`);
+  async initialize(): Promise<void> {
     const pid = await ep.open();
-
-    // display pid
     console.log('Started exiftool process %s', pid);
   }
-  async close() {
+
+  async close(): Promise<void> {
     console.log('Closing Exiftool...');
     await ep.close();
     console.log('Closed Exiftool');
   }
 
-  // readTagsFromFile() {
-  // Observations from adobe bridge + looking at files through exiftool:
-  // - Terminology:
-  //   - the fields in exif metadata are called "tags". yes this is confusing
-  //   - tags are stored in exif data under "Subject", sometimes as "Keywords"
-  //   - Tag hierarchy is stored under "Hierarchical Subject", as "TopTag|ChildTag, RootTag, OtherTag|OtherChildTag"
-  // JPG
-  // - Most extensive exif data support, accessible in Windows explorer
-  // - Tags are stored as both as "Subject", "Keywords", and even as
-  // PNG:
-  // - Relatively recently gained support for exif metadata - not available in windows, probably is there on macs
-  // RendererMessenger.readExifTags({ absolutePath: this.absolutePath })
-  //   .then(console.log)
-  //   .catch(console.error);
-  // }
+  @action.bound setHierarchicalSeparator(val: string): void {
+    this.hierarchicalSeparator = val;
+  }
 
   // ------------------
 
   /** Merges the HierarchicalSubject, Subject and Keywords into one list of tags, removing any duplicates */
   static convertMetadataToHierarchy(entry: exiftool.IMetadata, separator: string): string[][] {
-    const tagHierarchy =
-      typeof entry.HierarchicalSubject === 'string'
-        ? [entry.HierarchicalSubject]
-        : entry.HierarchicalSubject || [];
-    const subject = typeof entry.Subject === 'string' ? [entry.Subject] : entry.Subject || [];
-    const keywords = typeof entry.Keywords === 'string' ? [entry.Keywords] : entry.Keywords || [];
+    const parseExifFieldAsString = (val: any) =>
+      Array.isArray(val) ? val : val?.toString() ? [val.toString()] : [];
+
+    const tagHierarchy = parseExifFieldAsString(entry.HierarchicalSubject);
+    const subject = parseExifFieldAsString(entry.Subject);
+    const keywords = parseExifFieldAsString(entry.Keywords);
 
     // these toString() methods are here because they are automatically parsed to numbers if they could be numbers :/
     const splitHierarchy = tagHierarchy.map((h) => h.toString().split(separator));
@@ -140,6 +126,7 @@ class ExifIO {
     );
   }
 
+  /** Reads file metadata for all files in a folder (and recursively for its subfolders) */
   async readTagsRecursively(directory: string) {
     const metadata = await ep.readMetadata(directory, [
       'HierarchicalSubject',
@@ -193,16 +180,13 @@ class ExifIO {
     }
   }
 
-  @action.bound setHierarchicalSeparator(val: string): void {
-    this.hierarchicalSeparator = val;
-  }
-
   /** Adds */
   async addTag(files: string[], tagHierarchy: string[]) {
     // concat file paths into one big string, each surrounded by double quotes
     const command = files.map((filePath) => `"${filePath}"`).join(' ');
     const res = await ep.writeMetadata(
       command,
+      // the "MyHS" is a custom exiftool tag, see the .Exilfool_config file for more details
       { 'MyHS+': tagHierarchy },
       ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
     );

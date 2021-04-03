@@ -60,29 +60,31 @@ class FileStore {
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
 
-    // TODO: do we want this in the FileStore? If so, don't open this in preview window
     this.exifTool = new ExifIO();
-    this.exifTool.initialize().then(() => this.readTagsFromFiles());
   }
 
   @action.bound async readTagsFromFiles() {
     const toastKey = 'read-tags-from-file';
-    const numFiles = runInAction(() => this.fileList.length);
-    for (let i = 0; i < numFiles; i++) {
-      AppToaster.show(
-        {
-          message: `Reading tags from files ${((100 * i++) / numFiles).toFixed(0)}%...`,
-          timeout: 0,
-        },
-        toastKey,
-      );
-      const absolutePath = runInAction(() => this.fileList[i].absolutePath);
-      try {
+    try {
+      await this.exifTool.initialize();
+      const numFiles = runInAction(() => this.fileList.length);
+      for (let i = 0; i < numFiles; i++) {
+        AppToaster.show(
+          {
+            message: `Reading tags from files ${((100 * i++) / numFiles).toFixed(0)}%...`,
+            timeout: 0,
+          },
+          toastKey,
+        );
+
+        const absolutePath = runInAction(() => this.fileList[i].absolutePath);
         const tagsNameHierarchies = await this.exifTool.readTags(absolutePath);
-        // Find matching with current tags, otherwise, insert new
+
+        // Now that we know the tag names in file metadata, add them to the files in Allusion
+        // Main idea: Find matching tag with same name, otherwise, insert new
+        //   for now, just match by the name at the bottom of the hierarchy
         // TODO: We need a "merge" option for two or more tags in tag context menu
 
-        // method: find a tag with the same name as the last tag in the hierarchy. If not exists, create hierarchy of tags
         const { tagStore } = this.rootStore;
         for (const tagHierarchy of tagsNameHierarchies) {
           const match = runInAction(() =>
@@ -99,50 +101,69 @@ class FileStore {
             runInAction(() => this.fileList[i].addTag(curTag));
           }
         }
-      } catch (e) {
-        console.error('Could not read tags from', absolutePath, e);
       }
+      AppToaster.show(
+        {
+          message: 'Reading tags from files... Done!',
+          timeout: 5000,
+        },
+        toastKey,
+      );
+    } catch (e) {
+      console.error('Could not read tags', e);
+      AppToaster.show(
+        {
+          message: 'Reading tags from files failed. Check the dev console for more details',
+          timeout: 5000,
+        },
+        toastKey,
+      );
+    } finally {
+      await this.exifTool.close();
     }
-    AppToaster.show(
-      {
-        message: 'Reading tags from files... Done!',
-        timeout: 5000,
-      },
-      toastKey,
-    );
   }
 
   @action.bound async writeTagsToFiles() {
     const toastKey = 'write-tags-to-file';
-    const numFiles = runInAction(() => this.fileList.length);
-    for (let i = 0; i < numFiles; i++) {
+    try {
+      await this.exifTool.initialize();
+      const numFiles = runInAction(() => this.fileList.length);
+      for (let i = 0; i < numFiles; i++) {
+        AppToaster.show(
+          {
+            message: `Writing tags to files ${((100 * i++) / numFiles).toFixed(0)}%...`,
+            timeout: 0,
+          },
+          toastKey,
+        );
+        const [absolutePath, tagNameHierarchy] = runInAction(() => {
+          const file = this.fileList[i];
+          return [
+            file.absolutePath,
+            Array.from(file.tags).map((t) => t.getTagHierarchy().map((t) => t.name)),
+          ];
+        });
+        await this.exifTool.writeTags(absolutePath, tagNameHierarchy);
+      }
       AppToaster.show(
         {
-          message: `Writing tags to files ${((100 * i++) / numFiles).toFixed(0)}%...`,
-          timeout: 0,
+          message: 'Writing tags to files... Done!',
+          timeout: 5000,
         },
         toastKey,
       );
-      const [absolutePath, tagNameHierarchy] = runInAction(() => {
-        const file = this.fileList[i];
-        return [
-          file.absolutePath,
-          Array.from(file.tags).map((t) => t.getTagHierarchy().map((t) => t.name)),
-        ];
-      });
-      try {
-        await this.exifTool.writeTags(absolutePath, tagNameHierarchy);
-      } catch (e) {
-        console.error('Could not write tags to', absolutePath, e);
-      }
+    } catch (e) {
+      console.error('Could not write tags', e);
+      AppToaster.show(
+        {
+          message: 'Writing tags to files failed. Check the dev console for more details',
+          timeout: 5000,
+        },
+        toastKey,
+      );
+    } finally {
+      this.exifTool.close();
     }
-    AppToaster.show(
-      {
-        message: 'Writing tags to files... Done!',
-        timeout: 5000,
-      },
-      toastKey,
-    );
   }
 
   @computed get showsAllContent() {
