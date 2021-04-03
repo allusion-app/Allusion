@@ -3,6 +3,7 @@ import React, { useCallback, useContext, useState } from 'react';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
+import { Alert, DialogButton } from 'widgets/popovers';
 import StoreContext from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../../utils';
@@ -105,6 +106,7 @@ const Appearance = observer(() => {
 
 const ImportExport = observer(() => {
   const { fileStore } = useContext(StoreContext);
+  const [isConfirmingExport, setConfirmingExport] = useState(false);
   return (
     <>
       <h2>Import/Export</h2>
@@ -116,25 +118,11 @@ const ImportExport = observer(() => {
         Dropbox or Google Drive.
       </p>
       <fieldset>
-        <Toggle
-          checked={fileStore.writeTagsToFileMetadata}
-          onChange={() => {
-            fileStore.toggleWriteTagsToFileMetadata();
-            if (
-              fileStore.writeTagsToFileMetadata &&
-              window.confirm(
-                'Would you like to import tags right now? If not, you might lose the tags saved in file metadata when you change the tags on a file in Allusion',
-              )
-            ) {
-              window.alert('TODO: Index files now');
-            }
-          }}
-          label="Read/write tags to file metadata"
-        />
         <label>
           <select
             style={{ width: '40px', marginRight: '8px' }}
-            disabled={!fileStore.writeTagsToFileMetadata}
+            value={fileStore.exifTool.hierarchicalSeparator}
+            onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
           >
             <option value="|">&apos;|&apos;</option>
             <option value="/">&apos;/&apos;</option>
@@ -144,10 +132,33 @@ const ImportExport = observer(() => {
           Hierarchical separator
         </label>
         {/* TODO: adobe bridge has option to read with multiple separators */}
+
+        <ButtonGroup>
+          <Button text="Import tags from file metadata" onClick={fileStore.readTagsFromFiles} />
+          <Button
+            text="Write tags to file metadata"
+            onClick={() => setConfirmingExport(true)}
+            styling="minimal"
+          />
+          <Alert
+            open={isConfirmingExport}
+            title="Are you sure you want to write Allusion's tags to your image files?"
+            information="This will overwrite any existing tags ('keywords') on those files, so it is recommended you have imported them first"
+            primaryButtonText="Export"
+            closeButtonText="Cancel"
+            // defaultButton={}
+            onClick={(button) => {
+              if (button === DialogButton.PrimaryButton) {
+                fileStore.writeTagsToFiles();
+              }
+              setConfirmingExport(false);
+            }}
+          />
+        </ButtonGroup>
       </fieldset>
 
-      <h3>Backup</h3>
-      {/* TODO */}
+      {/* TODO: already implemented in other branch */}
+      {/* <h3>Backup</h3>
       <fieldset>
         <Button text="Export database..." onClick={console.log} icon={IconSet.OPEN_EXTERNAL} />
         <Button text="Import database..." onClick={console.log} icon={IconSet.IMPORT} />
@@ -156,7 +167,7 @@ const ImportExport = observer(() => {
           onClick={console.log}
           icon={IconSet.MEDIA}
         />
-      </fieldset>
+      </fieldset> */}
     </>
   );
 });
@@ -258,12 +269,12 @@ const SETTINGS_TABS: TabItem[] = [
     content: <Appearance />,
   },
   {
-    label: 'Import/Export',
-    content: <ImportExport />,
-  },
-  {
     label: 'Shortcuts',
     content: <Shortcuts />,
+  },
+  {
+    label: 'Import/Export',
+    content: <ImportExport />,
   },
   {
     label: 'Background Processes',

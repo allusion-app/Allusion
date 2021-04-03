@@ -113,8 +113,6 @@ export class ClientFile implements ISerializable<IFile> {
     );
 
     makeObservable(this);
-
-    this.readTagsFromFile();
   }
 
   @action.bound setThumbnailPath(thumbnailPath: string): void {
@@ -144,31 +142,6 @@ export class ClientFile implements ISerializable<IFile> {
   @action.bound setBroken(state: boolean): void {
     this.isBroken = state;
     this.autoSave = !state;
-  }
-
-  readTagsFromFile() {
-    // Observations from adobe bridge + looking at files through exiftool:
-    // - Terminology:
-    //   - the fields in exif metadata are called "tags". yes this is confusing
-    //   - tags are stored in exif data under "Subject", sometimes as "Keywords"
-    //   - Tag hierarchy is stored under "Hierarchical Subject", as "TopTag|ChildTag, RootTag, OtherTag|OtherChildTag"
-    // JPG
-    // - Most extensive exif data support, accessible in Windows explorer
-    // - Tags are stored as both as "Subject", "Keywords", and even as
-    // PNG:
-    // - Relatively recently gained support for exif metadata - not available in windows, probably is there on macs
-    // RendererMessenger.readExifTags({ absolutePath: this.absolutePath })
-    //   .then(console.log)
-    //   .catch(console.error);
-  }
-
-  getExifTagHierachies(separator = '|'): string[] {
-    const getTagHierarchy = (tag: ClientTag): string =>
-      tag.parent.id === ROOT_TAG_ID
-        ? tag.name
-        : `${getTagHierarchy(tag.parent)} ${separator} ${tag.name}`;
-    const tagHierarchies = Array.from(this.tags).map((tag) => getTagHierarchy(tag));
-    return tagHierarchies;
   }
 
   serialize(): IFile {

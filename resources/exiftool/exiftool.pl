@@ -10,7 +10,7 @@
 use strict;
 require 5.004;
 
-my $version = '12.21';
+my $version = '12.23';
 
 # add our 'lib' directory to the include list BEFORE 'use Image::ExifTool'
 my $exeDir;
@@ -159,6 +159,7 @@ my $forcePrint;     # string to use for missing tag values (undef to not print t
 my $helped;         # flag to avoid printing help if no tags specified
 my $html;           # flag for html-formatted output (2=html dump)
 my $interrupted;    # flag set if CTRL-C is pressed during a critical process
+my $isBinary;       # true if value is a SCALAR ref
 my $isWriting;      # flag set if we are writing tags
 my $joinLists;      # flag set to join list values into a single string
 my $json;           # flag for JSON/PHP output format (1=JSON, 2=PHP)
@@ -168,6 +169,7 @@ my $listItem;       # item number for extracting single item from a list
 my $listSep;        # list item separator (', ' by default)
 my $mt;             # main ExifTool object
 my $multiFile;      # non-zero if we are scanning multiple files
+my $noBinary;       # flag set to ignore binary tags
 my $outFormat;      # -1=Canon format, 0=same-line, 1=tag names, 2=values only
 my $outOpt;         # output file or directory name
 my $overwriteOrig;  # flag to overwrite original file (1=overwrite, 2=in place)
@@ -204,7 +206,6 @@ my $validFile;      # flag indicating we processed a valid file
 my $verbose;        # verbose setting
 my $vout;           # verbose output file reference (\*STDOUT or \*STDERR)
 my $windowTitle;    # title for console window
-my $isBinary;       # true if value is a SCALAR ref
 my $xml;            # flag for XML-formatted output
 
 # flag to keep the input -@ argfile open:
@@ -285,6 +286,7 @@ my @recommends = qw(
     Digest::SHA
     IO::Compress::Bzip2
     POSIX::strptime
+    Time::Local
     Unicode::LineBreak
     IO::Compress::RawDeflate
     IO::Uncompress::RawInflate
@@ -475,6 +477,7 @@ undef $joinLists;
 undef $langOpt;
 undef $listItem;
 undef $multiFile;
+undef $noBinary;
 undef $outOpt;
 undef $preserveTime;
 undef $progress;
@@ -793,7 +796,11 @@ for (;;) {
         next;
     }
     /^arg(s|format)$/i and $argFormat = 1, next;
-    /^b(inary)?$/i and $mt->Options(Binary => 1, NoPDFList => 1), $binaryOutput = 1, next;
+    if (/^(-?)b(inary)?$/i) {
+        ($binaryOutput, $noBinary) = $1 ? (undef, 1) : (1, undef);
+        $mt->Options(Binary => $binaryOutput, NoPDFList => $binaryOutput);
+        next;
+    }
     if (/^c(oordFormat)?$/i) {
         my $fmt = shift;
         $fmt or Error("Expecting coordinate format for -c option\n"), $badCmd=1, next;
@@ -2272,7 +2279,8 @@ TAG:    foreach $tag (@foundTags) {
                     next unless $$et{REQ_TAG_LOOKUP}{$lcTag};
                 }
                 $val = ConvertBinary($val); # convert SCALAR references
-                if ($structOpt) {
+                next unless defined $val;
+                if ($structOpt and ref $val) {
                     # serialize structure if necessary
                     $val = Image::ExifTool::XMP::SerializeStruct($val) unless $xml or $json;
                 } elsif (ref $val eq 'ARRAY') {
@@ -3401,20 +3409,25 @@ sub AddGroups($$$$)
 #------------------------------------------------------------------------------
 # Convert binary data (SCALAR references) for printing
 # Inputs: 0) object reference
-# Returns: converted object
+# Returns: converted object, or undef if we don't want binary objects
 sub ConvertBinary($)
 {
     my $obj = shift;
     my ($key, $val);
     if (ref $obj eq 'HASH') {
         foreach $key (keys %$obj) {
-            $$obj{$key} = ConvertBinary($$obj{$key}) if ref $$obj{$key};
+            next unless ref $$obj{$key};
+            $$obj{$key} = ConvertBinary($$obj{$key});
+            return undef unless defined $$obj{$key};
         }
     } elsif (ref $obj eq 'ARRAY') {
         foreach $val (@$obj) {
-            $val = ConvertBinary($val) if ref $val;
+            next unless ref $val;
+            $val = ConvertBinary($val);
+            return undef unless defined $val;
         }
     } elsif (ref $obj eq 'SCALAR') {
+        return undef if $noBinary;
         # (binaryOutput flag is set to 0 for binary mode of XML/PHP/JSON output formats)
         if (defined $binaryOutput) {
             $obj = $$obj;
@@ -4456,47 +4469,47 @@ supported by ExifTool (r = read, w = write, c = create):
 
   File Types
   ------------+-------------+-------------+-------------+------------
-  360   r/w   | DPX   r     | ITC   r     | ODP   r     | RIFF  r
-  3FR   r     | DR4   r/w/c | J2C   r     | ODS   r     | RSRC  r
-  3G2   r/w   | DSS   r     | JNG   r/w   | ODT   r     | RTF   r
-  3GP   r/w   | DV    r     | JP2   r/w   | OFR   r     | RW2   r/w
-  A     r     | DVB   r/w   | JPEG  r/w   | OGG   r     | RWL   r/w
-  AA    r     | DVR-MS r    | JSON  r     | OGV   r     | RWZ   r
-  AAE   r     | DYLIB r     | K25   r     | ONP   r     | RM    r
-  AAX   r/w   | EIP   r     | KDC   r     | OPUS  r     | SEQ   r
-  ACR   r     | EPS   r/w   | KEY   r     | ORF   r/w   | SKETCH r
-  AFM   r     | EPUB  r     | LA    r     | OTF   r     | SO    r
-  AI    r/w   | ERF   r/w   | LFP   r     | PAC   r     | SR2   r/w
-  AIFF  r     | EXE   r     | LNK   r     | PAGES r     | SRF   r
-  APE   r     | EXIF  r/w/c | LRV   r/w   | PBM   r/w   | SRW   r/w
-  ARQ   r/w   | EXR   r     | M2TS  r     | PCD   r     | SVG   r
-  ARW   r/w   | EXV   r/w/c | M4A/V r/w   | PCX   r     | SWF   r
-  ASF   r     | F4A/V r/w   | MACOS r     | PDB   r     | THM   r/w
-  AVI   r     | FFF   r/w   | MAX   r     | PDF   r/w   | TIFF  r/w
-  AVIF  r/w   | FITS  r     | MEF   r/w   | PEF   r/w   | TORRENT r
-  AZW   r     | FLA   r     | MIE   r/w/c | PFA   r     | TTC   r
-  BMP   r     | FLAC  r     | MIFF  r     | PFB   r     | TTF   r
-  BPG   r     | FLIF  r/w   | MKA   r     | PFM   r     | TXT   r
-  BTF   r     | FLV   r     | MKS   r     | PGF   r     | VCF   r
-  CHM   r     | FPF   r     | MKV   r     | PGM   r/w   | VRD   r/w/c
-  COS   r     | FPX   r     | MNG   r/w   | PLIST r     | VSD   r
-  CR2   r/w   | GIF   r/w   | MOBI  r     | PICT  r     | WAV   r
-  CR3   r/w   | GPR   r/w   | MODD  r     | PMP   r     | WDP   r/w
-  CRM   r/w   | GZ    r     | MOI   r     | PNG   r/w   | WEBP  r
-  CRW   r/w   | HDP   r/w   | MOS   r/w   | PPM   r/w   | WEBM  r
-  CS1   r/w   | HDR   r     | MOV   r/w   | PPT   r     | WMA   r
-  CSV   r     | HEIC  r/w   | MP3   r     | PPTX  r     | WMV   r
-  CZI   r     | HEIF  r/w   | MP4   r/w   | PS    r/w   | WTV   r
-  DCM   r     | HTML  r     | MPC   r     | PSB   r/w   | WV    r
-  DCP   r/w   | ICC   r/w/c | MPG   r     | PSD   r/w   | X3F   r/w
-  DCR   r     | ICS   r     | MPO   r/w   | PSP   r     | XCF   r
-  DFONT r     | IDML  r     | MQV   r/w   | QTIF  r/w   | XLS   r
-  DIVX  r     | IIQ   r/w   | MRW   r/w   | R3D   r     | XLSX  r
-  DJVU  r     | IND   r/w   | MXF   r     | RA    r     | XMP   r/w/c
-  DLL   r     | INSP  r/w   | NEF   r/w   | RAF   r/w   | ZIP   r
-  DNG   r/w   | INSV  r     | NRW   r/w   | RAM   r     |
-  DOC   r     | INX   r     | NUMBERS r   | RAR   r     |
-  DOCX  r     | ISO   r     | O     r     | RAW   r/w   |
+  360   r/w   | DPX   r     | ITC   r     | O     r     | RAR   r
+  3FR   r     | DR4   r/w/c | J2C   r     | ODP   r     | RAW   r/w
+  3G2   r/w   | DSS   r     | JNG   r/w   | ODS   r     | RIFF  r
+  3GP   r/w   | DV    r     | JP2   r/w   | ODT   r     | RSRC  r
+  A     r     | DVB   r/w   | JPEG  r/w   | OFR   r     | RTF   r
+  AA    r     | DVR-MS r    | JSON  r     | OGG   r     | RW2   r/w
+  AAE   r     | DYLIB r     | JXL   r     | OGV   r     | RWL   r/w
+  AAX   r/w   | EIP   r     | K25   r     | ONP   r     | RWZ   r
+  ACR   r     | EPS   r/w   | KDC   r     | OPUS  r     | RM    r
+  AFM   r     | EPUB  r     | KEY   r     | ORF   r/w   | SEQ   r
+  AI    r/w   | ERF   r/w   | LA    r     | ORI   r/w   | SKETCH r
+  AIFF  r     | EXE   r     | LFP   r     | OTF   r     | SO    r
+  APE   r     | EXIF  r/w/c | LNK   r     | PAC   r     | SR2   r/w
+  ARQ   r/w   | EXR   r     | LRV   r/w   | PAGES r     | SRF   r
+  ARW   r/w   | EXV   r/w/c | M2TS  r     | PBM   r/w   | SRW   r/w
+  ASF   r     | F4A/V r/w   | M4A/V r/w   | PCD   r     | SVG   r
+  AVI   r     | FFF   r/w   | MACOS r     | PCX   r     | SWF   r
+  AVIF  r/w   | FITS  r     | MAX   r     | PDB   r     | THM   r/w
+  AZW   r     | FLA   r     | MEF   r/w   | PDF   r/w   | TIFF  r/w
+  BMP   r     | FLAC  r     | MIE   r/w/c | PEF   r/w   | TORRENT r
+  BPG   r     | FLIF  r/w   | MIFF  r     | PFA   r     | TTC   r
+  BTF   r     | FLV   r     | MKA   r     | PFB   r     | TTF   r
+  CHM   r     | FPF   r     | MKS   r     | PFM   r     | TXT   r
+  COS   r     | FPX   r     | MKV   r     | PGF   r     | VCF   r
+  CR2   r/w   | GIF   r/w   | MNG   r/w   | PGM   r/w   | VRD   r/w/c
+  CR3   r/w   | GPR   r/w   | MOBI  r     | PLIST r     | VSD   r
+  CRM   r/w   | GZ    r     | MODD  r     | PICT  r     | WAV   r
+  CRW   r/w   | HDP   r/w   | MOI   r     | PMP   r     | WDP   r/w
+  CS1   r/w   | HDR   r     | MOS   r/w   | PNG   r/w   | WEBP  r
+  CSV   r     | HEIC  r/w   | MOV   r/w   | PPM   r/w   | WEBM  r
+  CZI   r     | HEIF  r/w   | MP3   r     | PPT   r     | WMA   r
+  DCM   r     | HTML  r     | MP4   r/w   | PPTX  r     | WMV   r
+  DCP   r/w   | ICC   r/w/c | MPC   r     | PS    r/w   | WTV   r
+  DCR   r     | ICS   r     | MPG   r     | PSB   r/w   | WV    r
+  DFONT r     | IDML  r     | MPO   r/w   | PSD   r/w   | X3F   r/w
+  DIVX  r     | IIQ   r/w   | MQV   r/w   | PSP   r     | XCF   r
+  DJVU  r     | IND   r/w   | MRW   r/w   | QTIF  r/w   | XLS   r
+  DLL   r     | INSP  r/w   | MXF   r     | R3D   r     | XLSX  r
+  DNG   r/w   | INSV  r     | NEF   r/w   | RA    r     | XMP   r/w/c
+  DOC   r     | INX   r     | NRW   r/w   | RAF   r/w   | ZIP   r
+  DOCX  r     | ISO   r     | NUMBERS r   | RAM   r     |
 
   Meta Information
   ----------------------+----------------------+---------------------
@@ -4939,7 +4952,7 @@ documentation above for a complete description.
 =head3 Input-output text formatting
 
 Note that trailing spaces are removed from extracted values for most output
-text formats.  The exceptions are C<-b>, C<-csv>, C<-j> and C<-X>.
+text formats.  The exceptions are B<-b>, B<-csv>, B<-j> and B<-X>.
 
 =over 5
 
@@ -4965,17 +4978,21 @@ maintain separate list items when writing metadata back to image files, and
 the B<-struct> option may be used when extracting to preserve structured XMP
 information.
 
-=item B<-b> (B<-binary>)
+=item B<-b>, B<--b> (B<-binary>, B<--binary>)
 
-Output requested metadata in binary format without tag names or
-descriptions.  This option is mainly used for extracting embedded images or
-other binary data, but it may also be useful for some text strings since
-control characters (such as newlines) are not replaced by '.' as they are in
-the default output.  By default, list items are separated by a newline when
-extracted with the B<-b> option, but this may be changed (see the B<-sep>
-option for details).  May be combined with C<-j>, C<-php> or C<-X> to
-extract binary data in JSON, PHP or XML format, but note that "unsafe" tags
-must be specified explicitly to be extracted as binary in these formats.
+Output requested metadata in binary format without tag names or descriptions
+(B<-b> or B<-binary>).  This option is mainly used for extracting embedded
+images or other binary data, but it may also be useful for some text strings
+since control characters (such as newlines) are not replaced by '.' as they
+are in the default output.  By default, list items are separated by a
+newline when extracted with the B<-b> option, but this may be changed (see
+the B<-sep> option for details).  May be combined with B<-j>, B<-php> or
+B<-X> to extract binary data in JSON, PHP or XML format, but note that
+"unsafe" tags must be specified explicitly to be extracted as binary in
+these formats.
+
+With a leading double dash (B<--b> or B<--binary>), tags which contain
+binary data are suppressed in the output when reading.
 
 =item B<-c> I<FMT> (B<-coordFormat>)
 
@@ -5376,7 +5393,7 @@ with this command:
 
 produces output like this:
 
-    -- Generated by ExifTool 12.21 --
+    -- Generated by ExifTool 12.23 --
     File: a.jpg - 2003:10:31 15:44:19
     (f/5.6, 1/60s, ISO 100)
     File: b.jpg - 2006:05:23 11:57:38
@@ -5736,7 +5753,8 @@ L<https://exiftool.org/geotag.html#Inverse> for examples.
 Setting I<NUM> to 2 causes the H264 video stream in MP4 videos to be parsed
 until the first Supplemental Enhancement Information (SEI) message is
 decoded, or 3 to parse the entire H624 stream and decode all SEI
-information.
+information.  For M2TS videos, a setting of 3 causes the entire file to be
+parsed in search of unlisted programs which may contain timed GPS.
 
 =item B<-ext>[+] I<EXT>, B<--ext> I<EXT> (B<-extension>)
 
@@ -6254,7 +6272,7 @@ As a convenience, C<-use MWG> is assumed if the C<MWG> group is specified
 for any tag on the command line.  See the L<MWG Tags
 documentation|Image::ExifTool::TagNames/MWG Tags> for more details.  Note
 that this option is not reversible, and remains in effect until the
-application terminates, even across the C<-execute> option.
+application terminates, even across the B<-execute> option.
 
 =back
 
@@ -6419,7 +6437,7 @@ buffered output.)  ExifTool will then execute the command with the arguments
 received up to this point, send a "{ready}" message to stdout when done
 (unless the B<-q> or B<-T> option is used), and continue trying to read
 arguments for the next command from I<ARGFILE>.  To aid in command/response
-synchronization, any number appended to the C<-execute> option is echoed in
+synchronization, any number appended to the B<-execute> option is echoed in
 the "{ready}" message.  For example, C<-execute613> results in "{ready613}". 
 When this number is added, B<-q> no longer suppresses the "{ready}" message.
 (Also, see the B<-echo3> and B<-echo4> options for additional ways to pass
@@ -6554,8 +6572,8 @@ complete list).  Setting this triggers the use of Windows wide-character i/o
 routines, thus providing support for most Unicode file names (see note 4). 
 But note that it is not trivial to pass properly encoded file names on the
 Windows command line (see L<https://exiftool.org/faq.html#Q18> for details),
-so placing them in a UTF-8 encoded B<-@> argfile and using C<-charset
-filename=utf8> is recommended if possible.
+so placing them in a UTF-8 encoded B<-@> argfile and using
+C<-charset filename=utf8> is recommended if possible.
 
 A warning is issued if a specified filename contains special characters and
 the filename character set was not provided.  However, the warning may be
@@ -6629,7 +6647,7 @@ Print all meta information in an image, including duplicate and unknown
 tags, sorted by group (for family 1).  For performance reasons, this command
 may not extract all available metadata.  (Metadata in embedded documents,
 metadata extracted by external utilities, and metadata requiring excessive
-processing time may not be extracted).  Add C<-ee> and C<-api RequestAll=3>
+processing time may not be extracted).  Add C<-ee3> and C<-api RequestAll=3>
 to the command to extract absolutely everything available.
 
 =item exiftool -common dir
@@ -6698,7 +6716,7 @@ L<Image::ExifTool::TagNames|Image::ExifTool::TagNames>).
 Print one line of output containing the file name and DateTimeOriginal for
 each image in directory C<dir>.
 
-=item exiftool -ee -p '$gpslatitude, $gpslongitude, $gpstimestamp' a.m2ts
+=item exiftool -ee3 -p '$gpslatitude, $gpslongitude, $gpstimestamp' a.m2ts
 
 Extract all GPS positions from an AVCHD video.
 

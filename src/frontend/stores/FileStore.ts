@@ -14,6 +14,7 @@ import RootStore from './RootStore';
 
 import { getThumbnailPath, debounce, needsThumbnail, promiseAllLimit } from '../utils';
 import ExifIO from 'src/backend/ExifIO';
+import { AppToaster } from '../components/Toaster';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
 
@@ -50,8 +51,6 @@ class FileStore {
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
 
-  @observable writeTagsToFileMetadata = true; // TODO: Make toggle-able
-
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
@@ -66,22 +65,84 @@ class FileStore {
     this.exifTool.initialize().then(() => this.readTagsFromFiles());
   }
 
-  @action readTagsFromFiles() {
-    for (const file of this.fileList) {
-      // TODO: batched promise?
-      // this.exifTool
-      //   .readTags(file.absolutePath)
-      //   .then((tags) => {
-      //     if (tags.length) {
-      //       console.log(tags);
-      //       // parse tag hierarchy into existing tags:
-      //       // const clientTags = tags.map(tag => this.rootStore.tagStore.tagList.find(clientTag => tag === clientTag.name && clientTag.parent.name === tag))
-      //     }
-      //   })
-      //   .catch((e) => {
-      //     console.error('Could not read exif tags', file.name, e);
-      //   });
+  @action.bound async readTagsFromFiles() {
+    const toastKey = 'read-tags-from-file';
+    const numFiles = runInAction(() => this.fileList.length);
+    for (let i = 0; i < numFiles; i++) {
+      AppToaster.show(
+        {
+          message: `Reading tags from files ${((100 * i++) / numFiles).toFixed(0)}%...`,
+          timeout: 0,
+        },
+        toastKey,
+      );
+      const absolutePath = runInAction(() => this.fileList[i].absolutePath);
+      try {
+        const tagsNameHierarchies = await this.exifTool.readTags(absolutePath);
+        // Find matching with current tags, otherwise, insert new
+        // TODO: We need a "merge" option for two or more tags in tag context menu
+
+        // method: find a tag with the same name as the last tag in the hierarchy. If not exists, create hierarchy of tags
+        const { tagStore } = this.rootStore;
+        for (const tagHierarchy of tagsNameHierarchies) {
+          const match = runInAction(() =>
+            tagStore.tagList.find((t) => t.name === tagHierarchy[tagHierarchy.length - 1]),
+          );
+          if (match) {
+            runInAction(() => this.fileList[i].addTag(match));
+          } else {
+            let curTag = tagStore.root;
+            for (const newTagName of tagHierarchy) {
+              const newTag = await tagStore.create(curTag, newTagName);
+              curTag = newTag;
+            }
+            runInAction(() => this.fileList[i].addTag(curTag));
+          }
+        }
+      } catch (e) {
+        console.error('Could not read tags from', absolutePath, e);
+      }
     }
+    AppToaster.show(
+      {
+        message: 'Reading tags from files... Done!',
+        timeout: 5000,
+      },
+      toastKey,
+    );
+  }
+
+  @action.bound async writeTagsToFiles() {
+    const toastKey = 'write-tags-to-file';
+    const numFiles = runInAction(() => this.fileList.length);
+    for (let i = 0; i < numFiles; i++) {
+      AppToaster.show(
+        {
+          message: `Writing tags to files ${((100 * i++) / numFiles).toFixed(0)}%...`,
+          timeout: 0,
+        },
+        toastKey,
+      );
+      const [absolutePath, tagNameHierarchy] = runInAction(() => {
+        const file = this.fileList[i];
+        return [
+          file.absolutePath,
+          Array.from(file.tags).map((t) => t.getTagHierarchy().map((t) => t.name)),
+        ];
+      });
+      try {
+        await this.exifTool.writeTags(absolutePath, tagNameHierarchy);
+      } catch (e) {
+        console.error('Could not write tags to', absolutePath, e);
+      }
+    }
+    AppToaster.show(
+      {
+        message: 'Writing tags to files... Done!',
+        timeout: 5000,
+      },
+      toastKey,
+    );
   }
 
   @computed get showsAllContent() {
@@ -356,11 +417,6 @@ class FileStore {
   save(file: IFile) {
     file.dateModified = new Date();
     this.backend.saveFile(file);
-
-    if (this.writeTagsToFileMetadata) {
-      const clientFile = this.get(file.id)!;
-      this.exifTool.writeTags(file.absolutePath, clientFile.getExifTagHierachies());
-    }
   }
 
   @action recoverPersistentPreferences() {
@@ -552,10 +608,6 @@ class FileStore {
 
   @action private incrementNumMissingFiles() {
     this.numMissingFiles++;
-  }
-
-  @action toggleWriteTagsToFileMetadata() {
-    this.writeTagsToFileMetadata = !this.writeTagsToFileMetadata;
   }
 }
 
