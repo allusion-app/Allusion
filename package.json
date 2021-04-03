@@ -15,7 +15,7 @@
     "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "build:wasm": "wasm-pack build wasm/masonry --target web"
+    "build:wasm": "wasm-pack build wasm/masonry --target web && ncp ./wasm/masonry/pkg/masonry_bg.wasm build/wasm/masonry/pkg/masonry_bg.wasm"
   },
   "build": {
     "appId": "com.allusion-app.allusion",
@@ -99,7 +99,7 @@
     "style-loader": "^2.0.0",
     "ts-jest": "^26.4.4",
     "ts-loader": "^8.0.0",
-    "typescript": "^4.1.2",
+    "typescript": "^4.2.3",
     "webpack": "^5.4.0",
     "webpack-cli": "^4.2.0",
     "worker-loader": "^3.0.0"
@@ -107,9 +107,10 @@
   "dependencies": {
     "@blueprintjs/core": "^3.32.1",
     "@popperjs/core": "^2.5.4",
-    "chokidar": "^3.4.0",
+    "chokidar": "^3.5.1",
     "comlink": "^4.3.0",
-    "dexie": "^3.0.2",
+    "dexie": "^3.0.3",
+    "electron-log": "^4.3.2",
     "electron-updater": "^4.3.5",
     "fs-extra": "^9.0.1",
     "image-size": "^0.8.3",

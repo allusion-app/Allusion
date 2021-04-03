@@ -12,13 +12,13 @@ export class MasonryWorkerAdapter {
   private prevNumImgs: number = 0;
 
   async initialize(numItems: number) {
-    console.log('adapter initializing');
+    console.debug('adapter initializing');
 
     if (!this.worker) {
-      console.log('Loading worker');
+      console.debug('Loading worker');
       const WorkerFactory = wrap<{ new (): MasonryWorker }>(new MasonryWorkerClass());
       this.worker = await new WorkerFactory();
-      console.log('Loading wasm...');
+      console.debug('Loading wasm...');
       await this.worker.initializeWASM();
     }
 
@@ -28,18 +28,24 @@ export class MasonryWorkerAdapter {
     (window as any).layout = this.getItemLayout.bind(this);
     this.isInitialized = true;
   }
-  async compute(imgs: ClientFile[], containerWidth: number, opts: Partial<MasonryOpts>) {
+  async compute(
+    imgs: ClientFile[],
+    numImgs: number,
+    containerWidth: number,
+    opts: Partial<MasonryOpts>,
+  ) {
     if (!this.items || !this.worker) return;
 
-    if (this.prevNumImgs !== imgs.length) {
-      await this.worker.resize(imgs.length);
+    if (this.prevNumImgs !== numImgs) {
+      await this.worker.resize(numImgs);
     }
-    this.prevNumImgs = imgs.length;
 
+    this.prevNumImgs = numImgs;
     runInAction(() => {
       for (let i = 0; i < imgs.length; i++) {
-        this.items![i * 5 + 0] = imgs[i].width;
-        this.items![i * 5 + 1] = imgs[i].height;
+        // Images that can't load are given resolution of 1, so they have a square aspect ratio
+        this.items![i * 5 + 0] = imgs[i].width || 1;
+        this.items![i * 5 + 1] = imgs[i].height || 1;
       }
     });
 

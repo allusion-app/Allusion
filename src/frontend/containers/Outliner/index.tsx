@@ -24,7 +24,9 @@ export default observer(Outliner);
 const Panel = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
   return (
     <nav id="outliner" className={isOpen ? '' : 'outliner-is-closed'}>
-      {isOpen ? children : null}
+      {/* Note: We could hide children for performance, but the expand/collapse state is lost, so keeping it around for now */}
+      {/* {isOpen ? children : null} */}
+      {children}
     </nav>
   );
 };

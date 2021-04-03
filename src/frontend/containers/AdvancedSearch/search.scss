@@ -1,4 +1,7 @@
 #search-form {
+  fieldset {
+    margin-bottom: 0.25rem;
+  }
   .criteria {
     display: flex;
 
@@ -12,10 +15,32 @@
 
     > .btn {
       flex-grow: 0;
-      margin-left: 0.5rem;
       line-height: 0;
       font-size: 1rem;
       max-width: 2rem;
+
+      &:disabled {
+        color: var(--text-color-muted);
+      }
+    }
+  }
+  select {
+    background: var(--input-color);
+    color: var(--text-color);
+    border: 0.0625rem solid var(--border-color);
+    outline: none;
+    border-radius: 0.25rem;
+    margin: 0.125rem 0.25rem;
+    cursor: text;
+    line-height: 1.5rem;
+
+    &:hover {
+      background: var(--input-color-hover);
+    }
+
+    &:focus-within {
+      background: var(--input-color);
+      box-shadow: 0 0 0 0.125rem var(--accent-color-blue);
     }
   }
 }
@@ -24,16 +49,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 
   > fieldset {
+    margin: 0 !important;
     > div {
       display: flex;
       align-items: center;
 
       legend {
+        color: var(--text-color);
         margin: 0;
         margin-right: 1.5rem;
+      }
+      label {
+        margin: 0;
+        margin-right: 1rem;
       }
     }
   }

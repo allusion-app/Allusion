@@ -159,7 +159,7 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
   );
 });
 
-const HOVER_TIME_TO_EXPAND = 600;
+export const HOVER_TIME_TO_EXPAND = 600;
 
 const useFileDropHandling = (
   expansionId: string,
@@ -171,10 +171,10 @@ const useFileDropHandling = (
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(() => {
     if (expandTimeoutId) clearTimeout(expandTimeoutId);
-    const t: any = setTimeout(() => {
+    const t = window.setTimeout(() => {
       setExpansion({ ...expansion, [expansionId]: true });
     }, HOVER_TIME_TO_EXPAND);
-    setExpandTimeoutId(t as number);
+    setExpandTimeoutId(t);
   }, [expandTimeoutId, expansion, expansionId, setExpansion]);
 
   const handleDragEnter = useCallback(
@@ -323,13 +323,14 @@ const Location = observer(
     return (
       <div
         className="tree-content-label"
+        onClick={handleClick}
         onContextMenu={handleContextMenu}
         onDragEnter={handleDragEnter}
         onDrop={handleDrop}
         onDragLeave={handleDragLeave}
       >
         {expansion[nodeData.id] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
-        <div onClick={handleClick}>{nodeData.name}</div>
+        <div>{nodeData.name}</div>
         {nodeData.isBroken && (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
         )}
@@ -510,7 +511,7 @@ const LocationsPanel = observer(() => {
         <Toolbar controls="location-list">
           <ToolbarButton
             showLabel="never"
-            icon={IconSet.FOLDER_CLOSE_ADD}
+            icon={IconSet.PLUS}
             text="New Location"
             onClick={handleChooseWatchedDir}
             tooltip={Tooltip.Location}

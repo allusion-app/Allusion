@@ -192,10 +192,14 @@ export default class Backend {
       value: path,
     };
     const existingFilesInPath: IFile[] = await this.fileRepository.find({ criteria });
+    console.debug('Filtering files...');
     const newFiles = files.filter((file) =>
       existingFilesInPath.every((f) => f.absolutePath !== file.absolutePath),
     );
-    return this.fileRepository.createMany(newFiles);
+    console.debug('Creating files...');
+    const res = await this.fileRepository.createMany(newFiles);
+    console.debug('Done!');
+    return res;
   }
 
   async clearDatabase(): Promise<void> {

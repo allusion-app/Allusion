@@ -1,16 +1,21 @@
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { FixedSizeList, ListOnScrollProps } from 'react-window';
-import TagDnDContext, { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import { RendererMessenger } from 'src/Messaging';
 import { ClientFile } from '../../../entities/File';
 import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
-import { debouncedThrottle, throttle } from '../../utils';
-import { GalleryCommand, GallerySelector, GridCell, ListCell } from './GalleryItem';
+import { throttle } from '../../utils';
+import { GalleryCommand, GallerySelector } from './GalleryItem';
+import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';
-import { MissingFileMenuItems, FileViewerMenuItems, ExternalAppMenuItems } from './menu-items';
+import {
+  ExternalAppMenuItems,
+  FileViewerMenuItems,
+  MissingFileMenuItems,
+  SlideFileViewerMenuItems,
+} from './menu-items';
 import SlideMode from './SlideMode';
 
 type Dimension = { width: number; height: number };
@@ -20,8 +25,8 @@ type FileStoreProp = { fileStore: FileStore };
 export interface ILayoutProps extends UiStoreProp, FileStoreProp {
   contentRect: Dimension;
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
+  /** The index of the currently selected image, or the "last selected" image when a range is selected */
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
-  /** menu: [fileMenu, externalMenu] */
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
@@ -83,44 +88,50 @@ const Layout = ({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      let index = lastSelectionIndex.current;
-      if (index === undefined) {
-        return;
-      }
-      if (e.key === 'ArrowLeft' && index > 0) {
-        index -= 1;
-      } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
-        index += 1;
-      } else {
-        return;
-      }
-      handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      runInAction(() => {
+        let index = lastSelectionIndex.current;
+        if (index === undefined) {
+          return;
+        }
+        if (runInAction(() => uiStore.isSlideMode)) {
+          return;
+        }
+        if (e.key === 'ArrowLeft' && index > 0) {
+          index -= 1;
+        } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
+          index += 1;
+        } else {
+          return;
+        }
+        handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      });
     };
 
     const throttledKeyDown = throttle(onKeyDown, 50);
 
     window.addEventListener('keydown', throttledKeyDown);
     return () => window.removeEventListener('keydown', throttledKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileStore, handleFileSelect]);
 
+  // TODO: Keep masonry layout active while slide is open: no loading time when returning
   if (uiStore.isSlideMode) {
-    return <SlideMode contentRect={contentRect} />;
+    return (
+      <SlideMode
+        contentRect={contentRect}
+        lastSelectionIndex={lastSelectionIndex}
+        showContextMenu={showContextMenu}
+        select={handleFileSelect}
+        uiStore={uiStore}
+        fileStore={fileStore}
+      />
+    );
   }
   if (contentRect.width < 10) {
     return null;
   }
   switch (uiStore.method) {
     case ViewMethod.Grid:
-      return (
-        <GridGallery
-          contentRect={contentRect}
-          select={handleFileSelect}
-          lastSelectionIndex={lastSelectionIndex}
-          showContextMenu={showContextMenu}
-          uiStore={uiStore}
-          fileStore={fileStore}
-        />
-      );
     case ViewMethod.MasonryVertical:
     case ViewMethod.MasonryHorizontal:
       return (
@@ -149,256 +160,6 @@ const Layout = ({
       return null;
   }
 };
-
-// Some extra padding in the Grid view, so that the scrollbar will not overlap with the content
-const CONTENT_PADDING_RIGHT = 12;
-
-// TODO: Move views to separate files
-const GridGallery = observer((props: ILayoutProps) => {
-  const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
-  const { fileList } = fileStore;
-  const dndData = useContext(TagDnDContext);
-  const [minSize, maxSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
-    uiStore.thumbnailSize,
-  ]);
-  const [[numColumns, cellSize], setDimensions] = useState([0, 0]);
-
-  const submitCommand = useMemo(
-    () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
-    [dndData, fileStore, select, showContextMenu, uiStore],
-  );
-
-  useEffect(() => {
-    const timeoutID = setTimeout(() => {
-      setDimensions(get_column_layout(contentRect.width - CONTENT_PADDING_RIGHT, minSize, maxSize));
-    }, 50);
-
-    return () => clearTimeout(timeoutID);
-  }, [contentRect.width, maxSize, minSize]);
-
-  const numRows = useMemo(() => (numColumns > 0 ? Math.ceil(fileList.length / numColumns) : 0), [
-    fileList.length,
-    numColumns,
-  ]);
-
-  const ref = useRef<FixedSizeList>(null);
-  const innerRef = useRef<HTMLElement>(null);
-
-  const throttledScrollHandler = useRef(
-    debouncedThrottle((index: number) => uiStore.setFirstItem(index), 100),
-  );
-
-  const handleScroll = useCallback(
-    (props: ListOnScrollProps) =>
-      throttledScrollHandler.current(Math.round(props.scrollOffset / cellSize) * numColumns),
-    [cellSize, numColumns],
-  );
-
-  useEffect(() => {
-    if (innerRef.current !== null) {
-      innerRef.current.style.setProperty('--thumbnail-size', cellSize - PADDING + 'px');
-    }
-  }, [cellSize]);
-
-  const index = lastSelectionIndex.current;
-  useEffect(() => {
-    if (index !== undefined && ref.current !== null) {
-      ref.current.scrollToItem(Math.floor(index / numColumns));
-    }
-  }, [index, numColumns, uiStore.fileSelection.size]);
-
-  // Arrow keys up/down for selecting image in next row
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      // Up and down cursor keys are used in the tag selector list, so ignore these events when it is open
-      if (lastSelectionIndex.current === undefined) {
-        return;
-      }
-
-      let index = lastSelectionIndex.current;
-      if (e.key === 'ArrowUp' && index >= numColumns) {
-        index -= numColumns;
-      } else if (
-        e.key === 'ArrowDown' &&
-        index < fileList.length - 1 &&
-        index < fileList.length + numColumns - 1
-      ) {
-        index = Math.min(index + numColumns, fileList.length - 1);
-      } else {
-        return;
-      }
-      select(fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
-    };
-
-    const throttledKeyDown = throttle(onKeyDown, 50);
-    window.addEventListener('keydown', throttledKeyDown);
-    return () => window.removeEventListener('keydown', throttledKeyDown);
-  }, [fileList, uiStore, numColumns, select, lastSelectionIndex]);
-
-  const Row = useCallback(
-    ({ index, style, data, isScrolling }) => (
-      <GridRow
-        index={index}
-        data={data}
-        style={style}
-        isScrolling={isScrolling}
-        columns={numColumns}
-        uiStore={uiStore}
-        fileStore={fileStore}
-        submitCommand={submitCommand}
-      />
-    ),
-    [fileStore, numColumns, submitCommand, uiStore],
-  );
-
-  return (
-    <div className="grid" role="grid" aria-rowcount={numRows} aria-colcount={numColumns}>
-      <FixedSizeList
-        useIsScrolling
-        height={contentRect.height}
-        width={contentRect.width}
-        itemSize={cellSize}
-        itemCount={numRows}
-        itemData={fileList}
-        itemKey={getItemKey}
-        overscanCount={2}
-        children={Row}
-        onScroll={handleScroll}
-        initialScrollOffset={Math.round(uiStore.firstItem / numColumns) * cellSize || 0} // || 0 for initial load
-        ref={ref}
-        innerRef={innerRef}
-      />
-    </div>
-  );
-});
-
-const ListGallery = observer((props: ILayoutProps) => {
-  const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
-  const dndData = useContext(TagDnDContext);
-  const cellSize = useMemo(() => getThumbnailSize(uiStore.thumbnailSize)[1], [
-    uiStore.thumbnailSize,
-  ]);
-  const submitCommand = useMemo(
-    () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
-    [dndData, fileStore, select, showContextMenu, uiStore],
-  );
-  const ref = useRef<FixedSizeList>(null);
-
-  const throttledScrollHandler = useRef(
-    debouncedThrottle((index: number) => uiStore.setFirstItem(index), 100),
-  );
-
-  const handleScroll = useCallback(
-    (props: ListOnScrollProps) =>
-      throttledScrollHandler.current(Math.round(props.scrollOffset / cellSize)),
-    [cellSize],
-  );
-
-  const index = lastSelectionIndex.current;
-  useEffect(() => {
-    if (index !== undefined && ref.current !== null) {
-      ref.current.scrollToItem(Math.floor(index));
-    }
-  }, [index, uiStore.fileSelection.size]);
-
-  const Row = useCallback(
-    ({ index, style, data, isScrolling }) => (
-      <ListItem
-        index={index}
-        data={data}
-        style={style}
-        isScrolling={isScrolling}
-        uiStore={uiStore}
-        submitCommand={submitCommand}
-      />
-    ),
-    [submitCommand, uiStore],
-  );
-
-  return (
-    <div className="list" role="grid" aria-rowcount={fileStore.fileList.length}>
-      <FixedSizeList
-        useIsScrolling
-        height={contentRect.height}
-        width={contentRect.width}
-        itemSize={cellSize}
-        itemCount={fileStore.fileList.length}
-        itemData={fileStore.fileList}
-        itemKey={getItemKey}
-        overscanCount={2}
-        children={Row}
-        onScroll={handleScroll}
-        initialScrollOffset={uiStore.firstItem * cellSize}
-        ref={ref}
-      />
-    </div>
-  );
-});
-
-interface IListItem {
-  index: number;
-  data: ClientFile[];
-  style: React.CSSProperties;
-  isScrolling: true;
-  uiStore: UiStore;
-  submitCommand: (command: GalleryCommand) => void;
-}
-
-const ListItem = observer((props: IListItem) => {
-  const { index, data, style, isScrolling, uiStore, submitCommand } = props;
-  const row = useRef<HTMLDivElement>(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const file = data[index];
-
-  useEffect(() => {
-    const element = row.current;
-    if (element !== null && !isMounted && !isScrolling) {
-      setIsMounted(true);
-    }
-  }, [isMounted, isScrolling]);
-
-  return (
-    <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
-      <ListCell mounted={isMounted} file={file} uiStore={uiStore} submitCommand={submitCommand} />
-    </div>
-  );
-});
-
-interface IGridRow extends IListItem {
-  columns: number;
-  fileStore: FileStore;
-  submitCommand: (command: GalleryCommand) => void;
-}
-
-const GridRow = observer((props: IGridRow) => {
-  const { index, data, style, isScrolling, columns, uiStore, fileStore, submitCommand } = props;
-  const row = useRef<HTMLDivElement>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    const element = row.current;
-    if (element !== null && !isMounted && !isScrolling) {
-      setIsMounted(true);
-    }
-  }, [isMounted, isScrolling]);
-
-  const offset = index * columns;
-  return (
-    <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
-      {data.slice(offset, offset + columns).map((file: ClientFile, i: number) => (
-        <GridCell
-          mounted={isMounted}
-          colIndex={i + 1}
-          key={file.id}
-          file={file}
-          uiStore={uiStore}
-          fileStore={fileStore}
-          submitCommand={submitCommand}
-        />
-      ))}
-    </div>
-  );
-});
 
 export default observer(Layout);
 
@@ -433,21 +194,6 @@ export function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   return [CELL_SIZE_LARGE * SHRINK_FACTOR, CELL_SIZE_LARGE];
 }
 
-function get_column_layout(width: number, minSize: number, maxSize: number): [number, number] {
-  const numColumns = Math.trunc(width / minSize);
-  let cellSize = Math.trunc(width / numColumns);
-  if (isNaN(cellSize) || !isFinite(cellSize)) {
-    cellSize = minSize;
-  }
-  cellSize = Math.min(cellSize, maxSize);
-  return [numColumns, cellSize];
-}
-
-/** Generates a unique key for an element in the fileList */
-const getItemKey = action((index: number, data: ClientFile[]): string => {
-  return data[index].id;
-});
-
 export function createSubmitCommand(
   dndData: ITagDnDData,
   fileStore: FileStore,
@@ -475,6 +221,23 @@ export function createSubmitCommand(
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
             <FileViewerMenuItems file={file} uiStore={uiStore} />
+          ),
+          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+        ]);
+        if (!uiStore.fileSelection.has(file)) {
+          // replace selection with context menu, like Windows file explorer
+          uiStore.selectFile(file, true);
+        }
+        break;
+      }
+
+      case GallerySelector.ContextMenuSlide: {
+        const [file, x, y] = command.payload;
+        showContextMenu(x, y, [
+          file.isBroken ? (
+            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+          ) : (
+            <SlideFileViewerMenuItems file={file} uiStore={uiStore} />
           ),
           file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
         ]);

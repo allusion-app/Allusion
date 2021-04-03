@@ -25,7 +25,7 @@
 }
 
 .btn-filled {
-  background-color: var(--primary-color);
+  background-color: var(--accent-color-blue);
   border: none;
   color: white;
 }
@@ -33,13 +33,13 @@
 .btn-outlined {
   background: transparent;
   border: 1px solid currentColor;
-  color: var(--primary-color);
+  color: var(--accent-color-blue);
 }
 
 .btn-minimal {
   background: transparent;
   border: none;
-  color: var(--primary-color);
+  color: var(--accent-color-blue);
 }
 
 .btn-icon {
@@ -52,7 +52,9 @@
 .btn-content-icon,
 .btn-content-text {
   display: inline-flex;
-  margin: 0.125rem;
+}
+.btn-content-text {
+  margin-left: 0.25rem;
 }
 
 .btn-content-text.hidden {

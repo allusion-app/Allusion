@@ -99,7 +99,7 @@ const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: Fil
   const selectionCount = uiStore.fileSelection.size;
   const fileCount = fileStore.fileList.length;
 
-  const allFilesSelected = selectionCount === fileCount;
+  const allFilesSelected = fileCount > 0 && selectionCount === fileCount;
   // If everything is selected, deselect all. Else, select all
   const handleToggleSelect = () => {
     selectionCount === fileCount ? uiStore.clearFileSelection() : uiStore.selectAllFiles();
@@ -113,6 +113,7 @@ const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: Fil
       pressed={allFilesSelected}
       text={selectionCount}
       tooltip={Tooltip.Select}
+      disabled={fileCount === 0}
     />
   );
 });

@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { action, makeObservable, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
@@ -55,17 +55,21 @@ export const AppToaster = new ToastManager();
 
 interface IToastProps {
   message: string;
-  icon?: ReactNode;
+  // "action" apparently is a reserverd keyword, it gets removed by mobx...
+  clickAction?: {
+    label: string;
+    onClick: () => void;
+  };
   timeout: number;
 }
 
 type IdentifiableToast = IToastProps & { id: ID };
 
-const Toast = ({ message, icon, id }: IdentifiableToast) => {
+const Toast = ({ message, id, clickAction }: IdentifiableToast) => {
   return (
     <div className="toast">
-      {icon}
       <span>{message}</span>
+      {clickAction?.onClick && <Button text={clickAction.label} onClick={clickAction.onClick} />}
       <Button text="Dismiss" onClick={() => AppToaster.dismiss(id)} />
     </div>
   );

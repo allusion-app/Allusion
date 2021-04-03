@@ -92,16 +92,16 @@ export class ClientLocation implements ISerializable<ILocation> {
       await this.watcher.close();
       this.watcher = undefined;
     }
-    // Watch for folder changes
-    this.watcher = chokidar.watch(directory, {
+
+    // Only watch for images files
+    const watchPattern = `${directory}/**/*.{
+      ${IMG_EXTENSIONS.join(',')},${IMG_EXTENSIONS.map((s) => s.toUpperCase()).join(',')}}`;
+
+    // Watch for changes
+    this.watcher = chokidar.watch(watchPattern, {
       depth: RECURSIVE_DIR_WATCH_DEPTH,
-      ignored: [
-        // Ignore dot files. Also dot folders?
-        /(^|[\/\\])\../,
-        // ExifTool apparently works by temporarily copying the file with "exiftool_temp" at the end before it changes it
-        /.+_exiftool_tmp$/,
-        // TODO: Ignore everything but image files
-      ],
+      // Ignore dot files. Also dot folders?
+      ignored: /(^|[\/\\])\../,
     });
 
     const watcher = this.watcher;
@@ -110,7 +110,6 @@ export class ClientLocation implements ISerializable<ILocation> {
     const initialFiles: string[] = [];
 
     // TODO: Maybe do this on a web worker? Could hang the app for large folders
-
     return new Promise<string[]>((resolve) => {
       watcher
         .on('add', async (path: string) => {
@@ -129,7 +128,7 @@ export class ClientLocation implements ISerializable<ILocation> {
             }
           }
         })
-        .on('change', (path: string) => console.log(`File ${path} has been changed`))
+        .on('change', (path: string) => console.debug(`File ${path} has been changed`))
         .on('unlink', (path: string) => {
           console.log(`Location "${this.name}": File ${path} has been removed.`);
           this.store.hideFile(path);
@@ -137,7 +136,6 @@ export class ClientLocation implements ISerializable<ILocation> {
         .on('ready', () => {
           this.isReady = true;
           console.log(`Location "${this.name}" ready. Detected files:`, initialFiles.length);
-          // Todo: Compare this in DB, add new files and mark missing files as missing
           resolve(initialFiles);
         })
         .on('error', (error: Error) => {

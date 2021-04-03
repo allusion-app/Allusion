@@ -43,6 +43,7 @@ export interface IHotkeyMap {
   viewMasonryVertical: string;
   viewMasonryHorizontal: string;
   viewSlide: string;
+  search: string;
   advancedSearch: string;
 
   // Other
@@ -65,6 +66,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   viewGrid: 'alt + 2',
   viewMasonryVertical: 'alt + 3',
   viewMasonryHorizontal: 'alt + 4',
+  search: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
 };
@@ -109,7 +111,7 @@ class UiStore {
 
   // UI
   @observable isOutlinerOpen: boolean = true;
-  @observable isInspectorOpen: boolean = false;
+  @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
   @observable isHelpCenterOpen: boolean = false;
   @observable isLocationRecoveryOpen: ID | null = null;
@@ -350,6 +352,7 @@ class UiStore {
       this.clearFileSelection();
     }
     this.fileSelection.add(file);
+    this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
   }
 
   @action.bound deselectFile(file: ClientFile) {
@@ -475,24 +478,9 @@ class UiStore {
     // If no id is given or when the selected tag or collection is selected, the context is the whole selection
     if (isContextTheSelection) {
       const selectedTags = tagStore.tagList.filter((c) => c.isSelected);
-      console.log({ selected: selectedTags });
-
       // root tag may not be present in the context
-      const rootTagIndex = selectedTags.findIndex((tag) => tag.id === ROOT_TAG_ID);
-      if (rootTagIndex >= 0) {
-        selectedTags.splice(rootTagIndex, 1);
-      }
-      contextTags.push(...selectedTags);
-
-      // Only include selected tags of which their parent is not selected
-      // EDIT: This was a limitation back from when you could not select a collection without also selecting all its children
-      // Not needed anymore - unintuitive
-      // const selectedTagsInUnselectedParent = selectedTags.filter((tag) =>
-      //   selectedTags.every((parent) => !parent.subTags.includes(tag)),
-      // );
-      // contextTags.push(...selectedTagsInUnselectedParent);
+      contextTags.push(...selectedTags.filter((t) => t.id !== ROOT_TAG_ID));
     }
-    console.log({ context: contextTags });
 
     return contextTags;
   }
@@ -564,10 +552,19 @@ class UiStore {
     }
   }
 
-  @action.bound replaceCriteriaWithTagSelection() {
-    this.replaceSearchCriterias(
-      Array.from(this.tagSelection, (tag) => new ClientIDSearchCriteria('tags', tag.id)),
-    );
+  @action.bound addTagSelectionToCriteria(includeSubtags = false) {
+    const tags = includeSubtags
+      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
+      : Array.from(this.tagSelection);
+    this.addSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
+    this.clearTagSelection();
+  }
+
+  @action.bound replaceCriteriaWithTagSelection(includeSubtags = false) {
+    const tags = includeSubtags
+      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
+      : Array.from(this.tagSelection);
+    this.replaceSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
     this.clearTagSelection();
   }
 
@@ -603,7 +600,7 @@ class UiStore {
         Object.entries<string>(prefs.hotkeyMap).forEach(
           ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );
-        console.log('recovered', prefs.hotkeyMap, this.hotkeyMap);
+        console.info('recovered', prefs.hotkeyMap);
       } catch (e) {
         console.error('Cannot parse persistent preferences', e);
       }

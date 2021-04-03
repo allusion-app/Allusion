@@ -4,6 +4,7 @@
   margin: 0;
   padding: 0.5rem;
   min-width: 10rem;
+  overflow: hidden auto;
 }
 
 [role='menu'] [role='group'] {
@@ -18,15 +19,17 @@
   align-items: center;
   min-height: 1.5rem;
   border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  margin: 0.25rem 0;
+  padding: 0 0.5rem;
   white-space: nowrap;
 
   &[aria-expanded='true'],
   &:hover,
-  &:focus {
-    color: var(--hover-color);
-    background: var(--shade1);
+  &:focus,
+  &.focused {
+    // TODO: different style for .focused than :hover:
+    // Blueprint makes text-color primary for hover, only background for focused
+    color: var(--text-color-strong);
+    background: var(--hover-color);
   }
 
   &[aria-disabled='true'] {
@@ -41,8 +44,8 @@ a[role='menuitem'] {
 }
 
 [role^='menuitem']:hover {
-  color: var(--hover-color);
-  background: var(--shade1);
+  color: var(--text-color-strong);
+  background: var(--hover-color);
 }
 
 [role='menuitemradio'][aria-checked='true'] {
@@ -72,6 +75,7 @@ a[role='menuitem'] {
   align-items: center;
   height: 1rem;
   min-width: 1rem;
+  fill: var(--text-color);
 
   .custom-icon {
     margin: 0;

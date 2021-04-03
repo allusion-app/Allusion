@@ -10,7 +10,7 @@
     height: 2em;
     vertical-align: top;
   }
-  
+
   .scale-widget {
     display: flex;
     justify-content: start;
@@ -39,6 +39,7 @@
   flex-direction: column;
   flex-shrink: 0;
   background-color: var(--background-color-alt);
+  border: 0.0625rem solid var(--border-color);
   padding: 0.5rem 0;
   height: 100%;
 }
@@ -46,18 +47,18 @@
 [role='tab'] {
   background: inherit;
   border: none;
-  color: var(--text-color-muted);
+  color: var(--text-color);
   padding: 0.5rem 1.25rem;
   width: 100%;
   text-align: start;
 
   &[aria-selected='true'] {
-    color: var(--text-color);
-    background-color: var(--background-color);
+    color: var(--text-color-strong);
+    background-color: var(--hover-color);
   }
 
   &:hover {
-    color: var(--hover-color);
+    background-color: var(--hover-color);
   }
 }
 

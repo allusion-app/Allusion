@@ -39,12 +39,18 @@ interface IIconButton {
   text: string;
   icon: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
+  large?: boolean;
   disabled?: boolean;
 }
 
-const IconButton = ({ text, icon, onClick, disabled }: IIconButton) => {
+const IconButton = ({ text, icon, onClick, disabled, large }: IIconButton) => {
   return (
-    <button className="btn btn-icon" onClick={onClick} disabled={disabled}>
+    <button
+      className={`btn btn-icon${large ? ' btn-icon-large' : ''}`}
+      onClick={onClick}
+      disabled={disabled}
+      type="button"
+    >
       <span className="btn-content-icon" aria-hidden="true">
         {icon}
       </span>

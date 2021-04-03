@@ -7,6 +7,7 @@ import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { RendererMessenger } from 'src/Messaging';
 import { promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
@@ -51,7 +52,28 @@ class LocationStore {
       );
 
       // TODO: Add a maximum timeout for init: sometimes it's hanging for me. Could also be some of the following steps though
+      // added a retry toast for now, can't figure out the cause, and it's hard to reproduce
+      // FIXME: Toasts should not be abused for error handling. Create some error messaging mechanism.
+      const readyTimeout = setTimeout(() => {
+        AppToaster.show(
+          {
+            message: 'This appears to be taking longer than usual.',
+            timeout: 0,
+            clickAction: {
+              onClick: RendererMessenger.reload,
+              label: 'Retry?',
+            },
+          },
+          'retry-init',
+        );
+      }, 3000);
+
+      console.debug('Location init...');
       const filePaths = await location.init();
+      const filePathsSet = new Set(filePaths);
+
+      clearTimeout(readyTimeout);
+      AppToaster.dismiss('retry-init');
 
       if (filePaths === undefined) {
         AppToaster.show(
@@ -66,19 +88,19 @@ class LocationStore {
 
       // Get files in database for this location
       // TODO: Could be optimized, at startup we already fetch all files - but might not in the future
+      console.debug('Find location files...');
       const dbFiles = await this.findLocationFiles(location.id);
+      const dbFilesPathSet = new Set(dbFiles.map((f) => f.absolutePath));
 
+      console.log('Finding created files...');
       // Find all files that have been created (those on disk but not in DB)
-      // TODO: Can be optimized: Sort dbFiles, so the includes check can be a binary search
-      const createdPaths = filePaths.filter(
-        (path) => !dbFiles.find((dbFile) => dbFile.absolutePath === path),
-      );
+      const createdPaths = filePaths.filter((path) => !dbFilesPathSet.has(path));
       const createdFiles = await Promise.all(
         createdPaths.map((path) => pathToIFile(path, location)),
       );
 
-      // Find all files that have been removed (those in DB but not on disk)
-      const missingFiles = dbFiles.filter((file) => !filePaths.includes(file.absolutePath));
+      // Find all files that have been removed (those in DB but not on disk anymore)
+      const missingFiles = dbFiles.filter((file) => !filePathsSet.has(file.absolutePath));
 
       // Find matches between removed and created images (different name/path but same characteristics)
       // TODO: Should we also do cross-location matching?

@@ -4,8 +4,8 @@
   width: 100%;
   display: flex;
 
-  background-color: $dark-gray0;
-  color: $dark-gray6;
+  background-color: #14181a;
+  color: #888;
 
   span {
     height: 100%;
@@ -17,10 +17,6 @@
 }
 
 #window-system-buttons {
-  // The font for windows system icons. TODO: Check if available on linux
-  font-family: 'Segoe MDL2 Assets';
-  font-size: 10px;
-
   button {
     background: transparent;
     border: none;
@@ -28,14 +24,15 @@
     -webkit-app-region: none;
     height: 100%;
     width: 36px;
+    padding-top: 3px; // height: 24px. Icon: 16px. Offset for centering icon: (24/2 - 8/2)/2=3
 
     &:hover {
-      background-color: $dark-gray1;
+      background-color: #1f2224;
     }
 
     &:last-child:hover {
-      background-color: $danger;
-      color: $white;
+      background-color: var(--accent-color-red);
+      color: white;
     }
   }
 }

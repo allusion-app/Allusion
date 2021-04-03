@@ -1,13 +1,25 @@
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
+import { debounce } from 'src/frontend/utils';
 import { getThumbnailSize, ILayoutProps } from '../Gallery';
 import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';
 
+type SupportedViewMethod =
+  | ViewMethod.MasonryVertical
+  | ViewMethod.MasonryHorizontal
+  | ViewMethod.Grid;
+
 interface IMasonryRendererProps {
-  type: ViewMethod.MasonryVertical | ViewMethod.MasonryHorizontal;
+  type: SupportedViewMethod;
 }
+
+const ViewMethodLayoutDict: Record<SupportedViewMethod, 'vertical' | 'horizontal' | 'grid'> = {
+  [ViewMethod.MasonryVertical]: 'vertical',
+  [ViewMethod.MasonryHorizontal]: 'horizontal',
+  [ViewMethod.Grid]: 'grid',
+};
 
 const SCROLL_BAR_WIDTH = 8;
 
@@ -33,7 +45,7 @@ const MasonryRenderer = observer(
     ]);
     const containerWidth = contentRect.width - SCROLL_BAR_WIDTH;
 
-    const viewMethod = uiStore.method;
+    const viewMethod = uiStore.method as SupportedViewMethod;
     const numImages = fileStore.fileList.length;
 
     // TODO: vertical keyboard navigation with lastSelectionIndex
@@ -45,10 +57,15 @@ const MasonryRenderer = observer(
           if (!worker.isInitialized) {
             await worker.initialize(numImages);
           }
-          const containerHeight = await worker.compute(fileStore.fileList, containerWidth, {
-            thumbSize: thumbnailSize,
-            type: viewMethod === ViewMethod.MasonryVertical ? 'vertical' : 'horizontal',
-          });
+          const containerHeight = await worker.compute(
+            fileStore.fileList,
+            numImages,
+            containerWidth,
+            {
+              thumbSize: thumbnailSize,
+              type: ViewMethodLayoutDict[viewMethod],
+            },
+          );
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
           setForceRerenderObj(new Date());
@@ -56,7 +73,6 @@ const MasonryRenderer = observer(
           console.error(e);
         }
       })();
-      // return () => void worker.free()?.catch(console.error); // free memory when unmounting
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -64,14 +80,19 @@ const MasonryRenderer = observer(
     useEffect(() => {
       if (containerHeight !== undefined && containerWidth > 100) {
         // todo: could debounce if needed. Or only recompute in increments?
-        console.log('Masonry: Items changed, computing new layout!');
+        console.debug('Masonry: Items changed, computing new layout!');
         (async function onItemOrderChange() {
           try {
             console.time('recompute-layout');
-            const containerHeight = await worker.compute(fileStore.fileList, containerWidth, {
-              thumbSize: thumbnailSize,
-              type: viewMethod === ViewMethod.MasonryVertical ? 'vertical' : 'horizontal',
-            });
+            const containerHeight = await worker.compute(
+              fileStore.fileList,
+              numImages,
+              containerWidth,
+              {
+                thumbSize: thumbnailSize,
+                type: ViewMethodLayoutDict[viewMethod],
+              },
+            );
             console.timeEnd('recompute-layout');
             setContainerHeight(containerHeight);
             setLayoutTimestamp(new Date());
@@ -84,31 +105,43 @@ const MasonryRenderer = observer(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [numImages, fileStore.fileListLastModified]);
 
+    const handleResize = useMemo(() => {
+      async function onResize(
+        containerWidth: number,
+        thumbnailSize: number,
+        viewMethod: SupportedViewMethod,
+      ) {
+        console.debug('Masonry: Environment changed! Recomputing layout!');
+        try {
+          console.time('recompute-layout');
+          const containerHeight = await worker.recompute(containerWidth, {
+            thumbSize: thumbnailSize,
+            type: ViewMethodLayoutDict[viewMethod],
+          });
+          console.timeEnd('recompute-layout');
+          setContainerHeight(containerHeight);
+          setLayoutTimestamp(new Date());
+          // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Debounce is not needed due to performance, but images are
+      // sometimes repeatedly swapping columns every recomputation, which looks awful
+      return debounce(onResize, 50);
+    }, []);
+
     // Re-compute when the environment changes (container width, thumbnail size, view method)
     useEffect(() => {
       if (containerHeight !== undefined && containerWidth > 100) {
-        console.log('Masonry: Environment changed! Recomputing layout!');
-        (async function onResize() {
-          try {
-            console.time('recompute-layout');
-            const containerHeight = await worker.recompute(containerWidth, {
-              thumbSize: thumbnailSize,
-              type: viewMethod === ViewMethod.MasonryVertical ? 'vertical' : 'horizontal',
-            });
-            console.timeEnd('recompute-layout');
-            setContainerHeight(containerHeight);
-            setLayoutTimestamp(new Date());
-            // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
-          } catch (e) {
-            console.error(e);
-          }
-        })();
+        handleResize(containerWidth, thumbnailSize, viewMethod);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [containerWidth, thumbnailSize, viewMethod]);
+    }, [containerWidth, handleResize, thumbnailSize, viewMethod]);
 
     return !(containerHeight && layoutTimestamp) ? (
-      <p>loading...</p>
+      <></>
     ) : (
       <VirtualizedRenderer
         className="masonry"

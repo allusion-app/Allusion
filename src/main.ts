@@ -1,3 +1,8 @@
+import log from 'electron-log';
+console.log = log.log;
+console.warn = log.warn;
+console.error = log.error;
+
 import {
   app,
   BrowserWindow,
@@ -76,11 +81,11 @@ function createTrayMenu() {
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-  let mainOptions: BrowserWindowConstructorOptions = {
+  const mainOptions: BrowserWindowConstructorOptions = {
     // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons (is this still relevant?)
     // Documentation: https://www.electronjs.org/docs/all#alternatives-on-macos
     // could go entirely custom with 'customButtonsOnHover'
-    titleBarStyle: 'hiddenInset',
+    titleBarStyle: 'hidden',
     // Disable native frame: we use a custom titlebar for all platforms: a unique one for MacOS, and one for windows/linux
     frame: false,
     webPreferences: {
@@ -94,15 +99,10 @@ function createWindow() {
     height,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
-    backgroundColor: '#14181a',
+    backgroundColor: '#1c1e23',
     title: 'Allusion',
     show: false, // only show once initial loading is finished
   };
-
-  // Vibrancy effect for MacOS
-  if (isMac) {
-    mainOptions = { ...mainOptions, vibrancy: 'window', transparent: true, hasShadow: true };
-  }
 
   // Create the browser window.
   mainWindow = new BrowserWindow(mainOptions);
@@ -116,7 +116,8 @@ function createWindow() {
       event.preventDefault();
       // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
       const additionalOptions: Electron.BrowserWindowConstructorOptions = {
-        modal: true,
+        // modal: true, // this apparently doesn't show a close button for MacOS
+        alwaysOnTop: true, // poor man's modal
         parent: mainWindow!,
         width: 680,
         height: 480,

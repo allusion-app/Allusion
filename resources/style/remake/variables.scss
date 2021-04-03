@@ -1,7 +1,12 @@
 body {
-  --outliner-width: 12rem;
-  --inspector-width: 18rem;
+  --window-titlebar-height: 28px;
+  --mac-system-buttons-width: 5rem;
+
   --toolbar-height: 3rem;
 
-  --mac-system-buttons-width: 5rem;
+  --outliner-width: 12rem;
+  --treeitem-identation: 1.25rem;
+  --treeitem-offset: 0.75rem;
+
+  --inspector-width: 18rem;
 }

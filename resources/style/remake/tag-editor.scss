@@ -1,0 +1,44 @@
+.floating-dialog {
+  position: absolute;
+  width: 25rem;
+  top: calc(var(--content-top) + 1rem);
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+#tag-editor {
+  height: 14rem;
+  min-height: 10rem;
+  max-height: 20rem;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  resize: vertical;
+
+  > input:first-child {
+    margin: 0.5rem;
+  }
+
+  [role='listbox'] {
+    flex: 1;
+    border-top: 0.0625rem solid var(--border-color);
+    border-bottom: 0.0625rem solid var(--border-color);
+    max-width: unset;
+
+    [role='separator'] {
+      background: var(--text-color-muted);
+      height: 1px;
+      margin: 0.5rem 1rem;
+    }
+  }
+
+  > div:last-child {
+    margin: 0.5rem;
+    min-height: 1.375rem;
+    max-height: 3.5rem;
+    overflow: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}

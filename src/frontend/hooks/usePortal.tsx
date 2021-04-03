@@ -9,12 +9,10 @@ import { observer } from 'mobx-react-lite';
  * Creates DOM element to be used as React root.
  * @returns {HTMLElement}
  */
-function createParentElement(id: string, className?: string) {
+function createParentElement(id: string, className: string): HTMLElement {
   const rootContainer = document.createElement('div');
   rootContainer.setAttribute('id', id);
-  if (className !== undefined && className.length > 0) {
-    rootContainer.classList.add(className);
-  }
+  rootContainer.className = className;
   return rootContainer;
 }
 
@@ -29,7 +27,7 @@ function createParentElement(id: string, className?: string) {
  * @param {String} id The id of the target container, e.g 'modal' or 'spotlight'
  * @returns {HTMLElement} The DOM node to use as the Portal target.
  */
-function usePortal(id: string, className?: string) {
+function usePortal(id: string, className: string): HTMLElement {
   const rootElementRef = useRef<HTMLElement>();
 
   useEffect(
@@ -41,8 +39,8 @@ function usePortal(id: string, className?: string) {
 
       if (existingParent === null) {
         document.body.appendChild(parentElement);
-      } else if (className !== undefined && className.length > 0) {
-        existingParent.classList.add(className);
+      } else {
+        existingParent.className = className;
       }
 
       // Add the detached element to the parent
@@ -55,9 +53,6 @@ function usePortal(id: string, className?: string) {
 
       return function removeElement() {
         rootElementRef.current?.remove();
-        if (className !== undefined) {
-          parentElement.classList.remove(className);
-        }
         if (parentElement.childElementCount === 0) {
           parentElement.remove();
         }

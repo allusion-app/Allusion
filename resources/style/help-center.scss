@@ -92,14 +92,14 @@
     padding: 0.5rem 2rem;
 
     &:hover {
-      color: var(--primary-color);
+      color: var(--accent-color-blue);
       transition: color 0.2s $pt-transition-cubic2;
       cursor: pointer;
     }
   }
 
   h2 {
-    color: var(--primary-color);
+    color: var(--accent-color-blue);
     font-size: large;
     margin: 0 0 0.25rem;
   }

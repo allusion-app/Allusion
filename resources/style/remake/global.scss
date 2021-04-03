@@ -1,0 +1,55 @@
+///////////////////////////////// Media Queries /////////////////////////////////
+@media (max-width: 960px) {
+  .toolbar-button-text:not(.always) {
+    margin: 0;
+    text-indent: -100vw;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
+///////////////////////////////// Misc /////////////////////////////////
+// Error boundary (when app crashes)
+.error-boundary {
+  padding: 3rem;
+  min-width: 600px;
+  width: 80%;
+  margin: auto;
+
+  > .custom-icon-64 {
+    display: flex;
+    justify-content: center;
+  }
+
+  .message {
+    font-family: monospace;
+    max-width: 120ch;
+  }
+}
+
+// Change icon color (black/white) based on its intent (like Blueprint's built-in icons)
+.custom-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+
+  * {
+    fill: currentColor;
+  }
+}
+.custom-icon-128 > * {
+  height: 8rem;
+  width: 8rem;
+}
+.custom-icon-64 > * {
+  height: 4rem;
+  width: 4rem;
+}
+.custom-icon-48 > * {
+  height: 3rem;
+  width: 3rem;
+}
+.custom-icon-32 > * {
+  height: 2rem;
+  width: 2rem;
+}
