@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
@@ -7,6 +7,7 @@ import { ClientTag } from 'src/entities/Tag';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
+import TagSelector from './TagSelector';
 
 interface IRemovalProps<T> {
   object: T;
@@ -57,6 +58,45 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   );
 });
 
+export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
+  const { tagStore } = useContext(StoreContext);
+  const { object: tag } = props;
+
+  const text = `Select the tag you want to merge "${tag.name}" with`;
+
+  const [selectedTag, setSelectedTag] = useState<ClientTag>();
+
+  return (
+    <MergeAlert
+      open
+      title={text}
+      information={
+        tag.subTags.length > 0
+          ? 'Merging a tag with sub-tags is currently not supported.'
+          : `This will replace all uses of ${tag.name} with ${
+              selectedTag?.name || 'the tag you select'
+            }. Choose the merge option on the other tag to merge the other way around!`
+      }
+      body={
+        <div>
+          <TagSelector selection={selectedTag} onSelect={setSelectedTag} />
+        </div>
+      }
+      onCancel={props.onClose}
+      onConfirm={
+        tag.subTags.length > 0
+          ? () => null
+          : () => {
+              if (selectedTag) {
+                tagStore.merge(tag, selectedTag);
+                props.onClose();
+              }
+            }
+      }
+    />
+  );
+});
+
 export const FileRemoval = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const selection = uiStore.fileSelection;
@@ -103,6 +143,22 @@ const RemovalAlert = (props: IRemovalAlertProps) => (
     icon={IconSet.WARNING}
     closeButtonText="Cancel"
     primaryButtonText="Delete"
+    defaultButton={DialogButton.PrimaryButton}
+    onClick={(button) =>
+      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
+    }
+  />
+);
+
+const MergeAlert = (props: IRemovalAlertProps) => (
+  <Alert
+    open={props.open}
+    title={props.title}
+    information={props.information}
+    view={props.body}
+    icon={IconSet.WARNING}
+    closeButtonText="Cancel"
+    primaryButtonText="Merge"
     defaultButton={DialogButton.PrimaryButton}
     onClick={(button) =>
       button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()

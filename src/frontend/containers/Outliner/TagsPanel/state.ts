@@ -12,13 +12,15 @@ const enum Flag {
   ExpandNode,
   ConfirmDeletion,
   AbortDeletion,
+  ConfirmMerge,
+  AbortMerge,
 }
 
 export type Action =
   | IAction<Flag.InsertNode, { parent: ID; node: ID }>
   | IAction<Flag.EnableEditing | Flag.ToggleNode | Flag.ExpandNode, ID>
-  | IAction<Flag.ConfirmDeletion, ClientTag>
-  | IAction<Flag.DisableEditing | Flag.AbortDeletion, undefined>
+  | IAction<Flag.ConfirmDeletion | Flag.ConfirmMerge, ClientTag>
+  | IAction<Flag.DisableEditing | Flag.AbortDeletion | Flag.AbortMerge, undefined>
   | IAction<Flag.Expansion, IExpansionState>;
 
 export const Factory = {
@@ -48,12 +50,21 @@ export const Factory = {
     flag: Flag.AbortDeletion,
     data: undefined,
   }),
+  confirmMerge: (data: ClientTag): Action => ({
+    flag: Flag.ConfirmMerge,
+    data,
+  }),
+  abortMerge: (): Action => ({
+    flag: Flag.AbortMerge,
+    data: undefined,
+  }),
 };
 
 export type State = {
   expansion: IExpansionState;
   editableNode: ID | undefined;
   deletableNode: ClientTag | undefined;
+  mergableNode: ClientTag | undefined;
 };
 
 export function reducer(state: State, action: Action): State {
@@ -98,15 +109,17 @@ export function reducer(state: State, action: Action): State {
       };
 
     case Flag.ConfirmDeletion:
+    case Flag.AbortDeletion:
       return {
         ...state,
         deletableNode: action.data,
       };
 
-    case Flag.AbortDeletion:
+    case Flag.ConfirmMerge:
+    case Flag.AbortMerge:
       return {
         ...state,
-        deletableNode: action.data,
+        mergableNode: action.data,
       };
 
     default:

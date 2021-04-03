@@ -4,7 +4,7 @@ import Backend from 'src/backend/Backend';
 
 import { generateId, ID } from 'src/entities/ID';
 import { ClientTag, ITag, ROOT_TAG_ID } from 'src/entities/Tag';
-import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientArraySearchCriteria, ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';
 
@@ -143,6 +143,15 @@ class TagStore {
     }
     this.rebuildIndex();
     this.rootStore.fileStore.refetch();
+  }
+
+  @action.bound merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
+    if (tagToBeRemoved.subTags.length > 0) return; // not dealing with tags that have subtags
+    this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id).then(() => {
+      this.remove(tagToBeRemoved);
+      this.rebuildIndex();
+      this.rootStore.fileStore.refetch();
+    });
   }
 
   save(tag: ITag) {

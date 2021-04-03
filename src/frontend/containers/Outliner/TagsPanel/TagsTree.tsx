@@ -4,7 +4,7 @@ import React, { useCallback, useContext, useMemo, useReducer, useRef, useState }
 import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
-import { TagRemoval } from 'src/frontend/components/RemovalAlert';
+import { TagMerge, TagRemoval } from 'src/frontend/components/RemovalAlert';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import TagDnDContext, { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
@@ -402,6 +402,7 @@ const TagsTree = observer(() => {
     expansion: {},
     editableNode: undefined,
     deletableNode: undefined,
+    mergableNode: undefined,
   });
   const [contextState, { show, hide }] = useContextMenu();
   const dndData = useContext(TagDnDContext);
@@ -593,6 +594,11 @@ const TagsTree = observer(() => {
           onClose={() => dispatch(Factory.abortDeletion())}
         />
       )}
+
+      {state.mergableNode && (
+        <TagMerge object={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
+      )}
+
       <ContextMenu
         isOpen={contextState.open}
         x={contextState.x}

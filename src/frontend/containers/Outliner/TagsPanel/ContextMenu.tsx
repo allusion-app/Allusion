@@ -108,7 +108,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       />
       {/* TODO: a merge option would be nice */}
       <MenuItem
-        onClick={() => window.alert('todo')}
+        onClick={() => dispatch(Factory.confirmMerge(tag))}
         text="Merge with..."
         icon={IconSet.TAG_GROUP}
       />

@@ -494,16 +494,6 @@ class FileStore {
       if (!reusedStatus.has(file.id)) {
         file.dispose();
       }
-      // if (!file.width) {
-      // TODO: Sometimes, getMetadata cannot determine the dimensions of the file while importing. Trying again naively here, should have a better alternative
-      // Maybe offer a `re-index` options, for resetting file all dimensions etc.
-      // getMetaData(file.absolutePath).then((data) => {
-      //   console.log(data);
-      //   runInAction(() => {
-      //     this.save({ ...file.serialize(), ...data });
-      //   });
-      // });
-      // }
     }
 
     // Check existence of new files asynchronously, no need to wait until they can be showed
@@ -560,6 +550,11 @@ class FileStore {
       const existingFile = this.get(f.id);
       if (existingFile !== undefined) {
         reusedStatus.add(existingFile.id);
+        // Update tags (might have changes, e.g. removed/merged)
+        const newTags = f.tags.map((t) => this.rootStore.tagStore.get(t));
+        if (Array.from(existingFile.tags).some((t, i) => t?.id !== f.tags[i])) {
+          existingFile.updateTagsFromBackend(newTags as ClientTag[]);
+        }
         return existingFile;
       }
 
