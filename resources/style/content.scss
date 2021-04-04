@@ -221,7 +221,8 @@
     }
 
     &[aria-selected='true'] {
-      background-color: var(--accent-color-blue-transp);
+      background-color: var(--accent-color-blue);
+      color: white;
     }
 
     &[data-dnd-target='true'] {
@@ -309,7 +310,6 @@
 .thumbnail-small .list .file-info {
   border-spacing: 0;
 }
-
 
 .thumbnail-square img {
   background-position: center;
@@ -399,7 +399,10 @@
       // TODO: Would be nice to have an opacity transition on the scrollbar, but can't get it to work
       animation: hide-scroll 0.25s backwards;
       @keyframes hide-scroll {
-        from, to { overflow: hidden; } 
+        from,
+        to {
+          overflow: hidden;
+        }
       }
     }
 
