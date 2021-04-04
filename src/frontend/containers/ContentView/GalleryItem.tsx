@@ -263,7 +263,6 @@ export class GalleryEventHandler {
   }
   // TODO: Doesn't seem to every be firing. Bug: Pressing escape while dropping tag on gallery item
   onDragEnd(e: React.DragEvent<HTMLElement>) {
-    console.log('on drag end called!');
     e.stopPropagation();
     const thumbnail = e.currentTarget as HTMLElement;
     e.dataTransfer.dropEffect = 'none';
