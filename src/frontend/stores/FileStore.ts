@@ -81,28 +81,33 @@ class FileStore {
         );
 
         const absolutePath = runInAction(() => this.fileList[i].absolutePath);
-        const tagsNameHierarchies = await this.exifTool.readTags(absolutePath);
 
-        // Now that we know the tag names in file metadata, add them to the files in Allusion
-        // Main idea: Find matching tag with same name, otherwise, insert new
-        //   for now, just match by the name at the bottom of the hierarchy
-        // TODO: We need a "merge" option for two or more tags in tag context menu
+        try {
+          const tagsNameHierarchies = await this.exifTool.readTags(absolutePath);
 
-        const { tagStore } = this.rootStore;
-        for (const tagHierarchy of tagsNameHierarchies) {
-          const match = runInAction(() =>
-            tagStore.tagList.find((t) => t.name === tagHierarchy[tagHierarchy.length - 1]),
-          );
-          if (match) {
-            runInAction(() => this.fileList[i].addTag(match));
-          } else {
-            let curTag = tagStore.root;
-            for (const newTagName of tagHierarchy) {
-              const newTag = await tagStore.create(curTag, newTagName);
-              curTag = newTag;
+          // Now that we know the tag names in file metadata, add them to the files in Allusion
+          // Main idea: Find matching tag with same name, otherwise, insert new
+          //   for now, just match by the name at the bottom of the hierarchy
+          // TODO: We need a "merge" option for two or more tags in tag context menu
+
+          const { tagStore } = this.rootStore;
+          for (const tagHierarchy of tagsNameHierarchies) {
+            const match = runInAction(() =>
+              tagStore.tagList.find((t) => t.name === tagHierarchy[tagHierarchy.length - 1]),
+            );
+            if (match) {
+              runInAction(() => this.fileList[i].addTag(match));
+            } else {
+              let curTag = tagStore.root;
+              for (const newTagName of tagHierarchy) {
+                const newTag = await tagStore.create(curTag, newTagName);
+                curTag = newTag;
+              }
+              runInAction(() => this.fileList[i].addTag(curTag));
             }
-            runInAction(() => this.fileList[i].addTag(curTag));
           }
+        } catch (e) {
+          console.error('Could not import tags for', absolutePath, e);
         }
       }
       AppToaster.show(
