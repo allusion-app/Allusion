@@ -41,10 +41,14 @@
       ]
     },
     "win": {
+      "target": "nsis",
       "extraResources": [
         "resources/exiftool/exiftool.exe",
         "resources/exiftool/.Exiftool_config"
       ]
+    },
+    "nsis":{
+      "oneClick": false
     },
     "files": [
       "!node_modules",
