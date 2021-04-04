@@ -33,6 +33,26 @@ table {
   font-size: inherit;
 }
 
+// By default select looks pretty bad on almost any OS.
+select {
+  background: var(--input-color);
+  color: var(--text-color);
+  border: 0.0625rem solid var(--border-color);
+  outline: none;
+  border-radius: 0.25rem;
+
+  line-height: 1.5rem;
+
+  &:hover {
+    background: var(--input-color-hover);
+  }
+
+  &:focus-within {
+    background: var(--input-color);
+    box-shadow: 0 0 0 0.125rem var(--accent-color-blue);
+  }
+}
+
 // Global specific styles for the main window
 #app {
   --thumbnail-size: 250px;
