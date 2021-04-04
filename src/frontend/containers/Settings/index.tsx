@@ -116,61 +116,58 @@ const ImportExport = observer(() => {
         when you use Allusion for images on multiple devices synchronized using a service such as
         Dropbox or Google Drive.
       </p>
-      <fieldset>
-        <label>
-          <select
-            style={{ width: '40px', marginRight: '8px' }}
-            value={fileStore.exifTool.hierarchicalSeparator}
-            onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
-          >
-            <option value="|">&apos;|&apos;</option>
-            <option value="/">&apos;/&apos;</option>
-            <option value="\">&apos;\&apos;</option>
-            <option value=":">&apos;:&apos;</option>
-          </select>
-          Hierarchical separator
-        </label>
-        {/* TODO: adobe bridge has option to read with multiple separators */}
 
-        <ButtonGroup>
-          <Button
-            text="Import tags from file metadata"
-            onClick={fileStore.readTagsFromFiles}
-            styling="outlined"
-          />
-          <Button
-            text="Write tags to file metadata"
-            onClick={() => setConfirmingExport(true)}
-            styling="outlined"
-          />
-          <Alert
-            open={isConfirmingExport}
-            title="Are you sure you want to write Allusion's tags to your image files?"
-            information="This will overwrite any existing tags ('keywords') on those files, so it is recommended you have imported them first"
-            primaryButtonText="Export"
-            closeButtonText="Cancel"
-            // defaultButton={}
-            onClick={(button) => {
-              if (button === DialogButton.PrimaryButton) {
-                fileStore.writeTagsToFiles();
-              }
-              setConfirmingExport(false);
-            }}
-          />
-        </ButtonGroup>
-      </fieldset>
+      <label>
+        Hierarchical separator
+        <select
+          style={{ width: '40px', marginRight: '8px' }}
+          value={fileStore.exifTool.hierarchicalSeparator}
+          onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
+        >
+          <option value="|">|</option>
+          <option value="/">/</option>
+          <option value="\">\</option>
+          <option value=":">:</option>
+        </select>
+      </label>
+      {/* TODO: adobe bridge has option to read with multiple separators */}
+
+      <ButtonGroup>
+        <Button
+          text="Import tags from file metadata"
+          onClick={fileStore.readTagsFromFiles}
+          styling="outlined"
+        />
+        <Button
+          text="Write tags to file metadata"
+          onClick={() => setConfirmingExport(true)}
+          styling="outlined"
+        />
+        <Alert
+          open={isConfirmingExport}
+          title="Are you sure you want to write Allusion's tags to your image files?"
+          information="This will overwrite any existing tags ('keywords') on those files, so it is recommended you have imported them first"
+          primaryButtonText="Export"
+          closeButtonText="Cancel"
+          // defaultButton={}
+          onClick={(button) => {
+            if (button === DialogButton.PrimaryButton) {
+              fileStore.writeTagsToFiles();
+            }
+            setConfirmingExport(false);
+          }}
+        />
+      </ButtonGroup>
 
       {/* TODO: already implemented in other branch */}
       {/* <h3>Backup</h3>
-      <fieldset>
         <Button text="Export database..." onClick={console.log} icon={IconSet.OPEN_EXTERNAL} />
         <Button text="Import database..." onClick={console.log} icon={IconSet.IMPORT} />
         <Button
           text="Full export (including images)..."
           onClick={console.log}
           icon={IconSet.MEDIA}
-        />
-      </fieldset> */}
+        /> */}
     </>
   );
 });
