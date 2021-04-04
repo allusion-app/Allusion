@@ -92,6 +92,8 @@ function createWindow() {
     },
     width,
     height,
+    minWidth: 240,
+    minHeight: 64,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#1c1e23',

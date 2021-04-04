@@ -13,6 +13,15 @@
     align-items: center;
     justify-content: center;
     flex-grow: 1;
+
+    // Center the text
+    transition: margin 0.2s ease-in-out;
+    margin-left: 108px; // same as the 3 system buttons on the right
+
+    // But not for a narrow window, it would overlap with buttons
+    @media only screen and (max-width: 320px) {
+      margin-left: 0;
+    }
   }
 }
 
