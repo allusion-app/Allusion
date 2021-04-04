@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect, useState } from 'react';
+import { Callout } from 'src/frontend/components/Callout';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
@@ -111,11 +112,11 @@ const ImportExport = observer(() => {
       <h2>Import/Export</h2>
 
       <h3>Metadata</h3>
-      <p>
-        {IconSet.INFO} This option is useful for importing/exporting tags from/to other software, or
-        when you use Allusion for images on multiple devices synchronized using a service such as
-        Dropbox or Google Drive.
-      </p>
+      <Callout>
+        This option is useful for importing/exporting tags from/to other software, or when you use
+        Allusion for images on multiple devices synchronized using a service such as Dropbox or
+        Google Drive.
+      </Callout>
 
       <label>
         Hierarchical separator

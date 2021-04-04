@@ -115,6 +115,27 @@ select {
   }
 }
 
+.callout {
+  display: grid;
+  grid-template-areas: 'icon auto' 'icon body';
+  border-left: 0.25rem solid var(--accent-color-blue);
+  padding-left: 0.75rem;
+  margin-bottom: 0.5rem;
+  column-gap: 0.25rem;
+}
+
+.callout-icon {
+  grid-area: icon;
+}
+
+.callout-header {
+  grid-area: header;
+}
+
+.callout-body {
+  grid-area: body;
+}
+
 /////////////////// Transitions ///////////////////
 ///////////////////////////////////////////////////
 @keyframes fade {
