@@ -164,7 +164,13 @@ interface IZoomableImageProps {
   nextImage?: () => any;
 }
 
-const ZoomableImage = ({ src, width, height, prevImage, nextImage }: IZoomableImageProps) => {
+const ZoomableImage: React.FC<IZoomableImageProps> = ({
+  src,
+  width,
+  height,
+  prevImage,
+  nextImage,
+}: IZoomableImageProps) => {
   // Todo: Same context menu as GalleryItem
   return (
     <div id="zoomableImage">
@@ -200,5 +206,8 @@ const ZoomableImage = ({ src, width, height, prevImage, nextImage }: IZoomableIm
     </div>
   );
 };
+
+ZoomableImage.displayName = 'ZoomableImage';
+SlideMode.displayName = 'SlideMode';
 
 export default SlideMode;

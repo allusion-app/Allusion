@@ -161,4 +161,6 @@ const MasonryRenderer = observer(
   },
 );
 
+MasonryRenderer.displayName = 'MasonryRenderer';
+
 export default MasonryRenderer;

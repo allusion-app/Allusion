@@ -129,4 +129,6 @@ const Gallery = observer(() => {
   );
 });
 
+Gallery.displayName = 'Gallery';
+
 export default ContentView;
