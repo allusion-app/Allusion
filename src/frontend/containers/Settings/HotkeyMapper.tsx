@@ -6,8 +6,7 @@ import { comboMatches, getKeyComboString, parseKeyCombo } from '@blueprintjs/cor
 import StoreContext from '../../contexts/StoreContext';
 import { defaultHotkeyMap, IHotkeyMap } from '../../stores/UiStore';
 import { camelCaseToSpaced } from '../../utils';
-import { IconButton, IconSet } from 'widgets';
-import { KeyCombo } from 'src/frontend/components/KeyCombo';
+import { IconButton, IconSet, KeyCombo } from 'widgets';
 
 export const HotkeyMapper = observer(() => {
   const { uiStore } = useContext(StoreContext);

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { capitalize } from '../utils';
+import { capitalize } from '../src/frontend/utils';
 
 const MOD = process.platform === 'darwin' ? 'Cmd' : 'Ctrl';
 

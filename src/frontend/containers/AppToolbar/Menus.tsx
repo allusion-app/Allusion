@@ -8,9 +8,8 @@ import { IFile } from 'src/entities/File';
 import UiStore from 'src/frontend/stores/UiStore';
 import FileStore from 'src/frontend/stores/FileStore';
 
-import { IconSet } from 'widgets';
+import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
-import { KeyCombo } from 'src/frontend/components/KeyCombo';
 
 // Tooltip info
 const enum Tooltip {

@@ -2,9 +2,8 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 
 import UiStore from 'src/frontend/stores/UiStore';
-import { IconSet } from 'widgets';
+import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuItem } from 'widgets/menus';
-import { KeyCombo } from 'src/frontend/components/KeyCombo';
 
 const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
   return (

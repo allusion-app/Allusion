@@ -5,6 +5,7 @@ import { Checkbox, Toggle } from './Checkbox';
 import { Tag } from './Tag';
 import { IconSet, SVG } from './Icons';
 import { Listbox, Option } from './Combobox';
+import { KeyCombo } from './KeyCombo';
 
 export {
   Checkbox,
@@ -12,6 +13,7 @@ export {
   ButtonGroup,
   IconButton,
   IconSet,
+  KeyCombo,
   Listbox,
   Option,
   Radio,
