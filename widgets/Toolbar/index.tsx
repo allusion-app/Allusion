@@ -84,18 +84,12 @@ const ToolbarButton = (props: IToolbarButton) => {
     controls,
     haspopup,
   } = props;
-  const portalTriggerRef = useRef<HTMLSpanElement>(null);
-  const content = (
-    <span ref={portalTriggerRef} className="toolbar-button-content">
-      <span className="toolbar-button-icon" aria-hidden>
-        {icon}
-      </span>
-      <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
-    </span>
-  );
-  return (
+  const portalTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const toolbarButton = (
     <button
       id={id}
+      ref={portalTriggerRef}
       className="toolbar-button"
       onClick={disabled ? undefined : onClick}
       role={role}
@@ -107,13 +101,22 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-expanded={expanded}
       tabIndex={-1}
     >
-      {tooltip ? (
-        <Tooltip content={tooltip} trigger={content} portalTriggerRef={portalTriggerRef} />
-      ) : (
-        content
-      )}
+      <span className="toolbar-button-content">
+        <span className="toolbar-button-icon" aria-hidden>
+          {icon}
+        </span>
+        <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
+      </span>
     </button>
   );
+
+  if (tooltip) {
+    return (
+      <Tooltip content={tooltip} trigger={toolbarButton} portalTriggerRef={portalTriggerRef} />
+    );
+  } else {
+    return toolbarButton;
+  }
 };
 
 interface IToolbarToggleButton extends IBaseButton {
