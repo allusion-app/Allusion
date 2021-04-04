@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 
 import { ID, generateId } from 'src/entities/ID';
 
-import { Button } from 'widgets/Button';
+import { Toast } from 'widgets/notifications';
 
 class ToastManager {
   readonly toastList = observable(new Array<IdentifiableToast>());
@@ -65,20 +65,16 @@ interface IToastProps {
 
 type IdentifiableToast = IToastProps & { id: ID };
 
-const Toast = ({ message, id, clickAction }: IdentifiableToast) => {
-  return (
-    <div className="toast">
-      <span>{message}</span>
-      {clickAction?.onClick && <Button text={clickAction.label} onClick={clickAction.onClick} />}
-      <Button text="Dismiss" onClick={() => AppToaster.dismiss(id)} />
-    </div>
-  );
-};
-
 export const Toaster = observer(() => (
   <div id="toaster">
-    {AppToaster.toastList.map((t) => (
-      <Toast {...t} key={t.id} />
+    {AppToaster.toastList.map(({ id, message, clickAction, timeout }) => (
+      <Toast
+        key={id}
+        message={message}
+        clickAction={clickAction}
+        timeout={timeout}
+        onDismiss={() => AppToaster.dismiss(id)}
+      />
     ))}
   </div>
 ));
