@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "rimraf build && webpack --watch --config ./webpack.dev.js --progress --color",
     "production": "rimraf build && webpack --config ./webpack.prod.js",
-    "start": "electron ./build/main.bundle.js --dev",
+    "start": "electron ./build/main.bundle.js",
     "lint": "eslint src/**/*{ts,tsx} -f codeframe",
     "test": "jest",
     "package": "yarn build && electron-builder",
@@ -21,7 +21,11 @@
     "appId": "com.allusion-app.allusion",
     "productName": "Allusion",
     "mac": {
-      "category": "public.app-category.graphics-design"
+      "category": "public.app-category.graphics-design",
+      "extraResources": [
+        "resources/exiftool/exiftool.pl",
+        "resources/exiftool/.Exiftool_config"
+      ]
     },
     "dmg": {
       "icon": false
@@ -30,13 +34,24 @@
       "target": [
         "AppImage"
       ],
-      "category": "Graphics"
+      "category": "Graphics",
+      "extraResources": [
+        "resources/exiftool/exiftool.pl",
+        "resources/exiftool/.Exiftool_config"
+      ]
+    },
+    "win": {
+      "extraResources": [
+        "resources/exiftool/exiftool.exe",
+        "resources/exiftool/.Exiftool_config"
+      ]
     },
     "files": [
       "!node_modules",
       "build/**/*",
       "package.json"
-    ]
+    ],
+    "asar": true
   },
   "repository": {
     "type": "git",
@@ -100,6 +115,7 @@
     "image-size": "^0.8.3",
     "mobx": "^6.0.4",
     "mobx-react-lite": "^3.0.0",
+    "node-exiftool": "^2.3.0",
     "react": "^16.14.0",
     "react-colorful": "^4.4.2",
     "react-dom": "^16.14.0",

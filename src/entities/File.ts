@@ -16,7 +16,8 @@ import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 
 import FileStore from 'src/frontend/stores/FileStore';
 import { ID, IResource, ISerializable } from './ID';
-import { ClientTag } from './Tag';
+import { ClientTag, ROOT_TAG_ID } from './Tag';
+import { RendererMessenger } from 'src/Messaging';
 
 export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
@@ -119,7 +120,7 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @action.bound addTag(tag: ClientTag): void {
-    if (this.tags.size === 0) {
+    if (!this.tags.has(tag) && this.tags.size === 0) {
       this.store.decrementNumUntaggedFiles();
     }
     this.tags.add(tag);
@@ -141,6 +142,12 @@ export class ClientFile implements ISerializable<IFile> {
   @action.bound setBroken(state: boolean): void {
     this.isBroken = state;
     this.autoSave = !state;
+  }
+
+  @action.bound updateTagsFromBackend(tags: ClientTag[]) {
+    this.autoSave = false; // doesn't seem to help..
+    this.tags.replace(tags);
+    this.autoSave = true;
   }
 
   serialize(): IFile {

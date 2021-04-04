@@ -142,6 +142,24 @@ export default class Backend {
     return this.tagRepository.removeMany(tags);
   }
 
+  async mergeTags(tagToBeRemoved: ID, tagToMergeWith: ID): Promise<void> {
+    console.info('Merging tags', tagToBeRemoved, tagToMergeWith);
+    // Replace tag on all files with the tag to be removed
+    const filesWithTags = await this.fileRepository.find({
+      criteria: { key: 'tags', value: [tagToBeRemoved], operator: 'contains', valueType: 'array' },
+    });
+    for (const file of filesWithTags) {
+      // Might contain duplicates if the tag to be merged with was already on the file, so array -> set -> array to remove dupes
+      file.tags = Array.from(
+        new Set(file.tags.map((t) => (t === tagToBeRemoved ? tagToMergeWith : t))),
+      );
+    }
+    // Update files in db
+    await this.saveFiles(filesWithTags);
+    // Remove tag from DB
+    await this.tagRepository.remove(tagToBeRemoved);
+  }
+
   async removeFiles(files: ID[]): Promise<void> {
     console.info('Backend: Removing files...', files);
     return this.fileRepository.removeMany(files);

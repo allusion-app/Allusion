@@ -81,6 +81,15 @@ export class ClientTag implements ISerializable<ITag> {
     return this.store.isSearched(this.id);
   }
 
+  /** Returns the tags up the hierarchy from this tag, excluding the root tag */
+  @action getTagHierarchy(): ClientTag[] {
+    if (this.id === ROOT_TAG_ID) {
+      return [];
+    } else {
+      return [...this.parent.getTagHierarchy(), this];
+    }
+  }
+
   /**
    * Returns true if tag is an ancestor of this tag.
    * @param tag possible ancestor node

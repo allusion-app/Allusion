@@ -145,6 +145,15 @@ class TagStore {
     this.rootStore.fileStore.refetch();
   }
 
+  @action.bound merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
+    if (tagToBeRemoved.subTags.length > 0) return; // not dealing with tags that have subtags
+    this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id).then(() => {
+      this.remove(tagToBeRemoved);
+      this.rebuildIndex();
+      this.rootStore.fileStore.refetch();
+    });
+  }
+
   save(tag: ITag) {
     this.backend.saveTag(tag);
   }

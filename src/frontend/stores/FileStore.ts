@@ -13,6 +13,7 @@ import { ClientTag } from 'src/entities/Tag';
 import RootStore from './RootStore';
 
 import { getThumbnailPath, debounce, needsThumbnail, promiseAllLimit } from '../utils';
+import ExifIO from 'src/backend/ExifIO';
 import { AppToaster } from '../components/Toaster';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
@@ -30,6 +31,8 @@ const enum Content {
 class FileStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
+
+  public exifTool: ExifIO;
 
   readonly fileList = observable<ClientFile>([]);
   /**
@@ -59,6 +62,111 @@ class FileStore {
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+
+    this.exifTool = new ExifIO();
+  }
+
+  @action.bound async readTagsFromFiles() {
+    const toastKey = 'read-tags-from-file';
+    try {
+      await this.exifTool.initialize();
+      const numFiles = runInAction(() => this.fileList.length);
+      for (let i = 0; i < numFiles; i++) {
+        AppToaster.show(
+          {
+            message: `Reading tags from files ${((100 * i++) / numFiles).toFixed(0)}%...`,
+            timeout: 0,
+          },
+          toastKey,
+        );
+
+        const absolutePath = runInAction(() => this.fileList[i].absolutePath);
+        const tagsNameHierarchies = await this.exifTool.readTags(absolutePath);
+
+        // Now that we know the tag names in file metadata, add them to the files in Allusion
+        // Main idea: Find matching tag with same name, otherwise, insert new
+        //   for now, just match by the name at the bottom of the hierarchy
+        // TODO: We need a "merge" option for two or more tags in tag context menu
+
+        const { tagStore } = this.rootStore;
+        for (const tagHierarchy of tagsNameHierarchies) {
+          const match = runInAction(() =>
+            tagStore.tagList.find((t) => t.name === tagHierarchy[tagHierarchy.length - 1]),
+          );
+          if (match) {
+            runInAction(() => this.fileList[i].addTag(match));
+          } else {
+            let curTag = tagStore.root;
+            for (const newTagName of tagHierarchy) {
+              const newTag = await tagStore.create(curTag, newTagName);
+              curTag = newTag;
+            }
+            runInAction(() => this.fileList[i].addTag(curTag));
+          }
+        }
+      }
+      AppToaster.show(
+        {
+          message: 'Reading tags from files... Done!',
+          timeout: 5000,
+        },
+        toastKey,
+      );
+    } catch (e) {
+      console.error('Could not read tags', e);
+      AppToaster.show(
+        {
+          message: 'Reading tags from files failed. Check the dev console for more details',
+          timeout: 5000,
+        },
+        toastKey,
+      );
+    } finally {
+      await this.exifTool.close();
+    }
+  }
+
+  @action.bound async writeTagsToFiles() {
+    const toastKey = 'write-tags-to-file';
+    try {
+      await this.exifTool.initialize();
+      const numFiles = runInAction(() => this.fileList.length);
+      for (let i = 0; i < numFiles; i++) {
+        AppToaster.show(
+          {
+            message: `Writing tags to files ${((100 * i++) / numFiles).toFixed(0)}%...`,
+            timeout: 0,
+          },
+          toastKey,
+        );
+        const [absolutePath, tagNameHierarchy] = runInAction(() => {
+          const file = this.fileList[i];
+          return [
+            file.absolutePath,
+            Array.from(file.tags).map((t) => t.getTagHierarchy().map((t) => t.name)),
+          ];
+        });
+        await this.exifTool.writeTags(absolutePath, tagNameHierarchy);
+      }
+      AppToaster.show(
+        {
+          message: 'Writing tags to files... Done!',
+          timeout: 5000,
+        },
+        toastKey,
+      );
+    } catch (e) {
+      console.error('Could not write tags', e);
+      AppToaster.show(
+        {
+          message: 'Writing tags to files failed. Check the dev console for more details',
+          timeout: 5000,
+        },
+        toastKey,
+      );
+    } finally {
+      this.exifTool.close();
+    }
   }
 
   @computed get showsAllContent() {
@@ -399,16 +507,6 @@ class FileStore {
       if (!reusedStatus.has(file.id)) {
         file.dispose();
       }
-      // if (!file.width) {
-      // TODO: Sometimes, getMetadata cannot determine the dimensions of the file while importing. Trying again naively here, should have a better alternative
-      // Maybe offer a `re-index` options, for resetting file all dimensions etc.
-      // getMetaData(file.absolutePath).then((data) => {
-      //   console.log(data);
-      //   runInAction(() => {
-      //     this.save({ ...file.serialize(), ...data });
-      //   });
-      // });
-      // }
     }
 
     // Check existence of new files asynchronously, no need to wait until they can be showed
@@ -465,6 +563,11 @@ class FileStore {
       const existingFile = this.get(f.id);
       if (existingFile !== undefined) {
         reusedStatus.add(existingFile.id);
+        // Update tags (might have changes, e.g. removed/merged)
+        const newTags = f.tags.map((t) => this.rootStore.tagStore.get(t));
+        if (Array.from(existingFile.tags).some((t, i) => t?.id !== f.tags[i])) {
+          existingFile.updateTagsFromBackend(newTags as ClientTag[]);
+        }
         return existingFile;
       }
 

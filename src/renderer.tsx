@@ -108,6 +108,11 @@ if (IS_PREVIEW_WINDOW) {
   }
 }
 
+window.addEventListener('beforeunload', () => {
+  // TODO: check whether this works okay with running in background process
+  rootStore.fileStore.exifTool.close();
+});
+
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application
 ReactDOM.render(
