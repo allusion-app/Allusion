@@ -134,15 +134,13 @@ const App = observer(() => {
     return <SplashScreen />;
   }
 
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-
   return (
     <DropContextProvider onDragEnter={openOutlinerOnDragEnter}>
       <div
         data-os={PLATFORM}
         data-fullscreen={uiStore.isFullScreen}
         id="layout-container"
-        className={themeClass}
+        className={uiStore.theme}
       >
         {PLATFORM !== 'darwin' && !uiStore.isFullScreen && <WindowTitlebar />}
 

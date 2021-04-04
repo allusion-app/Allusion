@@ -53,7 +53,6 @@ const Label = (props: ILabelProps) =>
       onFocus={(e) => e.target.select()}
       // TODO: Visualizing errors...
       // Only show red outline when input field is in focus and text is invalid
-      // className={!isValidInput ? 'bp3-intent-danger' : ''}
     />
   ) : (
     <div>{props.text}</div>
@@ -128,7 +127,7 @@ const TagItem = observer((props: ITagItemProps) => {
             }
           }
         }
-        PreviewTag.classList.value = `tag bp3-${uiStore.theme.toLowerCase()}`;
+        PreviewTag.classList.value = `tag ${uiStore.theme}`;
         PreviewTag.innerText = name;
         event.dataTransfer.setData(DnDTagType, nodeData.id);
         event.dataTransfer.setDragImage(PreviewTag, 0, 0);

@@ -22,7 +22,7 @@ const Appearance = observer(() => {
 
       <h3>Interface</h3>
       <Toggle
-        checked={uiStore.theme === 'DARK'}
+        checked={uiStore.theme === 'dark'}
         onChange={uiStore.toggleTheme}
         label="Dark theme"
       />
@@ -307,7 +307,7 @@ const SettingsWindow = () => {
       closeOnEscape
       additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
     >
-      <div className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
+      <div className={uiStore.theme}>
         <Settings />
       </div>
     </PopupWindow>

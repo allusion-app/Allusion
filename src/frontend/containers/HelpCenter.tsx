@@ -358,7 +358,7 @@ const HelpCenter = observer(() => {
     <Dialog
       open={uiStore.isHelpCenterOpen}
       onCancel={uiStore.toggleHelpCenter}
-      className="bp3-light help-center-drawer"
+      className="light help-center-drawer"
     >
       <span className="dialog-icon">{IconSet.HELPCENTER}</span>
       <h2 id="dialog-title" className="dialog-title">

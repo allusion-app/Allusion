@@ -107,7 +107,7 @@ class UiStore {
   @observable isInitialized = false;
 
   // Theme
-  @observable theme: 'LIGHT' | 'DARK' = 'DARK';
+  @observable theme: 'light' | 'dark' = 'dark';
 
   // UI
   @observable isOutlinerOpen: boolean = true;
@@ -337,8 +337,8 @@ class UiStore {
   }
 
   @action.bound toggleTheme() {
-    this.setTheme(this.theme === 'DARK' ? 'LIGHT' : 'DARK');
-    RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' });
+    this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
+    RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
   }
 
   @action.bound toggleAdvancedSearch() {
@@ -616,7 +616,7 @@ class UiStore {
         console.error('Cannot parse persistent preferences', e);
       }
       // Set the native window theme based on the application theme
-      RendererMessenger.setTheme({ theme: this.theme === 'DARK' ? 'dark' : 'light' });
+      RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
     }
 
     // Set default thumbnail directory in case none was specified
@@ -661,7 +661,7 @@ class UiStore {
     this.rootStore.fileStore.fetchFilesByQuery();
   }
 
-  @action private setTheme(theme: 'LIGHT' | 'DARK' = 'DARK') {
+  @action private setTheme(theme: 'light' | 'dark' = 'dark') {
     this.theme = theme;
   }
 
