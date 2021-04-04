@@ -59,3 +59,13 @@
     overflow: hidden auto;
   }
 }
+
+.deletion-confirmation-list {
+  max-height: 5rem;
+  min-height: 2rem;
+  overflow: auto;
+  font-size: smaller;
+  > div {
+    white-space: nowrap;
+  }
+}

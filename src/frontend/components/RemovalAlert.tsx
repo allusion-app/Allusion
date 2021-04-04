@@ -118,7 +118,14 @@ export const FileRemoval = observer(() => {
       title={`Are you sure you want to delete ${selection.size} missing file${
         selection.size > 1 ? 's' : ''
       }?`}
-      information="Deleting files will permanently remove them from Allusion. Accidentially moved files can be recovered by returning them to their previous location."
+      information="Deleting files will permanently remove them from Allusion, so any tags saved on them will be lost. If you move files back into their location, they will be automatically detected by Allusion."
+      body={
+        <div className="deletion-confirmation-list">
+          {Array.from(selection).map((f) => (
+            <div key={f.id}>{f.absolutePath}</div>
+          ))}
+        </div>
+      }
       onCancel={uiStore.closeToolbarFileRemover}
       onConfirm={handleConfirm}
     />

@@ -51,6 +51,8 @@ class FileStore {
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
 
+  debouncedRefetch: () => void;
+
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
@@ -58,6 +60,7 @@ class FileStore {
 
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
+    this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
 
     this.exifTool = new ExifIO();
@@ -316,7 +319,7 @@ class FileStore {
         rootStore: { uiStore },
       } = this;
 
-      uiStore.clearSearchCriteriaList();
+      uiStore.searchCriteriaList.clear();
       this.setContentMissing();
 
       // Fetch all files, then check their existence and only show the missing ones
@@ -357,6 +360,15 @@ class FileStore {
         this.fileListLastModified = new Date();
       });
       this.cleanFileSelection();
+
+      AppToaster.show(
+        {
+          message:
+            'Some files can no longer be found. Either move them back to their location, or delete them from Allusion',
+          timeout: 12000,
+        },
+        'recovery-view',
+      );
     } catch (err) {
       console.error('Could not load broken files', err);
     }

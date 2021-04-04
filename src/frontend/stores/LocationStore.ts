@@ -267,8 +267,9 @@ class LocationStore {
     const file = await pathToIFile(path, location);
     await this.backend.createFilesFromPath(path, [file]);
 
-    AppToaster.show({ message: 'New images have been detected.', timeout: 5000 });
-    this.rootStore.fileStore.refetch();
+    AppToaster.show({ message: 'New images have been detected.', timeout: 5000 }, 'new-images');
+    // might be called a lot when moving many images into a folder, so debounce it
+    this.rootStore.fileStore.debouncedRefetch();
   }
 
   @action hideFile(path: string) {
