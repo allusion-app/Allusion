@@ -160,14 +160,18 @@ export const MasonryCell = observer(
             forceNoThumbnail={forceNoThumbnail}
           />
         </ThumbnailContainer>
-        {file.isBroken === true && (
+        {file.isBroken === true && !fileStore.showsMissingContent && (
           <Tooltip
-            content="This image could not be found."
+            content="This image could not be found - opens the recovery view"
             trigger={
               <span
                 ref={portalTriggerRef}
                 className="thumbnail-broken-overlay"
-                onClick={fileStore.fetchMissingFiles}
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  await fileStore.fetchMissingFiles();
+                }}
               >
                 {IconSet.WARNING_BROKEN_LINK}
               </span>

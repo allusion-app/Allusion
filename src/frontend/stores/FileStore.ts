@@ -13,6 +13,7 @@ import { ClientTag } from 'src/entities/Tag';
 import RootStore from './RootStore';
 
 import { getThumbnailPath, debounce, needsThumbnail, promiseAllLimit } from '../utils';
+import { AppToaster } from '../components/Toaster';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
 
@@ -207,7 +208,7 @@ class FileStore {
         rootStore: { uiStore },
       } = this;
 
-      uiStore.clearSearchCriteriaList();
+      uiStore.searchCriteriaList.clear();
       this.setContentMissing();
 
       // Fetch all files, then check their existence and only show the missing ones
@@ -248,6 +249,15 @@ class FileStore {
         this.fileListLastModified = new Date();
       });
       this.cleanFileSelection();
+
+      AppToaster.show(
+        {
+          message:
+            'Some files can no longer be found. Either move them back to their location, or delete them from Allusion',
+          timeout: 12000,
+        },
+        'recovery-view',
+      );
     } catch (err) {
       console.error('Could not load broken files', err);
     }
