@@ -68,9 +68,15 @@ class ExifIO {
     makeObservable(this);
   }
 
-  async initialize(): Promise<void> {
+  isOpen(): boolean {
+    return ep._open || false;
+  }
+
+  async initialize(): Promise<ExifIO> {
+    if (ep._open) return this;
     const pid = await ep.open();
     console.log('Started exiftool process %s', pid);
+    return this;
   }
 
   async close(): Promise<void> {
@@ -126,6 +132,15 @@ class ExifIO {
       entry,
       runInAction(() => this.hierarchicalSeparator),
     );
+  }
+
+  async readExifTags(filepath: string, tags: string[]): Promise<(string | undefined)[]> {
+    const metadata = await ep.readMetadata(filepath, tags);
+    if (metadata.error || !metadata.data?.[0]) {
+      throw new Error(metadata.error || 'No metadata entry');
+    }
+    const entry = metadata.data[0];
+    return tags.map((t) => entry[t]?.toString() || undefined);
   }
 
   /** Reads file metadata for all files in a folder (and recursively for its subfolders) */
