@@ -136,20 +136,6 @@ select {
   grid-area: body;
 }
 
-/////////////////// Transitions ///////////////////
-///////////////////////////////////////////////////
-@keyframes fade {
-  0% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
 // Styling to match Allusion Mockups
 $pt-transition-cubic1: cubic-bezier(0.4, 1, 0.75, 0.9) !default;
 $pt-transition-cubic2: cubic-bezier(0.4, 0, 0.2, 1) !default;

@@ -125,6 +125,7 @@ dialog[role='alertdialog'] {
   pointer-events: none;
   background: var(--accent-color-blue);
   color: white;
+  animation: fade 0.1s linear;
 
   .tooltip {
     display: inline-flex;
@@ -141,5 +142,17 @@ dialog[role='alertdialog'] {
 
   to {
     transform: translateY(0);
+  }
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
   }
 }
