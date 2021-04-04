@@ -36,6 +36,7 @@ window.addEventListener(
       event.target.dataset[DnDAttribute.Source] = 'false';
     }
   }),
+  true,
 );
 
 window.addEventListener(
@@ -46,6 +47,7 @@ window.addEventListener(
       event.target.dataset[DnDAttribute.Target] = 'false';
     }
   }),
+  true,
 );
 
 const App = observer(() => {
