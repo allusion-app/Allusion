@@ -10,15 +10,11 @@
     height: 2em;
     vertical-align: top;
   }
+}
 
-  .scale-widget {
-    display: flex;
-    justify-content: start;
-
-    > span {
-      padding: 8px;
-    }
-  }
+.zoom-widget {
+  display: flex;
+  align-items: center;
 }
 
 .settings-thumbnail {
