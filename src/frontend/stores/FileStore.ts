@@ -48,6 +48,8 @@ class FileStore {
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
 
+  debouncedRefetch: () => void;
+
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
@@ -55,6 +57,7 @@ class FileStore {
 
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
+    this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
   }
 
