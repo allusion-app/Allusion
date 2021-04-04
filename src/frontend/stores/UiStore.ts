@@ -6,7 +6,7 @@ import { RendererMessenger } from 'src/Messaging';
 
 import { ID } from 'src/entities/ID';
 import { ClientFile, IFile } from 'src/entities/File';
-import { ClientBaseCriteria, ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 
 import RootStore from './RootStore';
@@ -552,19 +552,23 @@ class UiStore {
     }
   }
 
-  @action.bound addTagSelectionToCriteria(includeSubtags = false) {
-    const tags = includeSubtags
-      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
-      : Array.from(this.tagSelection);
-    this.addSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
+  @action.bound addTagSelectionToCriteria() {
+    this.addSearchCriterias(
+      Array.from(
+        this.tagSelection,
+        (tag) => new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags', tag.id),
+      ),
+    );
     this.clearTagSelection();
   }
 
-  @action.bound replaceCriteriaWithTagSelection(includeSubtags = false) {
-    const tags = includeSubtags
-      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
-      : Array.from(this.tagSelection);
-    this.replaceSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
+  @action.bound replaceCriteriaWithTagSelection() {
+    this.replaceSearchCriterias(
+      Array.from(
+        this.tagSelection,
+        (tag) => new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags', tag.id),
+      ),
+    );
     this.clearTagSelection();
   }
 

@@ -1,18 +1,16 @@
-import React, { useContext, useRef, useState } from 'react';
-import { action, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-
-import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import React, { useCallback, useContext, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
-
+import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import StoreContext from 'src/frontend/contexts/StoreContext';
-
-import { Listbox, Option } from 'widgets';
+import { Option } from 'widgets';
+import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
 import { Flyout } from 'widgets/popovers';
 
 interface ITagSelector {
   selection: ClientTag | undefined;
-  onSelect: (item: ClientTag) => void;
+  onSelect: (item?: ClientTag) => void;
 }
 
 /**
@@ -28,6 +26,33 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState(selection?.name || '');
   const normalizedQuery = query.toLowerCase();
+
+  const suggestions = tagStore.tagList.filter(
+    (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
+  );
+
+  const options = suggestions.map((t) => {
+    const isSelected = selection === t;
+    return {
+      id: t.id,
+      selected: isSelected,
+      value: t.name,
+      onClick: () => onSelect(isSelected ? undefined : t),
+    };
+  });
+
+  // Todo: clamp this value when list size changes
+  const [focusedOption, setFocusedOption] = useState(0);
+  const listRef = useRef<HTMLUListElement>(null);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Backspace') {
+        e.stopPropagation();
+      }
+      controlledListBoxKeyDown(e, listRef, setFocusedOption, focusedOption);
+    },
+    [focusedOption],
+  );
 
   return (
     <div
@@ -57,28 +82,21 @@ const TagSelector = observer(({ selection, onSelect }: ITagSelector) => {
               setIsOpen(true);
               setQuery(e.target.value);
             }}
+            onKeyDown={handleKeyDown}
             aria-controls={listboxId.current}
+            onBlur={() => setQuery(selection?.name || '')}
           />
         }
       >
-        <Listbox id={listboxId.current}>
-          {tagStore.tagList
-            .filter(
-              (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
-            )
-            .map((t) => (
-              <Option
-                key={t.id}
-                selected={selection === t}
-                value={t.name}
-                onClick={action(() => {
-                  onSelect(t);
-                  setQuery(t.name);
-                  setIsOpen(false);
-                })}
-              />
-            ))}
-        </Listbox>
+        <ControlledListbox id={listboxId.current} multiselectable listRef={listRef}>
+          {options.map((o, i) => {
+            return (
+              <React.Fragment key={o.id}>
+                <Option {...o} focused={focusedOption === i} />
+              </React.Fragment>
+            );
+          })}
+        </ControlledListbox>
       </Flyout>
     </div>
   );

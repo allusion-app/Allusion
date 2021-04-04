@@ -4,7 +4,7 @@ import { HexColorPicker } from 'react-colorful';
 import 'react-colorful/dist/index.css';
 
 import { formatTagCountText } from 'src/frontend/utils';
-import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -118,7 +118,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         onClick={() =>
           tag.isSelected
             ? uiStore.addTagSelectionToCriteria()
-            : uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
+            : uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id))
         }
         text="Add to Search"
         icon={IconSet.SEARCH}
@@ -126,31 +126,11 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       <MenuItem
         onClick={() =>
           tag.isSelected
-            ? uiStore.addTagSelectionToCriteria(true)
-            : uiStore.addSearchCriterias(
-                tag.recursiveSubTags.map((t) => new ClientIDSearchCriteria('tags', t.id)),
-              )
-        }
-        text="Add to Search (incl. subtags)"
-      />
-      <MenuItem
-        onClick={() =>
-          tag.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriteria(new ClientIDSearchCriteria('tags', tag.id))
+            : uiStore.replaceSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id))
         }
         text="Replace Search"
         icon={IconSet.REPLACE}
-      />
-      <MenuItem
-        onClick={() =>
-          tag.isSelected
-            ? uiStore.replaceCriteriaWithTagSelection(true)
-            : uiStore.replaceSearchCriterias(
-                tag.recursiveSubTags.map((t) => new ClientIDSearchCriteria('tags', t.id)),
-              )
-        }
-        text="Replace Search (incl. subtags)"
       />
       <MenuDivider />
       <MenuItem

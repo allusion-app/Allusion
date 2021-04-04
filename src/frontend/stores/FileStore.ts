@@ -7,7 +7,7 @@ import { FileOrder } from 'src/backend/DBRepository';
 import { ID, generateId } from 'src/entities/ID';
 import { ClientFile, IFile, getMetaData } from 'src/entities/File';
 import { ClientLocation } from 'src/entities/Location';
-import { SearchCriteria, ClientArraySearchCriteria } from 'src/entities/SearchCriteria';
+import { SearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 
 import RootStore from './RootStore';
@@ -189,9 +189,10 @@ class FileStore {
     try {
       const { uiStore } = this.rootStore;
       uiStore.clearSearchCriteriaList();
-      const criteria = new ClientArraySearchCriteria('tags', []).serialize();
+      const criteria = new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags');
+      uiStore.searchCriteriaList.push(criteria);
       const fetchedFiles = await this.backend.searchFiles(
-        criteria,
+        criteria.serialize(),
         this.orderBy,
         this.fileOrder,
         uiStore.searchMatchAny,
@@ -513,7 +514,7 @@ class FileStore {
 
   /** Initializes the total and untagged file counters by querying the database with count operations */
   async refetchFileCounts() {
-    const noTagsCriteria = new ClientArraySearchCriteria('tags', []).serialize();
+    const noTagsCriteria = new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags').serialize();
     const numUntaggedFiles = await this.backend.countFiles(noTagsCriteria);
     const numTotalFiles = await this.backend.countFiles();
     runInAction(() => {

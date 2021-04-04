@@ -4,7 +4,7 @@ import Backend from 'src/backend/Backend';
 
 import { generateId, ID } from 'src/entities/ID';
 import { ClientTag, ITag, ROOT_TAG_ID } from 'src/entities/Tag';
-import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';
 
@@ -77,7 +77,7 @@ class TagStore {
 
   @action isSearched(tag: ID): boolean {
     return this.rootStore.uiStore.searchCriteriaList.some(
-      (c) => c instanceof ClientIDSearchCriteria && c.value.includes(tag),
+      (c) => c instanceof ClientTagSearchCriteria && c.value.includes(tag),
     );
   }
 

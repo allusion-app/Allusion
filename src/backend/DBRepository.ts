@@ -3,7 +3,7 @@ import Dexie, { Transaction, WhereClause } from 'dexie';
 import { ID, IResource } from '../entities/ID';
 import {
   SearchCriteria,
-  IArraySearchCriteria,
+  ITagSearchCriteria,
   IStringSearchCriteria,
   INumberSearchCriteria,
   IDateSearchCriteria,
@@ -207,7 +207,7 @@ export default class BaseRepository<T extends IResource> {
   private _filterWhere(where: WhereClause<T, string>, crit: SearchCriteria<T>) {
     switch (crit.valueType) {
       case 'array':
-        return this._filterArrayWhere(where, crit as IArraySearchCriteria<T>);
+        return this._filterArrayWhere(where, crit as ITagSearchCriteria<T>);
       case 'string':
         return this._filterStringWhere(where, crit as IStringSearchCriteria<T>);
       case 'number':
@@ -220,7 +220,7 @@ export default class BaseRepository<T extends IResource> {
   private _filterLambda(crit: SearchCriteria<T>) {
     switch (crit.valueType) {
       case 'array':
-        return this._filterArrayLambda(crit as IArraySearchCriteria<T>);
+        return this._filterArrayLambda(crit as ITagSearchCriteria<T>);
       case 'string':
         return this._filterStringLambda(crit as IStringSearchCriteria<T>);
       case 'number':
@@ -230,7 +230,7 @@ export default class BaseRepository<T extends IResource> {
     }
   }
 
-  private _filterArrayWhere(where: WhereClause<T, string>, crit: IArraySearchCriteria<T>) {
+  private _filterArrayWhere(where: WhereClause<T, string>, crit: ITagSearchCriteria<T>) {
     // Querying array props: https://dexie.org/docs/MultiEntry-Index
     // Check whether to search for empty arrays (e.g. no tags)
     if (crit.value.length === 0) {
@@ -250,7 +250,7 @@ export default class BaseRepository<T extends IResource> {
     }
   }
 
-  private _filterArrayLambda(crit: IArraySearchCriteria<T>) {
+  private _filterArrayLambda(crit: ITagSearchCriteria<T>) {
     if (crit.operator === 'contains') {
       // Check whether to search for empty arrays (e.g. no tags)
       return crit.value.length === 0

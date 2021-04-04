@@ -3,22 +3,23 @@ import { IFile, IMG_EXTENSIONS } from 'src/entities/File';
 import {
   OperatorType,
   StringOperatorType,
-  ArrayOperatorType,
+  TagOperatorType,
   NumberOperatorType,
   BinaryOperatorType,
 } from 'src/entities/SearchCriteria';
 import { FileSearchCriteria } from 'src/frontend/stores/UiStore';
 import {
   ClientStringSearchCriteria,
-  ClientIDSearchCriteria,
+  ClientTagSearchCriteria,
   ClientDateSearchCriteria,
   ClientNumberSearchCriteria,
 } from 'src/entities/SearchCriteria';
 import { CustomKeyDict } from '../types';
+import TagStore from 'src/frontend/stores/TagStore';
 
 export type Query =
   | IQuery<'name' | 'absolutePath', StringOperatorType, string>
-  | IQuery<'tags', ArrayOperatorType, TagValue>
+  | IQuery<'tags', TagOperatorType, TagValue>
   | IQuery<'extension', BinaryOperatorType, string>
   | IQuery<'size', NumberOperatorType, number>
   | IQuery<'dateAdded', NumberOperatorType, Date>;
@@ -35,7 +36,7 @@ export type QueryKey = keyof Pick<
 >;
 export type QueryOperator = OperatorType;
 export type QueryValue = string | number | Date | TagValue;
-export type TagValue = { id: ID; label: string } | undefined;
+export type TagValue = { id?: ID; label: string } | undefined;
 
 export function defaultQuery(key: QueryKey): Query {
   if (key === 'name' || key === 'absolutePath') {
@@ -72,11 +73,7 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Query] {
     query.value = criteria.value;
   } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
     query.value = criteria.value / BYTES_IN_MB;
-  } else if (
-    criteria instanceof ClientIDSearchCriteria &&
-    criteria.key === 'tags' &&
-    criteria.value.length > 0
-  ) {
+  } else if (criteria instanceof ClientTagSearchCriteria && criteria.key === 'tags') {
     query.value = { id: criteria.value[0], label: criteria.label };
   } else {
     return [generateId(), query];
@@ -86,7 +83,7 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Query] {
   return [generateId(), query];
 }
 
-export function intoCriteria(query: Query): FileSearchCriteria {
+export function intoCriteria(query: Query, tagStore: TagStore): FileSearchCriteria {
   if (query.key === 'name' || query.key === 'absolutePath' || query.key === 'extension') {
     return new ClientStringSearchCriteria(query.key, query.value, query.operator, CustomKeyDict);
   } else if (query.key === 'dateAdded') {
@@ -99,7 +96,8 @@ export function intoCriteria(query: Query): FileSearchCriteria {
       CustomKeyDict,
     );
   } else if (query.key === 'tags' && query.value !== undefined) {
-    return new ClientIDSearchCriteria(
+    return new ClientTagSearchCriteria(
+      tagStore,
       query.key,
       query.value.id,
       query.value.label,
@@ -107,6 +105,6 @@ export function intoCriteria(query: Query): FileSearchCriteria {
       CustomKeyDict,
     );
   } else {
-    return new ClientIDSearchCriteria('tags');
+    return new ClientTagSearchCriteria(tagStore, 'tags');
   }
 }
