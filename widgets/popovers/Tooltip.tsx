@@ -48,10 +48,7 @@ export const Tooltip = (props: ITooltip) => {
       }
     };
 
-    const handleMouseOut = (e: MouseEvent) => {
-      if (e.target !== e.currentTarget) {
-        return;
-      }
+    const handleMouseLeave = () => {
       if (timerID.current !== undefined) {
         clearTimeout(timerID.current);
         timerID.current = undefined;
@@ -60,7 +57,7 @@ export const Tooltip = (props: ITooltip) => {
     };
 
     target.addEventListener('mouseover', handleMouseOver, true);
-    target.addEventListener('mouseout', handleMouseOut, true);
+    target.addEventListener('mouseleave', handleMouseLeave);
 
     // Clear timer on removing component
     return () => {
@@ -69,7 +66,7 @@ export const Tooltip = (props: ITooltip) => {
         timerID.current = undefined;
       }
       target.removeEventListener('mouseover', handleMouseOver, true);
-      target.removeEventListener('mouseout', handleMouseOut, true);
+      target.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, [content, hoverDelay, portalTriggerRef, trigger]);
 
