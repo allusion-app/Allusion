@@ -122,7 +122,6 @@ dialog[role='alertdialog'] {
 }
 
 [role='tooltip'] {
-  pointer-events: none;
   background: var(--accent-color-blue);
   color: white;
   animation: fade 0.1s linear;
