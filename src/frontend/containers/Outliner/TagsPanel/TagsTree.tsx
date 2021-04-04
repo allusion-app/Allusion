@@ -94,7 +94,6 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore, tagStore: TagStore) 
 };
 
 const PreviewTag = document.createElement('span');
-PreviewTag.classList.add('tag');
 PreviewTag.style.position = 'absolute';
 PreviewTag.style.top = '-100vh';
 document.body.appendChild(PreviewTag);
@@ -129,6 +128,7 @@ const TagItem = observer((props: ITagItemProps) => {
             }
           }
         }
+        PreviewTag.classList.value = `tag bp3-${uiStore.theme.toLowerCase()}`;
         PreviewTag.innerText = name;
         event.dataTransfer.setData(DnDTagType, nodeData.id);
         event.dataTransfer.setDragImage(PreviewTag, 0, 0);
