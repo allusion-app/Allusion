@@ -40,7 +40,6 @@ const Single = observer(({ tagStore, uiStore }: IFileTagProp) => {
           label: (input: string) => `Create tag "${input}"`,
           action: handleCreate,
           resetQueryOnAction: true,
-          onlyShowWithoutSuggestions: true,
         },
       ]}
     />
