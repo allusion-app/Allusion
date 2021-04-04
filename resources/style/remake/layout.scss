@@ -133,6 +133,11 @@ header h2 {
       }
     }
   }
+  &[data-fullscreen='true'] {
+    // Hide the system toolbar on fullscreen
+    --window-titlebar-height: 0px;
+  }
+
   // The top offset where the main content of the application starts (below the custom titlebar and toolbar)
   // Needs to be defined here instead of in the `themes.scss` file - where the OS is known
   --content-top: calc(var(--toolbar-height) + var(--window-titlebar-height));

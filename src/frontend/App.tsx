@@ -138,8 +138,13 @@ const App = observer(() => {
 
   return (
     <DropContextProvider onDragEnter={openOutlinerOnDragEnter}>
-      <div data-os={PLATFORM} id="layout-container" className={themeClass}>
-        {PLATFORM !== 'darwin' && <WindowTitlebar />}
+      <div
+        data-os={PLATFORM}
+        data-fullscreen={uiStore.isFullScreen}
+        id="layout-container"
+        className={themeClass}
+      >
+        {PLATFORM !== 'darwin' && !uiStore.isFullScreen && <WindowTitlebar />}
 
         <ErrorBoundary>
           <TagDnDContext.Provider value={TagDnDContextData}>

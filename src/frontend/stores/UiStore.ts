@@ -120,6 +120,7 @@ class UiStore {
   @observable searchMatchAny = false;
   @observable method: ViewMethod = ViewMethod.Grid;
   @observable isSlideMode: boolean = false;
+  @observable isFullScreen: boolean = false;
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
   /** Index of the first item in the viewport */
@@ -224,6 +225,12 @@ class UiStore {
 
   @action.bound toggleSlideMode() {
     this.isSlideMode = !this.isSlideMode;
+  }
+
+  /** This does not actually set the window to full-screen, just for bookkeeping! Use RendererMessenger instead */
+  @action.bound setFullScreen(val: boolean) {
+    console.log({ isFullScreen: val });
+    this.isFullScreen = val;
   }
 
   @action.bound enableThumbnailTagOverlay() {

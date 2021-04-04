@@ -1,10 +1,6 @@
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
-import log from 'electron-log';
-console.log = log.log;
-console.warn = log.warn;
-console.error = log.error;
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -103,7 +99,8 @@ if (IS_PREVIEW_WINDOW) {
     } else {
       const prefs = JSON.parse(window_preferences);
       if (prefs.isFullScreen === true) {
-        RendererMessenger.setFullScreen(prefs.isFullScreen);
+        RendererMessenger.setFullScreen(true);
+        rootStore.uiStore.setFullScreen(true);
       }
     }
   } catch (e) {
@@ -162,3 +159,5 @@ RendererMessenger.onAddTagsToFile(async ({ item }) => {
 });
 
 RendererMessenger.onGetTags(async () => ({ tags: await backend.fetchTags() }));
+
+RendererMessenger.onFullScreenChanged((val) => rootStore.uiStore.setFullScreen(val));
