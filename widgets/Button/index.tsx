@@ -7,11 +7,19 @@ interface IButton {
   onClick: (event: React.MouseEvent) => void;
   styling?: 'minimal' | 'outlined' | 'filled';
   disabled?: boolean;
+  type?: 'button' | 'submit';
 }
 
-const Button = ({ text, icon, onClick, styling = 'minimal', disabled }: IButton) => {
+const Button = ({
+  text,
+  icon,
+  onClick,
+  styling = 'minimal',
+  disabled,
+  type = 'button',
+}: IButton) => {
   return (
-    <button className={`btn btn-${styling}`} onClick={onClick} disabled={disabled}>
+    <button className={`btn btn-${styling}`} onClick={onClick} disabled={disabled} type={type}>
       {icon && (
         <span className="btn-content-icon" aria-hidden="true">
           {icon}

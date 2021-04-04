@@ -37,7 +37,15 @@ export interface IOption {
   focused?: boolean;
 }
 
-export const Option = ({ value, selected, onClick, icon, disabled, focused }: IOption) => (
+export const Option = ({
+  value,
+  selected,
+  onClick,
+  icon,
+  disabled,
+  focused,
+  ...rest
+}: IOption & React.HTMLAttributes<HTMLLIElement>) => (
   <li
     role="option"
     aria-selected={selected}
@@ -45,6 +53,7 @@ export const Option = ({ value, selected, onClick, icon, disabled, focused }: IO
     onClick={disabled ? undefined : onClick}
     tabIndex={-1}
     className={focused ? 'focused' : undefined}
+    {...rest}
   >
     <span className="item-icon" aria-hidden />
     {value}

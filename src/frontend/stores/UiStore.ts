@@ -6,7 +6,7 @@ import { RendererMessenger } from 'src/Messaging';
 
 import { ID } from 'src/entities/ID';
 import { ClientFile, IFile } from 'src/entities/File';
-import { ClientBaseCriteria, ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 
 import RootStore from './RootStore';
@@ -120,6 +120,7 @@ class UiStore {
   @observable searchMatchAny = false;
   @observable method: ViewMethod = ViewMethod.Grid;
   @observable isSlideMode: boolean = false;
+  @observable isFullScreen: boolean = false;
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
   /** Index of the first item in the viewport */
@@ -224,6 +225,12 @@ class UiStore {
 
   @action.bound toggleSlideMode() {
     this.isSlideMode = !this.isSlideMode;
+  }
+
+  /** This does not actually set the window to full-screen, just for bookkeeping! Use RendererMessenger instead */
+  @action.bound setFullScreen(val: boolean) {
+    console.log({ isFullScreen: val });
+    this.isFullScreen = val;
   }
 
   @action.bound enableThumbnailTagOverlay() {
@@ -552,19 +559,23 @@ class UiStore {
     }
   }
 
-  @action.bound addTagSelectionToCriteria(includeSubtags = false) {
-    const tags = includeSubtags
-      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
-      : Array.from(this.tagSelection);
-    this.addSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
+  @action.bound addTagSelectionToCriteria() {
+    this.addSearchCriterias(
+      Array.from(
+        this.tagSelection,
+        (tag) => new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags', tag.id),
+      ),
+    );
     this.clearTagSelection();
   }
 
-  @action.bound replaceCriteriaWithTagSelection(includeSubtags = false) {
-    const tags = includeSubtags
-      ? Array.from(this.tagSelection).flatMap((t) => t.recursiveSubTags)
-      : Array.from(this.tagSelection);
-    this.replaceSearchCriterias(tags.map((tag) => new ClientIDSearchCriteria('tags', tag.id)));
+  @action.bound replaceCriteriaWithTagSelection() {
+    this.replaceSearchCriterias(
+      Array.from(
+        this.tagSelection,
+        (tag) => new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags', tag.id),
+      ),
+    );
     this.clearTagSelection();
   }
 

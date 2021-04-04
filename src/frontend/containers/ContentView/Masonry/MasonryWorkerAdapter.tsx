@@ -15,7 +15,7 @@ export class MasonryWorkerAdapter {
     console.debug('adapter initializing');
 
     if (!this.worker) {
-      console.debug('Loading worker');
+      console.debug('Loading masonry worker');
       const WorkerFactory = wrap<{ new (): MasonryWorker }>(new MasonryWorkerClass());
       this.worker = await new WorkerFactory();
       console.debug('Loading wasm...');

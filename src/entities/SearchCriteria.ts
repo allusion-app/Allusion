@@ -3,6 +3,7 @@ import { action, observable, makeObservable } from 'mobx';
 import { ID, ISerializable } from './ID';
 
 import { camelCaseToSpaced } from 'src/frontend/utils';
+import TagStore from 'src/frontend/stores/TagStore';
 
 // type SearchCriteriaValueType = 'number' | 'string' |
 
@@ -42,11 +43,16 @@ export type StringOperatorType = typeof StringOperators[number];
 export const BinaryOperators = ['equals', 'notEqual'] as const;
 export type BinaryOperatorType = typeof BinaryOperators[number];
 
-export const ArrayOperators = ['contains', 'notContains'] as const;
-export type ArrayOperatorType = typeof ArrayOperators[number];
+export const TagOperators = [
+  'contains',
+  'notContains',
+  'containsRecursively',
+  'containsNotRecursively',
+] as const;
+export type TagOperatorType = typeof TagOperators[number];
 
 export type OperatorType =
-  | ArrayOperatorType
+  | TagOperatorType
   | NumberOperatorType
   | StringOperatorType
   | BinaryOperatorType;
@@ -58,9 +64,9 @@ interface IBaseSearchCriteria<T> {
   readonly operator: OperatorType;
 }
 
-export interface IArraySearchCriteria<T> extends IBaseSearchCriteria<T> {
+export interface ITagSearchCriteria<T> extends IBaseSearchCriteria<T> {
   value: ID[];
-  operator: ArrayOperatorType;
+  operator: TagOperatorType;
 }
 
 export interface IStringSearchCriteria<T> extends IBaseSearchCriteria<T> {
@@ -80,7 +86,7 @@ export interface IDateSearchCriteria<T> extends IBaseSearchCriteria<T> {
 
 // General search criteria for a database entity
 export type SearchCriteria<T> =
-  | IArraySearchCriteria<T>
+  | ITagSearchCriteria<T>
   | IStringSearchCriteria<T>
   | INumberSearchCriteria<T>
   | IDateSearchCriteria<T>;
@@ -109,59 +115,17 @@ export abstract class ClientBaseCriteria<T>
   abstract serialize(): SearchCriteria<T>;
 }
 
-export class ClientArraySearchCriteria<T> extends ClientBaseCriteria<T> {
-  readonly value = observable<ID>([]);
-
-  constructor(
-    key: keyof T,
-    ids?: ID[],
-    operator: ArrayOperatorType = 'contains',
-    dict?: SearchKeyDict<T>,
-  ) {
-    super(key, 'array', operator, dict);
-    if (ids) {
-      this.value.push(...ids);
-    }
-    makeObservable(this);
-  }
-
-  toString: () => string = () => this.value.toString();
-
-  serialize = (): IArraySearchCriteria<T> => {
-    return {
-      key: this.key,
-      valueType: this.valueType,
-      operator: this.operator as ArrayOperatorType,
-      value: this.value.toJSON(),
-    };
-  };
-
-  @action.bound setOperator(op: ArrayOperatorType): void {
-    this.operator = op;
-  }
-
-  @action.bound addID(id: ID): void {
-    this.value.push(id);
-  }
-
-  @action.bound removeID(id: ID): void {
-    this.value.remove(id);
-  }
-
-  @action.bound clearIDs(): void {
-    this.value.clear();
-  }
-}
-
-export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
+export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
   public readonly value = observable<ID>([]);
   @observable public label: string;
+  private tagStore: TagStore;
 
   constructor(
+    tagStore: TagStore,
     key: keyof T,
     id?: ID,
     label: string = '',
-    operator: ArrayOperatorType = 'contains',
+    operator: TagOperatorType = 'contains',
     dict?: SearchKeyDict<T>,
   ) {
     super(key, 'array', operator, dict);
@@ -169,24 +133,40 @@ export class ClientIDSearchCriteria<T> extends ClientBaseCriteria<T> {
       this.value.push(id);
     }
     this.label = label;
+    this.tagStore = tagStore;
     makeObservable(this);
   }
 
-  toString: () => string = () =>
-    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
+  toString: () => string = () => {
+    if (!this.value.length && !this.operator.toLowerCase().includes('not')) {
+      return 'Untagged images';
+    }
+    return `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
       this.operator,
-    )} ${this.label}`;
+    )} ${this.value.length === 0 ? 'no tags' : this.label}`;
+  };
 
-  serialize = (): IArraySearchCriteria<T> => {
+  @action.bound
+  serialize = (): ITagSearchCriteria<T> => {
+    // for the *recursive options, convert it to the corresponding non-recursive option,
+    // by putting all child IDs in the value in the serialization step
+    let op = this.operator as TagOperatorType;
+    let val = this.value.toJSON();
+    if (val.length > 0 && op.includes('Recursively')) {
+      val = this.tagStore.get(val[0])?.recursiveSubTags?.map((t) => t.id) || [];
+    }
+    if (op === 'containsNotRecursively') op = 'notContains';
+    if (op === 'containsRecursively') op = 'contains';
+
     return {
       key: this.key,
       valueType: this.valueType,
-      operator: this.operator as ArrayOperatorType,
-      value: this.value.toJSON(),
+      operator: op,
+      value: val,
     };
   };
 
-  @action.bound setOperator(op: ArrayOperatorType): void {
+  @action.bound setOperator(op: TagOperatorType): void {
     this.operator = op;
   }
 

@@ -58,15 +58,7 @@ export function controlledListBoxKeyDown(
       }
       break;
 
-    case ' ':
-      // Prevents scroll behaviour
-      event.preventDefault();
-      // If the listbox allows multi selection, the click event will toggle the selection.
-      if (listRef.current?.getAttribute('aria-multiselectable') === 'true') {
-        event.stopPropagation();
-        activeElement?.click();
-      }
-      break;
+    // Note: no 'space' to select, since space is valid input for the input-field
 
     default:
       break;

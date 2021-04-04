@@ -1,13 +1,14 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useMemo, useReducer, useRef, useState } from 'react';
-import { ClientIDSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { TagMerge, TagRemoval } from 'src/frontend/components/RemovalAlert';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import TagDnDContext, { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
+import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { formatTagCountText } from 'src/frontend/utils';
 import { IconSet, Tree } from 'widgets';
@@ -76,11 +77,11 @@ interface ITagItemProps {
  * query. Handling filter mode or replacing the search criteria list is up to
  * the component.
  */
-const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
+const toggleQuery = (nodeData: ClientTag, uiStore: UiStore, tagStore: TagStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
     const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
-      (c as ClientIDSearchCriteria<any>)?.value?.includes(nodeData.id),
+      (c as ClientTagSearchCriteria<any>)?.value?.includes(nodeData.id),
     );
     if (alreadySearchedCrit) {
       uiStore.replaceSearchCriterias(
@@ -88,7 +89,7 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
       );
     }
   } else {
-    uiStore.addSearchCriteria(new ClientIDSearchCriteria('tags', nodeData.id));
+    uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id));
   }
 };
 
@@ -100,7 +101,7 @@ document.body.appendChild(PreviewTag);
 
 const TagItem = observer((props: ITagItemProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
   const dndData = useContext(TagDnDContext);
 
   const handleContextMenu = useCallback(
@@ -249,7 +250,7 @@ const TagItem = observer((props: ITagItemProps) => {
   const handleQuickQuery = useCallback(
     (event: React.MouseEvent) => {
       runInAction(() => {
-        const query = new ClientIDSearchCriteria('tags', nodeData.id, nodeData.name);
+        const query = new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id, nodeData.name);
         if (event.ctrlKey) {
           if (!nodeData.isSearched) {
             uiStore.addSearchCriteria(query);
@@ -259,7 +260,7 @@ const TagItem = observer((props: ITagItemProps) => {
         }
       });
     },
-    [nodeData, uiStore],
+    [nodeData.id, nodeData.isSearched, nodeData.name, tagStore, uiStore],
   );
 
   const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
@@ -351,6 +352,7 @@ const toggleSelection = (uiStore: UiStore, nodeData: ClientTag) =>
 
 const customKeys = (
   uiStore: UiStore,
+  tagStore: TagStore,
   event: React.KeyboardEvent<HTMLLIElement>,
   nodeData: ClientTag,
   treeData: ITreeData,
@@ -369,7 +371,7 @@ const customKeys = (
 
     case 'Enter':
       event.stopPropagation();
-      toggleQuery(nodeData, uiStore);
+      toggleQuery(nodeData, uiStore, tagStore);
       break;
 
     case 'Delete':
@@ -512,9 +514,9 @@ const TagsTree = observer(() => {
         isExpanded,
         toggleSelection.bind(null, uiStore),
         toggleExpansion,
-        customKeys.bind(null, uiStore),
+        customKeys.bind(null, uiStore, tagStore),
       ),
-    [uiStore],
+    [tagStore, uiStore],
   );
 
   const handleLeafOnKeyDown = useCallback(
@@ -524,9 +526,9 @@ const TagsTree = observer(() => {
         nodeData,
         treeData,
         toggleSelection.bind(null, uiStore),
-        customKeys.bind(null, uiStore),
+        customKeys.bind(null, uiStore, tagStore),
       ),
-    [uiStore],
+    [tagStore, uiStore],
   );
 
   return (

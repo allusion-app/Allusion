@@ -110,7 +110,6 @@
     "chokidar": "^3.5.1",
     "comlink": "^4.3.0",
     "dexie": "^3.0.3",
-    "electron-log": "^4.3.2",
     "electron-updater": "^4.3.5",
     "fs-extra": "^9.0.1",
     "image-size": "^0.8.3",

@@ -55,7 +55,12 @@ class RootStore {
     // The preview window is opened while the locations are already watched. The
     // files are fetched based on the file selection.
     if (!isPreviewWindow) {
-      this.locationStore.watchLocations().then(this.fileStore.fetchAllFiles);
+      // Load the files already in the database so user instantly sees their images
+      this.fileStore.fetchAllFiles();
+      // Then, look for any new or removed images, and refetch if necessary
+      this.locationStore.watchLocations().then((foundNewFiles) => {
+        if (foundNewFiles) this.fileStore.refetch();
+      });
     }
 
     // Upon loading data, initialize UI state.

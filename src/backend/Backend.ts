@@ -195,7 +195,7 @@ export default class Backend {
     // Search for file paths that start with 'path', so those can be filtered out
     const criteria: IStringSearchCriteria<IFile> = {
       valueType: 'string',
-      operator: 'contains', // Fixme: should be startWith, but doesn't work for some reason :/ 'path' is not an index for 'files' collection?!
+      operator: 'startsWith',
       key: 'absolutePath',
       value: path,
     };

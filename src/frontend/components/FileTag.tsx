@@ -10,6 +10,7 @@ import TagStore from '../stores/TagStore';
 import UiStore from '../stores/UiStore';
 
 import { MultiTagSelector } from './MultiTagSelector';
+import { IconSet } from 'widgets/Icons';
 
 interface IFileTagProp {
   tagStore: TagStore;
@@ -32,7 +33,16 @@ const Single = observer(({ tagStore, uiStore }: IFileTagProp) => {
       onClear={file.clearTags}
       onDeselect={file.removeTag}
       onSelect={file.addTag}
-      onCreate={handleCreate}
+      extraOptions={[
+        {
+          id: 'create',
+          icon: IconSet.TAG_ADD,
+          label: (input: string) => `Create tag "${input}"`,
+          action: handleCreate,
+          resetQueryOnAction: true,
+          onlyShowWithoutSuggestions: true,
+        },
+      ]}
     />
   );
 });
@@ -42,7 +52,7 @@ const Multi = observer(({ tagStore, uiStore: { fileSelection: files } }: IFileTa
 
   const tagLabel = action((tag: ClientTag) => `${tag.name} (${counter.get(tag)})`);
 
-  const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
+  const handleCreate = (name: string) => tagStore.create(tagStore.root, name);
 
   return (
     <MultiTagSelector
@@ -51,7 +61,16 @@ const Multi = observer(({ tagStore, uiStore: { fileSelection: files } }: IFileTa
       onDeselect={action((tag) => files.forEach((f) => f.removeTag(tag)))}
       onSelect={action((tag) => files.forEach((f) => f.addTag(tag)))}
       tagLabel={tagLabel}
-      onCreate={handleCreate}
+      extraOptions={[
+        {
+          id: 'create',
+          icon: IconSet.TAG_ADD,
+          label: (input: string) => `Create tag "${input}"`,
+          action: handleCreate,
+          resetQueryOnAction: true,
+          onlyShowWithoutSuggestions: true,
+        },
+      ]}
     />
   );
 });

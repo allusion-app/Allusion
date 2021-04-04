@@ -1,13 +1,11 @@
-import { observable, action, makeObservable } from 'mobx';
-import chokidar, { FSWatcher } from 'chokidar';
+import { Remote, wrap } from 'comlink';
 import fse from 'fs-extra';
+import { action, makeObservable, observable } from 'mobx';
 import SysPath from 'path';
-
-import LocationStore from 'src/frontend/stores/LocationStore';
-import { ID, IResource, ISerializable } from './ID';
-import { IMG_EXTENSIONS } from './File';
 import { AppToaster } from 'src/frontend/components/Toaster';
-import { RECURSIVE_DIR_WATCH_DEPTH } from '../config';
+import LocationStore from 'src/frontend/stores/LocationStore';
+import FolderWatcherClass, { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
+import { ID, IResource, ISerializable } from './ID';
 
 export interface ILocation extends IResource {
   id: ID;
@@ -24,7 +22,8 @@ export interface IDirectoryTreeItem {
 export class ClientLocation implements ISerializable<ILocation> {
   private store: LocationStore;
 
-  private watcher?: FSWatcher;
+  worker?: Remote<FolderWatcherWorker>;
+
   // Whether the initial scan has been completed, and new/removed files are being watched
   private isReady = false;
   // whether initialization has started or has been completed
@@ -49,12 +48,12 @@ export class ClientLocation implements ISerializable<ILocation> {
     return SysPath.basename(this.path);
   }
 
-  @action async init(cancel?: () => boolean): Promise<string[] | undefined> {
+  @action async init(): Promise<string[] | undefined> {
     this.isInitialized = true;
     const pathExists = await fse.pathExists(this.path);
     if (pathExists) {
       this.setBroken(false);
-      return this.watch(this.path, cancel);
+      return this.watch(this.path);
     } else {
       this.setBroken(true);
       return undefined;
@@ -66,6 +65,8 @@ export class ClientLocation implements ISerializable<ILocation> {
   }
 
   async delete(): Promise<void> {
+    this.worker?.cancel();
+    // TODO: terminate worker?
     await this.drop();
     return this.store.delete(this);
   }
@@ -80,77 +81,38 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   /** Cleanup resources */
   async drop(): Promise<void> {
-    if (this.watcher !== undefined) {
-      const promise = await this.watcher.close();
-      this.watcher = undefined;
-      return promise;
-    }
+    return this.worker?.close();
   }
 
-  private async watch(directory: string, cancel?: () => boolean): Promise<string[]> {
-    if (this.watcher !== undefined) {
-      await this.watcher.close();
-      this.watcher = undefined;
-    }
+  private async watch(directory: string): Promise<string[]> {
+    console.debug('Loading folder watcher worker...', directory);
+    const x = new FolderWatcherClass();
+    const WorkerFactory = wrap<{ new (): FolderWatcherWorker }>(new FolderWatcherClass());
+    this.worker = await new WorkerFactory();
 
-    // Only watch for images files
-    const watchPattern = `${directory}/**/*.{
-      ${IMG_EXTENSIONS.join(',')},${IMG_EXTENSIONS.map((s) => s.toUpperCase()).join(',')}}`;
-
-    // Watch for changes
-    this.watcher = chokidar.watch(watchPattern, {
-      depth: RECURSIVE_DIR_WATCH_DEPTH,
-      // Ignore dot files. Also dot folders?
-      ignored: /(^|[\/\\])\../,
-    });
-
-    const watcher = this.watcher;
+    x.onmessage = ({ data: { type, value } }: { data: { type: string; value: string } }) => {
+      if (type === 'add') {
+        console.log(`File ${value} has been added after initialization`);
+        this.store.addFile(value, this);
+      } else if (type === 'remove') {
+        console.log(`Location "${this.name}": File ${value} has been removed.`);
+        this.store.hideFile(value);
+      } else if (type === 'error') {
+        console.error('Location watch error:', value);
+        AppToaster.show(
+          {
+            message: `An error has occured while ${
+              this.isReady ? 'watching' : 'initializing'
+            } location "${this.name}".`,
+            timeout: 0,
+          },
+          'location-error',
+        );
+      }
+    };
 
     // Make a list of all files in this directory, which will be returned when all subdirs have been traversed
-    const initialFiles: string[] = [];
-
-    // TODO: Maybe do this on a web worker? Could hang the app for large folders
-    return new Promise<string[]>((resolve) => {
-      watcher
-        .on('add', async (path: string) => {
-          if (cancel?.()) {
-            console.log('Cancelling file watching');
-            await watcher.close();
-          }
-          if (IMG_EXTENSIONS.some((ext) => SysPath.extname(path).toLowerCase().endsWith(ext))) {
-            // Todo: ignore dot files/dirs?
-            if (this.isReady) {
-              console.log(`File ${path} has been added after initialization`);
-              // Add to backend
-              this.store.addFile(path, this);
-            } else {
-              initialFiles.push(path);
-            }
-          }
-        })
-        .on('change', (path: string) => console.debug(`File ${path} has been changed`))
-        .on('unlink', (path: string) => {
-          console.log(`Location "${this.name}": File ${path} has been removed.`);
-          this.store.hideFile(path);
-        })
-        .on('ready', () => {
-          this.isReady = true;
-          console.log(`Location "${this.name}" ready. Detected files:`, initialFiles.length);
-          resolve(initialFiles);
-        })
-        .on('error', (error: Error) => {
-          console.error('Location watch error:', error);
-          AppToaster.show(
-            {
-              message: `An error has occured while ${
-                this.isReady ? 'watching' : 'initializing'
-              } location "${this.name}".`,
-              timeout: 0,
-            },
-            'location-error',
-          );
-        });
-    });
+    return this.worker.watch(directory);
   }
 }
 

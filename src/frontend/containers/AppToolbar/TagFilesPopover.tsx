@@ -83,8 +83,8 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const handleCreate = action(async () => {
     const newTag = await tagStore.create(tagStore.root, inputText);
     onSelect(newTag);
-    // setInputText('');
-    // runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
+    setInputText('');
+    runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
     inputRef.current?.focus();
   });
 
@@ -94,7 +94,10 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       value: t.name,
       selected: counter.get(t) !== undefined,
       icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
-      onClick: () => (counter.get(t) ? onDeselect(t) : onSelect(t)),
+      onClick: () => {
+        counter.get(t) ? onDeselect(t) : onSelect(t);
+        inputRef.current?.focus();
+      },
     }));
 
     if (inputText) {
@@ -157,11 +160,11 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         ref={inputRef}
       />
       <ControlledListbox id="tag-files-listbox" multiselectable={true} listRef={listRef}>
-        {options.map((o, i) => {
+        {options.map(({ divider, id, ...optionProps }, i) => {
           return (
-            <React.Fragment key={o.id}>
-              {o.divider && <MenuDivider />}
-              <Option {...o} focused={focusedOption === i} />
+            <React.Fragment key={id}>
+              {divider && <MenuDivider />}
+              <Option {...optionProps} focused={focusedOption === i} />
             </React.Fragment>
           );
         })}

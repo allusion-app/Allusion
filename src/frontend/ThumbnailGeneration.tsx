@@ -11,25 +11,28 @@ import { ClientFile } from 'src/entities/File';
 import ThumbnailWorker from './workers/thumbnailGenerator.worker';
 import StoreContext from './contexts/StoreContext';
 
-interface IThumbnailMessage {
+export interface IThumbnailMessage {
   filePath: string;
   fileId: ID;
   thumbnailDirectory: string;
   thumbnailType: string;
 }
 
-interface IThumbnailMessageResponse {
+export interface IThumbnailMessageResponse {
   fileId: ID;
   thumbnailPath: string;
 }
 
 // TODO: Look into NativeImage operators: https://www.electronjs.org/docs/api/native-image#imageresizeoptions
 
-// Todo: look into having multiple workers
-// Messages are put on a queue, so only 1 thumbnail is generated at a time.
-// Multiple workers could improve performance,
-// e.g. an image can be resized while the previous one is still being written to disk
-const thumbnailWorker = new ThumbnailWorker({ type: 'module' });
+// Set up multiple workers for max performance
+const NUM_THUMBNAIL_WORKERS = 4;
+const workers: Worker[] = [];
+for (let i = 0; i < NUM_THUMBNAIL_WORKERS; i++) {
+  workers[i] = new ThumbnailWorker({ type: 'module' });
+}
+
+let lastSubmittedWorker = 0;
 
 // Generates thumbnail if not yet exists. Will set file.thumbnailPath when it exists.
 export const ensureThumbnail = action(async (file: ClientFile, thumbnailDir: string) => {
@@ -42,7 +45,8 @@ export const ensureThumbnail = action(async (file: ClientFile, thumbnailDir: str
       thumbnailType,
       fileId: file.id,
     };
-    thumbnailWorker.postMessage(msg);
+    workers[lastSubmittedWorker].postMessage(msg);
+    lastSubmittedWorker = (lastSubmittedWorker + 1) % workers.length;
   }
   return thumbnailExists;
 });
@@ -52,25 +56,27 @@ export const useWorkerListener = () => {
   const { fileStore } = useContext(StoreContext);
 
   useEffect(() => {
-    thumbnailWorker.onmessage = (e: { data: IThumbnailMessageResponse }) => {
-      const { fileId, thumbnailPath } = e.data;
-      const clientFile = fileStore.get(fileId);
-      if (clientFile) {
-        // update the thumbnail path so that the image will reload, as it did not exist before
-        clientFile.setThumbnailPath(`${thumbnailPath}?v=1`);
-      }
-    };
+    for (let i = 0; i < workers.length; i++) {
+      workers[i].onmessage = (e: { data: IThumbnailMessageResponse }) => {
+        const { fileId, thumbnailPath } = e.data;
+        const clientFile = fileStore.get(fileId);
+        if (clientFile) {
+          // update the thumbnail path so that the image will reload, as it did not exist before
+          clientFile.setThumbnailPath(`${thumbnailPath}?v=1`);
+        }
+      };
 
-    thumbnailWorker.onerror = (err: { fileId: ID; error: Error }) => {
-      console.error('Could not generate thumbnail', err);
-      const { fileId } = err;
-      const clientFile = fileStore.get(fileId);
-      if (clientFile) {
-        // Load normal image as fallback, with v=1 to indicate it has changed
-        clientFile.setThumbnailPath(`${clientFile.absolutePath}?v=1`);
-      }
-    };
-    return () => thumbnailWorker.terminate();
+      workers[i].onerror = (err) => {
+        console.error('Could not generate thumbnail', `worker ${i}`, err);
+        const fileId = err.message;
+        const clientFile = fileStore.get(fileId);
+        if (clientFile) {
+          // Load normal image as fallback, with v=1 to indicate it has changed
+          clientFile.setThumbnailPath(`${clientFile.absolutePath}?v=1`);
+        }
+      };
+    }
+    return () => workers.forEach((worker) => worker.terminate());
   }, [fileStore]);
 };
 
