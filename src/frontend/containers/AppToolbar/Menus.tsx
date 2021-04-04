@@ -1,6 +1,5 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { KeyCombo } from '@blueprintjs/core';
 
 import { FileOrder } from 'src/backend/DBRepository';
 
@@ -11,6 +10,7 @@ import FileStore from 'src/frontend/stores/FileStore';
 
 import { IconSet } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
+import { KeyCombo } from 'src/frontend/components/KeyCombo';
 
 // Tooltip info
 const enum Tooltip {
@@ -86,14 +86,14 @@ export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
         onClick={uiStore.setMethodList}
         checked={uiStore.isList}
         text="List"
-        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewList} />}
+        accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewList} />}
       />
       <MenuRadioItem
         icon={IconSet.VIEW_GRID}
         onClick={uiStore.setMethodGrid}
         checked={uiStore.isGrid}
         text="Grid"
-        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewGrid} />}
+        accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewGrid} />}
       />
       <MenuRadioItem
         icon={IconSet.VIEW_MASON}
@@ -101,14 +101,14 @@ export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
         checked={uiStore.isMasonryVertical}
         // TODO: "masonry" might not ring a bell to some people. Suggestions for a better name? "Flow", "Stream"?
         text="Vertical Masonry"
-        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewMasonryVertical} />}
+        accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryVertical} />}
       />
       <MenuRadioItem
         icon={IconSet.VIEW_MASON}
         onClick={uiStore.setMethodMasonryHorizontal}
         checked={uiStore.isMasonryHorizontal}
         text="Horizontal Masonry"
-        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
+        accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
       />
     </MenuRadioGroup>
   );
