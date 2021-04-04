@@ -20,22 +20,24 @@ const Appearance = observer(() => {
       <h2>Appearance</h2>
 
       <h3>Interface</h3>
-      <fieldset>
-        <Toggle
-          checked={uiStore.theme === 'DARK'}
-          onChange={uiStore.toggleTheme}
-          label="Dark theme"
-        />
-        <Toggle
-          defaultChecked={uiStore.isFullScreen}
-          onChange={toggleFullScreen}
-          label="Full screen"
-        />
-
-        <Zoom />
-      </fieldset>
+      <Toggle
+        checked={uiStore.theme === 'DARK'}
+        onChange={uiStore.toggleTheme}
+        label="Dark theme"
+      />
+      <Toggle
+        defaultChecked={uiStore.isFullScreen}
+        onChange={toggleFullScreen}
+        label="Full screen"
+      />
+      <Zoom />
 
       <h3>Thumbnail</h3>
+      <Toggle
+        defaultChecked={uiStore.isThumbnailTagOverlayEnabled}
+        onChange={uiStore.toggleThumbnailTagOverlay}
+        label="Show assigned tags"
+      />
       <div className="settings-thumbnail">
         <RadioGroup name="Size">
           <Radio
@@ -71,11 +73,6 @@ const Appearance = observer(() => {
             onChange={uiStore.setThumbnailLetterbox}
           />
         </RadioGroup>
-        <Toggle
-          defaultChecked={uiStore.isThumbnailTagOverlayEnabled}
-          onChange={uiStore.toggleThumbnailTagOverlay}
-          label="Show assigned tags"
-        />
       </div>
     </>
   );
@@ -181,19 +178,17 @@ const ImportExport = observer(() => {
 const BackgroundProcesses = () => (
   <>
     <h2>Options</h2>
-    <fieldset>
-      <Toggle
-        defaultChecked={RendererMessenger.isRunningInBackground()}
-        onChange={toggleRunInBackground}
-        label="Run in background"
-      />
+    <Toggle
+      defaultChecked={RendererMessenger.isRunningInBackground()}
+      onChange={toggleRunInBackground}
+      label="Run in background"
+    />
 
-      <Toggle
-        defaultChecked={RendererMessenger.isClipServerEnabled()}
-        onChange={toggleClipServer}
-        label="Browser extension support"
-      />
-    </fieldset>
+    <Toggle
+      defaultChecked={RendererMessenger.isClipServerEnabled()}
+      onChange={toggleClipServer}
+      label="Browser extension support"
+    />
   </>
 );
 
