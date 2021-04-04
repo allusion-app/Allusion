@@ -81,26 +81,6 @@ select {
   -webkit-font-smoothing: antialiased;
 }
 
-.contextMenuTarget {
-  outline-color: var(--accent-color-blue);
-  outline-width: 2px;
-  outline-offset: -2px;
-  outline-style: solid;
-}
-
-.file-dropper-overlay {
-  margin: auto;
-
-  > .dialog-content {
-    width: 400px;
-  }
-
-  .quick-tags {
-    text-align: center;
-    margin-top: 20px !important;
-  }
-}
-
 #toaster {
   position: absolute;
   right: 1rem;
