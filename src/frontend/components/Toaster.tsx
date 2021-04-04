@@ -66,7 +66,7 @@ interface IToastProps {
 type IdentifiableToast = IToastProps & { id: ID };
 
 export const Toaster = observer(() => (
-  <div id="toaster">
+  <div id="toast-container">
     {AppToaster.toastList.map(({ id, message, clickAction, timeout }) => (
       <Toast
         key={id}

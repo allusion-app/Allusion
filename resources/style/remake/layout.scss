@@ -124,3 +124,9 @@ body {
   // Needs to be defined here instead of in the `themes.scss` file - where the OS is known
   --content-top: calc(var(--toolbar-height) + var(--window-titlebar-height));
 }
+
+#toast-container {
+  position: absolute;
+  right: 1rem;
+  bottom: 0rem;
+}
