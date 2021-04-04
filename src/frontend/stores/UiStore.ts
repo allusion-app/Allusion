@@ -1,16 +1,13 @@
-import path from 'path';
 import fse from 'fs-extra';
-import { action, observable, computed, observe, makeObservable } from 'mobx';
-
-import { RendererMessenger } from 'src/Messaging';
-
-import { ID } from 'src/entities/ID';
+import { action, computed, makeObservable, observable, observe } from 'mobx';
+import path from 'path';
 import { ClientFile, IFile } from 'src/entities/File';
+import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
-
-import RootStore from './RootStore';
+import { RendererMessenger } from 'src/Messaging';
 import { debounce } from '../utils';
+import RootStore from './RootStore';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const enum ViewMethod {
@@ -229,7 +226,6 @@ class UiStore {
 
   /** This does not actually set the window to full-screen, just for bookkeeping! Use RendererMessenger instead */
   @action.bound setFullScreen(val: boolean) {
-    console.log({ isFullScreen: val });
     this.isFullScreen = val;
   }
 

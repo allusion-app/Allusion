@@ -67,6 +67,7 @@ declare module 'node-exiftool' {
       constructor(exiftoolPath?: string);
       open(options?: { detached?: boolean; env?: any }): Promise<number>;
       close(): Promise<void>;
+      _open?: boolean;
 
       /**
        * Read metadata of one or more files.

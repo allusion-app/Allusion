@@ -74,9 +74,11 @@ class ExifIO {
   }
 
   async close(): Promise<void> {
-    console.log('Closing Exiftool...');
-    await ep.close();
-    console.log('Closed Exiftool');
+    if (ep._open) {
+      console.log('Closing Exiftool...');
+      await ep.close();
+      console.log('Closed Exiftool');
+    }
   }
 
   @action.bound setHierarchicalSeparator(val: string): void {
@@ -174,7 +176,6 @@ class ExifIO {
       },
       ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
     );
-    console.log(res);
     if (!res.error?.endsWith('1 image files updated')) {
       console.error('Could not update file metadata', res);
     }
@@ -190,7 +191,6 @@ class ExifIO {
       { 'MyHS+': tagHierarchy },
       ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
     );
-    console.log(res);
     if (!res.error?.endsWith(`${files.length} image files updated`)) {
       console.error('Could not update file metadata', res);
     }
@@ -198,7 +198,6 @@ class ExifIO {
   async removeTag(files: string[], tagHierarchy: string[]) {
     const command = files.map((filePath) => `"${filePath}"`).join(' ');
     const res = await ep.writeMetadata(command, { 'MyHS-': tagHierarchy }, ['overwrite_original ']);
-    console.log(res);
     if (!res.error?.endsWith(`${files.length} image files updated`)) {
       console.error('Could not update file metadata', res);
     }
@@ -213,7 +212,6 @@ class ExifIO {
       },
       ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
     );
-    console.log(res);
     if (!res.error?.endsWith(`${files.length} image files updated`)) {
       console.error('Could not update file metadata', res);
     }
