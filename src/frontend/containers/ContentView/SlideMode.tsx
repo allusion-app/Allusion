@@ -129,15 +129,6 @@ const SlideContainer = observer((props: ISlideView) => {
     return () => window.removeEventListener('popstate', popStateHandler);
   }, [uiStore.disableSlideMode]);
 
-  // Automatically select the active image, so it is shown in the inspector
-  useEffect(() => {
-    runInAction(() => {
-      if (uiStore.firstItem < fileStore.fileList.length) {
-        uiStore.selectFile(fileStore.fileList[uiStore.firstItem], true);
-      }
-    });
-  }, [fileStore.fileList, fileStore.fileList.length, uiStore, uiStore.firstItem]);
-
   const decrImgIndex = useCallback(
     () => runInAction(() => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1))),
     [uiStore],
@@ -167,10 +158,8 @@ const SlideContainer = observer((props: ISlideView) => {
   // Set up event listeners
   useEffect(() => {
     window.addEventListener('keydown', handleUserKeyPress);
-    // window.addEventListener('wheel', handleUserWheel, { passive: false });
     return () => {
       window.removeEventListener('keydown', handleUserKeyPress);
-      // window.removeEventListener('wheel', handleUserWheel);
     };
   }, [handleUserKeyPress]);
 
