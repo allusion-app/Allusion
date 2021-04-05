@@ -692,6 +692,7 @@ class UiStore {
         this.setThumbnailShape(prefs.thumbnailShape);
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.outlinerWidth = Number(prefs.outlinerWidth);
+        this.inspectorWidth = Number(prefs.inspectorWidth);
         Object.entries<string>(prefs.hotkeyMap).forEach(
           ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );
