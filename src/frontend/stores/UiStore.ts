@@ -492,7 +492,7 @@ class UiStore {
   /**
    * @param targetId Where to move the selection to
    */
-  @action.bound moveSelectedTagItems(id: ID) {
+  @action.bound moveSelectedTagItems(id: ID, pos = 0) {
     const { tagStore } = this.rootStore;
 
     const target = tagStore.get(id);
@@ -504,7 +504,7 @@ class UiStore {
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.forEach((tag) => target.insertSubTag(tag, 0));
+    ctx.forEach((tag) => target.insertSubTag(tag, pos));
   }
 
   /////////////////// Search Actions ///////////////////

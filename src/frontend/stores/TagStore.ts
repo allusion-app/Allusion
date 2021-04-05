@@ -98,16 +98,17 @@ class TagStore {
     if (tag === subTag || subTag.id === ROOT_TAG_ID) {
       return;
     }
-    // Reorder tag.subTags and return
+    // Move to different pos in same parent: Reorder tag.subTags and return
     if (tag === subTag.parent) {
       if (index > -1 && index < tag.subTags.length) {
+        // If moving below current position, take into account removing self affecting the index
         const newIndex = tag.subTags.indexOf(subTag) < index ? index - 1 : index;
         tag.subTags.remove(subTag);
         tag.subTags.splice(newIndex, 0, subTag);
       }
       return;
     }
-    // Check whether subTag is not an ancestor node of tag.
+    // Abort of subTag is an ancestor node of target tag.
     let node = tag.parent;
     while (node.id !== ROOT_TAG_ID) {
       if (node === subTag) {
