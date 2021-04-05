@@ -1,3 +1,4 @@
+import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
 import path from 'path';
@@ -6,7 +7,7 @@ import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
-import { debounce } from '../utils';
+import { clamp, debounce } from '../utils';
 import RootStore from './RootStore';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
@@ -97,9 +98,12 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'thumbnailShape',
   'hotkeyMap',
   'isThumbnailTagOverlayEnabled',
+  'outlinerWidth',
 ];
 
 class UiStore {
+  static MIN_OUTLINER_WIDTH = 192; // default of 12 rem
+
   private readonly rootStore: RootStore;
 
   @observable isInitialized = false;
@@ -119,6 +123,7 @@ class UiStore {
   @observable method: ViewMethod = ViewMethod.Grid;
   @observable isSlideMode: boolean = false;
   @observable isFullScreen: boolean = false;
+  @observable outlinerWidth: number = UiStore.MIN_OUTLINER_WIDTH;
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
   /** Index of the first item in the viewport */
@@ -591,6 +596,69 @@ class UiStore {
     this.storePersistentPreferences();
   }
 
+  @action.bound processGlobalShortCuts(e: KeyboardEvent) {
+    if ((e.target as HTMLElement).matches?.('input')) {
+      return;
+    }
+    const combo = getKeyCombo(e);
+    const matches = (c: string): boolean => {
+      return comboMatches(combo, parseKeyCombo(c));
+    };
+    const { hotkeyMap } = this;
+    let isMatch = true;
+    // UI
+    if (matches(hotkeyMap.toggleOutliner)) {
+      this.toggleOutliner();
+    } else if (matches(hotkeyMap.toggleInspector)) {
+      this.toggleInspector();
+    } else if (matches(hotkeyMap.openTagEditor)) {
+      // Windows
+    } else if (matches(hotkeyMap.toggleSettings)) {
+      this.toggleSettings();
+    } else if (matches(hotkeyMap.toggleHelpCenter)) {
+      this.toggleHelpCenter();
+    } else if (matches(hotkeyMap.openPreviewWindow)) {
+      this.openPreviewWindow();
+      e.preventDefault(); // prevent scrolling with space when opening the preview window
+      // Search
+    } else if (matches(hotkeyMap.search)) {
+      (document.querySelector('.searchbar input') as HTMLElement)?.focus();
+    } else if (matches(hotkeyMap.advancedSearch)) {
+      this.toggleAdvancedSearch();
+      // View
+    } else if (matches(hotkeyMap.viewList)) {
+      this.setMethodList();
+    } else if (matches(hotkeyMap.viewGrid)) {
+      this.setMethodGrid();
+    } else if (matches(hotkeyMap.viewMasonryVertical)) {
+      this.setMethodMasonryVertical();
+    } else if (matches(hotkeyMap.viewMasonryHorizontal)) {
+      this.setMethodMasonryHorizontal();
+    } else if (matches(hotkeyMap.viewSlide)) {
+      this.toggleSlideMode();
+    } else {
+      isMatch = false;
+    }
+
+    if (isMatch) {
+      e.preventDefault();
+    }
+  }
+
+  @action.bound resizeOutliner(x: number, width: number) {
+    if (this.isOutlinerOpen) {
+      const w = clamp(x, UiStore.MIN_OUTLINER_WIDTH, width * 0.75);
+      this.outlinerWidth = w;
+
+      // TODO: Automatically collapse if less than 3/4 of min-width?
+      if (x < (UiStore.MIN_OUTLINER_WIDTH * 3) / 4) {
+        this.toggleOutliner();
+      }
+    } else if (x >= UiStore.MIN_OUTLINER_WIDTH) {
+      this.toggleOutliner();
+    }
+  }
+
   // Storing preferences
   @action recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
@@ -605,6 +673,7 @@ class UiStore {
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
+        this.outlinerWidth = Number(prefs.outlinerWidth);
         Object.entries<string>(prefs.hotkeyMap).forEach(
           ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );

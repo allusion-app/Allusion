@@ -1,0 +1,22 @@
+.window-splitter {
+  display: flex;
+
+  > :first-child {
+    flex-grow: 0;
+  }
+
+  [role='separator'] {
+    width: 0.25rem;
+    cursor: col-resize;
+    flex-shrink: 0;
+    flex-grow: 0;
+
+    &:hover {
+      background-color: var(--scrollbar-track-color);
+    }
+  }
+
+  > :last-child {
+    flex-grow: 1;
+  }
+}

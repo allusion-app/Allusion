@@ -24,19 +24,24 @@ body {
 #preview {
   --window-titlebar-height: 0px; // No custom frame: Native title bar is currently enabled on all platforms
   --content-top: var(--toolbar-height);
+}
 
-  #toolbar {
-    left: 0; // No #outliner-toggle
-  }
-  #content-view {
-    left: 0; // No outliner
-  }
+#window-splitter {
+  position: absolute;
+  top: var(--window-titlebar-height);
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#main {
+  position: relative;
 }
 
 #toolbar {
   position: absolute;
-  top: var(--window-titlebar-height);
-  left: var(--outliner-width);
+  top: 0;
+  left: 0;
   right: 0;
   height: var(--toolbar-height);
   padding: 0 0.5rem;
@@ -45,56 +50,25 @@ body {
   background: var(--background-color);
 }
 
-[data-os='darwin'] {
-  #outliner.outliner-is-closed ~ #toolbar {
-    padding-left: var(--mac-system-buttons-width);
-  }
+[data-os='darwin'] #outliner[aria-expanded='false'] ~ main #toolbar {
+  padding-left: var(--mac-system-buttons-width);
 }
 
 #outliner {
-  position: absolute;
-  top: var(--window-titlebar-height);
-  bottom: 0;
-  left: 0;
+  position: relative;
   width: var(--outliner-width);
   border-right: 0.0625rem solid var(--border-color);
   background: var(--background-color-alt);
 }
 
-#outliner.outliner-is-closed {
-  transform: translateX(-100%);
-}
-
-#outliner-splitter {
-  position: absolute;
-  top: var(--window-titlebar-height);
-  left: var(--outliner-width);
-  bottom: 0;
-  z-index: 1;
-
-  margin-left: -0.125rem; // align it with the actual outliner edge
-
-  width: 0.25rem;
-  opacity: 0;
-  cursor: col-resize;
-}
-
 #content-view {
   position: absolute;
-  top: var(--content-top);
-  left: var(--outliner-width);
+  top: var(--toolbar-height);
+  left: 0;
   right: 0;
   bottom: 0;
   padding: 0 0.5rem;
   background: var(--background-color);
-  display: flex;
-  justify-content: stretch;
-  overflow-y: hidden;
-}
-
-#outliner.outliner-is-closed ~ #content-view,
-#outliner.outliner-is-closed ~ #toolbar {
-  left: 0;
 }
 
 // Conditional

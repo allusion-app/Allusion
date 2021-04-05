@@ -1,36 +1,19 @@
 ///////////////////////////////// Content area /////////////////////////////////
-#gallery-content {
-  flex: 1;
-
-  > div {
-    // WARNING: This fixes a lot of things, so do not delete it!
-    position: absolute !important;
-
-    > div {
-      // No horizontal scrollbar
-      overflow-x: hidden !important;
-    }
-  }
+#content-view > div {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
 .thumbnail-small {
-  /* --thumbnail-size: calc(100vw / 10); */
-  /* --thumbnail-size: calc(calc(100vw / 10) - calc(10 * var(--thumbnail-margin))); */
-  // --thumbnail-size: 82px;
   --thumbnail-size: 160px;
 }
 .thumbnail-medium {
-  /* --thumbnail-size: calc(100vw / 6); */
-  /* --thumbnail-size: calc(calc(100vw / 6) - calc(6 * var(--thumbnail-margin))); */
-  // --thumbnail-size: 182px;
   --thumbnail-size: 240px;
 }
 .thumbnail-large {
-  /* --thumbnail-size: calc(100vw / 4); */
-  /* --thumbnail-size: calc(calc(100vw / 4) - calc(4 * var(--thumbnail-margin))); */
-  // --thumbnail-size: 282px;
   --thumbnail-size: 320px;
 }
 

@@ -6,7 +6,7 @@ import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { encodeFilePath } from 'src/frontend/utils';
 import { IconSet } from 'widgets';
 import Inspector from '../Inspector';
-import { createSubmitCommand, ILayoutProps } from './Gallery';
+import { createSubmitCommand, ILayoutProps } from './LayoutSwitcher';
 import { GallerySelector, MissingImageFallback } from './GalleryItem';
 
 const SlideMode = observer((props: ILayoutProps) => {

@@ -8,7 +8,7 @@ import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import UiStore from 'src/frontend/stores/UiStore';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { IconSet } from 'widgets';
-import { ILayoutProps, createSubmitCommand } from './Gallery';
+import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
 import { listColumns, GalleryCommand, ListCell } from './GalleryItem';
 
 /** Generates a unique key for an element in the fileList */
