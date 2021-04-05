@@ -88,18 +88,20 @@ const Zoom = () => {
 
   return (
     <div className="zoom-widget">
-      <strong>Zoom</strong>
-      <IconButton
-        icon={<span>-</span>}
-        onClick={() => setLocalZoomFactor(localZoomFactor - 0.1)}
-        text="zoom out"
-      />
-      <span>{Math.round(100 * localZoomFactor)}%</span>
-      <IconButton
-        icon={<span>+</span>}
-        onClick={() => setLocalZoomFactor(localZoomFactor + 0.1)}
-        text="zoom in"
-      />
+      Zoom
+      <span className="zoom-input">
+        <IconButton
+          icon={<span>-</span>}
+          onClick={() => setLocalZoomFactor(localZoomFactor - 0.1)}
+          text="zoom out"
+        />
+        <span>{Math.round(100 * localZoomFactor)}%</span>
+        <IconButton
+          icon={<span>+</span>}
+          onClick={() => setLocalZoomFactor(localZoomFactor + 0.1)}
+          text="zoom in"
+        />
+      </span>
     </div>
   );
 };
@@ -118,10 +120,9 @@ const ImportExport = observer(() => {
         Google Drive.
       </Callout>
 
-      <label>
+      <label id="hierarchical-separator">
         Hierarchical separator
         <select
-          style={{ width: '40px', marginRight: '8px' }}
           value={fileStore.exifTool.hierarchicalSeparator}
           onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
         >
