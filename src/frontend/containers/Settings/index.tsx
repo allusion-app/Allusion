@@ -237,22 +237,21 @@ const Advanced = observer(() => {
   return (
     <>
       <h2>Storage</h2>
-      <div>
-        {/* Todo: Add support to toggle this */}
-        {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
-        <fieldset>
-          <legend>Thumbnail Directory</legend>
-          <div className="input-file">
-            <span className="input input-file-value">{thumbnailDirectory}</span>
-            <Button
-              styling="minimal"
-              icon={IconSet.FOLDER_CLOSE}
-              text="Browse"
-              onClick={browseThumbnailDirectory}
-            />
-          </div>
-        </fieldset>
-      </div>
+
+      {/* Todo: Add support to toggle this */}
+      {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
+      <fieldset>
+        <legend>Thumbnail Directory</legend>
+        <div className="input-file">
+          <span className="input input-file-value">{thumbnailDirectory}</span>
+          <Button
+            styling="minimal"
+            icon={IconSet.FOLDER_CLOSE}
+            text="Browse"
+            onClick={browseThumbnailDirectory}
+          />
+        </div>
+      </fieldset>
 
       <h2>Development</h2>
       <ButtonGroup>
@@ -292,14 +291,6 @@ const SETTINGS_TABS: TabItem[] = [
 ];
 
 const Settings = () => {
-  return (
-    <div id="settings">
-      <Tabs items={SETTINGS_TABS} />
-    </div>
-  );
-};
-
-const SettingsWindow = () => {
   const { uiStore } = useContext(StoreContext);
 
   if (!uiStore.isSettingsOpen) {
@@ -313,14 +304,14 @@ const SettingsWindow = () => {
       closeOnEscape
       additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
     >
-      <div className={uiStore.theme}>
-        <Settings />
+      <div id="settings" className={uiStore.theme}>
+        <Tabs items={SETTINGS_TABS} />
       </div>
     </PopupWindow>
   );
 };
 
-export default observer(SettingsWindow);
+export default observer(Settings);
 
 const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
   const isFullScreen = e.currentTarget.checked;

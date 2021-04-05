@@ -11,7 +11,7 @@ import { Toaster as CustomToaster } from './components/Toaster';
 
 import AdvancedSearchDialog from './containers/AdvancedSearch';
 import Outliner from './containers/Outliner';
-import SettingsWindow from './containers/Settings';
+import Settings from './containers/Settings';
 
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
@@ -111,7 +111,7 @@ const App = observer(() => {
             />
           </TagDnDContext.Provider>
 
-          <SettingsWindow />
+          <Settings />
 
           <HelpCenter />
 
