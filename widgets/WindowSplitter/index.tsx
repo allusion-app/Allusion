@@ -42,8 +42,10 @@ export const WindowSplitter = ({
       const rect = container.current.getBoundingClientRect();
       if (axis === 'vertical') {
         origin.current = rect.left;
+        container.current.style.cursor = 'w-resize';
       } else {
         origin.current = rect.top;
+        container.current.style.cursor = 's-resize';
       }
       isDragging.current = true;
     }
@@ -74,6 +76,9 @@ export const WindowSplitter = ({
     const observer = resizeObserver.current;
     const handleMouseUp = () => {
       isDragging.current = false;
+      if (container.current !== null) {
+        container.current.style.cursor = '';
+      }
     };
     document.body.addEventListener('mouseup', handleMouseUp);
     if (container.current !== null) {

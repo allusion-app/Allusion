@@ -7,12 +7,19 @@
 
   [role='separator'] {
     width: 0.25rem;
-    cursor: col-resize;
     flex-shrink: 0;
     flex-grow: 0;
 
     &:hover {
       background-color: var(--scrollbar-track-color);
+    }
+
+    &[aria-orientation='vertical'] {
+      cursor: w-resize;
+    }
+
+    &[aria-orientation='horizontal'] {
+      cursor: s-resize;
     }
   }
 
