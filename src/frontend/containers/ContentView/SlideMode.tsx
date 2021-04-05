@@ -212,7 +212,7 @@ const ZoomableImage = ({
       id="zoomable-image"
       style={{
         maxWidth: `${width}px`,
-        maxHeight: `${height}px`,
+        height: `${height}px`,
       }}
       onContextMenu={onContextMenu}
     >

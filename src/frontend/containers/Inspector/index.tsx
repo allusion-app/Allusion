@@ -8,10 +8,9 @@ import { IconButton, IconSet } from 'widgets';
 import { shell } from 'electron';
 
 const Inspector = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  const first = uiStore.firstSelectedFile;
+  const { uiStore, fileStore } = useContext(StoreContext);
 
-  if (first === undefined) {
+  if (uiStore.firstItem >= fileStore.fileList.length) {
     return (
       <aside id="inspector">
         <Placeholder />
@@ -19,6 +18,7 @@ const Inspector = observer(() => {
     );
   }
 
+  const first = fileStore.fileList[uiStore.firstItem];
   const path = first.absolutePath;
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
