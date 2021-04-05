@@ -2,7 +2,7 @@
   display: flex;
 
   > :first-child {
-    flex-grow: 0;
+    flex-shrink: 0;
   }
 
   [role='separator'] {

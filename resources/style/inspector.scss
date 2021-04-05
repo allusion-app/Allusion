@@ -1,11 +1,9 @@
 ///////////////////////////////// Inspector /////////////////////////////////
 #inspector {
-  width: var(--inspector-width);
   background-color: var(--background-color);
+  overflow: hidden;
 
   > * {
-    // Don't squash content of aside during parent transition
-    width: var(--inspector-width);
     padding: 0.25rem 0.5rem;
   }
 
@@ -37,23 +35,6 @@ table.file-info {
     padding-left: 1rem;
     word-break: break-all;
   }
-
-  // TODO: New design:
-  // .listContentRow {
-  //   display: flex;
-  //   justify-content: left;
-  //   align-items: stretch;
-  // }
-  // .listContentMetadata .header {
-  //   padding: 0.125rem 0.5rem;
-  //   display: flex;
-  //   font-weight: bold;
-  // }
-  // .listContentMetadata .row {
-  //   padding: 0.125rem 0.5rem;
-  //   display: flex;
-  //   justify-content: space-between;
-  // }
 }
 
 .file-path {

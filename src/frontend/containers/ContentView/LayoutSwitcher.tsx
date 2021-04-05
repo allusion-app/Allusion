@@ -119,9 +119,7 @@ const Layout = ({
     return (
       <SlideMode
         contentRect={contentRect}
-        lastSelectionIndex={lastSelectionIndex}
         showContextMenu={showContextMenu}
-        select={handleFileSelect}
         uiStore={uiStore}
         fileStore={fileStore}
       />
@@ -166,17 +164,6 @@ export default observer(Layout);
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
 // We'll have less loss of space perhaps
 // https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
-// const {screen} = remote;
-// const {width} = screen.getPrimaryDisplay().workAreaSize;
-// const CELL_SMALL = (width / 10) - 16;
-// const CELL_MEDIUM = (width / 6) - 8;
-// const CELL_LARGE = (width / 4) - 8;
-// // Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-// const CELL_SIZE_SMALL = CELL_SMALL - 2;
-// const CELL_SIZE_MEDIUM = CELL_MEDIUM - 2;
-// const CELL_SIZE_LARGE = CELL_LARGE - 2;
-// Should be same as CSS variable --thumbnail-size + padding (adding padding, though in px)
-// TODO: Use computed styles to access the CSS variables
 const PADDING = 8;
 const CELL_SIZE_SMALL = 160 + PADDING;
 const CELL_SIZE_MEDIUM = 240 + PADDING;

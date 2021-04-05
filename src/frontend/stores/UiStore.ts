@@ -99,10 +99,12 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'hotkeyMap',
   'isThumbnailTagOverlayEnabled',
   'outlinerWidth',
+  'inspectorWidth',
 ];
 
 class UiStore {
   static MIN_OUTLINER_WIDTH = 192; // default of 12 rem
+  static MIN_INSPECTOR_WIDTH = 288; // default of 18 rem
 
   private readonly rootStore: RootStore;
 
@@ -124,6 +126,7 @@ class UiStore {
   @observable isSlideMode: boolean = false;
   @observable isFullScreen: boolean = false;
   @observable outlinerWidth: number = UiStore.MIN_OUTLINER_WIDTH;
+  @observable inspectorWidth: number = UiStore.MIN_INSPECTOR_WIDTH;
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
   /** Index of the first item in the viewport */
@@ -651,11 +654,26 @@ class UiStore {
       this.outlinerWidth = w;
 
       // TODO: Automatically collapse if less than 3/4 of min-width?
-      if (x < (UiStore.MIN_OUTLINER_WIDTH * 3) / 4) {
+      if (x < UiStore.MIN_OUTLINER_WIDTH * 0.75) {
         this.toggleOutliner();
       }
     } else if (x >= UiStore.MIN_OUTLINER_WIDTH) {
       this.toggleOutliner();
+    }
+  }
+
+  @action.bound resizeInspector(x: number, width: number) {
+    // The inspector is on the right side, so we need to calculate the offset.
+    const offsetX = width - x;
+    if (this.isInspectorOpen) {
+      const w = clamp(offsetX, UiStore.MIN_INSPECTOR_WIDTH, width * 0.5);
+      this.inspectorWidth = w;
+
+      if (offsetX < UiStore.MIN_INSPECTOR_WIDTH * 0.75) {
+        this.toggleInspector();
+      }
+    } else if (offsetX >= UiStore.MIN_INSPECTOR_WIDTH) {
+      this.toggleInspector();
     }
   }
 

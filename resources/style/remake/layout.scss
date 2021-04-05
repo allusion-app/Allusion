@@ -58,6 +58,10 @@ body {
   position: relative;
   border-right: 0.0625rem solid var(--border-color);
   background: var(--background-color-alt);
+
+  &[aria-expanded='false'] {
+    overflow: hidden;
+  }
 }
 
 #content-view {

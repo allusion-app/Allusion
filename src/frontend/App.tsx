@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { runInAction, observable, action } from 'mobx';
+import { observable, action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
@@ -57,17 +57,17 @@ const App = observer(() => {
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
 
-  const [outlinerFactor, setOutlinerFactor] = useState(uiStore.outlinerWidth);
+  const [outlinerWidth, setOutlinerWidth] = useState(uiStore.outlinerWidth);
+  const isOutlinerOpen = uiStore.isOutlinerOpen;
+  const width = uiStore.outlinerWidth;
 
   useEffect(() => {
-    runInAction(() => {
-      if (uiStore.isOutlinerOpen) {
-        setOutlinerFactor(uiStore.outlinerWidth);
-      } else {
-        setOutlinerFactor(0);
-      }
-    });
-  }, [uiStore.isOutlinerOpen, uiStore.outlinerWidth]);
+    if (isOutlinerOpen) {
+      setOutlinerWidth(width);
+    } else {
+      setOutlinerWidth(0);
+    }
+  }, [isOutlinerOpen, width]);
 
   useEffect(() => {
     setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
@@ -79,7 +79,6 @@ const App = observer(() => {
   }, [uiStore.processGlobalShortCuts]);
 
   // Automatically expand outliner when detecting a drag event
-  const isOutlinerOpen = uiStore.isOutlinerOpen;
   const openOutlinerOnDragEnter = useCallback(() => {
     if (!isOutlinerOpen) {
       uiStore.toggleOutliner();
@@ -107,7 +106,7 @@ const App = observer(() => {
               primary={<Outliner />}
               secondary={<Main />}
               axis="vertical"
-              value={outlinerFactor}
+              value={outlinerWidth}
               onResize={uiStore.resizeOutliner}
             />
           </TagDnDContext.Provider>

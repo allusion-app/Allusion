@@ -20,6 +20,8 @@ export const WindowSplitter = ({
   onResize,
 }: IWindowSplitter) => {
   const container = useRef<HTMLDivElement>(null);
+  const origin = useRef(0);
+  const isDragging = useRef(false);
   const [dimension, setDimension] = useState(0);
   const valueNow = useMemo(() => Math.round((value / dimension) * 100), [dimension, value]);
   const resizeObserver = useRef(
@@ -35,35 +37,32 @@ export const WindowSplitter = ({
     }),
   );
 
-  const [isDragging, setDragging] = useState(false);
-
-  const handleMouseDown = useRef(() => setDragging(true));
-
-  const handleMouseUp = useRef(() => setDragging(false));
+  const handleMouseDown = useRef(() => {
+    if (container.current !== null) {
+      const rect = container.current.getBoundingClientRect();
+      if (axis === 'vertical') {
+        origin.current = rect.left;
+      } else {
+        origin.current = rect.top;
+      }
+      isDragging.current = true;
+    }
+  });
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!isDragging) {
+      if (!isDragging.current) {
         return;
       }
 
       if (axis === 'vertical') {
-        onResize(e.clientX, e.currentTarget.clientWidth);
+        onResize(e.clientX - origin.current, e.currentTarget.clientWidth);
       } else {
-        onResize(e.clientY, e.currentTarget.clientHeight);
+        onResize(e.clientY - origin.current, e.currentTarget.clientHeight);
       }
     },
-    [isDragging, onResize, axis],
+    [onResize, axis],
   );
-
-  useEffect(() => {
-    const mouseUp = handleMouseUp.current;
-    document.body.addEventListener('mouseup', mouseUp);
-
-    return () => {
-      document.body.removeEventListener('mouseup', mouseUp);
-    };
-  }, [handleMouseUp]);
 
   useEffect(() => {
     if (container.current !== null) {
@@ -73,20 +72,21 @@ export const WindowSplitter = ({
 
   useEffect(() => {
     const observer = resizeObserver.current;
+    const handleMouseUp = () => {
+      isDragging.current = false;
+    };
+    document.body.addEventListener('mouseup', handleMouseUp);
     if (container.current !== null) {
       resizeObserver.current.observe(container.current);
     }
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      document.body.removeEventListener('mouseup', handleMouseUp);
+    };
   }, []);
 
   return (
-    <div
-      ref={container}
-      id={id}
-      className="window-splitter"
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp.current}
-    >
+    <div ref={container} id={id} className="window-splitter" onMouseMove={handleMouseMove}>
       {primary}
       <div
         role="separator"

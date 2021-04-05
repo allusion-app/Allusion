@@ -301,43 +301,49 @@
 ///////////////////////////
 // Slide mode:
 #slide-mode {
-  display: flex;
+  flex-direction: row-reverse;
 }
 
-#zoomableImage {
-  height: calc(100vh - var(--content-top));
-  display: flex;
-  flex: 1 0 auto;
-  flex-direction: column;
+#zoomable-image {
+  position: relative;
 
   img {
     animation: fade 0.1s cubic-bezier(0.65, 0.05, 0.36, 1);
   }
 
-  > div {
-    flex: auto;
-    position: relative;
+  [class^='side-button'] {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    opacity: 0.1;
+    width: 3rem;
+    transition: opacity 0.2s ease-in-out;
 
-    .side-button {
-      top: 0;
-      opacity: 0.1;
-      height: 100%;
-      width: 48px;
-      transition: opacity 0.2s ease-in-out;
-      position: absolute;
+    // Override default button style
+    border: none;
+    color: #ffffffc7;
+    background: transparent;
+    padding: 0;
 
-      > svg {
-        position: absolute;
-        margin-top: -24px;
-        top: 50%;
-        color: #ffffffc7;
-        filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
-      }
+    > svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.5));
     }
 
-    .side-button:hover {
+    &:hover {
       opacity: 1;
     }
+  }
+
+  .side-button-left {
+    left: 0;
+  }
+
+  .side-button-right {
+    right: 0;
   }
 }
 

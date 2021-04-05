@@ -13,9 +13,9 @@ const Inspector = observer(() => {
 
   if (first === undefined) {
     return (
-      <Panel isOpen={uiStore.isInspectorOpen}>
+      <aside id="inspector">
         <Placeholder />
-      </Panel>
+      </aside>
     );
   }
 
@@ -23,7 +23,7 @@ const Inspector = observer(() => {
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
   return (
-    <Panel isOpen={uiStore.isInspectorOpen}>
+    <aside id="inspector">
       <section>
         <header>
           <h2>Information</h2>
@@ -45,19 +45,11 @@ const Inspector = observer(() => {
         </header>
         <FileTags />
       </section>
-    </Panel>
+    </aside>
   );
 });
 
 export default Inspector;
-
-const Panel = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
-  return (
-    <aside id="inspector" style={isOpen ? undefined : { width: '0' }}>
-      {isOpen ? children : null}
-    </aside>
-  );
-};
 
 const Placeholder = () => {
   return (
