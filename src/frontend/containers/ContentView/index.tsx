@@ -24,6 +24,8 @@ const ContentView = observer(() => {
     <div
       id="content-view"
       className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
+      // Clear selection when clicking on the background, unless in slide mode: always needs an active image
+      onClickCapture={!uiStore.isSlideMode ? uiStore.clearFileSelection : undefined}
     >
       {fileList.length === 0 ? <Placeholder /> : <Content />}
     </div>
@@ -72,9 +74,7 @@ const Content = observer(() => {
       ref={container}
       id="gallery-content"
       className={isDroppingTagOnSelection ? 'selected-file-dropping' : undefined}
-      // Clear selection when clicking on the background, unless in slide mode: always needs an active image
-      onClick={!uiStore.isSlideMode ? uiStore.clearFileSelection : undefined}
-      onContextMenu={handleContextMenu} // Background clicks
+      onContextMenu={handleContextMenu}
     >
       <Layout
         contentRect={contentRect}
