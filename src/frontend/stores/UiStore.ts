@@ -666,7 +666,7 @@ class UiStore {
     // The inspector is on the right side, so we need to calculate the offset.
     const offsetX = width - x;
     if (this.isInspectorOpen) {
-      const w = clamp(offsetX, UiStore.MIN_INSPECTOR_WIDTH, width * 0.5);
+      const w = clamp(offsetX, UiStore.MIN_INSPECTOR_WIDTH, width * 0.75);
       this.inspectorWidth = w;
 
       if (offsetX < UiStore.MIN_INSPECTOR_WIDTH * 0.75) {

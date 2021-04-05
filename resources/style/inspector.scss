@@ -36,24 +36,3 @@ table.file-info {
     word-break: break-all;
   }
 }
-
-.file-path {
-  display: flex;
-  align-items: center;
-  justify-items: center;
-
-  button {
-    cursor: pointer;
-    &:hover {
-      background-color: var(--hover-color);
-    }
-    margin: 2px;
-  }
-
-  small {
-    flex-grow: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}

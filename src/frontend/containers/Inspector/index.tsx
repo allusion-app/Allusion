@@ -34,9 +34,13 @@ const Inspector = observer(() => {
         <header>
           <h2>Path to file</h2>
         </header>
-        <div className="file-path">
-          <small>{path}</small>
-          <IconButton icon={IconSet.FOLDER_CLOSE} onClick={handleOpenFileExplorer} text={path} />
+        <div className="input-file">
+          <span className="input input-file-value">{path}</span>
+          <IconButton
+            icon={IconSet.FOLDER_CLOSE}
+            onClick={handleOpenFileExplorer}
+            text="open in file explorer"
+          />
         </div>
       </section>
       <section>

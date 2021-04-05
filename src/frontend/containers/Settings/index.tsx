@@ -243,7 +243,12 @@ const Advanced = observer(() => {
           <legend>Thumbnail Directory</legend>
           <div className="input-file">
             <span className="input input-file-value">{thumbnailDirectory}</span>
-            <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
+            <Button
+              styling="minimal"
+              icon={IconSet.FOLDER_CLOSE}
+              text="Browse"
+              onClick={browseThumbnailDirectory}
+            />
           </div>
         </fieldset>
       </div>
