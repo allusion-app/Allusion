@@ -1,5 +1,6 @@
 import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
 import { action, observable, runInAction } from 'mobx';
+import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext } from 'react';
 import { Split } from 'widgets/Split';
 import StoreContext from '../contexts/StoreContext';
@@ -77,4 +78,4 @@ const Main = () => {
   );
 };
 
-export default Main;
+export default observer(Main);
