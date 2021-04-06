@@ -1,12 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react';
+import { remote } from 'electron';
 import fse from 'fs-extra';
-import { imageSize } from 'image-size';
-import { promisify } from 'util';
-const sizeOf = promisify(imageSize);
-
+import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
-import { formatDateTime } from '../utils';
 import StoreContext from '../contexts/StoreContext';
+import { formatDateTime } from '../utils';
 
 type CommonMetadata = {
   name: string;
@@ -21,26 +18,48 @@ const commonMetadataLabels: Record<keyof CommonMetadata, string> = {
   name: 'Filename',
   dimensions: 'Dimensions',
   imported: 'Imported',
-  // TODO: "modified in allusion vs modified in system?"
+  // TODO: modified in allusion vs modified in system?
   created: 'Created',
   modified: 'Modified',
   lastOpened: 'Last Opened',
 };
 
 // Details: https://www.vcode.no/web/resource.nsf/ii2lnug/642.htm
-const exifFields: { label: string; exifTag: string }[] = [
-  { label: 'Color Mode', exifTag: 'PhotometricInterpretation' },
-  { label: 'Bit Depth', exifTag: 'BitsPerSample' },
-  { label: 'Creation Software', exifTag: 'Software' },
-  { label: 'Creator', exifTag: 'Artist' },
-  { label: 'Copyright', exifTag: 'Copyright' },
-  { label: 'Camera Manufacturer', exifTag: 'Make' },
-  { label: 'Camera Model', exifTag: 'Model' },
-  { label: 'GPS Latitude', exifTag: 'GPSLatitudeRef' },
-  { label: 'GPS Longitude', exifTag: 'GPSLongitudeRef' },
-];
+const exifFields: Record<string, { label: string; format?: (val: string) => ReactNode }> = {
+  PhotometricInterpretation: { label: 'Color Mode' },
+  BitsPerSample: { label: 'Bit Depth' },
+  Software: { label: 'Creation Software' },
+  Artist: { label: 'Creator' },
+  CreatorWorkURL: {
+    label: 'Creator URL',
+    format: function CreatorURL(url: string) {
+      return (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(e) => {
+            e.preventDefault();
+            remote.shell.openExternal(url);
+          }}
+        >
+          {url}
+        </a>
+      );
+    },
+  },
+  Copyright: { label: 'Copyright' },
+  Make: { label: 'Camera Manufacturer' },
+  Model: { label: 'Camera Model' },
+  Megapixels: { label: 'Megapixels' },
+  ExposureTime: { label: 'Exposure Time' },
+  FNumber: { label: 'F-stop' },
+  FocalLength: { label: 'Focal Length' },
+  GPSLatitude: { label: 'GPS Latitude' },
+  GPSLongitude: { label: 'GPS Longitude' },
+};
 
-const exifFieldTags = exifFields.map((e) => e.exifTag);
+const exifTags = Object.keys(exifFields);
 
 interface IImageInfo {
   /** This is used to avoid making sys calls while the user is scrolling! */
@@ -53,14 +72,14 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
 
   const [fileStats, setFileStats] = useState<CommonMetadata>({
     name: file.name,
+    dimensions: `${file.width || '?'} x ${file.height || '?'}`,
     imported: formatDateTime(file.dateAdded),
-    created: '...',
+    created: formatDateTime(file.dateCreated),
     modified: '...',
     lastOpened: '...',
-    dimensions: '...',
   });
 
-  const [exifData, setExifData] = useState<{ [key: string]: string }>({});
+  const [exifData, setExifData] = useState<{ [key: string]: ReactNode }>({});
 
   useEffect(() => {
     if (suspended) {
@@ -68,18 +87,15 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
     }
     const filePath = file.absolutePath;
     let isMounted = true;
-    Promise.all([fse.stat(filePath), sizeOf(filePath)])
-      .then(([stats, dimensions]) => {
+    fse
+      .stat(filePath)
+      .then((stats) => {
         if (isMounted) {
-          setFileStats({
-            name: file.name,
-            imported: formatDateTime(file.dateAdded),
-            created: formatDateTime(file.dateCreated),
+          setFileStats((prev) => ({
+            ...prev,
             modified: formatDateTime(stats.ctime),
             lastOpened: formatDateTime(stats.atime),
-            dimensions:
-              dimensions !== undefined ? `${dimensions.width} x ${dimensions.height}` : '...',
-          });
+          }));
         }
       })
       .catch(() => {
@@ -95,16 +111,19 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
       });
 
     fileStore.exifTool?.initialize().then((exifIO) =>
-      exifIO.readExifTags(filePath, exifFieldTags).then((tagValues) => {
-        console.log(tagValues);
-        const extraStats: Record<string, string> = {};
-        tagValues.forEach((val, i) => {
-          if (val !== '' && val !== undefined) {
-            extraStats[exifFields[i].label] = val;
-          }
-        });
-        if (isMounted) setExifData(extraStats);
-      }),
+      exifIO
+        .readExifTags(filePath, exifTags)
+        .then((tagValues) => {
+          const extraStats: Record<string, ReactNode> = {};
+          tagValues.forEach((val, i) => {
+            if (val !== '' && val !== undefined) {
+              const field = exifFields[exifTags[i]];
+              extraStats[field.label] = field.format?.(val) || val;
+            }
+          });
+          if (isMounted) setExifData(extraStats);
+        })
+        .catch(() => setExifData({})),
     );
 
     return () => {
