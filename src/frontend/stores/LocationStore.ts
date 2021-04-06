@@ -84,7 +84,7 @@ class LocationStore {
           },
           `missing-loc-${location.id}`,
         ); // a key such that the toast can be dismissed automatically on recovery
-        return;
+        continue;
       }
 
       // Get files in database for this location
@@ -163,6 +163,7 @@ class LocationStore {
     if (index === -1) {
       throw new Error(`The location ${location.name} has already been removed.`);
     }
+    console.log('changing location path', location, newPath);
     // First, update the absolute path of all files from this location
     const locFiles = await this.findLocationFiles(location.id);
     const files: IFile[] = locFiles.map((f) => ({

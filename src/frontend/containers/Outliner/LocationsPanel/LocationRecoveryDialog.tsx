@@ -147,7 +147,6 @@ const RecoveryActions = observer(
 
     switch (status) {
       case Status.Ok:
-        // TODO: Refetch on close?
         return (
           <div className="btn-group dialog-actions">
             <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
@@ -220,7 +219,8 @@ const LocationRecoveryDialog = () => {
 
     const match = await doesLocationMatchWithDir(location, newDir, locationStore);
 
-    if (match.locationImageCount > 0 && match.matchCount === match.locationImageCount) {
+    // Only save the new path if there was a complete match. Otherwise, user can choose what to do
+    if (match.matchCount === match.locationImageCount) {
       handleChangeLocationPath(location, newDir);
     }
 
@@ -254,7 +254,7 @@ const LocationRecoveryDialog = () => {
       <div id="dialog-information" className="dialog-information">
         <RecoveryInfo location={location} status={status} match={match} />
       </div>
-      <div className="footer">
+      <div className="dialog-footer">
         <RecoveryActions
           status={status}
           locate={handleLocate}
