@@ -69,7 +69,7 @@ if (IS_PREVIEW_WINDOW) {
   observe(rootStore.fileStore.fileList, ({ object: list }) => {
     if (list.length > 0) {
       const file = list[0];
-      document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.absolutePath}`;
+      document.title = `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
     }
   });
 
@@ -78,7 +78,7 @@ if (IS_PREVIEW_WINDOW) {
     if (list.size > 0) {
       const file = rootStore.uiStore.firstSelectedFile;
       if (file !== undefined) {
-        document.title = `${PREVIEW_WINDOW_BASENAME} - ${file.absolutePath}`;
+        document.title = `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
       }
     }
   });
