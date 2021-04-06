@@ -6,10 +6,7 @@ import { Button } from 'widgets/Button';
 interface IToast {
   message: string;
   // "action" apparently is a reserverd keyword, it gets removed by mobx...
-  clickAction?: {
-    label: string;
-    onClick: () => void;
-  };
+  clickAction?: React.ReactNode;
   timeout: number;
   onDismiss: () => void;
 }
@@ -18,7 +15,7 @@ export const Toast = ({ message, clickAction, onDismiss }: IToast) => {
   return (
     <div className="toast">
       <span>{message}</span>
-      {clickAction && <Button text={clickAction.label} onClick={clickAction.onClick} />}
+      {clickAction}
       <Button text="Dismiss" onClick={onDismiss} />
     </div>
   );

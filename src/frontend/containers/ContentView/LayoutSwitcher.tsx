@@ -191,8 +191,10 @@ export function createSubmitCommand(
       }
 
       case GallerySelector.DoubleClick:
-        uiStore.selectFile(command.payload, true);
-        uiStore.enableSlideMode();
+        if (!command.payload.isBroken) {
+          uiStore.selectFile(command.payload, true);
+          uiStore.enableSlideMode();
+        }
         break;
 
       case GallerySelector.ContextMenu: {
