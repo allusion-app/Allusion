@@ -203,11 +203,11 @@ export function createSubmitCommand(
           ) : (
             <FileViewerMenuItems file={file} uiStore={uiStore} />
           ),
-          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+          <ExternalAppMenuItems key="external" file={file} />,
         ]);
         if (!uiStore.fileSelection.has(file)) {
           // replace selection with context menu, like Windows file explorer
-          uiStore.selectFile(file, true);
+          select(file, false, false);
         }
         break;
       }
@@ -220,7 +220,7 @@ export function createSubmitCommand(
           ) : (
             <SlideFileViewerMenuItems file={file} uiStore={uiStore} />
           ),
-          file.isBroken ? <></> : <ExternalAppMenuItems path={file.absolutePath} />,
+          <ExternalAppMenuItems key="external" file={file} />,
         ]);
         break;
       }

@@ -67,15 +67,16 @@ export const SlideFileViewerMenuItems = ({
   );
 };
 
-export const ExternalAppMenuItems = ({ path }: { path: string }) => (
+export const ExternalAppMenuItems = ({ file }: { file: ClientFile }) => (
   <>
     <MenuItem
-      onClick={() => shell.openExternal(path)}
+      onClick={() => shell.openExternal(file.absolutePath)}
       text="Open External"
       icon={IconSet.OPEN_EXTERNAL}
+      disabled={file.isBroken}
     />
     <MenuItem
-      onClick={() => shell.showItemInFolder(path)}
+      onClick={() => shell.showItemInFolder(file.absolutePath)}
       text="Reveal in File Browser"
       icon={IconSet.FOLDER_CLOSE}
     />
