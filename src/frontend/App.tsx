@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { observable, action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
@@ -10,43 +9,15 @@ import SplashScreen from './containers/SplashScreen';
 import { Toaster as CustomToaster } from './components/Toaster';
 
 import AdvancedSearchDialog from './containers/AdvancedSearch';
-import Outliner from './containers/Outliner';
 import Settings from './containers/Settings';
 
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
-import TagDnDContext from './contexts/TagDnDContext';
-import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
-import { Split } from 'widgets';
 import Main from './containers/Main';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
-
-const TagDnDContextData = observable({ source: undefined, target: undefined });
-
-window.addEventListener(
-  'dragend',
-  action((event: DragEvent) => {
-    TagDnDContextData.source = undefined;
-    if (event.target instanceof HTMLElement) {
-      event.target.dataset[DnDAttribute.Source] = 'false';
-    }
-  }),
-  true,
-);
-
-window.addEventListener(
-  'drop',
-  action((event: DragEvent) => {
-    TagDnDContextData.target = undefined;
-    if (event.target instanceof HTMLElement) {
-      event.target.dataset[DnDAttribute.Target] = 'false';
-    }
-  }),
-  true,
-);
 
 const App = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -90,17 +61,7 @@ const App = observer(() => {
         {PLATFORM !== 'darwin' && !uiStore.isFullScreen && <WindowTitlebar />}
 
         <ErrorBoundary>
-          <TagDnDContext.Provider value={TagDnDContextData}>
-            <Split
-              id="window-splitter"
-              primary={<Outliner />}
-              secondary={<Main />}
-              axis="vertical"
-              splitPoint={uiStore.outlinerWidth}
-              isExpanded={isOutlinerOpen}
-              onMove={uiStore.moveOutlinerSplitter}
-            />
-          </TagDnDContext.Provider>
+          <Main />
 
           <Settings />
 
