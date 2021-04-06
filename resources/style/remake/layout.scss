@@ -8,23 +8,25 @@ body,
 }
 
 body {
-  margin: 0px;
+  margin: 0;
   overflow: hidden;
-  position: relative;
+
+  --toolbar-height: 3rem;
 }
 
 // Global specific styles for the main window
 #app {
-  --thumbnail-size: 250px;
-  --thumbnail-margin: 0.25rem;
   --mac-system-buttons-width: 5rem;
+  --window-titlebar-height: 28px;
+  --treeitem-identation: 1.25rem;
+  --treeitem-offset: 0.75rem;
 }
 
 // Preview window layout definition
-#preview {
-  --window-titlebar-height: 0px; // No custom frame: Native title bar is currently enabled on all platforms
-  --content-top: var(--toolbar-height);
-}
+// #preview {
+//   // No custom frame: Native title bar is currently enabled on all platforms
+//   --window-titlebar-height: 0;
+// }
 
 #window-splitter {
   position: absolute;
@@ -50,10 +52,6 @@ body {
   background: var(--background-color);
 }
 
-[data-os='darwin'] #outliner[aria-expanded='false'] ~ main #toolbar {
-  padding-left: var(--mac-system-buttons-width);
-}
-
 #outliner {
   position: relative;
   border-right: 0.0625rem solid var(--border-color);
@@ -76,30 +74,33 @@ body {
 
 // Conditional
 
-// Main window layout definition
-#layout-container {
-  &[data-os='darwin'] {
-    // Mac has traffic light buttons integrated in the AppToolbar
-    --window-titlebar-height: 0px;
+[data-os='darwin'] {
+  // Mac has traffic light buttons integrated in the AppToolbar
+  --window-titlebar-height: 0;
 
-    // Since the toolbar is acting as the frame, it should be draggable to move the window around
-    #outliner-toggle, // renamed to #togglebar in new design?
-    #toolbar {
-      -webkit-app-region: drag;
-      button {
-        // But all of the buttons should not be draggable, else not clickable
-        -webkit-app-region: none;
-      }
+  // Since the toolbar is acting as the frame, it should be draggable to move the window around
+  #outliner-toggle,
+  #toolbar {
+    -webkit-app-region: drag;
+    button {
+      // But all of the buttons should not be draggable, else not clickable
+      -webkit-app-region: none;
     }
   }
-  &[data-fullscreen='true'] {
-    // Hide the system toolbar on fullscreen
-    --window-titlebar-height: 0px;
-  }
 
-  // The top offset where the main content of the application starts (below the custom titlebar and toolbar)
-  // Needs to be defined here instead of in the `themes.scss` file - where the OS is known
-  --content-top: calc(var(--toolbar-height) + var(--window-titlebar-height));
+  // On Macs, the traffic lights take up the space of the toolbar. For other platform, extend outliner to the top
+  #outliner[aria-expanded='false'] ~ main #toolbar {
+    padding-left: var(--mac-system-buttons-width);
+  }
+  #outliner-content {
+    top: var(--toolbar-height);
+  }
+}
+
+// Main window layout definition
+[data-fullscreen='true'] {
+  // Hide the system toolbar on fullscreen
+  --window-titlebar-height: 0;
 }
 
 #toast-container {

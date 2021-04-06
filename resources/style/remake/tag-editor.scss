@@ -1,7 +1,7 @@
 .floating-dialog {
   position: absolute;
   width: 25rem;
-  top: calc(var(--content-top) + 1rem);
+  top: calc(var(--toolbar-height) + 1rem);
   left: 50%;
   transform: translate(-50%, 0);
 }

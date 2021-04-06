@@ -25,6 +25,25 @@ const SlideMode = observer((props: ISlideMode) => {
   const isOpen = uiStore.isInspectorOpen;
   const width = uiStore.inspectorWidth;
   const contentWidth = contentRect.width - (isOpen ? inspectorWidth : 0);
+  const contentHeight = contentRect.height;
+  const file = fileStore.fileList[uiStore.firstItem];
+
+  const slideView = file.isBroken ? (
+    <MissingImageFallback
+      style={{
+        width: `${contentWidth}px`,
+        height: `${contentHeight}px`,
+      }}
+    />
+  ) : (
+    <SlideView
+      uiStore={uiStore}
+      fileStore={fileStore}
+      showContextMenu={showContextMenu}
+      width={contentWidth}
+      height={contentHeight}
+    />
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -38,15 +57,7 @@ const SlideMode = observer((props: ISlideMode) => {
     <WindowSplitter
       id="slide-mode"
       primary={<Inspector />}
-      secondary={
-        <SlideView
-          width={contentWidth}
-          height={contentRect.height}
-          uiStore={uiStore}
-          fileStore={fileStore}
-          showContextMenu={showContextMenu}
-        />
-      }
+      secondary={slideView}
       axis="vertical"
       value={inspectorWidth}
       onResize={uiStore.resizeInspector}
@@ -63,34 +74,6 @@ interface ISlideView {
 }
 
 const SlideView = observer((props: ISlideView) => {
-  const { width, height, uiStore, fileStore, showContextMenu } = props;
-
-  const file = fileStore.fileList[uiStore.firstItem];
-
-  // TODO: If image is broken, cannot go back/forward
-  if (file.isBroken) {
-    return (
-      <MissingImageFallback
-        style={{
-          width: `${width}px`,
-          height: `${height}px`,
-        }}
-      />
-    );
-  } else {
-    return (
-      <SlideContainer
-        uiStore={uiStore}
-        fileStore={fileStore}
-        showContextMenu={showContextMenu}
-        width={width}
-        height={height}
-      />
-    );
-  }
-});
-
-const SlideContainer = observer((props: ISlideView) => {
   const { uiStore, fileStore, width, height, showContextMenu } = props;
   const file = fileStore.fileList[uiStore.firstItem];
 
