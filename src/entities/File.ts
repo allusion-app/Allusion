@@ -1,23 +1,21 @@
+import fse from 'fs-extra';
+import ImageSize from 'image-size';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import {
-  IReactionDisposer,
-  observable,
-  reaction,
   action,
-  ObservableSet,
+  IReactionDisposer,
   makeObservable,
+  observable,
+  ObservableSet,
+  reaction,
 } from 'mobx';
 import Path from 'path';
-import fse from 'fs-extra';
-
-import { promisify } from 'util';
-import ImageSize from 'image-size';
-const sizeOf = promisify(ImageSize.imageSize);
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-
 import FileStore from 'src/frontend/stores/FileStore';
+import { promisify } from 'util';
 import { ID, IResource, ISerializable } from './ID';
-import { ClientTag, ROOT_TAG_ID } from './Tag';
-import { RendererMessenger } from 'src/Messaging';
+import { ClientTag } from './Tag';
+
+const sizeOf = promisify(ImageSize.imageSize);
 
 export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
@@ -69,6 +67,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly dateCreated: Date;
   readonly name: string;
   readonly extension: string;
+  /** Same as "name", but without extension */
   readonly filename: string;
 
   @observable thumbnailPath: string = '';

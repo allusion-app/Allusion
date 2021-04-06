@@ -161,24 +161,18 @@ const Layout = ({
 
 export default observer(Layout);
 
-// WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
-// We'll have less loss of space perhaps
-// https://stackoverflow.com/questions/57327107/typeerror-cannot-read-property-getprimarydisplay-of-undefined-screen-getprim
 const PADDING = 8;
 const CELL_SIZE_SMALL = 160 + PADDING;
 const CELL_SIZE_MEDIUM = 240 + PADDING;
 const CELL_SIZE_LARGE = 320 + PADDING;
-// Similar to the flex-shrink CSS property, the thumbnail will shrink, so more
-// can fit into one row.
-const SHRINK_FACTOR = 0.9;
 
 export function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
   if (sizeType === 'small') {
-    return [CELL_SIZE_SMALL * SHRINK_FACTOR, CELL_SIZE_SMALL];
+    return CELL_SIZE_SMALL;
   } else if (sizeType === 'medium') {
-    return [CELL_SIZE_MEDIUM * SHRINK_FACTOR, CELL_SIZE_MEDIUM];
+    return CELL_SIZE_MEDIUM;
   }
-  return [CELL_SIZE_LARGE * SHRINK_FACTOR, CELL_SIZE_LARGE];
+  return CELL_SIZE_LARGE;
 }
 
 export function createSubmitCommand(

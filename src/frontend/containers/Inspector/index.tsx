@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
@@ -20,7 +20,6 @@ const Inspector = observer(() => {
 
   const first = fileStore.fileList[uiStore.firstItem];
   const path = first.absolutePath;
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
   return (
     <aside id="inspector">
@@ -38,7 +37,7 @@ const Inspector = observer(() => {
           <span className="input input-file-value">{path}</span>
           <IconButton
             icon={IconSet.FOLDER_CLOSE}
-            onClick={handleOpenFileExplorer}
+            onClick={() => shell.showItemInFolder(path)}
             text="open in file explorer"
           />
         </div>

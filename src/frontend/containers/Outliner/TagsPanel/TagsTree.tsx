@@ -190,7 +190,14 @@ const TagItem = observer((props: ITagItemProps) => {
           dropTarget.classList.remove('bottom');
         }
 
-        if (!expansion[nodeData.id] && !expandTimeoutId) {
+        // Don't expand when hovering over top/bottom border
+        const targetClasses = event.currentTarget.classList;
+        if (targetClasses.contains('top') || targetClasses.contains('bottom')) {
+          if (expandTimeoutId) {
+            clearTimeout(expandTimeoutId);
+            setExpandTimeoutId(undefined);
+          }
+        } else if (!expansion[nodeData.id] && !expandTimeoutId) {
           expandDelayed(nodeData.id);
         }
       });
@@ -219,23 +226,40 @@ const TagItem = observer((props: ITagItemProps) => {
   const handleDrop = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       runInAction(() => {
+        const targetClasses = event.currentTarget.classList;
+        // Checker whether to move the dropped tag(s) into or above/below the drop target
+        const relativeMovePos = targetClasses.contains('top')
+          ? -1
+          : targetClasses.contains('bottom')
+          ? 0
+          : 'middle'; // Not dragged at top or bottom, but in middle
+
+        console.log(pos, relativeMovePos, targetClasses, nodeData.name, dndData.source?.name);
+
+        // Note to self: 'pos' does not start from 0! It is +1'd. So, here we -1 it again
         if (dndData.source?.isSelected) {
-          uiStore.moveSelectedTagItems(nodeData.id);
-        } else if (dndData.source !== undefined) {
-          if (event.currentTarget.classList.contains('top')) {
-            nodeData.parent.insertSubTag(dndData.source, pos - 1); // 'pos' does not start from 0!
-          } else if (event.currentTarget.classList.contains('bottom')) {
-            nodeData.parent.insertSubTag(dndData.source, pos);
+          if (relativeMovePos === 'middle') {
+            uiStore.moveSelectedTagItems(nodeData.id);
           } else {
+            uiStore.moveSelectedTagItems(nodeData.parent.id, pos + relativeMovePos);
+          }
+        } else if (dndData.source !== undefined) {
+          if (relativeMovePos === 'middle') {
             nodeData.insertSubTag(dndData.source, 0);
+          } else {
+            nodeData.parent.insertSubTag(dndData.source, pos + relativeMovePos);
           }
         }
       });
       event.currentTarget.dataset[DnDAttribute.Target] = 'false';
       event.currentTarget.classList.remove('top');
       event.currentTarget.classList.remove('bottom');
+      if (expandTimeoutId) {
+        clearTimeout(expandTimeoutId);
+        setExpandTimeoutId(undefined);
+      }
     },
-    [dndData, nodeData, pos, uiStore],
+    [dndData.source, expandTimeoutId, nodeData, pos, uiStore],
   );
 
   const handleSelect = useCallback(
