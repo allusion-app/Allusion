@@ -90,7 +90,7 @@ const ToolbarButton = (props: IToolbarButton) => {
     <button
       id={id}
       ref={portalTriggerRef}
-      className="toolbar-button"
+      className="btn toolbar-button"
       onClick={disabled ? undefined : onClick}
       role={role}
       aria-pressed={pressed}

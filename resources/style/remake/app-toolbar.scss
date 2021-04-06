@@ -3,44 +3,19 @@
   justify-content: stretch;
   align-items: center;
 
-  > .btn:first-child {
-    height: 1.5rem;
-    width: 1.5rem;
-  }
+  --btn-pressed-color: var(--text-color-strong);
+  --btn-checked-color: var(--text-color-strong);
 
   .toolbar-button {
     height: 1.5rem;
     min-width: 1.5rem;
     padding: 0.25rem;
     margin: 0.25rem;
-
-    color: var(--text-color);
-    background: transparent;
-    border: none;
-    outline: none;
     border-radius: 0.25rem;
 
-    &:hover {
-      color: var(--text-color-strong);
-      background: var(--hover-color);
-    }
-    &:focus {
-      color: var(--text-color-strong);
-      background: var(--hover-color);
-    }
-    &:active {
-      color: var(--text-color-strong);
-      background: var(--hover-color-alt);
-    }
+    &[aria-pressed='true'],
     &[aria-checked='true'] {
       color: var(--text-color-strong);
-    }
-    &[aria-pressed='true'] {
-      color: var(--text-color-strong);
-    }
-    &[aria-disabled='true'] {
-      color: var(--text-color-muted);
-      cursor: not-allowed;
     }
   }
 

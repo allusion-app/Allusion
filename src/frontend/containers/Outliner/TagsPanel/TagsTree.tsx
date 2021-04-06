@@ -287,7 +287,7 @@ const TagItem = observer((props: ITagItemProps) => {
         onSubmit={submit}
       />
       {!isEditing && (
-        <button onClick={handleSelect} className="btn-icon">
+        <button onClick={handleSelect} className="btn btn-icon">
           {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
         </button>
       )}

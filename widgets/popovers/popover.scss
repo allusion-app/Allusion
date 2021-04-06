@@ -44,9 +44,8 @@ dialog {
 
   > .btn-icon {
     grid-area: dialog-close;
-    height: fit-content;
-    min-height: fit-content;
-    min-width: unset;
+    min-height: 1.25rem;
+    min-width: 1.25rem;
 
     .custom-icon {
       height: 0.75rem;

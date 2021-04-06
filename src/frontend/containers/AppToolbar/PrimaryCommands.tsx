@@ -27,7 +27,7 @@ const OutlinerToggle = observer(() => {
     <button
       autoFocus
       id="outliner-toggle"
-      className="btn btn-icon"
+      className="btn toolbar-button"
       aria-controls="outliner"
       aria-pressed={uiStore.isOutlinerOpen}
       onClick={uiStore.toggleOutliner}
