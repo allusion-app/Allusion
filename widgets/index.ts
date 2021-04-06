@@ -6,6 +6,7 @@ import { Tag } from './Tag';
 import { IconSet, SVG } from './Icons';
 import { Listbox, Option } from './Combobox';
 import { KeyCombo } from './KeyCombo';
+import { Split } from './Split';
 
 export {
   Checkbox,
@@ -18,6 +19,7 @@ export {
   Option,
   Radio,
   RadioGroup,
+  Split,
   SVG,
   Tag,
   Tree,

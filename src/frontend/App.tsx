@@ -18,7 +18,7 @@ import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
 import TagDnDContext from './contexts/TagDnDContext';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
-import { WindowSplitter } from 'widgets/WindowSplitter';
+import { Split } from 'widgets';
 import Main from './containers/Main';
 
 const SPLASH_SCREEN_TIME = 1400;
@@ -101,7 +101,7 @@ const App = observer(() => {
 
         <ErrorBoundary>
           <TagDnDContext.Provider value={TagDnDContextData}>
-            <WindowSplitter
+            <Split
               id="window-splitter"
               primary={<Outliner />}
               secondary={<Main />}

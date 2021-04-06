@@ -1,8 +1,8 @@
-import './window-splitter.scss';
+import './split.scss';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-interface IWindowSplitter {
+interface ISplit {
   id?: string;
   primary: React.ReactElement;
   secondary: React.ReactElement;
@@ -11,14 +11,7 @@ interface IWindowSplitter {
   onResize: (value: number, dimension: number) => void;
 }
 
-export const WindowSplitter = ({
-  id,
-  primary,
-  secondary,
-  axis,
-  value,
-  onResize,
-}: IWindowSplitter) => {
+export const Split = ({ id, primary, secondary, axis, value, onResize }: ISplit) => {
   const container = useRef<HTMLDivElement>(null);
   const origin = useRef(0);
   const isDragging = useRef(false);
@@ -91,7 +84,7 @@ export const WindowSplitter = ({
   }, []);
 
   return (
-    <div ref={container} id={id} className="window-splitter" onMouseMove={handleMouseMove}>
+    <div ref={container} id={id} className="split" onMouseMove={handleMouseMove}>
       {primary}
       <div
         role="separator"

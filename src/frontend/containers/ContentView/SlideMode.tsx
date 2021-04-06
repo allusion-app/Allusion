@@ -4,13 +4,12 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { encodeFilePath } from 'src/frontend/utils';
-import { IconSet } from 'widgets';
+import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
 import { createSubmitCommand } from './LayoutSwitcher';
 import { GallerySelector, MissingImageFallback } from './GalleryItem';
 import UiStore from 'src/frontend/stores/UiStore';
 import FileStore from 'src/frontend/stores/FileStore';
-import { WindowSplitter } from 'widgets/WindowSplitter';
 
 interface ISlideMode {
   contentRect: { width: number; height: number };
@@ -54,7 +53,7 @@ const SlideMode = observer((props: ISlideMode) => {
   }, [isOpen, width]);
 
   return (
-    <WindowSplitter
+    <Split
       id="slide-mode"
       primary={<Inspector />}
       secondary={slideView}
