@@ -29,7 +29,7 @@ const commonMetadataLabels: Record<keyof CommonMetadata, string> = {
 
 // Details: https://www.vcode.no/web/resource.nsf/ii2lnug/642.htm
 const exifFields: { label: string; exifTag: string }[] = [
-  { label: 'Color mode', exifTag: 'PhotometricInterpretation' },
+  { label: 'Color Mode', exifTag: 'PhotometricInterpretation' },
   { label: 'Bit Depth', exifTag: 'BitsPerSample' },
   { label: 'Creation Software', exifTag: 'Software' },
   { label: 'Creator', exifTag: 'Artist' },
