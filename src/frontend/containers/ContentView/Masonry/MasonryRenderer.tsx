@@ -40,9 +40,7 @@ const MasonryRenderer = observer(
     // Needed in order to re-render forcefully when the layout updates
     // Doesn't seem to be necessary anymore - might cause overlapping thumbnails, but could not reproduce
     const [forceRerenderObj, setForceRerenderObj] = useState<Date>(new Date());
-    const [, thumbnailSize] = useMemo(() => getThumbnailSize(uiStore.thumbnailSize), [
-      uiStore.thumbnailSize,
-    ]);
+    const thumbnailSize = getThumbnailSize(uiStore.thumbnailSize);
     const containerWidth = contentRect.width - SCROLL_BAR_WIDTH;
 
     const viewMethod = uiStore.method as SupportedViewMethod;
@@ -151,7 +149,7 @@ const MasonryRenderer = observer(
         containerHeight={containerHeight}
         images={fileStore.fileList}
         layout={worker}
-        overscan={thumbnailSize * 4}
+        overscan={thumbnailSize * 3}
         select={select}
         showContextMenu={showContextMenu}
         lastSelectionIndex={lastSelectionIndex}
