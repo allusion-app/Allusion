@@ -11,6 +11,9 @@ const Inspector = observer(() => {
   const { uiStore } = useContext(StoreContext);
   const first = uiStore.firstSelectedFile;
 
+  const path = first?.absolutePath || '';
+  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
+
   if (first === undefined) {
     return (
       <Panel isOpen={uiStore.isInspectorOpen}>
@@ -18,10 +21,6 @@ const Inspector = observer(() => {
       </Panel>
     );
   }
-
-  const path = first.absolutePath;
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
-
   return (
     <Panel isOpen={uiStore.isInspectorOpen}>
       <section>
