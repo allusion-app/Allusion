@@ -57,17 +57,7 @@ const App = observer(() => {
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
 
-  const [outlinerWidth, setOutlinerWidth] = useState(uiStore.outlinerWidth);
   const isOutlinerOpen = uiStore.isOutlinerOpen;
-  const width = uiStore.outlinerWidth;
-
-  useEffect(() => {
-    if (isOutlinerOpen) {
-      setOutlinerWidth(width);
-    } else {
-      setOutlinerWidth(0);
-    }
-  }, [isOutlinerOpen, width]);
 
   useEffect(() => {
     setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
@@ -106,7 +96,8 @@ const App = observer(() => {
               primary={<Outliner />}
               secondary={<Main />}
               axis="vertical"
-              value={outlinerWidth}
+              value={uiStore.outlinerWidth}
+              isExpanded={isOutlinerOpen}
               onResize={uiStore.resizeOutliner}
             />
           </TagDnDContext.Provider>

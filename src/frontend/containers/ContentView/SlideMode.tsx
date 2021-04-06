@@ -1,6 +1,6 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { encodeFilePath } from 'src/frontend/utils';
@@ -20,10 +20,9 @@ interface ISlideMode {
 
 const SlideMode = observer((props: ISlideMode) => {
   const { contentRect, uiStore, fileStore, showContextMenu } = props;
-  const [inspectorWidth, setInspectorWidth] = useState(288);
-  const isOpen = uiStore.isInspectorOpen;
-  const width = uiStore.inspectorWidth;
-  const contentWidth = contentRect.width - (isOpen ? inspectorWidth : 0);
+  const isInspectorOpen = uiStore.isInspectorOpen;
+  const inspectorWidth = uiStore.inspectorWidth;
+  const contentWidth = contentRect.width - (isInspectorOpen ? inspectorWidth : 0);
   const contentHeight = contentRect.height;
   const file = fileStore.fileList[uiStore.firstItem];
 
@@ -44,14 +43,6 @@ const SlideMode = observer((props: ISlideMode) => {
     />
   );
 
-  useEffect(() => {
-    if (isOpen) {
-      setInspectorWidth(width);
-    } else {
-      setInspectorWidth(0);
-    }
-  }, [isOpen, width]);
-
   return (
     <Split
       id="slide-mode"
@@ -59,6 +50,7 @@ const SlideMode = observer((props: ISlideMode) => {
       secondary={slideView}
       axis="vertical"
       value={inspectorWidth}
+      isExpanded={isInspectorOpen}
       onResize={uiStore.resizeInspector}
     />
   );

@@ -8,15 +8,22 @@ interface ISplit {
   secondary: React.ReactElement;
   axis: 'horizontal' | 'vertical';
   value: number;
+  // API-wise it would be better to provide a callback function but we keep track
+  // of the panel states already.
+  isExpanded: boolean;
   onResize: (value: number, dimension: number) => void;
 }
 
-export const Split = ({ id, primary, secondary, axis, value, onResize }: ISplit) => {
+export const Split = ({ id, primary, secondary, axis, value, isExpanded, onResize }: ISplit) => {
   const container = useRef<HTMLDivElement>(null);
   const origin = useRef(0);
   const isDragging = useRef(false);
   const [dimension, setDimension] = useState(0);
-  const valueNow = useMemo(() => Math.round((value / dimension) * 100), [dimension, value]);
+  const [innerValue, setInnerValue] = useState(value);
+  const valueNow = useMemo(() => Math.round((innerValue / dimension) * 100), [
+    dimension,
+    innerValue,
+  ]);
   const resizeObserver = useRef(
     new ResizeObserver((entries) => {
       const {
@@ -61,9 +68,17 @@ export const Split = ({ id, primary, secondary, axis, value, onResize }: ISplit)
 
   useEffect(() => {
     if (container.current !== null) {
-      (container.current.firstElementChild as HTMLElement).style.flexBasis = `${value}px`;
+      (container.current.firstElementChild as HTMLElement).style.flexBasis = `${innerValue}px`;
     }
-  }, [value]);
+  }, [innerValue]);
+
+  useEffect(() => {
+    if (isExpanded) {
+      setInnerValue(value);
+    } else {
+      setInnerValue(0);
+    }
+  }, [isExpanded, value]);
 
   useEffect(() => {
     const observer = resizeObserver.current;
