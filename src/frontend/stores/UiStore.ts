@@ -648,7 +648,7 @@ class UiStore {
     }
   }
 
-  @action.bound resizeOutliner(x: number, width: number) {
+  @action.bound moveOutlinerSplitter(x: number, width: number) {
     if (this.isOutlinerOpen) {
       const w = clamp(x, UiStore.MIN_OUTLINER_WIDTH, width * 0.75);
       this.outlinerWidth = w;
@@ -662,7 +662,7 @@ class UiStore {
     }
   }
 
-  @action.bound resizeInspector(x: number, width: number) {
+  @action.bound moveInspectorSplitter(x: number, width: number) {
     // The inspector is on the right side, so we need to calculate the offset.
     const offsetX = width - x;
     if (this.isInspectorOpen) {
@@ -691,8 +691,8 @@ class UiStore {
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
-        this.outlinerWidth = Number(prefs.outlinerWidth);
-        this.inspectorWidth = Number(prefs.inspectorWidth);
+        this.outlinerWidth = Math.max(Number(prefs.outlinerWidth), UiStore.MIN_OUTLINER_WIDTH);
+        this.inspectorWidth = Math.max(Number(prefs.inspectorWidth), UiStore.MIN_INSPECTOR_WIDTH);
         Object.entries<string>(prefs.hotkeyMap).forEach(
           ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );

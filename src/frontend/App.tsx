@@ -96,9 +96,9 @@ const App = observer(() => {
               primary={<Outliner />}
               secondary={<Main />}
               axis="vertical"
-              value={uiStore.outlinerWidth}
+              splitPoint={uiStore.outlinerWidth}
               isExpanded={isOutlinerOpen}
-              onResize={uiStore.resizeOutliner}
+              onMove={uiStore.moveOutlinerSplitter}
             />
           </TagDnDContext.Provider>
 

@@ -1,29 +1,25 @@
 import './split.scss';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface ISplit {
   id?: string;
   primary: React.ReactElement;
   secondary: React.ReactElement;
   axis: 'horizontal' | 'vertical';
-  value: number;
+  splitPoint: number;
   // API-wise it would be better to provide a callback function but we keep track
   // of the panel states already.
   isExpanded: boolean;
-  onResize: (value: number, dimension: number) => void;
+  onMove: (splitPoint: number, dimension: number) => void;
 }
 
-export const Split = ({ id, primary, secondary, axis, value, isExpanded, onResize }: ISplit) => {
+export const Split = ({ id, primary, secondary, axis, splitPoint, isExpanded, onMove }: ISplit) => {
   const container = useRef<HTMLDivElement>(null);
   const origin = useRef(0);
   const isDragging = useRef(false);
+  const value = useRef(splitPoint);
   const [dimension, setDimension] = useState(0);
-  const [innerValue, setInnerValue] = useState(value);
-  const valueNow = useMemo(() => Math.round((innerValue / dimension) * 100), [
-    dimension,
-    innerValue,
-  ]);
   const resizeObserver = useRef(
     new ResizeObserver((entries) => {
       const {
@@ -58,27 +54,24 @@ export const Split = ({ id, primary, secondary, axis, value, isExpanded, onResiz
       }
 
       if (axis === 'vertical') {
-        onResize(e.clientX - origin.current, e.currentTarget.clientWidth);
+        onMove(e.clientX - origin.current, e.currentTarget.clientWidth);
       } else {
-        onResize(e.clientY - origin.current, e.currentTarget.clientHeight);
+        onMove(e.clientY - origin.current, e.currentTarget.clientHeight);
       }
     },
-    [onResize, axis],
+    [onMove, axis],
   );
 
   useEffect(() => {
-    if (container.current !== null) {
-      (container.current.firstElementChild as HTMLElement).style.flexBasis = `${innerValue}px`;
-    }
-  }, [innerValue]);
-
-  useEffect(() => {
     if (isExpanded) {
-      setInnerValue(value);
+      value.current = splitPoint;
     } else {
-      setInnerValue(0);
+      value.current = 0;
     }
-  }, [isExpanded, value]);
+    if (container.current !== null) {
+      (container.current.firstElementChild as HTMLElement).style.flexBasis = `${value.current}px`;
+    }
+  }, [isExpanded, splitPoint]);
 
   useEffect(() => {
     const observer = resizeObserver.current;
@@ -103,7 +96,7 @@ export const Split = ({ id, primary, secondary, axis, value, isExpanded, onResiz
       {primary}
       <div
         role="separator"
-        aria-valuenow={valueNow}
+        aria-valuenow={Math.trunc((value.current / dimension) * 100)}
         aria-orientation={axis}
         onMouseDown={handleMouseDown.current}
       />

@@ -49,9 +49,9 @@ const SlideMode = observer((props: ISlideMode) => {
       primary={<Inspector />}
       secondary={slideView}
       axis="vertical"
-      value={inspectorWidth}
+      splitPoint={inspectorWidth}
       isExpanded={isInspectorOpen}
-      onResize={uiStore.resizeInspector}
+      onMove={uiStore.moveInspectorSplitter}
     />
   );
 });
