@@ -14,6 +14,7 @@ type CommonMetadata = {
   imported: string;
   created: string;
   modified: string;
+  lastOpened: string;
 };
 
 const commonMetadataLabels: Record<keyof CommonMetadata, string> = {
@@ -23,17 +24,18 @@ const commonMetadataLabels: Record<keyof CommonMetadata, string> = {
   // TODO: "modified in allusion vs modified in system?"
   created: 'Created',
   modified: 'Modified',
+  lastOpened: 'Last Opened',
 };
 
 // Details: https://www.vcode.no/web/resource.nsf/ii2lnug/642.htm
 const exifFields: { label: string; exifTag: string }[] = [
   { label: 'Color mode', exifTag: 'PhotometricInterpretation' },
-  { label: 'Bit depth', exifTag: 'BitsPerSample' },
-  { label: 'Creation software', exifTag: 'Software' },
+  { label: 'Bit Depth', exifTag: 'BitsPerSample' },
+  { label: 'Creation Software', exifTag: 'Software' },
   { label: 'Creator', exifTag: 'Artist' },
   { label: 'Copyright', exifTag: 'Copyright' },
-  { label: 'Camera manufacturer', exifTag: 'Make' },
-  { label: 'Camera model', exifTag: 'Model' },
+  { label: 'Camera Manufacturer', exifTag: 'Make' },
+  { label: 'Camera Model', exifTag: 'Model' },
   { label: 'GPS Latitude', exifTag: 'GPSLatitudeRef' },
   { label: 'GPS Longitude', exifTag: 'GPSLongitudeRef' },
 ];
@@ -54,28 +56,30 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
     imported: formatDateTime(file.dateAdded),
     created: '...',
     modified: '...',
+    lastOpened: '...',
     dimensions: '...',
   });
 
   const [exifData, setExifData] = useState<{ [key: string]: string }>({});
 
-  const filePath = file.absolutePath;
   useEffect(() => {
     if (suspended) {
       return;
     }
+    const filePath = file.absolutePath;
     let isMounted = true;
     Promise.all([fse.stat(filePath), sizeOf(filePath)])
       .then(([stats, dimensions]) => {
         if (isMounted) {
-          setFileStats((s) => ({
-            ...s,
+          setFileStats({
+            name: file.name,
+            imported: formatDateTime(file.dateAdded),
             created: formatDateTime(file.dateCreated),
             modified: formatDateTime(stats.ctime),
             lastOpened: formatDateTime(stats.atime),
             dimensions:
               dimensions !== undefined ? `${dimensions.width} x ${dimensions.height}` : '...',
-          }));
+          });
         }
       })
       .catch(() => {
@@ -107,7 +111,7 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
       isMounted = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filePath]);
+  }, [file]);
 
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
   // Or add the units: pixels vs DPI
