@@ -108,7 +108,7 @@ class TagStore {
       }
       return;
     }
-    // Abort of subTag is an ancestor node of target tag.
+    // Abort if subTag is an ancestor node of target tag.
     let node = tag.parent;
     while (node.id !== ROOT_TAG_ID) {
       if (node === subTag) {

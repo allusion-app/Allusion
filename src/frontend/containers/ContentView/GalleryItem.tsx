@@ -362,6 +362,7 @@ const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: IThumb
         src={encodeFilePath(forceNoThumbnail ? file.absolutePath : thumbnailPath)}
         onError={handleImageError}
         alt=""
+        // loading="lazy" could be nice, not sure how much it would help
       />
     );
   } else if (state === ThumbnailState.Loading) {
