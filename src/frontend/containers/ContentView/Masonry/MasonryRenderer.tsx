@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
 import { debounce } from 'src/frontend/utils';
-import { getThumbnailSize, ILayoutProps } from '../Gallery';
+import { getThumbnailSize, ILayoutProps } from '../LayoutSwitcher';
 import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';
 

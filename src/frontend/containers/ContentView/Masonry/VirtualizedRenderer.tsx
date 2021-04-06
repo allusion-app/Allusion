@@ -7,7 +7,7 @@ import StoreContext from 'src/frontend/contexts/StoreContext';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
-import { createSubmitCommand, ILayoutProps } from '../Gallery';
+import { createSubmitCommand, ILayoutProps } from '../LayoutSwitcher';
 import { MasonryCell } from '../GalleryItem';
 import { findViewportEdge, Layouter } from './layout-helpers';
 

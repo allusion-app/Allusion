@@ -1,9 +1,8 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { KeyCombo } from '@blueprintjs/core';
 
 import UiStore from 'src/frontend/stores/UiStore';
-import { IconSet } from 'widgets';
+import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuItem } from 'widgets/menus';
 
 const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
@@ -20,25 +19,26 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
         icon={IconSet.SEARCH_EXTENDED}
         onClick={uiStore.toggleAdvancedSearch}
         text="Advanced Search"
-        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.advancedSearch} />}
+        accelerator={<KeyCombo combo={uiStore.hotkeyMap.advancedSearch} />}
       />
       <MenuItem
         icon={IconSet.HELPCENTER}
         onClick={uiStore.toggleHelpCenter}
         text="Help Center"
-        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleHelpCenter} />}
+        accelerator={<KeyCombo combo={uiStore.hotkeyMap.toggleHelpCenter} />}
       />
       <MenuItem
         icon={IconSet.SETTINGS}
         onClick={uiStore.toggleSettings}
         text="Settings"
-        accelerator={<KeyCombo minimal combo={uiStore.hotkeyMap.toggleSettings} />}
+        accelerator={<KeyCombo combo={uiStore.hotkeyMap.toggleSettings} />}
       />
       <MenuItem
         icon={IconSet.LOGO}
         // TODO: Maybe add as native menu option (mac-os?)
         onClick={() =>
           window.alert(
+            // eslint-disable-next-line prettier/prettier
             'TODO: This application was made by [us]. It\'s open source. You can contribute here if you wanna [link]',
           )
         }

@@ -11,7 +11,8 @@ interface ICheckbox {
 const Toggle = (props: ICheckbox) => {
   const { label, defaultChecked, checked, onChange } = props;
   return (
-    <label>
+    <label className="toggle">
+      {label}
       <input
         data-toggle
         type="checkbox"
@@ -19,7 +20,6 @@ const Toggle = (props: ICheckbox) => {
         checked={checked}
         onChange={onChange}
       />
-      {label}
     </label>
   );
 };
@@ -27,14 +27,14 @@ const Toggle = (props: ICheckbox) => {
 const Checkbox = (props: ICheckbox) => {
   const { label, defaultChecked, checked, onChange } = props;
   return (
-    <label>
+    <label className="checkbox">
+      {label}
       <input
         type="checkbox"
         defaultChecked={defaultChecked}
         checked={checked}
         onChange={onChange}
       />
-      {label}
     </label>
   );
 };

@@ -175,10 +175,10 @@ export const formatTagCountText = (numTags: number) => {
 };
 
 export const capitalize = (value: string) => {
-  if (!value) {
+  if (value.length === 0) {
     return '';
   }
-  return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+  return `${value.charAt(0).toLocaleUpperCase()}${value.slice(1)}`;
 };
 
 export const camelCaseToSpaced = (value: string) => {

@@ -53,7 +53,6 @@ const Label = (props: ILabelProps) =>
       onFocus={(e) => e.target.select()}
       // TODO: Visualizing errors...
       // Only show red outline when input field is in focus and text is invalid
-      // className={!isValidInput ? 'bp3-intent-danger' : ''}
     />
   ) : (
     <div>{props.text}</div>
@@ -94,7 +93,6 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore, tagStore: TagStore) 
 };
 
 const PreviewTag = document.createElement('span');
-PreviewTag.classList.add('tag');
 PreviewTag.style.position = 'absolute';
 PreviewTag.style.top = '-100vh';
 document.body.appendChild(PreviewTag);
@@ -129,6 +127,7 @@ const TagItem = observer((props: ITagItemProps) => {
             }
           }
         }
+        PreviewTag.classList.value = `tag ${uiStore.theme}`;
         PreviewTag.innerText = name;
         event.dataTransfer.setData(DnDTagType, nodeData.id);
         event.dataTransfer.setDragImage(PreviewTag, 0, 0);
@@ -312,7 +311,7 @@ const TagItem = observer((props: ITagItemProps) => {
         onSubmit={submit}
       />
       {!isEditing && (
-        <button onClick={handleSelect} className="btn-icon">
+        <button onClick={handleSelect} className="btn btn-icon">
           {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
         </button>
       )}

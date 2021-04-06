@@ -4,14 +4,68 @@ import React, { useCallback, useContext, useEffect, useMemo } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { encodeFilePath } from 'src/frontend/utils';
-import { IconSet } from 'widgets';
+import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
-import { createSubmitCommand, ILayoutProps } from './Gallery';
+import { createSubmitCommand } from './LayoutSwitcher';
 import { GallerySelector, MissingImageFallback } from './GalleryItem';
+import UiStore from 'src/frontend/stores/UiStore';
+import FileStore from 'src/frontend/stores/FileStore';
 
-const SlideMode = observer((props: ILayoutProps) => {
+interface ISlideMode {
+  contentRect: { width: number; height: number };
+  uiStore: UiStore;
+  fileStore: FileStore;
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
+}
+
+const SlideMode = observer((props: ISlideMode) => {
   const { contentRect, uiStore, fileStore, showContextMenu } = props;
+  const isInspectorOpen = uiStore.isInspectorOpen;
+  const inspectorWidth = uiStore.inspectorWidth;
+  const contentWidth = contentRect.width - (isInspectorOpen ? inspectorWidth : 0);
+  const contentHeight = contentRect.height;
+  const file = fileStore.fileList[uiStore.firstItem];
 
+  const slideView = file.isBroken ? (
+    <MissingImageFallback
+      style={{
+        width: `${contentWidth}px`,
+        height: `${contentHeight}px`,
+      }}
+    />
+  ) : (
+    <SlideView
+      uiStore={uiStore}
+      fileStore={fileStore}
+      showContextMenu={showContextMenu}
+      width={contentWidth}
+      height={contentHeight}
+    />
+  );
+
+  return (
+    <Split
+      id="slide-mode"
+      primary={<Inspector />}
+      secondary={slideView}
+      axis="vertical"
+      splitPoint={inspectorWidth}
+      isExpanded={isInspectorOpen}
+      onMove={uiStore.moveInspectorSplitter}
+    />
+  );
+});
+
+interface ISlideView {
+  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
+  width: number;
+  height: number;
+  uiStore: UiStore;
+  fileStore: FileStore;
+}
+
+const SlideView = observer((props: ISlideView) => {
+  const { uiStore, fileStore, width, height, showContextMenu } = props;
   const file = fileStore.fileList[uiStore.firstItem];
 
   const dndData = useContext(TagDnDContext);
@@ -49,15 +103,6 @@ const SlideMode = observer((props: ILayoutProps) => {
     return () => window.removeEventListener('popstate', popStateHandler);
   }, [uiStore.disableSlideMode]);
 
-  // Automatically select the active image, so it is shown in the inspector
-  useEffect(() => {
-    runInAction(() => {
-      if (uiStore.firstItem < fileStore.fileList.length) {
-        uiStore.selectFile(fileStore.fileList[uiStore.firstItem], true);
-      }
-    });
-  }, [fileStore.fileList, fileStore.fileList.length, uiStore, uiStore.firstItem]);
-
   const decrImgIndex = useCallback(
     () => runInAction(() => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1))),
     [uiStore],
@@ -84,30 +129,11 @@ const SlideMode = observer((props: ILayoutProps) => {
     [incrImgIndex, decrImgIndex, uiStore],
   );
 
-  // Detect scroll wheel to scroll between images
-  // const handleUserWheel = useCallback(
-  //   (event: WheelEvent) => {
-  //     if (event.ctrlKey) {
-  //       return;
-  //     }
-  //     event.preventDefault();
-
-  //     if (event.deltaY > 0) {
-  //       decrImgIndex();
-  //     } else if (event.deltaY < 0) {
-  //       incrImgIndex();
-  //     }
-  //   },
-  //   [incrImgIndex, decrImgIndex],
-  // );
-
   // Set up event listeners
   useEffect(() => {
     window.addEventListener('keydown', handleUserKeyPress);
-    // window.addEventListener('wheel', handleUserWheel, { passive: false });
     return () => {
       window.removeEventListener('keydown', handleUserKeyPress);
-      // window.removeEventListener('wheel', handleUserWheel);
     };
   }, [handleUserKeyPress]);
 
@@ -125,34 +151,15 @@ const SlideMode = observer((props: ILayoutProps) => {
     });
   }, [fileStore.fileList, uiStore.firstItem]);
 
-  const inspectorWidth = 288; // TODO: Get from CSS. Something like below, but that works correctly (currently too low)
-  // useMemo(() =>
-  //   parseInt(getComputedStyle(document.body).getPropertyValue('--inspector-width')) // rem value: get pixels by multplying with font size
-  //   * parseInt(getComputedStyle(document.body).getPropertyValue('font-size')),
-  //   []);
-  const contentWidth = contentRect.width - (uiStore.isInspectorOpen ? inspectorWidth : 0);
-
-  // TODO: If image is broken, cannot go back/forward
   return (
-    <div id="slide-mode" onContextMenu={handleContextMenu}>
-      {file.isBroken ? (
-        <MissingImageFallback
-          style={{
-            width: `${contentWidth}px`,
-            height: `${contentRect.height}px`,
-          }}
-        />
-      ) : (
-        <ZoomableImage
-          src={file.absolutePath}
-          width={contentWidth}
-          height={contentRect.height}
-          prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
-          nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
-        />
-      )}
-      <Inspector />
-    </div>
+    <ZoomableImage
+      src={file.absolutePath}
+      width={width}
+      height={height}
+      prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
+      nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
+      onContextMenu={handleContextMenu}
+    />
   );
 });
 
@@ -162,41 +169,49 @@ interface IZoomableImageProps {
   height: number;
   prevImage?: () => any;
   nextImage?: () => any;
+  onContextMenu: (e: React.MouseEvent) => void;
 }
 
-const ZoomableImage = ({ src, width, height, prevImage, nextImage }: IZoomableImageProps) => {
+const ZoomableImage = ({
+  src,
+  width,
+  height,
+  prevImage,
+  nextImage,
+  onContextMenu,
+}: IZoomableImageProps) => {
   // Todo: Same context menu as GalleryItem
   return (
-    <div id="zoomableImage">
-      <div
-        style={{
-          width: `${width}px`,
-          maxHeight: `${height}px`,
-        }}
+    <div
+      id="zoomable-image"
+      style={{
+        maxWidth: `${width}px`,
+        height: `${height}px`,
+      }}
+      onContextMenu={onContextMenu}
+    >
+      {/* https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
+      <PinchZoomPan
+        position="center"
+        zoomButtons={false}
+        doubleTapBehavior="zoom"
+        // Force a re-render when the image changes, in order to reset the zoom level
+        key={src}
       >
-        {/* https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
-        <PinchZoomPan
-          position="center"
-          zoomButtons={false}
-          doubleTapBehavior="zoom"
-          // Force a re-render when the image changes, in order to reset the zoom level
-          key={src}
-        >
-          <img src={encodeFilePath(src)} alt="Could not load your image!" />
-        </PinchZoomPan>
+        <img src={encodeFilePath(src)} alt="Could not load your image!" />
+      </PinchZoomPan>
 
-        {/* Overlay buttons/icons */}
-        {prevImage && (
-          <div className="side-button custom-icon-48" onClick={prevImage}>
-            {IconSet.ARROW_LEFT}
-          </div>
-        )}
-        {nextImage && (
-          <div className="side-button custom-icon-48" onClick={nextImage} style={{ right: 0 }}>
-            {IconSet.ARROW_RIGHT}
-          </div>
-        )}
-      </div>
+      {/* Overlay buttons/icons */}
+      {prevImage && (
+        <button aria-label="previous image" className="side-button-left" onClick={prevImage}>
+          {IconSet.ARROW_LEFT}
+        </button>
+      )}
+      {nextImage && (
+        <button aria-label="next image" className="side-button-right" onClick={nextImage}>
+          {IconSet.ARROW_RIGHT}
+        </button>
+      )}
     </div>
   );
 };

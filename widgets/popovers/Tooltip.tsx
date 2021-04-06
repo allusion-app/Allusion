@@ -42,11 +42,16 @@ export const Tooltip = (props: ITooltip) => {
     // this is a developer error.
     const target = portalTriggerRef.current;
 
-    const handleMouseEnter = () => {
-      timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
+    const handleMouseOver = () => {
+      if (timerID.current === undefined) {
+        timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
+      }
     };
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = (e: MouseEvent) => {
+      if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+        return;
+      }
       if (timerID.current !== undefined) {
         clearTimeout(timerID.current);
         timerID.current = undefined;
@@ -54,8 +59,8 @@ export const Tooltip = (props: ITooltip) => {
       setIsOpen(false);
     };
 
-    target.addEventListener('mouseenter', handleMouseEnter);
-    target.addEventListener('mouseleave', handleMouseLeave);
+    target.addEventListener('mouseover', handleMouseOver, true);
+    target.addEventListener('mouseout', handleMouseLeave, true);
 
     // Clear timer on removing component
     return () => {
@@ -63,8 +68,8 @@ export const Tooltip = (props: ITooltip) => {
         clearTimeout(timerID.current);
         timerID.current = undefined;
       }
-      target.removeEventListener('mouseenter', handleMouseEnter);
-      target.removeEventListener('mouseleave', handleMouseLeave);
+      target.removeEventListener('mouseover', handleMouseOver, true);
+      target.removeEventListener('mouseout', handleMouseLeave, true);
     };
   }, [content, hoverDelay, portalTriggerRef, trigger]);
 

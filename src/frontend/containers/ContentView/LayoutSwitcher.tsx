@@ -119,9 +119,7 @@ const Layout = ({
     return (
       <SlideMode
         contentRect={contentRect}
-        lastSelectionIndex={lastSelectionIndex}
         showContextMenu={showContextMenu}
-        select={handleFileSelect}
         uiStore={uiStore}
         fileStore={fileStore}
       />

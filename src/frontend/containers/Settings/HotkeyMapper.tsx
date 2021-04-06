@@ -1,12 +1,12 @@
 import React, { useContext, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { comboMatches, getKeyComboString, KeyCombo, parseKeyCombo } from '@blueprintjs/core';
+import { comboMatches, getKeyComboString, parseKeyCombo } from '@blueprintjs/core';
 
 import StoreContext from '../../contexts/StoreContext';
 import { defaultHotkeyMap, IHotkeyMap } from '../../stores/UiStore';
 import { camelCaseToSpaced } from '../../utils';
-import { IconButton, IconSet } from 'widgets';
+import { IconButton, IconSet, KeyCombo } from 'widgets';
 
 export const HotkeyMapper = observer(() => {
   const { uiStore } = useContext(StoreContext);

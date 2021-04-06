@@ -4,7 +4,7 @@
 @import '~resources/style/remake/themes.scss';
 @import '~resources/style/remake/variables.scss';
 
-@import '~resources/style/global.scss'; // Global styles, layout, media queries and miscellanious CSS
+@import '~resources/style/remake/global.scss'; // Global styles, layout, media queries and miscellanious CSS
 
 // Panels
 @import '~resources/style/content.scss'; // The main content area (Gallery, etc.)
@@ -16,7 +16,6 @@
 
 // Remake
 @import '~resources/style/remake/splash-screen.scss';
-@import '~resources/style/remake/global.scss';
 @import '~resources/style/remake/layout.scss';
 @import '~resources/style/remake/window-titlebar.scss';
 @import '~resources/style/remake/app-toolbar.scss';

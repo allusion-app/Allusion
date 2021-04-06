@@ -143,7 +143,7 @@ export class ClientFile implements ISerializable<IFile> {
     this.autoSave = !state;
   }
 
-  @action.bound updateTagsFromBackend(tags: ClientTag[]) {
+  @action.bound updateTagsFromBackend(tags: ClientTag[]): void {
     this.autoSave = false; // doesn't seem to help..
     this.tags.replace(tags);
     this.autoSave = true;

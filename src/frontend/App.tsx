@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
-import { runInAction, observable, action } from 'mobx';
+import { observable, action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
@@ -11,17 +10,16 @@ import SplashScreen from './containers/SplashScreen';
 import { Toaster as CustomToaster } from './components/Toaster';
 
 import AdvancedSearchDialog from './containers/AdvancedSearch';
-import ContentView from './containers/ContentView';
 import Outliner from './containers/Outliner';
-import SettingsWindow from './containers/Settings';
-import AppToolbar from './containers/AppToolbar';
+import Settings from './containers/Settings';
 
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
-import OutlinerSplitter from './containers/Outliner/OutlinerSplitter';
 import TagDnDContext from './contexts/TagDnDContext';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
+import { Split } from 'widgets';
+import Main from './containers/Main';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -36,6 +34,7 @@ window.addEventListener(
       event.target.dataset[DnDAttribute.Source] = 'false';
     }
   }),
+  true,
 );
 
 window.addEventListener(
@@ -46,6 +45,7 @@ window.addEventListener(
       event.target.dataset[DnDAttribute.Target] = 'false';
     }
   }),
+  true,
 );
 
 const App = observer(() => {
@@ -57,73 +57,18 @@ const App = observer(() => {
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
 
-  const handleGlobalShortcuts = useCallback(
-    (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).matches?.('input')) return;
-      const combo = getKeyCombo(e);
-      const matches = (c: string): boolean => {
-        return comboMatches(combo, parseKeyCombo(c));
-      };
-      runInAction(() => {
-        const { hotkeyMap } = uiStore;
-        let isMatch = true;
-        // UI
-        if (matches(hotkeyMap.toggleOutliner)) {
-          uiStore.toggleOutliner();
-        } else if (matches(hotkeyMap.toggleInspector)) {
-          uiStore.toggleInspector();
-        } else if (matches(hotkeyMap.openTagEditor)) {
-          // note: this should be a ContentView-specific toggle, but also in toolbar
-          // easiest to make it global for now
-          e.preventDefault();
-          uiStore.openToolbarTagPopover();
-          // Windows
-        } else if (matches(hotkeyMap.toggleSettings)) {
-          uiStore.toggleSettings();
-        } else if (matches(hotkeyMap.toggleHelpCenter)) {
-          uiStore.toggleHelpCenter();
-        } else if (matches(hotkeyMap.openPreviewWindow)) {
-          uiStore.openPreviewWindow();
-          e.preventDefault(); // prevent scrolling with space when opening the preview window
-          // Search
-        } else if (matches(hotkeyMap.search)) {
-          (document.querySelector('.searchbar input') as HTMLElement)?.focus();
-        } else if (matches(hotkeyMap.advancedSearch)) {
-          uiStore.toggleAdvancedSearch();
-          // View
-        } else if (matches(hotkeyMap.viewList)) {
-          uiStore.setMethodList();
-        } else if (matches(hotkeyMap.viewGrid)) {
-          uiStore.setMethodGrid();
-        } else if (matches(hotkeyMap.viewMasonryVertical)) {
-          uiStore.setMethodMasonryVertical();
-        } else if (matches(hotkeyMap.viewMasonryHorizontal)) {
-          uiStore.setMethodMasonryHorizontal();
-        } else if (matches(hotkeyMap.viewSlide)) {
-          uiStore.toggleSlideMode();
-        } else {
-          isMatch = false;
-        }
-
-        if (isMatch) {
-          e.preventDefault();
-        }
-      });
-    },
-    [uiStore],
-  );
+  const isOutlinerOpen = uiStore.isOutlinerOpen;
 
   useEffect(() => {
     setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
 
     // Add listener for global keyboard shortcuts
-    window.addEventListener('keydown', handleGlobalShortcuts);
+    window.addEventListener('keydown', uiStore.processGlobalShortCuts);
 
-    return () => window.removeEventListener('keydown', handleGlobalShortcuts);
-  }, [handleGlobalShortcuts]);
+    return () => window.removeEventListener('keydown', uiStore.processGlobalShortCuts);
+  }, [uiStore.processGlobalShortCuts]);
 
   // Automatically expand outliner when detecting a drag event
-  const isOutlinerOpen = uiStore.isOutlinerOpen;
   const openOutlinerOnDragEnter = useCallback(() => {
     if (!isOutlinerOpen) {
       uiStore.toggleOutliner();
@@ -134,30 +79,30 @@ const App = observer(() => {
     return <SplashScreen />;
   }
 
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
-
   return (
     <DropContextProvider onDragEnter={openOutlinerOnDragEnter}>
       <div
         data-os={PLATFORM}
         data-fullscreen={uiStore.isFullScreen}
         id="layout-container"
-        className={themeClass}
+        className={uiStore.theme}
       >
         {PLATFORM !== 'darwin' && !uiStore.isFullScreen && <WindowTitlebar />}
 
         <ErrorBoundary>
           <TagDnDContext.Provider value={TagDnDContextData}>
-            <Outliner />
-
-            <OutlinerSplitter />
-
-            <AppToolbar />
-
-            <ContentView />
+            <Split
+              id="window-splitter"
+              primary={<Outliner />}
+              secondary={<Main />}
+              axis="vertical"
+              splitPoint={uiStore.outlinerWidth}
+              isExpanded={isOutlinerOpen}
+              onMove={uiStore.moveOutlinerSplitter}
+            />
           </TagDnDContext.Provider>
 
-          <SettingsWindow />
+          <Settings />
 
           <HelpCenter />
 

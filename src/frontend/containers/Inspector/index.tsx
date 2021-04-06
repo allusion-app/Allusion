@@ -1,4 +1,4 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from '../../contexts/StoreContext';
@@ -8,21 +8,21 @@ import { IconButton, IconSet } from 'widgets';
 import { shell } from 'electron';
 
 const Inspector = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-  const first = uiStore.firstSelectedFile;
+  const { uiStore, fileStore } = useContext(StoreContext);
 
-  const path = first?.absolutePath || '';
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
-
-  if (first === undefined) {
+  if (uiStore.firstItem >= fileStore.fileList.length) {
     return (
-      <Panel isOpen={uiStore.isInspectorOpen}>
+      <aside id="inspector">
         <Placeholder />
-      </Panel>
+      </aside>
     );
   }
+
+  const first = fileStore.fileList[uiStore.firstItem];
+  const path = first.absolutePath;
+
   return (
-    <Panel isOpen={uiStore.isInspectorOpen}>
+    <aside id="inspector">
       <section>
         <header>
           <h2>Information</h2>
@@ -33,9 +33,13 @@ const Inspector = observer(() => {
         <header>
           <h2>Path to file</h2>
         </header>
-        <div className="file-path">
-          <small>{path}</small>
-          <IconButton icon={IconSet.FOLDER_CLOSE} onClick={handleOpenFileExplorer} text={path} />
+        <div className="input-file">
+          <span className="input input-file-value">{path}</span>
+          <IconButton
+            icon={IconSet.FOLDER_CLOSE}
+            onClick={() => shell.showItemInFolder(path)}
+            text="open in file explorer"
+          />
         </div>
       </section>
       <section>
@@ -44,19 +48,11 @@ const Inspector = observer(() => {
         </header>
         <FileTags />
       </section>
-    </Panel>
+    </aside>
   );
 });
 
 export default Inspector;
-
-const Panel = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
-  return (
-    <aside id="inspector" style={isOpen ? undefined : { width: '0' }}>
-      {isOpen ? children : null}
-    </aside>
-  );
-};
 
 const Placeholder = () => {
   return (
