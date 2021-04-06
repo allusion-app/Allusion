@@ -4,7 +4,7 @@ input[type='checkbox'] {
   width: 1.25rem;
   height: 1.25rem;
   vertical-align: bottom;
-  margin-right: 0.5rem;
+  margin-left: 0.5rem;
   transition: background-color 0.3s;
   border: 2px solid var(--text-color);
   border-radius: 12.25%;
@@ -47,7 +47,7 @@ input[type='checkbox'] {
 
 // Switch
 input[type='checkbox'][data-toggle='true'] {
-  width: 2.5rem;
+  min-width: 2.5rem;
   border-radius: 2.5rem;
 
   &::before {

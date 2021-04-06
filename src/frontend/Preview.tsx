@@ -12,7 +12,6 @@ import { useWorkerListener } from './ThumbnailGeneration';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
-  const themeClass = uiStore.theme === 'DARK' ? 'bp3-dark' : 'bp3-light';
 
   // Listen to responses of Web Workers
   useWorkerListener();
@@ -30,7 +29,7 @@ const PreviewApp = observer(() => {
   );
 
   return (
-    <div id="preview" className={themeClass}>
+    <div id="preview" className={uiStore.theme}>
       <ErrorBoundary>
         <Toolbar id="toolbar" label="Preview Command Bar" controls="content-view">
           <ToolbarButton

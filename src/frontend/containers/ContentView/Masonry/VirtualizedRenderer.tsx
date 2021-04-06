@@ -7,7 +7,7 @@ import StoreContext from 'src/frontend/contexts/StoreContext';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
-import { createSubmitCommand, ILayoutProps } from '../Gallery';
+import { createSubmitCommand, ILayoutProps } from '../LayoutSwitcher';
 import { MasonryCell } from '../GalleryItem';
 import { findViewportEdge, Layouter } from './layout-helpers';
 
@@ -33,7 +33,7 @@ const VirtualizedRenderer = observer(
     images,
     layout,
     className,
-    overscan,
+    overscan = 0,
     select,
     showContextMenu,
     lastSelectionIndex,
@@ -52,32 +52,40 @@ const VirtualizedRenderer = observer(
     );
     const numImages = images.length;
 
-    const determineRenderRegion = useCallback((numImages: number, overdraw: number) => {
-      if (!isMountedRef.current) return;
-      const viewport = wrapperRef.current;
-      const yOffset = viewport?.scrollTop || 0;
-      const viewportHeight = viewport?.clientHeight || 0;
+    const determineRenderRegion = useCallback(
+      (numImages: number, overdraw: number, setFirstItem = true) => {
+        if (!isMountedRef.current) return;
+        const viewport = wrapperRef.current;
+        const yOffset = viewport?.scrollTop || 0;
+        const viewportHeight = viewport?.clientHeight || 0;
 
-      const start = findViewportEdge(yOffset - overdraw, numImages, layout, false);
-      const end = findViewportEdge(yOffset + viewportHeight + overdraw, numImages, layout, true);
+        const firstImageIndex = findViewportEdge(yOffset, numImages, layout, false);
+        const start = findViewportEdge(yOffset - overdraw, numImages, layout, false);
+        const end = findViewportEdge(yOffset + viewportHeight + overdraw, numImages, layout, true);
 
-      setStartRenderIndex(start);
-      setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons (we don't want any exploding computers). Might be bad for people with 4k screens and small thumbnails...
+        setStartRenderIndex(start);
+        setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons (we don't want any exploding computers). Might be bad for people with 4k screens and small thumbnails...
 
-      uiStore.setFirstItem(start); // store the first item in the viewport in the UIStore so that switching between view modes retains the scroll position
+        // store the first item in the viewport in the UIStore so that switching between view modes retains the scroll position
+        if (setFirstItem) uiStore.setFirstItem(firstImageIndex);
+      },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+      [],
+    );
 
     const throttledRedetermine = useRef(
       debouncedThrottle(
-        (numImages: number, overdraw: number) => determineRenderRegion(numImages, overdraw),
+        (numImages: number, overdraw: number, setFirstItem?: boolean) =>
+          determineRenderRegion(numImages, overdraw, setFirstItem),
         100,
       ),
     );
 
     // Redetermine images in viewport when amount of images or the container dimensions change
     useLayoutEffect(() => {
-      throttledRedetermine.current(numImages, overscan || 0);
+      // setFirstItem = false: don't set the firstItem in view, so we can recover scroll position after layout updates,
+      // in the useLayoutEffect with layoutUpdateDate dependency
+      throttledRedetermine.current(numImages, overscan, false);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [numImages, containerWidth, containerHeight]);
 
@@ -105,18 +113,16 @@ const VirtualizedRenderer = observer(
       ? Math.min(lastSelectionIndex.current, numImages - 1)
       : undefined;
 
-    // Set the initial scroll position on initial render, for when coming from another view mode
+    // When layout updates, scroll to firstImage (e.g. resize or thumbnail size changed)
+    // This also sets the initial scroll position on initial render, for when coming from another view mode
     useLayoutEffect(() => {
-      if (lastSelIndex === undefined) {
-        // if an element is selected, we'll scroll to that anyways using the next useLayoutEffect
-        runInAction(() => {
-          scrollToIndex(uiStore.firstItem, 'start');
-        });
-      }
+      runInAction(() => {
+        scrollToIndex(uiStore.firstItem, 'start');
+      });
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [layoutUpdateDate]);
 
-    // Scroll to the first item in the view any time it is changed
+    // When selection changes, scroll to last selected image. Nice when using cursor keys for navigation
     const fileSelectionSize = uiStore.fileSelection.size;
     useLayoutEffect(() => {
       // But don't scroll when there are no files selected:
@@ -125,7 +131,7 @@ const VirtualizedRenderer = observer(
         scrollToIndex(lastSelIndex);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastSelIndex, layoutUpdateDate, fileSelectionSize]);
+    }, [lastSelIndex, fileSelectionSize]);
 
     return (
       // One div as the scrollable viewport

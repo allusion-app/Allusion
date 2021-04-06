@@ -1,5 +1,5 @@
 // Dark Theme
-.bp3-dark {
+.dark {
   --text-color: rgb(200, 200, 200);
   --text-color-alt: rgb(0, 0, 0);
   --text-color-muted: rgb(128, 128, 128);
@@ -25,7 +25,7 @@
 }
 
 // Light Theme
-.bp3-light {
+.light {
   --text-color: rgb(64, 64, 64);
   --text-color-alt: rgb(255, 255, 255);
   --text-color-muted: rgb(128, 128, 128);
@@ -51,8 +51,8 @@
 }
 
 // All themes
-.bp3-dark,
-.bp3-light {
+.dark,
+.light {
   --accent-color-blue: rgb(51, 153, 255);
   --accent-color-red: rgb(250, 52, 37);
   --accent-color-yellow: rgb(255, 193, 47);
@@ -60,7 +60,4 @@
   --box-shadow: 0.125rem 0.25rem 1rem rgba(0, 0, 0, 0.125);
   color: var(--text-color);
   background: var(--background-color);
-
-  // FIXME: Design needs to be checked
-  --accent-color-blue-transp: rgba(51, 153, 255, 0.3);
 }

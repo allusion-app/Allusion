@@ -1,0 +1,29 @@
+.split {
+  display: flex;
+
+  > :first-child {
+    flex-shrink: 0;
+  }
+
+  [role='separator'] {
+    width: 0.25rem;
+    flex-shrink: 0;
+    flex-grow: 0;
+
+    &:hover {
+      background-color: var(--scrollbar-track-color);
+    }
+
+    &[aria-orientation='vertical'] {
+      cursor: w-resize;
+    }
+
+    &[aria-orientation='horizontal'] {
+      cursor: s-resize;
+    }
+  }
+
+  > :last-child {
+    flex-grow: 1;
+  }
+}

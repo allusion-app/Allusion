@@ -1,8 +1,5 @@
 ///////////////////////////////// Splash Screen /////////////////////////////////
 #splash-screen {
-  width: 100vw;
-  height: 100vh;
-
   // The content that should be on top must a child element.
   > * {
     z-index: 2;

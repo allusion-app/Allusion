@@ -9,24 +9,14 @@ const Outliner = () => {
   const { uiStore } = useContext(StoreContext);
 
   return (
-    <Panel isOpen={uiStore.isOutlinerOpen}>
+    <nav id="outliner" aria-expanded={uiStore.isOutlinerOpen}>
       <div id="outliner-content">
         <LocationsPanel />
         <TagsPanel />
       </div>
       <OutlinerActionBar />
-    </Panel>
+    </nav>
   );
 };
 
 export default observer(Outliner);
-
-const Panel = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
-  return (
-    <nav id="outliner" className={isOpen ? '' : 'outliner-is-closed'}>
-      {/* Note: We could hide children for performance, but the expand/collapse state is lost, so keeping it around for now */}
-      {/* {isOpen ? children : null} */}
-      {children}
-    </nav>
-  );
-};

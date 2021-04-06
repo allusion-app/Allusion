@@ -1,8 +1,9 @@
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
-import { Button, ButtonGroup, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
+import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
+import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
 import StoreContext from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
@@ -14,51 +15,30 @@ import Tabs, { TabItem } from './Tabs';
 
 const Appearance = observer(() => {
   const { uiStore } = useContext(StoreContext);
-  const [localZoomFactor, setLocalZoomFactor] = useState(RendererMessenger.getZoomFactor());
-
-  const incrementZoomFactor = useCallback(() => {
-    RendererMessenger.setZoomFactor(localZoomFactor + 0.1);
-    setLocalZoomFactor(localZoomFactor + 0.1);
-  }, [localZoomFactor]);
-  const decrementZoomFactor = useCallback(() => {
-    RendererMessenger.setZoomFactor(localZoomFactor - 0.1);
-    setLocalZoomFactor(localZoomFactor - 0.1);
-  }, [localZoomFactor]);
-  const resetZoomFactor = useCallback(() => {
-    RendererMessenger.setZoomFactor(1);
-    setLocalZoomFactor(1);
-  }, []);
 
   return (
     <>
       <h2>Appearance</h2>
 
       <h3>Interface</h3>
-      <fieldset>
-        <Toggle
-          checked={uiStore.theme === 'DARK'}
-          onChange={uiStore.toggleTheme}
-          label="Dark theme"
-        />
-        <Toggle
-          defaultChecked={uiStore.isFullScreen}
-          onChange={toggleFullScreen}
-          label="Full screen"
-        />
-
-        <br />
-
-        <div className="scale-widget">
-          <ButtonGroup>
-            <Button onClick={decrementZoomFactor} text="-" styling="outlined" />
-            <Button onClick={incrementZoomFactor} text="+" styling="outlined" />
-            <Button onClick={resetZoomFactor} icon={IconSet.RELOAD} text="" styling="outlined" />
-          </ButtonGroup>
-          <span>Scale: {Math.round(100 * localZoomFactor)}%</span>
-        </div>
-      </fieldset>
+      <Toggle
+        checked={uiStore.theme === 'dark'}
+        onChange={uiStore.toggleTheme}
+        label="Dark theme"
+      />
+      <Toggle
+        defaultChecked={uiStore.isFullScreen}
+        onChange={toggleFullScreen}
+        label="Full screen"
+      />
+      <Zoom />
 
       <h3>Thumbnail</h3>
+      <Toggle
+        defaultChecked={uiStore.isThumbnailTagOverlayEnabled}
+        onChange={uiStore.toggleThumbnailTagOverlay}
+        label="Show assigned tags"
+      />
       <div className="settings-thumbnail">
         <RadioGroup name="Size">
           <Radio
@@ -94,15 +74,37 @@ const Appearance = observer(() => {
             onChange={uiStore.setThumbnailLetterbox}
           />
         </RadioGroup>
-        <Toggle
-          defaultChecked={uiStore.isThumbnailTagOverlayEnabled}
-          onChange={uiStore.toggleThumbnailTagOverlay}
-          label="Show assigned tags"
-        />
       </div>
     </>
   );
 });
+
+const Zoom = () => {
+  const [localZoomFactor, setLocalZoomFactor] = useState(RendererMessenger.getZoomFactor());
+
+  useEffect(() => {
+    RendererMessenger.setZoomFactor(localZoomFactor);
+  }, [localZoomFactor]);
+
+  return (
+    <div className="zoom-widget">
+      Zoom
+      <span className="zoom-input">
+        <IconButton
+          icon={<span>-</span>}
+          onClick={() => setLocalZoomFactor(localZoomFactor - 0.1)}
+          text="zoom out"
+        />
+        <span>{Math.round(100 * localZoomFactor)}%</span>
+        <IconButton
+          icon={<span>+</span>}
+          onClick={() => setLocalZoomFactor(localZoomFactor + 0.1)}
+          text="zoom in"
+        />
+      </span>
+    </div>
+  );
+};
 
 const ImportExport = observer(() => {
   const { fileStore } = useContext(StoreContext);
@@ -112,66 +114,62 @@ const ImportExport = observer(() => {
       <h2>Import/Export</h2>
 
       <h3>Metadata</h3>
-      <p>
-        {IconSet.INFO} This option is useful for importing/exporting tags from/to other software, or
-        when you use Allusion for images on multiple devices synchronized using a service such as
-        Dropbox or Google Drive.
-      </p>
-      <fieldset>
-        <label>
-          <select
-            style={{ width: '40px', marginRight: '8px' }}
-            value={fileStore.exifTool.hierarchicalSeparator}
-            onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
-          >
-            <option value="|">&apos;|&apos;</option>
-            <option value="/">&apos;/&apos;</option>
-            <option value="\">&apos;\&apos;</option>
-            <option value=":">&apos;:&apos;</option>
-          </select>
-          Hierarchical separator
-        </label>
-        {/* TODO: adobe bridge has option to read with multiple separators */}
+      <Callout icon={IconSet.INFO}>
+        This option is useful for importing/exporting tags from/to other software, or when you use
+        Allusion for images on multiple devices synchronized using a service such as Dropbox or
+        Google Drive.
+      </Callout>
 
-        <ButtonGroup>
-          <Button
-            text="Import tags from file metadata"
-            onClick={fileStore.readTagsFromFiles}
-            styling="outlined"
-          />
-          <Button
-            text="Write tags to file metadata"
-            onClick={() => setConfirmingExport(true)}
-            styling="outlined"
-          />
-          <Alert
-            open={isConfirmingExport}
-            title="Are you sure you want to write Allusion's tags to your image files?"
-            information="This will overwrite any existing tags ('keywords') on those files, so it is recommended you have imported them first"
-            primaryButtonText="Export"
-            closeButtonText="Cancel"
-            // defaultButton={}
-            onClick={(button) => {
-              if (button === DialogButton.PrimaryButton) {
-                fileStore.writeTagsToFiles();
-              }
-              setConfirmingExport(false);
-            }}
-          />
-        </ButtonGroup>
-      </fieldset>
+      <label id="hierarchical-separator">
+        Hierarchical separator
+        <select
+          value={fileStore.exifTool.hierarchicalSeparator}
+          onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
+        >
+          <option value="|">|</option>
+          <option value="/">/</option>
+          <option value="\">\</option>
+          <option value=":">:</option>
+        </select>
+      </label>
+      {/* TODO: adobe bridge has option to read with multiple separators */}
+
+      <ButtonGroup>
+        <Button
+          text="Import tags from file metadata"
+          onClick={fileStore.readTagsFromFiles}
+          styling="outlined"
+        />
+        <Button
+          text="Write tags to file metadata"
+          onClick={() => setConfirmingExport(true)}
+          styling="outlined"
+        />
+        <Alert
+          open={isConfirmingExport}
+          title="Are you sure you want to write Allusion's tags to your image files?"
+          information="This will overwrite any existing tags ('keywords') on those files, so it is recommended you have imported them first"
+          primaryButtonText="Export"
+          closeButtonText="Cancel"
+          // defaultButton={}
+          onClick={(button) => {
+            if (button === DialogButton.PrimaryButton) {
+              fileStore.writeTagsToFiles();
+            }
+            setConfirmingExport(false);
+          }}
+        />
+      </ButtonGroup>
 
       {/* TODO: already implemented in other branch */}
       {/* <h3>Backup</h3>
-      <fieldset>
         <Button text="Export database..." onClick={console.log} icon={IconSet.OPEN_EXTERNAL} />
         <Button text="Import database..." onClick={console.log} icon={IconSet.IMPORT} />
         <Button
           text="Full export (including images)..."
           onClick={console.log}
           icon={IconSet.MEDIA}
-        />
-      </fieldset> */}
+        /> */}
     </>
   );
 });
@@ -179,19 +177,17 @@ const ImportExport = observer(() => {
 const BackgroundProcesses = () => (
   <>
     <h2>Options</h2>
-    <fieldset>
-      <Toggle
-        defaultChecked={RendererMessenger.isRunningInBackground()}
-        onChange={toggleRunInBackground}
-        label="Run in background"
-      />
+    <Toggle
+      defaultChecked={RendererMessenger.isRunningInBackground()}
+      onChange={toggleRunInBackground}
+      label="Run in background"
+    />
 
-      <Toggle
-        defaultChecked={RendererMessenger.isClipServerEnabled()}
-        onChange={toggleClipServer}
-        label="Browser extension support"
-      />
-    </fieldset>
+    <Toggle
+      defaultChecked={RendererMessenger.isClipServerEnabled()}
+      onChange={toggleClipServer}
+      label="Browser extension support"
+    />
   </>
 );
 
@@ -241,17 +237,21 @@ const Advanced = observer(() => {
   return (
     <>
       <h2>Storage</h2>
-      <div>
-        {/* Todo: Add support to toggle this */}
-        {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
-        <fieldset>
-          <legend>Thumbnail Directory</legend>
-          <div className="input-file">
-            <span className="input input-file-value">{thumbnailDirectory}</span>
-            <Button styling="filled" text="Browse" onClick={browseThumbnailDirectory} />
-          </div>
-        </fieldset>
-      </div>
+
+      {/* Todo: Add support to toggle this */}
+      {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
+      <fieldset>
+        <legend>Thumbnail Directory</legend>
+        <div className="input-file">
+          <span className="input input-file-value">{thumbnailDirectory}</span>
+          <Button
+            styling="minimal"
+            icon={IconSet.FOLDER_CLOSE}
+            text="Browse"
+            onClick={browseThumbnailDirectory}
+          />
+        </div>
+      </fieldset>
 
       <h2>Development</h2>
       <ButtonGroup>
@@ -291,14 +291,6 @@ const SETTINGS_TABS: TabItem[] = [
 ];
 
 const Settings = () => {
-  return (
-    <div id="settings">
-      <Tabs items={SETTINGS_TABS} />
-    </div>
-  );
-};
-
-const SettingsWindow = () => {
   const { uiStore } = useContext(StoreContext);
 
   if (!uiStore.isSettingsOpen) {
@@ -312,14 +304,14 @@ const SettingsWindow = () => {
       closeOnEscape
       additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
     >
-      <div className={uiStore.theme === 'LIGHT' ? 'bp3-light' : 'bp3-dark'}>
-        <Settings />
+      <div id="settings" className={uiStore.theme}>
+        <Tabs items={SETTINGS_TABS} />
       </div>
     </PopupWindow>
   );
 };
 
-export default observer(SettingsWindow);
+export default observer(Settings);
 
 const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
   const isFullScreen = e.currentTarget.checked;

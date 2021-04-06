@@ -67,6 +67,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly dateCreated: Date;
   readonly name: string;
   readonly extension: string;
+  /** Same as "name", but without extension */
   readonly filename: string;
 
   @observable thumbnailPath: string = '';
@@ -142,7 +143,7 @@ export class ClientFile implements ISerializable<IFile> {
     this.autoSave = !state;
   }
 
-  @action.bound updateTagsFromBackend(tags: ClientTag[]) {
+  @action.bound updateTagsFromBackend(tags: ClientTag[]): void {
     this.autoSave = false; // doesn't seem to help..
     this.tags.replace(tags);
     this.autoSave = true;

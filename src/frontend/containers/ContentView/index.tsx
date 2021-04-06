@@ -1,7 +1,5 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
 
 import StoreContext from '../../contexts/StoreContext';
 
@@ -11,7 +9,7 @@ import { IconSet } from 'widgets';
 import { ContextMenu, MenuSubItem, Menu, MenuChild, MenuDivider } from 'widgets/menus';
 
 import Placeholder from './Placeholder';
-import Layout from './Gallery';
+import Layout from './LayoutSwitcher';
 
 import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
@@ -22,37 +20,19 @@ const ContentView = observer(() => {
     fileStore: { fileList },
   } = useContext(StoreContext);
 
-  const handleShortcuts = useCallback(
-    (e: React.KeyboardEvent) => {
-      if ((e.target as HTMLElement).matches?.('input')) return;
-      const combo = getKeyCombo(e.nativeEvent);
-      const matches = (c: string): boolean => {
-        return comboMatches(combo, parseKeyCombo(c));
-      };
-      runInAction(() => {
-        const { hotkeyMap } = uiStore;
-        if (matches(hotkeyMap.selectAll)) {
-          uiStore.selectAllFiles();
-        } else if (matches(hotkeyMap.deselectAll)) {
-          uiStore.clearFileSelection();
-        }
-      });
-    },
-    [uiStore],
-  );
-
   return (
-    <main
+    <div
       id="content-view"
       className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
-      onKeyDown={handleShortcuts}
+      // Clear selection when clicking on the background, unless in slide mode: always needs an active image
+      onClickCapture={!uiStore.isSlideMode ? uiStore.clearFileSelection : undefined}
     >
-      {fileList.length === 0 ? <Placeholder /> : <Gallery />}
-    </main>
+      {fileList.length === 0 ? <Placeholder /> : <Content />}
+    </div>
   );
 });
 
-const Gallery = observer(() => {
+const Content = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
   const dndData = useContext(TagDnDContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
@@ -94,9 +74,7 @@ const Gallery = observer(() => {
       ref={container}
       id="gallery-content"
       className={isDroppingTagOnSelection ? 'selected-file-dropping' : undefined}
-      // Clear selection when clicking on the background, unless in slide mode: always needs an active image
-      onClick={!uiStore.isSlideMode ? uiStore.clearFileSelection : undefined}
-      onContextMenu={handleContextMenu} // Background clicks
+      onContextMenu={handleContextMenu}
     >
       <Layout
         contentRect={contentRect}
@@ -129,6 +107,6 @@ const Gallery = observer(() => {
   );
 });
 
-Gallery.displayName = 'Gallery';
+Content.displayName = 'Gallery';
 
 export default ContentView;

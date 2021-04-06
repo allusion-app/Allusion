@@ -114,7 +114,6 @@ function createWindow() {
       // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
       const additionalOptions: Electron.BrowserWindowConstructorOptions = {
         // modal: true, // this apparently doesn't show a close button for MacOS
-        alwaysOnTop: true, // poor man's modal
         parent: mainWindow!,
         width: 680,
         height: 480,

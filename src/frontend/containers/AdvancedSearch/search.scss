@@ -4,6 +4,7 @@
   }
   .criteria {
     display: flex;
+    align-items: center;
 
     > * {
       flex-grow: 1;
@@ -15,38 +16,14 @@
 
     > .btn {
       flex-grow: 0;
-      line-height: 0;
-      font-size: 1rem;
-      max-width: 2rem;
-
-      &:disabled {
-        color: var(--text-color-muted);
-      }
+      height: 1.5rem;
+      width: 1.5rem;
     }
 
     .multiautocomplete-input {
       input {
         width: 0; // for it to align with other criteria types
       }
-    }
-  }
-  select {
-    background: var(--input-color);
-    color: var(--text-color);
-    border: 0.0625rem solid var(--border-color);
-    outline: none;
-    border-radius: 0.25rem;
-    margin: 0.125rem 0.25rem;
-    cursor: text;
-    line-height: 1.5rem;
-
-    &:hover {
-      background: var(--input-color-hover);
-    }
-
-    &:focus-within {
-      background: var(--input-color);
-      box-shadow: 0 0 0 0.125rem var(--accent-color-blue);
     }
   }
 }

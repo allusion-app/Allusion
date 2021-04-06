@@ -97,13 +97,16 @@
 */
 .input-file {
   display: flex;
+  align-items: center;
 
   .input-file-value {
-    margin: 0;
     margin-right: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    font-family: 'Courier New', Courier, monospace;
+    padding: 0 0.5rem;
     flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8125rem;
 
     &:hover {
       background: var(--input-color-hover);

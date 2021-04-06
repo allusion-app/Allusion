@@ -1,24 +1,33 @@
 #settings {
   background-color: var(--background-color);
 
-  // For the hotkeys tip
-  .bp3-key-combo {
-    display: inline;
-  }
-
   td {
     height: 2em;
     vertical-align: top;
   }
 
-  .scale-widget {
-    display: flex;
-    justify-content: start;
-
-    > span {
-      padding: 8px;
-    }
+  .toggle,
+  #hierarchical-separator {
+    justify-content: space-between;
   }
+
+  #hierarchical-separator select {
+    min-width: 2.5rem;
+  }
+}
+
+.zoom-widget {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Zoom factor text
+.zoom-input > span {
+  min-width: 5ch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .settings-thumbnail {
@@ -65,5 +74,5 @@
 [role='tabpanel'] {
   flex-grow: 1;
   overflow: auto;
-  padding: 0.5rem 1.25rem;
+  padding: 0.5rem 2rem 0.5rem 1.25rem;
 }
