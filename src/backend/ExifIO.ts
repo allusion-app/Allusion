@@ -46,15 +46,19 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
 import path from 'path';
-import { isDev } from '../config';
+import { isDev } from 'src/config';
 
-// Load the native exiftool executable. In production mode, it's one extra folder up, since it starts in the asar archive
-const exiftoolFolderAndFile = process.platform === 'win32' ? 'exiftool.exe' : 'exiftool.pl';
-const exiftoolPath = path.resolve(
-  __dirname,
-  (isDev() ? '' : '../') + '../resources/exiftool',
-  exiftoolFolderAndFile,
-);
+// The exif binary is placed using ElectronBuilder's extraResources: https://www.electron.build/configuration/contents#extraresources
+// there also is process.resourcesPath but that doesn't work in dev mode
+const resourcesPath =
+  (isDev() ? '../' : '../../') +
+  (process.platform === 'darwin' ? 'Contents/Resources' : 'resources') +
+  '/exiftool';
+// current problem: exiftool.pl on linux is not executable in the path where it's stored. If process.resourcesPath doesn't work,
+// try out https://www.electron.build/configuration/contents#extrafiles
+
+const exiftoolRunnable = process.platform === 'win32' ? 'exiftool.exe' : 'exiftool.pl';
+const exiftoolPath = path.resolve(__dirname, resourcesPath, exiftoolRunnable);
 
 console.log('Exif tool path: ', exiftoolPath);
 const ep = new exiftool.ExiftoolProcess(exiftoolPath);

@@ -2,5 +2,9 @@
   "editor.codeActionsOnSave": {
     "source.fixAll": true
   },
-  "prettier.configPath": ".prettierrc.json"
+  "prettier.configPath": ".prettierrc.json",
+  "search.exclude": {
+    "resources/exiftool/exiftool.pl": true,
+    "resources/exiftool/lib/**/*": true
+  }
 }
