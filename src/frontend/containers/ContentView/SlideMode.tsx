@@ -1,6 +1,6 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { encodeFilePath } from 'src/frontend/utils';
@@ -24,16 +24,8 @@ const SlideMode = observer((props: ISlideMode) => {
   const inspectorWidth = uiStore.inspectorWidth;
   const contentWidth = contentRect.width - (isInspectorOpen ? inspectorWidth : 0);
   const contentHeight = contentRect.height;
-  const file = fileStore.fileList[uiStore.firstItem];
 
-  const slideView = file.isBroken ? (
-    <MissingImageFallback
-      style={{
-        width: `${contentWidth}px`,
-        height: `${contentHeight}px`,
-      }}
-    />
-  ) : (
+  const slideView = (
     <SlideView
       uiStore={uiStore}
       fileStore={fileStore}
@@ -180,7 +172,8 @@ const ZoomableImage = ({
   nextImage,
   onContextMenu,
 }: IZoomableImageProps) => {
-  // Todo: Same context menu as GalleryItem
+  const [loadError, setLoadError] = useState<any>();
+  useEffect(() => setLoadError(undefined), [src]);
   return (
     <div
       id="zoomable-image"
@@ -190,16 +183,25 @@ const ZoomableImage = ({
       }}
       onContextMenu={onContextMenu}
     >
-      {/* https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
-      <PinchZoomPan
-        position="center"
-        zoomButtons={false}
-        doubleTapBehavior="zoom"
-        // Force a re-render when the image changes, in order to reset the zoom level
-        key={src}
-      >
-        <img src={encodeFilePath(src)} alt="Could not load your image!" />
-      </PinchZoomPan>
+      {loadError ? (
+        <MissingImageFallback
+          style={{
+            width: `${width}px`,
+            height: `${height}px`,
+          }}
+        />
+      ) : (
+        // https://github.com/bradstiff/react-responsive-pinch-zoom-pan
+        <PinchZoomPan
+          position="center"
+          zoomButtons={false}
+          doubleTapBehavior="zoom"
+          // Force a re-render when the image changes, in order to reset the zoom level
+          key={encodeFilePath(src)}
+        >
+          <img src={src} alt={`Image could not be loaded: ${src}`} onError={setLoadError} />
+        </PinchZoomPan>
+      )}
 
       {/* Overlay buttons/icons */}
       {prevImage && (
