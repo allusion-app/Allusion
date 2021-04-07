@@ -1,4 +1,4 @@
-import { remote } from 'electron';
+import { shell } from 'electron';
 import fse from 'fs-extra';
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
@@ -11,7 +11,6 @@ type CommonMetadata = {
   imported: string;
   created: string;
   modified: string;
-  lastOpened: string;
 };
 
 const commonMetadataLabels: Record<keyof CommonMetadata, string> = {
@@ -21,7 +20,6 @@ const commonMetadataLabels: Record<keyof CommonMetadata, string> = {
   // TODO: modified in allusion vs modified in system?
   created: 'Created',
   modified: 'Modified',
-  lastOpened: 'Last Opened',
 };
 
 // Details: https://www.vcode.no/web/resource.nsf/ii2lnug/642.htm
@@ -40,7 +38,7 @@ const exifFields: Record<string, { label: string; format?: (val: string) => Reac
           rel="noreferrer"
           onClick={(e) => {
             e.preventDefault();
-            remote.shell.openExternal(url);
+            shell.openExternal(url);
           }}
         >
           {url}
@@ -76,7 +74,6 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
     imported: formatDateTime(file.dateAdded),
     created: formatDateTime(file.dateCreated),
     modified: '...',
-    lastOpened: '...',
   });
 
   const [exifData, setExifData] = useState<{ [key: string]: ReactNode }>({});
@@ -85,6 +82,15 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
     if (suspended) {
       return;
     }
+    // Reset file stats when file changes
+    setFileStats({
+      name: file.name,
+      dimensions: `${file.width || '?'} x ${file.height || '?'}`,
+      imported: formatDateTime(file.dateAdded),
+      created: formatDateTime(file.dateCreated),
+      modified: '...',
+    });
+    // Then look up extra stats
     const filePath = file.absolutePath;
     let isMounted = true;
     fse
@@ -94,7 +100,6 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
           setFileStats((prev) => ({
             ...prev,
             modified: formatDateTime(stats.ctime),
-            lastOpened: formatDateTime(stats.atime),
           }));
         }
       })
@@ -102,10 +107,7 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
         if (isMounted) {
           setFileStats((s) => ({
             ...s,
-            created: '...',
             modified: '...',
-            lastOpened: '...',
-            dimensions: '...',
           }));
         }
       });
