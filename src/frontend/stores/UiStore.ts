@@ -1,4 +1,4 @@
-import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
 import path from 'path';

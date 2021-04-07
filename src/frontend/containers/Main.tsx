@@ -1,4 +1,4 @@
-import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { action, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useEffect, useRef } from 'react';

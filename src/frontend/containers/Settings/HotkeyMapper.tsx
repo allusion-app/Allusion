@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import { comboMatches, getKeyComboString, parseKeyCombo } from '@blueprintjs/core';
+import { comboMatches, getKeyComboString, parseKeyCombo } from '../../hotkeyParser';
 
 import StoreContext from '../../contexts/StoreContext';
 import { defaultHotkeyMap, IHotkeyMap } from '../../stores/UiStore';

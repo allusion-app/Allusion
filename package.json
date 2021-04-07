@@ -105,7 +105,6 @@
     "worker-loader": "^3.0.0"
   },
   "dependencies": {
-    "@blueprintjs/core": "^3.32.1",
     "@popperjs/core": "^2.5.4",
     "chokidar": "^3.5.1",
     "comlink": "^4.3.0",

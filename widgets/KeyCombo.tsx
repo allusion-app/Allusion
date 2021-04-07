@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { capitalize } from '../src/frontend/utils';
+import { capitalize, IS_MAC } from '../src/frontend/utils';
 
-const MOD = process.platform === 'darwin' ? 'Cmd' : 'Ctrl';
+const MOD = IS_MAC ? 'Cmd' : 'Ctrl';
 
 export const KeyCombo = ({ combo }: { combo: string }) => {
   const platformCombo = useMemo(() => keyComboToString(combo), [combo]);
