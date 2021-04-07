@@ -51,22 +51,22 @@ const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
 export default PopupWindow;
 
 function copyStyles(sourceDoc: Document, targetDoc: Document) {
-  Array.from(sourceDoc.styleSheets).forEach((styleSheet) => {
-    const cssStylesheet = styleSheet as CSSStyleSheet;
-    if (cssStylesheet.cssRules) {
-      const newStyleEl = sourceDoc.createElement('style');
-
-      Array.from(cssStylesheet.cssRules).forEach((cssRule) => {
-        newStyleEl.appendChild(sourceDoc.createTextNode(cssRule.cssText));
-      });
-
-      targetDoc.head.appendChild(newStyleEl);
-    } else if (styleSheet.href) {
-      const newLinkEl = sourceDoc.createElement('link');
-
-      newLinkEl.rel = 'stylesheet';
-      newLinkEl.href = styleSheet.href;
-      targetDoc.head.appendChild(newLinkEl);
+  for (let i = 0; i < sourceDoc.styleSheets.length; i++) {
+    const styleSheet = sourceDoc.styleSheets[i];
+    // production mode bundles CSS in one file
+    if (styleSheet.href) {
+      const linkElement = targetDoc.createElement('link');
+      linkElement.rel = 'stylesheet';
+      linkElement.href = styleSheet.href;
+      targetDoc.head.appendChild(linkElement);
+      // development mode injects style elements for CSS
+    } else if (styleSheet.cssRules) {
+      const styleElement = targetDoc.createElement('style');
+      for (let i = 0; i < styleSheet.cssRules.length; i++) {
+        const cssRule = styleSheet.cssRules[i];
+        styleElement.appendChild(targetDoc.createTextNode(cssRule.cssText));
+      }
+      targetDoc.head.appendChild(styleElement);
     }
-  });
+  }
 }
