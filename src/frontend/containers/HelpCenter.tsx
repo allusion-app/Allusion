@@ -1,27 +1,199 @@
-import React, { ReactNode, useContext, useEffect, useRef } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { IPanelProps, PanelStack } from '@blueprintjs/core';
-
-import StoreContext from '../contexts/StoreContext';
-
-import { Button, ButtonGroup, IconButton, IconSet } from 'widgets';
-import { Dialog } from 'widgets/popovers';
-
+import { Button, ButtonGroup, IconSet, Split } from 'widgets';
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
+import { clamp } from '../utils';
+import StoreContext from '../contexts/StoreContext';
+import PopupWindow from '../components/PopupWindow';
 
-// TODO: Put images in /resources/helpcenter/ or somewhere like that
+const HelpCenter = observer(() => {
+  const { uiStore } = useContext(StoreContext);
 
-interface ISection {
-  title: string;
-  icon: ReactNode;
-  subSections: { title: string; content: ReactNode }[];
+  if (!uiStore.isHelpCenterOpen) {
+    return null;
+  }
+  return (
+    <PopupWindow
+      onClose={uiStore.closeHelpCenter}
+      windowName="help-center"
+      closeOnEscape
+      additionalCloseKey={uiStore.hotkeyMap.toggleHelpCenter}
+    >
+      <Documentation id="help-center" className="light" initPages={PAGE_DATA} />
+    </PopupWindow>
+  );
+});
+
+export default HelpCenter;
+
+interface IDocumentation {
+  id?: string;
+  className?: string;
+  initPages: () => IPageData[];
 }
 
-const sections: ISection[] = [
+const Documentation = ({ id, className, initPages }: IDocumentation) => {
+  const [pageIndex, setPageIndex] = useState(0);
+  const [sectionIndex, setSectionIndex] = useState(0);
+  const data = useRef(initPages());
+
+  const openPage = useCallback((page: number, section: number) => {
+    setPageIndex(page);
+    setSectionIndex(section);
+  }, []);
+
+  const [isIndexOpen, setIndexIsOpen] = useState(true);
+  const toggleIndex = useCallback(() => setIndexIsOpen((value) => !value), []);
+  const [splitPoint, setSplitPoint] = useState(224); // 14rem
+  const handleMove = useCallback(
+    (x: number, width: number) => {
+      const minWidth = 224;
+      if (isIndexOpen) {
+        const w = clamp(x, minWidth, width * 0.75);
+        setSplitPoint(w);
+
+        if (x < minWidth * 0.75) {
+          setIndexIsOpen(false);
+        }
+      } else if (x >= minWidth) {
+        setIndexIsOpen(true);
+      }
+    },
+    [isIndexOpen],
+  );
+
+  return (
+    <div id={id} className={className}>
+      <Split
+        primary={<Overview pages={data.current} openPage={openPage} />}
+        secondary={
+          <Page
+            isIndexOpen={isIndexOpen}
+            toggleIndex={toggleIndex}
+            pages={data.current}
+            openPage={openPage}
+            pageIndex={pageIndex}
+            sectionIndex={sectionIndex}
+          />
+        }
+        axis="vertical"
+        splitPoint={splitPoint}
+        isExpanded={isIndexOpen}
+        onMove={handleMove}
+      />
+    </div>
+  );
+};
+
+interface IOverview {
+  pages: IPageData[];
+  openPage: (page: number, section: number) => void;
+}
+
+const Overview = ({ pages, openPage }: IOverview) => {
+  return (
+    <nav className="overview">
+      {pages.map((page, pageIndex) => (
+        <details open key={page.title}>
+          <summary>
+            {page.icon}
+            {page.title}
+          </summary>
+          <ul>
+            {page.sections.map((section, sectionIndex) => (
+              <li key={section.title}>
+                <a onClick={() => openPage(pageIndex, sectionIndex)}>{section.title}</a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </nav>
+  );
+};
+
+interface IPage {
+  isIndexOpen: boolean;
+  toggleIndex: () => void;
+  pages: IPageData[];
+  pageIndex: number;
+  sectionIndex: number;
+  openPage: (page: number, section: number) => void;
+}
+
+const Page = (props: IPage) => {
+  const { isIndexOpen, toggleIndex, pages, pageIndex, sectionIndex, openPage } = props;
+  const page = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (page.current !== null) {
+      const section = page.current.children[sectionIndex];
+      section.scrollIntoView();
+    }
+  }, [sectionIndex]);
+
+  const buttons = [];
+  if (pageIndex > 0) {
+    buttons.push(
+      <Button
+        key="previous"
+        styling="outlined"
+        onClick={() => openPage(pageIndex - 1, 0)}
+        text="Previous"
+      />,
+    );
+  }
+  if (pageIndex < pages.length - 1) {
+    buttons.push(
+      <Button
+        key="next"
+        styling="outlined"
+        onClick={() => openPage(pageIndex + 1, 0)}
+        text="Next"
+      />,
+    );
+  }
+
+  return (
+    <div className="page">
+      <div className="page-toolbar">
+        <button
+          autoFocus
+          className="btn toolbar-button"
+          aria-pressed={isIndexOpen}
+          onClick={toggleIndex}
+          tabIndex={0}
+        >
+          <span className="btn-content-icon" aria-hidden="true">
+            {isIndexOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
+          </span>
+          <span className="btn-content-text hidden">Toggle Index</span>
+        </button>
+      </div>
+      <article className="page-content" ref={page}>
+        {pages[pageIndex].sections.map((section) => (
+          <section key={section.title}>
+            <h2>{section.title}</h2>
+            {section.content}
+          </section>
+        ))}
+      </article>
+      <ButtonGroup>{buttons}</ButtonGroup>
+    </div>
+  );
+};
+
+interface IPageData {
+  title: string;
+  icon: React.ReactNode;
+  sections: { title: string; content: React.ReactNode }[];
+}
+
+const PAGE_DATA: () => IPageData[] = () => [
   {
     title: 'About Allusion',
     icon: IconSet.LOGO,
-    subSections: [
+    sections: [
       {
         title: 'What is Allusion',
         content: (
@@ -51,7 +223,7 @@ const sections: ISection[] = [
   {
     title: 'Library Setup',
     icon: IconSet.META_INFO,
-    subSections: [
+    sections: [
       {
         title: 'Getting Started',
         content: (
@@ -71,21 +243,21 @@ const sections: ISection[] = [
           <>
             <p>
               {`In Allusion, the primary way of adding images to your library is the use of
-              "Locations". A location in this context is a link to a folder on your computer. This
-              means that all images in that folder as well as any subfolders will be automatically
-              loaded once it is added to your list of locations. The benefit of this system is that
-              you can have full control over where your data is stored, while not having to
-              tediously import images manually from various places. To add more images, simply place
-              them into the linked folder, and they will show up in Allusion. Similarly, by removing
-              images from a linked folder, the images will be removed from your library. In
-              Allusion, such a linked folder is called a location.`}
+                "Locations". A location in this context is a link to a folder on your computer. This
+                means that all images in that folder as well as any subfolders will be automatically
+                loaded once it is added to your list of locations. The benefit of this system is that
+                you can have full control over where your data is stored, while not having to
+                tediously import images manually from various places. To add more images, simply place
+                them into the linked folder, and they will show up in Allusion. Similarly, by removing
+                images from a linked folder, the images will be removed from your library. In
+                Allusion, such a linked folder is called a location.`}
             </p>
             <p>
               {`To add a new location, open the outliner and hover with your mouse over the location's
-              header. You will see a small plus icon to the right. Once you click the icon, go ahead
-              and browse the folder that contains images. Confirm your selection and select your
-              location preferences in the following popup. Once you confirm, your images will show
-              up in the content area.`}
+                header. You will see a small plus icon to the right. Once you click the icon, go ahead
+                and browse the folder that contains images. Confirm your selection and select your
+                location preferences in the following popup. Once you confirm, your images will show
+                up in the content area.`}
             </p>
             <p>
               To remove a location, open the outliner and right click on a location. A context menu
@@ -117,7 +289,7 @@ const sections: ISection[] = [
   {
     title: 'Tagging',
     icon: IconSet.TAG,
-    subSections: [
+    sections: [
       {
         title: 'Tag Setup',
         content: (
@@ -170,7 +342,7 @@ const sections: ISection[] = [
   {
     title: 'Search',
     icon: IconSet.SEARCH,
-    subSections: [
+    sections: [
       {
         title: 'Quick Search',
         content: (
@@ -196,13 +368,13 @@ const sections: ISection[] = [
           <>
             <p>
               {`The advanced search can be opened by pressing on the icon on the far left side of the
-              quick search bar. In the popup you are able to create as many search criteria as you
-              wish by listing them up. Each row in the interface represents one criteria and
-              consists of three input fields. First select the type of information you want to look
-              for. You can search for tags, collections but also file size, file format, etc. You
-              can then select an operator such as "equals", "greater than", "includes" etc. Finally
-              you can enter a value which will be searched for. Adding multiple criteria will again
-              help you narrow down a search result.`}
+                quick search bar. In the popup you are able to create as many search criteria as you
+                wish by listing them up. Each row in the interface represents one criteria and
+                consists of three input fields. First select the type of information you want to look
+                for. You can search for tags, collections but also file size, file format, etc. You
+                can then select an operator such as "equals", "greater than", "includes" etc. Finally
+                you can enter a value which will be searched for. Adding multiple criteria will again
+                help you narrow down a search result.`}
             </p>
           </>
         ),
@@ -212,7 +384,7 @@ const sections: ISection[] = [
   {
     title: 'Inspection',
     icon: IconSet.INFO,
-    subSections: [
+    sections: [
       {
         title: 'Content Area',
         content: (
@@ -235,10 +407,10 @@ const sections: ISection[] = [
           <>
             <p>
               {`Each image carries a lot of information with it such as the file name, url,
-              dimensions, etc. Such information can be viewed through the inspector. The inspector
-              is a panel that can be accessed by pressing the information icon on the far right of
-              the toolbar, or by right-clicking an image and selecting "Inspect". This panel will
-              allow you to see such information as well as a list of tags the image was assigned to.`}
+                dimensions, etc. Such information can be viewed through the inspector. The inspector
+                is a panel that can be accessed by pressing the information icon on the far right of
+                the toolbar, or by right-clicking an image and selecting "Inspect". This panel will
+                allow you to see such information as well as a list of tags the image was assigned to.`}
             </p>
           </>
         ),
@@ -265,116 +437,3 @@ const sections: ISection[] = [
     ],
   },
 ];
-
-type SectionPanelProps = { section: ISection; subSectionIndex?: number } & IPanelProps;
-
-const SectionPanel = ({ section, subSectionIndex, openPanel, closePanel }: SectionPanelProps) => {
-  const sectionIndex = sections.indexOf(section);
-  const nextSection = sectionIndex !== sections.length - 1 ? sections[sectionIndex + 1] : undefined;
-
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (parentRef.current) {
-      if (subSectionIndex !== undefined) {
-        const child = parentRef.current.children[subSectionIndex];
-        child.scrollIntoView();
-      } else {
-        parentRef.current.parentElement?.scrollIntoView();
-      }
-    }
-  }, [section, subSectionIndex]);
-
-  return (
-    <div ref={parentRef}>
-      {section.subSections.map((subSec) => (
-        <div className="stack-paragraph" key={subSec.title}>
-          <h2>{subSec.title}</h2>
-          {subSec.content}
-        </div>
-      ))}
-      <br />
-      <ButtonGroup>
-        <Button styling="outlined" onClick={closePanel} text="Previous" />
-        {nextSection && (
-          <Button
-            styling="outlined"
-            onClick={() =>
-              openPanel({
-                title: nextSection.title,
-                component: SectionPanel,
-                props: { section: nextSection },
-              })
-            }
-            text="Next"
-          />
-        )}
-      </ButtonGroup>
-    </div>
-  );
-};
-
-const HelpCenterHome = (props: IPanelProps) => {
-  return (
-    <div className="help-center-home">
-      <header>
-        <h2>Learn Allusion</h2>
-        <p>Some documents to get you started</p>
-      </header>
-      <nav>
-        {sections.map((section) => (
-          <details open key={section.title}>
-            <summary>
-              {section.icon}
-              {section.title}
-            </summary>
-            <ul>
-              {section.subSections.map((subSec, subSectionIndex) => (
-                <li
-                  key={subSec.title}
-                  onClick={() =>
-                    props.openPanel({
-                      title: section.title,
-                      component: SectionPanel,
-                      props: { section, subSectionIndex },
-                    })
-                  }
-                >
-                  {subSec.title}
-                </li>
-              ))}
-            </ul>
-          </details>
-        ))}
-      </nav>
-    </div>
-  );
-};
-
-const HelpCenter = observer(() => {
-  const { uiStore } = useContext(StoreContext);
-
-  return (
-    <Dialog
-      open={uiStore.isHelpCenterOpen}
-      onCancel={uiStore.toggleHelpCenter}
-      className="light help-center-drawer"
-    >
-      <span className="dialog-icon">{IconSet.HELPCENTER}</span>
-      <h2 id="dialog-title" className="dialog-title">
-        Help Center
-      </h2>
-      <IconButton icon={IconSet.CLOSE} text="Close (Esc)" onClick={uiStore.toggleHelpCenter} />
-      <div id="help-center" className="dialog-information">
-        <PanelStack
-          initialPanel={{
-            component: HelpCenterHome,
-            title: 'Overview',
-          }}
-        />
-      </div>
-    </Dialog>
-  );
-});
-
-export default HelpCenter;
