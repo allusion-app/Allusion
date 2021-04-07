@@ -109,15 +109,15 @@
     "worker-loader": "^3.0.0"
   },
   "dependencies": {
-    "@popperjs/core": "^2.5.4",
+    "@popperjs/core": "^2.9.2",
     "chokidar": "^3.5.1",
     "comlink": "^4.3.0",
     "dexie": "^3.0.3",
     "electron-updater": "^4.3.8",
     "fs-extra": "^9.1.0",
     "image-size": "^0.9.7",
-    "mobx": "^6.0.4",
-    "mobx-react-lite": "^3.0.0",
+    "mobx": "^6.1.8",
+    "mobx-react-lite": "^3.2.0",
     "node-exiftool": "^2.3.0",
     "react": "^16.14.0",
     "react-colorful": "^4.4.2",
