@@ -108,13 +108,17 @@ function createWindow() {
   // Customize new window opening
   // https://www.electronjs.org/docs/api/window-open
   mainWindow.webContents.on('new-window', (event, _url, frameName, _disposition, options) => {
+    if (mainWindow === null || mainWindow?.isDestroyed()) {
+      return;
+    }
+
     // Note: For pop-out windows, the native frame is enabled
     if (frameName === 'settings') {
       event.preventDefault();
       // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
       const additionalOptions: Electron.BrowserWindowConstructorOptions = {
         // modal: true, // this apparently doesn't show a close button for MacOS
-        parent: mainWindow!,
+        parent: mainWindow,
         width: 680,
         height: 480,
         title: 'Settings • Allusion',
@@ -127,14 +131,41 @@ function createWindow() {
       settingsWindow.setMenu(null); // no toolbar needed
       (event as any).newGuest = settingsWindow;
 
-      // if (isDev()) {
-      //   // For when you need devtools in settings
-      //   settingsWindow.webContents.openDevTools();
-      // }
+      if (isDev()) {
+        // For when you need devtools in settings
+        settingsWindow.webContents.openDevTools();
+      }
 
-      mainWindow?.webContents.once('will-navigate', () => {
+      mainWindow.webContents.once('will-navigate', () => {
         if (!settingsWindow?.isDestroyed()) {
           settingsWindow.close(); // close when main window is reloaded
+        }
+      });
+    } else if (frameName === 'help-center') {
+      event.preventDefault();
+      // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
+      const additionalOptions: Electron.BrowserWindowConstructorOptions = {
+        // modal: true, // this apparently doesn't show a close button for MacOS
+        parent: mainWindow,
+        width: 680,
+        height: 480,
+        title: 'Help Center • Allusion',
+        frame: true, // TODO: It appears on OSX that this window does not have a frame (no close button)
+      };
+      Object.assign(options, additionalOptions);
+      const helpCenterWindow = new BrowserWindow(options);
+      helpCenterWindow.center(); // the "center" option doesn't work :/
+      helpCenterWindow.setMenu(null); // no toolbar needed
+      (event as any).newGuest = helpCenterWindow;
+
+      if (isDev()) {
+        // For when you need devtools in settings
+        helpCenterWindow.webContents.openDevTools();
+      }
+
+      mainWindow.webContents.once('will-navigate', () => {
+        if (!helpCenterWindow?.isDestroyed()) {
+          helpCenterWindow.close(); // close when main window is reloaded
         }
       });
     }

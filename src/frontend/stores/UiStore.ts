@@ -305,6 +305,10 @@ class UiStore {
     this.isHelpCenterOpen = !this.isHelpCenterOpen;
   }
 
+  @action.bound closeHelpCenter() {
+    this.isHelpCenterOpen = false;
+  }
+
   @action.bound openToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = true;
   }
@@ -655,10 +659,10 @@ class UiStore {
 
       // TODO: Automatically collapse if less than 3/4 of min-width?
       if (x < UiStore.MIN_OUTLINER_WIDTH * 0.75) {
-        this.toggleOutliner();
+        this.isOutlinerOpen = false;
       }
     } else if (x >= UiStore.MIN_OUTLINER_WIDTH) {
-      this.toggleOutliner();
+      this.isOutlinerOpen = true;
     }
   }
 
@@ -670,10 +674,10 @@ class UiStore {
       this.inspectorWidth = w;
 
       if (offsetX < UiStore.MIN_INSPECTOR_WIDTH * 0.75) {
-        this.toggleInspector();
+        this.isInspectorOpen = false;
       }
     } else if (offsetX >= UiStore.MIN_INSPECTOR_WIDTH) {
-      this.toggleInspector();
+      this.isInspectorOpen = true;
     }
   }
 
