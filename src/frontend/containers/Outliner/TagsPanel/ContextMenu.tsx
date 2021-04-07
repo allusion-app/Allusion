@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { HexColorPicker } from 'react-colorful';
-import 'react-colorful/dist/index.css';
 
 import { formatTagCountText } from 'src/frontend/utils';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
