@@ -10,7 +10,7 @@ import { moveThumbnailDir } from '../../ThumbnailGeneration';
 import { getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
-import PopupWindow from './PopupWindow';
+import PopupWindow from '../../components/PopupWindow';
 import Tabs, { TabItem } from './Tabs';
 
 const Appearance = observer(() => {

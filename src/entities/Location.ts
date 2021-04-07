@@ -86,11 +86,8 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   private async watch(directory: string): Promise<string[]> {
     console.debug('Loading folder watcher worker...', directory);
-    const x = new FolderWatcherClass();
-    const WorkerFactory = wrap<{ new (): FolderWatcherWorker }>(new FolderWatcherClass());
-    this.worker = await new WorkerFactory();
-
-    x.onmessage = ({ data: { type, value } }: { data: { type: string; value: string } }) => {
+    const worker = new FolderWatcherClass();
+    worker.onmessage = ({ data: { type, value } }: { data: { type: string; value: string } }) => {
       if (type === 'add') {
         console.log(`File ${value} has been added after initialization`);
         this.store.addFile(value, this);
@@ -111,6 +108,8 @@ export class ClientLocation implements ISerializable<ILocation> {
       }
     };
 
+    const WorkerFactory = wrap<typeof FolderWatcherWorker>(worker);
+    this.worker = await new WorkerFactory();
     // Make a list of all files in this directory, which will be returned when all subdirs have been traversed
     return this.worker.watch(directory);
   }

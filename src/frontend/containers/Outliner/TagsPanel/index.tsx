@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from 'react';
-import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '../../../hotkeyParser';
 import { observer } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
 

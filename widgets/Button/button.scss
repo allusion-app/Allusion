@@ -37,10 +37,10 @@
     background: var(--hover-color-alt);
   }
   &[aria-checked='true'] {
-    color: var(--accent-color-blue);
+    color: var(--text-color-strong);
   }
   &[aria-pressed='true'] {
-    color: var(--accent-color-blue);
+    color: var(--text-color-strong);
   }
   &[aria-disabled='true'],
   &:disabled {

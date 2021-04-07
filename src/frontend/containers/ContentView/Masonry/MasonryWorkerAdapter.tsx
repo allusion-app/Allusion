@@ -16,7 +16,7 @@ export class MasonryWorkerAdapter {
 
     if (!this.worker) {
       console.debug('Loading masonry worker');
-      const WorkerFactory = wrap<{ new (): MasonryWorker }>(new MasonryWorkerClass());
+      const WorkerFactory = wrap<typeof MasonryWorker>(new MasonryWorkerClass());
       this.worker = await new WorkerFactory();
       console.debug('Loading wasm...');
       await this.worker.initializeWASM();
@@ -44,7 +44,9 @@ export class MasonryWorkerAdapter {
     runInAction(() => {
       for (let i = 0; i < imgs.length; i++) {
         // Images that can't load are given resolution of 1, so they have a square aspect ratio
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.items![i * 5 + 0] = imgs[i].width || 1;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.items![i * 5 + 1] = imgs[i].height || 1;
       }
     });

@@ -81,13 +81,17 @@ export const Split = ({ id, primary, secondary, axis, splitPoint, isExpanded, on
         container.current.style.cursor = '';
       }
     };
-    document.body.addEventListener('mouseup', handleMouseUp);
+
+    // Workaround for popup windows
+    let body: HTMLElement | null = null;
     if (container.current !== null) {
+      body = container.current.closest('body') as HTMLElement;
+      body.addEventListener('mouseup', handleMouseUp);
       resizeObserver.current.observe(container.current);
     }
     return () => {
       observer.disconnect();
-      document.body.removeEventListener('mouseup', handleMouseUp);
+      body?.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
 
