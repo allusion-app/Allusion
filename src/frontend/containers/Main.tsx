@@ -1,7 +1,7 @@
 import { comboMatches, getKeyCombo, parseKeyCombo } from '@blueprintjs/core';
 import { action, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import { Split } from 'widgets/Split';
 import StoreContext from '../contexts/StoreContext';
 import TagDnDContext, { DnDAttribute } from '../contexts/TagDnDContext';
@@ -9,32 +9,33 @@ import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
 import Outliner from './Outliner';
 
-const TagDnDContextData = observable({ source: undefined, target: undefined });
-
-window.addEventListener(
-  'dragend',
-  action((event: DragEvent) => {
-    TagDnDContextData.source = undefined;
-    if (event.target instanceof HTMLElement) {
-      event.target.dataset[DnDAttribute.Source] = 'false';
-    }
-  }),
-  true,
-);
-
-window.addEventListener(
-  'drop',
-  action((event: DragEvent) => {
-    TagDnDContextData.target = undefined;
-    if (event.target instanceof HTMLElement) {
-      event.target.dataset[DnDAttribute.Target] = 'false';
-    }
-  }),
-  true,
-);
-
 const Main = () => {
   const { uiStore } = useContext(StoreContext);
+  const data = useRef(observable({ source: undefined, target: undefined }));
+
+  useEffect(() => {
+    const handleDragEnd = action((event: DragEvent) => {
+      data.current.source = undefined;
+      if (event.target instanceof HTMLElement) {
+        event.target.dataset[DnDAttribute.Source] = 'false';
+      }
+    });
+
+    const handleDrop = action((event: DragEvent) => {
+      data.current.target = undefined;
+      if (event.target instanceof HTMLElement) {
+        event.target.dataset[DnDAttribute.Target] = 'false';
+      }
+    });
+
+    window.addEventListener('dragend', handleDragEnd, true);
+    window.addEventListener('drop', handleDrop, true);
+
+    return () => {
+      window.removeEventListener('dragend', handleDragEnd);
+      window.removeEventListener('drop', handleDrop);
+    };
+  }, []);
 
   const handleShortcuts = useCallback(
     (e: React.KeyboardEvent) => {
@@ -59,7 +60,7 @@ const Main = () => {
   );
 
   return (
-    <TagDnDContext.Provider value={TagDnDContextData}>
+    <TagDnDContext.Provider value={data.current}>
       <Split
         id="window-splitter"
         primary={<Outliner />}
