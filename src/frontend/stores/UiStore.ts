@@ -310,6 +310,9 @@ class UiStore {
   }
 
   @action.bound openToolbarFileRemover() {
+    if (!this.rootStore.fileStore.showsMissingContent) {
+      this.rootStore.fileStore.fetchMissingFiles();
+    }
     this.isToolbarFileRemoverOpen = true;
   }
 
