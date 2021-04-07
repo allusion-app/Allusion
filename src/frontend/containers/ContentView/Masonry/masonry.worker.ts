@@ -1,4 +1,4 @@
-import { expose, transfer } from 'comlink';
+import { expose } from 'comlink';
 
 import { default as init, InitOutput, Layout } from 'wasm/masonry/pkg/masonry';
 
@@ -67,19 +67,18 @@ export class MasonryWorker {
       this.layout = Layout.new(numItems, defaultOpts.thumbSize, defaultOpts.padding);
       itemsPtr = this.layout.items();
       topOffsetsPtr = this.layout.top_offsets();
-
-      this.items = new Uint16Array(this.WASM.memory.buffer, itemsPtr, MAX_ITEMS); // 5 uint16s per item
-      this.topOffsets = new Uint32Array(this.WASM.memory.buffer, topOffsetsPtr, MAX_ITEMS); // 1 uint32 for top offset
+      const sharedArrayBuffer = this.WASM.__wbindgen_export_0.buffer;
+      this.items = new Uint16Array(sharedArrayBuffer, itemsPtr, MAX_ITEMS); // 5 uint16s per item
+      this.topOffsets = new Uint32Array(sharedArrayBuffer, topOffsetsPtr, MAX_ITEMS); // 1 uint32 for top offset
     } else {
       this.layout.resize(numItems);
     }
-
     // console.log({ itemsPtr, items: this.items, byteLength: this.items.byteLength, buff: this.items.buffer, });
 
     // We can pass the layout back to the main thread without copying, using Transferable objects
     // https://stackoverflow.com/questions/20042948/sending-multiple-array-buffers-to-a-javascript-web-worker
     // Also possible with Comlink, with the transfer function: https://github.com/GoogleChromeLabs/comlink#comlinktransfervalue-transferables-and-comlinkproxyvalue
-    return transfer([this.items, this.topOffsets], [this.WASM.memory.buffer]);
+    return [this.items!, this.topOffsets!];
   }
 
   resize(numItems: number) {

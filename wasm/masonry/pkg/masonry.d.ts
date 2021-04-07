@@ -56,7 +56,6 @@ export class Transform {
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
-  readonly memory: WebAssembly.Memory;
   readonly __wbg_transform_free: (a: number) => void;
   readonly __wbg_layout_free: (a: number) => void;
   readonly layout_new: (a: number, b: number, c: number) => number;
@@ -68,6 +67,8 @@ export interface InitOutput {
   readonly layout_compute_horizontal: (a: number, b: number) => number;
   readonly layout_compute_vertical: (a: number, b: number) => number;
   readonly layout_compute_grid: (a: number, b: number) => number;
+  readonly __wbindgen_export_0: WebAssembly.Memory;
+  readonly __wbindgen_start: () => void;
 }
 
 /**
@@ -75,8 +76,8 @@ export interface InitOutput {
 * for everything else, calls `WebAssembly.instantiate` directly.
 *
 * @param {InitInput | Promise<InitInput>} module_or_path
+* @param {WebAssembly.Memory} maybe_memory
 *
 * @returns {Promise<InitOutput>}
 */
-export default function init (module_or_path?: InitInput | Promise<InitInput>): Promise<InitOutput>;
-        
+export default function init (module_or_path?: InitInput | Promise<InitInput>, maybe_memory?: WebAssembly.Memory): Promise<InitOutput>;
