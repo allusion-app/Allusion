@@ -129,10 +129,9 @@ function createWindow() {
       const settingsWindow = new BrowserWindow(options);
       settingsWindow.center(); // the "center" option doesn't work :/
       settingsWindow.setMenu(null); // no toolbar needed
-      (event as any).newGuest = settingsWindow;
+      event.newGuest = settingsWindow;
 
       if (isDev()) {
-        // For when you need devtools in settings
         settingsWindow.webContents.openDevTools();
       }
 
@@ -156,10 +155,9 @@ function createWindow() {
       const helpCenterWindow = new BrowserWindow(options);
       helpCenterWindow.center(); // the "center" option doesn't work :/
       helpCenterWindow.setMenu(null); // no toolbar needed
-      (event as any).newGuest = helpCenterWindow;
+      event.newGuest = helpCenterWindow;
 
       if (isDev()) {
-        // For when you need devtools in settings
         helpCenterWindow.webContents.openDevTools();
       }
 
@@ -224,7 +222,9 @@ function createWindow() {
         label: 'Actual Size',
         accelerator: 'CommandOrControl+0',
         click: (_, browserWindow) => {
-          browserWindow!.webContents.zoomFactor = 1;
+          if (browserWindow) {
+            browserWindow.webContents.zoomFactor = 1;
+          }
         },
       },
       {
@@ -232,14 +232,18 @@ function createWindow() {
         // TODO: Fix by using custom solution...
         accelerator: 'CommandOrControl+=',
         click: (_, browserWindow) => {
-          browserWindow!.webContents.zoomFactor += 0.1;
+          if (browserWindow) {
+            browserWindow.webContents.zoomFactor += 0.1;
+          }
         },
       },
       {
         label: 'Zoom Out',
         accelerator: 'CommandOrControl+-',
         click: (_, browserWindow) => {
-          browserWindow!.webContents.zoomFactor -= 0.1;
+          if (browserWindow) {
+            browserWindow.webContents.zoomFactor -= 0.1;
+          }
         },
       },
       { type: 'separator' },
