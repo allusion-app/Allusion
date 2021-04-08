@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
 import { debounce } from 'src/frontend/utils';
 import { getThumbnailSize, ILayoutProps } from '../LayoutSwitcher';
@@ -103,37 +103,39 @@ const MasonryRenderer = observer(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [numImages, fileStore.fileListLastModified]);
 
-    const handleResize = useMemo(() => {
-      async function onResize(
-        containerWidth: number,
-        thumbnailSize: number,
-        viewMethod: SupportedViewMethod,
-      ) {
-        console.debug('Masonry: Environment changed! Recomputing layout!');
-        try {
-          console.time('recompute-layout');
-          const containerHeight = await worker.recompute(containerWidth, {
-            thumbSize: thumbnailSize,
-            type: ViewMethodLayoutDict[viewMethod],
-          });
-          console.timeEnd('recompute-layout');
-          setContainerHeight(containerHeight);
-          setLayoutTimestamp(new Date());
-          // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
-        } catch (e) {
-          console.error(e);
+    const handleResize = useRef(
+      (() => {
+        async function onResize(
+          containerWidth: number,
+          thumbnailSize: number,
+          viewMethod: SupportedViewMethod,
+        ) {
+          console.debug('Masonry: Environment changed! Recomputing layout!');
+          try {
+            console.time('recompute-layout');
+            const containerHeight = await worker.recompute(containerWidth, {
+              thumbSize: thumbnailSize,
+              type: ViewMethodLayoutDict[viewMethod],
+            });
+            console.timeEnd('recompute-layout');
+            setContainerHeight(containerHeight);
+            setLayoutTimestamp(new Date());
+            // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
+          } catch (e) {
+            console.error(e);
+          }
         }
-      }
 
-      // Debounce is not needed due to performance, but images are
-      // sometimes repeatedly swapping columns every recomputation, which looks awful
-      return debounce(onResize, 50);
-    }, []);
+        // Debounce is not needed due to performance, but images are
+        // sometimes repeatedly swapping columns every recomputation, which looks awful
+        return debounce(onResize, 50);
+      })(),
+    );
 
     // Re-compute when the environment changes (container width, thumbnail size, view method)
     useEffect(() => {
       if (containerHeight !== undefined && containerWidth > 100) {
-        handleResize(containerWidth, thumbnailSize, viewMethod);
+        handleResize.current(containerWidth, thumbnailSize, viewMethod);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [containerWidth, handleResize, thumbnailSize, viewMethod]);

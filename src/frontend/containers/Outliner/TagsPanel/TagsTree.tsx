@@ -443,11 +443,11 @@ const TagsTree = observer(() => {
     [dndData],
   );
 
-  const submit = useCallback((target: EventTarget & HTMLInputElement) => {
+  const submit = useRef((target: EventTarget & HTMLInputElement) => {
     target.focus();
     dispatch(Factory.disableEditing());
     target.setSelectionRange(0, 0);
-  }, []);
+  });
 
   /** The first item that is selected in a multi-selection */
   const initialSelectionIndex = useRef<number>();
@@ -501,10 +501,10 @@ const TagsTree = observer(() => {
       showContextMenu: show,
       state,
       dispatch,
-      submit,
+      submit: submit.current,
       select,
     }),
-    [select, show, state, submit],
+    [select, show, state],
   );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
