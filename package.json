@@ -24,6 +24,7 @@
       "category": "public.app-category.graphics-design",
       "extraResources": [
         "resources/exiftool/exiftool.pl",
+        "resources/exiftool/lib",
         "resources/exiftool/.Exiftool_config"
       ]
     },
@@ -37,6 +38,7 @@
       "category": "Graphics",
       "extraResources": [
         "resources/exiftool/exiftool.pl",
+        "resources/exiftool/lib",
         "resources/exiftool/.Exiftool_config"
       ]
     },
