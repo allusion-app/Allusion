@@ -174,22 +174,79 @@ const ImportExport = observer(() => {
   );
 });
 
-const BackgroundProcesses = () => (
-  <>
-    <h2>Options</h2>
-    <Toggle
-      defaultChecked={RendererMessenger.isRunningInBackground()}
-      onChange={toggleRunInBackground}
-      label="Run in background"
-    />
+const BackgroundProcesses = observer(() => {
+  const { uiStore, locationStore } = useContext(StoreContext);
 
-    <Toggle
-      defaultChecked={RendererMessenger.isClipServerEnabled()}
-      onChange={toggleClipServer}
-      label="Browser extension support"
-    />
-  </>
-);
+  const importDirectory = uiStore.importDirectory;
+  const browseImportDirectory = async () => {
+    const { filePaths: dirs } = await RendererMessenger.openDialog({
+      properties: ['openDirectory'],
+      defaultPath: importDirectory,
+    });
+
+    if (dirs.length === 0) {
+      return;
+    }
+    const newDir = dirs[0];
+
+    if (locationStore.locationList.some((loc) => newDir.startsWith(loc.path))) {
+      await RendererMessenger.setClipServerImportLocation(newDir);
+      uiStore.setImportDirectory(newDir);
+    } else {
+      alert('Please choose a location or any of its subfolders.');
+      return;
+    }
+  };
+
+  const [isClipEnabled, setClipServerEnabled] = useState(RendererMessenger.isClipServerEnabled());
+  const handleSetClipServerEnabled = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setClipServerEnabled(e.target.checked);
+    toggleClipServer(e);
+  };
+
+  return (
+    <>
+      <h2>Options</h2>
+      <Toggle
+        defaultChecked={RendererMessenger.isRunningInBackground()}
+        onChange={toggleRunInBackground}
+        label="Run in background"
+      />
+
+      <Toggle
+        checked={isClipEnabled}
+        onChange={
+          isClipEnabled || importDirectory
+            ? handleSetClipServerEnabled
+            : (e) => {
+                console.log('came here');
+                e.preventDefault();
+                e.stopPropagation();
+                alert(
+                  'Please choose a download directory first, where images downloaded through the browser extension will be stored.',
+                );
+              }
+        }
+        label="Browser extension support"
+      />
+
+      <fieldset>
+        <legend>Browser extension download directory (must be in a Location)</legend>
+        <div className="input-file">
+          <span className="input input-file-value">{uiStore.importDirectory || 'Not set'}</span>
+          <Button
+            styling="minimal"
+            icon={IconSet.FOLDER_CLOSE}
+            text="Browse"
+            onClick={browseImportDirectory}
+          />
+        </div>
+      </fieldset>
+
+      {/* TODO: Link to chrome extension page when it's up */}
+    </>
+  );
+});
 
 const Shortcuts = () => (
   <>

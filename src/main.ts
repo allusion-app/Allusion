@@ -15,7 +15,7 @@ import TrayIcon from '../resources/logo/allusion-logomark-fc-256x256.png';
 import TrayIconMac from '../resources/logo/allusion-logomark-white@2x.png';
 import { isDev } from './config';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
-import { ITag } from './entities/Tag';
+import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import ClipServer, { IImportItem } from './clipper/server';
 
 let mainWindow: BrowserWindow | null;
@@ -44,9 +44,8 @@ const addTagsToFile = async (item: IImportItem) => {
 const getTags = async (): Promise<ITag[]> => {
   if (mainWindow) {
     const { tags } = await MainMessenger.getTags(mainWindow.webContents);
-    return tags;
+    return tags.filter((t) => t.id !== ROOT_TAG_ID);
   }
-  // Todo: cache tags from frontend in case the window is closed
   return [];
 };
 
@@ -388,6 +387,7 @@ MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled
 MainMessenger.onSetClipServerEnabled(({ isClipServerRunning }) =>
   clipServer?.setEnabled(isClipServerRunning),
 );
+MainMessenger.onSetClipServerImportLocation((dir) => clipServer?.setImportLocation(dir));
 MainMessenger.onSetRunningInBackground(({ isRunInBackground }) => {
   if (clipServer === null) {
     return;
