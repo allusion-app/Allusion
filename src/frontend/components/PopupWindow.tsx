@@ -16,7 +16,7 @@ const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
   const [win, setWin] = useState<Window>();
 
   useEffect(() => {
-    const externalWindow = window.open('', props.windowName, 'modal');
+    const externalWindow = window.open('', props.windowName);
     if (!externalWindow) throw new Error('External window not supported!');
     setWin(externalWindow);
 
