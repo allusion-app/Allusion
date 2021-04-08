@@ -57,7 +57,9 @@ export class MasonryWorker {
 
   /** Should be called whenever the input is changed.
    * Be sure to free the memory when you're done with it!
-   * @returns A Uin16Buffer where the image input dimensions can be defined as [src_width, src_height, -, -, -, -]
+   * @returns {Array} layout - typed arrays backed by WASM memory (SharedArrayBuffer)
+   * @returns {Uint16Array} 0 - items
+   * @returns {Uint32Array} 1 - topOffsets
    */
   initializeLayout(numItems: number): [Uint16Array, Uint32Array] {
     if (!this.WASM) throw new Error('WASM not initialized!');
@@ -73,11 +75,6 @@ export class MasonryWorker {
     } else {
       this.layout.resize(numItems);
     }
-    // console.log({ itemsPtr, items: this.items, byteLength: this.items.byteLength, buff: this.items.buffer, });
-
-    // We can pass the layout back to the main thread without copying, using Transferable objects
-    // https://stackoverflow.com/questions/20042948/sending-multiple-array-buffers-to-a-javascript-web-worker
-    // Also possible with Comlink, with the transfer function: https://github.com/GoogleChromeLabs/comlink#comlinktransfervalue-transferables-and-comlinkproxyvalue
     return [this.items!, this.topOffsets!];
   }
 
