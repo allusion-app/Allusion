@@ -6,7 +6,7 @@
   overflow: hidden;
 }
 
-.overview {
+.doc-overview {
   overflow-y: auto;
   height: 100vh;
   background: var(--background-color-alt);
@@ -69,7 +69,7 @@
   }
 }
 
-.page {
+.doc-page {
   overflow-y: auto;
   height: 100vh;
   padding: 0.5rem 2rem 0.5rem 1.25rem;
@@ -84,11 +84,11 @@
   }
 }
 
-.page-toolbar {
+.doc-page-toolbar {
   background: var(--background-color);
 }
 
-.page-content {
+.doc-page-content {
   margin-bottom: 1rem;
 
   img {

@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState, memo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, ButtonGroup, IconSet, Split } from 'widgets';
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
@@ -19,7 +19,12 @@ const HelpCenter = observer(() => {
       closeOnEscape
       additionalCloseKey={uiStore.hotkeyMap.toggleHelpCenter}
     >
-      <Documentation id="help-center" className="light" initPages={PAGE_DATA} />
+      <Documentation
+        id="help-center"
+        overviewId="help-center-overview"
+        className="light"
+        initPages={PAGE_DATA}
+      />
     </PopupWindow>
   );
 });
@@ -28,22 +33,23 @@ export default HelpCenter;
 
 interface IDocumentation {
   id?: string;
+  overviewId: string;
   className?: string;
   initPages: () => IPageData[];
 }
 
-const Documentation = ({ id, className, initPages }: IDocumentation) => {
+const Documentation = ({ id, overviewId, className, initPages }: IDocumentation) => {
   const [pageIndex, setPageIndex] = useState(0);
   const [sectionIndex, setSectionIndex] = useState(0);
   const data = useRef(initPages());
 
-  const openPage = useCallback((page: number, section: number) => {
+  const openPage = useRef((page: number, section: number) => {
     setPageIndex(page);
     setSectionIndex(section);
-  }, []);
+  });
 
   const [isIndexOpen, setIndexIsOpen] = useState(true);
-  const toggleIndex = useCallback(() => setIndexIsOpen((value) => !value), []);
+  const toggleIndex = useRef(() => setIndexIsOpen((value) => !value));
   const [splitPoint, setSplitPoint] = useState(224); // 14rem
   const handleMove = useCallback(
     (x: number, width: number) => {
@@ -65,13 +71,18 @@ const Documentation = ({ id, className, initPages }: IDocumentation) => {
   return (
     <div id={id} className={className}>
       <Split
-        primary={<Overview pages={data.current} openPage={openPage} />}
+        primary={<Overview id={overviewId} pages={data.current} openPage={openPage.current} />}
         secondary={
           <Page
-            isIndexOpen={isIndexOpen}
-            toggleIndex={toggleIndex}
+            toolbar={
+              <PageToolbar
+                isIndexOpen={isIndexOpen}
+                toggleIndex={toggleIndex.current}
+                controls={overviewId}
+              />
+            }
             pages={data.current}
-            openPage={openPage}
+            openPage={openPage.current}
             pageIndex={pageIndex}
             sectionIndex={sectionIndex}
           />
@@ -86,13 +97,14 @@ const Documentation = ({ id, className, initPages }: IDocumentation) => {
 };
 
 interface IOverview {
+  id: string;
   pages: IPageData[];
   openPage: (page: number, section: number) => void;
 }
 
-const Overview = ({ pages, openPage }: IOverview) => {
+const Overview = memo(function Overview({ id, pages, openPage }: IOverview) {
   return (
-    <nav className="overview">
+    <nav id={id} className="doc-overview">
       {pages.map((page, pageIndex) => (
         <details open key={page.title}>
           <summary>
@@ -110,11 +122,10 @@ const Overview = ({ pages, openPage }: IOverview) => {
       ))}
     </nav>
   );
-};
+});
 
 interface IPage {
-  isIndexOpen: boolean;
-  toggleIndex: () => void;
+  toolbar: React.ReactNode;
   pages: IPageData[];
   pageIndex: number;
   sectionIndex: number;
@@ -122,7 +133,7 @@ interface IPage {
 }
 
 const Page = (props: IPage) => {
-  const { isIndexOpen, toggleIndex, pages, pageIndex, sectionIndex, openPage } = props;
+  const { toolbar, pages, pageIndex, sectionIndex, openPage } = props;
   const page = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -134,43 +145,20 @@ const Page = (props: IPage) => {
 
   const buttons = [];
   if (pageIndex > 0) {
+    const previousPage = () => openPage(pageIndex - 1, 0);
     buttons.push(
-      <Button
-        key="previous"
-        styling="outlined"
-        onClick={() => openPage(pageIndex - 1, 0)}
-        text="Previous"
-      />,
+      <Button key="previous" styling="outlined" onClick={previousPage} text="Previous" />,
     );
   }
   if (pageIndex < pages.length - 1) {
-    buttons.push(
-      <Button
-        key="next"
-        styling="outlined"
-        onClick={() => openPage(pageIndex + 1, 0)}
-        text="Next"
-      />,
-    );
+    const nextPage = () => openPage(pageIndex + 1, 0);
+    buttons.push(<Button key="next" styling="outlined" onClick={nextPage} text="Next" />);
   }
 
   return (
-    <div className="page">
-      <div className="page-toolbar">
-        <button
-          autoFocus
-          className="btn toolbar-button"
-          aria-pressed={isIndexOpen}
-          onClick={toggleIndex}
-          tabIndex={0}
-        >
-          <span className="btn-content-icon" aria-hidden="true">
-            {isIndexOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
-          </span>
-          <span className="btn-content-text hidden">Toggle Index</span>
-        </button>
-      </div>
-      <article className="page-content" ref={page}>
+    <div className="doc-page">
+      {toolbar}
+      <article className="doc-page-content" ref={page}>
         {pages[pageIndex].sections.map((section) => (
           <section key={section.title}>
             <h2>{section.title}</h2>
@@ -179,6 +167,31 @@ const Page = (props: IPage) => {
         ))}
       </article>
       <ButtonGroup>{buttons}</ButtonGroup>
+    </div>
+  );
+};
+
+interface IPageToolbar {
+  isIndexOpen: boolean;
+  toggleIndex: () => void;
+  controls: string;
+}
+
+const PageToolbar = ({ isIndexOpen, toggleIndex, controls }: IPageToolbar) => {
+  return (
+    <div className="doc-page-toolbar">
+      <button
+        className="btn toolbar-button"
+        aria-pressed={isIndexOpen}
+        aria-controls={controls}
+        onClick={toggleIndex}
+        tabIndex={0}
+      >
+        <span className="btn-content-icon" aria-hidden="true">
+          {isIndexOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
+        </span>
+        <span className="btn-content-text hidden">Toggle Index</span>
+      </button>
     </div>
   );
 };
