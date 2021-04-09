@@ -4,57 +4,50 @@
 // - Take in a list of image dimensions, and a base thumbnail size (e.g. S, M, L)
 // - Output a list of image positions, laid out in a masonry format
 
-use serde::Serialize;
-
 pub struct Layout {
     num_items: usize,
-    items: Vec<LayoutItem>,
-    // TODO: Could maybe interwine u32 top offset in other u16 attributes for avoiding cache misses but this is already too much micro optimization
-    top_offsets: Vec<u32>,
+    transforms: Vec<Transform>,
+    dimensions: Vec<Dimension>,
     thumbnail_size: u16,
     padding: u16,
 }
 
 // TODO: Could also use the google photos layout: Groups of masonry layouts, each with a header (e.g. the date)
 #[derive(Clone, Default)]
-pub struct LayoutItem {
-    src_width: u16,
-    src_height: u16,
-    width: u16,
-    height: u16,
-    left: u16,
-}
-
-#[derive(Serialize)]
 pub struct Transform {
-    width: u16,
-    height: u16,
-    left: u16,
-    top: u32,
+    pub width: u16,
+    pub height: u16,
+    pub left: u16,
+    pub top: u32,
 }
 
-const MAX_ASPECT_RATIO: f32 = 3.0; // X times as wide as narrow or vice versa
+#[derive(Clone, Default)]
+struct Dimension {
+    src_width: f32,
+    src_height: f32,
+    corrected_aspect_ratio: f32,
+}
+
+const MIN_ITEMS_CAPACITY: usize = 10_000;
 
 impl Layout {
     pub fn new(length: usize, thumbnail_size: u16, padding: u16) -> Layout {
+        let capacity = length.max(MIN_ITEMS_CAPACITY);
         Layout {
             num_items: length,
-            items: vec![LayoutItem::default(); length],
-            top_offsets: vec![0; length],
+            transforms: vec![Transform::default(); capacity],
+            dimensions: vec![Dimension::default(); capacity],
             thumbnail_size,
             padding,
         }
     }
 
-    pub fn get_transform(&self, index: usize) -> Transform {
-        let item = &self.items[index];
-        Transform::new(item.width, item.height, item.left, self.top_offsets[index])
+    pub fn get_transform(&self, index: usize) -> &Transform {
+        &self.transforms[index]
     }
 
-    pub fn set_dimension(&mut self, index: usize, src_width: u16, src_height: u16) {
-        let item = &mut self.items[index];
-        item.src_width = src_width;
-        item.src_height = src_height;
+    pub fn set_dimension(&mut self, index: usize, src_width: f32, src_height: f32) {
+        self.dimensions[index].set(src_width, src_height);
     }
 
     pub fn set_thumbnail_size(&mut self, thumbnail_size: u16) {
@@ -67,11 +60,14 @@ impl Layout {
 
     pub fn resize(&mut self, new_len: usize) {
         self.num_items = new_len;
-        let capacity = self.items.capacity();
+        let capacity = self.transforms.capacity();
         if new_len > capacity {
-            self.items.reserve(new_len - capacity);
+            let additional_capacity = new_len - capacity;
+            self.transforms.reserve(additional_capacity);
+            self.dimensions.reserve(additional_capacity);
             for _ in capacity..new_len {
-                self.items.push(Default::default())
+                self.transforms.push(Transform::default());
+                self.dimensions.push(Dimension::default());
             }
         }
     }
@@ -83,22 +79,22 @@ impl Layout {
     // TODO: Look up proper masonry algorithm, e.g. https://euler.stephan-brumme.com/215/
     // TODO: Alternatively, could layout based on aspect ratio blogpost https://medium.com/@danrschlosser/building-the-image-grid-from-google-photos-6a09e193c74a
     pub fn compute_horizontal(&mut self, container_width: u16) -> u32 {
-        let item_height = self.thumbnail_size;
+        let transform_height = self.thumbnail_size;
 
         let mut top_offset: u32 = 0;
         let mut cur_row_width: u16 = 0;
         let mut first_row_item_index: usize = 0;
 
         for i in 0..self.num_items {
-            let item = &mut self.items[i];
+            let transform = &mut self.transforms[i];
+            transform.height = transform_height;
+            transform.top = top_offset;
+            transform.left = cur_row_width;
             // Correct aspect ratio for very wide/narrow images
-            item.height = item_height;
-            item.correct_width();
-            self.top_offsets[i] = top_offset;
+            transform.correct_width(&self.dimensions[i]);
 
-            item.left = cur_row_width;
             // Check if adding this image to the row would exceed the container width
-            let new_row_width = cur_row_width + item.width + self.padding;
+            let new_row_width = cur_row_width + transform.width + self.padding;
 
             if new_row_width > container_width {
                 // If it exceeds it, position all current items in the row accordingly and start a new row for this item
@@ -107,9 +103,9 @@ impl Layout {
                 // Now that the size of this row is definitive: Set the actual size of all row items
                 let correction_factor = f32::from(container_width) / f32::from(new_row_width);
 
-                item.scale(correction_factor);
+                transform.scale(correction_factor);
 
-                for prev_item in self.items[first_row_item_index..i].iter_mut() {
+                for prev_item in self.transforms[first_row_item_index..i].iter_mut() {
                     prev_item.scale(correction_factor)
                 }
 
@@ -117,20 +113,20 @@ impl Layout {
                 cur_row_width = 0;
                 first_row_item_index = i + 1;
                 top_offset += u32::from(self.padding)
-                    + (f32::from(item_height) * correction_factor).round() as u32;
+                    + (f32::from(transform_height) * correction_factor).round() as u32;
             } else {
                 // Otherwise, just add its width to the current row width and continue on!
                 cur_row_width = new_row_width;
             }
         }
         // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
-        if cur_row_width != 0 {
-            match self.items.get(self.num_items - 1) {
-                Some(last_item) => top_offset + last_item.height as u32,
+        if cur_row_width == 0 {
+            top_offset
+        } else {
+            match self.transforms.get(self.num_items - 1) {
+                Some(last_item) => top_offset + u32::from(last_item.height),
                 None => 0,
             }
-        } else {
-            top_offset
         }
     }
 
@@ -150,10 +146,10 @@ impl Layout {
         };
         let item_width = col_width - self.padding;
 
-        let (current_items, _) = self.items.split_at_mut(self.num_items);
-        for (item, top_offset) in current_items.iter_mut().zip(self.top_offsets.iter_mut()) {
-            item.width = item_width;
-            item.correct_height();
+        for i in 0..self.num_items {
+            let transform = &mut self.transforms[i];
+            transform.width = item_width;
+            transform.correct_height(&self.dimensions[i]);
 
             let shortest_col_index = col_heights
                 .iter()
@@ -161,10 +157,11 @@ impl Layout {
                 .min_by_key(|(_idx, &val)| val)
                 .map_or(0, |(idx, _val)| idx);
 
-            item.left = shortest_col_index as u16 * col_width;
-            *top_offset = col_heights[shortest_col_index];
+            transform.left = shortest_col_index as u16 * col_width;
+            transform.top = col_heights[shortest_col_index];
 
-            col_heights[shortest_col_index] += u32::from(item.height) + u32::from(self.padding);
+            col_heights[shortest_col_index] +=
+                u32::from(transform.height) + u32::from(self.padding);
         }
 
         // Return height of longest column
@@ -188,19 +185,17 @@ impl Layout {
         let item_size = column_width - self.padding;
         let row_height = u32::from(column_width);
 
-        let (current_items, _) = self.items.split_at_mut(self.num_items);
-
         let mut index = 0;
         let mut top_offset = 0;
         let mut left;
         for _ in 0..n_rows {
             left = 0;
             for _ in 0..n_columns {
-                let item = &mut current_items[index];
-                item.width = item_size;
-                item.height = item_size;
-                item.left = left;
-                self.top_offsets[index] = top_offset;
+                let transform = &mut self.transforms[index];
+                transform.width = item_size;
+                transform.height = item_size;
+                transform.left = left;
+                transform.top = top_offset;
 
                 index += 1;
                 left += column_width;
@@ -210,11 +205,11 @@ impl Layout {
 
         left = 0;
         for _ in 0..rest {
-            let item = &mut current_items[index];
-            item.width = item_size;
-            item.height = item_size;
-            item.left = left;
-            self.top_offsets[index] = top_offset;
+            let tranform = &mut self.transforms[index];
+            tranform.width = item_size;
+            tranform.height = item_size;
+            tranform.left = left;
+            tranform.top = top_offset;
 
             index += 1;
             left += column_width;
@@ -230,42 +225,29 @@ impl Layout {
     }
 }
 
-impl LayoutItem {
+impl Transform {
     fn scale(&mut self, factor: f32) {
         self.left = (f32::from(self.left) * factor).round() as u16;
         self.width = (f32::from(self.width) * factor).round() as u16;
         self.height = (f32::from(self.height) * factor).round() as u16;
     }
 
-    fn correct_height(&mut self) {
-        let src_width = f32::from(self.src_width);
-        let src_height = f32::from(self.src_height);
-
-        let aspect_ratio = aspect_ratio_correction(src_width, src_height);
-        let ratio = f32::from(self.width) / src_width;
-
-        self.height = (ratio * aspect_ratio).round() as u16;
+    fn correct_height(&mut self, dimension: &Dimension) {
+        let ratio = f32::from(self.width) / dimension.src_width;
+        self.height = (ratio * dimension.corrected_aspect_ratio).round() as u16;
     }
 
-    fn correct_width(&mut self) {
-        let src_width = f32::from(self.src_width);
-        let src_height = f32::from(self.src_height);
-
-        let aspect_ratio = aspect_ratio_correction(src_width, src_height);
-        let ratio = f32::from(self.height) / aspect_ratio;
-
-        self.width = (ratio * src_width).round() as u16;
+    fn correct_width(&mut self, dimension: &Dimension) {
+        let ratio = f32::from(self.height) / dimension.corrected_aspect_ratio;
+        self.width = (ratio * dimension.src_height).round() as u16;
     }
 }
 
-impl Transform {
-    pub fn new(width: u16, height: u16, left: u16, top: u32) -> Transform {
-        Transform {
-            width,
-            height,
-            left,
-            top,
-        }
+impl Dimension {
+    fn set(&mut self, src_width: f32, src_height: f32) {
+        self.src_width = src_width;
+        self.src_height = src_height;
+        self.corrected_aspect_ratio = aspect_ratio_correction(src_width, src_height);
     }
 }
 
@@ -273,6 +255,8 @@ impl Transform {
 // so that they are at most X times as wide/long as they are long/wide
 // Returns a correct height value of the image
 fn aspect_ratio_correction(w: f32, h: f32) -> f32 {
+    const MAX_ASPECT_RATIO: f32 = 3.0; // X times as wide as narrow or vice versa
+
     let aspect_ratio = w / h;
     if aspect_ratio > MAX_ASPECT_RATIO {
         MAX_ASPECT_RATIO * h

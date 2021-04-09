@@ -1,17 +1,20 @@
 use std::cell::RefCell;
 use std::sync::Arc;
 
-use crate::layout::Layout;
+use crate::layout::{Layout, Transform};
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+
+type MessageEventHandler = Closure<dyn FnMut(web_sys::MessageEvent)>;
 
 #[wasm_bindgen]
 pub struct MasonryWorker {
     layout: Layout,
     worker: Arc<web_sys::Worker>,
-    message_handler: Arc<RefCell<Option<Closure<dyn FnMut(web_sys::MessageEvent)>>>>,
+    message_handler: Arc<RefCell<Option<MessageEventHandler>>>,
     message_data: MessageData,
+    json_output: String,
 }
 
 struct MessageData(js_sys::Int32Array);
@@ -55,6 +58,7 @@ impl MasonryWorker {
             worker: Arc::new(web_sys::Worker::new(worker_url).unwrap()),
             message_handler: Arc::new(RefCell::new(None)),
             message_data: MessageData::new(),
+            json_output: String::new(),
         };
         let initial_message = js_sys::Array::new();
         initial_message.push(manager.message_data.as_ref());
@@ -114,12 +118,29 @@ impl MasonryWorker {
         self.layout.resize(new_len)
     }
 
-    pub fn set_dimension(&mut self, index: usize, src_width: u16, src_height: u16) {
+    pub fn set_dimension(&mut self, index: usize, src_width: f32, src_height: f32) {
         self.layout.set_dimension(index, src_width, src_height)
     }
 
-    pub fn get_transform(&self, index: usize) -> JsValue {
-        JsValue::from_serde(&self.layout.get_transform(index)).unwrap()
+    pub fn get_transform(&mut self, index: usize) -> JsValue {
+        let Transform {
+            width,
+            height,
+            top,
+            left,
+        } = self.layout.get_transform(index);
+        std::fmt::write(
+            &mut self.json_output,
+            format_args!(
+                "{{\"width\":{},\"height\":{},\"top\":{},\"left\":{}}}",
+                width, height, top, left
+            ),
+        )
+        .unwrap();
+        // We could use serde but I do not think this added dependency is worth here.
+        let json = js_sys::JSON::parse(&self.json_output).unwrap();
+        self.json_output.clear();
+        json
     }
 }
 
@@ -131,7 +152,7 @@ impl Drop for MasonryWorker {
 
 impl MessageData {
     fn new() -> MessageData {
-        let shared_memory = js_sys::SharedArrayBuffer::new(2 * std::mem::size_of::<i32>() as u32);
+        let shared_memory = js_sys::SharedArrayBuffer::new(2 * 4 as u32);
         MessageData(js_sys::Int32Array::new(&shared_memory))
     }
 
