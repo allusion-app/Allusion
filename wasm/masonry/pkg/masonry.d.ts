@@ -1,73 +1,68 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+* @param {number} message_ptr
+* @returns {number}
 */
-export class Layout {
+export function execute(message_ptr: number): number;
+/**
+*/
+export enum MasonryType {
+  Vertical,
+  Horizontal,
+  Grid,
+}
+/**
+*/
+export class MasonryWorker {
   free(): void;
 /**
-* @param {number} length
+* @param {number} num_items
+* @param {string} worker_url
+*/
+  constructor(num_items: number, worker_url: string);
+/**
+* @param {number} width
+* @param {number} kind
 * @param {number} thumbnail_size
 * @param {number} padding
-* @returns {Layout}
+* @returns {Promise<any>}
 */
-  static new(length: number, thumbnail_size: number, padding: number): Layout;
+  compute(width: number, kind: number, thumbnail_size: number, padding: number): Promise<any>;
 /**
 * @param {number} new_len
 */
   resize(new_len: number): void;
 /**
-* @returns {number}
+* @param {number} index
+* @param {number} src_width
+* @param {number} src_height
 */
-  items(): number;
+  set_dimension(index: number, src_width: number, src_height: number): void;
 /**
-* @returns {number}
+* @param {number} index
+* @returns {any}
 */
-  top_offsets(): number;
-/**
-* @param {number} thumbnail_size
-*/
-  set_thumbnail_size(thumbnail_size: number): void;
-/**
-* @param {number} padding
-*/
-  set_padding(padding: number): void;
-/**
-* @param {number} container_width
-* @returns {number}
-*/
-  compute_horizontal(container_width: number): number;
-/**
-* @param {number} container_width
-* @returns {number}
-*/
-  compute_vertical(container_width: number): number;
-/**
-* @param {number} container_width
-* @returns {number}
-*/
-  compute_grid(container_width: number): number;
-}
-/**
-*/
-export class Transform {
-  free(): void;
+  get_transform(index: number): any;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
-  readonly __wbg_transform_free: (a: number) => void;
-  readonly __wbg_layout_free: (a: number) => void;
-  readonly layout_new: (a: number, b: number, c: number) => number;
-  readonly layout_resize: (a: number, b: number) => void;
-  readonly layout_items: (a: number) => number;
-  readonly layout_top_offsets: (a: number) => number;
-  readonly layout_set_thumbnail_size: (a: number, b: number) => void;
-  readonly layout_set_padding: (a: number, b: number) => void;
-  readonly layout_compute_horizontal: (a: number, b: number) => number;
-  readonly layout_compute_vertical: (a: number, b: number) => number;
-  readonly layout_compute_grid: (a: number, b: number) => number;
+  readonly __wbg_masonryworker_free: (a: number) => void;
+  readonly masonryworker_new: (a: number, b: number, c: number) => number;
+  readonly masonryworker_compute: (a: number, b: number, c: number, d: number, e: number) => number;
+  readonly masonryworker_resize: (a: number, b: number) => void;
+  readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;
+  readonly masonryworker_get_transform: (a: number, b: number) => number;
+  readonly execute: (a: number) => number;
   readonly __wbindgen_export_0: WebAssembly.Memory;
+  readonly __wbindgen_malloc: (a: number) => number;
+  readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
+  readonly __wbindgen_export_3: WebAssembly.Table;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hfd64673ffd2c30f4: (a: number, b: number, c: number) => void;
+  readonly __wbindgen_exn_store: (a: number) => void;
+  readonly wasm_bindgen__convert__closures__invoke2_mut__he31a9ed3bc7309f9: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_start: () => void;
 }
 

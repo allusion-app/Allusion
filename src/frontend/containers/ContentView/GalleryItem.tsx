@@ -7,7 +7,7 @@ import { Tooltip } from 'widgets/popovers';
 import FileStore from '../../stores/FileStore';
 import UiStore from '../../stores/UiStore';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
-import { ITransform } from './Masonry/masonry.worker';
+import { ITransform } from './Masonry/MasonryWorkerAdapter';
 import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 
 interface ICell {

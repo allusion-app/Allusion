@@ -97,7 +97,7 @@ const VirtualizedRenderer = observer(
     const scrollToIndex = useCallback(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
         if (!scrollAnchor.current) return;
-        const s = layout.getItemLayout(index);
+        const s = layout.getTransform(index);
         // Scroll to invisible element, positioned at selected item,
         // just for scroll automatisation with scrollIntoView
         scrollAnchor.current.style.transform = `translate(${s.left}px,${s.top}px)`;
@@ -140,7 +140,7 @@ const VirtualizedRenderer = observer(
         <div style={{ width: containerWidth, height: containerHeight }}>
           {images.slice(startRenderIndex, endRenderIndex + 1).map((im, index) => {
             const fileListIndex = startRenderIndex + index;
-            const transform = layout.getItemLayout(fileListIndex);
+            const transform = layout.getTransform(fileListIndex);
             return (
               <MasonryCell
                 key={im.id}

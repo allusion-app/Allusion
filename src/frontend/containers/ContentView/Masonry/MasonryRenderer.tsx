@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef, useState } from 'react';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
 import { debounce } from 'src/frontend/utils';
+import { MasonryType } from 'wasm/masonry/pkg/masonry';
 import { getThumbnailSize, ILayoutProps } from '../LayoutSwitcher';
 import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';
@@ -15,10 +16,10 @@ interface IMasonryRendererProps {
   type: SupportedViewMethod;
 }
 
-const ViewMethodLayoutDict: Record<SupportedViewMethod, 'vertical' | 'horizontal' | 'grid'> = {
-  [ViewMethod.MasonryVertical]: 'vertical',
-  [ViewMethod.MasonryHorizontal]: 'horizontal',
-  [ViewMethod.Grid]: 'grid',
+const ViewMethodLayoutDict: Record<SupportedViewMethod, MasonryType> = {
+  [ViewMethod.MasonryVertical]: MasonryType.Vertical,
+  [ViewMethod.MasonryHorizontal]: MasonryType.Horizontal,
+  [ViewMethod.Grid]: MasonryType.Grid,
 };
 
 const SCROLL_BAR_WIDTH = 8;

@@ -1,7 +1,7 @@
-import { ITransform } from './masonry.worker';
+import { ITransform } from './MasonryWorkerAdapter';
 
 export interface Layouter {
-  getItemLayout: (index: number) => ITransform;
+  getTransform: (index: number) => ITransform;
 }
 
 /**
@@ -33,7 +33,7 @@ export function findViewportEdge(
     let stepSize = length / Math.pow(2, iteration);
     if (stepSize < 1) return nextLookup;
     stepSize = Math.round(stepSize);
-    const t = layout.getItemLayout(nextLookup);
+    const t = layout.getTransform(nextLookup);
     if (t.top > height) {
       if (t.top + t.height > height) {
         // looked up too far, go back:
