@@ -35,18 +35,8 @@ let mainConfig = {
         },
       },
       {
-        test: /\.(jpg|png|gif|ico|icns)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
-      },
-      {
-        test: /\.(eot|ttf|woff|woff2)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
+        test: /\.(jpg|png|gif|ico|icns|eot|ttf|woff|woff2)$/,
+        type: 'asset/resource',
       },
     ],
   },
@@ -80,13 +70,6 @@ let rendererConfig = {
   module: {
     rules: [
       {
-        test: /\.worker\.ts$/,
-        loader: 'worker-loader',
-        options: {
-          filename: '[name].js',
-        },
-      },
-      {
         // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
         test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
@@ -119,18 +102,8 @@ let rendererConfig = {
         ],
       },
       {
-        test: /\.(jpg|png|gif|ico|icns)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
-      },
-      {
-        test: /\.(eot|ttf|woff|woff2)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
+        test: /\.(jpg|png|gif|ico|icns|eot|ttf|woff|woff2)$/,
+        type: 'asset/resource',
       },
       {
         test: /\.wasm$/,
@@ -150,7 +123,7 @@ let rendererConfig = {
         oneOf: [
           {
             issuer: /\.scss$/,
-            loader: 'file-loader',
+            type: 'asset/resource',
           },
           {
             issuer: /.tsx?$/,

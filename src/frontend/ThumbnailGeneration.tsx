@@ -8,7 +8,6 @@ import { thumbnailType } from 'src/config';
 import { ID } from 'src/entities/ID';
 import { ClientFile } from 'src/entities/File';
 
-import ThumbnailWorker from './workers/thumbnailGenerator.worker';
 import StoreContext from './contexts/StoreContext';
 
 export interface IThumbnailMessage {
@@ -29,7 +28,9 @@ export interface IThumbnailMessageResponse {
 const NUM_THUMBNAIL_WORKERS = 4;
 const workers: Worker[] = [];
 for (let i = 0; i < NUM_THUMBNAIL_WORKERS; i++) {
-  workers[i] = new ThumbnailWorker({ type: 'module' });
+  workers[i] = new Worker(new URL('./workers/thumbnailGenerator.worker', import.meta.url), {
+    type: 'module',
+  });
 }
 
 let lastSubmittedWorker = 0;
