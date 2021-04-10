@@ -61,10 +61,10 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
 
   // Assemble list of options
   const options = useMemo(() => {
-    const res: (IOption & { id: string; divider?: boolean })[] = suggestions.map((t) => {
+    const res: (IOption & { id: string; divider?: boolean })[] = suggestions.map((t, i) => {
       const isSelected = selection.includes(t);
       return {
-        id: t.id,
+        id: `${t.id}-${i}`,
         selected: isSelected,
         value: t.name,
         onClick: () => {
@@ -139,9 +139,9 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
         target={
           <div className="multiautocomplete-input">
             <div className="input-wrapper">
-              {selection.map((t) => (
+              {selection.map((t, i) => (
                 <Tag
-                  key={t.id}
+                  key={`${t.id}-${i}`}
                   text={tagLabel(t)}
                   color={t.viewColor}
                   onRemove={() => onDeselect(t)}

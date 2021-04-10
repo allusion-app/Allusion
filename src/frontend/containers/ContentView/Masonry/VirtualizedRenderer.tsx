@@ -103,7 +103,9 @@ const VirtualizedRenderer = observer(
         scrollAnchor.current.style.transform = `translate(${s.left}px,${s.top}px)`;
         scrollAnchor.current.style.width = s.width + 'px';
         scrollAnchor.current.style.height = s.height + 'px';
-        scrollAnchor.current?.scrollIntoView({ block });
+        // TODO: adding behavior: 'smooth' would be nice, but it's disorienting when layout changes a lot. Add threshold for when the delta firstItemIndex than X?
+        // Also, it doesn't work when scrolling by keeping arrow key held down
+        scrollAnchor.current?.scrollIntoView({ block, inline: 'nearest' });
       },
       [layout],
     );
@@ -117,7 +119,7 @@ const VirtualizedRenderer = observer(
     // This also sets the initial scroll position on initial render, for when coming from another view mode
     useLayoutEffect(() => {
       runInAction(() => {
-        scrollToIndex(uiStore.firstItem, 'start');
+        scrollToIndex(uiStore.firstItem, 'start'); // keep the first item in view aligned at the start
       });
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [layoutUpdateDate]);
