@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 wasm-bindgen = { version = "0.2.73" }
 js-sys = "0.3.50"
-web-sys = { version = "0.3.50", features = ["MessageEvent", "Worker", "Url"] }
+web-sys = { version = "0.3.50", features = ["Blob", "BlobPropertyBag", "MessageEvent", "Worker", "WorkerOptions", "Url"] }
 
 [lib]
 crate-type = ["cdylib", "rlib"]

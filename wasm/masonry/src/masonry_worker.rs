@@ -48,14 +48,18 @@ struct Computation {
 #[wasm_bindgen]
 impl MasonryWorker {
     #[wasm_bindgen(constructor)]
-    pub fn new(num_items: usize, worker_url: &str) -> MasonryWorker {
+    pub fn new(
+        num_items: usize,
+        module_path: &str,
+        wasm_path: &str,
+    ) -> Result<MasonryWorker, JsValue> {
         let manager = MasonryWorker {
             layout: Layout::new(
                 num_items,
                 MASONRY_CONFIG_DEFAULT.thumbnail_size,
                 MASONRY_CONFIG_DEFAULT.padding,
             ),
-            worker: Arc::new(web_sys::Worker::new(worker_url).unwrap()),
+            worker: Arc::new(create_web_worker(module_path, wasm_path)?),
             message_handler: Arc::new(RefCell::new(None)),
             message_data: MessageData::new(),
             json_output: String::new(),
@@ -63,8 +67,8 @@ impl MasonryWorker {
         let initial_message = js_sys::Array::new();
         initial_message.push(manager.message_data.as_ref());
         initial_message.push(&wasm_bindgen::memory());
-        manager.worker.post_message(&initial_message).unwrap();
-        manager
+        manager.worker.post_message(&initial_message)?;
+        Ok(manager)
     }
 
     pub fn compute(
@@ -87,14 +91,21 @@ impl MasonryWorker {
         self.message_data.set_data(message_ptr);
         let worker = Arc::clone(&self.worker);
         let message_handler = Arc::clone(&self.message_handler);
-        let mut callback = |resolve: js_sys::Function, _reject: js_sys::Function| {
+        let mut callback = |resolve: js_sys::Function, reject: js_sys::Function| {
             let message_handler_clone = Arc::clone(&self.message_handler);
             *message_handler.borrow_mut() = Some(Closure::wrap(Box::new(
                 move |event: web_sys::MessageEvent| {
-                    // Return result from web worker
-                    resolve
-                        .call1(&wasm_bindgen::JsValue::NULL, &event.data())
-                        .unwrap();
+                    // Continue program flow by either resolving the `Some(value)` or rejecting the value
+                    // if `execute` returns `None`.
+                    let r = {
+                        let value = event.data();
+                        if value.is_undefined() {
+                            reject.call0(&wasm_bindgen::JsValue::NULL)
+                        } else {
+                            resolve.call1(&wasm_bindgen::JsValue::NULL, &value)
+                        }
+                    };
+                    debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
 
                     // SAFETY: This will only ever panic if the returned Promise is not awaited and
                     // this method is called while the web worker is returning the data.
@@ -122,7 +133,7 @@ impl MasonryWorker {
         self.layout.set_dimension(index, src_width, src_height)
     }
 
-    pub fn get_transform(&mut self, index: usize) -> JsValue {
+    pub fn get_transform(&mut self, index: usize) -> Result<JsValue, JsValue> {
         let Transform {
             width,
             height,
@@ -136,11 +147,11 @@ impl MasonryWorker {
                 width, height, top, left
             ),
         )
-        .unwrap();
+        .map_err(|err| JsValue::from_str(&err.to_string()))?;
         // We could use serde but I do not think this added dependency is worth here.
-        let json = js_sys::JSON::parse(&self.json_output).unwrap();
+        let json = js_sys::JSON::parse(&self.json_output)?;
         self.json_output.clear();
-        json
+        Ok(json)
     }
 }
 
@@ -161,17 +172,17 @@ impl MessageData {
     }
 
     fn set_data(&self, computation_ptr: *const Computation) {
-        let _r = js_sys::Atomics::store(&self.0, 1, computation_ptr as i32);
+        self.0.set_index(1, computation_ptr as i32);
     }
 
     fn notify_change(&self) {
-        let _r = js_sys::Atomics::store(&self.0, 0, 1);
+        self.0.set_index(0, 1);
         let _r = js_sys::Atomics::notify(&self.0, 0);
     }
 }
 
 #[wasm_bindgen]
-pub fn execute(message_ptr: u32) -> u32 {
+pub fn execute(message_ptr: u32) -> Option<u32> {
     let (width, config, layout) = {
         // SAFETY: Messages are only created inside Rust memory and the pointer is created in
         // Rust memory too.
@@ -180,15 +191,59 @@ pub fn execute(message_ptr: u32) -> u32 {
         // its destructor will be run at the end of the function. This will lead to a double free.
         // Instead we only get a mutable reference and have to depend on the user to `await` every
         // `Promise` returned from `MasonryWorker::compute`.
-        let layout = unsafe { message.layout_ptr.as_mut().unwrap() };
+        let layout = unsafe { message.layout_ptr.as_mut()? };
         (message.width, message.config, layout)
     };
     layout.set_thumbnail_size(config.thumbnail_size);
     layout.set_padding(config.padding);
 
-    match config.kind {
+    Some(match config.kind {
         MasonryType::Vertical => layout.compute_vertical(width),
         MasonryType::Horizontal => layout.compute_horizontal(width),
         MasonryType::Grid => layout.compute_grid(width),
+    })
+}
+
+fn create_web_worker(module_path: &str, wasm_path: &str) -> Result<web_sys::Worker, JsValue> {
+    let script = format!(
+        "import {{ default as init, execute }} from '{module_path}';
+
+        self.onmessage = async (event) => {{
+            await init('{wasm_path}', event.data[1]);
+            const message = event.data[0];
+        
+            while (true) {{
+                Atomics.wait(message, 0, 0);
+                self.postMessage(execute(message[1]));
+                message[0] = 0;
+            }}
+        }};",
+        module_path = module_path,
+        wasm_path = wasm_path
+    );
+    let sequence = js_sys::Array::new();
+    sequence.push(&JsValue::from_str(&script));
+    let blob = web_sys::Blob::new_with_blob_sequence_and_options(
+        &sequence,
+        web_sys::BlobPropertyBag::new().type_("text/javascript"),
+    )?;
+    let url = web_sys::Url::create_object_url_with_blob(&blob)?;
+    web_sys::Worker::new_with_options(&url, web_sys::WorkerOptions::new().type_("module"))
+}
+
+// Add missing implementation of type property.
+trait WorkerOptionsExt {
+    fn type_(&mut self, val: &str) -> &mut Self;
+}
+
+impl WorkerOptionsExt for web_sys::WorkerOptions {
+    fn type_(&mut self, val: &str) -> &mut Self {
+        let r = ::js_sys::Reflect::set(self.as_ref(), &JsValue::from("type"), &JsValue::from(val));
+        debug_assert!(
+            r.is_ok(),
+            "setting properties should never fail on our dictionary objects"
+        );
+        let _ = r;
+        self
     }
 }

@@ -2,9 +2,9 @@
 /* eslint-disable */
 /**
 * @param {number} message_ptr
-* @returns {number}
+* @returns {number | undefined}
 */
-export function execute(message_ptr: number): number;
+export function execute(message_ptr: number): number | undefined;
 /**
 */
 export enum MasonryType {
@@ -18,9 +18,10 @@ export class MasonryWorker {
   free(): void;
 /**
 * @param {number} num_items
-* @param {string} worker_url
+* @param {string} module_path
+* @param {string} wasm_path
 */
-  constructor(num_items: number, worker_url: string);
+  constructor(num_items: number, module_path: string, wasm_path: string);
 /**
 * @param {number} width
 * @param {number} kind
@@ -50,17 +51,18 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly __wbg_masonryworker_free: (a: number) => void;
-  readonly masonryworker_new: (a: number, b: number, c: number) => number;
+  readonly masonryworker_new: (a: number, b: number, c: number, d: number, e: number) => number;
   readonly masonryworker_compute: (a: number, b: number, c: number, d: number, e: number) => number;
   readonly masonryworker_resize: (a: number, b: number) => void;
   readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;
   readonly masonryworker_get_transform: (a: number, b: number) => number;
-  readonly execute: (a: number) => number;
+  readonly execute: (a: number, b: number) => void;
   readonly __wbindgen_export_0: WebAssembly.Memory;
+  readonly __wbindgen_export_1: WebAssembly.Table;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__ha3850c4b597b863a: (a: number, b: number, c: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
-  readonly __wbindgen_export_3: WebAssembly.Table;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h03dafa322a4ef208: (a: number, b: number, c: number) => void;
+  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly wasm_bindgen__convert__closures__invoke2_mut__he8da1be40d9acc4c: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_start: () => void;

@@ -14,6 +14,7 @@ let mainConfig = {
   output: {
     filename: 'main.bundle.js',
     path: __dirname + '/build',
+    clean: true
   },
   node: {
     __dirname: false,
@@ -142,11 +143,12 @@ let rendererConfig = {
       },
       {
         test: /\.wasm$/,
-        loader: 'file-loader',
-        type: 'javascript/auto',
-        options: {
-          name: '[path][name].[ext]',
-        },
+        type: 'asset/resource',
+      },
+      {
+        test: /\.js$/,
+        resourceQuery: /file/,
+        type: 'asset/resource',
       },
       {
         test: /\.node$/,
