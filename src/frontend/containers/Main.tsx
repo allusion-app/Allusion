@@ -71,6 +71,7 @@ const Main = () => {
           </main>
         }
         axis="vertical"
+        align="left"
         splitPoint={uiStore.outlinerWidth}
         isExpanded={uiStore.isOutlinerOpen}
         onMove={uiStore.moveOutlinerSplitter}

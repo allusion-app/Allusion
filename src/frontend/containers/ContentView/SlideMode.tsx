@@ -41,6 +41,7 @@ const SlideMode = observer((props: ISlideMode) => {
       primary={<Inspector />}
       secondary={slideView}
       axis="vertical"
+      align="right"
       splitPoint={inspectorWidth}
       isExpanded={isInspectorOpen}
       onMove={uiStore.moveInspectorSplitter}

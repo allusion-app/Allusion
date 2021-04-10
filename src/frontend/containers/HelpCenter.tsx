@@ -88,6 +88,7 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
           />
         }
         axis="vertical"
+        align="left"
         splitPoint={splitPoint}
         isExpanded={isIndexOpen}
         onMove={handleMove}
