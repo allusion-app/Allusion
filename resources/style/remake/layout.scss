@@ -36,6 +36,35 @@ body {
   right: 0;
 }
 
+#about {
+  width: 100vw;
+  height: 100vh;
+  padding: 1rem;
+  text-align: center;
+  .centered {
+    max-width: 60%;
+    min-width: 400px;
+    margin: auto;
+  }
+  img {
+    max-width: 180px;
+    border-radius: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    margin: auto;
+  }
+  ul {
+    font-family: Segoe UI Emoji;
+    text-align: initial;
+    max-width: 270px;
+    margin: auto;
+    li {
+      margin-bottom: 2px;
+    }
+  }
+}
+
 #main {
   position: relative;
 }

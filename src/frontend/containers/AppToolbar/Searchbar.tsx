@@ -17,7 +17,7 @@ const Searchbar = observer(() => {
     searchCriteriaList.every(
       (crit) =>
         crit.key === 'tags' &&
-        crit.operator === 'contains' &&
+        crit.operator === 'containsRecursively' &&
         (crit as ClientTagSearchCriteria<any>).value.length,
     );
 

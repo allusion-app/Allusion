@@ -15,6 +15,7 @@ import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
 import Main from './containers/Main';
+import About from './containers/About';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -66,6 +67,8 @@ const App = observer(() => {
           <Settings />
 
           <HelpCenter />
+
+          <About />
 
           <AdvancedSearchDialog />
 

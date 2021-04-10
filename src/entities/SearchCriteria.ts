@@ -125,7 +125,7 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     key: keyof T,
     id?: ID,
     label: string = '',
-    operator: TagOperatorType = 'contains',
+    operator: TagOperatorType = 'containsRecursively',
     dict?: SearchKeyDict<T>,
   ) {
     super(key, 'array', operator, dict);

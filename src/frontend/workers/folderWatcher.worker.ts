@@ -31,7 +31,6 @@ export class FolderWatcherWorker {
 
     // Watch for changes
     this.watcher = chokidar.watch(directory, {
-      // cwd: directory,
       disableGlobbing: true, // needed in order to support folders with brackets, quotes, etc.
       depth: RECURSIVE_DIR_WATCH_DEPTH,
       ignored: [
@@ -69,7 +68,10 @@ export class FolderWatcherWorker {
           this.isReady = true;
           resolve(initialFiles);
         })
-        .on('error', (error) => ctx.postMessage({ type: 'error', value: error }));
+        .on('error', (error) => {
+          console.error('Error fired in watcher', directory, error);
+          ctx.postMessage({ type: 'error', value: error });
+        });
     });
   }
 }
