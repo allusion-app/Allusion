@@ -50,7 +50,9 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   @action async init(): Promise<string[] | undefined> {
     this.isInitialized = true;
-    const pathExists = await fse.pathExists(this.path);
+    // FIXME: awaiting fse.pathExists was broken for me in many consecutive reloads, always at 2/3 locations
+    // The sync version works fine
+    const pathExists = fse.pathExistsSync(this.path);
     if (pathExists) {
       this.setBroken(false);
       return this.watch(this.path);
