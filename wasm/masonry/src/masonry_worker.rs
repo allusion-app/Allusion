@@ -161,12 +161,12 @@ impl MessageData {
     }
 
     fn set_data(&self, computation_ptr: *const Computation) {
-        self.0.set_index(1, computation_ptr as i32);
+        let _r = js_sys::Atomics::store(&self.0, 1, computation_ptr as i32);
     }
 
     fn notify_change(&self) {
-        self.0.set_index(0, 1);
-        js_sys::Atomics::notify(&self.0, 0).unwrap();
+        let _r = js_sys::Atomics::store(&self.0, 0, 1);
+        let _r = js_sys::Atomics::notify(&self.0, 0);
     }
 }
 
@@ -176,6 +176,10 @@ pub fn execute(message_ptr: u32) -> u32 {
         // SAFETY: Messages are only created inside Rust memory and the pointer is created in
         // Rust memory too.
         let message = unsafe { Box::from_raw(message_ptr as *mut Computation) };
+        // SAFETY: Never use std::ptr::read. The returned value will be an owned value, which means
+        // its destructor will be run at the end of the function. This will lead to a double free.
+        // Instead we only get a mutable reference and have to depend on the user to `await` every
+        // `Promise` returned from `MasonryWorker::compute`.
         let layout = unsafe { message.layout_ptr.as_mut().unwrap() };
         (message.width, message.config, layout)
     };

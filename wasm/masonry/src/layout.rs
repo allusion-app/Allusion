@@ -151,21 +151,27 @@ impl Layout {
             transform.width = item_width;
             transform.correct_height(&self.dimensions[i]);
 
-            let shortest_col_index = col_heights
-                .iter()
-                .enumerate()
-                .min_by_key(|(_idx, &val)| val)
-                .map_or(0, |(idx, _val)| idx);
+            let shortest_col_index = {
+                let mut min_index = 0;
+                let mut min_value = u32::MAX;
+                for j in 0..col_heights.len() {
+                    let val = col_heights[j];
+                    if min_value > val {
+                        min_value = val;
+                        min_index = j;
+                    }
+                }
+                min_index
+            };
 
             transform.left = shortest_col_index as u16 * col_width;
             transform.top = col_heights[shortest_col_index];
 
-            col_heights[shortest_col_index] +=
-                u32::from(transform.height) + u32::from(self.padding);
+            col_heights[shortest_col_index] += u32::from(transform.height + self.padding);
         }
 
         // Return height of longest column
-        col_heights.iter().max().map_or(0, |max| *max)
+        col_heights.into_iter().max().unwrap_or(0)
     }
 
     // Simple Grid layout, replacement for the react-window dependency
@@ -205,11 +211,11 @@ impl Layout {
 
         left = 0;
         for _ in 0..rest {
-            let tranform = &mut self.transforms[index];
-            tranform.width = item_size;
-            tranform.height = item_size;
-            tranform.left = left;
-            tranform.top = top_offset;
+            let transform = &mut self.transforms[index];
+            transform.width = item_size;
+            transform.height = item_size;
+            transform.left = left;
+            transform.top = top_offset;
 
             index += 1;
             left += column_width;
