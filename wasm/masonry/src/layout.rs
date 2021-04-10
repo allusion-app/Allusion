@@ -60,9 +60,10 @@ impl Layout {
 
     pub fn resize(&mut self, new_len: usize) {
         self.num_items = new_len;
-        let capacity = self.transforms.capacity();
-        if new_len > capacity {
-            let additional_capacity = new_len - capacity;
+        let len = self.transforms.len();
+        if new_len > len {
+            let capacity = self.transforms.capacity();
+            let additional_capacity = new_len.checked_sub(capacity).unwrap_or(0);
             self.transforms.reserve(additional_capacity);
             self.dimensions.reserve(additional_capacity);
             for _ in capacity..new_len {
@@ -87,26 +88,34 @@ impl Layout {
 
         for i in 0..self.num_items {
             let transform = &mut self.transforms[i];
+            // Correct aspect ratio for very wide/narrow images
             transform.height = transform_height;
+            transform.correct_width(&self.dimensions[i]);
             transform.top = top_offset;
             transform.left = cur_row_width;
-            // Correct aspect ratio for very wide/narrow images
-            transform.correct_width(&self.dimensions[i]);
 
             // Check if adding this image to the row would exceed the container width
-            let new_row_width = cur_row_width + transform.width + self.padding;
+            let new_row_width = cur_row_width + transform.width;
 
             if new_row_width > container_width {
                 // If it exceeds it, position all current items in the row accordingly and start a new row for this item
                 // Position all items in this row properly after the row is filled, needs to expand a little
 
                 // Now that the size of this row is definitive: Set the actual size of all row items
-                let correction_factor = f32::from(container_width) / f32::from(new_row_width);
+                // The horizontal padding should not be scaled: Should be an absolute value
+                let num_items_in_row = (i - first_row_item_index + 1) as u16;
+                let total_horizontal_padding = (num_items_in_row + 1) * self.padding;
+                let correction_factor = f32::from(container_width - total_horizontal_padding)
+                    / f32::from(new_row_width);
 
                 transform.scale(correction_factor);
+                transform.left += (num_items_in_row - 1) * self.padding;
 
+                let mut left = 0;
                 for prev_item in self.transforms[first_row_item_index..i].iter_mut() {
-                    prev_item.scale(correction_factor)
+                    prev_item.scale(correction_factor);
+                    prev_item.left += left;
+                    left += self.padding;
                 }
 
                 // Start a new row
@@ -245,7 +254,7 @@ impl Transform {
 
     fn correct_width(&mut self, dimension: &Dimension) {
         let ratio = f32::from(self.height) / dimension.corrected_aspect_ratio;
-        self.width = (ratio * dimension.src_height).round() as u16;
+        self.width = (ratio * dimension.src_width).round() as u16;
     }
 }
 
