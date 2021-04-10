@@ -24,7 +24,8 @@ const Single = observer(({ tagStore, uiStore }: IFileTagProp) => {
     throw new Error('BUG: No file was selected. A condition was not checked.');
   }
 
-  const handleCreate = async (name: string) => tagStore.create(tagStore.root, name);
+  const handleCreate = async (name: string) =>
+    file.addTag(await tagStore.create(tagStore.root, name));
 
   return (
     <MultiTagSelector
