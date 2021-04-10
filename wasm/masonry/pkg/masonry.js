@@ -133,13 +133,14 @@ function getInt32Memory0() {
     return cachegetInt32Memory0;
 }
 /**
-* @param {number} message_ptr
+* Function to be called in the web worker thread to compute the new layout.
+* @param {number} computation_ptr
 * @returns {number | undefined}
 */
-export function execute(message_ptr) {
+export function execute(computation_ptr) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.execute(retptr, message_ptr);
+        wasm.execute(retptr, computation_ptr);
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         return r0 === 0 ? undefined : r1 >>> 0;
@@ -158,7 +159,7 @@ function handleError(f) {
         }
     };
 }
-function __wbg_adapter_55(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_57(arg0, arg1, arg2, arg3) {
     wasm.wasm_bindgen__convert__closures__invoke2_mut__he8da1be40d9acc4c(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
@@ -188,6 +189,7 @@ export class MasonryWorker {
         wasm.__wbg_masonryworker_free(ptr);
     }
     /**
+    * Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
     * @param {number} num_items
     * @param {string} module_path
     * @param {string} wasm_path
@@ -201,6 +203,13 @@ export class MasonryWorker {
         return MasonryWorker.__wrap(ret);
     }
     /**
+    * Computes the transforms of all items and returns the height of the container.
+    *
+    * # Safety
+    *
+    * The returned `Promise` must be `await`ed. Calls to any other method of [`MasonryWorker`]
+    * while the `Promise` is still pending can lead to undefined behaviour. As long as the value
+    * is `await`ed you can enjoy lock free concurrency.
     * @param {number} width
     * @param {number} kind
     * @param {number} thumbnail_size
@@ -212,12 +221,27 @@ export class MasonryWorker {
         return takeObject(ret);
     }
     /**
+    * Set the number of items that need to be computed.
+    *
+    * Memory is never deallocated which means that even if the new len is smaller than the current
+    * item count, it will not free the memory of previous items. This is done to avoid allocating
+    * a lot. Allocations can be vary in performance depending on the provided allocator. This
+    * makes no efforts and uses the standard library allocator.
     * @param {number} new_len
     */
     resize(new_len) {
         wasm.masonryworker_resize(this.ptr, new_len);
     }
     /**
+    * Set the dimension of one item at the given index.
+    *
+    * You have to set the dimensions of the items if you want to compute a vertical or horizontal
+    * masonry layout. For grid layout this is not necessary.
+    *
+    * # Panics
+    *
+    * If the index is greater than number passed to [`MasonryWorker::resize()`], it will panic
+    * because of an out of bounds error.
     * @param {number} index
     * @param {number} src_width
     * @param {number} src_height
@@ -226,6 +250,14 @@ export class MasonryWorker {
         wasm.masonryworker_set_dimension(this.ptr, index, src_width, src_height);
     }
     /**
+    * Returns the transform of the item at the given index.
+    *
+    * The [`Transform`] object can be used to set the absolute position of an element.
+    *
+    * # Panics
+    *
+    * If the index is greater than number passed to [`MasonryWorker::resize()`], it will panic
+    * because of an out of bounds error.
     * @param {number} index
     * @returns {any}
     */
@@ -336,8 +368,12 @@ async function init(input, maybe_memory) {
         var ret = new SharedArrayBuffer(arg0 >>> 0);
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_notify_ad4e5193f884ebe3 = handleError(function(arg0, arg1) {
-        var ret = Atomics.notify(getObject(arg0), arg1 >>> 0);
+    imports.wbg.__wbg_notify_f85299c7d941c13b = handleError(function(arg0, arg1, arg2) {
+        var ret = Atomics.notify(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
+        return ret;
+    });
+    imports.wbg.__wbg_store_77f99942b343656f = handleError(function(arg0, arg1, arg2) {
+        var ret = Atomics.store(getObject(arg0), arg1 >>> 0, arg2);
         return ret;
     });
     imports.wbg.__wbg_call_f5e0576f61ee7461 = handleError(function(arg0, arg1, arg2) {
@@ -363,7 +399,7 @@ async function init(input, maybe_memory) {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_55(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_57(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -377,9 +413,6 @@ async function init(input, maybe_memory) {
     imports.wbg.__wbg_new_5c2190a641284929 = function(arg0) {
         var ret = new Int32Array(getObject(arg0));
         return addHeapObject(ret);
-    };
-    imports.wbg.__wbg_setindex_b663df3b5af8d096 = function(arg0, arg1, arg2) {
-        getObject(arg0)[arg1 >>> 0] = arg2;
     };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));

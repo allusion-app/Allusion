@@ -1,40 +1,42 @@
 # Masonry Layout
 
+TLDR:
+
+> `yarn build:wasm`
+
 ## Caveats
 
-This only works with Chrome 80+ because we use modules in our web worker. It is possible not using modules which can be implemented if requested and be added as build flag. Be aware that this will significantly bloat the WebAssembly file.
+This only works with Chrome 80+ because we use modules in our web worker. It is possible with `importScript` which can be implemented if requested and added as build flag. Be aware that this will significantly bloat the WebAssembly file.
 
 ## Building
 
 The default export `wasm-pack build` command doesn't play nicely with electron/webpack,
 after some experimenting: `wasm-pack build --target web` does work!
 
-I added a `build:wasm` script to `package.json` that you can run to compile the Rust code to WASM.
-It will also copy it to the build folder, so you can just reload the window afterwards!
-Add `--release` for a production build!
-
-TLDR:
-
-> `yarn build:wasm`
+I added a `build:wasm` script to `package.json` that you can run to compile the Rust code to WASM. The `.cargo/config.toml` and `rust-toolchain` file will be picked up by cargo and download the appropriate toolchain and re-compile the standard library to enable all features needed to use shared memory.
 
 ## Threading Model
 
-The Rust standard library or any programming language standard library does not provide threads in the classical sense for WebAssembly and many lower level building blocks are still missing or unstable. Therefore, we will have to work around web workers which are very primitive but now that SharedArrayBuffer is stable (again), we can do many things much simpler.
+The Rust standard library or any programming language standard library does not provide threads in the classical sense for WebAssembly and many lower level building blocks are still missing or unstable. Therefore, we will have to work around web workers which are very primitive but now that SharedArrayBuffer is stable (again), it has become easier.
 
-We use the great `com-link` library to make working with web workers a breath. Getting and setting data from a web worker is asynchronously but this can be slow because messaging is done via serailizing and deserialing objects. Overall, there is much more communication between threads required which adds overhead. The added latency is not a good fit since we want to have smooth scrolling.
-To work around this, we send pointers to the data to create typed arrays from the WebAssembly memory. This fixes the issue of having to wait for accessing data in constant time. Yet, it is actually very fragile and cumbersome. First of all, any heap allocation could invalidate the pointers, so we need to allocate one gigantic `Vec`. Second of all, we need to read the values from typed arrays which limits the used structures on the Rust side and in JavaScript this is really not fun.
+We use the great `com-link` library to make working with web workers less of a headache. Getting and setting data from a web worker is asynchronously but this can be slow because messaging is done with serializing and deserialing objects. Overall, there is much more overhead from the added communication between threads. The added latency becomes problematic because scrolling, resizing and adding or reming images from a masonry layout should be a smooth experience.
+
+To work around this, we send pointers to create typed arrays from the WebAssembly memory. This fixes the issue of having to wait for accessing data in constant time. Yet, it is actually very fragile and cumbersome. First of all, any heap allocation could invalidate the pointers, so we need to allocate one gigantic `Vec`. Second of all, we need to read the values from typed arrays which limits the used structures on the Rust side and in JavaScript this is really not fun.
 
 However, with `SharedArrayBuffer`s being stable (again), we can use all kinds of (unstable) features. No extra copying, data access in constant time and as a cherry on top we will use `Promise`s like in `com-link` to send and receive data from our web worker. The next section will be an overview how things work under the hood.
 
 ### Messaging by Sharing Memory
 
-On the main thread we initialize the WebAssembly module using the `init` function in `./pkg/masonry.js`. Afterwards, we can call anything from the module. At first we need to create an instance of `MasonryWorker`.
+On the main thread we initialize the WebAssembly module using the `init` function in `./pkg/masonry.js`. Afterwards, we create an instance of `MasonryWorker`.
 
-The `MasonryWorker` constructor takes in as parameter the URL to the web worker script and creates the web worker inside it. There we make our first `Worker.postMessage` call to send the WebAssembly memory which will be then used in the `Worker.onmessage` callback to create the WebAssembly module. However, we have now one big problem if we just post another message. The WebAssembly cannot be stored inside your script (for some bizarre reason it just doesn't work in Chrome) and by the time the second message comes, you will have no access to the memory anymore unless you send it on every message. This is not great since we need to execute our WebAssembly functions in the message callback.
+The `MasonryWorker` constructor takes in as parameters the URLs to the `masonry.js` file and `masonry_bg.wasm` file. Those are needed to create a web worker inline using a `Blob` object (see `create_web_worker` in `src/masonry_worker` as reference).
+There we make our first `Worker.postMessage` call to send the WebAssembly memory which will be then used in the `Worker.onmessage` callback to create the WebAssembly module.
 
-A similar problem happens when you use MPSC or channels in general. If you just create a thread and send the a port to it, only one message will be received. Why? Because the port has processed the message and is not waiting (blocking the thread) anymore. To fix this you need to block again and this is usually done by using an infinite loop to keep blocking.
+However, we have now one big problem. If we just post another message, the WebAssembly cannot be stored inside the web worker script (for some bizarre reason it just doesn't work in Chrome) and by the time the second message comes, you will have no access to the memory anymore unless you send it on every message. This is not great since we want to execute our WebAssembly function in the message callback and compiling WebAssembly would take extra time.
 
-In our case we have no fancy channels but we have shared memory and `Atomics`! In our `MasonryWorker` we have an `Int32Array` that is backed by a `SharedArrayBuffer`. This is send to the web worker with the WebAssembly memory on creation. We use `Atomics.wait` to block in the web worker thread and use `Atomics.notify` to wake up the web worker to process our tasks. In total, only one make one `Worker.postMessage` call which means the WebAssembly will be kept alive. Under the hood this happens or this is how it would look if it was implemented in JavaScript.
+A similar problem happens when you use MPSC or channels in general. If you just create a thread and send the a port to it, only one message will be received. Why? Because the port has processed the message and is not waiting (blocking the thread) anymore. To fix this you need to block again and this is usually done by using an infinite loop.
+
+In our case we have no fancy channels but we have shared memory and `Atomics`! In our `MasonryWorker` we have a `Notification` struct wrapped around an `Int32Array` that is backed by a `SharedArrayBuffer`. This is send to the web worker with the WebAssembly memory on creation. We use `Atomics.wait` to block in the web worker thread and use `Atomics.notify` to wake up the web worker to process our tasks. In total, only one `Worker.postMessage` call is invoked which means the WebAssembly module will be kept alive. This is how it would look if it was implemented in JavaScript.
 
 ```js
 // main.js
@@ -70,8 +72,41 @@ self.onmessage = async (event) => {
 
 ### Lock Free Data Read and Write
 
-Right now the above code does not really do anything. We want to send our work to the web worker too but we only have a typed array. This limits the number of types we can send to 1 and using `Worker.postMessage` is a not an option as outlined above. We can however, use the magic of pointers!
+Right now the above code does not really do anything. We want to send our work to the web worker too but we only have a typed array. This limits the number of types we can send to basically 1 and using `Worker.postMessage` is not an option as outlined above. We can however, use the magic of pointers!
 
-Since the used WebAssembly memory in both threads is the same, pointers to data on the Rust side will be the same even in the web worker. Dereferencing pointers is entirely unsafe though because the send pointers must be valid and must be created on the Rust side. However, this will only break apart if you mess around with the worker script.
+Since the used WebAssembly memory in both threads is the same, pointers to data on the Rust side will be the same even in the web worker. Dereferencing pointers is then mostly safe.
 
-Furthermore, reading and writing must not happen at the same time because this can lead to undefined behaviour. For this, we will create a `Promise` that will only resolve once the web worker returns the result. Unless the `Promise` is not awaited, write and reads should be safe. The actual code of `MasonryWorker::compute` and `execute` can be found in `./src/masonry_worker.rs`.
+Furthermore, reading and writing must not happen at the same time because this can lead to undefined behaviour. For this, we will create a `Promise` that will only resolve once the web worker returns the result. Unless the `Promise` is not awaited, write and reads should be safe. The actual code of `MasonryWorker::compute` and `execute` can be found in `./src/masonry_worker.rs`. For this to work we capture the callback functions in the `Promise` constructor in a Rust closure and store the value. We must store the closure until it is called, otherwise it would be dropped immediately which means the `Promise` will never resolve.
+
+```rs
+let mut callback = |resolve: js_sys::Function, reject: js_sys::Function| {
+    let message_handler_clone = Arc::clone(&self.message_handler);
+    // On executing this closure resolve or reject the value. This make the program continue again.
+    // In other words when `await`ing the `Promise` is finished.
+    *message_handler.borrow_mut() = Some(Closure::wrap(Box::new(
+        move |event: web_sys::MessageEvent| {
+            let r = {
+                // `execute` returns an `Option<u32>` which is mapped in JavaScript as `number | undefined`.
+                let value = event.data();
+                if value.is_undefined() {
+                    reject.call0(&wasm_bindgen::JsValue::NULL)
+                } else {
+                    resolve.call1(&wasm_bindgen::JsValue::NULL, &value)
+                }
+            };
+            debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
+
+            // On returning the result we want to free the memory of this Rust closure.
+            message_handler_clone.borrow_mut().take();
+        },
+    )));
+
+    // Set the callback
+    worker.set_onmessage(
+        message_handler
+            .borrow()
+            .as_ref()
+            .map(|cb| cb.as_ref().unchecked_ref()),
+    );
+};
+```
