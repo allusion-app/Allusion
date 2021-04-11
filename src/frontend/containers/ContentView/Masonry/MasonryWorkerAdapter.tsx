@@ -33,7 +33,7 @@ export class MasonryWorkerAdapter {
   async initialize(numItems: number) {
     console.debug('adapter initializing');
 
-    if (!this.worker || !this.isInitialized) {
+    if (!this.worker) {
       this.free();
       console.debug('initializing WASM...');
       await init(MasonryWASM);
@@ -52,23 +52,24 @@ export class MasonryWorkerAdapter {
     containerWidth: number,
     opts: Partial<MasonryOptions>,
   ): Promise<number> {
-    if (!this.worker) {
+    const worker = this.worker;
+    if (!worker) {
       return Promise.reject();
     }
 
     if (this.prevNumImgs !== numImgs) {
-      this.worker.resize(numImgs);
+      worker.resize(numImgs);
     }
 
     this.prevNumImgs = numImgs;
     runInAction(() => {
       for (let i = 0; i < imgs.length; i++) {
         // Images that can't load are given resolution of 1, so they have a square aspect ratio
-        this.worker!.set_dimension(i, imgs[i].width || 1, imgs[i].height || 1);
+        worker.set_dimension(i, imgs[i].width || 1, imgs[i].height || 1);
       }
     });
 
-    return this.worker.compute(
+    return worker.compute(
       containerWidth,
       opts.type || defaultOpts.type,
       opts.thumbSize || defaultOpts.thumbSize,
@@ -89,7 +90,9 @@ export class MasonryWorkerAdapter {
   }
 
   free() {
-    return this.worker?.free();
+    this.worker?.free();
+    this.worker = undefined;
+    this.isInitialized = false;
   }
 
   // This method will be available in the custom VirtualizedRenderer component as layout.getItemLayout
