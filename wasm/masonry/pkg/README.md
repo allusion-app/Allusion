@@ -80,7 +80,8 @@ Furthermore, reading and writing must not happen at the same time because this c
 
 ```rs
 let mut callback = |resolve: js_sys::Function, reject: js_sys::Function| {
-    let message_handler_clone = Arc::clone(&self.message_handler);
+    // Create a weak ref to the event handler.
+    let message_handler_ref = Rc::downgrade(&message_handler);
     // On executing this closure resolve or reject the value. This make the program continue again.
     // In other words when `await`ing the `Promise` is finished.
     *message_handler.borrow_mut() = Some(Closure::wrap(Box::new(
@@ -97,7 +98,9 @@ let mut callback = |resolve: js_sys::Function, reject: js_sys::Function| {
             debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
 
             // On returning the result we want to free the memory of this Rust closure.
-            message_handler_clone.borrow_mut().take();
+            if let Some(message_handler) = message_handler_ref.upgrade() {
+                *message_handler.borrow_mut() = None;
+            }
         },
     )));
 
@@ -117,19 +120,19 @@ Closures in Rust are a little bit special because they are syntactic sugar for s
 
 ```rs
 struct __OuterClousure_some_hash<'a> {
-    worker: &'a Arc<web_sys::Worker>,
-    message_handler: &'a Arc<RefCell<Option<MessageEventHandler>>>,
+    worker: &'a Rc<web_sys::Worker>,
+    message_handler: &'a Rc<RefCell<Option<MessageEventHandler>>>,
 }
 
 impl<'a> Fn<(js_sys::Function, js_sys::Function)> for __OuterClousure_some_hash<'a> {
     fn call(&self, resolve: js_sys::Function, reject: js_sys::Function) {
-        let message_handler_clone = Arc::clone(&self.message_handler);
+        let message_handler_ref = Rc::downgrade(&self.message_handler);
 
         // Contains owned values due to the `move` key word.
         struct __InnerClousure_some_hash {
             resolve: js_sys::Function,
             reject: js_sys::Function,
-            message_handler_clone: Arc<RefCell<Option<MessageEventHandler>>>,
+            message_handler_ref: Weak<RefCell<Option<MessageEventHandler>>>,
         }
 
         impl<'a> Fn<web_sys::MessageEvent> for __InnerClousure_some_hash {
@@ -145,7 +148,9 @@ impl<'a> Fn<(js_sys::Function, js_sys::Function)> for __OuterClousure_some_hash<
                 debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
 
                 // On returning the result we want to free the memory of this Rust closure.
-                self.message_handler_clone.borrow_mut().take();
+                if let Some(message_handler) = self.message_handler_ref.upgrade() {
+                    *message_handler.borrow_mut() = None;
+                }
             }
         }
 

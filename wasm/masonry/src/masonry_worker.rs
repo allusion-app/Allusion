@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::sync::Arc;
+use std::rc::Rc;
 
 use crate::layout::{Layout, Transform};
 
@@ -11,8 +11,8 @@ type MessageEventHandler = Closure<dyn FnMut(web_sys::MessageEvent)>;
 #[wasm_bindgen]
 pub struct MasonryWorker {
     layout: Layout,
-    worker: Arc<web_sys::Worker>,
-    message_handler: Arc<RefCell<Option<MessageEventHandler>>>,
+    worker: Rc<web_sys::Worker>,
+    message_handler: Rc<RefCell<Option<MessageEventHandler>>>,
     notification: Notification,
     json_output: String,
 }
@@ -60,8 +60,8 @@ impl MasonryWorker {
                 MASONRY_CONFIG_DEFAULT.thumbnail_size,
                 MASONRY_CONFIG_DEFAULT.padding,
             ),
-            worker: Arc::new(create_web_worker(module_path, wasm_path)?),
-            message_handler: Arc::new(RefCell::new(None)),
+            worker: Rc::new(create_web_worker(module_path, wasm_path)?),
+            message_handler: Rc::new(RefCell::new(None)),
             notification: Notification::new(),
             json_output: String::new(),
         };
@@ -99,13 +99,14 @@ impl MasonryWorker {
             layout_ptr: &mut self.layout,
         });
 
-        let worker = Arc::clone(&self.worker);
-        let message_handler = Arc::clone(&self.message_handler);
+        let worker = Rc::clone(&self.worker);
+        let message_handler = Rc::clone(&self.message_handler);
 
         // We capture the resolve and reject functions from `Promise` constructor in our message
         // handler. When our event handler is invoked the control flow is resumed again.
         let mut callback = |resolve: js_sys::Function, reject: js_sys::Function| {
-            let message_handler_clone = Arc::clone(&message_handler);
+            // Create a weak ref to the event handler.
+            let message_handler_ref = Rc::downgrade(&message_handler);
             *message_handler.borrow_mut() = Some(Closure::wrap(Box::new(
                 move |event: web_sys::MessageEvent| {
                     let r = {
@@ -124,7 +125,9 @@ impl MasonryWorker {
                     // regardless which means this will never be called.
                     //
                     // On returning the result we want to free the memory of this Rust closure.
-                    message_handler_clone.borrow_mut().take();
+                    if let Some(message_handler) = message_handler_ref.upgrade() {
+                        *message_handler.borrow_mut() = None;
+                    }
                 },
             )));
             worker.set_onmessage(

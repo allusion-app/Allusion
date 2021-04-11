@@ -15,8 +15,6 @@ web-sys = { version = "0.3.50", features = ["Blob", "BlobPropertyBag", "MessageE
 crate-type = ["cdylib", "rlib"]
 
 [profile.release]
-# Optimize for size but still uses vectorization (SIMD loops)
-opt-level = "s"
 # Compile times can increase but inling might be better
 codegen-units = 1
 # Compile times can increase but inling across crates might be better
