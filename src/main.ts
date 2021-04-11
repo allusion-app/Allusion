@@ -125,13 +125,12 @@ function createWindow() {
     event.preventDefault();
     // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
     const additionalOptions: Electron.BrowserWindowConstructorOptions = {
-      // modal: true, // this apparently doesn't show a close button for MacOS
       parent: mainWindow,
       width: 680,
       height: 480,
       title: `${windowTitles[frameName]} • Allusion`,
-      frame: true, // TODO: It appears on OSX that this window does not have a frame (no close button)
-      // resizable: false,
+      frame: true,
+      titleBarStyle: 'default',
     };
     Object.assign(options, additionalOptions);
     const childWindow = new BrowserWindow(options);

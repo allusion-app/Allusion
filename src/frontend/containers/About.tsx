@@ -33,8 +33,8 @@ const About = observer(() => {
             </a>
           </h3>
           <ul>
-            <li>ℹ General information</li>
-            <li>⬇ Download the latest version</li>
+            <li>General information</li>
+            <li>Download the latest version</li>
           </ul>
           <h3>
             <a href="https://github.com/allusion-app/Allusion" onClick={clickLink}>
