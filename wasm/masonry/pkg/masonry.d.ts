@@ -2,6 +2,12 @@
 /* eslint-disable */
 /**
 * Function to be called in the web worker thread to compute the new layout.
+*
+* # Safety
+*
+* Do not import this function as it is already imported into the web worker thread (see
+* `create_web_worker`). The pointer send to it must be created in the same memory used for the
+* creation of the WebAssembly module both in the main and web worker thread.
 * @param {number} computation_ptr
 * @returns {number | undefined}
 */
@@ -57,8 +63,7 @@ export class MasonryWorker {
 *
 * # Panics
 *
-* If the index is greater than number passed to [`MasonryWorker::resize()`], it will panic
-* because of an out of bounds error.
+* If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
 * @param {number} index
 * @param {number} src_width
 * @param {number} src_height
@@ -71,8 +76,7 @@ export class MasonryWorker {
 *
 * # Panics
 *
-* If the index is greater than number passed to [`MasonryWorker::resize()`], it will panic
-* because of an out of bounds error.
+* If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
 * @param {number} index
 * @returns {any}
 */

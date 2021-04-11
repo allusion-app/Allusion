@@ -110,3 +110,58 @@ let mut callback = |resolve: js_sys::Function, reject: js_sys::Function| {
     );
 };
 ```
+
+#### Rust Digression: Closures
+
+Closures in Rust are a little bit special because they are syntactic sugar for structs. In the example, the Rust closures will compile down to structs that look roughly like this. Note that implementing the `Fn` traits manually does not work on stable and this is probably not the correct syntax anyway.
+
+```rs
+struct __OuterClousure_some_hash<'a> {
+    worker: &'a Arc<web_sys::Worker>,
+    message_handler: &'a Arc<RefCell<Option<MessageEventHandler>>>,
+}
+
+impl<'a> Fn<(js_sys::Function, js_sys::Function)> for __OuterClousure_some_hash<'a> {
+    fn call(&self, resolve: js_sys::Function, reject: js_sys::Function) {
+        let message_handler_clone = Arc::clone(&self.message_handler);
+
+        // Contains owned values due to the `move` key word.
+        struct __InnerClousure_some_hash {
+            resolve: js_sys::Function,
+            reject: js_sys::Function,
+            message_handler_clone: Arc<RefCell<Option<MessageEventHandler>>>,
+        }
+
+        impl<'a> Fn<web_sys::MessageEvent> for __InnerClousure_some_hash {
+            fn call(&self, event: web_sys::MessageEvent) {
+                let r = {
+                    let value = event.data();
+                    if value.is_undefined() {
+                        self.reject.call0(&wasm_bindgen::JsValue::NULL)
+                    } else {
+                        self.resolve.call1(&wasm_bindgen::JsValue::NULL, &value)
+                    }
+                };
+                debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
+
+                // On returning the result we want to free the memory of this Rust closure.
+                self.message_handler_clone.borrow_mut().take();
+            }
+        }
+
+        *self.message_handler.borrow_mut() = Some(Closure::wrap(Box::new(__InnerClousure_some_hash {
+            resolve,
+            reject,
+            message_handler_clone
+        })));
+
+        // Set the callback
+        self.worker.set_onmessage(
+            self.message_handler
+                .borrow()
+                .as_ref()
+                .map(|cb| cb.as_ref().unchecked_ref()),
+        );
+    }
+}
+```

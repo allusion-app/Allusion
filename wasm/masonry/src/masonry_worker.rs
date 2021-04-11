@@ -103,9 +103,9 @@ impl MasonryWorker {
         let message_handler = Arc::clone(&self.message_handler);
 
         // We capture the resolve and reject functions from `Promise` constructor in our message
-        // handler. When our event handler is invoked the control is resumed again.
+        // handler. When our event handler is invoked the control flow is resumed again.
         let mut callback = |resolve: js_sys::Function, reject: js_sys::Function| {
-            let message_handler_clone = Arc::clone(&self.message_handler);
+            let message_handler_clone = Arc::clone(&message_handler);
             *message_handler.borrow_mut() = Some(Closure::wrap(Box::new(
                 move |event: web_sys::MessageEvent| {
                     let r = {
@@ -156,8 +156,8 @@ impl MasonryWorker {
     ///
     /// # Panics
     ///
-    /// If the index is greater than number passed to [`MasonryWorker::resize()`], it will panic
-    /// because of an out of bounds error.
+    /// If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
+    //// panic because of an out of bounds error.
     pub fn set_dimension(&mut self, index: usize, src_width: f32, src_height: f32) {
         self.layout.set_dimension(index, src_width, src_height)
     }
@@ -168,8 +168,8 @@ impl MasonryWorker {
     ///
     /// # Panics
     ///
-    /// If the index is greater than number passed to [`MasonryWorker::resize()`], it will panic
-    /// because of an out of bounds error.
+    /// If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
+    //// panic because of an out of bounds error.
     pub fn get_transform(&mut self, index: usize) -> Result<JsValue, JsValue> {
         let Transform {
             width,
@@ -243,6 +243,12 @@ impl Notification {
 }
 
 /// Function to be called in the web worker thread to compute the new layout.
+///
+/// # Safety
+///
+/// Do not import this function as it is already imported into the web worker thread (see
+/// `create_web_worker`). The pointer send to it must be created in the same memory used for the
+/// creation of the WebAssembly module both in the main and web worker thread.
 #[wasm_bindgen]
 pub fn execute(computation_ptr: u32) -> Option<u32> {
     let (width, config, layout) = {
