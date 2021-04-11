@@ -91,7 +91,6 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
             uiStore.addSearchCriteria(
               new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
             ),
-          icon: IconSet.FILTER_NAME_DOWN,
           resetQueryOnAction: true,
         },
         {
