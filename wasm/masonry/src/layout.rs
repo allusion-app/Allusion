@@ -86,7 +86,9 @@ impl Layout {
         let mut cur_row_width: u16 = 0;
         let mut first_row_item_index: usize = 0;
 
-        for i in 0..self.num_items {
+        let num_items = self.num_items;
+        assert!(self.transforms.len() >= num_items && self.dimensions.len() >= num_items);
+        for i in 0..num_items {
             let transform = &mut self.transforms[i];
             // Correct aspect ratio for very wide/narrow images
             transform.height = transform_height;
@@ -148,14 +150,15 @@ impl Layout {
             if n_columns == 0.0 {
                 return 0;
             }
-
             let col_width = (container_width / n_columns).round() as u16;
             let col_heights: Vec<u32> = vec![0; n_columns as usize];
             (col_width, col_heights)
         };
         let item_width = col_width - self.padding;
 
-        for i in 0..self.num_items {
+        let num_items = self.num_items;
+        assert!(self.transforms.len() >= num_items && self.dimensions.len() >= num_items);
+        for i in 0..num_items {
             let transform = &mut self.transforms[i];
             transform.width = item_width;
             transform.correct_height(&self.dimensions[i]);
@@ -193,10 +196,10 @@ impl Layout {
                 return 0;
             }
             let column_width = (container_width / n_columns).round();
-            (n_columns as u16, column_width as u16)
+            (n_columns as usize, column_width as u16)
         };
-        let n_rows = self.num_items / usize::from(n_columns);
-        let rest = self.num_items % usize::from(n_columns);
+        let n_rows = self.num_items / n_columns;
+        let rest = self.num_items % n_columns;
         let item_size = column_width - self.padding;
         let row_height = u32::from(column_width);
 
