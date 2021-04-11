@@ -276,7 +276,7 @@ fn create_web_worker(module_path: &str, wasm_path: &str) -> Result<web_sys::Work
         
             while (true) {{
                 Atomics.wait(message, 0, 0);
-                self.postMessage(execute(message[1]));
+                self.postMessage(execute(Atomics.load(message, 1)));
                 Atomics.store(message, 0, 0);
             }}
         }};",
