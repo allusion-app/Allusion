@@ -46,7 +46,7 @@ const MasonryRenderer = observer(
     const viewMethod = uiStore.method as SupportedViewMethod;
     const numImages = fileStore.fileList.length;
 
-    // TODO: vertical keyboard navigation with lastSelectionIndex
+    // TODO: vertical keyboard navigation with lastSelectionIndex. Keep in mind this will interfere when the TagPopover is open!
 
     // Initialize on mount
     useEffect(() => {

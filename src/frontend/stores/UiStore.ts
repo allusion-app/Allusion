@@ -387,10 +387,13 @@ class UiStore {
     this.fileSelection.delete(file);
   }
 
-  @action.bound toggleFileSelection(file: ClientFile) {
+  @action.bound toggleFileSelection(file: ClientFile, clear?: boolean) {
     if (this.fileSelection.has(file)) {
       this.fileSelection.delete(file);
     } else {
+      if (clear) {
+        this.fileSelection.clear();
+      }
       this.fileSelection.add(file);
     }
   }
