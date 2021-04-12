@@ -104,20 +104,12 @@ impl MasonryWorker {
 
         // We capture the resolve and reject functions from `Promise` constructor in our message
         // handler. When our event handler is invoked the control flow is resumed again.
-        let mut callback = |resolve: js_sys::Function, reject: js_sys::Function| {
+        let mut callback = |resolve: js_sys::Function, _reject: js_sys::Function| {
             // Create a weak ref to the event handler.
             let message_handler_ref = Rc::downgrade(&message_handler);
             *message_handler.borrow_mut() = Some(Closure::wrap(Box::new(
                 move |event: web_sys::MessageEvent| {
-                    let r = {
-                        // `execute` returns an `Option<u32>` which is mapped in JavaScript as `number | undefined`.
-                        let value = event.data();
-                        if value.is_undefined() {
-                            reject.call0(&wasm_bindgen::JsValue::NULL)
-                        } else {
-                            resolve.call1(&wasm_bindgen::JsValue::NULL, &value)
-                        }
-                    };
+                    let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &event.data());
                     debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
 
                     // SAFETY: I cannot think of a good reason why this should panic. If the `Promise`
@@ -253,7 +245,7 @@ impl Notification {
 /// `create_web_worker`). The pointer send to it must be created in the same memory used for the
 /// creation of the WebAssembly module both in the main and web worker thread.
 #[wasm_bindgen]
-pub fn execute(computation_ptr: u32) -> Option<u32> {
+pub fn execute(computation_ptr: u32) -> Option<f32> {
     let (width, config, layout) = {
         // SAFETY: The send [`Computation`] is send from the main thread that created that this web
         // worker. On creation the same memory was used.

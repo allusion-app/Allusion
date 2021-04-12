@@ -51,7 +51,7 @@ export class MasonryWorkerAdapter {
     numImgs: number,
     containerWidth: number,
     opts: Partial<MasonryOptions>,
-  ): Promise<number> {
+  ): Promise<number | undefined> {
     const worker = this.worker;
     if (!worker) {
       return Promise.reject();
@@ -77,7 +77,10 @@ export class MasonryWorkerAdapter {
     );
   }
 
-  async recompute(containerWidth: number, opts: Partial<MasonryOptions>): Promise<number> {
+  async recompute(
+    containerWidth: number,
+    opts: Partial<MasonryOptions>,
+  ): Promise<number | undefined> {
     if (!this.worker) {
       return Promise.reject();
     }

@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wasm-bindgen = { version = "0.2.73" }
+wasm-bindgen = "0.2.73"
 js-sys = "0.3.50"
 web-sys = { version = "0.3.50", features = ["Blob", "BlobPropertyBag", "MessageEvent", "Worker", "WorkerOptions", "Url"] }
 
@@ -15,6 +15,7 @@ web-sys = { version = "0.3.50", features = ["Blob", "BlobPropertyBag", "MessageE
 crate-type = ["cdylib", "rlib"]
 
 [profile.release]
+opt-level = "s"
 # Compile times can increase but inling might be better
 codegen-units = 1
 # Compile times can increase but inling across crates might be better
