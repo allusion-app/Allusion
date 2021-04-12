@@ -128,7 +128,7 @@ const MasonryRenderer = observer(
 
         // Debounce is not needed due to performance, but images are
         // sometimes repeatedly swapping columns every recomputation, which looks awful
-        return debounce(onResize, 50);
+        return debounce(onResize, 150);
       })(),
     );
 
