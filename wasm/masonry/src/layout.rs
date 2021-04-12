@@ -2,6 +2,7 @@
 // - Take in a list of image dimensions, and a base thumbnail size (e.g. S, M, L)
 // - Output a list of image positions, laid out in a masonry format
 // TODO: Could also use the google photos layout: Groups of masonry layouts, each with a header (e.g. the date)
+use crate::util::UnwrapOrAbort;
 
 pub struct Layout {
     num_items: usize,
@@ -60,11 +61,10 @@ impl Layout {
         self.num_items = new_len;
         let len = self.transforms.len();
         if new_len > len {
-            let capacity = self.transforms.capacity();
-            let additional_capacity = new_len.checked_sub(capacity).unwrap_or(0);
+            let additional_capacity = new_len.checked_sub(self.transforms.capacity()).unwrap_or(0);
             self.transforms.reserve(additional_capacity);
             self.dimensions.reserve(additional_capacity);
-            for _ in capacity..new_len {
+            for _ in len..self.transforms.capacity() {
                 self.transforms.push(Transform::default());
                 self.dimensions.push(Dimension::default());
             }
@@ -89,10 +89,10 @@ impl Layout {
         let num_items = self.num_items;
         assert!(self.transforms.len() >= num_items && self.dimensions.len() >= num_items);
         for i in 0..num_items {
-            let transform = &mut self.transforms[i];
+            let transform = self.transforms.get_mut(i).unwrap_or_abort();
             // Correct aspect ratio for very wide/narrow images
             transform.height = transform_height;
-            transform.correct_width(&self.dimensions[i]);
+            transform.correct_width(self.dimensions.get(i).unwrap_or_abort());
             transform.top = top_offset;
             transform.left = cur_row_width;
 
@@ -114,7 +114,11 @@ impl Layout {
                 transform.left += (num_items_in_row - 1.0) * padding;
 
                 let mut left = 0.0;
-                for prev_item in self.transforms[first_row_item_index..i].iter_mut() {
+                for prev_item in self
+                    .transforms
+                    .get_mut(first_row_item_index..i)
+                    .unwrap_or_abort()
+                {
                     prev_item.scale(correction_factor);
                     prev_item.left += left;
                     left += padding;
@@ -130,7 +134,7 @@ impl Layout {
             }
         }
         // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
-        if cur_row_width.round() == 0.0 {
+        if cur_row_width.trunc() == 0.0 {
             top_offset
         } else {
             match self.transforms.get(self.num_items - 1) {
@@ -159,9 +163,9 @@ impl Layout {
         let num_items = self.num_items;
         assert!(self.transforms.len() >= num_items && self.dimensions.len() >= num_items);
         for i in 0..num_items {
-            let transform = &mut self.transforms[i];
+            let transform = self.transforms.get_mut(i).unwrap_or_abort();
             transform.width = item_width;
-            transform.correct_height(&self.dimensions[i]);
+            transform.correct_height(self.dimensions.get(i).unwrap_or_abort());
 
             let shortest_col_index = {
                 let mut min_index = 0;
@@ -183,14 +187,13 @@ impl Layout {
         }
 
         // Return height of longest column
-        let mut max_height = col_heights[0];
-        for i in 1..col_heights.len() {
-            let val = col_heights[i];
+        let (mut max_height, col_heights) = col_heights.split_first_mut().unwrap_or_abort();
+        for val in col_heights {
             if val > max_height {
                 max_height = val;
             }
         }
-        max_height
+        *max_height
     }
 
     // Simple Grid layout, replacement for the react-window dependency
@@ -205,43 +208,46 @@ impl Layout {
             let column_width = (container_width / n_columns).round();
             (n_columns as usize, column_width)
         };
-        let n_rows = self.num_items / n_columns;
-        let rest = self.num_items % n_columns;
         let item_size = column_width - f32::from(self.padding);
         let row_height = column_width;
 
-        let mut index = 0;
+        let (n_rows, rem, rows, rest) = {
+            let len = self.transforms.len();
+            let n_rows = len / n_columns;
+            let rem = len % n_columns;
+            let (rows, rest) = self.transforms.split_at_mut(len - rem);
+            (n_rows, rem, rows, rest)
+        };
+
         let mut top_offset = 0.0;
+        let mut start = 0;
+        let mut end = n_columns;
         let mut left;
         for _ in 0..n_rows {
             left = 0.0;
-            for _ in 0..n_columns {
-                let transform = &mut self.transforms[index];
+            for transform in rows.get_mut(start..end).unwrap_or_abort() {
                 transform.width = item_size;
                 transform.height = item_size;
                 transform.left = left;
                 transform.top = top_offset;
-
-                index += 1;
                 left += column_width;
             }
             top_offset += row_height;
+            start = end;
+            end += n_columns;
         }
 
         left = 0.0;
-        for _ in 0..rest {
-            let transform = &mut self.transforms[index];
+        for transform in rest.iter_mut() {
             transform.width = item_size;
             transform.height = item_size;
             transform.left = left;
             transform.top = top_offset;
-
-            index += 1;
             left += column_width;
         }
 
         // If there are items in the last extra row, the height increases by one row
-        if rest > 0 {
+        if rem > 0 {
             top_offset += row_height;
         }
 
@@ -291,3 +297,4 @@ fn aspect_ratio_correction(w: f32, h: f32) -> f32 {
         h
     }
 }
+
