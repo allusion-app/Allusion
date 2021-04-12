@@ -7,7 +7,7 @@ impl<T> UnwrapOrAbort<T> for Option<T> {
     fn unwrap_or_abort(self) -> T {
         match self {
             Some(v) => v,
-            None => std::process::abort(),
+            None => unsafe { core::arch::wasm32::unreachable() },
         }
     }
 }
@@ -17,7 +17,7 @@ impl<T, E> UnwrapOrAbort<T> for Result<T, E> {
     fn unwrap_or_abort(self) -> T {
         match self {
             Ok(v) => v,
-            Err(_) => std::process::abort(),
+            Err(_) => unsafe { core::arch::wasm32::unreachable() },
         }
     }
 }

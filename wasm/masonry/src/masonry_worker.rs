@@ -1,5 +1,8 @@
-use std::cell::RefCell;
-use std::rc::Rc;
+use alloc::boxed::Box;
+use alloc::format;
+use alloc::rc::Rc;
+use alloc::string::String;
+use core::cell::RefCell;
 
 use crate::layout::{Layout, Transform};
 
@@ -172,14 +175,14 @@ impl MasonryWorker {
             top,
             left,
         } = self.layout.get_transform(index);
-        std::fmt::write(
+        core::fmt::write(
             &mut self.json_output,
             format_args!(
                 "{{\"width\":{},\"height\":{},\"top\":{},\"left\":{}}}",
                 width, height, top, left
             ),
         )
-        .map_err(|err| JsValue::from_str(&err.to_string()))?;
+        .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
         // We could use serde but I do not think this added dependency is worth here.
         let json = js_sys::JSON::parse(&self.json_output)?;
         self.json_output.clear();
@@ -250,7 +253,7 @@ pub fn execute(computation_ptr: u32) -> Option<f32> {
         // SAFETY: The send [`Computation`] is send from the main thread that created that this web
         // worker. On creation the same memory was used.
         let computation = unsafe { Box::from_raw(computation_ptr as *mut Computation) };
-        // SAFETY: Never use std::ptr::read. The returned value will be an owned value, which means
+        // SAFETY: Never use core::ptr::read. The returned value will be an owned value, which means
         // its destructor will be run at the end of the function. This will lead to a double free.
         // Instead we only get a mutable reference and have to depend on the user to `await` every
         // `Promise` returned from `MasonryWorker::compute`.

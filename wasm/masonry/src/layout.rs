@@ -3,6 +3,7 @@
 // - Output a list of image positions, laid out in a masonry format
 // TODO: Could also use the google photos layout: Groups of masonry layouts, each with a header (e.g. the date)
 use crate::util::UnwrapOrAbort;
+use alloc::{vec, vec::Vec};
 
 pub struct Layout {
     num_items: usize,
