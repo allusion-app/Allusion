@@ -7,6 +7,7 @@ interface ISplit {
   primary: React.ReactElement;
   secondary: React.ReactElement;
   axis: 'horizontal' | 'vertical';
+  align: 'left' | 'right' | 'top' | 'bottom';
   splitPoint: number;
   // API-wise it would be better to provide a callback function but we keep track
   // of the panel states already.
@@ -14,7 +15,16 @@ interface ISplit {
   onMove: (splitPoint: number, dimension: number) => void;
 }
 
-export const Split = ({ id, primary, secondary, axis, splitPoint, isExpanded, onMove }: ISplit) => {
+export const Split = ({
+  id,
+  primary,
+  secondary,
+  axis,
+  align,
+  splitPoint,
+  isExpanded,
+  onMove,
+}: ISplit) => {
   const container = useRef<HTMLDivElement>(null);
   const origin = useRef(0);
   const isDragging = useRef(false);
@@ -44,6 +54,7 @@ export const Split = ({ id, primary, secondary, axis, splitPoint, isExpanded, on
         container.current.style.cursor = 's-resize';
       }
       isDragging.current = true;
+      (container.current.children[1] as HTMLElement).classList.add('active');
     }
   });
 
@@ -69,7 +80,10 @@ export const Split = ({ id, primary, secondary, axis, splitPoint, isExpanded, on
       value.current = 0;
     }
     if (container.current !== null) {
+      // Content
       (container.current.firstElementChild as HTMLElement).style.flexBasis = `${value.current}px`;
+      // Splitter
+      (container.current.children[1] as HTMLElement).style[align] = `${value.current}px`;
     }
   }, [isExpanded, splitPoint]);
 
@@ -79,6 +93,7 @@ export const Split = ({ id, primary, secondary, axis, splitPoint, isExpanded, on
       isDragging.current = false;
       if (container.current !== null) {
         container.current.style.cursor = '';
+        (container.current.children[1] as HTMLElement).classList.remove('active');
       }
     };
 
