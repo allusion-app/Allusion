@@ -15,6 +15,7 @@ let mainConfig = {
   output: {
     filename: 'main.bundle.js',
     path: __dirname + '/build',
+    clean: true
   },
   node: {
     __dirname: false,
@@ -34,18 +35,8 @@ let mainConfig = {
         },
       },
       {
-        test: /\.(jpg|png|gif|ico|icns)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
-      },
-      {
-        test: /\.(eot|ttf|woff|woff2)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
+        test: /\.(jpg|png|gif|ico|icns|eot|ttf|woff|woff2)$/,
+        type: 'asset/resource',
       },
     ],
   },
@@ -118,26 +109,12 @@ let rendererConfig = {
         ],
       },
       {
-        test: /\.(jpg|png|gif|ico|icns)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
-      },
-      {
-        test: /\.(eot|ttf|woff|woff2)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[path][name].[ext]',
-        },
+        test: /\.(jpg|png|gif|ico|icns|eot|ttf|woff|woff2)$/,
+        type: 'asset/resource',
       },
       {
         test: /\.wasm$/,
-        loader: 'file-loader',
-        type: 'javascript/auto',
-        options: {
-          name: '[path][name].[ext]',
-        },
+        type: 'asset/resource',
       },
       {
         test: /\.node$/,
@@ -148,7 +125,7 @@ let rendererConfig = {
         oneOf: [
           {
             issuer: /\.scss$/,
-            loader: 'file-loader',
+            type: 'asset/resource',
           },
           {
             issuer: /.tsx?$/,

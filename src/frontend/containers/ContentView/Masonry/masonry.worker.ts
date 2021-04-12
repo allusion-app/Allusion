@@ -3,7 +3,7 @@ import { expose } from 'comlink';
 import { default as init, InitOutput, Layout } from 'wasm/masonry/pkg/masonry';
 
 // Force Webpack to include wasm file in the build folder, so we can load it using `init` later
-import 'wasm/masonry/pkg/masonry_bg.wasm';
+import WASM_FILE from 'wasm/masonry/pkg/masonry_bg.wasm';
 
 const MAX_ITEMS = 40000; // Reserving 200.000 uints by default (see lib.rs), each image items takes up 5 uin16s, so max items = 200.000 / 5 = 40.000
 
@@ -52,7 +52,7 @@ export class MasonryWorker {
   /** Initializes WASM Returns the memory */
   async initializeWASM() {
     // From: https://github.com/anderejd/electron-wasm-rust-example/blob/master/main_module.js
-    this.WASM = await init('./wasm/masonry/pkg/masonry_bg.wasm');
+    this.WASM = await init(WASM_FILE);
   }
 
   /** Should be called whenever the input is changed.
