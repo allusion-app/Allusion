@@ -82,6 +82,20 @@ export class MasonryWorker {
 */
   get_transform(index: number): any;
 }
+/**
+*/
+export class Receiver {
+  free(): void;
+/**
+* @param {number} ptr
+* @returns {Receiver}
+*/
+  static from_ptr(ptr: number): Receiver;
+/**
+* @returns {number}
+*/
+  receive(): number;
+}
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -93,6 +107,9 @@ export interface InitOutput {
   readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;
   readonly masonryworker_get_transform: (a: number, b: number) => number;
   readonly execute: (a: number, b: number) => void;
+  readonly __wbg_receiver_free: (a: number) => void;
+  readonly receiver_from_ptr: (a: number) => number;
+  readonly receiver_receive: (a: number) => number;
   readonly __wbindgen_export_0: WebAssembly.Memory;
   readonly __wbindgen_export_1: WebAssembly.Table;
   readonly wasm_bindgen__convert__closures__invoke1_mut__hae1aa38dc1391970: (a: number, b: number, c: number) => void;

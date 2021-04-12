@@ -5,6 +5,7 @@ use alloc::string::String;
 use core::cell::RefCell;
 
 use crate::layout::{Layout, Transform};
+use crate::sync::{channel, Sender};
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -16,11 +17,9 @@ pub struct MasonryWorker {
     layout: Layout,
     worker: Rc<web_sys::Worker>,
     message_handler: Rc<RefCell<Option<MessageEventHandler>>>,
-    notification: Notification,
+    sender: Sender,
     json_output: String,
 }
-
-struct Notification(js_sys::Int32Array);
 
 #[wasm_bindgen]
 #[derive(Clone, Copy)]
@@ -42,7 +41,7 @@ const MASONRY_CONFIG_DEFAULT: MasonryConfig = MasonryConfig {
     padding: 8,
 };
 
-struct Computation {
+pub struct Computation {
     width: u16,
     config: MasonryConfig,
     layout_ptr: *mut Layout,
@@ -57,6 +56,7 @@ impl MasonryWorker {
         module_path: &str,
         wasm_path: &str,
     ) -> Result<MasonryWorker, JsValue> {
+        let (sender, receiver) = channel();
         let manager = MasonryWorker {
             layout: Layout::new(
                 num_items,
@@ -65,13 +65,13 @@ impl MasonryWorker {
             ),
             worker: Rc::new(create_web_worker(module_path, wasm_path)?),
             message_handler: Rc::new(RefCell::new(None)),
-            notification: Notification::new(),
+            sender,
             json_output: String::new(),
         };
 
         // [Int32Array, WebAssembly.Memory]
         let initial_message = js_sys::Array::new();
-        initial_message.push(manager.notification.as_ref());
+        initial_message.push(&JsValue::from(receiver.to_ptr() as u32));
         initial_message.push(&wasm_bindgen::memory());
 
         manager.worker.post_message(&initial_message)?;
@@ -92,16 +92,6 @@ impl MasonryWorker {
         thumbnail_size: u16,
         padding: u16,
     ) -> js_sys::Promise {
-        self.notification.set_data(Computation {
-            width,
-            config: MasonryConfig {
-                kind,
-                thumbnail_size,
-                padding,
-            },
-            layout_ptr: &mut self.layout,
-        });
-
         let worker = Rc::clone(&self.worker);
         let message_handler = Rc::clone(&self.message_handler);
 
@@ -133,7 +123,14 @@ impl MasonryWorker {
             );
         };
 
-        self.notification.send();
+        self.sender.send(
+            Computation::new(
+                width,
+                MasonryConfig::new(kind, thumbnail_size, padding),
+                &mut self.layout,
+            )
+            .to_ptr(),
+        );
         js_sys::Promise::new(&mut callback)
     }
 
@@ -196,50 +193,6 @@ impl Drop for MasonryWorker {
     }
 }
 
-impl Notification {
-    fn new() -> Notification {
-        /*
-        Notification {
-            has_changed: bool, // -> shared_memory[0]
-            computation_ptr: *mut Computation // -> shared_memory[1]
-        }
-        */
-        let shared_memory = js_sys::SharedArrayBuffer::new(2 * 4);
-        Notification(js_sys::Int32Array::new(&shared_memory))
-    }
-
-    fn as_ref(&self) -> &JsValue {
-        &self.0
-    }
-
-    /// Set up the computation task that will be "send" to the web worker thread.
-    // We actually only "send" the pointer to the web worker. Since we share the memory, a pointer
-    // in the web worker thread is the same as on the main thread. This is why [`execute`] is not
-    // as unsafe as it looks at first.
-    fn set_data(&self, computation: Computation) {
-        let ptr = Box::into_raw(Box::new(computation));
-        let r = js_sys::Atomics::store(&self.0, 1, ptr as i32);
-        debug_assert!(
-            r.is_ok(),
-            "setting index 1 on typed array should never fail"
-        );
-    }
-
-    /// Wakes up the web worker thread and "sends" a notification.
-    // I keep writing "send" because we're not sending anything but rather communicate with shared
-    // memory. As soon as the memory at index 0 becomes 1 the web worker thread will stop waiting
-    // (see [`create_web_worker`]);
-    fn send(&self) {
-        let r = js_sys::Atomics::store(&self.0, 0, 1);
-        debug_assert!(
-            r.is_ok(),
-            "setting index 0 on typed array should never fail"
-        );
-        let r = js_sys::Atomics::notify_with_count(&self.0, 0, 1);
-        debug_assert!(r.is_ok(), "notifying agents on index 0 should never fail");
-    }
-}
-
 /// Function to be called in the web worker thread to compute the new layout.
 ///
 /// # Safety
@@ -270,18 +223,38 @@ pub fn execute(computation_ptr: u32) -> Option<f32> {
     })
 }
 
+impl MasonryConfig {
+    fn new(kind: MasonryType, thumbnail_size: u16, padding: u16) -> MasonryConfig {
+        MasonryConfig {
+            kind,
+            thumbnail_size,
+            padding,
+        }
+    }
+}
+
+impl Computation {
+    fn new(width: u16, config: MasonryConfig, layout: &mut Layout) -> Computation {
+        Computation {
+            width,
+            config,
+            layout_ptr: layout as _,
+        }
+    }
+
+    fn to_ptr(self) -> u32 {
+        Box::into_raw(Box::new(self)) as u32
+    }
+}
+
 fn create_web_worker(module_path: &str, wasm_path: &str) -> Result<web_sys::Worker, JsValue> {
     let worker_script = format!(
-        "import {{ default as init, execute }} from '{module_path}';
-
+        "import {{ default as init, execute, Receiver }} from '{module_path}';
         self.onmessage = async (event) => {{
             await init('{wasm_path}', event.data[1]);
-            const message = event.data[0];
-        
+            const receiver = Receiver.from_ptr(event.data[0]);
             while (true) {{
-                Atomics.wait(message, 0, 0);
-                self.postMessage(execute(Atomics.load(message, 1)));
-                Atomics.store(message, 0, 0);
+                self.postMessage(execute(receiver.receive()));
             }}
         }};",
         module_path = module_path,
