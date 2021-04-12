@@ -6,3 +6,6 @@ rustflags = [
 
 [unstable]
 build-std = ["panic_abort", "std"]
+
+[build]
+target = "wasm32-unknown-unknown"
