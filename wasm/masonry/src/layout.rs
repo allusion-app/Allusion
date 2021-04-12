@@ -61,7 +61,7 @@ impl Layout {
         self.num_items = new_len;
         let len = self.transforms.len();
         if new_len > len {
-            let additional_capacity = new_len.checked_sub(self.transforms.capacity()).unwrap_or(0);
+            let additional_capacity = new_len.saturating_sub(self.transforms.capacity());
             self.transforms.reserve(additional_capacity);
             self.dimensions.reserve(additional_capacity);
             for _ in len..self.transforms.capacity() {
@@ -297,4 +297,3 @@ fn aspect_ratio_correction(w: f32, h: f32) -> f32 {
         h
     }
 }
-

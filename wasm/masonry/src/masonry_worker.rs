@@ -201,7 +201,7 @@ impl Notification {
             computation_ptr: *mut Computation // -> shared_memory[1]
         }
         */
-        let shared_memory = js_sys::SharedArrayBuffer::new(2 * 4 as u32);
+        let shared_memory = js_sys::SharedArrayBuffer::new(2 * 4);
         Notification(js_sys::Int32Array::new(&shared_memory))
     }
 
