@@ -68,6 +68,7 @@ class ClipServer {
   private preferences = {
     isEnabled: false,
     runInBackground: false,
+    importLocation: '',
   };
 
   private server: Server | null = null;
@@ -125,6 +126,11 @@ class ClipServer {
     return this.preferences.runInBackground;
   }
 
+  setImportLocation(dir: string) {
+    this.preferences.importLocation = dir;
+    this.savePreferences();
+  }
+
   async getImportQueue(): Promise<IImportItem[]> {
     if (!(await fse.pathExists(importQueueFilePath))) {
       return [];
@@ -149,6 +155,7 @@ class ClipServer {
 
   async storeAndImportImage(directory: string, filename: string, imgBase64: string) {
     const downloadPath = await ClipServer.createDownloadPath(directory, filename);
+    console.log(downloadPath);
 
     await this.storeImage(directory, downloadPath, imgBase64);
 
@@ -176,15 +183,17 @@ class ClipServer {
             try {
               // Check what kind of message has been sent
               if (req.url && req.url.endsWith('import-image')) {
-                const { directory, filename, imgBase64 } = JSON.parse(body);
+                const directory = this.preferences.importLocation;
+                const { filename, imgBase64 } = JSON.parse(body);
                 console.log('Received file', filename);
 
                 await this.storeAndImportImage(directory, filename, imgBase64);
 
                 res.end({ message: 'OK!' });
               } else if (req.url && req.url.endsWith('/set-tags')) {
-                const { directory, tagNames, filename } = JSON.parse(body);
+                const { tagNames, filename } = JSON.parse(body);
 
+                const directory = this.preferences.importLocation;
                 const downloadPath = await ClipServer.createDownloadPath(directory, filename, true);
 
                 const item: IImportItem = {
@@ -200,11 +209,12 @@ class ClipServer {
                 res.end({ message: 'OK!' });
               }
             } catch (e) {
+              console.error('An error occurred while decoding clip server request', e);
               res.end(JSON.stringify(e));
             }
           });
         } else if (req.method === 'GET') {
-          if (req.url && req.url.endsWith('/tags')) {
+          if (req.url?.endsWith('/tags')) {
             const tags = await this.requestTags();
             res.end(JSON.stringify(tags));
           }

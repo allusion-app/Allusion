@@ -93,6 +93,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'isOutlinerOpen',
   'isInspectorOpen',
   'thumbnailDirectory',
+  'importDirectory',
   'method',
   'thumbnailSize',
   'thumbnailShape',
@@ -147,6 +148,7 @@ class UiStore {
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
   @observable thumbnailDirectory: string = '';
+  @observable importDirectory: string = ''; // for browser extension. Must be a (sub-folder of a) Location
 
   @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
 
@@ -355,6 +357,10 @@ class UiStore {
 
   @action.bound setThumbnailDirectory(dir: string = '') {
     this.thumbnailDirectory = dir;
+  }
+
+  @action.bound setImportDirectory(dir: string) {
+    this.importDirectory = dir;
   }
 
   @action.bound toggleTheme() {
@@ -706,6 +712,7 @@ class UiStore {
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
+        this.setImportDirectory(prefs.importDirectory);
         this.setMethod(prefs.method);
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);

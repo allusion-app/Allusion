@@ -98,6 +98,7 @@ export type IDragExportMessage = string[];
 //////////////////// Settings ////////////////////
 export const IS_CLIP_SERVER_RUNNING = 'IS_CLIP_SERVER_RUNNING';
 export const SET_CLIP_SERVER_ENABLED = 'SET_CLIP_SERVER_ENABLED';
+export const SET_CLIP_SERVER_IMPORT_LOCATION = 'SET_CLIP_SERVER_IMPORT_LOCATION';
 export interface IClipServerEnabledMessage {
   isClipServerRunning: boolean;
 }
@@ -148,6 +149,9 @@ export class RendererMessenger {
     });
 
   static isClipServerEnabled = (): boolean => ipcRenderer.sendSync(IS_CLIP_SERVER_RUNNING);
+
+  static setClipServerImportLocation = (dir: string): Promise<void> =>
+    ipcRenderer.invoke(SET_CLIP_SERVER_IMPORT_LOCATION, dir);
 
   static isRunningInBackground = (): boolean => ipcRenderer.sendSync(IS_RUNNING_IN_BACKGROUND);
 
@@ -234,6 +238,9 @@ export class MainMessenger {
 
   static onSetClipServerEnabled = (cb: (msg: IClipServerEnabledMessage) => void) =>
     ipcMain.on(SET_CLIP_SERVER_ENABLED, (_, msg: IClipServerEnabledMessage) => cb(msg));
+
+  static onSetClipServerImportLocation = (cb: (dir: string) => void) =>
+    ipcMain.handle(SET_CLIP_SERVER_IMPORT_LOCATION, (_, dir) => cb(dir));
 
   static onSetTheme = (cb: (msg: IThemeMessage) => void) =>
     ipcMain.on(SET_THEME, (_, msg: IThemeMessage) => cb(msg));

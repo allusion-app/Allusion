@@ -1,7 +1,6 @@
 const apiUrl = 'http://localhost:5454';
 
 let lastSubmittedItem = undefined;
-let tabTitle = undefined;
 
 ///////////////////////////////////
 // Communication to Allusion app //
@@ -34,13 +33,13 @@ async function importImage(filename, url) {
       body: JSON.stringify(item),
     });
 
-    // Todo: Maybe no notification when it works as intended?
-    chrome.notifications.create(null, {
-      type: 'basic',
-      iconUrl: 'favicon_32x32.png',
-      title: 'Allusion Clipper',
-      message: 'Image imported successfully!',
-    });
+    // no notification when it works as intended
+    // chrome.notifications.create(null, {
+    //   type: 'basic',
+    //   iconUrl: 'favicon_32x32.png',
+    //   title: 'Allusion Clipper',
+    //   message: 'Image imported successfully!',
+    // });
   } catch (e) {
     console.error(e);
 
@@ -64,10 +63,6 @@ function imageAsBase64(url) {
     reader.onload = () => resolve({ base64: reader.result, blob });
     reader.readAsDataURL(blob);
   });
-}
-
-async function fetchTags() {
-  const tags = await fetch(`${apiUrl}/tags`);
 }
 
 ////////////////////////////////
@@ -116,6 +111,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   } else if (msg.type === 'getLastSubmittedItem') {
     sendResponse(lastSubmittedItem);
     return true;
+  } else if (msg.type === 'getTags') {
+    fetch(`${apiUrl}/tags`)
+      .then((res) => {
+        res
+          .json()
+          .then((tags) => sendResponse(tags.map((t) => t.name) || []))
+          .catch(() => sendResponse([]));
+      })
+      .catch(() => sendResponse([]));
+    return true;
   }
 });
 
@@ -127,7 +132,7 @@ chrome.contextMenus.onClicked.addListener(async (props, tab) => {
 
   // If the url is purely data or there is no extension, use a fallback (tab title)
   if (srcUrl.startsWith('data:image/') || filename.indexOf('.') === -1) {
-    filename = await getCurrentTabName();
+    filename = tab.title;
   } else {
     filename = filename.substr(0, filename.indexOf('.')); // strip extension
   }
@@ -136,12 +141,6 @@ chrome.contextMenus.onClicked.addListener(async (props, tab) => {
 
   // Otherwise: https://stackoverflow.com/questions/7703697/how-to-retrieve-the-element-where-a-contextmenu-has-been-executed
 });
-
-async function getCurrentTabName() {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.getSelected(null, (tab) => (tab ? resolve(tab.title) : reject()));
-  });
-}
 
 // chrome.notifications.onButtonClicked((id, buttonIndex) => {
 //   // Todo: retry importing image

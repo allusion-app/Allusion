@@ -12,26 +12,25 @@
   "commands": {
     "_execute_browser_action": {
       "suggested_key": {
-        "default": "Ctrl+Shift+A",
-        "mac": "Command+Shift+A"
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
       }
     }
   },
 
   "manifest_version": 2,
-  "name": "Allusion Clipper",
+  "name": "Allusion Web Clipper",
   "version": "0.0.1",
 
-  "description": "Clipper for Allusion - Your Visual Library",
+  "description": "Web Clipper for Allusion - for organizing your Visual Library",
   "icons": {
     "32": "favicon_32x32.png"
   },
 
-
   "permissions": [
     "contextMenus",
     "notifications",
-    "tabs",
+    "activeTab",
     "http://localhost:5454/*",
     "<all_urls>"
   ]
