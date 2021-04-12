@@ -59,4 +59,6 @@ const PreviewApp = observer(() => {
   );
 });
 
+PreviewApp.displayName = 'PreviewApp';
+
 export default PreviewApp;

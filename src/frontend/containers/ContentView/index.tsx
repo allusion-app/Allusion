@@ -119,4 +119,6 @@ const Content = observer(() => {
   );
 });
 
+Content.displayName = 'Gallery';
+
 export default ContentView;

@@ -144,19 +144,26 @@ impl Layout {
 
             item.left = cur_row_width;
             // Check if adding this image to the row would exceed the container width
-            let new_row_width = cur_row_width + item.width + self.padding;
+            let new_row_width = cur_row_width + item.width;
 
             if new_row_width > container_width {
                 // If it exceeds it, position all current items in the row accordingly and start a new row for this item
                 // Position all items in this row properly after the row is filled, needs to expand a little
 
                 // Now that the size of this row is definitive: Set the actual size of all row items
-                let correction_factor = f32::from(container_width) / f32::from(new_row_width);
+                // The horizontal padding should not be scaled: Should be an absolute value
+                let num_items_in_row = (i - first_row_item_index + 1) as u16;
+                let tot_hor_padding = (num_items_in_row + 1) * self.padding;
+                let correction_factor = f32::from(container_width - tot_hor_padding) / f32::from(new_row_width);
 
                 item.scale(correction_factor);
+                item.left += (num_items_in_row - 1) * self.padding;
 
+                let mut col_index = 0;
                 for prev_item in self.items[first_row_item_index..i].iter_mut() {
-                    prev_item.scale(correction_factor)
+                    prev_item.scale(correction_factor);
+                    prev_item.left += col_index * self.padding;
+                    col_index += 1;
                 }
 
                 // Start a new row

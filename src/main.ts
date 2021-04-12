@@ -112,61 +112,41 @@ function createWindow() {
       return;
     }
 
+    const windowTitles: { [key: string]: string } = {
+      settings: 'Settings',
+      'help-center': 'Help Center',
+      about: 'About',
+    };
+    if (!(frameName in windowTitles)) return;
+
     // Note: For pop-out windows, the native frame is enabled
-    if (frameName === 'settings') {
-      event.preventDefault();
-      // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
-      const additionalOptions: Electron.BrowserWindowConstructorOptions = {
-        // modal: true, // this apparently doesn't show a close button for MacOS
-        parent: mainWindow,
-        width: 680,
-        height: 480,
-        title: 'Settings • Allusion',
-        frame: true, // TODO: It appears on OSX that this window does not have a frame (no close button)
-        // resizable: false,
-      };
-      Object.assign(options, additionalOptions);
-      const settingsWindow = new BrowserWindow(options);
-      settingsWindow.center(); // the "center" option doesn't work :/
-      settingsWindow.setMenu(null); // no toolbar needed
-      event.newGuest = settingsWindow;
+    // but it appears to not work on OSX, likely due to setting the parent window
 
-      if (isDev()) {
-        settingsWindow.webContents.openDevTools();
-      }
+    event.preventDefault();
+    // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
+    const additionalOptions: Electron.BrowserWindowConstructorOptions = {
+      parent: mainWindow,
+      width: 680,
+      height: 480,
+      title: `${windowTitles[frameName]} • Allusion`,
+      frame: true,
+      titleBarStyle: 'default',
+    };
+    Object.assign(options, additionalOptions);
+    const childWindow = new BrowserWindow(options);
+    childWindow.center(); // "center" in additionalOptions doesn't work :/
+    childWindow.setMenu(null); // no toolbar needed
+    event.newGuest = childWindow;
 
-      mainWindow.webContents.once('will-navigate', () => {
-        if (!settingsWindow?.isDestroyed()) {
-          settingsWindow.close(); // close when main window is reloaded
-        }
-      });
-    } else if (frameName === 'help-center') {
-      event.preventDefault();
-      // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
-      const additionalOptions: Electron.BrowserWindowConstructorOptions = {
-        // modal: true, // this apparently doesn't show a close button for MacOS
-        parent: mainWindow,
-        width: 680,
-        height: 480,
-        title: 'Help Center • Allusion',
-        frame: true, // TODO: It appears on OSX that this window does not have a frame (no close button)
-      };
-      Object.assign(options, additionalOptions);
-      const helpCenterWindow = new BrowserWindow(options);
-      helpCenterWindow.center(); // the "center" option doesn't work :/
-      helpCenterWindow.setMenu(null); // no toolbar needed
-      event.newGuest = helpCenterWindow;
-
-      if (isDev()) {
-        helpCenterWindow.webContents.openDevTools();
-      }
-
-      mainWindow.webContents.once('will-navigate', () => {
-        if (!helpCenterWindow?.isDestroyed()) {
-          helpCenterWindow.close(); // close when main window is reloaded
-        }
-      });
+    if (isDev()) {
+      childWindow.webContents.openDevTools();
     }
+
+    mainWindow.webContents.once('will-navigate', () => {
+      if (!childWindow?.isDestroyed()) {
+        childWindow.close(); // close when main window is reloaded
+      }
+    });
   });
 
   mainWindow.addListener(

@@ -46,7 +46,7 @@ const MasonryRenderer = observer(
     const viewMethod = uiStore.method as SupportedViewMethod;
     const numImages = fileStore.fileList.length;
 
-    // TODO: vertical keyboard navigation with lastSelectionIndex
+    // TODO: vertical keyboard navigation with lastSelectionIndex. Keep in mind this will interfere when the TagPopover is open!
 
     // Initialize on mount
     useEffect(() => {
@@ -128,7 +128,7 @@ const MasonryRenderer = observer(
 
         // Debounce is not needed due to performance, but images are
         // sometimes repeatedly swapping columns every recomputation, which looks awful
-        return debounce(onResize, 50);
+        return debounce(onResize, 150);
       })(),
     );
 
@@ -160,5 +160,7 @@ const MasonryRenderer = observer(
     );
   },
 );
+
+MasonryRenderer.displayName = 'MasonryRenderer';
 
 export default MasonryRenderer;

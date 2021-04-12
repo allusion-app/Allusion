@@ -46,7 +46,7 @@ const Inspector = observer(() => {
         <header>
           <h2>Tags</h2>
         </header>
-        <FileTags />
+        <FileTags file={first} />
       </section>
     </aside>
   );

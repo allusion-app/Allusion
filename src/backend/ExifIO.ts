@@ -50,13 +50,7 @@ import { isDev } from 'src/config';
 
 // The exif binary is placed using ElectronBuilder's extraResources: https://www.electron.build/configuration/contents#extraresources
 // there also is process.resourcesPath but that doesn't work in dev mode
-const resourcesPath =
-  (isDev() ? '../' : '../../') +
-  (process.platform === 'darwin' ? 'Contents/Resources' : 'resources') +
-  '/exiftool';
-// current problem: exiftool.pl on linux is not executable in the path where it's stored. If process.resourcesPath doesn't work,
-// try out https://www.electron.build/configuration/contents#extrafiles
-
+const resourcesPath = (isDev() ? '../' : '../../') + 'resources' + '/exiftool';
 const exiftoolRunnable = process.platform === 'win32' ? 'exiftool.exe' : 'exiftool.pl';
 const exiftoolPath = path.resolve(__dirname, resourcesPath, exiftoolRunnable);
 

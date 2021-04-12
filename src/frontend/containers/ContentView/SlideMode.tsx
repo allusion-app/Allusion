@@ -41,6 +41,7 @@ const SlideMode = observer((props: ISlideMode) => {
       primary={<Inspector />}
       secondary={slideView}
       axis="vertical"
+      align="right"
       splitPoint={inspectorWidth}
       isExpanded={isInspectorOpen}
       onMove={uiStore.moveInspectorSplitter}
@@ -164,7 +165,7 @@ interface IZoomableImageProps {
   onContextMenu: (e: React.MouseEvent) => void;
 }
 
-const ZoomableImage = ({
+const ZoomableImage: React.FC<IZoomableImageProps> = ({
   src,
   width,
   height,
@@ -217,5 +218,8 @@ const ZoomableImage = ({
     </div>
   );
 };
+
+ZoomableImage.displayName = 'ZoomableImage';
+SlideMode.displayName = 'SlideMode';
 
 export default SlideMode;

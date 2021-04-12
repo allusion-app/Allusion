@@ -15,7 +15,7 @@ import { promisify } from 'util';
 import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
 
-const sizeOf = promisify(ImageSize.imageSize);
+const sizeOf = promisify(ImageSize);
 
 export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];

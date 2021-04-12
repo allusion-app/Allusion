@@ -74,35 +74,46 @@ class FileStore {
       for (let i = 0; i < numFiles; i++) {
         AppToaster.show(
           {
-            message: `Reading tags from files ${((100 * i++) / numFiles).toFixed(0)}%...`,
+            message: `Reading tags from files ${((100 * i) / numFiles).toFixed(0)}%...`,
             timeout: 0,
           },
           toastKey,
         );
 
         const absolutePath = runInAction(() => this.fileList[i].absolutePath);
-        const tagsNameHierarchies = await this.exifTool.readTags(absolutePath);
 
-        // Now that we know the tag names in file metadata, add them to the files in Allusion
-        // Main idea: Find matching tag with same name, otherwise, insert new
-        //   for now, just match by the name at the bottom of the hierarchy
-        // TODO: We need a "merge" option for two or more tags in tag context menu
+        try {
+          const tagsNameHierarchies = await this.exifTool.readTags(absolutePath);
 
-        const { tagStore } = this.rootStore;
-        for (const tagHierarchy of tagsNameHierarchies) {
-          const match = runInAction(() =>
-            tagStore.tagList.find((t) => t.name === tagHierarchy[tagHierarchy.length - 1]),
-          );
-          if (match) {
-            runInAction(() => this.fileList[i].addTag(match));
-          } else {
-            let curTag = tagStore.root;
-            for (const newTagName of tagHierarchy) {
-              const newTag = await tagStore.create(curTag, newTagName);
-              curTag = newTag;
+          // Now that we know the tag names in file metadata, add them to the files in Allusion
+          // Main idea: Find matching tag with same name, otherwise, insert new
+          //   for now, just match by the name at the bottom of the hierarchy
+          // TODO: We need a "merge" option for two or more tags in tag context menu
+
+          const { tagStore } = this.rootStore;
+          for (const tagHierarchy of tagsNameHierarchies) {
+            const match = runInAction(() =>
+              tagStore.tagList.find((t) => t.name === tagHierarchy[tagHierarchy.length - 1]),
+            );
+            if (match) {
+              // If there is a match to the leaf tag, just add it to the file
+              this.fileList[i].addTag(match);
+            } else {
+              // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
+              let curTag = tagStore.root;
+              for (const nodeName of tagHierarchy) {
+                const nodeMatch = runInAction(() => tagStore.tagList.find((t) => t.name === nodeName));
+                if (nodeMatch) {
+                  curTag = nodeMatch;
+                } else {
+                  curTag = await tagStore.create(curTag, nodeName);
+                }
+              }
+              this.fileList[i].addTag(curTag);
             }
-            runInAction(() => this.fileList[i].addTag(curTag));
           }
+        } catch (e) {
+          console.error('Could not import tags for', absolutePath, e);
         }
       }
       AppToaster.show(
@@ -131,22 +142,33 @@ class FileStore {
     try {
       await this.exifTool.initialize();
       const numFiles = runInAction(() => this.fileList.length);
-      for (let i = 0; i < numFiles; i++) {
-        AppToaster.show(
-          {
-            message: `Writing tags to files ${((100 * i++) / numFiles).toFixed(0)}%...`,
-            timeout: 0,
-          },
-          toastKey,
-        );
-        const [absolutePath, tagNameHierarchy] = runInAction(() => {
-          const file = this.fileList[i];
-          return [
-            file.absolutePath,
-            Array.from(file.tags).map((t) => t.getTagHierarchy().map((t) => t.name)),
-          ];
-        });
-        await this.exifTool.writeTags(absolutePath, tagNameHierarchy);
+      const tagFilePairs = runInAction(() =>
+        this.fileList.map((f) => ({
+          absolutePath: f.absolutePath,
+          tagHierarchy: Array.from(f.tags).map((t) => t.getTagHierarchy().map((t) => t.name)),
+        })),
+      );
+      console.log(tagFilePairs);
+      let lastToastVal = '0';
+      for (let i = 0; i < tagFilePairs.length; i++) {
+        const newToastVal = ((100 * i) / numFiles).toFixed(0);
+        if (lastToastVal !== newToastVal) {
+          lastToastVal = newToastVal;
+          AppToaster.show(
+            {
+              message: `Writing tags to files ${newToastVal}%...`,
+              timeout: 0,
+            },
+            toastKey,
+          );
+        }
+
+        const { absolutePath, tagHierarchy } = tagFilePairs[i];
+        try {
+          await this.exifTool.writeTags(absolutePath, tagHierarchy);
+        } catch (e) {
+          console.error('Could not write tags to', absolutePath, tagHierarchy, e);
+        }
       }
       AppToaster.show(
         {

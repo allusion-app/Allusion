@@ -33,17 +33,7 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
         text="Settings"
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.toggleSettings} />}
       />
-      <MenuItem
-        icon={IconSet.LOGO}
-        // TODO: Maybe add as native menu option (mac-os?)
-        onClick={() =>
-          window.alert(
-            // eslint-disable-next-line prettier/prettier
-            'TODO: This application was made by [us]. It\'s open source. You can contribute here if you wanna [link]',
-          )
-        }
-        text="About"
-      />
+      <MenuItem icon={IconSet.LOGO} onClick={uiStore.toggleAbout} text="About" />
     </MenuButton>
   );
 });

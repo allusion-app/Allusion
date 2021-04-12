@@ -17,7 +17,7 @@ const Searchbar = observer(() => {
     searchCriteriaList.every(
       (crit) =>
         crit.key === 'tags' &&
-        crit.operator === 'contains' &&
+        crit.operator === 'containsRecursively' &&
         (crit as ClientTagSearchCriteria<any>).value.length,
     );
 
@@ -91,7 +91,6 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
             uiStore.addSearchCriteria(
               new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
             ),
-          icon: IconSet.FILTER_NAME_DOWN,
           resetQueryOnAction: true,
         },
         {

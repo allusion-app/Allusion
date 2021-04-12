@@ -11,7 +11,7 @@ interface IToolbar {
   controls: string;
 }
 
-const Toolbar = (props: IToolbar) => {
+const Toolbar: React.FC<IToolbar> = (props: IToolbar) => {
   const { children, id, label, labelledby, controls } = props;
   const toolbar = useRef<HTMLDivElement>(null);
 
@@ -47,6 +47,8 @@ const Toolbar = (props: IToolbar) => {
     </div>
   );
 };
+
+Toolbar.displayName = 'Toolbar';
 
 interface IBaseButton {
   id?: string;

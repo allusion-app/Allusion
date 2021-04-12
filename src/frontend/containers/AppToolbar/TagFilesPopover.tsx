@@ -1,6 +1,7 @@
-import { action, runInAction } from 'mobx';
+import { action, ObservableSet, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -10,9 +11,26 @@ import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/Co
 import { IOption } from 'widgets/Combobox/Listbox';
 import { IconSet } from 'widgets/Icons';
 import { MenuDivider, ToolbarButton } from 'widgets/menus';
-import { countFileTags } from '../../components/FileTag';
 import StoreContext from '../../contexts/StoreContext';
 import { Tooltip } from './PrimaryCommands';
+
+function countFileTags(files: ObservableSet<ClientFile>) {
+  // Count how often tags are used
+  const counter = new Map<ClientTag, number>();
+  for (const file of files) {
+    for (const tag of file.tags) {
+      const count = counter.get(tag);
+      counter.set(tag, count !== undefined ? count + 1 : 1);
+    }
+  }
+
+  const sortedTags = Array.from(counter.entries())
+    // Sort based on count
+    .sort((a, b) => b[1] - a[1])
+    .map((pair) => pair[0]);
+
+  return { counter, sortedTags };
+}
 
 const TagFilesPopover = observer(() => {
   const { uiStore, tagStore } = useContext(StoreContext);
