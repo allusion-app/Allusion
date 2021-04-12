@@ -70,7 +70,7 @@ self.onmessage = async (event) => {
 };
 ```
 
-### Lock Free Data Read and Write
+### Communication between Rust and JavaScript
 
 Right now the above code does not really do anything. We want to send our work to the web worker too but we only have a typed array. This limits the number of types we can send to basically 1 and using `Worker.postMessage` is not an option as outlined above. We can however, use the magic of pointers!
 
@@ -79,22 +79,14 @@ Since the used WebAssembly memory in both threads is the same, pointers to data 
 Furthermore, reading and writing must not happen at the same time because this can lead to undefined behaviour. For this, we will create a `Promise` that will only resolve once the web worker returns the result. Unless the `Promise` is not awaited, write and reads should be safe. The actual code of `MasonryWorker::compute` and `execute` can be found in `./src/masonry_worker.rs`. For this to work we capture the callback functions in the `Promise` constructor in a Rust closure and store the value. We must store the closure until it is called, otherwise it would be dropped immediately which means the `Promise` will never resolve.
 
 ```rs
-let mut callback = |resolve: js_sys::Function, reject: js_sys::Function| {
+let mut callback = |resolve: js_sys::Function, _reject: js_sys::Function| {
     // Create a weak ref to the event handler.
     let message_handler_ref = Rc::downgrade(&message_handler);
     // On executing this closure resolve or reject the value. This make the program continue again.
     // In other words when `await`ing the `Promise` is finished.
     *message_handler.borrow_mut() = Some(Closure::wrap(Box::new(
         move |event: web_sys::MessageEvent| {
-            let r = {
-                // `execute` returns an `Option<u32>` which is mapped in JavaScript as `number | undefined`.
-                let value = event.data();
-                if value.is_undefined() {
-                    reject.call0(&wasm_bindgen::JsValue::NULL)
-                } else {
-                    resolve.call1(&wasm_bindgen::JsValue::NULL, &value)
-                }
-            };
+            let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &event.data());
             debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
 
             // On returning the result we want to free the memory of this Rust closure.
@@ -125,26 +117,18 @@ struct __OuterClousure_some_hash<'a> {
 }
 
 impl<'a> Fn<(js_sys::Function, js_sys::Function)> for __OuterClousure_some_hash<'a> {
-    fn call(&self, resolve: js_sys::Function, reject: js_sys::Function) {
+    fn call(&self, resolve: js_sys::Function, _reject: js_sys::Function) {
         let message_handler_ref = Rc::downgrade(&self.message_handler);
 
         // Contains owned values due to the `move` key word.
         struct __InnerClousure_some_hash {
             resolve: js_sys::Function,
-            reject: js_sys::Function,
             message_handler_ref: Weak<RefCell<Option<MessageEventHandler>>>,
         }
 
         impl<'a> Fn<web_sys::MessageEvent> for __InnerClousure_some_hash {
             fn call(&self, event: web_sys::MessageEvent) {
-                let r = {
-                    let value = event.data();
-                    if value.is_undefined() {
-                        self.reject.call0(&wasm_bindgen::JsValue::NULL)
-                    } else {
-                        self.resolve.call1(&wasm_bindgen::JsValue::NULL, &value)
-                    }
-                };
+                let r = self.resolve.call1(&wasm_bindgen::JsValue::NULL, &event.data());
                 debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
 
                 // On returning the result we want to free the memory of this Rust closure.
