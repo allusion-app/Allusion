@@ -28,13 +28,13 @@ struct Dimension {
     corrected_aspect_ratio: f32,
 }
 
-const MIN_ITEMS_CAPACITY: usize = 10_000;
+const MIN_ITEMS_CAPACITY: usize = 1_000;
 
 impl Layout {
-    pub fn new(length: usize, thumbnail_size: u16, padding: u16) -> Layout {
-        let capacity = length.max(MIN_ITEMS_CAPACITY);
+    pub fn new(num_items: usize, thumbnail_size: u16, padding: u16) -> Layout {
+        let capacity = num_items.max(MIN_ITEMS_CAPACITY);
         Layout {
-            num_items: length,
+            num_items,
             transforms: vec![Transform::default(); capacity],
             dimensions: vec![Dimension::default(); capacity],
             thumbnail_size,
@@ -65,7 +65,7 @@ impl Layout {
             let additional_capacity = new_len.saturating_sub(self.transforms.capacity());
             self.transforms.reserve(additional_capacity);
             self.dimensions.reserve(additional_capacity);
-            for _ in len..self.transforms.capacity() {
+            for _ in len..new_len {
                 self.transforms.push(Transform::default());
                 self.dimensions.push(Dimension::default());
             }
@@ -213,7 +213,7 @@ impl Layout {
         let row_height = column_width;
 
         let (n_rows, rem, rows, rest) = {
-            let len = self.transforms.len();
+            let len = self.num_items;
             let n_rows = len / n_columns;
             let rem = len % n_columns;
             let (rows, rest) = self.transforms.split_at_mut(len - rem);
