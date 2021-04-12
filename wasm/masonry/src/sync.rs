@@ -41,11 +41,11 @@ impl Receiver {
 
     pub fn receive(&self) -> u32 {
         unsafe {
-            let ptr = self.has_changed.load(Ordering::SeqCst);
+            let ptr = self.has_changed.load(Ordering::Acquire);
             core::arch::wasm32::memory_atomic_wait32(ptr, 0, -1);
             *ptr = 0;
         }
-        self.data_ptr.load(Ordering::SeqCst)
+        self.data_ptr.load(Ordering::Acquire)
     }
 }
 
@@ -55,9 +55,9 @@ impl Sender {
     // memory. As soon as the memory at index 0 becomes 1 the web worker thread will stop waiting
     // (see [`create_web_worker`]);
     pub fn send(&self, ptr: u32) {
-        self.data_ptr.store(ptr, Ordering::SeqCst);
+        self.data_ptr.store(ptr, Ordering::Release);
         unsafe {
-            let ptr = self.has_changed.load(Ordering::SeqCst);
+            let ptr = self.has_changed.load(Ordering::Acquire);
             *ptr = 1;
             core::arch::wasm32::memory_atomic_notify(ptr, 1);
         }
