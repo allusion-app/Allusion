@@ -1,3 +1,0 @@
-exiftool.exe filter=lfs diff=lfs merge=lfs -text
-exiftool.pl filter=lfs diff=lfs merge=lfs -text
-lib/** filter=lfs diff=lfs merge=lfs -text

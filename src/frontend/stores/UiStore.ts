@@ -93,6 +93,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'isOutlinerOpen',
   'isInspectorOpen',
   'thumbnailDirectory',
+  'importDirectory',
   'method',
   'thumbnailSize',
   'thumbnailShape',
@@ -147,6 +148,7 @@ class UiStore {
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
   @observable thumbnailDirectory: string = '';
+  @observable importDirectory: string = ''; // for browser extension. Must be a (sub-folder of a) Location
 
   @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
 
@@ -357,6 +359,10 @@ class UiStore {
     this.thumbnailDirectory = dir;
   }
 
+  @action.bound setImportDirectory(dir: string) {
+    this.importDirectory = dir;
+  }
+
   @action.bound toggleTheme() {
     this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
     RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
@@ -387,10 +393,13 @@ class UiStore {
     this.fileSelection.delete(file);
   }
 
-  @action.bound toggleFileSelection(file: ClientFile) {
+  @action.bound toggleFileSelection(file: ClientFile, clear?: boolean) {
     if (this.fileSelection.has(file)) {
       this.fileSelection.delete(file);
     } else {
+      if (clear) {
+        this.fileSelection.clear();
+      }
       this.fileSelection.add(file);
     }
   }
@@ -703,6 +712,7 @@ class UiStore {
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
         this.setThumbnailDirectory(prefs.thumbnailDirectory);
+        this.setImportDirectory(prefs.importDirectory);
         this.setMethod(prefs.method);
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
+const PLATFORM = process.platform;
 interface IPopupWindowProps {
   onClose: () => void;
   windowName: string;
@@ -24,6 +25,7 @@ const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
 
     // Copy style sheets from main window
     copyStyles(document, externalWindow.document);
+    containerEl.setAttribute('data-os', PLATFORM);
 
     externalWindow.addEventListener('beforeunload', props.onClose);
 

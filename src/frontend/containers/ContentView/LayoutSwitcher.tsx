@@ -54,7 +54,7 @@ const Layout = ({
       if (lastSelectionIndex.current === undefined) {
         initialSelectionIndex.current = i;
         lastSelectionIndex.current = i;
-        uiStore.toggleFileSelection(selectedFile);
+        uiStore.toggleFileSelection(selectedFile, true);
         return;
       }
       // Mark this index as the last item that was selected
