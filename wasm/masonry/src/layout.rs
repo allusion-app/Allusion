@@ -3,7 +3,9 @@
 // - Output a list of image positions, laid out in a masonry format
 // TODO: Could also use the google photos layout: Groups of masonry layouts, each with a header (e.g. the date)
 use crate::util::UnwrapOrAbort;
+use alloc::collections::BinaryHeap;
 use alloc::{vec, vec::Vec};
+use core::cmp::Ordering;
 
 pub struct Layout {
     num_items: usize,
@@ -148,15 +150,46 @@ impl Layout {
     // Main idea: Initialize with N columns of identical widths
     // loop over images, put them in the column that has the least height filled
     pub fn compute_vertical(&mut self, container_width: u16) -> f32 {
-        let (col_width, mut col_heights) = {
+        #[derive(PartialEq)]
+        struct Column {
+            index: usize,
+            height: f32,
+        }
+
+        impl Eq for Column {
+            fn assert_receiver_is_total_eq(&self) {}
+        }
+
+        impl PartialOrd for Column {
+            fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+                Some(self.cmp(other))
+            }
+        }
+
+        // The priority queue depends on `Ord`.
+        // Explicitly implement the trait so the queue becomes a min-heap instead of a max-heap.
+        impl Ord for Column {
+            fn cmp(&self, other: &Self) -> Ordering {
+                match other.height.partial_cmp(&self.height) {
+                    Some(Ordering::Equal) | None => other.index.cmp(&self.index),
+                    Some(ordering) => ordering,
+                }
+            }
+        }
+
+        let (col_width, mut columns) = {
             let container_width = f32::from(container_width);
             let n_columns = (container_width / f32::from(self.thumbnail_size)).round();
             if n_columns == 0.0 {
                 return 0.0;
             }
             let col_width = (container_width / n_columns).round();
-            let col_heights: Vec<f32> = vec![0.0; n_columns as usize];
-            (col_width, col_heights)
+            let n_columns = n_columns as usize;
+            let mut columns = Vec::with_capacity(n_columns);
+            for index in 0..n_columns {
+                columns.push(Column { index, height: 0.0 });
+            }
+            (col_width, BinaryHeap::from(columns))
         };
         let padding = f32::from(self.padding);
         let item_width = col_width - padding;
@@ -168,33 +201,20 @@ impl Layout {
             transform.width = item_width;
             transform.correct_height(self.dimensions.get(i).unwrap_or_abort());
 
-            let shortest_col_index = {
-                let mut min_index = 0;
-                let mut min_value = col_heights[0];
-                for j in 1..col_heights.len() {
-                    let val = col_heights[j];
-                    if min_value > val {
-                        min_value = val;
-                        min_index = j;
-                    }
-                }
-                min_index
-            };
-
-            transform.left = shortest_col_index as f32 * col_width;
-            transform.top = col_heights[shortest_col_index];
-
-            col_heights[shortest_col_index] += transform.height + padding;
+            let mut column = columns.pop().unwrap_or_abort();
+            transform.left = column.index as f32 * col_width;
+            transform.top = column.height;
+            column.height += transform.height + padding;
+            columns.push(column);
         }
 
-        // Return height of longest column
-        let (mut max_height, col_heights) = col_heights.split_first_mut().unwrap_or_abort();
-        for val in col_heights {
-            if val > max_height {
-                max_height = val;
+        let mut longest_column_height = 0.0;
+        for Column { height, .. } in columns.into_iter() {
+            if height > longest_column_height {
+                longest_column_height = height;
             }
         }
-        *max_height
+        longest_column_height
     }
 
     // Simple Grid layout, replacement for the react-window dependency

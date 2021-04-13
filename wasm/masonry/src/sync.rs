@@ -28,7 +28,7 @@ pub fn channel() -> (Sender, Receiver) {
 }
 
 impl Receiver {
-    pub(crate) fn to_ptr(self) -> *mut Receiver {
+    pub(crate) fn into_ptr(self) -> *mut Receiver {
         Box::into_raw(Box::new(self))
     }
 }
@@ -41,9 +41,9 @@ impl Receiver {
 
     pub fn receive(&self) -> u32 {
         unsafe {
-            let ptr = self.has_changed.load(Ordering::Acquire);
-            core::arch::wasm32::memory_atomic_wait32(ptr, 0, -1);
-            *ptr = 0;
+            let has_changed = self.has_changed.load(Ordering::Acquire);
+            core::arch::wasm32::memory_atomic_wait32(has_changed, 0, -1);
+            *has_changed = 0;
         }
         self.data_ptr.load(Ordering::Acquire)
     }
@@ -57,9 +57,9 @@ impl Sender {
     pub fn send(&self, ptr: u32) {
         self.data_ptr.store(ptr, Ordering::Release);
         unsafe {
-            let ptr = self.has_changed.load(Ordering::Acquire);
-            *ptr = 1;
-            core::arch::wasm32::memory_atomic_notify(ptr, 1);
+            let has_changed = self.has_changed.load(Ordering::Acquire);
+            *has_changed = 1;
+            core::arch::wasm32::memory_atomic_notify(has_changed, 1);
         }
     }
 }

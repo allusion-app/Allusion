@@ -71,7 +71,7 @@ impl MasonryWorker {
 
         // [Int32Array, WebAssembly.Memory]
         let initial_message = js_sys::Array::new();
-        initial_message.push(&JsValue::from(receiver.to_ptr() as u32));
+        initial_message.push(&JsValue::from(receiver.into_ptr() as u32));
         initial_message.push(&wasm_bindgen::memory());
 
         manager.worker.post_message(&initial_message)?;
@@ -129,7 +129,7 @@ impl MasonryWorker {
                 MasonryConfig::new(kind, thumbnail_size, padding),
                 &mut self.layout,
             )
-            .to_ptr(),
+            .into_ptr(),
         );
         js_sys::Promise::new(&mut callback)
     }
@@ -242,20 +242,20 @@ impl Computation {
         }
     }
 
-    fn to_ptr(self) -> u32 {
+    fn into_ptr(self) -> u32 {
         Box::into_raw(Box::new(self)) as u32
     }
 }
 
 fn create_web_worker(module_path: &str, wasm_path: &str) -> Result<web_sys::Worker, JsValue> {
     let worker_script = format!(
-        "import {{ default as init, execute, Receiver }} from '{module_path}';
-        self.onmessage = async (event) => {{
-            await init('{wasm_path}', event.data[1]);
-            const receiver = Receiver.from_ptr(event.data[0]);
-            while (true) {{
-                self.postMessage(execute(receiver.receive()));
-            }}
+        "import {{ default as init, execute, Receiver }} from '{module_path}';\
+        self.onmessage = async (event) => {{\
+            await init('{wasm_path}', event.data[1]);\
+            const receiver = Receiver.from_ptr(event.data[0]);\
+            while (true) {{\
+                self.postMessage(execute(receiver.receive()));\
+            }}\
         }};",
         module_path = module_path,
         wasm_path = wasm_path
