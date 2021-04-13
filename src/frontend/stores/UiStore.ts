@@ -132,6 +132,7 @@ class UiStore {
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
   /** Index of the first item in the viewport */
+  // TODO: Might be better to store the ID to the file. I believe we were storing the index for performance, but we have instant conversion between index/ID now
   @observable firstItem: number = 0;
   @observable thumbnailSize: ThumbnailSize = 'medium';
   @observable thumbnailShape: ThumbnailShape = 'square';

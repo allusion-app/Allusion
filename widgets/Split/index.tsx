@@ -1,6 +1,6 @@
 import './split.scss';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 interface ISplit {
   id?: string;
@@ -73,7 +73,7 @@ export const Split = ({
     [onMove, axis],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isExpanded) {
       value.current = splitPoint;
     } else {
@@ -85,7 +85,7 @@ export const Split = ({
       // Splitter
       (container.current.children[1] as HTMLElement).style[align] = `${value.current}px`;
     }
-  }, [isExpanded, splitPoint]);
+  }, [align, isExpanded, splitPoint]);
 
   useEffect(() => {
     const observer = resizeObserver.current;

@@ -88,7 +88,6 @@ class FileStore {
           // Now that we know the tag names in file metadata, add them to the files in Allusion
           // Main idea: Find matching tag with same name, otherwise, insert new
           //   for now, just match by the name at the bottom of the hierarchy
-          // TODO: We need a "merge" option for two or more tags in tag context menu
 
           const { tagStore } = this.rootStore;
           for (const tagHierarchy of tagsNameHierarchies) {
@@ -102,7 +101,9 @@ class FileStore {
               // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
               let curTag = tagStore.root;
               for (const nodeName of tagHierarchy) {
-                const nodeMatch = runInAction(() => tagStore.tagList.find((t) => t.name === nodeName));
+                const nodeMatch = runInAction(() =>
+                  tagStore.tagList.find((t) => t.name === nodeName),
+                );
                 if (nodeMatch) {
                   curTag = nodeMatch;
                 } else {

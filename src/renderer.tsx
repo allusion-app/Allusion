@@ -74,12 +74,11 @@ if (IS_PREVIEW_WINDOW) {
   });
 
   // Change window title to filename when changing the selected file
-  observe(rootStore.uiStore.fileSelection, ({ object: list }) => {
-    if (list.size > 0) {
-      const file = rootStore.uiStore.firstSelectedFile;
-      if (file !== undefined) {
-        document.title = `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
-      }
+  observe(rootStore.uiStore, 'firstItem', ({ object }) => {
+    const index = object.get();
+    if (!isNaN(index) && index >= 0 && index < rootStore.fileStore.fileList.length) {
+      const file = rootStore.fileStore.fileList[index];
+      document.title = `${file?.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
     }
   });
 } else {
