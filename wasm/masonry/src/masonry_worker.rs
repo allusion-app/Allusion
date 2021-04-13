@@ -2,7 +2,6 @@ use alloc::boxed::Box;
 use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::String;
-use core::cell::RefCell;
 
 use crate::layout::{Layout, Transform};
 use crate::sync::{channel, Sender};
@@ -10,13 +9,10 @@ use crate::sync::{channel, Sender};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
-type MessageEventHandler = Closure<dyn FnMut(web_sys::MessageEvent)>;
-
 #[wasm_bindgen]
 pub struct MasonryWorker {
     layout: Layout,
     worker: Rc<web_sys::Worker>,
-    message_handler: Rc<RefCell<Option<MessageEventHandler>>>,
     sender: Sender,
     json_output: String,
 }
@@ -64,7 +60,6 @@ impl MasonryWorker {
                 MASONRY_CONFIG_DEFAULT.padding,
             ),
             worker: Rc::new(create_web_worker(module_path, wasm_path)?),
-            message_handler: Rc::new(RefCell::new(None)),
             sender,
             json_output: String::new(),
         };
@@ -93,34 +88,17 @@ impl MasonryWorker {
         padding: u16,
     ) -> js_sys::Promise {
         let worker = Rc::clone(&self.worker);
-        let message_handler = Rc::clone(&self.message_handler);
 
         // We capture the resolve and reject functions from `Promise` constructor in our message
         // handler. When our event handler is invoked the control flow is resumed again.
         let mut callback = |resolve: js_sys::Function, _reject: js_sys::Function| {
-            // Create a weak ref to the event handler.
-            let message_handler_ref = Rc::downgrade(&message_handler);
-            *message_handler.borrow_mut() = Some(Closure::wrap(Box::new(
-                move |event: web_sys::MessageEvent| {
+            worker.set_onmessage(Some(
+                Closure::once_into_js(move |event: web_sys::MessageEvent| {
                     let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &event.data());
                     debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
-
-                    // SAFETY: I cannot think of a good reason why this should panic. If the `Promise`
-                    // is not `await`ed and this method is called again, the closure would be dropped
-                    // regardless which means this will never be called.
-                    //
-                    // On returning the result we want to free the memory of this Rust closure.
-                    if let Some(message_handler) = message_handler_ref.upgrade() {
-                        *message_handler.borrow_mut() = None;
-                    }
-                },
-            )));
-            worker.set_onmessage(
-                message_handler
-                    .borrow()
-                    .as_ref()
-                    .map(|cb| cb.as_ref().unchecked_ref()),
-            );
+                })
+                .unchecked_ref(),
+            ));
         };
 
         self.sender.send(
