@@ -1,10 +1,10 @@
-use alloc::boxed::Box;
 use alloc::format;
 use alloc::rc::Rc;
 use alloc::string::String;
 
+use crate::data::{Computation, MasonryConfig, MasonryType};
 use crate::layout::{Layout, Transform};
-use crate::sync::{channel, Receiver, Sender};
+use crate::sync::{read_result, send_computation};
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -13,35 +13,7 @@ use wasm_bindgen::JsCast;
 pub struct MasonryWorker {
     layout: Layout,
     worker: Rc<web_sys::Worker>,
-    sender: Sender,
-    receiver: Option<Receiver>,
     json_output: String,
-}
-
-#[wasm_bindgen]
-#[derive(Clone, Copy)]
-pub enum MasonryType {
-    Vertical,
-    Horizontal,
-    Grid,
-}
-
-struct MasonryConfig {
-    kind: MasonryType,
-    thumbnail_size: u16,
-    padding: u16,
-}
-
-const MASONRY_CONFIG_DEFAULT: MasonryConfig = MasonryConfig {
-    kind: MasonryType::Grid,
-    thumbnail_size: 300,
-    padding: 8,
-};
-
-pub struct Computation {
-    width: u16,
-    config: MasonryConfig,
-    layout_ptr: *mut Layout,
 }
 
 #[wasm_bindgen]
@@ -53,16 +25,13 @@ impl MasonryWorker {
         module_path: &str,
         wasm_path: &str,
     ) -> Result<MasonryWorker, JsValue> {
-        let (sender, receiver) = channel();
         Ok(MasonryWorker {
             layout: Layout::new(
                 num_items,
-                MASONRY_CONFIG_DEFAULT.thumbnail_size,
-                MASONRY_CONFIG_DEFAULT.padding,
+                MasonryConfig::DEFAULT.thumbnail_size,
+                MasonryConfig::DEFAULT.padding,
             ),
             worker: Rc::new(create_web_worker(module_path, wasm_path)?),
-            sender,
-            receiver: Some(receiver),
             json_output: String::new(),
         })
     }
@@ -79,15 +48,7 @@ impl MasonryWorker {
     pub fn init(&mut self) -> Result<js_sys::Promise, JsValue> {
         let worker = Rc::clone(&self.worker);
         // [u32, WebAssembly.Memory]
-        let initial_message = js_sys::Array::of2(
-            &JsValue::from(
-                self.receiver
-                    .take()
-                    .ok_or_else(|| JsValue::UNDEFINED)?
-                    .into_ptr() as u32,
-            ),
-            &wasm_bindgen::memory(),
-        );
+        let initial_message = js_sys::Array::of1(&wasm_bindgen::memory());
         Ok(js_sys::Promise::new(
             &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
                 worker.set_onmessage(Some(
@@ -123,18 +84,17 @@ impl MasonryWorker {
             &mut self.layout,
         )
         .into_ptr();
-        let sender = Sender::clone(&self.sender);
         let worker = Rc::clone(&self.worker);
         js_sys::Promise::new(
             &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
                 worker.set_onmessage(Some(
-                    Closure::once_into_js(move |event: web_sys::MessageEvent| {
-                        let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &event.data());
+                    Closure::once_into_js(move |_event: web_sys::MessageEvent| {
+                        let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &read_result());
                         debug_assert!(r.is_ok(), "calling resolve should never fail");
                     })
                     .unchecked_ref(),
                 ));
-                sender.send(computation);
+                send_computation(computation);
             },
         )
     }
@@ -198,69 +158,15 @@ impl Drop for MasonryWorker {
     }
 }
 
-/// Function to be called in the web worker thread to compute the new layout.
-///
-/// # Safety
-///
-/// Do not import this function as it is already imported into the web worker thread (see
-/// `create_web_worker`). The pointer send to it must be created in the same memory used for the
-/// creation of the WebAssembly module both in the main and web worker thread.
-#[wasm_bindgen]
-pub fn execute(computation_ptr: u32) -> Option<f32> {
-    let (width, config, layout) = {
-        // SAFETY: The send [`Computation`] is send from the main thread that created that this web
-        // worker. On creation the same memory was used.
-        let computation = unsafe { Box::from_raw(computation_ptr as *mut Computation) };
-        // SAFETY: Never use core::ptr::read. The returned value will be an owned value, which means
-        // its destructor will be run at the end of the function. This will lead to a double free.
-        // Instead we only get a mutable reference and have to depend on the user to `await` every
-        // `Promise` returned from `MasonryWorker::compute`.
-        let layout = unsafe { computation.layout_ptr.as_mut()? };
-        (computation.width, computation.config, layout)
-    };
-    layout.set_thumbnail_size(config.thumbnail_size);
-    layout.set_padding(config.padding);
-
-    Some(match config.kind {
-        MasonryType::Vertical => layout.compute_vertical(width),
-        MasonryType::Horizontal => layout.compute_horizontal(width),
-        MasonryType::Grid => layout.compute_grid(width),
-    })
-}
-
-impl MasonryConfig {
-    fn new(kind: MasonryType, thumbnail_size: u16, padding: u16) -> MasonryConfig {
-        MasonryConfig {
-            kind,
-            thumbnail_size,
-            padding,
-        }
-    }
-}
-
-impl Computation {
-    fn new(width: u16, config: MasonryConfig, layout: &mut Layout) -> Computation {
-        Computation {
-            width,
-            config,
-            layout_ptr: layout as _,
-        }
-    }
-
-    fn into_ptr(self) -> u32 {
-        Box::into_raw(Box::new(self)) as u32
-    }
-}
-
 fn create_web_worker(module_path: &str, wasm_path: &str) -> Result<web_sys::Worker, JsValue> {
     let worker_script = format!(
-        "import {{ default as init, execute, Receiver }} from '{module_path}';\
+        "import {{ default as init, compute }} from '{module_path}';\
         self.onmessage = async (event) => {{\
-            await init('{wasm_path}', event.data[1]);\
-            const receiver = Receiver.from_ptr(event.data[0]);\
+            await init('{wasm_path}', event.data[0]);\
             self.postMessage(null);\
             while (true) {{\
-                self.postMessage(execute(receiver.receive()));\
+                compute();\
+                self.postMessage(null);\
             }}\
         }};",
         module_path = module_path,

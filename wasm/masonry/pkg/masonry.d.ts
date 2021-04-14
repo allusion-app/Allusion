@@ -1,17 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* Function to be called in the web worker thread to compute the new layout.
-*
-* # Safety
-*
-* Do not import this function as it is already imported into the web worker thread (see
-* `create_web_worker`). The pointer send to it must be created in the same memory used for the
-* creation of the WebAssembly module both in the main and web worker thread.
-* @param {number} computation_ptr
-* @returns {number | undefined}
 */
-export function execute(computation_ptr: number): number | undefined;
+export function compute(): void;
 /**
 */
 export enum MasonryType {
@@ -92,20 +83,6 @@ export class MasonryWorker {
 */
   get_transform(index: number): any;
 }
-/**
-*/
-export class Receiver {
-  free(): void;
-/**
-* @param {number} ptr
-* @returns {Receiver}
-*/
-  static from_ptr(ptr: number): Receiver;
-/**
-* @returns {number}
-*/
-  receive(): number;
-}
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -117,16 +94,12 @@ export interface InitOutput {
   readonly masonryworker_resize: (a: number, b: number) => void;
   readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;
   readonly masonryworker_get_transform: (a: number, b: number) => number;
-  readonly execute: (a: number, b: number) => void;
-  readonly __wbg_receiver_free: (a: number) => void;
-  readonly receiver_from_ptr: (a: number) => number;
-  readonly receiver_receive: (a: number) => number;
+  readonly compute: () => void;
   readonly __wbindgen_export_0: WebAssembly.Memory;
   readonly __wbindgen_export_1: WebAssembly.Table;
   readonly wasm_bindgen__convert__closures__invoke1_mut__hae1aa38dc1391970: (a: number, b: number, c: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
-  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly wasm_bindgen__convert__closures__invoke2_mut__h04b557a7effa519a: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_start: () => void;

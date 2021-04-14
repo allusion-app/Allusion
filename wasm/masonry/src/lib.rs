@@ -5,6 +5,7 @@
 extern crate alloc;
 extern crate core;
 
+mod data;
 mod layout;
 mod masonry_worker;
 mod sync;

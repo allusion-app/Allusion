@@ -1,80 +1,76 @@
 use alloc::boxed::Box;
-use alloc::rc::Rc;
 use core::sync::atomic::{AtomicI32, AtomicU32, Ordering};
 
 use wasm_bindgen::prelude::*;
 
-pub struct Sender {
-    has_changed: Rc<AtomicI32>,
-    data_ptr: Rc<AtomicU32>,
-}
+use crate::data::{Computation, MasonryType};
 
+static LOCK: AtomicI32 = AtomicI32::new(0);
+static INPUT: AtomicU32 = AtomicU32::new(0);
+static OUTPUT: AtomicU32 = AtomicU32::new(0);
+
+const LOCKED: i32 = 0;
+const UNLOCKED: i32 = 1;
+
+/// Function to be called in the web worker thread to compute the new layout.
+///
+/// # Safety
+///
+/// Do not import this function as it is already imported into the web worker thread (see
+/// `create_web_worker`).
 #[wasm_bindgen]
-pub struct Receiver {
-    has_changed: Rc<AtomicI32>,
-    data_ptr: Rc<AtomicU32>,
+pub fn compute() {
+    atomic_wait32(LOCK.as_mut_ptr(), LOCKED, -1);
+    let computation_ptr = INPUT.load(Ordering::Acquire);
+    let container_height = execute(computation_ptr);
+    OUTPUT.store(container_height.to_bits(), Ordering::Release);
+    LOCK.store(LOCKED, Ordering::Release);
 }
 
-pub fn channel() -> (Sender, Receiver) {
-    let receiver = Receiver {
-        has_changed: Rc::new(AtomicI32::new(0)),
-        data_ptr: Rc::new(AtomicU32::new(0)),
-    };
-    let sender = Sender {
-        has_changed: Rc::clone(&receiver.has_changed),
-        data_ptr: Rc::clone(&receiver.data_ptr),
-    };
-    (sender, receiver)
+/// Wakes up the web worker thread and "sends" data to receiver.
+// I keep writing "send" because we're not sending anything but rather communicate with shared
+// memory. As soon as the memory at index 0 becomes 1 the web worker thread will stop waiting
+// (see [`create_web_worker`]);
+pub fn send_computation(computation: u32) {
+    INPUT.store(computation, Ordering::Release);
+    LOCK.store(UNLOCKED, Ordering::Release);
+    atomic_notify(LOCK.as_mut_ptr(), 1);
 }
 
-impl Receiver {
-    pub(crate) fn into_ptr(self) -> *mut Receiver {
-        Box::into_raw(Box::new(self))
-    }
+pub fn read_result() -> JsValue {
+    let container_height = f32::from_bits(OUTPUT.load(Ordering::Acquire));
+    JsValue::from(container_height)
 }
 
-#[wasm_bindgen]
-impl Receiver {
-    pub fn from_ptr(ptr: *mut Receiver) -> Receiver {
-        unsafe { *Box::from_raw(ptr) }
-    }
-
-    pub fn receive(&self) -> u32 {
-        atomic_wait32(self.has_changed.as_mut_ptr(), 0, -1);
-        self.has_changed.store(0, Ordering::Release);
-        self.data_ptr.load(Ordering::Acquire)
-    }
-}
-
-impl Sender {
-    /// Wakes up the web worker thread and "sends" data to receiver.
-    // I keep writing "send" because we're not sending anything but rather communicate with shared
-    // memory. As soon as the memory at index 0 becomes 1 the web worker thread will stop waiting
-    // (see [`create_web_worker`]);
-    pub fn send(&self, ptr: u32) {
-        self.data_ptr.store(ptr, Ordering::Release);
-        self.has_changed.store(1, Ordering::Release);
-        atomic_notify(self.has_changed.as_mut_ptr(), 1);
-    }
-
-    pub fn clone(other: &Self) -> Self {
-        Sender {
-            has_changed: Rc::clone(&other.has_changed),
-            data_ptr: Rc::clone(&other.data_ptr),
+fn execute(computation_ptr: u32) -> f32 {
+    let (width, config, layout) = {
+        // SAFETY: The send [`Computation`] is send from the main thread that created that this web
+        // worker. On creation the same memory was used.
+        let computation = unsafe { Box::from_raw(computation_ptr as *mut Computation) };
+        // SAFETY: Never use core::ptr::read. The returned value will be an owned value, which means
+        // its destructor will be run at the end of the function. This will lead to a double free.
+        // Instead we only get a mutable reference and have to depend on the user to `await` every
+        // `Promise` returned from `MasonryWorker::compute`.
+        let layout = unsafe { computation.layout_ptr.as_mut() };
+        match layout {
+            Some(layout) => (computation.width, computation.config, layout),
+            None => return 0.0,
         }
+    };
+    layout.set_thumbnail_size(config.thumbnail_size);
+    layout.set_padding(config.padding);
+
+    match config.kind {
+        MasonryType::Vertical => layout.compute_vertical(width),
+        MasonryType::Horizontal => layout.compute_horizontal(width),
+        MasonryType::Grid => layout.compute_grid(width),
     }
 }
 
 fn atomic_wait32(ptr: *mut i32, expression: i32, timeout_ns: i64) -> i32 {
-    unsafe {
-        core::arch::wasm32::memory_atomic_wait32(
-            (ptr as i32 / 4) as *mut i32,
-            expression,
-            timeout_ns,
-        )
-    }
+    unsafe { core::arch::wasm32::memory_atomic_wait32(ptr, expression, timeout_ns) }
 }
 
 fn atomic_notify(ptr: *mut i32, waiters: u32) -> u32 {
-    unsafe { core::arch::wasm32::memory_atomic_notify((ptr as i32 / 4) as *mut i32, waiters) }
+    unsafe { core::arch::wasm32::memory_atomic_notify(ptr, waiters) }
 }
