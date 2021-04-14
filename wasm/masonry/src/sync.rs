@@ -6,8 +6,8 @@ use wasm_bindgen::prelude::*;
 use crate::data::{Computation, MasonryType};
 
 static LOCK: AtomicI32 = AtomicI32::new(0);
-static INPUT: AtomicU32 = AtomicU32::new(0);
-static OUTPUT: AtomicU32 = AtomicU32::new(0);
+static INPUT: AtomicU32 = AtomicU32::new(0); // computation: *mut Computation
+static OUTPUT: AtomicU32 = AtomicU32::new(0); // container_height: f32
 
 const LOCKED: i32 = 0;
 const UNLOCKED: i32 = 1;
@@ -31,8 +31,8 @@ pub fn compute() {
 // I keep writing "send" because we're not sending anything but rather communicate with shared
 // memory. As soon as the memory at index 0 becomes 1 the web worker thread will stop waiting
 // (see [`create_web_worker`]);
-pub fn send_computation(computation: u32) {
-    INPUT.store(computation, Ordering::Release);
+pub fn send_computation(computation: *mut Computation) {
+    INPUT.store(computation as u32, Ordering::Release);
     LOCK.store(UNLOCKED, Ordering::Release);
     atomic_notify(LOCK.as_mut_ptr(), 1);
 }

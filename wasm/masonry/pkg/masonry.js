@@ -125,6 +125,12 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 /**
+* Function to be called in the web worker thread to compute the new layout.
+*
+* # Safety
+*
+* Do not import this function as it is already imported into the web worker thread (see
+* `create_web_worker`).
 */
 export function compute() {
     wasm.compute();

@@ -1,5 +1,5 @@
+use alloc::boxed::Box;
 use alloc::format;
-use alloc::rc::Rc;
 use alloc::string::String;
 
 use crate::data::{Computation, MasonryConfig, MasonryType};
@@ -12,7 +12,7 @@ use wasm_bindgen::JsCast;
 #[wasm_bindgen]
 pub struct MasonryWorker {
     layout: Layout,
-    worker: Rc<web_sys::Worker>,
+    worker: web_sys::Worker,
     json_output: String,
 }
 
@@ -31,7 +31,7 @@ impl MasonryWorker {
                 MasonryConfig::DEFAULT.thumbnail_size,
                 MasonryConfig::DEFAULT.padding,
             ),
-            worker: Rc::new(create_web_worker(module_path, wasm_path)?),
+            worker: create_web_worker(module_path, wasm_path)?,
             json_output: String::new(),
         })
     }
@@ -46,19 +46,18 @@ impl MasonryWorker {
     // the web worker and compiling the WebAssembly inside of it. We have to wait until the
     // WebAssembly module is compiled, so a `Receiver` instance can be created.
     pub fn init(&mut self) -> Result<js_sys::Promise, JsValue> {
-        let worker = Rc::clone(&self.worker);
         // [u32, WebAssembly.Memory]
         let initial_message = js_sys::Array::of1(&wasm_bindgen::memory());
         Ok(js_sys::Promise::new(
             &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
-                worker.set_onmessage(Some(
+                self.worker.set_onmessage(Some(
                     Closure::once_into_js(move |_event: web_sys::MessageEvent| {
                         let r = resolve.call0(&wasm_bindgen::JsValue::NULL);
                         debug_assert!(r.is_ok(), "calling resolve should never fail");
                     })
                     .unchecked_ref(),
                 ));
-                let r = worker.post_message(&initial_message);
+                let r = self.worker.post_message(&initial_message);
                 debug_assert!(r.is_ok(), "calling Worker.postMessage should never fail");
             },
         ))
@@ -78,16 +77,14 @@ impl MasonryWorker {
         thumbnail_size: u16,
         padding: u16,
     ) -> js_sys::Promise {
-        let computation = Computation::new(
+        let computation = Box::into_raw(Box::new(Computation::new(
             width,
             MasonryConfig::new(kind, thumbnail_size, padding),
             &mut self.layout,
-        )
-        .into_ptr();
-        let worker = Rc::clone(&self.worker);
+        )));
         js_sys::Promise::new(
             &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
-                worker.set_onmessage(Some(
+                self.worker.set_onmessage(Some(
                     Closure::once_into_js(move |_event: web_sys::MessageEvent| {
                         let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &read_result());
                         debug_assert!(r.is_ok(), "calling resolve should never fail");

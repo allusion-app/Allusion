@@ -1,5 +1,3 @@
-use alloc::boxed::Box;
-
 use wasm_bindgen::prelude::*;
 
 use crate::layout::Layout;
@@ -47,9 +45,5 @@ impl Computation {
             config,
             layout_ptr: layout as _,
         }
-    }
-
-    pub fn into_ptr(self) -> u32 {
-        Box::into_raw(Box::new(self)) as u32
     }
 }
