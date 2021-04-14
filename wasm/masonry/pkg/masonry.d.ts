@@ -31,6 +31,16 @@ export class MasonryWorker {
 */
   constructor(num_items: number, module_path: string, wasm_path: string);
 /**
+* Initializes the web worker, so it can handle future computations.
+*
+* # Safety
+*
+* Calling this function more than once on an instance will immediately panic. It is
+* important to `await` the `Promise`, otherwise the first computation will be skipped.
+* @returns {Promise<any>}
+*/
+  init(): Promise<any>;
+/**
 * Computes the transforms of all items and returns the height of the container.
 *
 * # Safety
@@ -102,6 +112,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly __wbg_masonryworker_free: (a: number) => void;
   readonly masonryworker_new: (a: number, b: number, c: number, d: number, e: number) => number;
+  readonly masonryworker_init: (a: number) => number;
   readonly masonryworker_compute: (a: number, b: number, c: number, d: number, e: number) => number;
   readonly masonryworker_resize: (a: number, b: number) => void;
   readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;

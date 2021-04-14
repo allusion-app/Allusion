@@ -4,7 +4,7 @@ use alloc::rc::Rc;
 use alloc::string::String;
 
 use crate::layout::{Layout, Transform};
-use crate::sync::{channel, Sender};
+use crate::sync::{channel, Receiver, Sender};
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -14,6 +14,7 @@ pub struct MasonryWorker {
     layout: Layout,
     worker: Rc<web_sys::Worker>,
     sender: Sender,
+    receiver: Option<Receiver>,
     json_output: String,
 }
 
@@ -53,7 +54,7 @@ impl MasonryWorker {
         wasm_path: &str,
     ) -> Result<MasonryWorker, JsValue> {
         let (sender, receiver) = channel();
-        let manager = MasonryWorker {
+        Ok(MasonryWorker {
             layout: Layout::new(
                 num_items,
                 MASONRY_CONFIG_DEFAULT.thumbnail_size,
@@ -61,16 +62,45 @@ impl MasonryWorker {
             ),
             worker: Rc::new(create_web_worker(module_path, wasm_path)?),
             sender,
+            receiver: Some(receiver),
             json_output: String::new(),
-        };
+        })
+    }
 
-        // [Int32Array, WebAssembly.Memory]
-        let initial_message = js_sys::Array::new();
-        initial_message.push(&JsValue::from(receiver.into_ptr() as u32));
-        initial_message.push(&wasm_bindgen::memory());
-
-        manager.worker.post_message(&initial_message)?;
-        Ok(manager)
+    /// Initializes the web worker, so it can handle future computations.
+    ///
+    /// # Safety
+    ///
+    /// Calling this function more than once on an instance will immediately panic. It is
+    /// important to `await` the `Promise`, otherwise the first computation will be skipped.
+    // This method is necessary because calling [`Sender.send()`] is actually faster than creating
+    // the web worker and compiling the WebAssembly inside of it. We have to wait until the
+    // WebAssembly module is compiled, so a `Receiver` instance can be created.
+    pub fn init(&mut self) -> Result<js_sys::Promise, JsValue> {
+        let worker = Rc::clone(&self.worker);
+        // [u32, WebAssembly.Memory]
+        let initial_message = js_sys::Array::of2(
+            &JsValue::from(
+                self.receiver
+                    .take()
+                    .ok_or_else(|| JsValue::UNDEFINED)?
+                    .into_ptr() as u32,
+            ),
+            &wasm_bindgen::memory(),
+        );
+        Ok(js_sys::Promise::new(
+            &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
+                worker.set_onmessage(Some(
+                    Closure::once_into_js(move |_event: web_sys::MessageEvent| {
+                        let r = resolve.call0(&wasm_bindgen::JsValue::NULL);
+                        debug_assert!(r.is_ok(), "calling resolve should never fail");
+                    })
+                    .unchecked_ref(),
+                ));
+                let r = worker.post_message(&initial_message);
+                debug_assert!(r.is_ok(), "calling Worker.postMessage should never fail");
+            },
+        ))
     }
 
     /// Computes the transforms of all items and returns the height of the container.
@@ -87,29 +117,26 @@ impl MasonryWorker {
         thumbnail_size: u16,
         padding: u16,
     ) -> js_sys::Promise {
+        let computation = Computation::new(
+            width,
+            MasonryConfig::new(kind, thumbnail_size, padding),
+            &mut self.layout,
+        )
+        .into_ptr();
+        let sender = Sender::clone(&self.sender);
         let worker = Rc::clone(&self.worker);
-
-        // We capture the resolve and reject functions from `Promise` constructor in our message
-        // handler. When our event handler is invoked the control flow is resumed again.
-        let mut callback = |resolve: js_sys::Function, _reject: js_sys::Function| {
-            worker.set_onmessage(Some(
-                Closure::once_into_js(move |event: web_sys::MessageEvent| {
-                    let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &event.data());
-                    debug_assert!(r.is_ok(), "calling resolve or reject should never fail");
-                })
-                .unchecked_ref(),
-            ));
-        };
-
-        self.sender.send(
-            Computation::new(
-                width,
-                MasonryConfig::new(kind, thumbnail_size, padding),
-                &mut self.layout,
-            )
-            .into_ptr(),
-        );
-        js_sys::Promise::new(&mut callback)
+        js_sys::Promise::new(
+            &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
+                worker.set_onmessage(Some(
+                    Closure::once_into_js(move |event: web_sys::MessageEvent| {
+                        let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &event.data());
+                        debug_assert!(r.is_ok(), "calling resolve should never fail");
+                    })
+                    .unchecked_ref(),
+                ));
+                sender.send(computation);
+            },
+        )
     }
 
     /// Set the number of items that need to be computed.
@@ -231,6 +258,7 @@ fn create_web_worker(module_path: &str, wasm_path: &str) -> Result<web_sys::Work
         self.onmessage = async (event) => {{\
             await init('{wasm_path}', event.data[1]);\
             const receiver = Receiver.from_ptr(event.data[0]);\
+            self.postMessage(null);\
             while (true) {{\
                 self.postMessage(execute(receiver.receive()));\
             }}\

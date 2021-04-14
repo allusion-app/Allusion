@@ -40,6 +40,7 @@ export class MasonryWorkerAdapter {
 
       // Webpack doesn't like folder paths for URL
       this.worker = new MasonryWorker(numItems, MasonryModule, (MasonryWASM as unknown) as string);
+      await this.worker.init();
     }
 
     this.prevNumImgs = numItems;

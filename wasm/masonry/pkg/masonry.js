@@ -173,7 +173,7 @@ function handleError(f) {
         }
     };
 }
-function __wbg_adapter_53(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_58(arg0, arg1, arg2, arg3) {
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h04b557a7effa519a(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
@@ -215,6 +215,19 @@ export class MasonryWorker {
         var len1 = WASM_VECTOR_LEN;
         var ret = wasm.masonryworker_new(num_items, ptr0, len0, ptr1, len1);
         return MasonryWorker.__wrap(ret);
+    }
+    /**
+    * Initializes the web worker, so it can handle future computations.
+    *
+    * # Safety
+    *
+    * Calling this function more than once on an instance will immediately panic. It is
+    * important to `await` the `Promise`, otherwise the first computation will be skipped.
+    * @returns {Promise<any>}
+    */
+    init() {
+        var ret = wasm.masonryworker_init(this.ptr);
+        return takeObject(ret);
     }
     /**
     * Computes the transforms of all items and returns the height of the container.
@@ -406,8 +419,16 @@ async function init(input, maybe_memory) {
     imports.wbg.__wbg_terminate_0bfb6ab3b09a7c5e = function(arg0) {
         getObject(arg0).terminate();
     };
+    imports.wbg.__wbg_call_cb478d88f3068c91 = handleError(function(arg0, arg1) {
+        var ret = getObject(arg0).call(getObject(arg1));
+        return addHeapObject(ret);
+    });
     imports.wbg.__wbg_new_8528c110a833413f = function() {
         var ret = new Array();
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_of_1988d238bc84b807 = function(arg0, arg1) {
+        var ret = Array.of(getObject(arg0), getObject(arg1));
         return addHeapObject(ret);
     };
     imports.wbg.__wbg_push_17a514d8ab666103 = function(arg0, arg1) {
@@ -437,7 +458,7 @@ async function init(input, maybe_memory) {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_53(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_58(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -458,7 +479,7 @@ async function init(input, maybe_memory) {
         var ret = wasm.__wbindgen_export_0;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper28 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper30 = function(arg0, arg1, arg2) {
         var ret = makeMutClosure(arg0, arg1, 3, __wbg_adapter_18);
         return addHeapObject(ret);
     };
