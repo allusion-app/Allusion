@@ -92,10 +92,10 @@ impl Layout {
         let num_items = self.num_items;
         assert!(self.transforms.len() >= num_items && self.dimensions.len() >= num_items);
         for i in 0..num_items {
-            let transform = self.transforms.get_mut(i).unwrap_or_abort();
+            let transform = &mut self.transforms[i];
             // Correct aspect ratio for very wide/narrow images
             transform.height = transform_height;
-            transform.correct_width(self.dimensions.get(i).unwrap_or_abort());
+            transform.correct_width(&self.dimensions[i]);
             transform.top = top_offset;
             transform.left = cur_row_width;
 
@@ -197,19 +197,20 @@ impl Layout {
         let num_items = self.num_items;
         assert!(self.transforms.len() >= num_items && self.dimensions.len() >= num_items);
         for i in 0..num_items {
-            let transform = self.transforms.get_mut(i).unwrap_or_abort();
+            let transform = &mut self.transforms[i];
             transform.width = item_width;
-            transform.correct_height(self.dimensions.get(i).unwrap_or_abort());
+            transform.correct_height(&self.dimensions[i]);
 
-            let mut column = columns.pop().unwrap_or_abort();
+            let mut column = columns.peek_mut().unwrap_or_abort();
             transform.left = column.index as f32 * col_width;
             transform.top = column.height;
             column.height += transform.height + padding;
-            columns.push(column);
         }
 
+        let binary_heap = columns.into_vec();
+        let leaf_nodes = binary_heap.get(binary_heap.len() / 2..).unwrap_or_abort();
         let mut longest_column_height = 0.0;
-        for Column { height, .. } in columns.into_iter() {
+        for &Column { height, .. } in leaf_nodes.into_iter() {
             if height > longest_column_height {
                 longest_column_height = height;
             }
