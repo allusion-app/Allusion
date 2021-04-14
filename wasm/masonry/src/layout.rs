@@ -26,7 +26,6 @@ pub struct Transform {
 #[derive(Clone, Default)]
 struct Dimension {
     src_width: f32,
-    src_height: f32,
     corrected_aspect_ratio: f32,
 }
 
@@ -299,7 +298,6 @@ impl Transform {
 impl Dimension {
     fn set(&mut self, src_width: f32, src_height: f32) {
         self.src_width = src_width;
-        self.src_height = src_height;
         self.corrected_aspect_ratio = aspect_ratio_correction(src_width, src_height);
     }
 }
