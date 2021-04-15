@@ -20,7 +20,7 @@ const UNLOCKED: i32 = 1;
 /// `create_web_worker`).
 #[wasm_bindgen]
 pub fn compute() {
-    atomic_wait32(LOCK.as_mut_ptr(), LOCKED, -1);
+    atomic_wait32(&LOCK, LOCKED, -1);
     let computation_ptr = INPUT.load(Ordering::Acquire);
     let container_height = execute(computation_ptr);
     OUTPUT.store(container_height, Ordering::Release);
@@ -34,7 +34,7 @@ pub fn compute() {
 pub fn send_computation(computation: *mut Computation) {
     INPUT.store(computation as u32, Ordering::Release);
     LOCK.store(UNLOCKED, Ordering::Release);
-    atomic_notify(LOCK.as_mut_ptr(), 1);
+    atomic_notify(&LOCK, 1);
 }
 
 pub fn read_result() -> JsValue {
@@ -66,10 +66,10 @@ fn execute(computation_ptr: u32) -> u32 {
     }
 }
 
-fn atomic_wait32(ptr: *mut i32, expression: i32, timeout_ns: i64) -> i32 {
-    unsafe { core::arch::wasm32::memory_atomic_wait32(ptr, expression, timeout_ns) }
+fn atomic_wait32(atomic: &AtomicI32, expression: i32, timeout_ns: i64) -> i32 {
+    unsafe { core::arch::wasm32::memory_atomic_wait32(atomic.as_mut_ptr(), expression, timeout_ns) }
 }
 
-fn atomic_notify(ptr: *mut i32, waiters: u32) -> u32 {
-    unsafe { core::arch::wasm32::memory_atomic_notify(ptr, waiters) }
+fn atomic_notify(atomic: &AtomicI32, waiters: u32) -> u32 {
+    unsafe { core::arch::wasm32::memory_atomic_notify(atomic.as_mut_ptr(), waiters) }
 }
