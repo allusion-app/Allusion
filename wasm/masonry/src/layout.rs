@@ -17,10 +17,10 @@ pub struct Layout {
 
 #[derive(Clone, Default)]
 pub struct Transform {
-    pub width: f32,
-    pub height: f32,
-    pub left: f32,
-    pub top: f32,
+    pub width: u16,
+    pub height: u16,
+    pub left: u16,
+    pub top: u32,
 }
 
 #[derive(Clone, Default)]
@@ -81,23 +81,19 @@ impl Layout {
     // Could also have an approximated version for very large lists, and just properly compute for what in and close to the viewport
     // TODO: Look up proper masonry algorithm, e.g. https://euler.stephan-brumme.com/215/
     // TODO: Alternatively, could layout based on aspect ratio blogpost https://medium.com/@danrschlosser/building-the-image-grid-from-google-photos-6a09e193c74a
-    pub fn compute_horizontal(&mut self, container_width: u16) -> f32 {
+    pub fn compute_horizontal(&mut self, container_width: u16) -> u32 {
         if self.is_empty() || self.thumbnail_size == 0 {
-            return 0.0;
+            return 0;
         }
 
-        let container_width = f32::from(container_width);
-        let transform_height = f32::from(self.thumbnail_size);
-        let padding = f32::from(self.padding);
-
-        let mut top_offset = 0.0;
-        let mut cur_row_width = 0.0;
+        let mut top_offset: u32 = 0;
+        let mut cur_row_width = 0;
         let mut first_row_item_index: usize = 0;
 
         for i in 0..self.len() {
             let transform = &mut self.transforms[i];
             // Correct aspect ratio for very wide/narrow images
-            transform.height = transform_height;
+            transform.height = self.thumbnail_size;
             transform.correct_width(&self.dimensions[i]);
             transform.top = top_offset;
             transform.left = cur_row_width;
@@ -111,15 +107,15 @@ impl Layout {
 
                 // Now that the size of this row is definitive: Set the actual size of all row items
                 // The horizontal padding should not be scaled: Should be an absolute value
-                let num_items_in_row = (i - first_row_item_index + 1) as f32;
-                let total_horizontal_padding = (num_items_in_row + 1.0) * padding;
-                let correction_factor =
-                    (container_width - total_horizontal_padding) / new_row_width;
+                let num_items_in_row = (i - first_row_item_index + 1) as u16;
+                let total_horizontal_padding = (num_items_in_row + 1) * self.padding;
+                let correction_factor = f32::from(container_width - total_horizontal_padding)
+                    / f32::from(new_row_width);
 
                 transform.scale(correction_factor);
-                transform.left += (num_items_in_row - 1.0) * padding;
+                transform.left += (num_items_in_row - 1) * self.padding;
 
-                let mut left = 0.0;
+                let mut left = 0;
                 for prev_item in self
                     .transforms
                     .get_mut(first_row_item_index..i)
@@ -127,40 +123,38 @@ impl Layout {
                 {
                     prev_item.scale(correction_factor);
                     prev_item.left += left;
-                    left += padding;
+                    left += self.padding;
                 }
 
                 // Start a new row
-                cur_row_width = 0.0;
+                cur_row_width = 0;
                 first_row_item_index = i + 1;
-                top_offset += padding + (transform_height * correction_factor).round();
+                let corrected_height =
+                    (f32::from(self.thumbnail_size) * correction_factor).round() as u16;
+                top_offset += u32::from(self.padding + corrected_height);
             } else {
                 // Otherwise, just add its width to the current row width and continue on!
                 cur_row_width = new_row_width;
             }
         }
         // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
-        if cur_row_width.trunc() == 0.0 {
+        if cur_row_width == 0 {
             top_offset
         } else {
             match self.transforms.get(self.len() - 1) {
-                Some(last_item) => (top_offset + last_item.height),
-                None => 0.0,
+                Some(last_item) => top_offset + u32::from(last_item.height),
+                None => 0,
             }
         }
     }
 
     // Main idea: Initialize with N columns of identical widths
     // loop over images, put them in the column that has the least height filled
-    pub fn compute_vertical(&mut self, container_width: u16) -> f32 {
-        #[derive(PartialEq)]
+    pub fn compute_vertical(&mut self, container_width: u16) -> u32 {
+        #[derive(PartialEq, Eq)]
         struct Column {
             index: u16,
-            height: f32,
-        }
-
-        impl Eq for Column {
-            fn assert_receiver_is_total_eq(&self) {}
+            height: u32,
         }
 
         impl PartialOrd for Column {
@@ -173,15 +167,15 @@ impl Layout {
         // Explicitly implement the trait so the queue becomes a min-heap instead of a max-heap.
         impl Ord for Column {
             fn cmp(&self, other: &Self) -> Ordering {
-                match other.height.partial_cmp(&self.height) {
-                    Some(Ordering::Equal) | None => other.index.cmp(&self.index),
-                    Some(ordering) => ordering,
-                }
+                other
+                    .height
+                    .cmp(&self.height)
+                    .then_with(|| other.index.cmp(&self.index))
             }
         }
 
         if self.is_empty() || self.thumbnail_size == 0 {
-            return 0.0;
+            return 0;
         }
 
         let (col_width, mut columns) = {
@@ -190,12 +184,11 @@ impl Layout {
             let col_width = round_div(container_width, n_columns);
             let mut columns = Vec::with_capacity(usize::from(n_columns));
             for index in 0..n_columns {
-                columns.push(Column { index, height: 0.0 });
+                columns.push(Column { index, height: 0 });
             }
-            (f32::from(col_width), BinaryHeap::from(columns))
+            (col_width, BinaryHeap::from(columns))
         };
-        let padding = f32::from(self.padding);
-        let item_width = col_width - padding;
+        let item_width = col_width - self.padding;
 
         for i in 0..self.len() {
             let transform = &mut self.transforms[i];
@@ -203,14 +196,14 @@ impl Layout {
             transform.correct_height(&self.dimensions[i]);
 
             let mut column = columns.peek_mut().unwrap_or_abort();
-            transform.left = f32::from(column.index) * col_width;
+            transform.left = column.index * col_width;
             transform.top = column.height;
-            column.height += transform.height + padding;
+            column.height += u32::from(transform.height + self.padding);
         }
 
         let binary_heap = columns.into_vec();
         let (_, leaf_nodes) = binary_heap.split_at(binary_heap.len() / 2);
-        let mut longest_column_height = 0.0;
+        let mut longest_column_height = 0;
         for &Column { height, .. } in leaf_nodes {
             if height > longest_column_height {
                 longest_column_height = height;
@@ -220,9 +213,9 @@ impl Layout {
     }
 
     // Simple Grid layout, replacement for the react-window dependency
-    pub fn compute_grid(&mut self, container_width: u16) -> f32 {
+    pub fn compute_grid(&mut self, container_width: u16) -> u32 {
         if self.is_empty() || self.thumbnail_size == 0 {
-            return 0.0;
+            return 0;
         }
 
         // Main idea: Put items in a grid.
@@ -232,9 +225,8 @@ impl Layout {
             let column_width = round_div(container_width, n_columns);
             (usize::from(n_columns), column_width)
         };
-        let item_size = f32::from(column_width - self.padding);
-        let column_width = f32::from(column_width);
-        let row_height = column_width;
+        let item_size = column_width - self.padding;
+        let row_height = u32::from(column_width);
 
         let (n_rows, rem, rows, rest) = {
             let len = self.len();
@@ -244,12 +236,12 @@ impl Layout {
             (n_rows, rem, rows, rest)
         };
 
-        let mut top_offset = 0.0;
+        let mut top_offset = 0;
         let mut start = 0;
         let mut end = n_columns;
         let mut left;
         for _ in 0..n_rows {
-            left = 0.0;
+            left = 0;
             for transform in rows.get_mut(start..end).unwrap_or_abort() {
                 transform.width = item_size;
                 transform.height = item_size;
@@ -262,7 +254,7 @@ impl Layout {
             end += n_columns;
         }
 
-        left = 0.0;
+        left = 0;
         for transform in rest.iter_mut() {
             transform.width = item_size;
             transform.height = item_size;
@@ -293,19 +285,19 @@ impl Layout {
 
 impl Transform {
     fn scale(&mut self, factor: f32) {
-        self.left = (self.left * factor).round();
-        self.width = (self.width * factor).round();
-        self.height = (self.height * factor).round();
+        self.left = (f32::from(self.left) * factor).round() as u16;
+        self.width = (f32::from(self.width) * factor).round() as u16;
+        self.height = (f32::from(self.height) * factor).round() as u16;
     }
 
     fn correct_height(&mut self, dimension: &Dimension) {
-        let ratio = self.width / dimension.src_width;
-        self.height = (ratio * dimension.corrected_aspect_ratio).round();
+        let ratio = f32::from(self.width) / dimension.src_width;
+        self.height = (ratio * dimension.corrected_aspect_ratio).round() as u16;
     }
 
     fn correct_width(&mut self, dimension: &Dimension) {
-        let ratio = self.height / dimension.corrected_aspect_ratio;
-        self.width = (ratio * dimension.src_width).round();
+        let ratio = f32::from(self.height) / dimension.corrected_aspect_ratio;
+        self.width = (ratio * dimension.src_width).round() as u16;
     }
 }
 
@@ -333,6 +325,5 @@ fn aspect_ratio_correction(w: f32, h: f32) -> f32 {
 }
 
 fn round_div(numerator: u16, denominator: u16) -> u16 {
-    assert!(denominator > 0);
-    (numerator + (denominator / 2)) / denominator
+    (numerator.saturating_add(denominator / 2)) / denominator
 }

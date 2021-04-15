@@ -7,7 +7,7 @@ use crate::data::{Computation, MasonryType};
 
 static LOCK: AtomicI32 = AtomicI32::new(0);
 static INPUT: AtomicU32 = AtomicU32::new(0); // computation: *mut Computation
-static OUTPUT: AtomicU32 = AtomicU32::new(0); // container_height: f32
+static OUTPUT: AtomicU32 = AtomicU32::new(0); // container_height: u32
 
 const LOCKED: i32 = 0;
 const UNLOCKED: i32 = 1;
@@ -23,7 +23,7 @@ pub fn compute() {
     atomic_wait32(LOCK.as_mut_ptr(), LOCKED, -1);
     let computation_ptr = INPUT.load(Ordering::Acquire);
     let container_height = execute(computation_ptr);
-    OUTPUT.store(container_height.to_bits(), Ordering::Release);
+    OUTPUT.store(container_height, Ordering::Release);
     LOCK.store(LOCKED, Ordering::Release);
 }
 
@@ -38,11 +38,10 @@ pub fn send_computation(computation: *mut Computation) {
 }
 
 pub fn read_result() -> JsValue {
-    let container_height = f32::from_bits(OUTPUT.load(Ordering::Acquire));
-    JsValue::from(container_height)
+    JsValue::from(OUTPUT.load(Ordering::Acquire))
 }
 
-fn execute(computation_ptr: u32) -> f32 {
+fn execute(computation_ptr: u32) -> u32 {
     let (width, config, layout) = {
         // SAFETY: The send [`Computation`] is send from the main thread that created that this web
         // worker. On creation the same memory was used.
@@ -54,7 +53,7 @@ fn execute(computation_ptr: u32) -> f32 {
         let layout = unsafe { computation.layout_ptr.as_mut() };
         match layout {
             Some(layout) => (computation.width, computation.config, layout),
-            None => return 0.0,
+            None => return 0,
         }
     };
     layout.set_thumbnail_size(config.thumbnail_size);
