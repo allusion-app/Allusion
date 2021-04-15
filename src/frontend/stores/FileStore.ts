@@ -1,20 +1,16 @@
-import { action, observable, computed, observe, runInAction, makeObservable } from 'mobx';
 import fse from 'fs-extra';
-
+import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
-
-import { ID, generateId } from 'src/entities/ID';
-import { ClientFile, IFile, getMetaData } from 'src/entities/File';
-import { ClientLocation } from 'src/entities/Location';
-import { SearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
-
-import RootStore from './RootStore';
-
-import { getThumbnailPath, debounce, needsThumbnail, promiseAllLimit } from '../utils';
 import ExifIO from 'src/backend/ExifIO';
+import { ClientFile, IFile } from 'src/entities/File';
+import { ID } from 'src/entities/ID';
+import { ClientLocation } from 'src/entities/Location';
+import { ClientTagSearchCriteria, SearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
+import { debounce, getThumbnailPath, needsThumbnail, promiseAllLimit } from '../utils';
+import RootStore from './RootStore';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
 
@@ -231,28 +227,6 @@ class FileStore {
   @action.bound setContentUntagged() {
     this.content = Content.Untagged;
     if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
-  }
-
-  @action.bound async importExternalFile(path: string, dateAdded: Date) {
-    const loc = this.rootStore.locationStore.locationList[0]; // TODO: User should pick location
-    const file = new ClientFile(this, {
-      id: generateId(),
-      locationId: loc.id,
-      absolutePath: path,
-      relativePath: path.replace(loc.path, ''),
-      dateAdded,
-      dateModified: new Date(),
-      tags: [],
-      ...(await getMetaData(path)),
-    });
-    // The function caller is responsible for handling errors.
-    await this.backend.createFile(file.serialize());
-    runInAction(() => {
-      this.index.set(file.id, this.fileList.length);
-      this.fileList.push(file);
-    });
-    this.incrementNumUntaggedFiles();
-    return file;
   }
 
   /**

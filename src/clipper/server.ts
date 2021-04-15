@@ -155,7 +155,7 @@ class ClipServer {
 
   async storeAndImportImage(directory: string, filename: string, imgBase64: string) {
     const downloadPath = await ClipServer.createDownloadPath(directory, filename);
-    console.log(downloadPath);
+    console.log('Downloading to', downloadPath);
 
     await this.storeImage(directory, downloadPath, imgBase64);
 
@@ -188,8 +188,8 @@ class ClipServer {
                 console.log('Received file', filename);
 
                 await this.storeAndImportImage(directory, filename, imgBase64);
-
-                res.end({ message: 'OK!' });
+                res.write(JSON.stringify({ message: 'OK!' }));
+                res.end();
               } else if (req.url && req.url.endsWith('/set-tags')) {
                 const { tagNames, filename } = JSON.parse(body);
 
@@ -206,11 +206,15 @@ class ClipServer {
                 if (!isUpdated) {
                   await this.replaceLastQueueItem(item);
                 }
-                res.end({ message: 'OK!' });
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.write(JSON.stringify({ message: 'OK!' }));
+                res.end();
               }
             } catch (e) {
               console.error('An error occurred while decoding clip server request', e);
-              res.end(JSON.stringify(e));
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.write(JSON.stringify({ message: e.toString() }));
+              res.end();
             }
           });
         } else if (req.method === 'GET') {

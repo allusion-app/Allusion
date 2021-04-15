@@ -82,12 +82,6 @@ export async function storeDroppedImage(e: React.DragEvent, directory: string) {
       if (!rejected) {
         clearTimeout(timeout);
         console.log('Imported file', reply.downloadPath);
-
-        // Add tag if needed
-        // if (tag !== undefined) {
-        //   const file = await fileStore.importExternalFile(reply.downloadPath, new Date());
-        //   file.addTag(tag);
-        // }
       }
     }
   }

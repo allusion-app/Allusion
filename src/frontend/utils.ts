@@ -77,6 +77,24 @@ export const timeout = <T>(timeMS: number): Promise<T> =>
 ///////////////////////////////
 //////// Promise utils ////////
 ///////////////////////////////
+
+/**
+ * Performs a single promise, but retries when it fails for a specified amount of time.
+ * Timeout is doubled after every failed retry
+ **/
+export async function promiseRetry<T>(
+  fn: () => Promise<T>,
+  retries = 5,
+  timeout = 1000,
+  err?: any,
+): Promise<T> {
+  await new Promise((resolve) => setTimeout(resolve, timeout));
+
+  return !retries
+    ? Promise.reject(err)
+    : fn().catch((error) => promiseRetry(fn, retries - 1, timeout * 2, error));
+}
+
 /**
  * Like Promise.all, but runs batches of N promises in sequence
  * @param batchSize The amount of promises in a batch

@@ -25,6 +25,7 @@ let clipServer: ClipServer | null;
 
 const isMac = process.platform === 'darwin';
 
+/** Returns whether main window is open - so whether files can be immediately imported */
 const importExternalImage = async (item: IImportItem) => {
   if (mainWindow) {
     MainMessenger.sendImportExternalImage(mainWindow.webContents, { item });
