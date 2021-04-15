@@ -2,7 +2,7 @@ import fse from 'fs-extra';
 
 import { getThumbnailPath, needsThumbnail } from '../utils';
 import { thumbnailType, thumbnailMaxSize } from 'src/config';
-import { IThumbnailMessage } from '../ThumbnailGeneration';
+import { IThumbnailMessage, IThumbnailMessageResponse } from '../ThumbnailGeneration';
 
 const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | null> => {
   const inputBuffer = await fse.readFile(filePath);
@@ -81,7 +81,11 @@ async function processMessage(data: IThumbnailMessage) {
     if (curParallelThumbnails < MAX_PARALLEL_THUMBNAILS) {
       curParallelThumbnails++;
       const thumbnailPath = await generateAndStoreThumbnail(filePath, thumbnailDirectory);
-      ctx.postMessage({ fileId, thumbnailPath: thumbnailPath || filePath });
+      const response: IThumbnailMessageResponse = {
+        fileId,
+        thumbnailPath: thumbnailPath || filePath,
+      };
+      ctx.postMessage(response);
       curParallelThumbnails--;
     } else {
       queue.push(data);

@@ -552,13 +552,14 @@ class FileStore {
     // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
     runInAction(() => {
       this.fileList.replace(newClientFiles);
+      this.cleanFileSelection();
+      this.updateFileListState(); // update index & untagged image counter
       this.fileListLastModified = new Date();
     });
     const N = 50;
     return promiseAllLimit(existenceCheckPromises, N)
       .then(() => {
-        this.updateFileListState();
-        this.cleanFileSelection();
+        this.updateFileListState(); // update missing image counter
       })
       .catch((e) => console.error('An error occured during existence checking!', e));
   }
