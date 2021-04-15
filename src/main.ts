@@ -1,22 +1,22 @@
 import {
   app,
   BrowserWindow,
+  BrowserWindowConstructorOptions,
+  dialog,
   Menu,
   nativeImage,
   nativeTheme,
   screen,
   Tray,
-  dialog,
-  BrowserWindowConstructorOptions,
 } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import AppIcon from '../resources/logo/allusion-logomark-fc-512x512.png';
 import TrayIcon from '../resources/logo/allusion-logomark-fc-256x256.png';
+import AppIcon from '../resources/logo/allusion-logomark-fc-512x512.png';
 import TrayIconMac from '../resources/logo/allusion-logomark-white@2x.png';
-import { isDev } from './config';
-import { MainMessenger, WindowSystemButtonPress } from './Messaging';
-import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import ClipServer, { IImportItem } from './clipper/server';
+import { isDev } from './config';
+import { ITag, ROOT_TAG_ID } from './entities/Tag';
+import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
@@ -474,3 +474,13 @@ MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
 });
 
 MainMessenger.onIsMaximized(() => mainWindow?.isMaximized() ?? false);
+
+MainMessenger.onGetVersion(() => {
+  if (isDev()) {
+    // Weird quirk: it returns the Electron version in dev mode
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return require('../package.json').version;
+  } else {
+    return app.getVersion();
+  }
+});

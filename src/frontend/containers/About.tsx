@@ -5,6 +5,7 @@ import StoreContext from '../contexts/StoreContext';
 
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
 import { shell } from 'electron';
+import { RendererMessenger } from 'src/Messaging';
 
 const clickLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.preventDefault();
@@ -22,11 +23,15 @@ const About = observer(() => {
       <div id="about" className="light">
         <div className="centered">
           <img src={Logo_About} alt="Logo" />
-          <br />
-          This application was made by a small team of individuals who gathered due to common
-          interest in art, design and software.
-          <br />
-          It&apos;s completely <b>free and open source</b>! Find out more:
+          <small>
+            Version <strong>{RendererMessenger.getVersion()}</strong>
+          </small>
+          <p>
+            This application was made by a small team of individuals who gathered due to common
+            interest in art, design and software.
+            <br />
+            It&apos;s completely <b>free and open source</b>! Find out more:
+          </p>
           <h3>
             <a href="https://allusion-app.github.io/" onClick={clickLink}>
               allusion-app.github.io
@@ -47,6 +52,7 @@ const About = observer(() => {
             <li>👥 Learn about contributing</li>
           </ul>
           <br />
+          {/* TODO: Licensing info here? */}
         </div>
       </div>
     </PopupWindow>

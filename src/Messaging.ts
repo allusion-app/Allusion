@@ -114,6 +114,8 @@ export interface IRunInBackgroundMessage {
   isRunInBackground: boolean;
 }
 
+export const GET_VERSION = 'GET_VERSION';
+
 // Static methods for type safe IPC messages between renderer and main process
 export class RendererMessenger {
   static initialized = () => ipcRenderer.send(INITIALIZED);
@@ -195,6 +197,8 @@ export class RendererMessenger {
     ipcRenderer.send(WINDOW_SYSTEM_BUTTON_PRESS, button);
 
   static isMaximized = (): boolean => ipcRenderer.sendSync(IS_MAXIMIZED);
+
+  static getVersion = (): string => ipcRenderer.sendSync(GET_VERSION);
 }
 
 export class MainMessenger {
@@ -286,4 +290,7 @@ export class MainMessenger {
 
   static onIsMaximized = (cb: () => boolean) =>
     ipcMain.on(IS_MAXIMIZED, (e) => (e.returnValue = cb()));
+
+  static onGetVersion = (cb: () => string) =>
+    ipcMain.on(GET_VERSION, (e) => (e.returnValue = cb()));
 }
