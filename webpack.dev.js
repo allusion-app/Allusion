@@ -15,7 +15,9 @@ let mainConfig = {
   output: {
     filename: 'main.bundle.js',
     path: __dirname + '/build',
-    clean: true
+    clean: true,
+    // keep filename ending the same: certain filename patterns required for certain Electron icon uses
+    assetModuleFilename: 'assets/[hash]_[name][ext][query]',
   },
   node: {
     __dirname: false,

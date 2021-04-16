@@ -184,7 +184,7 @@ export const MasonryCell = observer(
           (file.tags.size == 0 || !mounted ? (
             <span className="thumbnail-tags" />
           ) : (
-            <Tags file={file} />
+            <Tags file={file} submitCommand={submitCommand} />
           ))}
       </div>
     );
@@ -377,13 +377,32 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
   </div>
 );
 
-const Tags = observer(({ file }: { file: ClientFile }) => (
-  <span className="thumbnail-tags">
-    {Array.from(file.tags, (tag) => (
-      <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
-    ))}
-  </span>
-));
+const Tags = observer(
+  ({
+    file,
+    submitCommand,
+  }: {
+    file: ClientFile;
+    submitCommand?: (command: GalleryCommand) => void;
+  }) => {
+    const eventHandlers = useMemo(
+      () => submitCommand && new GalleryEventHandler(file, submitCommand).handlers,
+      [file, submitCommand],
+    );
+    return (
+      <span
+        className="thumbnail-tags"
+        onClick={eventHandlers?.onClick}
+        onContextMenu={eventHandlers?.onContextMenu}
+        onDoubleClick={eventHandlers?.onDoubleClick}
+      >
+        {Array.from(file.tags, (tag) => (
+          <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
+        ))}
+      </span>
+    );
+  },
+);
 
 export const enum GallerySelector {
   Click = 'click',
