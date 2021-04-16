@@ -153,8 +153,8 @@ impl Layout {
                 // Now that the size of this row is definitive: Set the actual size of all row items
                 // The horizontal padding should not be scaled: Should be an absolute value
                 let num_items_in_row = (i - first_row_item_index + 1) as u16;
-                let tot_hor_padding = (num_items_in_row + 1) * self.padding;
-                let correction_factor = f32::from(container_width - tot_hor_padding) / f32::from(new_row_width);
+                let total_horizontal_padding = (num_items_in_row) * self.padding;
+                let correction_factor = f32::from(container_width - total_horizontal_padding) / f32::from(new_row_width);
 
                 item.scale(correction_factor);
                 item.left += (num_items_in_row - 1) * self.padding;
@@ -169,15 +169,22 @@ impl Layout {
                 // Start a new row
                 cur_row_width = 0;
                 first_row_item_index = i + 1;
-                top_offset += u32::from(self.padding)
-                    + (f32::from(item_height) * correction_factor).round() as u32;
+                top_offset += u32::from(self.padding) + (f32::from(item_height) * correction_factor).round() as u32;
             } else {
                 // Otherwise, just add its width to the current row width and continue on!
                 cur_row_width = new_row_width;
             }
         }
-        // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
+        // Finally: Return the height of the container
+        // If current width is 0, a new row was just started: no need to add last item's height; already done in the loop
         if cur_row_width != 0 {
+            // Add horizontal padding to the remaining items
+            let mut col_index = 0;
+            for prev_item in self.items[first_row_item_index..self.num_items].iter_mut() {
+                prev_item.left += col_index * self.padding;
+                col_index += 1;
+            }
+
             match self.items.get(self.num_items - 1) {
                 Some(last_item) => top_offset + last_item.height as u32,
                 None => 0,
