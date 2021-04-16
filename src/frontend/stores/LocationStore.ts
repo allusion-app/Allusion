@@ -67,7 +67,7 @@ class LocationStore {
           },
           'retry-init',
         );
-      }, 3000);
+      }, 5000);
 
       console.debug('Location init...');
       const filePaths = await location.init();

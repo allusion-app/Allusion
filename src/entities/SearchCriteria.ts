@@ -137,9 +137,11 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     makeObservable(this);
   }
 
+  /**
+   * A flag for when the tag may be interpreted as a real tag, but contains text created by the application.
+   * (this makes is so that "Untagged images" can be italicized)
+   **/
   isSystemTag = (): boolean => {
-    // A flag for when the tag may be interpreted as a real tag, but contains text created by the application.
-    // (this makes is so that "Untagged images" can be italicized)
     return !this.value.length && !this.operator.toLowerCase().includes('not');
   };
 

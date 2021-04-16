@@ -132,6 +132,7 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
               key={`${i}-${c.toString()}`}
               text={c.toString()}
               onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
+              // Italicize system tags (for now only "Untagged images")
               className={
                 c instanceof ClientTagSearchCriteria && c.isSystemTag() ? 'italic' : undefined
               }
