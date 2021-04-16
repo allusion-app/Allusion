@@ -1,21 +1,21 @@
+import { shell } from 'electron';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect, useState } from 'react';
+import { chromeExtensionUrl } from 'src/config';
+import UiStore from 'src/frontend/stores/UiStore';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
 import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
+import PopupWindow from '../../components/PopupWindow';
 import StoreContext from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
-import { getThumbnailPath, isDirEmpty, needsThumbnail } from '../../utils';
+import { getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
-import PopupWindow from '../../components/PopupWindow';
 import Tabs, { TabItem } from './Tabs';
-import UiStore from 'src/frontend/stores/UiStore';
-import { shell } from 'electron';
-import { chromeExtensionUrl } from 'src/config';
-import { runInAction } from 'mobx';
 
 const Appearance = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -125,7 +125,12 @@ const ImportExport = observer(() => {
       </Callout>
 
       <label id="hierarchical-separator">
-        Hierarchical separator
+        <span>
+          Hierarchical separator, e.g.{' '}
+          <pre style={{ display: 'inline' }}>
+            {['Food', 'Fruit', 'Apple'].join(fileStore.exifTool.hierarchicalSeparator)}
+          </pre>
+        </span>
         <select
           value={fileStore.exifTool.hierarchicalSeparator}
           onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}

@@ -60,8 +60,8 @@ const ep = new exiftool.ExiftoolProcess(exiftoolPath);
 class ExifIO {
   @observable hierarchicalSeparator: string;
 
-  constructor(hierarchicalSeparator = ' | ') {
-    this.hierarchicalSeparator = hierarchicalSeparator;
+  constructor() {
+    this.hierarchicalSeparator = localStorage.getItem('hierarchical-separator') || '|';
 
     makeObservable(this);
   }
@@ -87,6 +87,7 @@ class ExifIO {
 
   @action.bound setHierarchicalSeparator(val: string): void {
     this.hierarchicalSeparator = val;
+    localStorage.setItem('hierarchical-separator', val);
   }
 
   // ------------------
