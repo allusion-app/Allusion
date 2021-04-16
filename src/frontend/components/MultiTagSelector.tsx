@@ -32,6 +32,7 @@ interface IMultiTagSelector {
   defaultPrevented?: boolean;
   // Whether to automatically open the fly-out on focus. Otherwise, opens when pressing any key
   defaultOpen?: boolean;
+  placeholder?: string;
 }
 
 const MultiTagSelector = observer((props: IMultiTagSelector) => {
@@ -47,6 +48,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     extraIconButtons,
     autoFocus,
     defaultOpen = true,
+    placeholder,
   } = props;
   const listboxID = useRef(generateId());
   const inputRef = useRef<HTMLInputElement>(null);
@@ -162,6 +164,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
                 autoFocus={autoFocus}
                 ref={inputRef}
                 onFocus={defaultOpen ? () => setIsOpen(true) : undefined}
+                placeholder={placeholder}
               />
             </div>
             {extraIconButtons}

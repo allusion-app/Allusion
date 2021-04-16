@@ -171,6 +171,7 @@ const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
       onSelect={handleSelect}
       onDeselect={handleDeselect}
       onClear={handleDeselect}
+      placeholder={selection ? undefined : 'Untagged'}
     />
   );
 };

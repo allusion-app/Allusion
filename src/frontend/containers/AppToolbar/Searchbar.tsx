@@ -132,6 +132,9 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
               key={`${i}-${c.toString()}`}
               text={c.toString()}
               onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
+              className={
+                c instanceof ClientTagSearchCriteria && c.isSystemTag() ? 'italic' : undefined
+              }
             />
           ))}
         </div>
@@ -147,7 +150,6 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
               fileStore.refetch();
             }}
             large
-            disabled={uiStore.searchCriteriaList.length === 0}
           />
         ) : (
           <> </>
