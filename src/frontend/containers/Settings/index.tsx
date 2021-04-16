@@ -7,11 +7,15 @@ import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
 import StoreContext from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
-import { getThumbnailPath, isDirEmpty } from '../../utils';
+import { getThumbnailPath, isDirEmpty, needsThumbnail } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import PopupWindow from '../../components/PopupWindow';
 import Tabs, { TabItem } from './Tabs';
+import UiStore from 'src/frontend/stores/UiStore';
+import { shell } from 'electron';
+import { chromeExtensionUrl } from 'src/config';
+import { runInAction } from 'mobx';
 
 const Appearance = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -233,7 +237,11 @@ const BackgroundProcesses = observer(() => {
       <fieldset>
         <legend>Browser extension download directory (must be in a Location)</legend>
         <div className="input-file">
-          <span className="input input-file-value">{uiStore.importDirectory || 'Not set'}</span>
+          <input
+            readOnly
+            className="input input-file-value"
+            value={uiStore.importDirectory || 'Not set'}
+          />
           <Button
             styling="minimal"
             icon={IconSet.FOLDER_CLOSE}
@@ -244,6 +252,12 @@ const BackgroundProcesses = observer(() => {
       </fieldset>
 
       {/* TODO: Link to chrome extension page when it's up */}
+      <Button
+        onClick={() => shell.openExternal(chromeExtensionUrl)}
+        styling="outlined"
+        icon={IconSet.CHROME_DEVTOOLS}
+        text="Get the extension from the Chrome Web Store"
+      />
     </>
   );
 });
@@ -262,6 +276,27 @@ const Shortcuts = () => (
 const Advanced = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
   const thumbnailDirectory = uiStore.thumbnailDirectory;
+
+  const [defaultThumbnailDir, setDefaultThumbnailDir] = useState('');
+  useEffect(() => void UiStore.getDefaultThumbnailDirectory().then(setDefaultThumbnailDir), []);
+
+  const changeThumbnailDirectory = async (newDir: string) => {
+    const oldDir = thumbnailDirectory;
+
+    // Move thumbnail files
+    await moveThumbnailDir(oldDir, newDir);
+    uiStore.setThumbnailDirectory(newDir);
+
+    // Reset thumbnail paths for those that already have one
+    runInAction(() => {
+      for (const f of fileStore.fileList) {
+        if (f.thumbnailPath && f.thumbnailPath !== f.absolutePath) {
+          f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
+        }
+      }
+    });
+  };
+
   const browseThumbnailDirectory = async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
@@ -274,22 +309,16 @@ const Advanced = observer(() => {
     const newDir = dirs[0];
 
     if (!(await isDirEmpty(newDir))) {
-      alert('Please choose an empty directory. Allusion may delete any existing files.');
-      return;
-    }
-
-    const oldDir = thumbnailDirectory;
-
-    // Move thumbnail files
-    await moveThumbnailDir(oldDir, newDir);
-    uiStore.setThumbnailDirectory(newDir);
-
-    // Reset thumbnail paths for those that already have one
-    fileStore.fileList.forEach((f) => {
-      if (f.thumbnailPath) {
-        f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
+      if (
+        window.confirm(
+          `The directory you picked is not empty. Allusion might delete any files inside of it. Do you still wish to pick this directory?\n\nYou picked: ${newDir}`,
+        )
+      ) {
+        changeThumbnailDirectory(newDir);
       }
-    });
+    } else {
+      changeThumbnailDirectory(newDir);
+    }
   };
   return (
     <>
@@ -300,13 +329,20 @@ const Advanced = observer(() => {
       <fieldset>
         <legend>Thumbnail Directory</legend>
         <div className="input-file">
-          <span className="input input-file-value">{thumbnailDirectory}</span>
+          <input readOnly className="input input-file-value" value={thumbnailDirectory} />
           <Button
             styling="minimal"
             icon={IconSet.FOLDER_CLOSE}
             text="Browse"
             onClick={browseThumbnailDirectory}
           />
+          {defaultThumbnailDir && defaultThumbnailDir !== uiStore.thumbnailDirectory && (
+            <Button
+              icon={IconSet.RELOAD}
+              text="Reset"
+              onClick={() => changeThumbnailDirectory(defaultThumbnailDir)}
+            />
+          )}
         </div>
       </fieldset>
 

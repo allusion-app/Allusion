@@ -131,7 +131,7 @@ class UiStore {
   @observable inspectorWidth: number = UiStore.MIN_INSPECTOR_WIDTH;
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
-  /** Index of the first item in the viewport */
+  /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
   // TODO: Might be better to store the ID to the file. I believe we were storing the index for performance, but we have instant conversion between index/ID now
   @observable firstItem: number = 0;
   @observable thumbnailSize: ThumbnailSize = 'medium';
@@ -733,11 +733,16 @@ class UiStore {
 
     // Set default thumbnail directory in case none was specified
     if (this.thumbnailDirectory.length === 0) {
-      RendererMessenger.getPath('userData').then((userDataPath) => {
-        this.setThumbnailDirectory(path.join(userDataPath, 'thumbnails'));
+      UiStore.getDefaultThumbnailDirectory().then((defaultThumbDir) => {
+        this.setThumbnailDirectory(defaultThumbDir);
         fse.ensureDirSync(this.thumbnailDirectory);
       });
     }
+  }
+
+  static async getDefaultThumbnailDirectory() {
+    const userDataPath = await RendererMessenger.getPath('temp');
+    return path.join(userDataPath, 'Allusion', 'thumbnails');
   }
 
   @action storePersistentPreferences() {

@@ -46,6 +46,7 @@ const exifFields: Record<string, { label: string; format?: (val: string) => Reac
       );
     },
   },
+  ImageDescription: { label: 'Description' },
   Copyright: { label: 'Copyright' },
   Make: { label: 'Camera Manufacturer' },
   Model: { label: 'Camera Model' },
