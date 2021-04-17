@@ -201,6 +201,9 @@
       .thumbnail-broken {
         overflow: hidden;
       }
+      .image-error {
+        display: none;
+      }
     }
 
     &[aria-selected='true'] {
