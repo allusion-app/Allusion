@@ -76,6 +76,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
             onDeselect(t);
           }
           inputRef.current?.focus();
+          setQuery('');
         },
       };
     });
