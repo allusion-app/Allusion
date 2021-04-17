@@ -11,7 +11,7 @@
     "lint": "eslint src/**/*{ts,tsx} -f codeframe",
     "test": "jest",
     "package": "yarn build && electron-builder",
-    "logo": "ncp ./resources/logo/allusion-logomark-fc.icns ./build/icon.icns && ncp ./resources/logo/allusion-logomark-fc-256.ico ./build/icon.ico",
+    "logo": "ncp ./resources/logo/icns/allusion-logomark-fc.icns ./build/icon.icns && ncp ./resources/logo/ico/allusion-logomark-fc-256x256.ico ./build/icon.ico",
     "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",

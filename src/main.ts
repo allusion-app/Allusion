@@ -10,9 +10,9 @@ import {
   Tray,
 } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import TrayIcon from '../resources/logo/allusion-logomark-fc-256x256.png';
-import AppIcon from '../resources/logo/allusion-logomark-fc-512x512.png';
-import TrayIconMac from '../resources/logo/allusionTemplate@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
+import TrayIcon from '../resources/logo/png/full-color/allusion-logomark-fc-256x256.png';
+import AppIcon from '../resources/logo/png/full-color/allusion-logomark-fc-512x512.png';
+import TrayIconMac from '../resources/logo/png/black/allusionTemplate-black-@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
 import ClipServer, { IImportItem } from './clipper/server';
 import { isDev } from './config';
 import { ITag, ROOT_TAG_ID } from './entities/Tag';
