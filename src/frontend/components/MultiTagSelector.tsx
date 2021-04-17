@@ -171,7 +171,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
             {extraIconButtons}
             <IconButton
               icon={IconSet.CLOSE}
-              text="Close"
+              text="Clear"
               onClick={() => {
                 setQuery('');
                 onClear();

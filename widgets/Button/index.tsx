@@ -1,5 +1,6 @@
 import './button.scss';
-import React from 'react';
+import React, { useRef } from 'react';
+import { Tooltip } from 'widgets/popovers';
 
 interface IButton {
   text: React.ReactText;
@@ -52,12 +53,15 @@ interface IIconButton {
 }
 
 const IconButton = ({ text, icon, onClick, disabled, large }: IIconButton) => {
-  return (
+  const portalTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const iconButton = (
     <button
       className={`btn btn-icon${large ? ' btn-icon-large' : ''}`}
       onClick={onClick}
       disabled={disabled}
       type="button"
+      ref={portalTriggerRef}
     >
       <span className="btn-content-icon" aria-hidden="true">
         {icon}
@@ -65,6 +69,12 @@ const IconButton = ({ text, icon, onClick, disabled, large }: IIconButton) => {
       <span className="btn-content-text hidden">{text}</span>
     </button>
   );
+
+  if (text) {
+    return <Tooltip content={text} trigger={iconButton} portalTriggerRef={portalTriggerRef} />;
+  } else {
+    return iconButton;
+  }
 };
 
 export { Button, ButtonGroup, IconButton };

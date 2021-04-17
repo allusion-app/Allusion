@@ -33,7 +33,7 @@ export const Field = ({ id, query, dispatch, removable }: IFieldProps) => (
       <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
       <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
       <IconButton
-        text=""
+        text="Remove search item"
         icon={IconSet.DELETE}
         onClick={() =>
           dispatch((form) => {

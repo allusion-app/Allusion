@@ -97,13 +97,13 @@ const Zoom = () => {
         <IconButton
           icon={<span>-</span>}
           onClick={() => setLocalZoomFactor(localZoomFactor - 0.1)}
-          text="zoom out"
+          text="Zoom out"
         />
         <span>{Math.round(100 * localZoomFactor)}%</span>
         <IconButton
           icon={<span>+</span>}
           onClick={() => setLocalZoomFactor(localZoomFactor + 0.1)}
-          text="zoom in"
+          text="Zoom in"
         />
       </span>
     </div>
