@@ -57,7 +57,7 @@ dialog {
 dialog[role='alertdialog'] {
   > .dialog-content {
     grid-template: 'dialog-icon dialog-title' 'dialog-icon dialog-information' 'dialog-footer dialog-footer';
-    width: 50ch;
+    // width: 50ch;
   }
 
   .dialog-icon > .custom-icon {
@@ -66,6 +66,11 @@ dialog[role='alertdialog'] {
     height: 2.5rem;
     width: 2.5rem;
   }
+
+  .btn-filled:not(:hover) {
+    background-color: var(--accent-color-red);
+  }
+
 }
 
 .dialog-icon {

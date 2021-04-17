@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import PopupWindow from '../components/PopupWindow';
 import StoreContext from '../contexts/StoreContext';
 
-import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter.jpg';
+import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
 import { shell } from 'electron';
 import { RendererMessenger } from 'src/Messaging';
 

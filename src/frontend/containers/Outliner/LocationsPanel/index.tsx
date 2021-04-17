@@ -24,8 +24,8 @@ import DropContext from 'src/frontend/contexts/DropContext';
 
 // Tooltip info
 const enum Tooltip {
-  Location = 'Add New Location',
-  Refresh = 'Refresh Directories',
+  Location = 'Add new Location',
+  Refresh = 'Refresh directories',
 }
 
 interface ITreeData {

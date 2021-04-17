@@ -33,7 +33,7 @@ const SplashScreen = () => {
     <div style={splashScreenContainerStyles} id="splash-screen">
       <div style={splashScreenStyles}>
         <svg style={{ width: 0 }}>
-          <defs>
+          {/* <defs>
             <linearGradient id="yellow-blue" x2="1" y2="1">
               <stop offset="0%" stopColor="#F7EA3A" stopOpacity="1">
                 <animate
@@ -57,12 +57,13 @@ const SplashScreen = () => {
                 />
               </stop>
             </linearGradient>
-          </defs>
+          </defs> */}
         </svg>
 
         <SVG
           src={PreloadIcon}
-          style={{ fill: 'url(#yellow-blue)', width: '48px', height: '36px' }}
+          // style={{ fill: 'url(#yellow-blue)', width: '48px', height: '36px' }}
+          style={{ fill: '#fff', width: '42px', height: '36px' }}
         />
 
         <p style={textStyles}>Allusion</p>

@@ -105,8 +105,6 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
           <IconButton
             icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
             text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
-            // TODO: Add this as tooltip. Current set-up sucks
-            // title={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
             onClick={() => {
               uiStore.toggleSearchMatchAny();
               fileStore.refetch();
@@ -144,8 +142,6 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
           <IconButton
             icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
             text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
-            // TODO: Add this as tooltip. Current set-up sucks
-            // title={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
             onClick={() => {
               uiStore.toggleSearchMatchAny();
               fileStore.refetch();
@@ -156,7 +152,7 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
           <> </>
         )}
 
-        <IconButton icon={IconSet.CLOSE} text="Close" onClick={uiStore.clearSearchCriteriaList} />
+        <IconButton icon={IconSet.CLOSE} text="Clear" onClick={uiStore.clearSearchCriteriaList} />
       </div>
     </div>
   );
