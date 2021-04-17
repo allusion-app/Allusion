@@ -85,6 +85,8 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
             openPage={openPage.current}
             pageIndex={pageIndex}
             sectionIndex={sectionIndex}
+            // This forces a re-render when the page changes, causing the scroll position to reset
+            key={`page-${pageIndex}`}
           />
         }
         axis="vertical"
