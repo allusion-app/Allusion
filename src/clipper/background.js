@@ -41,7 +41,7 @@ async function importImage(filename, url) {
 
     // no notification when it works as intended
     // show a badge instead. Resets when opening popup
-    chrome.browserAction.setBadgeBackgroundColor({ color: 'rgb(51, 153, 255)' });
+    chrome.browserAction.setBadgeBackgroundColor({ color: '#147df1; /* rgb(51, 153, 255); */' });
     chrome.browserAction.setBadgeText({ text: '1' });
   } catch (e) {
     console.error(e);
