@@ -54,6 +54,7 @@ import ITEM_EXPAND from 'resources/icons/item-expand.svg';
 import ITEM_MOVE_DOWN from 'resources/icons/item-move-down.svg';
 import ITEM_MOVE_UP from 'resources/icons/item-move-up.svg';
 import LOGO from 'resources/logo/svg/white/allusion-logomark-white.svg';
+import LOGO_FC from 'resources/logo/svg/full-color/allusion-logomark-fc.svg';
 import LOGOMARK_BLACK from 'resources/logo/svg/full-color/allusion-logo-ver-fc-black.svg';
 import LOGOMARK_WHITE from 'resources/logo/svg/full-color/allusion-logo-ver-fc-white.svg';
 import MEDIA from 'resources/icons/media.svg';
@@ -151,6 +152,7 @@ const IconSet = {
   ITEM_MOVE_UP: toSvg(ITEM_MOVE_UP),
   OUTLINER: toSvg(OUTLINER),
   LOGO: toSvg(LOGO),
+  LOGO_FC: toSvg(LOGO_FC),
   LOGO_MARK_BLACK: toSvg(LOGOMARK_BLACK),
   LOGO_MARK_WHITE: toSvg(LOGOMARK_WHITE),
   MEDIA: toSvg(MEDIA),

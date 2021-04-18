@@ -11,6 +11,15 @@ import { RendererMessenger } from 'src/Messaging';
 import { promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
+function areFilesIdenticalBesidesName(a: IFile, b: IFile): boolean {
+  return (
+    a.width === b.width &&
+    a.height === b.height &&
+    a.size === b.size &&
+    a.dateCreated.getTime() === b.dateCreated.getTime()
+  );
+}
+
 class LocationStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
@@ -105,26 +114,34 @@ class LocationStore {
 
       // Find matches between removed and created images (different name/path but same characteristics)
       // TODO: Should we also do cross-location matching?
-      const matches = missingFiles.map((mf) =>
-        createdFiles.find(
-          (cf) => mf.width === cf.width && mf.height === cf.height && mf.size === cf.size,
-        ),
+      const createdMatches = missingFiles.map((mf) =>
+        createdFiles.find((cf) => areFilesIdenticalBesidesName(cf, mf)),
+      );
+      // Also look for duplicate files: when a files is renamed/moved it will become a new entry
+      const dbMatches = missingFiles.map(
+        (missingDbFile, i) =>
+          !createdMatches[i] &&
+          dbFiles.find(
+            (otherDbFile) =>
+              missingDbFile !== otherDbFile &&
+              areFilesIdenticalBesidesName(missingDbFile, otherDbFile),
+          ),
       );
 
-      console.debug('missing', missingFiles, 'created', createdFiles, 'matches', matches);
+      console.debug({ missingFiles, createdFiles, createdMatches, dbMatches });
 
       // Update renamed files in backend
-      const foundMatches = matches.filter((m) => m !== undefined) as IFile[];
-      if (foundMatches.length > 0) {
+      const foundCreatedMatches = createdMatches.filter((m) => m !== undefined) as IFile[];
+      if (foundCreatedMatches.length > 0) {
         console.debug(
-          `Found ${foundMatches.length} renamed/moved files in location ${location.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
-          foundMatches,
+          `Found ${foundCreatedMatches.length} renamed/moved files in location ${location.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
+          foundCreatedMatches,
         );
         // TODO: remove thumbnail as well (clean-up needed, since the path changed)
         const files: IFile[] = [];
-        for (let i = 0; i < matches.length; i++) {
-          const match = matches[i];
-          if (match !== undefined) {
+        for (let i = 0; i < createdMatches.length; i++) {
+          const match = createdMatches[i];
+          if (match) {
             files.push({
               ...missingFiles[i],
               absolutePath: match.absolutePath,
@@ -132,11 +149,39 @@ class LocationStore {
             });
           }
         }
-        await this.backend.saveFiles(files);
+        // There might be duplicates, so convert to set
+        await this.backend.saveFiles(Array.from(new Set(files)));
+      }
+
+      const numDbMatches = dbMatches.filter((f) => Boolean(f));
+      if (numDbMatches.length > 0) {
+        // If you have allusion open and rename/move files, they are automatically created as new files while the old one sticks around
+        // In here we transfer the tag data over from the old entry to the new one, and delete the old entry
+        console.debug(
+          `Found ${numDbMatches.length} renamed/moved files in location ${location.name} that were already present in the database. Removing duplicates`,
+          numDbMatches,
+        );
+        const files: IFile[] = [];
+        for (let i = 0; i < dbMatches.length; i++) {
+          const match = dbMatches[i];
+          if (match) {
+            files.push({
+              ...match,
+              tags: Array.from(new Set([...missingFiles[i].tags, ...match.tags])),
+            });
+          }
+        }
+        // Transfer over tag data on the matched files
+        await this.backend.saveFiles(Array.from(new Set(files)));
+        // Remove missing files that have a match in the database
+        await this.backend.removeFiles(
+          missingFiles.filter((_, i) => Boolean(dbMatches[i])).map((f) => f.id),
+        );
+        foundNewFiles = true; // Trigger a refetch
       }
 
       // For createdFiles without a match, insert them in the DB as new files
-      const newFiles = createdFiles.filter((cf) => !foundMatches.includes(cf));
+      const newFiles = createdFiles.filter((cf) => !foundCreatedMatches.includes(cf));
       if (newFiles.length) {
         await this.backend.createFilesFromPath(location.path, newFiles);
       }
@@ -282,6 +327,8 @@ class LocationStore {
   }
 
   @action hideFile(path: string) {
+    // This is called when an image is removed from the filesystem.
+    // Could also mean that a file was renamed or moved, in which case another file should have been added already
     const fileStore = this.rootStore.fileStore;
     const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
     if (clientFile !== undefined) {
