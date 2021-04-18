@@ -54,6 +54,12 @@ dialog {
   }
 }
 
+div[role='alertdialog'] {
+  .btn-filled:not(:hover) {
+    background-color: var(--accent-color-red);
+  }
+}
+
 dialog[role='alertdialog'] {
   > .dialog-content {
     grid-template: 'dialog-icon dialog-title' 'dialog-icon dialog-information' 'dialog-footer dialog-footer';
