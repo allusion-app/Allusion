@@ -128,7 +128,7 @@ class LocationStore {
           ),
       );
 
-      console.debug({ missingFiles, createdFiles, createdMatches, dbMatches, dbFiles });
+      console.debug({ missingFiles, createdFiles, createdMatches, dbMatches });
 
       // Update renamed files in backend
       const foundCreatedMatches = createdMatches.filter((m) => m !== undefined) as IFile[];
@@ -149,7 +149,8 @@ class LocationStore {
             });
           }
         }
-        await this.backend.saveFiles(files);
+        // There might be duplicates, so convert to set
+        await this.backend.saveFiles(Array.from(new Set(files)));
       }
 
       const numDbMatches = dbMatches.filter((f) => Boolean(f));
@@ -171,7 +172,7 @@ class LocationStore {
           }
         }
         // Transfer over tag data on the matched files
-        await this.backend.saveFiles(files);
+        await this.backend.saveFiles(Array.from(new Set(files)));
         // Remove missing files that have a match in the database
         await this.backend.removeFiles(
           missingFiles.filter((_, i) => Boolean(dbMatches[i])).map((f) => f.id),
