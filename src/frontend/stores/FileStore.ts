@@ -563,7 +563,10 @@ class FileStore {
         reusedStatus.add(existingFile.id);
         // Update tags (might have changes, e.g. removed/merged)
         const newTags = f.tags.map((t) => this.rootStore.tagStore.get(t));
-        if (Array.from(existingFile.tags).some((t, i) => t?.id !== f.tags[i])) {
+        if (
+          existingFile.tags.size !== f.tags.length ||
+          Array.from(existingFile.tags).some((t, i) => t?.id !== f.tags[i])
+        ) {
           existingFile.updateTagsFromBackend(newTags as ClientTag[]);
         }
         return existingFile;

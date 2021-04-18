@@ -1,7 +1,7 @@
 import { IDBVersioningConfig } from './DBRepository';
 
 // The name of the IndexedDB
-export const DB_NAME = 'Allusion';
+export const DB_NAME = 'Allusion2';
 
 // Schema based on https://dexie.org/docs/Version/Version.stores()#schema-syntax
 // Only for the indexes of the DB, not all fields
