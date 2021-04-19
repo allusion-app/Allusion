@@ -27,10 +27,9 @@ export interface IThumbnailMessageResponse {
 // Set up multiple workers for max performance
 const NUM_THUMBNAIL_WORKERS = 4;
 const workers: Worker[] = [];
+const url = new URL('./workers/thumbnailGenerator.worker', import.meta.url);
 for (let i = 0; i < NUM_THUMBNAIL_WORKERS; i++) {
-  workers[i] = new Worker(new URL('./workers/thumbnailGenerator.worker', import.meta.url), {
-    type: 'module',
-  });
+  workers[i] = new Worker(url);
 }
 
 let lastSubmittedWorker = 0;
