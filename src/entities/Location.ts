@@ -90,7 +90,6 @@ export class ClientLocation implements ISerializable<ILocation> {
     console.debug('Loading folder watcher worker...', directory);
     const worker = new Worker(
       new URL('src/frontend/workers/folderWatcher.worker', import.meta.url),
-      { type: 'module' },
     );
     worker.onmessage = ({ data: { type, value } }: { data: { type: string; value: string } }) => {
       if (type === 'add') {
