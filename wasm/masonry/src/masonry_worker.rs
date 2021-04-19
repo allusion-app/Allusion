@@ -4,7 +4,8 @@ use alloc::string::String;
 
 use crate::data::{Computation, MasonryConfig, MasonryType};
 use crate::layout::{Layout, Transform};
-use crate::sync::{read_result, send_computation};
+use crate::sync::send_computation;
+use crate::util::UnwrapOrAbort;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -85,8 +86,8 @@ impl MasonryWorker {
         js_sys::Promise::new(
             &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
                 self.worker.set_onmessage(Some(
-                    Closure::once_into_js(move |_event: web_sys::MessageEvent| {
-                        let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &read_result());
+                    Closure::once_into_js(move |event: web_sys::MessageEvent| {
+                        let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &event.data());
                         debug_assert!(r.is_ok(), "calling resolve should never fail");
                     })
                     .unchecked_ref(),
@@ -127,7 +128,7 @@ impl MasonryWorker {
     ///
     /// If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
     //// panic because of an out of bounds error.
-    pub fn get_transform(&mut self, index: usize) -> Result<JsValue, JsValue> {
+    pub fn get_transform(&mut self, index: usize) -> JsValue {
         let Transform {
             width,
             height,
@@ -141,11 +142,11 @@ impl MasonryWorker {
                 width, height, top, left
             ),
         )
-        .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
+        .unwrap_or_abort();
         // We could use serde but I do not think this added dependency is worth here.
-        let json = js_sys::JSON::parse(&self.json_output)?;
+        let json = js_sys::JSON::parse(&self.json_output).unwrap_or_abort();
         self.json_output.clear();
-        Ok(json)
+        json
     }
 }
 
@@ -162,8 +163,7 @@ fn create_web_worker(module_path: &str, wasm_path: &str) -> Result<web_sys::Work
             await init('{wasm_path}', event.data[0]);\
             self.postMessage(null);\
             while (true) {{\
-                compute();\
-                self.postMessage(null);\
+                self.postMessage(compute());\
             }}\
         }};",
         module_path = module_path,

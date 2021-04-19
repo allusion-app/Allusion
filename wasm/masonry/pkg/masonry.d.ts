@@ -7,8 +7,9 @@
 *
 * Do not import this function as it is already imported into the web worker thread (see
 * `create_web_worker`).
+* @returns {number}
 */
-export function compute(): void;
+export function compute(): number;
 /**
 */
 export enum MasonryType {
@@ -100,14 +101,14 @@ export interface InitOutput {
   readonly masonryworker_resize: (a: number, b: number) => void;
   readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;
   readonly masonryworker_get_transform: (a: number, b: number) => number;
-  readonly compute: () => void;
+  readonly compute: () => number;
   readonly __wbindgen_export_0: WebAssembly.Memory;
   readonly __wbindgen_export_1: WebAssembly.Table;
-  readonly wasm_bindgen__convert__closures__invoke1_mut__hae1aa38dc1391970: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__ha3850c4b597b863a: (a: number, b: number, c: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
-  readonly wasm_bindgen__convert__closures__invoke2_mut__h04b557a7effa519a: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_bindgen__convert__closures__invoke2_mut__he8da1be40d9acc4c: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_start: () => void;
 }
 

@@ -1,5 +1,5 @@
 use alloc::boxed::Box;
-use core::sync::atomic::{AtomicI32, AtomicPtr, AtomicU32, Ordering};
+use core::sync::atomic::{AtomicI32, AtomicPtr, Ordering};
 
 use wasm_bindgen::prelude::*;
 
@@ -7,7 +7,7 @@ use crate::data::{Computation, MasonryType};
 
 static LOCK: AtomicI32 = AtomicI32::new(0);
 static INPUT: AtomicPtr<Computation> = AtomicPtr::new(core::ptr::null_mut());
-static OUTPUT: AtomicU32 = AtomicU32::new(0);
+// static OUTPUT: AtomicU32 = AtomicU32::new(0);
 
 const LOCKED: i32 = 0;
 const UNLOCKED: i32 = 1;
@@ -19,7 +19,7 @@ const UNLOCKED: i32 = 1;
 /// Do not import this function as it is already imported into the web worker thread (see
 /// `create_web_worker`).
 #[wasm_bindgen]
-pub fn compute() {
+pub fn compute() -> u32 {
     atomic_wait32(&LOCK, LOCKED, -1);
     let computation_ptr = INPUT.load(Ordering::Acquire);
     let container_height = {
@@ -32,9 +32,10 @@ pub fn compute() {
             execute(*computation)
         }
     };
-    OUTPUT.store(container_height, Ordering::Release);
+    // OUTPUT.store(container_height, Ordering::Release);
     INPUT.store(core::ptr::null_mut(), Ordering::Release);
     LOCK.store(LOCKED, Ordering::Release);
+    container_height
 }
 
 /// Wakes up the web worker thread and "sends" data to receiver.
@@ -47,9 +48,9 @@ pub fn send_computation(computation: *mut Computation) {
     atomic_notify(&LOCK, 1);
 }
 
-pub fn read_result() -> JsValue {
-    JsValue::from(OUTPUT.load(Ordering::Acquire))
-}
+// pub fn read_result() -> JsValue {
+//     JsValue::from(OUTPUT.load(Ordering::Acquire))
+// }
 
 fn execute(computation: Computation) -> u32 {
     let (width, config, layout) = {

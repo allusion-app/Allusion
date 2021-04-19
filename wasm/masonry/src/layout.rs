@@ -81,12 +81,12 @@ impl Layout {
     // TODO: Look up proper masonry algorithm, e.g. https://euler.stephan-brumme.com/215/
     // TODO: Alternatively, could layout based on aspect ratio blogpost https://medium.com/@danrschlosser/building-the-image-grid-from-google-photos-6a09e193c74a
     pub fn compute_horizontal(&mut self, container_width: u16) -> u32 {
-        if container_width == 0 || self.thumbnail_size == 0 {
+        if self.is_empty() || self.thumbnail_size == 0 {
             return 0;
         }
 
         let thumbnail_size = u32::from(self.thumbnail_size);
-        let container_width = u32::from(container_width);
+        let container_width = u32::from(container_width).max(thumbnail_size);
         let padding = u32::from(self.padding);
 
         let mut top_offset: u32 = 0;
@@ -175,7 +175,7 @@ impl Layout {
             }
         }
 
-        if container_width == 0 || self.thumbnail_size == 0 {
+        if self.is_empty() || self.thumbnail_size == 0 {
             return 0;
         }
 
@@ -216,7 +216,7 @@ impl Layout {
 
     // Simple Grid layout, replacement for the react-window dependency
     pub fn compute_grid(&mut self, container_width: u16) -> u32 {
-        if container_width == 0 || self.thumbnail_size == 0 {
+        if self.is_empty() || self.thumbnail_size == 0 {
             return 0;
         }
 
@@ -277,6 +277,10 @@ impl Layout {
 }
 
 impl Layout {
+    fn is_empty(&self) -> bool {
+        self.num_items == 0
+    }
+
     fn len(&self) -> usize {
         self.num_items
     }
