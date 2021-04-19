@@ -114,6 +114,8 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
       onClick: () => {
         counter.get(t) ? onDeselect(t) : onSelect(t);
+        setInputText('');
+        runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
         inputRef.current?.focus();
       },
     }));
@@ -129,7 +131,15 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       });
     }
     return res;
-  }, [counter, handleCreate, inputText, matchingTags, onDeselect, onSelect]);
+  }, [
+    counter,
+    handleCreate,
+    inputText,
+    matchingTags,
+    onDeselect,
+    onSelect,
+    tagStore.tagListWithoutRoot,
+  ]);
 
   // Todo: clamp this value when list size changes
   const [focusedOption, setFocusedOption] = useState(0);

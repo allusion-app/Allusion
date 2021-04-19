@@ -1,20 +1,16 @@
-import { action, observable, computed, observe, runInAction, makeObservable } from 'mobx';
 import fse from 'fs-extra';
-
+import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
-
-import { ID, generateId } from 'src/entities/ID';
-import { ClientFile, IFile, getMetaData } from 'src/entities/File';
-import { ClientLocation } from 'src/entities/Location';
-import { SearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
-
-import RootStore from './RootStore';
-
-import { getThumbnailPath, debounce, needsThumbnail, promiseAllLimit } from '../utils';
 import ExifIO from 'src/backend/ExifIO';
+import { ClientFile, IFile } from 'src/entities/File';
+import { ID } from 'src/entities/ID';
+import { ClientLocation } from 'src/entities/Location';
+import { ClientTagSearchCriteria, SearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
+import { debounce, getThumbnailPath, needsThumbnail, promiseAllLimit } from '../utils';
+import RootStore from './RootStore';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
 
@@ -88,7 +84,6 @@ class FileStore {
           // Now that we know the tag names in file metadata, add them to the files in Allusion
           // Main idea: Find matching tag with same name, otherwise, insert new
           //   for now, just match by the name at the bottom of the hierarchy
-          // TODO: We need a "merge" option for two or more tags in tag context menu
 
           const { tagStore } = this.rootStore;
           for (const tagHierarchy of tagsNameHierarchies) {
@@ -102,7 +97,9 @@ class FileStore {
               // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
               let curTag = tagStore.root;
               for (const nodeName of tagHierarchy) {
-                const nodeMatch = runInAction(() => tagStore.tagList.find((t) => t.name === nodeName));
+                const nodeMatch = runInAction(() =>
+                  tagStore.tagList.find((t) => t.name === nodeName),
+                );
                 if (nodeMatch) {
                   curTag = nodeMatch;
                 } else {
@@ -230,28 +227,6 @@ class FileStore {
   @action.bound setContentUntagged() {
     this.content = Content.Untagged;
     if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
-  }
-
-  @action.bound async importExternalFile(path: string, dateAdded: Date) {
-    const loc = this.rootStore.locationStore.locationList[0]; // TODO: User should pick location
-    const file = new ClientFile(this, {
-      id: generateId(),
-      locationId: loc.id,
-      absolutePath: path,
-      relativePath: path.replace(loc.path, ''),
-      dateAdded,
-      dateModified: new Date(),
-      tags: [],
-      ...(await getMetaData(path)),
-    });
-    // The function caller is responsible for handling errors.
-    await this.backend.createFile(file.serialize());
-    runInAction(() => {
-      this.index.set(file.id, this.fileList.length);
-      this.fileList.push(file);
-    });
-    this.incrementNumUntaggedFiles();
-    return file;
   }
 
   /**
@@ -551,13 +526,14 @@ class FileStore {
     // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
     runInAction(() => {
       this.fileList.replace(newClientFiles);
+      this.cleanFileSelection();
+      this.updateFileListState(); // update index & untagged image counter
       this.fileListLastModified = new Date();
     });
     const N = 50;
     return promiseAllLimit(existenceCheckPromises, N)
       .then(() => {
-        this.updateFileListState();
-        this.cleanFileSelection();
+        this.updateFileListState(); // update missing image counter
       })
       .catch((e) => console.error('An error occured during existence checking!', e));
   }
@@ -587,7 +563,10 @@ class FileStore {
         reusedStatus.add(existingFile.id);
         // Update tags (might have changes, e.g. removed/merged)
         const newTags = f.tags.map((t) => this.rootStore.tagStore.get(t));
-        if (Array.from(existingFile.tags).some((t, i) => t?.id !== f.tags[i])) {
+        if (
+          existingFile.tags.size !== f.tags.length ||
+          Array.from(existingFile.tags).some((t, i) => t?.id !== f.tags[i])
+        ) {
           existingFile.updateTagsFromBackend(newTags as ClientTag[]);
         }
         return existingFile;

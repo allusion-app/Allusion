@@ -33,7 +33,7 @@ import { IconSet, Button, ButtonGroup } from 'widgets';
 const Welcome = () => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ContentPlaceholder title="Welcome to Allusion" icon={IconSet.LOGO}>
+    <ContentPlaceholder title="Welcome to Allusion" icon={IconSet.LOGO_FC}>
       <p>
         Allusion is a tool designed to help you organize your Visual Library, so you can easily find
         what you need throughout your creative process.
@@ -47,7 +47,7 @@ const Welcome = () => {
       <div className="divider" />
 
       <p>New to Allusion?</p>
-      <Button text="Open Help Center" onClick={uiStore.toggleHelpCenter} />
+      <Button styling="outlined" text="Open Help Center" onClick={uiStore.toggleHelpCenter} />
 
       <br />
       <br />
@@ -144,7 +144,7 @@ const ContentPlaceholder = (props: IContentPlaceholder) => {
   return (
     <div id="content-placeholder">
       <span className="custom-icon-128">{props.icon}</span>
-      <h2>{props.title}</h2>
+      <h2 className="dialog-title">{props.title}</h2>
       {props.children}
     </div>
   );

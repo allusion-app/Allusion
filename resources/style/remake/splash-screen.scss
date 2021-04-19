@@ -27,9 +27,9 @@
   // Background image
   &::before {
     background: var(--background-color);
-    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background: linear-gradient(-135deg,#23d5ab, #7af2a6, #51b4cf, #1473e6 ); /*  */
     background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
+    animation: gradient 2s ease infinite;
     z-index: 0;
   }
 }

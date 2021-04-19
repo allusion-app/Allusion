@@ -8,7 +8,7 @@ import { githubUrl } from 'src/config';
 import StoreContext from '../contexts/StoreContext';
 
 import { Button, ButtonGroup, IconSet } from 'widgets';
-import { DialogActions, DialogButton, Flyout } from 'widgets/popovers';
+import { DialogActions, DialogButton, Flyout, Dialog } from 'widgets/popovers';
 
 export const ClearDbButton = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +28,7 @@ export const ClearDbButton = () => {
         />
       }
     >
-      <div className="dialog-content" style={{ padding: '8px', maxWidth: '45ch' }}>
+      <div role='alertdialog' className="dialog-content" style={{ padding: '8px', maxWidth: '45ch' }}>
         <h2 className="dialog-title">Are you sure you want to clear the database?</h2>
         <div className="dialog-information">
           <p>
@@ -39,8 +39,9 @@ export const ClearDbButton = () => {
         </div>
         <div className="dialog-footer">
           <DialogActions
-            closeButtonText="Cancel"
             primaryButtonText="Clear"
+            closeButtonText="Cancel"
+            defaultButton={DialogButton.PrimaryButton}
             onClick={async (button) => {
               if (button === DialogButton.CloseButton) {
                 setIsOpen(false);

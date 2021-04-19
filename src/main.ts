@@ -1,22 +1,22 @@
 import {
   app,
   BrowserWindow,
+  BrowserWindowConstructorOptions,
+  dialog,
   Menu,
   nativeImage,
   nativeTheme,
   screen,
   Tray,
-  dialog,
-  BrowserWindowConstructorOptions,
 } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import AppIcon from '../resources/logo/allusion-logomark-fc-512x512.png';
-import TrayIcon from '../resources/logo/allusion-logomark-fc-256x256.png';
-import TrayIconMac from '../resources/logo/allusion-logomark-white@2x.png';
-import { isDev } from './config';
-import { MainMessenger, WindowSystemButtonPress } from './Messaging';
-import { ITag, ROOT_TAG_ID } from './entities/Tag';
+import TrayIcon from '../resources/logo/png/full-color/allusion-logomark-fc-256x256.png';
+import AppIcon from '../resources/logo/png/full-color/allusion-logomark-fc-512x512.png';
+import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
 import ClipServer, { IImportItem } from './clipper/server';
+import { isDev } from './config';
+import { ITag, ROOT_TAG_ID } from './entities/Tag';
+import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 
 let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
@@ -25,6 +25,7 @@ let clipServer: ClipServer | null;
 
 const isMac = process.platform === 'darwin';
 
+/** Returns whether main window is open - so whether files can be immediately imported */
 const importExternalImage = async (item: IImportItem) => {
   if (mainWindow) {
     MainMessenger.sendImportExternalImage(mainWindow.webContents, { item });
@@ -76,9 +77,6 @@ function createTrayMenu() {
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   const mainOptions: BrowserWindowConstructorOptions = {
-    // Todo: This setting looks nice on osx, but overlaps with native toolbar buttons (is this still relevant?)
-    // Documentation: https://www.electronjs.org/docs/all#alternatives-on-macos
-    // could go entirely custom with 'customButtonsOnHover'
     titleBarStyle: 'hidden',
     // Disable native frame: we use a custom titlebar for all platforms: a unique one for MacOS, and one for windows/linux
     frame: false,
@@ -416,14 +414,22 @@ MainMessenger.onDragExport((absolutePaths) => {
   if (mainWindow === null || absolutePaths.length === 0) {
     return;
   }
+
+  let previewIcon = nativeImage.createFromPath(absolutePaths[0]);
+  if (previewIcon) {
+    // Resize preview to something resonable: taking into account aspect ratio
+    const ratio = previewIcon.getAspectRatio();
+    previewIcon =
+      ratio > 1 ? previewIcon.resize({ width: 200 }) : previewIcon.resize({ height: 200 });
+  }
+
   // Need to cast item as `any` since the types are not correct. The `files` field is allowed but
   // not according to the electron documentation where it is `file`.
   mainWindow.webContents.startDrag({
     files: absolutePaths,
     // Just show the first image as a thumbnail for now
     // TODO: Show some indication that multiple images are dragged, would be cool to show a stack of the first few of them
-    // also, this will show really big icons for narrow images, should take into account their aspect ratio
-    icon: nativeImage.createFromPath(absolutePaths[0]).resize({ width: 200 }) || AppIcon,
+    icon: previewIcon.isEmpty() ? AppIcon : previewIcon,
   } as any);
 });
 
@@ -474,3 +480,13 @@ MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
 });
 
 MainMessenger.onIsMaximized(() => mainWindow?.isMaximized() ?? false);
+
+MainMessenger.onGetVersion(() => {
+  if (isDev()) {
+    // Weird quirk: it returns the Electron version in dev mode
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return require('../package.json').version;
+  } else {
+    return app.getVersion();
+  }
+});

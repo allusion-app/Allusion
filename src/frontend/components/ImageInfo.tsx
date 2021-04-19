@@ -3,11 +3,12 @@ import fse from 'fs-extra';
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
 import StoreContext from '../contexts/StoreContext';
-import { formatDateTime } from '../utils';
+import { formatDateTime, humanFileSize } from '../utils';
 
 type CommonMetadata = {
   name: string;
   dimensions: string;
+  size: string;
   imported: string;
   created: string;
   modified: string;
@@ -16,6 +17,7 @@ type CommonMetadata = {
 const commonMetadataLabels: Record<keyof CommonMetadata, string> = {
   name: 'Filename',
   dimensions: 'Dimensions',
+  size: 'Size',
   imported: 'Imported',
   // TODO: modified in allusion vs modified in system?
   created: 'Created',
@@ -46,6 +48,7 @@ const exifFields: Record<string, { label: string; format?: (val: string) => Reac
       );
     },
   },
+  ImageDescription: { label: 'Description' },
   Copyright: { label: 'Copyright' },
   Make: { label: 'Camera Manufacturer' },
   Model: { label: 'Camera Model' },
@@ -71,6 +74,7 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
   const [fileStats, setFileStats] = useState<CommonMetadata>({
     name: file.name,
     dimensions: `${file.width || '?'} x ${file.height || '?'}`,
+    size: humanFileSize(file.size),
     imported: formatDateTime(file.dateAdded),
     created: formatDateTime(file.dateCreated),
     modified: '...',
@@ -86,6 +90,7 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
     setFileStats({
       name: file.name,
       dimensions: `${file.width || '?'} x ${file.height || '?'}`,
+      size: humanFileSize(file.size),
       imported: formatDateTime(file.dateAdded),
       created: formatDateTime(file.dateCreated),
       modified: '...',

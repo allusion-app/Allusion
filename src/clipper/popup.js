@@ -36,7 +36,13 @@ window.onload = function () {
     if (lastSubmittedItem) {
       // Todo: Fill in custom filename
       tagsInput.value = lastSubmittedItem.tagNames.join(', ');
-      formInfo.innerHTML = `Imported <i>${lastSubmittedItem.filename}</i> !`;
+
+      if (!lastSubmittedItem.error) {
+        formInfo.innerHTML = `Imported <i>${lastSubmittedItem.filename}</i> !`;
+      } else {
+        formInfo.innerHTML =
+          'Could not import this image, please try again. <br /> Is Allusion running?';
+      }
       previewImg.src = lastSubmittedItem.url;
 
       chrome.runtime.sendMessage({ type: 'getTags' }, (tagNames) => {
@@ -60,8 +66,8 @@ window.onload = function () {
     } else {
       tagsInput.disabled = true;
       tagFormSubmit.disabled = true;
-      formInfo.innerText =
-        'Use the "Add to Allusion" option in the context menu of any image to import it.';
+      formInfo.innerHTML =
+        'Use the "Add to Allusion" option in the context menu of any image to import it into <a target="_blank" href="https://allusion-app.github.io/">Allusion</a>.';
     }
   });
 };

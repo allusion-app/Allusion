@@ -100,7 +100,7 @@ class TagStore {
     }
     // Move to different pos in same parent: Reorder tag.subTags and return
     if (tag === subTag.parent) {
-      if (index > -1 && index < tag.subTags.length) {
+      if (index > -1 && index <= tag.subTags.length) {
         // If moving below current position, take into account removing self affecting the index
         const newIndex = tag.subTags.indexOf(subTag) < index ? index - 1 : index;
         tag.subTags.remove(subTag);

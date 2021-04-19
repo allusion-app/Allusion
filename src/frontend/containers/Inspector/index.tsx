@@ -10,7 +10,7 @@ import { shell } from 'electron';
 const Inspector = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
-  if (uiStore.firstItem >= fileStore.fileList.length) {
+  if (uiStore.firstItem >= fileStore.fileList.length || !uiStore.isInspectorOpen) {
     return (
       <aside id="inspector">
         <Placeholder />
@@ -34,11 +34,11 @@ const Inspector = observer(() => {
           <h2>Path to file</h2>
         </header>
         <div className="input-file">
-          <span className="input input-file-value">{path}</span>
+          <input readOnly className="input input-file-value" value={path} />
           <IconButton
             icon={IconSet.FOLDER_CLOSE}
             onClick={() => shell.showItemInFolder(path)}
-            text="open in file explorer"
+            text="Open in file explorer"
           />
         </div>
       </section>

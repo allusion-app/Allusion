@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { observe } from 'mobx';
+import { observe, runInAction } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -19,6 +19,7 @@ import RootStore from './frontend/stores/RootStore';
 
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
+import { promiseRetry } from './frontend/utils';
 
 // Window State
 export const WINDOW_STORAGE_KEY = 'Allusion_Window';
@@ -74,12 +75,11 @@ if (IS_PREVIEW_WINDOW) {
   });
 
   // Change window title to filename when changing the selected file
-  observe(rootStore.uiStore.fileSelection, ({ object: list }) => {
-    if (list.size > 0) {
-      const file = rootStore.uiStore.firstSelectedFile;
-      if (file !== undefined) {
-        document.title = `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
-      }
+  observe(rootStore.uiStore, 'firstItem', ({ object }) => {
+    const index = object.get();
+    if (!isNaN(index) && index >= 0 && index < rootStore.fileStore.fileList.length) {
+      const file = rootStore.fileStore.fileList[index];
+      document.title = `${file?.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
     }
   });
 } else {
@@ -137,7 +137,9 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   if (clientFile) {
     const tags = await Promise.all(
       tagNames.map(async (tagName) => {
-        const clientTag = tagStore.tagList.find((tag) => tag.name === tagName);
+        const clientTag = runInAction(() =>
+          tagStore.tagListWithoutRoot.find((tag) => tag.name === tagName),
+        );
         if (clientTag !== undefined) {
           return clientTag;
         } else {
@@ -148,14 +150,14 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
     );
     tags.forEach(clientFile.addTag);
   } else {
-    console.error('Could not find image to set tags for', filePath);
+    throw new Error('Could not find image to set tags for ' + filePath);
   }
 }
 
 RendererMessenger.onImportExternalImage(async ({ item }) => {
   console.log('Importing image...', item);
-  await rootStore.fileStore.importExternalFile(item.filePath, item.dateAdded);
-  await addTagsToFile(item.filePath, item.tagNames);
+  // Might take a while for the file watcher to detect the image - otherwise the image is not in the DB and cannot be tagged
+  promiseRetry(() => addTagsToFile(item.filePath, item.tagNames));
 });
 
 RendererMessenger.onAddTagsToFile(async ({ item }) => {

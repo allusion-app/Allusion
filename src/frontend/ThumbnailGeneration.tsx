@@ -63,6 +63,8 @@ export const useWorkerListener = () => {
         if (clientFile) {
           // update the thumbnail path so that the image will reload, as it did not exist before
           clientFile.setThumbnailPath(`${thumbnailPath}?v=1`);
+        } else {
+          console.error('Could not find file to set the thumbnail for', fileId);
         }
       };
 

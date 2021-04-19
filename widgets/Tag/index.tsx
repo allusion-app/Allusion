@@ -23,7 +23,11 @@ const Tag = (props: ITag) => {
   );
 
   // Mutating those props is fine because the rest operator creates a new object.
-  const properties = { ...restProperties, style, className: 'tag' };
+  const properties = {
+    ...restProperties,
+    style,
+    className: [restProperties.className, 'tag'].join(' '),
+  };
 
   return (
     <span {...properties}>

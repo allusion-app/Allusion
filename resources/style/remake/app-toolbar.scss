@@ -30,6 +30,11 @@
     max-height: 2rem;
     overflow: hidden auto;
   }
+
+  // For indicating certain tags can be "system-tags" (for instance: Untagged images) 
+  .italic {
+    font-style: italic;
+  }
 }
 
 .deletion-confirmation-list {

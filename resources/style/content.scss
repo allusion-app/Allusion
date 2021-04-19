@@ -95,7 +95,7 @@
 
 .thumbnail-broken {
   > img,
-  > .image-error {
+  > .image-error:not(.custom-icon-128) {
     filter: saturate(0) brightness(0.25);
   }
 }
@@ -200,6 +200,9 @@
 
       .thumbnail-broken {
         overflow: hidden;
+      }
+      .image-error {
+        display: none;
       }
     }
 

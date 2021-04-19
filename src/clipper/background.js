@@ -2,6 +2,8 @@ const apiUrl = 'http://localhost:5454';
 
 let lastSubmittedItem = undefined;
 
+let errCount = 0;
+
 ///////////////////////////////////
 // Communication to Allusion app //
 ///////////////////////////////////
@@ -9,22 +11,26 @@ async function importImage(filename, url) {
   // We could just send the URL, but in some cases you need permission to view an image (e.g. pixiv)
   // Therefore we send it base64 encoded
 
-  // Note: Google extensions don't work with promises, so we'll have to put up with callbacks here and there
-  // Todo: url might already be base64
-  const { base64, blob } = await imageAsBase64(url);
-  const extension = blob.type.split('/')[1];
-  const filenameWithExtension = `${filename}.${extension}`;
-
-  const item = {
-    filename: filenameWithExtension,
-    url,
-    imgBase64: base64,
-    tagNames: [],
-  };
-
-  lastSubmittedItem = item;
-
   try {
+    // Note: Google extensions don't work with promises, so we'll have to put up with callbacks here and there
+    // Todo: url might already be base64
+    const { base64, blob } = await imageAsBase64(url);
+
+    let filenameWithExtension = filename;
+    const extension = blob.type.split('/')[1];
+    if (!filenameWithExtension.endsWith(extension)) {
+      filenameWithExtension = `${filename}.${extension}`;
+    }
+
+    const item = {
+      filename: filenameWithExtension,
+      url,
+      imgBase64: base64,
+      tagNames: [],
+    };
+
+    lastSubmittedItem = item;
+
     await fetch(`${apiUrl}/import-image`, {
       method: 'POST',
       headers: {
@@ -34,22 +40,24 @@ async function importImage(filename, url) {
     });
 
     // no notification when it works as intended
-    // chrome.notifications.create(null, {
-    //   type: 'basic',
-    //   iconUrl: 'favicon_32x32.png',
-    //   title: 'Allusion Clipper',
-    //   message: 'Image imported successfully!',
-    // });
+    // show a badge instead. Resets when opening popup
+    chrome.browserAction.setBadgeBackgroundColor({ color: '#147df1; /* rgb(51, 153, 255); */' });
+    chrome.browserAction.setBadgeText({ text: '1' });
   } catch (e) {
     console.error(e);
 
-    chrome.notifications.create(null, {
+    chrome.notifications.create('import-error-' + errCount++, {
       type: 'basic',
       iconUrl: 'favicon_32x32.png',
       title: 'Allusion Clipper',
       message: 'Could not import image. Is Allusion running?',
       buttons: [{ title: 'Retry' }],
     });
+
+    chrome.browserAction.setBadgeBackgroundColor({ color: 'rgb(250, 52, 37)' });
+    chrome.browserAction.setBadgeText({ text: '1' });
+
+    lastSubmittedItem.error = true;
   }
 }
 
@@ -110,6 +118,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   } else if (msg.type === 'getLastSubmittedItem') {
     sendResponse(lastSubmittedItem);
+
+    // reset badge text (that showed an image was imported)
+    chrome.browserAction.setBadgeText({ text: undefined });
     return true;
   } else if (msg.type === 'getTags') {
     fetch(`${apiUrl}/tags`)
@@ -142,6 +153,10 @@ chrome.contextMenus.onClicked.addListener(async (props, tab) => {
   // Otherwise: https://stackoverflow.com/questions/7703697/how-to-retrieve-the-element-where-a-contextmenu-has-been-executed
 });
 
-// chrome.notifications.onButtonClicked((id, buttonIndex) => {
-//   // Todo: retry importing image
-// });
+chrome.notifications.onButtonClicked.addListener((id, buttonIndex) => {
+  // retry importing image
+  console.log('Clicked notification button', id, buttonIndex, lastSubmittedItem);
+  if (id.startsWith('import-error') && buttonIndex === 0 && lastSubmittedItem) {
+    importImage(lastSubmittedItem.filename, lastSubmittedItem.url);
+  }
+});

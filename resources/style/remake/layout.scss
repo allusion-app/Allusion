@@ -18,7 +18,7 @@ body {
 #app {
   --mac-system-buttons-width: 5rem;
   --window-titlebar-height: 28px;
-  --treeitem-identation: 1.25rem;
+  --treeitem-identation: 0.5rem;
   --treeitem-offset: 0.75rem;
 }
 
@@ -47,12 +47,15 @@ body {
     margin: auto;
   }
   img {
-    max-width: 180px;
+    max-width: 170px;
     border-radius: 0.75rem;
     margin-top: 1rem;
     margin-bottom: 1rem;
     display: flex;
     margin: auto;
+  }
+  #version {
+    margin-bottom: 0.2rem;
   }
   ul {
     text-align: initial;

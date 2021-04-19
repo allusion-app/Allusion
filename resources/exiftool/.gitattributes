@@ -1,0 +1,4 @@
+# Mark exiftool files as vendored, so they don't show up in GitHub's language statistics
+exiftool.exe linguist-vendored
+exiftool.pl linguist-vendored
+lib/**/* linguist-vendored
