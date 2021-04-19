@@ -65,8 +65,7 @@ export class MasonryWorkerAdapter {
     this.prevNumImgs = numImgs;
     runInAction(() => {
       for (let i = 0; i < imgs.length; i++) {
-        // Images that can't load are given resolution of 1, so they have a square aspect ratio
-        worker.set_dimension(i, imgs[i].width || 1, imgs[i].height || 1);
+        worker.set_dimension(i, imgs[i].width, imgs[i].height);
       }
     });
 

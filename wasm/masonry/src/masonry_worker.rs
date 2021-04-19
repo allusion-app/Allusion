@@ -115,7 +115,7 @@ impl MasonryWorker {
     ///
     /// If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
     //// panic because of an out of bounds error.
-    pub fn set_dimension(&mut self, index: usize, src_width: f32, src_height: f32) {
+    pub fn set_dimension(&mut self, index: usize, src_width: u16, src_height: u16) {
         self.layout.set_dimension(index, src_width, src_height)
     }
 
