@@ -22,7 +22,7 @@ const HelpCenter = observer(() => {
       <Documentation
         id="help-center"
         overviewId="help-center-overview"
-        className="light"
+        className={uiStore.theme}
         initPages={PAGE_DATA}
       />
     </PopupWindow>
