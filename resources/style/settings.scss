@@ -1,11 +1,6 @@
 #settings {
   background-color: var(--background-color);
 
-  td {
-    height: 2em;
-    vertical-align: top;
-  }
-
   .toggle,
   #hierarchical-separator {
     justify-content: space-between;
@@ -14,6 +9,20 @@
   #hierarchical-separator select {
     min-width: 2.5rem;
   }
+}
+
+.key-combo-editor {
+  display: flex;
+  padding: 0.5rem;
+}
+
+.key-combo-input {
+  width: 30ch;
+}
+
+.key-combo-input-warning {
+  display: flex;
+  padding: 0.25rem;
 }
 
 .zoom-widget {

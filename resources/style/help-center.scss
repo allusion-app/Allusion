@@ -23,35 +23,6 @@
     }
   }
 
-  summary {
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-    cursor: pointer;
-    list-style: none;
-    padding: 0.5rem;
-
-    // If that stops to work, use ::before instead and set this to 'display: none'.
-    &::-webkit-details-marker {
-      appearance: none;
-      height: 1rem;
-      width: 1rem;
-      transform: rotateZ(-90deg);
-      mask-image: url(~resources/icons/small-arrow-down.svg);
-      -webkit-mask-image: url(~resources/icons/small-arrow-down.svg);
-      background-color: currentColor;
-    }
-
-    &::-webkit-details-marker,
-    .custom-icon {
-      margin-right: 0.5rem;
-    }
-  }
-
-  details[open] > summary::-webkit-details-marker {
-    transform: none;
-  }
-
   ul {
     padding: 0;
     list-style: none;
