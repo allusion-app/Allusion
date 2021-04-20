@@ -111,7 +111,7 @@ impl Layout {
                 // Now that the size of this row is definitive: Set the actual size of all row items
                 // The horizontal padding should not be scaled: Should be an absolute value
                 let num_items_in_row = (i - first_row_item_index + 1) as u32;
-                let total_horizontal_padding = (num_items_in_row + 1) * padding;
+                let total_horizontal_padding = num_items_in_row * padding;
                 let total_width = container_width - total_horizontal_padding;
 
                 transform.scale(total_width, new_row_width);
@@ -142,8 +142,19 @@ impl Layout {
         if cur_row_width == 0 {
             top_offset
         } else {
-            let last_item_height = self.transforms[self.len() - 1].height;
-            top_offset + last_item_height
+            // Add horizontal padding to the remaining items
+            let len = self.len();
+            let mut left = 0;
+            for prev_item in self
+                .transforms
+                .get_mut(first_row_item_index..len)
+                .unwrap_or_abort()
+            {
+                prev_item.left += left;
+                left += padding;
+            }
+            let last_item_height = self.transforms[len - 1].height;
+            top_offset + last_item_height + padding
         }
     }
 
