@@ -92,8 +92,9 @@ impl Layout {
         let mut top_offset: u32 = 0;
         let mut cur_row_width = 0;
         let mut first_row_item_index: usize = 0;
+        let num_transforms = self.len();
 
-        for i in 0..self.len() {
+        for i in 0..num_transforms {
             let transform = &mut self.transforms[i];
             // Correct aspect ratio for very wide/narrow images
             transform.height = thumbnail_size;
@@ -138,11 +139,25 @@ impl Layout {
                 cur_row_width = new_row_width;
             }
         }
-        // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
+
+        
+        // Finally: Return the height of the container
+        // If current width is 0, a new row was just started: no need to add last item's height; already done in the loop
         if cur_row_width == 0 {
+            // Add horizontal padding to the remaining items
+            let mut left = 0;
+            for prev_item in self
+                .transforms
+                .get_mut(first_row_item_index..num_transforms)
+                .unwrap_or_abort()
+            {
+                prev_item.left += left;
+                left += padding;
+            }
+
             top_offset
         } else {
-            let last_item_height = self.transforms[self.len() - 1].height;
+            let last_item_height = self.transforms[num_transforms - 1].height;
             top_offset + last_item_height
         }
     }
