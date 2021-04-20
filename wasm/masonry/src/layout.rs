@@ -61,7 +61,7 @@ impl Layout {
 
     pub fn resize(&mut self, new_len: usize) {
         self.num_items = new_len;
-        let len = self.transforms.len().min(self.transforms.len());
+        let len = self.transforms.len().min(self.aspect_ratios.len());
         if new_len > len {
             self.transforms
                 .reserve(new_len.saturating_sub(self.transforms.capacity()));
@@ -142,10 +142,8 @@ impl Layout {
         if cur_row_width == 0 {
             top_offset
         } else {
-            match self.transforms.get(self.len() - 1) {
-                Some(last_item) => top_offset + last_item.height,
-                None => 0,
-            }
+            let last_item_height = self.transforms[self.len() - 1].height;
+            top_offset + last_item_height
         }
     }
 
@@ -224,50 +222,29 @@ impl Layout {
         let (n_columns, column_width) = {
             let container_width = container_width.max(self.thumbnail_size);
             let n_columns = container_width.div_int(self.thumbnail_size);
-            let column_width = container_width.div_int(n_columns);
-            (usize::from(n_columns), u32::from(column_width))
+            let column_width = u32::from(container_width.div_int(n_columns));
+            (usize::from(n_columns), column_width)
         };
-        let padding = u32::from(self.padding);
-        let item_size = column_width - padding;
+        let item_size = column_width - u32::from(self.padding);
         let row_height = column_width;
 
-        let (n_rows, rem, rows, rest) = {
+        let rows = {
             let len = self.len();
-            let n_rows = len / n_columns;
-            let rem = len % n_columns;
-            let (rows, rest) = self.transforms.split_at_mut(len - rem);
-            (n_rows, rem, rows, rest)
+            self.transforms
+                .get_mut(..len)
+                .unwrap_or_abort()
+                .chunks_mut(n_columns)
         };
-
         let mut top_offset = 0;
-        let mut start = 0;
-        let mut end = n_columns;
-        let mut left;
-        for _ in 0..n_rows {
-            left = 0;
-            for transform in rows.get_mut(start..end).unwrap_or_abort() {
+        for row in rows {
+            let mut left = 0;
+            for transform in row.iter_mut() {
                 transform.width = item_size;
                 transform.height = item_size;
                 transform.left = left;
                 transform.top = top_offset;
                 left += column_width;
             }
-            top_offset += row_height;
-            start = end;
-            end += n_columns;
-        }
-
-        left = 0;
-        for transform in rest.iter_mut() {
-            transform.width = item_size;
-            transform.height = item_size;
-            transform.left = left;
-            transform.top = top_offset;
-            left += column_width;
-        }
-
-        // If there are items in the last extra row, the height increases by one row
-        if rem > 0 {
             top_offset += row_height;
         }
 
