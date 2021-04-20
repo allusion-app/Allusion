@@ -78,5 +78,3 @@ export class FolderWatcherWorker {
 
 // https://lorefnon.tech/2019/03/24/using-comlink-with-typescript-and-worker-loader/
 expose(FolderWatcherWorker, self);
-
-export default null as any;

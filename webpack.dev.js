@@ -72,13 +72,6 @@ let rendererConfig = {
   module: {
     rules: [
       {
-        test: /\.worker\.ts$/,
-        loader: 'worker-loader',
-        options: {
-          filename: '[name].js',
-        },
-      },
-      {
         // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
         test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
@@ -116,6 +109,11 @@ let rendererConfig = {
       },
       {
         test: /\.wasm$/,
+        type: 'asset/resource',
+      },
+      {
+        test: /\.js$/,
+        resourceQuery: /file/,
         type: 'asset/resource',
       },
       {

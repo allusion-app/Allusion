@@ -21,6 +21,14 @@ declare module '*.ico' {
   const content: any;
   export default content;
 }
+declare module '*.wasm' {
+  const content: any;
+  export default content;
+}
+declare module '*?file' {
+  const content: string;
+  export default content;
+}
 
 // Web worker support
 declare module 'worker-loader!*' {

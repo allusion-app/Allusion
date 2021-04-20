@@ -4,7 +4,7 @@ import { action, makeObservable, observable } from 'mobx';
 import SysPath from 'path';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore from 'src/frontend/stores/LocationStore';
-import FolderWatcherClass, { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
+import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
 import { ID, IResource, ISerializable } from './ID';
 
 export interface ILocation extends IResource {
@@ -88,7 +88,9 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   private async watch(directory: string): Promise<string[]> {
     console.debug('Loading folder watcher worker...', directory);
-    const worker = new FolderWatcherClass();
+    const worker = new Worker(
+      new URL('src/frontend/workers/folderWatcher.worker', import.meta.url),
+    );
     worker.onmessage = ({ data: { type, value } }: { data: { type: string; value: string } }) => {
       if (type === 'add') {
         console.log(`File ${value} has been added after initialization`);
