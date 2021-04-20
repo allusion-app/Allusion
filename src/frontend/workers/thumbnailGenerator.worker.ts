@@ -105,7 +105,3 @@ async function processMessage(data: IThumbnailMessage) {
 ctx.addEventListener('message', async (event) => {
   await processMessage(event.data);
 });
-
-// Make the file importable
-// https://stackoverflow.com/questions/50210416/webpack-worker-loader-fails-to-compile-typescript-worker
-export default null as any;
