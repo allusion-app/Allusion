@@ -83,3 +83,10 @@ There are two locations where styles are defined:
 
 For the application style sheets, there is a file per main panel (toolbar, outliner, content, inspector, etc.) and a couple of files for variable definitions and global styles. To ensure consistent colors are used across the entire application, all of the necessary colors are defined in the `colors.scss` file. These are then used in the `themes.scss` file for themes-specific colors (background, font, etc.).
 The `global.scss` file contains the root element style, layout definitions and some misc styles like the handlebars.
+
+### Releasing
+A Github release can be created automatically by creating a tag. This will trigger a [Github action](https://github.com/marketplace/actions/electron-builder-action). Steps:
+1. Update the version in the `package.json` file (e.g. 1.2.3)
+2. Commit that change (`git commit -am v1.2.3`) and push it (`git push`)
+3. Tag your commit (`git tag v1.2.3`) and push it as well (`git push origin refs/tags/v1.2.3`). Note: Make sure your tag name's format is `v*.*.*.`
+4. Once the release pipeline has been completed, publish the draft release on Github, and include the release notes
