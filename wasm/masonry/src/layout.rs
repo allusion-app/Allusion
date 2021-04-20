@@ -114,15 +114,14 @@ impl Layout {
                 let total_horizontal_padding = num_items_in_row * padding;
                 let total_width = container_width - total_horizontal_padding;
 
-                transform.scale(total_width, new_row_width);
-                transform.left += (num_items_in_row - 1) * padding;
-
+                let corrected_height = (thumbnail_size * total_width).div_int(new_row_width);
                 let mut left = 0;
                 for prev_item in self
                     .transforms
-                    .get_mut(first_row_item_index..i)
+                    .get_mut(first_row_item_index..=i)
                     .unwrap_or_abort()
                 {
+                    prev_item.height = corrected_height;
                     prev_item.scale(total_width, new_row_width);
                     prev_item.left += left;
                     left += padding;
@@ -131,7 +130,6 @@ impl Layout {
                 // Start a new row
                 cur_row_width = 0;
                 first_row_item_index = i + 1;
-                let corrected_height = (thumbnail_size * total_width).div_int(new_row_width);
                 top_offset += padding + corrected_height;
             } else {
                 // Otherwise, just add its width to the current row width and continue on!
@@ -278,7 +276,6 @@ impl Transform {
     fn scale(&mut self, total_width: u32, current_width: u32) {
         self.left = (self.left * total_width).div_int(current_width);
         self.width = (self.width * total_width).div_int(current_width);
-        self.height = (self.height * total_width).div_int(current_width);
     }
 
     fn correct_height(&mut self, width: u32, aspect_ratio: &AspectRatio) {
