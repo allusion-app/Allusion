@@ -1,0 +1,5 @@
+# This is used to simulate automatic update checking during development
+# Could also host release server locally: https://www.electron.build/auto-update#debugging
+provider: github
+owner: allusion-app
+repo: Allusion

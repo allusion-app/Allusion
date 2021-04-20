@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuItem } from 'widgets/menus';
+import { RendererMessenger } from 'src/Messaging';
 
 const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
   return (
@@ -32,6 +33,11 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
         onClick={uiStore.toggleSettings}
         text="Settings"
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.toggleSettings} />}
+      />
+      <MenuItem
+        icon={IconSet.ARROW_UP}
+        onClick={RendererMessenger.checkForUpdates}
+        text="Check for updates"
       />
       <MenuItem icon={IconSet.LOGO} onClick={uiStore.toggleAbout} text="About" />
     </MenuButton>
