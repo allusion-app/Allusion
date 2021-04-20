@@ -3,7 +3,6 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
-import { encodeFilePath } from 'src/frontend/utils';
 import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
 import { createSubmitCommand } from './LayoutSwitcher';
@@ -196,9 +195,10 @@ const ZoomableImage: React.FC<IZoomableImageProps> = ({
         <PinchZoomPan
           position="center"
           zoomButtons={false}
-          doubleTapBehavior="zoom"
+          minScale={0.1}
+          maxScale={5}
           // Force a re-render when the image changes, in order to reset the zoom level
-          key={encodeFilePath(src)}
+          key={src}
         >
           <img src={src} alt={`Image could not be loaded: ${src}`} onError={setLoadError} />
         </PinchZoomPan>
