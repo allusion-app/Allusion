@@ -7,10 +7,12 @@ import {
   nativeImage,
   nativeTheme,
   screen,
+  shell,
   Tray,
 } from 'electron';
 import path from 'path';
 import fse from 'fs-extra';
+import { autoUpdater, UpdateInfo } from 'electron-updater';
 import TrayIcon from '../resources/logo/png/full-color/allusion-logomark-fc-256x256.png';
 import AppIcon from '../resources/logo/png/full-color/allusion-logomark-fc-512x512.png';
 import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
@@ -82,7 +84,7 @@ const getWindowBounds = (): BrowserWindowConstructorOptions => {
 };
 
 // Save window position and bounds: https://github.com/electron/electron/issues/526
-let saveBoundsTimeout: NodeJS.Timeout | null = null;
+let saveBoundsTimeout: ReturnType<typeof setTimeout> | null = null;
 function saveBoundsSoon() {
   if (saveBoundsTimeout) clearTimeout(saveBoundsTimeout);
   saveBoundsTimeout = setTimeout(() => {
@@ -375,7 +377,7 @@ initialize = () => {
   createWindow();
   createPreviewWindow();
 
-  autoUpdater.checkForUpdatesAndNotify();
+  // autoUpdater.checkForUpdatesAndNotify();
 };
 
 // This method will be called when Electron has finished
@@ -401,6 +403,65 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+// Auto-updates: using electron-builders autoUpdater: https://www.electron.build/auto-update#quick-setup-guide
+// How it should go:
+// - Auto check for updates on startup (toggleable in settings) -> show toast message if update available
+// - Option to check for updates in settings
+// - Only download and install when user agrees
+autoUpdater.autoDownload = false;
+let hasCheckedForUpdateOnStartup = false;
+if (isDev()) {
+  autoUpdater.updateConfigPath = path.join(__dirname, '..', 'dev-app-update.yml');
+}
+
+autoUpdater.on('error', (error) => {
+  dialog.showErrorBox('Error: ', error == null ? 'unknown' : (error.stack || error).toString());
+});
+
+autoUpdater.on('update-available', async (update: { info: UpdateInfo }) => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const dialogResult = await dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: 'Found Updates',
+    message: `Update available: ${update.info.releaseName || update.info.version} (${
+      update.info.releaseDate
+    })\n${update.info?.releaseNotes}, do you want update now?`,
+    buttons: ['Sure', 'No', 'Open release page'],
+  });
+
+  if (dialogResult.response === 0) {
+    autoUpdater.downloadUpdate();
+  } else if (dialogResult.response === 2) {
+    shell.openExternal('https://github.com/allusion-app/Allusion/releases/latest');
+  }
+});
+
+autoUpdater.on('update-not-available', () => {
+  if (!hasCheckedForUpdateOnStartup) {
+    // don't show a dialog if the update check was triggered automatically on start-up
+    hasCheckedForUpdateOnStartup = true;
+    return;
+  }
+  // Could also show this as a toast!
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  dialog.showMessageBox(mainWindow, {
+    title: 'No Update Available',
+    message: `Current version is up-to-date (v${getVersion()})!`,
+  });
+});
+
+autoUpdater.on('update-downloaded', async () => {
+  await dialog.showMessageBox({
+    title: 'Install Updates',
+    message: 'Updates downloaded, Allusion will restart...',
+  });
+  setImmediate(() => autoUpdater.quitAndInstall());
+});
+
+// check for updates on startup.
+// TODO: Make this disableable
+autoUpdater.checkForUpdates();
 
 // Messaging: Sending and receiving messages between the main and renderer process //
 /////////////////////////////////////////////////////////////////////////////////////
@@ -526,7 +587,7 @@ MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
 
 MainMessenger.onIsMaximized(() => mainWindow?.isMaximized() ?? false);
 
-MainMessenger.onGetVersion(() => {
+function getVersion() {
   if (isDev()) {
     // Weird quirk: it returns the Electron version in dev mode
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -534,4 +595,9 @@ MainMessenger.onGetVersion(() => {
   } else {
     return app.getVersion();
   }
+}
+MainMessenger.onGetVersion(() => getVersion());
+
+MainMessenger.onCheckForUpdates(() => {
+  autoUpdater.checkForUpdates();
 });
