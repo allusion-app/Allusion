@@ -46,10 +46,9 @@ impl MasonryWorker {
     // This method is necessary because calling [`Sender.send()`] is actually faster than creating
     // the web worker and compiling the WebAssembly inside of it. We have to wait until the
     // WebAssembly module is compiled, so a `Receiver` instance can be created.
-    pub fn init(&mut self) -> Result<js_sys::Promise, JsValue> {
-        // [u32, WebAssembly.Memory]
+    pub fn init(&mut self) -> js_sys::Promise {
         let initial_message = js_sys::Array::of1(&wasm_bindgen::memory());
-        Ok(js_sys::Promise::new(
+        js_sys::Promise::new(
             &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
                 self.worker.set_onmessage(Some(
                     Closure::once_into_js(move |_event: web_sys::MessageEvent| {
@@ -61,7 +60,7 @@ impl MasonryWorker {
                 let r = self.worker.post_message(&initial_message);
                 debug_assert!(r.is_ok(), "calling Worker.postMessage should never fail");
             },
-        ))
+        )
     }
 
     /// Computes the transforms of all items and returns the height of the container.
