@@ -9,7 +9,8 @@ import {
   screen,
   Tray,
 } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import path from 'path';
+import fse from 'fs-extra';
 import TrayIcon from '../resources/logo/png/full-color/allusion-logomark-fc-256x256.png';
 import AppIcon from '../resources/logo/png/full-color/allusion-logomark-fc-512x512.png';
 import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
@@ -22,6 +23,8 @@ let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
 let tray: Tray | null;
 let clipServer: ClipServer | null;
+
+const windowStateFilePath = path.join(app.getPath('userData'), 'windowState.json');
 
 const isMac = process.platform === 'darwin';
 
@@ -50,6 +53,45 @@ const getTags = async (): Promise<ITag[]> => {
   return [];
 };
 
+// Based on https://github.com/electron/electron/issues/526
+const getWindowBounds = (): BrowserWindowConstructorOptions => {
+  const options: BrowserWindowConstructorOptions = {};
+  if (fse.existsSync(windowStateFilePath)) {
+    const bounds = fse.readJSONSync(windowStateFilePath);
+
+    if (bounds) {
+      const area = screen.getDisplayMatching(bounds).workArea;
+      // If the saved position still valid (the window is entirely inside the display area), use it.
+      if (
+        bounds.x >= area.x &&
+        bounds.y >= area.y &&
+        bounds.x + bounds.width <= area.x + area.width &&
+        bounds.y + bounds.height <= area.y + area.height
+      ) {
+        options.x = bounds.x;
+        options.y = bounds.y;
+      }
+      // If the saved size is still valid, use it.
+      if (bounds.width <= area.width || bounds.height <= area.height) {
+        options.width = bounds.width;
+        options.height = bounds.height;
+      }
+    }
+  }
+  return options;
+};
+
+// Save window position and bounds: https://github.com/electron/electron/issues/526
+let saveBoundsTimeout: NodeJS.Timeout | null = null;
+function saveBoundsSoon() {
+  if (saveBoundsTimeout) clearTimeout(saveBoundsTimeout);
+  saveBoundsTimeout = setTimeout(() => {
+    saveBoundsTimeout = null;
+    const bounds = mainWindow?.getNormalBounds();
+    fse.writeFileSync(windowStateFilePath, JSON.stringify(bounds, null, 2));
+  }, 1000);
+}
+
 let initialize = () => {
   console.error('Placeholder function. App was not properly initialized!');
 };
@@ -76,6 +118,7 @@ function createTrayMenu() {
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
   const mainOptions: BrowserWindowConstructorOptions = {
     titleBarStyle: 'hidden',
     // Disable native frame: we use a custom titlebar for all platforms: a unique one for MacOS, and one for windows/linux
@@ -96,6 +139,8 @@ function createWindow() {
     backgroundColor: '#1c1e23',
     title: 'Allusion',
     show: false, // only show once initial loading is finished
+    // Remember window size and position
+    ...getWindowBounds(),
   };
 
   // Create the browser window.
@@ -155,6 +200,9 @@ function createWindow() {
     'leave-full-screen',
     () => mainWindow && MainMessenger.fullscreenChanged(mainWindow.webContents, false),
   );
+
+  mainWindow.addListener('resize', saveBoundsSoon);
+  mainWindow.addListener('move', saveBoundsSoon);
 
   let menu = null;
 
@@ -234,9 +282,6 @@ function createWindow() {
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
-
-  // then maximize the window
-  mainWindow.maximize();
 
   // Open the DevTools if in dev mode.
   if (isDev()) {
