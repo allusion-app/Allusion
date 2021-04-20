@@ -166,8 +166,8 @@ const Page = (props: IPage) => {
             {section.content}
           </section>
         ))}
+        <ButtonGroup>{buttons}</ButtonGroup>
       </article>
-      <ButtonGroup>{buttons}</ButtonGroup>
     </div>
   );
 };
