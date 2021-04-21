@@ -58,27 +58,30 @@ const getTags = async (): Promise<ITag[]> => {
 // Based on https://github.com/electron/electron/issues/526
 const getWindowBounds = (): BrowserWindowConstructorOptions => {
   const options: BrowserWindowConstructorOptions = {};
-  if (fse.existsSync(windowStateFilePath)) {
-    const bounds = fse.readJSONSync(windowStateFilePath);
-
-    if (bounds) {
-      const area = screen.getDisplayMatching(bounds).workArea;
-      // If the saved position still valid (the window is entirely inside the display area), use it.
-      if (
-        bounds.x >= area.x &&
-        bounds.y >= area.y &&
-        bounds.x + bounds.width <= area.x + area.width &&
-        bounds.y + bounds.height <= area.y + area.height
-      ) {
-        options.x = bounds.x;
-        options.y = bounds.y;
-      }
-      // If the saved size is still valid, use it.
-      if (bounds.width <= area.width || bounds.height <= area.height) {
-        options.width = bounds.width;
-        options.height = bounds.height;
+  try {
+    if (fse.existsSync(windowStateFilePath)) {
+      const bounds = fse.readJSONSync(windowStateFilePath);
+      if (bounds) {
+        const area = screen.getDisplayMatching(bounds).workArea;
+        // If the saved position still valid (the window is entirely inside the display area), use it.
+        if (
+          bounds.x >= area.x &&
+          bounds.y >= area.y &&
+          bounds.x + bounds.width <= area.x + area.width &&
+          bounds.y + bounds.height <= area.y + area.height
+        ) {
+          options.x = bounds.x;
+          options.y = bounds.y;
+        }
+        // If the saved size is still valid, use it.
+        if (bounds.width <= area.width || bounds.height <= area.height) {
+          options.width = bounds.width;
+          options.height = bounds.height;
+        }
       }
     }
+  } catch (e) {
+    console.error('Could not read bounds file!', e);
   }
   return options;
 };
@@ -419,17 +422,22 @@ if (isDev()) {
 }
 
 autoUpdater.on('error', (error) => {
-  dialog.showErrorBox('Error: ', error == null ? 'unknown' : (error.stack || error).toString());
+  dialog.showErrorBox(
+    'Auto-update error: ',
+    error == null ? 'unknown' : (error.stack || error).toString(),
+  );
 });
 
-autoUpdater.on('update-available', async (update: { info: UpdateInfo }) => {
+autoUpdater.on('update-available', async (info: UpdateInfo) => {
   if (!mainWindow || mainWindow.isDestroyed()) return;
+
+  const message = `Update available: ${info.releaseName || info.version}:\nDo you want update now?`;
+  // info.releaseNotes attribute is HTML, could show that in renderer at some point
+
   const dialogResult = await dialog.showMessageBox(mainWindow, {
     type: 'info',
     title: 'Found Updates',
-    message: `Update available: ${update.info.releaseName || update.info.version} (${
-      update.info.releaseDate
-    })\n${update.info?.releaseNotes}, do you want update now?`,
+    message,
     buttons: ['Sure', 'No', 'Open release page'],
   });
 
@@ -462,12 +470,13 @@ autoUpdater.on('update-downloaded', async () => {
   setImmediate(() => autoUpdater.quitAndInstall());
 });
 
-// check for updates on startup.
+// Check for updates on startup
 // TODO: Make this disableable
 autoUpdater.checkForUpdates();
 
+//---------------------------------------------------------------------------------//
 // Messaging: Sending and receiving messages between the main and renderer process //
-/////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------//
 MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
 MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
 
