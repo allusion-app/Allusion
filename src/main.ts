@@ -99,13 +99,16 @@ let initialize = () => {
 };
 
 function createTrayMenu() {
+  const onTrayClick = () =>
+    !mainWindow || mainWindow.isDestroyed() ? initialize() : mainWindow.focus();
+
   if (!tray || tray.isDestroyed()) {
     tray = new Tray(`${__dirname}/${isMac ? TrayIconMac : TrayIcon}`);
     const trayMenu = Menu.buildFromTemplate([
       {
         label: 'Open',
         type: 'normal',
-        click: () => mainWindow?.focus() ?? initialize(),
+        click: onTrayClick,
       },
       {
         label: 'Quit',
@@ -114,7 +117,7 @@ function createTrayMenu() {
     ]);
     tray.setContextMenu(trayMenu);
     tray.setToolTip('Allusion - Your Visual Library');
-    tray.on('click', () => mainWindow?.focus() ?? initialize());
+    tray.on('click', onTrayClick);
   }
 }
 
