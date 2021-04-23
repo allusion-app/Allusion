@@ -63,8 +63,18 @@ const emptyFunction = () => {};
 //   }
 // };
 
-const criteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict);
+const pathCriteria = (path: string) =>
+  new ClientStringSearchCriteria<IFile>('absolutePath', path, 'startsWith', CustomKeyDict);
+
+// Matching by location is faster than by path, so do that if this item represents a location
+const locationCriteria = (location: ClientLocation) =>
+  new ClientStringSearchCriteria<IFile>(
+    'locationId',
+    location.id,
+    'equals',
+    CustomKeyDict,
+    location.name,
+  );
 
 const customKeys = (
   search: (path: string) => void,
@@ -105,12 +115,12 @@ type UiStoreProp = { uiStore: UiStore };
 const DirectoryMenu = ({ path, uiStore }: { path: string } & UiStoreProp) => {
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
-  const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(criteria(path)), [
+  const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(pathCriteria(path)), [
     path,
     uiStore,
   ]);
 
-  const handleReplaceSearch = useCallback(() => uiStore.replaceSearchCriteria(criteria(path)), [
+  const handleReplaceSearch = useCallback(() => uiStore.replaceSearchCriteria(pathCriteria(path)), [
     path,
     uiStore,
   ]);
@@ -258,8 +268,8 @@ const SubLocation = ({
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       // TODO: Mark searched nodes as selected?
       event.ctrlKey
-        ? uiStore.addSearchCriteria(criteria(nodeData.fullPath))
-        : uiStore.replaceSearchCriteria(criteria(nodeData.fullPath));
+        ? uiStore.addSearchCriteria(pathCriteria(nodeData.fullPath))
+        : uiStore.replaceSearchCriteria(pathCriteria(nodeData.fullPath));
     },
     [nodeData.fullPath, uiStore],
   );
@@ -307,10 +317,10 @@ const Location = observer(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         // TODO: Mark searched nodes as selected?
         event.ctrlKey
-          ? uiStore.addSearchCriteria(criteria(nodeData.path))
-          : uiStore.replaceSearchCriteria(criteria(nodeData.path));
+          ? uiStore.addSearchCriteria(locationCriteria(nodeData))
+          : uiStore.replaceSearchCriteria(locationCriteria(nodeData));
       },
-      [nodeData.path, uiStore],
+      [nodeData, uiStore],
     );
 
     const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
@@ -395,7 +405,7 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
         isExpanded,
         emptyFunction,
         toggleExpansion,
-        customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(criteria(path))),
+        customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
       ),
     [uiStore],
   );

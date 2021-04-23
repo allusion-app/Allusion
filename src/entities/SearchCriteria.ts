@@ -186,22 +186,25 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
 
 export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   @observable public value: string;
+  @observable public label?: string;
 
   constructor(
     key: keyof T,
     value: string = '',
     operator: StringOperatorType = 'contains',
     dict?: SearchKeyDict<T>,
+    label?: string,
   ) {
     super(key, 'string', operator, dict);
     this.value = value;
+    this.label = label;
     makeObservable(this);
   }
 
   toString: () => string = () =>
     `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
       this.operator,
-    )} "${this.value}"`;
+    )} "${this.label || this.value}"`;
 
   serialize = (): IStringSearchCriteria<T> => {
     return {
