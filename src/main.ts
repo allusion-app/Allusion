@@ -56,28 +56,29 @@ const getTags = async (): Promise<ITag[]> => {
 };
 
 // Based on https://github.com/electron/electron/issues/526
-const getWindowBounds = (): BrowserWindowConstructorOptions => {
-  const options: BrowserWindowConstructorOptions = {};
+const getPreviousWindowState = (): BrowserWindowConstructorOptions & { isMaximized?: boolean } => {
+  const options: BrowserWindowConstructorOptions & { isMaximized?: boolean } = {};
   try {
     if (fse.existsSync(windowStateFilePath)) {
-      const bounds = fse.readJSONSync(windowStateFilePath);
-      if (bounds) {
-        const area = screen.getDisplayMatching(bounds).workArea;
+      const state = fse.readJSONSync(windowStateFilePath);
+      if (state) {
+        const area = screen.getDisplayMatching(state).workArea;
         // If the saved position still valid (the window is entirely inside the display area), use it.
         if (
-          bounds.x >= area.x &&
-          bounds.y >= area.y &&
-          bounds.x + bounds.width <= area.x + area.width &&
-          bounds.y + bounds.height <= area.y + area.height
+          state.x >= area.x &&
+          state.y >= area.y &&
+          state.x + state.width <= area.x + area.width &&
+          state.y + state.height <= area.y + area.height
         ) {
-          options.x = bounds.x;
-          options.y = bounds.y;
+          options.x = state.x;
+          options.y = state.y;
         }
         // If the saved size is still valid, use it.
-        if (bounds.width <= area.width || bounds.height <= area.height) {
-          options.width = bounds.width;
-          options.height = bounds.height;
+        if (state.width <= area.width || state.height <= area.height) {
+          options.width = state.width;
+          options.height = state.height;
         }
+        options.isMaximized = state.isMaximized;
       }
     }
   } catch (e) {
@@ -88,12 +89,13 @@ const getWindowBounds = (): BrowserWindowConstructorOptions => {
 
 // Save window position and bounds: https://github.com/electron/electron/issues/526
 let saveBoundsTimeout: ReturnType<typeof setTimeout> | null = null;
-function saveBoundsSoon() {
+function saveWindowStateSoon() {
   if (saveBoundsTimeout) clearTimeout(saveBoundsTimeout);
   saveBoundsTimeout = setTimeout(() => {
     saveBoundsTimeout = null;
-    const bounds = mainWindow?.getNormalBounds();
-    fse.writeFileSync(windowStateFilePath, JSON.stringify(bounds, null, 2));
+    const state: any = mainWindow?.getNormalBounds();
+    state.isMaximized = mainWindow?.isMaximized();
+    fse.writeFileSync(windowStateFilePath, JSON.stringify(state, null, 2));
   }, 1000);
 }
 
@@ -127,6 +129,9 @@ function createTrayMenu() {
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
+  // Remember window size and position
+  const previousWindowState = getPreviousWindowState();
+
   const mainOptions: BrowserWindowConstructorOptions = {
     titleBarStyle: 'hidden',
     // Disable native frame: we use a custom titlebar for all platforms: a unique one for MacOS, and one for windows/linux
@@ -147,8 +152,7 @@ function createWindow() {
     backgroundColor: '#1c1e23',
     title: 'Allusion',
     show: false, // only show once initial loading is finished
-    // Remember window size and position
-    ...getWindowBounds(),
+    ...previousWindowState,
   };
 
   // Create the browser window.
@@ -209,8 +213,10 @@ function createWindow() {
     () => mainWindow && MainMessenger.fullscreenChanged(mainWindow.webContents, false),
   );
 
-  mainWindow.addListener('resize', saveBoundsSoon);
-  mainWindow.addListener('move', saveBoundsSoon);
+  mainWindow.addListener('resize', saveWindowStateSoon);
+  mainWindow.addListener('move', saveWindowStateSoon);
+  mainWindow.addListener('unmaximize', saveWindowStateSoon);
+  mainWindow.addListener('maximize', saveWindowStateSoon);
 
   let menu = null;
 
@@ -290,6 +296,11 @@ function createWindow() {
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
+
+  // then maximize the window if it was previously
+  if (previousWindowState.isMaximized) {
+    mainWindow.maximize();
+  }
 
   // Open the DevTools if in dev mode.
   if (isDev()) {
