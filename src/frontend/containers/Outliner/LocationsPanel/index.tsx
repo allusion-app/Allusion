@@ -368,93 +368,99 @@ const LocationLabel = (nodeData: any, treeData: any) => (
 interface ILocationTreeProps {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   onDelete: (loc: ClientLocation) => void;
+  reloadLocationHierarchyTrigger?: Date;
 }
 
-const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProps) => {
-  const { locationStore, uiStore } = useContext(StoreContext);
-  const [expansion, setExpansion] = useState<IExpansionState>({});
-  const treeData: ITreeData = useMemo(
-    () => ({
-      expansion,
-      setExpansion,
-      delete: onDelete,
-      showContextMenu,
-    }),
-    [expansion, onDelete, showContextMenu],
-  );
-  const [branches, setBranches] = useState<ITreeItem[]>(
-    locationStore.locationList.map((location) => ({
-      id: location.id,
-      label: LocationLabel,
-      children: [],
-      nodeData: location,
-      isExpanded,
-    })),
-  );
-
-  const handleBranchKeyDown = useCallback(
-    (
-      event: React.KeyboardEvent<HTMLLIElement>,
-      nodeData: ClientLocation | IDirectoryTreeItem,
-      treeData: ITreeData,
-    ) =>
-      createBranchOnKeyDown(
-        event,
-        nodeData,
-        treeData,
+const LocationsTree = observer(
+  ({ onDelete, showContextMenu, reloadLocationHierarchyTrigger }: ILocationTreeProps) => {
+    const { locationStore, uiStore } = useContext(StoreContext);
+    const [expansion, setExpansion] = useState<IExpansionState>({});
+    const treeData: ITreeData = useMemo(
+      () => ({
+        expansion,
+        setExpansion,
+        delete: onDelete,
+        showContextMenu,
+      }),
+      [expansion, onDelete, showContextMenu],
+    );
+    const [branches, setBranches] = useState<ITreeItem[]>(
+      locationStore.locationList.map((location) => ({
+        id: location.id,
+        label: LocationLabel,
+        children: [],
+        nodeData: location,
         isExpanded,
-        emptyFunction,
-        toggleExpansion,
-        customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
-      ),
-    [uiStore],
-  );
+      })),
+    );
 
-  useEffect(() => {
-    // Prevents updating state when component will be unmounted!
-    let isMounted = true;
-    const dispose = autorun(() => {
-      Promise.all(
-        locationStore.locationList.map(async (location) => {
-          let children: ITreeItem[];
-          try {
-            children = (await getDirectoryTree(location.path)).map(mapDirectory);
-          } catch (error) {
-            children = [];
+    const handleBranchKeyDown = useCallback(
+      (
+        event: React.KeyboardEvent<HTMLLIElement>,
+        nodeData: ClientLocation | IDirectoryTreeItem,
+        treeData: ITreeData,
+      ) =>
+        createBranchOnKeyDown(
+          event,
+          nodeData,
+          treeData,
+          isExpanded,
+          emptyFunction,
+          toggleExpansion,
+          customKeys.bind(null, (path: string) =>
+            uiStore.replaceSearchCriteria(pathCriteria(path)),
+          ),
+        ),
+      [uiStore],
+    );
+
+    useEffect(() => {
+      // Prevents updating state when component will be unmounted!
+      let isMounted = true;
+      const dispose = autorun(() => {
+        Promise.all(
+          locationStore.locationList.map(async (location) => {
+            let children: ITreeItem[];
+            try {
+              children = (await getDirectoryTree(location.path)).map(mapDirectory);
+            } catch (error) {
+              children = [];
+            }
+            return {
+              id: location.id,
+              label: LocationLabel,
+              children,
+              nodeData: location,
+              isExpanded,
+            };
+          }),
+        ).then((value) => {
+          if (isMounted) {
+            setBranches(value);
           }
-          return {
-            id: location.id,
-            label: LocationLabel,
-            children,
-            nodeData: location,
-            isExpanded,
-          };
-        }),
-      ).then((value) => {
-        if (isMounted) {
-          setBranches(value);
-        }
+        });
       });
-    });
 
-    return () => {
-      isMounted = false;
-      dispose();
-    };
-  }, [locationStore.locationList]);
+      return () => {
+        isMounted = false;
+        dispose();
+      };
+      // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
+    }, [locationStore.locationList, reloadLocationHierarchyTrigger]);
 
-  return (
-    <Tree
-      id="location-list"
-      multiSelect
-      children={branches}
-      treeData={treeData}
-      toggleExpansion={toggleExpansion}
-      onBranchKeyDown={handleBranchKeyDown}
-      onLeafKeyDown={emptyFunction}
-    />
-  );
-});
+    return (
+      <Tree
+        id="location-list"
+        multiSelect
+        children={branches}
+        treeData={treeData}
+        toggleExpansion={toggleExpansion}
+        onBranchKeyDown={handleBranchKeyDown}
+        onLeafKeyDown={emptyFunction}
+      />
+    );
+  },
+);
 
 const LocationsPanel = observer(() => {
   const { locationStore } = useContext(StoreContext);
@@ -462,6 +468,7 @@ const LocationsPanel = observer(() => {
 
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation | undefined>(undefined);
   const [isCollapsed, setCollapsed] = useState(false);
+  const [reloadLocationHierarchyTrigger, setReloadLocationHierarchyTrigger] = useState(new Date());
 
   // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
   const handleChooseWatchedDir = useCallback(async () => {
@@ -519,6 +526,15 @@ const LocationsPanel = observer(() => {
       <header>
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list">
+          {locationStore.locationList.length > 0 && (
+            <ToolbarButton
+              showLabel="never"
+              icon={IconSet.RELOAD}
+              text="Refresh"
+              onClick={() => setReloadLocationHierarchyTrigger(new Date())}
+              tooltip={Tooltip.Refresh}
+            />
+          )}
           <ToolbarButton
             showLabel="never"
             icon={IconSet.PLUS}
@@ -529,7 +545,11 @@ const LocationsPanel = observer(() => {
         </Toolbar>
       </header>
       <Collapse open={!isCollapsed}>
-        <LocationsTree showContextMenu={show} onDelete={setDeletableLocation} />
+        <LocationsTree
+          showContextMenu={show}
+          onDelete={setDeletableLocation}
+          reloadLocationHierarchyTrigger={reloadLocationHierarchyTrigger}
+        />
         {isEmpty && <i>Click + to choose a Location</i>}
       </Collapse>
       <LocationRecoveryDialog />
