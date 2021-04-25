@@ -64,7 +64,8 @@ const VirtualizedRenderer = observer(
         const end = findViewportEdge(yOffset + viewportHeight + overdraw, numImages, layout, true);
 
         setStartRenderIndex(start);
-        setEndRenderIndex(Math.min(end, start + 256)); // hard limit of 256 images at once, for safety reasons (we don't want any exploding computers). Might be bad for people with 4k screens and small thumbnails...
+        // hard limit of 512 images at once, for safety reasons (we don't want any exploding computers). Might be bad for people with 4k screens and small thumbnails...
+        setEndRenderIndex(Math.min(end, start + 512));
 
         // store the first item in the viewport in the UIStore so that switching between view modes retains the scroll position
         if (setFirstItem) uiStore.setFirstItem(firstImageIndex);
