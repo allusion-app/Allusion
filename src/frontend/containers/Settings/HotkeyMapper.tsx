@@ -32,7 +32,9 @@ export const HotkeyMapper = observer(() => {
 
         return (
           <details key={actionKey}>
-            <summary>{camelCaseToSpaced(actionKey)}</summary>
+            <summary>
+              {camelCaseToSpaced(actionKey)} ({keyComboToString(combo)})
+            </summary>
             <KeyComboEditor
               actionKey={actionKey}
               isChanging={isChanging}
@@ -115,7 +117,7 @@ const KeyComboEditor = observer(
         <Button
           icon={IconSet.RELOAD}
           onClick={() => uiStore.remapHotkey(actionKey, defaultCombo)}
-          text="Reload"
+          text="Reset to default"
           disabled={comboMatches(parseKeyCombo(combo), parseKeyCombo(defaultCombo))}
         />
       </div>
