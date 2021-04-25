@@ -255,6 +255,18 @@ function createWindow() {
     submenu: [
       { role: 'reload' },
       { role: 'forceReload' },
+      {
+        // Alternative to reload: Just reloading window seems to cause a crash (started happening since the recent WASM changes)
+        // A restart of the whole electron app circumvents that.
+        // but not always
+        // TODO: Call this instead at every place that does a simple refresh
+        label: 'Complete restart',
+        accelerator: 'F5',
+        click: () => {
+          app.relaunch();
+          app.exit();
+        },
+      },
       { role: 'toggleDevTools' },
       { type: 'separator' },
       {
