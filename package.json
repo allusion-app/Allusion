@@ -43,7 +43,7 @@
       ]
     },
     "win": {
-      "target": "nsis",
+      "target": ["nsis", "portable"],
       "extraResources": [
         "resources/exiftool/exiftool.exe",
         "resources/exiftool/.Exiftool_config"
@@ -51,6 +51,9 @@
     },
     "nsis": {
       "oneClick": false
+    },
+    "portable": {
+      "artifactName": "${productName}Portable.${version}.${ext}"
     },
     "files": [
       "!node_modules",
