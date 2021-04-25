@@ -1,4 +1,4 @@
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useContext, useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
@@ -6,7 +6,7 @@ import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile } from 'src/entities/File';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import UiStore from 'src/frontend/stores/UiStore';
-import { debouncedThrottle } from 'src/frontend/utils';
+import { debouncedThrottle, throttle } from 'src/frontend/utils';
 import { IconSet } from 'widgets';
 import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
 import { listColumns, GalleryCommand, ListCell } from './GalleryItem';
@@ -16,8 +16,24 @@ const getItemKey = action((index: number, data: ClientFile[]): string => {
   return data[index].id;
 });
 
-const ListGallery = observer((props: ILayoutProps) => {
-  const { contentRect, select, lastSelectionIndex, showContextMenu, uiStore, fileStore } = props;
+interface IListGalleryProps {
+  handleFileSelect: (
+    selectedFile: ClientFile,
+    toggleSelection: boolean,
+    rangeSelection: boolean,
+  ) => void;
+}
+
+const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
+  const {
+    contentRect,
+    select,
+    lastSelectionIndex,
+    showContextMenu,
+    handleFileSelect,
+    uiStore,
+    fileStore,
+  } = props;
   const cellSize = 24;
   const dndData = useContext(TagDnDContext);
   const submitCommand = useMemo(
@@ -43,6 +59,30 @@ const ListGallery = observer((props: ILayoutProps) => {
       ref.current.scrollToItem(Math.floor(index));
     }
   }, [index, fileSelectionSize]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      runInAction(() => {
+        let index = lastSelectionIndex.current;
+        if (index === undefined) {
+          return;
+        }
+        if (e.key === 'ArrowUp' && index > 0) {
+          index -= 1;
+        } else if (e.key === 'ArrowDown' && index < fileStore.fileList.length - 1) {
+          index += 1;
+        } else {
+          return;
+        }
+        e.preventDefault();
+        handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      });
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileStore, handleFileSelect]);
 
   const Row = useCallback(
     ({ index, style, data, isScrolling }) => (

@@ -1,7 +1,9 @@
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef, useState } from 'react';
+import { ClientFile } from 'src/entities/File';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
-import { debounce } from 'src/frontend/utils';
+import { debounce, throttle } from 'src/frontend/utils';
 import { MasonryType } from 'wasm/masonry/pkg/masonry';
 import { getThumbnailSize, ILayoutProps } from '../LayoutSwitcher';
 import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
@@ -14,6 +16,11 @@ type SupportedViewMethod =
 
 interface IMasonryRendererProps {
   type: SupportedViewMethod;
+  handleFileSelect: (
+    selectedFile: ClientFile,
+    toggleSelection: boolean,
+    rangeSelection: boolean,
+  ) => void;
 }
 
 const ViewMethodLayoutDict: Record<SupportedViewMethod, MasonryType> = {
@@ -34,6 +41,7 @@ const MasonryRenderer = observer(
     select,
     showContextMenu,
     lastSelectionIndex,
+    handleFileSelect,
   }: IMasonryRendererProps & ILayoutProps) => {
     const [containerHeight, setContainerHeight] = useState<number>();
     // The timestamp from when the layout was last updated
@@ -47,7 +55,48 @@ const MasonryRenderer = observer(
     const viewMethod = uiStore.method as SupportedViewMethod;
     const numImages = fileStore.fileList.length;
 
-    // TODO: vertical keyboard navigation with lastSelectionIndex. Keep in mind this will interfere when the TagPopover is open!
+    // Vertical keyboard navigation with lastSelectionIndex
+    useEffect(() => {
+      const onKeyDown = (e: KeyboardEvent) => {
+        runInAction(() => {
+          let index = lastSelectionIndex.current;
+          if (index === undefined) {
+            return;
+          }
+          // Find the image that's below/above the center of the current image
+          const curTransform = worker.getTransform(index);
+          const curTransformCenter = curTransform.left + curTransform.width / 2;
+          const maxLookAhead = 100;
+          const numFiles = fileStore.fileList.length;
+
+          if (e.key === 'ArrowUp') {
+            for (let i = index - 1; i > Math.max(0, i - maxLookAhead); i--) {
+              const t = worker.getTransform(i);
+              if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
+                index = i;
+                break;
+              }
+            }
+          } else if (e.key === 'ArrowDown' && index < numFiles - 1) {
+            for (let i = index + 1; i < Math.min(i + maxLookAhead, numFiles); i++) {
+              const t = worker.getTransform(i);
+              if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
+                index = i;
+                break;
+              }
+            }
+          } else {
+            return;
+          }
+          e.preventDefault();
+          handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+        });
+      };
+
+      const throttledKeyDown = throttle(onKeyDown, 50);
+      window.addEventListener('keydown', throttledKeyDown);
+      return () => window.removeEventListener('keydown', throttledKeyDown);
+    });
 
     // Initialize on mount
     useEffect(() => {

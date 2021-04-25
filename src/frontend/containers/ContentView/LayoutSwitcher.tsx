@@ -141,6 +141,7 @@ const Layout = ({
           select={handleFileSelect}
           uiStore={uiStore}
           fileStore={fileStore}
+          handleFileSelect={handleFileSelect}
         />
       );
     case ViewMethod.List:
@@ -152,6 +153,7 @@ const Layout = ({
           showContextMenu={showContextMenu}
           uiStore={uiStore}
           fileStore={fileStore}
+          handleFileSelect={handleFileSelect}
         />
       );
     default:
