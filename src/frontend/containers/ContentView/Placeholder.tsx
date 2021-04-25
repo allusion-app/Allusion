@@ -54,7 +54,7 @@ const Welcome = () => {
       <br />
 
       {/* Mention principles (?) */}
-      <small>Allusion is a read-only application. We'll never touch your files</small>
+      <small>Allusion is a read-only application. We&rsquo;ll never touch your files</small>
     </ContentPlaceholder>
   );
 };

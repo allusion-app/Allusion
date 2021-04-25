@@ -173,8 +173,10 @@ details[open] > summary::-webkit-details-marker {
   height: 1rem;
   flex-shrink: 0;
 
-  * {
-    fill: currentColor;
+  &:not(.keep-color) {
+    * {
+      fill: currentColor;
+    }
   }
 }
 .custom-icon-128 > * {

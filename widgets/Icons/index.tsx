@@ -103,7 +103,9 @@ import WARNING_FILL from 'resources/icons/warning-fill.svg';
 import WARNING_BROKEN_LINK from 'resources/icons/warning-broken-link.svg';
 import WARNING from 'resources/icons/warning.svg';
 
-const toSvg = (src: any) => <SVG src={src} className="custom-icon" />;
+const toSvg = (src: any, keepColor?: boolean) => (
+  <SVG src={src} className={`custom-icon${keepColor ? ' keep-color' : ''}`} />
+);
 
 const IconSet = {
   ADD_TAG_FILL: toSvg(ADD_TAG_FILL),
@@ -152,7 +154,7 @@ const IconSet = {
   ITEM_MOVE_UP: toSvg(ITEM_MOVE_UP),
   OUTLINER: toSvg(OUTLINER),
   LOGO: toSvg(LOGO),
-  LOGO_FC: toSvg(LOGO_FC),
+  LOGO_FC: toSvg(LOGO_FC, true),
   LOGO_MARK_BLACK: toSvg(LOGOMARK_BLACK),
   LOGO_MARK_WHITE: toSvg(LOGOMARK_WHITE),
   MEDIA: toSvg(MEDIA),
