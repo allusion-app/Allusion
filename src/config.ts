@@ -10,7 +10,7 @@ export const githubUrl = 'https://github.com/allusion-app/VisualLibrary';
 export const chromeExtensionUrl =
   'https://chrome.google.com/webstore/detail/allusion-web-clipper/gjceheijjnmdfcolopodbopfoaicobna';
 
-export const RECURSIVE_DIR_WATCH_DEPTH = 8;
+export const RECURSIVE_DIR_WATCH_DEPTH = 16;
 
 export const thumbnailType = 'webp';
 

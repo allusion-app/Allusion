@@ -195,6 +195,8 @@ const ZoomableImage: React.FC<IZoomableImageProps> = ({
         <PinchZoomPan
           position="center"
           zoomButtons={false}
+          // FIXME: minScale breaks zooming for high resolution images (like 8K) since the initial zoom is below minZoom
+          // but we're hopefully writing a custom image viewer soon
           minScale={0.1}
           maxScale={5}
           // Force a re-render when the image changes, in order to reset the zoom level

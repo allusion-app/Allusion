@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { autorun } from 'mobx';
+import { autorun, runInAction } from 'mobx';
 
 import { RendererMessenger } from 'src/Messaging';
 import StoreContext from 'src/frontend/contexts/StoreContext';
@@ -65,16 +65,6 @@ const emptyFunction = () => {};
 
 const pathCriteria = (path: string) =>
   new ClientStringSearchCriteria<IFile>('absolutePath', path, 'startsWith', CustomKeyDict);
-
-// Matching by location is faster than by path, so do that if this item represents a location
-const locationCriteria = (location: ClientLocation) =>
-  new ClientStringSearchCriteria<IFile>(
-    'locationId',
-    location.id,
-    'equals',
-    CustomKeyDict,
-    location.name,
-  );
 
 const customKeys = (
   search: (path: string) => void,
@@ -317,8 +307,8 @@ const Location = observer(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         // TODO: Mark searched nodes as selected?
         event.ctrlKey
-          ? uiStore.addSearchCriteria(locationCriteria(nodeData))
-          : uiStore.replaceSearchCriteria(locationCriteria(nodeData));
+          ? uiStore.addSearchCriteria(pathCriteria(nodeData.path))
+          : uiStore.replaceSearchCriteria(pathCriteria(nodeData.path));
       },
       [nodeData, uiStore],
     );
@@ -371,96 +361,100 @@ interface ILocationTreeProps {
   reloadLocationHierarchyTrigger?: Date;
 }
 
-const LocationsTree = observer(
-  ({ onDelete, showContextMenu, reloadLocationHierarchyTrigger }: ILocationTreeProps) => {
-    const { locationStore, uiStore } = useContext(StoreContext);
-    const [expansion, setExpansion] = useState<IExpansionState>({});
-    const treeData: ITreeData = useMemo(
-      () => ({
-        expansion,
-        setExpansion,
-        delete: onDelete,
-        showContextMenu,
-      }),
-      [expansion, onDelete, showContextMenu],
-    );
-    const [branches, setBranches] = useState<ITreeItem[]>(
-      locationStore.locationList.map((location) => ({
-        id: location.id,
-        label: LocationLabel,
-        children: [],
-        nodeData: location,
+const LocationsTree = ({
+  onDelete,
+  showContextMenu,
+  reloadLocationHierarchyTrigger,
+}: ILocationTreeProps) => {
+  const { locationStore, uiStore } = useContext(StoreContext);
+  const [expansion, setExpansion] = useState<IExpansionState>({});
+  const treeData: ITreeData = useMemo(
+    () => ({
+      expansion,
+      setExpansion,
+      delete: onDelete,
+      showContextMenu,
+    }),
+    [expansion, onDelete, showContextMenu],
+  );
+  const [branches, setBranches] = useState<ITreeItem[]>([]);
+
+  const handleBranchKeyDown = useCallback(
+    (
+      event: React.KeyboardEvent<HTMLLIElement>,
+      nodeData: ClientLocation | IDirectoryTreeItem,
+      treeData: ITreeData,
+    ) =>
+      createBranchOnKeyDown(
+        event,
+        nodeData,
+        treeData,
         isExpanded,
-      })),
-    );
+        emptyFunction,
+        toggleExpansion,
+        customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
+      ),
+    [uiStore],
+  );
 
-    const handleBranchKeyDown = useCallback(
-      (
-        event: React.KeyboardEvent<HTMLLIElement>,
-        nodeData: ClientLocation | IDirectoryTreeItem,
-        treeData: ITreeData,
-      ) =>
-        createBranchOnKeyDown(
-          event,
-          nodeData,
-          treeData,
+  useEffect(() => {
+    runInAction(() => {
+      setBranches(
+        locationStore.locationList.map((location) => ({
+          id: location.id,
+          label: LocationLabel,
+          children: [],
+          nodeData: location,
           isExpanded,
-          emptyFunction,
-          toggleExpansion,
-          customKeys.bind(null, (path: string) =>
-            uiStore.replaceSearchCriteria(pathCriteria(path)),
-          ),
-        ),
-      [uiStore],
-    );
-
-    useEffect(() => {
-      // Prevents updating state when component will be unmounted!
-      let isMounted = true;
-      const dispose = autorun(() => {
-        Promise.all(
-          locationStore.locationList.map(async (location) => {
-            let children: ITreeItem[];
-            try {
-              children = (await getDirectoryTree(location.path)).map(mapDirectory);
-            } catch (error) {
-              children = [];
-            }
-            return {
-              id: location.id,
-              label: LocationLabel,
-              children,
-              nodeData: location,
-              isExpanded,
-            };
-          }),
-        ).then((value) => {
-          if (isMounted) {
-            setBranches(value);
+        })),
+      );
+    });
+    // Prevents updating state when component will be unmounted!
+    let isMounted = true;
+    const dispose = autorun(() => {
+      Promise.all(
+        locationStore.locationList.map(async (location) => {
+          let children: ITreeItem[];
+          try {
+            children = (await getDirectoryTree(location.path)).map(mapDirectory);
+          } catch (error) {
+            children = [];
+            console.error('Could not create directory tree', error);
           }
-        });
+          return {
+            id: location.id,
+            label: LocationLabel,
+            children,
+            nodeData: location,
+            isExpanded,
+          };
+        }),
+      ).then((value) => {
+        if (isMounted) {
+          setBranches(value);
+        }
       });
+    });
 
-      return () => {
-        isMounted = false;
-        dispose();
-      };
-      // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
-    }, [locationStore.locationList, reloadLocationHierarchyTrigger]);
+    return () => {
+      isMounted = false;
+      dispose();
+    };
+    // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
+  }, [locationStore.locationList, reloadLocationHierarchyTrigger]);
 
-    return (
-      <Tree
-        id="location-list"
-        multiSelect
-        children={branches}
-        treeData={treeData}
-        toggleExpansion={toggleExpansion}
-        onBranchKeyDown={handleBranchKeyDown}
-        onLeafKeyDown={emptyFunction}
-      />
-    );
-  },
-);
+  return (
+    <Tree
+      id="location-list"
+      multiSelect
+      children={branches}
+      treeData={treeData}
+      toggleExpansion={toggleExpansion}
+      onBranchKeyDown={handleBranchKeyDown}
+      onLeafKeyDown={emptyFunction}
+    />
+  );
+};
 
 const LocationsPanel = observer(() => {
   const { locationStore } = useContext(StoreContext);
