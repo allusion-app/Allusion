@@ -60,7 +60,7 @@ interface IKeyComboEditor {
   combo: string;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   uiStore: UiStore;
-  setEditableKey: (key: keyof IHotkeyMap | null) => void;
+  setEditableKey: React.Dispatch<React.SetStateAction<keyof IHotkeyMap | null>>;
 }
 
 const KeyComboEditor = observer(
@@ -75,10 +75,11 @@ const KeyComboEditor = observer(
   }: IKeyComboEditor) => {
     const hotkeyMap = uiStore.hotkeyMap;
     const [text, setText] = textDispatch;
+    const isEditable = useRef(true);
     const inputRef = useRef<HTMLInputElement>(null);
     const defaultCombo = defaultHotkeyMap[actionKey];
 
-    const handleOnBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnBlur = useRef((e: React.ChangeEvent<HTMLInputElement>) => {
       // The input is controlled which is why e.currentTarget.value equals 'combo'.
       // Depending on 'combo' would constantly recreate this function.
       if (!isInvalidCombo(e.currentTarget.value, actionKey, hotkeyMap)) {
@@ -86,7 +87,8 @@ const KeyComboEditor = observer(
       }
       setEditableKey(null);
       setText('');
-    };
+      isEditable.current = false;
+    });
 
     return (
       <div className="key-combo-editor">
@@ -98,7 +100,7 @@ const KeyComboEditor = observer(
             value={isChanging ? text : keyComboToString(combo)}
             readOnly={!isChanging}
             onKeyDown={onKeyDown}
-            onBlur={handleOnBlur}
+            onBlur={handleOnBlur.current}
             onChange={() => void {}} // React quirk requires change handler
           />
           {text.length > 0 && isInvalidCombo(text, actionKey, hotkeyMap) && (
@@ -108,10 +110,15 @@ const KeyComboEditor = observer(
           )}
         </div>
         <Button
-          text="Edit"
+          text={isChanging ? 'Save' : 'Edit'}
           onClick={() => {
-            setEditableKey(actionKey);
-            inputRef.current?.focus();
+            if (isEditable.current) {
+              setEditableKey(actionKey);
+              inputRef.current?.focus();
+            } else {
+              setEditableKey(null);
+            }
+            isEditable.current = !isEditable.current;
           }}
         />
         <Button
