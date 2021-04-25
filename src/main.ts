@@ -405,8 +405,6 @@ function createPreviewWindow() {
 initialize = () => {
   createWindow();
   createPreviewWindow();
-
-  // autoUpdater.checkForUpdatesAndNotify();
 };
 
 // This method will be called when Electron has finished
@@ -633,6 +631,4 @@ function getVersion() {
 }
 MainMessenger.onGetVersion(() => getVersion());
 
-MainMessenger.onCheckForUpdates(() => {
-  autoUpdater.checkForUpdates();
-});
+MainMessenger.onCheckForUpdates(() => autoUpdater.checkForUpdates());
