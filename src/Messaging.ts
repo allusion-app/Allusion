@@ -115,6 +115,7 @@ export interface IRunInBackgroundMessage {
 }
 
 export const GET_VERSION = 'GET_VERSION';
+export const CHECK_FOR_UPDATES = 'CHECK_FOR_UPDATES';
 
 // Static methods for type safe IPC messages between renderer and main process
 export class RendererMessenger {
@@ -199,6 +200,8 @@ export class RendererMessenger {
   static isMaximized = (): boolean => ipcRenderer.sendSync(IS_MAXIMIZED);
 
   static getVersion = (): string => ipcRenderer.sendSync(GET_VERSION);
+
+  static checkForUpdates = async () => ipcRenderer.invoke(CHECK_FOR_UPDATES);
 }
 
 export class MainMessenger {
@@ -293,4 +296,6 @@ export class MainMessenger {
 
   static onGetVersion = (cb: () => string) =>
     ipcMain.on(GET_VERSION, (e) => (e.returnValue = cb()));
+
+  static onCheckForUpdates = (cb: () => void) => ipcMain.handle(CHECK_FOR_UPDATES, cb);
 }

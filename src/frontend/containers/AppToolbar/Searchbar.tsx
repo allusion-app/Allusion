@@ -142,9 +142,11 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
           <IconButton
             icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
             text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
-            onClick={() => {
+            onClick={(e) => {
               uiStore.toggleSearchMatchAny();
               fileStore.refetch();
+              e.stopPropagation();
+              e.preventDefault();
             }}
             large
           />
@@ -152,7 +154,15 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
           <> </>
         )}
 
-        <IconButton icon={IconSet.CLOSE} text="Clear" onClick={uiStore.clearSearchCriteriaList} />
+        <IconButton
+          icon={IconSet.CLOSE}
+          text="Clear"
+          onClick={(e) => {
+            uiStore.clearSearchCriteriaList();
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+        />
       </div>
     </div>
   );

@@ -7,9 +7,12 @@ import {
   nativeImage,
   nativeTheme,
   screen,
+  shell,
   Tray,
 } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import path from 'path';
+import fse from 'fs-extra';
+import { autoUpdater, UpdateInfo } from 'electron-updater';
 import TrayIcon from '../resources/logo/png/full-color/allusion-logomark-fc-256x256.png';
 import AppIcon from '../resources/logo/png/full-color/allusion-logomark-fc-512x512.png';
 import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
@@ -22,6 +25,8 @@ let mainWindow: BrowserWindow | null;
 let previewWindow: BrowserWindow | null;
 let tray: Tray | null;
 let clipServer: ClipServer | null;
+
+const windowStateFilePath = path.join(app.getPath('userData'), 'windowState.json');
 
 const isMac = process.platform === 'darwin';
 
@@ -50,18 +55,65 @@ const getTags = async (): Promise<ITag[]> => {
   return [];
 };
 
+// Based on https://github.com/electron/electron/issues/526
+const getPreviousWindowState = (): BrowserWindowConstructorOptions & { isMaximized?: boolean } => {
+  const options: BrowserWindowConstructorOptions & { isMaximized?: boolean } = {};
+  try {
+    if (fse.existsSync(windowStateFilePath)) {
+      const state = fse.readJSONSync(windowStateFilePath);
+      if (state) {
+        const area = screen.getDisplayMatching(state).workArea;
+        // If the saved position still valid (the window is entirely inside the display area), use it.
+        if (
+          state.x >= area.x &&
+          state.y >= area.y &&
+          state.x + state.width <= area.x + area.width &&
+          state.y + state.height <= area.y + area.height
+        ) {
+          options.x = state.x;
+          options.y = state.y;
+        }
+        // If the saved size is still valid, use it.
+        if (state.width <= area.width || state.height <= area.height) {
+          options.width = state.width;
+          options.height = state.height;
+        }
+        options.isMaximized = state.isMaximized;
+      }
+    }
+  } catch (e) {
+    console.error('Could not read bounds file!', e);
+  }
+  return options;
+};
+
+// Save window position and bounds: https://github.com/electron/electron/issues/526
+let saveBoundsTimeout: ReturnType<typeof setTimeout> | null = null;
+function saveWindowStateSoon() {
+  if (saveBoundsTimeout) clearTimeout(saveBoundsTimeout);
+  saveBoundsTimeout = setTimeout(() => {
+    saveBoundsTimeout = null;
+    const state: any = mainWindow?.getNormalBounds();
+    state.isMaximized = mainWindow?.isMaximized();
+    fse.writeFileSync(windowStateFilePath, JSON.stringify(state, null, 2));
+  }, 1000);
+}
+
 let initialize = () => {
   console.error('Placeholder function. App was not properly initialized!');
 };
 
 function createTrayMenu() {
+  const onTrayClick = () =>
+    !mainWindow || mainWindow.isDestroyed() ? initialize() : mainWindow.focus();
+
   if (!tray || tray.isDestroyed()) {
     tray = new Tray(`${__dirname}/${isMac ? TrayIconMac : TrayIcon}`);
     const trayMenu = Menu.buildFromTemplate([
       {
         label: 'Open',
         type: 'normal',
-        click: () => mainWindow?.focus() ?? initialize(),
+        click: onTrayClick,
       },
       {
         label: 'Quit',
@@ -70,12 +122,16 @@ function createTrayMenu() {
     ]);
     tray.setContextMenu(trayMenu);
     tray.setToolTip('Allusion - Your Visual Library');
-    tray.on('click', () => mainWindow?.focus() ?? initialize());
+    tray.on('click', onTrayClick);
   }
 }
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
+  // Remember window size and position
+  const previousWindowState = getPreviousWindowState();
+
   const mainOptions: BrowserWindowConstructorOptions = {
     titleBarStyle: 'hidden',
     // Disable native frame: we use a custom titlebar for all platforms: a unique one for MacOS, and one for windows/linux
@@ -96,6 +152,7 @@ function createWindow() {
     backgroundColor: '#1c1e23',
     title: 'Allusion',
     show: false, // only show once initial loading is finished
+    ...previousWindowState,
   };
 
   // Create the browser window.
@@ -156,6 +213,11 @@ function createWindow() {
     () => mainWindow && MainMessenger.fullscreenChanged(mainWindow.webContents, false),
   );
 
+  mainWindow.addListener('resize', saveWindowStateSoon);
+  mainWindow.addListener('move', saveWindowStateSoon);
+  mainWindow.addListener('unmaximize', saveWindowStateSoon);
+  mainWindow.addListener('maximize', saveWindowStateSoon);
+
   let menu = null;
 
   // Mac App menu - used for styling so shortcuts work
@@ -193,6 +255,18 @@ function createWindow() {
     submenu: [
       { role: 'reload' },
       { role: 'forceReload' },
+      {
+        // Alternative to reload: Just reloading window seems to cause a crash (started happening since the recent WASM changes)
+        // A restart of the whole electron app circumvents that.
+        // but not always
+        // TODO: Call this instead at every place that does a simple refresh
+        label: 'Complete restart',
+        accelerator: 'F5',
+        click: () => {
+          app.relaunch();
+          app.exit();
+        },
+      },
       { role: 'toggleDevTools' },
       { type: 'separator' },
       {
@@ -235,8 +309,10 @@ function createWindow() {
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
-  // then maximize the window
-  mainWindow.maximize();
+  // then maximize the window if it was previously
+  if (previousWindowState.isMaximized) {
+    mainWindow.maximize();
+  }
 
   // Open the DevTools if in dev mode.
   if (isDev()) {
@@ -329,8 +405,6 @@ function createPreviewWindow() {
 initialize = () => {
   createWindow();
   createPreviewWindow();
-
-  autoUpdater.checkForUpdatesAndNotify();
 };
 
 // This method will be called when Electron has finished
@@ -357,8 +431,73 @@ app.on('activate', () => {
   }
 });
 
+// Auto-updates: using electron-builders autoUpdater: https://www.electron.build/auto-update#quick-setup-guide
+// How it should go:
+// - Auto check for updates on startup (toggleable in settings) -> show toast message if update available
+// - Option to check for updates in settings
+// - Only download and install when user agrees
+autoUpdater.autoDownload = false;
+let hasCheckedForUpdateOnStartup = false;
+if (isDev()) {
+  autoUpdater.updateConfigPath = path.join(__dirname, '..', 'dev-app-update.yml');
+}
+
+autoUpdater.on('error', (error) => {
+  dialog.showErrorBox(
+    'Auto-update error: ',
+    error == null ? 'unknown' : (error.stack || error).toString(),
+  );
+});
+
+autoUpdater.on('update-available', async (info: UpdateInfo) => {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+
+  const message = `Update available: ${info.releaseName || info.version}:\nDo you want update now?`;
+  // info.releaseNotes attribute is HTML, could show that in renderer at some point
+
+  const dialogResult = await dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: 'Found Updates',
+    message,
+    buttons: ['Sure', 'No', 'Open release page'],
+  });
+
+  if (dialogResult.response === 0) {
+    autoUpdater.downloadUpdate();
+  } else if (dialogResult.response === 2) {
+    shell.openExternal('https://github.com/allusion-app/Allusion/releases/latest');
+  }
+});
+
+autoUpdater.on('update-not-available', () => {
+  if (!hasCheckedForUpdateOnStartup) {
+    // don't show a dialog if the update check was triggered automatically on start-up
+    hasCheckedForUpdateOnStartup = true;
+    return;
+  }
+  // Could also show this as a toast!
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  dialog.showMessageBox(mainWindow, {
+    title: 'No Update Available',
+    message: `Current version is up-to-date (v${getVersion()})!`,
+  });
+});
+
+autoUpdater.on('update-downloaded', async () => {
+  await dialog.showMessageBox({
+    title: 'Install Updates',
+    message: 'Updates downloaded, Allusion will restart...',
+  });
+  setImmediate(() => autoUpdater.quitAndInstall());
+});
+
+// Check for updates on startup
+// TODO: Make this disableable
+autoUpdater.checkForUpdates();
+
+//---------------------------------------------------------------------------------//
 // Messaging: Sending and receiving messages between the main and renderer process //
-/////////////////////////////////////////////////////////////////////////////////////
+//---------------------------------------------------------------------------------//
 MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
 MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
 
@@ -481,7 +620,7 @@ MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
 
 MainMessenger.onIsMaximized(() => mainWindow?.isMaximized() ?? false);
 
-MainMessenger.onGetVersion(() => {
+function getVersion() {
   if (isDev()) {
     // Weird quirk: it returns the Electron version in dev mode
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -489,4 +628,7 @@ MainMessenger.onGetVersion(() => {
   } else {
     return app.getVersion();
   }
-});
+}
+MainMessenger.onGetVersion(() => getVersion());
+
+MainMessenger.onCheckForUpdates(() => autoUpdater.checkForUpdates());

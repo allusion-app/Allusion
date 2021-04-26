@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
+import LOGO_FC from 'resources/logo/svg/full-color/allusion-logomark-fc.svg';
 
 import StoreContext from '../../contexts/StoreContext';
 
@@ -28,12 +29,12 @@ export default Placeholder;
 import FileStore from '../../stores/FileStore';
 import UiStore from '../../stores/UiStore';
 
-import { IconSet, Button, ButtonGroup } from 'widgets';
+import { IconSet, Button, ButtonGroup, SVG } from 'widgets';
 
 const Welcome = () => {
   const { uiStore } = useContext(StoreContext);
   return (
-    <ContentPlaceholder title="Welcome to Allusion" icon={IconSet.LOGO_FC}>
+    <ContentPlaceholder title="Welcome to Allusion" icon={<SVG src={LOGO_FC} />}>
       <p>
         Allusion is a tool designed to help you organize your Visual Library, so you can easily find
         what you need throughout your creative process.
@@ -54,7 +55,7 @@ const Welcome = () => {
       <br />
 
       {/* Mention principles (?) */}
-      <small>Allusion is a read-only application. We'll never touch your files</small>
+      <small>Allusion is a read-only application. We&rsquo;ll never touch your files</small>
     </ContentPlaceholder>
   );
 };

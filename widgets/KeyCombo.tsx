@@ -8,7 +8,7 @@ export const KeyCombo = ({ combo }: { combo: string }) => {
   return <span className="keycombo">{platformCombo}</span>;
 };
 
-function keyComboToString(combo: string) {
+export function keyComboToString(combo: string) {
   const keys = combo.split('+');
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i].trim();

@@ -27,4 +27,4 @@ export interface IAction<F, D> {
 
 export type IExpansionState = { [key: string]: boolean };
 
-export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path' };
+export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };

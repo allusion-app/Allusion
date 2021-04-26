@@ -20,7 +20,7 @@
 
   "manifest_version": 2,
   "name": "Allusion Web Clipper",
-  "version": "0.0.1",
+  "version": "1.0.0",
 
   "description": "Web Clipper for Allusion - for organizing your Visual Library",
   "icons": {

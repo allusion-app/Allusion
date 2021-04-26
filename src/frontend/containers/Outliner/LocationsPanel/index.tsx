@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { autorun } from 'mobx';
+import { autorun, runInAction } from 'mobx';
 
 import { RendererMessenger } from 'src/Messaging';
 import StoreContext from 'src/frontend/contexts/StoreContext';
@@ -63,8 +63,8 @@ const emptyFunction = () => {};
 //   }
 // };
 
-const criteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>('absolutePath', path, 'contains', CustomKeyDict);
+const pathCriteria = (path: string) =>
+  new ClientStringSearchCriteria<IFile>('absolutePath', path, 'startsWith', CustomKeyDict);
 
 const customKeys = (
   search: (path: string) => void,
@@ -105,12 +105,12 @@ type UiStoreProp = { uiStore: UiStore };
 const DirectoryMenu = ({ path, uiStore }: { path: string } & UiStoreProp) => {
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
-  const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(criteria(path)), [
+  const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(pathCriteria(path)), [
     path,
     uiStore,
   ]);
 
-  const handleReplaceSearch = useCallback(() => uiStore.replaceSearchCriteria(criteria(path)), [
+  const handleReplaceSearch = useCallback(() => uiStore.replaceSearchCriteria(pathCriteria(path)), [
     path,
     uiStore,
   ]);
@@ -258,8 +258,8 @@ const SubLocation = ({
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       // TODO: Mark searched nodes as selected?
       event.ctrlKey
-        ? uiStore.addSearchCriteria(criteria(nodeData.fullPath))
-        : uiStore.replaceSearchCriteria(criteria(nodeData.fullPath));
+        ? uiStore.addSearchCriteria(pathCriteria(nodeData.fullPath))
+        : uiStore.replaceSearchCriteria(pathCriteria(nodeData.fullPath));
     },
     [nodeData.fullPath, uiStore],
   );
@@ -307,10 +307,10 @@ const Location = observer(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         // TODO: Mark searched nodes as selected?
         event.ctrlKey
-          ? uiStore.addSearchCriteria(criteria(nodeData.path))
-          : uiStore.replaceSearchCriteria(criteria(nodeData.path));
+          ? uiStore.addSearchCriteria(pathCriteria(nodeData.path))
+          : uiStore.replaceSearchCriteria(pathCriteria(nodeData.path));
       },
-      [nodeData.path, uiStore],
+      [nodeData, uiStore],
     );
 
     const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
@@ -358,9 +358,14 @@ const LocationLabel = (nodeData: any, treeData: any) => (
 interface ILocationTreeProps {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   onDelete: (loc: ClientLocation) => void;
+  reloadLocationHierarchyTrigger?: Date;
 }
 
-const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProps) => {
+const LocationsTree = ({
+  onDelete,
+  showContextMenu,
+  reloadLocationHierarchyTrigger,
+}: ILocationTreeProps) => {
   const { locationStore, uiStore } = useContext(StoreContext);
   const [expansion, setExpansion] = useState<IExpansionState>({});
   const treeData: ITreeData = useMemo(
@@ -372,15 +377,7 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
     }),
     [expansion, onDelete, showContextMenu],
   );
-  const [branches, setBranches] = useState<ITreeItem[]>(
-    locationStore.locationList.map((location) => ({
-      id: location.id,
-      label: LocationLabel,
-      children: [],
-      nodeData: location,
-      isExpanded,
-    })),
-  );
+  const [branches, setBranches] = useState<ITreeItem[]>([]);
 
   const handleBranchKeyDown = useCallback(
     (
@@ -395,12 +392,23 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
         isExpanded,
         emptyFunction,
         toggleExpansion,
-        customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(criteria(path))),
+        customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
       ),
     [uiStore],
   );
 
   useEffect(() => {
+    runInAction(() => {
+      setBranches(
+        locationStore.locationList.map((location) => ({
+          id: location.id,
+          label: LocationLabel,
+          children: [],
+          nodeData: location,
+          isExpanded,
+        })),
+      );
+    });
     // Prevents updating state when component will be unmounted!
     let isMounted = true;
     const dispose = autorun(() => {
@@ -411,6 +419,7 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
             children = (await getDirectoryTree(location.path)).map(mapDirectory);
           } catch (error) {
             children = [];
+            console.error('Could not create directory tree', error);
           }
           return {
             id: location.id,
@@ -431,7 +440,8 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
       isMounted = false;
       dispose();
     };
-  }, [locationStore.locationList]);
+    // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
+  }, [locationStore.locationList, reloadLocationHierarchyTrigger]);
 
   return (
     <Tree
@@ -444,7 +454,7 @@ const LocationsTree = observer(({ onDelete, showContextMenu }: ILocationTreeProp
       onLeafKeyDown={emptyFunction}
     />
   );
-});
+};
 
 const LocationsPanel = observer(() => {
   const { locationStore } = useContext(StoreContext);
@@ -452,6 +462,7 @@ const LocationsPanel = observer(() => {
 
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation | undefined>(undefined);
   const [isCollapsed, setCollapsed] = useState(false);
+  const [reloadLocationHierarchyTrigger, setReloadLocationHierarchyTrigger] = useState(new Date());
 
   // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
   const handleChooseWatchedDir = useCallback(async () => {
@@ -509,6 +520,15 @@ const LocationsPanel = observer(() => {
       <header>
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list">
+          {locationStore.locationList.length > 0 && (
+            <ToolbarButton
+              showLabel="never"
+              icon={IconSet.RELOAD}
+              text="Refresh"
+              onClick={() => setReloadLocationHierarchyTrigger(new Date())}
+              tooltip={Tooltip.Refresh}
+            />
+          )}
           <ToolbarButton
             showLabel="never"
             icon={IconSet.PLUS}
@@ -519,7 +539,11 @@ const LocationsPanel = observer(() => {
         </Toolbar>
       </header>
       <Collapse open={!isCollapsed}>
-        <LocationsTree showContextMenu={show} onDelete={setDeletableLocation} />
+        <LocationsTree
+          showContextMenu={show}
+          onDelete={setDeletableLocation}
+          reloadLocationHierarchyTrigger={reloadLocationHierarchyTrigger}
+        />
         {isEmpty && <i>Click + to choose a Location</i>}
       </Collapse>
       <LocationRecoveryDialog />

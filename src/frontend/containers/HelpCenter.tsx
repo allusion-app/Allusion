@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import React, { useCallback, useContext, useEffect, useRef, useState, memo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, ButtonGroup, IconSet, Split } from 'widgets';
@@ -22,7 +23,7 @@ const HelpCenter = observer(() => {
       <Documentation
         id="help-center"
         overviewId="help-center-overview"
-        className="light"
+        className={uiStore.theme}
         initPages={PAGE_DATA}
       />
     </PopupWindow>
@@ -85,8 +86,6 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
             openPage={openPage.current}
             pageIndex={pageIndex}
             sectionIndex={sectionIndex}
-            // This forces a re-render when the page changes, causing the scroll position to reset
-            key={`page-${pageIndex}`}
           />
         }
         axis="vertical"
@@ -144,7 +143,7 @@ const Page = (props: IPage) => {
       const section = page.current.children[sectionIndex];
       section.scrollIntoView();
     }
-  }, [sectionIndex]);
+  }, [sectionIndex, pageIndex]);
 
   const buttons = [];
   if (pageIndex > 0) {
@@ -168,8 +167,8 @@ const Page = (props: IPage) => {
             {section.content}
           </section>
         ))}
+        <ButtonGroup>{buttons}</ButtonGroup>
       </article>
-      <ButtonGroup>{buttons}</ButtonGroup>
     </div>
   );
 };
@@ -260,9 +259,9 @@ const PAGE_DATA: () => IPageData[] = () => [
           <>
             <p>
               In Allusion, the primary way of adding images to your library is the use of
-              &quot;Locations&quot;. A location in this context is a link to a folder on your
-              computer. This means that all images in that folder as well as any subfolders will be
-              automatically loaded once it is added to your list of locations.
+              "Locations". A location in this context is a link to a folder on your computer. This
+              means that all images in that folder as well as any subfolders will be automatically
+              loaded once it is added to your list of locations.
               <br />
               The benefit of this system is that you can have full control over where your data is
               stored, while not having to tediously import images manually from various places. To
@@ -272,21 +271,21 @@ const PAGE_DATA: () => IPageData[] = () => [
               However, removing images from a linked folder will not automatically remove them from
               Allusion in order to prevent you from losing the tags you assigned to them when you
               accidentially remove your images, or move them elsewhere. To confirm to Allusion the
-              files were deleted intentionally, you can select those images in the &quot;Missing
-              images&quot; view and pressing the delete button in the toolbar. Otherwise, you can
-              simply place the images back to their original path so that Allusion will
-              automatically detect them again.
+              files were deleted intentionally, you can select those images in the "Missing images"
+              view and pressing the delete button in the toolbar. Otherwise, you can simply place
+              the images back to their original path so that Allusion will automatically detect them
+              again.
               <br />
               You are free to rename your images, and to move them to a different folder, as long as
               they remain within the same location. Allusion will automatically detect those changes
               upon you restarting the application.
             </p>
             <p>
-              To add a new location, open the outliner and hover with your mouse over the
-              location&#39;s header. You will see a small plus icon to the right. Once you click the
-              icon, go ahead and browse the folder that contains images. Confirm your selection and
-              select your location preferences in the following popup. Once you confirm, your images
-              will show up in the content area.
+              To add a new location, open the outliner and hover with your mouse over the location's
+              header. You will see a small plus icon to the right. Once you click the icon, go ahead
+              and browse the folder that contains images. Confirm your selection and select your
+              location preferences in the following popup. Once you confirm, your images will show
+              up in the content area.
             </p>
             <p>
               To remove a location, open the outliner and right click on a location. A context menu
@@ -312,14 +311,30 @@ const PAGE_DATA: () => IPageData[] = () => [
         ),
       },
       {
-        title: 'Browser extension',
+        title: 'Browser Extension',
         content: (
           <>
             <p>
-              Lastly, a browser extension for Chromium-based browsers such as Google Chrome and Edge
-              is available. It allows you to import images into Allusion directly from your web
-              browser and immediately tag them as well. Take a look in the &quot;Background
-              Processes&quot; section in the settings menu for more information.
+              A browser extension for Chromium-based browsers such as Google Chrome and Edge is
+              available. It allows you to import images into Allusion directly from your web browser
+              and immediately tag them as well. Take a look in the "Background Processes" section in
+              the settings window for more information.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Tag Import/Export',
+        content: (
+          <>
+            <p>
+              You can save the tags stored in Allusion's internal database to the metadata of your
+              image files. This allows you to view them in other applications, such as your file
+              browser and tools like Adobe Bridge. This option is available in the "Import/Export"
+              section of the settings window. Importing tags from file metadata can be performed in
+              the same place.
+              <br />
+              Note that only the images shown in the gallery are affected by these operations!
             </p>
           </>
         ),
