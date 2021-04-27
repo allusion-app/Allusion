@@ -17,8 +17,8 @@ pub struct Layout {
 
 #[derive(Clone, Default)]
 pub struct Transform {
-    pub width: u32,
-    pub height: u32,
+    pub width: u16,
+    pub height: u16,
     pub left: u32,
     pub top: u32,
 }
@@ -52,7 +52,10 @@ impl Layout {
     }
 
     pub fn set_thumbnail_size(&mut self, thumbnail_size: u16) {
-        self.thumbnail_size = thumbnail_size;
+        // The reason for this limitation is the way how the thumbnail size is calculated for the
+        // vertical and horizontal masonry layout.
+        const MAX_THUMBNAIL_SIZE: u16 = u16::MAX / 100;
+        self.thumbnail_size = thumbnail_size.min(MAX_THUMBNAIL_SIZE);
     }
 
     pub fn set_padding(&mut self, padding: u16) {
@@ -89,30 +92,31 @@ impl Layout {
         let container_width = u32::from(container_width).max(thumbnail_size);
         let padding = u32::from(self.padding);
 
-        let mut top_offset: u32 = 0;
+        let mut top_offset = 0;
         let mut cur_row_width = 0;
-        let mut first_row_item_index: usize = 0;
+        let mut first_row_item_index = 0;
 
         for i in 0..self.len() {
             let transform = &mut self.transforms[i];
             // Correct aspect ratio for very wide/narrow images
-            transform.height = thumbnail_size;
-            transform.correct_width(thumbnail_size, &self.aspect_ratios[i]);
+            transform.height = self.thumbnail_size;
+            transform.correct_width(self.thumbnail_size, &self.aspect_ratios[i]);
             transform.top = top_offset;
             transform.left = cur_row_width;
 
-            let new_row_width = cur_row_width + transform.width + padding;
+            let new_row_width = cur_row_width + u32::from(transform.width + self.padding);
 
             // Check if adding this image to the row would exceed the container width
             if new_row_width > container_width {
                 // If it exceeds it, scale all current items in the row accordingly and start a new row.
                 let corrected_height = (thumbnail_size * container_width).div_int(new_row_width);
+                let height = corrected_height as u16;
                 for prev_item in self
                     .transforms
                     .get_mut(first_row_item_index..=i)
                     .unwrap_or_abort()
                 {
-                    prev_item.height = corrected_height;
+                    prev_item.height = height;
                     prev_item.scale(container_width, new_row_width);
                 }
 
@@ -166,19 +170,18 @@ impl Layout {
         let (column_width, mut columns) = {
             let container_width = container_width.max(self.thumbnail_size);
             let n_columns = container_width.div_int(self.thumbnail_size);
-            let column_width = u32::from(container_width.div_int(n_columns));
+            let column_width = container_width.div_int(n_columns);
 
             let mut columns = Vec::with_capacity(usize::from(n_columns));
-            for i in 0..u32::from(n_columns) {
+            for i in 0..n_columns {
                 columns.push(Column {
-                    left: i * column_width,
+                    left: u32::from(i * column_width),
                     height: 0,
                 });
             }
             (column_width, BinaryHeap::from(columns))
         };
-        let padding = u32::from(self.padding);
-        let item_width = column_width - padding;
+        let item_width = column_width - self.padding;
 
         for i in 0..self.len() {
             let transform = &mut self.transforms[i];
@@ -188,7 +191,7 @@ impl Layout {
             let mut column = columns.peek_mut().unwrap_or_abort();
             transform.left = column.left;
             transform.top = column.height;
-            column.height += transform.height + padding;
+            column.height += u32::from(transform.height + self.padding);
         }
 
         let binary_heap = columns.into_vec();
@@ -212,11 +215,11 @@ impl Layout {
         let (n_columns, column_width) = {
             let container_width = container_width.max(self.thumbnail_size);
             let n_columns = container_width.div_int(self.thumbnail_size);
-            let column_width = u32::from(container_width.div_int(n_columns));
+            let column_width = container_width.div_int(n_columns);
             (usize::from(n_columns), column_width)
         };
-        let item_size = column_width - u32::from(self.padding);
-        let row_height = column_width;
+        let item_size = column_width - self.padding;
+        let row_height = u32::from(column_width);
 
         let rows = {
             let len = self.len();
@@ -227,13 +230,13 @@ impl Layout {
         };
         let mut top_offset = 0;
         for row in rows {
-            let mut left = 0;
+            let mut left_offset = 0;
             for transform in row.iter_mut() {
                 transform.width = item_size;
                 transform.height = item_size;
-                transform.left = left;
+                transform.left = left_offset;
                 transform.top = top_offset;
-                left += column_width;
+                left_offset += row_height;
             }
             top_offset += row_height;
         }
@@ -256,15 +259,15 @@ impl Layout {
 impl Transform {
     fn scale(&mut self, total_width: u32, current_width: u32) {
         self.left = (self.left * total_width).div_int(current_width);
-        self.width = (self.width * total_width).div_int(current_width);
+        self.width = (u32::from(self.width) * total_width).div_int(current_width) as u16;
     }
 
-    fn correct_height(&mut self, width: u32, aspect_ratio: &AspectRatio) {
-        self.height = (width * aspect_ratio.height()).div_int(aspect_ratio.width());
+    fn correct_height(&mut self, width: u16, aspect_ratio: &AspectRatio) {
+        self.height = (width * aspect_ratio.height).div_int(aspect_ratio.width);
     }
 
-    fn correct_width(&mut self, height: u32, aspect_ratio: &AspectRatio) {
-        self.width = (height * aspect_ratio.width()).div_int(aspect_ratio.height());
+    fn correct_width(&mut self, height: u16, aspect_ratio: &AspectRatio) {
+        self.width = (height * aspect_ratio.width).div_int(aspect_ratio.height);
     }
 }
 
@@ -273,14 +276,6 @@ impl AspectRatio {
         let (width, height) = correct_aspect_ratio(src_width, src_height);
         self.width = width;
         self.height = height;
-    }
-
-    fn width(&self) -> u32 {
-        u32::from(self.width)
-    }
-
-    fn height(&self) -> u32 {
-        u32::from(self.height)
     }
 }
 
