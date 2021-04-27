@@ -25,8 +25,8 @@ pub struct Transform {
 
 #[derive(Clone, Default)]
 struct AspectRatio {
-    width: u32,
-    height: u32,
+    width: u16,
+    height: u16,
 }
 
 const MIN_ITEMS_CAPACITY: usize = 1_000;
@@ -260,11 +260,11 @@ impl Transform {
     }
 
     fn correct_height(&mut self, width: u32, aspect_ratio: &AspectRatio) {
-        self.height = (width * aspect_ratio.height).div_int(aspect_ratio.width);
+        self.height = (width * aspect_ratio.height()).div_int(aspect_ratio.width());
     }
 
     fn correct_width(&mut self, height: u32, aspect_ratio: &AspectRatio) {
-        self.width = (height * aspect_ratio.width).div_int(aspect_ratio.height);
+        self.width = (height * aspect_ratio.width()).div_int(aspect_ratio.height());
     }
 }
 
@@ -274,21 +274,32 @@ impl AspectRatio {
         self.width = width;
         self.height = height;
     }
+
+    fn width(&self) -> u32 {
+        u32::from(self.width)
+    }
+
+    fn height(&self) -> u32 {
+        u32::from(self.height)
+    }
 }
 
 // For images with extreme aspect ratios (very narrow or wide), crop them a little
 // so that they are at most X times as wide/long as they are long/wide
 // Returns a correct height value of the image
-fn correct_aspect_ratio(w: u16, h: u16) -> (u32, u32) {
+fn correct_aspect_ratio(w: u16, h: u16) -> (u16, u16) {
     const MIN_ASPECT_RATIO: u32 = 100 / 3; // X times as wide as narrow or vice versa
 
-    let width = u32::from(w.max(1));
-    let height = u32::from(h.max(1));
-
-    if width > height {
-        (100, (100 * height).div_int(width).max(MIN_ASPECT_RATIO))
-    } else if height > width {
-        ((100 * width).div_int(height).max(MIN_ASPECT_RATIO), 100)
+    if w > h {
+        let height = (100 * u32::from(h))
+            .div_int(u32::from(w.max(1)))
+            .max(MIN_ASPECT_RATIO) as u16;
+        (100, height)
+    } else if h > w {
+        let width = (100 * u32::from(w))
+            .div_int(u32::from(h.max(1)))
+            .max(MIN_ASPECT_RATIO) as u16;
+        (width, 100)
     } else {
         (1, 1)
     }
