@@ -33,7 +33,7 @@ const About = observer(() => {
             It&apos;s completely <b>free and open source</b>! Find out more:
           </p>
           <h3>
-            <a href="https://allusion-app.github.io/" onClick={clickLink}>
+            <a href="https://allusion-app.github.io/" onClick={clickLink} className="outbound">
               allusion-app.github.io
             </a>
           </h3>
@@ -42,7 +42,7 @@ const About = observer(() => {
             <li>Download the latest version</li>
           </ul>
           <h3>
-            <a href="https://github.com/allusion-app/Allusion" onClick={clickLink}>
+            <a href="https://github.com/allusion-app/Allusion" onClick={clickLink} className="outbound">
               github.com/allusion-app/Allusion
             </a>
           </h3>

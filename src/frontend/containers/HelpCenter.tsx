@@ -6,6 +6,12 @@ import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.j
 import { clamp } from '../utils';
 import StoreContext from '../contexts/StoreContext';
 import PopupWindow from '../components/PopupWindow';
+import { shell } from 'electron';
+
+const clickOutbound = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  e.preventDefault();
+  shell.openExternal((e.target as HTMLAnchorElement).href);
+};
 
 const HelpCenter = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -318,7 +324,7 @@ const PAGE_DATA: () => IPageData[] = () => [
               A browser extension for Chromium-based browsers such as Google Chrome and Edge is
               available. It allows you to import images into Allusion directly from your web browser
               and immediately tag them as well. Take a look in the "Background Processes" section in
-              the settings window for more information.
+              the settings window for more information. Get the extension here from <a href="https://chrome.google.com/webstore/detail/allusion-web-clipper/gjceheijjnmdfcolopodbopfoaicobna" onClick={clickOutbound} className="outbound" >Chrome Webstore.</a>
             </p>
           </>
         ),
