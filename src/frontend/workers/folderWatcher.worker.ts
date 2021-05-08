@@ -42,13 +42,15 @@ export class FolderWatcherWorker {
         // - chokidar also matches entire directories: if those contain a dot, it will be ignored too, since they don't end with an image extension
         // So now we use a callback function that also provides `stats` through which we can detect whether the path is a file or a directory
 
-        const basename = SysPath.basename(path);
         const ext = SysPath.extname(path).toLowerCase().split('.')[1];
+        const basename = SysPath.basename(path);
+
+        // Ignore .dot files and folders
+        if (basename.startsWith('.')) return true;
 
         // If the path doesn't have an extension: it's likely a directory: don't ignore
-        // but if it's a .dot directory, it should be ignored: will be checked later
-        // In the unlikely situation it's a file, we'll filter it out later in the .on('add', ...)
-        if (!ext && !basename.startsWith('.')) return false;
+        // In the unlikely situation it is a file, we'll filter it out later in the .on('add', ...)
+        if (!ext) return false;
         // If the path (file or directory) ends with an image extension: don't ignore it
         if (IMG_EXTENSIONS.includes(ext as IMG_EXTENSIONS_TYPE)) return false;
 

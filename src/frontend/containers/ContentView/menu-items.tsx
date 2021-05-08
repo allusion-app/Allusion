@@ -28,9 +28,8 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
   };
 
   const handlePreviewWindow = () => {
-    if (!uiStore.fileSelection.has(file)) {
-      uiStore.selectFile(file, true);
-    }
+    // Only clear selection if file is not already selected
+    uiStore.selectFile(file, !uiStore.fileSelection.has(file));
     uiStore.openPreviewWindow();
   };
 
