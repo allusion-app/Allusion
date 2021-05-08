@@ -26,31 +26,9 @@ let previewWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let clipServer: ClipServer | null = null;
 
-let initialize = () => {
-  console.error('Placeholder function. App was not properly initialized!');
-};
-
-function createTrayMenu() {
-  const onTrayClick = () =>
-    mainWindow === null || mainWindow.isDestroyed() ? initialize() : mainWindow.focus();
-
-  if (tray === null || tray.isDestroyed()) {
-    tray = new Tray(`${__dirname}/${IS_MAC ? TrayIconMac : TrayIcon}`);
-    const trayMenu = Menu.buildFromTemplate([
-      {
-        label: 'Open',
-        type: 'normal',
-        click: onTrayClick,
-      },
-      {
-        label: 'Quit',
-        click: () => process.exit(0),
-      },
-    ]);
-    tray.setContextMenu(trayMenu);
-    tray.setToolTip('Allusion - Your Visual Library');
-    tray.on('click', onTrayClick);
-  }
+function initialize() {
+  createWindow();
+  createPreviewWindow();
 }
 
 function createWindow() {
@@ -326,27 +304,37 @@ function createPreviewWindow() {
   return previewWindow;
 }
 
-initialize = () => {
-  createWindow();
-  createPreviewWindow();
-};
+function createTrayMenu() {
+  if (tray === null || tray.isDestroyed()) {
+    const onTrayClick = () =>
+      mainWindow === null || mainWindow.isDestroyed() ? initialize() : mainWindow.focus();
+
+    tray = new Tray(`${__dirname}/${IS_MAC ? TrayIconMac : TrayIcon}`);
+    const trayMenu = Menu.buildFromTemplate([
+      {
+        label: 'Open',
+        type: 'normal',
+        click: onTrayClick,
+      },
+      {
+        label: 'Quit',
+        click: () => process.exit(0),
+      },
+    ]);
+    tray.setContextMenu(trayMenu);
+    tray.setToolTip('Allusion - Your Visual Library');
+    tray.on('click', onTrayClick);
+  }
+}
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  if (clipServer === null || clipServer.isRunInBackgroundEnabled()) {
+  if (clipServer === null || !clipServer.isRunInBackgroundEnabled()) {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
       app.quit();
     }
-  }
-});
-
-app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (mainWindow === null) {
-    createWindow();
   }
 });
 
@@ -359,8 +347,10 @@ if (!HAS_INSTANCE_LOCK) {
 } else {
   app.on('second-instance', () => {
     // Someone tried to run a second instance, we should focus our window.
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
+    if (mainWindow !== null) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
       mainWindow.focus();
     }
   });
@@ -369,8 +359,16 @@ if (!HAS_INSTANCE_LOCK) {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
-  app.on('ready', initialize);
+  app.whenReady().then(initialize);
 }
+
+app.on('activate', () => {
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (mainWindow === null) {
+    createWindow();
+  }
+});
 
 // Auto-updates: using electron-builders autoUpdater: https://www.electron.build/auto-update#quick-setup-guide
 // How it should go:
