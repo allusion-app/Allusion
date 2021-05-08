@@ -28,7 +28,9 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
   };
 
   const handlePreviewWindow = () => {
-    uiStore.selectFile(file, true);
+    if (!uiStore.fileSelection.has(file)) {
+      uiStore.selectFile(file, true);
+    }
     uiStore.openPreviewWindow();
   };
 
