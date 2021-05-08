@@ -347,7 +347,10 @@ if (!HAS_INSTANCE_LOCK) {
 } else {
   app.on('second-instance', () => {
     // Someone tried to run a second instance, we should focus our window.
-    if (mainWindow !== null) {
+    if (mainWindow === null || mainWindow.isDestroyed()) {
+      // In case there is no main window (could be running in background): re-initialize
+      initialize();
+    } else {
       if (mainWindow.isMinimized()) {
         mainWindow.restore();
       }
