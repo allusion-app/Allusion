@@ -28,7 +28,8 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
   };
 
   const handlePreviewWindow = () => {
-    uiStore.selectFile(file, true);
+    // Only clear selection if file is not already selected
+    uiStore.selectFile(file, !uiStore.fileSelection.has(file));
     uiStore.openPreviewWindow();
   };
 
@@ -70,7 +71,7 @@ export const SlideFileViewerMenuItems = ({
 export const ExternalAppMenuItems = ({ file }: { file: ClientFile }) => (
   <>
     <MenuItem
-      onClick={() => shell.openExternal(file.absolutePath)}
+      onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
       text="Open External"
       icon={IconSet.OPEN_EXTERNAL}
       disabled={file.isBroken}

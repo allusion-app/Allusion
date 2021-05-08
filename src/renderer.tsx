@@ -19,7 +19,7 @@ import RootStore from './frontend/stores/RootStore';
 
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
-import { promiseRetry } from './frontend/utils';
+import { IS_MAC, promiseRetry, throttle } from './frontend/utils';
 
 // Window State
 export const WINDOW_STORAGE_KEY = 'Allusion_Window';
@@ -110,7 +110,21 @@ if (IS_PREVIEW_WINDOW) {
 
 window.addEventListener('beforeunload', () => {
   // TODO: check whether this works okay with running in background process
+  // And when force-closing the application. I think it might be keep running...
   rootStore.fileStore.exifTool.close();
+});
+
+const throttledZoom = throttle(RendererMessenger.setZoomFactor, 200);
+window.addEventListener('wheel', (e) => {
+  // Zoom with ctrl + scroll (cmd for osx)
+  const performZoom = IS_MAC ? e.metaKey : e.ctrlKey;
+  if (performZoom) {
+    const zoomFactor = RendererMessenger.getZoomFactor();
+    throttledZoom(zoomFactor + (e.deltaY < 0 ? 0.1 : -0.1));
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
 });
 
 // Render our react components in the div with id 'app' in the html file

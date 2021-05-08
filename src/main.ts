@@ -20,115 +20,30 @@ import ClipServer, { IImportItem } from './clipper/server';
 import { isDev } from './config';
 import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
+import { Rectangle } from 'electron/main';
 
-let mainWindow: BrowserWindow | null;
-let previewWindow: BrowserWindow | null;
-let tray: Tray | null;
-let clipServer: ClipServer | null;
+let mainWindow: BrowserWindow | null = null;
+let previewWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
+let clipServer: ClipServer | null = null;
 
-const windowStateFilePath = path.join(app.getPath('userData'), 'windowState.json');
-
-const isMac = process.platform === 'darwin';
-
-/** Returns whether main window is open - so whether files can be immediately imported */
-const importExternalImage = async (item: IImportItem) => {
-  if (mainWindow) {
-    MainMessenger.sendImportExternalImage(mainWindow.webContents, { item });
-    return true;
-  }
-  return false;
-};
-
-const addTagsToFile = async (item: IImportItem) => {
-  if (mainWindow) {
-    MainMessenger.sendAddTagsToFile(mainWindow.webContents, { item });
-    return true;
-  }
-  return false;
-};
-
-const getTags = async (): Promise<ITag[]> => {
-  if (mainWindow) {
-    const { tags } = await MainMessenger.getTags(mainWindow.webContents);
-    return tags.filter((t) => t.id !== ROOT_TAG_ID);
-  }
-  return [];
-};
-
-// Based on https://github.com/electron/electron/issues/526
-const getPreviousWindowState = (): BrowserWindowConstructorOptions & { isMaximized?: boolean } => {
-  const options: BrowserWindowConstructorOptions & { isMaximized?: boolean } = {};
-  try {
-    if (fse.existsSync(windowStateFilePath)) {
-      const state = fse.readJSONSync(windowStateFilePath);
-      if (state) {
-        const area = screen.getDisplayMatching(state).workArea;
-        // If the saved position still valid (the window is entirely inside the display area), use it.
-        if (
-          state.x >= area.x &&
-          state.y >= area.y &&
-          state.x + state.width <= area.x + area.width &&
-          state.y + state.height <= area.y + area.height
-        ) {
-          options.x = state.x;
-          options.y = state.y;
-        }
-        // If the saved size is still valid, use it.
-        if (state.width <= area.width || state.height <= area.height) {
-          options.width = state.width;
-          options.height = state.height;
-        }
-        options.isMaximized = state.isMaximized;
-      }
-    }
-  } catch (e) {
-    console.error('Could not read bounds file!', e);
-  }
-  return options;
-};
-
-// Save window position and bounds: https://github.com/electron/electron/issues/526
-let saveBoundsTimeout: ReturnType<typeof setTimeout> | null = null;
-function saveWindowStateSoon() {
-  if (saveBoundsTimeout) clearTimeout(saveBoundsTimeout);
-  saveBoundsTimeout = setTimeout(() => {
-    saveBoundsTimeout = null;
-    const state: any = mainWindow?.getNormalBounds();
-    state.isMaximized = mainWindow?.isMaximized();
-    fse.writeFileSync(windowStateFilePath, JSON.stringify(state, null, 2));
-  }, 1000);
+function initialize() {
+  createWindow();
+  createPreviewWindow();
 }
 
-let initialize = () => {
-  console.error('Placeholder function. App was not properly initialized!');
-};
-
-function createTrayMenu() {
-  const onTrayClick = () =>
-    !mainWindow || mainWindow.isDestroyed() ? initialize() : mainWindow.focus();
-
-  if (!tray || tray.isDestroyed()) {
-    tray = new Tray(`${__dirname}/${isMac ? TrayIconMac : TrayIcon}`);
-    const trayMenu = Menu.buildFromTemplate([
-      {
-        label: 'Open',
-        type: 'normal',
-        click: onTrayClick,
-      },
-      {
-        label: 'Quit',
-        click: () => process.exit(0),
-      },
-    ]);
-    tray.setContextMenu(trayMenu);
-    tray.setToolTip('Allusion - Your Visual Library');
-    tray.on('click', onTrayClick);
+function getMainWindowDisplay() {
+  if (mainWindow) {
+    const winBounds = mainWindow.getBounds();
+    return screen.getDisplayNearestPoint({
+      x: winBounds.x + winBounds.width / 2,
+      y: winBounds.y + winBounds.height / 2,
+    });
   }
+  return screen.getPrimaryDisplay();
 }
 
 function createWindow() {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-
   // Remember window size and position
   const previousWindowState = getPreviousWindowState();
 
@@ -143,10 +58,8 @@ function createWindow() {
       nativeWindowOpen: true,
       nodeIntegrationInSubFrames: true,
     },
-    width,
-    height,
-    minWidth: 240,
-    minHeight: 64,
+    minWidth: MIN_WINDOW_WIDTH,
+    minHeight: MIN_WINDOW_HEIGHT,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#1c1e23',
@@ -166,23 +79,27 @@ function createWindow() {
       return;
     }
 
-    const windowTitles: { [key: string]: string } = {
+    const WINDOW_TITLES: { [key: string]: string } = {
       settings: 'Settings',
       'help-center': 'Help Center',
       about: 'About',
     };
-    if (!(frameName in windowTitles)) return;
+    if (!(frameName in WINDOW_TITLES)) {
+      return;
+    }
 
-    // Note: For pop-out windows, the native frame is enabled
-    // but it appears to not work on OSX, likely due to setting the parent window
+    // Open window on same display as main window
+    const targetDisplay = getMainWindowDisplay();
+    const bounds: Rectangle = { width: 680, height: 480, x: 0, y: 0 };
+    bounds.x = targetDisplay.bounds.x + bounds.width / 2;
+    bounds.y = targetDisplay.bounds.y + bounds.height / 2;
 
     event.preventDefault();
     // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
     const additionalOptions: Electron.BrowserWindowConstructorOptions = {
+      ...bounds,
       parent: mainWindow,
-      width: 680,
-      height: 480,
-      title: `${windowTitles[frameName]} • Allusion`,
+      title: `${WINDOW_TITLES[frameName]} • Allusion`,
       frame: true,
       titleBarStyle: 'default',
     };
@@ -203,20 +120,22 @@ function createWindow() {
     });
   });
 
-  mainWindow.addListener(
-    'enter-full-screen',
-    () => mainWindow && MainMessenger.fullscreenChanged(mainWindow.webContents, true),
-  );
+  mainWindow.addListener('enter-full-screen', () => {
+    if (mainWindow !== null) {
+      MainMessenger.fullscreenChanged(mainWindow.webContents, true);
+    }
+  });
 
-  mainWindow.addListener(
-    'leave-full-screen',
-    () => mainWindow && MainMessenger.fullscreenChanged(mainWindow.webContents, false),
-  );
+  mainWindow.addListener('leave-full-screen', () => {
+    if (mainWindow !== null) {
+      MainMessenger.fullscreenChanged(mainWindow.webContents, false);
+    }
+  });
 
-  mainWindow.addListener('resize', saveWindowStateSoon);
-  mainWindow.addListener('move', saveWindowStateSoon);
-  mainWindow.addListener('unmaximize', saveWindowStateSoon);
-  mainWindow.addListener('maximize', saveWindowStateSoon);
+  mainWindow.addListener('resize', saveWindowState);
+  mainWindow.addListener('move', saveWindowState);
+  mainWindow.addListener('unmaximize', saveWindowState);
+  mainWindow.addListener('maximize', saveWindowState);
 
   let menu = null;
 
@@ -253,19 +172,13 @@ function createWindow() {
   menuBar.push({
     label: 'View',
     submenu: [
-      { role: 'reload' },
-      { role: 'forceReload' },
       {
-        // Alternative to reload: Just reloading window seems to cause a crash (started happening since the recent WASM changes)
-        // A restart of the whole electron app circumvents that.
-        // but not always
-        // TODO: Call this instead at every place that does a simple refresh
-        label: 'Complete restart',
-        accelerator: 'F5',
-        click: () => {
-          app.relaunch();
-          app.exit();
-        },
+        // FIXME: Just reloading window crashes due to an Electron bug related
+        // to WASM.
+        // A restart of the whole electron app circumvents that but not always.
+        label: 'Reload',
+        accelerator: 'CommandOrControl+R',
+        click: forceRelaunch,
       },
       { role: 'toggleDevTools' },
       { type: 'separator' },
@@ -283,8 +196,10 @@ function createWindow() {
         // TODO: Fix by using custom solution...
         accelerator: 'CommandOrControl+=',
         click: (_, browserWindow) => {
-          if (browserWindow) {
-            browserWindow.webContents.zoomFactor += 0.1;
+          if (browserWindow !== undefined) {
+            browserWindow.webContents.setZoomFactor(
+              Math.min(browserWindow.webContents.zoomFactor + 0.1, MAX_ZOOM_FACTOR),
+            );
           }
         },
       },
@@ -292,8 +207,10 @@ function createWindow() {
         label: 'Zoom Out',
         accelerator: 'CommandOrControl+-',
         click: (_, browserWindow) => {
-          if (browserWindow) {
-            browserWindow.webContents.zoomFactor -= 0.1;
+          if (browserWindow !== undefined) {
+            browserWindow.webContents.setZoomFactor(
+              Math.max(browserWindow.webContents.zoomFactor - 0.1, MIN_ZOOM_FACTOR),
+            );
           }
         },
       },
@@ -325,7 +242,7 @@ function createWindow() {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null;
-    if (previewWindow && !previewWindow.isDestroyed()) {
+    if (previewWindow !== null && !previewWindow.isDestroyed()) {
       previewWindow.close();
     }
   });
@@ -342,13 +259,13 @@ function createWindow() {
     }
   });
 
-  if (!clipServer) {
+  if (clipServer === null) {
     clipServer = new ClipServer(importExternalImage, addTagsToFile, getTags);
   }
 
   // System tray icon: Always show on Mac, or other platforms when the app is running in the background
   // Useful for browser extension, so it will work even when the window is closed
-  if (isMac || clipServer.isRunInBackgroundEnabled()) {
+  if (IS_MAC || clipServer.isRunInBackgroundEnabled()) {
     createTrayMenu();
   }
 
@@ -365,11 +282,15 @@ function createWindow() {
 
 function createPreviewWindow() {
   // Get display where main window is located
-  let display = screen.getPrimaryDisplay();
-  if (mainWindow) {
-    const winBounds = mainWindow.getBounds();
-    display = screen.getDisplayNearestPoint({ x: winBounds.x, y: winBounds.y });
-  }
+  const display = getMainWindowDisplay();
+
+  // preview window is is sized relative to screen resolution by default
+  const bounds: Rectangle = {
+    width: (display.size.height * 3) / 4,
+    height: (display.size.width * 3) / 4,
+    x: display.bounds.x + display.bounds.width / 4,
+    y: display.bounds.y + display.bounds.height / 4,
+  };
 
   previewWindow = new BrowserWindow({
     webPreferences: {
@@ -378,8 +299,7 @@ function createPreviewWindow() {
     },
     minWidth: 224,
     minHeight: 224,
-    height: (display.size.height * 3) / 4, // preview window is is sized relative to screen resolution by default
-    width: (display.size.width * 3) / 4,
+    ...bounds,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#14181a',
@@ -390,31 +310,44 @@ function createPreviewWindow() {
   previewWindow.loadURL(`file://${__dirname}/index.html?preview=true`);
   previewWindow.on('close', (e) => {
     // Prevent close, hide the window instead, for faster launch next time
-    if (mainWindow) {
+    if (mainWindow !== null) {
       e.preventDefault();
       MainMessenger.sendClosedPreviewWindow(mainWindow.webContents);
       mainWindow.focus();
     }
-    if (previewWindow) {
+    if (previewWindow !== null) {
       previewWindow.hide();
     }
   });
   return previewWindow;
 }
 
-initialize = () => {
-  createWindow();
-  createPreviewWindow();
-};
+function createTrayMenu() {
+  if (tray === null || tray.isDestroyed()) {
+    const onTrayClick = () =>
+      mainWindow === null || mainWindow.isDestroyed() ? initialize() : mainWindow.focus();
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', initialize);
+    tray = new Tray(`${__dirname}/${IS_MAC ? TrayIconMac : TrayIcon}`);
+    const trayMenu = Menu.buildFromTemplate([
+      {
+        label: 'Open',
+        type: 'normal',
+        click: onTrayClick,
+      },
+      {
+        label: 'Quit',
+        click: () => process.exit(0),
+      },
+    ]);
+    tray.setContextMenu(trayMenu);
+    tray.setToolTip('Allusion - Your Visual Library');
+    tray.on('click', onTrayClick);
+  }
+}
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-  if (!(clipServer && clipServer.isRunInBackgroundEnabled())) {
+  if (clipServer === null || !clipServer.isRunInBackgroundEnabled()) {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -422,6 +355,33 @@ app.on('window-all-closed', () => {
     }
   }
 });
+
+// Ensure only a single instance of Allusion can be open
+// https://www.electronjs.org/docs/api/app#apprequestsingleinstancelock
+const HAS_INSTANCE_LOCK = app.requestSingleInstanceLock();
+if (!HAS_INSTANCE_LOCK) {
+  console.log('Another instance of Allusion is already running');
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow === null || mainWindow.isDestroyed()) {
+      // In case there is no main window (could be running in background): re-initialize
+      initialize();
+    } else {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.focus();
+    }
+  });
+
+  // Only initialize window if no other instance is already running:
+  // This method will be called when Electron has finished
+  // initialization and is ready to create browser windows.
+  // Some APIs can only be used after this event occurs.
+  app.whenReady().then(initialize);
+}
 
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
@@ -450,7 +410,9 @@ autoUpdater.on('error', (error) => {
 });
 
 autoUpdater.on('update-available', async (info: UpdateInfo) => {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow === null || mainWindow.isDestroyed()) {
+    return;
+  }
 
   const message = `Update available: ${info.releaseName || info.version}:\nDo you want update now?`;
   // info.releaseNotes attribute is HTML, could show that in renderer at some point
@@ -476,7 +438,9 @@ autoUpdater.on('update-not-available', () => {
     return;
   }
   // Could also show this as a toast!
-  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow === null || mainWindow.isDestroyed()) {
+    return;
+  }
   dialog.showMessageBox(mainWindow, {
     title: 'No Update Available',
     message: `Current version is up-to-date (v${getVersion()})!`,
@@ -525,7 +489,7 @@ MainMessenger.onStoreFile(({ directory, filenameWithExt, imgBase64 }) =>
 // Forward files from the main window to the preview window
 MainMessenger.onSendPreviewFiles((msg) => {
   // Create preview window if needed, and send the files selected in the primary window
-  if (!previewWindow || previewWindow.isDestroyed()) {
+  if (previewWindow === null || previewWindow.isDestroyed()) {
     // The Window object might've been destroyed if it was hidden for too long -> Recreate it
     if (previewWindow?.isDestroyed()) {
       console.warn('Preview window was destroyed! Attemping to recreate...');
@@ -555,7 +519,8 @@ MainMessenger.onDragExport((absolutePaths) => {
   }
 
   let previewIcon = nativeImage.createFromPath(absolutePaths[0]);
-  if (previewIcon) {
+  const isPreviewEmpty = previewIcon.isEmpty();
+  if (!isPreviewEmpty) {
     // Resize preview to something resonable: taking into account aspect ratio
     const ratio = previewIcon.getAspectRatio();
     previewIcon =
@@ -568,18 +533,15 @@ MainMessenger.onDragExport((absolutePaths) => {
     files: absolutePaths,
     // Just show the first image as a thumbnail for now
     // TODO: Show some indication that multiple images are dragged, would be cool to show a stack of the first few of them
-    icon: previewIcon.isEmpty() ? AppIcon : previewIcon,
+    icon: isPreviewEmpty ? AppIcon : previewIcon,
   } as any);
 });
 
-MainMessenger.onClearDatabase(() => {
-  mainWindow?.webContents.reload();
-  previewWindow?.hide();
-});
+MainMessenger.onClearDatabase(forceRelaunch);
 
 MainMessenger.onToggleDevTools(() => mainWindow?.webContents.toggleDevTools());
 
-MainMessenger.onReload(() => mainWindow?.webContents.reload());
+MainMessenger.onReload(forceRelaunch);
 
 MainMessenger.onOpenDialog(dialog);
 
@@ -591,7 +553,12 @@ MainMessenger.onSetFullScreen((isFullScreen) => mainWindow?.setFullScreen(isFull
 
 MainMessenger.onGetZoomFactor(() => mainWindow?.webContents.zoomFactor ?? 1);
 
-MainMessenger.onSetZoomFactor((level: number) => mainWindow?.webContents.setZoomFactor(level));
+MainMessenger.onSetZoomFactor((factor) => {
+  if (mainWindow !== null) {
+    const zoom = Math.max(MIN_ZOOM_FACTOR, Math.min(factor, MAX_ZOOM_FACTOR));
+    mainWindow.webContents.setZoomFactor(zoom);
+  }
+});
 
 MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
   if (mainWindow !== null) {
@@ -620,7 +587,85 @@ MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
 
 MainMessenger.onIsMaximized(() => mainWindow?.isMaximized() ?? false);
 
-function getVersion() {
+MainMessenger.onGetVersion(getVersion);
+
+MainMessenger.onCheckForUpdates(() => autoUpdater.checkForUpdates());
+
+// Helper functions and variables/constants
+
+const IS_MAC = process.platform === 'darwin';
+const MIN_ZOOM_FACTOR = 0.5;
+const MAX_ZOOM_FACTOR = 2;
+const MIN_WINDOW_WIDTH = 240;
+const MIN_WINDOW_HEIGHT = 64;
+
+const windowStateFilePath = path.join(app.getPath('userData'), 'windowState.json');
+
+// Based on https://github.com/electron/electron/issues/526
+function getPreviousWindowState(): Electron.Rectangle & { isMaximized?: boolean } {
+  const options: Electron.Rectangle & { isMaximized?: boolean } = {
+    x: 0,
+    y: 0,
+    width: MIN_WINDOW_WIDTH,
+    height: MIN_WINDOW_HEIGHT,
+  };
+  try {
+    const state = fse.readJSONSync(windowStateFilePath);
+    state.x = Number(state.x);
+    state.y = Number(state.y);
+    state.width = Number(state.width);
+    state.height = Number(state.height);
+    state.isMaximized = Boolean(state.isMaximized);
+
+    const area = screen.getDisplayMatching(state).workArea;
+    // If the saved position still valid (the window is entirely inside the display area), use it.
+    if (
+      state.x >= area.x &&
+      state.y >= area.y &&
+      state.x + state.width <= area.x + area.width &&
+      state.y + state.height <= area.y + area.height
+    ) {
+      options.x = state.x;
+      options.y = state.y;
+    }
+    // If the saved size is still valid, use it.
+    if (state.width <= area.width || state.height <= area.height) {
+      options.width = state.width;
+      options.height = state.height;
+    }
+    options.isMaximized = state.isMaximized;
+  } catch (e) {
+    console.error('Could not read window state file!', e);
+    // Fallback to primary display screen size
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    options.width = width;
+    options.height = height;
+  }
+  return options;
+}
+
+// Save window position and bounds: https://github.com/electron/electron/issues/526
+let saveBoundsTimeout: ReturnType<typeof setTimeout> | null = null;
+function saveWindowState() {
+  if (saveBoundsTimeout) clearTimeout(saveBoundsTimeout);
+  saveBoundsTimeout = setTimeout(() => {
+    saveBoundsTimeout = null;
+    if (mainWindow !== null) {
+      const state = Object.assign(
+        { isMaximized: mainWindow.isMaximized() },
+        mainWindow.getNormalBounds(),
+      );
+      fse.writeFileSync(windowStateFilePath, JSON.stringify(state, null, 2));
+    }
+  }, 1000);
+}
+
+function forceRelaunch() {
+  app.relaunch();
+  app.exit();
+}
+
+function getVersion(): string {
   if (isDev()) {
     // Weird quirk: it returns the Electron version in dev mode
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -629,6 +674,28 @@ function getVersion() {
     return app.getVersion();
   }
 }
-MainMessenger.onGetVersion(() => getVersion());
 
-MainMessenger.onCheckForUpdates(() => autoUpdater.checkForUpdates());
+/** Returns whether main window is open - so whether files can be immediately imported */
+async function importExternalImage(item: IImportItem): Promise<boolean> {
+  if (mainWindow !== null) {
+    MainMessenger.sendImportExternalImage(mainWindow.webContents, { item });
+    return true;
+  }
+  return false;
+}
+
+async function addTagsToFile(item: IImportItem): Promise<boolean> {
+  if (mainWindow !== null) {
+    MainMessenger.sendAddTagsToFile(mainWindow.webContents, { item });
+    return true;
+  }
+  return false;
+}
+
+async function getTags(): Promise<ITag[]> {
+  if (mainWindow !== null) {
+    const { tags } = await MainMessenger.getTags(mainWindow.webContents);
+    return tags.filter((t) => t.id !== ROOT_TAG_ID);
+  }
+  return [];
+}

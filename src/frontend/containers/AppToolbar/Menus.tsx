@@ -50,6 +50,7 @@ export const ViewCommand = ({ uiStore }: { uiStore: UiStore }) => {
 const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }> = [
   // { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
   { prop: 'name', icon: IconSet.FILTER_NAME_UP, text: 'Name' },
+  { prop: 'absolutePath', icon: IconSet.FOLDER_OPEN, text: 'Path' },
   { prop: 'extension', icon: IconSet.FILTER_FILE_TYPE, text: 'File type' },
   { prop: 'size', icon: IconSet.FILTER_FILTER_DOWN, text: 'File size' },
   { prop: 'dateAdded', icon: IconSet.FILTER_DATE, text: 'Date added' },
