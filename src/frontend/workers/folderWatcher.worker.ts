@@ -42,7 +42,8 @@ export class FolderWatcherWorker {
         // - chokidar also matches entire directories: if those contain a dot, it will be ignored too, since they don't end with an image extension
         // So now we use a callback function that also provides `stats` through which we can detect whether the path is a file or a directory
 
-        const ext = SysPath.extname(path).toLowerCase();
+        const ext = SysPath.extname(path).toLowerCase().split('.')[1];
+
         // If the path doesn't have an extension: it's likely a directory: don't ignore
         // In the unlikely situation it's a file, we'll filter it out later in the .on('add', ...)
         if (!ext) return false;
@@ -55,6 +56,7 @@ export class FolderWatcherWorker {
           if (stats.isDirectory()) {
             // Ignore dot directories like `/home/.hidden-directory/` but not `/home/directory.with.dots/`
             if (SysPath.basename(path).startsWith('.')) return true;
+            return false;
           } else {
             // Not a directory, and not an image file either. Ignore!
             return true;
@@ -77,8 +79,9 @@ export class FolderWatcherWorker {
             await watcher.close();
             this.isCancelled = false;
           }
-          const ext = SysPath.extname(path).toLowerCase() as IMG_EXTENSIONS_TYPE;
-          if (IMG_EXTENSIONS.includes(ext)) {
+
+          const ext = SysPath.extname(path).toLowerCase().split('.')[1];
+          if (IMG_EXTENSIONS.includes(ext as IMG_EXTENSIONS_TYPE)) {
             if (this.isReady) {
               ctx.postMessage({ type: 'add', value: path });
             } else {
