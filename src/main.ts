@@ -20,6 +20,7 @@ import ClipServer, { IImportItem } from './clipper/server';
 import { isDev } from './config';
 import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
+import { Rectangle } from 'electron/main';
 
 let mainWindow: BrowserWindow | null = null;
 let previewWindow: BrowserWindow | null = null;
@@ -29,6 +30,17 @@ let clipServer: ClipServer | null = null;
 function initialize() {
   createWindow();
   createPreviewWindow();
+}
+
+function getMainWindowDisplay() {
+  if (mainWindow) {
+    const winBounds = mainWindow.getBounds();
+    return screen.getDisplayNearestPoint({
+      x: winBounds.x + winBounds.width / 2,
+      y: winBounds.y + winBounds.height / 2,
+    });
+  }
+  return screen.getPrimaryDisplay();
 }
 
 function createWindow() {
@@ -75,15 +87,18 @@ function createWindow() {
     if (!(frameName in WINDOW_TITLES)) {
       return;
     }
-    // Note: For pop-out windows, the native frame is enabled
-    // but it appears to not work on OSX, likely due to setting the parent window
+
+    // Open window on same display as main window
+    const targetDisplay = getMainWindowDisplay();
+    const bounds: Rectangle = { width: 680, height: 480, x: 0, y: 0 };
+    bounds.x = targetDisplay.bounds.x + bounds.width / 2;
+    bounds.y = targetDisplay.bounds.y + bounds.height / 2;
 
     event.preventDefault();
     // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
     const additionalOptions: Electron.BrowserWindowConstructorOptions = {
+      ...bounds,
       parent: mainWindow,
-      width: 680,
-      height: 480,
       title: `${WINDOW_TITLES[frameName]} • Allusion`,
       frame: true,
       titleBarStyle: 'default',
@@ -267,11 +282,15 @@ function createWindow() {
 
 function createPreviewWindow() {
   // Get display where main window is located
-  let display = screen.getPrimaryDisplay();
-  if (mainWindow !== null) {
-    const winBounds = mainWindow.getBounds();
-    display = screen.getDisplayNearestPoint({ x: winBounds.x, y: winBounds.y });
-  }
+  const display = getMainWindowDisplay();
+
+  // preview window is is sized relative to screen resolution by default
+  const bounds: Rectangle = {
+    width: (display.size.height * 3) / 4,
+    height: (display.size.width * 3) / 4,
+    x: display.bounds.x + display.bounds.width / 4,
+    y: display.bounds.y + display.bounds.height / 4,
+  };
 
   previewWindow = new BrowserWindow({
     webPreferences: {
@@ -280,8 +299,7 @@ function createPreviewWindow() {
     },
     minWidth: 224,
     minHeight: 224,
-    height: (display.size.height * 3) / 4, // preview window is is sized relative to screen resolution by default
-    width: (display.size.width * 3) / 4,
+    ...bounds,
     icon: `${__dirname}/${AppIcon}`,
     // Should be same as body background: Only for split second before css is loaded
     backgroundColor: '#14181a',
