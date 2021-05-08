@@ -256,7 +256,6 @@ const BackgroundProcesses = observer(() => {
         </div>
       </fieldset>
 
-      {/* TODO: Link to chrome extension page when it's up */}
       <Button
         onClick={() => shell.openExternal(chromeExtensionUrl)}
         styling="outlined"

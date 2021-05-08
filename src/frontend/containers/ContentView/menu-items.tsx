@@ -72,7 +72,7 @@ export const SlideFileViewerMenuItems = ({
 export const ExternalAppMenuItems = ({ file }: { file: ClientFile }) => (
   <>
     <MenuItem
-      onClick={() => shell.openExternal(file.absolutePath)}
+      onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
       text="Open External"
       icon={IconSet.OPEN_EXTERNAL}
       disabled={file.isBroken}
