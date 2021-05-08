@@ -37,34 +37,37 @@ export class FolderWatcherWorker {
       alwaysStat: true, // we need stats anyways during importing
       depth: RECURSIVE_DIR_WATCH_DEPTH, // not really needed: added as a safety measure for infinite recursion between symbolic links
       ignored: (path: string, stats?: Stats) => {
-        // We used to set `ignored` with regex patterns, but ran into problem with directories that include dots:
-        // - we ignore everything but image files, but:
-        // - chokidar also matches entire directories: if those contain a dot, it will be ignored too, since they don't end with an image extension
-        // So now we use a callback function that also provides `stats` through which we can detect whether the path is a file or a directory
+        // We used to set `ignored` with regex patterns, but ran into problem with directories that
+        // contain dots in their file name.
+        // We ignore everything except image files but chokidar also matches entire directories. If
+        // those contain a dot, they will be ignored since they don't end with an image extension.
+        // So now we have to use a callback function that also provides `stats` through which we can
+        // use to detect whether the path is a file or a directory.
 
-        const ext = SysPath.extname(path).toLowerCase().split('.')[1];
         const basename = SysPath.basename(path);
 
-        // Ignore .dot files and folders
-        if (basename.startsWith('.')) return true;
-
-        // If the path doesn't have an extension: it's likely a directory: don't ignore
+        // Ignore .dot files and folders.
+        if (basename.startsWith('.')) {
+          return true;
+        }
+        // If the path doesn't have an extension (likely a directory), don't ignore it.
         // In the unlikely situation it is a file, we'll filter it out later in the .on('add', ...)
-        if (!ext) return false;
-        // If the path (file or directory) ends with an image extension: don't ignore it
-        if (IMG_EXTENSIONS.includes(ext as IMG_EXTENSIONS_TYPE)) return false;
-
-        // Otherwise, we need to know whether it is a file or a directory before making a decision
-        // If we don't return anything, this callback will be called a second time, with the stats variable as second argument
+        const ext = SysPath.extname(path).toLowerCase().split('.')[1];
+        if (!ext) {
+          return false;
+        }
+        // If the path (file or directory) ends with an image extension, don't ignore it.
+        if (IMG_EXTENSIONS.includes(ext as IMG_EXTENSIONS_TYPE)) {
+          return false;
+        }
+        // Otherwise, we need to know whether it is a file or a directory before making a decision.
+        // If we don't return anything, this callback will be called a second time, with the stats
+        // variable as second argument
         if (stats) {
-          if (stats.isDirectory()) {
-            // Ignore dot directories like `/home/.hidden-directory/` but not `/home/directory.with.dots/`
-            if (SysPath.basename(path).startsWith('.')) return true;
-            return false;
-          } else {
-            // Not a directory, and not an image file either. Ignore!
-            return true;
-          }
+          // Ignore if
+          // * dot directory like `/home/.hidden-directory/` but not `/home/directory.with.dots/` and
+          // * not a directory, and not an image file either.
+          return !stats.isDirectory() || SysPath.basename(path).startsWith('.');
         }
       },
     });
