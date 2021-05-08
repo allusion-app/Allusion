@@ -30,6 +30,11 @@ const windowStateFilePath = path.join(app.getPath('userData'), 'windowState.json
 
 const isMac = process.platform === 'darwin';
 
+const relaunchNow = () => {
+  app.relaunch();
+  app.exit();
+};
+
 /** Returns whether main window is open - so whether files can be immediately imported */
 const importExternalImage = async (item: IImportItem) => {
   if (mainWindow) {
@@ -260,19 +265,13 @@ function createWindow() {
   menuBar.push({
     label: 'View',
     submenu: [
-      { role: 'reload' },
-      { role: 'forceReload' },
       {
         // Alternative to reload: Just reloading window seems to cause a crash (started happening since the recent WASM changes)
         // A restart of the whole electron app circumvents that.
         // but not always
-        // TODO: Call this instead at every place that does a simple refresh
-        label: 'Complete restart',
-        accelerator: 'F5',
-        click: () => {
-          app.relaunch();
-          app.exit();
-        },
+        label: 'Reload',
+        accelerator: 'CommandOrControl+R',
+        click: relaunchNow,
       },
       { role: 'toggleDevTools' },
       { type: 'separator' },
@@ -414,11 +413,6 @@ initialize = () => {
   createPreviewWindow();
 };
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', initialize);
-
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
   if (!(clipServer && clipServer.isRunInBackgroundEnabled())) {
@@ -437,6 +431,28 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+// Ensure only a single instance of Allusion can be open
+// https://www.electronjs.org/docs/api/app#apprequestsingleinstancelock
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  console.log('Another instance of Allusion is already running');
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+
+  // Only initialize window if no other instance is already running:
+  // This method will be called when Electron has finished
+  // initialization and is ready to create browser windows.
+  // Some APIs can only be used after this event occurs.
+  app.on('ready', initialize);
+}
 
 // Auto-updates: using electron-builders autoUpdater: https://www.electron.build/auto-update#quick-setup-guide
 // How it should go:
@@ -579,14 +595,11 @@ MainMessenger.onDragExport((absolutePaths) => {
   } as any);
 });
 
-MainMessenger.onClearDatabase(() => {
-  mainWindow?.webContents.reload();
-  previewWindow?.hide();
-});
+MainMessenger.onClearDatabase(relaunchNow);
 
 MainMessenger.onToggleDevTools(() => mainWindow?.webContents.toggleDevTools());
 
-MainMessenger.onReload(() => mainWindow?.webContents.reload());
+MainMessenger.onReload(relaunchNow);
 
 MainMessenger.onOpenDialog(dialog);
 
