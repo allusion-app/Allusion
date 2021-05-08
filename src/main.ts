@@ -126,6 +126,13 @@ function createTrayMenu() {
   }
 }
 
+const clamp = (value: number, min: number, max: number): number =>
+  Math.max(min, Math.min(value, max));
+
+const setZoomFactorClamped = (win: BrowserWindow | null, factor: number) => {
+  win?.webContents.setZoomFactor(clamp(factor, 0.5, 2));
+};
+
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
@@ -284,7 +291,7 @@ function createWindow() {
         accelerator: 'CommandOrControl+=',
         click: (_, browserWindow) => {
           if (browserWindow) {
-            browserWindow.webContents.zoomFactor += 0.1;
+            setZoomFactorClamped(browserWindow, browserWindow.webContents.zoomFactor + 0.1);
           }
         },
       },
@@ -293,7 +300,7 @@ function createWindow() {
         accelerator: 'CommandOrControl+-',
         click: (_, browserWindow) => {
           if (browserWindow) {
-            browserWindow.webContents.zoomFactor -= 0.1;
+            setZoomFactorClamped(browserWindow, browserWindow.webContents.zoomFactor - 0.1);
           }
         },
       },
@@ -591,7 +598,7 @@ MainMessenger.onSetFullScreen((isFullScreen) => mainWindow?.setFullScreen(isFull
 
 MainMessenger.onGetZoomFactor(() => mainWindow?.webContents.zoomFactor ?? 1);
 
-MainMessenger.onSetZoomFactor((level: number) => mainWindow?.webContents.setZoomFactor(level));
+MainMessenger.onSetZoomFactor((factor: number) => setZoomFactorClamped(mainWindow, factor));
 
 MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
   if (mainWindow !== null) {
