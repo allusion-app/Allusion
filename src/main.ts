@@ -33,7 +33,7 @@ function initialize() {
 }
 
 function getMainWindowDisplay() {
-  if (mainWindow) {
+  if (mainWindow !== null) {
     const winBounds = mainWindow.getBounds();
     return screen.getDisplayNearestPoint({
       x: winBounds.x + winBounds.width / 2,
