@@ -32,17 +32,6 @@ function initialize() {
   createPreviewWindow();
 }
 
-function getMainWindowDisplay() {
-  if (mainWindow !== null) {
-    const winBounds = mainWindow.getBounds();
-    return screen.getDisplayNearestPoint({
-      x: winBounds.x + winBounds.width / 2,
-      y: winBounds.y + winBounds.height / 2,
-    });
-  }
-  return screen.getPrimaryDisplay();
-}
-
 function createWindow() {
   // Remember window size and position
   const previousWindowState = getPreviousWindowState();
@@ -286,10 +275,10 @@ function createPreviewWindow() {
 
   // preview window is is sized relative to screen resolution by default
   const bounds: Rectangle = {
-    width: (display.size.height * 3) / 4,
-    height: (display.size.width * 3) / 4,
-    x: display.bounds.x + display.bounds.width / 4,
-    y: display.bounds.y + display.bounds.height / 4,
+    width: (display.size.width * 3) / 4,
+    height: (display.size.height * 3) / 4,
+    x: display.bounds.x + display.bounds.width / 8,
+    y: display.bounds.y + display.bounds.height / 8,
   };
 
   previewWindow = new BrowserWindow({
@@ -598,6 +587,17 @@ const MIN_ZOOM_FACTOR = 0.5;
 const MAX_ZOOM_FACTOR = 2;
 const MIN_WINDOW_WIDTH = 240;
 const MIN_WINDOW_HEIGHT = 64;
+
+function getMainWindowDisplay() {
+  if (mainWindow !== null) {
+    const winBounds = mainWindow.getBounds();
+    return screen.getDisplayNearestPoint({
+      x: winBounds.x + winBounds.width / 2,
+      y: winBounds.y + winBounds.height / 2,
+    });
+  }
+  return screen.getPrimaryDisplay();
+}
 
 const windowStateFilePath = path.join(app.getPath('userData'), 'windowState.json');
 
