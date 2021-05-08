@@ -6,7 +6,7 @@ import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile } from 'src/entities/File';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import UiStore from 'src/frontend/stores/UiStore';
-import { debouncedThrottle, throttle } from 'src/frontend/utils';
+import { debouncedThrottle } from 'src/frontend/utils';
 import { IconSet } from 'widgets';
 import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
 import { listColumns, GalleryCommand, ListCell } from './GalleryItem';

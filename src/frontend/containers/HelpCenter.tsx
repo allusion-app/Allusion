@@ -324,7 +324,14 @@ const PAGE_DATA: () => IPageData[] = () => [
               A browser extension for Chromium-based browsers such as Google Chrome and Edge is
               available. It allows you to import images into Allusion directly from your web browser
               and immediately tag them as well. Take a look in the "Background Processes" section in
-              the settings window for more information. Get the extension here from <a href="https://chrome.google.com/webstore/detail/allusion-web-clipper/gjceheijjnmdfcolopodbopfoaicobna" onClick={clickOutbound} className="outbound" >Chrome Webstore.</a>
+              the settings window for more information. Get the extension here from{' '}
+              <a
+                href="https://chrome.google.com/webstore/detail/allusion-web-clipper/gjceheijjnmdfcolopodbopfoaicobna"
+                onClick={clickOutbound}
+                className="outbound"
+              >
+                Chrome Webstore.
+              </a>
             </p>
           </>
         ),

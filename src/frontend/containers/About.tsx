@@ -42,7 +42,11 @@ const About = observer(() => {
             <li>Download the latest version</li>
           </ul>
           <h3>
-            <a href="https://github.com/allusion-app/Allusion" onClick={clickLink} className="outbound">
+            <a
+              href="https://github.com/allusion-app/Allusion"
+              onClick={clickLink}
+              className="outbound"
+            >
               github.com/allusion-app/Allusion
             </a>
           </h3>
