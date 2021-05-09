@@ -3,6 +3,10 @@ import { IDBVersioningConfig } from './DBRepository';
 // The name of the IndexedDB
 export const DB_NAME = 'Allusion';
 
+export const NUM_AUTO_BACKUPS = 6;
+
+export const AUTO_BACKUP_TIMEOUT = 1000 * 60 * 10; // 10 minutes
+
 // Schema based on https://dexie.org/docs/Version/Version.stores()#schema-syntax
 // Only for the indexes of the DB, not all fields
 // Versions help with upgrading DB to new configurations:

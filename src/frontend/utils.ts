@@ -235,7 +235,6 @@ export const ellipsize = (
 //// Date/time utils ////
 /////////////////////////
 const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
-  timeZone: 'UTC',
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',

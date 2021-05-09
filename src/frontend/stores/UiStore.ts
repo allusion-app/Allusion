@@ -1,12 +1,12 @@
-import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
-import path from 'path';
+import { getDefaultThumbnailDirectory } from 'src/config';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, debounce } from '../utils';
 import RootStore from './RootStore';
 
@@ -733,16 +733,11 @@ class UiStore {
 
     // Set default thumbnail directory in case none was specified
     if (this.thumbnailDirectory.length === 0) {
-      UiStore.getDefaultThumbnailDirectory().then((defaultThumbDir) => {
+      getDefaultThumbnailDirectory().then((defaultThumbDir) => {
         this.setThumbnailDirectory(defaultThumbDir);
         fse.ensureDirSync(this.thumbnailDirectory);
       });
     }
-  }
-
-  static async getDefaultThumbnailDirectory() {
-    const userDataPath = await RendererMessenger.getPath('temp');
-    return path.join(userDataPath, 'Allusion', 'thumbnails');
   }
 
   @action storePersistentPreferences() {
