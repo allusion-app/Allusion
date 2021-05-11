@@ -33,10 +33,13 @@
     padding: 0.25rem 2rem 0.5rem;
   }
 
-  a:hover {
-    color: var(--accent-color-blue);
-    transition: color 0.2s $pt-transition-cubic2;
-    cursor: pointer;
+  a {
+    color: var(--text-color);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 

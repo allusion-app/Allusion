@@ -1,6 +1,7 @@
 .callout {
   display: grid;
   grid-template-areas: 'icon auto' 'icon body';
+  grid-template-columns: min-content 1fr;
   border-left: 0.25rem solid var(--accent-color-blue);
   padding-left: 0.75rem;
   margin-bottom: 0.5rem;

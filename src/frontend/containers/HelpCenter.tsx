@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useCallback, useContext, useEffect, useRef, useState, memo } from 'react';
+import React, { useCallback, useContext, useRef, useState, memo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, ButtonGroup, IconSet, Split } from 'widgets';
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
@@ -41,13 +41,7 @@ interface IDocumentation {
 
 const Documentation = ({ id, overviewId, className, initPages }: IDocumentation) => {
   const [pageIndex, setPageIndex] = useState(0);
-  const [sectionIndex, setSectionIndex] = useState(0);
   const data = useRef(initPages());
-
-  const openPage = useRef((page: number, section: number) => {
-    setPageIndex(page);
-    setSectionIndex(section);
-  });
 
   const [isIndexOpen, setIndexIsOpen] = useState(true);
   const toggleIndex = useRef(() => setIndexIsOpen((value) => !value));
@@ -72,7 +66,7 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
   return (
     <div id={id} className={className}>
       <Split
-        primary={<Overview id={overviewId} pages={data.current} openPage={openPage.current} />}
+        primary={<Overview id={overviewId} pages={data.current} openPage={setPageIndex} />}
         secondary={
           <Page
             toolbar={
@@ -83,9 +77,8 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
               />
             }
             pages={data.current}
-            openPage={openPage.current}
+            openPage={setPageIndex}
             pageIndex={pageIndex}
-            sectionIndex={sectionIndex}
           />
         }
         axis="vertical"
@@ -101,7 +94,7 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
 interface IOverview {
   id: string;
   pages: IPageData[];
-  openPage: (page: number, section: number) => void;
+  openPage: (page: number) => void;
 }
 
 const Overview = memo(function Overview({ id, pages, openPage }: IOverview) {
@@ -114,9 +107,14 @@ const Overview = memo(function Overview({ id, pages, openPage }: IOverview) {
             {page.title}
           </summary>
           <ul>
-            {page.sections.map((section, sectionIndex) => (
+            {page.sections.map((section) => (
               <li key={section.title}>
-                <a onClick={() => openPage(pageIndex, sectionIndex)}>{section.title}</a>
+                <a
+                  href={`#${section.title.toLowerCase().replaceAll(' ', '-')}`}
+                  onClick={() => openPage(pageIndex)}
+                >
+                  {section.title}
+                </a>
               </li>
             ))}
           </ul>
@@ -130,39 +128,30 @@ interface IPage {
   toolbar: React.ReactNode;
   pages: IPageData[];
   pageIndex: number;
-  sectionIndex: number;
-  openPage: (page: number, section: number) => void;
+  openPage: (page: number) => void;
 }
 
 const Page = (props: IPage) => {
-  const { toolbar, pages, pageIndex, sectionIndex, openPage } = props;
-  const page = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (page.current !== null) {
-      const section = page.current.children[sectionIndex];
-      section.scrollIntoView();
-    }
-  }, [sectionIndex, pageIndex]);
+  const { toolbar, pages, pageIndex, openPage } = props;
 
   const buttons = [];
   if (pageIndex > 0) {
-    const previousPage = () => openPage(pageIndex - 1, 0);
+    const previousPage = () => openPage(pageIndex - 1);
     buttons.push(
       <Button key="previous" styling="outlined" onClick={previousPage} text="Previous" />,
     );
   }
   if (pageIndex < pages.length - 1) {
-    const nextPage = () => openPage(pageIndex + 1, 0);
+    const nextPage = () => openPage(pageIndex + 1);
     buttons.push(<Button key="next" styling="outlined" onClick={nextPage} text="Next" />);
   }
 
   return (
     <div className="doc-page">
       {toolbar}
-      <article className="doc-page-content" ref={page}>
+      <article className="doc-page-content">
         {pages[pageIndex].sections.map((section) => (
-          <section key={section.title}>
+          <section id={section.title.toLowerCase().replaceAll(' ', '-')} key={section.title}>
             <h2>{section.title}</h2>
             {section.content}
           </section>
