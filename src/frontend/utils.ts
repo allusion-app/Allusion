@@ -254,16 +254,9 @@ export const jsDateFormatter = {
   placeholder: 'Choose a date...',
 };
 
-/** Returns date in YYYY-mM-dD-hH-mM-sS format */
+/** Returns date in YYYYMMDDTHHMMSS format (ISO-string without symbols and milliseconds) */
 export function getFilenameFriendlyFormattedDateTime(date: Date) {
-  const y = date.getFullYear();
-  // JavaScript months are 0-based.
-  const m = date.getMonth() + 1;
-  const d = date.getDate();
-  const h = date.getHours();
-  const mi = date.getMinutes();
-  const s = date.getSeconds();
-  return y + '-' + m + '-' + d + '-' + h + '-' + mi + '-' + s;
+  return date.toISOString().replaceAll(/-|:/, '').slice(0, -5);
 }
 
 //////////////////////
