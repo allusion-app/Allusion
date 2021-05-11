@@ -17,7 +17,7 @@ import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
 import StoreContext from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
-import { formatDateTime, getThumbnailPath, isDirEmpty } from '../../utils';
+import { getFilenameFriendlyFormattedDateTime, getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import Tabs, { TabItem } from './Tabs';
@@ -152,7 +152,7 @@ const ImportExport = observer(() => {
   }, [backupDir]);
 
   const handleCreateExport = useCallback(async () => {
-    let filename = `backup ${formatDateTime(new Date())}.json`;
+    let filename = `backup_${getFilenameFriendlyFormattedDateTime(new Date())}.json`;
     filename = filename.replaceAll(':', '-');
     const filepath = SysPath.join(backupDir, filename);
     try {
@@ -271,10 +271,18 @@ const ImportExport = observer(() => {
             if (isConfirmingFileImport && button === DialogButton.PrimaryButton) {
               AppToaster.show({
                 message: 'Restoring database... Allusion will restart',
-                timeout: 0,
+                timeout: 5000,
               });
-              await rootStore.restoreDatabaseFromFile(isConfirmingFileImport?.path);
-              RendererMessenger.reload();
+              try {
+                await rootStore.restoreDatabaseFromFile(isConfirmingFileImport?.path);
+                RendererMessenger.reload();
+              } catch (e) {
+                console.error('Could not restore backup', e);
+                AppToaster.show({
+                  message: 'Restoring database failed!',
+                  timeout: 5000,
+                });
+              }
             }
             setConfirmingFileImport(undefined);
           }}

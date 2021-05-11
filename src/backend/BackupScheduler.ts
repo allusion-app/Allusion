@@ -36,28 +36,19 @@ export default class BackupScheduler {
 
   async initialize(backupDirectory: string): Promise<void> {
     this.backupDirectory = backupDirectory;
-
     await fse.ensureDir(this.backupDirectory);
-
-    await this.checkForLongTermBackups();
   }
 
-  private async checkForLongTermBackups() {
-    // TODO: this is not optimal. Could also re-use previous backups and rename them to 'daily' or 'weekly'
-
-    // Check for daily backup
-    await this.checkDateAndCreateBackup('daily.json', getToday());
-
-    // Check for weekly backup
-    await this.checkDateAndCreateBackup('weekly.json', getWeekStart());
-  }
-
-  /** Creates a backup if the file creation date is less than the provided date */
-  private async checkDateAndCreateBackup(filename: string, dateToCheck: Date): Promise<void> {
-    const filePath = path.join(this.backupDirectory, filename);
+  /** Creates a copy of a backup file, when the target file creation date is less than the provided date */
+  private static async copyFileIfCreatedBeforeDate(
+    srcPath: string,
+    targetPath: string,
+    dateToCheck: Date,
+  ): Promise<boolean> {
     let createBackup = false;
     try {
-      const stats = await fse.stat(filePath);
+      // If file creation date is less than provided date, create a back-up
+      const stats = await fse.stat(targetPath);
       createBackup = stats.ctime < dateToCheck;
     } catch (e) {
       // File not found
@@ -65,22 +56,42 @@ export default class BackupScheduler {
     }
     if (createBackup) {
       try {
-        await this.backend.backupDatabaseToFile(filePath);
-        console.log('Created backup', filename);
+        await fse.copyFile(srcPath, targetPath);
+        console.log('Created backup', targetPath);
+        return true;
       } catch (e) {
-        console.error('Could not create backup', filename, e);
+        console.error('Could not create backup', targetPath, e);
       }
     }
+    return false;
   }
 
   private async createPeriodicBackup() {
     const filePath = path.join(this.backupDirectory, `auto-backup-${this.lastBackupIndex}.json`);
-    this.backend
-      .backupDatabaseToFile(filePath)
-      .then(() => console.log('Created automatic backup', filePath))
-      .catch(console.error);
+
     this.lastBackupDate = new Date();
     this.lastBackupIndex = (this.lastBackupIndex + 1) % NUM_AUTO_BACKUPS;
+
+    try {
+      await this.backend.backupDatabaseToFile(filePath);
+      console.log('Created automatic backup', filePath);
+
+      // Check for daily backup
+      await BackupScheduler.copyFileIfCreatedBeforeDate(
+        filePath,
+        path.join(this.backupDirectory, 'daily.json'),
+        getToday(),
+      );
+
+      // Check for weekly backup
+      await BackupScheduler.copyFileIfCreatedBeforeDate(
+        filePath,
+        path.join(this.backupDirectory, 'weekly.json'),
+        getWeekStart(),
+      );
+    } catch (e) {
+      console.error('Could not create periodic backup', filePath, e);
+    }
   }
 
   notifyChange(): void {

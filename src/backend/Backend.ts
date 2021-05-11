@@ -47,7 +47,11 @@ export default class Backend {
         });
       }
 
-      await this.backupScheduler.initialize(await getDefaultBackupDirectory());
+      try {
+        await this.backupScheduler.initialize(await getDefaultBackupDirectory());
+      } catch (e) {
+        console.error('Could not initialize backup scheduler', e);
+      }
     }
   }
 
