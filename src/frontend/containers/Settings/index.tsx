@@ -179,9 +179,9 @@ const ImportExport = observer(() => {
       <h3>File Metadata</h3>
 
       <Callout icon={IconSet.INFO}>
-        This option is useful for importing/exporting tags from/to other software, or when you use
-        Allusion on multiple devices and want to synchronize the data using a service such as
-        Dropbox or Google Drive.
+        This option is useful for importing/exporting tags from/to other software. If you use a
+        service like Dropbox or Google, you can write your tags to your files on one device and read
+        them on other devices.
       </Callout>
       <label id="hierarchical-separator">
         <span>
@@ -215,8 +215,8 @@ const ImportExport = observer(() => {
         />
         <Alert
           open={isConfirmingMetadataExport}
-          title="Are you sure you want to write Allusion's tags to your image files?"
-          information="This will overwrite any existing tags ('keywords') on those files, so it is recommended you have imported them first"
+          title="Are you sure you want to overwrite your files' tags?"
+          information="This will overwrite any existing tags ('keywords') in those files with Allusion's tags. It is recommended to import all tags before writing new tags."
           primaryButtonText="Export"
           closeButtonText="Cancel"
           onClick={(button) => {
