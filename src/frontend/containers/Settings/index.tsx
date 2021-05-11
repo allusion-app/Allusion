@@ -177,12 +177,12 @@ const ImportExport = observer(() => {
       <h2>Import/Export</h2>
 
       <h3>File Metadata</h3>
+
       <Callout icon={IconSet.INFO}>
         This option is useful for importing/exporting tags from/to other software, or when you use
-        Allusion for images on multiple devices synchronized using a service such as Dropbox or
-        Google Drive.
+        Allusion on multiple devices and want to synchronize the data using a service such as
+        Dropbox or Google Drive.
       </Callout>
-
       <label id="hierarchical-separator">
         <span>
           Hierarchical separator, e.g.{' '}
@@ -230,22 +230,18 @@ const ImportExport = observer(() => {
 
       <h3>Backup Database as File</h3>
 
-      <Callout icon={IconSet.INFO}>
-        Backups of Allusion&quot;s database are saved in the following directory.
-        <br />
-        Automatic back-ups are created every 10 minutes.
-      </Callout>
-
-      <div className="input-file">
-        <input readOnly className="input input-file-value" value={backupDir} />
-        <IconButton
-          icon={IconSet.FOLDER_CLOSE}
-          onClick={() => shell.showItemInFolder(backupDir)}
-          text="Open in file explorer"
-        />
-      </div>
-
-      <br />
+      <Callout icon={IconSet.INFO}>Automatic back-ups are created every 10 minutes.</Callout>
+      <fieldset>
+        <legend>Backup Directory</legend>
+        <div className="input-file">
+          <input readOnly className="input input-file-value" value={backupDir} />
+          <IconButton
+            icon={IconSet.FOLDER_CLOSE}
+            onClick={() => shell.showItemInFolder(backupDir)}
+            text="Open in file explorer"
+          />
+        </div>
+      </fieldset>
 
       <ButtonGroup>
         <Button
