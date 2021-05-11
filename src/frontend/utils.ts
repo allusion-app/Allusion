@@ -256,7 +256,7 @@ export const jsDateFormatter = {
 
 /** Returns date in YYYYMMDDTHHMMSS format (ISO-string without symbols and milliseconds) */
 export function getFilenameFriendlyFormattedDateTime(date: Date) {
-  return date.toISOString().replaceAll(/-|:/, '').slice(0, -5);
+  return date.toISOString().replaceAll(/-|:/g, '').slice(0, -5);
 }
 
 //////////////////////
