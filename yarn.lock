@@ -3198,7 +3198,14 @@ detect-node@^2.0.4:
   resolved "https://registry.yarnpkg.com/detect-node/-/detect-node-2.0.4.tgz#014ee8f8f669c5c58023da64b8179c083a28c46c"
   integrity sha512-ZIzRpLJrOj7jjP2miAtgqIfmzbxa4ZOr5jJc601zklsfEx9oTzmmj2nVpIPRpNlRTIh8lc1kyViIY7BWSGNmKw==
 
-dexie@^3.0.3:
+dexie-export-import@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/dexie-export-import/-/dexie-export-import-1.0.0.tgz#2e2cc375a416f540c89d2a39f623d297077221a4"
+  integrity sha512-mqtREaI+/tSEfpwOZeYNyX+FfCxTYt0RB4BIevX4wFGMQL1mQ0cWfIGXBpoRGEnHdiHbf3QNK2+0Ras3dNJfIQ==
+  dependencies:
+    dexie "^3.0.0-alpha.5 || ^2.0.4"
+
+"dexie@^3.0.0-alpha.5 || ^2.0.4", dexie@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/dexie/-/dexie-3.0.3.tgz#ede63849dfe5f07e13e99bb72a040e8ac1d29dab"
   integrity sha512-BSFhGpngnCl1DOr+8YNwBDobRMH0ziJs2vts69VilwetHYOtEDcLqo7d/XiIphM0tJZ2rPPyAGd31lgH2Ln3nw==

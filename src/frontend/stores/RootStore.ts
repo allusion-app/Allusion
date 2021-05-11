@@ -31,7 +31,7 @@ class RootStore {
   readonly uiStore: UiStore;
   readonly clearDatabase: () => Promise<void>;
 
-  constructor(backend: Backend) {
+  constructor(private backend: Backend) {
     this.tagStore = new TagStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.locationStore = new LocationStore(backend, this);
@@ -65,6 +65,18 @@ class RootStore {
 
     // Upon loading data, initialize UI state.
     this.uiStore.init();
+  }
+
+  async backupDatabaseToFile(path: string) {
+    return this.backend.backupDatabaseToFile(path);
+  }
+
+  async restoreDatabaseFromFile(path: string) {
+    return this.backend.restoreDatabaseFromFile(path);
+  }
+
+  async peekDatabaseFile(path: string) {
+    return this.backend.peekDatabaseFile(path);
   }
 }
 

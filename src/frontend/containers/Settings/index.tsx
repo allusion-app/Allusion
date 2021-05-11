@@ -1,9 +1,14 @@
 import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useEffect, useState } from 'react';
-import { chromeExtensionUrl } from 'src/config';
-import UiStore from 'src/frontend/stores/UiStore';
+import SysPath from 'path';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import {
+  chromeExtensionUrl,
+  getDefaultBackupDirectory,
+  getDefaultThumbnailDirectory,
+} from 'src/config';
+import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
@@ -12,7 +17,7 @@ import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
 import StoreContext from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
-import { getThumbnailPath, isDirEmpty } from '../../utils';
+import { getFilenameFriendlyFormattedDateTime, getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import Tabs, { TabItem } from './Tabs';
@@ -111,13 +116,67 @@ const Zoom = () => {
 };
 
 const ImportExport = observer(() => {
-  const { fileStore } = useContext(StoreContext);
-  const [isConfirmingExport, setConfirmingExport] = useState(false);
+  const rootStore = useContext(StoreContext);
+  const { fileStore, tagStore } = rootStore;
+  const [isConfirmingMetadataExport, setConfirmingMetadataExport] = useState(false);
+  const [isConfirmingFileImport, setConfirmingFileImport] = useState<{
+    path: string;
+    info: string;
+  }>();
+  const [backupDir, setBackupDir] = useState('');
+  useEffect(() => {
+    getDefaultBackupDirectory().then(setBackupDir);
+  }, []);
+
+  const handleChooseImportDir = useCallback(async () => {
+    const { filePaths } = await RendererMessenger.openDialog({
+      properties: ['openFile'],
+      filters: [{ extensions: ['json'], name: 'JSON' }],
+      defaultPath: backupDir,
+    });
+    const path = filePaths[0];
+    if (!path) {
+      return;
+    }
+    try {
+      const backupStats = await rootStore.peekDatabaseFile(path);
+      setConfirmingFileImport({
+        path,
+        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.tagList.length}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
+      });
+    } catch (e) {
+      console.log(e);
+      AppToaster.show({ message: 'Backup file is invalid', timeout: 5000 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backupDir]);
+
+  const handleCreateExport = useCallback(async () => {
+    let filename = `backup_${getFilenameFriendlyFormattedDateTime(new Date())}.json`;
+    filename = filename.replaceAll(':', '-');
+    const filepath = SysPath.join(backupDir, filename);
+    try {
+      await rootStore.backupDatabaseToFile(filepath);
+      AppToaster.show({
+        message: 'Backup created successfully!',
+        clickAction: { label: 'View', onClick: () => shell.showItemInFolder(filepath) },
+        timeout: 5000,
+      });
+    } catch (e) {
+      console.error(e);
+      AppToaster.show({
+        message: 'Could not create backup, open DevTools for more details',
+        clickAction: { label: 'View', onClick: RendererMessenger.toggleDevTools },
+        timeout: 5000,
+      });
+    }
+  }, [backupDir, rootStore]);
+
   return (
     <>
       <h2>Import/Export</h2>
 
-      <h3>Metadata</h3>
+      <h3>File Metadata</h3>
       <Callout icon={IconSet.INFO}>
         This option is useful for importing/exporting tags from/to other software, or when you use
         Allusion for images on multiple devices synchronized using a service such as Dropbox or
@@ -151,34 +210,84 @@ const ImportExport = observer(() => {
         />
         <Button
           text="Write tags to file metadata"
-          onClick={() => setConfirmingExport(true)}
+          onClick={() => setConfirmingMetadataExport(true)}
           styling="outlined"
         />
         <Alert
-          open={isConfirmingExport}
+          open={isConfirmingMetadataExport}
           title="Are you sure you want to write Allusion's tags to your image files?"
           information="This will overwrite any existing tags ('keywords') on those files, so it is recommended you have imported them first"
           primaryButtonText="Export"
           closeButtonText="Cancel"
-          // defaultButton={}
           onClick={(button) => {
             if (button === DialogButton.PrimaryButton) {
               fileStore.writeTagsToFiles();
             }
-            setConfirmingExport(false);
+            setConfirmingMetadataExport(false);
           }}
         />
       </ButtonGroup>
 
-      {/* TODO: already implemented in other branch */}
-      {/* <h3>Backup</h3>
-        <Button text="Export database..." onClick={console.log} icon={IconSet.OPEN_EXTERNAL} />
-        <Button text="Import database..." onClick={console.log} icon={IconSet.IMPORT} />
+      <h3>Backup Database as File</h3>
+
+      <Callout icon={IconSet.INFO}>
+        Backups of Allusion&quot;s database are saved in the following directory.
+        <br />
+        Automatic back-ups are created every 10 minutes.
+      </Callout>
+
+      <div className="input-file">
+        <input readOnly className="input input-file-value" value={backupDir} />
+        <IconButton
+          icon={IconSet.FOLDER_CLOSE}
+          onClick={() => shell.showItemInFolder(backupDir)}
+          text="Open in file explorer"
+        />
+      </div>
+
+      <br />
+
+      <ButtonGroup>
         <Button
-          text="Full export (including images)..."
-          onClick={console.log}
-          icon={IconSet.MEDIA}
-        /> */}
+          text="Restore database from file..."
+          onClick={handleChooseImportDir}
+          icon={IconSet.IMPORT}
+          styling="outlined"
+        />
+        <Button
+          text="Backup database to file"
+          onClick={handleCreateExport}
+          icon={IconSet.OPEN_EXTERNAL}
+          styling="outlined"
+        />
+
+        <Alert
+          open={Boolean(isConfirmingFileImport)}
+          title="Are you sure you want to restore the database from a backup?"
+          information={`This will replace your current tag hierarchy and any tags assigned to images, so it is recommended you create a backup first.\n${isConfirmingFileImport?.info}`}
+          primaryButtonText="Import"
+          closeButtonText="Cancel"
+          onClick={async (button) => {
+            if (isConfirmingFileImport && button === DialogButton.PrimaryButton) {
+              AppToaster.show({
+                message: 'Restoring database... Allusion will restart',
+                timeout: 5000,
+              });
+              try {
+                await rootStore.restoreDatabaseFromFile(isConfirmingFileImport?.path);
+                RendererMessenger.reload();
+              } catch (e) {
+                console.error('Could not restore backup', e);
+                AppToaster.show({
+                  message: 'Restoring database failed!',
+                  timeout: 5000,
+                });
+              }
+            }
+            setConfirmingFileImport(undefined);
+          }}
+        />
+      </ButtonGroup>
     </>
   );
 });
@@ -282,7 +391,7 @@ const Advanced = observer(() => {
   const thumbnailDirectory = uiStore.thumbnailDirectory;
 
   const [defaultThumbnailDir, setDefaultThumbnailDir] = useState('');
-  useEffect(() => void UiStore.getDefaultThumbnailDirectory().then(setDefaultThumbnailDir), []);
+  useEffect(() => void getDefaultThumbnailDirectory().then(setDefaultThumbnailDir), []);
 
   const changeThumbnailDirectory = async (newDir: string) => {
     const oldDir = thumbnailDirectory;
