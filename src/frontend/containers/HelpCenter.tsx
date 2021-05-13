@@ -41,7 +41,7 @@ interface IDocumentation {
 
 const Documentation = ({ id, overviewId, className, initPages }: IDocumentation) => {
   const [pageIndex, setPageIndex] = useState(0);
-  const data = useRef(initPages());
+  const pages = useRef(initPages()).current;
 
   const [isIndexOpen, setIndexIsOpen] = useState(true);
   const [splitPoint, setSplitPoint] = useState(224); // 14rem
@@ -65,7 +65,7 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
   return (
     <div id={id} className={className}>
       <Split
-        primary={<Overview id={overviewId} pages={data.current} openPage={setPageIndex} />}
+        primary={<Overview id={overviewId} pages={pages} openPage={setPageIndex} />}
         secondary={
           <Page
             toolbar={
@@ -75,7 +75,7 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
                 controls={overviewId}
               />
             }
-            pages={data.current}
+            pages={pages}
             openPage={setPageIndex}
             pageIndex={pageIndex}
           />

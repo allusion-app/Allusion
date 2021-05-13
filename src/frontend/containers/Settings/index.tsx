@@ -214,7 +214,7 @@ const ImportExport = observer(() => {
         service like Dropbox or Google, you can write your tags to your files on one device and read
         them on other devices.
       </Callout>
-      <fieldset id="hierarchical-separator">
+      <fieldset>
         <legend>
           Hierarchical separator, e.g.{' '}
           <pre style={{ display: 'inline' }}>
