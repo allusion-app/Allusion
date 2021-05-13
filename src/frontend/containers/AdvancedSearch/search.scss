@@ -1,27 +1,25 @@
 #search-form {
   .criteria {
+    padding: 2px;
     margin-bottom: 0.25rem;
     display: flex;
     align-items: center;
 
-    > * {
+    > :not(.btn) {
       flex-grow: 1;
+      margin-right: 0.5rem;
+      max-width: 25%;
     }
 
-    > select:not(:nth-child(3)) {
-      max-width: 25%;
+    > :nth-child(3) {
+      max-width: none;
+      margin-right: 0.25rem;
     }
 
     > .btn {
       flex-grow: 0;
       height: 1.5rem;
       width: 1.5rem;
-    }
-
-    .multiautocomplete-input {
-      input {
-        width: 0; // for it to align with other criteria types
-      }
     }
   }
 }
@@ -45,7 +43,7 @@
     label {
       margin: 0;
 
-      & :first-of-type {
+      &:first-of-type {
         margin-right: 1rem;
       }
     }

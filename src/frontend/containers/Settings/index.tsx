@@ -212,7 +212,7 @@ const ImportExport = observer(() => {
           styling="outlined"
         />
         <Button
-          text="Write tags to file metadata"
+          text="Export tags to file metadata"
           onClick={() => setConfirmingMetadataExport(true)}
           styling="outlined"
         />
@@ -249,7 +249,7 @@ const ImportExport = observer(() => {
 
       <ButtonGroup>
         <Button
-          text="Restore database from file..."
+          text="Restore database from file"
           onClick={handleChooseImportDir}
           icon={IconSet.IMPORT}
           styling="outlined"
