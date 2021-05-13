@@ -190,7 +190,7 @@
       &:last-child {
         padding-bottom: 2px;
       }
-      
+
       &:not(:first-child):not(:last-child) {
         height: 24px;
         padding-top: 2px;
@@ -231,42 +231,44 @@
   .thumbnail {
     align-self: center;
     display: inline-block;
+
     img {
       transition: transform 0.2s ease;
       transform-origin: top left;
+      border-radius: 0;
     }
+
     &:hover {
       img {
-        z-index: 9000; // >:)
+        z-index: 2;
         position: relative;
-        border: unset;
-        border-radius: 0;
+        clip-path: inset(0);
 
         // show image in original aspect ratio, aligned to the left
-        object-fit: contain; 
+        object-fit: contain;
         object-position: left;
         // a drop shadow might be nice too
       }
     }
-    
   }
+
   // Last 4
-  [role="row"]:nth-last-child(-n + 4) .thumbnail:hover {
+  [role='row']:nth-last-child(-n + 4) .thumbnail:hover {
     img {
-      transform: scale(10) translate(3px, -80%);  
+      transform: scale(10) translate(3px, -80%);
     }
   }
   // 4 > last 4
-  [role="row"]:nth-last-child(n + 5) .thumbnail:hover {
+  [role='row']:nth-last-child(n + 5) .thumbnail:hover {
     img {
       transform: scale(10) translate(3px, -50%);
     }
   }
-  
+
   // First 4
-  [role="row"]:nth-child(-n+5) .thumbnail:hover {
+  [role='row']:nth-child(-n + 5) .thumbnail:hover {
     img {
-      transform: scale(10) translate(3px, 0%);  
+      transform: scale(10) translate(3px, 0%);
     }
   }
 
