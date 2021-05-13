@@ -27,11 +27,11 @@
     display: block;
     padding: 0.25rem 2rem 0.5rem;
     color: var(--text-color);
-    text-decoration: none;
+    text-decoration-color: transparent;
 
     &:hover,
     &:active {
-      text-decoration: underline;
+      text-decoration-color: var(--text-color);
     }
   }
 }

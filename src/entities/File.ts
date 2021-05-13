@@ -17,7 +17,7 @@ import { ClientTag } from './Tag';
 
 const sizeOf = promisify(ImageSize);
 
-export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tiff', 'bmp'] as const;
+export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tif', 'tiff', 'bmp'] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
 /** Retrieved file meta data information */

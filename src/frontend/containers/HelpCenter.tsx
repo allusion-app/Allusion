@@ -7,11 +7,7 @@ import { clamp } from '../utils';
 import StoreContext from '../contexts/StoreContext';
 import PopupWindow from '../components/PopupWindow';
 import { shell } from 'electron';
-
-const clickOutbound = (e: React.MouseEvent<HTMLAnchorElement>) => {
-  e.preventDefault();
-  shell.openExternal((e.target as HTMLAnchorElement).href);
-};
+import { chromeExtensionUrl } from 'src/config';
 
 const HelpCenter = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -47,7 +43,7 @@ interface IDocumentation {
 
 const Documentation = ({ id, overviewId, className, initPages }: IDocumentation) => {
   const [pageIndex, setPageIndex] = useState(0);
-  const data = useRef(initPages());
+  const pages = useRef(initPages()).current;
 
   const [isIndexOpen, setIndexIsOpen] = useState(true);
   const [splitPoint, setSplitPoint] = useState(224); // 14rem
@@ -71,7 +67,7 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
   return (
     <div id={id} className={className}>
       <Split
-        primary={<Overview id={overviewId} pages={data.current} openPage={setPageIndex} />}
+        primary={<Overview id={overviewId} pages={pages} openPage={setPageIndex} />}
         secondary={
           <Page
             toolbar={
@@ -81,7 +77,7 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
                 controls={overviewId}
               />
             }
-            pages={data.current}
+            pages={pages}
             openPage={setPageIndex}
             pageIndex={pageIndex}
           />
@@ -311,9 +307,11 @@ const PAGE_DATA: () => IPageData[] = () => [
               and immediately tag them as well. Take a look in the "Background Processes" section in
               the settings window for more information. Get the extension here from{' '}
               <a
-                href="https://chrome.google.com/webstore/detail/allusion-web-clipper/gjceheijjnmdfcolopodbopfoaicobna"
-                onClick={clickOutbound}
-                className="outbound"
+                href={chromeExtensionUrl}
+                onClick={(e) => {
+                  e.preventDefault();
+                  shell.openExternal(chromeExtensionUrl);
+                }}
               >
                 Chrome Webstore.
               </a>

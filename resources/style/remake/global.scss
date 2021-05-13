@@ -31,17 +31,16 @@ img {
   -webkit-user-drag: none;
 }
 
-a[class*="outbound"]{
+a {
   color: var(--accent-color-blue);
-  text-decoration: none;
-  border-bottom: 2px solid var(--accent-color-blue);
-  padding-bottom: 2px;
-  transition: border-bottom 0.2s ease-in-out 0s;
-}
+  text-underline-offset: 2px;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--accent-color-blue);
+  transition: text-decoration-color 0.2s ease-in-out;
 
-a:hover {
-  color: var(--accent-color-blue);
-  border-color: transparent;
+  &:hover {
+    text-decoration-color: transparent;
+  }
 }
 
 header,

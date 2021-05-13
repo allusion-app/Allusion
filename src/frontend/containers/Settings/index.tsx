@@ -2,7 +2,7 @@ import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   chromeExtensionUrl,
   getDefaultBackupDirectory,
@@ -22,8 +22,37 @@ import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import Tabs, { TabItem } from './Tabs';
 
+const Settings = () => {
+  const { uiStore } = useContext(StoreContext);
+
+  if (!uiStore.isSettingsOpen) {
+    return null;
+  }
+
+  return (
+    <PopupWindow
+      onClose={uiStore.closeSettings}
+      windowName="settings"
+      closeOnEscape
+      additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
+    >
+      <div id="settings" className={uiStore.theme}>
+        <Tabs initTabItems={SETTINGS_TABS} />
+      </div>
+    </PopupWindow>
+  );
+};
+
+export default observer(Settings);
+
 const Appearance = observer(() => {
   const { uiStore } = useContext(StoreContext);
+
+  const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
+    const isFullScreen = e.currentTarget.checked;
+    localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
+    RendererMessenger.setFullScreen(isFullScreen);
+  };
 
   return (
     <>
@@ -131,7 +160,7 @@ const ImportExport = observer(() => {
     getDefaultBackupDirectory().then(setBackupDir);
   }, []);
 
-  const handleChooseImportDir = useCallback(async () => {
+  const handleChooseImportDir = async () => {
     const { filePaths } = await RendererMessenger.openDialog({
       properties: ['openFile'],
       filters: [{ extensions: ['json'], name: 'JSON' }],
@@ -151,12 +180,11 @@ const ImportExport = observer(() => {
       console.log(e);
       AppToaster.show({ message: 'Backup file is invalid', timeout: 5000 });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [backupDir]);
+  };
 
-  const handleCreateExport = useCallback(async () => {
-    let filename = `backup_${getFilenameFriendlyFormattedDateTime(new Date())}.json`;
-    filename = filename.replaceAll(':', '-');
+  const handleCreateExport = async () => {
+    const formattedDateTime = getFilenameFriendlyFormattedDateTime(new Date());
+    const filename = `backup_${formattedDateTime}.json`.replaceAll(':', '-');
     const filepath = SysPath.join(backupDir, filename);
     try {
       await rootStore.backupDatabaseToFile(filepath);
@@ -173,7 +201,7 @@ const ImportExport = observer(() => {
         timeout: 5000,
       });
     }
-  }, [backupDir, rootStore]);
+  };
 
   return (
     <>
@@ -186,7 +214,7 @@ const ImportExport = observer(() => {
         service like Dropbox or Google, you can write your tags to your files on one device and read
         them on other devices.
       </Callout>
-      <fieldset id="hierarchical-separator">
+      <fieldset>
         <legend>
           Hierarchical separator, e.g.{' '}
           <pre style={{ display: 'inline' }}>
@@ -482,7 +510,7 @@ const Advanced = observer(() => {
   );
 });
 
-const SETTINGS_TABS: TabItem[] = [
+const SETTINGS_TABS: () => TabItem[] = () => [
   {
     label: 'Appearance',
     content: <Appearance />,
@@ -504,32 +532,3 @@ const SETTINGS_TABS: TabItem[] = [
     content: <Advanced />,
   },
 ];
-
-const Settings = () => {
-  const { uiStore } = useContext(StoreContext);
-
-  if (!uiStore.isSettingsOpen) {
-    return null;
-  }
-
-  return (
-    <PopupWindow
-      onClose={uiStore.closeSettings}
-      windowName="settings"
-      closeOnEscape
-      additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
-    >
-      <div id="settings" className={uiStore.theme}>
-        <Tabs items={SETTINGS_TABS} />
-      </div>
-    </PopupWindow>
-  );
-};
-
-export default observer(Settings);
-
-const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
-  const isFullScreen = e.currentTarget.checked;
-  localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
-  RendererMessenger.setFullScreen(isFullScreen);
-};
