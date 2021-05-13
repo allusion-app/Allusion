@@ -42,3 +42,13 @@ input[type='radio'] {
     border-color: var(--accent-color-blue);
   }
 }
+
+[role='radiogroup'],
+[role='radiogroup'] > div {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    margin-bottom: 0.25rem;
+  }
+}

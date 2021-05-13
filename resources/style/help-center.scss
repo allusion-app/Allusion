@@ -23,21 +23,14 @@
     }
   }
 
-  ul {
-    padding: 0;
-    list-style: none;
-    margin: 0;
-  }
-
-  li {
-    padding: 0.25rem 2rem 0.5rem;
-  }
-
   a {
+    display: block;
+    padding: 0.25rem 2rem 0.5rem;
     color: var(--text-color);
     text-decoration: none;
 
-    &:hover {
+    &:hover,
+    &:active {
       text-decoration: underline;
     }
   }
@@ -79,7 +72,7 @@
     margin-top: 0;
   }
 
-  > * {
+  section {
     margin: auto;
     max-width: 85ch;
   }

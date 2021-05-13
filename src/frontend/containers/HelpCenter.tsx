@@ -44,7 +44,6 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
   const data = useRef(initPages());
 
   const [isIndexOpen, setIndexIsOpen] = useState(true);
-  const toggleIndex = useRef(() => setIndexIsOpen((value) => !value));
   const [splitPoint, setSplitPoint] = useState(224); // 14rem
   const handleMove = useCallback(
     (x: number, width: number) => {
@@ -72,7 +71,7 @@ const Documentation = ({ id, overviewId, className, initPages }: IDocumentation)
             toolbar={
               <PageToolbar
                 isIndexOpen={isIndexOpen}
-                toggleIndex={toggleIndex.current}
+                toggleIndex={setIndexIsOpen}
                 controls={overviewId}
               />
             }
@@ -106,18 +105,15 @@ const Overview = memo(function Overview({ id, pages, openPage }: IOverview) {
             {page.icon}
             {page.title}
           </summary>
-          <ul>
-            {page.sections.map((section) => (
-              <li key={section.title}>
-                <a
-                  href={`#${section.title.toLowerCase().replaceAll(' ', '-')}`}
-                  onClick={() => openPage(pageIndex)}
-                >
-                  {section.title}
-                </a>
-              </li>
-            ))}
-          </ul>
+          {page.sections.map((section) => (
+            <a
+              key={section.title}
+              href={`#${section.title.toLowerCase().replaceAll(' ', '-')}`}
+              onClick={() => openPage(pageIndex)}
+            >
+              {section.title}
+            </a>
+          ))}
         </details>
       ))}
     </nav>
@@ -164,7 +160,7 @@ const Page = (props: IPage) => {
 
 interface IPageToolbar {
   isIndexOpen: boolean;
-  toggleIndex: () => void;
+  toggleIndex: React.Dispatch<React.SetStateAction<boolean>>;
   controls: string;
 }
 
@@ -175,7 +171,7 @@ const PageToolbar = ({ isIndexOpen, toggleIndex, controls }: IPageToolbar) => {
         className="btn toolbar-button"
         aria-pressed={isIndexOpen}
         aria-controls={controls}
-        onClick={toggleIndex}
+        onClick={() => toggleIndex((value) => !value)}
         tabIndex={0}
       >
         <span className="btn-content-icon" aria-hidden="true">

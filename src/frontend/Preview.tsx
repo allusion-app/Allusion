@@ -47,9 +47,10 @@ const PreviewApp = observer(() => {
             disabled={uiStore.firstItem === fileStore.fileList.length - 1}
           />
           <Toggle
-            label="Overview"
             onChange={uiStore.toggleSlideMode}
             checked={!uiStore.isSlideMode}
+            onLabel="Overview"
+            offLabel="Details"
           />
         </Toolbar>
 
