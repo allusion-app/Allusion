@@ -214,30 +214,22 @@ const DateAddedInput = ({ value, id, dispatch }: ValueInput<Date>) => {
 
 function getOperatorOptions(key: QueryKey) {
   if (key === 'dateAdded' || key === 'size') {
-    return OperatorOptions.NUMBER;
+    return NumberOperators.map(toOperatorOption);
   } else if (key === 'extension') {
-    return OperatorOptions.BINARY;
+    return BinaryOperators.map(toOperatorOption);
   } else if (key === 'name' || key === 'absolutePath') {
-    return OperatorOptions.STRING;
+    return StringOperators.map(toOperatorOption);
   } else if (key === 'tags') {
-    return OperatorOptions.TAG;
+    return TagOperators.map(toOperatorOption);
   }
   return [];
 }
 
-const OperatorOptions = (function () {
-  const toOption = (o: string) => (
-    <option key={o} value={o}>
-      {camelCaseToSpaced(o)}
-    </option>
-  );
-  return {
-    TAG: TagOperators.map(toOption),
-    BINARY: BinaryOperators.map(toOption),
-    NUMBER: NumberOperators.map(toOption),
-    STRING: StringOperators.map(toOption),
-  };
-})();
+const toOperatorOption = (o: string) => (
+  <option key={o} value={o}>
+    {camelCaseToSpaced(o)}
+  </option>
+);
 
 function setValue(id: ID, value: QueryValue): (form: FormState) => FormState {
   return (form: FormState) => {
