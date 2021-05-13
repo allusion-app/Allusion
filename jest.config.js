@@ -9,9 +9,5 @@ module.exports = {
     'ts-jest': {
       tsconfig: 'tsconfig.jest.json',
     },
-    'self': {
-      // Fix for dexie-import-export error "ReferenceError: self is not defined"
-      value: () => window,
-    },
   },
 };
