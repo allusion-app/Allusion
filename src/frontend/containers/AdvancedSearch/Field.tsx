@@ -27,23 +27,21 @@ interface IFieldProps {
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
 export const Field = ({ id, query, dispatch, removable }: IFieldProps) => (
-  <fieldset>
-    <div className="criteria">
-      <KeySelector id={id} keyValue={query.key} dispatch={dispatch} />
-      <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
-      <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
-      <IconButton
-        text="Remove search item"
-        icon={IconSet.DELETE}
-        onClick={() =>
-          dispatch((form) => {
-            form.delete(id);
-            return new Map(form);
-          })
-        }
-        disabled={!removable}
-      />
-    </div>
+  <fieldset className="criteria">
+    <KeySelector id={id} keyValue={query.key} dispatch={dispatch} />
+    <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
+    <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
+    <IconButton
+      text="Remove search item"
+      icon={IconSet.DELETE}
+      onClick={() =>
+        dispatch((form) => {
+          form.delete(id);
+          return new Map(form);
+        })
+      }
+      disabled={!removable}
+    />
   </fieldset>
 );
 

@@ -48,6 +48,8 @@ input[type='checkbox'] {
 input[type='checkbox'][data-toggle='true'] {
   min-width: 2.5rem;
   border-radius: 2.5rem;
+  margin-left: 0;
+  margin-right: 0.75rem;
 
   &::before {
     width: 0.75rem;

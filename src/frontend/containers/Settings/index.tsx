@@ -30,24 +30,27 @@ const Appearance = observer(() => {
       <h2>Appearance</h2>
 
       <h3>Interface</h3>
-      <Toggle
-        checked={uiStore.theme === 'dark'}
-        onChange={uiStore.toggleTheme}
-        label="Dark theme"
-      />
-      <Toggle
-        defaultChecked={uiStore.isFullScreen}
-        onChange={toggleFullScreen}
-        label="Full screen"
-      />
+      <fieldset>
+        <legend>Dark theme</legend>
+        <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme} />
+      </fieldset>
+
+      <fieldset>
+        <legend>Full screen</legend>
+        <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
+      </fieldset>
+
       <Zoom />
 
       <h3>Thumbnail</h3>
-      <Toggle
-        defaultChecked={uiStore.isThumbnailTagOverlayEnabled}
-        onChange={uiStore.toggleThumbnailTagOverlay}
-        label="Show assigned tags"
-      />
+      <fieldset>
+        <legend>Show assigned tags</legend>
+        <Toggle
+          checked={uiStore.isThumbnailTagOverlayEnabled}
+          onChange={uiStore.toggleThumbnailTagOverlay}
+        />
+      </fieldset>
+
       <div className="settings-thumbnail">
         <RadioGroup name="Size">
           <Radio
@@ -96,8 +99,8 @@ const Zoom = () => {
   }, [localZoomFactor]);
 
   return (
-    <div className="zoom-widget">
-      Zoom
+    <fieldset>
+      <legend>Zoom</legend>
       <span className="zoom-input">
         <IconButton
           icon={<span>-</span>}
@@ -111,7 +114,7 @@ const Zoom = () => {
           text="Zoom in"
         />
       </span>
-    </div>
+    </fieldset>
   );
 };
 
@@ -183,13 +186,13 @@ const ImportExport = observer(() => {
         service like Dropbox or Google, you can write your tags to your files on one device and read
         them on other devices.
       </Callout>
-      <label id="hierarchical-separator">
-        <span>
+      <fieldset id="hierarchical-separator">
+        <legend>
           Hierarchical separator, e.g.{' '}
           <pre style={{ display: 'inline' }}>
             {['Food', 'Fruit', 'Apple'].join(fileStore.exifTool.hierarchicalSeparator)}
           </pre>
-        </span>
+        </legend>
         <select
           value={fileStore.exifTool.hierarchicalSeparator}
           onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
@@ -199,7 +202,7 @@ const ImportExport = observer(() => {
           <option value="\">\</option>
           <option value=":">:</option>
         </select>
-      </label>
+      </fieldset>
       {/* TODO: adobe bridge has option to read with multiple separators */}
 
       <ButtonGroup>
@@ -235,10 +238,11 @@ const ImportExport = observer(() => {
         <legend>Backup Directory</legend>
         <div className="input-file">
           <input readOnly className="input input-file-value" value={backupDir} />
-          <IconButton
+          <Button
+            styling="minimal"
             icon={IconSet.FOLDER_CLOSE}
+            text="Open"
             onClick={() => shell.showItemInFolder(backupDir)}
-            text="Open in file explorer"
           />
         </div>
       </fieldset>
@@ -312,37 +316,46 @@ const BackgroundProcesses = observer(() => {
     }
   };
 
+  const [isRunInBackground, setRunInBackground] = useState(
+    RendererMessenger.isRunningInBackground(),
+  );
+  const toggleRunInBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRunInBackground(e.target.checked);
+    RendererMessenger.setRunInBackground({ isRunInBackground: e.target.checked });
+  };
+
   const [isClipEnabled, setClipServerEnabled] = useState(RendererMessenger.isClipServerEnabled());
-  const handleSetClipServerEnabled = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const toggleClipServer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setClipServerEnabled(e.target.checked);
-    toggleClipServer(e);
+    RendererMessenger.setClipServerEnabled({ isClipServerRunning: e.target.checked });
   };
 
   return (
     <>
       <h2>Options</h2>
-      <Toggle
-        defaultChecked={RendererMessenger.isRunningInBackground()}
-        onChange={toggleRunInBackground}
-        label="Run in background"
-      />
+      <fieldset>
+        <legend>Run in background</legend>
+        <Toggle checked={isRunInBackground} onChange={toggleRunInBackground} />
+      </fieldset>
 
-      <Toggle
-        checked={isClipEnabled}
-        onChange={
-          isClipEnabled || importDirectory
-            ? handleSetClipServerEnabled
-            : (e) => {
-                console.log('came here');
-                e.preventDefault();
-                e.stopPropagation();
-                alert(
-                  'Please choose a download directory first, where images downloaded through the browser extension will be stored.',
-                );
-              }
-        }
-        label="Browser extension support"
-      />
+      <fieldset>
+        <legend>Browser extension support</legend>
+        <Toggle
+          checked={isClipEnabled}
+          onChange={
+            isClipEnabled || importDirectory
+              ? toggleClipServer
+              : (e) => {
+                  console.log('came here');
+                  e.preventDefault();
+                  e.stopPropagation();
+                  alert(
+                    'Please choose a download directory first, where images downloaded through the browser extension will be stored.',
+                  );
+                }
+          }
+        />
+      </fieldset>
 
       <fieldset>
         <legend>Browser extension download directory (must be in a Location)</legend>
@@ -520,9 +533,3 @@ const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
   localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
   RendererMessenger.setFullScreen(isFullScreen);
 };
-
-const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
-  RendererMessenger.setClipServerEnabled({ isClipServerRunning: event.target.checked });
-
-const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
-  RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });

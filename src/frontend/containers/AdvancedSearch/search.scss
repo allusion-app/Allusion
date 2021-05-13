@@ -1,8 +1,6 @@
 #search-form {
-  fieldset {
-    margin-bottom: 0.25rem;
-  }
   .criteria {
+    margin-bottom: 0.25rem;
     display: flex;
     align-items: center;
 
@@ -32,21 +30,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
 
-  > fieldset {
-    margin: 0 !important;
+  [role='radiogroup'] {
     > div {
-      display: flex;
+      flex-direction: row;
       align-items: center;
+    }
 
-      legend {
-        color: var(--text-color);
-        margin: 0;
-        margin-right: 1.5rem;
-      }
-      label {
-        margin: 0;
+    legend {
+      margin: 0;
+      margin-right: 1.5rem;
+    }
+
+    label {
+      margin: 0;
+
+      & :first-of-type {
         margin-right: 1rem;
       }
     }
