@@ -50,7 +50,7 @@ import FOLDER_OPEN from 'resources/icons/folder-open.svg';
 // import FOLDER_STRUCTURE from 'resources/icons/folder-structure.svg';
 // import FORM_DROP from 'resources/icons/form-drop.svg';
 import GITHUB from 'resources/icons/github.svg';
-// import IMPORT from 'resources/icons/import.svg';
+import IMPORT from 'resources/icons/import.svg';
 import HELPCENTER from 'resources/icons/helpcenter.svg';
 import INFO from 'resources/icons/info.svg';
 // import ITEM_COLLAPSE from 'resources/icons/item-collaps.svg';
@@ -146,7 +146,7 @@ const IconSet = {
   // FOLDER_STRUCTURE: toSvg(FOLDER_STRUCTURE),
   // FORM_DROP: toSvg(FORM_DROP),
   GITHUB: toSvg(GITHUB),
-  // IMPORT: toSvg(IMPORT),
+  IMPORT: toSvg(IMPORT),
   HELPCENTER: toSvg(HELPCENTER),
   INFO: toSvg(INFO),
   // ITEM_COLLAPSE: toSvg(ITEM_COLLAPSE),

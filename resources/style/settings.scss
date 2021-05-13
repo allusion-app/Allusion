@@ -1,19 +1,11 @@
 #settings {
   background-color: var(--background-color);
-
-  .toggle,
-  #hierarchical-separator {
-    justify-content: space-between;
-  }
-
-  #hierarchical-separator select {
-    min-width: 2.5rem;
-  }
 }
 
 .key-combo-editor {
   display: flex;
-  padding: 0.5rem;
+  align-items: center;
+  margin-left: 0.5rem;
 }
 
 .key-combo-input {
@@ -23,12 +15,6 @@
 .key-combo-input-warning {
   display: flex;
   padding: 0.25rem;
-}
-
-.zoom-widget {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 // Zoom factor text

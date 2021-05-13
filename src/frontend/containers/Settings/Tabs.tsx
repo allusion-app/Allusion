@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useRef, useState } from 'react';
 
 export type TabItem = {
   label: string;
@@ -6,11 +6,12 @@ export type TabItem = {
 };
 
 interface ITabs {
-  items: TabItem[];
+  initTabItems: () => TabItem[];
 }
 
-const Tabs = ({ items }: ITabs) => {
+const Tabs = ({ initTabItems }: ITabs) => {
   const [selection, setSelection] = useState(0);
+  const items = useRef(initTabItems()).current;
 
   return (
     <div className="tabs">

@@ -92,7 +92,7 @@ class FileStore {
             );
             if (match) {
               // If there is a match to the leaf tag, just add it to the file
-              this.fileList[i].addTag(match);
+              runInAction(() => this.fileList[i].addTag(match));
             } else {
               // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
               let curTag = tagStore.root;

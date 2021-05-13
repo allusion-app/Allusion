@@ -33,7 +33,7 @@ export const IS_PREVIEW_WINDOW = params.get('preview') === 'true';
 const backend = new Backend();
 const rootStore = new RootStore(backend);
 backend
-  .init()
+  .init(!IS_PREVIEW_WINDOW)
   .then(async () => {
     console.log('Backend has been initialized!');
     await rootStore.init(IS_PREVIEW_WINDOW);
@@ -110,6 +110,8 @@ if (IS_PREVIEW_WINDOW) {
 
 window.addEventListener('beforeunload', () => {
   // TODO: check whether this works okay with running in background process
+  // And when force-closing the application. I think it might be keep running...
+  // Update: yes, it keeps running when force-closing. Not sure how to fix. Don't think it can run as child-process
   rootStore.fileStore.exifTool.close();
 });
 
