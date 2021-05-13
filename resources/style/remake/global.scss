@@ -31,6 +31,18 @@ img {
   -webkit-user-drag: none;
 }
 
+a {
+  color: var(--accent-color-blue);
+  text-underline-offset: 2px;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--accent-color-blue);
+  transition: text-decoration-color 0.2s ease-in-out 0.1s;
+
+  &:hover {
+    text-decoration-color: transparent;
+  }
+}
+
 header,
 header h2 {
   font-size: 0.8125rem;

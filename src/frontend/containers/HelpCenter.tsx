@@ -6,6 +6,8 @@ import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.j
 import { clamp } from '../utils';
 import StoreContext from '../contexts/StoreContext';
 import PopupWindow from '../components/PopupWindow';
+import { shell } from 'electron';
+import { chromeExtensionUrl } from 'src/config';
 
 const HelpCenter = observer(() => {
   const { uiStore } = useContext(StoreContext);
@@ -303,7 +305,16 @@ const PAGE_DATA: () => IPageData[] = () => [
               A browser extension for Chromium-based browsers such as Google Chrome and Edge is
               available. It allows you to import images into Allusion directly from your web browser
               and immediately tag them as well. Take a look in the "Background Processes" section in
-              the settings window for more information.
+              the settings window for more information. Get the extension here from{' '}
+              <a
+                href={chromeExtensionUrl}
+                onClick={(e) => {
+                  e.preventDefault();
+                  shell.openExternal(chromeExtensionUrl);
+                }}
+              >
+                Chrome Webstore.
+              </a>
             </p>
           </>
         ),
