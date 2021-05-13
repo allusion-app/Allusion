@@ -21,43 +21,35 @@ const About = observer(() => {
   return (
     <PopupWindow onClose={uiStore.closeAbout} windowName="about" closeOnEscape>
       <div id="about" className="light">
-        <div className="centered">
-          <img src={Logo_About} alt="Logo" />
-          <small>
-            Version <strong>{RendererMessenger.getVersion()}</strong>
-          </small>
-          <p>
-            This application was made by a small team of individuals who gathered due to common
-            interest in art, design and software.
-            <br />
-            It&apos;s completely <b>free and open source</b>! Find out more:
-          </p>
-          <h3>
-            <a href="https://allusion-app.github.io/" onClick={clickLink} className="outbound">
-              allusion-app.github.io
-            </a>
-          </h3>
-          <ul>
-            <li>General information</li>
-            <li>Download the latest version</li>
-          </ul>
-          <h3>
-            <a
-              href="https://github.com/allusion-app/Allusion"
-              onClick={clickLink}
-              className="outbound"
-            >
-              github.com/allusion-app/Allusion
-            </a>
-          </h3>
-          <ul>
-            <li>🤓 View the source code</li>
-            <li>🐛 Provide feedback and report bugs</li>
-            <li>👥 Learn about contributing</li>
-          </ul>
+        <img src={Logo_About} alt="Logo" />
+        <small>
+          Version <strong>{RendererMessenger.getVersion()}</strong>
+        </small>
+        <p>
+          This application was made by a small team of individuals who gathered due to common
+          interest in art, design and software.
           <br />
-          {/* TODO: Licensing info here? */}
-        </div>
+          It&apos;s completely <b>free and open source</b>! Find out more at
+        </p>
+        <span>
+          <a href="https://allusion-app.github.io/" onClick={clickLink} className="outbound">
+            allusion-app.github.io
+          </a>
+          .
+        </span>
+        <ul>
+          <li>General information</li>
+          <li>Download the latest version</li>
+        </ul>
+        <a href="https://github.com/allusion-app/Allusion" onClick={clickLink} className="outbound">
+          github.com/allusion-app/Allusion
+        </a>
+        <ul>
+          <li>🤓 View the source code</li>
+          <li>🐛 Provide feedback and report bugs</li>
+          <li>👥 Learn about contributing</li>
+        </ul>
+        {/* TODO: Licensing info here? */}
       </div>
     </PopupWindow>
   );

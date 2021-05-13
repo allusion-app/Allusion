@@ -1,9 +1,14 @@
 import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useEffect, useState } from 'react';
-import { chromeExtensionUrl } from 'src/config';
-import UiStore from 'src/frontend/stores/UiStore';
+import SysPath from 'path';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import {
+  chromeExtensionUrl,
+  getDefaultBackupDirectory,
+  getDefaultThumbnailDirectory,
+} from 'src/config';
+import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
@@ -12,7 +17,7 @@ import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
 import StoreContext from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
-import { getThumbnailPath, isDirEmpty } from '../../utils';
+import { getFilenameFriendlyFormattedDateTime, getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import Tabs, { TabItem } from './Tabs';
@@ -25,24 +30,27 @@ const Appearance = observer(() => {
       <h2>Appearance</h2>
 
       <h3>Interface</h3>
-      <Toggle
-        checked={uiStore.theme === 'dark'}
-        onChange={uiStore.toggleTheme}
-        label="Dark theme"
-      />
-      <Toggle
-        defaultChecked={uiStore.isFullScreen}
-        onChange={toggleFullScreen}
-        label="Full screen"
-      />
+      <fieldset>
+        <legend>Dark theme</legend>
+        <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme} />
+      </fieldset>
+
+      <fieldset>
+        <legend>Full screen</legend>
+        <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
+      </fieldset>
+
       <Zoom />
 
       <h3>Thumbnail</h3>
-      <Toggle
-        defaultChecked={uiStore.isThumbnailTagOverlayEnabled}
-        onChange={uiStore.toggleThumbnailTagOverlay}
-        label="Show assigned tags"
-      />
+      <fieldset>
+        <legend>Show assigned tags</legend>
+        <Toggle
+          checked={uiStore.isThumbnailTagOverlayEnabled}
+          onChange={uiStore.toggleThumbnailTagOverlay}
+        />
+      </fieldset>
+
       <div className="settings-thumbnail">
         <RadioGroup name="Size">
           <Radio
@@ -91,8 +99,8 @@ const Zoom = () => {
   }, [localZoomFactor]);
 
   return (
-    <div className="zoom-widget">
-      Zoom
+    <fieldset>
+      <legend>Zoom</legend>
       <span className="zoom-input">
         <IconButton
           icon={<span>-</span>}
@@ -106,31 +114,85 @@ const Zoom = () => {
           text="Zoom in"
         />
       </span>
-    </div>
+    </fieldset>
   );
 };
 
 const ImportExport = observer(() => {
-  const { fileStore } = useContext(StoreContext);
-  const [isConfirmingExport, setConfirmingExport] = useState(false);
+  const rootStore = useContext(StoreContext);
+  const { fileStore, tagStore } = rootStore;
+  const [isConfirmingMetadataExport, setConfirmingMetadataExport] = useState(false);
+  const [isConfirmingFileImport, setConfirmingFileImport] = useState<{
+    path: string;
+    info: string;
+  }>();
+  const [backupDir, setBackupDir] = useState('');
+  useEffect(() => {
+    getDefaultBackupDirectory().then(setBackupDir);
+  }, []);
+
+  const handleChooseImportDir = useCallback(async () => {
+    const { filePaths } = await RendererMessenger.openDialog({
+      properties: ['openFile'],
+      filters: [{ extensions: ['json'], name: 'JSON' }],
+      defaultPath: backupDir,
+    });
+    const path = filePaths[0];
+    if (!path) {
+      return;
+    }
+    try {
+      const backupStats = await rootStore.peekDatabaseFile(path);
+      setConfirmingFileImport({
+        path,
+        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.tagList.length}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
+      });
+    } catch (e) {
+      console.log(e);
+      AppToaster.show({ message: 'Backup file is invalid', timeout: 5000 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backupDir]);
+
+  const handleCreateExport = useCallback(async () => {
+    let filename = `backup_${getFilenameFriendlyFormattedDateTime(new Date())}.json`;
+    filename = filename.replaceAll(':', '-');
+    const filepath = SysPath.join(backupDir, filename);
+    try {
+      await rootStore.backupDatabaseToFile(filepath);
+      AppToaster.show({
+        message: 'Backup created successfully!',
+        clickAction: { label: 'View', onClick: () => shell.showItemInFolder(filepath) },
+        timeout: 5000,
+      });
+    } catch (e) {
+      console.error(e);
+      AppToaster.show({
+        message: 'Could not create backup, open DevTools for more details',
+        clickAction: { label: 'View', onClick: RendererMessenger.toggleDevTools },
+        timeout: 5000,
+      });
+    }
+  }, [backupDir, rootStore]);
+
   return (
     <>
       <h2>Import/Export</h2>
 
-      <h3>Metadata</h3>
-      <Callout icon={IconSet.INFO}>
-        This option is useful for importing/exporting tags from/to other software, or when you use
-        Allusion for images on multiple devices synchronized using a service such as Dropbox or
-        Google Drive.
-      </Callout>
+      <h3>File Metadata</h3>
 
-      <label id="hierarchical-separator">
-        <span>
+      <Callout icon={IconSet.INFO}>
+        This option is useful for importing/exporting tags from/to other software. If you use a
+        service like Dropbox or Google, you can write your tags to your files on one device and read
+        them on other devices.
+      </Callout>
+      <fieldset id="hierarchical-separator">
+        <legend>
           Hierarchical separator, e.g.{' '}
           <pre style={{ display: 'inline' }}>
             {['Food', 'Fruit', 'Apple'].join(fileStore.exifTool.hierarchicalSeparator)}
           </pre>
-        </span>
+        </legend>
         <select
           value={fileStore.exifTool.hierarchicalSeparator}
           onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
@@ -140,7 +202,7 @@ const ImportExport = observer(() => {
           <option value="\">\</option>
           <option value=":">:</option>
         </select>
-      </label>
+      </fieldset>
       {/* TODO: adobe bridge has option to read with multiple separators */}
 
       <ButtonGroup>
@@ -150,35 +212,82 @@ const ImportExport = observer(() => {
           styling="outlined"
         />
         <Button
-          text="Write tags to file metadata"
-          onClick={() => setConfirmingExport(true)}
+          text="Export tags to file metadata"
+          onClick={() => setConfirmingMetadataExport(true)}
           styling="outlined"
         />
         <Alert
-          open={isConfirmingExport}
-          title="Are you sure you want to write Allusion's tags to your image files?"
-          information="This will overwrite any existing tags ('keywords') on those files, so it is recommended you have imported them first"
+          open={isConfirmingMetadataExport}
+          title="Are you sure you want to overwrite your files' tags?"
+          information="This will overwrite any existing tags ('keywords') in those files with Allusion's tags. It is recommended to import all tags before writing new tags."
           primaryButtonText="Export"
           closeButtonText="Cancel"
-          // defaultButton={}
           onClick={(button) => {
             if (button === DialogButton.PrimaryButton) {
               fileStore.writeTagsToFiles();
             }
-            setConfirmingExport(false);
+            setConfirmingMetadataExport(false);
           }}
         />
       </ButtonGroup>
 
-      {/* TODO: already implemented in other branch */}
-      {/* <h3>Backup</h3>
-        <Button text="Export database..." onClick={console.log} icon={IconSet.OPEN_EXTERNAL} />
-        <Button text="Import database..." onClick={console.log} icon={IconSet.IMPORT} />
+      <h3>Backup Database as File</h3>
+
+      <Callout icon={IconSet.INFO}>Automatic back-ups are created every 10 minutes.</Callout>
+      <fieldset>
+        <legend>Backup Directory</legend>
+        <div className="input-file">
+          <input readOnly className="input input-file-value" value={backupDir} />
+          <Button
+            styling="minimal"
+            icon={IconSet.FOLDER_CLOSE}
+            text="Open"
+            onClick={() => shell.showItemInFolder(backupDir)}
+          />
+        </div>
+      </fieldset>
+
+      <ButtonGroup>
         <Button
-          text="Full export (including images)..."
-          onClick={console.log}
-          icon={IconSet.MEDIA}
-        /> */}
+          text="Restore database from file"
+          onClick={handleChooseImportDir}
+          icon={IconSet.IMPORT}
+          styling="outlined"
+        />
+        <Button
+          text="Backup database to file"
+          onClick={handleCreateExport}
+          icon={IconSet.OPEN_EXTERNAL}
+          styling="outlined"
+        />
+
+        <Alert
+          open={Boolean(isConfirmingFileImport)}
+          title="Are you sure you want to restore the database from a backup?"
+          information={`This will replace your current tag hierarchy and any tags assigned to images, so it is recommended you create a backup first.\n${isConfirmingFileImport?.info}`}
+          primaryButtonText="Import"
+          closeButtonText="Cancel"
+          onClick={async (button) => {
+            if (isConfirmingFileImport && button === DialogButton.PrimaryButton) {
+              AppToaster.show({
+                message: 'Restoring database... Allusion will restart',
+                timeout: 5000,
+              });
+              try {
+                await rootStore.restoreDatabaseFromFile(isConfirmingFileImport?.path);
+                RendererMessenger.reload();
+              } catch (e) {
+                console.error('Could not restore backup', e);
+                AppToaster.show({
+                  message: 'Restoring database failed!',
+                  timeout: 5000,
+                });
+              }
+            }
+            setConfirmingFileImport(undefined);
+          }}
+        />
+      </ButtonGroup>
     </>
   );
 });
@@ -207,37 +316,46 @@ const BackgroundProcesses = observer(() => {
     }
   };
 
+  const [isRunInBackground, setRunInBackground] = useState(
+    RendererMessenger.isRunningInBackground(),
+  );
+  const toggleRunInBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRunInBackground(e.target.checked);
+    RendererMessenger.setRunInBackground({ isRunInBackground: e.target.checked });
+  };
+
   const [isClipEnabled, setClipServerEnabled] = useState(RendererMessenger.isClipServerEnabled());
-  const handleSetClipServerEnabled = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const toggleClipServer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setClipServerEnabled(e.target.checked);
-    toggleClipServer(e);
+    RendererMessenger.setClipServerEnabled({ isClipServerRunning: e.target.checked });
   };
 
   return (
     <>
       <h2>Options</h2>
-      <Toggle
-        defaultChecked={RendererMessenger.isRunningInBackground()}
-        onChange={toggleRunInBackground}
-        label="Run in background"
-      />
+      <fieldset>
+        <legend>Run in background</legend>
+        <Toggle checked={isRunInBackground} onChange={toggleRunInBackground} />
+      </fieldset>
 
-      <Toggle
-        checked={isClipEnabled}
-        onChange={
-          isClipEnabled || importDirectory
-            ? handleSetClipServerEnabled
-            : (e) => {
-                console.log('came here');
-                e.preventDefault();
-                e.stopPropagation();
-                alert(
-                  'Please choose a download directory first, where images downloaded through the browser extension will be stored.',
-                );
-              }
-        }
-        label="Browser extension support"
-      />
+      <fieldset>
+        <legend>Browser extension support</legend>
+        <Toggle
+          checked={isClipEnabled}
+          onChange={
+            isClipEnabled || importDirectory
+              ? toggleClipServer
+              : (e) => {
+                  console.log('came here');
+                  e.preventDefault();
+                  e.stopPropagation();
+                  alert(
+                    'Please choose a download directory first, where images downloaded through the browser extension will be stored.',
+                  );
+                }
+          }
+        />
+      </fieldset>
 
       <fieldset>
         <legend>Browser extension download directory (must be in a Location)</legend>
@@ -282,7 +400,7 @@ const Advanced = observer(() => {
   const thumbnailDirectory = uiStore.thumbnailDirectory;
 
   const [defaultThumbnailDir, setDefaultThumbnailDir] = useState('');
-  useEffect(() => void UiStore.getDefaultThumbnailDirectory().then(setDefaultThumbnailDir), []);
+  useEffect(() => void getDefaultThumbnailDirectory().then(setDefaultThumbnailDir), []);
 
   const changeThumbnailDirectory = async (newDir: string) => {
     const oldDir = thumbnailDirectory;
@@ -415,9 +533,3 @@ const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
   localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
   RendererMessenger.setFullScreen(isFullScreen);
 };
-
-const toggleClipServer = (event: React.ChangeEvent<HTMLInputElement>) =>
-  RendererMessenger.setClipServerEnabled({ isClipServerRunning: event.target.checked });
-
-const toggleRunInBackground = (event: React.ChangeEvent<HTMLInputElement>) =>
-  RendererMessenger.setRunInBackground({ isRunInBackground: event.target.checked });

@@ -235,7 +235,6 @@ export const ellipsize = (
 //// Date/time utils ////
 /////////////////////////
 const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
-  timeZone: 'UTC',
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
@@ -254,6 +253,11 @@ export const jsDateFormatter = {
   parseDate: (str: string) => new Date(str),
   placeholder: 'Choose a date...',
 };
+
+/** Returns date in YYYYMMDDTHHMMSS format (ISO-string without symbols and milliseconds) */
+export function getFilenameFriendlyFormattedDateTime(date: Date) {
+  return date.toISOString().replaceAll(/-|:/g, '').slice(0, -5);
+}
 
 //////////////////////
 //// Color utils /////

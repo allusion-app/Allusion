@@ -1,0 +1,33 @@
+#about {
+  width: 100vw;
+  height: 100vh;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  > * {
+    max-width: 60ch;
+  }
+
+  img {
+    max-width: 150px;
+    border-radius: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    text-align: center;
+  }
+
+  a {
+    font-size: medium;
+    display: inline-block;
+    color: var(--text-color);
+  }
+
+  ul {
+    line-height: 1rem;
+  }
+}
