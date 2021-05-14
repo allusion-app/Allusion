@@ -150,13 +150,6 @@ export class ClientTag implements ISerializable<ITag> {
     return this.store.delete(this);
   }
 
-  /** Update observable properties without updating the database */
-  @action update(update: (tag: ClientTag) => void): void {
-    this.autoSave = false;
-    update(this);
-    this.autoSave = true;
-  }
-
   dispose(): void {
     this.autoSave = false;
     // clean up the observer

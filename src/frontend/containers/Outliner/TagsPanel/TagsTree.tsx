@@ -521,7 +521,7 @@ const TagsTree = observer(() => {
       if (dndData.source?.isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_ID);
       } else if (dndData.source !== undefined) {
-        root.insertSubTag(dndData.source, tagStore.tagList.length);
+        root.insertSubTag(dndData.source, tagStore.len);
       }
     });
   }, [dndData, root, tagStore, uiStore]);
@@ -582,7 +582,7 @@ const TagsTree = observer(() => {
       </header>
 
       <Collapse open={!isCollapsed}>
-        {root.subTags.length === 0 ? (
+        {tagStore.isEmpty ? (
           <div className="tree-content-label" style={{ padding: '0.25rem' }}>
             {/* <span className="pre-icon">{IconSet.INFO}</span> */}
             {/* No tags or collections created yet */}
@@ -593,7 +593,7 @@ const TagsTree = observer(() => {
             multiSelect
             id="tag-hierarchy"
             className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
-            children={root.subTags.map(mapTag)}
+            children={tagStore.tagList.map(mapTag)}
             treeData={treeData}
             toggleExpansion={toggleExpansion}
             onBranchKeyDown={handleBranchOnKeyDown}

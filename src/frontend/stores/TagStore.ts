@@ -15,9 +15,8 @@ class TagStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
 
-  readonly tagList = observable(new Array<ClientTag>());
   /** A lookup map to speedup finding entities */
-  private readonly index = observable(new Map<ID, number>());
+  private readonly index = observable(new Map<ID, ClientTag>());
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -35,21 +34,28 @@ class TagStore {
     }
   }
 
-  @action get(tag: ID): ClientTag | undefined {
-    const index = this.index.get(tag);
-    return index !== undefined ? this.tagList[index] : undefined;
-  }
-
   @computed get root() {
-    const root = this.tagList.find((t) => t.id === ROOT_TAG_ID);
+    const root = this.index.get(ROOT_TAG_ID);
     if (!root) {
       throw new Error('Root tag not found. This should not happen!');
     }
     return root;
   }
 
-  @computed get tagListWithoutRoot() {
-    return this.tagList.filter((t) => t.id !== ROOT_TAG_ID);
+  @computed get tagList() {
+    return this.root.subTags;
+  }
+
+  @computed get len(): number {
+    return this.tagList.length;
+  }
+
+  @computed get isEmpty(): boolean {
+    return this.len === 0;
+  }
+
+  @action get(tag: ID): ClientTag | undefined {
+    return this.index.get(tag);
   }
 
   @action findFlatTagListIndex(target: ClientTag) {
@@ -82,13 +88,7 @@ class TagStore {
   }
 
   @action.bound async create(parent: ClientTag, tagName: string) {
-    let id = generateId();
-    // It is very unlikely to create two identical ids but that is better
-    // than throwing an error.
-    if (this.exists(id)) {
-      id = generateId();
-    }
-    const tag = new ClientTag(this, id, tagName, new Date());
+    const tag = new ClientTag(this, generateId(), tagName, new Date());
     await this.backend.createTag(tag.serialize());
     this.add(parent, tag);
     return tag;
@@ -131,7 +131,6 @@ class TagStore {
     await this.backend.removeTag(tag.id);
     await this.deleteSubTags(tag);
     this.remove(tag);
-    this.rebuildIndex();
     this.rootStore.fileStore.refetch();
   }
 
@@ -142,7 +141,6 @@ class TagStore {
       await this.deleteSubTags(tag);
       this.remove(tag);
     }
-    this.rebuildIndex();
     this.rootStore.fileStore.refetch();
   }
 
@@ -150,7 +148,6 @@ class TagStore {
     if (tagToBeRemoved.subTags.length > 0) return; // not dealing with tags that have subtags
     this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id).then(() => {
       this.remove(tagToBeRemoved);
-      this.rebuildIndex();
       this.rootStore.fileStore.refetch();
     });
   }
@@ -166,31 +163,26 @@ class TagStore {
       // We have to do this because JavaScript does not allow multiple constructor.
       const tag = new ClientTag(this, id, name, dateAdded, color);
       // Add to index
-      this.index.set(tag.id, this.tagList.length);
-      this.tagList.push(tag);
+      this.index.set(tag.id, tag);
     }
 
     // Set parent and add sub tags
-    for (let i = 0; i < backendTags.length; i++) {
-      const { subTags } = backendTags[i];
-      const tag = this.tagList[i];
-
-      tag.update((tag) => {
-        for (const id of subTags) {
-          const subTag = this.get(id);
-          if (subTag !== undefined) {
-            subTag.setParent(tag);
-            tag.subTags.push(subTag);
-          }
+    for (const { id, subTags } of backendTags) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const tag = this.index.get(id)!;
+      for (const id of subTags) {
+        const subTag = this.get(id);
+        if (subTag !== undefined) {
+          subTag.setParent(tag);
+          tag.subTags.push(subTag);
         }
-      });
+      }
     }
     this.root.setParent(this.root);
   }
 
   @action private add(parent: ClientTag, tag: ClientTag) {
-    this.index.set(tag.id, this.tagList.length);
-    this.tagList.push(tag);
+    this.index.set(tag.id, tag);
     tag.setParent(parent);
     parent.subTags.push(tag);
   }
@@ -207,7 +199,7 @@ class TagStore {
         subTag.dispose();
         this.deleteSubTags(subTag);
         this.rootStore.uiStore.deselectTag(subTag);
-        this.tagList.remove(subTag);
+        this.index.delete(subTag.id);
       }
     });
   }
@@ -216,20 +208,7 @@ class TagStore {
     // Remove tag id reference from other observable objects
     this.rootStore.uiStore.deselectTag(tag);
     tag.parent.subTags.remove(tag);
-    this.tagList.remove(tag);
-  }
-
-  @action private rebuildIndex(): void {
-    this.index.clear();
-    for (let i = 0; i < this.tagList.length; i++) {
-      const tag = this.tagList[i];
-      this.index.set(tag.id, i);
-    }
-  }
-
-  /** Checks whether a tag exists with this id. */
-  private exists(id: ID): boolean {
-    return this.index.has(id);
+    this.index.delete(tag.id);
   }
 }
 

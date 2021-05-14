@@ -67,7 +67,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const files = uiStore.fileSelection;
 
   const { counter, sortedTags } = countFileTags(files);
-  const [matchingTags, setMatchingTags] = useState([...tagStore.tagListWithoutRoot]);
+  const [matchingTags, setMatchingTags] = useState([...tagStore.tagList]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -88,12 +88,10 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     setInputText(e.target.value);
 
     if (text.length === 0) {
-      setMatchingTags([...tagStore.tagListWithoutRoot]);
+      setMatchingTags([...tagStore.tagList]);
     } else {
       const textLower = text.toLowerCase();
-      const newTagList = tagStore.tagListWithoutRoot.filter((t) =>
-        t.name.toLowerCase().includes(textLower),
-      );
+      const newTagList = tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower));
       setMatchingTags(newTagList);
     }
   });
@@ -102,7 +100,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     const newTag = await tagStore.create(tagStore.root, inputText);
     onSelect(newTag);
     setInputText('');
-    runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
+    runInAction(() => setMatchingTags([...tagStore.tagList]));
     inputRef.current?.focus();
   });
 
@@ -115,7 +113,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       onClick: () => {
         counter.get(t) ? onDeselect(t) : onSelect(t);
         setInputText('');
-        runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
+        runInAction(() => setMatchingTags([...tagStore.tagList]));
         inputRef.current?.focus();
       },
     }));
@@ -131,15 +129,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       });
     }
     return res;
-  }, [
-    counter,
-    handleCreate,
-    inputText,
-    matchingTags,
-    onDeselect,
-    onSelect,
-    tagStore.tagListWithoutRoot,
-  ]);
+  }, [counter, handleCreate, inputText, matchingTags, onDeselect, onSelect, tagStore.tagList]);
 
   // Todo: clamp this value when list size changes
   const [focusedOption, setFocusedOption] = useState(0);

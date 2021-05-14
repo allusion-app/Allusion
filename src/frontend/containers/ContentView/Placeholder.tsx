@@ -7,8 +7,7 @@ import StoreContext from '../../contexts/StoreContext';
 const Placeholder = observer(() => {
   const { fileStore, tagStore, uiStore } = useContext(StoreContext);
 
-  if (fileStore.showsAllContent && tagStore.tagList.length === 1) {
-    // 1 tag: the root tag
+  if (fileStore.showsAllContent && tagStore.isEmpty) {
     // No tags exist, and no images added: Assuming it's a new user -> Show a welcome screen
     return <Welcome />;
   } else if (fileStore.showsAllContent) {

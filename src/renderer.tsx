@@ -139,9 +139,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   if (clientFile) {
     const tags = await Promise.all(
       tagNames.map(async (tagName) => {
-        const clientTag = runInAction(() =>
-          tagStore.tagListWithoutRoot.find((tag) => tag.name === tagName),
-        );
+        const clientTag = runInAction(() => tagStore.tagList.find((tag) => tag.name === tagName));
         if (clientTag !== undefined) {
           return clientTag;
         } else {

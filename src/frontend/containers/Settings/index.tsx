@@ -172,7 +172,7 @@ const ImportExport = observer(() => {
       const backupStats = await rootStore.peekDatabaseFile(path);
       setConfirmingFileImport({
         path,
-        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.tagList.length}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
+        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.len}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
       });
     } catch (e) {
       console.log(e);
