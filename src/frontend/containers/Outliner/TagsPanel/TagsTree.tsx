@@ -77,7 +77,7 @@ interface ITagItemProps {
  * the component.
  */
 const toggleQuery = (nodeData: ClientTag, uiStore: UiStore, tagStore: TagStore) => {
-  if (nodeData.isSearched) {
+  if (uiStore.isTagSearched(nodeData)) {
     // if it already exists, then remove it
     const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
       (c as ClientTagSearchCriteria<any>)?.value?.includes(nodeData.id),
@@ -103,7 +103,7 @@ const TagItem = observer((props: ITagItemProps) => {
   const dndData = useContext(TagDnDContext);
 
   const handleContextMenu = useCallback(
-    (e) =>
+    (e: React.MouseEvent) =>
       showContextMenu(
         e.clientX,
         e.clientY,
@@ -113,10 +113,10 @@ const TagItem = observer((props: ITagItemProps) => {
   );
 
   const handleDragStart = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
+    (e: React.DragEvent<HTMLDivElement>) => {
       runInAction(() => {
         let name = nodeData.name;
-        if (nodeData.isSelected) {
+        if (uiStore.isTagSelected(nodeData)) {
           const ctx = uiStore.getTagContextItems(nodeData.id);
           if (ctx.length === 1) {
             name = ctx[0].name;
@@ -129,11 +129,11 @@ const TagItem = observer((props: ITagItemProps) => {
         }
         PreviewTag.classList.value = `tag ${uiStore.theme}`;
         PreviewTag.innerText = name;
-        event.dataTransfer.setData(DnDTagType, nodeData.id);
-        event.dataTransfer.setDragImage(PreviewTag, 0, 0);
-        event.dataTransfer.effectAllowed = 'linkMove';
-        event.dataTransfer.dropEffect = 'move';
-        event.currentTarget.dataset[DnDAttribute.Source] = 'true';
+        e.dataTransfer.setData(DnDTagType, nodeData.id);
+        e.dataTransfer.setDragImage(PreviewTag, 0, 0);
+        e.dataTransfer.effectAllowed = 'linkMove';
+        e.dataTransfer.dropEffect = 'move';
+        e.currentTarget.dataset[DnDAttribute.Source] = 'true';
         dndData.source = nodeData;
       });
     },
@@ -154,60 +154,58 @@ const TagItem = observer((props: ITagItemProps) => {
   );
 
   const handleDragOver = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      runInAction(() => {
-        if (dndData.source === undefined) {
-          return;
-        }
-        const dropTarget = event.currentTarget;
-        const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
-        if (
-          isSource ||
-          (dndData.source.isSelected && nodeData.isSelected) ||
-          nodeData.isAncestor(dndData.source)
-        ) {
-          return;
-        }
+    (e: React.DragEvent<HTMLDivElement>) => {
+      if (dndData.source === undefined) {
+        return;
+      }
+      const dropTarget = e.currentTarget;
+      const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
+      if (
+        isSource ||
+        (uiStore.isTagSelected(dndData.source) && uiStore.isTagSelected(nodeData)) ||
+        nodeData.isAncestor(dndData.source)
+      ) {
+        return;
+      }
 
-        event.dataTransfer.dropEffect = 'move';
-        event.preventDefault();
-        event.stopPropagation();
-        dropTarget.dataset[DnDAttribute.Target] = 'true';
-        const posY = event.clientY;
-        const rect = dropTarget.getBoundingClientRect();
-        const [top, bottom] = [rect.top + 8, rect.bottom - 8];
-        if (posY <= top) {
-          dropTarget.classList.add('top');
-          dropTarget.classList.remove('center');
-          dropTarget.classList.remove('bottom');
-        } else if (posY >= bottom) {
-          dropTarget.classList.add('bottom');
-          dropTarget.classList.remove('center');
-          dropTarget.classList.remove('top');
-        } else {
-          dropTarget.classList.remove('top');
-          dropTarget.classList.add('center');
-          dropTarget.classList.remove('bottom');
-        }
+      e.dataTransfer.dropEffect = 'move';
+      e.preventDefault();
+      e.stopPropagation();
+      dropTarget.dataset[DnDAttribute.Target] = 'true';
+      const posY = e.clientY;
+      const rect = dropTarget.getBoundingClientRect();
+      const [top, bottom] = [rect.top + 8, rect.bottom - 8];
+      if (posY <= top) {
+        dropTarget.classList.add('top');
+        dropTarget.classList.remove('center');
+        dropTarget.classList.remove('bottom');
+      } else if (posY >= bottom) {
+        dropTarget.classList.add('bottom');
+        dropTarget.classList.remove('center');
+        dropTarget.classList.remove('top');
+      } else {
+        dropTarget.classList.remove('top');
+        dropTarget.classList.add('center');
+        dropTarget.classList.remove('bottom');
+      }
 
-        // Don't expand when hovering over top/bottom border
-        const targetClasses = event.currentTarget.classList;
-        if (targetClasses.contains('top') || targetClasses.contains('bottom')) {
-          if (expandTimeoutId) {
-            clearTimeout(expandTimeoutId);
-            setExpandTimeoutId(undefined);
-          }
-        } else if (!expansion[nodeData.id] && !expandTimeoutId) {
-          expandDelayed(nodeData.id);
+      // Don't expand when hovering over top/bottom border
+      const targetClasses = e.currentTarget.classList;
+      if (targetClasses.contains('top') || targetClasses.contains('bottom')) {
+        if (expandTimeoutId) {
+          clearTimeout(expandTimeoutId);
+          setExpandTimeoutId(undefined);
         }
-      });
+      } else if (!expansion[nodeData.id] && !expandTimeoutId) {
+        expandDelayed(nodeData.id);
+      }
     },
-    [dndData.source, expandDelayed, expandTimeoutId, expansion, nodeData],
+    [dndData, expandDelayed, expandTimeoutId, expansion, nodeData, uiStore],
   );
 
   const handleDragLeave = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
-      if (runInAction(() => dndData.source !== undefined)) {
+      if (dndData.source !== undefined) {
         event.dataTransfer.dropEffect = 'none';
         event.preventDefault();
         event.stopPropagation();
@@ -220,13 +218,13 @@ const TagItem = observer((props: ITagItemProps) => {
         }
       }
     },
-    [dndData.source, expandTimeoutId],
+    [dndData, expandTimeoutId],
   );
 
   const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
+    (e: React.DragEvent<HTMLDivElement>) => {
       runInAction(() => {
-        const targetClasses = event.currentTarget.classList;
+        const targetClasses = e.currentTarget.classList;
         // Checker whether to move the dropped tag(s) into or above/below the drop target
         const relativeMovePos = targetClasses.contains('top')
           ? -1
@@ -235,7 +233,9 @@ const TagItem = observer((props: ITagItemProps) => {
           : 'middle'; // Not dragged at top or bottom, but in middle
 
         // Note to self: 'pos' does not start from 0! It is +1'd. So, here we -1 it again
-        if (dndData.source?.isSelected) {
+        const isSelected =
+          dndData.source === undefined ? false : uiStore.isTagSelected(dndData.source);
+        if (isSelected) {
           if (relativeMovePos === 'middle') {
             uiStore.moveSelectedTagItems(nodeData.id);
           } else {
@@ -249,15 +249,15 @@ const TagItem = observer((props: ITagItemProps) => {
           }
         }
       });
-      event.currentTarget.dataset[DnDAttribute.Target] = 'false';
-      event.currentTarget.classList.remove('top');
-      event.currentTarget.classList.remove('bottom');
+      e.currentTarget.dataset[DnDAttribute.Target] = 'false';
+      e.currentTarget.classList.remove('top');
+      e.currentTarget.classList.remove('bottom');
       if (expandTimeoutId) {
         clearTimeout(expandTimeoutId);
         setExpandTimeoutId(undefined);
       }
     },
-    [dndData.source, expandTimeoutId, nodeData, pos, uiStore],
+    [dndData, expandTimeoutId, nodeData, pos, uiStore],
   );
 
   const handleSelect = useCallback(
@@ -273,7 +273,7 @@ const TagItem = observer((props: ITagItemProps) => {
       runInAction(() => {
         const query = new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id, nodeData.name);
         if (event.ctrlKey) {
-          if (!nodeData.isSearched) {
+          if (!uiStore.isTagSearched(nodeData)) {
             uiStore.addSearchCriteria(query);
           }
         } else {
@@ -281,7 +281,7 @@ const TagItem = observer((props: ITagItemProps) => {
         }
       });
     },
-    [nodeData.id, nodeData.isSearched, nodeData.name, tagStore, uiStore],
+    [nodeData, tagStore, uiStore],
   );
 
   const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
@@ -343,8 +343,6 @@ const TagItemLabel = (
     select={treeData.select}
   />
 );
-
-const isSelected = (nodeData: ClientTag): boolean => nodeData.isSelected;
 
 const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
   treeData.state.expansion[nodeData.id];
@@ -408,14 +406,13 @@ const customKeys = (
   }
 };
 
-const mapTag = (tag: ClientTag): ITreeItem => ({
+const mapTag = (tag: ClientTag, uiStore: UiStore): ITreeItem => ({
   id: tag.id,
   label: TagItemLabel,
-  children: tag.subTags.map(mapTag),
+  children: tag.subTags.map((t) => mapTag(t, uiStore)),
   nodeData: tag,
   isExpanded,
-  isSelected,
-  className: tag.isSearched ? 'searched' : undefined,
+  isSelected: uiStore.isTagSelected,
 });
 
 const TagsTree = observer(() => {
@@ -428,6 +425,7 @@ const TagsTree = observer(() => {
   });
   const [contextState, { show, hide }] = useContextMenu();
   const dndData = useContext(TagDnDContext);
+  const root = tagStore.root;
 
   /** Header and Footer drop zones of the root node */
   const handleDragOverAndLeave = useCallback(
@@ -509,21 +507,23 @@ const TagsTree = observer(() => {
   const handleRootAddTag = useCallback(
     () =>
       tagStore
-        .create(tagStore.root, 'New Tag')
+        .create(root, 'New Tag')
         .then((tag) => dispatch(Factory.enableEditing(tag.id)))
         .catch((err) => console.log('Could not create tag', err)),
-    [tagStore],
+    [tagStore, root],
   );
 
   const handleDrop = useCallback(() => {
     runInAction(() => {
-      if (dndData.source?.isSelected) {
+      const isSelected =
+        dndData.source === undefined ? false : uiStore.isTagSelected(dndData.source);
+      if (isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_ID);
       } else if (dndData.source !== undefined) {
-        tagStore.root.insertSubTag(dndData.source, tagStore.len);
+        root.insertSubTag(dndData.source, tagStore.len);
       }
     });
-  }, [dndData, tagStore, uiStore]);
+  }, [dndData, tagStore, uiStore, root]);
 
   const handleBranchOnKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
@@ -592,7 +592,7 @@ const TagsTree = observer(() => {
             multiSelect
             id="tag-hierarchy"
             className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
-            children={tagStore.tagList.map(mapTag)}
+            children={root.subTags.map((t) => mapTag(t, uiStore))}
             treeData={treeData}
             toggleExpansion={toggleExpansion}
             onBranchKeyDown={handleBranchOnKeyDown}

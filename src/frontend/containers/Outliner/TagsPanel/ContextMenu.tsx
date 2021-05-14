@@ -27,7 +27,7 @@ const defaultColorOptions = [
 
 const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: UiStore }) => {
   const handleChange = (color: string) => {
-    if (tag.isSelected) {
+    if (uiStore.isTagSelected(tag)) {
       uiStore.colorSelectedTagsAndCollections(tag.id, color);
     } else {
       tag.setColor(color);
@@ -84,6 +84,7 @@ interface IContextMenuProps {
 export const TagItemContextMenu = observer((props: IContextMenuProps) => {
   const { tag, dispatch, pos } = props;
   const { tagStore, uiStore } = useContext(StoreContext);
+  const isSelected = uiStore.isTagSelected(tag);
   const tags = uiStore.getTagContextItems(tag.id);
   let contextText = formatTagCountText(tags.length);
   contextText = contextText && ` (${contextText})`;
@@ -121,7 +122,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       <MenuDivider />
       <MenuItem
         onClick={() =>
-          tag.isSelected
+          isSelected
             ? uiStore.addTagSelectionToCriteria()
             : uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id))
         }
@@ -130,7 +131,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       />
       <MenuItem
         onClick={() =>
-          tag.isSelected
+          isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
             : uiStore.replaceSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id))
         }

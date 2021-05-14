@@ -457,8 +457,6 @@ export type TreeLabel =
 export interface ITreeItem extends INodeData {
   /** Actual rendered label */
   label: TreeLabel;
-  /** CSS class added to a tree item */
-  className?: string;
   /** Child nodes */
   children: ITreeItem[];
   /** Checks whether a parent node is open or closed */

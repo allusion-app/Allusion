@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { observe, runInAction } from 'mobx';
+import { observe } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -139,7 +139,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   if (clientFile) {
     const tags = await Promise.all(
       tagNames.map(async (tagName) => {
-        const clientTag = runInAction(() => tagStore.tagList.find((tag) => tag.name === tagName));
+        const clientTag = tagStore.findByName(tagName);
         if (clientTag !== undefined) {
           return clientTag;
         } else {

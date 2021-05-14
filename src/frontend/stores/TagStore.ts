@@ -4,7 +4,6 @@ import Backend from 'src/backend/Backend';
 
 import { generateId, ID } from 'src/entities/ID';
 import { ClientTag, ITag, ROOT_TAG_ID } from 'src/entities/Tag';
-import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';
 
@@ -15,7 +14,8 @@ class TagStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
 
-  private _root: ClientTag = new ClientTag(this, ROOT_TAG_ID, '', new Date());
+  private readonly _tagList = observable<ClientTag>([]);
+
   /** A lookup map to speedup finding entities */
   private readonly index = observable(new Map<ID, ClientTag>());
 
@@ -26,7 +26,7 @@ class TagStore {
     makeObservable(this);
   }
 
-  async init() {
+  async init(): Promise<void> {
     try {
       const fetchedTags = await this.backend.fetchTags();
       this.createTagGraph(fetchedTags);
@@ -35,12 +35,12 @@ class TagStore {
     }
   }
 
-  get root() {
-    return this._root;
+  @computed get root(): ClientTag {
+    return this._tagList[0];
   }
 
-  get tagList() {
-    return this.root.subTags;
+  @computed get tagList(): Readonly<ClientTag[]> {
+    return this._tagList.slice(1);
   }
 
   @computed get len(): number {
@@ -55,72 +55,11 @@ class TagStore {
     return this.index.get(tag);
   }
 
-  @action findFlatTagListIndex(target: ClientTag) {
-    // Iterative DFS algorithm
-    const stack: ClientTag[] = [];
-    let tag: ClientTag | undefined = this.root;
-    let index = -1;
-    do {
-      if (tag === target) {
-        break;
-      }
-      for (let i = tag.subTags.length - 1; i >= 0; i--) {
-        const subTag = tag.subTags[i];
-        stack.push(subTag);
-      }
-      tag = stack.pop();
-      index += 1;
-    } while (tag !== undefined);
-    return index > -1 ? index : undefined;
-  }
-
-  @action isSelected(tag: ClientTag): boolean {
-    return this.rootStore.uiStore.tagSelection.has(tag);
-  }
-
-  @action isSearched(tag: ID): boolean {
-    return this.rootStore.uiStore.searchCriteriaList.some(
-      (c) => c instanceof ClientTagSearchCriteria && c.value.includes(tag),
-    );
-  }
-
-  @action.bound async create(parent: ClientTag, tagName: string) {
+  @action.bound async create(parent: ClientTag, tagName: string): Promise<ClientTag> {
     const tag = new ClientTag(this, generateId(), tagName, new Date());
     await this.backend.createTag(tag.serialize());
     this.add(parent, tag);
     return tag;
-  }
-
-  @action.bound insert(tag: ClientTag, subTag: ClientTag, index: number) {
-    if (tag === subTag || subTag.id === ROOT_TAG_ID) {
-      return;
-    }
-    // Move to different pos in same parent: Reorder tag.subTags and return
-    if (tag === subTag.parent) {
-      if (index > -1 && index <= tag.subTags.length) {
-        // If moving below current position, take into account removing self affecting the index
-        const newIndex = tag.subTags.indexOf(subTag) < index ? index - 1 : index;
-        tag.subTags.remove(subTag);
-        tag.subTags.splice(newIndex, 0, subTag);
-      }
-      return;
-    }
-    // Abort if subTag is an ancestor node of target tag.
-    let node = tag.parent;
-    while (node.id !== ROOT_TAG_ID) {
-      if (node === subTag) {
-        return;
-      }
-      node = node.parent;
-    }
-    // Insert subTag into tag
-    subTag.parent.subTags.remove(subTag);
-    if (index > -1 && index < tag.subTags.length) {
-      tag.subTags.splice(index, 0, subTag);
-    } else {
-      tag.subTags.push(subTag);
-    }
-    subTag.setParent(tag);
   }
 
   @action.bound async delete(tag: ClientTag) {
@@ -153,6 +92,29 @@ class TagStore {
     this.backend.saveTag(tag);
   }
 
+  @action findByName(name: string): ClientTag | undefined {
+    return this.tagList.find((t) => t.name === name);
+  }
+
+  @action findFlatTagListIndex(target: ClientTag): number | undefined {
+    // Iterative DFS algorithm
+    const stack: ClientTag[] = [];
+    let tag: ClientTag | undefined = this.root;
+    let index = -1;
+    do {
+      if (tag === target) {
+        break;
+      }
+      for (let i = tag.subTags.length - 1; i >= 0; i--) {
+        const subTag = tag.subTags[i];
+        stack.push(subTag);
+      }
+      tag = stack.pop();
+      index += 1;
+    } while (tag !== undefined);
+    return index > -1 ? index : undefined;
+  }
+
   @action private createTagGraph(backendTags: ITag[]) {
     // Create tags
     for (const { id, name, dateAdded, color } of backendTags) {
@@ -160,14 +122,14 @@ class TagStore {
       // We have to do this because JavaScript does not allow multiple constructor.
       const tag = new ClientTag(this, id, name, dateAdded, color);
       // Add to index
+      this._tagList.push(tag);
       this.index.set(tag.id, tag);
     }
 
     // Set parent and add sub tags
-    for (const { id, subTags } of backendTags) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const tag = this.index.get(id)!;
-      for (const id of subTags) {
+    for (let i = 0; i < backendTags.length; i++) {
+      const tag = this._tagList[i];
+      for (const id of backendTags[i].subTags) {
         const subTag = this.get(id);
         if (subTag !== undefined) {
           subTag.setParent(tag);
@@ -175,16 +137,19 @@ class TagStore {
         }
       }
     }
-    const root = this.index.get(ROOT_TAG_ID);
-    if (root === undefined) {
+    const rootIndex = this._tagList.findIndex((t) => t.id === ROOT_TAG_ID);
+    if (rootIndex < 0) {
       throw new Error('Root tag not found. This should not happen!');
     }
-    this.index.delete(ROOT_TAG_ID);
+    const root = this._tagList[rootIndex];
     root.setParent(root);
-    this._root = root;
+    if (rootIndex !== 0) {
+      [this._tagList[0], this._tagList[rootIndex]] = [this._tagList[rootIndex], this._tagList[0]];
+    }
   }
 
   @action private add(parent: ClientTag, tag: ClientTag) {
+    this._tagList.push(tag);
     this.index.set(tag.id, tag);
     tag.setParent(parent);
     parent.subTags.push(tag);
@@ -203,6 +168,7 @@ class TagStore {
         this.deleteSubTags(subTag);
         this.rootStore.uiStore.deselectTag(subTag);
         this.index.delete(subTag.id);
+        this._tagList.remove(subTag);
       }
     });
   }
@@ -212,6 +178,7 @@ class TagStore {
     this.rootStore.uiStore.deselectTag(tag);
     tag.parent.subTags.remove(tag);
     this.index.delete(tag.id);
+    this._tagList.remove(tag);
   }
 }
 

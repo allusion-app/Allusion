@@ -28,9 +28,10 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
 );
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
   const { object } = props;
-  const tagsToRemove = object.isSelected ? Array.from(uiStore.tagSelection) : object.toList();
+  const isSelected = uiStore.isTagSelected(object);
+  const tagsToRemove = isSelected ? Array.from(uiStore.tagSelection) : object.toList();
 
   const text = `Are you sure you want to delete the tag "${object.name}"?`;
 
@@ -50,9 +51,9 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
         )
       }
       onCancel={props.onClose}
-      onConfirm={() => {
+      onConfirm={async () => {
         props.onClose();
-        object.isSelected ? uiStore.removeSelectedTags() : props.object.delete();
+        await (isSelected ? uiStore.removeSelectedTags() : tagStore.delete(object));
       }}
     />
   );

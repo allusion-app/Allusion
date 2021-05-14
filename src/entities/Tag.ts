@@ -69,16 +69,8 @@ export class ClientTag implements ISerializable<ITag> {
     return [this, ...this.subTags.flatMap((t) => t.recursiveSubTags)];
   }
 
-  get isSelected(): boolean {
-    return this.store.isSelected(this);
-  }
-
   @computed get viewColor(): string {
     return this.color === 'inherit' ? this.parent.viewColor : this.color;
-  }
-
-  get isSearched(): boolean {
-    return this.store.isSearched(this.id);
   }
 
   /** Returns the tags up the hierarchy from this tag, excluding the root tag */
@@ -121,7 +113,35 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   @action.bound insertSubTag(tag: ClientTag, at: number): void {
-    this.store.insert(this, tag, at);
+    if (this === tag || tag.id === ROOT_TAG_ID) {
+      return;
+    }
+    // Move to different pos in same parent: Reorder tag.subTags and return
+    if (this === tag.parent) {
+      if (at > -1 && at <= this.subTags.length) {
+        // If moving below current position, take into account removing self affecting the index
+        const newIndex = this.subTags.indexOf(tag) < at ? at - 1 : at;
+        this.subTags.remove(tag);
+        this.subTags.splice(newIndex, 0, tag);
+      }
+      return;
+    }
+    // Abort if subTag is an ancestor node of target tag.
+    let node = this.parent;
+    while (node.id !== ROOT_TAG_ID) {
+      if (node === tag) {
+        return;
+      }
+      node = node.parent;
+    }
+    // Insert subTag into tag
+    tag.parent.subTags.remove(tag);
+    if (at > -1 && at < this.subTags.length) {
+      this.subTags.splice(at, 0, tag);
+    } else {
+      this.subTags.push(tag);
+    }
+    tag.setParent(this);
   }
 
   serialize(): ITag {
@@ -144,10 +164,6 @@ export class ClientTag implements ISerializable<ITag> {
     };
     pushIds(this.subTags);
     return ids;
-  }
-
-  async delete(): Promise<void> {
-    return this.store.delete(this);
   }
 
   dispose(): void {

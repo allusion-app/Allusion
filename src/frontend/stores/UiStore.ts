@@ -4,7 +4,7 @@ import { getDefaultThumbnailDirectory } from 'src/config';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, debounce } from '../utils';
@@ -422,6 +422,10 @@ class UiStore {
     this.fileSelection.clear();
   }
 
+  @action.bound isTagSelected(tag: ClientTag): boolean {
+    return this.tagSelection.has(tag);
+  }
+
   @action.bound selectTag(tag: ClientTag, clear?: boolean) {
     if (clear === true) {
       this.clearTagSelection();
@@ -504,7 +508,7 @@ class UiStore {
     if (activeItemId) {
       const selectedTag = tagStore.get(activeItemId);
       if (selectedTag) {
-        if (selectedTag.isSelected) {
+        if (this.isTagSelected(selectedTag)) {
           isContextTheSelection = true;
         } else {
           contextTags.push(selectedTag);
@@ -514,9 +518,8 @@ class UiStore {
 
     // If no id is given or when the selected tag or collection is selected, the context is the whole selection
     if (isContextTheSelection) {
-      const selectedTags = tagStore.tagList.filter((c) => c.isSelected);
-      // root tag may not be present in the context
-      contextTags.push(...selectedTags.filter((t) => t.id !== ROOT_TAG_ID));
+      const selectedTags = tagStore.tagList.filter(this.isTagSelected);
+      contextTags.push(...selectedTags);
     }
 
     return contextTags;
@@ -587,6 +590,12 @@ class UiStore {
     } else {
       this.viewAllContent();
     }
+  }
+
+  @action.bound isTagSearched(tag: ClientTag) {
+    return this.searchCriteriaList.some(
+      (c) => c instanceof ClientTagSearchCriteria && c.value.includes(tag.id),
+    );
   }
 
   @action.bound addTagSelectionToCriteria() {

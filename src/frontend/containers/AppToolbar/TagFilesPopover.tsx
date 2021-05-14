@@ -65,7 +65,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const [inputText, setInputText] = useState('');
 
   const { counter, sortedTags } = countFileTags(uiStore.fileSelection);
-  const [matchingTags, setMatchingTags] = useState(tagStore.tagList.slice());
+  const [matchingTags, setMatchingTags] = useState(tagStore.tagList);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -88,7 +88,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       setInputText(e.target.value);
 
       if (text.length === 0) {
-        setMatchingTags(tagStore.tagList.slice());
+        setMatchingTags(tagStore.tagList);
       } else {
         const textLower = text.toLowerCase();
         const newTagList = tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower));
@@ -109,7 +109,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
           onClick: () => {
             selected ? onDeselect(t) : onSelect(t);
             setInputText('');
-            setMatchingTags(tagStore.tagList.slice());
+            setMatchingTags(tagStore.tagList);
             inputRef.current?.focus();
           },
         };
@@ -158,10 +158,10 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         selected={false}
         value={`Create Tag "${inputText}"`}
         onClick={async () => {
-          const tagListCopy = tagStore.tagList.slice();
+          const tagList = tagStore.tagList;
           const newTag = await tagStore.create(tagStore.root, inputText);
           setInputText('');
-          setMatchingTags(tagListCopy);
+          setMatchingTags(tagList);
           onSelect(newTag);
           inputRef.current?.focus();
         }}

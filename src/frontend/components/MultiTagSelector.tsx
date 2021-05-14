@@ -2,7 +2,7 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ReactElement, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
-import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Option, Tag } from 'widgets';
 import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
 import { IOption } from 'widgets/Combobox/Listbox';
@@ -58,7 +58,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
   const normalizedQuery = query.toLowerCase();
 
   const suggestions = tagStore.tagList.filter(
-    (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
+    (t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
   );
 
   // Assemble list of options
