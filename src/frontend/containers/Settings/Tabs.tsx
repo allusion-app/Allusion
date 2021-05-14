@@ -6,14 +6,16 @@ export type TabItem = {
 };
 
 interface ITabs {
+  id?: string;
+  className?: string;
   tabItems: TabItem[];
 }
 
-const Tabs = ({ tabItems }: ITabs) => {
+const Tabs = ({ id, className, tabItems }: ITabs) => {
   const [selection, setSelection] = useState(0);
 
   return (
-    <div className="tabs">
+    <div id={id} className={`tabs ${className}`}>
       <div role="tablist">
         {tabItems.map((item, index) => (
           <button

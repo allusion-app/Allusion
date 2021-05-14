@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useCallback, useContext, useState, memo } from 'react';
+import React, { useCallback, useContext, useState, memo, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, ButtonGroup, IconSet, Split } from 'widgets';
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
@@ -34,14 +34,14 @@ const HelpCenter = observer(() => {
 
 export default HelpCenter;
 
-interface IDocumentation {
+interface DocumentationProps {
   id?: string;
   overviewId: string;
   className?: string;
-  pages: IPageData[];
+  pages: PageData[];
 }
 
-const Documentation = ({ id, overviewId, className, pages }: IDocumentation) => {
+const Documentation = ({ id, overviewId, className, pages }: DocumentationProps) => {
   const [pageIndex, setPageIndex] = useState(0);
 
   const [isIndexOpen, setIndexIsOpen] = useState(true);
@@ -76,9 +76,10 @@ const Documentation = ({ id, overviewId, className, pages }: IDocumentation) => 
                 controls={overviewId}
               />
             }
-            pages={pages}
+            sections={pages[pageIndex].sections}
             openPage={setPageIndex}
-            pageIndex={pageIndex}
+            isFirst={pageIndex === 0}
+            isLast={pageIndex === pages.length - 1}
           />
         }
         axis="vertical"
@@ -91,13 +92,13 @@ const Documentation = ({ id, overviewId, className, pages }: IDocumentation) => 
   );
 };
 
-interface IOverview {
+interface OverviewProps {
   id: string;
-  pages: IPageData[];
+  pages: PageData[];
   openPage: (page: number) => void;
 }
 
-const Overview = memo(function Overview({ id, pages, openPage }: IOverview) {
+const Overview = memo(function Overview({ id, pages, openPage }: OverviewProps) {
   return (
     <nav id={id} className="doc-overview">
       {pages.map((page, pageIndex) => (
@@ -107,11 +108,7 @@ const Overview = memo(function Overview({ id, pages, openPage }: IOverview) {
             {page.title}
           </summary>
           {page.sections.map((section) => (
-            <a
-              key={section.title}
-              href={`#${section.title.toLowerCase().replaceAll(' ', '-')}`}
-              onClick={() => openPage(pageIndex)}
-            >
+            <a key={section.title} href={`#${section.title}`} onClick={() => openPage(pageIndex)}>
               {section.title}
             </a>
           ))}
@@ -121,51 +118,46 @@ const Overview = memo(function Overview({ id, pages, openPage }: IOverview) {
   );
 });
 
-interface IPage {
+interface PageProps {
   toolbar: React.ReactNode;
-  pages: IPageData[];
-  pageIndex: number;
-  openPage: (page: number) => void;
+  sections: PageSection[];
+  openPage: React.Dispatch<React.SetStateAction<number>>;
+  isFirst: boolean;
+  isLast: boolean;
 }
 
-const Page = (props: IPage) => {
-  const { toolbar, pages, pageIndex, openPage } = props;
-
-  const buttons = [];
-  if (pageIndex > 0) {
-    const previousPage = () => openPage(pageIndex - 1);
-    buttons.push(
-      <Button key="previous" styling="outlined" onClick={previousPage} text="Previous" />,
-    );
-  }
-  if (pageIndex < pages.length - 1) {
-    const nextPage = () => openPage(pageIndex + 1);
-    buttons.push(<Button key="next" styling="outlined" onClick={nextPage} text="Next" />);
-  }
+const Page = ({ toolbar, sections, openPage, isFirst, isLast }: PageProps) => {
+  const [previousPage, nextPage] = useRef([
+    () => openPage((pageIndex) => pageIndex - 1),
+    () => openPage((pageIndex) => pageIndex + 1),
+  ]).current;
 
   return (
     <div className="doc-page">
       {toolbar}
       <article className="doc-page-content">
-        {pages[pageIndex].sections.map((section) => (
-          <section id={section.title.toLowerCase().replaceAll(' ', '-')} key={section.title}>
+        {sections.map((section) => (
+          <section id={section.title} key={section.title}>
             <h2>{section.title}</h2>
             {section.content}
           </section>
         ))}
-        <ButtonGroup>{buttons}</ButtonGroup>
+        <ButtonGroup>
+          <Button styling="outlined" onClick={previousPage} text="Previous" disabled={isFirst} />
+          <Button styling="outlined" onClick={nextPage} text="Next" disabled={isLast} />
+        </ButtonGroup>
       </article>
     </div>
   );
 };
 
-interface IPageToolbar {
+interface PageToolbarProps {
   isIndexOpen: boolean;
   toggleIndex: React.Dispatch<React.SetStateAction<boolean>>;
   controls: string;
 }
 
-const PageToolbar = ({ isIndexOpen, toggleIndex, controls }: IPageToolbar) => {
+const PageToolbar = ({ isIndexOpen, toggleIndex, controls }: PageToolbarProps) => {
   return (
     <div className="doc-page-toolbar">
       <button
@@ -184,13 +176,18 @@ const PageToolbar = ({ isIndexOpen, toggleIndex, controls }: IPageToolbar) => {
   );
 };
 
-interface IPageData {
+interface PageData {
   title: string;
   icon: React.ReactNode;
-  sections: { title: string; content: React.ReactNode }[];
+  sections: PageSection[];
 }
 
-const PAGE_DATA: () => IPageData[] = () => [
+interface PageSection {
+  title: string;
+  content: React.ReactNode;
+}
+
+const PAGE_DATA: () => PageData[] = () => [
   {
     title: 'About Allusion',
     icon: IconSet.LOGO,

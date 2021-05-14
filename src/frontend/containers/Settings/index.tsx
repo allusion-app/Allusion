@@ -36,9 +36,7 @@ const Settings = () => {
       closeOnEscape
       additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
     >
-      <div id="settings" className={uiStore.theme}>
-        <Tabs tabItems={SETTINGS_TABS()} />
-      </div>
+      <Tabs id="settings" className={uiStore.theme} tabItems={SETTINGS_TABS()} />
     </PopupWindow>
   );
 };
