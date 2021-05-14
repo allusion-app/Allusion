@@ -1,4 +1,4 @@
-import React, { ReactNode, useRef, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 
 export type TabItem = {
   label: string;
@@ -6,17 +6,16 @@ export type TabItem = {
 };
 
 interface ITabs {
-  initTabItems: () => TabItem[];
+  tabItems: TabItem[];
 }
 
-const Tabs = ({ initTabItems }: ITabs) => {
+const Tabs = ({ tabItems }: ITabs) => {
   const [selection, setSelection] = useState(0);
-  const items = useRef(initTabItems()).current;
 
   return (
     <div className="tabs">
       <div role="tablist">
-        {items.map((item, index) => (
+        {tabItems.map((item, index) => (
           <button
             role="tab"
             key={item.label}
@@ -27,7 +26,7 @@ const Tabs = ({ initTabItems }: ITabs) => {
           </button>
         ))}
       </div>
-      <div role="tabpanel">{items[selection].content}</div>
+      <div role="tabpanel">{tabItems[selection].content}</div>
     </div>
   );
 };

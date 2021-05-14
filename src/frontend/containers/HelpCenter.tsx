@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useCallback, useContext, useRef, useState, memo } from 'react';
+import React, { useCallback, useContext, useState, memo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, ButtonGroup, IconSet, Split } from 'widgets';
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
@@ -26,7 +26,7 @@ const HelpCenter = observer(() => {
         id="help-center"
         overviewId="help-center-overview"
         className={uiStore.theme}
-        initPages={PAGE_DATA}
+        pages={PAGE_DATA()}
       />
     </PopupWindow>
   );
@@ -38,12 +38,11 @@ interface IDocumentation {
   id?: string;
   overviewId: string;
   className?: string;
-  initPages: () => IPageData[];
+  pages: IPageData[];
 }
 
-const Documentation = ({ id, overviewId, className, initPages }: IDocumentation) => {
+const Documentation = ({ id, overviewId, className, pages }: IDocumentation) => {
   const [pageIndex, setPageIndex] = useState(0);
-  const pages = useRef(initPages()).current;
 
   const [isIndexOpen, setIndexIsOpen] = useState(true);
   const [splitPoint, setSplitPoint] = useState(224); // 14rem

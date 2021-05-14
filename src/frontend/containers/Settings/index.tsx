@@ -37,7 +37,7 @@ const Settings = () => {
       additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
     >
       <div id="settings" className={uiStore.theme}>
-        <Tabs initTabItems={SETTINGS_TABS} />
+        <Tabs tabItems={SETTINGS_TABS()} />
       </div>
     </PopupWindow>
   );
