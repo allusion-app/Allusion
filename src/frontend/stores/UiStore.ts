@@ -465,7 +465,6 @@ class UiStore {
 
   @action.bound selectAllTags() {
     this.tagSelection.replace(this.rootStore.tagStore.tagList);
-    this.tagSelection.delete(this.rootStore.tagStore.root);
   }
 
   @action.bound clearTagSelection() {

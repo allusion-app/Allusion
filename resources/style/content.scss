@@ -385,9 +385,11 @@
 }
 
 #content-placeholder {
-  max-width: 480px;
+  max-width: 80ch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin: 10% auto auto auto;
-  text-align: center;
 
   .divider {
     margin: auto;

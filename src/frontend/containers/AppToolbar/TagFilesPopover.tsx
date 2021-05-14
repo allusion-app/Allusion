@@ -1,4 +1,4 @@
-import { action, ObservableSet, runInAction } from 'mobx';
+import { action, ObservableSet } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
@@ -8,7 +8,6 @@ import UiStore from 'src/frontend/stores/UiStore';
 import { debounce } from 'src/frontend/utils';
 import { Option, Tag } from 'widgets';
 import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
-import { IOption } from 'widgets/Combobox/Listbox';
 import { IconSet } from 'widgets/Icons';
 import { MenuDivider, ToolbarButton } from 'widgets/menus';
 import StoreContext from '../../contexts/StoreContext';
@@ -64,72 +63,59 @@ interface TagFilesWidgetProps {
 
 const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => {
   const [inputText, setInputText] = useState('');
-  const files = uiStore.fileSelection;
 
-  const { counter, sortedTags } = countFileTags(files);
-  const [matchingTags, setMatchingTags] = useState([...tagStore.tagList]);
+  const { counter, sortedTags } = countFileTags(uiStore.fileSelection);
+  const [matchingTags, setMatchingTags] = useState(tagStore.tagList.slice());
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const onSelect = action((tag: ClientTag) => {
-    for (const f of files) {
-      f.addTag(tag);
-    }
-  });
+  const [onSelect, onDeselect] = useRef([
+    action((tag: ClientTag) => {
+      for (const f of uiStore.fileSelection) {
+        f.addTag(tag);
+      }
+    }),
+    action((tag: ClientTag) => {
+      for (const f of uiStore.fileSelection) {
+        f.removeTag(tag);
+      }
+    }),
+  ]).current;
 
-  const onDeselect = action((tag: ClientTag) => {
-    for (const f of files) {
-      f.removeTag(tag);
-    }
-  });
+  const handleInput = useRef(
+    action((e: React.ChangeEvent<HTMLInputElement>) => {
+      const text = e.target.value;
+      setInputText(e.target.value);
 
-  const handleInput = action((e: React.ChangeEvent<HTMLInputElement>) => {
-    const text = e.target.value;
-    setInputText(e.target.value);
+      if (text.length === 0) {
+        setMatchingTags(tagStore.tagList.slice());
+      } else {
+        const textLower = text.toLowerCase();
+        const newTagList = tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower));
+        setMatchingTags(newTagList);
+      }
+    }),
+  ).current;
 
-    if (text.length === 0) {
-      setMatchingTags([...tagStore.tagList]);
-    } else {
-      const textLower = text.toLowerCase();
-      const newTagList = tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower));
-      setMatchingTags(newTagList);
-    }
-  });
-
-  const handleCreate = action(async () => {
-    const newTag = await tagStore.create(tagStore.root, inputText);
-    onSelect(newTag);
-    setInputText('');
-    runInAction(() => setMatchingTags([...tagStore.tagList]));
-    inputRef.current?.focus();
-  });
-
-  const options = useMemo(() => {
-    const res: (IOption & { id: string; divider?: boolean })[] = matchingTags.map((t) => ({
-      id: t.id,
-      value: t.name,
-      selected: counter.get(t) !== undefined,
-      icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
-      onClick: () => {
-        counter.get(t) ? onDeselect(t) : onSelect(t);
-        setInputText('');
-        runInAction(() => setMatchingTags([...tagStore.tagList]));
-        inputRef.current?.focus();
-      },
-    }));
-
-    if (inputText) {
-      res.push({
-        id: 'create',
-        selected: false,
-        value: `Create Tag "${inputText}"`,
-        onClick: handleCreate,
-        icon: IconSet.TAG_ADD,
-        divider: matchingTags.length !== 0,
-      });
-    }
-    return res;
-  }, [counter, handleCreate, inputText, matchingTags, onDeselect, onSelect, tagStore.tagList]);
+  const options = useMemo(
+    () =>
+      matchingTags.map((t) => {
+        const selected = counter.get(t) !== undefined;
+        return {
+          id: t.id,
+          value: t.name,
+          selected,
+          icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
+          onClick: () => {
+            selected ? onDeselect(t) : onSelect(t);
+            setInputText('');
+            setMatchingTags(tagStore.tagList.slice());
+            inputRef.current?.focus();
+          },
+        };
+      }),
+    [counter, matchingTags, onDeselect, onSelect, tagStore],
+  );
 
   // Todo: clamp this value when list size changes
   const [focusedOption, setFocusedOption] = useState(0);
@@ -159,6 +145,32 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     return () => observer.disconnect();
   }, []);
 
+  const createOption = [];
+  if (inputText.length > 0) {
+    let i = options.length;
+    if (matchingTags.length !== 0) {
+      i += 1;
+      createOption.push(<MenuDivider key="divider" />);
+    }
+    createOption.push(
+      <Option
+        key="create"
+        selected={false}
+        value={`Create Tag "${inputText}"`}
+        onClick={async () => {
+          const tagListCopy = tagStore.tagList.slice();
+          const newTag = await tagStore.create(tagStore.root, inputText);
+          setInputText('');
+          setMatchingTags(tagListCopy);
+          onSelect(newTag);
+          inputRef.current?.focus();
+        }}
+        icon={IconSet.TAG_ADD}
+        focused={focusedOption === i}
+      />,
+    );
+  }
+
   return (
     <div
       id="tag-editor"
@@ -178,20 +190,16 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         ref={inputRef}
       />
       <ControlledListbox id="tag-files-listbox" multiselectable={true} listRef={listRef}>
-        {options.map(({ divider, id, ...optionProps }, i) => {
-          return (
-            <React.Fragment key={id}>
-              {divider && <MenuDivider />}
-              <Option {...optionProps} focused={focusedOption === i} />
-            </React.Fragment>
-          );
-        })}
+        {options.map(({ id, ...optionProps }, i) => (
+          <Option key={id} {...optionProps} focused={focusedOption === i} />
+        ))}
+        {createOption}
       </ControlledListbox>
       <div>
         {sortedTags.map((t) => (
           <Tag
             key={t.id}
-            text={`${t.name}${files.size > 1 ? ` (${counter.get(t)})` : ''}`}
+            text={`${t.name}${uiStore.fileSelection.size > 1 ? ` (${counter.get(t)})` : ''}`}
             color={t.viewColor}
             onRemove={() => {
               onDeselect(t);

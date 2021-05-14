@@ -15,6 +15,7 @@ class TagStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
 
+  private _root: ClientTag = new ClientTag(this, ROOT_TAG_ID, '', new Date());
   /** A lookup map to speedup finding entities */
   private readonly index = observable(new Map<ID, ClientTag>());
 
@@ -34,15 +35,11 @@ class TagStore {
     }
   }
 
-  @computed get root() {
-    const root = this.index.get(ROOT_TAG_ID);
-    if (!root) {
-      throw new Error('Root tag not found. This should not happen!');
-    }
-    return root;
+  get root() {
+    return this._root;
   }
 
-  @computed get tagList() {
+  get tagList() {
     return this.root.subTags;
   }
 
@@ -178,7 +175,13 @@ class TagStore {
         }
       }
     }
-    this.root.setParent(this.root);
+    const root = this.index.get(ROOT_TAG_ID);
+    if (root === undefined) {
+      throw new Error('Root tag not found. This should not happen!');
+    }
+    this.index.delete(ROOT_TAG_ID);
+    root.setParent(root);
+    this._root = root;
   }
 
   @action private add(parent: ClientTag, tag: ClientTag) {

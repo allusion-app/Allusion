@@ -420,7 +420,6 @@ const mapTag = (tag: ClientTag): ITreeItem => ({
 
 const TagsTree = observer(() => {
   const { tagStore, uiStore } = useContext(StoreContext);
-  const root = tagStore.root;
   const [state, dispatch] = useReducer(reducer, {
     expansion: {},
     editableNode: undefined,
@@ -510,10 +509,10 @@ const TagsTree = observer(() => {
   const handleRootAddTag = useCallback(
     () =>
       tagStore
-        .create(root, 'New Tag')
+        .create(tagStore.root, 'New Tag')
         .then((tag) => dispatch(Factory.enableEditing(tag.id)))
         .catch((err) => console.log('Could not create tag', err)),
-    [root, tagStore],
+    [tagStore],
   );
 
   const handleDrop = useCallback(() => {
@@ -521,10 +520,10 @@ const TagsTree = observer(() => {
       if (dndData.source?.isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_ID);
       } else if (dndData.source !== undefined) {
-        root.insertSubTag(dndData.source, tagStore.len);
+        tagStore.root.insertSubTag(dndData.source, tagStore.len);
       }
     });
-  }, [dndData, root, tagStore, uiStore]);
+  }, [dndData, tagStore, uiStore]);
 
   const handleBranchOnKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
