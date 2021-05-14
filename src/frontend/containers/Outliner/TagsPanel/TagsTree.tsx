@@ -449,47 +449,44 @@ const TagsTree = observer(() => {
   /** The last item that is selected in a multi-selection */
   const lastSelectionIndex = useRef<number>();
   // Handles selection via click event
-  const select = useCallback(
-    (e: React.MouseEvent, selectedTag: ClientTag) => {
-      // Note: selection logic is copied from Gallery.tsx
-      const rangeSelection = e.shiftKey;
-      const expandSelection = e.ctrlKey;
+  const select = useRef((e: React.MouseEvent, selectedTag: ClientTag) => {
+    // Note: selection logic is copied from Gallery.tsx
+    const rangeSelection = e.shiftKey;
+    const expandSelection = e.ctrlKey;
 
-      /** The index of the active (newly selected) item */
-      const i = tagStore.findFlatTagListIndex(selectedTag);
+    /** The index of the active (newly selected) item */
+    const i = tagStore.findFlatTagListIndex(selectedTag);
 
-      // If nothing is selected, initialize the selection range and select that single item
-      if (lastSelectionIndex.current === undefined) {
-        initialSelectionIndex.current = i;
-        lastSelectionIndex.current = i;
-        uiStore.toggleTagSelection(selectedTag);
-        return;
-      } else {
-        initialSelectionIndex.current = lastSelectionIndex.current;
-      }
-
-      // Mark this index as the last item that was selected
+    // If nothing is selected, initialize the selection range and select that single item
+    if (lastSelectionIndex.current === undefined) {
+      initialSelectionIndex.current = i;
       lastSelectionIndex.current = i;
+      uiStore.toggleTagSelection(selectedTag);
+      return;
+    } else {
+      initialSelectionIndex.current = lastSelectionIndex.current;
+    }
 
-      if (rangeSelection && initialSelectionIndex.current !== undefined) {
-        if (i === undefined) {
-          return;
-        }
-        if (i < initialSelectionIndex.current) {
-          uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
-        } else {
-          uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
-        }
-      } else if (expandSelection) {
-        uiStore.toggleTagSelection(selectedTag);
-        initialSelectionIndex.current = i;
-      } else {
-        uiStore.selectTag(selectedTag, true);
-        initialSelectionIndex.current = i;
+    // Mark this index as the last item that was selected
+    lastSelectionIndex.current = i;
+
+    if (rangeSelection && initialSelectionIndex.current !== undefined) {
+      if (i === undefined) {
+        return;
       }
-    },
-    [tagStore, uiStore],
-  );
+      if (i < initialSelectionIndex.current) {
+        uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
+      } else {
+        uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
+      }
+    } else if (expandSelection) {
+      uiStore.toggleTagSelection(selectedTag);
+      initialSelectionIndex.current = i;
+    } else {
+      uiStore.selectTag(selectedTag, true);
+      initialSelectionIndex.current = i;
+    }
+  });
 
   const treeData: ITreeData = useMemo(
     () => ({
@@ -497,9 +494,9 @@ const TagsTree = observer(() => {
       state,
       dispatch,
       submit: submit.current,
-      select,
+      select: select.current,
     }),
-    [select, show, state],
+    [show, state],
   );
 
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -525,7 +522,7 @@ const TagsTree = observer(() => {
     });
   }, [dndData, tagStore, uiStore, root]);
 
-  const handleBranchOnKeyDown = useCallback(
+  const handleBranchOnKeyDown = useRef(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
       createBranchOnKeyDown(
         event,
@@ -536,10 +533,9 @@ const TagsTree = observer(() => {
         toggleExpansion,
         customKeys.bind(null, uiStore, tagStore),
       ),
-    [tagStore, uiStore],
   );
 
-  const handleLeafOnKeyDown = useCallback(
+  const handleLeafOnKeyDown = useRef(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
       createLeafOnKeyDown(
         event,
@@ -548,7 +544,6 @@ const TagsTree = observer(() => {
         toggleSelection.bind(null, uiStore),
         customKeys.bind(null, uiStore, tagStore),
       ),
-    [tagStore, uiStore],
   );
 
   return (
@@ -595,8 +590,8 @@ const TagsTree = observer(() => {
             children={root.subTags.map((t) => mapTag(t, uiStore))}
             treeData={treeData}
             toggleExpansion={toggleExpansion}
-            onBranchKeyDown={handleBranchOnKeyDown}
-            onLeafKeyDown={handleLeafOnKeyDown}
+            onBranchKeyDown={handleBranchOnKeyDown.current}
+            onLeafKeyDown={handleLeafOnKeyDown.current}
           />
         )}
       </Collapse>
