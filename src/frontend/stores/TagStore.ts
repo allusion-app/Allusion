@@ -88,22 +88,13 @@ class TagStore {
     return tag;
   }
 
-  @action async delete(tag: ClientTag) {
-    tag.dispose();
-    await this.backend.removeTag(tag.id);
-    await this.deleteSubTags(tag);
-    this.remove(tag);
-    this.rootStore.fileStore.refetch();
-  }
-
-  @action async deleteTags(tags: ClientTag[]) {
+  @action async delete(tags: ClientTag[]) {
     await this.backend.removeTags(tags.map((t) => t.id));
     for (const tag of tags) {
       tag.dispose();
       await this.deleteSubTags(tag);
       this.remove(tag);
     }
-    this.rootStore.fileStore.refetch();
   }
 
   @action merge(tagToBeRemoved: ClientTag, tagToMergeWith: Readonly<ClientTag>) {

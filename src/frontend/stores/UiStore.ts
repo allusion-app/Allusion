@@ -465,11 +465,6 @@ class UiStore {
     this.tagSelection.clear();
   }
 
-  @action.bound async removeSelectedTags() {
-    const ctx = this.getTagContextItems();
-    return this.rootStore.tagStore.deleteTags(ctx);
-  }
-
   @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
     const ctx = this.getTagContextItems(activeElementId);
     const colorCollection = (tag: ClientTag) => {
@@ -588,26 +583,6 @@ class UiStore {
     return this.searchCriteriaList.some(
       (c) => c instanceof ClientTagSearchCriteria && c.value.includes(tag.id),
     );
-  }
-
-  @action.bound addTagSelectionToCriteria() {
-    this.addSearchCriterias(
-      Array.from(
-        this.tagSelection,
-        (tag) => new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags', tag.id),
-      ),
-    );
-    this.clearTagSelection();
-  }
-
-  @action.bound replaceCriteriaWithTagSelection() {
-    this.replaceSearchCriterias(
-      Array.from(
-        this.tagSelection,
-        (tag) => new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags', tag.id),
-      ),
-    );
-    this.clearTagSelection();
   }
 
   @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
@@ -749,11 +724,6 @@ class UiStore {
   }
 
   /////////////////// Helper methods ///////////////////
-  @action.bound clearSelection() {
-    this.tagSelection.clear();
-    this.fileSelection.clear();
-  }
-
   getFirstSelectedFileId(): ID | undefined {
     return this.firstSelectedFile?.id;
   }

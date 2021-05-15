@@ -10,6 +10,7 @@ import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet } from 'widgets';
 import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
 import { Action, Factory } from './state';
+import { action } from 'mobx';
 
 const defaultColorOptions = [
   { title: 'Eminence', color: '#5f3292' },
@@ -122,20 +123,36 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       <ColorPickerMenu tag={tag} uiStore={uiStore} />
       <MenuDivider />
       <MenuItem
-        onClick={() =>
-          isSelected
-            ? uiStore.addTagSelectionToCriteria()
-            : uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id))
-        }
+        onClick={action(() => {
+          if (isSelected) {
+            uiStore.addSearchCriterias(
+              Array.from(
+                uiStore.tagSelection,
+                (tag) => new ClientTagSearchCriteria(tagStore, 'tags', tag.id),
+              ),
+            );
+            uiStore.clearTagSelection();
+          } else {
+            uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id));
+          }
+        })}
         text="Add to Search"
         icon={IconSet.SEARCH}
       />
       <MenuItem
-        onClick={() =>
-          isSelected
-            ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id))
-        }
+        onClick={action(() => {
+          if (isSelected) {
+            uiStore.replaceSearchCriterias(
+              Array.from(
+                uiStore.tagSelection,
+                (tag) => new ClientTagSearchCriteria(tagStore, 'tags', tag.id),
+              ),
+            );
+            uiStore.clearTagSelection();
+          } else {
+            uiStore.replaceSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id));
+          }
+        })}
         text="Replace Search"
         icon={IconSet.REPLACE}
       />

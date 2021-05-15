@@ -28,7 +28,7 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
 );
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { fileStore, uiStore, tagStore } = useContext(StoreContext);
   const { object } = props;
   const isSelected = uiStore.isTagSelected(object);
   const tagsToRemove = isSelected ? Array.from(uiStore.tagSelection) : object.getSubTreeList();
@@ -53,7 +53,9 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
       onCancel={props.onClose}
       onConfirm={async () => {
         props.onClose();
-        await (isSelected ? uiStore.removeSelectedTags() : tagStore.delete(object));
+        const deletedTags = isSelected ? uiStore.getTagContextItems() : [object];
+        await tagStore.delete(deletedTags);
+        fileStore.refetch();
       }}
     />
   );
