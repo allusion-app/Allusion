@@ -116,8 +116,8 @@ const TagItem = observer((props: ITagItemProps) => {
     (e: React.DragEvent<HTMLDivElement>) => {
       runInAction(() => {
         let name = nodeData.name;
-        if (uiStore.isTagSelected(nodeData)) {
-          const ctx = uiStore.getTagContextItems(nodeData.id);
+        if (tagStore.isSelected(nodeData)) {
+          const ctx = tagStore.getActiveTags(nodeData.id);
           if (ctx.length === 1) {
             name = ctx[0].name;
           } else {
@@ -137,7 +137,7 @@ const TagItem = observer((props: ITagItemProps) => {
         dndData.source = nodeData;
       });
     },
-    [dndData, nodeData, uiStore],
+    [dndData, nodeData, uiStore, tagStore],
   );
 
   // Don't expand immediately on drag-over, only after hovering over it for a second or so
@@ -162,7 +162,7 @@ const TagItem = observer((props: ITagItemProps) => {
       const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
       if (
         isSource ||
-        (uiStore.isTagSelected(dndData.source) && uiStore.isTagSelected(nodeData)) ||
+        (tagStore.isSelected(dndData.source) && tagStore.isSelected(nodeData)) ||
         tagStore.isAncestor(nodeData, dndData.source)
       ) {
         return;
@@ -200,7 +200,7 @@ const TagItem = observer((props: ITagItemProps) => {
         expandDelayed(nodeData.id);
       }
     },
-    [dndData, expandDelayed, expandTimeoutId, expansion, nodeData, tagStore, uiStore],
+    [dndData, expandDelayed, expandTimeoutId, expansion, nodeData, tagStore],
   );
 
   const handleDragLeave = useCallback(
@@ -234,12 +234,12 @@ const TagItem = observer((props: ITagItemProps) => {
 
         // Note to self: 'pos' does not start from 0! It is +1'd. So, here we -1 it again
         const isSelected =
-          dndData.source === undefined ? false : uiStore.isTagSelected(dndData.source);
+          dndData.source === undefined ? false : tagStore.isSelected(dndData.source);
         if (isSelected) {
           if (relativeMovePos === 'middle') {
-            uiStore.moveSelectedTagItems(nodeData.id);
+            tagStore.moveSelection(nodeData.id);
           } else {
-            uiStore.moveSelectedTagItems(tagStore.getParent(nodeData).id, pos + relativeMovePos);
+            tagStore.moveSelection(tagStore.getParent(nodeData).id, pos + relativeMovePos);
           }
         } else if (dndData.source !== undefined) {
           if (relativeMovePos === 'middle') {
@@ -257,7 +257,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setExpandTimeoutId(undefined);
       }
     },
-    [dndData, expandTimeoutId, nodeData, pos, tagStore, uiStore],
+    [dndData, expandTimeoutId, nodeData, pos, tagStore],
   );
 
   const handleSelect = useCallback(
@@ -310,7 +310,7 @@ const TagItem = observer((props: ITagItemProps) => {
       />
       {!isEditing && (
         <button onClick={handleSelect} className="btn btn-icon">
-          {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
+          {tagStore.selection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
         </button>
       )}
     </div>
@@ -350,8 +350,8 @@ const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
 const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));
 
-const toggleSelection = (uiStore: UiStore, nodeData: ClientTag) =>
-  uiStore.toggleTagSelection(nodeData);
+const toggleSelection = (tagStore: TagStore, nodeData: ClientTag) =>
+  tagStore.toggleSelection(nodeData);
 
 // FIXME: React broke Element.dispatchevent(). Alternative: Pass show context menu method.
 // const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
@@ -406,13 +406,13 @@ const customKeys = (
   }
 };
 
-const mapTag = (tag: Readonly<ClientTag>, uiStore: UiStore): ITreeItem => ({
+const mapTag = (tag: Readonly<ClientTag>, tagStore: TagStore): ITreeItem => ({
   id: tag.id,
   label: TagItemLabel,
-  children: tag.subTags.map((t) => mapTag(t, uiStore)),
+  children: tag.subTags.map((t) => mapTag(t, tagStore)),
   nodeData: tag,
   isExpanded,
-  isSelected: uiStore.isTagSelected,
+  isSelected: tagStore.isSelected,
 });
 
 const TagsTree = observer(() => {
@@ -463,7 +463,7 @@ const TagsTree = observer(() => {
       if (lastSelectionIndex.current === undefined) {
         initialSelectionIndex.current = i;
         lastSelectionIndex.current = i;
-        uiStore.toggleTagSelection(tag);
+        tagStore.toggleSelection(tag);
         return;
       } else {
         initialSelectionIndex.current = lastSelectionIndex.current;
@@ -477,15 +477,15 @@ const TagsTree = observer(() => {
           return;
         }
         if (i < initialSelectionIndex.current) {
-          uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
+          tagStore.selectRange(i, initialSelectionIndex.current, expandSelection);
         } else {
-          uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
+          tagStore.selectRange(initialSelectionIndex.current, i, expandSelection);
         }
       } else if (expandSelection) {
-        uiStore.toggleTagSelection(tag);
+        tagStore.toggleSelection(tag);
         initialSelectionIndex.current = i;
       } else {
-        uiStore.selectTag(tag, true);
+        tagStore.select(tag);
         initialSelectionIndex.current = i;
       }
     }),
@@ -515,15 +515,14 @@ const TagsTree = observer(() => {
 
   const handleDrop = useCallback(() => {
     runInAction(() => {
-      const isSelected =
-        dndData.source === undefined ? false : uiStore.isTagSelected(dndData.source);
+      const isSelected = dndData.source === undefined ? false : tagStore.isSelected(dndData.source);
       if (isSelected) {
-        uiStore.moveSelectedTagItems(ROOT_TAG_ID);
+        tagStore.moveSelection(ROOT_TAG_ID);
       } else if (dndData.source !== undefined) {
         tagStore.insert(root, dndData.source, tagStore.count);
       }
     });
-  }, [dndData, tagStore, uiStore, root]);
+  }, [dndData, tagStore, root]);
 
   const handleBranchOnKeyDown = useRef(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
@@ -532,7 +531,7 @@ const TagsTree = observer(() => {
         nodeData,
         treeData,
         isExpanded,
-        toggleSelection.bind(null, uiStore),
+        toggleSelection.bind(null, tagStore),
         toggleExpansion,
         customKeys.bind(null, uiStore, tagStore),
       ),
@@ -544,7 +543,7 @@ const TagsTree = observer(() => {
         event,
         nodeData,
         treeData,
-        toggleSelection.bind(null, uiStore),
+        toggleSelection.bind(null, tagStore),
         customKeys.bind(null, uiStore, tagStore),
       ),
   );
@@ -558,12 +557,12 @@ const TagsTree = observer(() => {
       >
         <h2 onClick={() => setIsCollapsed(!isCollapsed)}>Tags</h2>
         <Toolbar controls="tag-hierarchy">
-          {uiStore.tagSelection.size > 0 ? (
+          {tagStore.selection.size > 0 ? (
             <ToolbarButton
               showLabel="never"
               icon={IconSet.CLOSE}
               text="Clear"
-              onClick={uiStore.clearTagSelection}
+              onClick={tagStore.deselectAll}
               tooltip="Clear Selection"
             />
           ) : (
@@ -589,8 +588,8 @@ const TagsTree = observer(() => {
           <Tree
             multiSelect
             id="tag-hierarchy"
-            className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
-            children={root.subTags.map((t) => mapTag(t, uiStore))}
+            className={tagStore.selection.size > 0 ? 'selected' : undefined}
+            children={root.subTags.map((t) => mapTag(t, tagStore))}
             treeData={treeData}
             toggleExpansion={toggleExpansion}
             onBranchKeyDown={handleBranchOnKeyDown.current}
@@ -602,7 +601,7 @@ const TagsTree = observer(() => {
       {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
       <div
         id="tree-footer"
-        onClick={uiStore.clearTagSelection}
+        onClick={tagStore.deselectAll}
         onDragOver={handleDragOverAndLeave}
         onDragLeave={handleDragOverAndLeave}
         onDrop={handleDrop}

@@ -32,7 +32,7 @@ class RootStore {
   readonly clearDatabase: () => Promise<void>;
 
   constructor(private backend: Backend) {
-    this.tagStore = new TagStore(backend, this);
+    this.tagStore = new TagStore(backend);
     this.fileStore = new FileStore(backend, this);
     this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);

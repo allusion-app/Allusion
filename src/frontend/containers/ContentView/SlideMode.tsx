@@ -7,18 +7,17 @@ import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
 import { createSubmitCommand } from './LayoutSwitcher';
 import { GallerySelector, MissingImageFallback } from './GalleryItem';
-import UiStore from 'src/frontend/stores/UiStore';
-import FileStore from 'src/frontend/stores/FileStore';
+import RootStore from 'src/frontend/stores/RootStore';
 
 interface ISlideMode {
+  rootStore: RootStore;
   contentRect: { width: number; height: number };
-  uiStore: UiStore;
-  fileStore: FileStore;
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
 const SlideMode = observer((props: ISlideMode) => {
-  const { contentRect, uiStore, fileStore, showContextMenu } = props;
+  const { contentRect, rootStore, showContextMenu } = props;
+  const { uiStore } = rootStore;
   const isInspectorOpen = uiStore.isInspectorOpen;
   const inspectorWidth = uiStore.inspectorWidth;
   const contentWidth = contentRect.width - (isInspectorOpen ? inspectorWidth : 0);
@@ -26,8 +25,7 @@ const SlideMode = observer((props: ISlideMode) => {
 
   const slideView = (
     <SlideView
-      uiStore={uiStore}
-      fileStore={fileStore}
+      rootStore={rootStore}
       showContextMenu={showContextMenu}
       width={contentWidth}
       height={contentHeight}
@@ -52,18 +50,18 @@ interface ISlideView {
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
   width: number;
   height: number;
-  uiStore: UiStore;
-  fileStore: FileStore;
+  rootStore: RootStore;
 }
 
 const SlideView = observer((props: ISlideView) => {
-  const { uiStore, fileStore, width, height, showContextMenu } = props;
+  const { rootStore, width, height, showContextMenu } = props;
+  const { uiStore, fileStore } = rootStore;
   const file = fileStore.fileList[uiStore.firstItem];
 
   const dndData = useContext(TagDnDContext);
   const submitCommand = useMemo(
-    () => createSubmitCommand(dndData, fileStore, () => null, showContextMenu, uiStore),
-    [dndData, fileStore, showContextMenu, uiStore],
+    () => createSubmitCommand(rootStore, dndData, () => null, showContextMenu),
+    [dndData, rootStore, showContextMenu],
   );
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {

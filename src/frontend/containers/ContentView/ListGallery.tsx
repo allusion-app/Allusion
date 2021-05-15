@@ -31,14 +31,14 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
     lastSelectionIndex,
     showContextMenu,
     handleFileSelect,
-    uiStore,
-    fileStore,
+    rootStore,
   } = props;
+  const { uiStore, fileStore } = rootStore;
   const cellSize = 24;
   const dndData = useContext(TagDnDContext);
   const submitCommand = useMemo(
-    () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
-    [dndData, fileStore, select, showContextMenu, uiStore],
+    () => createSubmitCommand(rootStore, dndData, select, showContextMenu),
+    [dndData, rootStore, select, showContextMenu],
   );
   const ref = useRef<FixedSizeList>(null);
 

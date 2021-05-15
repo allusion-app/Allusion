@@ -35,14 +35,14 @@ const worker = new MasonryWorkerAdapter();
 
 const MasonryRenderer = observer(
   ({
-    uiStore,
-    fileStore,
+    rootStore,
     contentRect,
     select,
     showContextMenu,
     lastSelectionIndex,
     handleFileSelect,
   }: IMasonryRendererProps & ILayoutProps) => {
+    const { uiStore, fileStore } = rootStore;
     const [containerHeight, setContainerHeight] = useState<number>();
     // The timestamp from when the layout was last updated
     const [layoutTimestamp, setLayoutTimestamp] = useState<Date>(new Date());

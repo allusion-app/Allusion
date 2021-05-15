@@ -1,7 +1,7 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useContext, useRef } from 'react';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../../../hotkeyParser';
 import { observer } from 'mobx-react-lite';
-import { runInAction } from 'mobx';
+import { action } from 'mobx';
 
 import StoreContext from '../../../contexts/StoreContext';
 
@@ -52,29 +52,29 @@ export const OutlinerActionBar = observer(() => {
 });
 
 const TagsPanel = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
 
-  const handleShortcuts = useCallback(
-    (e: React.KeyboardEvent) => {
-      if ((e.target as HTMLElement).matches?.('input')) return;
+  const handleShortcuts = useRef(
+    action((e: React.KeyboardEvent) => {
+      if ((e.target as HTMLElement).matches?.('input')) {
+        return;
+      }
       const combo = getKeyCombo(e.nativeEvent);
       const matches = (c: string): boolean => {
         return comboMatches(combo, parseKeyCombo(c));
       };
-      runInAction(() => {
-        const { hotkeyMap } = uiStore;
-        if (matches(hotkeyMap.selectAll)) {
-          uiStore.selectAllTags();
-        } else if (matches(hotkeyMap.deselectAll)) {
-          uiStore.clearTagSelection();
-        }
-      });
-    },
-    [uiStore],
+
+      const { hotkeyMap } = uiStore;
+      if (matches(hotkeyMap.selectAll)) {
+        tagStore.selectAll();
+      } else if (matches(hotkeyMap.deselectAll)) {
+        tagStore.deselectAll();
+      }
+    }),
   );
 
   return (
-    <div onKeyDown={handleShortcuts} className="section">
+    <div onKeyDown={handleShortcuts.current} className="section">
       <TagsTree />
     </div>
   );

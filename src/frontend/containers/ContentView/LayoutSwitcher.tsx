@@ -2,10 +2,10 @@ import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
+import RootStore from 'src/frontend/stores/RootStore';
 import { RendererMessenger } from 'src/Messaging';
 import { ClientFile } from '../../../entities/File';
-import FileStore from '../../stores/FileStore';
-import UiStore, { ViewMethod } from '../../stores/UiStore';
+import { ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
 import { GalleryCommand, GallerySelector } from './GalleryItem';
 import ListGallery from './ListGallery';
@@ -19,10 +19,9 @@ import {
 import SlideMode from './SlideMode';
 
 type Dimension = { width: number; height: number };
-type UiStoreProp = { uiStore: UiStore };
-type FileStoreProp = { fileStore: FileStore };
 
-export interface ILayoutProps extends UiStoreProp, FileStoreProp {
+export interface ILayoutProps {
+  rootStore: RootStore;
   contentRect: Dimension;
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   /** The index of the currently selected image, or the "last selected" image when a range is selected */
@@ -33,9 +32,9 @@ export interface ILayoutProps extends UiStoreProp, FileStoreProp {
 const Layout = ({
   contentRect,
   showContextMenu,
-  uiStore,
-  fileStore,
+  rootStore,
 }: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
+  const { uiStore, fileStore } = rootStore;
   // Todo: Select by dragging a rectangle shape
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
   // Also take into account scrolling when dragging while selecting
@@ -120,8 +119,7 @@ const Layout = ({
       <SlideMode
         contentRect={contentRect}
         showContextMenu={showContextMenu}
-        uiStore={uiStore}
-        fileStore={fileStore}
+        rootStore={rootStore}
       />
     );
   }
@@ -139,8 +137,7 @@ const Layout = ({
           lastSelectionIndex={lastSelectionIndex}
           showContextMenu={showContextMenu}
           select={handleFileSelect}
-          uiStore={uiStore}
-          fileStore={fileStore}
+          rootStore={rootStore}
           handleFileSelect={handleFileSelect}
         />
       );
@@ -151,8 +148,7 @@ const Layout = ({
           select={handleFileSelect}
           lastSelectionIndex={lastSelectionIndex}
           showContextMenu={showContextMenu}
-          uiStore={uiStore}
-          fileStore={fileStore}
+          rootStore={rootStore}
           handleFileSelect={handleFileSelect}
         />
       );
@@ -178,11 +174,10 @@ export function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
 }
 
 export function createSubmitCommand(
+  { fileStore, uiStore, tagStore }: RootStore,
   dndData: ITagDnDData,
-  fileStore: FileStore,
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void,
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void,
-  uiStore: UiStore,
 ): (command: GalleryCommand) => void {
   return action((command: GalleryCommand) => {
     switch (command.selector) {
@@ -264,7 +259,7 @@ export function createSubmitCommand(
       case GallerySelector.Drop:
         if (dndData.source !== undefined) {
           const dropFile = command.payload;
-          const ctx = uiStore.getTagContextItems(dndData.source.id);
+          const ctx = tagStore.getActiveTags(dndData.source.id);
 
           // Tag all selected files - unless the file that is being tagged is not selected
           const filesToTag = uiStore.fileSelection.has(dropFile)

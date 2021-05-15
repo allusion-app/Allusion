@@ -144,7 +144,6 @@ class UiStore {
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
   // However, sets are more suitable because they have quicker lookup performance.
   readonly fileSelection = observable(new Set<Readonly<ClientFile>>());
-  readonly tagSelection = observable(new Set<Readonly<ClientTag>>());
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
@@ -420,114 +419,6 @@ class UiStore {
 
   @action.bound clearFileSelection() {
     this.fileSelection.clear();
-  }
-
-  @action.bound isTagSelected(tag: Readonly<ClientTag>): boolean {
-    return this.tagSelection.has(tag);
-  }
-
-  @action.bound selectTag(tag: Readonly<ClientTag>, clear?: boolean) {
-    if (clear === true) {
-      this.clearTagSelection();
-    }
-    this.tagSelection.add(tag);
-  }
-
-  @action.bound deselectTag(tag: Readonly<ClientTag>) {
-    this.tagSelection.delete(tag);
-  }
-
-  @action.bound toggleTagSelection(tag: Readonly<ClientTag>) {
-    if (this.tagSelection.has(tag)) {
-      this.tagSelection.delete(tag);
-    } else {
-      this.tagSelection.add(tag);
-    }
-  }
-
-  /**Selects a range (end inclusive) of tags, where indices correspond to the flattened tag tree. */
-  @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
-    const tagTreeList = this.rootStore.tagStore.tagList;
-    if (!additive) {
-      this.tagSelection.replace(tagTreeList.slice(start, end + 1));
-      return;
-    }
-    for (let i = start; i <= end; i++) {
-      this.tagSelection.add(tagTreeList[i]);
-    }
-  }
-
-  @action.bound selectAllTags() {
-    this.tagSelection.replace(this.rootStore.tagStore.tagList);
-  }
-
-  @action.bound clearTagSelection() {
-    this.tagSelection.clear();
-  }
-
-  @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
-    const ctx = this.getTagContextItems(activeElementId);
-    const colorCollection = (tag: ClientTag) => {
-      tag.setColor(color);
-      tag.subTags.forEach((tag) => tag.setColor(color));
-    };
-    ctx.forEach(colorCollection);
-  }
-
-  /**
-   * Returns the tags and tag collections that are in the context of an action,
-   * e.g. all selected items when choosing to delete an item that is selected,
-   * or only a single item when moving a single tag that is not selected.
-   * @returns The collections and tags in the context. Tags belonging to collections in the context are not included,
-   * but can be easily found by getting the tags from each collection.
-   */
-  @action.bound getTagContextItems(activeItemId?: ID) {
-    const { tagStore } = this.rootStore;
-
-    // If no id was given, the context is the tag selection. Else, it might be a single tag/collection
-    let isContextTheSelection = activeItemId === undefined;
-
-    const contextTags: ClientTag[] = [];
-
-    // If an id is given, check whether it belongs to a tag or collection
-    if (activeItemId) {
-      const selectedTag = tagStore.get(activeItemId);
-      if (selectedTag) {
-        if (this.isTagSelected(selectedTag)) {
-          isContextTheSelection = true;
-        } else {
-          contextTags.push(selectedTag);
-        }
-      }
-    }
-
-    // If no id is given or when the selected tag or collection is selected, the context is the whole selection
-    if (isContextTheSelection) {
-      const selectedTags = tagStore.tagList.filter(this.isTagSelected) as ClientTag[];
-      contextTags.push(...selectedTags);
-    }
-
-    return contextTags;
-  }
-
-  /**
-   * @param targetId Where to move the selection to
-   */
-  @action.bound moveSelectedTagItems(id: ID, pos = 0) {
-    const { tagStore } = this.rootStore;
-
-    const target = tagStore.get(id);
-    if (target === undefined) {
-      throw new Error('Invalid target to move to');
-    }
-
-    // Find all tags + collections in the current context (all selected items)
-    const ctx = this.getTagContextItems();
-
-    // Move tags and collections
-    for (const tag of ctx) {
-      tagStore.insert(target, tag, pos);
-    }
   }
 
   /////////////////// Search Actions ///////////////////

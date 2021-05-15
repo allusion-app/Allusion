@@ -32,7 +32,8 @@ const ContentView = observer(() => {
 });
 
 const Content = observer(() => {
-  const { fileStore, uiStore } = useContext(StoreContext);
+  const rootStore = useContext(StoreContext);
+  const { fileStore, uiStore } = rootStore;
   const dndData = useContext(TagDnDContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
   const { open, x, y, menu } = contextState;
@@ -88,12 +89,7 @@ const Content = observer(() => {
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
       onClick={clearFileSelection}
     >
-      <Layout
-        contentRect={contentRect}
-        showContextMenu={show}
-        uiStore={uiStore}
-        fileStore={fileStore}
-      />
+      <Layout contentRect={contentRect} showContextMenu={show} rootStore={rootStore} />
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}

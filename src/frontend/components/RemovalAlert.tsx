@@ -28,10 +28,10 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
 );
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
-  const { fileStore, uiStore, tagStore } = useContext(StoreContext);
+  const { fileStore, tagStore } = useContext(StoreContext);
   const { object } = props;
-  const isSelected = uiStore.isTagSelected(object);
-  const tagsToRemove = isSelected ? Array.from(uiStore.tagSelection) : object.getSubTreeList();
+  const isSelected = tagStore.isSelected(object);
+  const tagsToRemove = isSelected ? Array.from(tagStore.selection) : object.getSubTreeList();
 
   const text = `Are you sure you want to delete the tag "${object.name}"?`;
 
@@ -53,7 +53,7 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
       onCancel={props.onClose}
       onConfirm={async () => {
         props.onClose();
-        const deletedTags = isSelected ? uiStore.getTagContextItems() : [object];
+        const deletedTags = isSelected ? tagsToRemove : [object];
         await tagStore.delete(deletedTags);
         fileStore.refetch();
       }}
@@ -62,7 +62,7 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
 });
 
 export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
-  const { tagStore } = useContext(StoreContext);
+  const { tagStore, fileStore } = useContext(StoreContext);
   const { object: tag } = props;
 
   const text = `Select the tag you want to merge "${tag.name}" with`;
@@ -91,16 +91,13 @@ export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
         </div>
       }
       onCancel={props.onClose}
-      onConfirm={
-        tag.subTags.length > 0
-          ? () => null
-          : () => {
-              if (selectedTag) {
-                tagStore.merge(tag, selectedTag);
-                props.onClose();
-              }
-            }
-      }
+      onConfirm={async () => {
+        if (tag.subTags.length === 0 && selectedTag !== undefined) {
+          props.onClose();
+          await tagStore.merge(tag, selectedTag);
+          fileStore.refetch();
+        }
+      }}
     />
   );
 });

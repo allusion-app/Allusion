@@ -39,7 +39,8 @@ const VirtualizedRenderer = observer(
     lastSelectionIndex,
     layoutUpdateDate,
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
-    const { uiStore, fileStore } = useContext(StoreContext);
+    const rootStore = useContext(StoreContext);
+    const { uiStore, fileStore } = rootStore;
     const [, isMountedRef] = useMountState();
     const wrapperRef = useRef<HTMLDivElement>(null);
     const scrollAnchor = useRef<HTMLDivElement>(null);
@@ -47,8 +48,8 @@ const VirtualizedRenderer = observer(
     const [endRenderIndex, setEndRenderIndex] = useState(0);
     const dndData = useContext(TagDnDContext);
     const submitCommand = useMemo(
-      () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
-      [dndData, fileStore, select, showContextMenu, uiStore],
+      () => createSubmitCommand(rootStore, dndData, select, showContextMenu),
+      [dndData, rootStore, select, showContextMenu],
     );
     const numImages = images.length;
 

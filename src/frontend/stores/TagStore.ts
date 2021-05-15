@@ -1,28 +1,26 @@
 import { action, observable, computed, makeObservable, runInAction } from 'mobx';
 
 import Backend from 'src/backend/Backend';
+import { IFile } from 'src/entities/File';
 
 import { generateId, ID } from 'src/entities/ID';
+import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ITag, ROOT_TAG_ID } from 'src/entities/Tag';
-
-import RootStore from './RootStore';
 
 /**
  * Based on https://mobx.js.org/best/store.html
  */
 class TagStore {
   private readonly backend: Backend;
-  private readonly rootStore: RootStore;
 
   private readonly _tagList = observable<ClientTag>([]);
+  readonly selection = observable(new Set<Readonly<ClientTag>>());
 
   /** A lookup map to speedup finding entities */
   private readonly index = observable(new Map<ID, ClientTag>());
 
-  constructor(backend: Backend, rootStore: RootStore) {
+  constructor(backend: Backend) {
     this.backend = backend;
-    this.rootStore = rootStore;
-
     makeObservable(this);
   }
 
@@ -88,7 +86,7 @@ class TagStore {
     return tag;
   }
 
-  @action async delete(tags: ClientTag[]) {
+  @action async delete(tags: readonly Readonly<ClientTag>[]) {
     await this.backend.removeTags(tags.map((t) => t.id));
     for (const tag of tags) {
       tag.dispose();
@@ -97,19 +95,17 @@ class TagStore {
     }
   }
 
-  @action merge(tagToBeRemoved: ClientTag, tagToMergeWith: Readonly<ClientTag>) {
+  @action async merge(tagToBeRemoved: ClientTag, tagToMergeWith: Readonly<ClientTag>) {
     if (tagToBeRemoved.subTags.length > 0) return; // not dealing with tags that have subtags
-    this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id).then(() => {
-      this.remove(tagToBeRemoved);
-      this.rootStore.fileStore.refetch();
-    });
+    await this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id);
+    this.remove(tagToBeRemoved);
   }
 
   save(tag: ITag) {
     this.backend.saveTag(tag);
   }
 
-  @action insert(parent: Readonly<ClientTag>, tag: ClientTag, at: number): void {
+  @action insert(parent: Readonly<ClientTag>, tag: Readonly<ClientTag>, at: number): void {
     if (parent === tag || tag.id === ROOT_TAG_ID) {
       return;
     }
@@ -168,6 +164,106 @@ class TagStore {
     return this._tagList.find((t) => t.name === name);
   }
 
+  @action selectionToCriterias(): ClientTagSearchCriteria<IFile>[] {
+    const criterias = Array.from(
+      this.selection,
+      (tag) => new ClientTagSearchCriteria(this, 'tags', tag.id),
+    );
+    this.deselectAll();
+    return criterias;
+  }
+
+  @action.bound isSelected(tag: Readonly<ClientTag>): boolean {
+    return this.selection.has(tag);
+  }
+
+  @action select(tag: Readonly<ClientTag>) {
+    this.deselectAll();
+    this.selection.add(tag);
+  }
+
+  @action deselect(tag: Readonly<ClientTag>) {
+    this.selection.delete(tag);
+  }
+
+  @action toggleSelection(tag: Readonly<ClientTag>) {
+    if (this.selection.has(tag)) {
+      this.selection.delete(tag);
+    } else {
+      this.selection.add(tag);
+    }
+  }
+
+  /**Selects a range (end inclusive) of tags, where indices correspond to the flattened tag tree. */
+  @action selectRange(start: number, end: number, additive?: boolean) {
+    const tagTreeList = this.tagList;
+    if (!additive) {
+      this.selection.replace(tagTreeList.slice(start, end + 1));
+      return;
+    }
+    for (let i = start; i <= end; i++) {
+      this.selection.add(tagTreeList[i]);
+    }
+  }
+
+  @action.bound selectAll() {
+    this.selection.replace(this.tagList);
+  }
+
+  @action.bound deselectAll() {
+    this.selection.clear();
+  }
+
+  @action colorSelection(activeElementId: ID, color: string) {
+    const ctx = this.getActiveTags(activeElementId);
+    for (const tag of ctx) {
+      tag.setColor(color);
+      tag.subTags.forEach((tag) => tag.setColor(color));
+    }
+  }
+
+  /**
+   * Returns the tags and tag collections that are in the context of an action,
+   * e.g. all selected items when choosing to delete an item that is selected,
+   * or only a single item when moving a single tag that is not selected.
+   * @returns The collections and tags in the context. Tags belonging to collections in the context are not included,
+   * but can be easily found by getting the tags from each collection.
+   */
+  @action getActiveTags(activeItemId: ID) {
+    // If no id was given, the context is the tag selection. Else, it might be a single tag/collection
+    let isContextTheSelection = false;
+
+    const contextTags: ClientTag[] = [];
+
+    const selectedTag = this.get(activeItemId);
+    if (selectedTag) {
+      if (this.isSelected(selectedTag)) {
+        isContextTheSelection = true;
+      } else {
+        contextTags.push(selectedTag);
+      }
+    }
+
+    // If no id is given or when the selected tag or collection is selected, the context is the whole selection
+    if (isContextTheSelection) {
+      contextTags.push(...(Array.from(this.selection) as ClientTag[]));
+    }
+
+    return contextTags;
+  }
+
+  @action moveSelection(id: ID, pos = 0) {
+    const target = this.get(id);
+    if (target === undefined) {
+      throw new Error('Invalid target to move to');
+    }
+
+    // Move tags and collections
+    for (const tag of this.selection) {
+      this.insert(target, tag, pos);
+    }
+  }
+
   @action private createTagGraph(backendTags: ITag[]) {
     // Create tags
     for (const { id, name, dateAdded, color } of backendTags) {
@@ -219,19 +315,19 @@ class TagStore {
       for (const subTag of tag.subTags) {
         subTag.dispose();
         this.deleteSubTags(subTag);
-        this.rootStore.uiStore.deselectTag(subTag);
+        this.deselect(subTag);
         this.index.delete(subTag.id);
         this._tagList.remove(subTag as ClientTag);
       }
     });
   }
 
-  @action private remove(tag: ClientTag) {
+  @action private remove(tag: Readonly<ClientTag>) {
     // Remove tag id reference from other observable objects
-    this.rootStore.uiStore.deselectTag(tag);
+    this.deselect(tag);
     this.getParent(tag).subTags.remove(tag);
     this.index.delete(tag.id);
-    this._tagList.remove(tag);
+    this._tagList.remove(tag as ClientTag);
   }
 }
 

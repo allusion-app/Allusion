@@ -6,7 +6,7 @@ import { formatTagCountText } from 'src/frontend/utils';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import StoreContext from 'src/frontend/contexts/StoreContext';
-import UiStore from 'src/frontend/stores/UiStore';
+import TagStore from 'src/frontend/stores/TagStore';
 import { IconSet } from 'widgets';
 import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
 import { Action, Factory } from './state';
@@ -26,10 +26,10 @@ const defaultColorOptions = [
   { title: 'Razzmatazz', color: '#ec125f' },
 ];
 
-const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: UiStore }) => {
+const ColorPickerMenu = observer(({ tag, tagStore }: { tag: ClientTag; tagStore: TagStore }) => {
   const handleChange = (color: string) => {
-    if (uiStore.isTagSelected(tag)) {
-      uiStore.colorSelectedTagsAndCollections(tag.id, color);
+    if (tagStore.isSelected(tag)) {
+      tagStore.colorSelection(tag.id, color);
     } else {
       tag.setColor(color);
     }
@@ -86,8 +86,8 @@ interface IContextMenuProps {
 export const TagItemContextMenu = observer((props: IContextMenuProps) => {
   const { tag, dispatch, pos } = props;
   const { tagStore, uiStore } = useContext(StoreContext);
-  const isSelected = uiStore.isTagSelected(tag);
-  const tags = uiStore.getTagContextItems(tag.id);
+  const isSelected = tagStore.isSelected(tag);
+  const tags = tagStore.getActiveTags(tag.id);
   let contextText = formatTagCountText(tags.length);
   contextText = contextText && ` (${contextText})`;
 
@@ -120,18 +120,12 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         icon={IconSet.DELETE}
       />
       <MenuDivider />
-      <ColorPickerMenu tag={tag} uiStore={uiStore} />
+      <ColorPickerMenu tag={tag} tagStore={tagStore} />
       <MenuDivider />
       <MenuItem
         onClick={action(() => {
           if (isSelected) {
-            uiStore.addSearchCriterias(
-              Array.from(
-                uiStore.tagSelection,
-                (tag) => new ClientTagSearchCriteria(tagStore, 'tags', tag.id),
-              ),
-            );
-            uiStore.clearTagSelection();
+            uiStore.addSearchCriterias(tagStore.selectionToCriterias());
           } else {
             uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id));
           }
@@ -142,13 +136,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       <MenuItem
         onClick={action(() => {
           if (isSelected) {
-            uiStore.replaceSearchCriterias(
-              Array.from(
-                uiStore.tagSelection,
-                (tag) => new ClientTagSearchCriteria(tagStore, 'tags', tag.id),
-              ),
-            );
-            uiStore.clearTagSelection();
+            uiStore.replaceSearchCriterias(tagStore.selectionToCriterias());
           } else {
             uiStore.replaceSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', tag.id));
           }
