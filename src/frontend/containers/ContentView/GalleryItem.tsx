@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
-import { encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
+import { ellipsize, encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
 import { IconSet, Tag } from 'widgets';
 import { Tooltip } from 'widgets/popovers';
 import FileStore from '../../stores/FileStore';
@@ -52,6 +52,11 @@ export const listColumns: IListColumn[] = [
   { title: 'Tags' },
 ];
 
+const title = (file: ClientFile) =>
+  `${ellipsize(file.absolutePath, 80, 'middle')}, ${file.width}x${file.height}, ${humanFileSize(
+    file.size,
+  )}`;
+
 export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICell) => {
   const portalTriggerRef = useRef<HTMLSpanElement>(null);
   const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
@@ -66,8 +71,7 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
       {...eventHandlers}
     >
       {/* Filename */}
-      {/* TODO: Tooltip with full file name / path and expanded thumbnail */}
-      <div key={`${file.id}-name`}>
+      <div key={`${file.id}-name`} title={title(file)}>
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           {mounted ? (
             <Thumbnail uiStore={uiStore} mounted={mounted} file={file} />
@@ -151,6 +155,7 @@ export const MasonryCell = observer(
         tabIndex={-1}
         aria-selected={uiStore.fileSelection.has(file)}
         style={style}
+        title={title(file)}
       >
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           <Thumbnail
@@ -397,7 +402,12 @@ const Tags = observer(
         onDoubleClick={eventHandlers?.onDoubleClick}
       >
         {Array.from(file.tags, (tag) => (
-          <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
+          <Tag
+            key={tag.id}
+            text={tag.name}
+            color={tag.viewColor}
+            title={[...tag.recursiveParentTags.map((t) => t.name), tag.name].join(' › ')}
+          />
         ))}
       </span>
     );

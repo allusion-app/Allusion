@@ -41,6 +41,8 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
         text="Open In Preview Window"
         icon={IconSet.PREVIEW}
       />
+      {/* Request: "Open path in Location hierarchy" */}
+      {/* IDEA: "View similar images" > ["Same tags", "Same directory", ("Same size/resolution/colors?)")] */}
     </>
   );
 };
