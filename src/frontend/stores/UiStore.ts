@@ -445,26 +445,16 @@ class UiStore {
     }
   }
 
-  /** Selects a range of tags, where indices correspond to the flattened tag list, see {@link TagStore.findFlatTagListIndex} */
+  /**Selects a range (end inclusive) of tags, where indices correspond to the flattened tag tree. */
   @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
+    const tagTreeList = this.rootStore.tagStore.tagList;
     if (!additive) {
-      this.tagSelection.clear();
+      this.tagSelection.replace(tagTreeList.slice(start, end + 1));
+      return;
     }
-    // Iterative DFS algorithm
-    const stack: Readonly<ClientTag>[] = [];
-    let tag: Readonly<ClientTag> | undefined = this.rootStore.tagStore.root;
-    let index = -1;
-    do {
-      if (index >= start) {
-        this.tagSelection.add(tag);
-      }
-      for (let i = tag.subTags.length - 1; i >= 0; i--) {
-        const subTag = tag.subTags[i];
-        stack.push(subTag);
-      }
-      tag = stack.pop();
-      index += 1;
-    } while (tag !== undefined && index <= end);
+    for (let i = start; i <= end; i++) {
+      this.tagSelection.add(tagTreeList[i]);
+    }
   }
 
   @action.bound selectAllTags() {
@@ -518,7 +508,7 @@ class UiStore {
 
     // If no id is given or when the selected tag or collection is selected, the context is the whole selection
     if (isContextTheSelection) {
-      const selectedTags = tagStore.tagList.filter(this.isTagSelected);
+      const selectedTags = tagStore.tagList.filter(this.isTagSelected) as ClientTag[];
       contextTags.push(...selectedTags);
     }
 

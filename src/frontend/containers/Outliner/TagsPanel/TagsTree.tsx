@@ -1,4 +1,4 @@
-import { runInAction } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
@@ -449,44 +449,47 @@ const TagsTree = observer(() => {
   /** The last item that is selected in a multi-selection */
   const lastSelectionIndex = useRef<number>();
   // Handles selection via click event
-  const select = useRef((e: React.MouseEvent, selectedTag: ClientTag) => {
-    // Note: selection logic is copied from Gallery.tsx
-    const rangeSelection = e.shiftKey;
-    const expandSelection = e.ctrlKey;
+  const select = useRef(
+    action((e: React.MouseEvent, tag: ClientTag) => {
+      // Note: selection logic is copied from Gallery.tsx
+      const rangeSelection = e.shiftKey;
+      const expandSelection = e.ctrlKey;
 
-    /** The index of the active (newly selected) item */
-    const i = tagStore.findFlatTagListIndex(selectedTag);
+      /** The index of the active (newly selected) item */
+      let i: number | undefined = tagStore.tagList.indexOf(tag);
+      i = i < 0 ? undefined : i;
 
-    // If nothing is selected, initialize the selection range and select that single item
-    if (lastSelectionIndex.current === undefined) {
-      initialSelectionIndex.current = i;
-      lastSelectionIndex.current = i;
-      uiStore.toggleTagSelection(selectedTag);
-      return;
-    } else {
-      initialSelectionIndex.current = lastSelectionIndex.current;
-    }
-
-    // Mark this index as the last item that was selected
-    lastSelectionIndex.current = i;
-
-    if (rangeSelection && initialSelectionIndex.current !== undefined) {
-      if (i === undefined) {
+      // If nothing is selected, initialize the selection range and select that single item
+      if (lastSelectionIndex.current === undefined) {
+        initialSelectionIndex.current = i;
+        lastSelectionIndex.current = i;
+        uiStore.toggleTagSelection(tag);
         return;
-      }
-      if (i < initialSelectionIndex.current) {
-        uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
       } else {
-        uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
+        initialSelectionIndex.current = lastSelectionIndex.current;
       }
-    } else if (expandSelection) {
-      uiStore.toggleTagSelection(selectedTag);
-      initialSelectionIndex.current = i;
-    } else {
-      uiStore.selectTag(selectedTag, true);
-      initialSelectionIndex.current = i;
-    }
-  });
+
+      // Mark this index as the last item that was selected
+      lastSelectionIndex.current = i;
+
+      if (rangeSelection && initialSelectionIndex.current !== undefined) {
+        if (i === undefined) {
+          return;
+        }
+        if (i < initialSelectionIndex.current) {
+          uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
+        } else {
+          uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
+        }
+      } else if (expandSelection) {
+        uiStore.toggleTagSelection(tag);
+        initialSelectionIndex.current = i;
+      } else {
+        uiStore.selectTag(tag, true);
+        initialSelectionIndex.current = i;
+      }
+    }),
+  );
 
   const treeData: ITreeData = useMemo(
     () => ({
@@ -517,7 +520,7 @@ const TagsTree = observer(() => {
       if (isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_ID);
       } else if (dndData.source !== undefined) {
-        tagStore.insert(root, dndData.source, tagStore.len);
+        tagStore.insert(root, dndData.source, tagStore.count);
       }
     });
   }, [dndData, tagStore, uiStore, root]);

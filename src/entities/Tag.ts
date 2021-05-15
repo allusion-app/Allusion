@@ -68,16 +68,16 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Returns this tag and all of its sub-tags ordered depth-first */
-  @action getSubTreeList(): Readonly<ClientTag>[] {
-    const subTreeList: Readonly<ClientTag>[] = [this];
+  @action getSubTreeList(): readonly Readonly<ClientTag>[] {
+    const subTree: Readonly<ClientTag>[] = [this];
     const pushTags = (tags: Readonly<ClientTag>[]) => {
       for (const t of tags) {
-        subTreeList.push(t);
+        subTree.push(t);
         pushTags(t.subTags);
       }
     };
     pushTags(this.subTags);
-    return subTreeList;
+    return subTree;
   }
 
   @action setParent(tag: Readonly<ClientTag>): void {

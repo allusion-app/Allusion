@@ -65,7 +65,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const [inputText, setInputText] = useState('');
 
   const { counter, sortedTags } = countFileTags(uiStore.fileSelection);
-  const [matchingTags, setMatchingTags] = useState(tagStore.tagList);
+  const [matches, setMatches] = useState(tagStore.tagList);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -88,18 +88,17 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       setInputText(e.target.value);
 
       if (text.length === 0) {
-        setMatchingTags(tagStore.tagList);
+        setMatches(tagStore.tagList);
       } else {
         const textLower = text.toLowerCase();
-        const newTagList = tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower));
-        setMatchingTags(newTagList);
+        setMatches(tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower)));
       }
     }),
   ).current;
 
   const options = useMemo(
     () =>
-      matchingTags.map((t) => {
+      matches.map((t) => {
         const selected = counter.get(t) !== undefined;
         return {
           id: t.id,
@@ -109,12 +108,12 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
           onClick: action(() => {
             selected ? onDeselect(t) : onSelect(t);
             setInputText('');
-            setMatchingTags(tagStore.tagList);
+            setMatches(tagStore.tagList);
             inputRef.current?.focus();
           }),
         };
       }),
-    [counter, matchingTags, onDeselect, onSelect, tagStore],
+    [counter, matches, onDeselect, onSelect, tagStore],
   );
 
   // Todo: clamp this value when list size changes
@@ -147,7 +146,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
 
   const createOption = [];
   if (inputText.length > 0) {
-    if (matchingTags.length !== 0) {
+    if (matches.length !== 0) {
       createOption.push(<MenuDivider key="divider" />);
     }
     createOption.push(
@@ -159,7 +158,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
           const tagList = tagStore.tagList;
           const newTag = await tagStore.create(tagStore.root, inputText);
           setInputText('');
-          setMatchingTags(tagList);
+          setMatches(tagList);
           onSelect(newTag);
           inputRef.current?.focus();
         })}

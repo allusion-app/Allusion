@@ -39,16 +39,24 @@ class TagStore {
     return this._tagList[0];
   }
 
-  @computed get tagList(): Readonly<ClientTag[]> {
-    return this._tagList.slice(1);
+  @computed get tagList(): readonly Readonly<ClientTag>[] {
+    const tagTree: Readonly<ClientTag>[] = [];
+    const pushTags = (tags: Readonly<ClientTag>[]) => {
+      for (const t of tags) {
+        tagTree.push(t);
+        pushTags(t.subTags);
+      }
+    };
+    pushTags(this.root.subTags);
+    return tagTree;
   }
 
-  @computed get len(): number {
+  @computed get count(): number {
     return this.tagList.length;
   }
 
   @computed get isEmpty(): boolean {
-    return this.len === 0;
+    return this.count === 0;
   }
 
   @action get(tag: ID): ClientTag | undefined {
@@ -165,27 +173,8 @@ class TagStore {
     return false;
   }
 
-  @action findByName(name: string): ClientTag | undefined {
-    return this.tagList.find((t) => t.name === name);
-  }
-
-  @action findFlatTagListIndex(target: ClientTag): number | undefined {
-    // Iterative DFS algorithm
-    const stack: Readonly<ClientTag>[] = [];
-    let tag: Readonly<ClientTag> | undefined = this.root;
-    let index = -1;
-    do {
-      if (tag === target) {
-        break;
-      }
-      for (let i = tag.subTags.length - 1; i >= 0; i--) {
-        const subTag = tag.subTags[i];
-        stack.push(subTag);
-      }
-      tag = stack.pop();
-      index += 1;
-    } while (tag !== undefined);
-    return index > -1 ? index : undefined;
+  @action findByName(name: string): Readonly<ClientTag> | undefined {
+    return this._tagList.find((t) => t.name === name);
   }
 
   @action private createTagGraph(backendTags: ITag[]) {
