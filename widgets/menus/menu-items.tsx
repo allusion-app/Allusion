@@ -74,6 +74,27 @@ export const MenuCheckboxItem = ({
   </li>
 );
 
+export interface IMenuSliderItem {
+  value: number;
+  onChange: (val: number) => void;
+  min: number;
+  max: number;
+}
+
+export const MenuSliderItem = ({ value, onChange, min, max }: IMenuSliderItem) => (
+  <li role="menuitemslider" tabIndex={-1}>
+    <div className="slider">
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </div>
+  </li>
+);
+
 export const MenuDivider = () => <li role="separator" className="menu-separator"></li>;
 
 export interface IMenuItemLink {

@@ -3,8 +3,9 @@ import { observer } from 'mobx-react-lite';
 
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, KeyCombo } from 'widgets';
-import { MenuButton, MenuItem } from 'widgets/menus';
+import { MenuButton, MenuItem, MenuSubItem } from 'widgets/menus';
 import { RendererMessenger } from 'src/Messaging';
+import { ThumbnailSizeMenuItems } from './Menus';
 
 const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
   return (
@@ -22,6 +23,9 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
         text="Advanced Search"
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.advancedSearch} />}
       />
+      <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size">
+        <ThumbnailSizeMenuItems uiStore={uiStore} />
+      </MenuSubItem>
       <MenuItem
         icon={IconSet.HELPCENTER}
         onClick={uiStore.toggleHelpCenter}

@@ -10,6 +10,9 @@ import FileStore from 'src/frontend/stores/FileStore';
 
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
+import { getThumbnailSize } from '../ContentView/LayoutSwitcher';
+import { MenuSliderItem } from 'widgets/menus/menu-items';
+import { thumbnailMaxSize } from 'src/config';
 
 // Tooltip info
 const enum Tooltip {
@@ -134,6 +137,12 @@ export const ThumbnailSizeMenuItems = observer(({ uiStore }: { uiStore: UiStore 
         onClick={uiStore.setThumbnailLarge}
         checked={uiStore.thumbnailSize === 'large'}
         text="Large"
+      />
+      <MenuSliderItem
+        value={getThumbnailSize(uiStore.thumbnailSize)}
+        onChange={uiStore.setThumbnailSize}
+        min={100}
+        max={thumbnailMaxSize}
       />
     </MenuRadioGroup>
   );
