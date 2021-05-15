@@ -35,7 +35,7 @@ class TagStore {
     }
   }
 
-  @computed get root(): ClientTag {
+  @computed get root(): Readonly<ClientTag> {
     return this._tagList[0];
   }
 
@@ -55,7 +55,7 @@ class TagStore {
     return this.index.get(tag);
   }
 
-  @action.bound async create(parent: ClientTag, tagName: string): Promise<ClientTag> {
+  @action.bound async create(parent: Readonly<ClientTag>, tagName: string): Promise<ClientTag> {
     const tag = new ClientTag(this, generateId(), tagName, new Date());
     await this.backend.createTag(tag.serialize());
     this.add(parent, tag);
@@ -80,7 +80,7 @@ class TagStore {
     this.rootStore.fileStore.refetch();
   }
 
-  @action.bound merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
+  @action.bound merge(tagToBeRemoved: ClientTag, tagToMergeWith: Readonly<ClientTag>) {
     if (tagToBeRemoved.subTags.length > 0) return; // not dealing with tags that have subtags
     this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id).then(() => {
       this.remove(tagToBeRemoved);
@@ -98,8 +98,8 @@ class TagStore {
 
   @action findFlatTagListIndex(target: ClientTag): number | undefined {
     // Iterative DFS algorithm
-    const stack: ClientTag[] = [];
-    let tag: ClientTag | undefined = this.root;
+    const stack: Readonly<ClientTag>[] = [];
+    let tag: Readonly<ClientTag> | undefined = this.root;
     let index = -1;
     do {
       if (tag === target) {
@@ -148,7 +148,7 @@ class TagStore {
     }
   }
 
-  @action private add(parent: ClientTag, tag: ClientTag) {
+  @action private add(parent: Readonly<ClientTag>, tag: ClientTag) {
     this._tagList.push(tag);
     this.index.set(tag.id, tag);
     tag.setParent(parent);
@@ -157,7 +157,7 @@ class TagStore {
 
   // The difference between this method and delete is that no computation
   // power is wasted on removing the tag id from the parent subTags list.
-  @action private async deleteSubTags(tag: ClientTag) {
+  @action private async deleteSubTags(tag: Readonly<ClientTag>) {
     if (tag.subTags.length > 0) {
       const ids = tag.subTags.map((subTag) => subTag.id);
       await this.backend.removeTags(ids);
@@ -168,7 +168,7 @@ class TagStore {
         this.deleteSubTags(subTag);
         this.rootStore.uiStore.deselectTag(subTag);
         this.index.delete(subTag.id);
-        this._tagList.remove(subTag);
+        this._tagList.remove(subTag as ClientTag);
       }
     });
   }

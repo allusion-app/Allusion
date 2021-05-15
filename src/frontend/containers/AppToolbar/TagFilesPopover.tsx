@@ -13,9 +13,9 @@ import { MenuDivider, ToolbarButton } from 'widgets/menus';
 import StoreContext from '../../contexts/StoreContext';
 import { Tooltip } from './PrimaryCommands';
 
-function countFileTags(files: ObservableSet<ClientFile>) {
+function countFileTags(files: ObservableSet<Readonly<ClientFile>>) {
   // Count how often tags are used
-  const counter = new Map<ClientTag, number>();
+  const counter = new Map<Readonly<ClientTag>, number>();
   for (const file of files) {
     for (const tag of file.tags) {
       const count = counter.get(tag);
@@ -23,7 +23,7 @@ function countFileTags(files: ObservableSet<ClientFile>) {
     }
   }
 
-  const sortedTags = Array.from(counter.entries())
+  const sortedTags: Readonly<ClientTag>[] = Array.from(counter.entries())
     // Sort based on count
     .sort((a, b) => b[1] - a[1])
     .map((pair) => pair[0]);
@@ -70,12 +70,12 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [onSelect, onDeselect] = useRef([
-    action((tag: ClientTag) => {
+    action((tag: Readonly<ClientTag>) => {
       for (const f of uiStore.fileSelection) {
         f.addTag(tag);
       }
     }),
-    action((tag: ClientTag) => {
+    action((tag: Readonly<ClientTag>) => {
       for (const f of uiStore.fileSelection) {
         f.removeTag(tag);
       }

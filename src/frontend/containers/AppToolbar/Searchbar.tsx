@@ -63,11 +63,11 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
     }
   });
 
-  const handleSelect = action((item: ClientTag) =>
+  const handleSelect = action((item: Readonly<ClientTag>) =>
     uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', item.id, item.name)),
   );
 
-  const handleDeselect = action((item: ClientTag) => {
+  const handleDeselect = action((item: Readonly<ClientTag>) => {
     const crit = uiStore.searchCriteriaList.find(
       (c) => c instanceof ClientTagSearchCriteria && c.value.includes(item.id),
     );

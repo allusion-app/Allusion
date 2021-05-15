@@ -143,8 +143,8 @@ class UiStore {
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
   // However, sets are more suitable because they have quicker lookup performance.
-  readonly fileSelection = observable(new Set<ClientFile>());
-  readonly tagSelection = observable(new Set<ClientTag>());
+  readonly fileSelection = observable(new Set<Readonly<ClientFile>>());
+  readonly tagSelection = observable(new Set<Readonly<ClientTag>>());
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
@@ -382,7 +382,7 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
-  @action.bound selectFile(file: ClientFile, clear?: boolean) {
+  @action.bound selectFile(file: Readonly<ClientFile>, clear?: boolean) {
     if (clear === true) {
       this.clearFileSelection();
     }
@@ -390,11 +390,11 @@ class UiStore {
     this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
   }
 
-  @action.bound deselectFile(file: ClientFile) {
+  @action.bound deselectFile(file: Readonly<ClientFile>) {
     this.fileSelection.delete(file);
   }
 
-  @action.bound toggleFileSelection(file: ClientFile, clear?: boolean) {
+  @action.bound toggleFileSelection(file: Readonly<ClientFile>, clear?: boolean) {
     if (this.fileSelection.has(file)) {
       this.fileSelection.delete(file);
     } else {
@@ -422,22 +422,22 @@ class UiStore {
     this.fileSelection.clear();
   }
 
-  @action.bound isTagSelected(tag: ClientTag): boolean {
+  @action.bound isTagSelected(tag: Readonly<ClientTag>): boolean {
     return this.tagSelection.has(tag);
   }
 
-  @action.bound selectTag(tag: ClientTag, clear?: boolean) {
+  @action.bound selectTag(tag: Readonly<ClientTag>, clear?: boolean) {
     if (clear === true) {
       this.clearTagSelection();
     }
     this.tagSelection.add(tag);
   }
 
-  @action.bound deselectTag(tag: ClientTag) {
+  @action.bound deselectTag(tag: Readonly<ClientTag>) {
     this.tagSelection.delete(tag);
   }
 
-  @action.bound toggleTagSelection(tag: ClientTag) {
+  @action.bound toggleTagSelection(tag: Readonly<ClientTag>) {
     if (this.tagSelection.has(tag)) {
       this.tagSelection.delete(tag);
     } else {
@@ -451,8 +451,8 @@ class UiStore {
       this.tagSelection.clear();
     }
     // Iterative DFS algorithm
-    const stack: ClientTag[] = [];
-    let tag: ClientTag | undefined = this.rootStore.tagStore.root;
+    const stack: Readonly<ClientTag>[] = [];
+    let tag: Readonly<ClientTag> | undefined = this.rootStore.tagStore.root;
     let index = -1;
     do {
       if (index >= start) {
@@ -592,7 +592,7 @@ class UiStore {
     }
   }
 
-  @action.bound isTagSearched(tag: ClientTag) {
+  @action.bound isTagSearched(tag: Readonly<ClientTag>) {
     return this.searchCriteriaList.some(
       (c) => c instanceof ClientTagSearchCriteria && c.value.includes(tag.id),
     );
@@ -766,7 +766,7 @@ class UiStore {
     return this.firstSelectedFile?.id;
   }
 
-  @computed get firstSelectedFile(): ClientFile | undefined {
+  @computed get firstSelectedFile(): Readonly<ClientFile> | undefined {
     for (const file of this.fileSelection) {
       return file;
     }

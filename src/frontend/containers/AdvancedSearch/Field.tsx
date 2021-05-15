@@ -149,11 +149,11 @@ const PathInput = ({ id, value, dispatch }: ValueInput<string>) => {
 
 const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
   const { tagStore } = useContext(StoreContext);
-  const [selection, setSelection] = useState(
+  const [selection, setSelection] = useState<Readonly<ClientTag> | undefined>(
     value?.id !== undefined ? tagStore.get(value.id) : undefined,
   );
 
-  const handleSelect = action((t: ClientTag) => {
+  const handleSelect = action((t: Readonly<ClientTag>) => {
     dispatch(setValue(id, { id: t.id, label: t.name }));
     setSelection(t);
   });

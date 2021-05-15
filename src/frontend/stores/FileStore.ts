@@ -135,12 +135,10 @@ class FileStore {
     try {
       await this.exifTool.initialize();
       const numFiles = runInAction(() => this.fileList.length);
-      const tagFilePairs = runInAction(() =>
-        this.fileList.map((f) => ({
-          absolutePath: f.absolutePath,
-          tagHierarchy: Array.from(f.tags).map((t) => t.getTagHierarchy().map((t) => t.name)),
-        })),
-      );
+      const tagFilePairs = this.fileList.map((f) => ({
+        absolutePath: f.absolutePath,
+        tagHierarchy: Array.from(f.tags).map((t) => t.getTreePath().map(action((t) => t.name))),
+      }));
       console.log(tagFilePairs);
       let lastToastVal = '0';
       for (let i = 0; i < tagFilePairs.length; i++) {
@@ -242,7 +240,7 @@ class FileStore {
     }
   }
 
-  @action async deleteFiles(files: ClientFile[]): Promise<void> {
+  @action async deleteFiles(files: Readonly<ClientFile>[]): Promise<void> {
     if (files.length === 0) {
       return;
     }

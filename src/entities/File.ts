@@ -58,7 +58,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly locationId: ID;
   readonly relativePath: string;
   readonly absolutePath: string;
-  readonly tags: ObservableSet<ClientTag>;
+  readonly tags: ObservableSet<Readonly<ClientTag>>;
   readonly size: number;
   readonly width: number;
   readonly height: number;
@@ -118,14 +118,14 @@ export class ClientFile implements ISerializable<IFile> {
     this.thumbnailPath = thumbnailPath;
   }
 
-  @action.bound addTag(tag: ClientTag): void {
+  @action.bound addTag(tag: Readonly<ClientTag>): void {
     if (!this.tags.has(tag) && this.tags.size === 0) {
       this.store.decrementNumUntaggedFiles();
     }
     this.tags.add(tag);
   }
 
-  @action.bound removeTag(tag: ClientTag): void {
+  @action.bound removeTag(tag: Readonly<ClientTag>): void {
     if (this.tags.delete(tag) && this.tags.size === 0) {
       this.store.incrementNumUntaggedFiles();
     }

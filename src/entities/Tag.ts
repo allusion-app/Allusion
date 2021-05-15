@@ -29,8 +29,8 @@ export class ClientTag implements ISerializable<ITag> {
   readonly dateAdded: Date;
   @observable name: string;
   @observable color: string;
-  @observable private _parent: ClientTag | undefined;
-  readonly subTags = observable<ClientTag>([]);
+  @observable private _parent: Readonly<ClientTag> | undefined;
+  readonly subTags = observable<Readonly<ClientTag>>([]);
   // icon, (fileCount?)
 
   constructor(store: TagStore, id: ID, name: string, dateAdded: Date, color: string = '') {
@@ -56,7 +56,7 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
-  @computed get parent(): ClientTag {
+  @computed get parent(): Readonly<ClientTag> {
     if (this._parent === undefined) {
       console.warn('Tag does not have a parent', this);
       return this.store.root;
@@ -64,22 +64,35 @@ export class ClientTag implements ISerializable<ITag> {
     return this._parent;
   }
 
-  /** Returns this tag and all of its sub-tags, sub-sub-tags, etc., ordered depth-first */
-  @computed get recursiveSubTags(): ClientTag[] {
-    return [this, ...this.subTags.flatMap((t) => t.recursiveSubTags)];
-  }
-
   @computed get viewColor(): string {
     return this.color === 'inherit' ? this.parent.viewColor : this.color;
   }
 
+  /** Returns this tag and all of its sub-tags ordered depth-first */
+  @action getSubTreeList(): Readonly<ClientTag>[] {
+    const subTreeList: Readonly<ClientTag>[] = [this];
+    const pushTags = (tags: Readonly<ClientTag>[]) => {
+      for (const t of tags) {
+        subTreeList.push(t);
+        pushTags(t.subTags);
+      }
+    };
+    pushTags(this.subTags);
+    return subTreeList;
+  }
+
   /** Returns the tags up the hierarchy from this tag, excluding the root tag */
-  @action getTagHierarchy(): ClientTag[] {
+  @action getTreePath(): Readonly<ClientTag>[] {
     if (this.id === ROOT_TAG_ID) {
       return [];
-    } else {
-      return [...this.parent.getTagHierarchy(), this];
     }
+    const treePath: Readonly<ClientTag>[] = [this];
+    let tag = this.parent;
+    while (tag.id !== ROOT_TAG_ID) {
+      treePath.unshift(tag);
+      tag = tag.parent;
+    }
+    return treePath;
   }
 
   /**
@@ -100,7 +113,7 @@ export class ClientTag implements ISerializable<ITag> {
     return false;
   }
 
-  @action setParent(parent: ClientTag): void {
+  @action setParent(parent: Readonly<ClientTag>): void {
     this._parent = parent;
   }
 
@@ -152,18 +165,6 @@ export class ClientTag implements ISerializable<ITag> {
       color: this.color,
       subTags: this.subTags.map((subTag) => subTag.id),
     };
-  }
-
-  toList(): ClientTag[] {
-    const ids: ClientTag[] = [this];
-    const pushIds = (tags: ClientTag[]) => {
-      for (const t of tags) {
-        ids.push(t);
-        pushIds(t.subTags);
-      }
-    };
-    pushIds(this.subTags);
-    return ids;
   }
 
   dispose(): void {

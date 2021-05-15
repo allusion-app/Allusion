@@ -11,12 +11,12 @@ import { Flyout } from 'widgets/popovers';
 import StoreContext from '../contexts/StoreContext';
 
 interface IMultiTagSelector {
-  selection: ClientTag[];
-  onSelect: (item: ClientTag) => void;
-  onDeselect: (item: ClientTag) => void;
-  onTagClick?: (item: ClientTag) => void;
+  selection: Readonly<ClientTag>[];
+  onSelect: (item: Readonly<ClientTag>) => void;
+  onDeselect: (item: Readonly<ClientTag>) => void;
+  onTagClick?: (item: Readonly<ClientTag>) => void;
   onClear: () => void;
-  tagLabel?: (item: ClientTag) => string;
+  tagLabel?: (item: Readonly<ClientTag>) => string;
   disabled?: boolean;
   autoFocus?: boolean;
   extraOptions?: {
@@ -42,7 +42,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     onDeselect,
     onTagClick,
     onClear,
-    tagLabel = action((t: ClientTag) => t.name),
+    tagLabel = action((t: Readonly<ClientTag>) => t.name),
     disabled,
     extraOptions = [],
     extraIconButtons,

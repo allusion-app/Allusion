@@ -406,7 +406,7 @@ const customKeys = (
   }
 };
 
-const mapTag = (tag: ClientTag, uiStore: UiStore): ITreeItem => ({
+const mapTag = (tag: Readonly<ClientTag>, uiStore: UiStore): ITreeItem => ({
   id: tag.id,
   label: TagItemLabel,
   children: tag.subTags.map((t) => mapTag(t, uiStore)),

@@ -31,7 +31,7 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   const { uiStore, tagStore } = useContext(StoreContext);
   const { object } = props;
   const isSelected = uiStore.isTagSelected(object);
-  const tagsToRemove = isSelected ? Array.from(uiStore.tagSelection) : object.toList();
+  const tagsToRemove = isSelected ? Array.from(uiStore.tagSelection) : object.getSubTreeList();
 
   const text = `Are you sure you want to delete the tag "${object.name}"?`;
 
@@ -65,7 +65,7 @@ export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
 
   const text = `Select the tag you want to merge "${tag.name}" with`;
 
-  const [selectedTag, setSelectedTag] = useState<ClientTag>();
+  const [selectedTag, setSelectedTag] = useState<Readonly<ClientTag>>();
 
   return (
     <MergeAlert
