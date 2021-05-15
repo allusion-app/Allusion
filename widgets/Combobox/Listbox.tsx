@@ -29,6 +29,7 @@ export const Listbox = (props: IListbox) => {
 
 export interface IOption {
   value: string;
+  hint?: string;
   selected?: boolean;
   /** The icon on the right side of the label because on the left is the checkmark already. */
   icon?: JSX.Element;
@@ -39,6 +40,7 @@ export interface IOption {
 
 export const Option = ({
   value,
+  hint,
   selected,
   onClick,
   icon,
@@ -60,6 +62,7 @@ export const Option = ({
     <span className="item-accelerator" aria-hidden>
       {icon}
     </span>
+    {hint && <span className="item-hint">{hint}</span>}
   </li>
 );
 

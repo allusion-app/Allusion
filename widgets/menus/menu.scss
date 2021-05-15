@@ -98,3 +98,14 @@ a[role='menuitem'] {
   margin-left: 0.5rem;
   justify-content: flex-end;
 }
+
+.item-hint {
+  margin-left: 0.5em;
+  color: var(--text-color-muted);
+  font-size: smaller;
+  // TODO: Text alignment could use some tweaking
+  // text-align: right;
+  margin-left: auto;
+  width: 50%;
+}
+

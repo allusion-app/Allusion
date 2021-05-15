@@ -52,6 +52,10 @@ class TagStore {
     return this.tagList.filter((t) => t.id !== ROOT_TAG_ID);
   }
 
+  @computed get flatTagHierarchyWithoutRoot() {
+    return this.root.recursiveSubTags.slice(1);
+  }
+
   @action findFlatTagListIndex(target: ClientTag) {
     // Iterative DFS algorithm
     const stack: ClientTag[] = [];

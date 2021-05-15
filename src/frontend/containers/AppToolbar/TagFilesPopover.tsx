@@ -67,7 +67,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
   const files = uiStore.fileSelection;
 
   const { counter, sortedTags } = countFileTags(files);
-  const [matchingTags, setMatchingTags] = useState([...tagStore.tagListWithoutRoot]);
+  const [matchingTags, setMatchingTags] = useState([...tagStore.flatTagHierarchyWithoutRoot]);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -88,10 +88,10 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     setInputText(e.target.value);
 
     if (text.length === 0) {
-      setMatchingTags([...tagStore.tagListWithoutRoot]);
+      setMatchingTags([...tagStore.flatTagHierarchyWithoutRoot]);
     } else {
       const textLower = text.toLowerCase();
-      const newTagList = tagStore.tagListWithoutRoot.filter((t) =>
+      const newTagList = tagStore.flatTagHierarchyWithoutRoot.filter((t) =>
         t.name.toLowerCase().includes(textLower),
       );
       setMatchingTags(newTagList);
@@ -102,23 +102,29 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
     const newTag = await tagStore.create(tagStore.root, inputText);
     onSelect(newTag);
     setInputText('');
-    runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
+    runInAction(() => setMatchingTags([...tagStore.flatTagHierarchyWithoutRoot]));
     inputRef.current?.focus();
   });
 
   const options = useMemo(() => {
-    const res: (IOption & { id: string; divider?: boolean })[] = matchingTags.map((t) => ({
-      id: t.id,
-      value: t.name,
-      selected: counter.get(t) !== undefined,
-      icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
-      onClick: () => {
-        counter.get(t) ? onDeselect(t) : onSelect(t);
-        setInputText('');
-        runInAction(() => setMatchingTags([...tagStore.tagListWithoutRoot]));
-        inputRef.current?.focus();
-      },
-    }));
+    const res: (IOption & { id: string; divider?: boolean })[] = matchingTags.map((t) => {
+      const hint = t.recursiveParentTags.map((t) => t.name).join(' › ');
+      return {
+        id: t.id,
+        value: t.name,
+        hint,
+        // TODO: Added a "title" attribute for now. A custom tooltip would be more consistent, but the current implementation sucks
+        title: hint ? [hint, t.name].join(' › ') : t.name,
+        selected: counter.get(t) !== undefined,
+        icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
+        onClick: () => {
+          counter.get(t) ? onDeselect(t) : onSelect(t);
+          setInputText('');
+          runInAction(() => setMatchingTags([...tagStore.flatTagHierarchyWithoutRoot]));
+          inputRef.current?.focus();
+        },
+      };
+    });
 
     if (inputText) {
       res.push({
@@ -131,15 +137,8 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
       });
     }
     return res;
-  }, [
-    counter,
-    handleCreate,
-    inputText,
-    matchingTags,
-    onDeselect,
-    onSelect,
-    tagStore.tagListWithoutRoot,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [counter, handleCreate, inputText, matchingTags, onDeselect, onSelect]);
 
   // Todo: clamp this value when list size changes
   const [focusedOption, setFocusedOption] = useState(0);

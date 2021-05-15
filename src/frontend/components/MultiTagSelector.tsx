@@ -2,7 +2,7 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ReactElement, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
-import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Option, Tag } from 'widgets';
 import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
 import { IOption } from 'widgets/Combobox/Listbox';
@@ -57,18 +57,22 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
   const [query, setQuery] = useState('');
   const normalizedQuery = query.toLowerCase();
 
-  const suggestions = tagStore.tagList.filter(
-    (t) => t.id !== ROOT_TAG_ID && t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
+  const suggestions = tagStore.flatTagHierarchyWithoutRoot.filter(
+    (t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
   );
 
   // Assemble list of options
   const options = useMemo(() => {
     const res: (IOption & { id: string; divider?: boolean })[] = suggestions.map((t, i) => {
       const isSelected = selection.includes(t);
+      const hint = t.recursiveParentTags.map((t) => t.name).join(' › ');
       return {
         id: `${t.id}-${i}`,
         selected: isSelected,
         value: t.name,
+        hint,
+        // TODO: Same as TagFilesPopover: "title" should be custom tooltip
+        title: hint ? [hint, t.name].join(' › ') : t.name,
         onClick: () => {
           if (!isSelected) {
             onSelect(t);

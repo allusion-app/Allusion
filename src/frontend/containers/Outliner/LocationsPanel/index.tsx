@@ -35,6 +35,7 @@ interface ITreeData {
   delete: (location: ClientLocation) => void;
 }
 
+// TODO: Would be neat if ctrl+clicking would do a recursive expand/collapse. Also for the "Locations" header!
 const toggleExpansion = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITreeData) => {
   const { expansion, setExpansion } = treeData;
   const id = nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath;
