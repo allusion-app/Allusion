@@ -55,14 +55,32 @@ class TagStore {
     return this.index.get(tag);
   }
 
-  @action.bound async create(parent: Readonly<ClientTag>, tagName: string): Promise<ClientTag> {
+  @action getParent(tag: Readonly<ClientTag>): Readonly<ClientTag> {
+    return this.get(tag.parent) ?? this.root;
+  }
+
+  /** Returns the tags up the hierarchy from this tag, excluding the root tag */
+  @action getTreePath(tag: Readonly<ClientTag>): Readonly<ClientTag>[] {
+    if (tag.id === ROOT_TAG_ID) {
+      return [];
+    }
+    const treePath: Readonly<ClientTag>[] = [tag];
+    let node = this.getParent(tag);
+    while (node.id !== ROOT_TAG_ID) {
+      treePath.unshift(node);
+      node = this.getParent(node);
+    }
+    return treePath;
+  }
+
+  @action async create(parent: Readonly<ClientTag>, tagName: string): Promise<ClientTag> {
     const tag = new ClientTag(this, generateId(), tagName, new Date());
     await this.backend.createTag(tag.serialize());
     this.add(parent, tag);
     return tag;
   }
 
-  @action.bound async delete(tag: ClientTag) {
+  @action async delete(tag: ClientTag) {
     tag.dispose();
     await this.backend.removeTag(tag.id);
     await this.deleteSubTags(tag);
@@ -70,7 +88,7 @@ class TagStore {
     this.rootStore.fileStore.refetch();
   }
 
-  @action.bound async deleteTags(tags: ClientTag[]) {
+  @action async deleteTags(tags: ClientTag[]) {
     await this.backend.removeTags(tags.map((t) => t.id));
     for (const tag of tags) {
       tag.dispose();
@@ -80,7 +98,7 @@ class TagStore {
     this.rootStore.fileStore.refetch();
   }
 
-  @action.bound merge(tagToBeRemoved: ClientTag, tagToMergeWith: Readonly<ClientTag>) {
+  @action merge(tagToBeRemoved: ClientTag, tagToMergeWith: Readonly<ClientTag>) {
     if (tagToBeRemoved.subTags.length > 0) return; // not dealing with tags that have subtags
     this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id).then(() => {
       this.remove(tagToBeRemoved);
@@ -90,6 +108,61 @@ class TagStore {
 
   save(tag: ITag) {
     this.backend.saveTag(tag);
+  }
+
+  @action insert(parent: Readonly<ClientTag>, tag: ClientTag, at: number): void {
+    if (parent === tag || tag.id === ROOT_TAG_ID) {
+      return;
+    }
+    const tagParent = this.getParent(tag);
+    // Move to different pos in same parent: Reorder tag.subTags and return
+    if (parent === tagParent) {
+      if (at > -1 && at <= parent.subTags.length) {
+        // If moving below current position, take into account removing self affecting the index
+        const newIndex = parent.subTags.indexOf(tag) < at ? at - 1 : at;
+        parent.subTags.remove(tag);
+        parent.subTags.splice(newIndex, 0, tag);
+      }
+      return;
+    }
+    // Abort if subTag is an ancestor node of target tag.
+    let node = this.getParent(parent);
+    while (node.id !== ROOT_TAG_ID) {
+      if (node === tag) {
+        return;
+      }
+      node = this.getParent(node);
+    }
+    // Insert subTag into tag
+    tagParent.subTags.remove(tag);
+    if (at > -1 && at < parent.subTags.length) {
+      parent.subTags.splice(at, 0, tag);
+    } else {
+      parent.subTags.push(tag);
+    }
+    tag.setParent(parent);
+  }
+
+  @action setPosition(child: ClientTag, position: number) {
+    this.insert(this.getParent(child), child, position);
+  }
+
+  /**
+   * Returns true if tag is an ancestor of descendant.
+   * @param tag possible ancestor node of descendant
+   */
+  @action isAncestor(descendant: Readonly<ClientTag>, tag: Readonly<ClientTag>): boolean {
+    if (descendant === tag) {
+      return false;
+    }
+    let node = this.getParent(descendant);
+    while (node.id !== ROOT_TAG_ID) {
+      if (node === tag) {
+        return true;
+      }
+      node = this.getParent(node);
+    }
+    return false;
   }
 
   @action findByName(name: string): ClientTag | undefined {
@@ -176,7 +249,7 @@ class TagStore {
   @action private remove(tag: ClientTag) {
     // Remove tag id reference from other observable objects
     this.rootStore.uiStore.deselectTag(tag);
-    tag.parent.subTags.remove(tag);
+    this.getParent(tag).subTags.remove(tag);
     this.index.delete(tag.id);
     this._tagList.remove(tag);
   }

@@ -163,7 +163,7 @@ const TagItem = observer((props: ITagItemProps) => {
       if (
         isSource ||
         (uiStore.isTagSelected(dndData.source) && uiStore.isTagSelected(nodeData)) ||
-        nodeData.isAncestor(dndData.source)
+        tagStore.isAncestor(nodeData, dndData.source)
       ) {
         return;
       }
@@ -200,7 +200,7 @@ const TagItem = observer((props: ITagItemProps) => {
         expandDelayed(nodeData.id);
       }
     },
-    [dndData, expandDelayed, expandTimeoutId, expansion, nodeData, uiStore],
+    [dndData, expandDelayed, expandTimeoutId, expansion, nodeData, tagStore, uiStore],
   );
 
   const handleDragLeave = useCallback(
@@ -239,13 +239,13 @@ const TagItem = observer((props: ITagItemProps) => {
           if (relativeMovePos === 'middle') {
             uiStore.moveSelectedTagItems(nodeData.id);
           } else {
-            uiStore.moveSelectedTagItems(nodeData.parent.id, pos + relativeMovePos);
+            uiStore.moveSelectedTagItems(tagStore.getParent(nodeData).id, pos + relativeMovePos);
           }
         } else if (dndData.source !== undefined) {
           if (relativeMovePos === 'middle') {
-            nodeData.insertSubTag(dndData.source, 0);
+            tagStore.insert(nodeData, dndData.source, 0);
           } else {
-            nodeData.parent.insertSubTag(dndData.source, pos + relativeMovePos);
+            tagStore.insert(tagStore.getParent(nodeData), dndData.source, pos + relativeMovePos);
           }
         }
       });
@@ -257,7 +257,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setExpandTimeoutId(undefined);
       }
     },
-    [dndData, expandTimeoutId, nodeData, pos, uiStore],
+    [dndData, expandTimeoutId, nodeData, pos, tagStore, uiStore],
   );
 
   const handleSelect = useCallback(
@@ -517,7 +517,7 @@ const TagsTree = observer(() => {
       if (isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_ID);
       } else if (dndData.source !== undefined) {
-        root.insertSubTag(dndData.source, tagStore.len);
+        tagStore.insert(root, dndData.source, tagStore.len);
       }
     });
   }, [dndData, tagStore, uiStore, root]);

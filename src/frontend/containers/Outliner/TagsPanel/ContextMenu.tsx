@@ -33,17 +33,18 @@ const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: U
       tag.setColor(color);
     }
   };
+  const color = tag.color;
 
   return (
     <>
       {/* Rainbow gradient icon? */}
       <MenuCheckboxItem
-        checked={tag.color === 'inherit'}
+        checked={color === 'inherit'}
         text="Inherit Parent Color"
-        onClick={() => handleChange(tag.color === 'inherit' ? '' : 'inherit')}
+        onClick={() => handleChange(color === 'inherit' ? '' : 'inherit')}
       />
       <MenuSubItem text="Pick Color" icon={IconSet.COLOR}>
-        <HexColorPicker color={tag.color || undefined} onChange={handleChange} />
+        <HexColorPicker color={color || undefined} onChange={handleChange} />
         <button
           key="none"
           aria-label="No Color"
@@ -140,16 +141,16 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       />
       <MenuDivider />
       <MenuItem
-        onClick={() => tag.parent.insertSubTag(tag, pos - 2)}
+        onClick={() => tagStore.setPosition(tag, pos - 2)}
         text="Move Up"
         icon={IconSet.ITEM_MOVE_UP}
         disabled={pos === 1}
       />
       <MenuItem
-        onClick={() => tag.parent.insertSubTag(tag, pos + 1)}
+        onClick={() => tagStore.setPosition(tag, pos + 1)}
         text="Move Down"
         icon={IconSet.ITEM_MOVE_DOWN}
-        disabled={pos === tag.parent.subTags.length}
+        disabled={pos === tagStore.getParent(tag).subTags.length}
       />
       {/* TODO: Sort alphanumerically option. Maybe in modal for more options (e.g. all levels or just 1 level) and for previewing without immediately saving */}
     </Menu>

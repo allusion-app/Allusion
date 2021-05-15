@@ -532,7 +532,7 @@ class UiStore {
     const { tagStore } = this.rootStore;
 
     const target = tagStore.get(id);
-    if (!target) {
+    if (target === undefined) {
       throw new Error('Invalid target to move to');
     }
 
@@ -540,7 +540,9 @@ class UiStore {
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.forEach((tag) => target.insertSubTag(tag, pos));
+    for (const tag of ctx) {
+      tagStore.insert(target, tag, pos);
+    }
   }
 
   /////////////////// Search Actions ///////////////////

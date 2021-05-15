@@ -29,7 +29,7 @@ export class ClientTag implements ISerializable<ITag> {
   readonly dateAdded: Date;
   @observable name: string;
   @observable color: string;
-  @observable private _parent: Readonly<ClientTag> | undefined;
+  @observable private _parent: string = ROOT_TAG_ID;
   readonly subTags = observable<Readonly<ClientTag>>([]);
   // icon, (fileCount?)
 
@@ -55,17 +55,16 @@ export class ClientTag implements ISerializable<ITag> {
     makeObservable(this);
   }
 
-  /** Get actual tag objects based on the IDs retrieved from the backend */
-  @computed get parent(): Readonly<ClientTag> {
-    if (this._parent === undefined) {
-      console.warn('Tag does not have a parent', this);
-      return this.store.root;
-    }
+  @computed get parent(): string {
     return this._parent;
   }
 
   @computed get viewColor(): string {
-    return this.color === 'inherit' ? this.parent.viewColor : this.color;
+    if (this.color === 'inherit') {
+      const parent = this.store.get(this.parent);
+      return parent !== undefined ? parent.viewColor : '';
+    }
+    return this.color;
   }
 
   /** Returns this tag and all of its sub-tags ordered depth-first */
@@ -81,40 +80,8 @@ export class ClientTag implements ISerializable<ITag> {
     return subTreeList;
   }
 
-  /** Returns the tags up the hierarchy from this tag, excluding the root tag */
-  @action getTreePath(): Readonly<ClientTag>[] {
-    if (this.id === ROOT_TAG_ID) {
-      return [];
-    }
-    const treePath: Readonly<ClientTag>[] = [this];
-    let tag = this.parent;
-    while (tag.id !== ROOT_TAG_ID) {
-      treePath.unshift(tag);
-      tag = tag.parent;
-    }
-    return treePath;
-  }
-
-  /**
-   * Returns true if tag is an ancestor of this tag.
-   * @param tag possible ancestor node
-   */
-  @action isAncestor(tag: ClientTag): boolean {
-    if (this === tag) {
-      return false;
-    }
-    let node = this.parent;
-    while (node.id !== ROOT_TAG_ID) {
-      if (node === tag) {
-        return true;
-      }
-      node = node.parent;
-    }
-    return false;
-  }
-
-  @action setParent(parent: Readonly<ClientTag>): void {
-    this._parent = parent;
+  @action setParent(tag: Readonly<ClientTag>): void {
+    this._parent = tag.id;
   }
 
   @action.bound rename(name: string): void {
@@ -123,38 +90,6 @@ export class ClientTag implements ISerializable<ITag> {
 
   @action.bound setColor(color: string): void {
     this.color = color;
-  }
-
-  @action.bound insertSubTag(tag: ClientTag, at: number): void {
-    if (this === tag || tag.id === ROOT_TAG_ID) {
-      return;
-    }
-    // Move to different pos in same parent: Reorder tag.subTags and return
-    if (this === tag.parent) {
-      if (at > -1 && at <= this.subTags.length) {
-        // If moving below current position, take into account removing self affecting the index
-        const newIndex = this.subTags.indexOf(tag) < at ? at - 1 : at;
-        this.subTags.remove(tag);
-        this.subTags.splice(newIndex, 0, tag);
-      }
-      return;
-    }
-    // Abort if subTag is an ancestor node of target tag.
-    let node = this.parent;
-    while (node.id !== ROOT_TAG_ID) {
-      if (node === tag) {
-        return;
-      }
-      node = node.parent;
-    }
-    // Insert subTag into tag
-    tag.parent.subTags.remove(tag);
-    if (at > -1 && at < this.subTags.length) {
-      this.subTags.splice(at, 0, tag);
-    } else {
-      this.subTags.push(tag);
-    }
-    tag.setParent(this);
   }
 
   serialize(): ITag {

@@ -106,12 +106,12 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
           value: t.name,
           selected,
           icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
-          onClick: () => {
+          onClick: action(() => {
             selected ? onDeselect(t) : onSelect(t);
             setInputText('');
             setMatchingTags(tagStore.tagList);
             inputRef.current?.focus();
-          },
+          }),
         };
       }),
     [counter, matchingTags, onDeselect, onSelect, tagStore],
@@ -147,9 +147,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
 
   const createOption = [];
   if (inputText.length > 0) {
-    let i = options.length;
     if (matchingTags.length !== 0) {
-      i += 1;
       createOption.push(<MenuDivider key="divider" />);
     }
     createOption.push(
@@ -157,16 +155,16 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         key="create"
         selected={false}
         value={`Create Tag "${inputText}"`}
-        onClick={async () => {
+        onClick={action(async () => {
           const tagList = tagStore.tagList;
           const newTag = await tagStore.create(tagStore.root, inputText);
           setInputText('');
           setMatchingTags(tagList);
           onSelect(newTag);
           inputRef.current?.focus();
-        }}
+        })}
         icon={IconSet.TAG_ADD}
-        focused={focusedOption === i}
+        focused={focusedOption === options.length}
       />,
     );
   }

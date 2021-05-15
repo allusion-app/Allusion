@@ -133,11 +133,14 @@ class FileStore {
   @action.bound async writeTagsToFiles() {
     const toastKey = 'write-tags-to-file';
     try {
+      const { tagStore } = this.rootStore;
       await this.exifTool.initialize();
       const numFiles = runInAction(() => this.fileList.length);
       const tagFilePairs = this.fileList.map((f) => ({
         absolutePath: f.absolutePath,
-        tagHierarchy: Array.from(f.tags).map((t) => t.getTreePath().map(action((t) => t.name))),
+        tagHierarchy: Array.from(f.tags).map((t) =>
+          tagStore.getTreePath(t).map(action((t) => t.name)),
+        ),
       }));
       console.log(tagFilePairs);
       let lastToastVal = '0';
