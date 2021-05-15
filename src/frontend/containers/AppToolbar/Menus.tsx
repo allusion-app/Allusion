@@ -11,8 +11,7 @@ import FileStore from 'src/frontend/stores/FileStore';
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
 import { getThumbnailSize } from '../ContentView/LayoutSwitcher';
-import { MenuSliderItem } from 'widgets/menus/menu-items';
-import { thumbnailMaxSize } from 'src/config';
+import { MenuDivider, MenuSliderItem } from 'widgets/menus/menu-items';
 
 // Tooltip info
 const enum Tooltip {
@@ -81,6 +80,16 @@ export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) 
   );
 });
 
+const thumbnailSizeOptions = [
+  { value: 128 },
+  { value: 208, label: 'Small' },
+  { value: 288 },
+  { value: 368, label: 'Medium' },
+  { value: 448 },
+  { value: 528, label: 'Large' },
+  { value: 608 },
+];
+
 export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
   return (
     <MenuRadioGroup>
@@ -113,6 +122,19 @@ export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
         text="Horizontal Masonry"
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
       />
+
+      <MenuDivider />
+
+      <MenuSliderItem
+        value={getThumbnailSize(uiStore.thumbnailSize)}
+        label="Thumbnail size"
+        onChange={uiStore.setThumbnailSize}
+        id="thumbnail-sizes"
+        options={thumbnailSizeOptions}
+        min={thumbnailSizeOptions[0].value}
+        max={thumbnailSizeOptions[thumbnailSizeOptions.length - 1].value}
+        step={20}
+      />
     </MenuRadioGroup>
   );
 });
@@ -137,12 +159,6 @@ export const ThumbnailSizeMenuItems = observer(({ uiStore }: { uiStore: UiStore 
         onClick={uiStore.setThumbnailLarge}
         checked={uiStore.thumbnailSize === 'large'}
         text="Large"
-      />
-      <MenuSliderItem
-        value={getThumbnailSize(uiStore.thumbnailSize)}
-        onChange={uiStore.setThumbnailSize}
-        min={100}
-        max={thumbnailMaxSize}
       />
     </MenuRadioGroup>
   );

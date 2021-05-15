@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 
 import { IconSet } from '../Icons';
 
@@ -76,24 +76,57 @@ export const MenuCheckboxItem = ({
 
 export interface IMenuSliderItem {
   value: number;
+  label?: string;
   onChange: (val: number) => void;
   min: number;
   max: number;
+  step: number;
+  id: string;
+  options: { value: number; label?: string }[];
 }
 
-export const MenuSliderItem = ({ value, onChange, min, max }: IMenuSliderItem) => (
-  <li role="menuitemslider" tabIndex={-1}>
-    <div className="slider">
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-      />
-    </div>
-  </li>
-);
+export const MenuSliderItem = ({
+  value,
+  label,
+  onChange,
+  min,
+  max,
+  step,
+  id,
+  options,
+}: IMenuSliderItem) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const handleFocus = useCallback(() => inputRef.current?.focus(), []);
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (['ArrowLeft', 'ArrowRight'].includes(e.key)) e.stopPropagation();
+  }, []);
+  return (
+    <li role="menuitemslider" tabIndex={-1} onFocus={handleFocus}>
+      {label && <label htmlFor={id}>{label}</label>}
+
+      <div className="slider">
+        <input
+          type="range"
+          min={min}
+          max={max}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          list={id}
+          step={step}
+          tabIndex={-1}
+          ref={inputRef}
+          onKeyDown={handleKeyDown}
+        />
+
+        <datalist id={id}>
+          {options.map((o, i) => (
+            <option {...o} key={`${o.value}-${i}`} />
+          ))}
+        </datalist>
+      </div>
+    </li>
+  );
+};
 
 export const MenuDivider = () => <li role="separator" className="menu-separator"></li>;
 
