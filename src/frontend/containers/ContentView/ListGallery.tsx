@@ -10,6 +10,7 @@ import { debouncedThrottle } from 'src/frontend/utils';
 import { IconSet } from 'widgets';
 import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
 import { listColumns, GalleryCommand, ListCell } from './GalleryItem';
+import FileStore from 'src/frontend/stores/FileStore';
 
 /** Generates a unique key for an element in the fileList */
 const getItemKey = action((index: number, data: ClientFile[]): string => {
@@ -92,10 +93,11 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
         style={style}
         isScrolling={isScrolling}
         uiStore={uiStore}
+        fileStore={fileStore}
         submitCommand={submitCommand}
       />
     ),
-    [submitCommand, uiStore],
+    [fileStore, submitCommand, uiStore],
   );
 
   return (
@@ -151,13 +153,12 @@ interface IListItem {
   style: React.CSSProperties;
   isScrolling: true;
   uiStore: UiStore;
-  // onClick: (e: React.MouseEvent) => void;
-  // onDoubleClick: (e: React.MouseEvent) => void;
+  fileStore: FileStore;
   submitCommand: (command: GalleryCommand) => void;
 }
 
 const ListItem = observer((props: IListItem) => {
-  const { index, data, style, isScrolling, uiStore, submitCommand } = props;
+  const { index, data, style, isScrolling, uiStore, fileStore, submitCommand } = props;
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
@@ -171,7 +172,13 @@ const ListItem = observer((props: IListItem) => {
 
   return (
     <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
-      <ListCell mounted={isMounted} file={file} uiStore={uiStore} submitCommand={submitCommand} />
+      <ListCell
+        mounted={isMounted}
+        file={file}
+        uiStore={uiStore}
+        fileStore={fileStore}
+        submitCommand={submitCommand}
+      />
     </div>
   );
 });
