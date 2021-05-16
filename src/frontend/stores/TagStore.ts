@@ -45,7 +45,9 @@ class TagStore {
         pushTags(t.subTags);
       }
     };
-    pushTags(this.root.subTags);
+    if (this._tagList.length > 0) {
+      pushTags(this._tagList[0].subTags);
+    }
     return tagTree;
   }
 

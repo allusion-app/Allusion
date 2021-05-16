@@ -81,8 +81,6 @@ export interface IAddTagsToFileMessage {
 }
 
 //////////////// Preview window ////////////////
-export const CLOSED_PREVIEW_WINDOW = 'CLOSED_PREVIEW_WINDOW';
-
 export const SEND_PREVIEW_FILES = 'SEND_PREVIEW_FILES_MESSAGE';
 export const RECEIEVE_PREVIEW_FILES = 'RECEIEVE_PREVIEW_FILES_MESSAGE';
 export interface IPreviewFilesMessage {
@@ -181,14 +179,28 @@ export class RendererMessenger {
   static onAddTagsToFile = (cb: (msg: IAddTagsToFileMessage) => void) =>
     ipcRenderer.on(ADD_TAGS_TO_FILE, (_, msg: IAddTagsToFileMessage) => cb(msg));
 
-  static sendPreviewFiles = (msg: IPreviewFilesMessage) => {
-    ipcRenderer.send(SEND_PREVIEW_FILES, msg);
+  static openPreviewWindow = (ids: string[], thumbnailDirectory: string) => {
+    // Don't open when no files have been selected
+    if (ids.length === 0) {
+      return;
+    }
+
+    const message: IPreviewFilesMessage = {
+      ids,
+      activeImgId: ids[0],
+      thumbnailDirectory,
+    };
+
+    ipcRenderer.send(SEND_PREVIEW_FILES, message);
+
+    // remove focus from element so closing preview with spacebar does not trigger any ui elements
+    if (document.activeElement && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
   };
 
   static onReceivePreviewFiles = (cb: (msg: IPreviewFilesMessage) => void) =>
     ipcRenderer.on(RECEIEVE_PREVIEW_FILES, (_, msg: IPreviewFilesMessage) => cb(msg));
-
-  static onClosedPreviewWindow = (cb: () => void) => ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
 
   static onMaximize = (cb: () => void) => ipcRenderer.on(WINDOW_MAXIMIZE, () => cb());
 
@@ -272,8 +284,6 @@ export class MainMessenger {
 
   static onSendPreviewFiles = (cb: (msg: IPreviewFilesMessage) => void) =>
     ipcMain.on(SEND_PREVIEW_FILES, (_, msg: IPreviewFilesMessage) => cb(msg));
-
-  static sendClosedPreviewWindow = (wc: WebContents) => wc.send(CLOSED_PREVIEW_WINDOW);
 
   static onStoreFile = (getDownloadPath: (msg: IStoreFileMessage) => Promise<string>) =>
     ipcMain.on(STORE_FILE, async (e, msg: IStoreFileMessage) => {

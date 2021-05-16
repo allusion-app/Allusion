@@ -301,7 +301,6 @@ function createPreviewWindow() {
     // Prevent close, hide the window instead, for faster launch next time
     if (mainWindow !== null) {
       e.preventDefault();
-      MainMessenger.sendClosedPreviewWindow(mainWindow.webContents);
       mainWindow.focus();
     }
     if (previewWindow !== null) {

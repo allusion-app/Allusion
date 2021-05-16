@@ -1,14 +1,7 @@
 import fse from 'fs-extra';
 import ImageSize from 'image-size';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
-import {
-  action,
-  IReactionDisposer,
-  makeObservable,
-  observable,
-  ObservableSet,
-  reaction,
-} from 'mobx';
+import { action, IReactionDisposer, makeObservable, observable, reaction } from 'mobx';
 import Path from 'path';
 import FileStore from 'src/frontend/stores/FileStore';
 import { promisify } from 'util';
@@ -58,7 +51,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly locationId: ID;
   readonly relativePath: string;
   readonly absolutePath: string;
-  readonly tags: ObservableSet<Readonly<ClientTag>>;
+  readonly tags = observable(new Set<Readonly<ClientTag>>());
   readonly size: number;
   readonly width: number;
   readonly height: number;
@@ -96,7 +89,7 @@ export class ClientFile implements ISerializable<IFile> {
     const base = Path.basename(this.relativePath);
     this.filename = base.substr(0, base.lastIndexOf('.'));
 
-    this.tags = observable(this.store.getTags(fileProps.tags));
+    this.tags.replace(this.store.getTags(fileProps.tags));
 
     // observe all changes to observable fields
     this.saveHandler = reaction(

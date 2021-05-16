@@ -1,7 +1,7 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
 import { getDefaultThumbnailDirectory } from 'src/config';
-import { ClientFile, IFile } from 'src/entities/File';
+import { IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
@@ -122,7 +122,6 @@ class UiStore {
   @observable isHelpCenterOpen: boolean = false;
   @observable isAboutOpen: boolean = false;
   @observable isLocationRecoveryOpen: ID | null = null;
-  @observable isPreviewOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
   @observable searchMatchAny = false;
   @observable method: ViewMethod = ViewMethod.Grid;
@@ -257,33 +256,6 @@ class UiStore {
     this.setIsOutlinerOpen(!this.isOutlinerOpen);
   }
 
-  @action.bound openPreviewWindow(fileSelection: Set<Readonly<ClientFile>>) {
-    // Don't open when no files have been selected
-    if (fileSelection.size === 0) {
-      return;
-    }
-
-    // If only one image was selected, open all images, but focus on the selected image. Otherwise, open selected images
-    // TODO: FIXME: Disabled for now: makes it a lot less "snappy", takes a while for the message to come through
-    const previewFiles = Array.from(fileSelection);
-    // this.fileSelection.size === 1
-    //   ? this.rootStore.fileStore.fileList
-    //   : Array.from(this.fileSelection);
-
-    RendererMessenger.sendPreviewFiles({
-      ids: previewFiles.map((file) => file.id),
-      activeImgId: previewFiles?.[0].id,
-      thumbnailDirectory: this.thumbnailDirectory,
-    });
-
-    this.isPreviewOpen = true;
-
-    // remove focus from element so closing preview with spacebar does not trigger any ui elements
-    if (document.activeElement && document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-  }
-
   @action.bound toggleInspector() {
     this.isInspectorOpen = !this.isInspectorOpen;
   }
@@ -349,10 +321,6 @@ class UiStore {
 
   @action.bound closeLocationRecovery() {
     this.isLocationRecoveryOpen = null;
-  }
-
-  @action.bound closePreviewWindow() {
-    this.isPreviewOpen = false;
   }
 
   @action.bound setThumbnailDirectory(dir: string = '') {
@@ -472,7 +440,10 @@ class UiStore {
     } else if (matches(hotkeyMap.toggleHelpCenter)) {
       this.toggleHelpCenter();
     } else if (matches(hotkeyMap.openPreviewWindow)) {
-      this.openPreviewWindow(fileStore.selection);
+      RendererMessenger.openPreviewWindow(
+        Array.from(fileStore.selection, (f) => f.id),
+        this.thumbnailDirectory,
+      );
       e.preventDefault(); // prevent scrolling with space when opening the preview window
       // Search
     } else if (matches(hotkeyMap.search)) {

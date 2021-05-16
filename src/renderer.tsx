@@ -82,10 +82,6 @@ if (IS_PREVIEW_WINDOW) {
     }
   });
 } else {
-  RendererMessenger.onClosedPreviewWindow(() => {
-    rootStore.uiStore.closePreviewWindow();
-  });
-
   // Load persistent preferences
   rootStore.uiStore.recoverPersistentPreferences();
   rootStore.fileStore.recoverPersistentPreferences();

@@ -5,6 +5,7 @@ import React from 'react';
 import { ClientFile } from 'src/entities/File';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
+import { RendererMessenger } from 'src/Messaging';
 import { IconSet } from 'widgets';
 import { MenuItem } from 'widgets/menus';
 
@@ -42,7 +43,10 @@ export const FileViewerMenuItems = ({
 
     fileStore.select(file, !fileStore.selection.has(file));
     uiStore.setFirstItem(fileStore.getIndex(file.id));
-    uiStore.openPreviewWindow(fileStore.selection);
+    RendererMessenger.openPreviewWindow(
+      Array.from(fileStore.selection, (f) => f.id),
+      uiStore.thumbnailDirectory,
+    );
   });
 
   return (
@@ -66,11 +70,14 @@ export const SlideFileViewerMenuItems = ({
   uiStore: UiStore;
   fileStore: FileStore;
 }) => {
-  const handlePreviewWindow = () => {
+  const handlePreviewWindow = action(() => {
     fileStore.select(file, true);
     uiStore.setFirstItem(fileStore.getIndex(file.id));
-    uiStore.openPreviewWindow(fileStore.selection);
-  };
+    RendererMessenger.openPreviewWindow(
+      Array.from(fileStore.selection, (f) => f.id),
+      uiStore.thumbnailDirectory,
+    );
+  });
 
   return (
     <>
