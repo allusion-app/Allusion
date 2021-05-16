@@ -197,7 +197,7 @@ export function createSubmitCommand(
         const [file, x, y] = command.payload;
         showContextMenu(x, y, [
           file.isBroken ? (
-            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+            <MissingFileMenuItems uiStore={uiStore} />
           ) : (
             <FileViewerMenuItems file={file} uiStore={uiStore} fileStore={fileStore} />
           ),
@@ -214,7 +214,7 @@ export function createSubmitCommand(
         const [file, x, y] = command.payload;
         showContextMenu(x, y, [
           file.isBroken ? (
-            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
+            <MissingFileMenuItems uiStore={uiStore} />
           ) : (
             <SlideFileViewerMenuItems file={file} uiStore={uiStore} fileStore={fileStore} />
           ),

@@ -117,7 +117,8 @@ class ExifIO {
     }
     return [...splitHierarchy, ...filteredTags.map((t) => [t])];
   }
-  async readTags(filepath: string) {
+
+  async readTags(filepath: string): Promise<string[][]> {
     const metadata = await ep.readMetadata(filepath, [
       'HierarchicalSubject',
       'Subject',
@@ -143,7 +144,7 @@ class ExifIO {
   }
 
   /** Reads file metadata for all files in a folder (and recursively for its subfolders) */
-  async readTagsRecursively(directory: string) {
+  async readTagsRecursively(directory: string): Promise<string[][]> {
     const metadata = await ep.readMetadata(directory, [
       'HierarchicalSubject',
       'Subject',
@@ -196,7 +197,7 @@ class ExifIO {
   }
 
   /** Adds */
-  async addTag(files: string[], tagHierarchy: string[]) {
+  async addTag(files: string[], tagHierarchy: string[]): Promise<void> {
     // concat file paths into one big string, each surrounded by double quotes
     const command = files.map((filePath) => `"${filePath}"`).join(' ');
     const res = await ep.writeMetadata(
@@ -209,14 +210,20 @@ class ExifIO {
       console.error('Could not update file metadata', res);
     }
   }
-  async removeTag(files: string[], tagHierarchy: string[]) {
+
+  async removeTag(files: string[], tagHierarchy: string[]): Promise<void> {
     const command = files.map((filePath) => `"${filePath}"`).join(' ');
     const res = await ep.writeMetadata(command, { 'MyHS-': tagHierarchy }, ['overwrite_original ']);
     if (!res.error?.endsWith(`${files.length} image files updated`)) {
       console.error('Could not update file metadata', res);
     }
   }
-  async replaceTag(files: string[], oldTagHierarchy: string[], newTagHierarchy: string[]) {
+
+  async replaceTag(
+    files: string[],
+    oldTagHierarchy: string[],
+    newTagHierarchy: string[],
+  ): Promise<void> {
     const command = files.map((filePath) => `"${filePath}"`).join(' ');
     const res = await ep.writeMetadata(
       command,

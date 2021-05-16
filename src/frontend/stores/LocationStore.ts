@@ -222,7 +222,7 @@ class LocationStore {
     await this.initLocation(newLocation);
     await this.backend.saveLocation(newLocation.serialize());
     // Refetch files in case some were from this location and could not be found before
-    this.rootStore.fileStore.refetch();
+    this.rootStore.uiStore.refetch();
 
     // Dismiss the 'Cannot find location' toast if it is still open
     AppToaster.dismiss(`missing-loc-${newLocation.id}`);
@@ -296,12 +296,12 @@ class LocationStore {
     await this.backend.createFilesFromPath(location.path, files);
 
     AppToaster.show({ message: `Location "${location.name}" is ready!`, timeout: 5000 }, toastKey);
-    this.rootStore.fileStore.refetch();
+    this.rootStore.uiStore.refetch();
     this.rootStore.fileStore.refetchFileCounts();
   }
 
   @action.bound async delete(location: ClientLocation) {
-    const { fileStore } = this.rootStore;
+    const { fileStore, uiStore } = this.rootStore;
     const fileSelection = fileStore.selection;
     // Remove location from DB through backend
     await this.backend.removeLocation(location.id);
@@ -313,7 +313,7 @@ class LocationStore {
     }
     // Remove location locally
     runInAction(() => this.locationList.remove(location));
-    fileStore.refetch();
+    uiStore.refetch();
     fileStore.refetchFileCounts();
   }
 
@@ -329,11 +329,11 @@ class LocationStore {
   @action hideFile(path: string) {
     // This is called when an image is removed from the filesystem.
     // Could also mean that a file was renamed or moved, in which case another file should have been added already
-    const fileStore = this.rootStore.fileStore;
+    const { fileStore, uiStore } = this.rootStore;
     const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
     if (clientFile !== undefined) {
       fileStore.hideFile(clientFile);
-      fileStore.refetch();
+      uiStore.refetch();
     }
 
     AppToaster.show(

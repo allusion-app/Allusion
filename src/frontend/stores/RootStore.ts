@@ -8,6 +8,7 @@ import UiStore from './UiStore';
 import LocationStore from './LocationStore';
 
 import { RendererMessenger } from 'src/Messaging';
+import ExifIO from 'src/backend/ExifIO';
 
 // This will throw exceptions whenver we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
@@ -29,19 +30,13 @@ class RootStore {
   readonly fileStore: FileStore;
   readonly locationStore: LocationStore;
   readonly uiStore: UiStore;
-  readonly clearDatabase: () => Promise<void>;
+  readonly exifTool = new ExifIO();
 
   constructor(private backend: Backend) {
-    this.tagStore = new TagStore(backend);
-    this.fileStore = new FileStore(backend, this);
-    this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);
-
-    // SAFETY: The backend instance has the same lifetime as the RootStore.
-    this.clearDatabase = async () => {
-      await backend.clearDatabase();
-      RendererMessenger.clearDatabase();
-    };
+    this.tagStore = new TagStore(backend);
+    this.locationStore = new LocationStore(backend, this);
+    this.fileStore = new FileStore(backend, this);
   }
 
   async init(isPreviewWindow: boolean) {
@@ -59,7 +54,9 @@ class RootStore {
       this.fileStore.fetchAllFiles();
       // Then, look for any new or removed images, and refetch if necessary
       this.locationStore.watchLocations().then((foundNewFiles) => {
-        if (foundNewFiles) this.fileStore.refetch();
+        if (foundNewFiles) {
+          this.fileStore.fetchAllFiles();
+        }
       });
     }
 
@@ -77,6 +74,11 @@ class RootStore {
 
   async peekDatabaseFile(path: string) {
     return this.backend.peekDatabaseFile(path);
+  }
+
+  async clearDatabase() {
+    await this.backend.clearDatabase();
+    RendererMessenger.clearDatabase();
   }
 }
 

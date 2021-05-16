@@ -1,14 +1,17 @@
 import { shell } from 'electron';
-import { runInAction } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useContext, useEffect, useState } from 'react';
+import ExifIO from 'src/backend/ExifIO';
 import {
   chromeExtensionUrl,
   getDefaultBackupDirectory,
   getDefaultThumbnailDirectory,
 } from 'src/config';
+import { ClientFile } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import TagStore from 'src/frontend/stores/TagStore';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
@@ -147,7 +150,7 @@ const Zoom = () => {
 
 const ImportExport = observer(() => {
   const rootStore = useContext(StoreContext);
-  const { fileStore, tagStore } = rootStore;
+  const { fileStore, tagStore, exifTool } = rootStore;
   const [isConfirmingMetadataExport, setConfirmingMetadataExport] = useState(false);
   const [isConfirmingFileImport, setConfirmingFileImport] = useState<{
     path: string;
@@ -201,6 +204,57 @@ const ImportExport = observer(() => {
     }
   };
 
+  const importTags = action(async () => {
+    const toastKey = 'read-tags-from-file';
+    let lastProgress = '0';
+    const handleProgress = (progress: number) => {
+      const p = (progress * 100).toFixed(0);
+      if (lastProgress === p) {
+        return;
+      }
+      lastProgress = p;
+      AppToaster.show(
+        {
+          message: `Reading tags from files ${p}%...`,
+          timeout: 0,
+        },
+        toastKey,
+      );
+    };
+    const message = await readTagsFromFiles(
+      exifTool,
+      fileStore.fileList.slice(),
+      tagStore,
+      handleProgress,
+    );
+    AppToaster.show({ message, timeout: 5000 }, toastKey);
+  });
+
+  const exportTags = action(async () => {
+    const toastKey = 'write-tags-to-file';
+    const lastProgress = '0';
+    const handleProgress = (progress: number) => {
+      const p = (progress * 100).toFixed(0);
+      if (lastProgress === p) {
+        return;
+      }
+      AppToaster.show(
+        {
+          message: `Writing tags to files ${p}%...`,
+          timeout: 0,
+        },
+        toastKey,
+      );
+    };
+    const message = await writeTagsToFiles(
+      exifTool,
+      fileStore.fileList.slice(),
+      tagStore,
+      handleProgress,
+    );
+    AppToaster.show({ message, timeout: 5000 }, toastKey);
+  });
+
   return (
     <>
       <h2>Import/Export</h2>
@@ -216,12 +270,12 @@ const ImportExport = observer(() => {
         <legend>
           Hierarchical separator, e.g.{' '}
           <pre style={{ display: 'inline' }}>
-            {['Food', 'Fruit', 'Apple'].join(fileStore.exifTool.hierarchicalSeparator)}
+            {['Food', 'Fruit', 'Apple'].join(exifTool.hierarchicalSeparator)}
           </pre>
         </legend>
         <select
-          value={fileStore.exifTool.hierarchicalSeparator}
-          onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
+          value={exifTool.hierarchicalSeparator}
+          onChange={(e) => exifTool.setHierarchicalSeparator(e.target.value)}
         >
           <option value="|">|</option>
           <option value="/">/</option>
@@ -232,11 +286,7 @@ const ImportExport = observer(() => {
       {/* TODO: adobe bridge has option to read with multiple separators */}
 
       <ButtonGroup>
-        <Button
-          text="Import tags from file metadata"
-          onClick={fileStore.readTagsFromFiles}
-          styling="outlined"
-        />
+        <Button text="Import tags from file metadata" onClick={importTags} styling="outlined" />
         <Button
           text="Export tags to file metadata"
           onClick={() => setConfirmingMetadataExport(true)}
@@ -250,7 +300,7 @@ const ImportExport = observer(() => {
           closeButtonText="Cancel"
           onClick={(button) => {
             if (button === DialogButton.PrimaryButton) {
-              fileStore.writeTagsToFiles();
+              exportTags();
             }
             setConfirmingMetadataExport(false);
           }}
@@ -530,3 +580,91 @@ const SETTINGS_TABS: () => TabItem[] = () => [
     content: <Advanced />,
   },
 ];
+
+async function readTagsFromFiles(
+  exifTool: ExifIO,
+  fileList: readonly Readonly<ClientFile>[],
+  tagStore: TagStore,
+  progressHook: (progress: number) => void,
+): Promise<string> {
+  try {
+    await exifTool.initialize();
+    const numFiles = fileList.length;
+    const root = runInAction(() => tagStore.root);
+    for (let i = 0; i < numFiles; i++) {
+      progressHook(i / numFiles);
+      const absolutePath = fileList[i].absolutePath;
+
+      try {
+        const tagsNameHierarchies = await exifTool.readTags(absolutePath);
+
+        // Now that we know the tag names in file metadata, add them to the files in Allusion
+        // Main idea: Find matching tag with same name, otherwise, insert new
+        //   for now, just match by the name at the bottom of the hierarchy
+
+        for (const tagHierarchy of tagsNameHierarchies) {
+          const match = tagStore.findByName(tagHierarchy[tagHierarchy.length - 1]);
+          if (match !== undefined) {
+            // If there is a match to the leaf tag, just add it to the file
+            fileList[i].addTag(match);
+          } else {
+            // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
+            let curTag = root;
+            for (const nodeName of tagHierarchy) {
+              const nodeMatch = tagStore.findByName(nodeName);
+              if (nodeMatch !== undefined) {
+                curTag = nodeMatch;
+              } else {
+                curTag = await tagStore.create(curTag, nodeName);
+              }
+            }
+            fileList[i].addTag(curTag);
+          }
+        }
+      } catch (e) {
+        console.error('Could not import tags for', absolutePath, e);
+      }
+    }
+    return 'Reading tags from files... Done!';
+  } catch (e) {
+    console.error('Could not read tags', e);
+    return 'Reading tags from files failed. Check the dev console for more details';
+  } finally {
+    await exifTool.close();
+  }
+}
+
+async function writeTagsToFiles(
+  exifTool: ExifIO,
+  fileList: readonly Readonly<ClientFile>[],
+  tagStore: TagStore,
+  progressHook: (progress: number) => void,
+) {
+  try {
+    await exifTool.initialize();
+    const numFiles = fileList.length;
+    const tagFilePairs = fileList.map(
+      action((f) => ({
+        absolutePath: f.absolutePath,
+        tagHierarchy: Array.from(f.tags).map((t) => tagStore.getTreePath(t).map((t) => t.name)),
+      })),
+    );
+    console.log(tagFilePairs);
+    for (let i = 0; i < tagFilePairs.length; i++) {
+      progressHook(i / numFiles);
+
+      const { absolutePath, tagHierarchy } = tagFilePairs[i];
+      try {
+        await exifTool.writeTags(absolutePath, tagHierarchy);
+      } catch (e) {
+        console.error('Could not write tags to', absolutePath, tagHierarchy, e);
+      }
+    }
+    return 'Writing tags to files... Done!';
+  } catch (e) {
+    console.error('Could not write tags', e);
+    return 'Writing tags to files failed. Check the dev console for more details';
+  } finally {
+    exifTool.close();
+  }
+}

@@ -28,7 +28,7 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
 );
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
-  const { fileStore, tagStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
   const { object } = props;
   const isSelected = tagStore.isSelected(object);
   const tagsToRemove = isSelected ? Array.from(tagStore.selection) : object.getSubTreeList();
@@ -55,19 +55,19 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
         props.onClose();
         const deletedTags = isSelected ? tagsToRemove : [object];
         await tagStore.delete(deletedTags);
-        fileStore.refetch();
+        uiStore.refetch();
       }}
     />
   );
 });
 
 export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
-  const { tagStore, fileStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useContext(StoreContext);
   const { object: tag } = props;
 
   const text = `Select the tag you want to merge "${tag.name}" with`;
 
-  const [selectedTag, setSelectedTag] = useState<Readonly<ClientTag>>();
+  const [selectedTag, setSelectedTag] = useState<Readonly<ClientTag> | undefined>();
 
   return (
     <MergeAlert
@@ -95,7 +95,7 @@ export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
         if (tag.subTags.length === 0 && selectedTag !== undefined) {
           props.onClose();
           await tagStore.merge(tag, selectedTag);
-          fileStore.refetch();
+          uiStore.refetch();
         }
       }}
     />

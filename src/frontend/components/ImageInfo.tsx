@@ -69,7 +69,7 @@ interface IImageInfo {
 }
 
 const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
-  const { fileStore } = useContext(StoreContext);
+  const { exifTool } = useContext(StoreContext);
 
   const [fileStats, setFileStats] = useState<CommonMetadata>({
     name: file.name,
@@ -117,7 +117,7 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
         }
       });
 
-    fileStore.exifTool?.initialize().then((exifIO) =>
+    exifTool.initialize().then((exifIO) =>
       exifIO
         .readExifTags(filePath, exifTags)
         .then((tagValues) => {

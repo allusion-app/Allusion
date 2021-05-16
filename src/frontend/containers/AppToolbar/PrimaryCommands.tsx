@@ -52,7 +52,7 @@ const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStor
       <Searchbar />
 
       {/* TODO: Put back tag button (or just the T hotkey) */}
-      {fileStore.showsMissingContent ? (
+      {uiStore.showsMissingContent ? (
         // Only show option to remove selected files in toolbar when viewing missing files */}
         <RemoveFilesPopover uiStore={uiStore} fileStore={fileStore} />
       ) : (

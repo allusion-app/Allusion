@@ -21,6 +21,12 @@ export const enum ViewMethod {
 type ThumbnailSize = 'small' | 'medium' | 'large';
 type ThumbnailShape = 'square' | 'letterbox';
 const PREFERENCES_STORAGE_KEY = 'preferences';
+const enum Content {
+  All,
+  Missing,
+  Untagged,
+  Query,
+}
 
 export interface IHotkeyMap {
   // Outerliner actions
@@ -146,6 +152,9 @@ class UiStore {
   @observable importDirectory: string = ''; // for browser extension. Must be a (sub-folder of a) Location
 
   @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
+
+  /** The origin of the current files that are shown */
+  @observable private content: Content = Content.All;
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -293,8 +302,8 @@ class UiStore {
   }
 
   @action.bound openToolbarFileRemover() {
-    if (!this.rootStore.fileStore.showsMissingContent) {
-      this.rootStore.fileStore.fetchMissingFiles();
+    if (!this.showsMissingContent) {
+      this.viewMissingContent();
     }
     this.isToolbarFileRemoverOpen = true;
   }
@@ -409,6 +418,87 @@ class UiStore {
       this.searchCriteriaList[index] = crit;
       this.viewQueryContent();
     }
+  }
+
+  /////////////////// View Actions ///////////////////
+  @computed get showsAllContent() {
+    return this.content === Content.All;
+  }
+
+  @computed get showsUntaggedContent() {
+    return this.content === Content.Untagged;
+  }
+
+  @computed get showsMissingContent() {
+    return this.content === Content.Missing;
+  }
+
+  @computed get showsQueryContent() {
+    return this.content === Content.Query;
+  }
+
+  @action.bound viewAllContent(): Promise<void> {
+    this.clearSearchCriteriaList();
+    this.setContentAll();
+    return this.rootStore.fileStore.fetchAllFiles();
+  }
+
+  @action.bound viewQueryContent(): Promise<void> {
+    const criteria = this.searchCriteriaList.map((c) => c.serialize());
+    this.setContentQuery();
+    return this.rootStore.fileStore.fetchFilesByQuery(criteria, this.searchMatchAny);
+  }
+
+  @action.bound viewUntaggedContent(): Promise<void> {
+    const { fileStore, tagStore } = this.rootStore;
+    this.clearSearchCriteriaList();
+    const criteria = new ClientTagSearchCriteria(tagStore, 'tags');
+    this.searchCriteriaList.push(criteria);
+    this.setContentUntagged();
+    return fileStore.fetchFilesByQuery(criteria.serialize(), this.searchMatchAny);
+  }
+
+  @action.bound viewMissingContent(): Promise<void> {
+    this.clearSearchCriteriaList();
+    this.setContentMissing();
+    return this.rootStore.fileStore.fetchMissingFiles();
+  }
+
+  @action.bound async refetch(): Promise<void> {
+    if (this.showsAllContent) {
+      return this.viewAllContent();
+    } else if (this.showsUntaggedContent) {
+      return this.viewUntaggedContent();
+    } else if (this.showsQueryContent) {
+      return this.viewQueryContent();
+    } else if (this.showsMissingContent) {
+      return this.viewMissingContent();
+    }
+  }
+
+  @action private setContentQuery() {
+    this.content = Content.Query;
+    if (this.isSlideMode) {
+      this.disableSlideMode();
+    }
+  }
+
+  @action private setContentAll() {
+    this.content = Content.All;
+    if (this.isSlideMode) {
+      this.disableSlideMode();
+    }
+  }
+
+  @action private setContentUntagged() {
+    this.content = Content.Untagged;
+    if (this.isSlideMode) {
+      this.disableSlideMode();
+    }
+  }
+
+  @action private setContentMissing() {
+    this.content = Content.Missing;
   }
 
   @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {
@@ -545,14 +635,6 @@ class UiStore {
   }
 
   /////////////////// Helper methods ///////////////////
-  @action private viewAllContent() {
-    this.rootStore.fileStore.fetchAllFiles();
-  }
-
-  @action private viewQueryContent() {
-    this.rootStore.fileStore.fetchFilesByQuery();
-  }
-
   @action private setTheme(theme: 'light' | 'dark' = 'dark') {
     this.theme = theme;
   }

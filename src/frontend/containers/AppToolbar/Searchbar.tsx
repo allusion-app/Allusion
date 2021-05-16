@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 
 const Searchbar = observer(() => {
-  const { uiStore, tagStore, fileStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useContext(StoreContext);
   const searchCriteriaList = uiStore.searchCriteriaList;
 
   // Only show quick search bar when all criteria are tags,
@@ -24,9 +24,9 @@ const Searchbar = observer(() => {
   return (
     <div className="searchbar">
       {isQuickSearch ? (
-        <QuickSearchList uiStore={uiStore} tagStore={tagStore} fileStore={fileStore} />
+        <QuickSearchList uiStore={uiStore} tagStore={tagStore} />
       ) : (
-        <CriteriaList uiStore={uiStore} tagStore={tagStore} fileStore={fileStore} />
+        <CriteriaList uiStore={uiStore} tagStore={tagStore} />
       )}
     </div>
   );
@@ -43,16 +43,14 @@ import TagStore from 'src/frontend/stores/TagStore';
 import { IconButton, IconSet, Tag } from 'widgets';
 
 import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
-import FileStore from 'src/frontend/stores/FileStore';
 import { CustomKeyDict } from '../types';
 
 interface ISearchListProps {
   uiStore: UiStore;
   tagStore: TagStore;
-  fileStore: FileStore;
 }
 
-const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListProps) => {
+const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
     if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
@@ -107,7 +105,7 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
             text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
             onClick={() => {
               uiStore.toggleSearchMatchAny();
-              fileStore.refetch();
+              uiStore.refetch();
             }}
             large
             disabled={selectedItems.length === 0}
@@ -120,7 +118,7 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
   );
 });
 
-const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
+const CriteriaList = observer(({ uiStore }: ISearchListProps) => {
   return (
     <div className="input" onClick={uiStore.toggleAdvancedSearch}>
       <div className="multiautocomplete-input">
@@ -144,7 +142,7 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
             text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
             onClick={(e) => {
               uiStore.toggleSearchMatchAny();
-              fileStore.refetch();
+              uiStore.refetch();
               e.stopPropagation();
               e.preventDefault();
             }}

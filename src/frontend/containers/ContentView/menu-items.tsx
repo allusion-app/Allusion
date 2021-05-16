@@ -9,19 +9,17 @@ import { RendererMessenger } from 'src/Messaging';
 import { IconSet } from 'widgets';
 import { MenuItem } from 'widgets/menus';
 
-export const MissingFileMenuItems = observer(
-  ({ uiStore, fileStore }: { uiStore: UiStore; fileStore: FileStore }) => (
-    <>
-      <MenuItem
-        onClick={fileStore.fetchMissingFiles}
-        text="Open Recovery Panel"
-        icon={IconSet.WARNING_BROKEN_LINK}
-        disabled={fileStore.showsMissingContent}
-      />
-      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
-    </>
-  ),
-);
+export const MissingFileMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => (
+  <>
+    <MenuItem
+      onClick={uiStore.viewMissingContent}
+      text="Open Recovery Panel"
+      icon={IconSet.WARNING_BROKEN_LINK}
+      disabled={uiStore.showsMissingContent}
+    />
+    <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+  </>
+));
 
 export const FileViewerMenuItems = ({
   file,

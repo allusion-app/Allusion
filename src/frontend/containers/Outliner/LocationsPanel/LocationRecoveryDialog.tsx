@@ -189,7 +189,7 @@ const RecoveryActions = observer(
 );
 
 const LocationRecoveryDialog = () => {
-  const { uiStore, locationStore, fileStore } = useContext(StoreContext);
+  const { uiStore, locationStore } = useContext(StoreContext);
   const { isLocationRecoveryOpen } = uiStore;
 
   const [match, setMatch] = useState<IMatch>();
@@ -237,7 +237,7 @@ const LocationRecoveryDialog = () => {
       if (!location.isInitialized) {
         locationStore.initLocation(location);
       } else {
-        fileStore.refetch();
+        uiStore.refetch();
       }
       AppToaster.show({ message: `Re-discovered ${location.path}!`, timeout: 5000 });
     } else {

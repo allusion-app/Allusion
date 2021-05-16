@@ -5,19 +5,19 @@ import LOGO_FC from 'resources/logo/svg/full-color/allusion-logomark-fc.svg';
 import StoreContext from '../../contexts/StoreContext';
 
 const Placeholder = observer(() => {
-  const { fileStore, tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useContext(StoreContext);
 
-  if (fileStore.showsAllContent && tagStore.isEmpty) {
+  if (uiStore.showsAllContent && tagStore.isEmpty) {
     // No tags exist, and no images added: Assuming it's a new user -> Show a welcome screen
     return <Welcome />;
-  } else if (fileStore.showsAllContent) {
+  } else if (uiStore.showsAllContent) {
     return <NoContentFound uiStore={uiStore} />;
-  } else if (fileStore.showsQueryContent) {
-    return <NoQueryContent fileStore={fileStore} />;
-  } else if (fileStore.showsUntaggedContent) {
-    return <NoUntaggedContent fileStore={fileStore} />;
-  } else if (fileStore.showsMissingContent) {
-    return <NoMissingContent fileStore={fileStore} />;
+  } else if (uiStore.showsQueryContent) {
+    return <NoQueryContent uiStore={uiStore} />;
+  } else if (uiStore.showsUntaggedContent) {
+    return <NoUntaggedContent uiStore={uiStore} />;
+  } else if (uiStore.showsMissingContent) {
+    return <NoMissingContent uiStore={uiStore} />;
   } else {
     return <BugReport />;
   }
@@ -25,7 +25,6 @@ const Placeholder = observer(() => {
 
 export default Placeholder;
 
-import FileStore from '../../stores/FileStore';
 import UiStore from '../../stores/UiStore';
 
 import { IconSet, Button, ButtonGroup, SVG } from 'widgets';
@@ -68,7 +67,7 @@ const NoContentFound = ({ uiStore }: { uiStore: UiStore }) => {
   );
 };
 
-const NoQueryContent = ({ fileStore }: { fileStore: FileStore }) => {
+const NoQueryContent = ({ uiStore }: { uiStore: UiStore }) => {
   return (
     <ContentPlaceholder title="No images found" icon={IconSet.SEARCH}>
       <p>Try searching for something else.</p>
@@ -76,13 +75,13 @@ const NoQueryContent = ({ fileStore }: { fileStore: FileStore }) => {
         <Button
           text="All images"
           icon={IconSet.MEDIA}
-          onClick={fileStore.fetchAllFiles}
+          onClick={uiStore.viewAllContent}
           styling="outlined"
         />
         <Button
           text="Untagged"
           icon={IconSet.TAG_BLANCO}
-          onClick={fileStore.fetchUntaggedFiles}
+          onClick={uiStore.viewUntaggedContent}
           styling="outlined"
         />
       </ButtonGroup>
@@ -90,21 +89,21 @@ const NoQueryContent = ({ fileStore }: { fileStore: FileStore }) => {
   );
 };
 
-const NoUntaggedContent = ({ fileStore }: { fileStore: FileStore }) => {
+const NoUntaggedContent = ({ uiStore }: { uiStore: UiStore }) => {
   return (
     <ContentPlaceholder title="No untagged images" icon={IconSet.TAG}>
       <p>All images have been tagged. Nice work!</p>
       <Button
         text="All Images"
         icon={IconSet.MEDIA}
-        onClick={fileStore.fetchAllFiles}
+        onClick={uiStore.viewAllContent}
         styling="outlined"
       />
     </ContentPlaceholder>
   );
 };
 
-const NoMissingContent = ({ fileStore }: { fileStore: FileStore }) => {
+const NoMissingContent = ({ uiStore }: { uiStore: UiStore }) => {
   return (
     <ContentPlaceholder title="No missing images" icon={IconSet.WARNING_BROKEN_LINK}>
       <p>Try searching for something else.</p>
@@ -112,13 +111,13 @@ const NoMissingContent = ({ fileStore }: { fileStore: FileStore }) => {
         <Button
           text="All images"
           icon={IconSet.MEDIA}
-          onClick={fileStore.fetchAllFiles}
+          onClick={uiStore.viewAllContent}
           styling="outlined"
         />
         <Button
           text="Untagged"
           icon={IconSet.TAG_BLANCO}
-          onClick={fileStore.fetchUntaggedFiles}
+          onClick={uiStore.viewUntaggedContent}
           styling="outlined"
         />
       </ButtonGroup>

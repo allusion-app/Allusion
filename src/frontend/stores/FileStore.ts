@@ -2,7 +2,6 @@ import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
-import ExifIO from 'src/backend/ExifIO';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
@@ -17,18 +16,9 @@ const FILE_STORAGE_KEY = 'Allusion_File';
 /** These fields are stored and recovered when the application opens up */
 const PersistentPreferenceFields: Array<keyof FileStore> = ['fileOrder', 'orderBy'];
 
-const enum Content {
-  All,
-  Missing,
-  Untagged,
-  Query,
-}
-
 class FileStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
-
-  public exifTool: ExifIO;
 
   readonly fileList = observable<ClientFile>([]);
   /**
@@ -39,8 +29,6 @@ class FileStore {
   /** A map of file ID to its index in the file list, for quick lookups by ID */
   private readonly index = new Map<ID, number>();
 
-  /** The origin of the current files that are shown */
-  @observable private content: Content = Content.All;
   @observable fileOrder: FileOrder = FileOrder.Desc;
   @observable orderBy: keyof IFile = 'dateAdded';
   @observable numTotalFiles = 0;
@@ -57,174 +45,18 @@ class FileStore {
 
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
-    this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
+    this.debouncedRefetch = debounce(this.rootStore.uiStore.refetch, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
-
-    this.exifTool = new ExifIO();
-  }
-
-  @action.bound async readTagsFromFiles() {
-    const toastKey = 'read-tags-from-file';
-    try {
-      await this.exifTool.initialize();
-      const numFiles = runInAction(() => this.fileList.length);
-      for (let i = 0; i < numFiles; i++) {
-        AppToaster.show(
-          {
-            message: `Reading tags from files ${((100 * i) / numFiles).toFixed(0)}%...`,
-            timeout: 0,
-          },
-          toastKey,
-        );
-
-        const absolutePath = runInAction(() => this.fileList[i].absolutePath);
-
-        try {
-          const tagsNameHierarchies = await this.exifTool.readTags(absolutePath);
-
-          // Now that we know the tag names in file metadata, add them to the files in Allusion
-          // Main idea: Find matching tag with same name, otherwise, insert new
-          //   for now, just match by the name at the bottom of the hierarchy
-
-          const { tagStore } = this.rootStore;
-          for (const tagHierarchy of tagsNameHierarchies) {
-            const match = tagStore.findByName(tagHierarchy[tagHierarchy.length - 1]);
-            if (match !== undefined) {
-              // If there is a match to the leaf tag, just add it to the file
-              runInAction(() => this.fileList[i].addTag(match));
-            } else {
-              // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
-              let curTag = tagStore.root;
-              for (const nodeName of tagHierarchy) {
-                const nodeMatch = tagStore.findByName(nodeName);
-                if (nodeMatch !== undefined) {
-                  curTag = nodeMatch;
-                } else {
-                  curTag = await tagStore.create(curTag, nodeName);
-                }
-              }
-              this.fileList[i].addTag(curTag);
-            }
-          }
-        } catch (e) {
-          console.error('Could not import tags for', absolutePath, e);
-        }
-      }
-      AppToaster.show(
-        {
-          message: 'Reading tags from files... Done!',
-          timeout: 5000,
-        },
-        toastKey,
-      );
-    } catch (e) {
-      console.error('Could not read tags', e);
-      AppToaster.show(
-        {
-          message: 'Reading tags from files failed. Check the dev console for more details',
-          timeout: 5000,
-        },
-        toastKey,
-      );
-    } finally {
-      await this.exifTool.close();
-    }
-  }
-
-  @action.bound async writeTagsToFiles() {
-    const toastKey = 'write-tags-to-file';
-    try {
-      const { tagStore } = this.rootStore;
-      await this.exifTool.initialize();
-      const numFiles = runInAction(() => this.fileList.length);
-      const tagFilePairs = this.fileList.map((f) => ({
-        absolutePath: f.absolutePath,
-        tagHierarchy: Array.from(f.tags).map((t) =>
-          tagStore.getTreePath(t).map(action((t) => t.name)),
-        ),
-      }));
-      console.log(tagFilePairs);
-      let lastToastVal = '0';
-      for (let i = 0; i < tagFilePairs.length; i++) {
-        const newToastVal = ((100 * i) / numFiles).toFixed(0);
-        if (lastToastVal !== newToastVal) {
-          lastToastVal = newToastVal;
-          AppToaster.show(
-            {
-              message: `Writing tags to files ${newToastVal}%...`,
-              timeout: 0,
-            },
-            toastKey,
-          );
-        }
-
-        const { absolutePath, tagHierarchy } = tagFilePairs[i];
-        try {
-          await this.exifTool.writeTags(absolutePath, tagHierarchy);
-        } catch (e) {
-          console.error('Could not write tags to', absolutePath, tagHierarchy, e);
-        }
-      }
-      AppToaster.show(
-        {
-          message: 'Writing tags to files... Done!',
-          timeout: 5000,
-        },
-        toastKey,
-      );
-    } catch (e) {
-      console.error('Could not write tags', e);
-      AppToaster.show(
-        {
-          message: 'Writing tags to files failed. Check the dev console for more details',
-          timeout: 5000,
-        },
-        toastKey,
-      );
-    } finally {
-      this.exifTool.close();
-    }
-  }
-
-  @computed get showsAllContent() {
-    return this.content === Content.All;
-  }
-
-  @computed get showsUntaggedContent() {
-    return this.content === Content.Untagged;
-  }
-
-  @computed get showsMissingContent() {
-    return this.content === Content.Missing;
-  }
-
-  @computed get showsQueryContent() {
-    return this.content === Content.Query;
   }
 
   @action.bound switchFileOrder() {
     this.setFileOrder(this.fileOrder === FileOrder.Desc ? FileOrder.Asc : FileOrder.Desc);
-    this.refetch();
+    this.rootStore.uiStore.refetch();
   }
 
   @action.bound orderFilesBy(prop: keyof IFile = 'dateAdded') {
     this.setOrderBy(prop);
-    this.refetch();
-  }
-
-  @action.bound setContentQuery() {
-    this.content = Content.Query;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
-  }
-
-  @action.bound setContentAll() {
-    this.content = Content.All;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
-  }
-
-  @action.bound setContentUntagged() {
-    this.content = Content.Untagged;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    this.rootStore.uiStore.refetch();
   }
 
   /**
@@ -259,48 +91,15 @@ class FileStore {
         this.deselect(file);
         this.removeThumbnail(file.absolutePath);
       }
-      this.refetch();
+      this.rootStore.uiStore.refetch();
     } catch (err) {
       console.error('Could not remove files', err);
     }
   }
 
-  @action.bound refetch() {
-    if (this.showsAllContent) {
-      this.fetchAllFiles();
-    } else if (this.showsUntaggedContent) {
-      this.fetchUntaggedFiles();
-    } else if (this.showsQueryContent) {
-      this.fetchFilesByQuery();
-    } else if (this.showsMissingContent) {
-      this.fetchMissingFiles();
-    }
-  }
-
   @action.bound async fetchAllFiles() {
     try {
-      this.rootStore.uiStore.clearSearchCriteriaList();
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
-      this.setContentAll();
-      return this.updateFromBackend(fetchedFiles);
-    } catch (err) {
-      console.error('Could not load all files', err);
-    }
-  }
-
-  @action.bound async fetchUntaggedFiles() {
-    try {
-      const { uiStore, tagStore } = this.rootStore;
-      uiStore.clearSearchCriteriaList();
-      const criteria = new ClientTagSearchCriteria(tagStore, 'tags');
-      uiStore.searchCriteriaList.push(criteria);
-      const fetchedFiles = await this.backend.searchFiles(
-        criteria.serialize(),
-        this.orderBy,
-        this.fileOrder,
-        uiStore.searchMatchAny,
-      );
-      this.setContentUntagged();
       return this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
@@ -309,14 +108,7 @@ class FileStore {
 
   @action.bound async fetchMissingFiles() {
     try {
-      const {
-        orderBy,
-        fileOrder,
-        rootStore: { uiStore },
-      } = this;
-
-      uiStore.searchCriteriaList.clear();
-      this.setContentMissing();
+      const { orderBy, fileOrder } = this;
 
       // Fetch all files, then check their existence and only show the missing ones
       // Similar to {@link updateFromBackend}, but the existence check needs to be awaited before we can show the images
@@ -370,20 +162,20 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchFilesByQuery() {
-    const { uiStore } = this.rootStore;
-    const criteria = uiStore.searchCriteriaList.map((c) => c.serialize());
-    if (criteria.length === 0) {
+  @action.bound async fetchFilesByQuery(
+    criteria: SearchCriteria<IFile> | SearchCriteria<IFile>[],
+    searchMatchAny: boolean,
+  ) {
+    if (Array.isArray(criteria) && criteria.length === 0) {
       return this.fetchAllFiles();
     }
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria as [SearchCriteria<IFile>],
+        criteria as any,
         this.orderBy,
         this.fileOrder,
-        uiStore.searchMatchAny,
+        searchMatchAny,
       );
-      this.setContentQuery();
       return this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on criteria', e);
@@ -540,8 +332,6 @@ class FileStore {
       return this.clearFileList();
     }
 
-    const locationIds = this.rootStore.locationStore.locationList.map((l) => l.id);
-
     // For every new file coming in, either re-use the existing client file if it exists,
     // or construct a new client file
     const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
@@ -557,15 +347,6 @@ class FileStore {
     // we can simply check whether they exist after they start rendering
     const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
       clientFile.setBroken(!(await fse.pathExists(clientFile.absolutePath)));
-
-      // TODO: DEBUG CHECK. Remove this when going out for release version
-      // Check if file belongs to a location; shouldn't be needed, but useful for during development
-      if (!locationIds.includes(clientFile.locationId)) {
-        console.warn(
-          'DEBUG: Found a file that does not belong to any location! Will still show up. SHOULD NEVER HAPPEN',
-          clientFile,
-        );
-      }
     });
 
     // Run the existence check with at most N checks in parallel
@@ -654,10 +435,10 @@ class FileStore {
       this.index.set(file.id, index);
     }
     this.numMissingFiles = missingFiles;
-    if (this.showsAllContent) {
+    if (this.rootStore.uiStore.showsAllContent) {
       this.numTotalFiles = this.fileList.length;
       this.numUntaggedFiles = untaggedFiles;
-    } else if (this.showsUntaggedContent) {
+    } else if (this.rootStore.uiStore.showsUntaggedContent) {
       this.numUntaggedFiles = this.fileList.length;
     }
   }
@@ -679,10 +460,6 @@ class FileStore {
 
   @action private setOrderBy(prop: keyof IFile = 'dateAdded') {
     this.orderBy = prop;
-  }
-
-  @action private setContentMissing() {
-    this.content = Content.Missing;
   }
 
   @action private incrementNumMissingFiles() {

@@ -18,23 +18,23 @@ const enum TooltipInfo {
 }
 
 export const OutlinerActionBar = observer(() => {
-  const { fileStore } = useContext(StoreContext);
+  const { fileStore, uiStore } = useContext(StoreContext);
   return (
     <Toolbar id="actionbar" label="Action Bar" controls="content-view">
       <ToolbarToggleButton
         showLabel="always"
         text={fileStore.numTotalFiles}
         icon={IconSet.MEDIA}
-        onClick={fileStore.fetchAllFiles}
-        pressed={fileStore.showsAllContent}
+        onClick={uiStore.viewAllContent}
+        pressed={uiStore.showsAllContent}
         tooltip={TooltipInfo.AllImages}
       />
       <ToolbarToggleButton
         showLabel="always"
         text={fileStore.numUntaggedFiles}
         icon={IconSet.TAG_BLANCO}
-        onClick={fileStore.fetchUntaggedFiles}
-        pressed={fileStore.showsUntaggedContent}
+        onClick={uiStore.viewUntaggedContent}
+        pressed={uiStore.showsUntaggedContent}
         tooltip={TooltipInfo.Untagged}
       />
       {fileStore.numMissingFiles > 0 && (
@@ -42,8 +42,8 @@ export const OutlinerActionBar = observer(() => {
           showLabel="always"
           text={fileStore.numMissingFiles}
           icon={IconSet.WARNING_FILL}
-          onClick={fileStore.fetchMissingFiles}
-          pressed={fileStore.showsMissingContent}
+          onClick={uiStore.viewMissingContent}
+          pressed={uiStore.showsMissingContent}
           tooltip={TooltipInfo.Missing}
         />
       )}
