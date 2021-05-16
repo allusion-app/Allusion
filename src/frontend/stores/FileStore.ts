@@ -46,6 +46,7 @@ class FileStore {
   @observable numTotalFiles = 0;
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
+  readonly selection = observable(new Set<Readonly<ClientFile>>());
 
   debouncedRefetch: () => void;
 
@@ -236,7 +237,7 @@ class FileStore {
    */
   @action.bound hideFile(file: ClientFile) {
     file.setBroken(true);
-    this.rootStore.uiStore.deselectFile(file);
+    this.deselect(file);
     this.incrementNumMissingFiles();
     if (file.tags.size === 0) {
       this.decrementNumUntaggedFiles();
@@ -255,7 +256,7 @@ class FileStore {
 
       // Remove files from stores
       for (const file of files) {
-        this.rootStore.uiStore.deselectFile(file);
+        this.deselect(file);
         this.removeThumbnail(file.absolutePath);
       }
       this.refetch();
@@ -410,9 +411,10 @@ class FileStore {
   }
 
   // Removes all items from fileList
-  @action.bound clearFileList() {
-    this.fileList.clear();
+  @action clearFileList() {
+    this.deselectAll();
     this.index.clear();
+    this.fileList.clear();
   }
 
   @action get(id: ID): ClientFile | undefined {
@@ -450,6 +452,53 @@ class FileStore {
     this.backend.saveFile(file);
   }
 
+  @computed get firstSelectedFile(): Readonly<ClientFile> | undefined {
+    for (const file of this.selection) {
+      return file;
+    }
+    return undefined;
+  }
+
+  @action select(file: Readonly<ClientFile>, clear?: boolean) {
+    if (clear === true) {
+      this.deselectAll();
+    }
+    this.selection.add(file);
+    return this.getIndex(file.id);
+  }
+
+  @action deselect(file: Readonly<ClientFile>) {
+    this.selection.delete(file);
+  }
+
+  @action toggleSelection(file: Readonly<ClientFile>, clear?: boolean) {
+    if (this.selection.has(file)) {
+      this.selection.delete(file);
+    } else {
+      if (clear) {
+        this.selection.clear();
+      }
+      this.selection.add(file);
+    }
+  }
+
+  @action selectRange(start: number, end: number, additive?: boolean) {
+    if (!additive) {
+      this.selection.clear();
+    }
+    for (let i = start; i <= end; i++) {
+      this.selection.add(this.fileList[i]);
+    }
+  }
+
+  @action.bound selectAll() {
+    this.selection.replace(this.fileList);
+  }
+
+  @action.bound deselectAll() {
+    this.selection.clear();
+  }
+
   @action recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
     if (prefsString) {
@@ -485,7 +534,7 @@ class FileStore {
 
   @action private async updateFromBackend(backendFiles: IFile[]): Promise<void> {
     if (backendFiles.length === 0) {
-      this.rootStore.uiStore.clearFileSelection();
+      this.deselectAll();
       this.fileListLastModified = new Date();
       return this.clearFileList();
     }
@@ -537,10 +586,9 @@ class FileStore {
 
   /** Remove files from selection that are not in the file list anymore */
   @action private cleanFileSelection() {
-    const { fileSelection } = this.rootStore.uiStore;
-    for (const file of fileSelection) {
+    for (const file of this.selection) {
       if (!this.index.has(file.id)) {
-        fileSelection.delete(file);
+        this.selection.delete(file);
       }
     }
   }

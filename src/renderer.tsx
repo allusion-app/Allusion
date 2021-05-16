@@ -46,14 +46,13 @@ if (IS_PREVIEW_WINDOW) {
     rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
     rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
     rootStore.uiStore.enableSlideMode();
-    rootStore.uiStore.isInspectorOpen && rootStore.uiStore.toggleInspector();
+    rootStore.uiStore.closeInspector();
     rootStore.fileStore.fetchFilesByIDs(ids);
   });
 
   // Close preview with space
   window.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.key === ' ' || e.key === 'Escape') {
-      rootStore.uiStore.clearFileSelection();
       rootStore.fileStore.clearFileList();
       rootStore.uiStore.enableSlideMode();
 

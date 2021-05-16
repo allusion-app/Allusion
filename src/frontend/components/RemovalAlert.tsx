@@ -104,7 +104,7 @@ export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
 
 export const FileRemoval = observer(() => {
   const { fileStore, uiStore } = useContext(StoreContext);
-  const selection = uiStore.fileSelection;
+  const selection = fileStore.selection;
 
   const handleConfirm = action(() => {
     uiStore.closeToolbarFileRemover();

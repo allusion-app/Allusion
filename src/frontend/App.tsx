@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import StoreContext from './contexts/StoreContext';
@@ -21,7 +21,7 @@ const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
 const App = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useContext(StoreContext);
 
   // Listen to responses of Web Workers
   useWorkerListener();
@@ -29,30 +29,26 @@ const App = observer(() => {
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
 
-  const isOutlinerOpen = uiStore.isOutlinerOpen;
+  const handleGlobalShortcuts = useRef((e: KeyboardEvent) => {
+    uiStore.processGlobalShortCuts(e, fileStore);
+  });
 
   useEffect(() => {
     setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
 
     // Add listener for global keyboard shortcuts
-    window.addEventListener('keydown', uiStore.processGlobalShortCuts);
+    const processGlobalShortCuts = handleGlobalShortcuts.current;
+    window.addEventListener('keydown', processGlobalShortCuts);
 
-    return () => window.removeEventListener('keydown', uiStore.processGlobalShortCuts);
-  }, [uiStore.processGlobalShortCuts]);
-
-  // Automatically expand outliner when detecting a drag event
-  const openOutlinerOnDragEnter = useCallback(() => {
-    if (!isOutlinerOpen) {
-      uiStore.toggleOutliner();
-    }
-  }, [uiStore, isOutlinerOpen]);
+    return () => window.removeEventListener('keydown', processGlobalShortCuts);
+  }, []);
 
   if (!uiStore.isInitialized || showSplash) {
     return <SplashScreen />;
   }
 
   return (
-    <DropContextProvider onDragEnter={openOutlinerOnDragEnter}>
+    <DropContextProvider onDragEnter={uiStore.openOutliner}>
       <div
         data-os={PLATFORM}
         data-fullscreen={uiStore.isFullScreen}

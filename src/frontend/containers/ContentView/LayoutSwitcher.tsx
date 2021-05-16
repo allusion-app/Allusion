@@ -1,6 +1,6 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import RootStore from 'src/frontend/stores/RootStore';
 import { RendererMessenger } from 'src/Messaging';
@@ -44,7 +44,7 @@ const Layout = ({
   /** The last item that is selected in a multi-selection */
   const lastSelectionIndex = useRef<number>();
 
-  const handleFileSelect = useCallback(
+  const handleFileSelect = useRef(
     (selectedFile: ClientFile, toggleSelection: boolean, rangeSelection: boolean) => {
       /** The index of the actived item */
       const i = fileStore.getIndex(selectedFile.id);
@@ -53,7 +53,7 @@ const Layout = ({
       if (lastSelectionIndex.current === undefined) {
         initialSelectionIndex.current = i;
         lastSelectionIndex.current = i;
-        uiStore.toggleFileSelection(selectedFile, true);
+        fileStore.toggleSelection(selectedFile, true);
         return;
       }
       // Mark this index as the last item that was selected
@@ -64,20 +64,19 @@ const Layout = ({
           return;
         }
         if (i < initialSelectionIndex.current) {
-          uiStore.selectFileRange(i, initialSelectionIndex.current, toggleSelection);
+          fileStore.selectRange(i, initialSelectionIndex.current, toggleSelection);
         } else {
-          uiStore.selectFileRange(initialSelectionIndex.current, i, toggleSelection);
+          fileStore.selectRange(initialSelectionIndex.current, i, toggleSelection);
         }
       } else if (toggleSelection) {
-        uiStore.toggleFileSelection(selectedFile);
+        fileStore.toggleSelection(selectedFile);
         initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
       } else {
-        uiStore.selectFile(selectedFile, true);
+        fileStore.select(selectedFile, true);
         initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
       }
     },
-    [fileStore, uiStore],
-  );
+  ).current;
 
   // Reset selection range when number of items changes: Else you can get phantom files when continuing your selection
   useEffect(() => {
@@ -189,7 +188,7 @@ export function createSubmitCommand(
 
       case GallerySelector.DoubleClick:
         if (!command.payload.isBroken) {
-          uiStore.selectFile(command.payload, true);
+          fileStore.select(command.payload, true);
           uiStore.enableSlideMode();
         }
         break;
@@ -200,11 +199,11 @@ export function createSubmitCommand(
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
+            <FileViewerMenuItems file={file} uiStore={uiStore} fileStore={fileStore} />
           ),
           <ExternalAppMenuItems key="external" file={file} />,
         ]);
-        if (!uiStore.fileSelection.has(file)) {
+        if (!fileStore.selection.has(file)) {
           // replace selection with context menu, like Windows file explorer
           select(file, false, false);
         }
@@ -217,7 +216,7 @@ export function createSubmitCommand(
           file.isBroken ? (
             <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
           ) : (
-            <SlideFileViewerMenuItems file={file} uiStore={uiStore} />
+            <SlideFileViewerMenuItems file={file} uiStore={uiStore} fileStore={fileStore} />
           ),
           <ExternalAppMenuItems key="external" file={file} />,
         ]);
@@ -232,13 +231,11 @@ export function createSubmitCommand(
       // (e.g. only limited to thumbnails, not full images).
       case GallerySelector.DragStart: {
         const file = command.payload;
-        if (!uiStore.fileSelection.has(file)) {
+        if (!fileStore.selection.has(file)) {
           return;
         }
-        if (uiStore.fileSelection.size > 1) {
-          RendererMessenger.startDragExport(
-            Array.from(uiStore.fileSelection, (f) => f.absolutePath),
-          );
+        if (fileStore.selection.size > 1) {
+          RendererMessenger.startDragExport(Array.from(fileStore.selection, (f) => f.absolutePath));
         } else {
           RendererMessenger.startDragExport([file.absolutePath]);
         }
@@ -262,9 +259,7 @@ export function createSubmitCommand(
           const ctx = tagStore.getActiveTags(dndData.source.id);
 
           // Tag all selected files - unless the file that is being tagged is not selected
-          const filesToTag = uiStore.fileSelection.has(dropFile)
-            ? [...uiStore.fileSelection]
-            : [dropFile];
+          const filesToTag = fileStore.selection.has(dropFile) ? fileStore.selection : [dropFile];
 
           for (const tag of ctx) {
             for (const file of filesToTag) {

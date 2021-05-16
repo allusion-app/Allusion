@@ -8,6 +8,7 @@ import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, debounce } from '../utils';
+import FileStore from './FileStore';
 import RootStore from './RootStore';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
@@ -140,11 +141,6 @@ class UiStore {
   @observable isToolbarTagPopoverOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
 
-  // Selections
-  // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
-  // However, sets are more suitable because they have quicker lookup performance.
-  readonly fileSelection = observable(new Set<Readonly<ClientFile>>());
-
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
   @observable thumbnailDirectory: string = '';
@@ -261,22 +257,22 @@ class UiStore {
     this.setIsOutlinerOpen(!this.isOutlinerOpen);
   }
 
-  @action.bound openPreviewWindow() {
+  @action.bound openPreviewWindow(fileSelection: Set<Readonly<ClientFile>>) {
     // Don't open when no files have been selected
-    if (this.fileSelection.size === 0) {
+    if (fileSelection.size === 0) {
       return;
     }
 
     // If only one image was selected, open all images, but focus on the selected image. Otherwise, open selected images
     // TODO: FIXME: Disabled for now: makes it a lot less "snappy", takes a while for the message to come through
-    const previewFiles = Array.from(this.fileSelection);
+    const previewFiles = Array.from(fileSelection);
     // this.fileSelection.size === 1
     //   ? this.rootStore.fileStore.fileList
     //   : Array.from(this.fileSelection);
 
     RendererMessenger.sendPreviewFiles({
       ids: previewFiles.map((file) => file.id),
-      activeImgId: this.getFirstSelectedFileId(),
+      activeImgId: previewFiles?.[0].id,
       thumbnailDirectory: this.thumbnailDirectory,
     });
 
@@ -296,6 +292,10 @@ class UiStore {
     this.isInspectorOpen = true;
   }
 
+  @action.bound closeInspector() {
+    this.isInspectorOpen = false;
+  }
+
   @action.bound toggleSettings() {
     this.isSettingsOpen = !this.isSettingsOpen;
   }
@@ -312,8 +312,8 @@ class UiStore {
     this.isHelpCenterOpen = false;
   }
 
-  @action.bound toggleAbout() {
-    this.isAboutOpen = !this.isAboutOpen;
+  @action.bound openAbout() {
+    this.isAboutOpen = true;
   }
 
   @action.bound closeAbout() {
@@ -378,47 +378,6 @@ class UiStore {
 
   @action.bound toggleSearchMatchAny() {
     this.searchMatchAny = !this.searchMatchAny;
-  }
-
-  /////////////////// Selection actions ///////////////////
-  @action.bound selectFile(file: Readonly<ClientFile>, clear?: boolean) {
-    if (clear === true) {
-      this.clearFileSelection();
-    }
-    this.fileSelection.add(file);
-    this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
-  }
-
-  @action.bound deselectFile(file: Readonly<ClientFile>) {
-    this.fileSelection.delete(file);
-  }
-
-  @action.bound toggleFileSelection(file: Readonly<ClientFile>, clear?: boolean) {
-    if (this.fileSelection.has(file)) {
-      this.fileSelection.delete(file);
-    } else {
-      if (clear) {
-        this.fileSelection.clear();
-      }
-      this.fileSelection.add(file);
-    }
-  }
-
-  @action.bound selectFileRange(start: number, end: number, additive?: boolean) {
-    if (!additive) {
-      this.fileSelection.clear();
-    }
-    for (let i = start; i <= end; i++) {
-      this.fileSelection.add(this.rootStore.fileStore.fileList[i]);
-    }
-  }
-
-  @action.bound selectAllFiles() {
-    this.fileSelection.replace(this.rootStore.fileStore.fileList);
-  }
-
-  @action.bound clearFileSelection() {
-    this.fileSelection.clear();
   }
 
   /////////////////// Search Actions ///////////////////
@@ -491,7 +450,7 @@ class UiStore {
     this.storePersistentPreferences();
   }
 
-  @action.bound processGlobalShortCuts(e: KeyboardEvent) {
+  @action.bound processGlobalShortCuts(e: KeyboardEvent, fileStore: FileStore) {
     if ((e.target as HTMLElement).matches?.('input')) {
       return;
     }
@@ -513,7 +472,7 @@ class UiStore {
     } else if (matches(hotkeyMap.toggleHelpCenter)) {
       this.toggleHelpCenter();
     } else if (matches(hotkeyMap.openPreviewWindow)) {
-      this.openPreviewWindow();
+      this.openPreviewWindow(fileStore.selection);
       e.preventDefault(); // prevent scrolling with space when opening the preview window
       // Search
     } else if (matches(hotkeyMap.search)) {
@@ -615,17 +574,6 @@ class UiStore {
   }
 
   /////////////////// Helper methods ///////////////////
-  getFirstSelectedFileId(): ID | undefined {
-    return this.firstSelectedFile?.id;
-  }
-
-  @computed get firstSelectedFile(): Readonly<ClientFile> | undefined {
-    for (const file of this.fileSelection) {
-      return file;
-    }
-    return undefined;
-  }
-
   @action private viewAllContent() {
     this.rootStore.fileStore.fetchAllFiles();
   }

@@ -78,8 +78,8 @@ const SlideView = observer((props: ISlideView) => {
   // Go to the first selected image on load
   useEffect(() => {
     runInAction(() => {
-      if (uiStore.firstSelectedFile !== undefined) {
-        uiStore.setFirstItem(fileStore.getIndex(uiStore.firstSelectedFile.id));
+      if (fileStore.firstSelectedFile !== undefined) {
+        uiStore.setFirstItem(fileStore.getIndex(fileStore.firstSelectedFile.id));
       }
     });
   }, [fileStore, uiStore]);

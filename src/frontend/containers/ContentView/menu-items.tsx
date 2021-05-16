@@ -1,4 +1,5 @@
 import { shell } from 'electron';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { ClientFile } from 'src/entities/File';
@@ -21,17 +22,28 @@ export const MissingFileMenuItems = observer(
   ),
 );
 
-export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiStore: UiStore }) => {
+export const FileViewerMenuItems = ({
+  file,
+  uiStore,
+  fileStore,
+}: {
+  file: ClientFile;
+  uiStore: UiStore;
+  fileStore: FileStore;
+}) => {
   const handleViewFullSize = () => {
-    uiStore.selectFile(file, true);
+    fileStore.select(file, true);
+    uiStore.setFirstItem(fileStore.getIndex(file.id));
     uiStore.toggleSlideMode();
   };
 
-  const handlePreviewWindow = () => {
+  const handlePreviewWindow = action(() => {
     // Only clear selection if file is not already selected
-    uiStore.selectFile(file, !uiStore.fileSelection.has(file));
-    uiStore.openPreviewWindow();
-  };
+
+    fileStore.select(file, !fileStore.selection.has(file));
+    uiStore.setFirstItem(fileStore.getIndex(file.id));
+    uiStore.openPreviewWindow(fileStore.selection);
+  });
 
   return (
     <>
@@ -48,13 +60,16 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
 export const SlideFileViewerMenuItems = ({
   file,
   uiStore,
+  fileStore,
 }: {
   file: ClientFile;
   uiStore: UiStore;
+  fileStore: FileStore;
 }) => {
   const handlePreviewWindow = () => {
-    uiStore.selectFile(file, true);
-    uiStore.openPreviewWindow();
+    fileStore.select(file, true);
+    uiStore.setFirstItem(fileStore.getIndex(file.id));
+    uiStore.openPreviewWindow(fileStore.selection);
   };
 
   return (

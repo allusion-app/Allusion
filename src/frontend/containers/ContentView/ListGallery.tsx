@@ -53,7 +53,7 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   );
 
   const index = lastSelectionIndex.current;
-  const fileSelectionSize = uiStore.fileSelection.size;
+  const fileSelectionSize = fileStore.selection.size;
   useEffect(() => {
     if (index !== undefined && ref.current !== null && fileSelectionSize > 0) {
       ref.current.scrollToItem(Math.floor(index));

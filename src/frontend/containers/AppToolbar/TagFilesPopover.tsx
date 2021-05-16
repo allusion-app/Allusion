@@ -3,8 +3,8 @@ import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
+import FileStore from 'src/frontend/stores/FileStore';
 import TagStore from 'src/frontend/stores/TagStore';
-import UiStore from 'src/frontend/stores/UiStore';
 import { debounce } from 'src/frontend/utils';
 import { Option, Tag } from 'widgets';
 import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
@@ -32,14 +32,14 @@ function countFileTags(files: ObservableSet<Readonly<ClientFile>>) {
 }
 
 const TagFilesPopover = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { uiStore, fileStore, tagStore } = useContext(StoreContext);
 
   return (
     <>
       <ToolbarButton
         showLabel="never"
         icon={IconSet.TAG_LINE}
-        disabled={uiStore.fileSelection.size === 0 && !uiStore.isToolbarTagPopoverOpen}
+        disabled={fileStore.selection.size === 0 && !uiStore.isToolbarTagPopoverOpen}
         onClick={uiStore.toggleToolbarTagPopover}
         text="Tag selected files"
         tooltip={Tooltip.TagFiles}
@@ -48,7 +48,7 @@ const TagFilesPopover = observer(() => {
         isOpen={uiStore.isToolbarTagPopoverOpen}
         onClose={uiStore.closeToolbarTagPopover}
       >
-        <TagFilesWidget uiStore={uiStore} tagStore={tagStore} />
+        <TagFilesWidget tagStore={tagStore} fileStore={fileStore} />
       </FloatingDialog>
     </>
   );
@@ -56,27 +56,23 @@ const TagFilesPopover = observer(() => {
 
 export default TagFilesPopover;
 
-interface TagFilesWidgetProps {
-  uiStore: UiStore;
-  tagStore: TagStore;
-}
-
-const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => {
+const TagFilesWidget = observer((props: { tagStore: TagStore; fileStore: FileStore }) => {
+  const { tagStore, fileStore } = props;
   const [inputText, setInputText] = useState('');
 
-  const { counter, sortedTags } = countFileTags(uiStore.fileSelection);
+  const { counter, sortedTags } = countFileTags(fileStore.selection);
   const [matches, setMatches] = useState(tagStore.tagList);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [onSelect, onDeselect] = useRef([
     action((tag: Readonly<ClientTag>) => {
-      for (const f of uiStore.fileSelection) {
+      for (const f of fileStore.selection) {
         f.addTag(tag);
       }
     }),
     action((tag: Readonly<ClientTag>) => {
-      for (const f of uiStore.fileSelection) {
+      for (const f of fileStore.selection) {
         f.removeTag(tag);
       }
     }),
@@ -196,7 +192,7 @@ const TagFilesWidget = observer(({ uiStore, tagStore }: TagFilesWidgetProps) => 
         {sortedTags.map((t) => (
           <Tag
             key={t.id}
-            text={`${t.name}${uiStore.fileSelection.size > 1 ? ` (${counter.get(t)})` : ''}`}
+            text={`${t.name}${fileStore.selection.size > 1 ? ` (${counter.get(t)})` : ''}`}
             color={t.viewColor}
             onRemove={() => {
               onDeselect(t);

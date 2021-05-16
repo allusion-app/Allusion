@@ -128,7 +128,7 @@ const VirtualizedRenderer = observer(
     }, [layoutUpdateDate]);
 
     // When selection changes, scroll to last selected image. Nice when using cursor keys for navigation
-    const fileSelectionSize = uiStore.fileSelection.size;
+    const fileSelectionSize = fileStore.selection.size;
     useLayoutEffect(() => {
       // But don't scroll when there are no files selected:
       // else you will scroll when the user deselects everything

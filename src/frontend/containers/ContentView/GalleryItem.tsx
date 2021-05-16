@@ -14,6 +14,7 @@ interface ICell {
   file: ClientFile;
   mounted: boolean;
   uiStore: UiStore;
+  fileStore: FileStore;
   // Will use the original image instead of the thumbnail
   forceNoThumbnail?: boolean;
   submitCommand: (command: GalleryCommand) => void;
@@ -52,7 +53,7 @@ export const listColumns: IListColumn[] = [
   { title: 'Tags' },
 ];
 
-export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICell) => {
+export const ListCell = observer(({ file, mounted, uiStore, fileStore, submitCommand }: ICell) => {
   const portalTriggerRef = useRef<HTMLSpanElement>(null);
   const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
     file,
@@ -62,7 +63,7 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
     <div
       role="gridcell"
       tabIndex={-1}
-      aria-selected={uiStore.fileSelection.has(file)}
+      aria-selected={fileStore.selection.has(file)}
       {...eventHandlers}
     >
       {/* Filename */}
@@ -149,7 +150,7 @@ export const MasonryCell = observer(
       <div
         data-masonrycell
         tabIndex={-1}
-        aria-selected={uiStore.fileSelection.has(file)}
+        aria-selected={fileStore.selection.has(file)}
         style={style}
       >
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
@@ -180,7 +181,7 @@ export const MasonryCell = observer(
           />
         )}
         {/* Show tags when the option is enabled, or when the file is selected */}
-        {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
+        {(uiStore.isThumbnailTagOverlayEnabled || fileStore.selection.has(file)) &&
           (file.tags.size == 0 || !mounted ? (
             <span className="thumbnail-tags" />
           ) : (
@@ -308,7 +309,7 @@ const enum ThumbnailState {
   Error,
 }
 
-type IThumbnail = Omit<ICell, 'submitCommand'>;
+type IThumbnail = Omit<ICell, 'submitCommand' | 'fileStore'>;
 
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path

@@ -39,7 +39,7 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
         onClick={RendererMessenger.checkForUpdates}
         text="Check for updates"
       />
-      <MenuItem icon={IconSet.LOGO} onClick={uiStore.toggleAbout} text="About" />
+      <MenuItem icon={IconSet.LOGO} onClick={uiStore.openAbout} text="About" />
     </MenuButton>
   );
 });

@@ -301,20 +301,20 @@ class LocationStore {
   }
 
   @action.bound async delete(location: ClientLocation) {
+    const { fileStore } = this.rootStore;
+    const fileSelection = fileStore.selection;
     // Remove location from DB through backend
     await this.backend.removeLocation(location.id);
-    runInAction(() => {
-      // Remove deleted files from selection
-      for (const file of this.rootStore.uiStore.fileSelection) {
-        if (file.locationId === location.id) {
-          this.rootStore.uiStore.deselectFile(file);
-        }
+    // Remove deleted files from selection
+    for (const file of fileSelection) {
+      if (file.locationId === location.id) {
+        fileStore.deselect(file);
       }
-      // Remove location locally
-      this.locationList.remove(location);
-    });
-    this.rootStore.fileStore.refetch();
-    this.rootStore.fileStore.refetchFileCounts();
+    }
+    // Remove location locally
+    runInAction(() => this.locationList.remove(location));
+    fileStore.refetch();
+    fileStore.refetchFileCounts();
   }
 
   @action async addFile(path: string, location: ClientLocation) {

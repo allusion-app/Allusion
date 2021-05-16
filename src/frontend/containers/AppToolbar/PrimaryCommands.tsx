@@ -47,14 +47,14 @@ const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStor
   return (
     <>
       <OutlinerToggle />
-      <FileSelectionCommand uiStore={uiStore} fileStore={fileStore} />
+      <FileSelectionCommand fileStore={fileStore} />
 
       <Searchbar />
 
       {/* TODO: Put back tag button (or just the T hotkey) */}
       {fileStore.showsMissingContent ? (
         // Only show option to remove selected files in toolbar when viewing missing files */}
-        <RemoveFilesPopover uiStore={uiStore} />
+        <RemoveFilesPopover uiStore={uiStore} fileStore={fileStore} />
       ) : (
         // Only show when not viewing missing files (so it is replaced by the Delete button)
         <TagFilesPopover />
@@ -94,15 +94,15 @@ export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => 
   );
 });
 
-const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
-  const { uiStore, fileStore } = props;
-  const selectionCount = uiStore.fileSelection.size;
+const FileSelectionCommand = observer((props: { fileStore: FileStore }) => {
+  const { fileStore } = props;
+  const selectionCount = fileStore.selection.size;
   const fileCount = fileStore.fileList.length;
 
   const allFilesSelected = fileCount > 0 && selectionCount === fileCount;
   // If everything is selected, deselect all. Else, select all
   const handleToggleSelect = () => {
-    selectionCount === fileCount ? uiStore.clearFileSelection() : uiStore.selectAllFiles();
+    selectionCount === fileCount ? fileStore.deselectAll() : fileStore.selectAll();
   };
 
   return (
@@ -118,12 +118,13 @@ const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: Fil
   );
 });
 
-const RemoveFilesPopover = observer(({ uiStore }: { uiStore: UiStore }) => {
+const RemoveFilesPopover = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
+  const { uiStore, fileStore } = props;
   return (
     <>
       <ToolbarButton
         icon={IconSet.DELETE}
-        disabled={uiStore.fileSelection.size === 0}
+        disabled={fileStore.selection.size === 0}
         onClick={uiStore.openToolbarFileRemover}
         text="Delete"
         tooltip={Tooltip.Delete}
