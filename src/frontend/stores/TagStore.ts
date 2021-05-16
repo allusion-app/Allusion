@@ -13,11 +13,9 @@ import { ClientTag, ITag, ROOT_TAG_ID } from 'src/entities/Tag';
 class TagStore {
   private readonly backend: Backend;
 
-  private readonly _tagList = observable<ClientTag>([]);
-  readonly selection = observable(new Set<Readonly<ClientTag>>());
-
   /** A lookup map to speedup finding entities */
-  private readonly index = observable(new Map<ID, ClientTag>());
+  private readonly tags = observable(new Map<ID, ClientTag>());
+  readonly selection = observable(new Set<Readonly<ClientTag>>());
 
   constructor(backend: Backend) {
     this.backend = backend;
@@ -34,7 +32,8 @@ class TagStore {
   }
 
   @computed get root(): Readonly<ClientTag> {
-    return this._tagList[0];
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this.tags.get(ROOT_TAG_ID)!;
   }
 
   @computed get tagList(): readonly Readonly<ClientTag>[] {
@@ -45,8 +44,8 @@ class TagStore {
         pushTags(t.subTags);
       }
     };
-    if (this._tagList.length > 0) {
-      pushTags(this._tagList[0].subTags);
+    if (this.tags.size > 0) {
+      pushTags(this.root.subTags);
     }
     return tagTree;
   }
@@ -60,7 +59,7 @@ class TagStore {
   }
 
   @action get(tag: ID): ClientTag | undefined {
-    return this.index.get(tag);
+    return this.tags.get(tag);
   }
 
   @action getParent(tag: Readonly<ClientTag>): Readonly<ClientTag> {
@@ -163,7 +162,7 @@ class TagStore {
   }
 
   @action findByName(name: string): Readonly<ClientTag> | undefined {
-    return this._tagList.find((t) => t.name === name);
+    return this.tagList.find((t) => t.name === name);
   }
 
   @action selectionToCriterias(): ClientTagSearchCriteria<IFile>[] {
@@ -269,18 +268,14 @@ class TagStore {
   @action private createTagGraph(backendTags: ITag[]) {
     // Create tags
     for (const { id, name, dateAdded, color } of backendTags) {
-      // Create entity and set properties
-      // We have to do this because JavaScript does not allow multiple constructor.
-      const tag = new ClientTag(this, id, name, dateAdded, color);
-      // Add to index
-      this._tagList.push(tag);
-      this.index.set(tag.id, tag);
+      this.tags.set(id, new ClientTag(this, id, name, dateAdded, color));
     }
 
     // Set parent and add sub tags
-    for (let i = 0; i < backendTags.length; i++) {
-      const tag = this._tagList[i];
-      for (const id of backendTags[i].subTags) {
+    for (const { id, subTags } of backendTags) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const tag = this.tags.get(id)!;
+      for (const id of subTags) {
         const subTag = this.get(id);
         if (subTag !== undefined) {
           subTag.setParent(tag);
@@ -288,20 +283,14 @@ class TagStore {
         }
       }
     }
-    const rootIndex = this._tagList.findIndex((t) => t.id === ROOT_TAG_ID);
-    if (rootIndex < 0) {
+
+    if (this.tags.get(ROOT_TAG_ID) === undefined) {
       throw new Error('Root tag not found. This should not happen!');
-    }
-    const root = this._tagList[rootIndex];
-    root.setParent(root);
-    if (rootIndex !== 0) {
-      [this._tagList[0], this._tagList[rootIndex]] = [this._tagList[rootIndex], this._tagList[0]];
     }
   }
 
   @action private add(parent: Readonly<ClientTag>, tag: ClientTag) {
-    this._tagList.push(tag);
-    this.index.set(tag.id, tag);
+    this.tags.set(tag.id, tag);
     tag.setParent(parent);
     parent.subTags.push(tag);
   }
@@ -318,8 +307,7 @@ class TagStore {
         subTag.dispose();
         this.deleteSubTags(subTag);
         this.deselect(subTag);
-        this.index.delete(subTag.id);
-        this._tagList.remove(subTag as ClientTag);
+        this.tags.delete(subTag.id);
       }
     });
   }
@@ -328,8 +316,7 @@ class TagStore {
     // Remove tag id reference from other observable objects
     this.deselect(tag);
     this.getParent(tag).subTags.remove(tag);
-    this.index.delete(tag.id);
-    this._tagList.remove(tag as ClientTag);
+    this.tags.delete(tag.id);
   }
 }
 

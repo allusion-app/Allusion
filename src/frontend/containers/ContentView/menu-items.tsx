@@ -40,7 +40,6 @@ export const FileViewerMenuItems = ({
 
   const handlePreviewWindow = action(() => {
     // Only clear selection if file is not already selected
-
     fileStore.select(file, !fileStore.selection.has(file));
     uiStore.setFirstItem(fileStore.getIndex(file.id));
     RendererMessenger.openPreviewWindow(

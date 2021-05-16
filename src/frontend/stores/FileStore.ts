@@ -290,9 +290,9 @@ class FileStore {
 
   @action.bound async fetchUntaggedFiles() {
     try {
-      const { uiStore } = this.rootStore;
+      const { uiStore, tagStore } = this.rootStore;
       uiStore.clearSearchCriteriaList();
-      const criteria = new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags');
+      const criteria = new ClientTagSearchCriteria(tagStore, 'tags');
       uiStore.searchCriteriaList.push(criteria);
       const fetchedFiles = await this.backend.searchFiles(
         criteria.serialize(),
@@ -372,7 +372,7 @@ class FileStore {
 
   @action.bound async fetchFilesByQuery() {
     const { uiStore } = this.rootStore;
-    const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) => c.serialize());
+    const criteria = uiStore.searchCriteriaList.map((c) => c.serialize());
     if (criteria.length === 0) {
       return this.fetchAllFiles();
     }
@@ -427,9 +427,10 @@ class FileStore {
   }
 
   getTags(ids: ID[]): Set<ClientTag> {
+    const { tagStore } = this.rootStore;
     const tags = new Set<ClientTag>();
     for (const id of ids) {
-      const tag = this.rootStore.tagStore.get(id);
+      const tag = tagStore.get(id);
       if (tag !== undefined) {
         tags.add(tag);
       }
