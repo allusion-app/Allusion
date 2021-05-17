@@ -1,6 +1,6 @@
 import { Remote, wrap } from 'comlink';
 import fse from 'fs-extra';
-import { action, makeObservable, observable } from 'mobx';
+import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore from 'src/frontend/stores/LocationStore';
@@ -22,7 +22,7 @@ export interface IDirectoryTreeItem {
 export class ClientLocation implements ISerializable<ILocation> {
   private store: LocationStore;
 
-  worker?: Remote<FolderWatcherWorker>;
+  private worker?: Remote<FolderWatcherWorker>;
 
   // Whether the initial scan has been completed, and new/removed files are being watched
   private isReady = false;
@@ -48,29 +48,28 @@ export class ClientLocation implements ISerializable<ILocation> {
     return SysPath.basename(this.path);
   }
 
-  @action async init(): Promise<string[] | undefined> {
+  @action async initWorker(): Promise<string[] | undefined> {
     this.isInitialized = true;
     // FIXME: awaiting fse.pathExists was broken for me in many consecutive reloads, always at 2/3 locations
     // The sync version works fine
-    const pathExists = fse.pathExistsSync(this.path);
+    const pathExists = await fse.pathExists(this.path);
+    runInAction(() => {
+      this.isBroken = !pathExists;
+    });
     if (pathExists) {
-      this.setBroken(false);
-      return this.watch(this.path);
+      return this._initWorker(this.path);
     } else {
-      this.setBroken(true);
       return undefined;
     }
   }
 
-  @action setBroken(state: boolean): void {
-    this.isBroken = state;
-  }
-
-  async delete(): Promise<void> {
-    this.worker?.cancel();
-    // TODO: terminate worker?
-    await this.drop();
-    return this.store.delete(this);
+  async destroyWorker(): Promise<void> {
+    if (this.worker !== undefined) {
+      this.worker.cancel();
+      await this.worker.close();
+      this.worker.terminate();
+      this.worker = undefined;
+    }
   }
 
   serialize(): ILocation {
@@ -81,12 +80,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     };
   }
 
-  /** Cleanup resources */
-  async drop(): Promise<void> {
-    return this.worker?.close();
-  }
-
-  private async watch(directory: string): Promise<string[]> {
+  private async _initWorker(directory: string): Promise<string[]> {
     console.debug('Loading folder watcher worker...', directory);
     const worker = new Worker(
       new URL('src/frontend/workers/folderWatcher.worker', import.meta.url),

@@ -7,9 +7,10 @@ import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
-import { RendererMessenger } from 'src/Messaging';
 import { promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
+
+export const PROGRESS_KEY = 'progress';
 
 function areFilesIdenticalBesidesName(a: IFile, b: IFile): boolean {
   return (
@@ -42,57 +43,35 @@ class LocationStore {
 
   // E.g. in preview window, it's not needed to watch the locations
   // Returns whether files have been added, changed or removed
-  @action async watchLocations() {
-    const progressToastKey = 'progress';
+  @action async watchLocations(
+    progressHook: (message: string, key: string) => void,
+    startTimer: (id: string) => number,
+  ) {
     let foundNewFiles = false;
-    const len = this.locationList.length;
-    const getLocation = action((index: number) => this.locationList[index]);
+    const locationList = this.locationList.slice();
+    const len = locationList.length;
 
     // TODO: Do this in a web worker, not in the renderer thread!
     // For every location, find its files, and update the database accordingly.
     for (let i = 0; i < len; i++) {
-      const location = getLocation(i);
-
-      AppToaster.show(
-        {
-          message: `Looking for new images... [${i + 1} / ${len}]`,
-          timeout: 0,
-        },
-        progressToastKey,
-      );
+      const location = locationList[i];
+      // TODO: Pass to hook some kind of Result type.
+      progressHook(`Looking for new images... [${i + 1} / ${len}]`, PROGRESS_KEY);
 
       // TODO: Add a maximum timeout for init: sometimes it's hanging for me. Could also be some of the following steps though
       // added a retry toast for now, can't figure out the cause, and it's hard to reproduce
-      // FIXME: Toasts should not be abused for error handling. Create some error messaging mechanism.
-      const readyTimeout = setTimeout(() => {
-        AppToaster.show(
-          {
-            message: 'This appears to be taking longer than usual.',
-            timeout: 0,
-            clickAction: {
-              onClick: RendererMessenger.reload,
-              label: 'Retry?',
-            },
-          },
-          'retry-init',
-        );
-      }, 10000);
+      const readyTimeout = startTimer(location.id);
 
       console.debug('Location init...');
-      const filePaths = await location.init();
+      const filePaths = await location.initWorker();
       const filePathsSet = new Set(filePaths);
 
       clearTimeout(readyTimeout);
-      AppToaster.dismiss('retry-init');
 
+      // FIXME: Toasts should not be abused for error handling. Create some error messaging mechanism.
       if (filePaths === undefined) {
-        AppToaster.show(
-          {
-            message: `Cannot find Location "${location.name}"`,
-            timeout: 0,
-          },
-          `missing-loc-${location.id}`,
-        ); // a key such that the toast can be dismissed automatically on recovery
+        // a key such that the toast can be dismissed automatically on recovery
+        progressHook(`Cannot find Location "${location.name}"`, `missing-loc-${location.id}`);
         continue;
       }
 
@@ -190,12 +169,6 @@ class LocationStore {
       // Look at modified date? Or file size? For these ones, update metadata (resolution, size) and recreate thumbnail
       foundNewFiles = foundNewFiles || newFiles.length > 0;
     }
-
-    if (foundNewFiles) {
-      AppToaster.show({ message: 'New images detected.', timeout: 5000 }, progressToastKey);
-    } else {
-      AppToaster.dismiss(progressToastKey);
-    }
     return foundNewFiles;
   }
 
@@ -221,11 +194,6 @@ class LocationStore {
     this.set(index, newLocation);
     await this.initLocation(newLocation);
     await this.backend.saveLocation(newLocation.serialize());
-    // Refetch files in case some were from this location and could not be found before
-    this.rootStore.uiStore.refetch();
-
-    // Dismiss the 'Cannot find location' toast if it is still open
-    AppToaster.dismiss(`missing-loc-${newLocation.id}`);
   }
 
   @action exists(predicate: (location: ClientLocation) => boolean): boolean {
@@ -244,10 +212,10 @@ class LocationStore {
     const toastKey = `initialize-${location.id}`;
 
     let isCancelled = false;
-    const handleCancelled = () => {
+    const handleCancelled = async () => {
       console.debug('Aborting location initialization', location.name);
       isCancelled = true;
-      location.delete();
+      await location.destroyWorker();
     };
 
     AppToaster.show(
@@ -262,7 +230,7 @@ class LocationStore {
       toastKey,
     );
 
-    const filePaths = await location.init();
+    const filePaths = await location.initWorker();
     console.debug('!!! finished location loading', location.path, filePaths);
 
     if (isCancelled || filePaths === undefined) {
@@ -300,30 +268,39 @@ class LocationStore {
     this.rootStore.fileStore.refetchFileCounts();
   }
 
-  @action.bound async delete(location: ClientLocation) {
-    const { fileStore, uiStore } = this.rootStore;
-    const fileSelection = fileStore.selection;
+  @action async delete(location: ClientLocation) {
     // Remove location from DB through backend
     await this.backend.removeLocation(location.id);
-    // Remove deleted files from selection
-    for (const file of fileSelection) {
-      if (file.locationId === location.id) {
-        fileStore.deselect(file);
+
+    return runInAction(() => {
+      const { fileStore } = this.rootStore;
+
+      // Remove deleted files from selection
+      for (const file of fileStore.selection) {
+        if (file.locationId === location.id) {
+          fileStore.deselect(file);
+        }
       }
-    }
-    // Remove location locally
-    runInAction(() => this.locationList.remove(location));
-    uiStore.refetch();
-    fileStore.refetchFileCounts();
+      // Destroy worker
+      const promise = location.destroyWorker();
+      // Remove location locally
+      this.locationList.remove(location);
+      return promise;
+    });
   }
 
   @action async addFile(path: string, location: ClientLocation) {
     const file = await pathToIFile(path, location);
     await this.backend.createFilesFromPath(path, [file]);
 
-    AppToaster.show({ message: 'New images have been detected.', timeout: 5000 }, 'new-images');
-    // might be called a lot when moving many images into a folder, so debounce it
-    this.rootStore.fileStore.debouncedRefetch();
+    AppToaster.show(
+      {
+        message: 'New images have been detected.',
+        timeout: 0,
+        clickAction: { label: 'Refetch', onClick: this.rootStore.uiStore.refetch },
+      },
+      'new-images',
+    );
   }
 
   @action hideFile(path: string) {

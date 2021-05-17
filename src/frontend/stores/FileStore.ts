@@ -7,7 +7,6 @@ import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientTagSearchCriteria, SearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import { AppToaster } from '../components/Toaster';
 import { debounce, getThumbnailPath, needsThumbnail, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
@@ -36,8 +35,6 @@ class FileStore {
   @observable numMissingFiles = 0;
   readonly selection = observable(new Set<Readonly<ClientFile>>());
 
-  debouncedRefetch: () => void;
-
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
@@ -45,18 +42,15 @@ class FileStore {
 
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
-    this.debouncedRefetch = debounce(this.rootStore.uiStore.refetch, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
   }
 
-  @action.bound switchFileOrder() {
+  @action switchFileOrder() {
     this.setFileOrder(this.fileOrder === FileOrder.Desc ? FileOrder.Asc : FileOrder.Desc);
-    this.rootStore.uiStore.refetch();
   }
 
-  @action.bound orderFilesBy(prop: keyof IFile = 'dateAdded') {
+  @action orderFilesBy(prop: keyof IFile = 'dateAdded') {
     this.setOrderBy(prop);
-    this.rootStore.uiStore.refetch();
   }
 
   /**
@@ -76,7 +70,7 @@ class FileStore {
     }
   }
 
-  @action async deleteFiles(files: Readonly<ClientFile>[]): Promise<void> {
+  @action async delete(files: readonly Readonly<ClientFile>[]): Promise<void> {
     if (files.length === 0) {
       return;
     }
@@ -91,13 +85,12 @@ class FileStore {
         this.deselect(file);
         this.removeThumbnail(file.absolutePath);
       }
-      this.rootStore.uiStore.refetch();
     } catch (err) {
       console.error('Could not remove files', err);
     }
   }
 
-  @action.bound async fetchAllFiles() {
+  @action async fetchAllFiles() {
     try {
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
       return this.updateFromBackend(fetchedFiles);
@@ -106,7 +99,7 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchMissingFiles() {
+  @action async fetchMissingFiles(): Promise<string> {
     try {
       const { orderBy, fileOrder } = this;
 
@@ -148,21 +141,13 @@ class FileStore {
         this.fileListLastModified = new Date();
       });
       this.cleanFileSelection();
-
-      AppToaster.show(
-        {
-          message:
-            'Some files can no longer be found. Either move them back to their location, or delete them from Allusion',
-          timeout: 12000,
-        },
-        'recovery-view',
-      );
+      return 'Some files can no longer be found. Either move them back to their location, or delete them from Allusion';
     } catch (err) {
-      console.error('Could not load broken files', err);
+      return `Could not load broken files: ${err}`;
     }
   }
 
-  @action.bound async fetchFilesByQuery(
+  @action async fetchFilesByQuery(
     criteria: SearchCriteria<IFile> | SearchCriteria<IFile>[],
     searchMatchAny: boolean,
   ) {

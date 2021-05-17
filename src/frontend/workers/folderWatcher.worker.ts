@@ -13,14 +13,6 @@ export class FolderWatcherWorker {
   private isReady = false;
   private isCancelled = false;
 
-  cancel() {
-    this.isCancelled = true;
-  }
-
-  async close() {
-    this.watcher?.close();
-  }
-
   /** Returns all supported image files in the given directly, and callbacks for new or removed files */
   async watch(directory: string) {
     this.isCancelled = false;
@@ -113,6 +105,19 @@ export class FolderWatcherWorker {
           ctx.postMessage({ type: 'error', value: error });
         });
     });
+  }
+
+  /** Stops watching all files */
+  async close(): Promise<void> {
+    return this.watcher?.close();
+  }
+
+  cancel() {
+    this.isCancelled = true;
+  }
+
+  terminate() {
+    ctx.terminate();
   }
 }
 

@@ -108,13 +108,16 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
             key={col.title}
             className={col.sortKey ? 'sortable' : ''}
             // Click to sort by this key. If already sorting by this key, swap order around.
-            onClick={
-              col.sortKey
-                ? fileStore.orderBy === col.sortKey
-                  ? fileStore.switchFileOrder
-                  : () => fileStore.orderFilesBy(col.sortKey)
-                : undefined
-            }
+            onClick={() => {
+              if (col.sortKey !== undefined) {
+                if (fileStore.orderBy === col.sortKey) {
+                  fileStore.switchFileOrder();
+                } else {
+                  fileStore.orderFilesBy(col.sortKey);
+                }
+                uiStore.refetch();
+              }
+            }}
           >
             <span>{col.title}</span>
             {fileStore.orderBy === col.sortKey && (

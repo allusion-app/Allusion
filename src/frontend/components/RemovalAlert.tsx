@@ -14,31 +14,36 @@ interface IRemovalProps<T> {
   onClose: () => void;
 }
 
-export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
-  <RemovalAlert
-    open
-    title={`Are you sure you want to delete the location "${props.object.name}"?`}
-    information="This will permanently remove the location and all data linked to its images in Allusion."
-    onCancel={props.onClose}
-    onConfirm={() => {
-      props.onClose();
-      props.object.delete();
-    }}
-  />
-);
-
-export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
-  const { uiStore, tagStore } = useContext(StoreContext);
-  const { object } = props;
-  const isSelected = tagStore.isSelected(object);
-  const tagsToRemove = isSelected ? Array.from(tagStore.selection) : object.getSubTreeList();
-
-  const text = `Are you sure you want to delete the tag "${object.name}"?`;
+export const LocationRemoval = ({ object: location, onClose }: IRemovalProps<ClientLocation>) => {
+  const { locationStore, uiStore, fileStore } = useContext(StoreContext);
 
   return (
     <RemovalAlert
       open
-      title={text}
+      title={`Are you sure you want to delete the location "${location.name}"?`}
+      information="This will permanently remove the location and all data linked to its images in Allusion."
+      onCancel={onClose}
+      onConfirm={async () => {
+        onClose();
+        await locationStore.delete(location);
+        await uiStore.refetch();
+        return fileStore.refetchFileCounts();
+      }}
+    />
+  );
+};
+
+export const TagRemoval = observer(({ object: tag, onClose }: IRemovalProps<ClientTag>) => {
+  const { uiStore, tagStore } = useContext(StoreContext);
+  const isSelected = tagStore.isSelected(tag);
+  const tagsToRemove = isSelected ? Array.from(tagStore.selection) : tag.getSubTreeList();
+
+  const title = `Are you sure you want to delete the tag "${tag.name}"?`;
+
+  return (
+    <RemovalAlert
+      open
+      title={title}
       information="Deleting tags or collections will permanently remove them from Allusion."
       body={
         tagsToRemove.length > 0 && (
@@ -50,54 +55,65 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
           </div>
         )
       }
-      onCancel={props.onClose}
+      onCancel={onClose}
       onConfirm={async () => {
-        props.onClose();
-        const deletedTags = isSelected ? tagsToRemove : [object];
+        onClose();
+        const deletedTags = isSelected ? tagsToRemove : [tag];
         await tagStore.delete(deletedTags);
-        uiStore.refetch();
+        return uiStore.refetch();
       }}
     />
   );
 });
 
-export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
+export const TagMerge = observer(({ object: tag, onClose }: IRemovalProps<ClientTag>) => {
   const { tagStore, uiStore } = useContext(StoreContext);
-  const { object: tag } = props;
-
-  const text = `Select the tag you want to merge "${tag.name}" with`;
 
   const [selectedTag, setSelectedTag] = useState<Readonly<ClientTag> | undefined>();
 
+  const title = `Select the tag you want to merge "${tag.name}" with`;
+
+  const information =
+    tag.subTags.length > 0
+      ? 'Merging a tag with sub-tags is currently not supported.'
+      : `This will replace all uses of ${tag.name} with ${
+          selectedTag?.name ?? 'the tag you select'
+        }. Choose the merge option on the other tag to merge the other way around!`;
+
+  const clearSelection = () => setSelectedTag(undefined);
+
+  const body = (
+    <div>
+      <MultiTagSelector
+        selection={selectedTag !== undefined ? [selectedTag] : []}
+        onSelect={setSelectedTag}
+        onDeselect={clearSelection}
+        onClear={clearSelection}
+      />
+    </div>
+  );
+
+  const handleClick = action(async (button: DialogButton) => {
+    if (button === DialogButton.CloseButton) {
+      onClose();
+    } else if (tag.subTags.length === 0 && selectedTag !== undefined) {
+      onClose();
+      await tagStore.merge(tag, selectedTag);
+      return uiStore.refetch();
+    }
+  });
+
   return (
-    <MergeAlert
+    <Alert
       open
-      title={text}
-      information={
-        tag.subTags.length > 0
-          ? 'Merging a tag with sub-tags is currently not supported.'
-          : `This will replace all uses of ${tag.name} with ${
-              selectedTag?.name || 'the tag you select'
-            }. Choose the merge option on the other tag to merge the other way around!`
-      }
-      body={
-        <div>
-          <MultiTagSelector
-            selection={selectedTag ? [selectedTag] : []}
-            onSelect={setSelectedTag}
-            onDeselect={() => setSelectedTag(undefined)}
-            onClear={() => setSelectedTag(undefined)}
-          />
-        </div>
-      }
-      onCancel={props.onClose}
-      onConfirm={async () => {
-        if (tag.subTags.length === 0 && selectedTag !== undefined) {
-          props.onClose();
-          await tagStore.merge(tag, selectedTag);
-          uiStore.refetch();
-        }
-      }}
+      title={title}
+      information={information}
+      view={body}
+      icon={IconSet.WARNING}
+      closeButtonText="Cancel"
+      primaryButtonText="Merge"
+      defaultButton={DialogButton.PrimaryButton}
+      onClick={handleClick}
     />
   );
 });
@@ -114,7 +130,7 @@ export const FileRemoval = observer(() => {
         files.push(file);
       }
     }
-    fileStore.deleteFiles(files);
+    return fileStore.delete(files);
   });
 
   return (
@@ -155,22 +171,6 @@ const RemovalAlert = (props: IRemovalAlertProps) => (
     icon={IconSet.WARNING}
     closeButtonText="Cancel"
     primaryButtonText="Delete"
-    defaultButton={DialogButton.PrimaryButton}
-    onClick={(button) =>
-      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
-    }
-  />
-);
-
-const MergeAlert = (props: IRemovalAlertProps) => (
-  <Alert
-    open={props.open}
-    title={props.title}
-    information={props.information}
-    view={props.body}
-    icon={IconSet.WARNING}
-    closeButtonText="Cancel"
-    primaryButtonText="Merge"
     defaultButton={DialogButton.PrimaryButton}
     onClick={(button) =>
       button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()

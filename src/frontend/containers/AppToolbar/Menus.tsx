@@ -17,7 +17,7 @@ const enum Tooltip {
   Filter = 'Sort view content panel',
 }
 
-export const SortCommand = ({ fileStore }: { fileStore: FileStore }) => {
+export const SortCommand = ({ fileStore, uiStore }: { fileStore: FileStore; uiStore: UiStore }) => {
   return (
     <MenuButton
       showLabel="never"
@@ -27,7 +27,7 @@ export const SortCommand = ({ fileStore }: { fileStore: FileStore }) => {
       id="__sort-menu"
       menuID="__sort-options"
     >
-      <SortMenuItems fileStore={fileStore} />
+      <SortMenuItems fileStore={fileStore} uiStore={uiStore} />
     </MenuButton>
   );
 };
@@ -58,8 +58,8 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateCreated', icon: IconSet.FILTER_DATE, text: 'Date created' },
 ];
 
-export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) => {
-  const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = fileStore;
+export const SortMenuItems = observer((props: { fileStore: FileStore; uiStore: UiStore }) => {
+  const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = props.fileStore;
   const orderIcon = fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
 
   return (
@@ -71,7 +71,14 @@ export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) 
           text={text}
           checked={orderBy === prop}
           accelerator={orderBy === prop ? orderIcon : undefined}
-          onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
+          onClick={() => {
+            if (orderBy === prop) {
+              switchFileOrder();
+            } else {
+              orderFilesBy(prop);
+            }
+            props.uiStore.refetch();
+          }}
         />
       ))}
     </MenuRadioGroup>

@@ -60,7 +60,7 @@ const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStor
         <TagFilesPopover />
       )}
 
-      <SortCommand fileStore={fileStore} />
+      <SortCommand fileStore={fileStore} uiStore={uiStore} />
 
       <ViewCommand uiStore={uiStore} />
     </>

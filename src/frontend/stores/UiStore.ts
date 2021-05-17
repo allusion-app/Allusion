@@ -6,6 +6,7 @@ import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
+import { AppToaster } from '../components/Toaster';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, debounce } from '../utils';
 import FileStore from './FileStore';
@@ -458,10 +459,11 @@ class UiStore {
     return fileStore.fetchFilesByQuery(criteria.serialize(), this.searchMatchAny);
   }
 
-  @action.bound viewMissingContent(): Promise<void> {
+  @action.bound async viewMissingContent(): Promise<void> {
     this.clearSearchCriteriaList();
     this.setContentMissing();
-    return this.rootStore.fileStore.fetchMissingFiles();
+    const message = await this.rootStore.fileStore.fetchMissingFiles();
+    AppToaster.show({ message, timeout: 12000 }, 'recovery-view');
   }
 
   @action.bound async refetch(): Promise<void> {

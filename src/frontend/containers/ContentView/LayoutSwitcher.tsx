@@ -70,10 +70,10 @@ const Layout = ({
         }
       } else if (toggleSelection) {
         fileStore.toggleSelection(selectedFile);
-        initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
+        initialSelectionIndex.current = i;
       } else {
         fileStore.select(selectedFile, true);
-        initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
+        initialSelectionIndex.current = i;
       }
     },
   ).current;

@@ -201,9 +201,13 @@ const LocationRecoveryDialog = () => {
 
   const status = statusFromMatch(match);
 
-  const handleChangeLocationPath = (location: ClientLocation, path: string) => {
-    locationStore.changeLocationPath(location, path);
+  const handleChangeLocationPath = async (location: ClientLocation, path: string) => {
+    await locationStore.changeLocationPath(location, path);
+    // Dismiss the 'Cannot find location' toast if it is still open
+    AppToaster.dismiss(`missing-loc-${location.id}`);
     AppToaster.show({ message: `Recovered Location ${path}!`, timeout: 5000 });
+    // Refetch files in case some were from this location and could not be found before
+    uiStore.refetch();
   };
 
   const handleLocate = async () => {
@@ -233,7 +237,6 @@ const LocationRecoveryDialog = () => {
 
     if (exists) {
       uiStore.closeLocationRecovery();
-      location.setBroken(false);
       if (!location.isInitialized) {
         locationStore.initLocation(location);
       } else {
