@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
+import { autorun } from 'mobx';
 
 import StoreContext from './contexts/StoreContext';
 
@@ -9,9 +10,21 @@ import { IconSet, Toggle } from 'widgets';
 import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './ThumbnailGeneration';
+import { PREVIEW_WINDOW_BASENAME } from 'src/renderer';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
+
+  // Change window title to filename on load and when changing the selected file.
+  useEffect(() => {
+    return autorun(() => {
+      const path =
+        uiStore.firstItem >= 0 && uiStore.firstItem < fileStore.fileList.length
+          ? fileStore.fileList[uiStore.firstItem].absolutePath
+          : '?';
+      if (uiStore.firstItem >= 0) document.title = `${path} • ${PREVIEW_WINDOW_BASENAME}`;
+    });
+  }, [fileStore, uiStore]);
 
   // Listen to responses of Web Workers
   useWorkerListener();

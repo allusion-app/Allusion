@@ -4,7 +4,6 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { observe } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -62,23 +61,6 @@ if (IS_PREVIEW_WINDOW) {
       }
 
       window.close();
-    }
-  });
-
-  // Change window title to filename on load
-  observe(rootStore.fileStore.fileList, ({ object: list }) => {
-    if (list.length > 0) {
-      const file = list[0];
-      document.title = `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
-    }
-  });
-
-  // Change window title to filename when changing the selected file
-  observe(rootStore.uiStore, 'firstItem', ({ object }) => {
-    const index = object.get();
-    if (!isNaN(index) && index >= 0 && index < rootStore.fileStore.fileList.length) {
-      const file = rootStore.fileStore.fileList[index];
-      document.title = `${file?.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
     }
   });
 } else {
