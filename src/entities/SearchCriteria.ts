@@ -21,7 +21,7 @@ export const NumberOperators = [
 ] as const;
 export type NumberOperatorType = typeof NumberOperators[number];
 
-export const NumberOperatorSymbols: { [key: string]: string } = {
+export const NumberOperatorSymbols: Record<NumberOperatorType, string> = {
   equals: '=',
   notEqual: '≠',
   smallerThan: '<',
@@ -31,14 +31,27 @@ export const NumberOperatorSymbols: { [key: string]: string } = {
 };
 
 export const StringOperators = [
+  'equalsIgnoreCase',
   'equals',
   'notEqual',
-  'contains',
-  'notContains',
+  'startsWithIgnoreCase',
   'startsWith',
   'notStartsWith',
+  'contains',
+  'notContains',
 ] as const;
 export type StringOperatorType = typeof StringOperators[number];
+
+export const StringOperatorLabels: Record<StringOperatorType, string> = {
+  equalsIgnoreCase: 'Equals',
+  equals: 'Equals', // not available as dropdown option to user to avoid clutter
+  notEqual: 'Not Equal',
+  startsWithIgnoreCase: 'Starts With',
+  startsWith: 'Starts With', // not available as dropdown option to user to avoid clutter
+  notStartsWith: 'Not Starts With',
+  contains: 'Contains',
+  notContains: 'Not Contains',
+};
 
 export const BinaryOperators = ['equals', 'notEqual'] as const;
 export type BinaryOperatorType = typeof BinaryOperators[number];
@@ -202,9 +215,9 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 
   toString: () => string = () =>
-    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
-      this.operator,
-    )} "${this.label || this.value}"`;
+    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${
+      StringOperatorLabels[this.operator as StringOperatorType] || camelCaseToSpaced(this.operator)
+    } "${this.label || this.value}"`;
 
   serialize = (): IStringSearchCriteria<T> => {
     return {
@@ -239,7 +252,7 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
   toString: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${
-      NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
+      NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value}`;
 
   serialize = (): INumberSearchCriteria<T> => {
@@ -277,7 +290,7 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
 
   toString: () => string = () =>
     `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${
-      NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
+      NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value.toLocaleDateString()}`;
 
   serialize = (): IDateSearchCriteria<T> => {
