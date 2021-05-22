@@ -155,6 +155,10 @@ class TagStore {
     });
   }
 
+  @action.bound refetchFiles() {
+    this.rootStore.fileStore.refetch();
+  }
+
   save(tag: ITag) {
     this.backend.saveTag(tag);
   }

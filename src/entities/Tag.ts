@@ -13,6 +13,8 @@ export interface ITag extends IResource {
   dateAdded: Date;
   color: string;
   subTags: ID[];
+  /** Whether any files with this tag should be hidden */
+  isHidden: boolean;
 }
 
 /**
@@ -29,16 +31,25 @@ export class ClientTag implements ISerializable<ITag> {
   readonly dateAdded: Date;
   @observable name: string;
   @observable color: string;
+  @observable isHidden: boolean;
   @observable private _parent: ClientTag | undefined;
   readonly subTags = observable<ClientTag>([]);
   // icon, (fileCount?)
 
-  constructor(store: TagStore, id: ID, name: string, dateAdded: Date, color: string = '') {
+  constructor(
+    store: TagStore,
+    id: ID,
+    name: string,
+    dateAdded: Date,
+    color: string = '',
+    isHidden?: boolean,
+  ) {
     this.store = store;
     this.id = id;
     this.dateAdded = dateAdded;
     this.name = name;
     this.color = color;
+    this.isHidden = isHidden || false;
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -124,6 +135,11 @@ export class ClientTag implements ISerializable<ITag> {
     this.store.insert(this, tag, at);
   }
 
+  @action.bound toggleHidden(): void {
+    this.isHidden = !this.isHidden;
+    this.store.refetchFiles();
+  }
+
   serialize(): ITag {
     return {
       id: this.id,
@@ -131,6 +147,7 @@ export class ClientTag implements ISerializable<ITag> {
       dateAdded: this.dateAdded,
       color: this.color,
       subTags: this.subTags.map((subTag) => subTag.id),
+      isHidden: this.isHidden,
     };
   }
 

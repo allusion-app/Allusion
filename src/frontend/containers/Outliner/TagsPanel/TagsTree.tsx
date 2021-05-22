@@ -301,7 +301,10 @@ const TagItem = observer((props: ITagItemProps) => {
       onClick={handleQuickQuery}
       onDoubleClick={handleRename}
     >
-      <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>
+      <span style={{ color: nodeData.viewColor }}>
+        {/* TODO: proper hidden icon (eye with diagonal line?) */}
+        {nodeData.isHidden ? IconSet.PREVIEW : IconSet.TAG}
+      </span>
       <Label
         text={nodeData.name}
         setText={nodeData.rename}
