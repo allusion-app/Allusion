@@ -29,12 +29,12 @@ const OutlinerToggle = observer(() => {
       id="outliner-toggle"
       className="btn toolbar-button"
       aria-controls="outliner"
-      aria-pressed={uiStore.isOutlinerOpen}
+      aria-pressed={uiStore.preferences.isOutlinerOpen}
       onClick={uiStore.toggleOutliner}
       tabIndex={0}
     >
       <span className="btn-content-icon" aria-hidden="true">
-        {uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
+        {uiStore.preferences.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
       </span>
       <span className="btn-content-text hidden">Toggle Outliner</span>
     </button>
@@ -86,7 +86,7 @@ export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => 
         showLabel="never"
         icon={IconSet.INFO}
         onClick={uiStore.toggleInspector}
-        checked={uiStore.isInspectorOpen}
+        checked={uiStore.preferences.isInspectorOpen}
         text={Tooltip.Inspector}
         tooltip={Tooltip.Inspector}
       />

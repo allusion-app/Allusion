@@ -19,9 +19,7 @@ import RootStore from './frontend/stores/RootStore';
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
 import { promiseRetry } from './frontend/utils';
-
-// Window State
-export const WINDOW_STORAGE_KEY = 'Allusion_Window';
+import { Preferences } from './frontend/stores/Preferences';
 
 export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
@@ -30,11 +28,15 @@ export const IS_PREVIEW_WINDOW = params.get('preview') === 'true';
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
-const rootStore = new RootStore(backend);
+const preferences = new Preferences();
+const rootStore = new RootStore(backend, preferences);
 backend
   .init(!IS_PREVIEW_WINDOW)
   .then(async () => {
     console.log('Backend has been initialized!');
+    if (!IS_PREVIEW_WINDOW) {
+      await preferences.load();
+    }
     await rootStore.init(IS_PREVIEW_WINDOW);
     RendererMessenger.initialized();
   })
@@ -65,24 +67,7 @@ if (IS_PREVIEW_WINDOW) {
   });
 } else {
   // Load persistent preferences
-  rootStore.uiStore.recoverPersistentPreferences();
   rootStore.fileStore.recoverPersistentPreferences();
-
-  // Recover global preferences
-  try {
-    const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
-    if (window_preferences === null) {
-      localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: false }));
-    } else {
-      const prefs = JSON.parse(window_preferences);
-      if (prefs.isFullScreen === true) {
-        RendererMessenger.setFullScreen(true);
-        rootStore.uiStore.setFullScreen(true);
-      }
-    }
-  } catch (e) {
-    console.error('Cannot load window preferences', e);
-  }
 }
 
 window.addEventListener('beforeunload', () => {

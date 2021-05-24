@@ -2,10 +2,10 @@ import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef } from 'react';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
+import { ViewMethod } from 'src/frontend/stores/Preferences';
 import RootStore from 'src/frontend/stores/RootStore';
 import { RendererMessenger } from 'src/Messaging';
 import { ClientFile } from '../../../entities/File';
-import { ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
 import { GalleryCommand, GallerySelector } from './GalleryItem';
 import ListGallery from './ListGallery';
@@ -125,14 +125,14 @@ const Layout = ({
   if (contentRect.width < 10) {
     return null;
   }
-  switch (uiStore.method) {
+  switch (uiStore.preferences.viewMethod) {
     case ViewMethod.Grid:
     case ViewMethod.MasonryVertical:
     case ViewMethod.MasonryHorizontal:
       return (
         <MasonryRenderer
           contentRect={contentRect}
-          type={uiStore.method}
+          type={uiStore.preferences.viewMethod}
           lastSelectionIndex={lastSelectionIndex}
           showContextMenu={showContextMenu}
           select={handleFileSelect}

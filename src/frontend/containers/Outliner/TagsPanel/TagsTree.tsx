@@ -127,7 +127,7 @@ const TagItem = observer((props: ITagItemProps) => {
             }
           }
         }
-        PreviewTag.classList.value = `tag ${uiStore.theme}`;
+        PreviewTag.classList.value = `tag ${uiStore.preferences.theme}`;
         PreviewTag.innerText = name;
         e.dataTransfer.setData(DnDTagType, nodeData.id);
         e.dataTransfer.setDragImage(PreviewTag, 0, 0);

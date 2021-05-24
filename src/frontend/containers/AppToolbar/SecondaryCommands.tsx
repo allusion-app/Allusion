@@ -20,19 +20,19 @@ const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
         icon={IconSet.SEARCH_EXTENDED}
         onClick={uiStore.toggleAdvancedSearch}
         text="Advanced Search"
-        accelerator={<KeyCombo combo={uiStore.hotkeyMap.advancedSearch} />}
+        accelerator={<KeyCombo combo={uiStore.preferences.hotkeyMap.advancedSearch} />}
       />
       <MenuItem
         icon={IconSet.HELPCENTER}
         onClick={uiStore.toggleHelpCenter}
         text="Help Center"
-        accelerator={<KeyCombo combo={uiStore.hotkeyMap.toggleHelpCenter} />}
+        accelerator={<KeyCombo combo={uiStore.preferences.hotkeyMap.toggleHelpCenter} />}
       />
       <MenuItem
         icon={IconSet.SETTINGS}
         onClick={uiStore.toggleSettings}
         text="Settings"
-        accelerator={<KeyCombo combo={uiStore.hotkeyMap.toggleSettings} />}
+        accelerator={<KeyCombo combo={uiStore.preferences.hotkeyMap.toggleSettings} />}
       />
       <MenuItem
         icon={IconSet.RELOAD}

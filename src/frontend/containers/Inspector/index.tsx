@@ -10,7 +10,7 @@ import { shell } from 'electron';
 const Inspector = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
 
-  if (uiStore.firstItem >= fileStore.fileList.length || !uiStore.isInspectorOpen) {
+  if (uiStore.firstItem >= fileStore.fileList.length || !uiStore.preferences.isInspectorOpen) {
     return (
       <aside id="inspector">
         <Placeholder />

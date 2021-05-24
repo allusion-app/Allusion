@@ -64,7 +64,7 @@ const TagsPanel = () => {
         return comboMatches(combo, parseKeyCombo(c));
       };
 
-      const { hotkeyMap } = uiStore;
+      const { hotkeyMap } = uiStore.preferences;
       if (matches(hotkeyMap.selectAll)) {
         tagStore.selectAll();
       } else if (matches(hotkeyMap.deselectAll)) {

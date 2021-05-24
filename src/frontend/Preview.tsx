@@ -42,7 +42,7 @@ const PreviewApp = observer(() => {
   );
 
   return (
-    <div id="preview" className={uiStore.theme}>
+    <div id="preview" className={uiStore.preferences.theme}>
       <ErrorBoundary>
         <Toolbar id="toolbar" label="Preview Command Bar" controls="content-view">
           <ToolbarButton

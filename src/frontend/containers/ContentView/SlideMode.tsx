@@ -18,8 +18,7 @@ interface ISlideMode {
 const SlideMode = observer((props: ISlideMode) => {
   const { contentRect, rootStore, showContextMenu } = props;
   const { uiStore } = rootStore;
-  const isInspectorOpen = uiStore.isInspectorOpen;
-  const inspectorWidth = uiStore.inspectorWidth;
+  const { isInspectorOpen, inspectorWidth } = uiStore.preferences;
   const contentWidth = contentRect.width - (isInspectorOpen ? inspectorWidth : 0);
   const contentHeight = contentRect.height;
 

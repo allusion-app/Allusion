@@ -51,11 +51,11 @@ const App = observer(() => {
     <DropContextProvider onDragEnter={uiStore.openOutliner}>
       <div
         data-os={PLATFORM}
-        data-fullscreen={uiStore.isFullScreen}
+        data-fullscreen={uiStore.preferences.isFullScreen}
         id="layout-container"
-        className={uiStore.theme}
+        className={uiStore.preferences.theme}
       >
-        {PLATFORM !== 'darwin' && !uiStore.isFullScreen && <WindowTitlebar />}
+        {PLATFORM !== 'darwin' && !uiStore.preferences.isFullScreen && <WindowTitlebar />}
 
         <ErrorBoundary>
           <Main />

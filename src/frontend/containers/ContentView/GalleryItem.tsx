@@ -181,7 +181,7 @@ export const MasonryCell = observer(
           />
         )}
         {/* Show tags when the option is enabled, or when the file is selected */}
-        {(uiStore.isThumbnailTagOverlayEnabled || fileStore.selection.has(file)) &&
+        {(uiStore.preferences.showThumbnailTags || fileStore.selection.has(file)) &&
           (file.tags.size == 0 || !mounted ? (
             <span className="thumbnail-tags" />
           ) : (
@@ -314,7 +314,7 @@ type IThumbnail = Omit<ICell, 'submitCommand' | 'fileStore'>;
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: IThumbnail) => {
-  const { thumbnailDirectory } = uiStore;
+  const { thumbnailDirectory } = uiStore.preferences;
   const { thumbnailPath, isBroken } = file;
 
   // Initially, we assume the thumbnail exists

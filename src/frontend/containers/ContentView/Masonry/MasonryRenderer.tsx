@@ -2,7 +2,7 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
-import { ViewMethod } from 'src/frontend/stores/UiStore';
+import { ViewMethod } from 'src/frontend/stores/Preferences';
 import { debounce, throttle } from 'src/frontend/utils';
 import { MasonryType } from 'wasm/masonry/pkg/masonry';
 import { getThumbnailSize, ILayoutProps } from '../LayoutSwitcher';
@@ -49,10 +49,10 @@ const MasonryRenderer = observer(
     // Needed in order to re-render forcefully when the layout updates
     // Doesn't seem to be necessary anymore - might cause overlapping thumbnails, but could not reproduce
     const [forceRerenderObj, setForceRerenderObj] = useState<Date>(new Date());
-    const thumbnailSize = getThumbnailSize(uiStore.thumbnailSize);
+    const thumbnailSize = getThumbnailSize(uiStore.preferences.thumbnailSize);
     const containerWidth = contentRect.width - SCROLL_BAR_WIDTH;
 
-    const viewMethod = uiStore.method as SupportedViewMethod;
+    const viewMethod = uiStore.preferences.viewMethod as SupportedViewMethod;
     const numImages = fileStore.fileList.length;
 
     // Vertical keyboard navigation with lastSelectionIndex

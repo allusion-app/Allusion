@@ -9,7 +9,7 @@ const Outliner = () => {
   const { uiStore } = useContext(StoreContext);
 
   return (
-    <nav id="outliner" aria-expanded={uiStore.isOutlinerOpen}>
+    <nav id="outliner" aria-expanded={uiStore.preferences.isOutlinerOpen}>
       <div id="outliner-content">
         <LocationsPanel />
         <TagsPanel />

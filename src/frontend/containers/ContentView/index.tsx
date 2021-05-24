@@ -24,7 +24,7 @@ const ContentView = observer(() => {
   return (
     <div
       id="content-view"
-      className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
+      className={`thumbnail-${uiStore.preferences.thumbnailSize} thumbnail-${uiStore.preferences.thumbnailShape}`}
     >
       {fileList.length === 0 ? <Placeholder /> : <Content />}
     </div>

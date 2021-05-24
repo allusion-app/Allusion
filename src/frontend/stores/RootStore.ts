@@ -10,6 +10,7 @@ import LocationStore, { PROGRESS_KEY } from './LocationStore';
 import { RendererMessenger } from 'src/Messaging';
 import ExifIO from 'src/backend/ExifIO';
 import { AppToaster } from '../components/Toaster';
+import { Preferences } from './Preferences';
 
 // This will throw exceptions whenver we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
@@ -33,8 +34,8 @@ class RootStore {
   readonly uiStore: UiStore;
   readonly exifTool = new ExifIO();
 
-  constructor(private backend: Backend) {
-    this.uiStore = new UiStore(this);
+  constructor(private backend: Backend, preferences: Preferences) {
+    this.uiStore = new UiStore(this, preferences);
     this.tagStore = new TagStore(backend);
     this.locationStore = new LocationStore(backend, this);
     this.fileStore = new FileStore(backend, this);

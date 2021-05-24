@@ -1,6 +1,4 @@
-import fse from 'fs-extra';
-import { action, computed, makeObservable, observable, observe } from 'mobx';
-import { getDefaultThumbnailDirectory } from 'src/config';
+import { action, computed, makeObservable, observable } from 'mobx';
 import { IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
@@ -8,74 +6,18 @@ import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
 import { AppToaster } from '../components/Toaster';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
-import { clamp, debounce } from '../utils';
+import { clamp } from '../utils';
 import FileStore from './FileStore';
+import { IHotkeyMap, Preferences, ThumbnailShape, ThumbnailSize, ViewMethod } from './Preferences';
 import RootStore from './RootStore';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
-export const enum ViewMethod {
-  List,
-  Grid,
-  MasonryVertical,
-  MasonryHorizontal,
-}
-type ThumbnailSize = 'small' | 'medium' | 'large';
-type ThumbnailShape = 'square' | 'letterbox';
-const PREFERENCES_STORAGE_KEY = 'preferences';
 const enum Content {
   All,
   Missing,
   Untagged,
   Query,
 }
-
-export interface IHotkeyMap {
-  // Outerliner actions
-  toggleOutliner: string;
-  replaceQuery: string;
-
-  // Inspector actions
-  toggleInspector: string;
-  toggleSettings: string;
-  toggleHelpCenter: string;
-
-  // Toolbar actions (these should only be active when the content area is focused)
-  deleteSelection: string;
-  openTagEditor: string;
-  selectAll: string;
-  deselectAll: string;
-  viewList: string;
-  viewGrid: string;
-  viewMasonryVertical: string;
-  viewMasonryHorizontal: string;
-  viewSlide: string;
-  search: string;
-  advancedSearch: string;
-
-  // Other
-  openPreviewWindow: string;
-}
-
-// https://blueprintjs.com/docs/#core/components/hotkeys.dialog
-export const defaultHotkeyMap: IHotkeyMap = {
-  toggleOutliner: '1',
-  toggleInspector: '2',
-  replaceQuery: 'r',
-  toggleSettings: 's',
-  toggleHelpCenter: 'h',
-  deleteSelection: 'del',
-  openTagEditor: 't',
-  selectAll: 'mod + a',
-  deselectAll: 'mod + d',
-  viewSlide: 'alt + 0',
-  viewList: 'alt + 1',
-  viewGrid: 'alt + 2',
-  viewMasonryVertical: 'alt + 3',
-  viewMasonryHorizontal: 'alt + 4',
-  search: 'mod + f',
-  advancedSearch: 'mod + shift + f',
-  openPreviewWindow: 'space',
-};
 
 /**
  * From: https://mobx.js.org/best/store.html
@@ -95,75 +37,36 @@ export const defaultHotkeyMap: IHotkeyMap = {
  *  - State of a global overlay
  */
 
-/** These fields are stored and recovered when the application opens up */
-const PersistentPreferenceFields: Array<keyof UiStore> = [
-  'theme',
-  'isOutlinerOpen',
-  'isInspectorOpen',
-  'thumbnailDirectory',
-  'importDirectory',
-  'method',
-  'thumbnailSize',
-  'thumbnailShape',
-  'hotkeyMap',
-  'isThumbnailTagOverlayEnabled',
-  'outlinerWidth',
-  'inspectorWidth',
-];
-
 class UiStore {
-  static MIN_OUTLINER_WIDTH = 192; // default of 12 rem
-  static MIN_INSPECTOR_WIDTH = 288; // default of 18 rem
-
   private readonly rootStore: RootStore;
+  readonly preferences: Preferences;
 
   @observable isInitialized = false;
 
-  // Theme
-  @observable theme: 'light' | 'dark' = 'dark';
-
   // UI
-  @observable isOutlinerOpen: boolean = true;
-  @observable isInspectorOpen: boolean = true;
   @observable isSettingsOpen: boolean = false;
   @observable isHelpCenterOpen: boolean = false;
   @observable isAboutOpen: boolean = false;
   @observable isLocationRecoveryOpen: ID | null = null;
   @observable isAdvancedSearchOpen: boolean = false;
   @observable searchMatchAny = false;
-  @observable method: ViewMethod = ViewMethod.Grid;
   @observable isSlideMode: boolean = false;
-  @observable isFullScreen: boolean = false;
-  @observable outlinerWidth: number = UiStore.MIN_OUTLINER_WIDTH;
-  @observable inspectorWidth: number = UiStore.MIN_INSPECTOR_WIDTH;
-  /** Whether to show the tags on images in the content view */
-  @observable isThumbnailTagOverlayEnabled: boolean = true;
   /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
   // TODO: Might be better to store the ID to the file. I believe we were storing the index for performance, but we have instant conversion between index/ID now
   @observable firstItem: number = 0;
-  @observable thumbnailSize: ThumbnailSize = 'medium';
-  @observable thumbnailShape: ThumbnailShape = 'square';
 
   @observable isToolbarTagPopoverOpen: boolean = false;
   @observable isToolbarFileRemoverOpen: boolean = false;
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
-  @observable thumbnailDirectory: string = '';
-  @observable importDirectory: string = ''; // for browser extension. Must be a (sub-folder of a) Location
-
-  @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
-
   /** The origin of the current files that are shown */
   @observable private content: Content = Content.All;
 
-  constructor(rootStore: RootStore) {
+  constructor(rootStore: RootStore, preferences: Preferences) {
+    this.preferences = preferences;
     this.rootStore = rootStore;
     makeObservable(this);
-
-    // Store preferences immediately when anything is changed
-    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
-    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
   }
 
   @action.bound init() {
@@ -172,39 +75,39 @@ class UiStore {
 
   /////////////////// UI Actions ///////////////////
   @computed get isList(): boolean {
-    return this.method === ViewMethod.List;
+    return this.preferences.viewMethod === ViewMethod.List;
   }
 
   @computed get isGrid(): boolean {
-    return this.method === ViewMethod.Grid;
+    return this.preferences.viewMethod === ViewMethod.Grid;
   }
 
   @computed get isMasonryVertical(): boolean {
-    return this.method === ViewMethod.MasonryVertical;
+    return this.preferences.viewMethod === ViewMethod.MasonryVertical;
   }
 
   @computed get isMasonryHorizontal(): boolean {
-    return this.method === ViewMethod.MasonryHorizontal;
+    return this.preferences.viewMethod === ViewMethod.MasonryHorizontal;
   }
 
   @action.bound setThumbnailSmall() {
-    this.setThumbnailSize('small');
+    this.preferences.thumbnailSize = ThumbnailSize.Small;
   }
 
   @action.bound setThumbnailMedium() {
-    this.setThumbnailSize('medium');
+    this.preferences.thumbnailSize = ThumbnailSize.Medium;
   }
 
   @action.bound setThumbnailLarge() {
-    this.setThumbnailSize('large');
+    this.preferences.thumbnailSize = ThumbnailSize.Large;
   }
 
   @action.bound setThumbnailSquare() {
-    this.setThumbnailShape('square');
+    this.preferences.thumbnailShape = ThumbnailShape.Square;
   }
 
   @action.bound setThumbnailLetterbox() {
-    this.setThumbnailShape('letterbox');
+    this.preferences.thumbnailShape = ThumbnailShape.Letterbox;
   }
 
   @action.bound setFirstItem(index: number = 0) {
@@ -214,19 +117,19 @@ class UiStore {
   }
 
   @action.bound setMethodList() {
-    this.method = ViewMethod.List;
+    this.preferences.viewMethod = ViewMethod.List;
   }
 
   @action.bound setMethodGrid() {
-    this.method = ViewMethod.Grid;
+    this.preferences.viewMethod = ViewMethod.Grid;
   }
 
   @action.bound setMethodMasonryVertical() {
-    this.method = ViewMethod.MasonryVertical;
+    this.preferences.viewMethod = ViewMethod.MasonryVertical;
   }
 
   @action.bound setMethodMasonryHorizontal() {
-    this.method = ViewMethod.MasonryHorizontal;
+    this.preferences.viewMethod = ViewMethod.MasonryHorizontal;
   }
 
   @action.bound enableSlideMode() {
@@ -241,41 +144,32 @@ class UiStore {
     this.isSlideMode = !this.isSlideMode;
   }
 
-  /** This does not actually set the window to full-screen, just for bookkeeping! Use RendererMessenger instead */
   @action.bound setFullScreen(val: boolean) {
-    this.isFullScreen = val;
+    this.preferences.isFullScreen = val;
   }
 
-  @action.bound enableThumbnailTagOverlay() {
-    this.isThumbnailTagOverlayEnabled = true;
-  }
-
-  @action.bound disableThumbnailTagOverlay() {
-    this.isThumbnailTagOverlayEnabled = false;
+  @action.bound toggleFullScreen() {
+    this.preferences.isFullScreen = !this.preferences.isFullScreen;
   }
 
   @action.bound toggleThumbnailTagOverlay() {
-    this.isThumbnailTagOverlayEnabled = !this.isThumbnailTagOverlayEnabled;
+    this.preferences.showThumbnailTags = !this.preferences.showThumbnailTags;
   }
 
   @action.bound openOutliner() {
-    this.setIsOutlinerOpen(true);
+    this.preferences.isOutlinerOpen = true;
   }
 
   @action.bound toggleOutliner() {
-    this.setIsOutlinerOpen(!this.isOutlinerOpen);
+    this.preferences.isOutlinerOpen = !this.preferences.isOutlinerOpen;
   }
 
   @action.bound toggleInspector() {
-    this.isInspectorOpen = !this.isInspectorOpen;
-  }
-
-  @action.bound openInspector() {
-    this.isInspectorOpen = true;
+    this.preferences.isInspectorOpen = !this.preferences.isInspectorOpen;
   }
 
   @action.bound closeInspector() {
-    this.isInspectorOpen = false;
+    this.preferences.isInspectorOpen = false;
   }
 
   @action.bound toggleSettings() {
@@ -334,16 +228,15 @@ class UiStore {
   }
 
   @action.bound setThumbnailDirectory(dir: string = '') {
-    this.thumbnailDirectory = dir;
+    this.preferences.thumbnailDirectory = dir;
   }
 
   @action.bound setImportDirectory(dir: string) {
-    this.importDirectory = dir;
+    this.preferences.importDirectory = dir;
   }
 
   @action.bound toggleTheme() {
-    this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
-    RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
+    this.preferences.theme = this.preferences.theme === 'dark' ? 'light' : 'dark';
   }
 
   @action.bound toggleAdvancedSearch() {
@@ -504,10 +397,7 @@ class UiStore {
   }
 
   @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {
-    this.hotkeyMap[action] = combo;
-    // can't rely on the observer PersistentPreferenceFields, since it's an object
-    // Would be neater with a deepObserve, but this works as well:
-    this.storePersistentPreferences();
+    this.preferences.hotkeyMap[action] = combo;
   }
 
   @action.bound processGlobalShortCuts(e: KeyboardEvent, fileStore: FileStore) {
@@ -518,7 +408,7 @@ class UiStore {
     const matches = (c: string): boolean => {
       return comboMatches(combo, parseKeyCombo(c));
     };
-    const { hotkeyMap } = this;
+    const { hotkeyMap } = this.preferences;
     let isMatch = true;
     // UI
     if (matches(hotkeyMap.toggleOutliner)) {
@@ -534,7 +424,7 @@ class UiStore {
     } else if (matches(hotkeyMap.openPreviewWindow)) {
       RendererMessenger.openPreviewWindow(
         Array.from(fileStore.selection, (f) => f.id),
-        this.thumbnailDirectory,
+        this.preferences.thumbnailDirectory,
       );
       e.preventDefault(); // prevent scrolling with space when opening the preview window
       // Search
@@ -563,98 +453,32 @@ class UiStore {
   }
 
   @action.bound moveOutlinerSplitter(x: number, width: number) {
-    if (this.isOutlinerOpen) {
-      const w = clamp(x, UiStore.MIN_OUTLINER_WIDTH, width * 0.75);
-      this.outlinerWidth = w;
+    if (this.preferences.isOutlinerOpen) {
+      const w = clamp(x, Preferences.MIN_OUTLINER_WIDTH, width * 0.75);
+      this.preferences.outlinerWidth = w;
 
       // TODO: Automatically collapse if less than 3/4 of min-width?
-      if (x < UiStore.MIN_OUTLINER_WIDTH * 0.75) {
-        this.isOutlinerOpen = false;
+      if (x < Preferences.MIN_OUTLINER_WIDTH * 0.75) {
+        this.preferences.isOutlinerOpen = false;
       }
-    } else if (x >= UiStore.MIN_OUTLINER_WIDTH) {
-      this.isOutlinerOpen = true;
+    } else if (x >= Preferences.MIN_OUTLINER_WIDTH) {
+      this.preferences.isOutlinerOpen = true;
     }
   }
 
   @action.bound moveInspectorSplitter(x: number, width: number) {
     // The inspector is on the right side, so we need to calculate the offset.
     const offsetX = width - x;
-    if (this.isInspectorOpen) {
-      const w = clamp(offsetX, UiStore.MIN_INSPECTOR_WIDTH, width * 0.75);
-      this.inspectorWidth = w;
+    if (this.preferences.isInspectorOpen) {
+      const w = clamp(offsetX, Preferences.MIN_INSPECTOR_WIDTH, width * 0.75);
+      this.preferences.inspectorWidth = w;
 
-      if (offsetX < UiStore.MIN_INSPECTOR_WIDTH * 0.75) {
-        this.isInspectorOpen = false;
+      if (offsetX < Preferences.MIN_INSPECTOR_WIDTH * 0.75) {
+        this.preferences.isInspectorOpen = false;
       }
-    } else if (offsetX >= UiStore.MIN_INSPECTOR_WIDTH) {
-      this.isInspectorOpen = true;
+    } else if (offsetX >= Preferences.MIN_INSPECTOR_WIDTH) {
+      this.preferences.isInspectorOpen = true;
     }
-  }
-
-  // Storing preferences
-  @action recoverPersistentPreferences() {
-    const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-    if (prefsString) {
-      try {
-        const prefs = JSON.parse(prefsString);
-        this.setTheme(prefs.theme);
-        this.setIsOutlinerOpen(prefs.isOutlinerOpen);
-        this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
-        this.setThumbnailDirectory(prefs.thumbnailDirectory);
-        this.setImportDirectory(prefs.importDirectory);
-        this.setMethod(prefs.method);
-        this.setThumbnailSize(prefs.thumbnailSize);
-        this.setThumbnailShape(prefs.thumbnailShape);
-        this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
-        this.outlinerWidth = Math.max(Number(prefs.outlinerWidth), UiStore.MIN_OUTLINER_WIDTH);
-        this.inspectorWidth = Math.max(Number(prefs.inspectorWidth), UiStore.MIN_INSPECTOR_WIDTH);
-        Object.entries<string>(prefs.hotkeyMap).forEach(
-          ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
-        );
-        console.info('recovered', prefs.hotkeyMap);
-      } catch (e) {
-        console.error('Cannot parse persistent preferences', e);
-      }
-      // Set the native window theme based on the application theme
-      RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
-    }
-
-    // Set default thumbnail directory in case none was specified
-    if (this.thumbnailDirectory.length === 0) {
-      getDefaultThumbnailDirectory().then((defaultThumbDir) => {
-        this.setThumbnailDirectory(defaultThumbDir);
-        fse.ensureDirSync(this.thumbnailDirectory);
-      });
-    }
-  }
-
-  @action storePersistentPreferences() {
-    const prefs: any = {};
-    for (const field of PersistentPreferenceFields) {
-      prefs[field] = this[field];
-    }
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
-  }
-
-  /////////////////// Helper methods ///////////////////
-  @action private setTheme(theme: 'light' | 'dark' = 'dark') {
-    this.theme = theme;
-  }
-
-  @action private setIsOutlinerOpen(value: boolean = true) {
-    this.isOutlinerOpen = value;
-  }
-
-  @action private setMethod(method: ViewMethod = ViewMethod.Grid) {
-    this.method = method;
-  }
-
-  @action private setThumbnailSize(size: ThumbnailSize = 'medium') {
-    this.thumbnailSize = size;
-  }
-
-  @action private setThumbnailShape(shape: ThumbnailShape) {
-    this.thumbnailShape = shape;
   }
 }
 

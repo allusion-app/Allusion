@@ -42,7 +42,7 @@ export const FileViewerMenuItems = ({
     uiStore.setFirstItem(fileStore.getIndex(file.id));
     RendererMessenger.openPreviewWindow(
       Array.from(fileStore.selection, (f) => f.id),
-      uiStore.thumbnailDirectory,
+      uiStore.preferences.thumbnailDirectory,
     );
   });
 
@@ -72,7 +72,7 @@ export const SlideFileViewerMenuItems = ({
     uiStore.setFirstItem(fileStore.getIndex(file.id));
     RendererMessenger.openPreviewWindow(
       Array.from(fileStore.selection, (f) => f.id),
-      uiStore.thumbnailDirectory,
+      uiStore.preferences.thumbnailDirectory,
     );
   });
 

@@ -13,7 +13,6 @@ import { ClientFile } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import TagStore from 'src/frontend/stores/TagStore';
 import { RendererMessenger } from 'src/Messaging';
-import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
 import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
@@ -37,9 +36,9 @@ const Settings = () => {
       onClose={uiStore.closeSettings}
       windowName="settings"
       closeOnEscape
-      additionalCloseKey={uiStore.hotkeyMap.toggleSettings}
+      additionalCloseKey={uiStore.preferences.hotkeyMap.toggleSettings}
     >
-      <Tabs id="settings" className={uiStore.theme} tabItems={SETTINGS_TABS()} />
+      <Tabs id="settings" className={uiStore.preferences.theme} tabItems={SETTINGS_TABS()} />
     </PopupWindow>
   );
 };
@@ -49,12 +48,6 @@ export default observer(Settings);
 const Appearance = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
-  const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
-    const isFullScreen = e.currentTarget.checked;
-    localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
-    RendererMessenger.setFullScreen(isFullScreen);
-  };
-
   return (
     <>
       <h2>Appearance</h2>
@@ -62,12 +55,12 @@ const Appearance = observer(() => {
       <h3>Interface</h3>
       <fieldset>
         <legend>Dark theme</legend>
-        <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme} />
+        <Toggle checked={uiStore.preferences.theme === 'dark'} onChange={uiStore.toggleTheme} />
       </fieldset>
 
       <fieldset>
         <legend>Full screen</legend>
-        <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
+        <Toggle checked={uiStore.preferences.isFullScreen} onChange={uiStore.toggleFullScreen} />
       </fieldset>
 
       <Zoom />
@@ -76,7 +69,7 @@ const Appearance = observer(() => {
       <fieldset>
         <legend>Show assigned tags</legend>
         <Toggle
-          checked={uiStore.isThumbnailTagOverlayEnabled}
+          checked={uiStore.preferences.showThumbnailTags}
           onChange={uiStore.toggleThumbnailTagOverlay}
         />
       </fieldset>
@@ -86,32 +79,32 @@ const Appearance = observer(() => {
           <Radio
             label="Small"
             value="small"
-            checked={uiStore.thumbnailSize === 'small'}
+            checked={uiStore.preferences.thumbnailSize === 'small'}
             onChange={uiStore.setThumbnailSmall}
           />
           <Radio
             label="Medium"
             value="medium"
-            checked={uiStore.thumbnailSize === 'medium'}
+            checked={uiStore.preferences.thumbnailSize === 'medium'}
             onChange={uiStore.setThumbnailMedium}
           />
           <Radio
             label="Large"
             value="large"
-            checked={uiStore.thumbnailSize === 'large'}
+            checked={uiStore.preferences.thumbnailSize === 'large'}
             onChange={uiStore.setThumbnailLarge}
           />
         </RadioGroup>
         <RadioGroup name="Shape">
           <Radio
             label="Square"
-            checked={uiStore.thumbnailShape === 'square'}
+            checked={uiStore.preferences.thumbnailShape === 'square'}
             value="square"
             onChange={uiStore.setThumbnailSquare}
           />
           <Radio
             label="Letterbox"
-            checked={uiStore.thumbnailShape === 'letterbox'}
+            checked={uiStore.preferences.thumbnailShape === 'letterbox'}
             value="letterbox"
             onChange={uiStore.setThumbnailLetterbox}
           />
@@ -371,7 +364,7 @@ const ImportExport = observer(() => {
 const BackgroundProcesses = observer(() => {
   const { uiStore, locationStore } = useContext(StoreContext);
 
-  const importDirectory = uiStore.importDirectory;
+  const importDirectory = uiStore.preferences.importDirectory;
   const browseImportDirectory = async () => {
     const { filePaths: dirs } = await RendererMessenger.openDialog({
       properties: ['openDirectory'],
@@ -439,7 +432,7 @@ const BackgroundProcesses = observer(() => {
           <input
             readOnly
             className="input input-file-value"
-            value={uiStore.importDirectory || 'Not set'}
+            value={uiStore.preferences.importDirectory ?? 'Not set'}
           />
           <Button
             styling="minimal"
@@ -473,7 +466,7 @@ const Shortcuts = () => (
 
 const Advanced = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
-  const thumbnailDirectory = uiStore.thumbnailDirectory;
+  const thumbnailDirectory = uiStore.preferences.thumbnailDirectory;
 
   const [defaultThumbnailDir, setDefaultThumbnailDir] = useState('');
   useEffect(() => void getDefaultThumbnailDirectory().then(setDefaultThumbnailDir), []);
@@ -534,7 +527,7 @@ const Advanced = observer(() => {
             text="Browse"
             onClick={browseThumbnailDirectory}
           />
-          {defaultThumbnailDir && defaultThumbnailDir !== uiStore.thumbnailDirectory && (
+          {defaultThumbnailDir !== uiStore.preferences.thumbnailDirectory && (
             <Button
               icon={IconSet.RELOAD}
               text="Reset"

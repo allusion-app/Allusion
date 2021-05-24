@@ -93,14 +93,14 @@ export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
         onClick={uiStore.setMethodList}
         checked={uiStore.isList}
         text="List"
-        accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewList} />}
+        accelerator={<KeyCombo combo={uiStore.preferences.hotkeyMap.viewList} />}
       />
       <MenuRadioItem
         icon={IconSet.VIEW_GRID}
         onClick={uiStore.setMethodGrid}
         checked={uiStore.isGrid}
         text="Grid"
-        accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewGrid} />}
+        accelerator={<KeyCombo combo={uiStore.preferences.hotkeyMap.viewGrid} />}
       />
       <MenuRadioItem
         icon={IconSet.VIEW_MASON}
@@ -108,14 +108,14 @@ export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
         checked={uiStore.isMasonryVertical}
         // TODO: "masonry" might not ring a bell to some people. Suggestions for a better name? "Flow", "Stream"?
         text="Vertical Masonry"
-        accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryVertical} />}
+        accelerator={<KeyCombo combo={uiStore.preferences.hotkeyMap.viewMasonryVertical} />}
       />
       <MenuRadioItem
         icon={IconSet.VIEW_MASON}
         onClick={uiStore.setMethodMasonryHorizontal}
         checked={uiStore.isMasonryHorizontal}
         text="Horizontal Masonry"
-        accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
+        accelerator={<KeyCombo combo={uiStore.preferences.hotkeyMap.viewMasonryHorizontal} />}
       />
     </MenuRadioGroup>
   );
@@ -127,19 +127,19 @@ export const ThumbnailSizeMenuItems = observer(({ uiStore }: { uiStore: UiStore 
       <MenuRadioItem
         icon={IconSet.THUMB_SM}
         onClick={uiStore.setThumbnailSmall}
-        checked={uiStore.thumbnailSize === 'small'}
+        checked={uiStore.preferences.thumbnailSize === 'small'}
         text="Small"
       />
       <MenuRadioItem
         icon={IconSet.THUMB_MD}
         onClick={uiStore.setThumbnailMedium}
-        checked={uiStore.thumbnailSize === 'medium'}
+        checked={uiStore.preferences.thumbnailSize === 'medium'}
         text="Medium"
       />
       <MenuRadioItem
         icon={IconSet.THUMB_BG}
         onClick={uiStore.setThumbnailLarge}
-        checked={uiStore.thumbnailSize === 'large'}
+        checked={uiStore.preferences.thumbnailSize === 'large'}
         text="Large"
       />
     </MenuRadioGroup>

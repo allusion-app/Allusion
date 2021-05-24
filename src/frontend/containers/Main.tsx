@@ -45,7 +45,7 @@ const Main = () => {
         return comboMatches(combo, parseKeyCombo(c));
       };
 
-      const { hotkeyMap } = uiStore;
+      const { hotkeyMap } = uiStore.preferences;
       if (matches(hotkeyMap.selectAll)) {
         fileStore.selectAll();
       } else if (matches(hotkeyMap.deselectAll)) {
@@ -70,8 +70,8 @@ const Main = () => {
         }
         axis="vertical"
         align="left"
-        splitPoint={uiStore.outlinerWidth}
-        isExpanded={uiStore.isOutlinerOpen}
+        splitPoint={uiStore.preferences.outlinerWidth}
+        isExpanded={uiStore.preferences.isOutlinerOpen}
         onMove={uiStore.moveOutlinerSplitter}
       />
     </TagDnDContext.Provider>

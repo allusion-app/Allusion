@@ -20,12 +20,12 @@ const HelpCenter = observer(() => {
       onClose={uiStore.closeHelpCenter}
       windowName="help-center"
       closeOnEscape
-      additionalCloseKey={uiStore.hotkeyMap.toggleHelpCenter}
+      additionalCloseKey={uiStore.preferences.hotkeyMap.toggleHelpCenter}
     >
       <Documentation
         id="help-center"
         overviewId="help-center-overview"
-        className={uiStore.theme}
+        className={uiStore.preferences.theme}
         pages={PAGE_DATA()}
       />
     </PopupWindow>

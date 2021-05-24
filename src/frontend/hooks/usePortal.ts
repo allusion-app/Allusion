@@ -90,7 +90,7 @@ function usePortal(id: string, className: string): HTMLElement {
 export const Portal = observer(({ id, children }: { id: string; children: React.ReactNode }) => {
   const { uiStore } = useContext(StoreContext);
 
-  const target = usePortal(id, uiStore.theme);
+  const target = usePortal(id, uiStore.preferences.theme);
   return createPortal(children, target);
 });
 

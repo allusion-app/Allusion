@@ -299,7 +299,10 @@ class FileStore {
   }
 
   @action private async removeThumbnail(path: string) {
-    const thumbnailPath = getThumbnailPath(path, this.rootStore.uiStore.thumbnailDirectory);
+    const thumbnailPath = getThumbnailPath(
+      path,
+      this.rootStore.uiStore.preferences.thumbnailDirectory,
+    );
     try {
       if (await fse.pathExists(thumbnailPath)) {
         return fse.remove(thumbnailPath);
@@ -393,7 +396,7 @@ class FileStore {
       // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
       // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
       file.thumbnailPath = needsThumbnail(f.width, f.height)
-        ? getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory)
+        ? getThumbnailPath(f.absolutePath, this.rootStore.uiStore.preferences.thumbnailDirectory)
         : f.absolutePath;
       return file;
     });
