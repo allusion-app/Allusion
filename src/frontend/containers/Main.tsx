@@ -8,6 +8,8 @@ import TagDnDContext, { DnDAttribute } from '../contexts/TagDnDContext';
 import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
 import Outliner from './Outliner';
+import { Preferences } from '../stores/Preferences';
+import { clamp } from '../utils';
 
 const Main = () => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -57,6 +59,23 @@ const Main = () => {
     }),
   );
 
+  const handleMove = useRef(
+    action((x: number, width: number) => {
+      const { preferences } = uiStore;
+      if (preferences.isOutlinerOpen) {
+        const w = clamp(x, Preferences.MIN_OUTLINER_WIDTH, width * 0.75);
+        preferences.outlinerWidth = w;
+
+        // TODO: Automatically collapse if less than 3/4 of min-width?
+        if (x < Preferences.MIN_OUTLINER_WIDTH * 0.75) {
+          preferences.isOutlinerOpen = false;
+        }
+      } else if (x >= Preferences.MIN_OUTLINER_WIDTH) {
+        preferences.isOutlinerOpen = true;
+      }
+    }),
+  );
+
   return (
     <TagDnDContext.Provider value={data.current}>
       <Split
@@ -72,7 +91,7 @@ const Main = () => {
         align="left"
         splitPoint={uiStore.preferences.outlinerWidth}
         isExpanded={uiStore.preferences.isOutlinerOpen}
-        onMove={uiStore.moveOutlinerSplitter}
+        onMove={handleMove.current}
       />
     </TagDnDContext.Provider>
   );

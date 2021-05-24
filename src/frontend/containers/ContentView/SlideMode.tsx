@@ -1,6 +1,6 @@
-import { runInAction } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import { IconSet, Split } from 'widgets';
@@ -8,6 +8,8 @@ import Inspector from '../Inspector';
 import { createSubmitCommand } from './LayoutSwitcher';
 import { GallerySelector, MissingImageFallback } from './GalleryItem';
 import RootStore from 'src/frontend/stores/RootStore';
+import { Preferences } from 'src/frontend/stores/Preferences';
+import { clamp } from 'src/frontend/utils';
 
 interface ISlideMode {
   rootStore: RootStore;
@@ -31,6 +33,24 @@ const SlideMode = observer((props: ISlideMode) => {
     />
   );
 
+  const handleMove = useRef(
+    action((x: number, width: number) => {
+      const { preferences } = uiStore;
+      // The inspector is on the right side, so we need to calculate the offset.
+      const offsetX = width - x;
+      if (preferences.isInspectorOpen) {
+        const w = clamp(offsetX, Preferences.MIN_INSPECTOR_WIDTH, width * 0.75);
+        preferences.inspectorWidth = w;
+
+        if (offsetX < Preferences.MIN_INSPECTOR_WIDTH * 0.75) {
+          preferences.isInspectorOpen = false;
+        }
+      } else if (offsetX >= Preferences.MIN_INSPECTOR_WIDTH) {
+        preferences.isInspectorOpen = true;
+      }
+    }),
+  );
+
   return (
     <Split
       id="slide-mode"
@@ -40,7 +60,7 @@ const SlideMode = observer((props: ISlideMode) => {
       align="right"
       splitPoint={inspectorWidth}
       isExpanded={isInspectorOpen}
-      onMove={uiStore.moveInspectorSplitter}
+      onMove={handleMove.current}
     />
   );
 });

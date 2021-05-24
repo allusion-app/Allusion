@@ -4,11 +4,7 @@ import { IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import { RendererMessenger } from 'src/Messaging';
 import { AppToaster } from '../components/Toaster';
-import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
-import { clamp } from '../utils';
-import FileStore from './FileStore';
 import {
   IHotkeyMap,
   Preferences,
@@ -431,87 +427,6 @@ class UiStore {
 
   @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {
     this.preferences.hotkeyMap[action] = combo;
-  }
-
-  @action.bound processGlobalShortCuts(e: KeyboardEvent, fileStore: FileStore) {
-    if ((e.target as HTMLElement).matches?.('input')) {
-      return;
-    }
-    const combo = getKeyCombo(e);
-    const matches = (c: string): boolean => {
-      return comboMatches(combo, parseKeyCombo(c));
-    };
-    const { hotkeyMap } = this.preferences;
-    let isMatch = true;
-    // UI
-    if (matches(hotkeyMap.toggleOutliner)) {
-      this.toggleOutliner();
-    } else if (matches(hotkeyMap.toggleInspector)) {
-      this.toggleInspector();
-    } else if (matches(hotkeyMap.openTagEditor)) {
-      // Windows
-    } else if (matches(hotkeyMap.toggleSettings)) {
-      this.toggleSettings();
-    } else if (matches(hotkeyMap.toggleHelpCenter)) {
-      this.toggleHelpCenter();
-    } else if (matches(hotkeyMap.openPreviewWindow)) {
-      RendererMessenger.openPreviewWindow(
-        Array.from(fileStore.selection, (f) => f.id),
-        this.preferences.thumbnailDirectory,
-      );
-      e.preventDefault(); // prevent scrolling with space when opening the preview window
-      // Search
-    } else if (matches(hotkeyMap.search)) {
-      (document.querySelector('.searchbar input') as HTMLElement)?.focus();
-    } else if (matches(hotkeyMap.advancedSearch)) {
-      this.toggleAdvancedSearch();
-      // View
-    } else if (matches(hotkeyMap.viewList)) {
-      this.setMethodList();
-    } else if (matches(hotkeyMap.viewGrid)) {
-      this.setMethodGrid();
-    } else if (matches(hotkeyMap.viewMasonryVertical)) {
-      this.setMethodMasonryVertical();
-    } else if (matches(hotkeyMap.viewMasonryHorizontal)) {
-      this.setMethodMasonryHorizontal();
-    } else if (matches(hotkeyMap.viewSlide)) {
-      this.toggleSlideMode();
-    } else {
-      isMatch = false;
-    }
-
-    if (isMatch) {
-      e.preventDefault();
-    }
-  }
-
-  @action.bound moveOutlinerSplitter(x: number, width: number) {
-    if (this.preferences.isOutlinerOpen) {
-      const w = clamp(x, Preferences.MIN_OUTLINER_WIDTH, width * 0.75);
-      this.preferences.outlinerWidth = w;
-
-      // TODO: Automatically collapse if less than 3/4 of min-width?
-      if (x < Preferences.MIN_OUTLINER_WIDTH * 0.75) {
-        this.preferences.isOutlinerOpen = false;
-      }
-    } else if (x >= Preferences.MIN_OUTLINER_WIDTH) {
-      this.preferences.isOutlinerOpen = true;
-    }
-  }
-
-  @action.bound moveInspectorSplitter(x: number, width: number) {
-    // The inspector is on the right side, so we need to calculate the offset.
-    const offsetX = width - x;
-    if (this.preferences.isInspectorOpen) {
-      const w = clamp(offsetX, Preferences.MIN_INSPECTOR_WIDTH, width * 0.75);
-      this.preferences.inspectorWidth = w;
-
-      if (offsetX < Preferences.MIN_INSPECTOR_WIDTH * 0.75) {
-        this.preferences.isInspectorOpen = false;
-      }
-    } else if (offsetX >= Preferences.MIN_INSPECTOR_WIDTH) {
-      this.preferences.isInspectorOpen = true;
-    }
   }
 }
 
