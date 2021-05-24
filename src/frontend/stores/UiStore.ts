@@ -8,7 +8,14 @@ import { AppToaster } from '../components/Toaster';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp } from '../utils';
 import FileStore from './FileStore';
-import { IHotkeyMap, Preferences, ThumbnailShape, ThumbnailSize, ViewMethod } from './Preferences';
+import {
+  IHotkeyMap,
+  Preferences,
+  Theme,
+  ThumbnailShape,
+  ThumbnailSize,
+  ViewMethod,
+} from './Preferences';
 import RootStore from './RootStore';
 
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
@@ -236,7 +243,7 @@ class UiStore {
   }
 
   @action.bound toggleTheme() {
-    this.preferences.theme = this.preferences.theme === 'dark' ? 'light' : 'dark';
+    this.preferences.theme = this.preferences.theme === Theme.Dark ? Theme.Light : Theme.Dark;
   }
 
   @action.bound toggleAdvancedSearch() {

@@ -11,6 +11,7 @@ import {
 } from 'src/config';
 import { ClientFile } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { Theme } from 'src/frontend/stores/Preferences';
 import TagStore from 'src/frontend/stores/TagStore';
 import { RendererMessenger } from 'src/Messaging';
 import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
@@ -55,7 +56,7 @@ const Appearance = observer(() => {
       <h3>Interface</h3>
       <fieldset>
         <legend>Dark theme</legend>
-        <Toggle checked={uiStore.preferences.theme === 'dark'} onChange={uiStore.toggleTheme} />
+        <Toggle checked={uiStore.preferences.theme === Theme.Dark} onChange={uiStore.toggleTheme} />
       </fieldset>
 
       <fieldset>

@@ -4,6 +4,7 @@ import { ID } from './entities/ID';
 import { ITag } from './entities/Tag';
 
 import { IImportItem } from './clipper/server';
+import { Theme } from './frontend/stores/Preferences';
 
 /**
  * All types of messages between the main and renderer process in one place, with type safety.
@@ -103,7 +104,7 @@ export interface IClipServerEnabledMessage {
 
 export const SET_THEME = 'SET_THEME';
 export interface IThemeMessage {
-  theme: 'light' | 'dark';
+  theme: Theme;
 }
 
 export const IS_RUNNING_IN_BACKGROUND = 'IS_RUN_IN_BACKGROUND';

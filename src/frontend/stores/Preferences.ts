@@ -8,7 +8,7 @@ import { RendererMessenger } from 'src/Messaging';
 
 export class Preferences {
   // Views
-  @observable theme: 'light' | 'dark' = 'dark';
+  @observable theme: Theme = Theme.Dark;
   @observable viewMethod: ViewMethod = ViewMethod.Grid;
   @observable fileOrder: FileOrder = FileOrder.Desc;
   @observable orderBy: keyof IFile = 'dateAdded';
@@ -118,10 +118,10 @@ export class Preferences {
   }
 
   @action private parseTheme(theme: any) {
-    const value = theme as 'dark' | 'light';
+    const value = theme as Theme;
     switch (theme) {
-      case 'dark':
-      case 'light':
+      case Theme.Dark:
+      case Theme.Light:
         this.theme = value;
         break;
 
