@@ -77,6 +77,7 @@ export class Preferences {
       this.parseViewMethod(prefs.viewMethod);
       this.parseFileOrder(prefs.fileOrder);
       this.parseOrderBy(prefs.orderBy);
+      this.parseIsFullScreen(prefs.isFullScreen);
       this.parseThumbnailSize(prefs.thumbnailSize);
       this.parseThumbnailShape(prefs.thumbnailShape);
       this.parseShowThumbnailTags(prefs.showThumbnailTags);
@@ -179,6 +180,12 @@ export class Preferences {
 
       default:
         break;
+    }
+  }
+
+  @action private parseIsFullScreen(isFullScreen: any) {
+    if (typeof isFullScreen === 'boolean') {
+      this.isFullScreen = isFullScreen;
     }
   }
 
