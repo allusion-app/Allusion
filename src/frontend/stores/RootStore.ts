@@ -41,19 +41,8 @@ class RootStore {
     this.fileStore = new FileStore(backend, this);
   }
 
-  async init(isPreviewWindow: boolean): Promise<void> {
-    // The tag store needs to be awaited because file entites have references
-    // to tag entities.
-    await this.tagStore.init();
-    // The location store must be initiated because the file entity contructor
-    // uses the location reference to set values.
-    await this.locationStore.init();
-
-    // The preview window is opened while the locations are already watched. The
-    // files are fetched based on the file selection.
-    if (isPreviewWindow) {
-      return this.uiStore.init();
-    }
+  async init() {
+    await this.initView();
 
     const { orderBy, fileOrder } = runInAction(() => {
       const preferences = this.uiStore.preferences;
@@ -97,6 +86,12 @@ class RootStore {
     } else {
       AppToaster.dismiss(PROGRESS_KEY);
     }
+  }
+
+  async initView(): Promise<void> {
+    await this.tagStore.init();
+    await this.locationStore.init();
+    return this.uiStore.init();
   }
 
   async backupDatabaseToFile(path: string): Promise<void> {
