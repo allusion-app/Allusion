@@ -1,4 +1,4 @@
-import { configure } from 'mobx';
+import { configure, runInAction } from 'mobx';
 
 import Backend from 'src/backend/Backend';
 
@@ -55,8 +55,12 @@ class RootStore {
       return this.uiStore.init();
     }
 
+    const { orderBy, fileOrder } = runInAction(() => {
+      const preferences = this.uiStore.preferences;
+      return { orderBy: preferences.orderBy, fileOrder: preferences.fileOrder };
+    });
     // Load the files already in the database so user instantly sees their images
-    await this.fileStore.fetchAllFiles();
+    await this.fileStore.fetchAllFiles(orderBy, fileOrder);
     // Upon loading data, initialize UI state.
     this.uiStore.init();
 
@@ -89,7 +93,7 @@ class RootStore {
     const foundNewFiles = await this.locationStore.watchLocations(handleProgress, handleTimeout);
     if (foundNewFiles) {
       AppToaster.show({ message: 'New images detected.', timeout: 5000 }, PROGRESS_KEY);
-      return this.fileStore.fetchAllFiles();
+      return this.fileStore.fetchAllFiles(orderBy, fileOrder);
     } else {
       AppToaster.dismiss(PROGRESS_KEY);
     }

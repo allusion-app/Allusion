@@ -1,5 +1,5 @@
 import fse from 'fs-extra';
-import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
+import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile, IFile } from 'src/entities/File';
@@ -7,13 +7,8 @@ import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientTagSearchCriteria, SearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import { debounce, getThumbnailPath, needsThumbnail, promiseAllLimit } from '../utils';
+import { getThumbnailPath, needsThumbnail, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
-
-const FILE_STORAGE_KEY = 'Allusion_File';
-
-/** These fields are stored and recovered when the application opens up */
-const PersistentPreferenceFields: Array<keyof FileStore> = ['fileOrder', 'orderBy'];
 
 class FileStore {
   private readonly backend: Backend;
@@ -29,7 +24,6 @@ class FileStore {
   private readonly index = new Map<ID, number>();
 
   @observable fileOrder: FileOrder = FileOrder.Desc;
-  @observable orderBy: keyof IFile = 'dateAdded';
   @observable numTotalFiles = 0;
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
@@ -39,18 +33,6 @@ class FileStore {
     this.backend = backend;
     this.rootStore = rootStore;
     makeObservable(this);
-
-    // Store preferences immediately when anything is changed
-    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
-    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
-  }
-
-  @action switchFileOrder() {
-    this.setFileOrder(this.fileOrder === FileOrder.Desc ? FileOrder.Asc : FileOrder.Desc);
-  }
-
-  @action orderFilesBy(prop: keyof IFile = 'dateAdded') {
-    this.setOrderBy(prop);
   }
 
   /**
@@ -90,19 +72,17 @@ class FileStore {
     }
   }
 
-  @action async fetchAllFiles() {
+  @action async fetchAllFiles(orderBy: keyof IFile, fileOrder: FileOrder) {
     try {
-      const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.fileOrder);
+      const fetchedFiles = await this.backend.fetchFiles(orderBy, fileOrder);
       return this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
     }
   }
 
-  @action async fetchMissingFiles(): Promise<string> {
+  @action async fetchMissingFiles(orderBy: keyof IFile, fileOrder: FileOrder): Promise<string> {
     try {
-      const { orderBy, fileOrder } = this;
-
       // Fetch all files, then check their existence and only show the missing ones
       // Similar to {@link updateFromBackend}, but the existence check needs to be awaited before we can show the images
       const backendFiles = await this.backend.fetchFiles(orderBy, fileOrder);
@@ -150,15 +130,17 @@ class FileStore {
   @action async fetchFilesByQuery(
     criteria: SearchCriteria<IFile> | SearchCriteria<IFile>[],
     searchMatchAny: boolean,
+    orderBy: keyof IFile,
+    fileOrder: FileOrder,
   ) {
     if (Array.isArray(criteria) && criteria.length === 0) {
-      return this.fetchAllFiles();
+      return this.fetchAllFiles(orderBy, fileOrder);
     }
     try {
       const fetchedFiles = await this.backend.searchFiles(
         criteria as any,
-        this.orderBy,
-        this.fileOrder,
+        orderBy,
+        fileOrder,
         searchMatchAny,
       );
       return this.updateFromBackend(fetchedFiles);
@@ -275,27 +257,6 @@ class FileStore {
 
   @action.bound deselectAll() {
     this.selection.clear();
-  }
-
-  @action recoverPersistentPreferences() {
-    const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
-    if (prefsString) {
-      try {
-        const prefs = JSON.parse(prefsString);
-        this.setFileOrder(prefs.fileOrder);
-        this.setOrderBy(prefs.orderBy);
-      } catch (e) {
-        console.log('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);
-      }
-    }
-  }
-
-  @action storePersistentPreferences() {
-    const prefs: any = {};
-    for (const field of PersistentPreferenceFields) {
-      prefs[field] = this[field];
-    }
-    localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
   }
 
   @action private async removeThumbnail(path: string) {
@@ -440,14 +401,6 @@ class FileStore {
       this.numUntaggedFiles = numUntaggedFiles;
       this.numTotalFiles = numTotalFiles;
     });
-  }
-
-  @action private setFileOrder(order: FileOrder = FileOrder.Desc) {
-    this.fileOrder = order;
-  }
-
-  @action private setOrderBy(prop: keyof IFile = 'dateAdded') {
-    this.orderBy = prop;
   }
 
   @action private incrementNumMissingFiles() {

@@ -98,7 +98,7 @@ const Content = observer(() => {
                 <LayoutMenuItems uiStore={uiStore} />
               </MenuSubItem>
               <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-                <SortMenuItems fileStore={fileStore} uiStore={uiStore} />
+                <SortMenuItems uiStore={uiStore} />
               </MenuSubItem>
               <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
                 <ThumbnailSizeMenuItems uiStore={uiStore} />

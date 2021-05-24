@@ -1,4 +1,5 @@
 import { action, computed, makeObservable, observable } from 'mobx';
+import { FileOrder } from 'src/backend/DBRepository';
 import { IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
@@ -338,16 +339,34 @@ class UiStore {
     return this.content === Content.Query;
   }
 
+  @action orderFilesBy(prop: keyof IFile = 'dateAdded'): Promise<void> {
+    this.preferences.orderBy = prop;
+    return this.refetch();
+  }
+
+  @action switchFileOrder(): Promise<void> {
+    this.preferences.fileOrder =
+      this.preferences.fileOrder === FileOrder.Desc ? FileOrder.Asc : FileOrder.Desc;
+    return this.refetch();
+  }
+
   @action.bound viewAllContent(): Promise<void> {
     this.clearSearchCriteriaList();
     this.setContentAll();
-    return this.rootStore.fileStore.fetchAllFiles();
+    const { orderBy, fileOrder } = this.preferences;
+    return this.rootStore.fileStore.fetchAllFiles(orderBy, fileOrder);
   }
 
   @action.bound viewQueryContent(): Promise<void> {
     const criteria = this.searchCriteriaList.map((c) => c.serialize());
     this.setContentQuery();
-    return this.rootStore.fileStore.fetchFilesByQuery(criteria, this.searchMatchAny);
+    const { orderBy, fileOrder } = this.preferences;
+    return this.rootStore.fileStore.fetchFilesByQuery(
+      criteria,
+      this.searchMatchAny,
+      orderBy,
+      fileOrder,
+    );
   }
 
   @action.bound viewUntaggedContent(): Promise<void> {
@@ -356,13 +375,20 @@ class UiStore {
     const criteria = new ClientTagSearchCriteria(tagStore, 'tags');
     this.searchCriteriaList.push(criteria);
     this.setContentUntagged();
-    return fileStore.fetchFilesByQuery(criteria.serialize(), this.searchMatchAny);
+    const { orderBy, fileOrder } = this.preferences;
+    return fileStore.fetchFilesByQuery(
+      criteria.serialize(),
+      this.searchMatchAny,
+      orderBy,
+      fileOrder,
+    );
   }
 
   @action.bound async viewMissingContent(): Promise<void> {
     this.clearSearchCriteriaList();
     this.setContentMissing();
-    const message = await this.rootStore.fileStore.fetchMissingFiles();
+    const { orderBy, fileOrder } = this.preferences;
+    const message = await this.rootStore.fileStore.fetchMissingFiles(orderBy, fileOrder);
     AppToaster.show({ message, timeout: 12000 }, 'recovery-view');
   }
 

@@ -34,6 +34,7 @@ backend
   .init(!IS_PREVIEW_WINDOW)
   .then(async () => {
     console.log('Backend has been initialized!');
+    // Load persistent preferences
     if (!IS_PREVIEW_WINDOW) {
       await preferences.load();
     }
@@ -65,9 +66,6 @@ if (IS_PREVIEW_WINDOW) {
       window.close();
     }
   });
-} else {
-  // Load persistent preferences
-  rootStore.fileStore.recoverPersistentPreferences();
 }
 
 window.addEventListener('beforeunload', () => {

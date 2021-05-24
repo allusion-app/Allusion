@@ -35,6 +35,7 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
     rootStore,
   } = props;
   const { uiStore, fileStore } = rootStore;
+  const { preferences } = uiStore;
   const cellSize = 24;
   const dndData = useContext(TagDnDContext);
   const submitCommand = useMemo(
@@ -110,19 +111,18 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
             // Click to sort by this key. If already sorting by this key, swap order around.
             onClick={() => {
               if (col.sortKey !== undefined) {
-                if (fileStore.orderBy === col.sortKey) {
-                  fileStore.switchFileOrder();
+                if (preferences.orderBy === col.sortKey) {
+                  uiStore.switchFileOrder();
                 } else {
-                  fileStore.orderFilesBy(col.sortKey);
+                  uiStore.orderFilesBy(col.sortKey);
                 }
-                uiStore.refetch();
               }
             }}
           >
             <span>{col.title}</span>
-            {fileStore.orderBy === col.sortKey && (
+            {preferences.orderBy === col.sortKey && (
               <span>
-                {fileStore.fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP}
+                {preferences.fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP}
               </span>
             )}
           </div>

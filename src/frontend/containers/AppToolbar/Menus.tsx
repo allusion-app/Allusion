@@ -6,7 +6,6 @@ import { FileOrder } from 'src/backend/DBRepository';
 import { IFile } from 'src/entities/File';
 
 import UiStore from 'src/frontend/stores/UiStore';
-import FileStore from 'src/frontend/stores/FileStore';
 
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
@@ -17,7 +16,7 @@ const enum Tooltip {
   Filter = 'Sort view content panel',
 }
 
-export const SortCommand = ({ fileStore, uiStore }: { fileStore: FileStore; uiStore: UiStore }) => {
+export const SortCommand = ({ uiStore }: { uiStore: UiStore }) => {
   return (
     <MenuButton
       showLabel="never"
@@ -27,7 +26,7 @@ export const SortCommand = ({ fileStore, uiStore }: { fileStore: FileStore; uiSt
       id="__sort-menu"
       menuID="__sort-options"
     >
-      <SortMenuItems fileStore={fileStore} uiStore={uiStore} />
+      <SortMenuItems uiStore={uiStore} />
     </MenuButton>
   );
 };
@@ -58,8 +57,8 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateCreated', icon: IconSet.FILTER_DATE, text: 'Date created' },
 ];
 
-export const SortMenuItems = observer((props: { fileStore: FileStore; uiStore: UiStore }) => {
-  const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = props.fileStore;
+export const SortMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
+  const { orderBy, fileOrder } = uiStore.preferences;
   const orderIcon = fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
 
   return (
@@ -73,11 +72,10 @@ export const SortMenuItems = observer((props: { fileStore: FileStore; uiStore: U
           accelerator={orderBy === prop ? orderIcon : undefined}
           onClick={() => {
             if (orderBy === prop) {
-              switchFileOrder();
+              uiStore.switchFileOrder();
             } else {
-              orderFilesBy(prop);
+              uiStore.orderFilesBy(prop);
             }
-            props.uiStore.refetch();
           }}
         />
       ))}
