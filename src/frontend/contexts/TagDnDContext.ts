@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 
@@ -19,4 +19,8 @@ export const enum DnDAttribute {
 
 const TagDnDContext = React.createContext<ITagDnDData>({} as ITagDnDData);
 
-export default TagDnDContext;
+export function useTagDnD(): ITagDnDData {
+  return useContext(TagDnDContext);
+}
+
+export default TagDnDContext.Provider;

@@ -1,10 +1,10 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useMemo, useRef, useCallback, useEffect, useState } from 'react';
+import React, { useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile } from 'src/entities/File';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { IconSet } from 'widgets';
 import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
@@ -30,7 +30,7 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   const { uiStore, fileStore } = rootStore;
   const { preferences } = uiStore;
   const cellSize = 24;
-  const dndData = useContext(TagDnDContext);
+  const dndData = useTagDnD();
   const submitCommand = useMemo(
     () => createSubmitCommand(rootStore, dndData, select, showContextMenu),
     [dndData, rootStore, select, showContextMenu],
