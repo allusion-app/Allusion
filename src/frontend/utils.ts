@@ -118,7 +118,7 @@ export const promiseAllBatch = async <T>(batchSize = 50, proms: Promise<T>[]) =>
  */
 export function promiseAllLimit<T>(
   collection: Array<() => Promise<T>>,
-  n: number = 100,
+  n: number,
   progressCallback?: (progress: number) => void,
   cancel?: () => boolean,
 ): Promise<T[]> {

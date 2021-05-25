@@ -3,6 +3,7 @@ import { action, computed, flow, makeObservable, observable } from 'mobx';
 import { CancellablePromise } from 'mobx/dist/internal';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
+import { NUM_LOGICAL_CORES } from 'src/renderer';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
@@ -112,8 +113,7 @@ class FileStore {
         clientFile.setBroken(!(await fse.pathExists(clientFile.absolutePath)));
       });
 
-      const N = 50; // TODO: same here as in fetchFromBackend: number of concurrent checks should be system dependent
-      yield promiseAllLimit(existenceCheckPromises, N);
+      yield promiseAllLimit(existenceCheckPromises, NUM_LOGICAL_CORES);
 
       const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
       this.fileList.replace(missingClientFiles);
@@ -302,16 +302,12 @@ class FileStore {
     this.updateFileListState(); // update index & untagged image counter
     this.fileListLastModified = new Date();
 
-    // Run the existence check with at most N checks in parallel
-    // TODO: Should make N configurable, or determine based on the system/disk performance
-    // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
-    const N = 50;
     // Check existence of new files asynchronously, no need to wait until they can be showed
     // we can simply check whether they exist after they start rendering
     const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
       clientFile.setBroken(!(await fse.pathExists(clientFile.absolutePath)));
     });
-    return promiseAllLimit(existenceCheckPromises, N)
+    return promiseAllLimit(existenceCheckPromises, NUM_LOGICAL_CORES)
       .then(() => this.updateFileListState()) // update missing image counter
       .catch((e) => console.error('An error occured during existence checking!', e));
   }

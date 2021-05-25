@@ -1,7 +1,7 @@
-import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
+import React, { useContext, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { autorun, runInAction } from 'mobx';
+import { autorun, flow } from 'mobx';
 
 import { RendererMessenger } from 'src/Messaging';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -11,7 +11,7 @@ import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
 import { IconSet, Tree } from 'widgets';
 import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'widgets/menus';
-import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
+import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
 import { CustomKeyDict, IExpansionState } from '../../types';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
@@ -334,7 +334,7 @@ const Location = observer(
   },
 );
 
-const SubLocationLabel = (nodeData: any, treeData: any) => (
+const SubLocationLabel = (nodeData: IDirectoryTreeItem, treeData: ITreeData) => (
   <SubLocation nodeData={nodeData} treeData={treeData} />
 );
 
@@ -346,7 +346,7 @@ const mapDirectory = (dir: IDirectoryTreeItem): ITreeItem => ({
   isExpanded,
 });
 
-const LocationLabel = (nodeData: any, treeData: any) => (
+const LocationLabel = (nodeData: ClientLocation, treeData: ITreeData) => (
   <Location nodeData={nodeData} treeData={treeData} />
 );
 
@@ -356,11 +356,8 @@ interface ILocationTreeProps {
   reloadLocationHierarchyTrigger?: Date;
 }
 
-const LocationsTree = ({
-  onDelete,
-  showContextMenu,
-  reloadLocationHierarchyTrigger,
-}: ILocationTreeProps) => {
+const LocationsTree = (props: ILocationTreeProps) => {
+  const { onDelete, showContextMenu, reloadLocationHierarchyTrigger } = props;
   const { locationStore, uiStore } = useStore();
   const [expansion, setExpansion] = useState<IExpansionState>({});
   const treeData: ITreeData = useMemo(
@@ -374,12 +371,8 @@ const LocationsTree = ({
   );
   const [branches, setBranches] = useState<ITreeItem[]>([]);
 
-  const handleBranchKeyDown = useCallback(
-    (
-      event: React.KeyboardEvent<HTMLLIElement>,
-      nodeData: ClientLocation | IDirectoryTreeItem,
-      treeData: ITreeData,
-    ) =>
+  const handleBranchKeyDown = useRef(
+    (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientLocation, treeData: ITreeData) =>
       createBranchOnKeyDown(
         event,
         nodeData,
@@ -389,25 +382,28 @@ const LocationsTree = ({
         toggleExpansion,
         customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
       ),
-    [uiStore],
+  );
+
+  const handleLeafOnKeyDown = useRef(
+    (
+      event: React.KeyboardEvent<HTMLLIElement>,
+      nodeData: IDirectoryTreeItem,
+      treeData: ITreeData,
+    ) =>
+      createLeafOnKeyDown(
+        event,
+        nodeData,
+        treeData,
+        emptyFunction,
+        customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
+      ),
   );
 
   useEffect(() => {
-    runInAction(() => {
-      setBranches(
-        locationStore.locationList.map((location) => ({
-          id: location.id,
-          label: LocationLabel,
-          children: [],
-          nodeData: location,
-          isExpanded,
-        })),
-      );
-    });
     // Prevents updating state when component will be unmounted!
     let isMounted = true;
-    const dispose = autorun(() => {
-      Promise.all(
+    const dispose = autorun(async () => {
+      const value = await Promise.all(
         locationStore.locationList.map(async (location) => {
           let children: ITreeItem[];
           try {
@@ -424,11 +420,10 @@ const LocationsTree = ({
             isExpanded,
           };
         }),
-      ).then((value) => {
-        if (isMounted) {
-          setBranches(value);
-        }
-      });
+      );
+      if (isMounted) {
+        setBranches(value);
+      }
     });
 
     return () => {
@@ -445,8 +440,8 @@ const LocationsTree = ({
       children={branches}
       treeData={treeData}
       toggleExpansion={toggleExpansion}
-      onBranchKeyDown={handleBranchKeyDown}
-      onLeafKeyDown={emptyFunction}
+      onBranchKeyDown={handleBranchKeyDown.current}
+      onLeafKeyDown={handleLeafOnKeyDown.current}
     />
   );
 };
@@ -460,50 +455,52 @@ const LocationsPanel = observer(() => {
   const [reloadLocationHierarchyTrigger, setReloadLocationHierarchyTrigger] = useState(new Date());
 
   // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
-  const handleChooseWatchedDir = useCallback(async () => {
-    let path: string;
-    try {
-      const { filePaths } = await RendererMessenger.openDialog({
-        properties: ['openDirectory'],
-      });
-      // multi-selection is disabled which means there can be at most 1 folder
-      if (filePaths.length === 0) {
+  const handleChooseWatchedDir = useRef(
+    flow(function* () {
+      let path: string;
+      try {
+        const { filePaths }: { filePaths: string[] } = yield RendererMessenger.openDialog({
+          properties: ['openDirectory'],
+        });
+        // multi-selection is disabled which means there can be at most 1 folder
+        if (filePaths.length === 0) {
+          return;
+        }
+        path = filePaths[0];
+      } catch (error) {
+        // TODO: Show error notification.
+        console.error(error);
         return;
       }
-      path = filePaths[0];
-    } catch (error) {
-      // TODO: Show error notification.
-      console.error(error);
-      return;
-    }
 
-    if (path === undefined) {
-      return;
-    }
+      if (path === undefined) {
+        return;
+      }
 
-    // Check if the new location is a sub-directory of an existing location
-    const parentDir = locationStore.exists((dir) => path.includes(dir.path));
-    if (parentDir) {
-      AppToaster.show({
-        message: 'You cannot add a location that is a sub-folder of an existing location.',
-        timeout: 5000,
-      });
-      return;
-    }
+      // Check if the new location is a sub-directory of an existing location
+      const parentDir = locationStore.locationList.some((dir) => path.includes(dir.path));
+      if (parentDir) {
+        AppToaster.show({
+          message: 'You cannot add a location that is a sub-folder of an existing location.',
+          timeout: 5000,
+        });
+        return;
+      }
 
-    // Check if the new location is a parent-directory of an existing location
-    const childDir = locationStore.exists((dir) => dir.path.includes(path));
-    if (childDir) {
-      AppToaster.show({
-        message: 'You cannot add a location that is a parent-folder of an existing location.',
-        timeout: 5000,
-      });
-      return;
-    }
+      // Check if the new location is a parent-directory of an existing location
+      const childDir = locationStore.locationList.some((dir) => dir.path.includes(path));
+      if (childDir) {
+        AppToaster.show({
+          message: 'You cannot add a location that is a parent-folder of an existing location.',
+          timeout: 5000,
+        });
+        return;
+      }
 
-    const location = await locationStore.create(path);
-    await locationStore.initLocation(location);
-  }, [locationStore]);
+      const location: ClientLocation = yield locationStore.create(path);
+      yield locationStore.initLocation(location);
+    }),
+  );
 
   const isEmpty = locationStore.locationList.length === 0;
   // Detect file dropping and show a blue outline around location panel
@@ -529,7 +526,7 @@ const LocationsPanel = observer(() => {
             showLabel="never"
             icon={IconSet.PLUS}
             text="New Location"
-            onClick={handleChooseWatchedDir}
+            onClick={handleChooseWatchedDir.current}
             tooltip={Tooltip.Location}
           />
         </Toolbar>

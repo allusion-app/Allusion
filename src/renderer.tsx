@@ -21,6 +21,8 @@ import PreviewApp from './frontend/Preview';
 import { promiseRetry } from './frontend/utils';
 import { Preferences } from './frontend/stores/Preferences';
 
+export const NUM_LOGICAL_CORES = navigator.hardwareConcurrency;
+
 (async function () {
   try {
     await main();

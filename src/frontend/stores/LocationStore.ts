@@ -3,6 +3,7 @@ import { CancellablePromise } from 'mobx/dist/internal';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
+import { NUM_LOGICAL_CORES } from 'src/renderer';
 import { getMetaData, IFile } from 'src/entities/File';
 import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation, ILocation } from 'src/entities/Location';
@@ -253,11 +254,9 @@ class LocationStore {
     showProgressToaster(0);
 
     // Load file meta info, with only N jobs in parallel and a progress + cancel callback
-    // TODO: Should make N configurable, or determine based on the system/disk performance
-    const N = 50;
     const files = await promiseAllLimit(
       filePaths.map((path) => () => pathToIFile(path, location)),
-      N,
+      NUM_LOGICAL_CORES,
       showProgressToaster,
       () => isCancelled,
     );
