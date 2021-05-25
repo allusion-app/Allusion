@@ -12,7 +12,7 @@ import { IFile } from 'src/entities/File';
 import { IconSet, Tree } from 'widgets';
 import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'widgets/menus';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
-import { CustomKeyDict, IExpansionState } from '../../types';
+import { CustomKeyDict } from '../../types';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
@@ -20,6 +20,7 @@ import { AppToaster } from 'src/frontend/components/Toaster';
 import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import DropContext from 'src/frontend/contexts/DropContext';
+import { ID } from 'src/entities/ID';
 
 // Tooltip info
 const enum Tooltip {
@@ -29,38 +30,42 @@ const enum Tooltip {
 
 interface ITreeData {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
-  expansion: IExpansionState;
-  setExpansion: React.Dispatch<IExpansionState>;
+  expansion: Set<ID>;
+  setExpansion: React.Dispatch<React.SetStateAction<Set<string>>>;
   delete: (location: ClientLocation) => void;
 }
 
 const toggleExpansion = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITreeData) => {
-  const { expansion, setExpansion } = treeData;
   const id = nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath;
-  setExpansion({ ...expansion, [id]: !expansion[id] });
+  treeData.setExpansion((expansion: Set<ID>) => {
+    if (!expansion.delete(id)) {
+      expansion.add(id);
+    }
+    return new Set(expansion);
+  });
 };
 
 const isExpanded = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITreeData) =>
-  treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath];
+  treeData.expansion.has(nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath);
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const emptyFunction = () => {};
 
-// FIXME: React broke Element.dispatchevent(). Alternative: Pass show context menu method.
-// const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
-//   const element = event.currentTarget.querySelector('.tree-content-label');
-//   if (element) {
-//     // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
-//     // Why not trigger context menus through `ContextMenu.show()`?
-//     event.stopPropagation();
-//     element.dispatchEvent(
-//       new MouseEvent('contextmenu', {
-//         clientX: element.getBoundingClientRect().right,
-//         clientY: element.getBoundingClientRect().top,
-//       }),
-//     );
-//   }
-// };
+const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+  const element = event.currentTarget.querySelector('.tree-content-label');
+  if (element) {
+    event.stopPropagation();
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: rect.right,
+        clientY: rect.top,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  }
+};
 
 const pathCriteria = (path: string) =>
   new ClientStringSearchCriteria<IFile>('absolutePath', path, 'startsWith', CustomKeyDict);
@@ -72,11 +77,11 @@ const customKeys = (
   treeData: ITreeData,
 ) => {
   switch (event.key) {
-    // case 'F10':
-    //   if (event.shiftKey) {
-    //     triggerContextMenuEvent(event);
-    //   }
-    //   break;
+    case 'F10':
+      if (event.shiftKey) {
+        triggerContextMenuEvent(event);
+      }
+      break;
 
     case 'Enter':
       event.stopPropagation();
@@ -90,9 +95,9 @@ const customKeys = (
       }
       break;
 
-    // case 'ContextMenu':
-    //   triggerContextMenuEvent(event);
-    //   break;
+    case 'ContextMenu':
+      triggerContextMenuEvent(event);
+      break;
 
     default:
       break;
@@ -163,25 +168,27 @@ export const HOVER_TIME_TO_EXPAND = 600;
 const useFileDropHandling = (
   expansionId: string,
   fullPath: string,
-  expansion: IExpansionState,
-  setExpansion: (s: IExpansionState) => void,
+  expansion: Set<ID>,
+  setExpansion: React.Dispatch<React.SetStateAction<Set<string>>>,
 ) => {
   // Don't expand immediately, only after hovering over it for a second or so
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(() => {
     if (expandTimeoutId) clearTimeout(expandTimeoutId);
     const t = window.setTimeout(() => {
-      setExpansion({ ...expansion, [expansionId]: true });
+      setExpansion((expansion) => {
+        return new Set(expansion.add(expansionId));
+      });
     }, HOVER_TIME_TO_EXPAND);
     setExpandTimeoutId(t);
-  }, [expandTimeoutId, expansion, expansionId, setExpansion]);
+  }, [expandTimeoutId, expansionId, setExpansion]);
 
   const handleDragEnter = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       event.stopPropagation();
       event.preventDefault();
       const canDrop = onDragOver(event);
-      if (canDrop && !expansion[expansionId]) {
+      if (canDrop && !expansion.has(expansionId)) {
         expandDelayed();
       }
     },
@@ -277,7 +284,7 @@ const SubLocation = ({
       // Note: onDragOver is not needed here, but need to preventDefault() for onDrop to work 🙃
       onDragOver={onDragOver}
     >
-      {expansion[nodeData.fullPath] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
+      {expansion.has(nodeData.fullPath) ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
       {nodeData.name}
     </div>
   );
@@ -286,9 +293,10 @@ const SubLocation = ({
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
     const { uiStore } = useStore();
-    const { showContextMenu, expansion, delete: onDelete } = treeData;
+    const { showContextMenu, expansion, delete: onDelete, setExpansion } = treeData;
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        console.log(event.clientX, event.clientY);
         showContextMenu(
           event.clientX,
           event.clientY,
@@ -312,7 +320,7 @@ const Location = observer(
       nodeData.id,
       nodeData.path,
       expansion,
-      treeData.setExpansion,
+      setExpansion,
     );
 
     return (
@@ -324,7 +332,7 @@ const Location = observer(
         onDrop={handleDrop}
         onDragLeave={handleDragLeave}
       >
-        {expansion[nodeData.id] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
+        {expansion.has(nodeData.id) ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
         <div>{nodeData.name}</div>
         {nodeData.isBroken && (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
@@ -359,7 +367,7 @@ interface ILocationTreeProps {
 const LocationsTree = (props: ILocationTreeProps) => {
   const { onDelete, showContextMenu, reloadLocationHierarchyTrigger } = props;
   const { locationStore, uiStore } = useStore();
-  const [expansion, setExpansion] = useState<IExpansionState>({});
+  const [expansion, setExpansion] = useState<Set<ID>>(new Set());
   const treeData: ITreeData = useMemo(
     () => ({
       expansion,

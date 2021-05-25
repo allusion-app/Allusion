@@ -237,9 +237,7 @@ class FileStore {
   }
 
   @action toggleSelection(file: Readonly<ClientFile>, clear?: boolean) {
-    if (this.selection.has(file)) {
-      this.selection.delete(file);
-    } else {
+    if (!this.selection.delete(file)) {
       if (clear) {
         this.selection.clear();
       }

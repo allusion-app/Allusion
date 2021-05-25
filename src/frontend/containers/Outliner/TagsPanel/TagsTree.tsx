@@ -1,6 +1,7 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useReducer, useRef, useState } from 'react';
+import { ID } from 'src/entities/ID';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
@@ -14,7 +15,6 @@ import { formatTagCountText } from 'src/frontend/utils';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
-import { IExpansionState } from '../../types';
 import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
 import { TagItemContextMenu } from './ContextMenu';
 import { Action, Factory, reducer, State } from './state';
@@ -66,7 +66,7 @@ interface ITagItemProps {
   submit: (target: EventTarget & HTMLInputElement) => void;
   select: (event: React.MouseEvent, nodeData: ClientTag) => void;
   pos: number;
-  expansion: IExpansionState;
+  expansion: Set<ID>;
 }
 
 /**
@@ -196,7 +196,7 @@ const TagItem = observer((props: ITagItemProps) => {
           clearTimeout(expandTimeoutId);
           setExpandTimeoutId(undefined);
         }
-      } else if (!expansion[nodeData.id] && !expandTimeoutId) {
+      } else if (!expansion.has(nodeData.id) && !expandTimeoutId) {
         expandDelayed(nodeData.id);
       }
     },
@@ -345,7 +345,7 @@ const TagItemLabel = (
 );
 
 const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
-  treeData.state.expansion[nodeData.id];
+  treeData.state.expansion.has(nodeData.id);
 
 const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));
@@ -353,21 +353,21 @@ const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
 const toggleSelection = (tagStore: TagStore, nodeData: ClientTag) =>
   tagStore.toggleSelection(nodeData);
 
-// FIXME: React broke Element.dispatchevent(). Alternative: Pass show context menu method.
-// const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
-//   const element = event.currentTarget.querySelector('.tree-content-label');
-//   if (element) {
-//     // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
-//     // Why not trigger context menus through `ContextMenu.show()`?
-//     event.stopPropagation();
-//     element.dispatchEvent(
-//       new MouseEvent('contextmenu', {
-//         clientX: element.getBoundingClientRect().right,
-//         clientY: element.getBoundingClientRect().top,
-//       }),
-//     );
-//   }
-// };
+const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+  const element = event.currentTarget.querySelector('.tree-content-label');
+  if (element) {
+    event.stopPropagation();
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: rect.right,
+        clientY: rect.top,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  }
+};
 
 const customKeys = (
   uiStore: UiStore,
@@ -382,11 +382,11 @@ const customKeys = (
       treeData.dispatch(Factory.enableEditing(nodeData.id));
       break;
 
-    // case 'F10':
-    //   if (event.shiftKey) {
-    //     triggerContextMenuEvent(event);
-    //   }
-    //   break;
+    case 'F10':
+      if (event.shiftKey) {
+        triggerContextMenuEvent(event);
+      }
+      break;
 
     case 'Enter':
       event.stopPropagation();
@@ -397,9 +397,9 @@ const customKeys = (
       treeData.dispatch(Factory.confirmDeletion(nodeData));
       break;
 
-    // case 'ContextMenu':
-    //   triggerContextMenuEvent(event);
-    //   break;
+    case 'ContextMenu':
+      triggerContextMenuEvent(event);
+      break;
 
     default:
       break;
@@ -418,7 +418,7 @@ const mapTag = (tag: Readonly<ClientTag>, tagStore: TagStore): ITreeItem => ({
 const TagsTree = observer(() => {
   const { tagStore, uiStore } = useStore();
   const [state, dispatch] = useReducer(reducer, {
-    expansion: {},
+    expansion: new Set<ID>(),
     editableNode: undefined,
     deletableNode: undefined,
     mergableNode: undefined,

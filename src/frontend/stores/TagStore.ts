@@ -191,9 +191,7 @@ class TagStore {
   }
 
   @action toggleSelection(tag: Readonly<ClientTag>) {
-    if (this.selection.has(tag)) {
-      this.selection.delete(tag);
-    } else {
+    if (!this.selection.delete(tag)) {
       this.selection.add(tag);
     }
   }

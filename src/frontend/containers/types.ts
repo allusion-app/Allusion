@@ -23,8 +23,5 @@ export interface IAction<F, D> {
   flag: F;
   data: D;
 }
-/** Map that keeps track of the IDs that are expanded */
-
-export type IExpansionState = { [key: string]: boolean };
 
 export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };

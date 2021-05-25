@@ -1,13 +1,12 @@
 import { ID } from 'src/entities/ID';
 import { ClientTag } from 'src/entities/Tag';
 
-import { IAction, IExpansionState } from '../../types';
+import { IAction } from '../../types';
 
 const enum Flag {
   InsertNode,
   EnableEditing,
   DisableEditing,
-  Expansion,
   ToggleNode,
   ExpandNode,
   ConfirmDeletion,
@@ -20,8 +19,7 @@ export type Action =
   | IAction<Flag.InsertNode, { parent: ID; node: ID }>
   | IAction<Flag.EnableEditing | Flag.ToggleNode | Flag.ExpandNode, ID>
   | IAction<Flag.ConfirmDeletion | Flag.ConfirmMerge, ClientTag>
-  | IAction<Flag.DisableEditing | Flag.AbortDeletion | Flag.AbortMerge, undefined>
-  | IAction<Flag.Expansion, IExpansionState>;
+  | IAction<Flag.DisableEditing | Flag.AbortDeletion | Flag.AbortMerge, undefined>;
 
 export const Factory = {
   insertNode: (parent: ID, node: ID): Action => ({
@@ -35,10 +33,6 @@ export const Factory = {
   disableEditing: (): Action => ({
     flag: Flag.DisableEditing,
     data: undefined,
-  }),
-  setExpansion: (data: IExpansionState): Action => ({
-    flag: Flag.Expansion,
-    data,
   }),
   toggleNode: (data: ID): Action => ({ flag: Flag.ToggleNode, data }),
   expandNode: (data: ID): Action => ({ flag: Flag.ExpandNode, data }),
@@ -61,7 +55,7 @@ export const Factory = {
 };
 
 export type State = {
-  expansion: IExpansionState;
+  expansion: Set<ID>;
   editableNode: ID | undefined;
   deletableNode: ClientTag | undefined;
   mergableNode: ClientTag | undefined;
@@ -72,9 +66,7 @@ export function reducer(state: State, action: Action): State {
     case Flag.InsertNode:
       return {
         ...state,
-        expansion: state.expansion[action.data.parent]
-          ? state.expansion
-          : { ...state.expansion, [action.data.parent]: true },
+        expansion: new Set(state.expansion.add(action.data.parent)),
         editableNode: action.data.node,
       };
 
@@ -90,22 +82,19 @@ export function reducer(state: State, action: Action): State {
         editableNode: action.data,
       };
 
-    case Flag.Expansion:
-      return {
-        ...state,
-        expansion: { ...action.data },
-      };
-
     case Flag.ToggleNode:
+      if (!state.expansion.delete(action.data)) {
+        state.expansion.add(action.data);
+      }
       return {
         ...state,
-        expansion: { ...state.expansion, [action.data]: !state.expansion[action.data] },
+        expansion: new Set(state.expansion),
       };
 
     case Flag.ExpandNode:
       return {
         ...state,
-        expansion: { ...state.expansion, [action.data]: true },
+        expansion: new Set(state.expansion.add(action.data)),
       };
 
     case Flag.ConfirmDeletion:
