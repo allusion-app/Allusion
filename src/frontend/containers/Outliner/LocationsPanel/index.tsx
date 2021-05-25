@@ -4,8 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { autorun, runInAction } from 'mobx';
 
 import { RendererMessenger } from 'src/Messaging';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import UiStore from 'src/frontend/stores/UiStore';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import { ClientLocation, getDirectoryTree, IDirectoryTreeItem } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
@@ -100,9 +99,8 @@ const customKeys = (
   }
 };
 
-type UiStoreProp = { uiStore: UiStore };
-
-const DirectoryMenu = ({ path, uiStore }: { path: string } & UiStoreProp) => {
+const DirectoryMenu = ({ path }: { path: string }) => {
+  const { uiStore } = useStore();
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
   const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(pathCriteria(path)), [
@@ -129,12 +127,13 @@ const DirectoryMenu = ({ path, uiStore }: { path: string } & UiStoreProp) => {
   );
 };
 
-interface IContextMenuProps extends UiStoreProp {
+interface IContextMenuProps {
   location: ClientLocation;
   onDelete: (location: ClientLocation) => void;
 }
 
-const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: IContextMenuProps) => {
+const LocationTreeContextMenu = observer(({ location, onDelete }: IContextMenuProps) => {
+  const { uiStore } = useStore();
   const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
 
   if (location.isBroken) {
@@ -152,7 +151,7 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
 
   return (
     <>
-      <DirectoryMenu path={location.path} uiStore={uiStore} />
+      <DirectoryMenu path={location.path} />
       <MenuDivider />
       <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
     </>
@@ -242,16 +241,12 @@ const SubLocation = ({
   nodeData: IDirectoryTreeItem;
   treeData: ITreeData;
 }) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const { showContextMenu, expansion, setExpansion } = treeData;
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) =>
-      showContextMenu(
-        e.clientX,
-        e.clientY,
-        <DirectoryMenu path={nodeData.fullPath} uiStore={uiStore} />,
-      ),
-    [nodeData, showContextMenu, uiStore],
+      showContextMenu(e.clientX, e.clientY, <DirectoryMenu path={nodeData.fullPath} />),
+    [nodeData, showContextMenu],
   );
 
   const handleClick = useCallback(
@@ -290,17 +285,17 @@ const SubLocation = ({
 
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
-    const { uiStore } = useContext(StoreContext);
+    const { uiStore } = useStore();
     const { showContextMenu, expansion, delete: onDelete } = treeData;
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         showContextMenu(
           event.clientX,
           event.clientY,
-          <LocationTreeContextMenu location={nodeData} onDelete={onDelete} uiStore={uiStore} />,
+          <LocationTreeContextMenu location={nodeData} onDelete={onDelete} />,
         );
       },
-      [nodeData, showContextMenu, onDelete, uiStore],
+      [nodeData, showContextMenu, onDelete],
     );
 
     const handleClick = useCallback(
@@ -366,7 +361,7 @@ const LocationsTree = ({
   showContextMenu,
   reloadLocationHierarchyTrigger,
 }: ILocationTreeProps) => {
-  const { locationStore, uiStore } = useContext(StoreContext);
+  const { locationStore, uiStore } = useStore();
   const [expansion, setExpansion] = useState<IExpansionState>({});
   const treeData: ITreeData = useMemo(
     () => ({
@@ -457,7 +452,7 @@ const LocationsTree = ({
 };
 
 const LocationsPanel = observer(() => {
-  const { locationStore } = useContext(StoreContext);
+  const { locationStore } = useStore();
   const [contextState, { show, hide }] = useContextMenu();
 
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation | undefined>(undefined);

@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
-import StoreContext from './contexts/StoreContext';
+import { useStore } from './contexts/StoreContext';
 
 import ErrorBoundary from './containers/ErrorBoundary';
 import HelpCenter from './containers/HelpCenter';
@@ -24,7 +24,7 @@ const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
 const App = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useStore();
 
   // Listen to responses of Web Workers
   useWorkerListener();

@@ -1,12 +1,11 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { HexColorPicker } from 'react-colorful';
 
 import { formatTagCountText } from 'src/frontend/utils';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import TagStore from 'src/frontend/stores/TagStore';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
 import { Action, Factory } from './state';
@@ -26,7 +25,8 @@ const defaultColorOptions = [
   { title: 'Razzmatazz', color: '#ec125f' },
 ];
 
-const ColorPickerMenu = observer(({ tag, tagStore }: { tag: ClientTag; tagStore: TagStore }) => {
+const ColorPickerMenu = observer(({ tag }: { tag: ClientTag }) => {
+  const { tagStore } = useStore();
   const handleChange = (color: string) => {
     if (tagStore.isSelected(tag)) {
       tagStore.colorSelection(tag.id, color);
@@ -85,7 +85,7 @@ interface IContextMenuProps {
 
 export const TagItemContextMenu = observer((props: IContextMenuProps) => {
   const { tag, dispatch, pos } = props;
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useStore();
   const isSelected = tagStore.isSelected(tag);
   const tags = tagStore.getActiveTags(tag.id);
   let contextText = formatTagCountText(tags.length);
@@ -120,7 +120,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         icon={IconSet.DELETE}
       />
       <MenuDivider />
-      <ColorPickerMenu tag={tag} tagStore={tagStore} />
+      <ColorPickerMenu tag={tag} />
       <MenuDivider />
       <MenuItem
         onClick={action(() => {

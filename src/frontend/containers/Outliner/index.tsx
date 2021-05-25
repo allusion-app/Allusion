@@ -1,12 +1,12 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext } from 'react';
+import React from 'react';
 
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 import LocationsPanel from './LocationsPanel';
 import TagsPanel, { OutlinerActionBar } from './TagsPanel';
 
 const Outliner = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   return (
     <nav id="outliner" aria-expanded={uiStore.preferences.isOutlinerOpen}>

@@ -2,7 +2,7 @@ import { shell } from 'electron';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ExifIO from 'src/backend/ExifIO';
 import {
   chromeExtensionUrl,
@@ -18,7 +18,7 @@ import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } f
 import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
 import { getFilenameFriendlyFormattedDateTime, getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
@@ -26,7 +26,7 @@ import HotkeyMapper from './HotkeyMapper';
 import Tabs, { TabItem } from './Tabs';
 
 const Settings = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   if (!uiStore.isSettingsOpen) {
     return null;
@@ -47,7 +47,7 @@ const Settings = () => {
 export default observer(Settings);
 
 const Appearance = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   return (
     <>
@@ -143,7 +143,7 @@ const Zoom = () => {
 };
 
 const ImportExport = observer(() => {
-  const rootStore = useContext(StoreContext);
+  const rootStore = useStore();
   const { fileStore, tagStore, exifTool } = rootStore;
   const [isConfirmingMetadataExport, setConfirmingMetadataExport] = useState(false);
   const [isConfirmingFileImport, setConfirmingFileImport] = useState<{
@@ -363,7 +363,7 @@ const ImportExport = observer(() => {
 });
 
 const BackgroundProcesses = observer(() => {
-  const { uiStore, locationStore } = useContext(StoreContext);
+  const { uiStore, locationStore } = useStore();
 
   const importDirectory = uiStore.preferences.importDirectory;
   const browseImportDirectory = async () => {
@@ -466,7 +466,7 @@ const Shortcuts = () => (
 );
 
 const Advanced = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useStore();
   const thumbnailDirectory = uiStore.preferences.thumbnailDirectory;
 
   const [defaultThumbnailDir, setDefaultThumbnailDir] = useState('');

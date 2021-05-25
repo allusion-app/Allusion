@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { autorun } from 'mobx';
 
-import StoreContext from './contexts/StoreContext';
+import { useStore } from './contexts/StoreContext';
 
 import ErrorBoundary from './containers/ErrorBoundary';
 import ContentView from './containers/ContentView';
@@ -10,19 +10,19 @@ import { IconSet, Toggle } from 'widgets';
 import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './ThumbnailGeneration';
-import { PREVIEW_WINDOW_BASENAME } from 'src/renderer';
 
 const PreviewApp = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useStore();
 
   // Change window title to filename on load and when changing the selected file.
   useEffect(() => {
+    const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
     return autorun(() => {
       const path =
         uiStore.firstItem >= 0 && uiStore.firstItem < fileStore.fileList.length
           ? fileStore.fileList[uiStore.firstItem].absolutePath
           : '?';
-      if (uiStore.firstItem >= 0) document.title = `${path} • ${PREVIEW_WINDOW_BASENAME}`;
+      document.title = `${path} • ${PREVIEW_WINDOW_BASENAME}`;
     });
   }, [fileStore, uiStore]);
 

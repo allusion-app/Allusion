@@ -3,33 +3,29 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { ClientFile } from 'src/entities/File';
-import FileStore from 'src/frontend/stores/FileStore';
-import UiStore from 'src/frontend/stores/UiStore';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { RendererMessenger } from 'src/Messaging';
 import { IconSet } from 'widgets';
 import { MenuItem } from 'widgets/menus';
 
-export const MissingFileMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => (
-  <>
-    <MenuItem
-      onClick={uiStore.viewMissingContent}
-      text="Open Recovery Panel"
-      icon={IconSet.WARNING_BROKEN_LINK}
-      disabled={uiStore.showsMissingContent}
-    />
-    <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
-  </>
-));
+export const MissingFileMenuItems = observer(() => {
+  const { uiStore } = useStore();
+  return (
+    <>
+      <MenuItem
+        onClick={uiStore.viewMissingContent}
+        text="Open Recovery Panel"
+        icon={IconSet.WARNING_BROKEN_LINK}
+        disabled={uiStore.showsMissingContent}
+      />
+      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+    </>
+  );
+});
 
-export const FileViewerMenuItems = ({
-  file,
-  uiStore,
-  fileStore,
-}: {
-  file: ClientFile;
-  uiStore: UiStore;
-  fileStore: FileStore;
-}) => {
+export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+  const { uiStore, fileStore } = useStore();
+
   const handleViewFullSize = () => {
     fileStore.select(file, true);
     uiStore.setFirstItem(fileStore.getIndex(file.id));
@@ -58,15 +54,8 @@ export const FileViewerMenuItems = ({
   );
 };
 
-export const SlideFileViewerMenuItems = ({
-  file,
-  uiStore,
-  fileStore,
-}: {
-  file: ClientFile;
-  uiStore: UiStore;
-  fileStore: FileStore;
-}) => {
+export const SlideFileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+  const { uiStore, fileStore } = useStore();
   const handlePreviewWindow = action(() => {
     fileStore.select(file, true);
     uiStore.setFirstItem(fileStore.getIndex(file.id));

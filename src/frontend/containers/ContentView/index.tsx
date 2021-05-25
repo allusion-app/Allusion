@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
 import useContextMenu from '../../hooks/useContextMenu';
 
@@ -17,14 +17,14 @@ import { action } from 'mobx';
 
 const ContentView = observer(() => {
   const {
-    uiStore,
+    uiStore: { preferences },
     fileStore: { fileList },
-  } = useContext(StoreContext);
+  } = useStore();
 
   return (
     <div
       id="content-view"
-      className={`thumbnail-${uiStore.preferences.thumbnailSize} thumbnail-${uiStore.preferences.thumbnailShape}`}
+      className={`thumbnail-${preferences.thumbnailSize} thumbnail-${preferences.thumbnailShape}`}
     >
       {fileList.length === 0 ? <Placeholder /> : <Content />}
     </div>
@@ -32,8 +32,7 @@ const ContentView = observer(() => {
 });
 
 const Content = observer(() => {
-  const rootStore = useContext(StoreContext);
-  const { fileStore, uiStore } = rootStore;
+  const { fileStore, uiStore } = useStore();
   const dndData = useContext(TagDnDContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
   const { open, x, y, menu } = contextState;
@@ -87,7 +86,7 @@ const Content = observer(() => {
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
       onClick={clearFileSelection.current}
     >
-      <Layout contentRect={contentRect} showContextMenu={show} rootStore={rootStore} />
+      <Layout contentRect={contentRect} showContextMenu={show} />
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}
@@ -95,13 +94,13 @@ const Content = observer(() => {
             <>
               {fileMenu && <MenuDivider />}
               <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
-                <LayoutMenuItems uiStore={uiStore} />
+                <LayoutMenuItems />
               </MenuSubItem>
               <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-                <SortMenuItems uiStore={uiStore} />
+                <SortMenuItems />
               </MenuSubItem>
               <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
-                <ThumbnailSizeMenuItems uiStore={uiStore} />
+                <ThumbnailSizeMenuItems />
               </MenuSubItem>
             </>
           )}

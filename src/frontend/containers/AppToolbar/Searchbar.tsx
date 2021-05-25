@@ -1,11 +1,11 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
 const Searchbar = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const searchCriteriaList = uiStore.searchCriteriaList;
 
   // Only show quick search bar when all criteria are tags,
@@ -21,15 +21,7 @@ const Searchbar = observer(() => {
         (crit as ClientTagSearchCriteria<any>).value.length,
     );
 
-  return (
-    <div className="searchbar">
-      {isQuickSearch ? (
-        <QuickSearchList uiStore={uiStore} tagStore={tagStore} />
-      ) : (
-        <CriteriaList uiStore={uiStore} tagStore={tagStore} />
-      )}
-    </div>
-  );
+  return <div className="searchbar">{isQuickSearch ? <QuickSearchList /> : <CriteriaList />}</div>;
 });
 
 export default Searchbar;
@@ -37,20 +29,14 @@ export default Searchbar;
 import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 
-import UiStore from 'src/frontend/stores/UiStore';
-import TagStore from 'src/frontend/stores/TagStore';
-
 import { IconButton, IconSet, Tag } from 'widgets';
 
 import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
 import { CustomKeyDict } from '../types';
 
-interface ISearchListProps {
-  uiStore: UiStore;
-  tagStore: TagStore;
-}
+const QuickSearchList = observer(() => {
+  const { uiStore, tagStore } = useStore();
 
-const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   const selectedItems: ClientTag[] = [];
   uiStore.searchCriteriaList.forEach((c) => {
     if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
@@ -118,7 +104,8 @@ const QuickSearchList = observer(({ uiStore, tagStore }: ISearchListProps) => {
   );
 });
 
-const CriteriaList = observer(({ uiStore }: ISearchListProps) => {
+const CriteriaList = observer(() => {
+  const { uiStore } = useStore();
   return (
     <div className="input" onClick={uiStore.toggleAdvancedSearch}>
       <div className="multiautocomplete-input">

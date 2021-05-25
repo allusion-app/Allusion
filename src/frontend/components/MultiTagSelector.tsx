@@ -1,6 +1,6 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { ReactElement, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, { ReactElement, useCallback, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
 import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Option, Tag } from 'widgets';
@@ -8,7 +8,7 @@ import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/Co
 import { IOption } from 'widgets/Combobox/Listbox';
 import { MenuDivider } from 'widgets/menus';
 import { Flyout } from 'widgets/popovers';
-import StoreContext from '../contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 
 interface IMultiTagSelector {
   selection: Readonly<ClientTag>[];
@@ -52,7 +52,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
   } = props;
   const listboxID = useRef(generateId());
   const inputRef = useRef<HTMLInputElement>(null);
-  const { tagStore } = useContext(StoreContext);
+  const { tagStore } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const normalizedQuery = query.toLowerCase();

@@ -4,17 +4,14 @@ import { ClientFile, IFile } from 'src/entities/File';
 import { encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
 import { IconSet, Tag } from 'widgets';
 import { Tooltip } from 'widgets/popovers';
-import FileStore from '../../stores/FileStore';
-import UiStore from '../../stores/UiStore';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
 import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
 interface ICell {
   file: ClientFile;
   mounted: boolean;
-  uiStore: UiStore;
-  fileStore: FileStore;
   // Will use the original image instead of the thumbnail
   forceNoThumbnail?: boolean;
   submitCommand: (command: GalleryCommand) => void;
@@ -53,7 +50,8 @@ export const listColumns: IListColumn[] = [
   { title: 'Tags' },
 ];
 
-export const ListCell = observer(({ file, mounted, uiStore, fileStore, submitCommand }: ICell) => {
+export const ListCell = observer(({ file, mounted, submitCommand }: ICell) => {
+  const { fileStore } = useStore();
   const portalTriggerRef = useRef<HTMLSpanElement>(null);
   const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
     file,
@@ -71,7 +69,7 @@ export const ListCell = observer(({ file, mounted, uiStore, fileStore, submitCom
       <div key={`${file.id}-name`}>
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           {mounted ? (
-            <Thumbnail uiStore={uiStore} mounted={mounted} file={file} />
+            <Thumbnail mounted={mounted} file={file} />
           ) : (
             <div className="thumbnail-placeholder" />
           )}
@@ -129,7 +127,6 @@ export const ListCell = observer(({ file, mounted, uiStore, fileStore, submitCom
 });
 
 interface IMasonryCell extends ICell {
-  fileStore: FileStore;
   forceNoThumbnail: boolean;
   transform: ITransform;
 }
@@ -138,12 +135,11 @@ export const MasonryCell = observer(
   ({
     file,
     mounted,
-    uiStore,
-    fileStore,
     forceNoThumbnail,
     transform: { height, width, left, top },
     submitCommand,
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
+    const { uiStore, fileStore } = useStore();
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
     const portalTriggerRef = useRef<HTMLSpanElement>(null);
     return (
@@ -154,12 +150,7 @@ export const MasonryCell = observer(
         style={style}
       >
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
-          <Thumbnail
-            uiStore={uiStore}
-            mounted={!mounted}
-            file={file}
-            forceNoThumbnail={forceNoThumbnail}
-          />
+          <Thumbnail mounted={!mounted} file={file} forceNoThumbnail={forceNoThumbnail} />
         </ThumbnailContainer>
         {file.isBroken === true && !uiStore.showsMissingContent && (
           <Tooltip
@@ -309,11 +300,12 @@ const enum ThumbnailState {
   Error,
 }
 
-type IThumbnail = Omit<ICell, 'submitCommand' | 'fileStore'>;
+type IThumbnail = Omit<ICell, 'submitCommand'>;
 
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: IThumbnail) => {
+const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => {
+  const { uiStore } = useStore();
   const { thumbnailDirectory } = uiStore.preferences;
   const { thumbnailPath, isBroken } = file;
 

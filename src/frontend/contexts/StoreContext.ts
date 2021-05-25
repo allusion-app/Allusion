@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import RootStore from '../stores/RootStore';
 
 /**
@@ -11,4 +11,8 @@ import RootStore from '../stores/RootStore';
  */
 const StoreContext = React.createContext<RootStore>({} as RootStore);
 
-export default StoreContext;
+export function useStore(): RootStore {
+  return useContext(StoreContext);
+}
+
+export default StoreContext.Provider;

@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
@@ -39,7 +39,7 @@ const VirtualizedRenderer = observer(
     lastSelectionIndex,
     layoutUpdateDate,
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
-    const rootStore = useContext(StoreContext);
+    const rootStore = useStore();
     const { uiStore, fileStore } = rootStore;
     const [, isMountedRef] = useMountState();
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -151,8 +151,6 @@ const VirtualizedRenderer = observer(
                 key={im.id}
                 file={fileStore.fileList[fileListIndex]}
                 mounted
-                uiStore={uiStore}
-                fileStore={fileStore}
                 transform={transform}
                 // Force to load the full resolution image when the img dimensions on screen are larger than the thumbnail image resolution
                 // Otherwise you'll see very low res images. This is usually only the case for images with extreme aspect ratios

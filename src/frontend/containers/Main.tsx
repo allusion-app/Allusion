@@ -1,9 +1,9 @@
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Split } from 'widgets/Split';
-import StoreContext from '../contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 import TagDnDContext, { DnDAttribute } from '../contexts/TagDnDContext';
 import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
@@ -12,7 +12,7 @@ import { Preferences } from '../stores/Preferences';
 import { clamp } from '../utils';
 
 const Main = () => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useStore();
   const data = useRef({ source: undefined, target: undefined });
 
   useEffect(() => {

@@ -1,23 +1,23 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import LOGO_FC from 'resources/logo/svg/full-color/allusion-logomark-fc.svg';
 
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
 const Placeholder = observer(() => {
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useStore();
 
   if (uiStore.showsAllContent && tagStore.isEmpty) {
     // No tags exist, and no images added: Assuming it's a new user -> Show a welcome screen
     return <Welcome />;
   } else if (uiStore.showsAllContent) {
-    return <NoContentFound uiStore={uiStore} />;
+    return <NoContentFound />;
   } else if (uiStore.showsQueryContent) {
-    return <NoQueryContent uiStore={uiStore} />;
+    return <NoQueryContent />;
   } else if (uiStore.showsUntaggedContent) {
-    return <NoUntaggedContent uiStore={uiStore} />;
+    return <NoUntaggedContent />;
   } else if (uiStore.showsMissingContent) {
-    return <NoMissingContent uiStore={uiStore} />;
+    return <NoMissingContent />;
   } else {
     return <BugReport />;
   }
@@ -25,12 +25,10 @@ const Placeholder = observer(() => {
 
 export default Placeholder;
 
-import UiStore from '../../stores/UiStore';
-
 import { IconSet, Button, ButtonGroup, SVG } from 'widgets';
 
 const Welcome = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   return (
     <ContentPlaceholder title="Welcome to Allusion" icon={<SVG src={LOGO_FC} />}>
       <p>
@@ -58,7 +56,8 @@ const Welcome = () => {
   );
 };
 
-const NoContentFound = ({ uiStore }: { uiStore: UiStore }) => {
+const NoContentFound = () => {
+  const { uiStore } = useStore();
   return (
     <ContentPlaceholder title="No images" icon={IconSet.MEDIA}>
       <p>Images can be added from the outliner</p>
@@ -67,7 +66,8 @@ const NoContentFound = ({ uiStore }: { uiStore: UiStore }) => {
   );
 };
 
-const NoQueryContent = ({ uiStore }: { uiStore: UiStore }) => {
+const NoQueryContent = () => {
+  const { uiStore } = useStore();
   return (
     <ContentPlaceholder title="No images found" icon={IconSet.SEARCH}>
       <p>Try searching for something else.</p>
@@ -89,7 +89,8 @@ const NoQueryContent = ({ uiStore }: { uiStore: UiStore }) => {
   );
 };
 
-const NoUntaggedContent = ({ uiStore }: { uiStore: UiStore }) => {
+const NoUntaggedContent = () => {
+  const { uiStore } = useStore();
   return (
     <ContentPlaceholder title="No untagged images" icon={IconSet.TAG}>
       <p>All images have been tagged. Nice work!</p>
@@ -103,7 +104,8 @@ const NoUntaggedContent = ({ uiStore }: { uiStore: UiStore }) => {
   );
 };
 
-const NoMissingContent = ({ uiStore }: { uiStore: UiStore }) => {
+const NoMissingContent = () => {
+  const { uiStore } = useStore();
   return (
     <ContentPlaceholder title="No missing images" icon={IconSet.WARNING_BROKEN_LINK}>
       <p>Try searching for something else.</p>

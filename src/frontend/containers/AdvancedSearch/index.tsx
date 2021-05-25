@@ -1,9 +1,9 @@
-import React, { useContext, useCallback, useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { generateId, ID } from 'src/entities/ID';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Button, IconButton, IconSet, RadioGroup, Radio } from 'widgets';
 import { Dialog } from 'widgets/popovers';
 import Field from './Field';
@@ -12,7 +12,7 @@ import { Query, defaultQuery, fromCriteria, intoCriteria } from './query';
 import './search.scss';
 
 export const AdvancedSearchDialog = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useStore();
   const { searchCriteriaList, isAdvancedSearchOpen } = uiStore;
   const [form, setForm] = useState(new Map<ID, Query>());
 

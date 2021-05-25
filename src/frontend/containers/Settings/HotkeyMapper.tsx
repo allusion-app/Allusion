@@ -1,16 +1,15 @@
-import React, { useContext, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { comboMatches, getKeyComboString, parseKeyCombo } from '../../hotkeyParser';
 
-import StoreContext from '../../contexts/StoreContext';
-import UiStore from '../../stores/UiStore';
+import { useStore } from '../../contexts/StoreContext';
 import { Preferences, IHotkeyMap } from 'src/frontend/stores/Preferences';
 import { camelCaseToSpaced } from '../../utils';
 import { Button, IconSet, keyComboToString } from 'widgets';
 
 export const HotkeyMapper = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const [changed, onChange] = useState<keyof IHotkeyMap | null>(null);
   const textDispatch = useState('');
 
@@ -43,7 +42,6 @@ export const HotkeyMapper = observer(() => {
               textDispatch={textDispatch}
               onKeyDown={handleKeyDown.current}
               setEditableKey={onChange}
-              uiStore={uiStore}
             />
           </details>
         );
@@ -60,7 +58,6 @@ interface IKeyComboEditor {
   textDispatch: [string, React.Dispatch<React.SetStateAction<string>>];
   combo: string;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  uiStore: UiStore;
   setEditableKey: React.Dispatch<React.SetStateAction<keyof IHotkeyMap | null>>;
 }
 
@@ -71,8 +68,8 @@ const KeyComboEditor = ({
   textDispatch,
   combo,
   onKeyDown,
-  uiStore,
 }: IKeyComboEditor) => {
+  const { uiStore } = useStore();
   const hotkeyMap = uiStore.preferences.hotkeyMap;
   const [text, setText] = textDispatch;
   const isEditable = useRef(true);

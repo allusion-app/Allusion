@@ -1,16 +1,14 @@
 import { action, ObservableSet } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
-import FileStore from 'src/frontend/stores/FileStore';
-import TagStore from 'src/frontend/stores/TagStore';
 import { debounce } from 'src/frontend/utils';
 import { Option, Tag } from 'widgets';
 import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
 import { IconSet } from 'widgets/Icons';
 import { MenuDivider, ToolbarButton } from 'widgets/menus';
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 import { Tooltip } from './PrimaryCommands';
 
 function countFileTags(files: ObservableSet<Readonly<ClientFile>>) {
@@ -32,8 +30,7 @@ function countFileTags(files: ObservableSet<Readonly<ClientFile>>) {
 }
 
 const TagFilesPopover = observer(() => {
-  const { uiStore, fileStore, tagStore } = useContext(StoreContext);
-
+  const { uiStore, fileStore } = useStore();
   return (
     <>
       <ToolbarButton
@@ -48,7 +45,7 @@ const TagFilesPopover = observer(() => {
         isOpen={uiStore.isToolbarTagPopoverOpen}
         onClose={uiStore.closeToolbarTagPopover}
       >
-        <TagFilesWidget tagStore={tagStore} fileStore={fileStore} />
+        <TagFilesWidget />
       </FloatingDialog>
     </>
   );
@@ -56,8 +53,8 @@ const TagFilesPopover = observer(() => {
 
 export default TagFilesPopover;
 
-const TagFilesWidget = observer((props: { tagStore: TagStore; fileStore: FileStore }) => {
-  const { tagStore, fileStore } = props;
+const TagFilesWidget = observer(() => {
+  const { tagStore, fileStore } = useStore();
   const [inputText, setInputText] = useState('');
 
   const { counter, sortedTags } = countFileTags(fileStore.selection);

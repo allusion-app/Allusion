@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useContext } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import StoreContext from '../contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 import { observer } from 'mobx-react-lite';
 
 // From: https://www.jayfreestone.com/writing/react-portals-with-hooks/
@@ -88,7 +88,7 @@ function usePortal(id: string, className: string): HTMLElement {
  * </Portal>
  */
 export const Portal = observer(({ id, children }: { id: string; children: React.ReactNode }) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   const target = usePortal(id, uiStore.preferences.theme);
   return createPortal(children, target);

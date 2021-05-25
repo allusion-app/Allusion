@@ -7,30 +7,24 @@ import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
 import { createSubmitCommand } from './LayoutSwitcher';
 import { GallerySelector, MissingImageFallback } from './GalleryItem';
-import RootStore from 'src/frontend/stores/RootStore';
 import { Preferences } from 'src/frontend/stores/Preferences';
 import { clamp } from 'src/frontend/utils';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
 interface ISlideMode {
-  rootStore: RootStore;
   contentRect: { width: number; height: number };
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
 const SlideMode = observer((props: ISlideMode) => {
-  const { contentRect, rootStore, showContextMenu } = props;
-  const { uiStore } = rootStore;
+  const { contentRect, showContextMenu } = props;
+  const { uiStore } = useStore();
   const { isInspectorOpen, inspectorWidth } = uiStore.preferences;
   const contentWidth = contentRect.width - (isInspectorOpen ? inspectorWidth : 0);
   const contentHeight = contentRect.height;
 
   const slideView = (
-    <SlideView
-      rootStore={rootStore}
-      showContextMenu={showContextMenu}
-      width={contentWidth}
-      height={contentHeight}
-    />
+    <SlideView showContextMenu={showContextMenu} width={contentWidth} height={contentHeight} />
   );
 
   const handleMove = useRef(
@@ -69,11 +63,11 @@ interface ISlideView {
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
   width: number;
   height: number;
-  rootStore: RootStore;
 }
 
 const SlideView = observer((props: ISlideView) => {
-  const { rootStore, width, height, showContextMenu } = props;
+  const { width, height, showContextMenu } = props;
+  const rootStore = useStore();
   const { uiStore, fileStore } = rootStore;
   const file = fileStore.fileList[uiStore.firstItem];
 

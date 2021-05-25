@@ -1,10 +1,10 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
 import { ClientLocation } from 'src/entities/Location';
 import { ClientTag } from 'src/entities/Tag';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 import { MultiTagSelector } from './MultiTagSelector';
@@ -15,7 +15,7 @@ interface IRemovalProps<T> {
 }
 
 export const LocationRemoval = ({ object: location, onClose }: IRemovalProps<ClientLocation>) => {
-  const { locationStore, uiStore, fileStore } = useContext(StoreContext);
+  const { locationStore, uiStore, fileStore } = useStore();
 
   return (
     <RemovalAlert
@@ -34,7 +34,7 @@ export const LocationRemoval = ({ object: location, onClose }: IRemovalProps<Cli
 };
 
 export const TagRemoval = observer(({ object: tag, onClose }: IRemovalProps<ClientTag>) => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useStore();
   const isSelected = tagStore.isSelected(tag);
   const tagsToRemove = isSelected ? Array.from(tagStore.selection) : tag.getSubTreeList();
 
@@ -67,7 +67,7 @@ export const TagRemoval = observer(({ object: tag, onClose }: IRemovalProps<Clie
 });
 
 export const TagMerge = observer(({ object: tag, onClose }: IRemovalProps<ClientTag>) => {
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useStore();
 
   const [selectedTag, setSelectedTag] = useState<Readonly<ClientTag> | undefined>();
 
@@ -119,7 +119,7 @@ export const TagMerge = observer(({ object: tag, onClose }: IRemovalProps<Client
 });
 
 export const FileRemoval = observer(() => {
-  const { fileStore, uiStore } = useContext(StoreContext);
+  const { fileStore, uiStore } = useStore();
   const selection = fileStore.selection;
 
   const handleConfirm = action(() => {

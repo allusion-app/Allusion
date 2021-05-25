@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 import Path from 'path';
@@ -6,7 +6,7 @@ import Path from 'path';
 import { RendererMessenger } from 'src/Messaging';
 import { IMG_EXTENSIONS } from 'src/entities/File';
 import { ClientLocation } from 'src/entities/Location';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import LocationStore from 'src/frontend/stores/LocationStore';
 import { Button, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
@@ -143,7 +143,7 @@ interface IRecoveryActionsProps {
 
 const RecoveryActions = observer(
   ({ status, locate, rescan, retry, save }: IRecoveryActionsProps) => {
-    const { uiStore } = useContext(StoreContext);
+    const { uiStore } = useStore();
 
     switch (status) {
       case Status.Ok:
@@ -189,7 +189,7 @@ const RecoveryActions = observer(
 );
 
 const LocationRecoveryDialog = () => {
-  const { uiStore, locationStore } = useContext(StoreContext);
+  const { uiStore, locationStore } = useStore();
   const { isLocationRecoveryOpen } = uiStore;
 
   const [match, setMatch] = useState<IMatch>();

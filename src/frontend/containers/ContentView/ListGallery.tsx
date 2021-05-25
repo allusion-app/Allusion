@@ -5,12 +5,11 @@ import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile } from 'src/entities/File';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
-import UiStore from 'src/frontend/stores/UiStore';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { IconSet } from 'widgets';
 import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
 import { listColumns, GalleryCommand, ListCell } from './GalleryItem';
-import FileStore from 'src/frontend/stores/FileStore';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
 /** Generates a unique key for an element in the fileList */
 const getItemKey = action((index: number, data: ClientFile[]): string => {
@@ -26,14 +25,8 @@ interface IListGalleryProps {
 }
 
 const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
-  const {
-    contentRect,
-    select,
-    lastSelectionIndex,
-    showContextMenu,
-    handleFileSelect,
-    rootStore,
-  } = props;
+  const { contentRect, select, lastSelectionIndex, showContextMenu, handleFileSelect } = props;
+  const rootStore = useStore();
   const { uiStore, fileStore } = rootStore;
   const { preferences } = uiStore;
   const cellSize = 24;
@@ -93,12 +86,10 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
         data={data}
         style={style}
         isScrolling={isScrolling}
-        uiStore={uiStore}
-        fileStore={fileStore}
         submitCommand={submitCommand}
       />
     ),
-    [fileStore, submitCommand, uiStore],
+    [submitCommand],
   );
 
   return (
@@ -155,13 +146,11 @@ interface IListItem {
   data: ClientFile[];
   style: React.CSSProperties;
   isScrolling: true;
-  uiStore: UiStore;
-  fileStore: FileStore;
   submitCommand: (command: GalleryCommand) => void;
 }
 
 const ListItem = observer((props: IListItem) => {
-  const { index, data, style, isScrolling, uiStore, fileStore, submitCommand } = props;
+  const { index, data, style, isScrolling, submitCommand } = props;
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
@@ -175,13 +164,7 @@ const ListItem = observer((props: IListItem) => {
 
   return (
     <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
-      <ListCell
-        mounted={isMounted}
-        file={file}
-        uiStore={uiStore}
-        fileStore={fileStore}
-        submitCommand={submitCommand}
-      />
+      <ListCell mounted={isMounted} file={file} submitCommand={submitCommand} />
     </div>
   );
 });

@@ -1,8 +1,8 @@
 import { shell } from 'electron';
 import fse from 'fs-extra';
-import React, { ReactNode, useContext, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
-import StoreContext from '../contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 import { formatDateTime, humanFileSize } from '../utils';
 
 type CommonMetadata = {
@@ -69,7 +69,7 @@ interface IImageInfo {
 }
 
 const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
-  const { exifTool } = useContext(StoreContext);
+  const { exifTool } = useStore();
 
   const [fileStats, setFileStats] = useState<CommonMetadata>({
     name: file.name,

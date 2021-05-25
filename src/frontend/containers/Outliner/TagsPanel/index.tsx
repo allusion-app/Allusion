@@ -1,9 +1,9 @@
-import React, { useContext, useRef } from 'react';
+import React, { useRef } from 'react';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../../../hotkeyParser';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
-import StoreContext from '../../../contexts/StoreContext';
+import { useStore } from '../../../contexts/StoreContext';
 
 import { IconSet } from 'widgets';
 import { Toolbar, ToolbarToggleButton } from 'widgets/menus';
@@ -18,7 +18,7 @@ const enum TooltipInfo {
 }
 
 export const OutlinerActionBar = observer(() => {
-  const { fileStore, uiStore } = useContext(StoreContext);
+  const { fileStore, uiStore } = useStore();
   return (
     <Toolbar id="actionbar" label="Action Bar" controls="content-view">
       <ToolbarToggleButton
@@ -52,7 +52,7 @@ export const OutlinerActionBar = observer(() => {
 });
 
 const TagsPanel = () => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useStore();
 
   const handleShortcuts = useRef(
     action((e: React.KeyboardEvent) => {

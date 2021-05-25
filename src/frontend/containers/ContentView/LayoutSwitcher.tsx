@@ -1,6 +1,7 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef } from 'react';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import { ViewMethod } from 'src/frontend/stores/Preferences';
 import RootStore from 'src/frontend/stores/RootStore';
@@ -21,7 +22,6 @@ import SlideMode from './SlideMode';
 type Dimension = { width: number; height: number };
 
 export interface ILayoutProps {
-  rootStore: RootStore;
   contentRect: Dimension;
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   /** The index of the currently selected image, or the "last selected" image when a range is selected */
@@ -32,9 +32,8 @@ export interface ILayoutProps {
 const Layout = ({
   contentRect,
   showContextMenu,
-  rootStore,
 }: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
-  const { uiStore, fileStore } = rootStore;
+  const { uiStore, fileStore } = useStore();
   // Todo: Select by dragging a rectangle shape
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
   // Also take into account scrolling when dragging while selecting
@@ -114,13 +113,7 @@ const Layout = ({
 
   // TODO: Keep masonry layout active while slide is open: no loading time when returning
   if (uiStore.isSlideMode) {
-    return (
-      <SlideMode
-        contentRect={contentRect}
-        showContextMenu={showContextMenu}
-        rootStore={rootStore}
-      />
-    );
+    return <SlideMode contentRect={contentRect} showContextMenu={showContextMenu} />;
   }
   if (contentRect.width < 10) {
     return null;
@@ -136,7 +129,6 @@ const Layout = ({
           lastSelectionIndex={lastSelectionIndex}
           showContextMenu={showContextMenu}
           select={handleFileSelect}
-          rootStore={rootStore}
           handleFileSelect={handleFileSelect}
         />
       );
@@ -147,7 +139,6 @@ const Layout = ({
           select={handleFileSelect}
           lastSelectionIndex={lastSelectionIndex}
           showContextMenu={showContextMenu}
-          rootStore={rootStore}
           handleFileSelect={handleFileSelect}
         />
       );
@@ -196,11 +187,7 @@ export function createSubmitCommand(
       case GallerySelector.ContextMenu: {
         const [file, x, y] = command.payload;
         showContextMenu(x, y, [
-          file.isBroken ? (
-            <MissingFileMenuItems uiStore={uiStore} />
-          ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} fileStore={fileStore} />
-          ),
+          file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
           <ExternalAppMenuItems key="external" file={file} />,
         ]);
         if (!fileStore.selection.has(file)) {
@@ -213,11 +200,7 @@ export function createSubmitCommand(
       case GallerySelector.ContextMenuSlide: {
         const [file, x, y] = command.payload;
         showContextMenu(x, y, [
-          file.isBroken ? (
-            <MissingFileMenuItems uiStore={uiStore} />
-          ) : (
-            <SlideFileViewerMenuItems file={file} uiStore={uiStore} fileStore={fileStore} />
-          ),
+          file.isBroken ? <MissingFileMenuItems /> : <SlideFileViewerMenuItems file={file} />,
           <ExternalAppMenuItems key="external" file={file} />,
         ]);
         break;

@@ -1,5 +1,5 @@
 import { action } from 'mobx';
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { IMG_EXTENSIONS } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import {
@@ -10,7 +10,7 @@ import {
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
 import { IconButton, IconSet } from 'widgets';
 import { defaultQuery, Query, QueryKey, QueryOperator, QueryValue, TagValue } from './query';
@@ -148,7 +148,7 @@ const PathInput = ({ id, value, dispatch }: ValueInput<string>) => {
 };
 
 const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
-  const { tagStore } = useContext(StoreContext);
+  const { tagStore } = useStore();
   const [selection, setSelection] = useState<Readonly<ClientTag> | undefined>(
     value?.id !== undefined ? tagStore.get(value.id) : undefined,
   );
