@@ -41,13 +41,17 @@ class RootStore {
     this.fileStore = new FileStore(backend, this);
   }
 
-  async init() {
-    await this.initView();
+  async initView(): Promise<void> {
+    await this.tagStore.init();
+    await this.locationStore.init();
+  }
 
-    const { orderBy, fileOrder } = runInAction(() => {
-      const preferences = this.uiStore.preferences;
-      return { orderBy: preferences.orderBy, fileOrder: preferences.fileOrder };
-    });
+  async fetchFiles() {
+    const preferences = this.uiStore.preferences;
+    const { orderBy, fileOrder } = runInAction(() => ({
+      orderBy: preferences.orderBy,
+      fileOrder: preferences.fileOrder,
+    }));
     // Load the files already in the database so user instantly sees their images
     await this.fileStore.fetchAllFiles(orderBy, fileOrder);
     // Upon loading data, initialize UI state.
@@ -86,12 +90,6 @@ class RootStore {
     } else {
       AppToaster.dismiss(PROGRESS_KEY);
     }
-  }
-
-  async initView(): Promise<void> {
-    await this.tagStore.init();
-    await this.locationStore.init();
-    return this.uiStore.init();
   }
 
   async backupDatabaseToFile(path: string): Promise<void> {

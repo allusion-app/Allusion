@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { autorun } from 'mobx';
+import { action, autorun } from 'mobx';
 
 import { useStore } from './contexts/StoreContext';
 
@@ -10,26 +10,44 @@ import { IconSet, Toggle } from 'widgets';
 import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './ThumbnailGeneration';
+import { comboMatches, getKeyCombo, parseKeyCombo } from './hotkeyParser';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useStore();
 
   // Change window title to filename on load and when changing the selected file.
   useEffect(() => {
-    const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
     return autorun(() => {
       const path =
         uiStore.firstItem >= 0 && uiStore.firstItem < fileStore.fileList.length
           ? fileStore.fileList[uiStore.firstItem].absolutePath
           : '?';
-      document.title = `${path} • ${PREVIEW_WINDOW_BASENAME}`;
+      document.title = `${path} • Allusion Quick View`;
     });
   }, [fileStore, uiStore]);
 
+  useEffect(() => {
+    const handleClose = action((e: KeyboardEvent) => {
+      const isHotkey = comboMatches(
+        getKeyCombo(e),
+        parseKeyCombo(uiStore.preferences.hotkeyMap.openPreviewWindow),
+      );
+
+      if (isHotkey || e.key === 'Escape') {
+        e.preventDefault();
+        window.close();
+      }
+    });
+    window.addEventListener('keydown', handleClose);
+
+    uiStore.enableSlideMode();
+    uiStore.closeInspector();
+
+    return () => window.removeEventListener('keydown', handleClose);
+  }, [uiStore]);
+
   // Listen to responses of Web Workers
   useWorkerListener();
-
-  useEffect(() => uiStore.enableSlideMode(), [uiStore]);
 
   const handleLeftButton = useCallback(
     () => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1)),

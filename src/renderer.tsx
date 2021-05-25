@@ -45,34 +45,19 @@ async function main() {
   if (!isPreviewWindow) {
     // Load persistent preferences
     await preferences.load();
-    await rootStore.init();
-  } else {
+    render(<App />);
     await rootStore.initView();
+    await rootStore.fetchFiles();
+  } else {
     RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory, activeImgId }) => {
       rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
       rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
-      rootStore.uiStore.enableSlideMode();
-      rootStore.uiStore.closeInspector();
       rootStore.fileStore.fetchFilesByIDs(ids);
     });
 
-    // Close preview with space
-    window.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === ' ' || e.key === 'Escape') {
-        rootStore.fileStore.clearFileList();
-        rootStore.uiStore.enableSlideMode();
-
-        // remove focus from element so closing preview with spacebar does not trigger any ui elements
-        if (document.activeElement && document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
-        }
-
-        window.close();
-      }
-    });
+    await rootStore.initView();
+    render(<PreviewApp />);
   }
-
-  RendererMessenger.initialized();
 
   window.addEventListener('beforeunload', () => {
     // TODO: check whether this works okay with running in background process
@@ -83,10 +68,13 @@ async function main() {
 
   // Render our react components in the div with id 'app' in the html file
   // The Provider component provides the state management for the application
-  ReactDOM.render(
-    <StoreProvider value={rootStore}>{isPreviewWindow ? <PreviewApp /> : <App />}</StoreProvider>,
-    document.getElementById('app'),
-  );
+  function render(rootElement: React.ReactElement) {
+    RendererMessenger.initialized();
+    ReactDOM.render(
+      <StoreProvider value={rootStore}>{rootElement}</StoreProvider>,
+      document.getElementById('app'),
+    );
+  }
 
   // -------------------------------------------
   // Messaging with the main process
