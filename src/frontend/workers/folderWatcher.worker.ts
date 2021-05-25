@@ -115,10 +115,6 @@ export class FolderWatcherWorker {
   cancel() {
     this.isCancelled = true;
   }
-
-  terminate() {
-    ctx.terminate();
-  }
 }
 
 // https://lorefnon.tech/2019/03/24/using-comlink-with-typescript-and-worker-loader/

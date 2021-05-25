@@ -1,4 +1,5 @@
-import { action, observable, computed, makeObservable, runInAction } from 'mobx';
+import { action, observable, computed, makeObservable, flow } from 'mobx';
+import { CancellablePromise } from 'mobx/dist/internal';
 
 import Backend from 'src/backend/Backend';
 import { IFile } from 'src/entities/File';
@@ -80,12 +81,14 @@ class TagStore {
     return treePath;
   }
 
-  @action async create(parent: Readonly<ClientTag>, tagName: string): Promise<ClientTag> {
+  create = flow(function* (this: TagStore, parent: Readonly<ClientTag>, tagName: string) {
     const tag = new ClientTag(this, generateId(), tagName, new Date());
-    await this.backend.createTag(tag.serialize());
-    this.add(parent, tag);
+    yield this.backend.createTag(tag.serialize());
+    this.tags.set(tag.id, tag);
+    tag.setParent(parent);
+    parent.subTags.push(tag);
     return tag;
-  }
+  });
 
   @action async delete(tags: readonly Readonly<ClientTag>[]) {
     await this.backend.removeTags(tags.map((t) => t.id));
@@ -289,28 +292,23 @@ class TagStore {
     }
   }
 
-  @action private add(parent: Readonly<ClientTag>, tag: ClientTag) {
-    this.tags.set(tag.id, tag);
-    tag.setParent(parent);
-    parent.subTags.push(tag);
-  }
-
   // The difference between this method and delete is that no computation
   // power is wasted on removing the tag id from the parent subTags list.
-  @action private async deleteSubTags(tag: Readonly<ClientTag>) {
+  private deleteSubTags: (tag: Readonly<ClientTag>) => CancellablePromise<void> = flow(function* (
+    this: TagStore,
+    tag: Readonly<ClientTag>,
+  ) {
     if (tag.subTags.length > 0) {
       const ids = tag.subTags.map((subTag) => subTag.id);
-      await this.backend.removeTags(ids);
+      yield this.backend.removeTags(ids);
     }
-    runInAction(() => {
-      for (const subTag of tag.subTags) {
-        subTag.dispose();
-        this.deleteSubTags(subTag);
-        this.deselect(subTag);
-        this.tags.delete(subTag.id);
-      }
-    });
-  }
+    for (const subTag of tag.subTags) {
+      subTag.dispose();
+      this.deleteSubTags(subTag);
+      this.deselect(subTag);
+      this.tags.delete(subTag.id);
+    }
+  });
 
   @action private remove(tag: Readonly<ClientTag>) {
     // Remove tag id reference from other observable objects

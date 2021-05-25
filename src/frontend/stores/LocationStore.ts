@@ -1,10 +1,11 @@
-import { action, makeObservable, observable, runInAction } from 'mobx';
+import { action, flow, makeObservable, observable } from 'mobx';
+import { CancellablePromise } from 'mobx/dist/internal';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
 import { getMetaData, IFile } from 'src/entities/File';
 import { generateId, ID } from 'src/entities/ID';
-import { ClientLocation } from 'src/entities/Location';
+import { ClientLocation, ILocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { promiseAllLimit } from '../utils';
@@ -34,27 +35,30 @@ class LocationStore {
     makeObservable(this);
   }
 
-  @action async init() {
+  init: () => CancellablePromise<void> = flow(function* (this: LocationStore) {
     // Get dirs from backend
-    const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.Asc);
+    const dirs: ILocation[] = yield this.backend.fetchLocations('dateAdded', FileOrder.Asc);
     const locations = dirs.map((dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded));
-    runInAction(() => this.locationList.replace(locations));
-  }
+    this.locationList.replace(locations);
+  });
 
   // E.g. in preview window, it's not needed to watch the locations
   // Returns whether files have been added, changed or removed
-  @action async watchLocations(
+  watchLocations: (
+    progressHook: (message: string, key: string) => void,
+    startTimer: (id: string) => number,
+  ) => CancellablePromise<boolean> = flow(function* (
+    this: LocationStore,
     progressHook: (message: string, key: string) => void,
     startTimer: (id: string) => number,
   ) {
     let foundNewFiles = false;
-    const locationList = this.locationList.slice();
-    const len = locationList.length;
+    const len = this.locationList.length;
 
     // TODO: Do this in a web worker, not in the renderer thread!
     // For every location, find its files, and update the database accordingly.
     for (let i = 0; i < len; i++) {
-      const location = locationList[i];
+      const location = this.locationList[i];
       // TODO: Pass to hook some kind of Result type.
       progressHook(`Looking for new images... [${i + 1} / ${len}]`, PROGRESS_KEY);
 
@@ -63,7 +67,7 @@ class LocationStore {
       const readyTimeout = startTimer(location.id);
 
       console.debug('Location init...');
-      const filePaths = await location.initWorker();
+      const filePaths: string[] | undefined = yield location.initWorker();
       const filePathsSet = new Set(filePaths);
 
       clearTimeout(readyTimeout);
@@ -78,13 +82,13 @@ class LocationStore {
       // Get files in database for this location
       // TODO: Could be optimized, at startup we already fetch all files - but might not in the future
       console.debug('Find location files...');
-      const dbFiles = await this.findLocationFiles(location.id);
+      const dbFiles: IFile[] = yield this.findLocationFiles(location.id);
       const dbFilesPathSet = new Set(dbFiles.map((f) => f.absolutePath));
 
       console.log('Finding created files...');
       // Find all files that have been created (those on disk but not in DB)
       const createdPaths = filePaths.filter((path) => !dbFilesPathSet.has(path));
-      const createdFiles = await Promise.all(
+      const createdFiles: IFile[] = yield Promise.all(
         createdPaths.map((path) => pathToIFile(path, location)),
       );
 
@@ -112,10 +116,6 @@ class LocationStore {
       // Update renamed files in backend
       const foundCreatedMatches = createdMatches.filter((m) => m !== undefined) as IFile[];
       if (foundCreatedMatches.length > 0) {
-        console.debug(
-          `Found ${foundCreatedMatches.length} renamed/moved files in location ${location.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
-          foundCreatedMatches,
-        );
         // TODO: remove thumbnail as well (clean-up needed, since the path changed)
         const files: IFile[] = [];
         for (let i = 0; i < createdMatches.length; i++) {
@@ -129,17 +129,13 @@ class LocationStore {
           }
         }
         // There might be duplicates, so convert to set
-        await this.backend.saveFiles(Array.from(new Set(files)));
+        yield this.backend.saveFiles(Array.from(new Set(files)));
       }
 
       const numDbMatches = dbMatches.filter((f) => Boolean(f));
       if (numDbMatches.length > 0) {
         // If you have allusion open and rename/move files, they are automatically created as new files while the old one sticks around
         // In here we transfer the tag data over from the old entry to the new one, and delete the old entry
-        console.debug(
-          `Found ${numDbMatches.length} renamed/moved files in location ${location.name} that were already present in the database. Removing duplicates`,
-          numDbMatches,
-        );
         const files: IFile[] = [];
         for (let i = 0; i < dbMatches.length; i++) {
           const match = dbMatches[i];
@@ -151,9 +147,9 @@ class LocationStore {
           }
         }
         // Transfer over tag data on the matched files
-        await this.backend.saveFiles(Array.from(new Set(files)));
+        yield this.backend.saveFiles(Array.from(new Set(files)));
         // Remove missing files that have a match in the database
-        await this.backend.removeFiles(
+        yield this.backend.removeFiles(
           missingFiles.filter((_, i) => Boolean(dbMatches[i])).map((f) => f.id),
         );
         foundNewFiles = true; // Trigger a refetch
@@ -162,7 +158,7 @@ class LocationStore {
       // For createdFiles without a match, insert them in the DB as new files
       const newFiles = createdFiles.filter((cf) => !foundCreatedMatches.includes(cf));
       if (newFiles.length) {
-        await this.backend.createFilesFromPath(location.path, newFiles);
+        yield this.backend.createFilesFromPath(location.path, newFiles);
       }
 
       // TODO: Also update files that have changed, e.g. when overwriting a file (with same filename)
@@ -170,45 +166,52 @@ class LocationStore {
       foundNewFiles = foundNewFiles || newFiles.length > 0;
     }
     return foundNewFiles;
-  }
+  });
 
   @action get(locationId: ID): ClientLocation | undefined {
     return this.locationList.find((loc) => loc.id === locationId);
   }
 
-  @action async changeLocationPath(location: ClientLocation, newPath: string): Promise<void> {
+  changeLocationPath = flow(function* (
+    this: LocationStore,
+    location: ClientLocation,
+    newPath: string,
+  ) {
     const index = this.locationList.findIndex((l) => l.id === location.id);
     if (index === -1) {
       throw new Error(`The location ${location.name} has already been removed.`);
     }
     console.log('changing location path', location, newPath);
     // First, update the absolute path of all files from this location
-    const locFiles = await this.findLocationFiles(location.id);
+    const locFiles: IFile[] = yield this.findLocationFiles(location.id);
     const files: IFile[] = locFiles.map((f) => ({
       ...f,
       absolutePath: SysPath.join(newPath, f.relativePath),
     }));
-    await this.backend.saveFiles(files);
+    yield this.backend.saveFiles(files);
 
     const newLocation = new ClientLocation(this, location.id, newPath, location.dateAdded);
-    this.set(index, newLocation);
-    await this.initLocation(newLocation);
-    await this.backend.saveLocation(newLocation.serialize());
-  }
+    this.locationList[index] = newLocation;
+    yield this.initLocation(newLocation);
+    yield this.backend.saveLocation(newLocation.serialize());
+  });
 
   @action exists(predicate: (location: ClientLocation) => boolean): boolean {
     return this.locationList.some(predicate);
   }
 
-  @action.bound async create(path: string): Promise<ClientLocation> {
+  create: (path: string) => CancellablePromise<ClientLocation> = flow(function* (
+    this: LocationStore,
+    path: string,
+  ) {
     const location = new ClientLocation(this, generateId(), path, new Date());
-    await this.backend.createLocation(location.serialize());
-    runInAction(() => this.locationList.push(location));
+    yield this.backend.createLocation(location.serialize());
+    this.locationList.push(location);
     return location;
-  }
+  });
 
   /** Imports all files from a location into the FileStore */
-  @action.bound async initLocation(location: ClientLocation) {
+  @action async initLocation(location: ClientLocation) {
     const toastKey = `initialize-${location.id}`;
 
     let isCancelled = false;
@@ -231,7 +234,6 @@ class LocationStore {
     );
 
     const filePaths = await location.initWorker();
-    console.debug('!!! finished location loading', location.path, filePaths);
 
     if (isCancelled || filePaths === undefined) {
       return;
@@ -268,26 +270,26 @@ class LocationStore {
     this.rootStore.fileStore.refetchFileCounts();
   }
 
-  @action async delete(location: ClientLocation) {
+  delete: (location: ClientLocation) => CancellablePromise<void> = flow(function* (
+    this: LocationStore,
+    location: ClientLocation,
+  ) {
     // Remove location from DB through backend
-    await this.backend.removeLocation(location.id);
+    yield this.backend.removeLocation(location.id);
 
-    return runInAction(() => {
-      const { fileStore } = this.rootStore;
+    const { fileStore } = this.rootStore;
 
-      // Remove deleted files from selection
-      for (const file of fileStore.selection) {
-        if (file.locationId === location.id) {
-          fileStore.deselect(file);
-        }
+    // Remove deleted files from selection
+    for (const file of fileStore.selection) {
+      if (file.locationId === location.id) {
+        fileStore.deselect(file);
       }
-      // Destroy worker
-      const promise = location.destroyWorker();
-      // Remove location locally
-      this.locationList.remove(location);
-      return promise;
-    });
-  }
+    }
+    // Destroy worker
+    yield location.destroyWorker();
+    // Remove location locally
+    this.locationList.remove(location);
+  });
 
   @action async addFile(path: string, location: ClientLocation) {
     const file = await pathToIFile(path, location);
@@ -328,10 +330,6 @@ class LocationStore {
   @action async findLocationFiles(locationId: ID): Promise<IFile[]> {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
     return this.backend.searchFiles(crit, 'id', FileOrder.Asc);
-  }
-
-  @action private set(index: number, location: ClientLocation) {
-    this.locationList[index] = location;
   }
 }
 

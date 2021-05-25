@@ -1,5 +1,6 @@
 import fse from 'fs-extra';
-import { action, computed, makeObservable, observable, runInAction } from 'mobx';
+import { action, computed, flow, makeObservable, observable } from 'mobx';
+import { CancellablePromise } from 'mobx/dist/internal';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile, IFile } from 'src/entities/File';
@@ -81,24 +82,29 @@ class FileStore {
     }
   }
 
-  @action async fetchMissingFiles(orderBy: keyof IFile, fileOrder: FileOrder): Promise<string> {
+  fetchMissingFiles: (
+    orderBy: keyof IFile,
+    fileOrder: FileOrder,
+  ) => CancellablePromise<string> = flow(function* (
+    this: FileStore,
+    orderBy: keyof IFile,
+    fileOrder: FileOrder,
+  ) {
     try {
       // Fetch all files, then check their existence and only show the missing ones
       // Similar to {@link updateFromBackend}, but the existence check needs to be awaited before we can show the images
-      const backendFiles = await this.backend.fetchFiles(orderBy, fileOrder);
+      const backendFiles: IFile[] = yield this.backend.fetchFiles(orderBy, fileOrder);
 
       // For every new file coming in, either re-use the existing client file if it exists,
       // or construct a new client file
       const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
 
       // Dispose of unused files
-      runInAction(() => {
-        for (const oldFile of this.fileList) {
-          if (!reusedStatus.has(oldFile.id)) {
-            oldFile.dispose();
-          }
+      for (const oldFile of this.fileList) {
+        if (!reusedStatus.has(oldFile.id)) {
+          oldFile.dispose();
         }
-      });
+      }
 
       // We don't store whether files are missing (since they might change at any time)
       // So we have to check all files and check their existence them here
@@ -107,25 +113,24 @@ class FileStore {
       });
 
       const N = 50; // TODO: same here as in fetchFromBackend: number of concurrent checks should be system dependent
-      await promiseAllLimit(existenceCheckPromises, N);
+      yield promiseAllLimit(existenceCheckPromises, N);
 
-      runInAction(() => {
-        const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
-        this.fileList.replace(missingClientFiles);
-        this.numMissingFiles = missingClientFiles.length;
-        this.index.clear();
-        for (let index = 0; index < this.fileList.length; index++) {
-          const file = this.fileList[index];
-          this.index.set(file.id, index);
-        }
-        this.fileListLastModified = new Date();
-      });
+      const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
+      this.fileList.replace(missingClientFiles);
+      this.numMissingFiles = missingClientFiles.length;
+      this.index.clear();
+      for (let index = 0; index < this.fileList.length; index++) {
+        const file = this.fileList[index];
+        this.index.set(file.id, index);
+      }
+      this.fileListLastModified = new Date();
+
       this.cleanFileSelection();
       return 'Some files can no longer be found. Either move them back to their location, or delete them from Allusion';
     } catch (err) {
       return `Could not load broken files: ${err}`;
     }
-  }
+  });
 
   @action async fetchFilesByQuery(
     criteria: SearchCriteria<IFile> | SearchCriteria<IFile>[],
@@ -292,26 +297,22 @@ class FileStore {
       }
     }
 
+    this.fileList.replace(newClientFiles);
+    this.cleanFileSelection();
+    this.updateFileListState(); // update index & untagged image counter
+    this.fileListLastModified = new Date();
+
+    // Run the existence check with at most N checks in parallel
+    // TODO: Should make N configurable, or determine based on the system/disk performance
+    // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
+    const N = 50;
     // Check existence of new files asynchronously, no need to wait until they can be showed
     // we can simply check whether they exist after they start rendering
     const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
       clientFile.setBroken(!(await fse.pathExists(clientFile.absolutePath)));
     });
-
-    // Run the existence check with at most N checks in parallel
-    // TODO: Should make N configurable, or determine based on the system/disk performance
-    // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
-    runInAction(() => {
-      this.fileList.replace(newClientFiles);
-      this.cleanFileSelection();
-      this.updateFileListState(); // update index & untagged image counter
-      this.fileListLastModified = new Date();
-    });
-    const N = 50;
     return promiseAllLimit(existenceCheckPromises, N)
-      .then(() => {
-        this.updateFileListState(); // update missing image counter
-      })
+      .then(() => this.updateFileListState()) // update missing image counter
       .catch((e) => console.error('An error occured during existence checking!', e));
   }
 
@@ -393,15 +394,13 @@ class FileStore {
   }
 
   /** Initializes the total and untagged file counters by querying the database with count operations */
-  async refetchFileCounts() {
+  refetchFileCounts: () => CancellablePromise<void> = flow(function* (this: FileStore) {
     const noTagsCriteria = new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags').serialize();
-    const numUntaggedFiles = await this.backend.countFiles(noTagsCriteria);
-    const numTotalFiles = await this.backend.countFiles();
-    runInAction(() => {
-      this.numUntaggedFiles = numUntaggedFiles;
-      this.numTotalFiles = numTotalFiles;
-    });
-  }
+    const numUntaggedFiles: number = yield this.backend.countFiles(noTagsCriteria);
+    const numTotalFiles: number = yield this.backend.countFiles();
+    this.numUntaggedFiles = numUntaggedFiles;
+    this.numTotalFiles = numTotalFiles;
+  });
 
   @action private incrementNumMissingFiles() {
     this.numMissingFiles++;

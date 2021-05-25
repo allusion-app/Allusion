@@ -501,7 +501,8 @@ const LocationsPanel = observer(() => {
       return;
     }
 
-    locationStore.create(path).then((location) => locationStore.initLocation(location));
+    const location = await locationStore.create(path);
+    await locationStore.initLocation(location);
   }, [locationStore]);
 
   const isEmpty = locationStore.locationList.length === 0;

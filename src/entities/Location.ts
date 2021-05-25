@@ -1,6 +1,6 @@
 import { Remote, wrap } from 'comlink';
 import fse from 'fs-extra';
-import { action, makeObservable, observable, runInAction } from 'mobx';
+import { action, makeObservable, observable } from 'mobx';
 import SysPath from 'path';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore from 'src/frontend/stores/LocationStore';
@@ -52,10 +52,8 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.isInitialized = true;
     // FIXME: awaiting fse.pathExists was broken for me in many consecutive reloads, always at 2/3 locations
     // The sync version works fine
-    const pathExists = await fse.pathExists(this.path);
-    runInAction(() => {
-      this.isBroken = !pathExists;
-    });
+    const pathExists = fse.pathExistsSync(this.path);
+    this.isBroken = !pathExists;
     if (pathExists) {
       return this._initWorker(this.path);
     } else {
@@ -67,7 +65,6 @@ export class ClientLocation implements ISerializable<ILocation> {
     if (this.worker !== undefined) {
       this.worker.cancel();
       await this.worker.close();
-      this.worker.terminate();
       this.worker = undefined;
     }
   }

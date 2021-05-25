@@ -1,10 +1,11 @@
-import { action, makeObservable, observable, reaction, runInAction } from 'mobx';
+import { action, flow, makeObservable, observable, reaction } from 'mobx';
 
 import { FileOrder } from 'src/backend/DBRepository';
 import { IFile } from 'src/entities/File';
 import { pathExists } from 'fs-extra';
 import { getDefaultThumbnailDirectory } from 'src/config';
 import { RendererMessenger } from 'src/Messaging';
+import { CancellablePromise } from 'mobx/dist/internal';
 
 export class Preferences {
   // Views
@@ -63,12 +64,12 @@ export class Preferences {
     makeObservable(this);
   }
 
-  @action async load() {
+  load: () => CancellablePromise<void> = flow(function* (this: Preferences) {
     try {
       const value = localStorage.getItem(Preferences.STORAGE_KEY);
       if (value === null) {
         console.info('Could not find preferences! Saving preferences with default values...');
-        await this.parseThumbnailDirectory('');
+        yield this.parseThumbnailDirectory('');
         return;
       }
 
@@ -88,16 +89,14 @@ export class Preferences {
       this.parseInspectorWidth(prefs.inspectorWidth);
       this.parseHotkeyMap(prefs.hotkeyMap);
 
-      await this.parseThumbnailDirectory(prefs.thumbnailDirectory);
+      yield this.parseThumbnailDirectory(prefs.thumbnailDirectory);
     } catch (error) {
       console.error('Cannot parse persistent preferences.', error);
     } finally {
       // Set window options and save preferences.
-      runInAction(() => {
-        RendererMessenger.setTheme({ theme: this.theme });
-        RendererMessenger.setFullScreen(this.isFullScreen);
-        localStorage.setItem(Preferences.STORAGE_KEY, JSON.stringify(this));
-      });
+      RendererMessenger.setTheme({ theme: this.theme });
+      RendererMessenger.setFullScreen(this.isFullScreen);
+      localStorage.setItem(Preferences.STORAGE_KEY, JSON.stringify(this));
 
       // Store preferences immediately when anything changes.
       reaction(
@@ -116,7 +115,7 @@ export class Preferences {
         { delay: 1000 }, // 1 second
       );
     }
-  }
+  });
 
   @action private parseTheme(theme: any) {
     const value = theme as Theme;
@@ -222,15 +221,15 @@ export class Preferences {
     }
   }
 
-  @action private async parseThumbnailDirectory(thumbnailDirectory: any) {
-    let value = thumbnailDirectory;
-    if (typeof value !== 'string' || value.length === 0 || !(await pathExists(value))) {
-      value = await getDefaultThumbnailDirectory();
-    }
-    runInAction(() => {
+  private parseThumbnailDirectory: (thumbnailDirectory: any) => CancellablePromise<void> = flow(
+    function* (this: Preferences, thumbnailDirectory: any) {
+      let value = thumbnailDirectory;
+      if (typeof value !== 'string' || value.length === 0 || !(yield pathExists(value))) {
+        value = yield getDefaultThumbnailDirectory();
+      }
       this.thumbnailDirectory = value;
-    });
-  }
+    },
+  );
 
   @action private parseImportDirectory(importDirectory: any) {
     if (typeof importDirectory === 'string') {
