@@ -5,7 +5,7 @@ import { useStore } from '../../contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { ToolbarButton, ToolbarToggleButton } from 'widgets/menus';
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
-import TagFilesPopover from 'src/frontend/containers/AppToolbar/TagFilesPopover';
+import FileTagEditor from 'src/frontend/containers/AppToolbar/FileTagEditor';
 import Searchbar from './Searchbar';
 import { SortCommand, ViewCommand } from './Menus';
 
@@ -54,7 +54,7 @@ const PrimaryCommands = observer(() => {
         <RemoveFilesPopover />
       ) : (
         // Only show when not viewing missing files (so it is replaced by the Delete button)
-        <TagFilesPopover />
+        <FileTagEditor />
       )}
 
       <SortCommand />

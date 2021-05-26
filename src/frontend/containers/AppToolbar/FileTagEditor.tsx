@@ -29,7 +29,7 @@ function countFileTags(files: ObservableSet<Readonly<ClientFile>>) {
   return { counter, sortedTags };
 }
 
-const TagFilesPopover = observer(() => {
+const FileTagEditor = observer(() => {
   const { uiStore, fileStore } = useStore();
   return (
     <>
@@ -45,15 +45,15 @@ const TagFilesPopover = observer(() => {
         isOpen={uiStore.isToolbarTagPopoverOpen}
         onClose={uiStore.closeToolbarTagPopover}
       >
-        <TagFilesWidget />
+        <TagEditor />
       </FloatingDialog>
     </>
   );
 });
 
-export default TagFilesPopover;
+export default FileTagEditor;
 
-const TagFilesWidget = observer(() => {
+const TagEditor = observer(() => {
   const { tagStore, fileStore } = useStore();
   const [inputText, setInputText] = useState('');
 
