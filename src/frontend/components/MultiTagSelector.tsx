@@ -3,8 +3,8 @@ import { observer } from 'mobx-react-lite';
 import React, { ReactElement, useCallback, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
 import { ClientTag } from 'src/entities/Tag';
-import { IconButton, IconSet, Option, Tag } from 'widgets';
-import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
+import { IconButton, IconSet, Listbox, Option, Tag } from 'widgets';
+import { controlledListBoxKeyDown } from 'widgets/Combobox/ListBox';
 import { IOption } from 'widgets/Combobox/Listbox';
 import { MenuDivider } from 'widgets/menus';
 import { Flyout } from 'widgets/popovers';
@@ -180,7 +180,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
           </div>
         }
       >
-        <ControlledListbox id={listboxID.current} multiselectable listRef={listRef}>
+        <Listbox id={listboxID.current} multiselectable listRef={listRef}>
           {options.map(({ divider, id, ...optionProps }, i) => {
             return (
               <React.Fragment key={id}>
@@ -189,7 +189,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
               </React.Fragment>
             );
           })}
-        </ControlledListbox>
+        </Listbox>
       </Flyout>
     </div>
   );

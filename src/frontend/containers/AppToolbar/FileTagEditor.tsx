@@ -4,8 +4,8 @@ import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import { debounce } from 'src/frontend/utils';
-import { Option, Tag } from 'widgets';
-import { ControlledListbox, controlledListBoxKeyDown } from 'widgets/Combobox/ControlledListBox';
+import { Listbox, Option, Tag } from 'widgets';
+import { controlledListBoxKeyDown } from 'widgets/Combobox/ListBox';
 import { IconSet } from 'widgets/Icons';
 import { MenuDivider, ToolbarButton } from 'widgets/menus';
 import { useStore } from '../../contexts/StoreContext';
@@ -179,12 +179,12 @@ const TagEditor = observer(() => {
         aria-controls="tag-files-listbox"
         ref={inputRef}
       />
-      <ControlledListbox id="tag-files-listbox" multiselectable={true} listRef={listRef}>
+      <Listbox id="tag-files-listbox" multiselectable={true} listRef={listRef}>
         {options.map(({ id, ...optionProps }, i) => (
           <Option key={id} {...optionProps} focused={focusedOption === i} />
         ))}
         {createOption}
-      </ControlledListbox>
+      </Listbox>
       <div>
         {sortedTags.map((t) => (
           <Tag

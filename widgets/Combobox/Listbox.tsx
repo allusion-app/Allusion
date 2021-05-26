@@ -5,27 +5,71 @@ export interface IListbox {
   /** When multiselectable is set to true, the click event handlers on the option elements must togggle the select state. */
   multiselectable?: boolean;
   children: ListboxChildren;
+  listRef?: React.RefObject<HTMLUListElement>;
 }
 
 export type ListboxChild = React.ReactElement<IOption>;
 export type ListboxChildren = ListboxChild | ListboxChild[] | React.ReactFragment;
 
 export const Listbox = (props: IListbox) => {
-  const { id, multiselectable, children } = props;
+  const { id, multiselectable, children, listRef } = props;
 
   return (
-    <ul
-      id={id}
-      tabIndex={-1}
-      role="listbox"
-      aria-multiselectable={multiselectable}
-      onFocus={handleFocus}
-      onKeyDown={handleKeyDown}
-    >
+    <ul id={id} tabIndex={-1} role="listbox" aria-multiselectable={multiselectable} ref={listRef}>
       {children}
     </ul>
   );
 };
+
+const scrollOpts: ScrollIntoViewOptions = { block: 'nearest' };
+
+export function controlledListBoxKeyDown(
+  event: React.KeyboardEvent,
+  listRef: React.RefObject<HTMLUListElement>,
+  setActiveIndex: (index: number) => void,
+  activeIndex: number,
+) {
+  const optionElems = listRef.current?.querySelectorAll('li:not([role="separator"])') || [];
+  const numItems = optionElems.length;
+  const activeElement = optionElems[activeIndex] as HTMLElement | undefined;
+  switch (event.key) {
+    case 'Enter':
+      event.stopPropagation();
+      activeElement?.click();
+      break;
+
+    case 'ArrowUp':
+      event.stopPropagation();
+      event.preventDefault();
+      const prevIndex = (activeIndex - 1 + numItems) % numItems;
+      setActiveIndex(prevIndex);
+      if (prevIndex === numItems - 1 && listRef.current) {
+        listRef.current.scrollTop = listRef.current.scrollHeight;
+      } else {
+        const prevElement = optionElems[prevIndex] as HTMLElement | undefined;
+        prevElement?.scrollIntoView(scrollOpts);
+      }
+      break;
+
+    case 'ArrowDown':
+      event.stopPropagation();
+      event.preventDefault();
+      const nextIndex = (activeIndex + 1) % numItems;
+      setActiveIndex(nextIndex);
+      if (nextIndex === 0 && listRef.current) {
+        listRef.current.scrollTop = 0;
+      } else {
+        const nextElement = optionElems[nextIndex] as HTMLElement | undefined;
+        nextElement?.scrollIntoView(scrollOpts);
+      }
+      break;
+
+    // Note: no 'space' to select, since space is valid input for the input-field
+
+    default:
+      break;
+  }
+}
 
 export interface IOption {
   value: string;
@@ -62,56 +106,3 @@ export const Option = ({
     </span>
   </li>
 );
-
-function handleFocus(event: React.FocusEvent) {
-  const target = (event.target as HTMLElement).closest('[role="option"]') as HTMLElement | null;
-  if (target === null) {
-    return;
-  }
-
-  const previous: HTMLElement | null = event.currentTarget.querySelector(
-    '[role="option"][tabindex="0"]',
-  );
-  if (previous !== null) {
-    previous.tabIndex = -1;
-  }
-  target.tabIndex = 0;
-  target.focus();
-}
-
-function handleKeyDown(event: React.KeyboardEvent) {
-  const target = event.target as HTMLElement;
-  switch (event.key) {
-    case 'Enter':
-      event.stopPropagation();
-      target.click();
-      break;
-
-    case 'ArrowUp':
-      if (target.previousElementSibling !== null) {
-        event.stopPropagation();
-        (target.previousElementSibling as HTMLElement).focus();
-      }
-      break;
-
-    case 'ArrowDown':
-      if (target.nextElementSibling !== null) {
-        event.stopPropagation();
-        (target.nextElementSibling as HTMLElement).focus();
-      }
-      break;
-
-    case ' ':
-      // Prevents scroll behaviour
-      event.preventDefault();
-      // If the listbox allows multi selection, the click event will toggle the selection.
-      if (event.currentTarget.getAttribute('aria-multiselectable') === 'true') {
-        event.stopPropagation();
-        target.click();
-      }
-      break;
-
-    default:
-      break;
-  }
-}
