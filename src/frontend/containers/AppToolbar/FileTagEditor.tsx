@@ -179,7 +179,7 @@ const TagEditor = observer(() => {
         aria-controls="tag-files-listbox"
         ref={inputRef}
       />
-      <Listbox id="tag-files-listbox" multiselectable={true} listRef={listRef}>
+      <Listbox ref={listRef} id="tag-files-listbox" multiselectable={true}>
         {options.map(({ id, ...optionProps }, i) => (
           <Option key={id} {...optionProps} focused={focusedOption === i} />
         ))}

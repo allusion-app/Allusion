@@ -180,7 +180,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
           </div>
         }
       >
-        <Listbox id={listboxID.current} multiselectable listRef={listRef}>
+        <Listbox ref={listRef} id={listboxID.current} multiselectable>
           {options.map(({ divider, id, ...optionProps }, i) => {
             return (
               <React.Fragment key={id}>

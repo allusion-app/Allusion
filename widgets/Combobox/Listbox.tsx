@@ -1,25 +1,27 @@
-import React from 'react';
+import React, { ForwardedRef, forwardRef } from 'react';
 
 export interface IListbox {
   id?: string;
   /** When multiselectable is set to true, the click event handlers on the option elements must togggle the select state. */
   multiselectable?: boolean;
   children: ListboxChildren;
-  listRef?: React.RefObject<HTMLUListElement>;
 }
 
 export type ListboxChild = React.ReactElement<IOption>;
 export type ListboxChildren = ListboxChild | ListboxChild[] | React.ReactFragment;
 
-export const Listbox = (props: IListbox) => {
-  const { id, multiselectable, children, listRef } = props;
+export const Listbox = forwardRef(function ListBox(
+  props: IListbox,
+  ref: ForwardedRef<HTMLUListElement>,
+) {
+  const { id, multiselectable, children } = props;
 
   return (
-    <ul id={id} tabIndex={-1} role="listbox" aria-multiselectable={multiselectable} ref={listRef}>
+    <ul ref={ref} id={id} tabIndex={-1} role="listbox" aria-multiselectable={multiselectable}>
       {children}
     </ul>
   );
-};
+});
 
 const scrollOpts: ScrollIntoViewOptions = { block: 'nearest' };
 
