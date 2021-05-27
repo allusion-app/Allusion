@@ -141,6 +141,10 @@ class TagStore {
     tag.setParent(parent);
   }
 
+  @action append(tag: ClientTag) {
+    this.insert(this.root, tag, this.count);
+  }
+
   @action setPosition(child: ClientTag, position: number) {
     this.insert(this.getParent(child), child, position);
   }

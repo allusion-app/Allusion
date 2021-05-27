@@ -18,51 +18,140 @@ import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
 import { TagItemContextMenu } from './ContextMenu';
 import TagsTreeStateProvider, { TagsTreeState, useTagsTreeState } from './TagsTreeState';
 
-const EditableName = observer(({ tag }: { tag: ClientTag }) => {
-  const state = useTagsTreeState();
+const TagsTree = observer(() => {
+  const { tagStore } = useStore();
+  const state = useRef(new TagsTreeState()).current;
+  const [contextState, { show, hide }] = useContextMenu();
+  const dndData = useTagDnD();
 
-  const submit = useRef((target: EventTarget & HTMLInputElement) => {
-    target.focus();
-    state.disableEditing();
-    target.setSelectionRange(0, 0);
-  }).current;
+  /** Header and Footer drop zones of the root node */
+  const handleDragOverAndLeave = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      if (dndData.source !== undefined) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    },
+    [dndData],
+  );
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const handleDrop = useCallback(() => {
+    const isSelected = dndData.source === undefined ? false : tagStore.isSelected(dndData.source);
+    if (isSelected) {
+      tagStore.moveSelection(ROOT_TAG_ID);
+    } else if (dndData.source !== undefined) {
+      tagStore.append(dndData.source);
+    }
+  }, [dndData, tagStore]);
 
   return (
-    <input
-      className="input"
-      autoFocus
-      type="text"
-      placeholder="Enter a new name"
-      defaultValue={tag.name}
-      onBlur={(e) => {
-        const value = e.currentTarget.value.trim();
-        if (value.length > 0) {
-          tag.rename(value);
-        }
-        submit(e.currentTarget);
-      }}
-      onKeyDown={(e) => {
-        const value = e.currentTarget.value.trim();
-        if (e.key === 'Enter' && value.length > 0) {
-          tag.rename(value);
-          submit(e.currentTarget);
-        } else if (e.key === 'Escape') {
-          submit(e.currentTarget); // cancel with escape
-        }
-      }}
-      onFocus={(e) => e.target.select()}
-      // TODO: Visualizing errors...
-      // Only show red outline when input field is in focus and text is invalid
-    />
+    <TagsTreeStateProvider value={state}>
+      <Header
+        toggleBody={() => setIsCollapsed((v) => !v)}
+        onDrag={handleDragOverAndLeave}
+        onDrop={handleDrop}
+      />
+
+      <Body isCollapsed={isCollapsed} show={show} />
+
+      {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
+      <div
+        id="tree-footer"
+        onClick={tagStore.deselectAll}
+        onDragOver={handleDragOverAndLeave}
+        onDragLeave={handleDragOverAndLeave}
+        onDrop={handleDrop}
+      />
+
+      {state.deletableNode && (
+        <TagRemoval object={state.deletableNode} onClose={state.abortDeletion} />
+      )}
+
+      {state.mergableNode && <TagMerge object={state.mergableNode} onClose={state.abortMerge} />}
+
+      <ContextMenu
+        isOpen={contextState.open}
+        x={contextState.x}
+        y={contextState.y}
+        close={hide}
+        usePortal
+      >
+        {contextState.menu}
+      </ContextMenu>
+    </TagsTreeStateProvider>
   );
 });
 
-interface ITagItemProps {
-  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
-  nodeData: ClientTag;
-  select: (event: React.MouseEvent, nodeData: ClientTag) => void;
-  pos: number;
+export default TagsTree;
+
+interface HeaderProps {
+  toggleBody: () => void;
+  onDrag: (event: React.DragEvent<HTMLDivElement>) => void;
+  onDrop: () => void;
 }
+
+const Header = observer(({ toggleBody, onDrag, onDrop }: HeaderProps) => {
+  const { tagStore } = useStore();
+  const state = useTagsTreeState();
+  const root = tagStore.root;
+
+  const handleRootAddTag = useCallback(
+    () =>
+      tagStore
+        .create(root, 'New Tag')
+        .then((tag) => state.enableEditing(tag.id))
+        .catch((err) => console.log('Could not create tag', err)),
+    [tagStore, root, state],
+  );
+
+  return (
+    <header onDragOver={onDrag} onDragLeave={onDrag} onDrop={onDrop}>
+      <h2 onClick={toggleBody}>Tags</h2>
+      <Toolbar controls="tag-hierarchy">
+        {tagStore.selection.size > 0 ? (
+          <ToolbarButton
+            showLabel="never"
+            icon={IconSet.CLOSE}
+            text="Clear"
+            onClick={tagStore.deselectAll}
+            tooltip="Clear Selection"
+          />
+        ) : (
+          <ToolbarButton
+            showLabel="never"
+            icon={IconSet.PLUS}
+            text="New Tag"
+            onClick={handleRootAddTag}
+            tooltip="Add a new tag"
+          />
+        )}
+      </Toolbar>
+    </header>
+  );
+});
+
+interface ITreeData {
+  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
+  state: TagsTreeState;
+  select: (event: React.MouseEvent, nodeData: ClientTag) => void;
+}
+
+const TagItemLabel = (
+  nodeData: ClientTag,
+  treeData: ITreeData,
+  _level: number,
+  _size: number,
+  pos: number,
+) => (
+  <TagItem
+    showContextMenu={treeData.showContextMenu}
+    nodeData={nodeData}
+    pos={pos}
+    select={treeData.select}
+  />
+);
 
 /**
  * Toggles Query
@@ -86,6 +175,197 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore, tagStore: TagStore) 
     uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id));
   }
 };
+
+const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
+  treeData.state.isExpanded(nodeData.id);
+
+const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
+  treeData.state.toggleNode(nodeData.id);
+
+const toggleSelection = (tagStore: TagStore, nodeData: ClientTag) =>
+  tagStore.toggleSelection(nodeData);
+
+const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+  const element = event.currentTarget.querySelector('.tree-content-label');
+  if (element) {
+    event.stopPropagation();
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: rect.right,
+        clientY: rect.top,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  }
+};
+
+const customKeys = (
+  uiStore: UiStore,
+  tagStore: TagStore,
+  event: React.KeyboardEvent<HTMLLIElement>,
+  nodeData: ClientTag,
+  treeData: ITreeData,
+) => {
+  switch (event.key) {
+    case 'F2':
+      event.stopPropagation();
+      treeData.state.enableEditing(nodeData.id);
+      break;
+
+    case 'F10':
+      if (event.shiftKey) {
+        triggerContextMenuEvent(event);
+      }
+      break;
+
+    case 'Enter':
+      event.stopPropagation();
+      toggleQuery(nodeData, uiStore, tagStore);
+      break;
+
+    case 'Delete':
+      treeData.state.confirmDeletion(nodeData);
+      break;
+
+    case 'ContextMenu':
+      triggerContextMenuEvent(event);
+      break;
+
+    default:
+      break;
+  }
+};
+
+const mapTag = (tag: Readonly<ClientTag>, tagStore: TagStore): ITreeItem => ({
+  id: tag.id,
+  label: TagItemLabel,
+  children: tag.subTags.map((t) => mapTag(t, tagStore)),
+  nodeData: tag,
+  isExpanded,
+  isSelected: tagStore.isSelected,
+});
+
+interface BodyProps {
+  isCollapsed: boolean;
+  show: (x: number, y: number, menu: JSX.Element | JSX.Element[]) => void;
+}
+
+const Body = ({ isCollapsed, show }: BodyProps) => {
+  const { tagStore, uiStore } = useStore();
+  const state = useTagsTreeState();
+  const root = tagStore.root;
+
+  const initialSelectionIndex = useRef<number>();
+  /** The last item that is selected in a multi-selection */
+  const lastSelectionIndex = useRef<number>();
+  // Handles selection via click event
+  const select = useRef(
+    action((e: React.MouseEvent, tag: ClientTag) => {
+      // Note: selection logic is copied from Gallery.tsx
+      const rangeSelection = e.shiftKey;
+      const expandSelection = e.ctrlKey;
+
+      /** The index of the active (newly selected) item */
+      let i: number | undefined = tagStore.tagList.indexOf(tag);
+      i = i < 0 ? undefined : i;
+
+      // If nothing is selected, initialize the selection range and select that single item
+      if (lastSelectionIndex.current === undefined) {
+        initialSelectionIndex.current = i;
+        lastSelectionIndex.current = i;
+        tagStore.toggleSelection(tag);
+        return;
+      } else {
+        initialSelectionIndex.current = lastSelectionIndex.current;
+      }
+
+      // Mark this index as the last item that was selected
+      lastSelectionIndex.current = i;
+
+      if (rangeSelection && initialSelectionIndex.current !== undefined) {
+        if (i === undefined) {
+          return;
+        }
+        if (i < initialSelectionIndex.current) {
+          tagStore.selectRange(i, initialSelectionIndex.current, expandSelection);
+        } else {
+          tagStore.selectRange(initialSelectionIndex.current, i, expandSelection);
+        }
+      } else if (expandSelection) {
+        tagStore.toggleSelection(tag);
+        initialSelectionIndex.current = i;
+      } else {
+        tagStore.select(tag);
+        initialSelectionIndex.current = i;
+      }
+    }),
+  );
+
+  const treeData: ITreeData = useMemo(
+    () => ({
+      showContextMenu: show,
+      state,
+      select: select.current,
+    }),
+    [show, state],
+  );
+
+  const handleBranchOnKeyDown = useRef(
+    (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
+      createBranchOnKeyDown(
+        event,
+        nodeData,
+        treeData,
+        isExpanded,
+        toggleSelection.bind(null, tagStore),
+        toggleExpansion,
+        customKeys.bind(null, uiStore, tagStore),
+      ),
+  );
+
+  const handleLeafOnKeyDown = useRef(
+    (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
+      createLeafOnKeyDown(
+        event,
+        nodeData,
+        treeData,
+        toggleSelection.bind(null, tagStore),
+        customKeys.bind(null, uiStore, tagStore),
+      ),
+  );
+
+  return (
+    <Collapse open={!isCollapsed}>
+      {tagStore.isEmpty ? (
+        <div className="tree-content-label" style={{ padding: '0.25rem' }}>
+          {/* <span className="pre-icon">{IconSet.INFO}</span> */}
+          {/* No tags or collections created yet */}
+          <i style={{ marginLeft: '1em' }}>None</i>
+        </div>
+      ) : (
+        <Tree
+          multiSelect
+          id="tag-hierarchy"
+          className={tagStore.selection.size > 0 ? 'selected' : undefined}
+          children={root.subTags.map((t) => mapTag(t, tagStore))}
+          treeData={treeData}
+          toggleExpansion={toggleExpansion}
+          onBranchKeyDown={handleBranchOnKeyDown.current}
+          onLeafKeyDown={handleLeafOnKeyDown.current}
+        />
+      )}
+    </Collapse>
+  );
+};
+
+interface ITagItemProps {
+  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
+  nodeData: ClientTag;
+  select: (event: React.MouseEvent, nodeData: ClientTag) => void;
+  pos: number;
+}
 
 const PreviewTag = document.createElement('span');
 PreviewTag.style.position = 'absolute';
@@ -303,294 +583,41 @@ const TagItem = observer((props: ITagItemProps) => {
   );
 });
 
-interface ITreeData {
-  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
-  state: TagsTreeState;
-  select: (event: React.MouseEvent, nodeData: ClientTag) => void;
-}
+const EditableName = observer(({ tag }: { tag: ClientTag }) => {
+  const state = useTagsTreeState();
 
-const TagItemLabel = (
-  nodeData: ClientTag,
-  treeData: ITreeData,
-  _level: number,
-  _size: number,
-  pos: number,
-) => (
-  <TagItem
-    showContextMenu={treeData.showContextMenu}
-    nodeData={nodeData}
-    pos={pos}
-    select={treeData.select}
-  />
-);
-
-const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
-  treeData.state.isExpanded(nodeData.id);
-
-const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
-  treeData.state.toggleNode(nodeData.id);
-
-const toggleSelection = (tagStore: TagStore, nodeData: ClientTag) =>
-  tagStore.toggleSelection(nodeData);
-
-const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
-  const element = event.currentTarget.querySelector('.tree-content-label');
-  if (element) {
-    event.stopPropagation();
-    const rect = element.getBoundingClientRect();
-    element.dispatchEvent(
-      new MouseEvent('contextmenu', {
-        clientX: rect.right,
-        clientY: rect.top,
-        bubbles: true,
-        cancelable: true,
-      }),
-    );
-  }
-};
-
-const customKeys = (
-  uiStore: UiStore,
-  tagStore: TagStore,
-  event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: ClientTag,
-  treeData: ITreeData,
-) => {
-  switch (event.key) {
-    case 'F2':
-      event.stopPropagation();
-      treeData.state.enableEditing(nodeData.id);
-      break;
-
-    case 'F10':
-      if (event.shiftKey) {
-        triggerContextMenuEvent(event);
-      }
-      break;
-
-    case 'Enter':
-      event.stopPropagation();
-      toggleQuery(nodeData, uiStore, tagStore);
-      break;
-
-    case 'Delete':
-      treeData.state.confirmDeletion(nodeData);
-      break;
-
-    case 'ContextMenu':
-      triggerContextMenuEvent(event);
-      break;
-
-    default:
-      break;
-  }
-};
-
-const mapTag = (tag: Readonly<ClientTag>, tagStore: TagStore): ITreeItem => ({
-  id: tag.id,
-  label: TagItemLabel,
-  children: tag.subTags.map((t) => mapTag(t, tagStore)),
-  nodeData: tag,
-  isExpanded,
-  isSelected: tagStore.isSelected,
-});
-
-const TagsTree = observer(() => {
-  const { tagStore, uiStore } = useStore();
-  const state = useRef(new TagsTreeState()).current;
-  const [contextState, { show, hide }] = useContextMenu();
-  const dndData = useTagDnD();
-  const root = tagStore.root;
-
-  /** Header and Footer drop zones of the root node */
-  const handleDragOverAndLeave = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      if (runInAction(() => dndData.source !== undefined)) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    },
-    [dndData],
-  );
-
-  /** The first item that is selected in a multi-selection */
-  const initialSelectionIndex = useRef<number>();
-  /** The last item that is selected in a multi-selection */
-  const lastSelectionIndex = useRef<number>();
-  // Handles selection via click event
-  const select = useRef(
-    action((e: React.MouseEvent, tag: ClientTag) => {
-      // Note: selection logic is copied from Gallery.tsx
-      const rangeSelection = e.shiftKey;
-      const expandSelection = e.ctrlKey;
-
-      /** The index of the active (newly selected) item */
-      let i: number | undefined = tagStore.tagList.indexOf(tag);
-      i = i < 0 ? undefined : i;
-
-      // If nothing is selected, initialize the selection range and select that single item
-      if (lastSelectionIndex.current === undefined) {
-        initialSelectionIndex.current = i;
-        lastSelectionIndex.current = i;
-        tagStore.toggleSelection(tag);
-        return;
-      } else {
-        initialSelectionIndex.current = lastSelectionIndex.current;
-      }
-
-      // Mark this index as the last item that was selected
-      lastSelectionIndex.current = i;
-
-      if (rangeSelection && initialSelectionIndex.current !== undefined) {
-        if (i === undefined) {
-          return;
-        }
-        if (i < initialSelectionIndex.current) {
-          tagStore.selectRange(i, initialSelectionIndex.current, expandSelection);
-        } else {
-          tagStore.selectRange(initialSelectionIndex.current, i, expandSelection);
-        }
-      } else if (expandSelection) {
-        tagStore.toggleSelection(tag);
-        initialSelectionIndex.current = i;
-      } else {
-        tagStore.select(tag);
-        initialSelectionIndex.current = i;
-      }
-    }),
-  );
-
-  const treeData: ITreeData = useMemo(
-    () => ({
-      showContextMenu: show,
-      state,
-      select: select.current,
-    }),
-    [show, state],
-  );
-
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const handleRootAddTag = useCallback(
-    () =>
-      tagStore
-        .create(root, 'New Tag')
-        .then((tag) => state.enableEditing(tag.id))
-        .catch((err) => console.log('Could not create tag', err)),
-    [tagStore, root, state],
-  );
-
-  const handleDrop = useCallback(() => {
-    runInAction(() => {
-      const isSelected = dndData.source === undefined ? false : tagStore.isSelected(dndData.source);
-      if (isSelected) {
-        tagStore.moveSelection(ROOT_TAG_ID);
-      } else if (dndData.source !== undefined) {
-        tagStore.insert(root, dndData.source, tagStore.count);
-      }
-    });
-  }, [dndData, tagStore, root]);
-
-  const handleBranchOnKeyDown = useRef(
-    (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
-      createBranchOnKeyDown(
-        event,
-        nodeData,
-        treeData,
-        isExpanded,
-        toggleSelection.bind(null, tagStore),
-        toggleExpansion,
-        customKeys.bind(null, uiStore, tagStore),
-      ),
-  );
-
-  const handleLeafOnKeyDown = useRef(
-    (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
-      createLeafOnKeyDown(
-        event,
-        nodeData,
-        treeData,
-        toggleSelection.bind(null, tagStore),
-        customKeys.bind(null, uiStore, tagStore),
-      ),
-  );
+  const submit = useRef((target: EventTarget & HTMLInputElement) => {
+    target.focus();
+    state.disableEditing();
+    target.setSelectionRange(0, 0);
+  }).current;
 
   return (
-    <TagsTreeStateProvider value={state}>
-      <header
-        onDragOver={handleDragOverAndLeave}
-        onDragLeave={handleDragOverAndLeave}
-        onDrop={handleDrop}
-      >
-        <h2 onClick={() => setIsCollapsed(!isCollapsed)}>Tags</h2>
-        <Toolbar controls="tag-hierarchy">
-          {tagStore.selection.size > 0 ? (
-            <ToolbarButton
-              showLabel="never"
-              icon={IconSet.CLOSE}
-              text="Clear"
-              onClick={tagStore.deselectAll}
-              tooltip="Clear Selection"
-            />
-          ) : (
-            <ToolbarButton
-              showLabel="never"
-              icon={IconSet.PLUS}
-              text="New Tag"
-              onClick={handleRootAddTag}
-              tooltip="Add a new tag"
-            />
-          )}
-        </Toolbar>
-      </header>
-
-      <Collapse open={!isCollapsed}>
-        {tagStore.isEmpty ? (
-          <div className="tree-content-label" style={{ padding: '0.25rem' }}>
-            {/* <span className="pre-icon">{IconSet.INFO}</span> */}
-            {/* No tags or collections created yet */}
-            <i style={{ marginLeft: '1em' }}>None</i>
-          </div>
-        ) : (
-          <Tree
-            multiSelect
-            id="tag-hierarchy"
-            className={tagStore.selection.size > 0 ? 'selected' : undefined}
-            children={root.subTags.map((t) => mapTag(t, tagStore))}
-            treeData={treeData}
-            toggleExpansion={toggleExpansion}
-            onBranchKeyDown={handleBranchOnKeyDown.current}
-            onLeafKeyDown={handleLeafOnKeyDown.current}
-          />
-        )}
-      </Collapse>
-
-      {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
-      <div
-        id="tree-footer"
-        onClick={tagStore.deselectAll}
-        onDragOver={handleDragOverAndLeave}
-        onDragLeave={handleDragOverAndLeave}
-        onDrop={handleDrop}
-      />
-
-      {state.deletableNode && (
-        <TagRemoval object={state.deletableNode} onClose={state.abortDeletion} />
-      )}
-
-      {state.mergableNode && <TagMerge object={state.mergableNode} onClose={state.abortMerge} />}
-
-      <ContextMenu
-        isOpen={contextState.open}
-        x={contextState.x}
-        y={contextState.y}
-        close={hide}
-        usePortal
-      >
-        {contextState.menu}
-      </ContextMenu>
-    </TagsTreeStateProvider>
+    <input
+      className="input"
+      autoFocus
+      type="text"
+      placeholder="Enter a new name"
+      defaultValue={tag.name}
+      onBlur={(e) => {
+        const value = e.currentTarget.value.trim();
+        if (value.length > 0) {
+          tag.rename(value);
+        }
+        submit(e.currentTarget);
+      }}
+      onKeyDown={(e) => {
+        const value = e.currentTarget.value.trim();
+        if (e.key === 'Enter' && value.length > 0) {
+          tag.rename(value);
+          submit(e.currentTarget);
+        } else if (e.key === 'Escape') {
+          submit(e.currentTarget); // cancel with escape
+        }
+      }}
+      onFocus={(e) => e.target.select()}
+      // TODO: Visualizing errors...
+      // Only show red outline when input field is in focus and text is invalid
+    />
   );
 });
-
-export default TagsTree;
