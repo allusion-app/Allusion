@@ -1,33 +1,15 @@
-import { action, ObservableSet } from 'mobx';
+import { action, computed, IComputedValue } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import React, { ForwardedRef, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import { debounce } from 'src/frontend/utils';
 import { Listbox, Option, Tag } from 'widgets';
-import { controlledListBoxKeyDown } from 'widgets/Combobox/ListBox';
+import { useListboxFocus } from 'widgets/Combobox/Listbox';
 import { IconSet } from 'widgets/Icons';
 import { MenuDivider, ToolbarButton } from 'widgets/menus';
 import { useStore } from '../../contexts/StoreContext';
 import { Tooltip } from './PrimaryCommands';
-
-function countFileTags(files: ObservableSet<Readonly<ClientFile>>) {
-  // Count how often tags are used
-  const counter = new Map<Readonly<ClientTag>, number>();
-  for (const file of files) {
-    for (const tag of file.tags) {
-      const count = counter.get(tag);
-      counter.set(tag, count !== undefined ? count + 1 : 1);
-    }
-  }
-
-  const sortedTags: Readonly<ClientTag>[] = Array.from(counter.entries())
-    // Sort based on count
-    .sort((a, b) => b[1] - a[1])
-    .map((pair) => pair[0]);
-
-  return { counter, sortedTags };
-}
 
 const FileTagEditor = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -41,86 +23,47 @@ const FileTagEditor = observer(() => {
         text="Tag selected files"
         tooltip={Tooltip.TagFiles}
       />
-      <FloatingDialog
-        isOpen={uiStore.isToolbarTagPopoverOpen}
-        onClose={uiStore.closeToolbarTagPopover}
-      >
+      <FloatingPanel>
         <TagEditor />
-      </FloatingDialog>
+      </FloatingPanel>
     </>
   );
 });
 
 export default FileTagEditor;
 
-const TagEditor = observer(() => {
-  const { tagStore, fileStore } = useStore();
+const TagEditor = () => {
+  const { fileStore } = useStore();
   const [inputText, setInputText] = useState('');
-
-  const { counter, sortedTags } = countFileTags(fileStore.selection);
-  const [matches, setMatches] = useState(tagStore.tagList);
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const [onSelect, onDeselect] = useRef([
-    action((tag: Readonly<ClientTag>) => {
-      for (const f of fileStore.selection) {
-        f.addTag(tag);
+  const counter = useRef(
+    computed(() => {
+      // Count how often tags are used
+      const counter = new Map<Readonly<ClientTag>, number>();
+      for (const file of fileStore.selection) {
+        for (const tag of file.tags) {
+          const count = counter.get(tag);
+          counter.set(tag, count !== undefined ? count + 1 : 1);
+        }
       }
-    }),
-    action((tag: Readonly<ClientTag>) => {
-      for (const f of fileStore.selection) {
-        f.removeTag(tag);
-      }
-    }),
-  ]).current;
-
-  const handleInput = useRef(
-    action((e: React.ChangeEvent<HTMLInputElement>) => {
-      const text = e.target.value;
-      setInputText(e.target.value);
-
-      if (text.length === 0) {
-        setMatches(tagStore.tagList);
-      } else {
-        const textLower = text.toLowerCase();
-        setMatches(tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower)));
-      }
+      return counter;
     }),
   ).current;
 
-  const options = useMemo(
-    () =>
-      matches.map((t) => {
-        const selected = counter.get(t) !== undefined;
-        return {
-          id: t.id,
-          value: t.name,
-          selected,
-          icon: <span style={{ color: t.viewColor }}>{IconSet.TAG}</span>,
-          onClick: action(() => {
-            selected ? onDeselect(t) : onSelect(t);
-            setInputText('');
-            setMatches(tagStore.tagList);
-            inputRef.current?.focus();
-          }),
-        };
-      }),
-    [counter, matches, onDeselect, onSelect, tagStore],
+  const inputRef = useRef<HTMLInputElement>(null);
+  const handleInput = useRef((e: React.ChangeEvent<HTMLInputElement>) =>
+    setInputText(e.target.value),
   );
 
-  // Todo: clamp this value when list size changes
-  const [focusedOption, setFocusedOption] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
-  const handleInputKeyDown = action((e: React.KeyboardEvent<HTMLInputElement>) => {
-    controlledListBoxKeyDown(e, listRef, setFocusedOption, focusedOption);
-  });
+  const [focusedOption, handleFocus] = useListboxFocus(listRef);
 
   // Remember the height when panel is resized
   const panelRef = useRef<HTMLDivElement>(null);
   const [storedHeight] = useState(localStorage.getItem('tag-editor-height'));
   useEffect(() => {
-    if (!panelRef.current) return;
+    if (!panelRef.current) {
+      return;
+    }
     const storeHeight = debounce((val: string) => localStorage.setItem('tag-editor-height', val));
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -137,145 +80,205 @@ const TagEditor = observer(() => {
     return () => observer.disconnect();
   }, []);
 
-  const createOption = [];
-  if (inputText.length > 0) {
-    if (matches.length !== 0) {
-      createOption.push(<MenuDivider key="divider" />);
-    }
-    createOption.push(
-      <Option
-        key="create"
-        selected={false}
-        value={`Create Tag "${inputText}"`}
-        onClick={action(async () => {
-          const tagList = tagStore.tagList;
-          const newTag = await tagStore.create(tagStore.root, inputText);
-          setInputText('');
-          setMatches(tagList);
-          onSelect(newTag);
-          inputRef.current?.focus();
-        })}
-        icon={IconSet.TAG_ADD}
-        focused={focusedOption === options.length}
-      />,
-    );
-  }
+  const resetTextBox = useRef(() => {
+    setInputText('');
+    inputRef.current?.focus();
+  });
+
+  const removeTag = useRef(
+    action((tag: Readonly<ClientTag>) => {
+      for (const f of fileStore.selection) {
+        f.removeTag(tag);
+      }
+      inputRef.current?.focus();
+    }),
+  );
 
   return (
-    <div
-      id="tag-editor"
-      onKeyDown={handleKeyDown}
-      ref={panelRef}
-      style={{ height: storedHeight || undefined }}
-    >
+    <div id="tag-editor" ref={panelRef} style={{ height: storedHeight ?? undefined }}>
       <input
         autoFocus
         type="text"
         value={inputText}
         aria-autocomplete="list"
-        onChange={handleInput}
-        onKeyDown={handleInputKeyDown}
+        onChange={handleInput.current}
+        onKeyDown={handleFocus}
         className="input"
         aria-controls="tag-files-listbox"
         ref={inputRef}
       />
-      <Listbox ref={listRef} id="tag-files-listbox" multiselectable={true}>
-        {options.map(({ id, ...optionProps }, i) => (
-          <Option key={id} {...optionProps} focused={focusedOption === i} />
-        ))}
-        {createOption}
+      <MatchingTagsList
+        ref={listRef}
+        inputText={inputText}
+        counter={counter}
+        focusedOption={focusedOption}
+        resetTextBox={resetTextBox.current}
+      />
+      <TagSummary counter={counter} removeTag={removeTag.current} />
+    </div>
+  );
+};
+
+interface MatchingTagsListProps {
+  inputText: string;
+  counter: IComputedValue<Map<Readonly<ClientTag>, number>>;
+  focusedOption: number;
+  resetTextBox: () => void;
+}
+
+const MatchingTagsList = observer(
+  function MatchingTagsList(
+    { inputText, counter, focusedOption, resetTextBox }: MatchingTagsListProps,
+    ref: ForwardedRef<HTMLUListElement>,
+  ) {
+    const { fileStore, tagStore } = useStore();
+
+    const matches = useMemo(
+      () =>
+        computed(() => {
+          if (inputText.length === 0) {
+            return tagStore.tagList;
+          } else {
+            const textLower = inputText.toLowerCase();
+            return tagStore.tagList.filter(action((t) => t.name.toLowerCase().includes(textLower)));
+          }
+        }),
+      [inputText, tagStore],
+    );
+
+    const toggleSelection = useRef(
+      action((isSelected: boolean, tag: Readonly<ClientTag>) => {
+        const operation = isSelected
+          ? (f: Readonly<ClientFile>) => f.removeTag(tag)
+          : (f: Readonly<ClientFile>) => f.addTag(tag);
+
+        for (const f of fileStore.selection) {
+          operation(f);
+        }
+        resetTextBox();
+      }),
+    );
+
+    return (
+      <Listbox ref={ref} id="tag-files-listbox" multiselectable>
+        {matches.get().map((tag, index) => {
+          const selected = counter.get().get(tag) !== undefined;
+          return (
+            <Option
+              key={tag.id}
+              value={tag.name}
+              selected={selected}
+              icon={<span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>}
+              onClick={() => toggleSelection.current(selected, tag)}
+              focused={focusedOption === index}
+            />
+          );
+        })}
+        <CreateOption
+          inputText={inputText}
+          hasMatches={matches.get().length > 0}
+          isFocused={focusedOption === matches.get().length}
+          resetTextBox={resetTextBox}
+        />
       </Listbox>
-      <div>
-        {sortedTags.map((t) => (
-          <Tag
-            key={t.id}
-            text={`${t.name}${fileStore.selection.size > 1 ? ` (${counter.get(t)})` : ''}`}
-            color={t.viewColor}
-            onRemove={() => {
-              onDeselect(t);
-              inputRef.current?.focus();
-            }}
-          />
-        ))}
-        {sortedTags.length === 0 && <i>No tags added yet</i>}
-      </div>
+    );
+  },
+  { forwardRef: true },
+);
+
+interface CreateOptionProps {
+  inputText: string;
+  hasMatches: boolean;
+  isFocused: boolean;
+  resetTextBox: () => void;
+}
+
+const CreateOption = ({ inputText, hasMatches, isFocused, resetTextBox }: CreateOptionProps) => {
+  const { fileStore, tagStore } = useStore();
+
+  const removeTag = useRef(
+    action(async () => {
+      const newTag = await tagStore.create(tagStore.root, inputText);
+      for (const f of fileStore.selection) {
+        f.addTag(newTag);
+      }
+      resetTextBox();
+    }),
+  );
+
+  if (inputText.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      {hasMatches && <MenuDivider />}
+      <Option
+        selected={false}
+        value={`Create Tag "${inputText}"`}
+        onClick={removeTag.current}
+        icon={IconSet.TAG_ADD}
+        focused={isFocused}
+      />
+    </>
+  );
+};
+
+interface TagSummaryProps {
+  counter: IComputedValue<Map<Readonly<ClientTag>, number>>;
+  removeTag: (tag: Readonly<ClientTag>) => void;
+}
+
+const TagSummary = observer(({ counter, removeTag }: TagSummaryProps) => {
+  const { fileStore } = useStore();
+
+  const sortedTags: Readonly<ClientTag>[] = Array.from(counter.get().entries())
+    // Sort based on count
+    .sort((a, b) => b[1] - a[1])
+    .map((pair) => pair[0]);
+
+  return (
+    <div>
+      {sortedTags.map((t) => (
+        <Tag
+          key={t.id}
+          text={`${t.name}${fileStore.selection.size > 1 ? ` (${counter.get().get(t)})` : ''}`}
+          color={t.viewColor}
+          onRemove={() => removeTag(t)}
+        />
+      ))}
+      {sortedTags.length === 0 && <i>No tags added yet</i>}
     </div>
   );
 });
 
-interface FloatingDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: ReactNode;
-}
+const FloatingPanel = observer(({ children }: { children: ReactNode }) => {
+  const { uiStore } = useStore();
 
-const FloatingDialog = (props: FloatingDialogProps) => {
-  const { onClose, isOpen, children } = props;
-
-  const handleBlur = (e: React.FocusEvent) => {
+  const handleBlur = useRef((e: React.FocusEvent) => {
     const button = e.currentTarget.previousElementSibling as HTMLElement;
     if (e.relatedTarget !== button && !e.currentTarget.contains(e.relatedTarget as Node)) {
-      onClose();
+      uiStore.closeToolbarTagPopover();
     }
-  };
+  });
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleClose = useRef((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.stopPropagation();
-      onClose();
+      uiStore.closeToolbarTagPopover();
     }
-  };
+  });
 
   return (
     // FIXME: data attributes placeholder
     <div
       data-popover
-      data-open={isOpen}
+      data-open={uiStore.isToolbarTagPopoverOpen}
       className="floating-dialog"
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
+      onBlur={handleBlur.current}
+      onKeyDown={handleClose.current}
     >
-      {isOpen ? children : null}
+      {uiStore.isToolbarTagPopoverOpen ? children : null}
     </div>
   );
-};
-
-function handleKeyDown(e: React.KeyboardEvent) {
-  const input = e.currentTarget.firstElementChild as HTMLElement;
-  const listbox = input.nextElementSibling as HTMLElement;
-
-  switch (e.key) {
-    case 'ArrowDown':
-      if (listbox.firstElementChild !== null) {
-        e.preventDefault(); // FIXME: element.focus({ preventScroll: true}) option not working (Chrome Bug)
-        e.stopPropagation();
-        (listbox.firstElementChild as HTMLElement).focus();
-      }
-      break;
-
-    case 'ArrowUp':
-      if (listbox.lastElementChild !== null) {
-        e.preventDefault(); // FIXME: element.focus({ preventScroll: true}) option not working (Chrome Bug)
-        e.stopPropagation();
-        (listbox.lastElementChild as HTMLElement).focus();
-      }
-      break;
-
-    case 'ArrowRight':
-      if (e.target !== input) {
-        e.stopPropagation();
-        input.focus();
-      }
-      break;
-
-    case 'ArrowLeft':
-      if (e.target !== input) {
-        e.stopPropagation();
-        input.focus();
-      }
-      break;
-
-    default:
-      break;
-  }
-}
+});

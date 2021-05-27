@@ -1,4 +1,4 @@
-import React, { ForwardedRef, forwardRef } from 'react';
+import React, { ForwardedRef, forwardRef, useRef, useState } from 'react';
 
 export interface IListbox {
   id?: string;
@@ -23,54 +23,64 @@ export const Listbox = forwardRef(function ListBox(
   );
 });
 
-const scrollOpts: ScrollIntoViewOptions = { block: 'nearest' };
-
-export function controlledListBoxKeyDown(
-  event: React.KeyboardEvent,
+export function useListboxFocus(
   listRef: React.RefObject<HTMLUListElement>,
-  setActiveIndex: (index: number) => void,
-  activeIndex: number,
-) {
-  const optionElems = listRef.current?.querySelectorAll('li:not([role="separator"])') || [];
-  const numItems = optionElems.length;
-  const activeElement = optionElems[activeIndex] as HTMLElement | undefined;
-  switch (event.key) {
-    case 'Enter':
-      event.stopPropagation();
-      activeElement?.click();
-      break;
+): [focus: number, handleInput: (event: React.KeyboardEvent) => void] {
+  const focus = useRef(0);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-    case 'ArrowUp':
-      event.stopPropagation();
-      event.preventDefault();
-      const prevIndex = (activeIndex - 1 + numItems) % numItems;
-      setActiveIndex(prevIndex);
-      if (prevIndex === numItems - 1 && listRef.current) {
-        listRef.current.scrollTop = listRef.current.scrollHeight;
-      } else {
-        const prevElement = optionElems[prevIndex] as HTMLElement | undefined;
-        prevElement?.scrollIntoView(scrollOpts);
-      }
-      break;
+  const handleFocus = useRef((event: React.KeyboardEvent) => {
+    if (listRef.current === null || listRef.current.childElementCount === 0) {
+      return;
+    }
 
-    case 'ArrowDown':
-      event.stopPropagation();
-      event.preventDefault();
-      const nextIndex = (activeIndex + 1) % numItems;
-      setActiveIndex(nextIndex);
-      if (nextIndex === 0 && listRef.current) {
-        listRef.current.scrollTop = 0;
-      } else {
-        const nextElement = optionElems[nextIndex] as HTMLElement | undefined;
-        nextElement?.scrollIntoView(scrollOpts);
-      }
-      break;
+    const scrollOpts: ScrollIntoViewOptions = { block: 'nearest' };
+    const options = listRef.current.querySelectorAll(
+      'li[role="option"]',
+    ) as NodeListOf<HTMLLIElement>;
+    const numOptions = options.length;
+    focus.current = Math.min(numOptions - 1, focus.current);
+    const activeElement = options[focus.current];
+    switch (event.key) {
+      case 'Enter':
+        event.stopPropagation();
+        activeElement.click();
+        break;
 
-    // Note: no 'space' to select, since space is valid input for the input-field
+      case 'ArrowUp':
+        event.stopPropagation();
+        event.preventDefault();
+        focus.current = (focus.current - 1 + numOptions) % numOptions;
+        if (focus.current === numOptions - 1) {
+          listRef.current.scrollTop = listRef.current.scrollHeight;
+        } else {
+          const prevElement = options[focus.current];
+          prevElement.scrollIntoView(scrollOpts);
+        }
+        setActiveIndex(focus.current);
+        break;
 
-    default:
-      break;
-  }
+      case 'ArrowDown':
+        event.stopPropagation();
+        event.preventDefault();
+        focus.current = (focus.current + 1) % numOptions;
+        if (focus.current === 0) {
+          listRef.current.scrollTop = 0;
+        } else {
+          const nextElement = options[focus.current];
+          nextElement.scrollIntoView(scrollOpts);
+        }
+        setActiveIndex(focus.current);
+        break;
+
+      // Note: no 'space' to select, since space is valid input for the input-field
+
+      default:
+        break;
+    }
+  });
+
+  return [activeIndex, handleFocus.current];
 }
 
 export interface IOption {
@@ -83,23 +93,13 @@ export interface IOption {
   focused?: boolean;
 }
 
-export const Option = ({
-  value,
-  selected,
-  onClick,
-  icon,
-  disabled,
-  focused,
-  ...rest
-}: IOption & React.HTMLAttributes<HTMLLIElement>) => (
+export const Option = ({ value, selected, onClick, icon, disabled, focused }: IOption) => (
   <li
     role="option"
     aria-selected={selected}
     aria-disabled={disabled}
     onClick={disabled ? undefined : onClick}
-    tabIndex={-1}
-    className={focused ? 'focused' : undefined}
-    {...rest}
+    tabIndex={focused ? 0 : -1}
   >
     <span className="item-icon" aria-hidden />
     {value}

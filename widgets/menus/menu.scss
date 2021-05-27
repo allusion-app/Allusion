@@ -27,7 +27,7 @@
     color: var(--text-color-strong);
   }
   &:focus,
-  &.focused {
+  &[tabIndex='0'] {
     color: var(--text-color-strong);
     background: var(--hover-color);
   }

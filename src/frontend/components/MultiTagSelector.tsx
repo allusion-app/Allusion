@@ -4,8 +4,7 @@ import React, { ReactElement, useCallback, useMemo, useRef, useState } from 'rea
 import { generateId } from 'src/entities/ID';
 import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Listbox, Option, Tag } from 'widgets';
-import { controlledListBoxKeyDown } from 'widgets/Combobox/ListBox';
-import { IOption } from 'widgets/Combobox/Listbox';
+import { IOption, useListboxFocus } from 'widgets/Combobox/Listbox';
 import { MenuDivider } from 'widgets/menus';
 import { Flyout } from 'widgets/popovers';
 import { useStore } from '../contexts/StoreContext';
@@ -99,9 +98,8 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
     return res;
   }, [extraOptions, onDeselect, onSelect, query, selection, suggestions]);
 
-  // Todo: clamp this value when list size changes
-  const [focusedOption, setFocusedOption] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
+  const [focusedOption, handleFocus] = useListboxFocus(listRef);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Backspace') {
@@ -112,9 +110,9 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
           onDeselect(selection[selection.length - 1]);
         }
       }
-      controlledListBoxKeyDown(e, listRef, setFocusedOption, focusedOption);
+      handleFocus(e);
     },
-    [focusedOption, onDeselect, query.length, selection],
+    [handleFocus, onDeselect, query.length, selection],
   );
 
   return (
