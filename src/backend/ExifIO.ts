@@ -47,6 +47,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
 import path from 'path';
 import { isDev } from 'src/config';
+import { IS_WIN } from 'src/frontend/utils';
 
 // The exif binary is placed using ElectronBuilder's extraResources: https://www.electron.build/configuration/contents#extraresources
 // there also is process.resourcesPath but that doesn't work in dev mode
@@ -59,6 +60,10 @@ const ep = new exiftool.ExiftoolProcess(exiftoolPath);
 
 class ExifIO {
   @observable hierarchicalSeparator: string;
+
+  // For accented characters and foreign alphabets, an extra arg is needed on Windows
+  // https://www.npmjs.com/package/node-exiftool#reading-utf8-encoded-filename-on-windows
+  extraArgs = IS_WIN ? ['charset filename=utf8'] : [];
 
   constructor() {
     this.hierarchicalSeparator = localStorage.getItem('hierarchical-separator') || '|';
@@ -123,6 +128,7 @@ class ExifIO {
       'HierarchicalSubject',
       'Subject',
       'Keywords',
+      ...this.extraArgs,
     ]);
     if (metadata.error || !metadata.data?.[0]) {
       throw new Error(metadata.error || 'No metadata entry');
@@ -135,7 +141,7 @@ class ExifIO {
   }
 
   async readExifTags(filepath: string, tags: string[]): Promise<(string | undefined)[]> {
-    const metadata = await ep.readMetadata(filepath, tags);
+    const metadata = await ep.readMetadata(filepath, [...tags, ...this.extraArgs]);
     if (metadata.error || !metadata.data?.[0]) {
       throw new Error(metadata.error || 'No metadata entry');
     }
@@ -144,22 +150,22 @@ class ExifIO {
   }
 
   /** Reads file metadata for all files in a folder (and recursively for its subfolders) */
-  async readTagsRecursively(directory: string): Promise<string[][]> {
-    const metadata = await ep.readMetadata(directory, [
-      'HierarchicalSubject',
-      'Subject',
-      'Keywords',
-      'r',
-    ]);
-    if (metadata.error || !metadata.data?.[0]) {
-      throw new Error(metadata.error || 'No metadata entries found');
-    }
-    const entry = metadata.data[0];
-    return ExifIO.convertMetadataToHierarchy(
-      entry,
-      runInAction(() => this.hierarchicalSeparator),
-    );
-  }
+  // async readTagsRecursively(directory: string) {
+  //   const metadata = await ep.readMetadata(directory, [
+  //     'HierarchicalSubject',
+  //     'Subject',
+  //     'Keywords',
+  //     'r',
+  //   ]);
+  //   if (metadata.error || !metadata.data?.[0]) {
+  //     throw new Error(metadata.error || 'No metadata entries found');
+  //   }
+  //   const entry = metadata.data[0];
+  //   return ExifIO.convertMetadataToHierarchy(
+  //     entry,
+  //     runInAction(() => this.hierarchicalSeparator),
+  //   );
+  // }
 
   /** Overwrites the tags of a specific file */
   @action.bound async writeTags(filepath: string, tagNameHierarchy: string[][]): Promise<void> {
@@ -189,7 +195,11 @@ class ExifIO {
         Keywords: subject,
         // History: {},
       },
-      ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
+      [
+        'overwrite_original', // added this because it was leaving behind duplicate files (with _original appended to filename)
+        'codedcharacterset=utf8', // needed for adobe products: https://www.npmjs.com/package/node-exiftool#writing-tags-for-adobe-in-utf8
+        ...this.extraArgs,
+      ],
     );
     if (!res.error?.endsWith('1 image files updated')) {
       console.error('Could not update file metadata', res);
@@ -197,46 +207,40 @@ class ExifIO {
   }
 
   /** Adds */
-  async addTag(files: string[], tagHierarchy: string[]): Promise<void> {
-    // concat file paths into one big string, each surrounded by double quotes
-    const command = files.map((filePath) => `"${filePath}"`).join(' ');
-    const res = await ep.writeMetadata(
-      command,
-      // the "MyHS" is a custom exiftool tag, see the .Exilfool_config file for more details
-      { 'MyHS+': tagHierarchy },
-      ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
-    );
-    if (!res.error?.endsWith(`${files.length} image files updated`)) {
-      console.error('Could not update file metadata', res);
-    }
-  }
-
-  async removeTag(files: string[], tagHierarchy: string[]): Promise<void> {
-    const command = files.map((filePath) => `"${filePath}"`).join(' ');
-    const res = await ep.writeMetadata(command, { 'MyHS-': tagHierarchy }, ['overwrite_original ']);
-    if (!res.error?.endsWith(`${files.length} image files updated`)) {
-      console.error('Could not update file metadata', res);
-    }
-  }
-
-  async replaceTag(
-    files: string[],
-    oldTagHierarchy: string[],
-    newTagHierarchy: string[],
-  ): Promise<void> {
-    const command = files.map((filePath) => `"${filePath}"`).join(' ');
-    const res = await ep.writeMetadata(
-      command,
-      {
-        'MyHS-': oldTagHierarchy,
-        'MyHS+': newTagHierarchy,
-      },
-      ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
-    );
-    if (!res.error?.endsWith(`${files.length} image files updated`)) {
-      console.error('Could not update file metadata', res);
-    }
-  }
+  // async addTag(files: string[], tagHierarchy: string[]) {
+  //   // concat file paths into one big string, each surrounded by double quotes
+  //   const command = files.map((filePath) => `"${filePath}"`).join(' ');
+  //   const res = await ep.writeMetadata(
+  //     command,
+  //     // the "MyHS" is a custom exiftool tag, see the .Exilfool_config file for more details
+  //     { 'MyHS+': tagHierarchy },
+  //     ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
+  //   );
+  //   if (!res.error?.endsWith(`${files.length} image files updated`)) {
+  //     console.error('Could not update file metadata', res);
+  //   }
+  // }
+  // async removeTag(files: string[], tagHierarchy: string[]) {
+  //   const command = files.map((filePath) => `"${filePath}"`).join(' ');
+  //   const res = await ep.writeMetadata(command, { 'MyHS-': tagHierarchy }, ['overwrite_original ']);
+  //   if (!res.error?.endsWith(`${files.length} image files updated`)) {
+  //     console.error('Could not update file metadata', res);
+  //   }
+  // }
+  // async replaceTag(files: string[], oldTagHierarchy: string[], newTagHierarchy: string[]) {
+  //   const command = files.map((filePath) => `"${filePath}"`).join(' ');
+  //   const res = await ep.writeMetadata(
+  //     command,
+  //     {
+  //       'MyHS-': oldTagHierarchy,
+  //       'MyHS+': newTagHierarchy,
+  //     },
+  //     ['overwrite_original '], // added this because it was leaving behind duplicate files (with _original appended to filename)
+  //   );
+  //   if (!res.error?.endsWith(`${files.length} image files updated`)) {
+  //     console.error('Could not update file metadata', res);
+  //   }
+  // }
 }
 
 export default ExifIO;
