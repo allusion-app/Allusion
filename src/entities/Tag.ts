@@ -23,7 +23,6 @@ export interface ITag extends IResource {
 export class ClientTag implements ISerializable<ITag> {
   private store: TagStore;
   private saveHandler: IReactionDisposer;
-  private autoSave = true;
 
   readonly id: ID;
   readonly dateAdded: Date;
@@ -46,9 +45,7 @@ export class ClientTag implements ISerializable<ITag> {
       () => this.serialize(),
       // Then update the entity in the database
       (tag) => {
-        if (this.autoSave) {
-          this.store.save(tag);
-        }
+        this.store.save(tag);
       },
     );
 
@@ -103,7 +100,6 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   dispose(): void {
-    this.autoSave = false;
     // clean up the observer
     this.saveHandler();
   }
