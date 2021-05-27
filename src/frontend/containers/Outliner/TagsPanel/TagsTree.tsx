@@ -46,13 +46,11 @@ const TagsTree = observer(() => {
     }
   }, [dndData, tagStore]);
 
+  const toggleBody = useRef(() => setIsCollapsed((v) => !v));
+
   return (
     <TagsTreeStateProvider value={state}>
-      <Header
-        toggleBody={() => setIsCollapsed((v) => !v)}
-        onDrag={handleDragOverAndLeave}
-        onDrop={handleDrop}
-      />
+      <Header toggleBody={toggleBody.current} onDrag={handleDragOverAndLeave} onDrop={handleDrop} />
 
       <Body isCollapsed={isCollapsed} show={show} />
 
@@ -92,18 +90,15 @@ interface HeaderProps {
   onDrop: () => void;
 }
 
-const Header = observer(({ toggleBody, onDrag, onDrop }: HeaderProps) => {
+const Header = ({ toggleBody, onDrag, onDrop }: HeaderProps) => {
   const { tagStore } = useStore();
   const state = useTagsTreeState();
-  const root = tagStore.root;
 
-  const handleRootAddTag = useCallback(
-    () =>
-      tagStore
-        .create(root, 'New Tag')
-        .then((tag) => state.enableEditing(tag.id))
-        .catch((err) => console.log('Could not create tag', err)),
-    [tagStore, root, state],
+  const handleRootAddTag = useRef(() =>
+    tagStore
+      .create('New Tag')
+      .then((tag) => state.enableEditing(tag.id))
+      .catch((err) => console.log('Could not create tag', err)),
   );
 
   return (
@@ -123,14 +118,14 @@ const Header = observer(({ toggleBody, onDrag, onDrop }: HeaderProps) => {
             showLabel="never"
             icon={IconSet.PLUS}
             text="New Tag"
-            onClick={handleRootAddTag}
+            onClick={handleRootAddTag.current}
             tooltip="Add a new tag"
           />
         )}
       </Toolbar>
     </header>
   );
-});
+};
 
 interface ITreeData {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;

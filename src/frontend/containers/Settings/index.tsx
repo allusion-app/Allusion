@@ -609,7 +609,7 @@ async function readTagsFromFiles(
               if (nodeMatch !== undefined) {
                 curTag = nodeMatch;
               } else {
-                curTag = await tagStore.create(curTag, nodeName);
+                curTag = await tagStore.create(nodeName, curTag);
               }
             }
             fileList[i].addTag(curTag);

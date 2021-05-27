@@ -80,12 +80,13 @@ class TagStore {
     return treePath;
   }
 
-  create = flow(function* (this: TagStore, parent: Readonly<ClientTag>, tagName: string) {
+  create = flow(function* (this: TagStore, tagName: string, parent?: Readonly<ClientTag>) {
     const tag = new ClientTag(this, generateId(), tagName, new Date());
     yield this.backend.createTag(tag.serialize());
     this.tagGraph.set(tag.id, tag);
-    tag.setParent(parent);
-    parent.subTags.push(tag);
+    const p = parent ?? this.root;
+    tag.setParent(p);
+    p.subTags.push(tag);
     return tag;
   });
 

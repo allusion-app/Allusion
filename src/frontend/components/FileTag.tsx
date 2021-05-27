@@ -20,7 +20,7 @@ const FileTags = observer(({ file }: IFileTagProp) => {
         value={`Create tag "${tagName}"`}
         icon={IconSet.TAG_ADD}
         onClick={async () => {
-          const tag = await tagStore.create(tagStore.root, tagName);
+          const tag = await tagStore.create(tagName);
           file.addTag(tag);
           resetTextBox();
         }}

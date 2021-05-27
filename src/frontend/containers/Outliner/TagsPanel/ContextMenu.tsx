@@ -96,7 +96,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       <MenuItem
         onClick={() =>
           tagStore
-            .create(tag, 'New Tag')
+            .create('New Tag', tag)
             .then((t) => state.insertNode(tag.id, t.id))
             .catch((err) => console.log('Could not create tag', err))
         }

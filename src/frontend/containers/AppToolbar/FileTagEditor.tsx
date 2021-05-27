@@ -198,7 +198,7 @@ const CreateOption = ({ inputText, hasMatches, isFocused, resetTextBox }: Create
 
   const removeTag = useRef(
     action(async () => {
-      const newTag = await tagStore.create(tagStore.root, inputText);
+      const newTag = await tagStore.create(inputText);
       for (const f of fileStore.selection) {
         f.addTag(newTag);
       }

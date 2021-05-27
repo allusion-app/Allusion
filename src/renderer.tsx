@@ -112,7 +112,7 @@ async function main() {
           if (clientTag !== undefined) {
             return clientTag;
           } else {
-            const newClientTag = await tagStore.create(tagStore.root, tagName);
+            const newClientTag = await tagStore.create(tagName);
             return newClientTag;
           }
         }),
