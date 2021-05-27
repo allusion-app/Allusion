@@ -1,7 +1,8 @@
 import { observer } from 'mobx-react-lite';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { IconSet } from 'widgets/Icons';
+import { Option } from 'widgets';
 import { useStore } from '../contexts/StoreContext';
 import { MultiTagSelector } from './MultiTagSelector';
 
@@ -11,8 +12,23 @@ interface IFileTagProp {
 
 const FileTags = observer(({ file }: IFileTagProp) => {
   const { tagStore } = useStore();
-  const handleCreate = async (name: string) =>
-    file.addTag(await tagStore.create(tagStore.root, name));
+
+  const renderCreateOption = useCallback(
+    (tagName: string, resetTextBox: () => void, isFocused: (index: number) => boolean) => (
+      <Option
+        key="create"
+        value={`Create tag "${tagName}"`}
+        icon={IconSet.TAG_ADD}
+        onClick={async () => {
+          const tag = await tagStore.create(tagStore.root, tagName);
+          file.addTag(tag);
+          resetTextBox();
+        }}
+        focused={isFocused(0)}
+      />
+    ),
+    [file, tagStore],
+  );
 
   return (
     <MultiTagSelector
@@ -21,15 +37,7 @@ const FileTags = observer(({ file }: IFileTagProp) => {
       onClear={file.clearTags}
       onDeselect={file.removeTag}
       onSelect={file.addTag}
-      extraOptions={[
-        {
-          id: 'create',
-          icon: IconSet.TAG_ADD,
-          label: (input: string) => `Create tag "${input}"`,
-          action: handleCreate,
-          resetQueryOnAction: true,
-        },
-      ]}
+      renderCreateOption={renderCreateOption}
     />
   );
 });

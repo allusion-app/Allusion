@@ -140,7 +140,7 @@ const MatchingTagsList = observer(
             return tagStore.tagList;
           } else {
             const textLower = inputText.toLowerCase();
-            return tagStore.tagList.filter(action((t) => t.name.toLowerCase().includes(textLower)));
+            return tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower));
           }
         }),
       [inputText, tagStore],

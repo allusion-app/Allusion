@@ -1,5 +1,5 @@
-import React from 'react';
-import { action } from 'mobx';
+import React, { useRef } from 'react';
+import { action, computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -29,7 +29,7 @@ export default Searchbar;
 import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 
-import { IconButton, IconSet, Tag } from 'widgets';
+import { IconButton, IconSet, Tag, Option } from 'widgets';
 
 import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
 import { CustomKeyDict } from '../types';
@@ -37,69 +37,91 @@ import { CustomKeyDict } from '../types';
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore } = useStore();
 
-  const selectedItems: ClientTag[] = [];
-  uiStore.searchCriteriaList.forEach((c) => {
-    if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
-      const item = tagStore.get(c.value[0]);
-      if (item) {
-        selectedItems.push(item);
-      }
-    }
-  });
+  const selection = useRef(
+    computed(() => {
+      const selectedItems: ClientTag[] = [];
+      uiStore.searchCriteriaList.forEach((c) => {
+        if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
+          const item = tagStore.get(c.value[0]);
+          if (item) {
+            selectedItems.push(item);
+          }
+        }
+      });
+      return selectedItems;
+    }),
+  ).current;
 
-  const handleSelect = action((item: Readonly<ClientTag>) =>
-    uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', item.id, item.name)),
+  const handleSelect = useRef(
+    action((item: Readonly<ClientTag>) =>
+      uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', item.id, item.name)),
+    ),
   );
 
-  const handleDeselect = action((item: Readonly<ClientTag>) => {
-    const crit = uiStore.searchCriteriaList.find(
-      (c) => c instanceof ClientTagSearchCriteria && c.value.includes(item.id),
-    );
-    if (crit) {
-      uiStore.removeSearchCriteria(crit);
-    }
-  });
+  const handleDeselect = useRef(
+    action((item: Readonly<ClientTag>) => {
+      const crit = uiStore.searchCriteriaList.find(
+        (c) => c instanceof ClientTagSearchCriteria && c.value.includes(item.id),
+      );
+      if (crit) {
+        uiStore.removeSearchCriteria(crit);
+      }
+    }),
+  );
+
+  const renderCreateOption = useRef(
+    (query: string, resetTextBox: () => void, isFocused: (index: number) => boolean) => {
+      return [
+        <Option
+          key="search-in-path"
+          value={`Search in file paths for "${query}"`}
+          onClick={() => {
+            resetTextBox();
+            uiStore.addSearchCriteria(
+              new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
+            );
+          }}
+          focused={isFocused(0)}
+        />,
+        <Option
+          key="advanced-search"
+          value="Advanced search"
+          onClick={uiStore.toggleAdvancedSearch}
+          icon={IconSet.SEARCH_EXTENDED}
+          focused={isFocused(1)}
+        />,
+      ];
+    },
+  );
 
   return (
     <MultiTagSelector
-      selection={selectedItems}
-      onSelect={handleSelect}
-      onDeselect={handleDeselect}
+      selection={selection.get()}
+      onSelect={handleSelect.current}
+      onDeselect={handleDeselect.current}
       onTagClick={uiStore.toggleAdvancedSearch}
       onClear={uiStore.clearSearchCriteriaList}
-      extraOptions={[
-        {
-          id: 'search-in-path',
-          label: (input) => `Search in file paths for "${input}"`,
-          action: (query) =>
-            uiStore.addSearchCriteria(
-              new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
-            ),
-          resetQueryOnAction: true,
-        },
-        {
-          id: 'advanced-search',
-          label: 'Advanced search',
-          action: uiStore.toggleAdvancedSearch,
-          icon: IconSet.SEARCH_EXTENDED,
-        },
-      ]}
-      extraIconButtons={
-        selectedItems.length > 1 ? (
-          <IconButton
-            icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
-            text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
-            onClick={() => {
-              uiStore.toggleSearchMatchAny();
-              uiStore.refetch();
-            }}
-            large
-            disabled={selectedItems.length === 0}
-          />
-        ) : (
-          <> </>
-        )
-      }
+      renderCreateOption={renderCreateOption.current}
+      extraIconButtons={<SearchMatchButton disabled={selection.get().length < 2} />}
+    />
+  );
+});
+
+const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
+  const { uiStore } = useStore();
+
+  const handleClick = useRef(() => {
+    uiStore.toggleSearchMatchAny();
+    uiStore.refetch();
+  });
+
+  return (
+    <IconButton
+      icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
+      text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
+      onClick={handleClick.current}
+      large
+      disabled={disabled}
     />
   );
 });
