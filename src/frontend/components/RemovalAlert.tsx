@@ -44,7 +44,7 @@ export const TagRemoval = observer(({ object: tag, onClose }: IRemovalProps<Clie
 
   const title = `Are you sure you want to delete the tag "${tag.name}"?`;
 
-  // Needs to be batched, otherwise ClientFile reaction will run and crash the app.
+  // Batch actions
   const deleteTags = action(async () => {
     onClose();
     const deletedTags = isSelected ? tagsToRemove : [tag];
