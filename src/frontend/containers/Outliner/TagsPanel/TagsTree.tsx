@@ -1,7 +1,6 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useMemo, useReducer, useRef, useState } from 'react';
-import { ID } from 'src/entities/ID';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
@@ -17,56 +16,52 @@ import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
 import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
 import { TagItemContextMenu } from './ContextMenu';
-import { Action, Factory, reducer, State } from './state';
+import TagsTreeStateProvider, { TagsTreeState, useTagsTreeState } from './TagsTreeState';
 
-interface ILabelProps {
-  text: string;
-  setText: (value: string) => void;
-  isEditing: boolean;
-  onSubmit: (target: EventTarget & HTMLInputElement) => void;
-}
+const EditableName = observer(({ tag }: { tag: ClientTag }) => {
+  const state = useTagsTreeState();
 
-const Label = (props: ILabelProps) =>
-  props.isEditing ? (
+  const submit = useRef((target: EventTarget & HTMLInputElement) => {
+    target.focus();
+    state.disableEditing();
+    target.setSelectionRange(0, 0);
+  }).current;
+
+  return (
     <input
       className="input"
       autoFocus
       type="text"
       placeholder="Enter a new name"
-      defaultValue={props.text}
+      defaultValue={tag.name}
       onBlur={(e) => {
         const value = e.currentTarget.value.trim();
         if (value.length > 0) {
-          props.setText(value);
+          tag.rename(value);
         }
-        props.onSubmit(e.currentTarget);
+        submit(e.currentTarget);
       }}
       onKeyDown={(e) => {
         const value = e.currentTarget.value.trim();
         if (e.key === 'Enter' && value.length > 0) {
-          props.setText(value);
-          props.onSubmit(e.currentTarget);
+          tag.rename(value);
+          submit(e.currentTarget);
         } else if (e.key === 'Escape') {
-          props.onSubmit(e.currentTarget); // cancel with escape
+          submit(e.currentTarget); // cancel with escape
         }
       }}
       onFocus={(e) => e.target.select()}
       // TODO: Visualizing errors...
       // Only show red outline when input field is in focus and text is invalid
     />
-  ) : (
-    <div>{props.text}</div>
   );
+});
 
 interface ITagItemProps {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   nodeData: ClientTag;
-  dispatch: React.Dispatch<Action>;
-  isEditing: boolean;
-  submit: (target: EventTarget & HTMLInputElement) => void;
   select: (event: React.MouseEvent, nodeData: ClientTag) => void;
   pos: number;
-  expansion: Set<ID>;
 }
 
 /**
@@ -98,18 +93,15 @@ PreviewTag.style.top = '-100vh';
 document.body.appendChild(PreviewTag);
 
 const TagItem = observer((props: ITagItemProps) => {
-  const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
+  const { nodeData, pos, select, showContextMenu } = props;
   const { uiStore, tagStore } = useStore();
+  const state = useTagsTreeState();
   const dndData = useTagDnD();
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) =>
-      showContextMenu(
-        e.clientX,
-        e.clientY,
-        <TagItemContextMenu dispatch={dispatch} tag={nodeData} pos={pos} />,
-      ),
-    [dispatch, nodeData, pos, showContextMenu],
+      showContextMenu(e.clientX, e.clientY, <TagItemContextMenu tag={nodeData} pos={pos} />),
+    [nodeData, pos, showContextMenu],
   );
 
   const handleDragStart = useCallback(
@@ -146,11 +138,11 @@ const TagItem = observer((props: ITagItemProps) => {
     (nodeId: string) => {
       if (expandTimeoutId) clearTimeout(expandTimeoutId);
       const t = window.setTimeout(() => {
-        dispatch(Factory.expandNode(nodeId));
+        state.expandNode(nodeId);
       }, HOVER_TIME_TO_EXPAND);
       setExpandTimeoutId(t);
     },
-    [expandTimeoutId, dispatch],
+    [expandTimeoutId, state],
   );
 
   const handleDragOver = useCallback(
@@ -196,11 +188,11 @@ const TagItem = observer((props: ITagItemProps) => {
           clearTimeout(expandTimeoutId);
           setExpandTimeoutId(undefined);
         }
-      } else if (!expansion.has(nodeData.id) && !expandTimeoutId) {
+      } else if (!state.isExpanded(nodeData.id) && !expandTimeoutId) {
         expandDelayed(nodeData.id);
       }
     },
-    [dndData, expandDelayed, expandTimeoutId, expansion, nodeData, tagStore],
+    [dndData.source, expandDelayed, expandTimeoutId, nodeData, state, tagStore],
   );
 
   const handleDragLeave = useCallback(
@@ -284,10 +276,9 @@ const TagItem = observer((props: ITagItemProps) => {
     [nodeData, tagStore, uiStore],
   );
 
-  const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
-    dispatch,
-    nodeData.id,
-  ]);
+  const handleRename = useCallback(() => state.enableEditing(nodeData.id), [state, nodeData.id]);
+
+  const isEditing = state.editableNode === nodeData.id;
 
   return (
     <div
@@ -302,12 +293,7 @@ const TagItem = observer((props: ITagItemProps) => {
       onDoubleClick={handleRename}
     >
       <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>
-      <Label
-        text={nodeData.name}
-        setText={nodeData.rename}
-        isEditing={isEditing}
-        onSubmit={submit}
-      />
+      {isEditing ? <EditableName tag={nodeData} /> : <div>{nodeData.name}</div>}
       {!isEditing && (
         <button onClick={handleSelect} className="btn btn-icon">
           {tagStore.selection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
@@ -319,9 +305,7 @@ const TagItem = observer((props: ITagItemProps) => {
 
 interface ITreeData {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
-  state: State;
-  dispatch: React.Dispatch<Action>;
-  submit: (target: EventTarget & HTMLInputElement) => void;
+  state: TagsTreeState;
   select: (event: React.MouseEvent, nodeData: ClientTag) => void;
 }
 
@@ -335,20 +319,16 @@ const TagItemLabel = (
   <TagItem
     showContextMenu={treeData.showContextMenu}
     nodeData={nodeData}
-    dispatch={treeData.dispatch}
-    expansion={treeData.state.expansion}
-    isEditing={treeData.state.editableNode === nodeData.id}
-    submit={treeData.submit}
     pos={pos}
     select={treeData.select}
   />
 );
 
 const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
-  treeData.state.expansion.has(nodeData.id);
+  treeData.state.isExpanded(nodeData.id);
 
 const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
-  treeData.dispatch(Factory.toggleNode(nodeData.id));
+  treeData.state.toggleNode(nodeData.id);
 
 const toggleSelection = (tagStore: TagStore, nodeData: ClientTag) =>
   tagStore.toggleSelection(nodeData);
@@ -379,7 +359,7 @@ const customKeys = (
   switch (event.key) {
     case 'F2':
       event.stopPropagation();
-      treeData.dispatch(Factory.enableEditing(nodeData.id));
+      treeData.state.enableEditing(nodeData.id);
       break;
 
     case 'F10':
@@ -394,7 +374,7 @@ const customKeys = (
       break;
 
     case 'Delete':
-      treeData.dispatch(Factory.confirmDeletion(nodeData));
+      treeData.state.confirmDeletion(nodeData);
       break;
 
     case 'ContextMenu':
@@ -417,12 +397,7 @@ const mapTag = (tag: Readonly<ClientTag>, tagStore: TagStore): ITreeItem => ({
 
 const TagsTree = observer(() => {
   const { tagStore, uiStore } = useStore();
-  const [state, dispatch] = useReducer(reducer, {
-    expansion: new Set<ID>(),
-    editableNode: undefined,
-    deletableNode: undefined,
-    mergableNode: undefined,
-  });
+  const state = useRef(new TagsTreeState()).current;
   const [contextState, { show, hide }] = useContextMenu();
   const dndData = useTagDnD();
   const root = tagStore.root;
@@ -437,12 +412,6 @@ const TagsTree = observer(() => {
     },
     [dndData],
   );
-
-  const submit = useRef((target: EventTarget & HTMLInputElement) => {
-    target.focus();
-    dispatch(Factory.disableEditing());
-    target.setSelectionRange(0, 0);
-  });
 
   /** The first item that is selected in a multi-selection */
   const initialSelectionIndex = useRef<number>();
@@ -495,8 +464,6 @@ const TagsTree = observer(() => {
     () => ({
       showContextMenu: show,
       state,
-      dispatch,
-      submit: submit.current,
       select: select.current,
     }),
     [show, state],
@@ -508,9 +475,9 @@ const TagsTree = observer(() => {
     () =>
       tagStore
         .create(root, 'New Tag')
-        .then((tag) => dispatch(Factory.enableEditing(tag.id)))
+        .then((tag) => state.enableEditing(tag.id))
         .catch((err) => console.log('Could not create tag', err)),
-    [tagStore, root],
+    [tagStore, root, state],
   );
 
   const handleDrop = useCallback(() => {
@@ -549,7 +516,7 @@ const TagsTree = observer(() => {
   );
 
   return (
-    <>
+    <TagsTreeStateProvider value={state}>
       <header
         onDragOver={handleDragOverAndLeave}
         onDragLeave={handleDragOverAndLeave}
@@ -608,15 +575,10 @@ const TagsTree = observer(() => {
       />
 
       {state.deletableNode && (
-        <TagRemoval
-          object={state.deletableNode}
-          onClose={() => dispatch(Factory.abortDeletion())}
-        />
+        <TagRemoval object={state.deletableNode} onClose={state.abortDeletion} />
       )}
 
-      {state.mergableNode && (
-        <TagMerge object={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
-      )}
+      {state.mergableNode && <TagMerge object={state.mergableNode} onClose={state.abortMerge} />}
 
       <ContextMenu
         isOpen={contextState.open}
@@ -627,7 +589,7 @@ const TagsTree = observer(() => {
       >
         {contextState.menu}
       </ContextMenu>
-    </>
+    </TagsTreeStateProvider>
   );
 });
 

@@ -8,7 +8,7 @@ import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
-import { Action, Factory } from './state';
+import { useTagsTreeState } from './TagsTreeState';
 import { action } from 'mobx';
 
 const defaultColorOptions = [
@@ -79,13 +79,13 @@ const ColorPickerMenu = observer(({ tag }: { tag: ClientTag }) => {
 
 interface IContextMenuProps {
   tag: ClientTag;
-  dispatch: React.Dispatch<Action>;
   pos: number;
 }
 
 export const TagItemContextMenu = observer((props: IContextMenuProps) => {
-  const { tag, dispatch, pos } = props;
+  const { tag, pos } = props;
   const { tagStore, uiStore } = useStore();
+  const state = useTagsTreeState();
   const isSelected = tagStore.isSelected(tag);
   const tags = tagStore.getActiveTags(tag.id);
   let contextText = formatTagCountText(tags.length);
@@ -97,25 +97,21 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         onClick={() =>
           tagStore
             .create(tag, 'New Tag')
-            .then((t) => dispatch(Factory.insertNode(tag.id, t.id)))
+            .then((t) => state.insertNode(tag.id, t.id))
             .catch((err) => console.log('Could not create tag', err))
         }
         text="New Tag"
         icon={IconSet.TAG_ADD}
       />
-      <MenuItem
-        onClick={() => dispatch(Factory.enableEditing(tag.id))}
-        text="Rename"
-        icon={IconSet.EDIT}
-      />
+      <MenuItem onClick={() => state.enableEditing(tag.id)} text="Rename" icon={IconSet.EDIT} />
       {/* TODO: a merge option would be nice */}
       <MenuItem
-        onClick={() => dispatch(Factory.confirmMerge(tag))}
+        onClick={() => state.confirmMerge(tag)}
         text="Merge with..."
         icon={IconSet.TAG_GROUP}
       />
       <MenuItem
-        onClick={() => dispatch(Factory.confirmDeletion(tag))}
+        onClick={() => state.confirmDeletion(tag)}
         text={`Delete${contextText}`}
         icon={IconSet.DELETE}
       />
