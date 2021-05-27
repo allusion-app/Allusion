@@ -8,6 +8,7 @@ import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 import { MultiTagSelector } from './MultiTagSelector';
+import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 interface IRemovalProps<T> {
   object: T;
@@ -17,18 +18,21 @@ interface IRemovalProps<T> {
 export const LocationRemoval = ({ object: location, onClose }: IRemovalProps<ClientLocation>) => {
   const { locationStore, uiStore, fileStore } = useStore();
 
+  // Batch actions
+  const deleteLocation = action(async () => {
+    onClose();
+    await locationStore.delete(location);
+    await uiStore.refetch();
+    await fileStore.refetchFileCounts();
+  });
+
   return (
     <RemovalAlert
       open
       title={`Are you sure you want to delete the location "${location.name}"?`}
       information="This will permanently remove the location and all data linked to its images in Allusion."
       onCancel={onClose}
-      onConfirm={async () => {
-        onClose();
-        await locationStore.delete(location);
-        await uiStore.refetch();
-        return fileStore.refetchFileCounts();
-      }}
+      onConfirm={deleteLocation}
     />
   );
 };
@@ -39,6 +43,22 @@ export const TagRemoval = observer(({ object: tag, onClose }: IRemovalProps<Clie
   const tagsToRemove = isSelected ? Array.from(tagStore.selection) : tag.getSubTreeList();
 
   const title = `Are you sure you want to delete the tag "${tag.name}"?`;
+
+  // Needs to be batched, otherwise ClientFile reaction will run and crash the app.
+  const deleteTags = action(async () => {
+    onClose();
+    const deletedTags = isSelected ? tagsToRemove : [tag];
+    uiStore.filterCriterias(
+      (c) =>
+        !(
+          c instanceof ClientTagSearchCriteria &&
+          c.value.length === 1 &&
+          deletedTags.some((t) => c.value[0] === t.id)
+        ),
+    );
+    await tagStore.delete(deletedTags);
+    await uiStore.refetch();
+  });
 
   return (
     <RemovalAlert
@@ -56,12 +76,7 @@ export const TagRemoval = observer(({ object: tag, onClose }: IRemovalProps<Clie
         )
       }
       onCancel={onClose}
-      onConfirm={async () => {
-        onClose();
-        const deletedTags = isSelected ? tagsToRemove : [tag];
-        await tagStore.delete(deletedTags);
-        return uiStore.refetch();
-      }}
+      onConfirm={deleteTags}
     />
   );
 });
@@ -122,7 +137,8 @@ export const FileRemoval = observer(() => {
   const { fileStore, uiStore } = useStore();
   const selection = fileStore.selection;
 
-  const handleConfirm = action(() => {
+  // Batch actions
+  const handleConfirm = action(async () => {
     uiStore.closeToolbarFileRemover();
     const files = [];
     for (const file of selection) {
@@ -130,7 +146,7 @@ export const FileRemoval = observer(() => {
         files.push(file);
       }
     }
-    return fileStore.delete(files);
+    await fileStore.delete(files);
   });
 
   return (

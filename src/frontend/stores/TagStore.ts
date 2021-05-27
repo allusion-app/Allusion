@@ -15,7 +15,6 @@ class TagStore {
   private readonly backend: Backend;
 
   private readonly tagGraph = observable(new Map<ID, ClientTag>());
-  private readonly _tagList = new Array<Readonly<ClientTag>>();
   readonly selection = observable(new Set<Readonly<ClientTag>>());
 
   constructor(backend: Backend) {
@@ -38,17 +37,17 @@ class TagStore {
   }
 
   @computed get tagList(): readonly Readonly<ClientTag>[] {
-    this._tagList.length = 0;
+    const tagList: Readonly<ClientTag>[] = [];
     const pushTags = (tags: Readonly<ClientTag>[]) => {
       for (const t of tags) {
-        this._tagList.push(t);
+        tagList.push(t);
         pushTags(t.subTags);
       }
     };
     if (this.tagGraph.size > 0) {
       pushTags(this.root.subTags);
     }
-    return this._tagList;
+    return tagList;
   }
 
   @computed get count(): number {

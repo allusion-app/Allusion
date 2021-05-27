@@ -137,9 +137,7 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @action.bound updateTagsFromBackend(tags: ClientTag[]): void {
-    this.autoSave = false; // doesn't seem to help..
     this.tags.replace(tags);
-    this.autoSave = true;
   }
 
   serialize(): IFile {

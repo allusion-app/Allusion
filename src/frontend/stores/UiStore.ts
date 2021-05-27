@@ -257,10 +257,8 @@ class UiStore {
 
   /////////////////// Search Actions ///////////////////
   @action.bound clearSearchCriteriaList() {
-    if (this.searchCriteriaList.length > 0) {
-      this.searchCriteriaList.clear();
-      this.viewAllContent();
-    }
+    this.searchCriteriaList.clear();
+    return this.viewAllContent();
   }
 
   @action.bound addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
@@ -318,6 +316,10 @@ class UiStore {
     }
   }
 
+  @action.bound filterCriterias(predicate: (criteria: FileSearchCriteria) => boolean) {
+    this.searchCriteriaList.replace(this.searchCriteriaList.filter(predicate));
+  }
+
   /////////////////// View Actions ///////////////////
   @computed get showsAllContent() {
     return this.content === Content.All;
@@ -347,13 +349,16 @@ class UiStore {
   }
 
   @action.bound viewAllContent(): Promise<void> {
-    this.clearSearchCriteriaList();
+    this.searchCriteriaList.clear();
     this.setContentAll();
     const { orderBy, fileOrder } = this.preferences;
     return this.rootStore.fileStore.fetchAllFiles(orderBy, fileOrder);
   }
 
   @action.bound viewQueryContent(): Promise<void> {
+    if (this.searchCriteriaList.length === 0) {
+      return this.viewAllContent();
+    }
     const criteria = this.searchCriteriaList.map((c) => c.serialize());
     this.setContentQuery();
     const { orderBy, fileOrder } = this.preferences;
@@ -367,7 +372,7 @@ class UiStore {
 
   @action.bound viewUntaggedContent(): Promise<void> {
     const { fileStore, tagStore } = this.rootStore;
-    this.clearSearchCriteriaList();
+    this.searchCriteriaList.clear();
     const criteria = new ClientTagSearchCriteria(tagStore, 'tags');
     this.searchCriteriaList.push(criteria);
     this.setContentUntagged();
@@ -381,7 +386,7 @@ class UiStore {
   }
 
   @action.bound async viewMissingContent(): Promise<void> {
-    this.clearSearchCriteriaList();
+    this.searchCriteriaList.clear();
     this.setContentMissing();
     const { orderBy, fileOrder } = this.preferences;
     const message = await this.rootStore.fileStore.fetchMissingFiles(orderBy, fileOrder);
