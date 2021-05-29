@@ -383,7 +383,7 @@ export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): 
 export function encodeFilePath(filePath: string): string {
   // Take into account weird file names like "C:/Images/https_%2F%2Fcdn/.../my-image.jpg"
   const basename = path.basename(filePath);
-  return filePath.substr(0, filePath.length - basename.length) + encodeURI(basename);
+  return filePath.substr(0, filePath.length - basename.length) + encodeURIComponent(basename);
 }
 
 export function needsThumbnail(width: number, height: number) {
