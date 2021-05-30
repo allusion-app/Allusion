@@ -99,6 +99,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'thumbnailShape',
   'hotkeyMap',
   'isThumbnailTagOverlayEnabled',
+  'isThumbnailFilenameOverlayEnabled',
   'outlinerWidth',
   'inspectorWidth',
 ];
@@ -131,6 +132,7 @@ class UiStore {
   @observable inspectorWidth: number = UiStore.MIN_INSPECTOR_WIDTH;
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
+  @observable isThumbnailFilenameOverlayEnabled: boolean = false;
   /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
   // TODO: Might be better to store the ID to the file. I believe we were storing the index for performance, but we have instant conversion between index/ID now
   @observable firstItem: number = 0;
@@ -252,6 +254,10 @@ class UiStore {
 
   @action.bound toggleThumbnailTagOverlay() {
     this.isThumbnailTagOverlayEnabled = !this.isThumbnailTagOverlayEnabled;
+  }
+
+  @action.bound toggleThumbnailFilenameOverlay() {
+    this.isThumbnailFilenameOverlayEnabled = !this.isThumbnailFilenameOverlayEnabled;
   }
 
   @action.bound openOutliner() {
@@ -718,6 +724,9 @@ class UiStore {
         this.setThumbnailSize(prefs.thumbnailSize);
         this.setThumbnailShape(prefs.thumbnailShape);
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
+        this.isThumbnailFilenameOverlayEnabled = Boolean(
+          prefs.isThumbnailFilenameOverlayEnabled ?? false,
+        );
         this.outlinerWidth = Math.max(Number(prefs.outlinerWidth), UiStore.MIN_OUTLINER_WIDTH);
         this.inspectorWidth = Math.max(Number(prefs.inspectorWidth), UiStore.MIN_INSPECTOR_WIDTH);
         Object.entries<string>(prefs.hotkeyMap).forEach(

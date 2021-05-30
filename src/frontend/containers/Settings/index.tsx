@@ -72,13 +72,25 @@ const Appearance = observer(() => {
       <Zoom />
 
       <h3>Thumbnail</h3>
-      <fieldset>
-        <legend>Show assigned tags</legend>
-        <Toggle
-          checked={uiStore.isThumbnailTagOverlayEnabled}
-          onChange={uiStore.toggleThumbnailTagOverlay}
-        />
-      </fieldset>
+
+      <div className="settings-thumbnail">
+        <fieldset>
+          <legend>Show assigned tags</legend>
+          <Toggle
+            checked={uiStore.isThumbnailTagOverlayEnabled}
+            onChange={uiStore.toggleThumbnailTagOverlay}
+          />
+        </fieldset>
+        <fieldset>
+          <legend>Show filename on thumbnail</legend>
+          <Toggle
+            checked={uiStore.isThumbnailFilenameOverlayEnabled}
+            onChange={uiStore.toggleThumbnailFilenameOverlay}
+          />
+        </fieldset>
+      </div>
+
+      <br />
 
       <div className="settings-thumbnail">
         <RadioGroup name="Size">

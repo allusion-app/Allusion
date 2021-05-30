@@ -413,6 +413,7 @@
       height: inherit;
     }
 
+    // Note: this feature has an ugly exception, when filename is also shown. See the #gallery-item.show-filename rule below
     &:hover .thumbnail-tags {
       max-height: 100%;
       overflow-y: overlay; // overlay scrollbar so it doesn't push tags away
@@ -427,7 +428,7 @@
         }
       }
     }
-
+    
     .thumbnail-tags {
       grid-area: tags;
       display: block;
@@ -442,11 +443,46 @@
         margin: 0.25em;
       }
     }
+
+    .thumbnail-filename {
+      display: block;
+      background-color: rgba(0, 0, 0, 0.5);
+      width: 100%;
+      position: absolute;
+      bottom: 0;
+      padding: 0.3rem;
+
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+
+      opacity: 0.75;
+      transition: opacity 0.25s $pt-transition-cubic2;
+    }
+
+    &:hover {
+      .thumbnail-filename {
+        opacity: 1;
+      }
+    }
   }
 
   #invis-last-selected-item-for-scroll {
     position: absolute;
     pointer-events: none;
     z-index: -1;
+  }
+}
+
+// Exception when both showing filename and tags in thumbnail overlay:
+// move the tags up by the height of the filename element (23.59px)
+#gallery-content.show-filename {
+  [data-masonrycell] {
+    &:hover .thumbnail-tags {
+      max-height: calc(100% - 23.59px);
+    }
+  }
+  .thumbnail-tags {
+    margin-bottom: 23.59px;
   }
 }

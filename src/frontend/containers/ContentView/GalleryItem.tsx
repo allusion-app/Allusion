@@ -71,7 +71,7 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
       {...eventHandlers}
     >
       {/* Filename */}
-      <div key={`${file.id}-name`} title={title(file)}>
+      <div key={`${file.id}-name`}>
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           {mounted ? (
             <Thumbnail uiStore={uiStore} mounted={mounted} file={file} />
@@ -155,7 +155,6 @@ export const MasonryCell = observer(
         tabIndex={-1}
         aria-selected={uiStore.fileSelection.has(file)}
         style={style}
-        title={title(file)}
       >
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           <Thumbnail
@@ -184,6 +183,13 @@ export const MasonryCell = observer(
             portalTriggerRef={portalTriggerRef}
           />
         )}
+
+        {uiStore.isThumbnailFilenameOverlayEnabled && (
+          <div className="thumbnail-filename" title={title(file)}>
+            {file.name}
+          </div>
+        )}
+
         {/* Show tags when the option is enabled, or when the file is selected */}
         {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
           (file.tags.size == 0 || !mounted ? (
