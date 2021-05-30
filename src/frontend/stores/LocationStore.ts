@@ -68,7 +68,7 @@ class LocationStore {
       const readyTimeout = startTimer(location.id);
 
       console.debug('Location init...');
-      const filePaths: string[] | undefined = yield location.initWorker();
+      const filePaths: string[] | undefined = yield location.init();
       const filePathsSet = new Set(filePaths);
 
       clearTimeout(readyTimeout);
@@ -219,7 +219,7 @@ class LocationStore {
     const handleCancelled = async () => {
       console.debug('Aborting location initialization', location.name);
       isCancelled = true;
-      await location.destroyWorker();
+      await location.destroy();
     };
 
     AppToaster.show(
@@ -234,7 +234,7 @@ class LocationStore {
       toastKey,
     );
 
-    const filePaths = await location.initWorker();
+    const filePaths = await location.init();
 
     if (isCancelled || filePaths === undefined) {
       return;
@@ -285,7 +285,7 @@ class LocationStore {
       }
     }
     // Destroy worker
-    yield location.destroyWorker();
+    yield location.destroy();
     // Remove location locally
     this.locationList.remove(location);
   });

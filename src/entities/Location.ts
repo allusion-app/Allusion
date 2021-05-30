@@ -48,20 +48,20 @@ export class ClientLocation implements ISerializable<ILocation> {
     return SysPath.basename(this.path);
   }
 
-  @action async initWorker(): Promise<string[] | undefined> {
+  @action async init(): Promise<string[] | undefined> {
     this.isInitialized = true;
     // FIXME: awaiting fse.pathExists was broken for me in many consecutive reloads, always at 2/3 locations
     // The sync version works fine
     const pathExists = fse.pathExistsSync(this.path);
     this.isBroken = !pathExists;
     if (pathExists) {
-      return this._initWorker(this.path);
+      return this.watch(this.path);
     } else {
       return undefined;
     }
   }
 
-  async destroyWorker(): Promise<void> {
+  async destroy(): Promise<void> {
     if (this.worker !== undefined) {
       this.worker.cancel();
       await this.worker.close();
@@ -77,7 +77,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     };
   }
 
-  private async _initWorker(directory: string): Promise<string[]> {
+  private async watch(directory: string): Promise<string[]> {
     console.debug('Loading folder watcher worker...', directory);
     const worker = new Worker(
       new URL('src/frontend/workers/folderWatcher.worker', import.meta.url),
