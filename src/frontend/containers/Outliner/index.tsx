@@ -6,6 +6,8 @@ import ActionBar from './ActionBar';
 import LocationsPanel from './LocationsPanel';
 import TagsPanel from './TagsPanel';
 
+export const HOVER_TIME_TO_EXPAND = 600;
+
 const Outliner = () => {
   const { uiStore } = useStore();
 

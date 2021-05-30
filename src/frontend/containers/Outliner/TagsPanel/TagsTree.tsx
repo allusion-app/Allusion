@@ -15,7 +15,7 @@ import { formatTagCountText } from 'src/frontend/utils';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
-import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
+import { HOVER_TIME_TO_EXPAND } from '..';
 import { TagItemContextMenu } from './ContextMenu';
 import TagsTreeStateProvider, { TagsTreeState, useTagsTreeState } from './TagsTreeState';
 
