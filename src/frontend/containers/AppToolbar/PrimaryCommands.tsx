@@ -99,9 +99,8 @@ const FileSelectionCommand = observer(() => {
 
   const allFilesSelected = fileCount > 0 && selectionCount === fileCount;
   // If everything is selected, deselect all. Else, select all
-  const handleToggleSelect = () => {
-    selectionCount === fileCount ? fileStore.deselectAll() : fileStore.selectAll();
-  };
+  const handleToggleSelect =
+    selectionCount === fileCount ? fileStore.deselectAll : fileStore.selectAll;
 
   return (
     <ToolbarToggleButton
