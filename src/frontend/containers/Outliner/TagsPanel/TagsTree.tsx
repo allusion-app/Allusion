@@ -19,7 +19,7 @@ import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
 import { TagItemContextMenu } from './ContextMenu';
 import TagsTreeStateProvider, { TagsTreeState, useTagsTreeState } from './TagsTreeState';
 
-const TagsTree = observer(() => {
+const Panel = observer(() => {
   const { tagStore } = useStore();
   const state = useRef(new TagsTreeState()).current;
   const [contextState, { show, hide }] = useContextMenu();
@@ -53,7 +53,7 @@ const TagsTree = observer(() => {
     <TagsTreeStateProvider value={state}>
       <Header toggleBody={toggleBody.current} onDrag={handleDragOverAndLeave} onDrop={handleDrop} />
 
-      <Body isCollapsed={isCollapsed} show={show} />
+      <Content isCollapsed={isCollapsed} show={show} />
 
       {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
       <div
@@ -83,7 +83,7 @@ const TagsTree = observer(() => {
   );
 });
 
-export default TagsTree;
+export default Panel;
 
 interface HeaderProps {
   toggleBody: () => void;
@@ -91,7 +91,7 @@ interface HeaderProps {
   onDrop: () => void;
 }
 
-const Header = ({ toggleBody, onDrag, onDrop }: HeaderProps) => {
+const Header = observer(({ toggleBody, onDrag, onDrop }: HeaderProps) => {
   const { tagStore } = useStore();
   const state = useTagsTreeState();
 
@@ -126,7 +126,7 @@ const Header = ({ toggleBody, onDrag, onDrop }: HeaderProps) => {
       </Toolbar>
     </header>
   );
-};
+});
 
 interface ITreeData {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
@@ -243,12 +243,12 @@ const mapTag = (tag: Readonly<ClientTag>, tagStore: TagStore): ITreeItem => ({
   isSelected: tagStore.isSelected,
 });
 
-interface BodyProps {
+interface ContentProps {
   isCollapsed: boolean;
   show: (x: number, y: number, menu: JSX.Element | JSX.Element[]) => void;
 }
 
-const Body = ({ isCollapsed, show }: BodyProps) => {
+const Content = observer(({ isCollapsed, show }: ContentProps) => {
   const { tagStore, uiStore } = useStore();
   const state = useTagsTreeState();
   const root = tagStore.root;
@@ -352,7 +352,7 @@ const Body = ({ isCollapsed, show }: BodyProps) => {
       )}
     </Collapse>
   );
-};
+});
 
 interface ITagItemProps {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;

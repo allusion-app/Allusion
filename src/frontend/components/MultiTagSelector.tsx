@@ -123,7 +123,7 @@ const MultiTagSelector = (props: IMultiTagSelector) => {
                 aria-controls={listboxID.current}
                 ref={inputRef}
                 onFocus={handleFocus.current}
-                placeholder={placeholder}
+                placeholder={selection.length === 0 ? placeholder : undefined}
               />
             </div>
             {extraIconButtons}

@@ -7,7 +7,7 @@ import { useStore } from '../../../contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { Toolbar, ToolbarToggleButton } from 'widgets/menus';
 
-import TagsTree from './TagsTree';
+import Panel from './TagsTree';
 import { useAction } from 'src/frontend/hooks/useAction';
 
 // Tooltip info
@@ -73,7 +73,7 @@ const TagsPanel = () => {
 
   return (
     <div onKeyDown={handleShortcuts} className="section">
-      <TagsTree />
+      <Panel />
     </div>
   );
 };
