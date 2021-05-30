@@ -13,7 +13,7 @@ import Layout from './LayoutSwitcher';
 
 import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
-import { action } from 'mobx';
+import { useAction } from 'src/frontend/hooks/useAction';
 
 const ContentView = observer(() => {
   const {
@@ -68,14 +68,12 @@ const Content = observer(() => {
   const isDroppingTagOnSelection =
     dndData.target !== undefined && fileStore.selection.has(dndData.target);
 
-  const clearFileSelection = useRef(
-    action((e: React.MouseEvent) => {
-      const isLayout = e.currentTarget.firstElementChild?.contains(e.target as Node);
-      if (!uiStore.isSlideMode && isLayout) {
-        fileStore.deselectAll();
-      }
-    }),
-  );
+  const clearFileSelection = useAction((e: React.MouseEvent) => {
+    const isLayout = e.currentTarget.firstElementChild?.contains(e.target as Node);
+    if (!uiStore.isSlideMode && isLayout) {
+      fileStore.deselectAll();
+    }
+  });
 
   return (
     <div
@@ -84,7 +82,7 @@ const Content = observer(() => {
       className={isDroppingTagOnSelection ? 'selected-file-dropping' : undefined}
       onContextMenu={handleContextMenu}
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
-      onClick={clearFileSelection.current}
+      onClick={clearFileSelection}
     >
       <Layout contentRect={contentRect} showContextMenu={show} />
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>

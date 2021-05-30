@@ -1,7 +1,6 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../../../hotkeyParser';
 import { observer } from 'mobx-react-lite';
-import { action } from 'mobx';
 
 import { useStore } from '../../../contexts/StoreContext';
 
@@ -9,6 +8,7 @@ import { IconSet } from 'widgets';
 import { Toolbar, ToolbarToggleButton } from 'widgets/menus';
 
 import TagsTree from './TagsTree';
+import { useAction } from 'src/frontend/hooks/useAction';
 
 // Tooltip info
 const enum TooltipInfo {
@@ -54,27 +54,25 @@ export const OutlinerActionBar = observer(() => {
 const TagsPanel = () => {
   const { uiStore, tagStore } = useStore();
 
-  const handleShortcuts = useRef(
-    action((e: React.KeyboardEvent) => {
-      if ((e.target as HTMLElement).matches?.('input')) {
-        return;
-      }
-      const combo = getKeyCombo(e.nativeEvent);
-      const matches = (c: string): boolean => {
-        return comboMatches(combo, parseKeyCombo(c));
-      };
+  const handleShortcuts = useAction((e: React.KeyboardEvent) => {
+    if ((e.target as HTMLElement).matches?.('input')) {
+      return;
+    }
+    const combo = getKeyCombo(e.nativeEvent);
+    const matches = (c: string): boolean => {
+      return comboMatches(combo, parseKeyCombo(c));
+    };
 
-      const { hotkeyMap } = uiStore.preferences;
-      if (matches(hotkeyMap.selectAll)) {
-        tagStore.selectAll();
-      } else if (matches(hotkeyMap.deselectAll)) {
-        tagStore.deselectAll();
-      }
-    }),
-  );
+    const { hotkeyMap } = uiStore.preferences;
+    if (matches(hotkeyMap.selectAll)) {
+      tagStore.selectAll();
+    } else if (matches(hotkeyMap.deselectAll)) {
+      tagStore.deselectAll();
+    }
+  });
 
   return (
-    <div onKeyDown={handleShortcuts.current} className="section">
+    <div onKeyDown={handleShortcuts} className="section">
       <TagsTree />
     </div>
   );

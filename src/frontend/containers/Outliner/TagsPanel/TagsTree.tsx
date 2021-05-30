@@ -1,4 +1,4 @@
-import { action, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
@@ -7,6 +7,7 @@ import { Collapse } from 'src/frontend/components/Collapse';
 import { TagMerge, TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
+import { useAction } from 'src/frontend/hooks/useAction';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -256,55 +257,53 @@ const Body = ({ isCollapsed, show }: BodyProps) => {
   /** The last item that is selected in a multi-selection */
   const lastSelectionIndex = useRef<number>();
   // Handles selection via click event
-  const select = useRef(
-    action((e: React.MouseEvent, tag: ClientTag) => {
-      // Note: selection logic is copied from Gallery.tsx
-      const rangeSelection = e.shiftKey;
-      const expandSelection = e.ctrlKey;
+  const select = useAction((e: React.MouseEvent, tag: ClientTag) => {
+    // Note: selection logic is copied from Gallery.tsx
+    const rangeSelection = e.shiftKey;
+    const expandSelection = e.ctrlKey;
 
-      /** The index of the active (newly selected) item */
-      let i: number | undefined = tagStore.tagList.indexOf(tag);
-      i = i < 0 ? undefined : i;
+    /** The index of the active (newly selected) item */
+    let i: number | undefined = tagStore.tagList.indexOf(tag);
+    i = i < 0 ? undefined : i;
 
-      // If nothing is selected, initialize the selection range and select that single item
-      if (lastSelectionIndex.current === undefined) {
-        initialSelectionIndex.current = i;
-        lastSelectionIndex.current = i;
-        tagStore.toggleSelection(tag);
-        return;
-      } else {
-        initialSelectionIndex.current = lastSelectionIndex.current;
-      }
-
-      // Mark this index as the last item that was selected
+    // If nothing is selected, initialize the selection range and select that single item
+    if (lastSelectionIndex.current === undefined) {
+      initialSelectionIndex.current = i;
       lastSelectionIndex.current = i;
+      tagStore.toggleSelection(tag);
+      return;
+    } else {
+      initialSelectionIndex.current = lastSelectionIndex.current;
+    }
 
-      if (rangeSelection && initialSelectionIndex.current !== undefined) {
-        if (i === undefined) {
-          return;
-        }
-        if (i < initialSelectionIndex.current) {
-          tagStore.selectRange(i, initialSelectionIndex.current, expandSelection);
-        } else {
-          tagStore.selectRange(initialSelectionIndex.current, i, expandSelection);
-        }
-      } else if (expandSelection) {
-        tagStore.toggleSelection(tag);
-        initialSelectionIndex.current = i;
-      } else {
-        tagStore.select(tag);
-        initialSelectionIndex.current = i;
+    // Mark this index as the last item that was selected
+    lastSelectionIndex.current = i;
+
+    if (rangeSelection && initialSelectionIndex.current !== undefined) {
+      if (i === undefined) {
+        return;
       }
-    }),
-  );
+      if (i < initialSelectionIndex.current) {
+        tagStore.selectRange(i, initialSelectionIndex.current, expandSelection);
+      } else {
+        tagStore.selectRange(initialSelectionIndex.current, i, expandSelection);
+      }
+    } else if (expandSelection) {
+      tagStore.toggleSelection(tag);
+      initialSelectionIndex.current = i;
+    } else {
+      tagStore.select(tag);
+      initialSelectionIndex.current = i;
+    }
+  });
 
   const treeData: ITreeData = useMemo(
     () => ({
       showContextMenu: show,
       state,
-      select: select.current,
+      select: select,
     }),
-    [show, state],
+    [show, state, select],
   );
 
   const handleBranchOnKeyDown = useRef(

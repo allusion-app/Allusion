@@ -1,8 +1,9 @@
-import { action, computed, IComputedValue } from 'mobx';
+import { computed, IComputedValue } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ForwardedRef, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
+import { useAction } from 'src/frontend/hooks/useAction';
 import { debounce } from 'src/frontend/utils';
 import { Listbox, Option, Tag } from 'widgets';
 import { useListboxFocus } from 'widgets/Combobox/Listbox';
@@ -85,14 +86,12 @@ const TagEditor = () => {
     inputRef.current?.focus();
   });
 
-  const removeTag = useRef(
-    action((tag: Readonly<ClientTag>) => {
-      for (const f of fileStore.selection) {
-        f.removeTag(tag);
-      }
-      inputRef.current?.focus();
-    }),
-  );
+  const removeTag = useAction((tag: Readonly<ClientTag>) => {
+    for (const f of fileStore.selection) {
+      f.removeTag(tag);
+    }
+    inputRef.current?.focus();
+  });
 
   return (
     <div id="tag-editor" ref={panelRef} style={{ height: storedHeight ?? undefined }}>
@@ -114,7 +113,7 @@ const TagEditor = () => {
         focusedOption={focusedOption}
         resetTextBox={resetTextBox.current}
       />
-      <TagSummary counter={counter} removeTag={removeTag.current} />
+      <TagSummary counter={counter} removeTag={removeTag} />
     </div>
   );
 };
@@ -146,18 +145,16 @@ const MatchingTagsList = observer(
       [inputText, tagStore],
     );
 
-    const toggleSelection = useRef(
-      action((isSelected: boolean, tag: Readonly<ClientTag>) => {
-        const operation = isSelected
-          ? (f: Readonly<ClientFile>) => f.removeTag(tag)
-          : (f: Readonly<ClientFile>) => f.addTag(tag);
+    const toggleSelection = useAction((isSelected: boolean, tag: Readonly<ClientTag>) => {
+      const operation = isSelected
+        ? (f: Readonly<ClientFile>) => f.removeTag(tag)
+        : (f: Readonly<ClientFile>) => f.addTag(tag);
 
-        for (const f of fileStore.selection) {
-          operation(f);
-        }
-        resetTextBox();
-      }),
-    );
+      for (const f of fileStore.selection) {
+        operation(f);
+      }
+      resetTextBox();
+    });
 
     return (
       <Listbox ref={ref} id="tag-files-listbox" multiselectable>
@@ -169,7 +166,7 @@ const MatchingTagsList = observer(
               value={tag.name}
               selected={selected}
               icon={<span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>}
-              onClick={() => toggleSelection.current(selected, tag)}
+              onClick={() => toggleSelection(selected, tag)}
               focused={focusedOption === index}
             />
           );
@@ -196,15 +193,13 @@ interface CreateOptionProps {
 const CreateOption = ({ inputText, hasMatches, isFocused, resetTextBox }: CreateOptionProps) => {
   const { fileStore, tagStore } = useStore();
 
-  const removeTag = useRef(
-    action(async () => {
-      const newTag = await tagStore.create(inputText);
-      for (const f of fileStore.selection) {
-        f.addTag(newTag);
-      }
-      resetTextBox();
-    }),
-  );
+  const removeTag = useAction(async () => {
+    const newTag = await tagStore.create(inputText);
+    for (const f of fileStore.selection) {
+      f.addTag(newTag);
+    }
+    resetTextBox();
+  });
 
   if (inputText.length === 0) {
     return null;
@@ -216,7 +211,7 @@ const CreateOption = ({ inputText, hasMatches, isFocused, resetTextBox }: Create
       <Option
         selected={false}
         value={`Create Tag "${inputText}"`}
-        onClick={removeTag.current}
+        onClick={removeTag}
         icon={IconSet.TAG_ADD}
         focused={isFocused}
       />

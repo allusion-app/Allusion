@@ -1,5 +1,4 @@
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
-import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef } from 'react';
 import { Split } from 'widgets/Split';
@@ -10,6 +9,7 @@ import ContentView from './ContentView';
 import Outliner from './Outliner';
 import { Preferences } from '../stores/Preferences';
 import { clamp } from '../utils';
+import { useAction } from '../hooks/useAction';
 
 const Main = () => {
   const { uiStore, fileStore } = useStore();
@@ -39,42 +39,38 @@ const Main = () => {
     };
   }, []);
 
-  const handleShortcuts = useRef(
-    action((e: React.KeyboardEvent) => {
-      if ((e.target as HTMLElement).matches?.('input')) return;
-      const combo = getKeyCombo(e.nativeEvent);
-      const matches = (c: string): boolean => {
-        return comboMatches(combo, parseKeyCombo(c));
-      };
+  const handleShortcuts = useAction((e: React.KeyboardEvent) => {
+    if ((e.target as HTMLElement).matches?.('input')) return;
+    const combo = getKeyCombo(e.nativeEvent);
+    const matches = (c: string): boolean => {
+      return comboMatches(combo, parseKeyCombo(c));
+    };
 
-      const { hotkeyMap } = uiStore.preferences;
-      if (matches(hotkeyMap.selectAll)) {
-        fileStore.selectAll();
-      } else if (matches(hotkeyMap.deselectAll)) {
-        fileStore.deselectAll();
-      } else if (matches(hotkeyMap.openTagEditor)) {
-        e.preventDefault();
-        uiStore.openToolbarTagPopover();
+    const { hotkeyMap } = uiStore.preferences;
+    if (matches(hotkeyMap.selectAll)) {
+      fileStore.selectAll();
+    } else if (matches(hotkeyMap.deselectAll)) {
+      fileStore.deselectAll();
+    } else if (matches(hotkeyMap.openTagEditor)) {
+      e.preventDefault();
+      uiStore.openToolbarTagPopover();
+    }
+  });
+
+  const handleMove = useAction((x: number, width: number) => {
+    const { preferences } = uiStore;
+    if (preferences.isOutlinerOpen) {
+      const w = clamp(x, Preferences.MIN_OUTLINER_WIDTH, width * 0.75);
+      preferences.outlinerWidth = w;
+
+      // TODO: Automatically collapse if less than 3/4 of min-width?
+      if (x < Preferences.MIN_OUTLINER_WIDTH * 0.75) {
+        preferences.isOutlinerOpen = false;
       }
-    }),
-  );
-
-  const handleMove = useRef(
-    action((x: number, width: number) => {
-      const { preferences } = uiStore;
-      if (preferences.isOutlinerOpen) {
-        const w = clamp(x, Preferences.MIN_OUTLINER_WIDTH, width * 0.75);
-        preferences.outlinerWidth = w;
-
-        // TODO: Automatically collapse if less than 3/4 of min-width?
-        if (x < Preferences.MIN_OUTLINER_WIDTH * 0.75) {
-          preferences.isOutlinerOpen = false;
-        }
-      } else if (x >= Preferences.MIN_OUTLINER_WIDTH) {
-        preferences.isOutlinerOpen = true;
-      }
-    }),
-  );
+    } else if (x >= Preferences.MIN_OUTLINER_WIDTH) {
+      preferences.isOutlinerOpen = true;
+    }
+  });
 
   return (
     <TagDnDProvider value={data.current}>
@@ -82,7 +78,7 @@ const Main = () => {
         id="window-splitter"
         primary={<Outliner />}
         secondary={
-          <main id="main" onKeyDown={handleShortcuts.current}>
+          <main id="main" onKeyDown={handleShortcuts}>
             <AppToolbar />
             <ContentView />
           </main>
@@ -91,7 +87,7 @@ const Main = () => {
         align="left"
         splitPoint={uiStore.preferences.outlinerWidth}
         isExpanded={uiStore.preferences.isOutlinerOpen}
-        onMove={handleMove.current}
+        onMove={handleMove}
       />
     </TagDnDProvider>
   );

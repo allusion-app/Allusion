@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { action, computed } from 'mobx';
+import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -33,6 +33,7 @@ import { IconButton, IconSet, Tag, Option } from 'widgets';
 
 import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
 import { CustomKeyDict } from '../types';
+import { useAction } from 'src/frontend/hooks/useAction';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore } = useStore();
@@ -52,22 +53,18 @@ const QuickSearchList = observer(() => {
     }),
   ).current;
 
-  const handleSelect = useRef(
-    action((item: Readonly<ClientTag>) =>
-      uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', item.id, item.name)),
-    ),
+  const handleSelect = useAction((item: Readonly<ClientTag>) =>
+    uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', item.id, item.name)),
   );
 
-  const handleDeselect = useRef(
-    action((item: Readonly<ClientTag>) => {
-      const crit = uiStore.searchCriteriaList.find(
-        (c) => c instanceof ClientTagSearchCriteria && c.value.includes(item.id),
-      );
-      if (crit) {
-        uiStore.removeSearchCriteria(crit);
-      }
-    }),
-  );
+  const handleDeselect = useAction((item: Readonly<ClientTag>) => {
+    const crit = uiStore.searchCriteriaList.find(
+      (c) => c instanceof ClientTagSearchCriteria && c.value.includes(item.id),
+    );
+    if (crit) {
+      uiStore.removeSearchCriteria(crit);
+    }
+  });
 
   const renderCreateOption = useRef(
     (query: string, resetTextBox: () => void, isFocused: (index: number) => boolean) => {
@@ -97,8 +94,8 @@ const QuickSearchList = observer(() => {
   return (
     <MultiTagSelector
       selection={selection.get()}
-      onSelect={handleSelect.current}
-      onDeselect={handleDeselect.current}
+      onSelect={handleSelect}
+      onDeselect={handleDeselect}
       onTagClick={uiStore.toggleAdvancedSearch}
       onClear={uiStore.clearSearchCriteriaList}
       renderCreateOption={renderCreateOption.current}

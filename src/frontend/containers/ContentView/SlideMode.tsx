@@ -1,6 +1,6 @@
-import { action, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { IconSet, Split } from 'widgets';
@@ -10,6 +10,7 @@ import { GallerySelector, MissingImageFallback } from './GalleryItem';
 import { Preferences } from 'src/frontend/stores/Preferences';
 import { clamp } from 'src/frontend/utils';
 import { useStore } from 'src/frontend/contexts/StoreContext';
+import { useAction } from 'src/frontend/hooks/useAction';
 
 interface ISlideMode {
   contentRect: { width: number; height: number };
@@ -27,23 +28,21 @@ const SlideMode = observer((props: ISlideMode) => {
     <SlideView showContextMenu={showContextMenu} width={contentWidth} height={contentHeight} />
   );
 
-  const handleMove = useRef(
-    action((x: number, width: number) => {
-      const { preferences } = uiStore;
-      // The inspector is on the right side, so we need to calculate the offset.
-      const offsetX = width - x;
-      if (preferences.isInspectorOpen) {
-        const w = clamp(offsetX, Preferences.MIN_INSPECTOR_WIDTH, width * 0.75);
-        preferences.inspectorWidth = w;
+  const handleMove = useAction((x: number, width: number) => {
+    const { preferences } = uiStore;
+    // The inspector is on the right side, so we need to calculate the offset.
+    const offsetX = width - x;
+    if (preferences.isInspectorOpen) {
+      const w = clamp(offsetX, Preferences.MIN_INSPECTOR_WIDTH, width * 0.75);
+      preferences.inspectorWidth = w;
 
-        if (offsetX < Preferences.MIN_INSPECTOR_WIDTH * 0.75) {
-          preferences.isInspectorOpen = false;
-        }
-      } else if (offsetX >= Preferences.MIN_INSPECTOR_WIDTH) {
-        preferences.isInspectorOpen = true;
+      if (offsetX < Preferences.MIN_INSPECTOR_WIDTH * 0.75) {
+        preferences.isInspectorOpen = false;
       }
-    }),
-  );
+    } else if (offsetX >= Preferences.MIN_INSPECTOR_WIDTH) {
+      preferences.isInspectorOpen = true;
+    }
+  });
 
   return (
     <Split
@@ -54,7 +53,7 @@ const SlideMode = observer((props: ISlideMode) => {
       align="right"
       splitPoint={inspectorWidth}
       isExpanded={isInspectorOpen}
-      onMove={handleMove.current}
+      onMove={handleMove}
     />
   );
 });
