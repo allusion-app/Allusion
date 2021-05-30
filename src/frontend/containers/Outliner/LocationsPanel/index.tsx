@@ -21,6 +21,7 @@ import { AppToaster } from 'src/frontend/components/Toaster';
 import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import DropContext from 'src/frontend/contexts/DropContext';
+import LocationCreationDialog from './LocationCreationDialog';
 
 // Tooltip info
 const enum Tooltip {
@@ -466,6 +467,7 @@ const LocationsPanel = observer(() => {
   const { locationStore } = useContext(StoreContext);
   const [contextState, { show, hide }] = useContextMenu();
 
+  const [creatableLocation, setCreatableLocation] = useState<ClientLocation>();
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation>();
   const [excludableSubLocation, setExcludableSubLocation] = useState<ClientSubLocation>();
   const [isCollapsed, setCollapsed] = useState(false);
@@ -512,7 +514,7 @@ const LocationsPanel = observer(() => {
       return;
     }
 
-    locationStore.create(path).then((location) => locationStore.initLocation(location));
+    locationStore.create(path).then(setCreatableLocation);
   }, [locationStore]);
 
   const isEmpty = locationStore.locationList.length === 0;
@@ -557,6 +559,13 @@ const LocationsPanel = observer(() => {
         {isEmpty && <i>Click + to choose a Location</i>}
       </Collapse>
       <LocationRecoveryDialog />
+
+      {creatableLocation && (
+        <LocationCreationDialog
+          location={creatableLocation}
+          onClose={() => setCreatableLocation(undefined)}
+        />
+      )}
       {deletableLocation && (
         <LocationRemoval
           object={deletableLocation}

@@ -1,3 +1,4 @@
+import { Transaction } from 'dexie';
 import { IDBVersioningConfig } from './DBRepository';
 
 // The name of the IndexedDB
@@ -30,23 +31,18 @@ export const dbConfig: IDBVersioningConfig[] = [
         schema: '++id, dateAdded',
       },
     ],
-    // Example upgrade for future versions:
-    // upgrade: async (tx: Transaction): Promise<void> => {
-    //   tx.table('files')
-    //     .toCollection()
-    //     .modify((file: any) => {
-    //       try {
-    //         const stats = fse.statSync(file.absolutePath);
-    //         file.dateCreated = stats.ctime;
-    //       } catch (e) {
-    //         console.error(
-    //           'Could not migrate created date of file, using fallback',
-    //           file.absolutePath,
-    //         );
-    //         file.dateCreated = file.dateAdded;
-    //       }
-    //       return file;
-    //     });
-    // },
+  },
+  {
+    // Version 5, 29-5-21: Added sub-locations
+    version: 5,
+    collections: [],
+    upgrade: async (tx: Transaction): Promise<void> => {
+      tx.table('locations')
+        .toCollection()
+        .modify((location: any) => {
+          location.subLocations = [];
+          return location;
+        });
+    },
   },
 ];

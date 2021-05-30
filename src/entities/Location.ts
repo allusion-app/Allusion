@@ -146,12 +146,6 @@ export class ClientLocation implements ISerializable<ILocation> {
   }
 
   async updateSublocationExclusion(subLocation: ClientSubLocation): Promise<void> {
-    console.log(
-      subLocation.isExcluded,
-      this.excludedPaths.includes(subLocation),
-      subLocation,
-      this.excludedPaths,
-    );
     if (subLocation.isExcluded) {
       // If excluded:
       // - first update the cache, so new added images won't be detected
@@ -164,7 +158,7 @@ export class ClientLocation implements ISerializable<ILocation> {
       // Maybe move to separate collection? that won't work cleanly after tag removal
       // Looking at it realistically, this will be used for directories that contain animation frames, junk, timelapses, etc.
       // in which case it should be fine to just get rid of it all
-      await this.store.removeSublocationFiles(subLocation);
+      if (this.isInitialized) return this.store.removeSublocationFiles(subLocation);
     } else {
       // If included, re-scan for files in that path
       // - first, update cache
@@ -174,14 +168,16 @@ export class ClientLocation implements ISerializable<ILocation> {
       }
 
       // - not trivial to do a re-scan. Could also just re-start, won't be used that often anyways I think
-      AppToaster.show({
-        message: 'Restart Allusion to re-detect any images',
-        timeout: 8000,
-        clickAction: {
-          onClick: RendererMessenger.reload,
-          label: 'Restart',
-        },
-      });
+      if (this.isInitialized) {
+        AppToaster.show({
+          message: 'Restart Allusion to re-detect any images',
+          timeout: 8000,
+          clickAction: {
+            onClick: RendererMessenger.reload,
+            label: 'Restart',
+          },
+        });
+      }
     }
 
     // Save location to DB

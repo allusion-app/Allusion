@@ -351,7 +351,7 @@ class LocationStore {
     AppToaster.show(
       {
         message: 'Some images have gone missing!',
-        timeout: 0,
+        timeout: 8000,
       },
       'missing',
     );
