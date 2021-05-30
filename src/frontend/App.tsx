@@ -13,7 +13,6 @@ import Settings from './containers/Settings';
 
 import { useWorkerListener } from './ThumbnailGeneration';
 import WindowTitlebar from './containers/WindowTitlebar';
-import { DropContextProvider } from './contexts/DropContext';
 import Main from './containers/Main';
 import About from './containers/About';
 import { RendererMessenger } from 'src/Messaging';
@@ -97,30 +96,28 @@ const App = observer(() => {
   }
 
   return (
-    <DropContextProvider onDragEnter={uiStore.openOutliner}>
-      <div
-        data-os={PLATFORM}
-        data-fullscreen={uiStore.preferences.isFullScreen}
-        id="layout-container"
-        className={uiStore.preferences.theme}
-      >
-        {PLATFORM !== 'darwin' && !uiStore.preferences.isFullScreen && <WindowTitlebar />}
+    <div
+      data-os={PLATFORM}
+      data-fullscreen={uiStore.preferences.isFullScreen}
+      id="layout-container"
+      className={uiStore.preferences.theme}
+    >
+      {PLATFORM !== 'darwin' && !uiStore.preferences.isFullScreen && <WindowTitlebar />}
 
-        <ErrorBoundary>
-          <Main />
+      <ErrorBoundary>
+        <Main />
 
-          <Settings />
+        <Settings />
 
-          <HelpCenter />
+        <HelpCenter />
 
-          <About />
+        <About />
 
-          <AdvancedSearchDialog />
+        <AdvancedSearchDialog />
 
-          <CustomToaster />
-        </ErrorBoundary>
-      </div>
-    </DropContextProvider>
+        <CustomToaster />
+      </ErrorBoundary>
+    </div>
   );
 });
 

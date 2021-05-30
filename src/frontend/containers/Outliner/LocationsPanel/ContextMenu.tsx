@@ -9,22 +9,22 @@ import { MenuItem, MenuDivider } from 'widgets/menus';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
 import { CustomKeyDict } from '../../types';
+import { useLocationsTreeState } from './LocationsTreeState';
 
 interface IContextMenuProps {
   location: ClientLocation;
-  onDelete: (location: ClientLocation) => void;
 }
 
-export const LocationTreeContextMenu = observer(({ location, onDelete }: IContextMenuProps) => {
-  const { uiStore } = useStore();
-  const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
+export const LocationTreeContextMenu = observer(({ location }: IContextMenuProps) => {
+  const state = useLocationsTreeState();
+  const openDeleteDialog = () => state.tryDeletion(location);
 
   if (location.isBroken) {
     return (
       <>
         <MenuItem
           text="Open Recovery Panel"
-          onClick={() => uiStore.openLocationRecovery(location.id)}
+          onClick={() => state.tryRecovery(location)}
           icon={IconSet.WARNING_BROKEN_LINK}
         />
         <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />

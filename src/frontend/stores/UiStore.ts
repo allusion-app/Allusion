@@ -1,7 +1,6 @@
 import { action, computed, makeObservable, observable } from 'mobx';
 import { FileOrder } from 'src/backend/DBRepository';
 import { IFile } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
@@ -51,7 +50,6 @@ class UiStore {
   @observable isSettingsOpen: boolean = false;
   @observable isHelpCenterOpen: boolean = false;
   @observable isAboutOpen: boolean = false;
-  @observable isLocationRecoveryOpen: ID | null = null;
   @observable isAdvancedSearchOpen: boolean = false;
   @observable searchMatchAny = false;
   @observable isSlideMode: boolean = false;
@@ -221,14 +219,6 @@ class UiStore {
 
   @action.bound closeToolbarTagPopover() {
     this.isToolbarTagPopoverOpen = false;
-  }
-
-  @action.bound openLocationRecovery(locationId: ID) {
-    this.isLocationRecoveryOpen = locationId;
-  }
-
-  @action.bound closeLocationRecovery() {
-    this.isLocationRecoveryOpen = null;
   }
 
   @action.bound setThumbnailDirectory(dir: string = '') {

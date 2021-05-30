@@ -47,14 +47,22 @@ const TagsTree = observer(() => {
     }
   }, [dndData, tagStore]);
 
-  const toggleBody = useRef(() => setIsOpen((v) => !v));
+  const toggleBody = useRef(() => setIsOpen((v) => !v)).current;
 
   return (
     <TagsTreeStateProvider value={state}>
-      <Header toggleBody={toggleBody.current} onDrag={handleDragOverAndLeave} onDrop={handleDrop} />
+      <Header toggleBody={toggleBody} onDrag={handleDragOverAndLeave} onDrop={handleDrop} />
 
       <Collapse open={isOpen}>
-        <Content show={show} />
+        {tagStore.isEmpty ? (
+          <div className="tree-content-label" style={{ padding: '0.25rem' }}>
+            {/* <span className="pre-icon">{IconSet.INFO}</span> */}
+            {/* No tags or collections created yet */}
+            <i style={{ marginLeft: '1em' }}>None</i>
+          </div>
+        ) : (
+          <Content show={show} />
+        )}
       </Collapse>
 
       {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
@@ -302,7 +310,7 @@ const Content = observer(({ show }: ContentProps) => {
     () => ({
       showContextMenu: show,
       state,
-      select: select,
+      select,
     }),
     [show, state, select],
   );
@@ -331,28 +339,18 @@ const Content = observer(({ show }: ContentProps) => {
       ),
   );
 
-  if (tagStore.isEmpty) {
-    return (
-      <div className="tree-content-label" style={{ padding: '0.25rem' }}>
-        {/* <span className="pre-icon">{IconSet.INFO}</span> */}
-        {/* No tags or collections created yet */}
-        <i style={{ marginLeft: '1em' }}>None</i>
-      </div>
-    );
-  } else {
-    return (
-      <Tree
-        multiSelect
-        id="tag-hierarchy"
-        className={tagStore.selection.size > 0 ? 'selected' : undefined}
-        children={root.subTags.map((t) => mapTag(t, tagStore))}
-        treeData={treeData}
-        toggleExpansion={toggleExpansion}
-        onBranchKeyDown={handleBranchOnKeyDown.current}
-        onLeafKeyDown={handleLeafOnKeyDown.current}
-      />
-    );
-  }
+  return (
+    <Tree
+      multiSelect
+      id="tag-hierarchy"
+      className={tagStore.selection.size > 0 ? 'selected' : undefined}
+      children={root.subTags.map((t) => mapTag(t, tagStore))}
+      treeData={treeData}
+      toggleExpansion={toggleExpansion}
+      onBranchKeyDown={handleBranchOnKeyDown.current}
+      onLeafKeyDown={handleLeafOnKeyDown.current}
+    />
+  );
 });
 
 interface ITagItemProps {

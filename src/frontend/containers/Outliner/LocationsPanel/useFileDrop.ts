@@ -1,14 +1,86 @@
 import fse from 'fs-extra';
 import path from 'path';
 import { IMG_EXTENSIONS } from 'src/entities/File';
-import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
+import { ALLOWED_DROP_TYPES } from 'src/frontend/containers/Outliner/LocationsPanel/useFileDropper';
 import { timeoutPromise } from 'src/frontend/utils';
 import { IStoreFileMessage, RendererMessenger } from 'src/Messaging';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
+import { useCallback, useState } from 'react';
+import { HOVER_TIME_TO_EXPAND } from '..';
+import { AppToaster } from 'src/frontend/components/Toaster';
+import { useLocationsTreeState } from './LocationsTreeState';
+
+export function useFileDrop(expansionId: string, fullPath: string) {
+  const state = useLocationsTreeState();
+  // Don't expand immediately, only after hovering over it for a second or so
+  const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
+  const expandDelayed = useCallback(() => {
+    if (expandTimeoutId) clearTimeout(expandTimeoutId);
+    const t = window.setTimeout(() => state.toggleExpansion(expansionId), HOVER_TIME_TO_EXPAND);
+    setExpandTimeoutId(t);
+  }, [expandTimeoutId, expansionId, state]);
+
+  const handleDragEnter = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      event.preventDefault();
+      const canDrop = onDragOver(event);
+      if (canDrop && !state.isExpanded(expansionId)) {
+        expandDelayed();
+      }
+    },
+    [state, expansionId, expandDelayed],
+  );
+
+  const handleDrop = useCallback(
+    async (event: React.DragEvent<HTMLDivElement>) => {
+      event.currentTarget.dataset[DnDAttribute.Target] = 'false';
+
+      if (isAcceptableType(event)) {
+        event.dataTransfer.dropEffect = 'none';
+        try {
+          await storeDroppedImage(event, fullPath);
+        } catch (e) {
+          console.error(e);
+          AppToaster.show({
+            message: 'Something went wrong, could not import image :(',
+            timeout: 100,
+          });
+        }
+      } else {
+        AppToaster.show({ message: 'File type not supported :(', timeout: 100 });
+      }
+    },
+    [fullPath],
+  );
+
+  const handleDragLeaveWrapper = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      // Drag events are also triggered for children??
+      // We don't want to detect dragLeave of a child as a dragLeave of the target element, so return immmediately
+      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) return;
+
+      event.stopPropagation();
+      event.preventDefault();
+      handleDragLeave(event);
+      if (expandTimeoutId) {
+        clearTimeout(expandTimeoutId);
+        setExpandTimeoutId(undefined);
+      }
+    },
+    [expandTimeoutId],
+  );
+
+  return {
+    handleDragEnter,
+    handleDrop,
+    handleDragLeave: handleDragLeaveWrapper,
+  };
+}
 
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 
-export const isAcceptableType = (e: React.DragEvent) =>
+const isAcceptableType = (e: React.DragEvent) =>
   e.dataTransfer?.types.some((type) => ALLOWED_DROP_TYPES.includes(type));
 
 /**
@@ -31,7 +103,7 @@ export function onDragOver(event: React.DragEvent<HTMLDivElement>): boolean {
   return false;
 }
 
-export function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
+function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
   const isFile = isAcceptableType(event);
   if (isFile) {
     event.dataTransfer.dropEffect = 'none';
@@ -41,7 +113,7 @@ export function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
   }
 }
 
-export async function storeDroppedImage(e: React.DragEvent, directory: string) {
+async function storeDroppedImage(e: React.DragEvent, directory: string) {
   e.persist();
   const dropData = await getDropData(e);
   for (const dataItem of dropData) {

@@ -11,6 +11,7 @@ import LocationStore from 'src/frontend/stores/LocationStore';
 import { Button, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { useLocationsTreeState } from './LocationsTreeState';
 
 interface IMatch {
   locationImageCount: number;
@@ -143,13 +144,13 @@ interface IRecoveryActionsProps {
 
 const RecoveryActions = observer(
   ({ status, locate, rescan, retry, save }: IRecoveryActionsProps) => {
-    const { uiStore } = useStore();
+    const state = useLocationsTreeState();
 
     switch (status) {
       case Status.Ok:
         return (
           <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
+            <Button styling="outlined" onClick={state.abortRecovery} text="Close" />
           </div>
         );
 
@@ -159,7 +160,7 @@ const RecoveryActions = observer(
             <Button styling="filled" onClick={locate} text="Locate" />
             {/* Re-scan option, e.g. for when you mount a drive */}
             <Button styling="outlined" onClick={rescan} text="Re-Scan" />
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Cancel" />
+            <Button styling="outlined" onClick={state.abortRecovery} text="Cancel" />
           </div>
         );
 
@@ -181,23 +182,19 @@ const RecoveryActions = observer(
       default:
         return (
           <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
+            <Button styling="outlined" onClick={state.abortRecovery} text="Close" />
           </div>
         );
     }
   },
 );
 
-const LocationRecoveryDialog = () => {
+const LocationRecovery = ({ location }: { location: ClientLocation }) => {
   const { uiStore, locationStore } = useStore();
-  const { isLocationRecoveryOpen } = uiStore;
+  const state = useLocationsTreeState();
 
   const [match, setMatch] = useState<IMatch>();
   const [pickedDir, setPickedDir] = useState<string>();
-
-  const location = isLocationRecoveryOpen ? locationStore.get(isLocationRecoveryOpen) : undefined;
-
-  if (!location) return null;
 
   const status = statusFromMatch(match);
 
@@ -236,7 +233,7 @@ const LocationRecoveryDialog = () => {
     const exists = await fse.pathExists(location.path);
 
     if (exists) {
-      uiStore.closeLocationRecovery();
+      state.abortRecovery();
       if (!location.isInitialized) {
         locationStore.initLocation(location);
       } else {
@@ -264,8 +261,10 @@ const LocationRecoveryDialog = () => {
           rescan={handleRescan}
           retry={() => setMatch(undefined)}
           save={() => {
-            handleChangeLocationPath(location, pickedDir!);
-            uiStore.closeLocationRecovery();
+            if (pickedDir !== undefined) {
+              handleChangeLocationPath(location, pickedDir);
+              state.abortRecovery();
+            }
           }}
         />
       </div>
@@ -273,4 +272,4 @@ const LocationRecoveryDialog = () => {
   );
 };
 
-export default observer(LocationRecoveryDialog);
+export default observer(LocationRecovery);
