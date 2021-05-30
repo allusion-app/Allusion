@@ -31,7 +31,7 @@ import { ClientTag } from 'src/entities/Tag';
 
 import { IconButton, IconSet, Tag, Option } from 'widgets';
 
-import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
+import { TagSelector } from 'src/frontend/components/TagSelector';
 import { CustomKeyDict } from '../types';
 import { useAction } from 'src/frontend/hooks/useAction';
 
@@ -92,7 +92,8 @@ const QuickSearchList = observer(() => {
   );
 
   return (
-    <MultiTagSelector
+    <TagSelector
+      multiselectable
       selection={selection.get()}
       onSelect={handleSelect}
       onDeselect={handleDeselect}

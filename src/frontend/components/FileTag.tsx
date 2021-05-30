@@ -4,7 +4,7 @@ import { ClientFile } from 'src/entities/File';
 import { IconSet } from 'widgets/Icons';
 import { Option } from 'widgets';
 import { useStore } from '../contexts/StoreContext';
-import { MultiTagSelector } from './MultiTagSelector';
+import { TagSelector } from './TagSelector';
 
 interface IFileTagProp {
   file: ClientFile;
@@ -31,7 +31,8 @@ const FileTags = observer(({ file }: IFileTagProp) => {
   );
 
   return (
-    <MultiTagSelector
+    <TagSelector
+      multiselectable
       disabled={file.isBroken}
       selection={Array.from(file.tags)}
       onClear={file.clearTags}

@@ -7,7 +7,7 @@ import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
-import { MultiTagSelector } from './MultiTagSelector';
+import { TagSelector } from './TagSelector';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 interface IRemovalProps<T> {
@@ -99,7 +99,8 @@ export const TagMerge = observer(({ object: tag, onClose }: IRemovalProps<Client
 
   const body = (
     <div>
-      <MultiTagSelector
+      <TagSelector
+        multiselectable={false}
         selection={selectedTag !== undefined ? [selectedTag] : []}
         onSelect={setSelectedTag}
         onDeselect={clearSelection}

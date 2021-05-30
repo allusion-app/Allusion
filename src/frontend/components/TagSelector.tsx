@@ -8,12 +8,13 @@ import { IOption, useListboxFocus } from 'widgets/Combobox/Listbox';
 import { Flyout } from 'widgets/popovers';
 import { useStore } from '../contexts/StoreContext';
 
-interface IMultiTagSelector {
-  selection: Readonly<ClientTag>[];
+export interface TagSelectorProps {
+  selection: readonly Readonly<ClientTag>[];
   onSelect: (item: Readonly<ClientTag>) => void;
   onDeselect: (item: Readonly<ClientTag>) => void;
   onTagClick?: (item: Readonly<ClientTag>) => void;
   onClear: () => void;
+  multiselectable: boolean;
   disabled?: boolean;
   extraIconButtons?: ReactElement;
   placeholder?: string;
@@ -24,13 +25,14 @@ interface IMultiTagSelector {
   ) => ReactElement<IOption> | ReactElement<IOption>[];
 }
 
-const MultiTagSelector = (props: IMultiTagSelector) => {
+const TagSelector = (props: TagSelectorProps) => {
   const {
     selection,
     onSelect,
     onDeselect,
     onTagClick,
     onClear,
+    multiselectable,
     disabled,
     extraIconButtons,
     placeholder,
@@ -133,6 +135,7 @@ const MultiTagSelector = (props: IMultiTagSelector) => {
       >
         <SuggestedTagsList
           ref={listRef}
+          multiselectable={multiselectable}
           id={listboxID.current}
           query={query}
           selection={selection}
@@ -146,7 +149,7 @@ const MultiTagSelector = (props: IMultiTagSelector) => {
   );
 };
 
-export { MultiTagSelector };
+export { TagSelector };
 
 interface SelectedTagsProps {
   selection: readonly Readonly<ClientTag>[];
@@ -179,6 +182,7 @@ interface SuggestedTagsListProps {
   toggleSelection: (isSelected: boolean, tag: Readonly<ClientTag>) => void;
   resetTextBox: () => void;
   focusedOption: number;
+  multiselectable?: boolean;
   renderCreateOption?: (
     inputText: string,
     resetTextBox: () => void,
@@ -195,6 +199,7 @@ const SuggestedTagsList = observer(
       toggleSelection,
       focusedOption,
       resetTextBox,
+      multiselectable,
       renderCreateOption,
     } = props;
     const { tagStore } = useStore();
@@ -213,7 +218,7 @@ const SuggestedTagsList = observer(
     );
 
     return (
-      <Listbox ref={ref} id={id} multiselectable>
+      <Listbox ref={ref} id={id} multiselectable={multiselectable}>
         {suggestions.get().map((tag, index) => {
           const selected = selection.includes(tag);
           return (
