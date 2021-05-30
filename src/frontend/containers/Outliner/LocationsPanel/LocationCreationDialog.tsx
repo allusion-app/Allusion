@@ -1,5 +1,4 @@
 import { autorun } from 'mobx';
-import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import StoreContext from 'src/frontend/contexts/StoreContext';
@@ -139,8 +138,8 @@ interface LocationCreationDialogProps {
 
 const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogProps) => {
   const { locationStore } = useContext(StoreContext);
-  const [importFolderHierarchyAsTags, setImportFolderHierarchyAsTags] = useState(false);
   const [sublocationsLoaded, setSublocationsLoaded] = useState(false);
+  // const [importFolderHierarchyAsTags, setImportFolderHierarchyAsTags] = useState(false);
 
   const handleSubmit = useCallback(() => {
     locationStore.initLocation(location).catch(console.error);

@@ -111,9 +111,6 @@ export class ClientLocation implements ISerializable<ILocation> {
           ),
       ),
     );
-    runInAction(() =>
-      this.excludedPaths.push(...this.subLocations.filter((loc) => loc.isExcluded)),
-    );
 
     makeObservable(this);
   }
@@ -123,9 +120,17 @@ export class ClientLocation implements ISerializable<ILocation> {
   }
 
   @action async init(): Promise<string[] | undefined> {
-    this.isInitialized = true;
     const pathExists = await fse.pathExists(this.path);
     await this.refreshSublocations();
+    this.isInitialized = true;
+
+    const getExcludedSubLocsRecursively = (loc: ClientSubLocation): ClientSubLocation[] =>
+      loc.isExcluded ? [loc] : loc.subLocations.flatMap(getExcludedSubLocsRecursively);
+    runInAction(() => {
+      this.excludedPaths.splice(0, this.excludedPaths.length);
+      this.excludedPaths.push(...this.subLocations.flatMap(getExcludedSubLocsRecursively));
+    });
+
     if (pathExists) {
       this.setBroken(false);
       return this.watch(this.path);
@@ -218,7 +223,7 @@ export class ClientLocation implements ISerializable<ILocation> {
         } else {
           subLoc = new ClientSubLocation(
             this,
-            SysPath.join(this.path, item.name),
+            item.fullPath,
             item.name,
             item.name.startsWith('.'),
             [],

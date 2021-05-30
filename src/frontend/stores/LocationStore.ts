@@ -275,7 +275,6 @@ class LocationStore {
     );
 
     const filePaths = await location.init();
-    console.debug('!!! finished location loading', location.path, filePaths);
 
     if (isCancelled || filePaths === undefined) {
       return;
