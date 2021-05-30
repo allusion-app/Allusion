@@ -2,8 +2,9 @@ import { observer } from 'mobx-react-lite';
 import React from 'react';
 
 import { useStore } from '../../contexts/StoreContext';
+import ActionBar from './ActionBar';
 import LocationsPanel from './LocationsPanel';
-import TagsPanel, { OutlinerActionBar } from './TagsPanel';
+import TagsPanel from './TagsPanel';
 
 const Outliner = () => {
   const { uiStore } = useStore();
@@ -14,7 +15,7 @@ const Outliner = () => {
         <LocationsPanel />
         <TagsPanel />
       </div>
-      <OutlinerActionBar />
+      <ActionBar />
     </nav>
   );
 };

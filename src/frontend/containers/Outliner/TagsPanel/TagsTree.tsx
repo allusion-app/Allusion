@@ -19,7 +19,7 @@ import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
 import { TagItemContextMenu } from './ContextMenu';
 import TagsTreeStateProvider, { TagsTreeState, useTagsTreeState } from './TagsTreeState';
 
-const Panel = observer(() => {
+const TagsTree = observer(() => {
   const { tagStore } = useStore();
   const state = useRef(new TagsTreeState()).current;
   const [contextState, { show, hide }] = useContextMenu();
@@ -83,7 +83,7 @@ const Panel = observer(() => {
   );
 });
 
-export default Panel;
+export default TagsTree;
 
 interface HeaderProps {
   toggleBody: () => void;
