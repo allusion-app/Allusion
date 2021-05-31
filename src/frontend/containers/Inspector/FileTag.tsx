@@ -3,8 +3,8 @@ import React, { useCallback } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { IconSet } from 'widgets/Icons';
 import { Option } from 'widgets';
-import { useStore } from '../contexts/StoreContext';
-import { TagSelector } from './TagSelector';
+import { useStore } from '../../contexts/StoreContext';
+import { TagSelector } from '../../components/TagSelector';
 
 interface IFileTagProp {
   file: ClientFile;

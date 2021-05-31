@@ -2,8 +2,8 @@ import { shell } from 'electron';
 import fse from 'fs-extra';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
-import { useStore } from '../contexts/StoreContext';
-import { formatDateTime, humanFileSize } from '../utils';
+import { useStore } from '../../contexts/StoreContext';
+import { formatDateTime, humanFileSize } from '../../utils';
 
 type CommonMetadata = {
   name: string;

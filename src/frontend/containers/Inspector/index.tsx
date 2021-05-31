@@ -2,8 +2,8 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from '../../contexts/StoreContext';
-import FileTags from '../../components/FileTag';
-import ImageInfo from '../../components/ImageInfo';
+import FileTags from './FileTag';
+import ImageInfo from './ImageInfo';
 import { IconButton, IconSet } from 'widgets';
 import { shell } from 'electron';
 
