@@ -4,11 +4,10 @@ import { autorun, flow } from 'mobx';
 
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ClientLocation, getDirectoryTree, IDirectoryTreeItem } from 'src/entities/Location';
-import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
+import { CustomKeyDict, ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
 import { IconSet, Tree } from 'widgets';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
-import { CustomKeyDict } from '../../types';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { onDragOver, useFileDrop } from './useFileDrop';
 import { DirectoryMenu, LocationTreeContextMenu } from './ContextMenu';

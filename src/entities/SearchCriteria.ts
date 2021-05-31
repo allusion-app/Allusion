@@ -1,6 +1,7 @@
 import { action, observable, makeObservable } from 'mobx';
 
 import { ID, ISerializable } from './ID';
+import { IFile } from './File';
 
 import { camelCaseToSpaced } from 'src/frontend/utils';
 import TagStore from 'src/frontend/stores/TagStore';
@@ -9,6 +10,8 @@ import TagStore from 'src/frontend/stores/TagStore';
 
 // A dictionary of labels for (some of) the keys of the type we search for
 export type SearchKeyDict<T> = { [key in keyof Partial<T>]: string };
+
+export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };
 
 // Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
 export const NumberOperators = [

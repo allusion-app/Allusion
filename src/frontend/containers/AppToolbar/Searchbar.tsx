@@ -26,13 +26,16 @@ const Searchbar = observer(() => {
 
 export default Searchbar;
 
-import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
+import {
+  CustomKeyDict,
+  ClientStringSearchCriteria,
+  ClientTagSearchCriteria,
+} from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 
 import { IconButton, IconSet, Tag, Option } from 'widgets';
 
 import { TagSelector } from 'src/frontend/components/TagSelector';
-import { CustomKeyDict } from '../types';
 import { useAction } from 'src/frontend/hooks/useAction';
 
 const QuickSearchList = observer(() => {

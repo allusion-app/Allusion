@@ -1,6 +1,7 @@
 import { generateId, ID } from 'src/entities/ID';
 import { IFile, IMG_EXTENSIONS } from 'src/entities/File';
 import {
+  CustomKeyDict,
   OperatorType,
   StringOperatorType,
   TagOperatorType,
@@ -14,7 +15,6 @@ import {
   ClientDateSearchCriteria,
   ClientNumberSearchCriteria,
 } from 'src/entities/SearchCriteria';
-import { CustomKeyDict } from '../types';
 import TagStore from 'src/frontend/stores/TagStore';
 
 export type Query =
