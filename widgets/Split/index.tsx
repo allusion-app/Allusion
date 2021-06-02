@@ -56,7 +56,7 @@ export const Split = ({
       isDragging.current = true;
       (container.current.children[1] as HTMLElement).classList.add('active');
     }
-  });
+  }).current;
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
@@ -117,7 +117,7 @@ export const Split = ({
         role="separator"
         aria-valuenow={Math.trunc((value.current / dimension) * 100)}
         aria-orientation={axis}
-        onMouseDown={handleMouseDown.current}
+        onMouseDown={handleMouseDown}
       />
       {secondary}
     </div>

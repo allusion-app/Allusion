@@ -46,7 +46,7 @@ const TagSelector = (props: TagSelectorProps) => {
   const handleChange = useRef((e: React.ChangeEvent<HTMLInputElement>) => {
     setIsOpen(true);
     setQuery(e.target.value);
-  });
+  }).current;
 
   const clearSelection = useCallback(() => {
     setQuery('');
@@ -83,9 +83,9 @@ const TagSelector = (props: TagSelectorProps) => {
     }
     setQuery('');
     setIsOpen(false);
-  });
+  }).current;
 
-  const handleFocus = useRef(() => setIsOpen(true));
+  const handleFocus = useRef(() => setIsOpen(true)).current;
 
   const resetTextBox = useRef(() => {
     inputRef.current?.focus();
@@ -105,7 +105,7 @@ const TagSelector = (props: TagSelectorProps) => {
   );
 
   return (
-    <div role="combobox" aria-expanded={isOpen} className="input" onBlur={handleBlur.current}>
+    <div role="combobox" aria-expanded={isOpen} className="input" onBlur={handleBlur}>
       <Flyout
         isOpen={isOpen}
         cancel={() => setIsOpen(false)}
@@ -120,11 +120,11 @@ const TagSelector = (props: TagSelectorProps) => {
                 type="text"
                 value={query}
                 aria-autocomplete="list"
-                onChange={handleChange.current}
+                onChange={handleChange}
                 onKeyDown={handleKeyDown}
                 aria-controls={listboxID.current}
                 ref={inputRef}
-                onFocus={handleFocus.current}
+                onFocus={handleFocus}
                 placeholder={selection.length === 0 ? placeholder : undefined}
               />
             </div>

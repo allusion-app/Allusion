@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action, autorun } from 'mobx';
 
@@ -11,6 +11,7 @@ import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './ThumbnailGeneration';
 import { comboMatches, getKeyCombo, parseKeyCombo } from './hotkeyParser';
+import { useAction } from './hooks/useAction';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -49,14 +50,12 @@ const PreviewApp = observer(() => {
   // Listen to responses of Web Workers
   useWorkerListener();
 
-  const handleLeftButton = useCallback(
-    () => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1)),
-    [uiStore],
+  const handleLeftButton = useAction(() =>
+    uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1)),
   );
 
-  const handleRightButton = useCallback(
-    () => uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1)),
-    [fileStore.fileList.length, uiStore],
+  const handleRightButton = useAction(() =>
+    uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1)),
   );
 
   return (

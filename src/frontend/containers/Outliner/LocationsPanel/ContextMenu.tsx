@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 
@@ -6,9 +6,8 @@ import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ClientLocation } from 'src/entities/Location';
 import { IconSet } from 'widgets';
 import { MenuItem, MenuDivider } from 'widgets/menus';
-import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
+import { CustomKeyDict, ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
-import { CustomKeyDict } from '../../types';
 import { useLocationsTreeState } from './LocationsTreeState';
 
 interface IContextMenuProps {
@@ -43,17 +42,14 @@ export const LocationTreeContextMenu = observer(({ location }: IContextMenuProps
 
 export const DirectoryMenu = ({ path }: { path: string }) => {
   const { uiStore } = useStore();
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
+  const handleOpenFileExplorer = () => shell.showItemInFolder(path);
 
-  const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(pathCriteria(path)), [
-    path,
-    uiStore,
-  ]);
+  const pathCriteria = (path: string) =>
+    new ClientStringSearchCriteria<IFile>('absolutePath', path, 'startsWith', CustomKeyDict);
 
-  const handleReplaceSearch = useCallback(() => uiStore.replaceSearchCriteria(pathCriteria(path)), [
-    path,
-    uiStore,
-  ]);
+  const handleAddToSearch = () => uiStore.addSearchCriteria(pathCriteria(path));
+
+  const handleReplaceSearch = () => uiStore.replaceSearchCriteria(pathCriteria(path));
 
   return (
     <>
@@ -68,6 +64,3 @@ export const DirectoryMenu = ({ path }: { path: string }) => {
     </>
   );
 };
-
-const pathCriteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>('absolutePath', path, 'startsWith', CustomKeyDict);

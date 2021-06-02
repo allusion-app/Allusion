@@ -37,9 +37,8 @@ export const AdvancedSearchDialog = observer(() => {
     }
   }, [isAdvancedSearchOpen, searchCriteriaList]);
 
-  const add = useRef(() =>
-    setForm((form) => new Map(form.set(generateId(), defaultQuery('tags')))),
-  );
+  const add = useRef(() => setForm((f) => new Map(f.set(generateId(), defaultQuery('tags')))))
+    .current;
 
   const search = useCallback(() => {
     uiStore.replaceSearchCriterias(
@@ -48,7 +47,7 @@ export const AdvancedSearchDialog = observer(() => {
     uiStore.closeAdvancedSearch();
   }, [form, tagStore, uiStore]);
 
-  const reset = useRef(() => setForm(new Map().set(generateId(), defaultQuery('tags'))));
+  const reset = useRef(() => setForm(new Map().set(generateId(), defaultQuery('tags')))).current;
 
   return (
     <Dialog
@@ -73,7 +72,7 @@ export const AdvancedSearchDialog = observer(() => {
         ))}
         <div className="dialog-footer">
           <div id="functions-bar">
-            <Button text="Add" icon={IconSet.ADD} onClick={add.current} styling="outlined" />
+            <Button text="Add" icon={IconSet.ADD} onClick={add} styling="outlined" />
             <RadioGroup name="Match">
               <Radio
                 label="Any"
@@ -90,7 +89,7 @@ export const AdvancedSearchDialog = observer(() => {
             </RadioGroup>
           </div>
           <div className="btn-group dialog-actions">
-            <Button text="Reset" onClick={reset.current} icon={IconSet.CLOSE} styling="outlined" />
+            <Button text="Reset" onClick={reset} icon={IconSet.CLOSE} styling="outlined" />
             <Button text="Search" onClick={search} icon={IconSet.SEARCH} styling="filled" />
           </div>
         </div>

@@ -53,7 +53,7 @@ const TagEditor = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const handleInput = useRef((e: React.ChangeEvent<HTMLInputElement>) =>
     setInputText(e.target.value),
-  );
+  ).current;
 
   const listRef = useRef<HTMLUListElement>(null);
   const [focusedOption, handleFocus] = useListboxFocus(listRef);
@@ -84,7 +84,7 @@ const TagEditor = () => {
   const resetTextBox = useRef(() => {
     setInputText('');
     inputRef.current?.focus();
-  });
+  }).current;
 
   const removeTag = useAction((tag: Readonly<ClientTag>) => {
     for (const f of fileStore.selection) {
@@ -100,7 +100,7 @@ const TagEditor = () => {
         type="text"
         value={inputText}
         aria-autocomplete="list"
-        onChange={handleInput.current}
+        onChange={handleInput}
         onKeyDown={handleFocus}
         className="input"
         aria-controls="tag-files-listbox"
@@ -111,7 +111,7 @@ const TagEditor = () => {
         inputText={inputText}
         counter={counter}
         focusedOption={focusedOption}
-        resetTextBox={resetTextBox.current}
+        resetTextBox={resetTextBox}
       />
       <TagSummary counter={counter} removeTag={removeTag} />
     </div>
@@ -255,14 +255,14 @@ const FloatingPanel = observer(({ children }: { children: ReactNode }) => {
     if (e.relatedTarget !== button && !e.currentTarget.contains(e.relatedTarget as Node)) {
       uiStore.closeToolbarTagPopover();
     }
-  });
+  }).current;
 
   const handleClose = useRef((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.stopPropagation();
       uiStore.closeToolbarTagPopover();
     }
-  });
+  }).current;
 
   return (
     // FIXME: data attributes placeholder
@@ -270,8 +270,8 @@ const FloatingPanel = observer(({ children }: { children: ReactNode }) => {
       data-popover
       data-open={uiStore.isToolbarTagPopoverOpen}
       className="floating-dialog"
-      onBlur={handleBlur.current}
-      onKeyDown={handleClose.current}
+      onBlur={handleBlur}
+      onKeyDown={handleClose}
     >
       {uiStore.isToolbarTagPopoverOpen ? children : null}
     </div>

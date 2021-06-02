@@ -1,6 +1,6 @@
-import { runInAction } from 'mobx';
+import { autorun, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { IconSet, Split } from 'widgets';
@@ -87,11 +87,23 @@ const SlideView = observer((props: ISlideView) => {
     [file, submitCommand],
   );
 
-  // Go to the first selected image on load
   useEffect(() => {
+    // Go to the first selected image on load
     runInAction(() => {
       if (fileStore.firstSelectedFile !== undefined) {
         uiStore.setFirstItem(fileStore.getIndex(fileStore.firstSelectedFile.id));
+      }
+    });
+
+    // Preload next and previous image for better UX
+    return autorun(() => {
+      if (uiStore.firstItem + 1 < fileStore.fileList.length) {
+        const nextImg = new Image();
+        nextImg.src = fileStore.fileList[uiStore.firstItem + 1].absolutePath;
+      }
+      if (uiStore.firstItem - 1 >= 0) {
+        const prevImg = new Image();
+        prevImg.src = fileStore.fileList[uiStore.firstItem - 1].absolutePath;
       }
     });
   }, [fileStore, uiStore]);
@@ -105,31 +117,21 @@ const SlideView = observer((props: ISlideView) => {
     return () => window.removeEventListener('popstate', popStateHandler);
   }, [uiStore.disableSlideMode]);
 
-  const decrImgIndex = useCallback(
-    () => runInAction(() => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1))),
-    [uiStore],
-  );
-  const incrImgIndex = useCallback(
-    () =>
-      runInAction(() =>
-        uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1)),
-      ),
-    [uiStore, fileStore.fileList.length],
+  const decrImgIndex = useAction(() => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1)));
+  const incrImgIndex = useAction(() =>
+    uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1)),
   );
 
   // Detect left/right arrow keys to scroll between images
-  const handleUserKeyPress = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft') {
-        decrImgIndex();
-      } else if (event.key === 'ArrowRight') {
-        incrImgIndex();
-      } else if (event.key === 'Escape' || event.key === 'Backspace') {
-        uiStore.disableSlideMode();
-      }
-    },
-    [incrImgIndex, decrImgIndex, uiStore],
-  );
+  const handleUserKeyPress = useRef((event: KeyboardEvent) => {
+    if (event.key === 'ArrowLeft') {
+      decrImgIndex();
+    } else if (event.key === 'ArrowRight') {
+      incrImgIndex();
+    } else if (event.key === 'Escape' || event.key === 'Backspace') {
+      uiStore.disableSlideMode();
+    }
+  }).current;
 
   // Set up event listeners
   useEffect(() => {
@@ -138,20 +140,6 @@ const SlideView = observer((props: ISlideView) => {
       window.removeEventListener('keydown', handleUserKeyPress);
     };
   }, [handleUserKeyPress]);
-
-  // Preload next and previous image for better UX
-  useEffect(() => {
-    runInAction(() => {
-      if (uiStore.firstItem + 1 < fileStore.fileList.length) {
-        const nextImg = new Image();
-        nextImg.src = fileStore.fileList[uiStore.firstItem + 1].absolutePath;
-      }
-      if (uiStore.firstItem - 1 >= 0) {
-        const prevImg = new Image();
-        prevImg.src = fileStore.fileList[uiStore.firstItem - 1].absolutePath;
-      }
-    });
-  }, [fileStore.fileList, uiStore.firstItem]);
 
   return (
     <ZoomableImage

@@ -92,7 +92,7 @@ const QuickSearchList = observer(() => {
         />,
       ];
     },
-  );
+  ).current;
 
   return (
     <TagSelector
@@ -102,7 +102,7 @@ const QuickSearchList = observer(() => {
       onDeselect={handleDeselect}
       onTagClick={uiStore.toggleAdvancedSearch}
       onClear={uiStore.clearSearchCriteriaList}
-      renderCreateOption={renderCreateOption.current}
+      renderCreateOption={renderCreateOption}
       extraIconButtons={<SearchMatchButton disabled={selection.get().length < 2} />}
     />
   );
@@ -114,13 +114,13 @@ const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
   const handleClick = useRef(() => {
     uiStore.toggleSearchMatchAny();
     uiStore.refetch();
-  });
+  }).current;
 
   return (
     <IconButton
       icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
       text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
-      onClick={handleClick.current}
+      onClick={handleClick}
       large
       disabled={disabled}
     />

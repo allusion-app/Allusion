@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from '../../contexts/StoreContext';
@@ -41,12 +41,7 @@ const Content = observer(() => {
   const [contentRect, setContentRect] = useState({ width: 1, height: 1 });
   const container = useRef<HTMLDivElement>(null);
 
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent) => {
-      show(e.clientX, e.clientY, []);
-    },
-    [show],
-  );
+  const handleContextMenu = useRef((e: React.MouseEvent) => show(e.clientX, e.clientY, [])).current;
 
   const resizeObserver = useRef(
     new ResizeObserver((entries) => {
@@ -60,7 +55,7 @@ const Content = observer(() => {
   useEffect(() => {
     const observer = resizeObserver.current;
     if (container.current) {
-      resizeObserver.current.observe(container.current);
+      observer.observe(container.current);
     }
     return () => observer.disconnect();
   }, [fileList.length]);

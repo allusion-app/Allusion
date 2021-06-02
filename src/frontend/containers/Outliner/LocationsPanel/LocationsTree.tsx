@@ -176,7 +176,7 @@ const Content = observer(({ show }: ContentProps) => {
         toggleExpansion,
         customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
       ),
-  );
+  ).current;
 
   const handleLeafOnKeyDown = useRef(
     (
@@ -191,7 +191,7 @@ const Content = observer(({ show }: ContentProps) => {
         emptyFunction,
         customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
       ),
-  );
+  ).current;
 
   useEffect(() => {
     // Prevents updating state when component will be unmounted!
@@ -234,8 +234,8 @@ const Content = observer(({ show }: ContentProps) => {
       children={branches}
       treeData={treeData}
       toggleExpansion={toggleExpansion}
-      onBranchKeyDown={handleBranchKeyDown.current}
-      onLeafKeyDown={handleLeafOnKeyDown.current}
+      onBranchKeyDown={handleBranchKeyDown}
+      onLeafKeyDown={handleLeafOnKeyDown}
     />
   );
 });
@@ -316,21 +316,15 @@ const SubLocation = observer(
     const { uiStore } = useStore();
     const state = useLocationsTreeState();
     const { show } = treeData;
-    const handleContextMenu = useCallback(
-      (e: React.MouseEvent) =>
-        show(e.clientX, e.clientY, <DirectoryMenu path={nodeData.fullPath} />),
-      [nodeData, show],
-    );
+    const handleContextMenu = (e: React.MouseEvent) =>
+      show(e.clientX, e.clientY, <DirectoryMenu path={nodeData.fullPath} />);
 
-    const handleClick = useCallback(
-      (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        // TODO: Mark searched nodes as selected?
-        event.ctrlKey
-          ? uiStore.addSearchCriteria(pathCriteria(nodeData.fullPath))
-          : uiStore.replaceSearchCriteria(pathCriteria(nodeData.fullPath));
-      },
-      [nodeData.fullPath, uiStore],
-    );
+    const handleClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      // TODO: Mark searched nodes as selected?
+      event.ctrlKey
+        ? uiStore.addSearchCriteria(pathCriteria(nodeData.fullPath))
+        : uiStore.replaceSearchCriteria(pathCriteria(nodeData.fullPath));
+    };
 
     const { handleDragEnter, handleDragLeave, handleDrop } = useFileDrop(
       nodeData.fullPath,

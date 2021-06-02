@@ -110,7 +110,7 @@ const Header = observer(({ toggleBody, onDrag, onDrop }: HeaderProps) => {
       .create('New Tag')
       .then((tag) => state.enableEditing(tag.id))
       .catch((err) => console.log('Could not create tag', err)),
-  );
+  ).current;
 
   return (
     <header onDragOver={onDrag} onDragLeave={onDrag} onDrop={onDrop}>
@@ -129,7 +129,7 @@ const Header = observer(({ toggleBody, onDrag, onDrop }: HeaderProps) => {
             showLabel="never"
             icon={IconSet.PLUS}
             text="New Tag"
-            onClick={handleRootAddTag.current}
+            onClick={handleRootAddTag}
             tooltip="Add a new tag"
           />
         )}
@@ -326,7 +326,7 @@ const Content = observer(({ show }: ContentProps) => {
         toggleExpansion,
         customKeys.bind(null, uiStore, tagStore),
       ),
-  );
+  ).current;
 
   const handleLeafOnKeyDown = useRef(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
@@ -337,7 +337,7 @@ const Content = observer(({ show }: ContentProps) => {
         toggleSelection.bind(null, tagStore),
         customKeys.bind(null, uiStore, tagStore),
       ),
-  );
+  ).current;
 
   return (
     <Tree
@@ -347,8 +347,8 @@ const Content = observer(({ show }: ContentProps) => {
       children={root.subTags.map((t) => mapTag(t, tagStore))}
       treeData={treeData}
       toggleExpansion={toggleExpansion}
-      onBranchKeyDown={handleBranchOnKeyDown.current}
-      onLeafKeyDown={handleLeafOnKeyDown.current}
+      onBranchKeyDown={handleBranchOnKeyDown}
+      onLeafKeyDown={handleLeafOnKeyDown}
     />
   );
 });
@@ -406,17 +406,11 @@ const TagItem = observer((props: ITagItemProps) => {
   );
 
   // Don't expand immediately on drag-over, only after hovering over it for a second or so
-  const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
-  const expandDelayed = useCallback(
-    (nodeId: string) => {
-      if (expandTimeoutId) clearTimeout(expandTimeoutId);
-      const t = window.setTimeout(() => {
-        state.expandNode(nodeId);
-      }, HOVER_TIME_TO_EXPAND);
-      setExpandTimeoutId(t);
-    },
-    [expandTimeoutId, state],
-  );
+  const expandTimeoutId = useRef<number>();
+  const clearExpandTimer = useRef(() => {
+    clearTimeout(expandTimeoutId.current);
+    expandTimeoutId.current = undefined;
+  });
 
   const handleDragOver = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -457,15 +451,16 @@ const TagItem = observer((props: ITagItemProps) => {
       // Don't expand when hovering over top/bottom border
       const targetClasses = e.currentTarget.classList;
       if (targetClasses.contains('top') || targetClasses.contains('bottom')) {
-        if (expandTimeoutId) {
-          clearTimeout(expandTimeoutId);
-          setExpandTimeoutId(undefined);
-        }
-      } else if (!state.isExpanded(nodeData.id) && !expandTimeoutId) {
-        expandDelayed(nodeData.id);
+        clearExpandTimer.current();
+      } else if (!state.isExpanded(nodeData.id)) {
+        clearTimeout(expandTimeoutId.current);
+        expandTimeoutId.current = window.setTimeout(
+          () => state.expandNode(nodeData.id),
+          HOVER_TIME_TO_EXPAND,
+        );
       }
     },
-    [dndData.source, expandDelayed, expandTimeoutId, nodeData, state, tagStore],
+    [dndData.source, nodeData, state, tagStore],
   );
 
   const handleDragLeave = useCallback(
@@ -477,13 +472,10 @@ const TagItem = observer((props: ITagItemProps) => {
         event.currentTarget.dataset[DnDAttribute.Target] = 'false';
         event.currentTarget.classList.remove('top');
         event.currentTarget.classList.remove('bottom');
-        if (expandTimeoutId) {
-          clearTimeout(expandTimeoutId);
-          setExpandTimeoutId(undefined);
-        }
+        clearExpandTimer.current();
       }
     },
-    [dndData, expandTimeoutId],
+    [dndData],
   );
 
   const handleDrop = useCallback(
@@ -517,12 +509,9 @@ const TagItem = observer((props: ITagItemProps) => {
       e.currentTarget.dataset[DnDAttribute.Target] = 'false';
       e.currentTarget.classList.remove('top');
       e.currentTarget.classList.remove('bottom');
-      if (expandTimeoutId) {
-        clearTimeout(expandTimeoutId);
-        setExpandTimeoutId(undefined);
-      }
+      clearExpandTimer.current();
     },
-    [dndData, expandTimeoutId, nodeData, pos, tagStore],
+    [dndData, nodeData, pos, tagStore],
   );
 
   const handleSelect = useCallback(
@@ -579,11 +568,11 @@ const TagItem = observer((props: ITagItemProps) => {
 const EditableName = observer(({ tag }: { tag: ClientTag }) => {
   const state = useTagsTreeState();
 
-  const submit = useRef((target: EventTarget & HTMLInputElement) => {
+  const submit = (target: EventTarget & HTMLInputElement) => {
     target.focus();
     state.disableEditing();
     target.setSelectionRange(0, 0);
-  }).current;
+  };
 
   return (
     <input

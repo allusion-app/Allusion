@@ -22,7 +22,7 @@ export const HotkeyMapper = observer(() => {
     } else {
       textDispatch[1](getKeyComboString(e.nativeEvent));
     }
-  });
+  }).current;
 
   return (
     <div id="hotkey-mapper">
@@ -40,7 +40,7 @@ export const HotkeyMapper = observer(() => {
               isChanging={isChanging}
               combo={combo}
               textDispatch={textDispatch}
-              onKeyDown={handleKeyDown.current}
+              onKeyDown={handleKeyDown}
               setEditableKey={onChange}
             />
           </details>
@@ -85,7 +85,7 @@ const KeyComboEditor = ({
     setEditableKey(null);
     setText('');
     isEditable.current = false;
-  });
+  }).current;
 
   return (
     <div className="key-combo-editor">
@@ -97,7 +97,7 @@ const KeyComboEditor = ({
           value={isChanging ? text : keyComboToString(combo)}
           readOnly={!isChanging}
           onKeyDown={onKeyDown}
-          onBlur={handleOnBlur.current}
+          onBlur={handleOnBlur}
           onChange={() => void {}} // React quirk requires change handler
         />
         {text.length > 0 && isInvalidCombo(text, actionKey, hotkeyMap) && (

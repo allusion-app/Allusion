@@ -54,7 +54,7 @@ export default function useContextMenu(
         dispatch((state) => ({ ...state, open: false }));
       }
     },
-  });
+  }).current;
 
-  return [state, contextMenuMethods.current];
+  return [state, contextMenuMethods];
 }

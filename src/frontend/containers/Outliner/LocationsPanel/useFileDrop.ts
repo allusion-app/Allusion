@@ -5,7 +5,7 @@ import { ALLOWED_DROP_TYPES } from 'src/frontend/containers/Outliner/LocationsPa
 import { timeoutPromise } from 'src/frontend/utils';
 import { IStoreFileMessage, RendererMessenger } from 'src/Messaging';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { HOVER_TIME_TO_EXPAND } from '..';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { useLocationsTreeState } from './LocationsTreeState';
@@ -13,12 +13,7 @@ import { useLocationsTreeState } from './LocationsTreeState';
 export function useFileDrop(expansionId: string, fullPath: string) {
   const state = useLocationsTreeState();
   // Don't expand immediately, only after hovering over it for a second or so
-  const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
-  const expandDelayed = useCallback(() => {
-    if (expandTimeoutId) clearTimeout(expandTimeoutId);
-    const t = window.setTimeout(() => state.toggleExpansion(expansionId), HOVER_TIME_TO_EXPAND);
-    setExpandTimeoutId(t);
-  }, [expandTimeoutId, expansionId, state]);
+  const expandTimeoutId = useRef<number>();
 
   const handleDragEnter = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -26,10 +21,14 @@ export function useFileDrop(expansionId: string, fullPath: string) {
       event.preventDefault();
       const canDrop = onDragOver(event);
       if (canDrop && !state.isExpanded(expansionId)) {
-        expandDelayed();
+        clearTimeout(expandTimeoutId.current);
+        expandTimeoutId.current = window.setTimeout(
+          () => state.toggleExpansion(expansionId),
+          HOVER_TIME_TO_EXPAND,
+        );
       }
     },
-    [state, expansionId, expandDelayed],
+    [state, expansionId],
   );
 
   const handleDrop = useCallback(
@@ -54,22 +53,20 @@ export function useFileDrop(expansionId: string, fullPath: string) {
     [fullPath],
   );
 
-  const handleDragLeaveWrapper = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      // Drag events are also triggered for children??
-      // We don't want to detect dragLeave of a child as a dragLeave of the target element, so return immmediately
-      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) return;
+  const handleDragLeaveWrapper = useRef((event: React.DragEvent<HTMLDivElement>) => {
+    // Drag events are also triggered for children??
+    // We don't want to detect dragLeave of a child as a dragLeave of the target element, so return immmediately
+    if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) {
+      return;
+    }
 
-      event.stopPropagation();
-      event.preventDefault();
-      handleDragLeave(event);
-      if (expandTimeoutId) {
-        clearTimeout(expandTimeoutId);
-        setExpandTimeoutId(undefined);
-      }
-    },
-    [expandTimeoutId],
-  );
+    event.stopPropagation();
+    event.preventDefault();
+    handleDragLeave(event);
+
+    clearTimeout(expandTimeoutId.current);
+    expandTimeoutId.current = undefined;
+  }).current;
 
   return {
     handleDragEnter,
