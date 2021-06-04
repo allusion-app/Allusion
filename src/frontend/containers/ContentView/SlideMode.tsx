@@ -1,6 +1,6 @@
 import { autorun, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { IconSet, Split } from 'widgets';
@@ -115,7 +115,7 @@ const SlideView = observer((props: ISlideView) => {
     const popStateHandler = uiStore.disableSlideMode;
     window.addEventListener('popstate', popStateHandler);
     return () => window.removeEventListener('popstate', popStateHandler);
-  }, [uiStore.disableSlideMode]);
+  }, [uiStore]);
 
   const decrImgIndex = useAction(() => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1)));
   const incrImgIndex = useAction(() =>
@@ -123,30 +123,29 @@ const SlideView = observer((props: ISlideView) => {
   );
 
   // Detect left/right arrow keys to scroll between images
-  const handleUserKeyPress = useRef((event: KeyboardEvent) => {
-    if (event.key === 'ArrowLeft') {
-      decrImgIndex();
-    } else if (event.key === 'ArrowRight') {
-      incrImgIndex();
-    } else if (event.key === 'Escape' || event.key === 'Backspace') {
-      uiStore.disableSlideMode();
-    }
-  }).current;
-
-  // Set up event listeners
   useEffect(() => {
+    const handleUserKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft') {
+        decrImgIndex();
+      } else if (event.key === 'ArrowRight') {
+        incrImgIndex();
+      } else if (event.key === 'Escape' || event.key === 'Backspace') {
+        uiStore.disableSlideMode();
+      }
+    };
+
     window.addEventListener('keydown', handleUserKeyPress);
     return () => {
       window.removeEventListener('keydown', handleUserKeyPress);
     };
-  }, [handleUserKeyPress]);
+  }, [decrImgIndex, incrImgIndex, uiStore]);
 
   return (
     <ZoomableImage
       src={file.absolutePath}
       width={width}
       height={height}
-      prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
+      prevImage={uiStore.firstItem > 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
       onContextMenu={handleContextMenu}
     />

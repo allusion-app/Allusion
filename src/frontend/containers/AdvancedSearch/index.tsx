@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
-import { runInAction } from 'mobx';
+import { autorun } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { generateId, ID } from 'src/entities/ID';
@@ -13,29 +13,29 @@ import './search.scss';
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore, tagStore } = useStore();
-  const { searchCriteriaList, isAdvancedSearchOpen } = uiStore;
   const [form, setForm] = useState(new Map<ID, Query>());
 
   // Initialize form with current queries. When the form is closed, all inputs
   // are unmounted to save memory.
   useEffect(() => {
-    if (isAdvancedSearchOpen) {
-      const map = new Map();
-      runInAction(() => {
-        if (searchCriteriaList.length > 0) {
-          for (const criteria of searchCriteriaList) {
+    return autorun(() => {
+      if (uiStore.isAdvancedSearchOpen) {
+        const map = new Map();
+
+        if (uiStore.searchCriteriaList.length > 0) {
+          for (const criteria of uiStore.searchCriteriaList) {
             const [id, query] = fromCriteria(criteria);
             map.set(id, query);
           }
         } else {
           map.set('tags', defaultQuery('tags'));
         }
-      });
-      setForm(map);
-    } else {
-      setForm(new Map());
-    }
-  }, [isAdvancedSearchOpen, searchCriteriaList]);
+        setForm(map);
+      } else {
+        setForm(new Map());
+      }
+    });
+  }, [uiStore]);
 
   const add = useRef(() => setForm((f) => new Map(f.set(generateId(), defaultQuery('tags')))))
     .current;
@@ -51,7 +51,7 @@ export const AdvancedSearchDialog = observer(() => {
 
   return (
     <Dialog
-      open={isAdvancedSearchOpen}
+      open={uiStore.isAdvancedSearchOpen}
       onCancel={uiStore.closeAdvancedSearch}
       labelledby="dialog-title"
       describedby="search-form"

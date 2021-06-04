@@ -47,11 +47,9 @@ const TagsTree = observer(() => {
     }
   }, [dndData, tagStore]);
 
-  const toggleBody = useRef(() => setIsOpen((v) => !v)).current;
-
   return (
     <TagsTreeStateProvider value={state}>
-      <Header toggleBody={toggleBody} onDrag={handleDragOverAndLeave} onDrop={handleDrop} />
+      <Header setIsOpen={setIsOpen} onDrag={handleDragOverAndLeave} onDrop={handleDrop} />
 
       <Collapse open={isOpen}>
         {tagStore.isEmpty ? (
@@ -96,25 +94,18 @@ const TagsTree = observer(() => {
 export default TagsTree;
 
 interface HeaderProps {
-  toggleBody: () => void;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onDrag: (event: React.DragEvent<HTMLDivElement>) => void;
   onDrop: () => void;
 }
 
-const Header = observer(({ toggleBody, onDrag, onDrop }: HeaderProps) => {
+const Header = observer(({ setIsOpen, onDrag, onDrop }: HeaderProps) => {
   const { tagStore } = useStore();
   const state = useTagsTreeState();
 
-  const handleRootAddTag = useRef(() =>
-    tagStore
-      .create('New Tag')
-      .then((tag) => state.enableEditing(tag.id))
-      .catch((err) => console.log('Could not create tag', err)),
-  ).current;
-
   return (
     <header onDragOver={onDrag} onDragLeave={onDrag} onDrop={onDrop}>
-      <h2 onClick={toggleBody}>Tags</h2>
+      <h2 onClick={() => setIsOpen((v) => !v)}>Tags</h2>
       <Toolbar controls="tag-hierarchy">
         {tagStore.selection.size > 0 ? (
           <ToolbarButton
@@ -129,7 +120,12 @@ const Header = observer(({ toggleBody, onDrag, onDrop }: HeaderProps) => {
             showLabel="never"
             icon={IconSet.PLUS}
             text="New Tag"
-            onClick={handleRootAddTag}
+            onClick={() => {
+              tagStore
+                .create('New Tag')
+                .then((tag) => state.enableEditing(tag.id))
+                .catch((err) => console.log('Could not create tag', err));
+            }}
             tooltip="Add a new tag"
           />
         )}

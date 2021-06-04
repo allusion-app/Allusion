@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useMemo, useRef, memo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { autorun, flow } from 'mobx';
 
@@ -29,13 +29,11 @@ const LocationsTree = observer(() => {
   const state = useRef(new LocationsTreeState()).current;
   const [isOpen, setIsOpen] = useState(true);
 
-  const toggleBody = useRef(() => setIsOpen((v) => !v)).current;
-
   const isEmpty = locationStore.locationList.length === 0;
 
   return (
     <LocationsTreeStateProvider value={state}>
-      <Header toggleBody={toggleBody} />
+      <Header setIsOpen={setIsOpen} />
       <Collapse open={isOpen}>
         {isEmpty ? <i>Click + to choose a Location</i> : <Content show={show} />}
       </Collapse>
@@ -62,7 +60,7 @@ const LocationsTree = observer(() => {
 export default LocationsTree;
 
 interface HeaderProps {
-  toggleBody: () => void;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 // Tooltip info
@@ -71,71 +69,67 @@ const enum Tooltip {
   Refresh = 'Refresh directories',
 }
 
-const Header = observer(({ toggleBody }: HeaderProps) => {
+const Header = memo(function Header({ setIsOpen }: HeaderProps) {
   const state = useLocationsTreeState();
   const { locationStore } = useStore();
 
   // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
-  const handleChooseWatchedDir = useRef(
-    flow(function* () {
-      let path: string;
-      try {
-        const { filePaths }: { filePaths: string[] } = yield RendererMessenger.openDialog({
-          properties: ['openDirectory'],
-        });
-        // multi-selection is disabled which means there can be at most 1 folder
-        if (filePaths.length === 0) {
-          return;
-        }
-        path = filePaths[0];
-      } catch (error) {
-        // TODO: Show error notification.
-        console.error(error);
+  const handleChooseWatchedDir = flow(function* () {
+    let path: string;
+    try {
+      const { filePaths }: { filePaths: string[] } = yield RendererMessenger.openDialog({
+        properties: ['openDirectory'],
+      });
+      // multi-selection is disabled which means there can be at most 1 folder
+      if (filePaths.length === 0) {
         return;
       }
+      path = filePaths[0];
+    } catch (error) {
+      // TODO: Show error notification.
+      console.error(error);
+      return;
+    }
 
-      if (path === undefined) {
-        return;
-      }
+    if (path === undefined) {
+      return;
+    }
 
-      // Check if the new location is a sub-directory of an existing location
-      const parentDir = locationStore.locationList.some((dir) => path.includes(dir.path));
-      if (parentDir) {
-        AppToaster.show({
-          message: 'You cannot add a location that is a sub-folder of an existing location.',
-          timeout: 5000,
-        });
-        return;
-      }
+    // Check if the new location is a sub-directory of an existing location
+    const parentDir = locationStore.locationList.some((dir) => path.includes(dir.path));
+    if (parentDir) {
+      AppToaster.show({
+        message: 'You cannot add a location that is a sub-folder of an existing location.',
+        timeout: 5000,
+      });
+      return;
+    }
 
-      // Check if the new location is a parent-directory of an existing location
-      const childDir = locationStore.locationList.some((dir) => dir.path.includes(path));
-      if (childDir) {
-        AppToaster.show({
-          message: 'You cannot add a location that is a parent-folder of an existing location.',
-          timeout: 5000,
-        });
-        return;
-      }
+    // Check if the new location is a parent-directory of an existing location
+    const childDir = locationStore.locationList.some((dir) => dir.path.includes(path));
+    if (childDir) {
+      AppToaster.show({
+        message: 'You cannot add a location that is a parent-folder of an existing location.',
+        timeout: 5000,
+      });
+      return;
+    }
 
-      const location: ClientLocation = yield locationStore.create(path);
-      yield locationStore.initLocation(location);
-    }),
-  ).current;
+    const location: ClientLocation = yield locationStore.create(path);
+    yield locationStore.initLocation(location);
+  });
 
   return (
     <header>
-      <h2 onClick={toggleBody}>Locations</h2>
+      <h2 onClick={() => setIsOpen((v) => !v)}>Locations</h2>
       <Toolbar controls="location-list">
-        {locationStore.locationList.length > 0 && (
-          <ToolbarButton
-            showLabel="never"
-            icon={IconSet.RELOAD}
-            text="Refresh"
-            onClick={state.reload}
-            tooltip={Tooltip.Refresh}
-          />
-        )}
+        <ToolbarButton
+          showLabel="never"
+          icon={IconSet.RELOAD}
+          text="Refresh"
+          onClick={state.reload}
+          tooltip={Tooltip.Refresh}
+        />
         <ToolbarButton
           showLabel="never"
           icon={IconSet.PLUS}
