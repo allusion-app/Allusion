@@ -2,6 +2,7 @@ import React, { useContext, useCallback, useState, useEffect, useMemo } from 're
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { autorun, runInAction } from 'mobx';
+import SysPath from 'path';
 
 import { RendererMessenger } from 'src/Messaging';
 import StoreContext from 'src/frontend/contexts/StoreContext';
@@ -64,7 +65,13 @@ const emptyFunction = () => {};
 // };
 
 const pathCriteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>('absolutePath', path, 'startsWith', CustomKeyDict);
+  new ClientStringSearchCriteria<IFile>(
+    'absolutePath',
+    // Add an additional / or \ in order to enforce files only in the specific directory are found, not in those starting with same name
+    `${path}${SysPath.sep}`,
+    'startsWith',
+    CustomKeyDict,
+  );
 
 const customKeys = (
   search: (path: string) => void,
@@ -460,7 +467,7 @@ const LocationsPanel = observer(() => {
   const { locationStore } = useContext(StoreContext);
   const [contextState, { show, hide }] = useContextMenu();
 
-  const [deletableLocation, setDeletableLocation] = useState<ClientLocation | undefined>(undefined);
+  const [deletableLocation, setDeletableLocation] = useState<ClientLocation>();
   const [isCollapsed, setCollapsed] = useState(false);
   const [reloadLocationHierarchyTrigger, setReloadLocationHierarchyTrigger] = useState(new Date());
 
