@@ -12,7 +12,7 @@ const Toggle = (props: IToggle) => {
   const { checked, onChange, onLabel = 'On', offLabel = 'Off' } = props;
   return (
     <label className="toggle">
-      <input data-toggle type="checkbox" checked={checked} onChange={onChange} />
+      <input role="switch" type="checkbox" checked={checked} onChange={onChange} />
       {checked ? onLabel : offLabel}
     </label>
   );

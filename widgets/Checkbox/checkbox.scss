@@ -45,7 +45,7 @@ input[type='checkbox'] {
 }
 
 // Switch
-input[type='checkbox'][data-toggle='true'] {
+input[type='checkbox'][role='switch'] {
   min-width: 2.5rem;
   border-radius: 2.5rem;
   margin-left: 0;
