@@ -3,12 +3,13 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import { comboMatches, getKeyCombo, parseKeyCombo } from 'src/frontend/hotkeyParser';
+import FileStore from 'src/frontend/stores/FileStore';
+import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
+import { GalleryEventHandler, GallerySelector, MissingImageFallback } from './GalleryItem';
 import { createSubmitCommand } from './LayoutSwitcher';
-import { GallerySelector, MissingImageFallback } from './GalleryItem';
-import UiStore from 'src/frontend/stores/UiStore';
-import FileStore from 'src/frontend/stores/FileStore';
 
 interface ISlideMode {
   contentRect: { width: number; height: number };
@@ -74,6 +75,11 @@ const SlideView = observer((props: ISlideView) => {
         payload: [file, e.clientX, e.clientY],
       });
     },
+    [file, submitCommand],
+  );
+
+  const eventHandlers = useMemo(
+    () => submitCommand && new GalleryEventHandler(file, submitCommand).handlers,
     [file, submitCommand],
   );
 
@@ -151,6 +157,8 @@ const SlideView = observer((props: ISlideView) => {
       prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
       onContextMenu={handleContextMenu}
+      onDrop={eventHandlers.onDrop}
+      tabIndex={-1}
     />
   );
 });
@@ -164,13 +172,14 @@ interface IZoomableImageProps {
   onContextMenu: (e: React.MouseEvent) => void;
 }
 
-const ZoomableImage: React.FC<IZoomableImageProps> = ({
+const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDivElement>> = ({
   src,
   width,
   height,
   prevImage,
   nextImage,
   onContextMenu,
+  ...rest
 }: IZoomableImageProps) => {
   const [loadError, setLoadError] = useState<any>();
   useEffect(() => setLoadError(undefined), [src]);
@@ -182,6 +191,7 @@ const ZoomableImage: React.FC<IZoomableImageProps> = ({
         height: `${height}px`,
       }}
       onContextMenu={onContextMenu}
+      {...rest}
     >
       {loadError ? (
         <MissingImageFallback
