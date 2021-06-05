@@ -82,6 +82,8 @@ export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => 
 
       <div className="spacer" />
 
+      <TagFilesPopover />
+
       <ToolbarButton
         showLabel="never"
         icon={IconSet.INFO}
