@@ -9,6 +9,8 @@ import { IconSet, Toggle } from 'widgets';
 import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './ThumbnailGeneration';
+import { Tooltip } from './containers/AppToolbar/PrimaryCommands';
+import { SlideImageControls } from './containers/ContentView/SlideMode';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);
@@ -50,7 +52,22 @@ const PreviewApp = observer(() => {
             onChange={uiStore.toggleSlideMode}
             checked={!uiStore.isSlideMode}
             onLabel="Overview"
-            offLabel="Details"
+            offLabel="Full size"
+          />
+
+          <div className="spacer" />
+
+          <SlideImageControls />
+
+          <div className="spacer" />
+
+          <ToolbarButton
+            showLabel="never"
+            icon={IconSet.INFO}
+            onClick={uiStore.toggleInspector}
+            checked={uiStore.isInspectorOpen}
+            text={Tooltip.Inspector}
+            tooltip={Tooltip.Inspector}
           />
         </Toolbar>
 

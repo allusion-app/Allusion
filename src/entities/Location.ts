@@ -33,7 +33,7 @@ export class ClientSubLocation implements ISubLocation {
     public path: string,
     name: string,
     excluded: boolean,
-    subLocations: ISubLocation[],
+    subLocations: ISubLocation[] = [],
   ) {
     this.name = name;
     this.isExcluded = excluded;
@@ -92,7 +92,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     id: ID,
     path: string,
     dateAdded: Date,
-    subLocations: ISubLocation[],
+    subLocations: ISubLocation[] = [],
   ) {
     this.store = store;
     this.id = id;

@@ -7,6 +7,7 @@ import { comboMatches, getKeyCombo, parseKeyCombo } from 'src/frontend/hotkeyPar
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, Split } from 'widgets';
+import { ToolbarButton } from 'widgets/Toolbar';
 import Inspector from '../Inspector';
 import { GalleryEventHandler, GallerySelector, MissingImageFallback } from './GalleryItem';
 import { createSubmitCommand } from './LayoutSwitcher';
@@ -163,6 +164,56 @@ const SlideView = observer((props: ISlideView) => {
   );
 });
 
+// Quick hack for getting zoom controls. Storing the ref to the PinchPanZoom component globally
+// https://github.com/bradstiff/react-responsive-pinch-zoom-pan/blob/master/src/PinchZoomPan.js#L280
+let _PinchPanZoomRef: any = undefined;
+const SetPinchPanZoomRef = (ref: any) => (_PinchPanZoomRef = ref);
+const _performZoom = (factor: number) => {
+  if (!_PinchPanZoomRef) return;
+  const midpoint = {
+    x: _PinchPanZoomRef.state.containerDimensions.width / 2,
+    y: _PinchPanZoomRef.state.containerDimensions.height / 2,
+  };
+  _PinchPanZoomRef.zoom(_PinchPanZoomRef.state.scale * factor, midpoint, 0, 0.3);
+};
+const handleZoomOut = () => _performZoom(2 / 3);
+const handleZoomIn = () => _performZoom(1.5);
+const handleZoomReset = () => _PinchPanZoomRef?.applyInitialTransform?.(0.1);
+
+export const SlideImageControls = () => {
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).matches?.('input')) return;
+      const combo = getKeyCombo(e);
+      const matches = (c: string): boolean => {
+        return comboMatches(combo, parseKeyCombo(c));
+      };
+      if (matches('plus')) {
+        handleZoomIn();
+      } else if (matches('minus')) {
+        handleZoomOut();
+      } else if (matches('0')) {
+        handleZoomReset();
+      }
+    };
+    document.body.addEventListener('keypress', listener);
+    return () => document.body.removeEventListener('keypress', listener);
+  });
+  return (
+    <>
+      <ToolbarButton icon={<b>-</b>} text="Zoom out" showLabel="never" onClick={handleZoomOut} />
+      <ToolbarButton icon={<b>+</b>} text="Zoom in" showLabel="never" onClick={handleZoomIn} />
+      <ToolbarButton
+        icon={IconSet.RELOAD}
+        text="Zoom to fit"
+        showLabel="never"
+        onClick={handleZoomReset}
+      />
+    </>
+  );
+};
+// end of hacky bit
+
 interface IZoomableImageProps {
   src: string;
   width: number;
@@ -211,6 +262,7 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
           maxScale={5}
           // Force a re-render when the image changes, in order to reset the zoom level
           key={src}
+          ref={SetPinchPanZoomRef}
         >
           <img src={src} alt={`Image could not be loaded: ${src}`} onError={setLoadError} />
         </PinchZoomPan>

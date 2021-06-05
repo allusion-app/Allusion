@@ -10,6 +10,7 @@ import { FileRemoval } from 'src/frontend/components/RemovalAlert';
 import TagFilesPopover from 'src/frontend/containers/AppToolbar/TagFilesPopover';
 import Searchbar from './Searchbar';
 import { SortCommand, ViewCommand } from './Menus';
+import { SlideImageControls } from '../ContentView/SlideMode';
 
 // Tooltip info
 export const enum Tooltip {
@@ -81,6 +82,12 @@ export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => 
       />
 
       <div className="spacer" />
+
+      <SlideImageControls />
+
+      <div className="spacer" />
+
+      <TagFilesPopover />
 
       <ToolbarButton
         showLabel="never"
