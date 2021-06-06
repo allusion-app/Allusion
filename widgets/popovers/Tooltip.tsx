@@ -1,3 +1,4 @@
+import { Placement } from '@popperjs/core';
 import React, { ReactText, useEffect, useRef, useState } from 'react';
 import { usePopper } from 'react-popper';
 
@@ -11,23 +12,29 @@ let IS_TOOLTIP_VISIBLE = false;
 export const TooltipLayer = ({ className }: { className?: string }) => {
   const popoverElement = useRef<HTMLDivElement>(null);
   const anchorElement = useRef<Element | null>();
+  const popperOptions = useRef({
+    placement: 'auto' as Placement,
+    modifiers: [
+      {
+        name: 'preventOverflow',
+        options: {
+          // Prevents dialogs from moving elements to the side
+          boundary: document.body,
+          altAxis: true,
+          padding: 8,
+        },
+      },
+      {
+        name: 'offset',
+        options: { offset: [0, 4] },
+      },
+      { name: 'hide' },
+    ],
+  }).current;
   const { styles, attributes, forceUpdate } = usePopper(
     anchorElement.current,
     popoverElement.current,
-    {
-      placement: 'auto',
-      modifiers: [
-        {
-          name: 'preventOverflow',
-          options: {
-            // Prevents dialogs from moving elements to the side
-            boundary: document.body,
-            altAxis: true,
-            padding: 8,
-          },
-        },
-      ],
-    },
+    popperOptions,
   );
 
   const [isOpen, setIsOpen] = useState(false);
@@ -87,7 +94,7 @@ type TooltipHandler = {
   onHide: (e: React.MouseEvent | React.FocusEvent) => void;
 };
 
-export function useTooltip(content: ReactText, hoverDelay: number = 500): TooltipHandler {
+export function useTooltip(content: ReactText): TooltipHandler {
   const contentRef = useRef(content);
   contentRef.current = content;
   const timerID = useRef<number>();
@@ -115,7 +122,7 @@ export function useTooltip(content: ReactText, hoverDelay: number = 500): Toolti
           target.dispatchEvent(
             new CustomEvent<ReactText>(TooltipEvent.Show, { detail }),
           );
-        }, hoverDelay);
+        }, 500);
       }
     },
     onHide: (e: React.MouseEvent<Element> | React.FocusEvent) => {

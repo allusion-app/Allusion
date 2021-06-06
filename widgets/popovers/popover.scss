@@ -11,6 +11,16 @@ dialog {
   z-index: 1;
 
   &[open] {
+    @keyframes appear {
+      from {
+        transform: translateY(-3rem);
+      }
+
+      to {
+        transform: translateY(0);
+      }
+    }
+
     animation: appear 0.1s linear;
   }
 
@@ -116,7 +126,6 @@ dialog[role='alertdialog'] {
 // DIALOG UNTIL HERE
 
 [data-popover] {
-  visibility: hidden;
   z-index: 1;
 
   color: var(--text-color);
@@ -127,33 +136,51 @@ dialog[role='alertdialog'] {
 
   &[data-open='true'] {
     visibility: visible;
+    pointer-events: initial;
+  }
+
+  &[data-open='false'],
+  &[data-popper-reference-hidden='true'] {
+    visibility: hidden;
+    pointer-events: none;
   }
 }
 
 [role='tooltip'] {
   background: var(--accent-color-blue);
   color: white;
-  transition: opacity 0.1s linear;
-  opacity: 0;
+  border-radius: 0.125rem;
 
   &[data-open='true'] {
-    opacity: 1;
+    @keyframes show {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+    animation: show 0.1s linear;
+  }
+
+  &[data-open='false'] {
+    @keyframes hide {
+      from {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+        visibility: hidden;
+      }
+    }
+    animation: hide 0.1s linear;
   }
 
   .tooltip {
     display: inline-flex;
     margin: 0.25rem 0.5rem;
-  }
-}
-
-// ALSO USED IN DIALOG
-
-@keyframes appear {
-  from {
-    transform: translateY(-3rem);
-  }
-
-  to {
-    transform: translateY(0);
   }
 }
