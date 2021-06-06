@@ -57,7 +57,7 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
   const [query, setQuery] = useState('');
   const normalizedQuery = query.toLowerCase();
 
-  const suggestions = tagStore.flatTagHierarchyWithoutRoot.filter(
+  const suggestions = tagStore.tagList.filter(
     (t) => t.name.toLowerCase().indexOf(normalizedQuery) >= 0,
   );
 
@@ -65,7 +65,10 @@ const MultiTagSelector = observer((props: IMultiTagSelector) => {
   const options = useMemo(() => {
     const res: (IOption & { id: string; divider?: boolean })[] = suggestions.map((t, i) => {
       const isSelected = selection.includes(t);
-      const hint = t.recursiveParentTags.map((t) => t.name).join(' › ');
+      const hint = t.treePath
+        .slice(0, -1)
+        .map((t) => t.name)
+        .join(' › ');
       return {
         id: `${t.id}-${i}`,
         selected: isSelected,

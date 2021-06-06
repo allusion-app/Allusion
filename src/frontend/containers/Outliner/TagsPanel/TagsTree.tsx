@@ -521,7 +521,7 @@ const TagsTree = observer(() => {
       if (dndData.source?.isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_ID);
       } else if (dndData.source !== undefined) {
-        root.insertSubTag(dndData.source, tagStore.tagList.length);
+        root.insertSubTag(dndData.source, tagStore.count);
       }
     });
   }, [dndData, root, tagStore, uiStore]);

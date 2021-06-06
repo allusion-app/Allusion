@@ -4,7 +4,7 @@ import { getDefaultThumbnailDirectory } from 'src/config';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, debounce } from '../utils';
@@ -447,31 +447,20 @@ class UiStore {
     }
   }
 
-  /** Selects a range of tags, where indices correspond to the flattened tag list, see {@link TagStore.findFlatTagListIndex} */
+  /** Selects a range of tags, where indices correspond to the flattened tag list. */
   @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
+    const tagTreeList = this.rootStore.tagStore.tagList;
     if (!additive) {
-      this.tagSelection.clear();
+      this.tagSelection.replace(tagTreeList.slice(start, end + 1));
+      return;
     }
-    // Iterative DFS algorithm
-    const stack: ClientTag[] = [];
-    let tag: ClientTag | undefined = this.rootStore.tagStore.root;
-    let index = -1;
-    do {
-      if (index >= start) {
-        this.tagSelection.add(tag);
-      }
-      for (let i = tag.subTags.length - 1; i >= 0; i--) {
-        const subTag = tag.subTags[i];
-        stack.push(subTag);
-      }
-      tag = stack.pop();
-      index += 1;
-    } while (tag !== undefined && index <= end);
+    for (let i = start; i <= end; i++) {
+      this.tagSelection.add(tagTreeList[i]);
+    }
   }
 
   @action.bound selectAllTags() {
     this.tagSelection.replace(this.rootStore.tagStore.tagList);
-    this.tagSelection.delete(this.rootStore.tagStore.root);
   }
 
   @action.bound clearTagSelection() {
@@ -521,9 +510,7 @@ class UiStore {
 
     // If no id is given or when the selected tag or collection is selected, the context is the whole selection
     if (isContextTheSelection) {
-      const selectedTags = tagStore.tagList.filter((c) => c.isSelected);
-      // root tag may not be present in the context
-      contextTags.push(...selectedTags.filter((t) => t.id !== ROOT_TAG_ID));
+      contextTags.push(...this.tagSelection);
     }
 
     return contextTags;

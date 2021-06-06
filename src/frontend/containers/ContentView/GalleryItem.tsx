@@ -404,7 +404,7 @@ const Tags = observer(
             key={tag.id}
             text={tag.name}
             color={tag.viewColor}
-            title={[...tag.recursiveParentTags.map((t) => t.name), tag.name].join(' › ')}
+            title={tag.treePath.map((t) => t.name).join(' › ')}
           />
         ))}
       </span>
