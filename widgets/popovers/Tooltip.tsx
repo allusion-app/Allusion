@@ -11,20 +11,24 @@ let IS_TOOLTIP_VISIBLE = false;
 export const TooltipLayer = ({ className }: { className?: string }) => {
   const popoverElement = useRef<HTMLDivElement>(null);
   const anchorElement = useRef<Element | null>();
-  const { styles, attributes, update } = usePopper(anchorElement.current, popoverElement.current, {
-    placement: 'auto',
-    modifiers: [
-      {
-        name: 'preventOverflow',
-        options: {
-          // Prevents dialogs from moving elements to the side
-          boundary: document.body,
-          altAxis: true,
-          padding: 8,
+  const { styles, attributes, forceUpdate } = usePopper(
+    anchorElement.current,
+    popoverElement.current,
+    {
+      placement: 'auto',
+      modifiers: [
+        {
+          name: 'preventOverflow',
+          options: {
+            // Prevents dialogs from moving elements to the side
+            boundary: document.body,
+            altAxis: true,
+            padding: 8,
+          },
         },
-      },
-    ],
-  });
+      ],
+    },
+  );
 
   const [isOpen, setIsOpen] = useState(false);
   const content = useRef<ReactText>('');
@@ -33,8 +37,8 @@ export const TooltipLayer = ({ className }: { className?: string }) => {
     const handleShow = (e: Event) => {
       anchorElement.current = e.target as Element;
       content.current = (e as CustomEvent<ReactText>).detail;
+      forceUpdate?.();
       setIsOpen(true);
-      update?.();
       IS_TOOLTIP_VISIBLE = true;
     };
 
@@ -61,7 +65,7 @@ export const TooltipLayer = ({ className }: { className?: string }) => {
       document.removeEventListener(TooltipEvent.Hide, handleHide, true);
       document.removeEventListener('keydown', handleEscape, true);
     };
-  }, [update]);
+  }, [forceUpdate]);
 
   return (
     <div
