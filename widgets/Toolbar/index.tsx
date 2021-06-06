@@ -1,7 +1,7 @@
 import './toolbar.scss';
 import React, { useEffect, useRef } from 'react';
 
-import { Tooltip } from '../popovers';
+import { useTooltip } from '../popovers';
 
 interface IToolbar {
   children: React.ReactNode;
@@ -86,12 +86,11 @@ const ToolbarButton = (props: IToolbarButton) => {
     controls,
     haspopup,
   } = props;
-  const portalTriggerRef = useRef<HTMLButtonElement>(null);
+  const { onHide, onShow } = useTooltip(tooltip ?? text);
 
-  const toolbarButton = (
+  return (
     <button
       id={id}
-      ref={portalTriggerRef}
       className="btn toolbar-button"
       onClick={disabled ? undefined : onClick}
       role={role}
@@ -101,7 +100,11 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-controls={controls}
       aria-haspopup={haspopup}
       aria-expanded={expanded}
-      tabIndex={-1}
+      // tabIndex={-1} FIXME: Implement toolbar keyboard navigation.
+      onFocusCapture={onShow}
+      onBlurCapture={onHide}
+      onMouseOutCapture={onHide}
+      onMouseOverCapture={onShow}
     >
       <span className="toolbar-button-content">
         <span className="toolbar-button-icon" aria-hidden>
@@ -111,14 +114,6 @@ const ToolbarButton = (props: IToolbarButton) => {
       </span>
     </button>
   );
-
-  if (tooltip) {
-    return (
-      <Tooltip content={tooltip} trigger={toolbarButton} portalTriggerRef={portalTriggerRef} />
-    );
-  } else {
-    return toolbarButton;
-  }
 };
 
 interface IToolbarToggleButton extends IBaseButton {
