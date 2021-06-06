@@ -6,6 +6,7 @@ import FileTags from './FileTag';
 import ImageInfo from './ImageInfo';
 import { IconButton, IconSet } from 'widgets';
 import { shell } from 'electron';
+import { IS_PREVIEW_WINDOW } from 'src/renderer';
 
 const Inspector = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -42,12 +43,15 @@ const Inspector = observer(() => {
           />
         </div>
       </section>
-      <section>
-        <header>
-          <h2>Tags</h2>
-        </header>
-        <FileTags file={first} />
-      </section>
+      {/* Modifying state in preview window is not supported (not in sync updated in main window) */}
+      {!IS_PREVIEW_WINDOW && (
+        <section>
+          <header>
+            <h2>Tags</h2>
+          </header>
+          <FileTags file={first} />
+        </section>
+      )}
     </aside>
   );
 });

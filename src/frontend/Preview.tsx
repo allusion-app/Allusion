@@ -12,6 +12,7 @@ import { Toolbar, ToolbarButton } from 'widgets/menus';
 import { useWorkerListener } from './ThumbnailGeneration';
 import { comboMatches, getKeyCombo, parseKeyCombo } from './hotkeyParser';
 import { useAction } from './hooks/useAction';
+import { Tooltip } from './containers/AppToolbar/PrimaryCommands';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -80,7 +81,18 @@ const PreviewApp = observer(() => {
             onChange={uiStore.toggleSlideMode}
             checked={!uiStore.isSlideMode}
             onLabel="Overview"
-            offLabel="Details"
+            offLabel="Full size"
+          />
+
+          <div className="spacer" />
+
+          <ToolbarButton
+            showLabel="never"
+            icon={IconSet.INFO}
+            onClick={uiStore.toggleInspector}
+            checked={uiStore.preferences.isInspectorOpen}
+            text={Tooltip.Inspector}
+            tooltip={Tooltip.Inspector}
           />
         </Toolbar>
 

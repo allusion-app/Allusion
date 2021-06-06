@@ -50,6 +50,11 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
         text="Open In Preview Window"
         icon={IconSet.PREVIEW}
       />
+      <MenuItem
+        onClick={uiStore.openToolbarTagPopover}
+        text="Open Tag Selector"
+        icon={IconSet.TAG}
+      />
     </>
   );
 };

@@ -11,7 +11,7 @@ import { SortCommand, ViewCommand } from './Menus';
 
 // Tooltip info
 export const enum Tooltip {
-  TagFiles = 'Quick add or delete tags to selection',
+  TagFiles = 'Add or remove tags from selected images',
   Select = 'Selects or deselects all images',
   Delete = 'Delete selected missing images from library',
   Inspector = 'Toggle the inspector panel',
@@ -79,6 +79,8 @@ export const SlideModeCommand = observer(() => {
       />
 
       <div className="spacer" />
+
+      <FileTagEditor />
 
       <ToolbarButton
         showLabel="never"

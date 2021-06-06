@@ -5,8 +5,8 @@ import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
+import { GalleryEventHandler, GallerySelector, MissingImageFallback } from './GalleryItem';
 import { createSubmitCommand } from './LayoutSwitcher';
-import { GallerySelector, MissingImageFallback } from './GalleryItem';
 import { Preferences } from 'src/frontend/stores/Preferences';
 import { clamp } from 'src/frontend/utils';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -87,6 +87,12 @@ const SlideView = observer((props: ISlideView) => {
     [file, submitCommand],
   );
 
+  const eventHandlers = useMemo(
+    () => submitCommand && new GalleryEventHandler(file, submitCommand).handlers,
+    [file, submitCommand],
+  );
+
+  // Go to the first selected image on load
   useEffect(() => {
     // Go to the first selected image on load
     runInAction(() => {
@@ -148,6 +154,8 @@ const SlideView = observer((props: ISlideView) => {
       prevImage={uiStore.firstItem > 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
       onContextMenu={handleContextMenu}
+      onDrop={eventHandlers.onDrop}
+      tabIndex={-1}
     />
   );
 });
@@ -161,13 +169,14 @@ interface IZoomableImageProps {
   onContextMenu: (e: React.MouseEvent) => void;
 }
 
-const ZoomableImage: React.FC<IZoomableImageProps> = ({
+const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDivElement>> = ({
   src,
   width,
   height,
   prevImage,
   nextImage,
   onContextMenu,
+  ...rest
 }: IZoomableImageProps) => {
   const [loadError, setLoadError] = useState<any>();
   useEffect(() => setLoadError(undefined), [src]);
@@ -179,6 +188,7 @@ const ZoomableImage: React.FC<IZoomableImageProps> = ({
         height: `${height}px`,
       }}
       onContextMenu={onContextMenu}
+      {...rest}
     >
       {loadError ? (
         <MissingImageFallback

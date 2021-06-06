@@ -22,6 +22,8 @@ import { promiseRetry } from './frontend/utils';
 import { Preferences } from './frontend/stores/Preferences';
 
 export const NUM_LOGICAL_CORES = navigator.hardwareConcurrency;
+export const IS_PREVIEW_WINDOW =
+  new URLSearchParams(window.location.search.slice(1)).get('preview') === 'true';
 
 (async function () {
   try {
@@ -38,13 +40,10 @@ async function main() {
   const preferences = new Preferences();
   const rootStore = new RootStore(backend, preferences);
 
-  const params = new URLSearchParams(window.location.search.slice(1));
-  const isPreviewWindow = params.get('preview') === 'true';
-
-  await backend.init(!isPreviewWindow);
+  await backend.init(!IS_PREVIEW_WINDOW);
   console.log('Backend has been initialized!');
 
-  if (!isPreviewWindow) {
+  if (!IS_PREVIEW_WINDOW) {
     // Load persistent preferences
     await preferences.load();
     render(<App />);

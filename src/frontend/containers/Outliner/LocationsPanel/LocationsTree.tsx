@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect, useMemo, useRef, memo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { autorun, flow } from 'mobx';
+import SysPath from 'path';
 
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ClientLocation, getDirectoryTree, IDirectoryTreeItem } from 'src/entities/Location';
@@ -269,7 +270,13 @@ const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
 };
 
 const pathCriteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>('absolutePath', path, 'startsWith', CustomKeyDict);
+  new ClientStringSearchCriteria<IFile>(
+    'absolutePath',
+    // Add an additional / or \ in order to enforce files only in the specific directory are found, not in those starting with same name
+    `${path}${SysPath.sep}`,
+    'startsWith',
+    CustomKeyDict,
+  );
 
 const customKeys = (
   search: (path: string) => void,
