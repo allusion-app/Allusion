@@ -8,6 +8,8 @@ import UiStore from '../../stores/UiStore';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
 import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
+import { useTooltip } from 'widgets/popovers';
+import { ClientTag } from 'src/entities/Tag';
 
 interface ICell {
   file: ClientFile;
@@ -392,6 +394,7 @@ const Tags = observer(
       () => submitCommand && new GalleryEventHandler(file, submitCommand).handlers,
       [file, submitCommand],
     );
+
     return (
       <span
         className="thumbnail-tags"
@@ -400,17 +403,27 @@ const Tags = observer(
         onDoubleClick={eventHandlers?.onDoubleClick}
       >
         {Array.from(file.tags, (tag) => (
-          <Tag
-            key={tag.id}
-            text={tag.name}
-            color={tag.viewColor}
-            title={tag.treePath.map((t) => t.name).join(' › ')}
-          />
+          <TagWithHint key={tag.id} tag={tag} />
         ))}
       </span>
     );
   },
 );
+
+const TagWithHint = observer(({ tag }: { tag: ClientTag }) => {
+  const { onShow, onHide } = useTooltip(tag.treePath.map((t) => t.name).join(' › '));
+
+  return (
+    <Tag
+      text={tag.name}
+      color={tag.viewColor}
+      onFocusCapture={onShow}
+      onBlurCapture={onHide}
+      onMouseOutCapture={onHide}
+      onMouseOverCapture={onShow}
+    />
+  );
+});
 
 export const enum GallerySelector {
   Click = 'click',
