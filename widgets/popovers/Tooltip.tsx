@@ -79,8 +79,8 @@ export const TooltipLayer = ({ className }: { className?: string }) => {
 };
 
 type TooltipHandler = {
-  onMouseOver: (e: React.MouseEvent) => void;
-  onMouseOut: (e: React.MouseEvent) => void;
+  onShow: (e: React.MouseEvent | React.FocusEvent) => void;
+  onHide: (e: React.MouseEvent | React.FocusEvent) => void;
 };
 
 export function useTooltip(content: ReactText, hoverDelay: number = 500): TooltipHandler {
@@ -101,7 +101,7 @@ export function useTooltip(content: ReactText, hoverDelay: number = 500): Toolti
   }, []);
 
   return useRef<TooltipHandler>({
-    onMouseOver: (e: React.MouseEvent) => {
+    onShow: (e: React.MouseEvent | React.FocusEvent) => {
       if (timerID.current === undefined) {
         e.persist();
         const detail = contentRef.current;
@@ -114,7 +114,7 @@ export function useTooltip(content: ReactText, hoverDelay: number = 500): Toolti
         }, hoverDelay);
       }
     },
-    onMouseOut: (e: React.MouseEvent<Element>) => {
+    onHide: (e: React.MouseEvent<Element> | React.FocusEvent) => {
       if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
         return;
       }

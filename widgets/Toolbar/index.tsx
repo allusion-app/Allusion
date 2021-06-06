@@ -86,7 +86,7 @@ const ToolbarButton = (props: IToolbarButton) => {
     controls,
     haspopup,
   } = props;
-  const { onMouseOut, onMouseOver } = useTooltip(tooltip ?? text);
+  const { onHide, onShow } = useTooltip(tooltip ?? text);
 
   return (
     <button
@@ -101,8 +101,10 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-haspopup={haspopup}
       aria-expanded={expanded}
       tabIndex={-1}
-      onMouseOutCapture={onMouseOut}
-      onMouseOverCapture={onMouseOver}
+      onFocusCapture={onShow}
+      onBlurCapture={onHide}
+      onMouseOutCapture={onHide}
+      onMouseOverCapture={onShow}
     >
       <span className="toolbar-button-content">
         <span className="toolbar-button-icon" aria-hidden>

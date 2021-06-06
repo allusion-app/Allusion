@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
 import { encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
-import { IconSet, Tag } from 'widgets';
-import { useTooltip } from 'widgets/popovers';
+import { IconButton, IconSet, Tag } from 'widgets';
 import FileStore from '../../stores/FileStore';
 import UiStore from '../../stores/UiStore';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
@@ -161,7 +160,16 @@ export const MasonryCell = observer(
           />
         </ThumbnailContainer>
         {file.isBroken === true && !fileStore.showsMissingContent && (
-          <ThumbnailBrokenOverlay fileStore={fileStore} />
+          <IconButton
+            className="thumbnail-broken-overlay"
+            icon={IconSet.WARNING_BROKEN_LINK}
+            onClick={async (e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              await fileStore.fetchMissingFiles();
+            }}
+            text="This image could not be found. Open the recovery view."
+          />
         )}
         {/* Show tags when the option is enabled, or when the file is selected */}
         {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
@@ -174,27 +182,6 @@ export const MasonryCell = observer(
     );
   },
 );
-
-const ThumbnailBrokenOverlay = ({ fileStore }: { fileStore: FileStore }) => {
-  const { onMouseOut, onMouseOver } = useTooltip(
-    'This image could not be found - opens the recovery view',
-  );
-
-  return (
-    <span
-      className="thumbnail-broken-overlay"
-      onClick={async (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        await fileStore.fetchMissingFiles();
-      }}
-      onMouseOutCapture={onMouseOut}
-      onMouseOverCapture={onMouseOver}
-    >
-      {IconSet.WARNING_BROKEN_LINK}
-    </span>
-  );
-};
 
 export class GalleryEventHandler {
   constructor(public file: ClientFile, public submitCommand: (command: GalleryCommand) => void) {}

@@ -109,7 +109,7 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
               uiStore.toggleSearchMatchAny();
               fileStore.refetch();
             }}
-            large
+            className="btn-icon-large"
             disabled={selectedItems.length === 0}
           />
         ) : (
@@ -148,7 +148,7 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
               e.stopPropagation();
               e.preventDefault();
             }}
-            large
+            className="btn-icon-large"
           />
         ) : (
           <> </>

@@ -48,21 +48,23 @@ interface IIconButton {
   text: string;
   icon: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
-  large?: boolean;
+  className?: string;
   disabled?: boolean;
 }
 
-const IconButton = ({ text, icon, onClick, disabled, large }: IIconButton) => {
-  const { onMouseOut, onMouseOver } = useTooltip(text);
+const IconButton = ({ text, icon, onClick, disabled, className }: IIconButton) => {
+  const { onHide, onShow } = useTooltip(text);
 
   return (
     <button
-      className={`btn btn-icon${large ? ' btn-icon-large' : ''}`}
+      className={`${className !== undefined ? className : ''} btn btn-icon`}
       onClick={onClick}
       disabled={disabled}
       type="button"
-      onMouseOverCapture={onMouseOver}
-      onMouseOutCapture={onMouseOut}
+      onFocusCapture={onShow}
+      onBlurCapture={onHide}
+      onMouseOverCapture={onShow}
+      onMouseOutCapture={onHide}
     >
       <span className="btn-content-icon" aria-hidden="true">
         {icon}
