@@ -559,12 +559,14 @@ class FileStore {
       if (existingFile !== undefined) {
         reusedStatus.add(existingFile.id);
         // Update tags (might have changes, e.g. removed/merged)
-        const newTags = f.tags.map((t) => this.rootStore.tagStore.get(t));
+        const newTags = f.tags
+          .map((t) => this.rootStore.tagStore.get(t))
+          .filter((t) => t !== undefined) as ClientTag[];
         if (
-          existingFile.tags.size !== f.tags.length ||
-          Array.from(existingFile.tags).some((t, i) => t?.id !== f.tags[i])
+          existingFile.tags.size !== newTags.length ||
+          Array.from(existingFile.tags).some((t, i) => t.id !== newTags[i].id)
         ) {
-          existingFile.updateTagsFromBackend(newTags as ClientTag[]);
+          existingFile.updateTagsFromBackend(newTags);
         }
         return existingFile;
       }
