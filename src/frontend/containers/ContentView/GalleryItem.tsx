@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ellipsize, encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
-import { IconSet, Tag } from 'widgets';
-import { Tooltip } from 'widgets/popovers';
+import { IconButton, IconSet, Tag } from 'widgets';
 import FileStore from '../../stores/FileStore';
 import UiStore from '../../stores/UiStore';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
@@ -148,7 +147,7 @@ export const MasonryCell = observer(
     submitCommand,
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
-    const portalTriggerRef = useRef<HTMLSpanElement>(null);
+
     return (
       <div
         data-masonrycell
@@ -165,22 +164,15 @@ export const MasonryCell = observer(
           />
         </ThumbnailContainer>
         {file.isBroken === true && !fileStore.showsMissingContent && (
-          <Tooltip
-            content="This image could not be found - opens the recovery view"
-            trigger={
-              <span
-                ref={portalTriggerRef}
-                className="thumbnail-broken-overlay"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  await fileStore.fetchMissingFiles();
-                }}
-              >
-                {IconSet.WARNING_BROKEN_LINK}
-              </span>
-            }
-            portalTriggerRef={portalTriggerRef}
+          <IconButton
+            className="thumbnail-broken-overlay"
+            icon={IconSet.WARNING_BROKEN_LINK}
+            onClick={async (e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              await fileStore.fetchMissingFiles();
+            }}
+            text="This image could not be found. Open the recovery view."
           />
         )}
 

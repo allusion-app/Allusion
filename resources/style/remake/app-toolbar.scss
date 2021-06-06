@@ -31,7 +31,19 @@
     overflow: hidden auto;
   }
 
-  // For indicating certain tags can be "system-tags" (for instance: Untagged images) 
+  .btn-icon-large {
+    color: var(--text-color-muted);
+    &:hover {
+      color: var(--text-color);
+    }
+
+    .custom-icon {
+      height: 1.25em;
+      width: 1.25em;
+    }
+  }
+
+  // For indicating certain tags can be "system-tags" (for instance: Untagged images)
   .italic {
     font-style: italic;
   }

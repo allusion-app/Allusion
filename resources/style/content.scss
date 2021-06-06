@@ -108,7 +108,7 @@
   height: 2rem;
   top: 0.5rem;
   right: 0.5rem;
-  color: var(--accent-color-red);
+  color: var(--accent-color-red) !important;
 
   svg {
     width: 1.5rem !important;
