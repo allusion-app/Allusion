@@ -6,7 +6,7 @@ const enum TooltipEvent {
   Hide = 'hide-tooltip',
 }
 
-let IS_CLEANING_UP = false;
+let IS_TOOLTIP_VISIBLE = false;
 
 export const TooltipLayer = ({ className }: { className?: string }) => {
   const popoverElement = useRef<HTMLDivElement>(null);
@@ -35,20 +35,20 @@ export const TooltipLayer = ({ className }: { className?: string }) => {
       content.current = (e as CustomEvent<ReactText>).detail;
       setIsOpen(true);
       update?.();
-      IS_CLEANING_UP = false;
+      IS_TOOLTIP_VISIBLE = true;
     };
 
     const handleHide = () => {
       setIsOpen(false);
       anchorElement.current = null;
-      IS_CLEANING_UP = true;
+      IS_TOOLTIP_VISIBLE = false;
     };
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsOpen(false);
         anchorElement.current = null;
-        IS_CLEANING_UP = true;
+        IS_TOOLTIP_VISIBLE = false;
       }
     };
 
@@ -93,9 +93,9 @@ export function useTooltip(content: ReactText, hoverDelay: number = 500): Toolti
     return () => {
       if (timerID.current !== undefined) {
         clearTimeout(timerID.current);
-      } else if (!IS_CLEANING_UP) {
+      } else if (IS_TOOLTIP_VISIBLE) {
         document.dispatchEvent(new CustomEvent(TooltipEvent.Hide));
-        IS_CLEANING_UP = true;
+        IS_TOOLTIP_VISIBLE = false;
       }
     };
   }, []);

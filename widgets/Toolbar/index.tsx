@@ -100,7 +100,7 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-controls={controls}
       aria-haspopup={haspopup}
       aria-expanded={expanded}
-      tabIndex={-1}
+      // tabIndex={-1} FIXME: Implement toolbar keyboard navigation.
       onFocusCapture={onShow}
       onBlurCapture={onHide}
       onMouseOutCapture={onHide}
