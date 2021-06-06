@@ -521,10 +521,10 @@ const TagsTree = observer(() => {
       if (dndData.source?.isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_ID);
       } else if (dndData.source !== undefined) {
-        root.insertSubTag(dndData.source, tagStore.count);
+        root.insertSubTag(dndData.source, root.subTags.length);
       }
     });
-  }, [dndData, root, tagStore, uiStore]);
+  }, [dndData, root, uiStore]);
 
   const handleBranchOnKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
