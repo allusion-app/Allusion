@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
 import { encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
 import { IconSet, Tag } from 'widgets';
-import { Tooltip } from 'widgets/popovers';
+import { useTooltip } from 'widgets/popovers';
 import FileStore from '../../stores/FileStore';
 import UiStore from '../../stores/UiStore';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
@@ -144,7 +144,7 @@ export const MasonryCell = observer(
     submitCommand,
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
-    const portalTriggerRef = useRef<HTMLSpanElement>(null);
+
     return (
       <div
         data-masonrycell
@@ -161,23 +161,7 @@ export const MasonryCell = observer(
           />
         </ThumbnailContainer>
         {file.isBroken === true && !fileStore.showsMissingContent && (
-          <Tooltip
-            content="This image could not be found - opens the recovery view"
-            trigger={
-              <span
-                ref={portalTriggerRef}
-                className="thumbnail-broken-overlay"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  await fileStore.fetchMissingFiles();
-                }}
-              >
-                {IconSet.WARNING_BROKEN_LINK}
-              </span>
-            }
-            portalTriggerRef={portalTriggerRef}
-          />
+          <ThumbnailBrokenOverlay fileStore={fileStore} />
         )}
         {/* Show tags when the option is enabled, or when the file is selected */}
         {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
@@ -190,6 +174,27 @@ export const MasonryCell = observer(
     );
   },
 );
+
+const ThumbnailBrokenOverlay = ({ fileStore }: { fileStore: FileStore }) => {
+  const { onMouseOut, onMouseOver } = useTooltip(
+    'This image could not be found - opens the recovery view',
+  );
+
+  return (
+    <span
+      className="thumbnail-broken-overlay"
+      onClick={async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        await fileStore.fetchMissingFiles();
+      }}
+      onMouseOutCapture={onMouseOut}
+      onMouseOverCapture={onMouseOver}
+    >
+      {IconSet.WARNING_BROKEN_LINK}
+    </span>
+  );
+};
 
 export class GalleryEventHandler {
   constructor(public file: ClientFile, public submitCommand: (command: GalleryCommand) => void) {}

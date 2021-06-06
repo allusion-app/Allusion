@@ -19,6 +19,7 @@ import RootStore from './frontend/stores/RootStore';
 
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
+import Overlay from './frontend/Overlay';
 import { promiseRetry } from './frontend/utils';
 
 // Window State
@@ -120,6 +121,7 @@ window.addEventListener('beforeunload', () => {
 ReactDOM.render(
   <StoreContext.Provider value={rootStore}>
     {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
+    <Overlay />
   </StoreContext.Provider>,
   document.getElementById('app'),
 );

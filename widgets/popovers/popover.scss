@@ -76,7 +76,6 @@ dialog[role='alertdialog'] {
   .btn-filled:not(:hover) {
     background-color: var(--accent-color-red);
   }
-
 }
 
 .dialog-icon {
@@ -117,7 +116,7 @@ dialog[role='alertdialog'] {
 // DIALOG UNTIL HERE
 
 [data-popover] {
-  display: none;
+  visibility: hidden;
   z-index: 1;
 
   color: var(--text-color);
@@ -127,14 +126,19 @@ dialog[role='alertdialog'] {
   box-shadow: var(--box-shadow);
 
   &[data-open='true'] {
-    display: unset;
+    visibility: visible;
   }
 }
 
 [role='tooltip'] {
   background: var(--accent-color-blue);
   color: white;
-  animation: fade 0.1s linear;
+  transition: opacity 0.1s linear;
+  opacity: 0;
+
+  &[data-open='true'] {
+    opacity: 1;
+  }
 
   .tooltip {
     display: inline-flex;
@@ -151,17 +155,5 @@ dialog[role='alertdialog'] {
 
   to {
     transform: translateY(0);
-  }
-}
-
-@keyframes fade {
-  0% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
   }
 }

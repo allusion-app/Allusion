@@ -1,91 +1,126 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Placement } from '@popperjs/core/lib/enums';
+import React, { ReactText, useEffect, useRef, useState } from 'react';
+import { usePopper } from 'react-popper';
 
-import { RawPopover } from './RawPopover';
-
-export interface ITooltip {
-  /** The content of the tooltip which is displayed on hover. */
-  content: React.ReactText;
-  /** The element that triggers the tooltip when hovered over. */
-  trigger: React.ReactElement<HTMLElement>;
-  /** The reference to the native element trigger. This is necessary for the portal! */
-  portalTriggerRef: React.RefObject<HTMLElement>;
-  /** @default 100 */
-  hoverDelay?: number;
-  /** @default 'auto' */
-  placement?: Placement;
-  fallbackPlacements?: Placement[];
-  allowedAutoPlacements?: Placement[];
+const enum TooltipEvent {
+  Show = 'show-tooltip',
+  Hide = 'hide-tooltip',
 }
 
-export const Tooltip = (props: ITooltip) => {
-  const {
-    content,
-    trigger,
-    // 500ms feels about right: https://ux.stackexchange.com/questions/358/how-long-should-the-delay-be-before-a-tooltip-pops-up
-    hoverDelay = 500,
-    placement = 'auto',
-    allowedAutoPlacements,
-    fallbackPlacements,
-    portalTriggerRef,
-  } = props;
+let IS_CLEANING_UP = false;
+
+export const TooltipLayer = ({ className }: { className?: string }) => {
+  const popoverElement = useRef<HTMLDivElement>(null);
+  const anchorElement = useRef<Element | null>();
+  const { styles, attributes, update } = usePopper(anchorElement.current, popoverElement.current, {
+    placement: 'auto',
+    modifiers: [
+      {
+        name: 'preventOverflow',
+        options: {
+          // Prevents dialogs from moving elements to the side
+          boundary: document.body,
+          altAxis: true,
+          padding: 8,
+        },
+      },
+    ],
+  });
+
   const [isOpen, setIsOpen] = useState(false);
-  const timerID = useRef<number>();
-  const popover = useRef<HTMLDivElement>(null);
+  const content = useRef<ReactText>('');
 
-  // Add event listeners to target element to show tooltip on hover
   useEffect(() => {
-    if (portalTriggerRef.current === null) {
-      return;
-    }
-    // SAFETY: It the trigger element does not exist or it is not an element,
-    // this is a developer error.
-    const target = portalTriggerRef.current;
-
-    const handleMouseOver = () => {
-      if (timerID.current === undefined) {
-        timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
-      }
+    const handleShow = (e: Event) => {
+      anchorElement.current = e.target as Element;
+      content.current = (e as CustomEvent<ReactText>).detail;
+      setIsOpen(true);
+      update?.();
+      IS_CLEANING_UP = false;
     };
 
-    const handleMouseLeave = (e: MouseEvent) => {
-      if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
-        return;
-      }
-      if (timerID.current !== undefined) {
-        clearTimeout(timerID.current);
-        timerID.current = undefined;
-      }
+    const handleHide = () => {
       setIsOpen(false);
+      anchorElement.current = null;
+      IS_CLEANING_UP = true;
     };
 
-    target.addEventListener('mouseover', handleMouseOver, true);
-    target.addEventListener('mouseout', handleMouseLeave, true);
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+        anchorElement.current = null;
+        IS_CLEANING_UP = true;
+      }
+    };
 
-    // Clear timer on removing component
+    document.addEventListener(TooltipEvent.Show, handleShow, true);
+    document.addEventListener(TooltipEvent.Hide, handleHide, true);
+    document.addEventListener('keydown', handleEscape, true);
+
+    return () => {
+      document.removeEventListener(TooltipEvent.Show, handleShow, true);
+      document.removeEventListener(TooltipEvent.Hide, handleHide, true);
+      document.removeEventListener('keydown', handleEscape, true);
+    };
+  }, [update]);
+
+  return (
+    <div
+      className={className}
+      ref={popoverElement}
+      style={styles.popper}
+      {...attributes.popper}
+      role="tooltip"
+      data-popover
+      data-open={isOpen}
+    >
+      <div className="tooltip">{content.current}</div>
+    </div>
+  );
+};
+
+type TooltipHandler = {
+  onMouseOver: (e: React.MouseEvent) => void;
+  onMouseOut: (e: React.MouseEvent) => void;
+};
+
+export function useTooltip(content: ReactText, hoverDelay: number = 500): TooltipHandler {
+  const contentRef = useRef(content);
+  contentRef.current = content;
+  const timerID = useRef<number>();
+
+  // Remove lingering tooltips on element removal and cleanup timer.
+  useEffect(() => {
     return () => {
       if (timerID.current !== undefined) {
         clearTimeout(timerID.current);
-        timerID.current = undefined;
+      } else if (!IS_CLEANING_UP) {
+        document.dispatchEvent(new CustomEvent(TooltipEvent.Hide));
+        IS_CLEANING_UP = true;
       }
-      target.removeEventListener('mouseover', handleMouseOver, true);
-      target.removeEventListener('mouseout', handleMouseLeave, true);
     };
-  }, [content, hoverDelay, portalTriggerRef, trigger]);
+  }, []);
 
-  return (
-    <RawPopover
-      popoverRef={popover}
-      isOpen={isOpen}
-      target={trigger}
-      targetRef={portalTriggerRef}
-      role="tooltip"
-      placement={placement}
-      fallbackPlacements={fallbackPlacements}
-      allowedAutoPlacements={allowedAutoPlacements}
-      portalId="tooltip-portal"
-    >
-      <div className="tooltip">{content}</div>
-    </RawPopover>
-  );
-};
+  return useRef<TooltipHandler>({
+    onMouseOver: (e: React.MouseEvent) => {
+      if (timerID.current === undefined) {
+        e.persist();
+        const detail = contentRef.current;
+        const target = e.currentTarget;
+        timerID.current = window.setTimeout(() => {
+          timerID.current = undefined;
+          target.dispatchEvent(
+            new CustomEvent<ReactText>(TooltipEvent.Show, { detail }),
+          );
+        }, hoverDelay);
+      }
+    },
+    onMouseOut: (e: React.MouseEvent<Element>) => {
+      if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+        return;
+      }
+      e.currentTarget.dispatchEvent(new CustomEvent(TooltipEvent.Hide));
+      window.clearTimeout(timerID.current);
+      timerID.current = undefined;
+    },
+  }).current;
+}
