@@ -1,50 +1,55 @@
 import './popup.scss';
-import React, { ForwardedRef, forwardRef, useRef, useState } from 'react';
+import React, {
+  DOMAttributes,
+  ForwardedRef,
+  forwardRef,
+  ReactElement,
+  ReactNode,
+  useRef,
+  useState,
+} from 'react';
 
-export interface ListboxProps {
+export interface GridProps {
   id?: string;
   /** When multiselectable is set to true, the click event handlers on the option elements must togggle the select state. */
   multiselectable?: boolean;
-  children: ListboxChildren;
+  children: GridChildren;
 }
 
-export type ListboxChild = React.ReactElement<OptionProps>;
-export type ListboxChildren = ListboxChild | ListboxChild[] | React.ReactFragment;
+export type GridChild = React.ReactElement<RowProps>;
+export type GridChildren = GridChild | GridChild[] | React.ReactFragment;
 
-export const Listbox = forwardRef(function ListBox(
-  props: ListboxProps,
-  ref: ForwardedRef<HTMLUListElement>,
-) {
+export const Grid = forwardRef(function Grid(props: GridProps, ref: ForwardedRef<HTMLDivElement>) {
   const { id, multiselectable, children } = props;
 
   return (
-    <ul
+    <div
       ref={ref}
       id={id}
-      role="listbox"
+      role="grid"
       className="combobox-popup"
       aria-multiselectable={multiselectable}
     >
       {children}
-    </ul>
+    </div>
   );
 });
 
-export function useListboxFocus(
-  listRef: React.RefObject<HTMLUListElement>,
+export function useGridFocus(
+  gridRef: React.RefObject<HTMLDivElement>,
 ): [focus: number, handleInput: (event: React.KeyboardEvent) => void] {
   const focus = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleFocus = useRef((event: React.KeyboardEvent) => {
-    if (listRef.current === null || listRef.current.childElementCount === 0) {
+    if (gridRef.current === null || gridRef.current.childElementCount === 0) {
       return;
     }
 
     const scrollOpts: ScrollIntoViewOptions = { block: 'nearest' };
-    const options = listRef.current.querySelectorAll(
-      'li[role="option"]',
-    ) as NodeListOf<HTMLLIElement>;
+    const options = gridRef.current.querySelectorAll(
+      'div[role="row"]',
+    ) as NodeListOf<HTMLDivElement>;
     const numOptions = options.length;
     focus.current = Math.min(numOptions - 1, focus.current);
     const activeElement = options[focus.current];
@@ -59,7 +64,7 @@ export function useListboxFocus(
         event.preventDefault();
         focus.current = (focus.current - 1 + numOptions) % numOptions;
         if (focus.current === numOptions - 1) {
-          listRef.current.scrollTop = listRef.current.scrollHeight;
+          gridRef.current.scrollTop = gridRef.current.scrollHeight;
         } else {
           const prevElement = options[focus.current];
           prevElement.scrollIntoView(scrollOpts);
@@ -72,7 +77,7 @@ export function useListboxFocus(
         event.preventDefault();
         focus.current = (focus.current + 1) % numOptions;
         if (focus.current === 0) {
-          listRef.current.scrollTop = 0;
+          gridRef.current.scrollTop = 0;
         } else {
           const nextElement = options[focus.current];
           nextElement.scrollIntoView(scrollOpts);
@@ -90,26 +95,47 @@ export function useListboxFocus(
   return [activeIndex, handleFocus.current];
 }
 
-export interface OptionProps {
+export interface RowProps {
   value: string;
   selected?: boolean;
   /** The icon on the right side of the label because on the left is the checkmark already. */
   icon?: JSX.Element;
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   focused?: boolean;
+  children?: ReactElement<GridCellProps> | ReactElement<GridCellProps>[];
 }
 
-export const Option = ({ value, selected, onClick, icon, focused }: OptionProps) => (
-  <li
-    role="option"
+export const Row = ({ value, selected, onClick, icon, focused, children }: RowProps) => (
+  <div
+    role="row"
     className="combobox-popup-option"
     aria-selected={selected}
     onClick={onClick}
     data-focused={focused}
   >
-    <span className="item-accelerator" aria-hidden>
-      {icon}
-    </span>
-    {value}
-  </li>
+    <GridCell>
+      <span className="combobox-popup-option-icon" aria-hidden>
+        {icon}
+      </span>
+      {value}
+    </GridCell>
+    {children}
+  </div>
 );
+
+export const RowSeparator = () => {
+  return <div role="separator"></div>;
+};
+
+interface GridCellProps extends DOMAttributes<HTMLDivElement> {
+  className?: string;
+  children: ReactNode;
+}
+
+export const GridCell = ({ className, children, ...properties }: GridCellProps) => {
+  return (
+    <div role="gridcell" className={className} {...properties}>
+      {children}
+    </div>
+  );
+};
