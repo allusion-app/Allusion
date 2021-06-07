@@ -9,7 +9,7 @@ import {
   TagOperators,
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
+import { TagSelector } from 'src/frontend/components/TagSelector';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
 import { IconButton, IconSet } from 'widgets';
@@ -164,12 +164,13 @@ const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
   };
 
   return (
-    <MultiTagSelector
+    <TagSelector
+      multiselectable={false}
       selection={selection ? [selection] : []}
       onSelect={handleSelect}
       onDeselect={handleDeselect}
       onClear={handleDeselect}
-      placeholder={selection ? undefined : 'Untagged'}
+      placeholder="Untagged"
     />
   );
 };

@@ -1,9 +1,10 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { IconSet } from 'widgets/Icons';
+import { Row } from 'widgets';
 import StoreContext from '../contexts/StoreContext';
-import { MultiTagSelector } from './MultiTagSelector';
+import { TagSelector } from './TagSelector';
 
 interface IFileTagProp {
   file: ClientFile;
@@ -11,25 +12,33 @@ interface IFileTagProp {
 
 const FileTags = observer(({ file }: IFileTagProp) => {
   const { tagStore } = useContext(StoreContext);
-  const handleCreate = async (name: string) =>
-    file.addTag(await tagStore.create(tagStore.root, name));
+
+  const renderCreateOption = useCallback(
+    (tagName: string, resetTextBox: () => void) => (
+      <Row
+        id="file-tags-create-option"
+        key="create"
+        value={`Create tag "${tagName}"`}
+        icon={IconSet.TAG_ADD}
+        onClick={async () => {
+          const tag = await tagStore.create(tagStore.root, tagName);
+          file.addTag(tag);
+          resetTextBox();
+        }}
+      />
+    ),
+    [file, tagStore],
+  );
 
   return (
-    <MultiTagSelector
+    <TagSelector
+      multiselectable
       disabled={file.isBroken}
       selection={Array.from(file.tags)}
       onClear={file.clearTags}
       onDeselect={file.removeTag}
       onSelect={file.addTag}
-      extraOptions={[
-        {
-          id: 'create',
-          icon: IconSet.TAG_ADD,
-          label: (input: string) => `Create tag "${input}"`,
-          action: handleCreate,
-          resetQueryOnAction: true,
-        },
-      ]}
+      renderCreateOption={renderCreateOption}
     />
   );
 });

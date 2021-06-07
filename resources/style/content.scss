@@ -20,7 +20,7 @@
 /////////////////////// Thumbnail //////////////////////////////////
 // If selected, and any other selected image is a drop target: normal yellow border
 // (as an indication that dropping a tag will apply it to all selected files)
-#gallery-content.selected-file-dropping {
+#gallery-content[data-selected-file-dropping='true'] {
   .masonry {
     [aria-selected='true'] > .thumbnail {
       background-color: var(--accent-color-yellow);
@@ -413,6 +413,7 @@
       height: inherit;
     }
 
+    // Note: this feature has an ugly exception, when filename is also shown. See the #gallery-item[data-show-filename] rule below
     &:hover .thumbnail-tags {
       max-height: 100%;
       overflow-y: overlay; // overlay scrollbar so it doesn't push tags away
@@ -439,8 +440,30 @@
       max-width: 100%;
 
       > * {
-        pointer-events: none;
         margin: 0.25em;
+      }
+    }
+
+    .thumbnail-filename {
+      display: block;
+      background-color: rgba(0, 0, 0, 0.5);
+      width: 100%;
+      height: 1.5em;
+      position: absolute;
+      bottom: 0;
+      padding: 0.25rem;
+
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+
+      opacity: 0.75;
+      transition: opacity 0.25s $pt-transition-cubic2;
+    }
+
+    &:hover {
+      .thumbnail-filename {
+        opacity: 1;
       }
     }
   }
@@ -449,5 +472,18 @@
     position: absolute;
     pointer-events: none;
     z-index: -1;
+  }
+}
+
+// Exception when both showing filename and tags in thumbnail overlay:
+// move the tags up by the height of the filename element (23.59px)
+#gallery-content[data-show-filename='true'] {
+  [data-masonrycell] {
+    &:hover .thumbnail-tags {
+      max-height: calc(100% - 1.5em - 0.25rem);
+    }
+  }
+  .thumbnail-tags {
+    margin-bottom: calc(1.5em + 0.25rem);
   }
 }

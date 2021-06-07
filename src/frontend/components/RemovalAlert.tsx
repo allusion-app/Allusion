@@ -7,7 +7,7 @@ import { ClientTag } from 'src/entities/Tag';
 import StoreContext from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
-import { MultiTagSelector } from './MultiTagSelector';
+import { TagSelector } from './TagSelector';
 
 interface IRemovalProps<T> {
   object: T;
@@ -30,7 +30,9 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   const { uiStore } = useContext(StoreContext);
   const { object } = props;
-  const tagsToRemove = object.isSelected ? Array.from(uiStore.tagSelection) : object.toList();
+  const tagsToRemove = object.isSelected
+    ? Array.from(uiStore.tagSelection)
+    : object.getSubTreeList();
 
   const text = `Are you sure you want to delete the tag "${object.name}"?`;
 
@@ -65,6 +67,7 @@ export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
   const text = `Select the tag you want to merge "${tag.name}" with`;
 
   const [selectedTag, setSelectedTag] = useState<ClientTag>();
+  const clearSelection = () => setSelectedTag(undefined);
 
   return (
     <MergeAlert
@@ -79,11 +82,12 @@ export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
       }
       body={
         <div>
-          <MultiTagSelector
+          <TagSelector
+            multiselectable={false}
             selection={selectedTag ? [selectedTag] : []}
             onSelect={setSelectedTag}
-            onDeselect={() => setSelectedTag(undefined)}
-            onClear={() => setSelectedTag(undefined)}
+            onDeselect={clearSelection}
+            onClear={clearSelection}
           />
         </div>
       }
