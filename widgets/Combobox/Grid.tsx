@@ -95,7 +95,7 @@ export function useGridFocus(
   return [activeIndex, handleFocus.current];
 }
 
-export interface RowProps {
+export interface RowProps extends DOMAttributes<HTMLDivElement> {
   value: string;
   selected?: boolean;
   /** The icon on the right side of the label because on the left is the checkmark already. */
@@ -105,8 +105,9 @@ export interface RowProps {
   children?: ReactElement<GridCellProps> | ReactElement<GridCellProps>[];
 }
 
-export const Row = ({ value, selected, onClick, icon, focused, children }: RowProps) => (
+export const Row = ({ value, selected, onClick, icon, focused, children, ...props }: RowProps) => (
   <div
+    {...props}
     role="row"
     className="combobox-popup-option"
     aria-selected={selected}
@@ -123,18 +124,16 @@ export const Row = ({ value, selected, onClick, icon, focused, children }: RowPr
   </div>
 );
 
-export const RowSeparator = () => {
-  return <div role="separator"></div>;
-};
+export const RowSeparator = () => <div role="separator"></div>;
 
 interface GridCellProps extends DOMAttributes<HTMLDivElement> {
   className?: string;
-  children: ReactNode;
+  children?: ReactNode;
 }
 
-export const GridCell = ({ className, children, ...properties }: GridCellProps) => {
+export const GridCell = ({ className, children, ...props }: GridCellProps) => {
   return (
-    <div role="gridcell" className={className} {...properties}>
+    <div {...props} role="gridcell" className={className}>
       {children}
     </div>
   );

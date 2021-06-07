@@ -265,15 +265,14 @@ interface TagOptionProps {
 }
 
 export const TagOption = observer(({ tag, selected, focused, toggleSelection }: TagOptionProps) => {
-  const hint = useRef(
-    computed(() =>
-      tag.treePath
-        .slice(0, -1)
-        .map((t) => t.name)
-        .join(' › '),
-    ),
-  ).current;
-  const { onHide, onShow } = useTooltip(hint.get());
+  const [path, hint] = useRef(
+    computed(() => {
+      const path = tag.treePath.map((t) => t.name).join(' › ');
+      const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
+      return [path, hint];
+    }),
+  ).current.get();
+  const { onHide, onShow } = useTooltip(path);
 
   return (
     <Row
@@ -282,10 +281,10 @@ export const TagOption = observer(({ tag, selected, focused, toggleSelection }: 
       icon={<span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>}
       onClick={() => toggleSelection(selected ?? false, tag)}
       focused={focused}
+      onMouseOutCapture={onHide}
+      onMouseOverCapture={onShow}
     >
-      <GridCell className="tag-option-hint" onMouseOutCapture={onHide} onMouseOverCapture={onShow}>
-        {hint.get()}
-      </GridCell>
+      {hint.length > 0 ? <GridCell className="tag-option-hint">{hint}</GridCell> : <GridCell />}
     </Row>
   );
 });
