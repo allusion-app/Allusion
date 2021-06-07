@@ -83,9 +83,8 @@ const Content = observer(() => {
     <div
       ref={container}
       id="gallery-content"
-      className={`${isDroppingTagOnSelection ? 'selected-file-dropping' : undefined} ${
-        uiStore.isThumbnailFilenameOverlayEnabled ? 'show-filename' : undefined
-      }`}
+      data-show-filename={uiStore.isThumbnailFilenameOverlayEnabled}
+      data-selected-file-dropping={isDroppingTagOnSelection}
       onContextMenu={handleContextMenu}
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
       onClick={clearFileSelection}

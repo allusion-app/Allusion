@@ -219,26 +219,14 @@ export class GalleryEventHandler {
   onDrop(e: React.DragEvent<HTMLElement>) {
     e.stopPropagation();
     this.submitCommand({ selector: GallerySelector.Drop, payload: this.file });
-    const thumbnail = e.currentTarget as HTMLElement;
     e.dataTransfer.dropEffect = 'none';
     e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-
-    const galleryContent = thumbnail.closest('#gallery-content');
-    if (galleryContent) {
-      galleryContent.classList.remove('selected-file-dropping');
-    }
   }
   // TODO: Doesn't seem to every be firing. Bug: Pressing escape while dropping tag on gallery item
   onDragEnd(e: React.DragEvent<HTMLElement>) {
     e.stopPropagation();
-    const thumbnail = e.currentTarget as HTMLElement;
     e.dataTransfer.dropEffect = 'none';
     e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-
-    const galleryContent = thumbnail.closest('#gallery-content');
-    if (galleryContent) {
-      galleryContent.classList.remove('selected-file-dropping');
-    }
   }
 }
 
