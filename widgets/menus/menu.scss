@@ -31,8 +31,7 @@
     color: var(--text-color-strong);
     background: var(--hover-color);
   }
-  &:focus,
-  &[data-focused='true'] {
+  &:focus {
     color: var(--text-color-strong);
     background: var(--hover-color);
   }
