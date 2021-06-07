@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ellipsize, encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
@@ -53,13 +53,7 @@ export const listColumns: IListColumn[] = [
   { title: 'Tags' },
 ];
 
-const title = (file: ClientFile) =>
-  `${ellipsize(file.absolutePath, 80, 'middle')}, ${file.width}x${file.height}, ${humanFileSize(
-    file.size,
-  )}`;
-
 export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICell) => {
-  const portalTriggerRef = useRef<HTMLSpanElement>(null);
   const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
     file,
     submitCommand,
@@ -79,21 +73,8 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
           ) : (
             <div className="thumbnail-placeholder" />
           )}
-        </ThumbnailContainer>{' '}
-        <span className="filename" ref={portalTriggerRef}>
-          {file.name}
-        </span>
-        {/* TODO: Tooltip would be nice, but it's mega sloowwww. a title attribute would be nice */}
-        {/* <Tooltip
-          portalTriggerRef={portalTriggerRef}
-          content={ellipsize(file.absolutePath, 80, 'middle')}
-          trigger={
-            <span className="filename" ref={portalTriggerRef}>
-              {file.name}
-            </span>
-          }
-          placement="bottom-start"
-        /> */}
+        </ThumbnailContainer>
+        <span className="filename">{file.name}</span>
       </div>
 
       {/* Dimensions */}
@@ -108,26 +89,11 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
       <div>{humanFileSize(file.size)}</div>
 
       {/* Tags */}
-      <div>{file.tags.size == 0 ? <span className="thumbnail-tags" /> : <Tags file={file} />}</div>
+      <div>
+        <ThumbnailTags file={file} />
+      </div>
 
       {/* TODO: Broken/missing indicator. Red/orange-ish background? */}
-      {/* {file.isBroken === true ? (
-        <p>The file {file.name} could not be found.</p>
-        <p>Would you like to remove it from your library?</p>
-        <ButtonGroup>
-          <Button
-            text="Remove"
-            styling="outlined"
-            onClick={() => {
-              uiStore.selectFile(file, true);
-              uiStore.openToolbarFileRemover();
-            }}
-          />
-        </ButtonGroup>
-      </div>
-    ) : (
-      <></>
-    )} */}
     </div>
   );
 });
@@ -178,18 +144,14 @@ export const MasonryCell = observer(
           />
         )}
 
-        {uiStore.isThumbnailFilenameOverlayEnabled && (
-          <div className="thumbnail-filename" title={title(file)}>
-            {file.name}
-          </div>
-        )}
+        {uiStore.isThumbnailFilenameOverlayEnabled && <ThumbnailFilename file={file} />}
 
         {/* Show tags when the option is enabled, or when the file is selected */}
         {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
-          (file.tags.size == 0 || !mounted ? (
+          (!mounted ? (
             <span className="thumbnail-tags" />
           ) : (
-            <Tags file={file} submitCommand={submitCommand} />
+            <ThumbnailTags file={file} submitCommand={submitCommand} />
           ))}
       </div>
     );
@@ -382,7 +344,7 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
   </div>
 );
 
-const Tags = observer(
+const ThumbnailTags = observer(
   ({
     file,
     submitCommand,
@@ -422,6 +384,19 @@ const TagWithHint = observer(({ tag }: { tag: ClientTag }) => {
     />
   );
 });
+
+const ThumbnailFilename = ({ file }: { file: ClientFile }) => {
+  const title = `${ellipsize(file.absolutePath, 80, 'middle')}, ${file.width}x${
+    file.height
+  }, ${humanFileSize(file.size)}`;
+  const { onShow, onHide } = useTooltip(title);
+
+  return (
+    <div className="thumbnail-filename" onMouseOutCapture={onHide} onMouseOverCapture={onShow}>
+      {file.name}
+    </div>
+  );
+};
 
 export const enum GallerySelector {
   Click = 'click',
