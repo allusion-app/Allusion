@@ -417,8 +417,6 @@ const TagWithHint = observer(({ tag }: { tag: ClientTag }) => {
     <Tag
       text={tag.name}
       color={tag.viewColor}
-      onFocusCapture={onShow}
-      onBlurCapture={onHide}
       onMouseOutCapture={onHide}
       onMouseOverCapture={onShow}
     />

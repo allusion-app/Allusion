@@ -139,8 +139,7 @@ dialog[role='alertdialog'] {
     pointer-events: initial;
   }
 
-  &[data-open='false'],
-  &[data-popper-reference-hidden='true'] {
+  &[data-open='false'] {
     visibility: hidden;
     pointer-events: none;
   }
