@@ -53,10 +53,18 @@ a[role='menuitem'] {
   background: var(--accent-color-blue);
 }
 
-[role='menuitemcheckbox'][aria-checked='true'] .item-icon {
-  background: currentColor;
-  mask-image: url(~resources/icons/checkmark.svg);
-  -webkit-mask-image: url(~resources/icons/checkmark.svg);
+[role='menuitemcheckbox'] {
+  &[aria-checked='false'] .item-icon {
+    background: var(--text-color-muted);
+    mask-image: url(~resources/icons/select-all.svg);
+    -webkit-mask-image: url(~resources/icons/select-all.svg);
+  }
+
+  &[aria-checked='true'] .item-icon {
+    background: var(--text-color);
+    mask-image: url(~resources/icons/select-all-checked.svg);
+    -webkit-mask-image: url(~resources/icons/select-all-checked.svg);
+  }
 }
 
 .item-icon,
