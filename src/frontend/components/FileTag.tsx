@@ -14,8 +14,9 @@ const FileTags = observer(({ file }: IFileTagProp) => {
   const { tagStore } = useContext(StoreContext);
 
   const renderCreateOption = useCallback(
-    (tagName: string, resetTextBox: () => void, isFocused: (index: number) => boolean) => (
+    (tagName: string, resetTextBox: () => void) => (
       <Row
+        id="file-tags-create-option"
         key="create"
         value={`Create tag "${tagName}"`}
         icon={IconSet.TAG_ADD}
@@ -24,7 +25,6 @@ const FileTags = observer(({ file }: IFileTagProp) => {
           file.addTag(tag);
           resetTextBox();
         }}
-        focused={isFocused(0)}
       />
     ),
     [file, tagStore],

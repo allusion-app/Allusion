@@ -69,30 +69,28 @@ const QuickSearchList = observer(() => {
     }
   });
 
-  const renderCreateOption = useRef(
-    (query: string, resetTextBox: () => void, isFocused: (index: number) => boolean) => {
-      return [
-        <Row
-          key="search-in-path"
-          value={`Search in file paths for "${query}"`}
-          onClick={() => {
-            resetTextBox();
-            uiStore.addSearchCriteria(
-              new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
-            );
-          }}
-          focused={isFocused(0)}
-        />,
-        <Row
-          key="advanced-search"
-          value="Advanced search"
-          onClick={uiStore.toggleAdvancedSearch}
-          icon={IconSet.SEARCH_EXTENDED}
-          focused={isFocused(1)}
-        />,
-      ];
-    },
-  ).current;
+  const renderCreateOption = useRef((query: string, resetTextBox: () => void) => {
+    return [
+      <Row
+        id="search-in-path-option"
+        key="search-in-path"
+        value={`Search in file paths for "${query}"`}
+        onClick={() => {
+          resetTextBox();
+          uiStore.addSearchCriteria(
+            new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
+          );
+        }}
+      />,
+      <Row
+        id="advanced-search-option"
+        key="advanced-search"
+        value="Advanced search"
+        onClick={uiStore.toggleAdvancedSearch}
+        icon={IconSet.SEARCH_EXTENDED}
+      />,
+    ];
+  }).current;
 
   return (
     <TagSelector

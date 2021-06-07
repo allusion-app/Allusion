@@ -65,7 +65,7 @@ const TagEditor = () => {
   ).current;
 
   const gridRef = useRef<HTMLDivElement>(null);
-  const [focusedOption, handleFocus] = useGridFocus(gridRef);
+  const [activeDescendant, handleGridFocus] = useGridFocus(gridRef);
 
   // Remember the height when panel is resized
   const panelRef = useRef<HTMLDivElement>(null);
@@ -110,16 +110,16 @@ const TagEditor = () => {
         value={inputText}
         aria-autocomplete="list"
         onChange={handleInput}
-        onKeyDown={handleFocus}
+        onKeyDown={handleGridFocus}
         className="input"
-        aria-controls="tag-files-listbox"
+        aria-controls="tag-editor-popup"
+        aria-activedescendant={activeDescendant}
         ref={inputRef}
       />
       <MatchingTagsList
         ref={gridRef}
         inputText={inputText}
         counter={counter}
-        focusedOption={focusedOption}
         resetTextBox={resetTextBox}
       />
       <TagSummary counter={counter} removeTag={removeTag} />
@@ -130,13 +130,12 @@ const TagEditor = () => {
 interface MatchingTagsListProps {
   inputText: string;
   counter: IComputedValue<Map<ClientTag, number>>;
-  focusedOption: number;
   resetTextBox: () => void;
 }
 
 const MatchingTagsList = observer(
   function MatchingTagsList(
-    { inputText, counter, focusedOption, resetTextBox }: MatchingTagsListProps,
+    { inputText, counter, resetTextBox }: MatchingTagsListProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) {
     const { tagStore, uiStore } = useContext(StoreContext);
@@ -152,37 +151,33 @@ const MatchingTagsList = observer(
           }
         }),
       [inputText, tagStore],
-    );
+    ).get();
 
     const toggleSelection = useAction((isSelected: boolean, tag: ClientTag) => {
       const operation = isSelected
         ? (f: ClientFile) => f.removeTag(tag)
         : (f: ClientFile) => f.addTag(tag);
-
-      for (const f of uiStore.fileSelection) {
-        operation(f);
-      }
+      uiStore.fileSelection.forEach(operation);
       resetTextBox();
     });
 
     return (
-      <Grid ref={ref} id="tag-files-listbox" multiselectable>
-        {matches.get().map((tag, index) => {
+      <Grid ref={ref} id="tag-editor-popup" multiselectable>
+        {matches.map((tag) => {
           const selected = counter.get().get(tag) !== undefined;
           return (
             <TagOption
               key={tag.id}
+              id={`tag-editor-popup-${tag.id}`}
               tag={tag}
               selected={selected}
-              focused={focusedOption === index}
               toggleSelection={toggleSelection}
             />
           );
         })}
         <CreateOption
           inputText={inputText}
-          hasMatches={matches.get().length > 0}
-          isFocused={focusedOption === matches.get().length}
+          hasMatches={matches.length > 0}
           resetTextBox={resetTextBox}
         />
       </Grid>
@@ -194,11 +189,10 @@ const MatchingTagsList = observer(
 interface CreateOptionProps {
   inputText: string;
   hasMatches: boolean;
-  isFocused: boolean;
   resetTextBox: () => void;
 }
 
-const CreateOption = ({ inputText, hasMatches, isFocused, resetTextBox }: CreateOptionProps) => {
+const CreateOption = ({ inputText, hasMatches, resetTextBox }: CreateOptionProps) => {
   const { tagStore, uiStore } = useContext(StoreContext);
 
   const removeTag = useAction(async () => {
@@ -217,11 +211,11 @@ const CreateOption = ({ inputText, hasMatches, isFocused, resetTextBox }: Create
     <>
       {hasMatches && <RowSeparator />}
       <Row
+        id="tag-editor-create-option"
         selected={false}
         value={`Create Tag "${inputText}"`}
         onClick={removeTag}
         icon={IconSet.TAG_ADD}
-        focused={isFocused}
       />
     </>
   );

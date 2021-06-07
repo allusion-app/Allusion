@@ -37,9 +37,9 @@ export const Grid = forwardRef(function Grid(props: GridProps, ref: ForwardedRef
 
 export function useGridFocus(
   gridRef: React.RefObject<HTMLDivElement>,
-): [focus: number, handleInput: (event: React.KeyboardEvent) => void] {
+): [focus: string | undefined, handleInput: (event: React.KeyboardEvent) => void] {
   const focus = useRef(0);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState<string>();
 
   const handleFocus = useRef((event: React.KeyboardEvent) => {
     if (gridRef.current === null || gridRef.current.childElementCount === 0) {
@@ -59,7 +59,7 @@ export function useGridFocus(
         activeElement.click();
         break;
 
-      case 'ArrowUp':
+      case 'ArrowUp': {
         event.stopPropagation();
         event.preventDefault();
         focus.current = (focus.current - 1 + numOptions) % numOptions;
@@ -69,10 +69,24 @@ export function useGridFocus(
           const prevElement = options[focus.current];
           prevElement.scrollIntoView(scrollOpts);
         }
-        setActiveIndex(focus.current);
+        let previous = undefined;
+        for (let i = 0; i < options.length; i++) {
+          const element = options[i];
+          if (element.dataset['focused'] === 'true') {
+            element.dataset['focused'] = 'false';
+            previous = i;
+            break;
+          }
+        }
+        if (previous === undefined) {
+          focus.current = options.length - 1;
+        }
+        options[focus.current].dataset['focused'] = 'true';
+        setActiveIndex(options[focus.current].id);
         break;
+      }
 
-      case 'ArrowDown':
+      case 'ArrowDown': {
         event.stopPropagation();
         event.preventDefault();
         focus.current = (focus.current + 1) % numOptions;
@@ -82,8 +96,22 @@ export function useGridFocus(
           const nextElement = options[focus.current];
           nextElement.scrollIntoView(scrollOpts);
         }
-        setActiveIndex(focus.current);
+        let previous = undefined;
+        for (let i = 0; i < options.length; i++) {
+          const element = options[i];
+          if (element.dataset['focused'] === 'true') {
+            element.dataset['focused'] = 'false';
+            previous = i;
+            break;
+          }
+        }
+        if (previous === undefined) {
+          focus.current = 0;
+        }
+        options[focus.current].dataset['focused'] = 'true';
+        setActiveIndex(options[focus.current].id);
         break;
+      }
 
       // Note: no 'space' to select, since space is valid input for the input-field
 
@@ -96,23 +124,23 @@ export function useGridFocus(
 }
 
 export interface RowProps extends DOMAttributes<HTMLDivElement> {
+  id?: string;
   value: string;
   selected?: boolean;
   /** The icon on the right side of the label because on the left is the checkmark already. */
   icon?: JSX.Element;
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
-  focused?: boolean;
   children?: ReactElement<GridCellProps> | ReactElement<GridCellProps>[];
 }
 
-export const Row = ({ value, selected, onClick, icon, focused, children, ...props }: RowProps) => (
+export const Row = ({ id, value, selected, onClick, icon, children, ...props }: RowProps) => (
   <div
     {...props}
+    id={id}
     role="row"
     className="combobox-popup-option"
     aria-selected={selected}
     onClick={onClick}
-    data-focused={focused}
   >
     <GridCell>
       <span className="combobox-popup-option-icon" aria-hidden>
@@ -127,13 +155,14 @@ export const Row = ({ value, selected, onClick, icon, focused, children, ...prop
 export const RowSeparator = () => <div role="separator"></div>;
 
 interface GridCellProps extends DOMAttributes<HTMLDivElement> {
+  id?: string;
   className?: string;
   children?: ReactNode;
 }
 
-export const GridCell = ({ className, children, ...props }: GridCellProps) => {
+export const GridCell = ({ id, className, children, ...props }: GridCellProps) => {
   return (
-    <div {...props} role="gridcell" className={className}>
+    <div {...props} id={id} role="gridcell" className={className}>
       {children}
     </div>
   );

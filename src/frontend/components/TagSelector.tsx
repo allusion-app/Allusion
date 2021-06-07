@@ -29,7 +29,6 @@ export interface TagSelectorProps {
   renderCreateOption?: (
     inputText: string,
     resetTextBox: () => void,
-    isFocused: (index: number) => boolean,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
 }
 
@@ -64,7 +63,7 @@ const TagSelector = (props: TagSelectorProps) => {
   const isInputEmpty = query.length === 0;
 
   const gridRef = useRef<HTMLDivElement>(null);
-  const [focusedOption, handleListFocus] = useGridFocus(gridRef);
+  const [activeDescendant, handleGridFocus] = useGridFocus(gridRef);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Backspace') {
@@ -78,10 +77,10 @@ const TagSelector = (props: TagSelectorProps) => {
         setQuery('');
         setIsOpen(false);
       } else {
-        handleListFocus(e);
+        handleGridFocus(e);
       }
     },
-    [handleListFocus, onDeselect, isInputEmpty, selection],
+    [handleGridFocus, onDeselect, isInputEmpty, selection],
   );
 
   const handleBlur = useRef((e: React.FocusEvent<HTMLDivElement>) => {
@@ -141,6 +140,7 @@ const TagSelector = (props: TagSelectorProps) => {
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
                 aria-controls={gridId}
+                aria-activedescendant={activeDescendant}
                 ref={inputRef}
                 onFocus={handleFocus}
                 placeholder={selection.length === 0 ? placeholder : undefined}
@@ -159,7 +159,6 @@ const TagSelector = (props: TagSelectorProps) => {
           selection={selection}
           toggleSelection={toggleSelection}
           resetTextBox={resetTextBox.current}
-          focusedOption={focusedOption}
           renderCreateOption={renderCreateOption}
         />
       </Flyout>
@@ -199,12 +198,10 @@ interface SuggestedTagsListProps {
   selection: readonly ClientTag[];
   toggleSelection: (isSelected: boolean, tag: ClientTag) => void;
   resetTextBox: () => void;
-  focusedOption: number;
   multiselectable: boolean;
   renderCreateOption?: (
     inputText: string,
     resetTextBox: () => void,
-    isFocused: (index: number) => boolean,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
 }
 
@@ -215,7 +212,6 @@ const SuggestedTagsList = observer(
       query,
       selection,
       toggleSelection,
-      focusedOption,
       resetTextBox,
       multiselectable,
       renderCreateOption,
@@ -233,24 +229,23 @@ const SuggestedTagsList = observer(
           }
         }),
       [query, tagStore],
-    );
+    ).get();
 
     return (
       <Grid ref={ref} id={id} multiselectable={multiselectable}>
-        {suggestions.get().map((tag, index) => {
+        {suggestions.map((tag) => {
           const selected = selection.includes(tag);
           return (
             <TagOption
+              id={`${id}${tag.id}`}
               key={tag.id}
               tag={tag}
               selected={selected ? selected : multiselectable ? selected : undefined}
-              focused={focusedOption === index}
               toggleSelection={toggleSelection}
             />
           );
         })}
-        {suggestions.get().length === 0 &&
-          renderCreateOption?.(query, resetTextBox, (index) => index === focusedOption)}
+        {suggestions.length === 0 && renderCreateOption?.(query, resetTextBox)}
       </Grid>
     );
   },
@@ -258,13 +253,13 @@ const SuggestedTagsList = observer(
 );
 
 interface TagOptionProps {
+  id?: string;
   tag: ClientTag;
   selected?: boolean;
-  focused: boolean;
   toggleSelection: (isSelected: boolean, tag: ClientTag) => void;
 }
 
-export const TagOption = observer(({ tag, selected, focused, toggleSelection }: TagOptionProps) => {
+export const TagOption = observer(({ id, tag, selected, toggleSelection }: TagOptionProps) => {
   const [path, hint] = useRef(
     computed(() => {
       const path = tag.treePath.map((t) => t.name).join(' › ');
@@ -276,11 +271,11 @@ export const TagOption = observer(({ tag, selected, focused, toggleSelection }: 
 
   return (
     <Row
+      id={id}
       value={tag.name}
       selected={selected}
       icon={<span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>}
       onClick={() => toggleSelection(selected ?? false, tag)}
-      focused={focused}
       onMouseOutCapture={onHide}
       onMouseOverCapture={onShow}
     >

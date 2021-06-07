@@ -54,7 +54,7 @@ export function useListboxFocus(
         activeElement.click();
         break;
 
-      case 'ArrowUp':
+      case 'ArrowUp': {
         event.stopPropagation();
         event.preventDefault();
         focus.current = (focus.current - 1 + numOptions) % numOptions;
@@ -64,10 +64,24 @@ export function useListboxFocus(
           const prevElement = options[focus.current];
           prevElement.scrollIntoView(scrollOpts);
         }
+        let previous = undefined;
+        for (let i = 0; i < options.length; i++) {
+          const element = options[i];
+          if (element.dataset['focused'] === 'true') {
+            element.dataset['focused'] = 'false';
+            previous = i;
+            break;
+          }
+        }
+        if (previous === undefined) {
+          focus.current = options.length - 1;
+        }
+        options[focus.current].dataset['focused'] = 'true';
         setActiveIndex(focus.current);
         break;
+      }
 
-      case 'ArrowDown':
+      case 'ArrowDown': {
         event.stopPropagation();
         event.preventDefault();
         focus.current = (focus.current + 1) % numOptions;
@@ -77,8 +91,22 @@ export function useListboxFocus(
           const nextElement = options[focus.current];
           nextElement.scrollIntoView(scrollOpts);
         }
+        let previous = undefined;
+        for (let i = 0; i < options.length; i++) {
+          const element = options[i];
+          if (element.dataset['focused'] === 'true') {
+            element.dataset['focused'] = 'false';
+            previous = i;
+            break;
+          }
+        }
+        if (previous === undefined) {
+          focus.current = 0;
+        }
+        options[focus.current].dataset['focused'] = 'true';
         setActiveIndex(focus.current);
         break;
+      }
 
       // Note: no 'space' to select, since space is valid input for the input-field
 
@@ -91,21 +119,21 @@ export function useListboxFocus(
 }
 
 export interface OptionProps {
+  id?: string;
   value: string;
   selected?: boolean;
   /** The icon on the right side of the label because on the left is the checkmark already. */
   icon?: JSX.Element;
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
-  focused?: boolean;
 }
 
-export const Option = ({ value, selected, onClick, icon, focused }: OptionProps) => (
+export const Option = ({ id, value, selected, onClick, icon }: OptionProps) => (
   <li
+    id={id}
     role="option"
     className="combobox-popup-option"
     aria-selected={selected}
     onClick={onClick}
-    data-focused={focused}
   >
     <span className="combobox-popup-option-icon" aria-hidden>
       {icon}
