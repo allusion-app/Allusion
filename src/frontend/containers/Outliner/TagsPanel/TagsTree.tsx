@@ -355,21 +355,20 @@ const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
 const toggleSelection = (uiStore: UiStore, nodeData: ClientTag) =>
   uiStore.toggleTagSelection(nodeData);
 
-// FIXME: React broke Element.dispatchevent(). Alternative: Pass show context menu method.
-// const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
-//   const element = event.currentTarget.querySelector('.tree-content-label');
-//   if (element) {
-//     // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
-//     // Why not trigger context menus through `ContextMenu.show()`?
-//     event.stopPropagation();
-//     element.dispatchEvent(
-//       new MouseEvent('contextmenu', {
-//         clientX: element.getBoundingClientRect().right,
-//         clientY: element.getBoundingClientRect().top,
-//       }),
-//     );
-//   }
-// };
+const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+  const element = event.currentTarget.querySelector('.tree-content-label');
+  if (element !== null) {
+    event.stopPropagation();
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: rect.right,
+        clientY: rect.top,
+        bubbles: true,
+      }),
+    );
+  }
+};
 
 const customKeys = (
   uiStore: UiStore,
@@ -384,11 +383,11 @@ const customKeys = (
       treeData.dispatch(Factory.enableEditing(nodeData.id));
       break;
 
-    // case 'F10':
-    //   if (event.shiftKey) {
-    //     triggerContextMenuEvent(event);
-    //   }
-    //   break;
+    case 'F10':
+      if (event.shiftKey) {
+        triggerContextMenuEvent(event);
+      }
+      break;
 
     case 'Enter':
       event.stopPropagation();
@@ -399,9 +398,9 @@ const customKeys = (
       treeData.dispatch(Factory.confirmDeletion(nodeData));
       break;
 
-    // case 'ContextMenu':
-    //   triggerContextMenuEvent(event);
-    //   break;
+    case 'ContextMenu':
+      triggerContextMenuEvent(event);
+      break;
 
     default:
       break;
