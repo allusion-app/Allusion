@@ -46,7 +46,7 @@ const TagSelector = (props: TagSelectorProps) => {
     placeholder,
     renderCreateOption,
   } = props;
-  const listboxID = useRef(generateId());
+  const gridId = useRef(generateId()).current;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -74,6 +74,9 @@ const TagSelector = (props: TagSelectorProps) => {
         if (isInputEmpty && selection.length > 0) {
           onDeselect(selection[selection.length - 1]);
         }
+      } else if (e.key === 'Escape') {
+        setQuery('');
+        setIsOpen(false);
       } else {
         handleListFocus(e);
       }
@@ -113,7 +116,14 @@ const TagSelector = (props: TagSelectorProps) => {
   );
 
   return (
-    <div role="combobox" aria-expanded={isOpen} className="input" onBlur={handleBlur}>
+    <div
+      role="combobox"
+      aria-expanded={isOpen}
+      aria-haspopup="grid"
+      aria-owns={gridId}
+      className="input"
+      onBlur={handleBlur}
+    >
       <Flyout
         isOpen={isOpen}
         cancel={() => setIsOpen(false)}
@@ -130,7 +140,7 @@ const TagSelector = (props: TagSelectorProps) => {
                 aria-autocomplete="list"
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                aria-controls={listboxID.current}
+                aria-controls={gridId}
                 ref={inputRef}
                 onFocus={handleFocus}
                 placeholder={selection.length === 0 ? placeholder : undefined}
@@ -144,7 +154,7 @@ const TagSelector = (props: TagSelectorProps) => {
         <SuggestedTagsList
           ref={gridRef}
           multiselectable={multiselectable}
-          id={listboxID.current}
+          id={gridId}
           query={query}
           selection={selection}
           toggleSelection={toggleSelection}

@@ -64,16 +64,14 @@ a[role='menuitem'] {
   display: flex;
   pointer-events: none;
   align-items: center;
-  height: 1rem;
-  min-width: 1rem;
+  min-height: 1em;
+  min-width: 1em;
   fill: var(--text-color);
 
   .custom-icon {
     margin: 0;
-  }
-
-  * {
-    pointer-events: none;
+    height: 1em;
+    width: 1em;
   }
 }
 

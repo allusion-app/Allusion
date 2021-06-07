@@ -75,7 +75,7 @@ export const SlideFileViewerMenuItems = ({
   );
 };
 
-export const ExternalAppMenuItems = ({ file }: { file: ClientFile }) => (
+export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => (
   <>
     <MenuItem
       onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
@@ -89,4 +89,4 @@ export const ExternalAppMenuItems = ({ file }: { file: ClientFile }) => (
       icon={IconSet.FOLDER_CLOSE}
     />
   </>
-);
+));

@@ -107,7 +107,7 @@ export const Option = ({ value, selected, onClick, icon, focused }: OptionProps)
     onClick={onClick}
     data-focused={focused}
   >
-    <span className="item-accelerator" aria-hidden>
+    <span className="combobox-popup-option-icon" aria-hidden>
       {icon}
     </span>
     {value}

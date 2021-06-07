@@ -33,17 +33,18 @@ const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: U
       tag.setColor(color);
     }
   };
+  const color = tag.color;
 
   return (
     <>
       {/* Rainbow gradient icon? */}
       <MenuCheckboxItem
-        checked={tag.color === 'inherit'}
+        checked={color === 'inherit'}
         text="Inherit Parent Color"
-        onClick={() => handleChange(tag.color === 'inherit' ? '' : 'inherit')}
+        onClick={() => handleChange(color === 'inherit' ? '' : 'inherit')}
       />
       <MenuSubItem text="Pick Color" icon={IconSet.COLOR}>
-        <HexColorPicker color={tag.color || undefined} onChange={handleChange} />
+        <HexColorPicker color={color || undefined} onChange={handleChange} />
         <button
           key="none"
           aria-label="No Color"
