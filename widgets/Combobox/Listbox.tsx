@@ -134,6 +134,7 @@ export const Option = ({ id, value, selected, onClick, icon }: OptionProps) => (
     className="combobox-popup-option"
     aria-selected={selected}
     onClick={onClick}
+    tabIndex={-1} // Important for focus handling!
   >
     <span className="combobox-popup-option-icon" aria-hidden>
       {icon}

@@ -85,10 +85,10 @@ const TagSelector = (props: TagSelectorProps) => {
 
   const handleBlur = useRef((e: React.FocusEvent<HTMLDivElement>) => {
     // If anything is blurred, and the new focus is not the input nor the flyout, close the flyout
-    const isFocusingFlyOut =
-      e.relatedTarget instanceof HTMLElement && e.relatedTarget.matches('li[role="option"]');
-    const isFocusingInput = e.relatedTarget === inputRef.current;
-    if (isFocusingFlyOut || isFocusingInput) {
+    const isFocusingOption =
+      e.relatedTarget instanceof HTMLElement &&
+      e.relatedTarget.classList.contains('combobox-popup-option');
+    if (isFocusingOption || e.relatedTarget === inputRef.current) {
       return;
     }
     setQuery('');

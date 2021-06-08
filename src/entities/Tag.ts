@@ -47,6 +47,7 @@ export class ClientTag implements ISerializable<ITag> {
       (tag) => {
         this.store.save(tag);
       },
+      { delay: 500 },
     );
 
     makeObservable(this);
