@@ -50,6 +50,8 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
         text="Open In Preview Window"
         icon={IconSet.PREVIEW}
       />
+      {/* Request: "Open path in Location hierarchy" */}
+      {/* IDEA: "View similar images" > ["Same tags", "Same directory", ("Same size/resolution/colors?)")] */}
       <MenuItem
         onClick={uiStore.openToolbarTagPopover}
         text="Open Tag Selector"

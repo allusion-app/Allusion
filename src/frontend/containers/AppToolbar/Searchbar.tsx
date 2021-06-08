@@ -33,7 +33,7 @@ import {
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 
-import { IconButton, IconSet, Tag, Option } from 'widgets';
+import { IconButton, IconSet, Tag, Row } from 'widgets';
 
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useAction } from 'src/frontend/hooks/useAction';
@@ -69,30 +69,28 @@ const QuickSearchList = observer(() => {
     }
   });
 
-  const renderCreateOption = useRef(
-    (query: string, resetTextBox: () => void, isFocused: (index: number) => boolean) => {
-      return [
-        <Option
-          key="search-in-path"
-          value={`Search in file paths for "${query}"`}
-          onClick={() => {
-            resetTextBox();
-            uiStore.addSearchCriteria(
-              new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
-            );
-          }}
-          focused={isFocused(0)}
-        />,
-        <Option
-          key="advanced-search"
-          value="Advanced search"
-          onClick={uiStore.toggleAdvancedSearch}
-          icon={IconSet.SEARCH_EXTENDED}
-          focused={isFocused(1)}
-        />,
-      ];
-    },
-  ).current;
+  const renderCreateOption = useRef((query: string, resetTextBox: () => void) => {
+    return [
+      <Row
+        id="search-in-path-option"
+        key="search-in-path"
+        value={`Search in file paths for "${query}"`}
+        onClick={() => {
+          resetTextBox();
+          uiStore.addSearchCriteria(
+            new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
+          );
+        }}
+      />,
+      <Row
+        id="advanced-search-option"
+        key="advanced-search"
+        value="Advanced search"
+        onClick={uiStore.toggleAdvancedSearch}
+        icon={IconSet.SEARCH_EXTENDED}
+      />,
+    ];
+  }).current;
 
   return (
     <TagSelector
@@ -121,7 +119,7 @@ const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
       icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
       text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
       onClick={handleClick}
-      large
+      className="btn-icon-large"
       disabled={disabled}
     />
   );
@@ -156,7 +154,7 @@ const CriteriaList = observer(() => {
               e.stopPropagation();
               e.preventDefault();
             }}
-            large
+            className="btn-icon-large"
           />
         ) : (
           <> </>

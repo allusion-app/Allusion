@@ -1,7 +1,7 @@
 import './popover.scss';
 
 import { Flyout } from './Flyout';
-import { Tooltip } from './Tooltip';
+import { TooltipLayer, useTooltip } from './Tooltip';
 import { Alert, Dialog, DialogActions, DialogButton } from './Dialog';
 
-export { Alert, Dialog, DialogButton, DialogActions, Flyout, Tooltip };
+export { Alert, Dialog, DialogButton, DialogActions, Flyout, TooltipLayer, useTooltip };

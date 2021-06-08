@@ -98,15 +98,13 @@ export const TagMerge = observer(({ object: tag, onClose }: IRemovalProps<Client
   const clearSelection = () => setSelectedTag(undefined);
 
   const body = (
-    <div>
-      <TagSelector
-        multiselectable={false}
-        selection={selectedTag !== undefined ? [selectedTag] : []}
-        onSelect={setSelectedTag}
-        onDeselect={clearSelection}
-        onClear={clearSelection}
-      />
-    </div>
+    <TagSelector
+      multiselectable={false}
+      selection={selectedTag !== undefined ? [selectedTag] : []}
+      onSelect={setSelectedTag}
+      onDeselect={clearSelection}
+      onClear={clearSelection}
+    />
   );
 
   const handleClick = action(async (button: DialogButton) => {

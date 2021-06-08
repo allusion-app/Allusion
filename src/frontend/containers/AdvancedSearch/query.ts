@@ -7,14 +7,12 @@ import {
   TagOperatorType,
   NumberOperatorType,
   BinaryOperatorType,
-} from 'src/entities/SearchCriteria';
-import { FileSearchCriteria } from 'src/frontend/stores/UiStore';
-import {
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,
   ClientDateSearchCriteria,
   ClientNumberSearchCriteria,
 } from 'src/entities/SearchCriteria';
+import { FileSearchCriteria } from 'src/frontend/stores/UiStore';
 import TagStore from 'src/frontend/stores/TagStore';
 
 export type Query =

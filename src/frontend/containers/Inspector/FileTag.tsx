@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { IconSet } from 'widgets/Icons';
-import { Option } from 'widgets';
+import { Row } from 'widgets';
 import { useStore } from '../../contexts/StoreContext';
 import { TagSelector } from '../../components/TagSelector';
 
@@ -14,8 +14,9 @@ const FileTags = observer(({ file }: IFileTagProp) => {
   const { tagStore } = useStore();
 
   const renderCreateOption = useCallback(
-    (tagName: string, resetTextBox: () => void, isFocused: (index: number) => boolean) => (
-      <Option
+    (tagName: string, resetTextBox: () => void) => (
+      <Row
+        id="file-tags-create-option"
         key="create"
         value={`Create tag "${tagName}"`}
         icon={IconSet.TAG_ADD}
@@ -24,7 +25,6 @@ const FileTags = observer(({ file }: IFileTagProp) => {
           file.addTag(tag);
           resetTextBox();
         }}
-        focused={isFocused(0)}
       />
     ),
     [file, tagStore],

@@ -66,20 +66,6 @@ class TagStore {
     return this.get(tag.parent) ?? this.root;
   }
 
-  /** Returns the tags up the hierarchy from this tag, excluding the root tag */
-  @action getTreePath(tag: Readonly<ClientTag>): Readonly<ClientTag>[] {
-    if (tag.id === ROOT_TAG_ID) {
-      return [];
-    }
-    const treePath: Readonly<ClientTag>[] = [tag];
-    let node = this.getParent(tag);
-    while (node.id !== ROOT_TAG_ID) {
-      treePath.unshift(node);
-      node = this.getParent(node);
-    }
-    return treePath;
-  }
-
   create = flow(function* (this: TagStore, tagName: string, parent?: Readonly<ClientTag>) {
     const tag = new ClientTag(this, generateId(), tagName, new Date());
     yield this.backend.createTag(tag.serialize());

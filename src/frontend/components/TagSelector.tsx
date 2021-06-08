@@ -3,13 +3,13 @@ import { observer } from 'mobx-react-lite';
 import React, { ForwardedRef, ReactElement, useCallback, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
 import { ClientTag } from 'src/entities/Tag';
-import { IconButton, IconSet, Listbox, Option, Tag } from 'widgets';
-import { IOption, useListboxFocus } from 'widgets/Combobox/Listbox';
-import { Flyout } from 'widgets/popovers';
+import { IconButton, IconSet, Tag, Grid, Row, GridCell } from 'widgets';
+import { RowProps, useGridFocus } from 'widgets/Combobox/Grid';
+import { Flyout, useTooltip } from 'widgets/popovers';
 import { useStore } from '../contexts/StoreContext';
 
 export interface TagSelectorProps {
-  selection: readonly Readonly<ClientTag>[];
+  selection: Readonly<ClientTag>[];
   onSelect: (item: Readonly<ClientTag>) => void;
   onDeselect: (item: Readonly<ClientTag>) => void;
   onTagClick?: (item: Readonly<ClientTag>) => void;
@@ -21,8 +21,7 @@ export interface TagSelectorProps {
   renderCreateOption?: (
     inputText: string,
     resetTextBox: () => void,
-    isFocused: (index: number) => boolean,
-  ) => ReactElement<IOption> | ReactElement<IOption>[];
+  ) => ReactElement<RowProps> | ReactElement<RowProps>[];
 }
 
 const TagSelector = (props: TagSelectorProps) => {
@@ -38,7 +37,7 @@ const TagSelector = (props: TagSelectorProps) => {
     placeholder,
     renderCreateOption,
   } = props;
-  const listboxID = useRef(generateId());
+  const gridId = useRef(generateId()).current;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -55,8 +54,8 @@ const TagSelector = (props: TagSelectorProps) => {
 
   const isInputEmpty = query.length === 0;
 
-  const listRef = useRef<HTMLUListElement>(null);
-  const [focusedOption, handleListFocus] = useListboxFocus(listRef);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [activeDescendant, handleGridFocus] = useGridFocus(gridRef);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Backspace') {
@@ -66,11 +65,14 @@ const TagSelector = (props: TagSelectorProps) => {
         if (isInputEmpty && selection.length > 0) {
           onDeselect(selection[selection.length - 1]);
         }
+      } else if (e.key === 'Escape') {
+        setQuery('');
+        setIsOpen(false);
       } else {
-        handleListFocus(e);
+        handleGridFocus(e);
       }
     },
-    [handleListFocus, onDeselect, isInputEmpty, selection],
+    [handleGridFocus, onDeselect, isInputEmpty, selection],
   );
 
   const handleBlur = useRef((e: React.FocusEvent<HTMLDivElement>) => {
@@ -105,7 +107,14 @@ const TagSelector = (props: TagSelectorProps) => {
   );
 
   return (
-    <div role="combobox" aria-expanded={isOpen} className="input" onBlur={handleBlur}>
+    <div
+      role="combobox"
+      aria-expanded={isOpen}
+      aria-haspopup="grid"
+      aria-owns={gridId}
+      className="input"
+      onBlur={handleBlur}
+    >
       <Flyout
         isOpen={isOpen}
         cancel={() => setIsOpen(false)}
@@ -122,7 +131,8 @@ const TagSelector = (props: TagSelectorProps) => {
                 aria-autocomplete="list"
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                aria-controls={listboxID.current}
+                aria-controls={gridId}
+                aria-activedescendant={activeDescendant}
                 ref={inputRef}
                 onFocus={handleFocus}
                 placeholder={selection.length === 0 ? placeholder : undefined}
@@ -134,14 +144,13 @@ const TagSelector = (props: TagSelectorProps) => {
         }
       >
         <SuggestedTagsList
-          ref={listRef}
+          ref={gridRef}
           multiselectable={multiselectable}
-          id={listboxID.current}
+          id={gridId}
           query={query}
           selection={selection}
           toggleSelection={toggleSelection}
           resetTextBox={resetTextBox.current}
-          focusedOption={focusedOption}
           renderCreateOption={renderCreateOption}
         />
       </Flyout>
@@ -181,23 +190,20 @@ interface SuggestedTagsListProps {
   selection: readonly Readonly<ClientTag>[];
   toggleSelection: (isSelected: boolean, tag: Readonly<ClientTag>) => void;
   resetTextBox: () => void;
-  focusedOption: number;
-  multiselectable?: boolean;
+  multiselectable: boolean;
   renderCreateOption?: (
     inputText: string,
     resetTextBox: () => void,
-    isFocused: (index: number) => boolean,
-  ) => ReactElement<IOption> | ReactElement<IOption>[];
+  ) => ReactElement<RowProps> | ReactElement<RowProps>[];
 }
 
 const SuggestedTagsList = observer(
-  (props: SuggestedTagsListProps, ref: ForwardedRef<HTMLUListElement>) => {
+  (props: SuggestedTagsListProps, ref: ForwardedRef<HTMLDivElement>) => {
     const {
       id,
       query,
       selection,
       toggleSelection,
-      focusedOption,
       resetTextBox,
       multiselectable,
       renderCreateOption,
@@ -215,27 +221,57 @@ const SuggestedTagsList = observer(
           }
         }),
       [query, tagStore],
-    );
+    ).get();
 
     return (
-      <Listbox ref={ref} id={id} multiselectable={multiselectable}>
-        {suggestions.get().map((tag, index) => {
+      <Grid ref={ref} id={id} multiselectable={multiselectable}>
+        {suggestions.map((tag) => {
           const selected = selection.includes(tag);
           return (
-            <Option
+            <TagOption
+              id={`${id}${tag.id}`}
               key={tag.id}
-              value={tag.name}
-              selected={selected}
-              icon={<span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>}
-              onClick={() => toggleSelection(selected, tag)}
-              focused={focusedOption === index}
+              tag={tag}
+              selected={selected ? selected : multiselectable ? selected : undefined}
+              toggleSelection={toggleSelection}
             />
           );
         })}
-        {suggestions.get().length === 0 &&
-          renderCreateOption?.(query, resetTextBox, (index) => index === focusedOption)}
-      </Listbox>
+        {suggestions.length === 0 && renderCreateOption?.(query, resetTextBox)}
+      </Grid>
     );
   },
   { forwardRef: true },
 );
+
+interface TagOptionProps {
+  id?: string;
+  tag: Readonly<ClientTag>;
+  selected?: boolean;
+  toggleSelection: (isSelected: boolean, tag: Readonly<ClientTag>) => void;
+}
+
+export const TagOption = observer(({ id, tag, selected, toggleSelection }: TagOptionProps) => {
+  const [path, hint] = useRef(
+    computed(() => {
+      const path = tag.treePath.map((t) => t.name).join(' › ');
+      const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
+      return [path, hint];
+    }),
+  ).current.get();
+  const { onHide, onShow } = useTooltip(path);
+
+  return (
+    <Row
+      id={id}
+      value={tag.name}
+      selected={selected}
+      icon={<span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>}
+      onClick={() => toggleSelection(selected ?? false, tag)}
+      onMouseOutCapture={onHide}
+      onMouseOverCapture={onShow}
+    >
+      {hint.length > 0 ? <GridCell className="tag-option-hint">{hint}</GridCell> : <GridCell />}
+    </Row>
+  );
+});

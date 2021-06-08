@@ -168,7 +168,7 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
         this.tagStore
           .get(val[0])
           ?.getSubTreeList()
-          .map((t) => t.id) || [];
+          ?.map((t) => t.id) || [];
     }
     if (op === 'containsNotRecursively') op = 'notContains';
     if (op === 'containsRecursively') op = 'contains';

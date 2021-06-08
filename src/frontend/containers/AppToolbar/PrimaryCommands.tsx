@@ -5,7 +5,7 @@ import { useStore } from '../../contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { ToolbarButton, ToolbarToggleButton } from 'widgets/menus';
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
-import FileTagEditor from 'src/frontend/containers/AppToolbar/FileTagEditor';
+import FileTagEditor from './FileTagEditor';
 import Searchbar from './Searchbar';
 import { SortCommand, ViewCommand } from './Menus';
 

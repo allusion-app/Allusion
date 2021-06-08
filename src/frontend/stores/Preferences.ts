@@ -21,6 +21,7 @@ export class Preferences {
   @observable thumbnailSize: ThumbnailSize = ThumbnailSize.Medium;
   @observable thumbnailShape: ThumbnailShape = ThumbnailShape.Square;
   @observable showThumbnailTags: boolean = true;
+  @observable showThumbnailFilename: boolean = true;
   @observable thumbnailDirectory: string = '';
 
   // Browser Extension
@@ -82,6 +83,7 @@ export class Preferences {
       this.parseThumbnailSize(prefs.thumbnailSize);
       this.parseThumbnailShape(prefs.thumbnailShape);
       this.parseShowThumbnailTags(prefs.showThumbnailTags);
+      this.parseShowThumbnailFilename(prefs.showThumbnailFilename);
       this.parseImportDirectory(prefs.importDirectory);
       this.parseIsOutlinerOpen(prefs.isOutlinerOpen);
       this.parseOutlinerWidth(prefs.outlinerWidth);
@@ -218,6 +220,12 @@ export class Preferences {
   @action private parseShowThumbnailTags(showThumbnailTags: any) {
     if (typeof showThumbnailTags === 'boolean') {
       this.showThumbnailTags = showThumbnailTags;
+    }
+  }
+
+  @action private parseShowThumbnailFilename(showThumbnailFilename: any) {
+    if (typeof showThumbnailFilename === 'boolean') {
+      this.showThumbnailFilename = showThumbnailFilename;
     }
   }
 

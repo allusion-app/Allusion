@@ -18,6 +18,7 @@ import RootStore from './frontend/stores/RootStore';
 
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
+import Overlay from './frontend/Overlay';
 import { promiseRetry } from './frontend/utils';
 import { Preferences } from './frontend/stores/Preferences';
 
@@ -72,7 +73,10 @@ async function main() {
   function render(rootElement: React.ReactElement) {
     RendererMessenger.initialized();
     ReactDOM.render(
-      <StoreProvider value={rootStore}>{rootElement}</StoreProvider>,
+      <StoreProvider value={rootStore}>
+        {rootElement}
+        <Overlay />
+      </StoreProvider>,
       document.getElementById('app'),
     );
   }

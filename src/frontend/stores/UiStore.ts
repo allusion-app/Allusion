@@ -158,6 +158,10 @@ class UiStore {
     this.preferences.showThumbnailTags = !this.preferences.showThumbnailTags;
   }
 
+  @action.bound toggleThumbnailFilenameOverlay() {
+    this.preferences.showThumbnailFilename = !this.preferences.showThumbnailFilename;
+  }
+
   @action.bound openOutliner() {
     this.preferences.isOutlinerOpen = true;
   }

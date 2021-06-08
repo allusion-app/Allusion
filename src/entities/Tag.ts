@@ -77,6 +77,20 @@ export class ClientTag implements ISerializable<ITag> {
     return subTree;
   }
 
+  /** Returns the tags up the hierarchy from this tag, excluding the root tag */
+  @computed get treePath(): readonly Readonly<ClientTag>[] {
+    if (this.id === ROOT_TAG_ID) {
+      return [];
+    }
+    const treePath: Readonly<ClientTag>[] = [this];
+    let node = this.store.get(this.parent);
+    while (node !== undefined && node.id !== ROOT_TAG_ID) {
+      treePath.unshift(node);
+      node = this.store.get(node.parent);
+    }
+    return treePath;
+  }
+
   @action setParent(tag: Readonly<ClientTag>): void {
     this._parent = tag.id;
   }

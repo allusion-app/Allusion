@@ -74,6 +74,13 @@ const Appearance = observer(() => {
           onChange={uiStore.toggleThumbnailTagOverlay}
         />
       </fieldset>
+      <fieldset>
+        <legend>Show filename on thumbnail</legend>
+        <Toggle
+          checked={uiStore.preferences.showThumbnailFilename}
+          onChange={uiStore.toggleThumbnailFilenameOverlay}
+        />
+      </fieldset>
 
       <div className="settings-thumbnail">
         <RadioGroup name="Size">
@@ -640,7 +647,7 @@ async function writeTagsToFiles(
     const tagFilePairs = fileList.map(
       action((f) => ({
         absolutePath: f.absolutePath,
-        tagHierarchy: Array.from(f.tags).map((t) => tagStore.getTreePath(t).map((t) => t.name)),
+        tagHierarchy: Array.from(f.tags).map(action((t) => t.treePath.map((t) => t.name))),
       })),
     );
     console.log(tagFilePairs);
