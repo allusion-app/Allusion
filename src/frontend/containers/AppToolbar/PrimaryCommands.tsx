@@ -7,7 +7,7 @@ import FileStore from 'src/frontend/stores/FileStore';
 import { IconSet } from 'widgets';
 import { ToolbarButton, ToolbarToggleButton } from 'widgets/menus';
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
-import TagFilesPopover from 'src/frontend/containers/AppToolbar/TagFilesPopover';
+import FileTagEditor from 'src/frontend/containers/AppToolbar/FileTagEditor';
 import Searchbar from './Searchbar';
 import { SortCommand, ViewCommand } from './Menus';
 
@@ -57,7 +57,7 @@ const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStor
         <RemoveFilesPopover uiStore={uiStore} />
       ) : (
         // Only show when not viewing missing files (so it is replaced by the Delete button)
-        <TagFilesPopover />
+        <FileTagEditor />
       )}
 
       <SortCommand fileStore={fileStore} />
@@ -82,7 +82,7 @@ export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => 
 
       <div className="spacer" />
 
-      <TagFilesPopover />
+      <FileTagEditor />
 
       <ToolbarButton
         showLabel="never"

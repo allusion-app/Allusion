@@ -9,12 +9,12 @@ import {
 } from 'src/entities/SearchCriteria';
 import { FileSearchCriteria } from 'src/frontend/stores/UiStore';
 import {
+  CustomKeyDict,
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,
   ClientDateSearchCriteria,
   ClientNumberSearchCriteria,
 } from 'src/entities/SearchCriteria';
-import { CustomKeyDict } from '../types';
 import TagStore from 'src/frontend/stores/TagStore';
 
 export type Query =

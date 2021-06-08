@@ -87,9 +87,7 @@ class FileStore {
 
           const { tagStore } = this.rootStore;
           for (const tagHierarchy of tagsNameHierarchies) {
-            const match = runInAction(() =>
-              tagStore.tagList.find((t) => t.name === tagHierarchy[tagHierarchy.length - 1]),
-            );
+            const match = tagStore.findByName(tagHierarchy[tagHierarchy.length - 1]);
             if (match) {
               // If there is a match to the leaf tag, just add it to the file
               runInAction(() => this.fileList[i].addTag(match));
@@ -97,9 +95,7 @@ class FileStore {
               // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
               let curTag = tagStore.root;
               for (const nodeName of tagHierarchy) {
-                const nodeMatch = runInAction(() =>
-                  tagStore.tagList.find((t) => t.name === nodeName),
-                );
+                const nodeMatch = tagStore.findByName(nodeName);
                 if (nodeMatch) {
                   curTag = nodeMatch;
                 } else {
@@ -142,7 +138,7 @@ class FileStore {
       const tagFilePairs = runInAction(() =>
         this.fileList.map((f) => ({
           absolutePath: f.absolutePath,
-          tagHierarchy: Array.from(f.tags).map((t) => t.getTagHierarchy().map((t) => t.name)),
+          tagHierarchy: Array.from(f.tags).map(action((t) => t.treePath.map((t) => t.name))),
         })),
       );
       console.log(tagFilePairs);

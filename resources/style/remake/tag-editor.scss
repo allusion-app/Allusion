@@ -19,7 +19,7 @@
     margin: 0.5rem;
   }
 
-  [role='listbox'] {
+  .combobox-popup {
     flex: 1;
     border-top: 0.0625rem solid var(--border-color);
     border-bottom: 0.0625rem solid var(--border-color);
@@ -41,4 +41,10 @@
     flex-wrap: wrap;
     align-items: center;
   }
+}
+
+.tag-option-hint {
+  margin-left: 1rem;
+  color: var(--text-color-muted);
+  font-size: smaller;
 }

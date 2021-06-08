@@ -72,13 +72,25 @@ const Appearance = observer(() => {
       <Zoom />
 
       <h3>Thumbnail</h3>
-      <fieldset>
-        <legend>Show assigned tags</legend>
-        <Toggle
-          checked={uiStore.isThumbnailTagOverlayEnabled}
-          onChange={uiStore.toggleThumbnailTagOverlay}
-        />
-      </fieldset>
+
+      <div className="settings-thumbnail">
+        <fieldset>
+          <legend>Show assigned tags</legend>
+          <Toggle
+            checked={uiStore.isThumbnailTagOverlayEnabled}
+            onChange={uiStore.toggleThumbnailTagOverlay}
+          />
+        </fieldset>
+        <fieldset>
+          <legend>Show filename on thumbnail</legend>
+          <Toggle
+            checked={uiStore.isThumbnailFilenameOverlayEnabled}
+            onChange={uiStore.toggleThumbnailFilenameOverlay}
+          />
+        </fieldset>
+      </div>
+
+      <br />
 
       <div className="settings-thumbnail">
         <RadioGroup name="Size">
@@ -174,7 +186,7 @@ const ImportExport = observer(() => {
       const backupStats = await rootStore.peekDatabaseFile(path);
       setConfirmingFileImport({
         path,
-        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.tagList.length}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
+        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.count}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
       });
     } catch (e) {
       console.log(e);

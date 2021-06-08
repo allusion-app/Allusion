@@ -9,12 +9,12 @@ import StoreContext from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
-import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientStringSearchCriteria, CustomKeyDict } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
 import { IconSet, Tree } from 'widgets';
 import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'widgets/menus';
 import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
-import { CustomKeyDict, IExpansionState } from '../../types';
+import { IExpansionState } from '../../types';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
@@ -50,21 +50,20 @@ const isExpanded = (nodeData: ClientLocation | ClientSubLocation, treeData: ITre
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const emptyFunction = () => {};
 
-// FIXME: React broke Element.dispatchevent(). Alternative: Pass show context menu method.
-// const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
-//   const element = event.currentTarget.querySelector('.tree-content-label');
-//   if (element) {
-//     // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
-//     // Why not trigger context menus through `ContextMenu.show()`?
-//     event.stopPropagation();
-//     element.dispatchEvent(
-//       new MouseEvent('contextmenu', {
-//         clientX: element.getBoundingClientRect().right,
-//         clientY: element.getBoundingClientRect().top,
-//       }),
-//     );
-//   }
-// };
+const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+  const element = event.currentTarget.querySelector('.tree-content-label');
+  if (element !== null) {
+    event.stopPropagation();
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: rect.right,
+        clientY: rect.top,
+        bubbles: true,
+      }),
+    );
+  }
+};
 
 const pathCriteria = (path: string) =>
   new ClientStringSearchCriteria<IFile>(
@@ -82,11 +81,11 @@ const customKeys = (
   treeData: ITreeData,
 ) => {
   switch (event.key) {
-    // case 'F10':
-    //   if (event.shiftKey) {
-    //     triggerContextMenuEvent(event);
-    //   }
-    //   break;
+    case 'F10':
+      if (event.shiftKey) {
+        triggerContextMenuEvent(event);
+      }
+      break;
 
     case 'Enter':
       event.stopPropagation();
@@ -100,9 +99,9 @@ const customKeys = (
       }
       break;
 
-    // case 'ContextMenu':
-    //   triggerContextMenuEvent(event);
-    //   break;
+    case 'ContextMenu':
+      triggerContextMenuEvent(event);
+      break;
 
     default:
       break;

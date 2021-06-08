@@ -41,6 +41,8 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
         text="Open In Preview Window"
         icon={IconSet.PREVIEW}
       />
+      {/* Request: "Open path in Location hierarchy" */}
+      {/* IDEA: "View similar images" > ["Same tags", "Same directory", ("Same size/resolution/colors?)")] */}
       <MenuItem
         onClick={uiStore.openToolbarTagPopover}
         text="Open Tag Selector"
@@ -73,7 +75,7 @@ export const SlideFileViewerMenuItems = ({
   );
 };
 
-export const ExternalAppMenuItems = ({ file }: { file: ClientFile }) => (
+export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => (
   <>
     <MenuItem
       onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
@@ -87,4 +89,4 @@ export const ExternalAppMenuItems = ({ file }: { file: ClientFile }) => (
       icon={IconSet.FOLDER_CLOSE}
     />
   </>
-);
+));

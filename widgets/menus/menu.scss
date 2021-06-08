@@ -1,19 +1,23 @@
-[role='menu'],
-[role='listbox'] {
+[role='menu'] {
   list-style: none;
   margin: 0;
   padding: 0.5rem;
   min-width: 10rem;
   overflow: hidden auto;
+
+  [role='separator'] {
+    background: var(--text-color-muted);
+    height: 1px;
+    margin: 0.5rem 1rem;
+  }
+
+  [role='group'] {
+    margin: 0;
+    padding: 0;
+  }
 }
 
-[role='menu'] [role='group'] {
-  margin: 0;
-  padding: 0;
-}
-
-[role^='menuitem'],
-[role='option'] {
+[role^='menuitem'] {
   display: flex;
   justify-content: stretch;
   align-items: center;
@@ -25,9 +29,9 @@
   &[aria-expanded='true'],
   &:hover {
     color: var(--text-color-strong);
+    background: var(--hover-color);
   }
-  &:focus,
-  &.focused {
+  &:focus {
     color: var(--text-color-strong);
     background: var(--hover-color);
   }
@@ -43,29 +47,23 @@ a[role='menuitem'] {
   text-decoration: none;
 }
 
-[role^='menuitem']:hover {
-  color: var(--text-color-strong);
-  background: var(--hover-color);
-}
-
 [role='menuitemradio'][aria-checked='true'] {
   color: var(--text-color-strong);
   background: var(--accent-color-blue);
 }
 
-[role='menuitemcheckbox'][aria-checked='true'],
-[role='option'][aria-selected='true'] {
-  .item-icon {
-    background: currentColor;
-    mask-image: url(~resources/icons/checkmark.svg);
-    -webkit-mask-image: url(~resources/icons/checkmark.svg);
+[role='menuitemcheckbox'] {
+  &[aria-checked='false'] .item-icon {
+    background: var(--text-color-muted);
+    mask-image: url(~resources/icons/select-all.svg);
+    -webkit-mask-image: url(~resources/icons/select-all.svg);
   }
-}
 
-[role='menu'] [role='separator'] {
-  background: var(--text-color-muted);
-  height: 1px;
-  margin: 0.5rem 1rem;
+  &[aria-checked='true'] .item-icon {
+    background: var(--text-color);
+    mask-image: url(~resources/icons/select-all-checked.svg);
+    -webkit-mask-image: url(~resources/icons/select-all-checked.svg);
+  }
 }
 
 .item-icon,
@@ -73,16 +71,14 @@ a[role='menuitem'] {
   display: flex;
   pointer-events: none;
   align-items: center;
-  height: 1rem;
-  min-width: 1rem;
+  min-height: 1em;
+  min-width: 1em;
   fill: var(--text-color);
 
   .custom-icon {
     margin: 0;
-  }
-
-  * {
-    pointer-events: none;
+    height: 1em;
+    width: 1em;
   }
 }
 
