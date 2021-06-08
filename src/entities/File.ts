@@ -45,6 +45,7 @@ export interface IFile extends IMetaData, IResource {
 export class ClientFile implements ISerializable<IFile> {
   private store: FileStore;
   private saveHandler: IReactionDisposer;
+  private autoSave: boolean = true;
 
   readonly id: ID;
   readonly locationId: ID;
@@ -97,8 +98,11 @@ export class ClientFile implements ISerializable<IFile> {
       // Then update the entity in the database
       (file) => {
         // Remove reactive properties, since observable props are not accepted in the backend
-        this.store.save(file);
+        if (this.autoSave) {
+          this.store.save(file);
+        }
       },
+      { delay: 500 },
     );
 
     makeObservable(this);
@@ -130,17 +134,11 @@ export class ClientFile implements ISerializable<IFile> {
 
   @action.bound setBroken(isBroken: boolean): void {
     this.isBroken = isBroken;
-    if (isBroken) {
-      this.dispose();
-    } else {
-      this.startReaction();
-    }
+    this.autoSave = !isBroken;
   }
 
   @action.bound updateTagsFromBackend(tags: ClientTag[]): void {
-    this.dispose();
     this.tags.replace(tags);
-    this.startReaction();
   }
 
   serialize(): IFile {
@@ -162,20 +160,9 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   dispose(): void {
+    this.autoSave = false;
     // clean up the observer
     this.saveHandler();
-  }
-
-  private startReaction(): void {
-    this.saveHandler = reaction(
-      // We need to explicitly define which values this reaction should react to
-      () => this.serialize(),
-      // Then update the entity in the database
-      (file) => {
-        // Remove reactive properties, since observable props are not accepted in the backend
-        this.store.save(file);
-      },
-    );
   }
 }
 

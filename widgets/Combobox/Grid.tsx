@@ -141,6 +141,7 @@ export const Row = ({ id, value, selected, onClick, icon, children, ...props }: 
     className="combobox-popup-option"
     aria-selected={selected}
     onClick={onClick}
+    tabIndex={-1} // Important for focus handling!
   >
     <GridCell>
       <span className="combobox-popup-option-icon" aria-hidden>
