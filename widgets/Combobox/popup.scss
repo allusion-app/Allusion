@@ -5,6 +5,7 @@
   min-width: 20ch;
   max-width: 80vw;
   overflow: hidden auto;
+  max-height: 16rem;
 
   [role='separator'] {
     background: var(--text-color-muted);
