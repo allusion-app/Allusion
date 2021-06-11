@@ -59,6 +59,7 @@ export const TooltipLayer = () => {
       ) {
         return;
       }
+      forceUpdate?.();
       setIsOpen(false);
       anchorElement.current = null;
       window.clearTimeout(timerID.current);
