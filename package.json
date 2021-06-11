@@ -120,7 +120,7 @@
     "dexie-export-import": "^1.0.0",
     "electron-updater": "^4.3.8",
     "fs-extra": "^9.1.0",
-    "image-size": "^1.0.0",
+    "image-size": "^0.9.7",
     "mobx": "^6.3.2",
     "mobx-react-lite": "^3.2.0",
     "node-exiftool": "^2.3.0",
