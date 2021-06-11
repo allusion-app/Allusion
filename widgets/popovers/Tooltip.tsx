@@ -1,5 +1,5 @@
 import { Placement } from '@popperjs/core';
-import React, { ReactText, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePopper } from 'react-popper';
 
 export const TooltipLayer = () => {
@@ -30,7 +30,7 @@ export const TooltipLayer = () => {
   );
 
   const [isOpen, setIsOpen] = useState(false);
-  const content = useRef<ReactText>('');
+  const content = useRef<string>('');
   const timerID = useRef<number>();
 
   useEffect(() => {
@@ -44,6 +44,7 @@ export const TooltipLayer = () => {
       if (anchorElement.current !== target) {
         window.clearTimeout(timerID.current);
         timerID.current = window.setTimeout(() => {
+          timerID.current = undefined;
           forceUpdate?.();
           setIsOpen(true);
         }, 500);
@@ -58,7 +59,6 @@ export const TooltipLayer = () => {
       ) {
         return;
       }
-      forceUpdate?.();
       setIsOpen(false);
       anchorElement.current = null;
       window.clearTimeout(timerID.current);
