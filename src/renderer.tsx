@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { observe, runInAction } from 'mobx';
+import { observe } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -19,6 +19,7 @@ import RootStore from './frontend/stores/RootStore';
 
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
+import Overlay from './frontend/Overlay';
 import { promiseRetry } from './frontend/utils';
 
 // Window State
@@ -120,6 +121,7 @@ window.addEventListener('beforeunload', () => {
 ReactDOM.render(
   <StoreContext.Provider value={rootStore}>
     {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
+    <Overlay />
   </StoreContext.Provider>,
   document.getElementById('app'),
 );
@@ -139,9 +141,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   if (clientFile) {
     const tags = await Promise.all(
       tagNames.map(async (tagName) => {
-        const clientTag = runInAction(() =>
-          tagStore.tagListWithoutRoot.find((tag) => tag.name === tagName),
-        );
+        const clientTag = tagStore.findByName(tagName);
         if (clientTag !== undefined) {
           return clientTag;
         } else {

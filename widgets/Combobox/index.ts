@@ -1,6 +1,6 @@
-/** NOTE: Listbox and Option re-use the styles from menu.scss! */
 import './combobox.scss';
 
 import { Listbox, Option } from './Listbox';
+import { Grid, Row, GridCell } from './Grid';
 
-export { Listbox, Option };
+export { Listbox, Option, Grid, Row, GridCell };

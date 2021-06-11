@@ -74,7 +74,7 @@ export const MenuCheckboxItem = ({
   </li>
 );
 
-export const MenuDivider = () => <li role="separator" className="menu-separator"></li>;
+export const MenuDivider = () => <li role="separator"></li>;
 
 export interface IMenuItemLink {
   icon?: JSX.Element;

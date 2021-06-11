@@ -1,6 +1,6 @@
 import './button.scss';
-import React, { useRef } from 'react';
-import { Tooltip } from 'widgets/popovers';
+import React from 'react';
+import { useTooltip } from 'widgets/popovers';
 
 export type Intent = 'info' | 'success' | 'warning' | 'danger';
 interface IButton {
@@ -56,20 +56,23 @@ interface IIconButton {
   text: string;
   icon: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
-  large?: boolean;
+  className?: string;
   disabled?: boolean;
 }
 
-const IconButton = ({ text, icon, onClick, disabled, large }: IIconButton) => {
-  const portalTriggerRef = useRef<HTMLButtonElement>(null);
+const IconButton = ({ text, icon, onClick, disabled, className }: IIconButton) => {
+  const { onHide, onShow } = useTooltip(text);
 
-  const iconButton = (
+  return (
     <button
-      className={`btn btn-icon${large ? ' btn-icon-large' : ''}`}
+      className={`${className !== undefined ? className : ''} btn btn-icon`}
       onClick={onClick}
       disabled={disabled}
       type="button"
-      ref={portalTriggerRef}
+      onFocusCapture={onShow}
+      onBlurCapture={onHide}
+      onMouseOverCapture={onShow}
+      onMouseOutCapture={onHide}
     >
       <span className="btn-content-icon" aria-hidden="true">
         {icon}
@@ -77,12 +80,6 @@ const IconButton = ({ text, icon, onClick, disabled, large }: IIconButton) => {
       <span className="btn-content-text hidden">{text}</span>
     </button>
   );
-
-  if (text) {
-    return <Tooltip content={text} trigger={iconButton} portalTriggerRef={portalTriggerRef} />;
-  } else {
-    return iconButton;
-  }
 };
 
 export { Button, ButtonGroup, IconButton };

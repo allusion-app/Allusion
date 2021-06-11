@@ -25,7 +25,6 @@ export interface ITag extends IResource {
 export class ClientTag implements ISerializable<ITag> {
   private store: TagStore;
   private saveHandler: IReactionDisposer;
-  private autoSave = true;
 
   readonly id: ID;
   readonly dateAdded: Date;
@@ -57,10 +56,9 @@ export class ClientTag implements ISerializable<ITag> {
       () => this.serialize(),
       // Then update the entity in the database
       (tag) => {
-        if (this.autoSave) {
-          this.store.save(tag);
-        }
+        this.store.save(tag);
       },
+      { delay: 500 },
     );
 
     makeObservable(this);
@@ -75,9 +73,31 @@ export class ClientTag implements ISerializable<ITag> {
     return this._parent;
   }
 
-  /** Returns this tag and all of its sub-tags, sub-sub-tags, etc., ordered depth-first */
-  @computed get recursiveSubTags(): ClientTag[] {
-    return [this, ...this.subTags.flatMap((t) => t.recursiveSubTags)];
+  /** Returns this tag and all of its sub-tags ordered depth-first */
+  @action getSubTreeList(): readonly ClientTag[] {
+    const subTree: ClientTag[] = [this];
+    const pushTags = (tags: ClientTag[]) => {
+      for (const t of tags) {
+        subTree.push(t);
+        pushTags(t.subTags);
+      }
+    };
+    pushTags(this.subTags);
+    return subTree;
+  }
+
+  /** Returns the tags up the hierarchy from this tag, excluding the root tag */
+  @computed get treePath(): ClientTag[] {
+    if (this.id === ROOT_TAG_ID) {
+      return [];
+    }
+    const treePath: ClientTag[] = [this];
+    let node = this.parent;
+    while (node.id !== ROOT_TAG_ID) {
+      treePath.unshift(node);
+      node = node.parent;
+    }
+    return treePath;
   }
 
   get isSelected(): boolean {
@@ -90,15 +110,6 @@ export class ClientTag implements ISerializable<ITag> {
 
   get isSearched(): boolean {
     return this.store.isSearched(this.id);
-  }
-
-  /** Returns the tags up the hierarchy from this tag, excluding the root tag */
-  @action getTagHierarchy(): ClientTag[] {
-    if (this.id === ROOT_TAG_ID) {
-      return [];
-    } else {
-      return [...this.parent.getTagHierarchy(), this];
-    }
   }
 
   /**
@@ -151,31 +162,11 @@ export class ClientTag implements ISerializable<ITag> {
     };
   }
 
-  toList(): ClientTag[] {
-    const ids: ClientTag[] = [this];
-    const pushIds = (tags: ClientTag[]) => {
-      for (const t of tags) {
-        ids.push(t);
-        pushIds(t.subTags);
-      }
-    };
-    pushIds(this.subTags);
-    return ids;
-  }
-
   async delete(): Promise<void> {
     return this.store.delete(this);
   }
 
-  /** Update observable properties without updating the database */
-  @action update(update: (tag: ClientTag) => void): void {
-    this.autoSave = false;
-    update(this);
-    this.autoSave = true;
-  }
-
   dispose(): void {
-    this.autoSave = false;
     // clean up the observer
     this.saveHandler();
   }

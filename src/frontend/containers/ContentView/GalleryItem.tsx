@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
-import { encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
-import { IconSet, Tag } from 'widgets';
-import { Tooltip } from 'widgets/popovers';
+import { ellipsize, encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
+import { IconButton, IconSet, Tag } from 'widgets';
 import FileStore from '../../stores/FileStore';
 import UiStore from '../../stores/UiStore';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
 import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
+import { useTooltip } from 'widgets/popovers';
+import { ClientTag } from 'src/entities/Tag';
 
 interface ICell {
   file: ClientFile;
@@ -53,7 +54,6 @@ export const listColumns: IListColumn[] = [
 ];
 
 export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICell) => {
-  const portalTriggerRef = useRef<HTMLSpanElement>(null);
   const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
     file,
     submitCommand,
@@ -66,7 +66,6 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
       {...eventHandlers}
     >
       {/* Filename */}
-      {/* TODO: Tooltip with full file name / path and expanded thumbnail */}
       <div key={`${file.id}-name`}>
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           {mounted ? (
@@ -74,21 +73,8 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
           ) : (
             <div className="thumbnail-placeholder" />
           )}
-        </ThumbnailContainer>{' '}
-        <span className="filename" ref={portalTriggerRef}>
-          {file.name}
-        </span>
-        {/* TODO: Tooltip would be nice, but it's mega sloowwww. a title attribute would be nice */}
-        {/* <Tooltip
-          portalTriggerRef={portalTriggerRef}
-          content={ellipsize(file.absolutePath, 80, 'middle')}
-          trigger={
-            <span className="filename" ref={portalTriggerRef}>
-              {file.name}
-            </span>
-          }
-          placement="bottom-start"
-        /> */}
+        </ThumbnailContainer>
+        <span className="filename">{file.name}</span>
       </div>
 
       {/* Dimensions */}
@@ -103,26 +89,11 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
       <div>{humanFileSize(file.size)}</div>
 
       {/* Tags */}
-      <div>{file.tags.size == 0 ? <span className="thumbnail-tags" /> : <Tags file={file} />}</div>
+      <div>
+        <ThumbnailTags file={file} />
+      </div>
 
       {/* TODO: Broken/missing indicator. Red/orange-ish background? */}
-      {/* {file.isBroken === true ? (
-        <p>The file {file.name} could not be found.</p>
-        <p>Would you like to remove it from your library?</p>
-        <ButtonGroup>
-          <Button
-            text="Remove"
-            styling="outlined"
-            onClick={() => {
-              uiStore.selectFile(file, true);
-              uiStore.openToolbarFileRemover();
-            }}
-          />
-        </ButtonGroup>
-      </div>
-    ) : (
-      <></>
-    )} */}
     </div>
   );
 });
@@ -144,7 +115,7 @@ export const MasonryCell = observer(
     submitCommand,
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
-    const portalTriggerRef = useRef<HTMLSpanElement>(null);
+
     return (
       <div
         data-masonrycell
@@ -161,30 +132,26 @@ export const MasonryCell = observer(
           />
         </ThumbnailContainer>
         {file.isBroken === true && !fileStore.showsMissingContent && (
-          <Tooltip
-            content="This image could not be found - opens the recovery view"
-            trigger={
-              <span
-                ref={portalTriggerRef}
-                className="thumbnail-broken-overlay"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  await fileStore.fetchMissingFiles();
-                }}
-              >
-                {IconSet.WARNING_BROKEN_LINK}
-              </span>
-            }
-            portalTriggerRef={portalTriggerRef}
+          <IconButton
+            className="thumbnail-broken-overlay"
+            icon={IconSet.WARNING_BROKEN_LINK}
+            onClick={async (e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              await fileStore.fetchMissingFiles();
+            }}
+            text="This image could not be found. Open the recovery view."
           />
         )}
+
+        {uiStore.isThumbnailFilenameOverlayEnabled && <ThumbnailFilename file={file} />}
+
         {/* Show tags when the option is enabled, or when the file is selected */}
         {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
-          (file.tags.size == 0 || !mounted ? (
+          (!mounted ? (
             <span className="thumbnail-tags" />
           ) : (
-            <Tags file={file} submitCommand={submitCommand} />
+            <ThumbnailTags file={file} submitCommand={submitCommand} />
           ))}
       </div>
     );
@@ -252,26 +219,14 @@ export class GalleryEventHandler {
   onDrop(e: React.DragEvent<HTMLElement>) {
     e.stopPropagation();
     this.submitCommand({ selector: GallerySelector.Drop, payload: this.file });
-    const thumbnail = e.currentTarget as HTMLElement;
     e.dataTransfer.dropEffect = 'none';
     e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-
-    const galleryContent = thumbnail.closest('#gallery-content');
-    if (galleryContent) {
-      galleryContent.classList.remove('selected-file-dropping');
-    }
   }
   // TODO: Doesn't seem to every be firing. Bug: Pressing escape while dropping tag on gallery item
   onDragEnd(e: React.DragEvent<HTMLElement>) {
     e.stopPropagation();
-    const thumbnail = e.currentTarget as HTMLElement;
     e.dataTransfer.dropEffect = 'none';
     e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-
-    const galleryContent = thumbnail.closest('#gallery-content');
-    if (galleryContent) {
-      galleryContent.classList.remove('selected-file-dropping');
-    }
   }
 }
 
@@ -377,7 +332,7 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
   </div>
 );
 
-const Tags = observer(
+const ThumbnailTags = observer(
   ({
     file,
     submitCommand,
@@ -389,6 +344,7 @@ const Tags = observer(
       () => submitCommand && new GalleryEventHandler(file, submitCommand).handlers,
       [file, submitCommand],
     );
+
     return (
       <span
         className="thumbnail-tags"
@@ -397,12 +353,38 @@ const Tags = observer(
         onDoubleClick={eventHandlers?.onDoubleClick}
       >
         {Array.from(file.tags, (tag) => (
-          <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
+          <TagWithHint key={tag.id} tag={tag} />
         ))}
       </span>
     );
   },
 );
+
+const TagWithHint = observer(({ tag }: { tag: ClientTag }) => {
+  const { onShow, onHide } = useTooltip(tag.treePath.map((t) => t.name).join(' › '));
+
+  return (
+    <Tag
+      text={tag.name}
+      color={tag.viewColor}
+      onMouseOutCapture={onHide}
+      onMouseOverCapture={onShow}
+    />
+  );
+});
+
+const ThumbnailFilename = ({ file }: { file: ClientFile }) => {
+  const title = `${ellipsize(file.absolutePath, 80, 'middle')}, ${file.width}x${
+    file.height
+  }, ${humanFileSize(file.size)}`;
+  const { onShow, onHide } = useTooltip(title);
+
+  return (
+    <div className="thumbnail-filename" onMouseOutCapture={onHide} onMouseOverCapture={onShow}>
+      {file.name}
+    </div>
+  );
+};
 
 export const enum GallerySelector {
   Click = 'click',
