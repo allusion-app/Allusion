@@ -6,7 +6,11 @@ import StoreContext from './contexts/StoreContext';
 const Overlay = observer(() => {
   const { uiStore } = useContext(StoreContext);
 
-  return <TooltipLayer className={uiStore.theme} />;
+  return (
+    <div className={uiStore.theme}>
+      <TooltipLayer />
+    </div>
+  );
 });
 
 export default Overlay;

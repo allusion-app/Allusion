@@ -2,14 +2,13 @@ import React, { useEffect, useRef } from 'react';
 
 import { Button } from 'widgets';
 
-export interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
+export interface IDialog {
   open: boolean;
   role?: string;
   label?: string;
   labelledby?: string;
   describedby?: string;
   children: React.ReactNode;
-  className?: string;
   onClose?: (event: Event) => void;
   /** If no event listener is provided for the cancel event, by default closing
    *  with the Escape key will be disabled. This is to ensure that no error is
@@ -18,18 +17,7 @@ export interface IDialog extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const Dialog = (props: IDialog) => {
-  const {
-    open,
-    role,
-    label,
-    labelledby,
-    describedby,
-    className,
-    onClose,
-    onCancel,
-    children,
-    ...p
-  } = props;
+  const { open, role, label, labelledby, describedby, onClose, onCancel, children } = props;
 
   const dialog = useRef<HTMLDialogElement>(null);
 
@@ -62,11 +50,9 @@ export const Dialog = (props: IDialog) => {
       aria-label={label}
       aria-labelledby={labelledby}
       aria-describedby={describedby}
-      className={className}
+      className="dialog"
     >
-      <div {...p} className="dialog-content">
-        {children}
-      </div>
+      <div className="dialog-content">{children}</div>
     </dialog>
   );
 };
@@ -77,8 +63,6 @@ export interface IAlert extends IDialogActions {
   icon?: JSX.Element;
   information: string;
   view?: React.ReactNode;
-  className?: string;
-  // onSuppression?: () => void;
 }
 
 export const Alert = (props: IAlert) => {
@@ -90,7 +74,6 @@ export const Alert = (props: IAlert) => {
       role="alertdialog"
       labelledby="dialog-title"
       describedby="dialog-information"
-      className={props.className}
     >
       <span className="dialog-icon">{icon}</span>
       <h2 id="dialog-title" className="dialog-title">

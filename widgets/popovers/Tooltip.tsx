@@ -9,7 +9,7 @@ const enum TooltipEvent {
 
 let IS_TOOLTIP_VISIBLE = false;
 
-export const TooltipLayer = ({ className }: { className?: string }) => {
+export const TooltipLayer = () => {
   const popoverElement = useRef<HTMLDivElement>(null);
   const anchorElement = useRef<Element | null>();
   const popperOptions = useRef({
@@ -75,7 +75,6 @@ export const TooltipLayer = ({ className }: { className?: string }) => {
 
   return (
     <div
-      className={className}
       ref={popoverElement}
       style={styles.popper}
       {...attributes.popper}
@@ -83,7 +82,7 @@ export const TooltipLayer = ({ className }: { className?: string }) => {
       data-popover
       data-open={isOpen}
     >
-      <div className="tooltip">{content.current}</div>
+      {content.current}
     </div>
   );
 };
