@@ -140,7 +140,6 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
   isImageLoaded: any; //permits initial transform
   originalOverscrollBehaviorY: any; //saves the original overscroll-behavior-y value while temporarily preventing pull down refresh
   isTransformInitialized?: boolean;
-  initialTransitionFinished?: boolean;
 
   constructor(props: IPinchZoomPanProps) {
     super(props);
@@ -405,9 +404,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
         this.props.containerDimensions || getContainerDimensions(this.imageRef);
       // a lil finnicky for initaial transition: dimensions need to be known asap then
       // but later, get from image since otherwise you get flicker when vhanging images
-      const imageDimensions = !this.initialTransitionFinished
-        ? this.props.imageDimensions || getDimensions(this.imageRef)
-        : getDimensions(this.imageRef);
+      const imageDimensions = this.props.imageDimensions || getDimensions(this.imageRef);
 
       const imgDimensionsChanged = !isEqualDimensions(
         imageDimensions,
@@ -501,8 +498,6 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
         //animation runs until we reach the target
         if (!isEqualTransform(nextTransform, this.state)) {
           this.setState(nextTransform, () => (this.animation = requestAnimationFrame(frame)));
-        } else if (!this.initialTransitionFinished) {
-          this.initialTransitionFinished = true;
         }
       };
       this.animation = requestAnimationFrame(frame);
