@@ -169,6 +169,7 @@ const SlideView = observer((props: ISlideView) => {
   return (
     <ZoomableImage
       src={file.absolutePath}
+      thumbnailSrc={file.thumbnailPath}
       width={width}
       height={height}
       imgWidth={file.width}
@@ -185,6 +186,7 @@ const SlideView = observer((props: ISlideView) => {
 
 interface IZoomableImageProps {
   src: string;
+  thumbnailSrc?: string;
   width: number;
   height: number;
   imgWidth: number;
@@ -197,6 +199,7 @@ interface IZoomableImageProps {
 
 const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDivElement>> = ({
   src,
+  thumbnailSrc,
   width,
   height,
   imgWidth,
@@ -209,6 +212,30 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
 }: IZoomableImageProps) => {
   const [loadError, setLoadError] = useState<any>();
   useEffect(() => setLoadError(undefined), [src]);
+
+  // in order to coordinate image dimensions at the time of loading, store current img src + dimensions together
+  const [currentImg, setCurrentImg] = useState({
+    src: thumbnailSrc || src,
+    dimensions: { width: imgWidth, height: imgHeight },
+  });
+  useEffect(() => {
+    setCurrentImg({
+      src: thumbnailSrc || src,
+      dimensions: { width: imgWidth, height: imgHeight },
+    });
+    const img = new Image();
+    img.src = src;
+    img.onload = () =>
+      setCurrentImg((prevImg) =>
+        prevImg.src === thumbnailSrc
+          ? { src, dimensions: { width: imgWidth, height: imgHeight } }
+          : prevImg,
+      );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, thumbnailSrc]);
+
+  const minScale = Math.min(0.1, Math.min(width / imgWidth, height / imgHeight));
+
   return (
     <div
       id="zoomable-image"
@@ -231,10 +258,9 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
         <ZoomPan
           position="center"
           initialScale="auto"
-          imageDimensions={{ width: imgWidth, height: imgHeight }}
+          imageDimensions={currentImg.dimensions}
           containerDimensions={{ width, height }}
-          // FIXME: minScale breaks zooming for high resolution images (like 8K) since the initial zoom is below minZoom
-          minScale={0.1}
+          minScale={minScale}
           maxScale={5}
           transitionStart={
             transitionStart
@@ -247,7 +273,13 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
           }
           // debug
         >
-          <img src={src} alt={`Image could not be loaded: ${src}`} onError={setLoadError} />
+          <img
+            src={currentImg.src}
+            width={currentImg.dimensions.width}
+            height={currentImg.dimensions.height}
+            alt={`Image could not be loaded: ${src}`}
+            onError={setLoadError}
+          />
         </ZoomPan>
       )}
 

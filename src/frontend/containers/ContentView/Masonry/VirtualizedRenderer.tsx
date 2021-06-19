@@ -141,7 +141,7 @@ const VirtualizedRenderer = observer(
     const { isSlideMode, firstItem } = uiStore;
     useLayoutEffect(() => {
       if (!isSlideMode) {
-        scrollToIndex(firstItem, 'start');
+        scrollToIndex(firstItem, 'nearest');
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSlideMode]);
