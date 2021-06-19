@@ -1,6 +1,14 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useContext, useMemo, useRef, useCallback, useEffect, useState } from 'react';
+import React, {
+  useContext,
+  useMemo,
+  useRef,
+  useCallback,
+  useEffect,
+  useState,
+  useLayoutEffect,
+} from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile } from 'src/entities/File';
@@ -54,11 +62,20 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
 
   const index = lastSelectionIndex.current;
   const fileSelectionSize = uiStore.fileSelection.size;
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (index !== undefined && ref.current !== null && fileSelectionSize > 0) {
       ref.current.scrollToItem(Math.floor(index));
     }
   }, [index, fileSelectionSize]);
+
+  // When returning from slide mode, scroll to last shown image if not in view
+  const { isSlideMode, firstItem } = uiStore;
+  useLayoutEffect(() => {
+    if (!isSlideMode) {
+      ref.current?.scrollToItem(firstItem, 'smart');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSlideMode]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

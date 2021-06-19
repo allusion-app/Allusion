@@ -137,6 +137,15 @@ const VirtualizedRenderer = observer(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastSelIndex, fileSelectionSize]);
 
+    // When returning from slide mode, scroll to last shown image if not in view
+    const { isSlideMode, firstItem } = uiStore;
+    useLayoutEffect(() => {
+      if (!isSlideMode) {
+        scrollToIndex(firstItem, 'start');
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSlideMode]);
+
     return (
       // One div as the scrollable viewport
       <div className={className} onScroll={handleScroll} ref={wrapperRef}>
