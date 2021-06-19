@@ -24,7 +24,7 @@ export const MissingFileMenuItems = observer(
 export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiStore: UiStore }) => {
   const handleViewFullSize = () => {
     uiStore.selectFile(file, true);
-    uiStore.toggleSlideMode();
+    // uiStore.enableSlideMode({});
   };
 
   const handlePreviewWindow = () => {

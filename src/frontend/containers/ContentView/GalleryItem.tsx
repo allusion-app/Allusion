@@ -317,6 +317,7 @@ const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: IThumb
         src={encodeFilePath(forceNoThumbnail ? file.absolutePath : thumbnailPath)}
         onError={handleImageError}
         alt=""
+        data-file-id={file.id}
       />
     );
   } else if (state === ThumbnailState.Loading) {

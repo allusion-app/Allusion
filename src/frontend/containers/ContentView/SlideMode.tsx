@@ -1,7 +1,7 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
+import ZoomPan from './SlideMode/ZoomPan';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -9,6 +9,7 @@ import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
 import { GalleryEventHandler, GallerySelector, MissingImageFallback } from './GalleryItem';
 import { createSubmitCommand } from './LayoutSwitcher';
+import { ITransform } from './Masonry/MasonryWorkerAdapter';
 
 interface ISlideMode {
   contentRect: { width: number; height: number };
@@ -148,11 +149,31 @@ const SlideView = observer((props: ISlideView) => {
     });
   }, [fileStore.fileList, uiStore.firstItem]);
 
+  const transitionStart: ITransform | undefined = useMemo(() => {
+    const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
+    const container = document.querySelector('.masonry');
+    if (thumbEl && container) {
+      const thumbElRect = thumbEl.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      return {
+        left: thumbElRect.left - containerRect.left,
+        top: thumbElRect.top - containerRect.top,
+        width: thumbElRect.width,
+        height: thumbElRect.height,
+      };
+    }
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <ZoomableImage
       src={file.absolutePath}
       width={width}
       height={height}
+      imgWidth={file.width}
+      imgHeight={file.height}
+      transitionStart={transitionStart}
       prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
       onContextMenu={handleContextMenu}
@@ -166,8 +187,11 @@ interface IZoomableImageProps {
   src: string;
   width: number;
   height: number;
+  imgWidth: number;
+  imgHeight: number;
   prevImage?: () => any;
   nextImage?: () => any;
+  transitionStart?: ITransform;
   onContextMenu: (e: React.MouseEvent) => void;
 }
 
@@ -175,8 +199,11 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
   src,
   width,
   height,
+  imgWidth,
+  imgHeight,
   prevImage,
   nextImage,
+  transitionStart,
   onContextMenu,
   ...rest
 }: IZoomableImageProps) => {
@@ -201,18 +228,27 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
         />
       ) : (
         // https://github.com/bradstiff/react-responsive-pinch-zoom-pan
-        <PinchZoomPan
+        <ZoomPan
           position="center"
-          zoomButtons={false}
+          initialScale="auto"
+          imageDimensions={{ width: imgWidth, height: imgHeight }}
+          containerDimensions={{ width, height }}
           // FIXME: minScale breaks zooming for high resolution images (like 8K) since the initial zoom is below minZoom
-          // but we're hopefully writing a custom image viewer soon
           minScale={0.1}
           maxScale={5}
-          // Force a re-render when the image changes, in order to reset the zoom level
-          key={src}
+          transitionStart={
+            transitionStart
+              ? {
+                  top: transitionStart.top,
+                  left: transitionStart.left,
+                  scale: transitionStart.height / imgHeight,
+                }
+              : undefined
+          }
+          // debug
         >
           <img src={src} alt={`Image could not be loaded: ${src}`} onError={setLoadError} />
-        </PinchZoomPan>
+        </ZoomPan>
       )}
 
       {/* Overlay buttons/icons */}

@@ -114,25 +114,16 @@ const Layout = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileStore, handleFileSelect]);
 
-  // TODO: Keep masonry layout active while slide is open: no loading time when returning
-  if (uiStore.isSlideMode) {
-    return (
-      <SlideMode
-        contentRect={contentRect}
-        showContextMenu={showContextMenu}
-        uiStore={uiStore}
-        fileStore={fileStore}
-      />
-    );
-  }
   if (contentRect.width < 10) {
     return null;
   }
+
+  let overviewElem: React.ReactNode = undefined;
   switch (uiStore.method) {
     case ViewMethod.Grid:
     case ViewMethod.MasonryVertical:
     case ViewMethod.MasonryHorizontal:
-      return (
+      overviewElem = (
         <MasonryRenderer
           contentRect={contentRect}
           type={uiStore.method}
@@ -144,8 +135,9 @@ const Layout = ({
           handleFileSelect={handleFileSelect}
         />
       );
+      break;
     case ViewMethod.List:
-      return (
+      overviewElem = (
         <ListGallery
           contentRect={contentRect}
           select={handleFileSelect}
@@ -156,9 +148,23 @@ const Layout = ({
           handleFileSelect={handleFileSelect}
         />
       );
+      break;
     default:
-      return null;
+      overviewElem = 'unknown view method';
   }
+  return (
+    <>
+      {overviewElem}
+      {uiStore.isSlideMode && (
+        <SlideMode
+          contentRect={contentRect}
+          showContextMenu={showContextMenu}
+          uiStore={uiStore}
+          fileStore={fileStore}
+        />
+      )}
+    </>
+  );
 };
 
 export default observer(Layout);
