@@ -1,8 +1,9 @@
-import { computed, IComputedValue } from 'mobx';
+import { computed, IComputedValue, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, {
   ForwardedRef,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -195,13 +196,16 @@ interface CreateOptionProps {
 const CreateOption = ({ inputText, hasMatches, resetTextBox }: CreateOptionProps) => {
   const { tagStore, uiStore } = useContext(StoreContext);
 
-  const removeTag = useAction(async () => {
+  const createTag = useCallback(async () => {
     const newTag = await tagStore.create(tagStore.root, inputText);
-    for (const f of uiStore.fileSelection) {
-      f.addTag(newTag);
-    }
+    runInAction(() => {
+      for (const f of uiStore.fileSelection) {
+        f.addTag(newTag);
+      }
+    });
     resetTextBox();
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputText, resetTextBox]);
 
   if (inputText.length === 0) {
     return null;
@@ -214,7 +218,7 @@ const CreateOption = ({ inputText, hasMatches, resetTextBox }: CreateOptionProps
         id="tag-editor-create-option"
         selected={false}
         value={`Create Tag "${inputText}"`}
-        onClick={removeTag}
+        onClick={createTag}
         icon={IconSet.TAG_ADD}
       />
     </>
