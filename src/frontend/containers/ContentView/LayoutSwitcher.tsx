@@ -1,6 +1,6 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import { RendererMessenger } from 'src/Messaging';
 import { ClientFile } from '../../../entities/File';
@@ -114,6 +114,19 @@ const Layout = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileStore, handleFileSelect]);
 
+  // delay unmount of slide view so end-transition can take place.
+  // The `transitionEnd` prop is passed when slide mode is disabled,
+  // triggering the transition, then X ms later the component is unmounted
+  const { isSlideMode } = uiStore;
+  const [delayedSlideMode, setDelayedSlideMode] = useState(uiStore.isSlideMode);
+  useEffect(() => {
+    if (isSlideMode) {
+      setDelayedSlideMode(true);
+    } else {
+      setTimeout(() => setDelayedSlideMode(false), 300);
+    }
+  }, [isSlideMode]);
+
   if (contentRect.width < 10) {
     return null;
   }
@@ -152,10 +165,11 @@ const Layout = ({
     default:
       overviewElem = 'unknown view method';
   }
+
   return (
     <>
       {overviewElem}
-      {uiStore.isSlideMode && (
+      {delayedSlideMode && (
         <SlideMode
           contentRect={contentRect}
           showContextMenu={showContextMenu}

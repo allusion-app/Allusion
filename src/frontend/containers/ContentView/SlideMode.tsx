@@ -1,7 +1,7 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import ZoomPan from './SlideMode/ZoomPan';
+import ZoomPan, { ISlideTransform } from './SlideMode/ZoomPan';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -9,7 +9,6 @@ import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
 import { GalleryEventHandler, GallerySelector, MissingImageFallback } from './GalleryItem';
 import { createSubmitCommand } from './LayoutSwitcher';
-import { ITransform } from './Masonry/MasonryWorkerAdapter';
 
 interface ISlideMode {
   contentRect: { width: number; height: number };
@@ -149,22 +148,21 @@ const SlideView = observer((props: ISlideView) => {
     });
   }, [fileStore.fileList, uiStore.firstItem]);
 
-  const transitionStart: ITransform | undefined = useMemo(() => {
+  const transitionStart: ISlideTransform | undefined = useMemo(() => {
     const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
-    const container = document.querySelector('.masonry');
+    const container = document.querySelector('#gallery-content');
     if (thumbEl && container) {
       const thumbElRect = thumbEl.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
       return {
         left: thumbElRect.left - containerRect.left,
         top: thumbElRect.top - containerRect.top,
-        width: thumbElRect.width,
-        height: thumbElRect.height,
+        scale: thumbElRect.height / file.height,
       };
     }
     return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [file.id]);
 
   return (
     <ZoomableImage
@@ -175,6 +173,8 @@ const SlideView = observer((props: ISlideView) => {
       imgWidth={file.width}
       imgHeight={file.height}
       transitionStart={transitionStart}
+      transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
+      className={uiStore.isSlideMode ? 'fade-in' : 'fade-out'}
       prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
       onContextMenu={handleContextMenu}
@@ -193,7 +193,8 @@ interface IZoomableImageProps {
   imgHeight: number;
   prevImage?: () => any;
   nextImage?: () => any;
-  transitionStart?: ITransform;
+  transitionStart?: ISlideTransform;
+  transitionEnd?: ISlideTransform;
   onContextMenu: (e: React.MouseEvent) => void;
 }
 
@@ -207,6 +208,7 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
   prevImage,
   nextImage,
   transitionStart,
+  transitionEnd,
   onContextMenu,
   ...rest
 }: IZoomableImageProps) => {
@@ -262,15 +264,8 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
           containerDimensions={{ width, height }}
           minScale={minScale}
           maxScale={5}
-          transitionStart={
-            transitionStart
-              ? {
-                  top: transitionStart.top,
-                  left: transitionStart.left,
-                  scale: transitionStart.height / imgHeight,
-                }
-              : undefined
-          }
+          transitionStart={transitionStart}
+          transitionEnd={transitionEnd}
           // debug
         >
           <img

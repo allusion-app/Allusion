@@ -33,6 +33,12 @@ const OVERZOOM_TOLERANCE = 0.05;
 const DOUBLE_TAP_THRESHOLD = 250;
 const ANIMATION_SPEED = 0.1;
 
+export interface ISlideTransform {
+  scale: number;
+  left: number;
+  top: number;
+}
+
 export interface IPinchZoomPanProps {
   // children: React.ReactHTMLElement<HTMLImageElement>;
   initialScale: number | 'auto';
@@ -46,7 +52,8 @@ export interface IPinchZoomPanProps {
   containerDimensions?: IDimensions;
   debug?: boolean;
 
-  transitionStart?: { scale: number; left: number; top: number };
+  transitionStart?: ISlideTransform;
+  transitionEnd?: ISlideTransform;
 }
 
 export interface IPinchZoomPanState {
@@ -402,8 +409,6 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     if (this.isImageReady || this.props.imageDimensions) {
       const containerDimensions =
         this.props.containerDimensions || getContainerDimensions(this.imageRef);
-      // a lil finnicky for initaial transition: dimensions need to be known asap then
-      // but later, get from image since otherwise you get flicker when vhanging images
       const imageDimensions = this.props.imageDimensions || getDimensions(this.imageRef);
 
       const imgDimensionsChanged = !isEqualDimensions(
@@ -428,7 +433,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
             //If dimensions change, constraints change; current transform may need to be adjusted.
             //Transforms depend on state, so wait until state is updated.
             if (!this.isTransformInitialized) {
-              this.applyInitialTransform(this.props.transitionStart ? ANIMATION_SPEED : 0);
+              this.applyInitialTransform(this.props.transitionStart ? ANIMATION_SPEED * 2 : 0);
               this.isTransformInitialized = true;
             } else {
               // apply initial transform when image changes
@@ -467,9 +472,11 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     );
 
     //Correct the transform if needed to prevent overpanning and overzooming
-    const transform = !this.isTransformInitialized
-      ? requestedTransform
-      : this.getCorrectedTransform(requestedTransform, tolerance) || requestedTransform;
+    // Don't constrain for transition so that image can be positioned off-center
+    const transform =
+      !this.isTransformInitialized || this.props.transitionEnd
+        ? requestedTransform
+        : this.getCorrectedTransform(requestedTransform, tolerance) || requestedTransform;
     this.debug(
       `Applying transform: left ${transform.left}, top ${transform.top}, scale ${transform.scale}`,
     );
@@ -595,9 +602,6 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     }
 
     let initialPosition;
-    // if (!this.isTransformInitialized) {
-    //   initialPosition = this.state;
-    // } else
     if (position === 'center') {
       warning(
         initialTop === undefined,
@@ -618,7 +622,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
       };
     }
 
-    const tolerance = 1;
+    const tolerance = 0.5;
     this.constrainAndApplyTransform(
       initialPosition.top,
       initialPosition.left,
@@ -687,6 +691,10 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
 
   componentDidUpdate() {
     this.maybeHandleDimensionsChanged();
+    // Trigger ending transition when transitionEnd prop is passed
+    if (this.props.transitionEnd) {
+      this.applyTransform(this.props.transitionEnd, ANIMATION_SPEED / 2);
+    }
   }
 
   componentWillUnmount() {
@@ -698,10 +706,6 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
   get isImageReady() {
     return this.isImageLoaded || (this.imageRef && this.imageRef.tagName !== 'IMG');
   }
-
-  // get isTransformInitialized() {
-  //   return isInitialized(this.state.top, this.state.left, this.state.scale);
-  // }
 
   get controlOverscrollViaCss() {
     return window.CSS && window.CSS.supports('touch-action', 'pan-up');

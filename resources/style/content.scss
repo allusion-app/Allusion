@@ -344,22 +344,30 @@
   left: 0;
   width: 100%;
   height: 100%;
-
-  @keyframes fade-in-bg {
-    from {background: rgba(var(--background-color), 0);}
-    to {background: var(--background-color);}
-  }
-  animation: fade-in-bg 0.3s cubic-bezier(0.65, 0.05, 0.36, 1);
-  animation-fill-mode: forwards; 
 }
 
 #zoomable-image {
   position: relative;
   min-width: 224px;
   margin: auto;
+  background: var(--background-color);
 
-  img {
-    animation: fade 0.1s cubic-bezier(0.65, 0.05, 0.36, 1);
+  @keyframes fade-in-bg {
+    from {background: rgba(var(--background-color), 0);}
+    to {background: var(--background-color);}
+  }
+  @keyframes fade-out-bg {
+    from {opacity: 1;}
+    to {opacity: 0;}
+  }
+  
+
+  &.fade-in {
+    animation: fade-in-bg 0.3s ease-in;
+  }
+  &.fade-out {
+    opacity: 0;
+    animation: fade-out-bg 0.3s cubic-bezier(0.65, 0.05, 0.36, 1);
   }
 
   [class^='side-button'] {

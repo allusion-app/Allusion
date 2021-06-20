@@ -51,7 +51,7 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   const ref = useRef<FixedSizeList>(null);
 
   const throttledScrollHandler = useRef(
-    debouncedThrottle((index: number) => uiStore.setFirstItem(index), 100),
+    debouncedThrottle((index: number) => !uiStore.isSlideMode && uiStore.setFirstItem(index), 100),
   );
 
   const handleScroll = useCallback(
@@ -68,14 +68,14 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
     }
   }, [index, fileSelectionSize]);
 
-  // When returning from slide mode, scroll to last shown image if not in view
+  // While in slide mode, scroll to last shown image if not in view, for transition back to gallery
   const { isSlideMode, firstItem } = uiStore;
   useLayoutEffect(() => {
-    if (!isSlideMode) {
+    if (isSlideMode) {
       ref.current?.scrollToItem(firstItem, 'smart');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSlideMode]);
+  }, [isSlideMode, firstItem]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
