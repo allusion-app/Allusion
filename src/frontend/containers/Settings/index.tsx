@@ -424,16 +424,34 @@ const BackgroundProcesses = observer(() => {
   );
 });
 
-const Shortcuts = () => (
-  <>
-    <h2>Keyboard shortcuts</h2>
-    <p>
-      Click on a key combination to modify it. After typing your new combination, press Enter to
-      confirm or Escape to cancel.
-    </p>
-    <HotkeyMapper />
-  </>
-);
+const Shortcuts = observer(() => {
+  const { uiStore } = useContext(StoreContext);
+  return (
+    <>
+      <h2>Click behavior</h2>
+      <RadioGroup name="Slide mode double click">
+        <Radio
+          label="Zoom in/out"
+          value="zoomOrReset"
+          checked={uiStore.slideModeDoubleClickBehavior === 'zoomOrReset'}
+          onChange={uiStore.setSlideModeDoubleClickBehaviorZoomOrReset}
+        />
+        <Radio
+          label="Return to gallery"
+          value="close"
+          checked={uiStore.slideModeDoubleClickBehavior === 'close'}
+          onChange={uiStore.setSlideModeDoubleClickBehaviorClose}
+        />
+      </RadioGroup>
+      <h2>Keyboard shortcuts</h2>
+      <p>
+        Click on a key combination to modify it. After typing your new combination, press Enter to
+        confirm or Escape to cancel.
+      </p>
+      <HotkeyMapper />
+    </>
+  );
+});
 
 const Advanced = observer(() => {
   const { uiStore, fileStore } = useContext(StoreContext);

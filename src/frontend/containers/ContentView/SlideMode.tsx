@@ -37,6 +37,7 @@ const SlideMode = observer((props: ISlideMode) => {
   return (
     <Split
       id="slide-mode"
+      className={uiStore.isSlideMode ? 'fade-in' : 'fade-out'}
       primary={<Inspector />}
       secondary={slideView}
       axis="vertical"
@@ -174,11 +175,12 @@ const SlideView = observer((props: ISlideView) => {
       imgHeight={file.height}
       transitionStart={transitionStart}
       transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
-      className={uiStore.isSlideMode ? 'fade-in' : 'fade-out'}
       prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
       onContextMenu={handleContextMenu}
       onDrop={eventHandlers.onDrop}
+      onClose={uiStore.disableSlideMode}
+      doubleClickBehavior={uiStore.slideModeDoubleClickBehavior}
       tabIndex={-1}
     />
   );
@@ -196,6 +198,8 @@ interface IZoomableImageProps {
   transitionStart?: ISlideTransform;
   transitionEnd?: ISlideTransform;
   onContextMenu: (e: React.MouseEvent) => void;
+  onClose?: () => void;
+  doubleClickBehavior?: 'zoomOrReset' | 'close';
 }
 
 const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDivElement>> = ({
@@ -210,6 +214,8 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
   transitionStart,
   transitionEnd,
   onContextMenu,
+  onClose,
+  doubleClickBehavior,
   ...rest
 }: IZoomableImageProps) => {
   const [loadError, setLoadError] = useState<any>();
@@ -233,6 +239,7 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
           ? { src, dimensions: { width: imgWidth, height: imgHeight } }
           : prevImg,
       );
+    img.onerror = setLoadError;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src, thumbnailSrc]);
 
@@ -248,26 +255,28 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
       onContextMenu={onContextMenu}
       {...rest}
     >
-      {loadError ? (
-        <MissingImageFallback
-          style={{
-            width: `${width}px`,
-            height: `${height}px`,
-          }}
-        />
-      ) : (
-        // https://github.com/bradstiff/react-responsive-pinch-zoom-pan
-        <ZoomPan
-          position="center"
-          initialScale="auto"
-          imageDimensions={currentImg.dimensions}
-          containerDimensions={{ width, height }}
-          minScale={minScale}
-          maxScale={5}
-          transitionStart={transitionStart}
-          transitionEnd={transitionEnd}
-          // debug
-        >
+      {/* Based on https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
+      <ZoomPan
+        position="center"
+        initialScale="auto"
+        doubleTapBehavior={doubleClickBehavior}
+        imageDimensions={currentImg.dimensions}
+        containerDimensions={{ width, height }}
+        minScale={minScale}
+        maxScale={5}
+        transitionStart={transitionStart}
+        transitionEnd={transitionEnd}
+        onClose={onClose}
+        // debug
+      >
+        {loadError ? (
+          <MissingImageFallback
+            style={{
+              width: `${width}px`,
+              height: `${height}px`,
+            }}
+          />
+        ) : (
           <img
             src={currentImg.src}
             width={currentImg.dimensions.width}
@@ -275,9 +284,8 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
             alt={`Image could not be loaded: ${src}`}
             onError={setLoadError}
           />
-        </ZoomPan>
-      )}
-
+        )}
+      </ZoomPan>
       {/* Overlay buttons/icons */}
       {prevImage && (
         <button aria-label="previous image" className="side-button-left" onClick={prevImage}>

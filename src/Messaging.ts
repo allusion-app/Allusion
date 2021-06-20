@@ -4,6 +4,7 @@ import { ID } from './entities/ID';
 import { ITag } from './entities/Tag';
 
 import { IImportItem } from './clipper/server';
+import { ViewMethod } from './frontend/stores/UiStore';
 
 /**
  * All types of messages between the main and renderer process in one place, with type safety.
@@ -89,6 +90,7 @@ export interface IPreviewFilesMessage {
   ids: ID[];
   activeImgId?: ID;
   thumbnailDirectory: string;
+  viewMethod: ViewMethod;
 }
 
 /////////////// Drag n drop export ///////////////

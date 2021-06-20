@@ -344,23 +344,18 @@
   left: 0;
   width: 100%;
   height: 100%;
-}
 
-#zoomable-image {
-  position: relative;
-  min-width: 224px;
-  margin: auto;
   background: var(--background-color);
 
   @keyframes fade-in-bg {
     from {background: rgba(var(--background-color), 0);}
     to {background: var(--background-color);}
   }
+
   @keyframes fade-out-bg {
     from {opacity: 1;}
     to {opacity: 0;}
   }
-  
 
   &.fade-in {
     animation: fade-in-bg 0.3s ease-in;
@@ -369,6 +364,12 @@
     opacity: 0;
     animation: fade-out-bg 0.3s cubic-bezier(0.65, 0.05, 0.36, 1);
   }
+}
+
+#zoomable-image {
+  position: relative;
+  min-width: 224px;
+  margin: auto;
 
   [class^='side-button'] {
     display: flex;

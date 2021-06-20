@@ -45,11 +45,12 @@ export interface IPinchZoomPanProps {
   minScale: number;
   maxScale: number;
   position: 'topLeft' | 'center';
-  doubleTapBehavior: 'reset' | 'zoom';
+  doubleTapBehavior: 'reset' | 'zoom' | 'zoomOrReset' | 'close';
   initialTop?: number;
   initialLeft?: number;
   imageDimensions?: IDimensions;
   containerDimensions?: IDimensions;
+  onClose?: () => void;
   debug?: boolean;
 
   transitionStart?: ISlideTransform;
@@ -342,14 +343,21 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
   }
 
   doubleClick(pointerPosition: IVec2) {
+    const { doubleTapBehavior, onClose } = this.props;
+    if (doubleTapBehavior === 'close') return onClose?.();
     if (
-      String(this.props.doubleTapBehavior).toLowerCase() === 'zoom' &&
+      doubleTapBehavior === 'zoom' &&
       this.state.scale * (1 + OVERZOOM_TOLERANCE) < this.props.maxScale
     ) {
-      this.zoomIn(pointerPosition, ANIMATION_SPEED, 0.3);
-    } else {
-      //reset
+      return this.zoomIn(pointerPosition, ANIMATION_SPEED, 1);
+    }
+    if (doubleTapBehavior === 'reset') {
       this.applyInitialTransform(ANIMATION_SPEED);
+    }
+    if (doubleTapBehavior === 'zoomOrReset') {
+      this.state.scale * (1 + OVERZOOM_TOLERANCE) < this.props.maxScale
+        ? this.zoomIn(pointerPosition, ANIMATION_SPEED, 1)
+        : this.applyInitialTransform(ANIMATION_SPEED);
     }
   }
 
