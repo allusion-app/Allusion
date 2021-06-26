@@ -425,7 +425,7 @@ const BackgroundProcesses = observer(() => {
 });
 
 const Shortcuts = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   return (
     <>
       <h2>Click behavior</h2>
