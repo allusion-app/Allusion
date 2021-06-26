@@ -1,8 +1,8 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, Split } from 'widgets';
@@ -60,7 +60,7 @@ const SlideView = observer((props: ISlideView) => {
   const { uiStore, fileStore, width, height, showContextMenu } = props;
   const file = fileStore.fileList[uiStore.firstItem];
 
-  const dndData = useContext(TagDnDContext);
+  const dndData = useTagDnD();
   const submitCommand = useMemo(
     () => createSubmitCommand(dndData, fileStore, () => null, showContextMenu, uiStore),
     [dndData, fileStore, showContextMenu, uiStore],

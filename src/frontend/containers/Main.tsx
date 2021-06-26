@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Split } from 'widgets/Split';
 import { useStore } from '../contexts/StoreContext';
-import TagDnDContext, { DnDAttribute } from '../contexts/TagDnDContext';
+import TagDnDProvider, { DnDAttribute } from '../contexts/TagDnDContext';
 import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
 import Outliner from './Outliner';
@@ -60,7 +60,7 @@ const Main = () => {
   );
 
   return (
-    <TagDnDContext.Provider value={data.current}>
+    <TagDnDProvider value={data.current}>
       <Split
         id="window-splitter"
         primary={<Outliner />}
@@ -76,7 +76,7 @@ const Main = () => {
         isExpanded={uiStore.isOutlinerOpen}
         onMove={uiStore.moveOutlinerSplitter}
       />
-    </TagDnDContext.Provider>
+    </TagDnDProvider>
   );
 };
 

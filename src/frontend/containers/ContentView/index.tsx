@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from '../../contexts/StoreContext';
@@ -12,7 +12,7 @@ import Placeholder from './Placeholder';
 import Layout from './LayoutSwitcher';
 
 import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { runInAction } from 'mobx';
 
 const ContentView = observer(() => {
@@ -33,7 +33,7 @@ const ContentView = observer(() => {
 
 const Content = observer(() => {
   const { fileStore, uiStore } = useStore();
-  const dndData = useContext(TagDnDContext);
+  const dndData = useTagDnD();
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
   const { open, x, y, menu } = contextState;
   const [fileMenu, externalMenu] = menu as [MenuChild, MenuChild];

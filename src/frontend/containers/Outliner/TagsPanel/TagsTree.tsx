@@ -1,12 +1,12 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useMemo, useReducer, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { TagMerge, TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import TagDnDContext, { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
+import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -100,7 +100,7 @@ document.body.appendChild(PreviewTag);
 const TagItem = observer((props: ITagItemProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
   const { uiStore, tagStore } = useStore();
-  const dndData = useContext(TagDnDContext);
+  const dndData = useTagDnD();
 
   const handleContextMenu = useCallback(
     (e) =>
@@ -427,7 +427,7 @@ const TagsTree = observer(() => {
     mergableNode: undefined,
   });
   const [contextState, { show, hide }] = useContextMenu();
-  const dndData = useContext(TagDnDContext);
+  const dndData = useTagDnD();
 
   /** Header and Footer drop zones of the root node */
   const handleDragOverAndLeave = useCallback(

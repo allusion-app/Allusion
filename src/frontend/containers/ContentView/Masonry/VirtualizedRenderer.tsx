@@ -1,10 +1,10 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { createSubmitCommand, ILayoutProps } from '../LayoutSwitcher';
@@ -45,7 +45,7 @@ const VirtualizedRenderer = observer(
     const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
     const [endRenderIndex, setEndRenderIndex] = useState(0);
-    const dndData = useContext(TagDnDContext);
+    const dndData = useTagDnD();
     const submitCommand = useMemo(
       () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
       [dndData, fileStore, select, showContextMenu, uiStore],
