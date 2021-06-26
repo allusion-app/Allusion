@@ -1,10 +1,10 @@
-import { Placement } from '@popperjs/core';
+import { Placement, VirtualElement } from '@popperjs/core';
 import React, { useEffect, useRef, useState } from 'react';
 import { usePopper } from 'react-popper';
 
 export const TooltipLayer = () => {
   const popoverElement = useRef<HTMLDivElement>(null);
-  const anchorElement = useRef<Element | null>(null);
+  const virtualElement = useRef<VirtualElement | null>(null);
   const popperOptions = useRef({
     placement: 'auto' as Placement,
     modifiers: [
@@ -24,7 +24,7 @@ export const TooltipLayer = () => {
     ],
   }).current;
   const { styles, attributes, forceUpdate } = usePopper(
-    anchorElement.current,
+    virtualElement.current,
     popoverElement.current,
     popperOptions,
   );
@@ -34,14 +34,14 @@ export const TooltipLayer = () => {
   const timerID = useRef<number>();
 
   useEffect(() => {
-    const handleShow = (e: MouseEvent | FocusEvent) => {
+    const handleShow = (e: MouseEvent | FocusEvent): HTMLElement | undefined => {
       const target = e.target;
       if (!(target instanceof HTMLElement) || !target.dataset['tooltip']) {
         return;
       }
       const tooltip = target.dataset['tooltip'];
       content.current = tooltip;
-      if (anchorElement.current !== target) {
+      if (virtualElement.current?.contextElement !== target) {
         window.clearTimeout(timerID.current);
         timerID.current = window.setTimeout(() => {
           timerID.current = undefined;
@@ -49,19 +49,48 @@ export const TooltipLayer = () => {
           setIsOpen(true);
         }, 500);
       }
-      anchorElement.current = target;
+      return target;
+    };
+
+    const handleMouseover = (e: MouseEvent) => {
+      const target = handleShow(e);
+      if (target !== undefined) {
+        const x = e.clientX;
+        const y = e.clientY;
+        virtualElement.current = {
+          getBoundingClientRect: () => ({
+            width: 4,
+            height: 4,
+            top: y,
+            right: x,
+            bottom: y,
+            left: x,
+          }),
+          contextElement: target,
+        };
+      }
+    };
+
+    const handleFocus = (e: FocusEvent) => {
+      const target = handleShow(e);
+      if (target !== undefined) {
+        virtualElement.current = {
+          getBoundingClientRect: () => target.getBoundingClientRect(),
+          contextElement: target,
+        };
+      }
     };
 
     const handleHide = (e: MouseEvent | FocusEvent) => {
       if (
-        anchorElement.current === null ||
-        anchorElement.current.contains(e.relatedTarget as Node)
+        virtualElement.current === null ||
+        virtualElement.current.contextElement?.contains(e.relatedTarget as Node)
       ) {
         return;
       }
       forceUpdate?.();
       setIsOpen(false);
-      anchorElement.current = null;
+      virtualElement.current = null;
       window.clearTimeout(timerID.current);
       timerID.current = undefined;
     };
@@ -69,13 +98,13 @@ export const TooltipLayer = () => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsOpen(false);
-        anchorElement.current = null;
+        virtualElement.current = null;
       }
     };
 
-    document.addEventListener('mouseover', handleShow, true);
+    document.addEventListener('mouseover', handleMouseover, true);
     document.addEventListener('mouseout', handleHide, true);
-    document.addEventListener('focus', handleShow, true);
+    document.addEventListener('focus', handleFocus, true);
     document.addEventListener('blur', handleHide, true);
     document.addEventListener('keydown', handleEscape, true);
 
