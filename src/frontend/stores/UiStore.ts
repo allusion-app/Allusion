@@ -97,7 +97,6 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'method',
   'thumbnailSize',
   'thumbnailShape',
-  'slideModeDoubleClickBehavior',
   'hotkeyMap',
   'isThumbnailTagOverlayEnabled',
   'isThumbnailFilenameOverlayEnabled',
@@ -128,7 +127,6 @@ class UiStore {
   @observable searchMatchAny = false;
   @observable method: ViewMethod = ViewMethod.Grid;
   @observable isSlideMode: boolean = false;
-  @observable slideModeDoubleClickBehavior: 'zoomOrReset' | 'close' = 'zoomOrReset';
   @observable isFullScreen: boolean = false;
   @observable outlinerWidth: number = UiStore.MIN_OUTLINER_WIDTH;
   @observable inspectorWidth: number = UiStore.MIN_INSPECTOR_WIDTH;
@@ -243,18 +241,6 @@ class UiStore {
 
   @action.bound toggleSlideMode() {
     this.isSlideMode = !this.isSlideMode;
-  }
-
-  @action.bound setSlideModeDoubleClickBehavior(val: 'zoomOrReset' | 'close') {
-    this.slideModeDoubleClickBehavior = val;
-  }
-
-  @action.bound setSlideModeDoubleClickBehaviorZoomOrReset() {
-    this.slideModeDoubleClickBehavior = 'zoomOrReset';
-  }
-
-  @action.bound setSlideModeDoubleClickBehaviorClose() {
-    this.slideModeDoubleClickBehavior = 'close';
   }
 
   /** This does not actually set the window to full-screen, just for bookkeeping! Use RendererMessenger instead */
@@ -727,8 +713,6 @@ class UiStore {
         if (prefs.thumbnailDirectory) this.setThumbnailDirectory(prefs.thumbnailDirectory);
         if (prefs.importDirectory) this.setImportDirectory(prefs.importDirectory);
         if (prefs.method) this.setMethod(prefs.method);
-        if (prefs.slideModeDoubleClickBehavior)
-          this.setSlideModeDoubleClickBehavior(prefs.slideModeDoubleClickBehavior);
         if (prefs.thumbnailSize) this.setThumbnailSize(prefs.thumbnailSize);
         if (prefs.thumbnailShape) this.setThumbnailShape(prefs.thumbnailShape);
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);

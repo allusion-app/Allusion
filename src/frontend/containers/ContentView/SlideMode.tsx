@@ -177,10 +177,10 @@ const SlideView = observer((props: ISlideView) => {
       transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
       prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
+      doubleClickBehavior="zoomOrReset"
       onContextMenu={handleContextMenu}
       onDrop={eventHandlers.onDrop}
       onClose={uiStore.disableSlideMode}
-      doubleClickBehavior={uiStore.slideModeDoubleClickBehavior}
       tabIndex={-1}
     />
   );
