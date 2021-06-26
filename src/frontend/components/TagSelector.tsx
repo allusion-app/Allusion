@@ -13,7 +13,7 @@ import { generateId } from 'src/entities/ID';
 import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Tag, Grid, Row, GridCell } from 'widgets';
 import { RowProps, useGridFocus } from 'widgets/Combobox/Grid';
-import { Flyout, useTooltip } from 'widgets/popovers';
+import { Flyout } from 'widgets/popovers';
 import StoreContext from '../contexts/StoreContext';
 
 export interface TagSelectorProps {
@@ -267,7 +267,6 @@ export const TagOption = observer(({ id, tag, selected, toggleSelection }: TagOp
       return [path, hint];
     }),
   ).current.get();
-  const { onHide, onShow } = useTooltip(path);
 
   return (
     <Row
@@ -276,8 +275,7 @@ export const TagOption = observer(({ id, tag, selected, toggleSelection }: TagOp
       selected={selected}
       icon={<span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>}
       onClick={() => toggleSelection(selected ?? false, tag)}
-      onMouseOutCapture={onHide}
-      onMouseOverCapture={onShow}
+      tooltip={path}
     >
       {hint.length > 0 ? <GridCell className="tag-option-hint">{hint}</GridCell> : <GridCell />}
     </Row>
