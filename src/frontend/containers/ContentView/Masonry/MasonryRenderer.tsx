@@ -2,6 +2,7 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
 import { debounce, throttle } from 'src/frontend/utils';
 import { MasonryType } from 'wasm/masonry/pkg/masonry';
@@ -35,14 +36,13 @@ const worker = new MasonryWorkerAdapter();
 
 const MasonryRenderer = observer(
   ({
-    uiStore,
-    fileStore,
     contentRect,
     select,
     showContextMenu,
     lastSelectionIndex,
     handleFileSelect,
   }: IMasonryRendererProps & ILayoutProps) => {
+    const { fileStore, uiStore } = useStore();
     const [containerHeight, setContainerHeight] = useState<number>();
     // The timestamp from when the layout was last updated
     const [layoutTimestamp, setLayoutTimestamp] = useState<Date>(new Date());

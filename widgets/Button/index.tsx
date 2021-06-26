@@ -1,6 +1,5 @@
 import './button.scss';
 import React from 'react';
-import { useTooltip } from 'widgets/popovers';
 
 export type Intent = 'info' | 'success' | 'warning' | 'danger';
 interface IButton {
@@ -61,18 +60,13 @@ interface IIconButton {
 }
 
 const IconButton = ({ text, icon, onClick, disabled, className }: IIconButton) => {
-  const { onHide, onShow } = useTooltip(text);
-
   return (
     <button
       className={`${className !== undefined ? className : ''} btn btn-icon`}
       onClick={onClick}
       disabled={disabled}
       type="button"
-      onFocusCapture={onShow}
-      onBlurCapture={onHide}
-      onMouseOverCapture={onShow}
-      onMouseOutCapture={onHide}
+      data-tooltip={text}
     >
       <span className="btn-content-icon" aria-hidden="true">
         {icon}

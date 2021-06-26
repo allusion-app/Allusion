@@ -1,9 +1,9 @@
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { IconSet } from 'widgets/Icons';
 import { Row } from 'widgets';
-import StoreContext from '../contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 import { TagSelector } from './TagSelector';
 
 interface IFileTagProp {
@@ -11,7 +11,7 @@ interface IFileTagProp {
 }
 
 const FileTags = observer(({ file }: IFileTagProp) => {
-  const { tagStore } = useContext(StoreContext);
+  const { tagStore } = useStore();
 
   const renderCreateOption = useCallback(
     (tagName: string, resetTextBox: () => void) => (

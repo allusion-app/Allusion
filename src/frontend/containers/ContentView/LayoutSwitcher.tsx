@@ -1,10 +1,10 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef } from 'react';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import { RendererMessenger } from 'src/Messaging';
 import { ClientFile } from '../../../entities/File';
-import FileStore from '../../stores/FileStore';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
 import { GalleryCommand, GallerySelector } from './GalleryItem';
@@ -19,10 +19,8 @@ import {
 import SlideMode from './SlideMode';
 
 type Dimension = { width: number; height: number };
-type UiStoreProp = { uiStore: UiStore };
-type FileStoreProp = { fileStore: FileStore };
 
-export interface ILayoutProps extends UiStoreProp, FileStoreProp {
+export interface ILayoutProps {
   contentRect: Dimension;
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
   /** The index of the currently selected image, or the "last selected" image when a range is selected */
@@ -33,9 +31,9 @@ export interface ILayoutProps extends UiStoreProp, FileStoreProp {
 const Layout = ({
   contentRect,
   showContextMenu,
-  uiStore,
-  fileStore,
 }: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
+  const { fileStore, uiStore } = useStore();
+
   // Todo: Select by dragging a rectangle shape
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
   // Also take into account scrolling when dragging while selecting
@@ -116,14 +114,7 @@ const Layout = ({
 
   // TODO: Keep masonry layout active while slide is open: no loading time when returning
   if (uiStore.isSlideMode) {
-    return (
-      <SlideMode
-        contentRect={contentRect}
-        showContextMenu={showContextMenu}
-        uiStore={uiStore}
-        fileStore={fileStore}
-      />
-    );
+    return <SlideMode contentRect={contentRect} showContextMenu={showContextMenu} />;
   }
   if (contentRect.width < 10) {
     return null;
@@ -139,8 +130,6 @@ const Layout = ({
           lastSelectionIndex={lastSelectionIndex}
           showContextMenu={showContextMenu}
           select={handleFileSelect}
-          uiStore={uiStore}
-          fileStore={fileStore}
           handleFileSelect={handleFileSelect}
         />
       );
@@ -151,8 +140,6 @@ const Layout = ({
           select={handleFileSelect}
           lastSelectionIndex={lastSelectionIndex}
           showContextMenu={showContextMenu}
-          uiStore={uiStore}
-          fileStore={fileStore}
           handleFileSelect={handleFileSelect}
         />
       );
@@ -179,7 +166,6 @@ export function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
 
 export function createSubmitCommand(
   dndData: ITagDnDData,
-  fileStore: FileStore,
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void,
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void,
   uiStore: UiStore,
@@ -202,11 +188,7 @@ export function createSubmitCommand(
       case GallerySelector.ContextMenu: {
         const [file, x, y] = command.payload;
         showContextMenu(x, y, [
-          file.isBroken ? (
-            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-          ) : (
-            <FileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
+          file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
           <ExternalAppMenuItems key="external" file={file} />,
         ]);
         if (!uiStore.fileSelection.has(file)) {
@@ -219,11 +201,7 @@ export function createSubmitCommand(
       case GallerySelector.ContextMenuSlide: {
         const [file, x, y] = command.payload;
         showContextMenu(x, y, [
-          file.isBroken ? (
-            <MissingFileMenuItems uiStore={uiStore} fileStore={fileStore} />
-          ) : (
-            <SlideFileViewerMenuItems file={file} uiStore={uiStore} />
-          ),
+          file.isBroken ? <MissingFileMenuItems /> : <SlideFileViewerMenuItems file={file} />,
           <ExternalAppMenuItems key="external" file={file} />,
         ]);
         break;

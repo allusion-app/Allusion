@@ -5,8 +5,7 @@ import { action, autorun } from 'mobx';
 import SysPath from 'path';
 
 import { RendererMessenger } from 'src/Messaging';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import UiStore from 'src/frontend/stores/UiStore';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria, CustomKeyDict } from 'src/entities/SearchCriteria';
@@ -108,16 +107,15 @@ const customKeys = (
   }
 };
 
-type UiStoreProp = { uiStore: UiStore };
-
 const DirectoryMenu = ({
   location,
-  uiStore,
   onExclude,
 }: {
   location: ClientLocation | ClientSubLocation;
   onExclude: (subLocation: ClientSubLocation) => void;
-} & UiStoreProp) => {
+}) => {
+  const { uiStore } = useStore();
+
   const path = location instanceof ClientLocation ? location.path : location.path;
 
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
@@ -154,41 +152,38 @@ const DirectoryMenu = ({
   );
 };
 
-interface IContextMenuProps extends UiStoreProp {
+interface IContextMenuProps {
   location: ClientLocation;
   onDelete: (location: ClientLocation) => void;
   onExclude: (location: ClientSubLocation) => void;
 }
 
-const LocationTreeContextMenu = observer(
-  ({ location, onDelete, onExclude, uiStore }: IContextMenuProps) => {
-    const openDeleteDialog = useCallback(() => location && onDelete(location), [
-      location,
-      onDelete,
-    ]);
+const LocationTreeContextMenu = observer(({ location, onDelete, onExclude }: IContextMenuProps) => {
+  const { uiStore } = useStore();
 
-    if (location.isBroken) {
-      return (
-        <>
-          <MenuItem
-            text="Open Recovery Panel"
-            onClick={() => uiStore.openLocationRecovery(location.id)}
-            icon={IconSet.WARNING_BROKEN_LINK}
-          />
-          <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
-        </>
-      );
-    }
+  const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
 
+  if (location.isBroken) {
     return (
       <>
-        <DirectoryMenu location={location} uiStore={uiStore} onExclude={onExclude} />
-        <MenuDivider />
+        <MenuItem
+          text="Open Recovery Panel"
+          onClick={() => uiStore.openLocationRecovery(location.id)}
+          icon={IconSet.WARNING_BROKEN_LINK}
+        />
         <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
       </>
     );
-  },
-);
+  }
+
+  return (
+    <>
+      <DirectoryMenu location={location} onExclude={onExclude} />
+      <MenuDivider />
+      <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
+    </>
+  );
+});
 
 export const HOVER_TIME_TO_EXPAND = 600;
 
@@ -273,16 +268,16 @@ const SubLocation = ({
   nodeData: ClientSubLocation;
   treeData: ITreeData;
 }) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const { showContextMenu, expansion, setExpansion } = treeData;
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) =>
       showContextMenu(
         e.clientX,
         e.clientY,
-        <DirectoryMenu location={nodeData} uiStore={uiStore} onExclude={treeData.exclude} />,
+        <DirectoryMenu location={nodeData} onExclude={treeData.exclude} />,
       ),
-    [nodeData, showContextMenu, treeData.exclude, uiStore],
+    [nodeData, showContextMenu, treeData.exclude],
   );
 
   const handleClick = useCallback(
@@ -327,7 +322,7 @@ const SubLocation = ({
 
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
-    const { uiStore } = useContext(StoreContext);
+    const { uiStore } = useStore();
     const { showContextMenu, expansion, delete: onDelete } = treeData;
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -337,12 +332,11 @@ const Location = observer(
           <LocationTreeContextMenu
             location={nodeData}
             onDelete={onDelete}
-            uiStore={uiStore}
             onExclude={treeData.exclude}
           />,
         );
       },
-      [showContextMenu, nodeData, onDelete, uiStore, treeData.exclude],
+      [showContextMenu, nodeData, onDelete, treeData.exclude],
     );
 
     const handleClick = useCallback(
@@ -408,7 +402,7 @@ interface ILocationTreeProps {
 }
 
 const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreeProps) => {
-  const { locationStore, uiStore } = useContext(StoreContext);
+  const { locationStore, uiStore } = useStore();
   const [expansion, setExpansion] = useState<IExpansionState>({});
   const treeData: ITreeData = useMemo<ITreeData>(
     () => ({
@@ -470,7 +464,7 @@ const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreePr
 };
 
 const LocationsPanel = observer(() => {
-  const { locationStore } = useContext(StoreContext);
+  const { locationStore } = useStore();
   const [contextState, { show, hide }] = useContextMenu();
 
   const [creatableLocation, setCreatableLocation] = useState<ClientLocation>();

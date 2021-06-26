@@ -1,8 +1,6 @@
 import './toolbar.scss';
 import React, { useEffect, useRef } from 'react';
 
-import { useTooltip } from '../popovers';
-
 interface IToolbar {
   children: React.ReactNode;
   id?: string;
@@ -86,8 +84,6 @@ const ToolbarButton = (props: IToolbarButton) => {
     controls,
     haspopup,
   } = props;
-  const { onHide, onShow } = useTooltip(tooltip ?? text);
-
   return (
     <button
       id={id}
@@ -101,10 +97,7 @@ const ToolbarButton = (props: IToolbarButton) => {
       aria-haspopup={haspopup}
       aria-expanded={expanded}
       // tabIndex={-1} FIXME: Implement toolbar keyboard navigation.
-      onFocusCapture={onShow}
-      onBlurCapture={onHide}
-      onMouseOutCapture={onHide}
-      onMouseOverCapture={onShow}
+      data-tooltip={tooltip ?? text}
     >
       <span className="toolbar-button-content">
         <span className="toolbar-button-icon" aria-hidden>

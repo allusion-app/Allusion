@@ -1,10 +1,10 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
+import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { createSubmitCommand, ILayoutProps } from '../LayoutSwitcher';
@@ -39,16 +39,16 @@ const VirtualizedRenderer = observer(
     lastSelectionIndex,
     layoutUpdateDate,
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
-    const { uiStore, fileStore } = useContext(StoreContext);
+    const { uiStore, fileStore } = useStore();
     const [, isMountedRef] = useMountState();
     const wrapperRef = useRef<HTMLDivElement>(null);
     const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
     const [endRenderIndex, setEndRenderIndex] = useState(0);
-    const dndData = useContext(TagDnDContext);
+    const dndData = useTagDnD();
     const submitCommand = useMemo(
-      () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
-      [dndData, fileStore, select, showContextMenu, uiStore],
+      () => createSubmitCommand(dndData, select, showContextMenu, uiStore),
+      [dndData, select, showContextMenu, uiStore],
     );
     const numImages = images.length;
 
@@ -150,8 +150,6 @@ const VirtualizedRenderer = observer(
                 key={im.id}
                 file={fileStore.fileList[fileListIndex]}
                 mounted
-                uiStore={uiStore}
-                fileStore={fileStore}
                 transform={transform}
                 // Force to load the full resolution image when the img dimensions on screen are larger than the thumbnail image resolution
                 // Otherwise you'll see very low res images. This is usually only the case for images with extreme aspect ratios

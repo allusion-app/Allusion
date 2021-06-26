@@ -1,12 +1,16 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext } from 'react';
+import React from 'react';
 import { TooltipLayer } from 'widgets/popovers';
-import StoreContext from './contexts/StoreContext';
+import { useStore } from './contexts/StoreContext';
 
 const Overlay = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
-  return <TooltipLayer className={uiStore.theme} />;
+  return (
+    <div className={uiStore.theme}>
+      <TooltipLayer />
+    </div>
+  );
 });
 
 export default Overlay;

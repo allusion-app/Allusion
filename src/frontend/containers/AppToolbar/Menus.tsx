@@ -5,11 +5,9 @@ import { FileOrder } from 'src/backend/DBRepository';
 
 import { IFile } from 'src/entities/File';
 
-import UiStore from 'src/frontend/stores/UiStore';
-import FileStore from 'src/frontend/stores/FileStore';
-
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
 // Tooltip info
 const enum Tooltip {
@@ -17,7 +15,7 @@ const enum Tooltip {
   Filter = 'Sort view content panel',
 }
 
-export const SortCommand = ({ fileStore }: { fileStore: FileStore }) => {
+export const SortCommand = () => {
   return (
     <MenuButton
       showLabel="never"
@@ -27,12 +25,12 @@ export const SortCommand = ({ fileStore }: { fileStore: FileStore }) => {
       id="__sort-menu"
       menuID="__sort-options"
     >
-      <SortMenuItems fileStore={fileStore} />
+      <SortMenuItems />
     </MenuButton>
   );
 };
 
-export const ViewCommand = ({ uiStore }: { uiStore: UiStore }) => {
+export const ViewCommand = () => {
   return (
     <MenuButton
       showLabel="never"
@@ -42,7 +40,7 @@ export const ViewCommand = ({ uiStore }: { uiStore: UiStore }) => {
       id="__layout-menu"
       menuID="__layout-options"
     >
-      <LayoutMenuItems uiStore={uiStore} />
+      <LayoutMenuItems />
     </MenuButton>
   );
 };
@@ -58,7 +56,8 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateCreated', icon: IconSet.FILTER_DATE, text: 'Date created' },
 ];
 
-export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) => {
+export const SortMenuItems = observer(() => {
+  const { fileStore } = useStore();
   const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = fileStore;
   const orderIcon = fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
 
@@ -78,7 +77,8 @@ export const SortMenuItems = observer(({ fileStore }: { fileStore: FileStore }) 
   );
 });
 
-export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
+export const LayoutMenuItems = observer(() => {
+  const { uiStore } = useStore();
   return (
     <MenuRadioGroup>
       <MenuRadioItem
@@ -114,7 +114,8 @@ export const LayoutMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
   );
 });
 
-export const ThumbnailSizeMenuItems = observer(({ uiStore }: { uiStore: UiStore }) => {
+export const ThumbnailSizeMenuItems = observer(() => {
+  const { uiStore } = useStore();
   return (
     <MenuRadioGroup>
       <MenuRadioItem
