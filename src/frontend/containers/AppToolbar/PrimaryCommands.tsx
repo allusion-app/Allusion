@@ -1,9 +1,7 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
-import UiStore from 'src/frontend/stores/UiStore';
-import FileStore from 'src/frontend/stores/FileStore';
 import { IconSet } from 'widgets';
 import { ToolbarButton, ToolbarToggleButton } from 'widgets/menus';
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
@@ -21,7 +19,7 @@ export const enum Tooltip {
 }
 
 const OutlinerToggle = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   return (
     <button
@@ -41,35 +39,36 @@ const OutlinerToggle = observer(() => {
   );
 });
 
-const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
-  const { uiStore, fileStore } = props;
+const PrimaryCommands = observer(() => {
+  const { fileStore } = useStore();
 
   return (
     <>
       <OutlinerToggle />
-      <FileSelectionCommand uiStore={uiStore} fileStore={fileStore} />
+      <FileSelectionCommand />
 
       <Searchbar />
 
       {/* TODO: Put back tag button (or just the T hotkey) */}
       {fileStore.showsMissingContent ? (
         // Only show option to remove selected files in toolbar when viewing missing files */}
-        <RemoveFilesPopover uiStore={uiStore} />
+        <RemoveFilesPopover />
       ) : (
         // Only show when not viewing missing files (so it is replaced by the Delete button)
         <FileTagEditor />
       )}
 
-      <SortCommand fileStore={fileStore} />
+      <SortCommand />
 
-      <ViewCommand uiStore={uiStore} />
+      <ViewCommand />
     </>
   );
 });
 
 export default PrimaryCommands;
 
-export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => {
+export const SlideModeCommand = observer(() => {
+  const { uiStore } = useStore();
   return (
     <>
       <ToolbarButton
@@ -96,8 +95,8 @@ export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => 
   );
 });
 
-const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
-  const { uiStore, fileStore } = props;
+const FileSelectionCommand = observer(() => {
+  const { uiStore, fileStore } = useStore();
   const selectionCount = uiStore.fileSelection.size;
   const fileCount = fileStore.fileList.length;
 
@@ -120,7 +119,8 @@ const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: Fil
   );
 });
 
-const RemoveFilesPopover = observer(({ uiStore }: { uiStore: UiStore }) => {
+const RemoveFilesPopover = observer(() => {
+  const { uiStore } = useStore();
   return (
     <>
       <ToolbarButton

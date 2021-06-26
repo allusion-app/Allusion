@@ -1,20 +1,12 @@
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, {
-  ForwardedRef,
-  ReactElement,
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { ForwardedRef, ReactElement, useCallback, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
 import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Tag, Grid, Row, GridCell } from 'widgets';
 import { RowProps, useGridFocus } from 'widgets/Combobox/Grid';
 import { Flyout } from 'widgets/popovers';
-import StoreContext from '../contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 
 export interface TagSelectorProps {
   selection: ClientTag[];
@@ -216,7 +208,7 @@ const SuggestedTagsList = observer(
       multiselectable,
       renderCreateOption,
     } = props;
-    const { tagStore } = useContext(StoreContext);
+    const { tagStore } = useStore();
 
     const suggestions = useMemo(
       () =>

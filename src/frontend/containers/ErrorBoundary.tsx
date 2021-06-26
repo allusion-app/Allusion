@@ -1,18 +1,18 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { shell } from 'electron';
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 
 import { RendererMessenger } from 'src/Messaging';
 import { githubUrl } from 'src/config';
 
-import StoreContext from '../contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 
 import { Button, ButtonGroup, IconSet } from 'widgets';
 import { DialogActions, DialogButton, Flyout } from 'widgets/popovers';
 
 export const ClearDbButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const rootStore = useContext(StoreContext);
+  const rootStore = useStore();
 
   return (
     <Flyout

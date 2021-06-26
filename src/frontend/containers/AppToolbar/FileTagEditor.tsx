@@ -4,7 +4,6 @@ import React, {
   ForwardedRef,
   ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -19,11 +18,11 @@ import { Grid, Tag } from 'widgets';
 import { Row, RowSeparator, useGridFocus } from 'widgets/Combobox/Grid';
 import { IconSet } from 'widgets/Icons';
 import { ToolbarButton } from 'widgets/menus';
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 import { Tooltip } from './PrimaryCommands';
 
 const FileTagEditor = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   return (
     <>
       <ToolbarButton
@@ -44,7 +43,7 @@ const FileTagEditor = observer(() => {
 export default FileTagEditor;
 
 const TagEditor = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const [inputText, setInputText] = useState('');
   const counter = useRef(
     computed(() => {
@@ -139,7 +138,7 @@ const MatchingTagsList = observer(
     { inputText, counter, resetTextBox }: MatchingTagsListProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) {
-    const { tagStore, uiStore } = useContext(StoreContext);
+    const { tagStore, uiStore } = useStore();
 
     const matches = useMemo(
       () =>
@@ -194,7 +193,7 @@ interface CreateOptionProps {
 }
 
 const CreateOption = ({ inputText, hasMatches, resetTextBox }: CreateOptionProps) => {
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useStore();
 
   const createTag = useCallback(async () => {
     const newTag = await tagStore.create(tagStore.root, inputText);
@@ -231,7 +230,7 @@ interface TagSummaryProps {
 }
 
 const TagSummary = observer(({ counter, removeTag }: TagSummaryProps) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   const sortedTags: ClientTag[] = Array.from(counter.get().entries())
     // Sort based on count
@@ -254,7 +253,7 @@ const TagSummary = observer(({ counter, removeTag }: TagSummaryProps) => {
 });
 
 const FloatingPanel = observer(({ children }: { children: ReactNode }) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   const handleBlur = useRef((e: React.FocusEvent) => {
     const button = e.currentTarget.previousElementSibling as HTMLElement;

@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 import FileTags from '../../components/FileTag';
 import ImageInfo from '../../components/ImageInfo';
 import { IconButton, IconSet } from 'widgets';
@@ -9,7 +9,7 @@ import { shell } from 'electron';
 import { IS_PREVIEW_WINDOW } from 'src/renderer';
 
 const Inspector = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useStore();
 
   if (uiStore.firstItem >= fileStore.fileList.length || !uiStore.isInspectorOpen) {
     return (

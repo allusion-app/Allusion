@@ -1,12 +1,13 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 
-import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuItem } from 'widgets/menus';
 import { RendererMessenger } from 'src/Messaging';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
-const SecondaryCommands = observer(({ uiStore }: { uiStore: UiStore }) => {
+const SecondaryCommands = observer(() => {
+  const { uiStore } = useStore();
   return (
     <MenuButton
       showLabel="never"

@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from './contexts/StoreContext';
+import { useStore } from './contexts/StoreContext';
 
 import ErrorBoundary from './containers/ErrorBoundary';
 import ContentView from './containers/ContentView';
@@ -12,7 +12,7 @@ import { useWorkerListener } from './ThumbnailGeneration';
 import { Tooltip } from './containers/AppToolbar/PrimaryCommands';
 
 const PreviewApp = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useStore();
 
   // Listen to responses of Web Workers
   useWorkerListener();
