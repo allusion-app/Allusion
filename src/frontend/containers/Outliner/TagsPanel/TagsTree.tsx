@@ -5,7 +5,7 @@ import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { TagMerge, TagRemoval } from 'src/frontend/components/RemovalAlert';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import TagDnDContext, { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
@@ -99,7 +99,7 @@ document.body.appendChild(PreviewTag);
 
 const TagItem = observer((props: ITagItemProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useStore();
   const dndData = useContext(TagDnDContext);
 
   const handleContextMenu = useCallback(
@@ -418,7 +418,7 @@ const mapTag = (tag: ClientTag): ITreeItem => ({
 });
 
 const TagsTree = observer(() => {
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useStore();
   const root = tagStore.root;
   const [state, dispatch] = useReducer(reducer, {
     expansion: {},

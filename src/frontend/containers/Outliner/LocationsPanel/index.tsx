@@ -5,7 +5,7 @@ import { autorun, runInAction } from 'mobx';
 import SysPath from 'path';
 
 import { RendererMessenger } from 'src/Messaging';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import { ClientLocation, getDirectoryTree, IDirectoryTreeItem } from 'src/entities/Location';
@@ -249,7 +249,7 @@ const SubLocation = ({
   nodeData: IDirectoryTreeItem;
   treeData: ITreeData;
 }) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const { showContextMenu, expansion, setExpansion } = treeData;
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) =>
@@ -297,7 +297,7 @@ const SubLocation = ({
 
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
-    const { uiStore } = useContext(StoreContext);
+    const { uiStore } = useStore();
     const { showContextMenu, expansion, delete: onDelete } = treeData;
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -373,7 +373,7 @@ const LocationsTree = ({
   showContextMenu,
   reloadLocationHierarchyTrigger,
 }: ILocationTreeProps) => {
-  const { locationStore, uiStore } = useContext(StoreContext);
+  const { locationStore, uiStore } = useStore();
   const [expansion, setExpansion] = useState<IExpansionState>({});
   const treeData: ITreeData = useMemo(
     () => ({
@@ -464,7 +464,7 @@ const LocationsTree = ({
 };
 
 const LocationsPanel = observer(() => {
-  const { locationStore } = useContext(StoreContext);
+  const { locationStore } = useStore();
   const [contextState, { show, hide }] = useContextMenu();
 
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation>();

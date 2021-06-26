@@ -1,10 +1,10 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
 import { ClientLocation } from 'src/entities/Location';
 import { ClientTag } from 'src/entities/Tag';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 import { TagSelector } from './TagSelector';
@@ -28,7 +28,7 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
 );
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const { object } = props;
   const tagsToRemove = object.isSelected
     ? Array.from(uiStore.tagSelection)
@@ -61,7 +61,7 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
 });
 
 export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
-  const { tagStore } = useContext(StoreContext);
+  const { tagStore } = useStore();
   const { object: tag } = props;
 
   const text = `Select the tag you want to merge "${tag.name}" with`;
@@ -107,7 +107,7 @@ export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
 });
 
 export const FileRemoval = observer(() => {
-  const { fileStore, uiStore } = useContext(StoreContext);
+  const { fileStore, uiStore } = useStore();
   const selection = uiStore.fileSelection;
 
   const handleConfirm = action(() => {

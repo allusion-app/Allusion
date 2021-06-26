@@ -1,16 +1,16 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useCallback, useContext, useRef, useState, memo } from 'react';
+import React, { useCallback, useRef, useState, memo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, ButtonGroup, IconSet, Split } from 'widgets';
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
 import { clamp } from '../utils';
-import StoreContext from '../contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 import PopupWindow from '../components/PopupWindow';
 import { shell } from 'electron';
 import { chromeExtensionUrl } from 'src/config';
 
 const HelpCenter = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   if (!uiStore.isHelpCenterOpen) {
     return null;

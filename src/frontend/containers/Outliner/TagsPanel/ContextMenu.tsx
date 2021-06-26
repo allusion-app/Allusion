@@ -1,11 +1,11 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { HexColorPicker } from 'react-colorful';
 
 import { formatTagCountText } from 'src/frontend/utils';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet } from 'widgets';
 import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
@@ -84,7 +84,7 @@ interface IContextMenuProps {
 
 export const TagItemContextMenu = observer((props: IContextMenuProps) => {
   const { tag, dispatch, pos } = props;
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useStore();
   const tags = uiStore.getTagContextItems(tag.id);
   let contextText = formatTagCountText(tags.length);
   contextText = contextText && ` (${contextText})`;

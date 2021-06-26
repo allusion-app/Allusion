@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
 import { Toolbar } from 'widgets/menus';
 
@@ -12,7 +12,7 @@ import SecondaryCommands from './SecondaryCommands';
  * The top-level app toolbar
  */
 const AppToolbar = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useStore();
 
   return (
     <Toolbar id="toolbar" label="App Toolbar" controls="layout-container">

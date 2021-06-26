@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
 import useContextMenu from '../../hooks/useContextMenu';
 
@@ -19,7 +19,7 @@ const ContentView = observer(() => {
   const {
     uiStore,
     fileStore: { fileList },
-  } = useContext(StoreContext);
+  } = useStore();
 
   return (
     <div
@@ -32,7 +32,7 @@ const ContentView = observer(() => {
 });
 
 const Content = observer(() => {
-  const { fileStore, uiStore } = useContext(StoreContext);
+  const { fileStore, uiStore } = useStore();
   const dndData = useContext(TagDnDContext);
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
   const { open, x, y, menu } = contextState;

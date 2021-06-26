@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 import fse from 'fs-extra';
 import path from 'path';
 import { action } from 'mobx';
@@ -8,7 +8,7 @@ import { thumbnailType } from 'src/config';
 import { ID } from 'src/entities/ID';
 import { ClientFile } from 'src/entities/File';
 
-import StoreContext from './contexts/StoreContext';
+import { useStore } from './contexts/StoreContext';
 
 export interface IThumbnailMessage {
   filePath: string;
@@ -54,7 +54,7 @@ export const ensureThumbnail = action(async (file: ClientFile, thumbnailDir: str
 
 // Listens and processes events from the Workers. Should only be used once in the entire app
 export const useWorkerListener = () => {
-  const { fileStore } = useContext(StoreContext);
+  const { fileStore } = useStore();
 
   useEffect(() => {
     for (let i = 0; i < workers.length; i++) {

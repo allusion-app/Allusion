@@ -1,11 +1,11 @@
-import React, { useContext, useRef } from 'react';
+import React, { useRef } from 'react';
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
 const Searchbar = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const searchCriteriaList = uiStore.searchCriteriaList;
 
   // Only show quick search bar when all criteria are tags,
@@ -39,7 +39,7 @@ import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useAction } from 'src/frontend/hooks/useAction';
 
 const QuickSearchList = observer(() => {
-  const { uiStore, tagStore } = useContext(StoreContext);
+  const { uiStore, tagStore } = useStore();
 
   const selection = useRef(
     computed(() => {
@@ -107,7 +107,7 @@ const QuickSearchList = observer(() => {
 });
 
 const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
-  const { fileStore, uiStore } = useContext(StoreContext);
+  const { fileStore, uiStore } = useStore();
 
   const handleClick = useRef(() => {
     uiStore.toggleSearchMatchAny();
@@ -126,7 +126,7 @@ const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
 });
 
 const CriteriaList = observer(() => {
-  const { fileStore, uiStore } = useContext(StoreContext);
+  const { fileStore, uiStore } = useStore();
   return (
     <div className="input" onClick={uiStore.toggleAdvancedSearch}>
       <div className="multiautocomplete-input">

@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
 import UiStore from 'src/frontend/stores/UiStore';
 import FileStore from 'src/frontend/stores/FileStore';
@@ -21,7 +21,7 @@ export const enum Tooltip {
 }
 
 const OutlinerToggle = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   return (
     <button

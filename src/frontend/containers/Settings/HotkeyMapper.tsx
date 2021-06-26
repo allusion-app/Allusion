@@ -1,15 +1,15 @@
-import React, { useContext, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { comboMatches, getKeyComboString, parseKeyCombo } from '../../hotkeyParser';
 
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 import UiStore, { defaultHotkeyMap, IHotkeyMap } from '../../stores/UiStore';
 import { camelCaseToSpaced } from '../../utils';
 import { Button, IconSet, keyComboToString } from 'widgets';
 
 export const HotkeyMapper = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const [changed, onChange] = useState<keyof IHotkeyMap | null>(null);
   const textDispatch = useState('');
 

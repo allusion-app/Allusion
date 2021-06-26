@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext } from 'react';
+import React from 'react';
 import PopupWindow from '../components/PopupWindow';
-import StoreContext from '../contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
 import { shell } from 'electron';
@@ -13,7 +13,7 @@ const clickLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
 };
 
 const About = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   if (!uiStore.isAboutOpen) {
     return null;

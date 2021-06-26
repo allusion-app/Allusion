@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
 import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
@@ -39,7 +39,7 @@ const VirtualizedRenderer = observer(
     lastSelectionIndex,
     layoutUpdateDate,
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
-    const { uiStore, fileStore } = useContext(StoreContext);
+    const { uiStore, fileStore } = useStore();
     const [, isMountedRef] = useMountState();
     const wrapperRef = useRef<HTMLDivElement>(null);
     const scrollAnchor = useRef<HTMLDivElement>(null);

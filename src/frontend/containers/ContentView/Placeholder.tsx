@@ -1,11 +1,11 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import LOGO_FC from 'resources/logo/svg/full-color/allusion-logomark-fc.svg';
 
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
 const Placeholder = observer(() => {
-  const { fileStore, tagStore, uiStore } = useContext(StoreContext);
+  const { fileStore, tagStore, uiStore } = useStore();
 
   if (fileStore.showsAllContent && tagStore.isEmpty) {
     // No tags exist, and no images added: Assuming it's a new user -> Show a welcome screen
@@ -31,7 +31,7 @@ import UiStore from '../../stores/UiStore';
 import { IconSet, Button, ButtonGroup, SVG } from 'widgets';
 
 const Welcome = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   return (
     <ContentPlaceholder title="Welcome to Allusion" icon={<SVG src={LOGO_FC} />}>
       <p>
