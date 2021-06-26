@@ -1,6 +1,6 @@
 /**
  * Based on https://github.com/bradstiff/react-responsive-pinch-zoom-pan/tree/bc2b997febae37327ac5696433712371332645af/src
- * MIT license yada yada
+ * MIT license, see LICENSE file
  */
 
 import { createSelector } from 'reselect';

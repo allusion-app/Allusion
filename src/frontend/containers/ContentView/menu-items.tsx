@@ -26,6 +26,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
 
   const handleViewFullSize = () => {
     uiStore.selectFile(file, true);
+    uiStore.enableSlideMode();
   };
 
   const handlePreviewWindow = () => {
