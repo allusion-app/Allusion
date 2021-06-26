@@ -431,18 +431,21 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
         this.cancelAnimation();
 
         // Keep image centered when container dimensions change (e.g. closing a side bar)
-        const newLeft =
-          this.state.left - (this.state.containerDimensions.width - containerDimensions.width) / 2;
-        const newTop =
-          this.state.top - (this.state.containerDimensions.height - containerDimensions.height) / 2;
+        let newTransform: { left: number; top: number } | undefined = undefined;
+        const oldContainerDims = this.state.containerDimensions;
+        if (oldContainerDims.width !== 0 && oldContainerDims.height !== 0) {
+          newTransform = {
+            left: this.state.left - (oldContainerDims.width - containerDimensions.width) / 2,
+            top: this.state.top - (oldContainerDims.height - containerDimensions.height) / 2,
+          };
+        }
 
         //capture new dimensions
         this.setState(
           {
             containerDimensions,
             imageDimensions: imageDimensions!,
-            left: newLeft,
-            top: newTop,
+            ...(newTransform ? newTransform : ({} as ISlideTransform)),
           },
           () => {
             //When image loads and image dimensions are first established, apply initial transform.
