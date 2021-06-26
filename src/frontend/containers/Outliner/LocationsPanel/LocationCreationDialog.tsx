@@ -1,7 +1,7 @@
 import { autorun } from 'mobx';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Button } from 'widgets';
 import { Checkbox } from 'widgets/Checkbox';
 import { IconSet } from 'widgets/Icons';
@@ -137,7 +137,7 @@ interface LocationCreationDialogProps {
 }
 
 const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogProps) => {
-  const { locationStore } = useContext(StoreContext);
+  const { locationStore } = useStore();
   const [sublocationsLoaded, setSublocationsLoaded] = useState(false);
   // const [importFolderHierarchyAsTags, setImportFolderHierarchyAsTags] = useState(false);
 
