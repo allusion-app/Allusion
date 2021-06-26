@@ -14,7 +14,7 @@ import { RendererMessenger } from './Messaging';
 
 import Backend from './backend/Backend';
 
-import StoreContext from './frontend/contexts/StoreContext';
+import StoreProvider from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
 
 import App from './frontend/App';
@@ -122,10 +122,10 @@ window.addEventListener('beforeunload', () => {
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application
 ReactDOM.render(
-  <StoreContext.Provider value={rootStore}>
+  <StoreProvider value={rootStore}>
     {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
     <Overlay />
-  </StoreContext.Provider>,
+  </StoreProvider>,
   document.getElementById('app'),
 );
 

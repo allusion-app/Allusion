@@ -1,9 +1,9 @@
-import { computed, IComputedValue } from 'mobx';
+import { computed, IComputedValue, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, {
   ForwardedRef,
   ReactNode,
-  useContext,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -18,11 +18,11 @@ import { Grid, Tag } from 'widgets';
 import { Row, RowSeparator, useGridFocus } from 'widgets/Combobox/Grid';
 import { IconSet } from 'widgets/Icons';
 import { ToolbarButton } from 'widgets/menus';
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 import { Tooltip } from './PrimaryCommands';
 
 const FileTagEditor = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   return (
     <>
       <ToolbarButton
@@ -43,7 +43,7 @@ const FileTagEditor = observer(() => {
 export default FileTagEditor;
 
 const TagEditor = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const [inputText, setInputText] = useState('');
   const counter = useRef(
     computed(() => {
@@ -138,7 +138,7 @@ const MatchingTagsList = observer(
     { inputText, counter, resetTextBox }: MatchingTagsListProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) {
-    const { tagStore, uiStore } = useContext(StoreContext);
+    const { tagStore, uiStore } = useStore();
 
     const matches = useMemo(
       () =>
@@ -193,15 +193,18 @@ interface CreateOptionProps {
 }
 
 const CreateOption = ({ inputText, hasMatches, resetTextBox }: CreateOptionProps) => {
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useStore();
 
-  const removeTag = useAction(async () => {
+  const createTag = useCallback(async () => {
     const newTag = await tagStore.create(tagStore.root, inputText);
-    for (const f of uiStore.fileSelection) {
-      f.addTag(newTag);
-    }
+    runInAction(() => {
+      for (const f of uiStore.fileSelection) {
+        f.addTag(newTag);
+      }
+    });
     resetTextBox();
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputText, resetTextBox]);
 
   if (inputText.length === 0) {
     return null;
@@ -214,7 +217,7 @@ const CreateOption = ({ inputText, hasMatches, resetTextBox }: CreateOptionProps
         id="tag-editor-create-option"
         selected={false}
         value={`Create Tag "${inputText}"`}
-        onClick={removeTag}
+        onClick={createTag}
         icon={IconSet.TAG_ADD}
       />
     </>
@@ -227,7 +230,7 @@ interface TagSummaryProps {
 }
 
 const TagSummary = observer(({ counter, removeTag }: TagSummaryProps) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   const sortedTags: ClientTag[] = Array.from(counter.get().entries())
     // Sort based on count
@@ -250,7 +253,7 @@ const TagSummary = observer(({ counter, removeTag }: TagSummaryProps) => {
 });
 
 const FloatingPanel = observer(({ children }: { children: ReactNode }) => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   const handleBlur = useRef((e: React.FocusEvent) => {
     const button = e.currentTarget.previousElementSibling as HTMLElement;

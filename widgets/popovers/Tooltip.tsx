@@ -1,17 +1,10 @@
-import { Placement } from '@popperjs/core';
-import React, { ReactText, useEffect, useRef, useState } from 'react';
+import { Placement, VirtualElement } from '@popperjs/core';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePopper } from 'react-popper';
-
-const enum TooltipEvent {
-  Show = 'show-tooltip',
-  Hide = 'hide-tooltip',
-}
-
-let IS_TOOLTIP_VISIBLE = false;
 
 export const TooltipLayer = () => {
   const popoverElement = useRef<HTMLDivElement>(null);
-  const anchorElement = useRef<Element | null>();
+  const virtualElement = useRef<VirtualElement | null>(null);
   const popperOptions = useRef({
     placement: 'auto' as Placement,
     modifiers: [
@@ -31,44 +24,95 @@ export const TooltipLayer = () => {
     ],
   }).current;
   const { styles, attributes, forceUpdate } = usePopper(
-    anchorElement.current,
+    virtualElement.current,
     popoverElement.current,
     popperOptions,
   );
 
   const [isOpen, setIsOpen] = useState(false);
-  const content = useRef<ReactText>('');
+  const content = useRef<string>('');
+  const timerID = useRef<number>();
 
   useEffect(() => {
-    const handleShow = (e: Event) => {
-      anchorElement.current = e.target as Element;
-      content.current = (e as CustomEvent<ReactText>).detail;
-      forceUpdate?.();
-      setIsOpen(true);
-      IS_TOOLTIP_VISIBLE = true;
+    const handleShow = (e: MouseEvent | FocusEvent): HTMLElement | undefined => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement) || !target.dataset['tooltip']) {
+        return;
+      }
+      const tooltip = target.dataset['tooltip'];
+      content.current = tooltip;
+      if (virtualElement.current?.contextElement !== target) {
+        window.clearTimeout(timerID.current);
+        timerID.current = window.setTimeout(() => {
+          timerID.current = undefined;
+          forceUpdate?.();
+          setIsOpen(true);
+        }, 500);
+      }
+      return target;
     };
 
-    const handleHide = () => {
+    const handleMouseover = (e: MouseEvent) => {
+      const target = handleShow(e);
+      if (target !== undefined) {
+        const x = e.clientX;
+        const y = e.clientY;
+        virtualElement.current = {
+          getBoundingClientRect: () => ({
+            width: 4,
+            height: 4,
+            top: y,
+            right: x,
+            bottom: y,
+            left: x,
+          }),
+          contextElement: target,
+        };
+      }
+    };
+
+    const handleFocus = (e: FocusEvent) => {
+      const target = handleShow(e);
+      if (target !== undefined) {
+        virtualElement.current = {
+          getBoundingClientRect: () => target.getBoundingClientRect(),
+          contextElement: target,
+        };
+      }
+    };
+
+    const handleHide = (e: MouseEvent | FocusEvent) => {
+      if (
+        virtualElement.current === null ||
+        virtualElement.current.contextElement?.contains(e.relatedTarget as Node)
+      ) {
+        return;
+      }
+      forceUpdate?.();
       setIsOpen(false);
-      anchorElement.current = null;
-      IS_TOOLTIP_VISIBLE = false;
+      virtualElement.current = null;
+      window.clearTimeout(timerID.current);
+      timerID.current = undefined;
     };
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsOpen(false);
-        anchorElement.current = null;
-        IS_TOOLTIP_VISIBLE = false;
+        virtualElement.current = null;
       }
     };
 
-    document.addEventListener(TooltipEvent.Show, handleShow, true);
-    document.addEventListener(TooltipEvent.Hide, handleHide, true);
+    document.addEventListener('mouseover', handleMouseover, true);
+    document.addEventListener('mouseout', handleHide, true);
+    document.addEventListener('focus', handleFocus, true);
+    document.addEventListener('blur', handleHide, true);
     document.addEventListener('keydown', handleEscape, true);
 
     return () => {
-      document.removeEventListener(TooltipEvent.Show, handleShow, true);
-      document.removeEventListener(TooltipEvent.Hide, handleHide, true);
+      document.removeEventListener('mouseover', handleShow, true);
+      document.removeEventListener('mouseout', handleHide, true);
+      document.removeEventListener('focus', handleShow, true);
+      document.removeEventListener('blur', handleHide, true);
       document.removeEventListener('keydown', handleEscape, true);
     };
   }, [forceUpdate]);
@@ -86,50 +130,3 @@ export const TooltipLayer = () => {
     </div>
   );
 };
-
-type TooltipHandler = {
-  onShow: (e: React.MouseEvent | React.FocusEvent) => void;
-  onHide: (e: React.MouseEvent | React.FocusEvent) => void;
-};
-
-export function useTooltip(content: ReactText): TooltipHandler {
-  const contentRef = useRef(content);
-  contentRef.current = content;
-  const timerID = useRef<number>();
-
-  // Remove lingering tooltips on element removal and cleanup timer.
-  useEffect(() => {
-    return () => {
-      if (timerID.current !== undefined) {
-        clearTimeout(timerID.current);
-      } else if (IS_TOOLTIP_VISIBLE) {
-        document.dispatchEvent(new CustomEvent(TooltipEvent.Hide));
-        IS_TOOLTIP_VISIBLE = false;
-      }
-    };
-  }, []);
-
-  return useRef<TooltipHandler>({
-    onShow: (e: React.MouseEvent | React.FocusEvent) => {
-      if (timerID.current === undefined) {
-        e.persist();
-        const detail = contentRef.current;
-        const target = e.currentTarget;
-        timerID.current = window.setTimeout(() => {
-          timerID.current = undefined;
-          target.dispatchEvent(
-            new CustomEvent<ReactText>(TooltipEvent.Show, { detail }),
-          );
-        }, 500);
-      }
-    },
-    onHide: (e: React.MouseEvent<Element> | React.FocusEvent) => {
-      if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
-        return;
-      }
-      e.currentTarget.dispatchEvent(new CustomEvent(TooltipEvent.Hide));
-      window.clearTimeout(timerID.current);
-      timerID.current = undefined;
-    },
-  }).current;
-}

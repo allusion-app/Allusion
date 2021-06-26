@@ -3,18 +3,15 @@ import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ellipsize, encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
 import { IconButton, IconSet, Tag } from 'widgets';
-import FileStore from '../../stores/FileStore';
-import UiStore from '../../stores/UiStore';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
 import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
-import { useTooltip } from 'widgets/popovers';
 import { ClientTag } from 'src/entities/Tag';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
 interface ICell {
   file: ClientFile;
   mounted: boolean;
-  uiStore: UiStore;
   // Will use the original image instead of the thumbnail
   forceNoThumbnail?: boolean;
   submitCommand: (command: GalleryCommand) => void;
@@ -53,7 +50,8 @@ export const listColumns: IListColumn[] = [
   { title: 'Tags' },
 ];
 
-export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICell) => {
+export const ListCell = observer(({ file, mounted, submitCommand }: ICell) => {
+  const { uiStore } = useStore();
   const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
     file,
     submitCommand,
@@ -69,7 +67,7 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
       <div key={`${file.id}-name`}>
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           {mounted ? (
-            <Thumbnail uiStore={uiStore} mounted={mounted} file={file} />
+            <Thumbnail mounted={mounted} file={file} />
           ) : (
             <div className="thumbnail-placeholder" />
           )}
@@ -99,7 +97,6 @@ export const ListCell = observer(({ file, mounted, uiStore, submitCommand }: ICe
 });
 
 interface IMasonryCell extends ICell {
-  fileStore: FileStore;
   forceNoThumbnail: boolean;
   transform: ITransform;
 }
@@ -108,12 +105,11 @@ export const MasonryCell = observer(
   ({
     file,
     mounted,
-    uiStore,
-    fileStore,
     forceNoThumbnail,
     transform: { height, width, left, top },
     submitCommand,
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
+    const { uiStore, fileStore } = useStore();
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
 
     return (
@@ -124,12 +120,7 @@ export const MasonryCell = observer(
         style={style}
       >
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
-          <Thumbnail
-            uiStore={uiStore}
-            mounted={!mounted}
-            file={file}
-            forceNoThumbnail={forceNoThumbnail}
-          />
+          <Thumbnail mounted={!mounted} file={file} forceNoThumbnail={forceNoThumbnail} />
         </ThumbnailContainer>
         {file.isBroken === true && !fileStore.showsMissingContent && (
           <IconButton
@@ -267,7 +258,8 @@ type IThumbnail = Omit<ICell, 'submitCommand'>;
 
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-const Thumbnail = observer(({ file, mounted, uiStore, forceNoThumbnail }: IThumbnail) => {
+const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => {
+  const { uiStore } = useStore();
   const { thumbnailDirectory } = uiStore;
   const { thumbnailPath, isBroken } = file;
 
@@ -362,14 +354,11 @@ const ThumbnailTags = observer(
 );
 
 const TagWithHint = observer(({ tag }: { tag: ClientTag }) => {
-  const { onShow, onHide } = useTooltip(tag.treePath.map((t) => t.name).join(' › '));
-
   return (
     <Tag
       text={tag.name}
       color={tag.viewColor}
-      onMouseOutCapture={onHide}
-      onMouseOverCapture={onShow}
+      tooltip={tag.treePath.map((t) => t.name).join(' › ')}
     />
   );
 });
@@ -378,10 +367,9 @@ const ThumbnailFilename = ({ file }: { file: ClientFile }) => {
   const title = `${ellipsize(file.absolutePath, 80, 'middle')}, ${file.width}x${
     file.height
   }, ${humanFileSize(file.size)}`;
-  const { onShow, onHide } = useTooltip(title);
 
   return (
-    <div className="thumbnail-filename" onMouseOutCapture={onHide} onMouseOverCapture={onShow}>
+    <div className="thumbnail-filename" data-tooltip={title}>
       {file.name}
     </div>
   );

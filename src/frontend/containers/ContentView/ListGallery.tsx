@@ -1,23 +1,15 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, {
-  useContext,
-  useMemo,
-  useRef,
-  useCallback,
-  useEffect,
-  useState,
-  useLayoutEffect,
-} from 'react';
+import React, { useMemo, useRef, useCallback, useEffect, useState, useLayoutEffect } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile } from 'src/entities/File';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
-import UiStore from 'src/frontend/stores/UiStore';
+import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { IconSet } from 'widgets';
 import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
 import { listColumns, GalleryCommand, ListCell } from './GalleryItem';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
 /** Generates a unique key for an element in the fileList */
 const getItemKey = action((index: number, data: ClientFile[]): string => {
@@ -33,20 +25,13 @@ interface IListGalleryProps {
 }
 
 const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
-  const {
-    contentRect,
-    select,
-    lastSelectionIndex,
-    showContextMenu,
-    handleFileSelect,
-    uiStore,
-    fileStore,
-  } = props;
+  const { contentRect, select, lastSelectionIndex, showContextMenu, handleFileSelect } = props;
+  const { fileStore, uiStore } = useStore();
   const cellSize = 24;
-  const dndData = useContext(TagDnDContext);
+  const dndData = useTagDnD();
   const submitCommand = useMemo(
-    () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
-    [dndData, fileStore, select, showContextMenu, uiStore],
+    () => createSubmitCommand(dndData, select, showContextMenu, uiStore),
+    [dndData, select, showContextMenu, uiStore],
   );
   const ref = useRef<FixedSizeList>(null);
 
@@ -108,11 +93,10 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
         data={data}
         style={style}
         isScrolling={isScrolling}
-        uiStore={uiStore}
         submitCommand={submitCommand}
       />
     ),
-    [submitCommand, uiStore],
+    [submitCommand],
   );
 
   return (
@@ -167,14 +151,13 @@ interface IListItem {
   data: ClientFile[];
   style: React.CSSProperties;
   isScrolling: true;
-  uiStore: UiStore;
   // onClick: (e: React.MouseEvent) => void;
   // onDoubleClick: (e: React.MouseEvent) => void;
   submitCommand: (command: GalleryCommand) => void;
 }
 
 const ListItem = observer((props: IListItem) => {
-  const { index, data, style, isScrolling, uiStore, submitCommand } = props;
+  const { index, data, style, isScrolling, submitCommand } = props;
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
@@ -188,7 +171,7 @@ const ListItem = observer((props: IListItem) => {
 
   return (
     <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
-      <ListCell mounted={isMounted} file={file} uiStore={uiStore} submitCommand={submitCommand} />
+      <ListCell mounted={isMounted} file={file} submitCommand={submitCommand} />
     </div>
   );
 });
