@@ -6,7 +6,11 @@ import { useStore } from './contexts/StoreContext';
 const Overlay = observer(() => {
   const { uiStore } = useStore();
 
-  return <TooltipLayer className={uiStore.preferences.theme} />;
+  return (
+    <div className={uiStore.preferences.theme}>
+      <TooltipLayer />
+    </div>
+  );
 });
 
 export default Overlay;

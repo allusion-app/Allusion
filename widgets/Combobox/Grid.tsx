@@ -1,13 +1,5 @@
 import './popup.scss';
-import React, {
-  DOMAttributes,
-  ForwardedRef,
-  forwardRef,
-  ReactElement,
-  ReactNode,
-  useRef,
-  useState,
-} from 'react';
+import React, { ForwardedRef, forwardRef, ReactElement, ReactNode, useRef, useState } from 'react';
 
 export interface GridProps {
   id?: string;
@@ -123,7 +115,7 @@ export function useGridFocus(
   return [activeIndex, handleFocus.current];
 }
 
-export interface RowProps extends DOMAttributes<HTMLDivElement> {
+export interface RowProps {
   id?: string;
   value: string;
   selected?: boolean;
@@ -131,17 +123,18 @@ export interface RowProps extends DOMAttributes<HTMLDivElement> {
   icon?: JSX.Element;
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   children?: ReactElement<GridCellProps> | ReactElement<GridCellProps>[];
+  tooltip?: string;
 }
 
-export const Row = ({ id, value, selected, onClick, icon, children, ...props }: RowProps) => (
+export const Row = ({ id, value, selected, onClick, icon, tooltip, children }: RowProps) => (
   <div
-    {...props}
     id={id}
     role="row"
     className="combobox-popup-option"
     aria-selected={selected}
     onClick={onClick}
     tabIndex={-1} // Important for focus handling!
+    data-tooltip={tooltip}
   >
     <GridCell>
       <span className="combobox-popup-option-icon" aria-hidden>
@@ -155,15 +148,15 @@ export const Row = ({ id, value, selected, onClick, icon, children, ...props }: 
 
 export const RowSeparator = () => <div role="separator"></div>;
 
-interface GridCellProps extends DOMAttributes<HTMLDivElement> {
+interface GridCellProps {
   id?: string;
   className?: string;
   children?: ReactNode;
 }
 
-export const GridCell = ({ id, className, children, ...props }: GridCellProps) => {
+export const GridCell = ({ id, className, children }: GridCellProps) => {
   return (
-    <div {...props} id={id} role="gridcell" className={className}>
+    <div id={id} role="gridcell" className={className}>
       {children}
     </div>
   );

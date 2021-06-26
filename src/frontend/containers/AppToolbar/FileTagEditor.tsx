@@ -1,6 +1,14 @@
-import { computed, IComputedValue } from 'mobx';
+import { computed, IComputedValue, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { ForwardedRef, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  ForwardedRef,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import { TagOption } from 'src/frontend/components/TagSelector';
@@ -187,13 +195,15 @@ interface CreateOptionProps {
 const CreateOption = ({ inputText, hasMatches, resetTextBox }: CreateOptionProps) => {
   const { fileStore, tagStore } = useStore();
 
-  const removeTag = useAction(async () => {
+  const createTag = useCallback(async () => {
     const newTag = await tagStore.create(inputText);
-    for (const f of fileStore.selection) {
-      f.addTag(newTag);
-    }
+    runInAction(() => {
+      for (const f of fileStore.selection) {
+        f.addTag(newTag);
+      }
+    });
     resetTextBox();
-  });
+  }, [fileStore.selection, inputText, resetTextBox, tagStore]);
 
   if (inputText.length === 0) {
     return null;
@@ -206,7 +216,7 @@ const CreateOption = ({ inputText, hasMatches, resetTextBox }: CreateOptionProps
         id="tag-editor-create-option"
         selected={false}
         value={`Create Tag "${inputText}"`}
-        onClick={removeTag}
+        onClick={createTag}
         icon={IconSet.TAG_ADD}
       />
     </>

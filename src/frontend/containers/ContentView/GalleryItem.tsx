@@ -6,7 +6,6 @@ import { IconButton, IconSet, Tag } from 'widgets';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
 import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
-import { useTooltip } from 'widgets/popovers';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 
@@ -354,14 +353,11 @@ const ThumbnailTags = observer(
 );
 
 const TagWithHint = observer(({ tag }: { tag: Readonly<ClientTag> }) => {
-  const { onShow, onHide } = useTooltip(tag.treePath.map((t) => t.name).join(' › '));
-
   return (
     <Tag
       text={tag.name}
       color={tag.viewColor}
-      onMouseOutCapture={onHide}
-      onMouseOverCapture={onShow}
+      tooltip={tag.treePath.map((t) => t.name).join(' › ')}
     />
   );
 });
@@ -370,10 +366,9 @@ const ThumbnailFilename = ({ file }: { file: ClientFile }) => {
   const title = `${ellipsize(file.absolutePath, 80, 'middle')}, ${file.width}x${
     file.height
   }, ${humanFileSize(file.size)}`;
-  const { onShow, onHide } = useTooltip(title);
 
   return (
-    <div className="thumbnail-filename" onMouseOutCapture={onHide} onMouseOverCapture={onShow}>
+    <div className="thumbnail-filename" data-tooltip={title}>
       {file.name}
     </div>
   );
