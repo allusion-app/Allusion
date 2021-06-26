@@ -2,6 +2,7 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -12,13 +13,12 @@ import { createSubmitCommand } from './LayoutSwitcher';
 
 interface ISlideMode {
   contentRect: { width: number; height: number };
-  uiStore: UiStore;
-  fileStore: FileStore;
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
 const SlideMode = observer((props: ISlideMode) => {
-  const { contentRect, uiStore, fileStore, showContextMenu } = props;
+  const { contentRect, showContextMenu } = props;
+  const { uiStore, fileStore } = useStore();
   const isInspectorOpen = uiStore.isInspectorOpen;
   const inspectorWidth = uiStore.inspectorWidth;
   const contentWidth = contentRect.width - (isInspectorOpen ? inspectorWidth : 0);
@@ -62,8 +62,8 @@ const SlideView = observer((props: ISlideView) => {
 
   const dndData = useTagDnD();
   const submitCommand = useMemo(
-    () => createSubmitCommand(dndData, fileStore, () => null, showContextMenu, uiStore),
-    [dndData, fileStore, showContextMenu, uiStore],
+    () => createSubmitCommand(dndData, () => null, showContextMenu, uiStore),
+    [dndData, showContextMenu, uiStore],
   );
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {

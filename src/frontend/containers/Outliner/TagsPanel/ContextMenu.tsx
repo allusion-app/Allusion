@@ -6,7 +6,6 @@ import { formatTagCountText } from 'src/frontend/utils';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet } from 'widgets';
 import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
 import { Action, Factory } from './state';
@@ -25,7 +24,9 @@ const defaultColorOptions = [
   { title: 'Razzmatazz', color: '#ec125f' },
 ];
 
-const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: UiStore }) => {
+const ColorPickerMenu = observer(({ tag }: { tag: ClientTag }) => {
+  const { uiStore } = useStore();
+
   const handleChange = (color: string) => {
     if (tag.isSelected) {
       uiStore.colorSelectedTagsAndCollections(tag.id, color);
@@ -118,7 +119,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         icon={IconSet.DELETE}
       />
       <MenuDivider />
-      <ColorPickerMenu tag={tag} uiStore={uiStore} />
+      <ColorPickerMenu tag={tag} />
       <MenuDivider />
       <MenuItem
         onClick={() =>

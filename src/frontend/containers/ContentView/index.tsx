@@ -89,12 +89,7 @@ const Content = observer(() => {
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
       onClick={clearFileSelection}
     >
-      <Layout
-        contentRect={contentRect}
-        showContextMenu={show}
-        uiStore={uiStore}
-        fileStore={fileStore}
-      />
+      <Layout contentRect={contentRect} showContextMenu={show} />
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}
@@ -102,13 +97,13 @@ const Content = observer(() => {
             <>
               {fileMenu && <MenuDivider />}
               <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
-                <LayoutMenuItems uiStore={uiStore} />
+                <LayoutMenuItems />
               </MenuSubItem>
               <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-                <SortMenuItems fileStore={fileStore} />
+                <SortMenuItems />
               </MenuSubItem>
               <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
-                <ThumbnailSizeMenuItems uiStore={uiStore} />
+                <ThumbnailSizeMenuItems />
               </MenuSubItem>
             </>
           )}

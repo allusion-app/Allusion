@@ -12,19 +12,15 @@ import SecondaryCommands from './SecondaryCommands';
  * The top-level app toolbar
  */
 const AppToolbar = observer(() => {
-  const { uiStore, fileStore } = useStore();
+  const { uiStore } = useStore();
 
   return (
     <Toolbar id="toolbar" label="App Toolbar" controls="layout-container">
       {/* Primary Commands depending on current mode */}
-      {uiStore.isSlideMode ? (
-        <SlideModeCommand uiStore={uiStore} />
-      ) : (
-        <PrimaryCommands uiStore={uiStore} fileStore={fileStore} />
-      )}
+      {uiStore.isSlideMode ? <SlideModeCommand /> : <PrimaryCommands />}
 
       {/* Overflow Menu */}
-      <SecondaryCommands uiStore={uiStore} />
+      <SecondaryCommands />
     </Toolbar>
   );
 });

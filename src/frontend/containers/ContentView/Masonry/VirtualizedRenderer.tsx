@@ -47,8 +47,8 @@ const VirtualizedRenderer = observer(
     const [endRenderIndex, setEndRenderIndex] = useState(0);
     const dndData = useTagDnD();
     const submitCommand = useMemo(
-      () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
-      [dndData, fileStore, select, showContextMenu, uiStore],
+      () => createSubmitCommand(dndData, select, showContextMenu, uiStore),
+      [dndData, select, showContextMenu, uiStore],
     );
     const numImages = images.length;
 
@@ -150,8 +150,6 @@ const VirtualizedRenderer = observer(
                 key={im.id}
                 file={fileStore.fileList[fileListIndex]}
                 mounted
-                uiStore={uiStore}
-                fileStore={fileStore}
                 transform={transform}
                 // Force to load the full resolution image when the img dimensions on screen are larger than the thumbnail image resolution
                 // Otherwise you'll see very low res images. This is usually only the case for images with extreme aspect ratios

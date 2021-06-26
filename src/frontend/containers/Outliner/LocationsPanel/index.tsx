@@ -6,7 +6,6 @@ import SysPath from 'path';
 
 import { RendererMessenger } from 'src/Messaging';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import UiStore from 'src/frontend/stores/UiStore';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import { ClientLocation, getDirectoryTree, IDirectoryTreeItem } from 'src/entities/Location';
 import { ClientStringSearchCriteria, CustomKeyDict } from 'src/entities/SearchCriteria';
@@ -107,9 +106,9 @@ const customKeys = (
   }
 };
 
-type UiStoreProp = { uiStore: UiStore };
+const DirectoryMenu = ({ path }: { path: string }) => {
+  const { uiStore } = useStore();
 
-const DirectoryMenu = ({ path, uiStore }: { path: string } & UiStoreProp) => {
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
   const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(pathCriteria(path)), [
@@ -136,12 +135,14 @@ const DirectoryMenu = ({ path, uiStore }: { path: string } & UiStoreProp) => {
   );
 };
 
-interface IContextMenuProps extends UiStoreProp {
+interface IContextMenuProps {
   location: ClientLocation;
   onDelete: (location: ClientLocation) => void;
 }
 
-const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: IContextMenuProps) => {
+const LocationTreeContextMenu = observer(({ location, onDelete }: IContextMenuProps) => {
+  const { uiStore } = useStore();
+
   const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
 
   if (location.isBroken) {
@@ -159,7 +160,7 @@ const LocationTreeContextMenu = observer(({ location, onDelete, uiStore }: ICont
 
   return (
     <>
-      <DirectoryMenu path={location.path} uiStore={uiStore} />
+      <DirectoryMenu path={location.path} />
       <MenuDivider />
       <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
     </>
@@ -253,12 +254,8 @@ const SubLocation = ({
   const { showContextMenu, expansion, setExpansion } = treeData;
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) =>
-      showContextMenu(
-        e.clientX,
-        e.clientY,
-        <DirectoryMenu path={nodeData.fullPath} uiStore={uiStore} />,
-      ),
-    [nodeData, showContextMenu, uiStore],
+      showContextMenu(e.clientX, e.clientY, <DirectoryMenu path={nodeData.fullPath} />),
+    [nodeData, showContextMenu],
   );
 
   const handleClick = useCallback(
@@ -304,10 +301,10 @@ const Location = observer(
         showContextMenu(
           event.clientX,
           event.clientY,
-          <LocationTreeContextMenu location={nodeData} onDelete={onDelete} uiStore={uiStore} />,
+          <LocationTreeContextMenu location={nodeData} onDelete={onDelete} />,
         );
       },
-      [nodeData, showContextMenu, onDelete, uiStore],
+      [nodeData, showContextMenu, onDelete],
     );
 
     const handleClick = useCallback(
