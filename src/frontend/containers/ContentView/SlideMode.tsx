@@ -279,8 +279,8 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
         ) : (
           <img
             src={currentImg.src}
-            width={currentImg.dimensions.width}
-            height={currentImg.dimensions.height}
+            width={currentImg.dimensions.width || undefined}
+            height={currentImg.dimensions.height || undefined}
             alt={`Image could not be loaded: ${src}`}
             onError={setLoadError}
           />

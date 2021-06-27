@@ -718,7 +718,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
 
   componentWillUnmount() {
     this.cancelAnimation();
-    this.imageRef.removeEventListener('touchmove', this.handleTouchMove);
+    this.imageRef?.removeEventListener('touchmove', this.handleTouchMove);
     window.removeEventListener('resize', this.handleWindowResize);
   }
 
