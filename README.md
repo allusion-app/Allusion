@@ -13,8 +13,6 @@ The application can be automatically updated when a new version becomes availabl
 
 ## Development
 
-For more information on how we develop, check out the [wiki](https://github.com/allusion-app/Allusion/wiki/Development).
-
 ### Quick Start
 
 You need to have [NodeJS](https://nodejs.org/en/download/) and a package manager such as [Yarn](https://yarnpkg.com/lang/en/docs/install/) installed.
@@ -28,3 +26,7 @@ Then run the following commands to get started:
 
 An installable executable can be built using `yarn package` for your platform in the `/dist` folder. The building is performed using the [electron-builder](https://www.electron.build/) package, and is configured by a section in the `package.json` file.
 Builds are automatically published to Github Releases when a tag is created in GitHub.
+
+## Further Information
+
+We moved anything related to documentation or answers to frquently asked questions into our [wiki](https://github.com/allusion-app/Allusion/wiki).
