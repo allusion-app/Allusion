@@ -29,4 +29,4 @@ Builds are automatically published to Github Releases when a tag is created in G
 
 ## Further Information
 
-We moved anything related to documentation or answers to frquently asked questions into our [wiki](https://github.com/allusion-app/Allusion/wiki).
+Anything related from documentation to frequently asked questions can be found in our [wiki](https://github.com/allusion-app/Allusion/wiki).
