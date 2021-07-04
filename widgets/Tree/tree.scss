@@ -54,23 +54,30 @@
   }
 
   &[aria-selected='true'] > .label {
-    color: var(--accent-color-blue);
-    background-color: transparent;
+    color: var(--text-color-strong);
+    background-color: var(--accent-color-blue-bg);
 
-    [class*='custom-icon'] {
-      color: var(--accent-color-blue);
+    &:hover {
+      // background-color: var(--accent-color-blue);
+      filter: brightness(0.95);
     }
+
+    // [class*='custom-icon'] {
+    //   color: var(--accent-color-blue);
+    // }
   }
 
   &:focus {
-    outline: none;
+    outline: 1px solid var(--accent-color-blue);
+    
+    // background-color: var(--accent-color-blue);
 
-    &[aria-selected='true'] > .label {
-      background-color: transparent;
-    }
+    // &[aria-selected='true'] > .label {
+    //   background-color: transparent;
+    // }
 
     > .label {
-      background-color: var(--hover-color);
+      // background-color: var(--hover-color);
       border-color: var(--accent-color-blue);
     }
   }

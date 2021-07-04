@@ -48,15 +48,16 @@
     display: none;
   }
 
-  .tree-content-label:hover > .btn-icon {
+  .tree-content-label:hover > .btn-icon,
+  .tree-content-label > .btn-icon[aria-hidden='false'] {
     display: flex;
   }
 
-  &.selected {
-    .btn-icon {
-      display: flex;
-    }
-  }
+  // &.selected {
+  //   .btn-icon {
+  //     display: flex;
+  //   }
+  // }
 }
 
 // HEADER

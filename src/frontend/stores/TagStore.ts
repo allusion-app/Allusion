@@ -77,9 +77,9 @@ class TagStore {
     return this.rootStore.uiStore.tagSelection.has(tag);
   }
 
-  @action isSearched(tag: ID): boolean {
+  isSearched(tag: ClientTag): boolean {
     return this.rootStore.uiStore.searchCriteriaList.some(
-      (c) => c instanceof ClientTagSearchCriteria && c.value.includes(tag),
+      (c) => c instanceof ClientTagSearchCriteria && c.value.includes(tag.id),
     );
   }
 

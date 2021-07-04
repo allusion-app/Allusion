@@ -272,6 +272,7 @@ const TagItem = observer((props: ITagItemProps) => {
     (event: React.MouseEvent) => {
       runInAction(() => {
         const query = new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id, nodeData.name);
+        event.stopPropagation();
         if (event.ctrlKey) {
           if (!nodeData.isSearched) {
             uiStore.addSearchCriteria(query);
@@ -298,7 +299,7 @@ const TagItem = observer((props: ITagItemProps) => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onContextMenu={handleContextMenu}
-      onClick={handleQuickQuery}
+      onClick={handleSelect}
       onDoubleClick={handleRename}
     >
       <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>
@@ -309,8 +310,12 @@ const TagItem = observer((props: ITagItemProps) => {
         onSubmit={submit}
       />
       {!isEditing && (
-        <button onClick={handleSelect} className="btn btn-icon">
-          {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
+        <button
+          onClick={handleQuickQuery}
+          className="btn btn-icon"
+          aria-hidden={!nodeData.isSearched}
+        >
+          {nodeData.isSearched ? IconSet.SEARCH : IconSet.ADD}
         </button>
       )}
     </div>
