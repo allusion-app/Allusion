@@ -11,11 +11,15 @@ import { RendererMessenger } from 'src/Messaging';
 import { promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
+/**
+ * Compares metadata of two files to determine whether the files are (likely to be) identical
+ * Note: note comparing size, since it can change, e.g. when writing tags to file metadata.
+ *   Could still include it, but just to check whether it's in the same ballpark
+ */
 function areFilesIdenticalBesidesName(a: IFile, b: IFile): boolean {
   return (
     a.width === b.width &&
     a.height === b.height &&
-    a.size === b.size &&
     a.dateCreated.getTime() === b.dateCreated.getTime()
   );
 }
@@ -48,8 +52,24 @@ class LocationStore {
     const len = this.locationList.length;
     const getLocation = action((index: number) => this.locationList[index]);
 
+    // Get all files in the DB, set up data structures for quick lookups
+    // Doing it for all locations, so files moved to another Location on disk, it's properly re-assigned in Allusion too
+    // TODO: Could be optimized, at startup we already fetch all files, don't need to fetch them again here
+    const dbFiles: IFile[] = await this.backend.fetchFiles('id', FileOrder.Asc);
+    const dbFilesPathSet = new Set(dbFiles.map((f) => f.absolutePath));
+    const dbFilesByCreatedDate = new Map<number, IFile[]>();
+    for (const file of dbFiles) {
+      const time = file.dateCreated.getTime();
+      const entry = dbFilesByCreatedDate.get(time);
+      if (entry) {
+        entry.push(file);
+      } else {
+        dbFilesByCreatedDate.set(time, [file]);
+      }
+    }
+
+    // For every location, find created/moved/deleted files, and update the database accordingly.
     // TODO: Do this in a web worker, not in the renderer thread!
-    // For every location, find its files, and update the database accordingly.
     for (let i = 0; i < len; i++) {
       const location = getLocation(i);
 
@@ -96,12 +116,6 @@ class LocationStore {
         continue;
       }
 
-      // Get files in database for this location
-      // TODO: Could be optimized, at startup we already fetch all files - but might not in the future
-      console.debug('Find location files...');
-      const dbFiles = await this.findLocationFiles(location.id);
-      const dbFilesPathSet = new Set(dbFiles.map((f) => f.absolutePath));
-
       console.log('Finding created files...');
       // Find all files that have been created (those on disk but not in DB)
       const createdPaths = filePaths.filter((path) => !dbFilesPathSet.has(path));
@@ -109,24 +123,39 @@ class LocationStore {
         createdPaths.map((path) => pathToIFile(path, location)),
       );
 
-      // Find all files that have been removed (those in DB but not on disk anymore)
-      const missingFiles = dbFiles.filter((file) => !filePathsSet.has(file.absolutePath));
+      // Find all files of this location that have been removed (those in DB but not on disk anymore)
+      const missingFiles = dbFiles.filter(
+        (file) => file.locationId === location.id && !filePathsSet.has(file.absolutePath),
+      );
 
       // Find matches between removed and created images (different name/path but same characteristics)
-      // TODO: Should we also do cross-location matching?
       const createdMatches = missingFiles.map((mf) =>
         createdFiles.find((cf) => areFilesIdenticalBesidesName(cf, mf)),
       );
-      // Also look for duplicate files: when a files is renamed/moved it will become a new entry
-      const dbMatches = missingFiles.map(
-        (missingDbFile, i) =>
-          !createdMatches[i] &&
-          dbFiles.find(
+      // Also look for duplicate files: when a files is renamed/moved it will become a new entry, should be de-duplicated
+      const dbMatches = missingFiles.map((missingDbFile, i) => {
+        if (createdMatches[i]) return false; // skip missing files that match with a newly created file
+        // Quick lookup for files with same created date,
+        const candidates = dbFilesByCreatedDate.get(missingDbFile.dateCreated.getTime()) || [];
+
+        // then first look for a file with the same name + resolution (for when file is moved to different path)
+        const matchWithName = candidates.find(
+          (otherDbFile) =>
+            missingDbFile !== otherDbFile &&
+            missingDbFile.name === otherDbFile.name &&
+            areFilesIdenticalBesidesName(missingDbFile, otherDbFile),
+        );
+
+        // If no match, try looking without filename in case the file was renamed (prone to errors, but better than nothing)
+        return (
+          matchWithName ||
+          candidates.find(
             (otherDbFile) =>
               missingDbFile !== otherDbFile &&
               areFilesIdenticalBesidesName(missingDbFile, otherDbFile),
-          ),
-      );
+          )
+        );
+      });
 
       console.debug({ missingFiles, createdFiles, createdMatches, dbMatches });
 
@@ -338,8 +367,8 @@ class LocationStore {
 
     AppToaster.show(
       {
-        message: 'Some images have gone missing!',
-        timeout: 0,
+        message: 'Some images have gone missing! Restart Allusion to detect moved/renamed files',
+        timeout: 8000,
       },
       'missing',
     );
