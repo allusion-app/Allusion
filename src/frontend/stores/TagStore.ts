@@ -163,10 +163,10 @@ class TagStore {
 
   @action private createTagGraph(backendTags: ITag[]) {
     // Create tags
-    for (const { id, name, dateAdded, color } of backendTags) {
+    for (const { id, name, dateAdded, color, isHidden } of backendTags) {
       // Create entity and set properties
       // We have to do this because JavaScript does not allow multiple constructor.
-      const tag = new ClientTag(this, id, name, dateAdded, color);
+      const tag = new ClientTag(this, id, name, dateAdded, color, isHidden);
       // Add to index
       this.tagGraph.set(tag.id, tag);
     }

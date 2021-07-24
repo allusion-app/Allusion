@@ -140,7 +140,7 @@ const DirectoryMenu = ({
           // Only show alert when excluding, not when re-including
           onClick={location.isExcluded ? location.toggleExcluded : () => onExclude(location)}
           text={location.isExcluded ? 'Re-include' : 'Exclude'}
-          icon={IconSet.PREVIEW}
+          icon={location.isExcluded ? IconSet.HIDDEN : IconSet.PREVIEW}
         />
       )}
       <MenuItem
@@ -313,8 +313,7 @@ const SubLocation = ({
         ? expansion[nodeData.path]
           ? IconSet.FOLDER_OPEN
           : IconSet.FOLDER_CLOSE
-        : // TODO: proper EXCLUDED icon (Eye with diagonal line?)
-          IconSet.PREVIEW}
+        : IconSet.HIDDEN}
       {nodeData.name}
     </div>
   );

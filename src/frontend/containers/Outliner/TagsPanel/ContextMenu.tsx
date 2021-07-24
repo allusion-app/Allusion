@@ -110,7 +110,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       <MenuItem
         onClick={tag.toggleHidden}
         text={`${tag.isHidden ? 'Show' : 'Hide'} tagged images`}
-        icon={IconSet.PREVIEW}
+        icon={tag.isHidden ? IconSet.PREVIEW : IconSet.HIDDEN}
       />
       <MenuItem
         onClick={() => dispatch(Factory.confirmMerge(tag))}
