@@ -355,7 +355,12 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
       this.applyInitialTransform(ANIMATION_SPEED);
     }
     if (doubleTapBehavior === 'zoomOrReset') {
-      this.state.scale * (1 + OVERZOOM_TOLERANCE) < this.props.maxScale
+      const initialScale = getAutofitScale(
+        this.state.containerDimensions,
+        this.state.imageDimensions,
+      );
+      // If current scale is same as initial scale, zoom in, otherwise reset to initial zoom
+      Math.abs(this.state.scale - initialScale) < 0.01
         ? this.zoomIn(pointerPosition, ANIMATION_SPEED, 1)
         : this.applyInitialTransform(ANIMATION_SPEED);
     }
