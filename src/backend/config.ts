@@ -15,7 +15,7 @@ export const AUTO_BACKUP_TIMEOUT = 1000 * 60 * 10; // 10 minutes
 export const dbConfig: IDBVersioningConfig[] = [
   {
     // Version 4, 19-9-20: Added system created date
-    version: 5,
+    version: 4,
     collections: [
       {
         name: 'files',
