@@ -1,7 +1,14 @@
-import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
+import React, {
+  useContext,
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+  SetStateAction,
+} from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { action, autorun } from 'mobx';
+import { action, autorun, runInAction } from 'mobx';
 import SysPath from 'path';
 
 import { RendererMessenger } from 'src/Messaging';
@@ -22,6 +29,80 @@ import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import DropContext from 'src/frontend/contexts/DropContext';
 import LocationCreationDialog from './LocationCreationDialog';
+import LocationStore from 'src/frontend/stores/LocationStore';
+
+export const LocationTreeRevealer = {
+  locationStore: undefined as undefined | LocationStore,
+  setExpansion: undefined as undefined | React.Dispatch<React.SetStateAction<IExpansionState>>,
+  initialize(
+    locationStore: LocationStore,
+    setExpansion: React.Dispatch<React.SetStateAction<IExpansionState>>,
+  ) {
+    this.locationStore = locationStore;
+    this.setExpansion = setExpansion;
+  },
+  /**
+   * Expands all (sub)locations to the sublocation that contains the specified file, then focuses that (sub)location <li /> element.
+   * @param locationId ID of the location of the file
+   * @param absolutePath Absolute path of the file that contains the (sub)location to be revealed
+   */
+  revealSubLocation(locationId: string, absolutePath: string) {
+    runInAction(() => {
+      // For every sublocation on its path to the relativePath, expand it, and then scrollTo + focus the item
+      const location = this.locationStore?.locationList.find((l) => l.id === locationId);
+      if (!location) {
+        return;
+      }
+
+      const getSubLocationsToFile = (
+        loc: ClientSubLocation | ClientLocation,
+      ): ClientSubLocation[] => {
+        const match = loc.subLocations.find((child) =>
+          absolutePath.startsWith(`${child.path}${SysPath.sep}`),
+        );
+        if (loc instanceof ClientLocation) return match ? getSubLocationsToFile(match) : [];
+        return match ? [loc, ...getSubLocationsToFile(match)] : [loc];
+      };
+
+      const subLocationsToExpand = getSubLocationsToFile(location);
+      if (subLocationsToExpand.length === 0) {
+        console.error('No sublocations found for revealing', absolutePath, location.subLocations);
+      }
+
+      this.setExpansion?.((exp) => ({
+        ...exp,
+        [location.id]: true,
+        ...subLocationsToExpand.reduce((obj, loc) => {
+          obj[loc.path] = true;
+          return obj;
+        }, {} as IExpansionState),
+      }));
+
+      setTimeout(() => {
+        const dataId = encodeURIComponent(
+          subLocationsToExpand[subLocationsToExpand.length - 1].path,
+        );
+        const elem = document.querySelector(`li[data-id="${dataId}"]`) as HTMLLIElement;
+        if (elem) {
+          // Smooth scroll + focus
+          elem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+          elem.focus({ preventScroll: true });
+          // Scroll again after a while, in case it took longer to expand than expected
+          setTimeout(
+            () => elem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }),
+            300,
+          );
+        } else {
+          console.error(
+            'Couldnt find list element for ClientSubLocation',
+            absolutePath,
+            subLocationsToExpand,
+          );
+        }
+      }, 200); // wait for items to expand
+    });
+  },
+};
 
 // Tooltip info
 const enum Tooltip {
@@ -448,6 +529,8 @@ const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreePr
 
     // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
   }, [locationStore.locationList]);
+
+  useEffect(() => LocationTreeRevealer.initialize(locationStore, setExpansion), [locationStore]);
 
   return (
     <Tree

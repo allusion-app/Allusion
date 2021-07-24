@@ -5,6 +5,7 @@ import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { MenuItem } from 'widgets/menus';
+import { LocationTreeRevealer } from '../Outliner/LocationsPanel';
 
 export const MissingFileMenuItems = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -82,9 +83,25 @@ export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) =>
       disabled={file.isBroken}
     />
     <MenuItem
+      onClick={() => LocationTreeRevealer.revealSubLocation(file.locationId, file.absolutePath)}
+      text="Reveal in Locations Panel"
+      icon={IconSet.TREE_LIST}
+    />
+    <MenuItem
       onClick={() => shell.showItemInFolder(file.absolutePath)}
       text="Reveal in File Browser"
       icon={IconSet.FOLDER_CLOSE}
+    />
+    <MenuItem
+      onClick={() =>
+        // TODO: also for file selection?
+        window.confirm(
+          // eslint-disable-next-line quotes
+          "Are you sure you want to delete this file?\nYou will be able to recover it from your system's trash bin.",
+        ) && shell.moveItemToTrash(file.absolutePath)
+      }
+      text="Delete file"
+      icon={IconSet.DELETE}
     />
   </>
 ));
