@@ -269,7 +269,7 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
   // This will check whether a thumbnail exists, generate it if needed
   useEffect(() => {
     let isMounted = true;
-    if (!mounted && isBroken === true) {
+    if ((!mounted && isBroken === true) || forceNoThumbnail) {
       return;
     }
     ensureThumbnail(file, thumbnailDirectory)
@@ -287,7 +287,7 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
     return () => {
       isMounted = false;
     };
-  }, [file, isBroken, mounted, thumbnailDirectory]);
+  }, [file, forceNoThumbnail, isBroken, mounted, thumbnailDirectory]);
 
   // The thumbnailPath of an image is always set, but may not exist yet.
   // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
