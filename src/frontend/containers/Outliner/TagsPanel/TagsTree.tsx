@@ -1,6 +1,6 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useMemo, useReducer, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
@@ -16,8 +16,27 @@ import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
 import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
+import TreeItemRevealer from '../TreeItemRevealer';
 import { TagItemContextMenu } from './ContextMenu';
 import { Action, Factory, reducer, State } from './state';
+
+export class TagsTreeItemRevealer extends TreeItemRevealer {
+  public static readonly instance: TagsTreeItemRevealer = new TagsTreeItemRevealer();
+  private constructor() {
+    super();
+  }
+
+  initialize(setExpansion: React.Dispatch<React.SetStateAction<IExpansionState>>) {
+    super.initializeExpansion(setExpansion);
+  }
+
+  revealTag(tag: ClientTag) {
+    runInAction(() => {
+      const tagsToExpand = tag.treePath;
+      this.revealTreeItem([ROOT_TAG_ID, ...tagsToExpand.map((t) => t.id)]);
+    });
+  }
+}
 
 interface ILabelProps {
   text: string;
@@ -288,6 +307,15 @@ const TagItem = observer((props: ITagItemProps) => {
     dispatch,
     nodeData.id,
   ]);
+
+  useEffect(
+    () =>
+      TagsTreeItemRevealer.instance.initialize(
+        (val: IExpansionState | ((prevState: IExpansionState) => IExpansionState)) =>
+          dispatch(Factory.setExpansion(val)),
+      ),
+    [dispatch],
+  );
 
   return (
     <div

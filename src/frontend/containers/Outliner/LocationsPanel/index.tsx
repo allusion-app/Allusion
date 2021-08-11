@@ -1,11 +1,4 @@
-import React, {
-  useContext,
-  useCallback,
-  useState,
-  useEffect,
-  useMemo,
-  SetStateAction,
-} from 'react';
+import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import { action, autorun, runInAction } from 'mobx';
@@ -30,22 +23,24 @@ import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import DropContext from 'src/frontend/contexts/DropContext';
 import LocationCreationDialog from './LocationCreationDialog';
 import LocationStore from 'src/frontend/stores/LocationStore';
+import TreeItemRevealer from '../TreeItemRevealer';
 
-export const LocationTreeRevealer = {
-  locationStore: undefined as undefined | LocationStore,
-  setExpansion: undefined as undefined | React.Dispatch<React.SetStateAction<IExpansionState>>,
+export class LocationTreeItemRevealer extends TreeItemRevealer {
+  private locationStore?: LocationStore;
+
+  public static readonly instance: LocationTreeItemRevealer = new LocationTreeItemRevealer();
+  private constructor() {
+    super();
+  }
+
   initialize(
-    locationStore: LocationStore,
     setExpansion: React.Dispatch<React.SetStateAction<IExpansionState>>,
+    locationStore: LocationStore,
   ) {
+    super.initializeExpansion(setExpansion);
     this.locationStore = locationStore;
-    this.setExpansion = setExpansion;
-  },
-  /**
-   * Expands all (sub)locations to the sublocation that contains the specified file, then focuses that (sub)location <li /> element.
-   * @param locationId ID of the location of the file
-   * @param absolutePath Absolute path of the file that contains the (sub)location to be revealed
-   */
+  }
+
   revealSubLocation(locationId: string, absolutePath: string) {
     runInAction(() => {
       // For every sublocation on its path to the relativePath, expand it, and then scrollTo + focus the item
@@ -67,42 +62,13 @@ export const LocationTreeRevealer = {
       const subLocationsToExpand = getSubLocationsToFile(location);
       if (subLocationsToExpand.length === 0) {
         console.error('No sublocations found for revealing', absolutePath, location.subLocations);
+      } else {
+        // Location's dataId is its ID, subLocation's dataId's are their paths
+        this.revealTreeItem([location.id, ...subLocationsToExpand.map((l) => l.path)]);
       }
-
-      this.setExpansion?.((exp) => ({
-        ...exp,
-        [location.id]: true,
-        ...subLocationsToExpand.reduce((obj, loc) => {
-          obj[loc.path] = true;
-          return obj;
-        }, {} as IExpansionState),
-      }));
-
-      setTimeout(() => {
-        const dataId = encodeURIComponent(
-          subLocationsToExpand[subLocationsToExpand.length - 1].path,
-        );
-        const elem = document.querySelector(`li[data-id="${dataId}"]`) as HTMLLIElement;
-        if (elem) {
-          // Smooth scroll + focus
-          elem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-          elem.focus({ preventScroll: true });
-          // Scroll again after a while, in case it took longer to expand than expected
-          setTimeout(
-            () => elem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }),
-            300,
-          );
-        } else {
-          console.error(
-            'Couldnt find list element for ClientSubLocation',
-            absolutePath,
-            subLocationsToExpand,
-          );
-        }
-      }, 200); // wait for items to expand
     });
-  },
-};
+  }
+}
 
 // Tooltip info
 const enum Tooltip {
@@ -530,7 +496,9 @@ const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreePr
     // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
   }, [locationStore.locationList]);
 
-  useEffect(() => LocationTreeRevealer.initialize(locationStore, setExpansion), [locationStore]);
+  useEffect(() => LocationTreeItemRevealer.instance.initialize(setExpansion, locationStore), [
+    locationStore,
+  ]);
 
   return (
     <Tree

@@ -2,10 +2,12 @@ import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { ClientFile } from 'src/entities/File';
+import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { MenuItem } from 'widgets/menus';
-import { LocationTreeRevealer } from '../Outliner/LocationsPanel';
+import { LocationTreeItemRevealer } from '../Outliner/LocationsPanel';
+import { TagsTreeItemRevealer } from '../Outliner/TagsPanel/TagsTree';
 
 export const MissingFileMenuItems = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -83,7 +85,9 @@ export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) =>
       disabled={file.isBroken}
     />
     <MenuItem
-      onClick={() => LocationTreeRevealer.revealSubLocation(file.locationId, file.absolutePath)}
+      onClick={() =>
+        LocationTreeItemRevealer.instance.revealSubLocation(file.locationId, file.absolutePath)
+      }
       text="Reveal in Locations Panel"
       icon={IconSet.TREE_LIST}
     />
@@ -102,6 +106,22 @@ export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) =>
       }
       text="Delete file"
       icon={IconSet.DELETE}
+    />
+  </>
+));
+
+export const FileTagMenuItems = observer(({ file, tag }: { file: ClientFile; tag: ClientTag }) => (
+  <>
+    <MenuItem
+      onClick={() => TagsTreeItemRevealer.instance.revealTag(tag)}
+      text="Reveal in Tags Panel"
+      icon={IconSet.TREE_LIST}
+      disabled={file.isBroken}
+    />
+    <MenuItem
+      onClick={() => file.removeTag(tag)}
+      text="Unassign Tag from File"
+      icon={IconSet.TAG_BLANCO}
     />
   </>
 ));
