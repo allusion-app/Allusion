@@ -24,6 +24,7 @@ interface ILabelProps {
   setText: (value: string) => void;
   isEditing: boolean;
   onSubmit: (target: EventTarget & HTMLInputElement) => void;
+  tooltip?: string;
 }
 
 const Label = (props: ILabelProps) =>
@@ -55,7 +56,7 @@ const Label = (props: ILabelProps) =>
       // Only show red outline when input field is in focus and text is invalid
     />
   ) : (
-    <div>{props.text}</div>
+    <div data-tooltip={props.tooltip}>{props.text}</div>
   );
 
 interface ITagItemProps {
@@ -307,6 +308,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setText={nodeData.rename}
         isEditing={isEditing}
         onSubmit={submit}
+        tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
       />
       {!isEditing && (
         <button onClick={handleSelect} className="btn btn-icon">

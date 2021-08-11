@@ -32,12 +32,20 @@ export class ClientTag implements ISerializable<ITag> {
   readonly subTags = observable<ClientTag>([]);
   // icon, (fileCount?)
 
+  /** The amount of files that has this tag assigned to it
+   * TODO: would be nice to have the amount of files assigned to any of this tag's subtags too,
+   * but we can't simply sum them, since there might be duplicates.
+   * We'd need a Set of file-ids on every tag, and maintain them when a tag's parent changes.
+   */
+  @observable fileCount: number;
+
   constructor(store: TagStore, id: ID, name: string, dateAdded: Date, color: string = '') {
     this.store = store;
     this.id = id;
     this.dateAdded = dateAdded;
     this.name = name;
     this.color = color;
+    this.fileCount = 0;
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -133,6 +141,14 @@ export class ClientTag implements ISerializable<ITag> {
 
   @action.bound insertSubTag(tag: ClientTag, at: number): void {
     this.store.insert(this, tag, at);
+  }
+
+  @action.bound incrementFileCount(amount = 1): void {
+    this.fileCount += amount;
+  }
+
+  @action.bound decrementFileCount(amount = 1): void {
+    this.fileCount -= amount;
   }
 
   serialize(): ITag {

@@ -7,6 +7,7 @@ import { ClientTag, ITag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';
+import { ClientFile } from 'src/entities/File';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -31,6 +32,14 @@ class TagStore {
       this.createTagGraph(fetchedTags);
     } catch (err) {
       console.log('Could not load tags', err);
+    }
+  }
+
+  @action.bound initializeFileCounts(files: ClientFile[]): void {
+    for (const file of files) {
+      for (const fileTag of file.tags) {
+        fileTag.incrementFileCount();
+      }
     }
   }
 
