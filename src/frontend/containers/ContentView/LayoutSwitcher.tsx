@@ -1,6 +1,6 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import { RendererMessenger } from 'src/Messaging';
@@ -114,18 +114,29 @@ const Layout = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileStore, handleFileSelect]);
 
-  // TODO: Keep masonry layout active while slide is open: no loading time when returning
-  if (uiStore.isSlideMode) {
-    return <SlideMode contentRect={contentRect} showContextMenu={showContextMenu} />;
-  }
+  // delay unmount of slide view so end-transition can take place.
+  // The `transitionEnd` prop is passed when slide mode is disabled,
+  // triggering the transition, then X ms later the component is unmounted
+  const { isSlideMode } = uiStore;
+  const [delayedSlideMode, setDelayedSlideMode] = useState(uiStore.isSlideMode);
+  useEffect(() => {
+    if (isSlideMode) {
+      setDelayedSlideMode(true);
+    } else {
+      setTimeout(() => setDelayedSlideMode(false), 300);
+    }
+  }, [isSlideMode]);
+
   if (contentRect.width < 10) {
     return null;
   }
+
+  let overviewElem: React.ReactNode = undefined;
   switch (uiStore.method) {
     case ViewMethod.Grid:
     case ViewMethod.MasonryVertical:
     case ViewMethod.MasonryHorizontal:
-      return (
+      overviewElem = (
         <MasonryRenderer
           contentRect={contentRect}
           type={uiStore.method}
@@ -135,8 +146,9 @@ const Layout = ({
           handleFileSelect={handleFileSelect}
         />
       );
+      break;
     case ViewMethod.List:
-      return (
+      overviewElem = (
         <ListGallery
           contentRect={contentRect}
           select={handleFileSelect}
@@ -145,9 +157,19 @@ const Layout = ({
           handleFileSelect={handleFileSelect}
         />
       );
+      break;
     default:
-      return null;
+      overviewElem = 'unknown view method';
   }
+
+  return (
+    <>
+      {overviewElem}
+      {delayedSlideMode && (
+        <SlideMode contentRect={contentRect} showContextMenu={showContextMenu} />
+      )}
+    </>
+  );
 };
 
 export default observer(Layout);

@@ -309,6 +309,7 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
         src={encodeFilePath(forceNoThumbnail ? file.absolutePath : thumbnailPath)}
         onError={handleImageError}
         alt=""
+        data-file-id={file.id}
       />
     );
   } else if (state === ThumbnailState.Loading) {

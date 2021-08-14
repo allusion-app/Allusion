@@ -1,6 +1,6 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useMemo, useRef, useCallback, useEffect, useState } from 'react';
+import React, { useMemo, useRef, useCallback, useEffect, useState, useLayoutEffect } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile } from 'src/entities/File';
@@ -36,7 +36,7 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   const ref = useRef<FixedSizeList>(null);
 
   const throttledScrollHandler = useRef(
-    debouncedThrottle((index: number) => uiStore.setFirstItem(index), 100),
+    debouncedThrottle((index: number) => !uiStore.isSlideMode && uiStore.setFirstItem(index), 100),
   );
 
   const handleScroll = useCallback(
@@ -47,11 +47,20 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
 
   const index = lastSelectionIndex.current;
   const fileSelectionSize = uiStore.fileSelection.size;
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (index !== undefined && ref.current !== null && fileSelectionSize > 0) {
       ref.current.scrollToItem(Math.floor(index));
     }
   }, [index, fileSelectionSize]);
+
+  // While in slide mode, scroll to last shown image if not in view, for transition back to gallery
+  const { isSlideMode, firstItem } = uiStore;
+  useLayoutEffect(() => {
+    if (isSlideMode) {
+      ref.current?.scrollToItem(firstItem, 'smart');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSlideMode, firstItem]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

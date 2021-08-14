@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from './contexts/StoreContext';
@@ -29,8 +29,18 @@ const PreviewApp = observer(() => {
     [fileStore.fileList.length, uiStore],
   );
 
+  // disable fade-in on initalization (when file list changes)
+  const [isInitializing, setIsInitializing] = useState(true);
+  useEffect(() => {
+    setIsInitializing(true);
+    setTimeout(() => setIsInitializing(false), 1000);
+  }, [fileStore.fileListLastModified]);
+
   return (
-    <div id="preview" className={uiStore.theme}>
+    <div
+      id="preview"
+      className={`${uiStore.theme} ${isInitializing ? 'preview-window-initializing' : ''}`}
+    >
       <ErrorBoundary>
         <Toolbar id="toolbar" label="Preview Command Bar" controls="content-view">
           <ToolbarButton

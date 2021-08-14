@@ -338,15 +338,42 @@
 // Slide mode:
 #slide-mode {
   flex-direction: row-reverse;
+  
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background: var(--background-color);
+
+  @keyframes fade-in-bg {
+    from {background: rgba(var(--background-color), 0);}
+    to {background: var(--background-color);}
+  }
+
+  @keyframes fade-out-bg {
+    from {opacity: 1;}
+    to {opacity: 0;}
+  }
+
+  &.fade-in {
+    animation: fade-in-bg 0.3s ease-in;
+  }
+  &.fade-out {
+    opacity: 0;
+    animation: fade-out-bg 0.3s cubic-bezier(0.65, 0.05, 0.36, 1);
+  }
+}
+.preview-window-initializing #slide-mode.fade-in {
+  // Preview window initializes with slide mode: fade-in is undesired
+  animation-duration: 0s;
 }
 
 #zoomable-image {
   position: relative;
   min-width: 224px;
-
-  img {
-    animation: fade 0.1s cubic-bezier(0.65, 0.05, 0.36, 1);
-  }
+  margin: auto;
 
   [class^='side-button'] {
     display: flex;

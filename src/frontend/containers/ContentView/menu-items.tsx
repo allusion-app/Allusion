@@ -29,7 +29,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
 
   const handleViewFullSize = () => {
     uiStore.selectFile(file, true);
-    uiStore.toggleSlideMode();
+    uiStore.enableSlideMode();
   };
 
   const handlePreviewWindow = () => {
