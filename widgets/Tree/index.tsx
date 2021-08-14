@@ -240,6 +240,7 @@ export interface INodeData {
 
 /** Internal Node Representation */
 interface ITreeNode extends INodeData {
+  dataId: string;
   className?: string;
   label: TreeLabel;
   level: number;
@@ -270,6 +271,7 @@ const TreeLeaf = ({
   treeData,
   onLeafKeyDown,
   className = '',
+  dataId,
 }: ILeaf) => {
   return (
     <li
@@ -281,6 +283,7 @@ const TreeLeaf = ({
       onKeyDown={(e) => onLeafKeyDown(e, nodeData, treeData)}
       role="treeitem"
       tabIndex={-1}
+      data-id={encodeURIComponent(dataId)}
     >
       <div className="label">
         <div className="spacer"></div>
@@ -306,6 +309,7 @@ const TreeBranch = ({
   onBranchKeyDown,
   onLeafKeyDown,
   className = '',
+  dataId,
 }: IBranch) => {
   const transition = useRef<HTMLDivElement | null>(null);
   const expanded = isExpanded(nodeData, treeData) ?? false;
@@ -334,6 +338,7 @@ const TreeBranch = ({
       aria-setsize={size}
       aria-posinset={pos}
       onKeyDown={(e) => onBranchKeyDown(e, nodeData, treeData)}
+      data-id={encodeURIComponent(dataId)}
     >
       <div className="label">
         <div
@@ -364,6 +369,7 @@ const TreeBranch = ({
                   ancestorVisible={expanded}
                   overScan={overScan}
                   key={c.id}
+                  dataId={c.id}
                   level={level + 1}
                   size={children.length}
                   pos={i + 1}
@@ -376,6 +382,7 @@ const TreeBranch = ({
                 <TreeLeaf
                   {...c}
                   key={c.id}
+                  dataId={c.id}
                   level={level + 1}
                   size={children.length}
                   pos={i + 1}
@@ -519,6 +526,7 @@ const Tree = ({
             ancestorVisible
             overScan={overScan}
             key={c.id}
+            dataId={c.id}
             level={1}
             size={children.length}
             pos={i + 1}
@@ -531,6 +539,7 @@ const Tree = ({
           <TreeLeaf
             {...c}
             key={c.id}
+            dataId={c.id}
             level={1}
             size={children.length}
             pos={i + 1}

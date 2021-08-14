@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import { RendererMessenger } from 'src/Messaging';
+import { MenuDivider } from 'widgets/menus';
 import { ClientFile } from '../../../entities/File';
 import UiStore, { ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
@@ -12,6 +13,7 @@ import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';
 import {
   ExternalAppMenuItems,
+  FileTagMenuItems,
   FileViewerMenuItems,
   MissingFileMenuItems,
   SlideFileViewerMenuItems,
@@ -186,11 +188,22 @@ export function createSubmitCommand(
         break;
 
       case GallerySelector.ContextMenu: {
-        const [file, x, y] = command.payload;
-        showContextMenu(x, y, [
-          file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
-          <ExternalAppMenuItems key="external" file={file} />,
-        ]);
+        const [file, x, y, tag] = command.payload;
+        let topMenu = file.isBroken ? (
+          <MissingFileMenuItems />
+        ) : (
+          <FileViewerMenuItems file={file} />
+        );
+        if (tag) {
+          topMenu = (
+            <>
+              <FileTagMenuItems file={file} tag={tag} />
+              <MenuDivider />
+              {topMenu}
+            </>
+          );
+        }
+        showContextMenu(x, y, [topMenu, <ExternalAppMenuItems key="external" file={file} />]);
         if (!uiStore.fileSelection.has(file)) {
           // replace selection with context menu, like Windows file explorer
           select(file, false, false);

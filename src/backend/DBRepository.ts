@@ -88,19 +88,26 @@ export default class BaseRepository<T extends IResource> {
   }
 
   public async getAll({ count, order, fileOrder }: IDbRequest<T>): Promise<T[]> {
-    let col = order ? this.collection.orderBy(order as string) : this.collection;
-    if (fileOrder === FileOrder.Desc) {
-      col = col.reverse();
-    }
-    return (count ? col.limit(count) : col).toArray();
+    const col = order ? this.collection.orderBy(order as string) : this.collection;
+    const res = await (count ? col.limit(count) : col).toArray();
+    return fileOrder === FileOrder.Desc ? res.reverse() : res;
   }
 
   public async find(req: IDbQueryRequest<T>): Promise<T[]> {
-    const { count, order, fileOrder } = req;
+    const { order, fileOrder } = req;
     let table = await this._find(req, req.matchAny ? 'or' : 'and');
     table = fileOrder === FileOrder.Desc ? table.reverse() : table;
-    table = count ? table.limit(count) : table;
-    return order ? table.sortBy(order as string) : table.toArray();
+
+    // table.reverse() can be an order of magnitude slower as a javascript .reverse() call at the end
+    // (tested at ~5000 items, 500ms instead of 100ms)
+    // easy to verify here https://jsfiddle.net/dfahlander/xf2zrL4p
+
+    const res = await (order ? table.sortBy(order as string) : table.toArray());
+    return order === FileOrder.Desc ? res.reverse() : res;
+
+    // Slower alternative
+    // table = count ? table.limit(count) : table;
+    // return order ? table.sortBy(order as string) : table.toArray();
   }
 
   public async count(queryRequest?: IDbQueryRequest<T>): Promise<number> {
@@ -149,7 +156,7 @@ export default class BaseRepository<T extends IResource> {
     // We'll have to mostly rely on naive filter function (lambdas)
 
     const criteriaList = Array.isArray(criteria) ? criteria : [criteria];
-    if (conjunction === 'or') {
+    if (criteriaList.length > 1 && conjunction === 'or') {
       // OR: We can only chain ORs if all filters can be "where" functions - else we do an ugly .some() check on every document
 
       let allWheres = true;
@@ -183,13 +190,14 @@ export default class BaseRepository<T extends IResource> {
     const [firstCrit, ...otherCrits] = criteriaList;
 
     const where = this.collection.where(firstCrit.key as string);
-    let table = where.equals(firstCrit.value);
     const whereOrFilter = this._filterWhere(where, firstCrit);
-    table =
+    let table =
       typeof whereOrFilter !== 'function' ? whereOrFilter : this.collection.filter(whereOrFilter);
 
     // Then just chain a loop of and() calls. A .every() feels more efficient than chaining table.and() calls
-    table = table.and((item) => otherCrits.every((crit) => this._filterLambda(crit)(item)));
+    if (otherCrits.length) {
+      table = table.and((item) => otherCrits.every((crit) => this._filterLambda(crit)(item)));
+    }
     // for (const crit of otherCrits) {
     //   table = table.and(this._filterLambda(crit));
     // }
@@ -267,23 +275,20 @@ export default class BaseRepository<T extends IResource> {
   }
 
   private _filterStringWhere(where: WhereClause<T, string>, crit: IStringSearchCriteria<T>) {
-    type DbStringOperator = 'equalsIgnoreCase' | 'startsWithIgnoreCase';
-    const funcName = ((operator: StringOperatorType): DbStringOperator | undefined => {
-      switch (operator) {
-        case 'equals':
-          return 'equalsIgnoreCase';
-        case 'startsWith':
-          return 'startsWithIgnoreCase';
-        default:
-          return undefined;
-      }
-    })(crit.operator);
+    const dbStringOperators = [
+      'equalsIgnoreCase',
+      'equals',
+      'notEqual',
+      'startsWithIgnoreCase',
+      'startsWith',
+    ] as const;
 
-    if (!funcName) {
-      // Use normal string filter as fallback for functions not supported by the DB
-      return this._filterStringLambda(crit);
+    if ((dbStringOperators as readonly string[]).includes(crit.operator)) {
+      const funcName = (crit.operator as unknown) as typeof dbStringOperators[number];
+      return where[funcName](crit.value);
     }
-    return where[funcName](crit.value);
+    // Use normal string filter as fallback for functions not supported by the DB
+    return this._filterStringLambda(crit);
   }
 
   private _filterStringLambda(crit: IStringSearchCriteria<T>) {

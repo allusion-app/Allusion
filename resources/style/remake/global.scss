@@ -148,6 +148,9 @@ details[open] > summary::-webkit-details-marker {
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-thumb-hover-color);
 }
+::-webkit-scrollbar-corner {
+  background-color: var(--scrollbar-track-color);
+}
 
 ///////////////////////////////// Media Queries /////////////////////////////////
 @media (max-width: 960px) {
