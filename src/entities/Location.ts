@@ -122,7 +122,7 @@ export class ClientLocation implements ISerializable<ILocation> {
   @action async init(): Promise<string[] | undefined> {
     const pathExists = await fse.pathExists(this.path);
     await this.refreshSublocations();
-    this.isInitialized = true;
+    runInAction(() => (this.isInitialized = true));
 
     const getExcludedSubLocsRecursively = (loc: ClientSubLocation): ClientSubLocation[] =>
       loc.isExcluded ? [loc] : loc.subLocations.flatMap(getExcludedSubLocsRecursively);
