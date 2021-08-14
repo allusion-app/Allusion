@@ -159,8 +159,6 @@ export const MoveFilesToTrashBin = observer(() => {
   const { fileStore, uiStore } = useStore();
   const selection = uiStore.fileSelection;
 
-  console.log(uiStore.isMoveFilesToTrashOpen);
-
   const handleConfirm = action(() => {
     uiStore.closeMoveFilesToTrash();
     const files = [];
