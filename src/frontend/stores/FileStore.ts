@@ -489,7 +489,12 @@ class FileStore {
       return this.clearFileList();
     }
 
-    const locationIds = this.rootStore.locationStore.locationList.map((l) => l.id);
+    // Filter out images with hidden tags
+    // TODO: could also do it in search query, this is simpler though (maybe also more performant)
+    const hiddenTagIds = new Set(
+      this.rootStore.tagStore.tagList.filter((t) => t.isHidden).map((t) => t.id),
+    );
+    backendFiles = backendFiles.filter((f) => !f.tags.some((t) => hiddenTagIds.has(t)));
 
     // For every new file coming in, either re-use the existing client file if it exists,
     // or construct a new client file
@@ -502,19 +507,11 @@ class FileStore {
       }
     }
 
-    // Check existence of new files asynchronously, no need to wait until they can be showed
+    // Check existence of new files asynchronously, no need to wait until they can be shown
     // we can simply check whether they exist after they start rendering
+    // TODO: We can already get this from chokidar (folder watching), pretty much for free
     const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
       clientFile.setBroken(!(await fse.pathExists(clientFile.absolutePath)));
-
-      // TODO: DEBUG CHECK. Remove this when going out for release version
-      // Check if file belongs to a location; shouldn't be needed, but useful for during development
-      if (!locationIds.includes(clientFile.locationId)) {
-        console.warn(
-          'DEBUG: Found a file that does not belong to any location! Will still show up. SHOULD NEVER HAPPEN',
-          clientFile,
-        );
-      }
     });
 
     // Run the existence check with at most N checks in parallel

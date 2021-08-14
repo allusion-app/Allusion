@@ -14,6 +14,7 @@ import Layout from './LayoutSwitcher';
 import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { runInAction } from 'mobx';
+import { MoveFilesToTrashBin } from 'src/frontend/components/RemovalAlert';
 
 const ContentView = observer(() => {
   const {
@@ -90,6 +91,7 @@ const Content = observer(() => {
       onClick={clearFileSelection}
     >
       <Layout contentRect={contentRect} showContextMenu={show} />
+
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}
@@ -111,6 +113,8 @@ const Content = observer(() => {
           {externalMenu}{' '}
         </Menu>
       </ContextMenu>
+
+      <MoveFilesToTrashBin />
     </div>
   );
 });

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 
 interface ISplit {
   id?: string;
+  className?: string;
   primary: React.ReactElement;
   secondary: React.ReactElement;
   axis: 'horizontal' | 'vertical';
@@ -17,6 +18,7 @@ interface ISplit {
 
 export const Split = ({
   id,
+  className,
   primary,
   secondary,
   axis,
@@ -111,7 +113,7 @@ export const Split = ({
   }, []);
 
   return (
-    <div ref={container} id={id} className="split" onMouseMove={handleMouseMove}>
+    <div ref={container} id={id} className={`split ${className}`} onMouseMove={handleMouseMove}>
       {primary}
       <div
         role="separator"

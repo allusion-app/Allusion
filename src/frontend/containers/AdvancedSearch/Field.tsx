@@ -5,7 +5,11 @@ import { ID } from 'src/entities/ID';
 import {
   BinaryOperators,
   NumberOperators,
+  NumberOperatorSymbols,
+  NumberOperatorType,
+  StringOperatorLabels,
   StringOperators,
+  StringOperatorType,
   TagOperators,
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
@@ -215,20 +219,30 @@ const DateAddedInput = ({ value, id, dispatch }: ValueInput<Date>) => {
 
 function getOperatorOptions(key: QueryKey) {
   if (key === 'dateAdded' || key === 'size') {
-    return NumberOperators.map(toOperatorOption);
+    return NumberOperators.map((op) => toOperatorOption(op, NumberOperatorSymbols));
   } else if (key === 'extension') {
-    return BinaryOperators.map(toOperatorOption);
+    return BinaryOperators.map((op) => toOperatorOption(op));
   } else if (key === 'name' || key === 'absolutePath') {
-    return StringOperators.map(toOperatorOption);
+    // For performance reasons, we added some extra non-ignoreCase options,
+    // but these aren't really needed by the user, so hide them to avoid clutter:
+    const shownStringOperators: StringOperatorType[] = [
+      'equalsIgnoreCase',
+      'notEqual',
+      'contains',
+      'notContains',
+      'startsWithIgnoreCase',
+      'notStartsWith',
+    ];
+    return shownStringOperators.map((op) => toOperatorOption(op, StringOperatorLabels));
   } else if (key === 'tags') {
-    return TagOperators.map(toOperatorOption);
+    return TagOperators.map((op) => toOperatorOption(op));
   }
   return [];
 }
 
-const toOperatorOption = (o: string) => (
+const toOperatorOption = <T extends string>(o: T, labels?: Record<T, string>) => (
   <option key={o} value={o}>
-    {camelCaseToSpaced(o)}
+    {labels && o in labels ? labels[o] : camelCaseToSpaced(o)}
   </option>
 );
 

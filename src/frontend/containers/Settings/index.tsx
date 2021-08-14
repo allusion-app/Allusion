@@ -424,16 +424,18 @@ const BackgroundProcesses = observer(() => {
   );
 });
 
-const Shortcuts = () => (
-  <>
-    <h2>Keyboard shortcuts</h2>
-    <p>
-      Click on a key combination to modify it. After typing your new combination, press Enter to
-      confirm or Escape to cancel.
-    </p>
-    <HotkeyMapper />
-  </>
-);
+const Shortcuts = observer(() => {
+  return (
+    <>
+      <h2>Keyboard shortcuts</h2>
+      <p>
+        Click on a key combination to modify it. After typing your new combination, press Enter to
+        confirm or Escape to cancel.
+      </p>
+      <HotkeyMapper />
+    </>
+  );
+});
 
 const Advanced = observer(() => {
   const { uiStore, fileStore } = useStore();

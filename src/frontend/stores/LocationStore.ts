@@ -4,7 +4,7 @@ import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
 import { getMetaData, IFile } from 'src/entities/File';
 import { generateId, ID } from 'src/entities/ID';
-import { ClientLocation } from 'src/entities/Location';
+import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
@@ -40,8 +40,14 @@ class LocationStore {
   @action async init() {
     // Get dirs from backend
     const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.Asc);
-    const locations = dirs.map((dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded));
+    const locations = dirs.map(
+      (dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.subLocations),
+    );
     runInAction(() => this.locationList.replace(locations));
+  }
+
+  save(loc: ILocation) {
+    this.backend.saveLocation(loc);
   }
 
   // E.g. in preview window, it's not needed to watch the locations
@@ -246,7 +252,13 @@ class LocationStore {
     }));
     await this.backend.saveFiles(files);
 
-    const newLocation = new ClientLocation(this, location.id, newPath, location.dateAdded);
+    const newLocation = new ClientLocation(
+      this,
+      location.id,
+      newPath,
+      location.dateAdded,
+      location.subLocations,
+    );
     this.set(index, newLocation);
     await this.initLocation(newLocation);
     await this.backend.saveLocation(newLocation.serialize());
@@ -262,7 +274,7 @@ class LocationStore {
   }
 
   @action.bound async create(path: string): Promise<ClientLocation> {
-    const location = new ClientLocation(this, generateId(), path, new Date());
+    const location = new ClientLocation(this, generateId(), path, new Date(), []);
     await this.backend.createLocation(location.serialize());
     runInAction(() => this.locationList.push(location));
     return location;
@@ -292,7 +304,6 @@ class LocationStore {
     );
 
     const filePaths = await location.init();
-    console.debug('!!! finished location loading', location.path, filePaths);
 
     if (isCancelled || filePaths === undefined) {
       return;
@@ -380,6 +391,17 @@ class LocationStore {
   @action async findLocationFiles(locationId: ID): Promise<IFile[]> {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
     return this.backend.searchFiles(crit, 'id', FileOrder.Asc);
+  }
+
+  @action async removeSublocationFiles(subLoc: ClientSubLocation): Promise<void> {
+    const crit = new ClientStringSearchCriteria(
+      'absolutePath',
+      subLoc.path,
+      'startsWith',
+    ).serialize();
+    const files = await this.backend.searchFiles(crit, 'id', FileOrder.Asc);
+    await this.backend.removeFiles(files.map((f) => f.id));
+    this.rootStore.fileStore.refetch();
   }
 
   @action private set(index: number, location: ClientLocation) {

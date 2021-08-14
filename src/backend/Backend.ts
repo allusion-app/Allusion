@@ -44,6 +44,7 @@ export default class Backend {
           dateAdded: new Date(),
           subTags: [],
           color: '',
+          isHidden: false,
         });
       }
 

@@ -128,8 +128,8 @@
     "react-colorful": "^5.1.1",
     "react-dom": "^16.14.0",
     "react-popper": "^2.2.5",
-    "react-responsive-pinch-zoom-pan": "^0.3.0",
     "react-window": "^1.8.6",
+    "reselect": "^4.0.0",
     "sourcemapped-stacktrace": "^1.1.11",
     "uuid": "^8.3.2"
   }

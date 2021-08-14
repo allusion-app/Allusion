@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
-import { ClientLocation } from 'src/entities/Location';
+import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 import { TagSelector } from './TagSelector';
+import { shell } from 'electron';
 
 interface IRemovalProps<T> {
   object: T;
@@ -23,6 +24,19 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
     onConfirm={() => {
       props.onClose();
       props.object.delete();
+    }}
+  />
+);
+
+export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) => (
+  <ExcludeAlert
+    open
+    title={`Are you sure you want to exclude the directory "${props.object.name}"?`}
+    information="Any tags saved on images in that directory will be lost."
+    onCancel={props.onClose}
+    onConfirm={() => {
+      props.onClose();
+      props.object.toggleExcluded();
     }}
   />
 );
@@ -141,12 +155,56 @@ export const FileRemoval = observer(() => {
   );
 });
 
+export const MoveFilesToTrashBin = observer(() => {
+  const { fileStore, uiStore } = useStore();
+  const selection = uiStore.fileSelection;
+
+  console.log(uiStore.isMoveFilesToTrashOpen);
+
+  const handleConfirm = action(() => {
+    uiStore.closeMoveFilesToTrash();
+    const files = [];
+    for (const file of selection) {
+      if (shell.moveItemToTrash(file.absolutePath)) {
+        files.push(file);
+      } else {
+        console.warn('Could not move file to trash', file.absolutePath);
+      }
+    }
+    fileStore.deleteFiles(files);
+  });
+
+  const isMulti = selection.size > 1;
+
+  return (
+    <RemovalAlert
+      open={uiStore.isMoveFilesToTrashOpen}
+      title={`Are you sure you want to delete ${selection.size} file${isMulti ? 's' : ''}?`}
+      information={`You will be able to recover ${
+        isMulti ? 'them' : 'it'
+      } from your system's trash bin, but all assigned tags to ${
+        isMulti ? 'them' : 'it'
+      } in Allusion will be lost.`}
+      body={
+        <div className="deletion-confirmation-list">
+          {Array.from(selection).map((f) => (
+            <div key={f.id}>{f.absolutePath}</div>
+          ))}
+        </div>
+      }
+      onCancel={uiStore.closeMoveFilesToTrash}
+      onConfirm={handleConfirm}
+    />
+  );
+});
+
 interface IRemovalAlertProps {
   open: boolean;
   onCancel: () => void;
   onConfirm: () => void;
   title: string;
   information: string;
+  primaryButtonText?: string;
   body?: React.ReactNode;
 }
 
@@ -159,6 +217,7 @@ const RemovalAlert = (props: IRemovalAlertProps) => (
     icon={IconSet.WARNING}
     closeButtonText="Cancel"
     primaryButtonText="Delete"
+    primaryButtonIntent="danger"
     defaultButton={DialogButton.PrimaryButton}
     onClick={(button) =>
       button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
@@ -175,6 +234,24 @@ const MergeAlert = (props: IRemovalAlertProps) => (
     icon={IconSet.WARNING}
     closeButtonText="Cancel"
     primaryButtonText="Merge"
+    primaryButtonIntent="warning"
+    defaultButton={DialogButton.PrimaryButton}
+    onClick={(button) =>
+      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
+    }
+  />
+);
+
+const ExcludeAlert = (props: IRemovalAlertProps) => (
+  <Alert
+    open={props.open}
+    title={props.title}
+    information={props.information}
+    view={props.body}
+    icon={IconSet.WARNING}
+    closeButtonText="Cancel"
+    primaryButtonText="Exclude"
+    primaryButtonIntent="warning"
     defaultButton={DialogButton.PrimaryButton}
     onClick={(button) =>
       button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()

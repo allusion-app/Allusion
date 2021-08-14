@@ -1,13 +1,13 @@
 import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
-import { autorun, runInAction } from 'mobx';
+import { action, autorun, runInAction } from 'mobx';
 import SysPath from 'path';
 
 import { RendererMessenger } from 'src/Messaging';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
-import { ClientLocation, getDirectoryTree, IDirectoryTreeItem } from 'src/entities/Location';
+import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria, CustomKeyDict } from 'src/entities/SearchCriteria';
 import { IFile } from 'src/entities/File';
 import { IconSet, Tree } from 'widgets';
@@ -15,12 +15,60 @@ import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from
 import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
-import { LocationRemoval } from 'src/frontend/components/RemovalAlert';
+import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import DropContext from 'src/frontend/contexts/DropContext';
+import LocationCreationDialog from './LocationCreationDialog';
+import LocationStore from 'src/frontend/stores/LocationStore';
+import TreeItemRevealer from '../TreeItemRevealer';
+
+export class LocationTreeItemRevealer extends TreeItemRevealer {
+  private locationStore?: LocationStore;
+
+  public static readonly instance: LocationTreeItemRevealer = new LocationTreeItemRevealer();
+  private constructor() {
+    super();
+  }
+
+  initialize(
+    setExpansion: React.Dispatch<React.SetStateAction<IExpansionState>>,
+    locationStore: LocationStore,
+  ) {
+    super.initializeExpansion(setExpansion);
+    this.locationStore = locationStore;
+  }
+
+  revealSubLocation(locationId: string, absolutePath: string) {
+    runInAction(() => {
+      // For every sublocation on its path to the relativePath, expand it, and then scrollTo + focus the item
+      const location = this.locationStore?.locationList.find((l) => l.id === locationId);
+      if (!location) {
+        return;
+      }
+
+      const getSubLocationsToFile = (
+        loc: ClientSubLocation | ClientLocation,
+      ): ClientSubLocation[] => {
+        const match = loc.subLocations.find((child) =>
+          absolutePath.startsWith(`${child.path}${SysPath.sep}`),
+        );
+        if (loc instanceof ClientLocation) return match ? getSubLocationsToFile(match) : [];
+        return match ? [loc, ...getSubLocationsToFile(match)] : [loc];
+      };
+
+      const subLocationsToExpand = getSubLocationsToFile(location);
+      if (subLocationsToExpand.length === 0) {
+        console.error('No sublocations found for revealing', absolutePath, location.subLocations);
+      } else {
+        // Location's dataId is its ID, subLocation's dataId's are their paths
+        this.revealTreeItem([location.id, ...subLocationsToExpand.map((l) => l.path)]);
+      }
+    });
+  }
+}
 
 // Tooltip info
 const enum Tooltip {
@@ -33,17 +81,17 @@ interface ITreeData {
   expansion: IExpansionState;
   setExpansion: React.Dispatch<IExpansionState>;
   delete: (location: ClientLocation) => void;
+  exclude: (subLocation: ClientSubLocation) => void;
 }
 
-// TODO: Would be neat if ctrl+clicking would do a recursive expand/collapse. Also for the "Locations" header!
-const toggleExpansion = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITreeData) => {
+const toggleExpansion = (nodeData: ClientLocation | ClientSubLocation, treeData: ITreeData) => {
   const { expansion, setExpansion } = treeData;
-  const id = nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath;
+  const id = nodeData instanceof ClientLocation ? nodeData.id : nodeData.path;
   setExpansion({ ...expansion, [id]: !expansion[id] });
 };
 
-const isExpanded = (nodeData: ClientLocation | IDirectoryTreeItem, treeData: ITreeData) =>
-  treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.fullPath];
+const isExpanded = (nodeData: ClientLocation | ClientSubLocation, treeData: ITreeData) =>
+  treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.path];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const emptyFunction = () => {};
@@ -75,7 +123,7 @@ const pathCriteria = (path: string) =>
 const customKeys = (
   search: (path: string) => void,
   event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: ClientLocation | IDirectoryTreeItem,
+  nodeData: ClientLocation | ClientSubLocation,
   treeData: ITreeData,
 ) => {
   switch (event.key) {
@@ -87,7 +135,7 @@ const customKeys = (
 
     case 'Enter':
       event.stopPropagation();
-      search(nodeData instanceof ClientLocation ? nodeData.path : nodeData.fullPath);
+      search(nodeData instanceof ClientLocation ? nodeData.path : nodeData.path);
       break;
 
     case 'Delete':
@@ -106,8 +154,16 @@ const customKeys = (
   }
 };
 
-const DirectoryMenu = ({ path }: { path: string }) => {
+const DirectoryMenu = ({
+  location,
+  onExclude,
+}: {
+  location: ClientLocation | ClientSubLocation;
+  onExclude: (subLocation: ClientSubLocation) => void;
+}) => {
   const { uiStore } = useStore();
+
+  const path = location instanceof ClientLocation ? location.path : location.path;
 
   const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
@@ -126,6 +182,14 @@ const DirectoryMenu = ({ path }: { path: string }) => {
       <MenuItem onClick={handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
       <MenuItem onClick={handleReplaceSearch} text="Replace Search Query" icon={IconSet.REPLACE} />
       <MenuDivider />
+      {location instanceof ClientSubLocation && (
+        <MenuItem
+          // Only show alert when excluding, not when re-including
+          onClick={location.isExcluded ? location.toggleExcluded : () => onExclude(location)}
+          text={location.isExcluded ? 'Re-include' : 'Exclude'}
+          icon={location.isExcluded ? IconSet.HIDDEN : IconSet.PREVIEW}
+        />
+      )}
       <MenuItem
         onClick={handleOpenFileExplorer}
         text="Open in File Browser"
@@ -138,9 +202,10 @@ const DirectoryMenu = ({ path }: { path: string }) => {
 interface IContextMenuProps {
   location: ClientLocation;
   onDelete: (location: ClientLocation) => void;
+  onExclude: (location: ClientSubLocation) => void;
 }
 
-const LocationTreeContextMenu = observer(({ location, onDelete }: IContextMenuProps) => {
+const LocationTreeContextMenu = observer(({ location, onDelete, onExclude }: IContextMenuProps) => {
   const { uiStore } = useStore();
 
   const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
@@ -160,7 +225,7 @@ const LocationTreeContextMenu = observer(({ location, onDelete }: IContextMenuPr
 
   return (
     <>
-      <DirectoryMenu path={location.path} />
+      <DirectoryMenu location={location} onExclude={onExclude} />
       <MenuDivider />
       <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
     </>
@@ -247,30 +312,34 @@ const SubLocation = ({
   nodeData,
   treeData,
 }: {
-  nodeData: IDirectoryTreeItem;
+  nodeData: ClientSubLocation;
   treeData: ITreeData;
 }) => {
   const { uiStore } = useStore();
   const { showContextMenu, expansion, setExpansion } = treeData;
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) =>
-      showContextMenu(e.clientX, e.clientY, <DirectoryMenu path={nodeData.fullPath} />),
-    [nodeData, showContextMenu],
+      showContextMenu(
+        e.clientX,
+        e.clientY,
+        <DirectoryMenu location={nodeData} onExclude={treeData.exclude} />,
+      ),
+    [nodeData, showContextMenu, treeData.exclude],
   );
 
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       // TODO: Mark searched nodes as selected?
       event.ctrlKey
-        ? uiStore.addSearchCriteria(pathCriteria(nodeData.fullPath))
-        : uiStore.replaceSearchCriteria(pathCriteria(nodeData.fullPath));
+        ? uiStore.addSearchCriteria(pathCriteria(nodeData.path))
+        : uiStore.replaceSearchCriteria(pathCriteria(nodeData.path));
     },
-    [nodeData.fullPath, uiStore],
+    [nodeData.path, uiStore],
   );
 
   const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
-    nodeData.fullPath,
-    nodeData.fullPath,
+    nodeData.path,
+    nodeData.path,
     expansion,
     setExpansion,
   );
@@ -278,6 +347,7 @@ const SubLocation = ({
   return (
     <div
       className="tree-content-label"
+      aria-disabled={nodeData.isExcluded}
       onClick={handleClick}
       onContextMenu={handleContextMenu}
       onDragEnter={handleDragEnter}
@@ -286,7 +356,11 @@ const SubLocation = ({
       // Note: onDragOver is not needed here, but need to preventDefault() for onDrop to work 🙃
       onDragOver={onDragOver}
     >
-      {expansion[nodeData.fullPath] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
+      {!nodeData.isExcluded
+        ? expansion[nodeData.path]
+          ? IconSet.FOLDER_OPEN
+          : IconSet.FOLDER_CLOSE
+        : IconSet.HIDDEN}
       {nodeData.name}
     </div>
   );
@@ -301,10 +375,14 @@ const Location = observer(
         showContextMenu(
           event.clientX,
           event.clientY,
-          <LocationTreeContextMenu location={nodeData} onDelete={onDelete} />,
+          <LocationTreeContextMenu
+            location={nodeData}
+            onDelete={onDelete}
+            onExclude={treeData.exclude}
+          />,
         );
       },
-      [nodeData, showContextMenu, onDelete],
+      [showContextMenu, nodeData, onDelete, treeData.exclude],
     );
 
     const handleClick = useCallback(
@@ -333,7 +411,11 @@ const Location = observer(
         onDrop={handleDrop}
         onDragLeave={handleDragLeave}
       >
-        {expansion[nodeData.id] ? IconSet.FOLDER_OPEN : IconSet.FOLDER_CLOSE}
+        {nodeData.isInitialized
+          ? expansion[nodeData.id]
+            ? IconSet.FOLDER_OPEN
+            : IconSet.FOLDER_CLOSE
+          : IconSet.LOADING}
         <div>{nodeData.name}</div>
         {nodeData.isBroken && (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
@@ -347,11 +429,11 @@ const SubLocationLabel = (nodeData: any, treeData: any) => (
   <SubLocation nodeData={nodeData} treeData={treeData} />
 );
 
-const mapDirectory = (dir: IDirectoryTreeItem): ITreeItem => ({
-  id: dir.fullPath,
+const mapDirectory = (dir: ClientSubLocation): ITreeItem => ({
+  id: dir.path,
   label: SubLocationLabel,
   nodeData: dir,
-  children: dir.children.map(mapDirectory),
+  children: dir.subLocations.map(mapDirectory),
   isExpanded,
 });
 
@@ -362,31 +444,28 @@ const LocationLabel = (nodeData: any, treeData: any) => (
 interface ILocationTreeProps {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   onDelete: (loc: ClientLocation) => void;
-  reloadLocationHierarchyTrigger?: Date;
+  onExclude: (loc: ClientSubLocation) => void;
 }
 
-const LocationsTree = ({
-  onDelete,
-  showContextMenu,
-  reloadLocationHierarchyTrigger,
-}: ILocationTreeProps) => {
+const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useStore();
   const [expansion, setExpansion] = useState<IExpansionState>({});
-  const treeData: ITreeData = useMemo(
+  const treeData: ITreeData = useMemo<ITreeData>(
     () => ({
       expansion,
       setExpansion,
       delete: onDelete,
+      exclude: onExclude,
       showContextMenu,
     }),
-    [expansion, onDelete, showContextMenu],
+    [expansion, onDelete, onExclude, showContextMenu],
   );
   const [branches, setBranches] = useState<ITreeItem[]>([]);
 
   const handleBranchKeyDown = useCallback(
     (
       event: React.KeyboardEvent<HTMLLIElement>,
-      nodeData: ClientLocation | IDirectoryTreeItem,
+      nodeData: ClientLocation | ClientSubLocation,
       treeData: ITreeData,
     ) =>
       createBranchOnKeyDown(
@@ -402,50 +481,24 @@ const LocationsTree = ({
   );
 
   useEffect(() => {
-    runInAction(() => {
+    autorun(() => {
       setBranches(
         locationStore.locationList.map((location) => ({
           id: location.id,
           label: LocationLabel,
-          children: [],
+          children: location.subLocations.map(mapDirectory),
           nodeData: location,
           isExpanded,
         })),
       );
     });
-    // Prevents updating state when component will be unmounted!
-    let isMounted = true;
-    const dispose = autorun(() => {
-      Promise.all(
-        locationStore.locationList.map(async (location) => {
-          let children: ITreeItem[];
-          try {
-            children = (await getDirectoryTree(location.path)).map(mapDirectory);
-          } catch (error) {
-            children = [];
-            console.error('Could not create directory tree', error);
-          }
-          return {
-            id: location.id,
-            label: LocationLabel,
-            children,
-            nodeData: location,
-            isExpanded,
-          };
-        }),
-      ).then((value) => {
-        if (isMounted) {
-          setBranches(value);
-        }
-      });
-    });
 
-    return () => {
-      isMounted = false;
-      dispose();
-    };
     // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
-  }, [locationStore.locationList, reloadLocationHierarchyTrigger]);
+  }, [locationStore.locationList]);
+
+  useEffect(() => LocationTreeItemRevealer.instance.initialize(setExpansion, locationStore), [
+    locationStore,
+  ]);
 
   return (
     <Tree
@@ -464,9 +517,10 @@ const LocationsPanel = observer(() => {
   const { locationStore } = useStore();
   const [contextState, { show, hide }] = useContextMenu();
 
+  const [creatableLocation, setCreatableLocation] = useState<ClientLocation>();
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation>();
+  const [excludableSubLocation, setExcludableSubLocation] = useState<ClientSubLocation>();
   const [isCollapsed, setCollapsed] = useState(false);
-  const [reloadLocationHierarchyTrigger, setReloadLocationHierarchyTrigger] = useState(new Date());
 
   // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
   const handleChooseWatchedDir = useCallback(async () => {
@@ -510,7 +564,7 @@ const LocationsPanel = observer(() => {
       return;
     }
 
-    locationStore.create(path).then((location) => locationStore.initLocation(location));
+    locationStore.create(path).then(setCreatableLocation);
   }, [locationStore]);
 
   const isEmpty = locationStore.locationList.length === 0;
@@ -529,7 +583,11 @@ const LocationsPanel = observer(() => {
               showLabel="never"
               icon={IconSet.RELOAD}
               text="Refresh"
-              onClick={() => setReloadLocationHierarchyTrigger(new Date())}
+              onClick={action(() =>
+                locationStore.locationList.forEach((loc) =>
+                  loc.refreshSublocations().catch(console.error),
+                ),
+              )}
               tooltip={Tooltip.Refresh}
             />
           )}
@@ -546,15 +604,28 @@ const LocationsPanel = observer(() => {
         <LocationsTree
           showContextMenu={show}
           onDelete={setDeletableLocation}
-          reloadLocationHierarchyTrigger={reloadLocationHierarchyTrigger}
+          onExclude={setExcludableSubLocation}
         />
         {isEmpty && <i>Click + to choose a Location</i>}
       </Collapse>
       <LocationRecoveryDialog />
+
+      {creatableLocation && (
+        <LocationCreationDialog
+          location={creatableLocation}
+          onClose={() => setCreatableLocation(undefined)}
+        />
+      )}
       {deletableLocation && (
         <LocationRemoval
           object={deletableLocation}
           onClose={() => setDeletableLocation(undefined)}
+        />
+      )}
+      {excludableSubLocation && (
+        <SubLocationExclusion
+          object={excludableSubLocation}
+          onClose={() => setExcludableSubLocation(undefined)}
         />
       )}
       <ContextMenu

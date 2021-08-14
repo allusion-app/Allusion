@@ -1,7 +1,7 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import PinchZoomPan from 'react-responsive-pinch-zoom-pan';
+import ZoomPan, { ISlideTransform } from './SlideMode/ZoomPan';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
@@ -37,6 +37,7 @@ const SlideMode = observer((props: ISlideMode) => {
   return (
     <Split
       id="slide-mode"
+      className={uiStore.isSlideMode ? 'fade-in' : 'fade-out'}
       primary={<Inspector />}
       secondary={slideView}
       axis="vertical"
@@ -148,15 +149,38 @@ const SlideView = observer((props: ISlideView) => {
     });
   }, [fileStore.fileList, uiStore.firstItem]);
 
+  const transitionStart: ISlideTransform | undefined = useMemo(() => {
+    const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
+    const container = document.querySelector('#gallery-content');
+    if (thumbEl && container) {
+      const thumbElRect = thumbEl.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      return {
+        left: thumbElRect.left - containerRect.left,
+        top: thumbElRect.top - containerRect.top,
+        scale: thumbElRect.height / file.height,
+      };
+    }
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file.id]);
+
   return (
     <ZoomableImage
       src={file.absolutePath}
+      thumbnailSrc={file.thumbnailPath}
       width={width}
       height={height}
+      imgWidth={file.width}
+      imgHeight={file.height}
+      transitionStart={transitionStart}
+      transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
       prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
+      doubleClickBehavior="zoomOrReset"
       onContextMenu={handleContextMenu}
       onDrop={eventHandlers.onDrop}
+      onClose={uiStore.disableSlideMode}
       tabIndex={-1}
     />
   );
@@ -164,24 +188,63 @@ const SlideView = observer((props: ISlideView) => {
 
 interface IZoomableImageProps {
   src: string;
+  thumbnailSrc?: string;
   width: number;
   height: number;
+  imgWidth: number;
+  imgHeight: number;
   prevImage?: () => any;
   nextImage?: () => any;
+  transitionStart?: ISlideTransform;
+  transitionEnd?: ISlideTransform;
   onContextMenu: (e: React.MouseEvent) => void;
+  onClose?: () => void;
+  doubleClickBehavior?: 'zoomOrReset' | 'close';
 }
 
 const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDivElement>> = ({
   src,
+  thumbnailSrc,
   width,
   height,
+  imgWidth,
+  imgHeight,
   prevImage,
   nextImage,
+  transitionStart,
+  transitionEnd,
   onContextMenu,
+  onClose,
+  doubleClickBehavior,
   ...rest
 }: IZoomableImageProps) => {
   const [loadError, setLoadError] = useState<any>();
   useEffect(() => setLoadError(undefined), [src]);
+
+  // in order to coordinate image dimensions at the time of loading, store current img src + dimensions together
+  const [currentImg, setCurrentImg] = useState({
+    src: thumbnailSrc || src,
+    dimensions: { width: imgWidth, height: imgHeight },
+  });
+  useEffect(() => {
+    setCurrentImg({
+      src: thumbnailSrc || src,
+      dimensions: { width: imgWidth, height: imgHeight },
+    });
+    const img = new Image();
+    img.src = src;
+    img.onload = () =>
+      setCurrentImg((prevImg) =>
+        prevImg.src === thumbnailSrc
+          ? { src, dimensions: { width: imgWidth, height: imgHeight } }
+          : prevImg,
+      );
+    img.onerror = setLoadError;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, thumbnailSrc]);
+
+  const minScale = Math.min(0.1, Math.min(width / imgWidth, height / imgHeight));
+
   return (
     <div
       id="zoomable-image"
@@ -192,29 +255,37 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
       onContextMenu={onContextMenu}
       {...rest}
     >
-      {loadError ? (
-        <MissingImageFallback
-          style={{
-            width: `${width}px`,
-            height: `${height}px`,
-          }}
-        />
-      ) : (
-        // https://github.com/bradstiff/react-responsive-pinch-zoom-pan
-        <PinchZoomPan
-          position="center"
-          zoomButtons={false}
-          // FIXME: minScale breaks zooming for high resolution images (like 8K) since the initial zoom is below minZoom
-          // but we're hopefully writing a custom image viewer soon
-          minScale={0.1}
-          maxScale={5}
-          // Force a re-render when the image changes, in order to reset the zoom level
-          key={src}
-        >
-          <img src={src} alt={`Image could not be loaded: ${src}`} onError={setLoadError} />
-        </PinchZoomPan>
-      )}
-
+      {/* Based on https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
+      <ZoomPan
+        position="center"
+        initialScale="auto"
+        doubleTapBehavior={doubleClickBehavior}
+        imageDimensions={currentImg.dimensions}
+        containerDimensions={{ width, height }}
+        minScale={minScale}
+        maxScale={5}
+        transitionStart={transitionStart}
+        transitionEnd={transitionEnd}
+        onClose={onClose}
+        // debug
+      >
+        {loadError ? (
+          <MissingImageFallback
+            style={{
+              width: `${width}px`,
+              height: `${height}px`,
+            }}
+          />
+        ) : (
+          <img
+            src={currentImg.src}
+            width={currentImg.dimensions.width || undefined}
+            height={currentImg.dimensions.height || undefined}
+            alt={`Image could not be loaded: ${src}`}
+            onError={setLoadError}
+          />
+        )}
+      </ZoomPan>
       {/* Overlay buttons/icons */}
       {prevImage && (
         <button aria-label="previous image" className="side-button-left" onClick={prevImage}>

@@ -50,6 +50,7 @@ import FOLDER_OPEN from 'resources/icons/folder-open.svg';
 // import FOLDER_STRUCTURE from 'resources/icons/folder-structure.svg';
 // import FORM_DROP from 'resources/icons/form-drop.svg';
 import GITHUB from 'resources/icons/github.svg';
+import HIDDEN from 'resources/icons/hidden.svg';
 import IMPORT from 'resources/icons/import.svg';
 import HELPCENTER from 'resources/icons/helpcenter.svg';
 import INFO from 'resources/icons/info.svg';
@@ -57,6 +58,7 @@ import INFO from 'resources/icons/info.svg';
 // import ITEM_EXPAND from 'resources/icons/item-expand.svg';
 import ITEM_MOVE_DOWN from 'resources/icons/item-move-down.svg';
 import ITEM_MOVE_UP from 'resources/icons/item-move-up.svg';
+import LOADING from 'resources/icons/loading.svg';
 import LOGO from 'resources/logo/svg/white/allusion-logomark-white.svg';
 // import LOGOMARK_BLACK from 'resources/logo/svg/full-color/allusion-logo-ver-fc-black.svg';
 // import LOGOMARK_WHITE from 'resources/logo/svg/full-color/allusion-logo-ver-fc-white.svg';
@@ -98,6 +100,7 @@ import TAG_LINE from 'resources/icons/tag-line.svg';
 import THUMB_SM from 'resources/icons/thumb-sm.svg';
 import THUMB_MD from 'resources/icons/thumb-md.svg';
 import THUMB_BG from 'resources/icons/thumb-bg.svg';
+import TREE_LIST from 'resources/icons/tree-list.svg';
 import VIEW_GRID from 'resources/icons/view-grid.svg';
 import VIEW_LIST from 'resources/icons/view-list.svg';
 import VIEW_MASON from 'resources/icons/view-mason.svg';
@@ -146,6 +149,7 @@ const IconSet = {
   // FOLDER_STRUCTURE: toSvg(FOLDER_STRUCTURE),
   // FORM_DROP: toSvg(FORM_DROP),
   GITHUB: toSvg(GITHUB),
+  HIDDEN: toSvg(HIDDEN),
   IMPORT: toSvg(IMPORT),
   HELPCENTER: toSvg(HELPCENTER),
   INFO: toSvg(INFO),
@@ -154,6 +158,7 @@ const IconSet = {
   ITEM_MOVE_DOWN: toSvg(ITEM_MOVE_DOWN),
   ITEM_MOVE_UP: toSvg(ITEM_MOVE_UP),
   // OUTLINER: toSvg(OUTLINER),
+  LOADING: toSvg(LOADING),
   LOGO: toSvg(LOGO),
   // LOGO_MARK_BLACK: toSvg(LOGOMARK_BLACK),
   // LOGO_MARK_WHITE: toSvg(LOGOMARK_WHITE),
@@ -194,6 +199,7 @@ const IconSet = {
   THUMB_SM: toSvg(THUMB_SM),
   THUMB_MD: toSvg(THUMB_MD),
   THUMB_BG: toSvg(THUMB_BG),
+  TREE_LIST: toSvg(TREE_LIST),
   VIEW_GRID: toSvg(VIEW_GRID),
   VIEW_LIST: toSvg(VIEW_LIST),
   VIEW_MASON: toSvg(VIEW_MASON),
