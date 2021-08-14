@@ -8,6 +8,7 @@ import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 import { TagSelector } from './TagSelector';
+import { shell } from 'electron';
 
 interface IRemovalProps<T> {
   object: T;
@@ -149,6 +150,49 @@ export const FileRemoval = observer(() => {
         </div>
       }
       onCancel={uiStore.closeToolbarFileRemover}
+      onConfirm={handleConfirm}
+    />
+  );
+});
+
+export const MoveFilesToTrashBin = observer(() => {
+  const { fileStore, uiStore } = useStore();
+  const selection = uiStore.fileSelection;
+
+  console.log(uiStore.isMoveFilesToTrashOpen);
+
+  const handleConfirm = action(() => {
+    uiStore.closeMoveFilesToTrash();
+    const files = [];
+    for (const file of selection) {
+      if (shell.moveItemToTrash(file.absolutePath)) {
+        files.push(file);
+      } else {
+        console.warn('Could not move file to trash', file.absolutePath);
+      }
+    }
+    fileStore.deleteFiles(files);
+  });
+
+  const isMulti = selection.size > 1;
+
+  return (
+    <RemovalAlert
+      open={uiStore.isMoveFilesToTrashOpen}
+      title={`Are you sure you want to delete ${selection.size} file${isMulti ? 's' : ''}?`}
+      information={`You will be able to recover ${
+        isMulti ? 'them' : 'it'
+      } from your system's trash bin, but all assigned tags to ${
+        isMulti ? 'them' : 'it'
+      } in Allusion will be lost.`}
+      body={
+        <div className="deletion-confirmation-list">
+          {Array.from(selection).map((f) => (
+            <div key={f.id}>{f.absolutePath}</div>
+          ))}
+        </div>
+      }
+      onCancel={uiStore.closeMoveFilesToTrash}
       onConfirm={handleConfirm}
     />
   );

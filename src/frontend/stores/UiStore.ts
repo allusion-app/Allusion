@@ -141,7 +141,10 @@ class UiStore {
   @observable thumbnailShape: ThumbnailShape = 'square';
 
   @observable isToolbarTagPopoverOpen: boolean = false;
+  /** Dialog for removing unlinked files from Allusion's database */
   @observable isToolbarFileRemoverOpen: boolean = false;
+  /** Dialog for moving files to the system's trash bin, and removing from Allusion's database */
+  @observable isMoveFilesToTrashOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
@@ -339,6 +342,14 @@ class UiStore {
 
   @action.bound closeToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = false;
+  }
+
+  @action.bound openMoveFilesToTrash() {
+    this.isMoveFilesToTrashOpen = true;
+  }
+
+  @action.bound closeMoveFilesToTrash() {
+    this.isMoveFilesToTrashOpen = false;
   }
 
   @action.bound toggleToolbarTagPopover() {

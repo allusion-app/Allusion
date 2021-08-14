@@ -76,39 +76,36 @@ export const SlideFileViewerMenuItems = ({ file }: { file: ClientFile }) => {
   );
 };
 
-export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => (
-  <>
-    <MenuItem
-      onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
-      text="Open External"
-      icon={IconSet.OPEN_EXTERNAL}
-      disabled={file.isBroken}
-    />
-    <MenuItem
-      onClick={() =>
-        LocationTreeItemRevealer.instance.revealSubLocation(file.locationId, file.absolutePath)
-      }
-      text="Reveal in Locations Panel"
-      icon={IconSet.TREE_LIST}
-    />
-    <MenuItem
-      onClick={() => shell.showItemInFolder(file.absolutePath)}
-      text="Reveal in File Browser"
-      icon={IconSet.FOLDER_CLOSE}
-    />
-    <MenuItem
-      onClick={() =>
-        // TODO: also for file selection?
-        window.confirm(
-          // eslint-disable-next-line quotes
-          "Are you sure you want to delete this file?\nYou will be able to recover it from your system's trash bin.",
-        ) && shell.moveItemToTrash(file.absolutePath)
-      }
-      text="Delete file"
-      icon={IconSet.DELETE}
-    />
-  </>
-));
+export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => {
+  const { uiStore } = useStore();
+  return (
+    <>
+      <MenuItem
+        onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
+        text="Open External"
+        icon={IconSet.OPEN_EXTERNAL}
+        disabled={file.isBroken}
+      />
+      <MenuItem
+        onClick={() =>
+          LocationTreeItemRevealer.instance.revealSubLocation(file.locationId, file.absolutePath)
+        }
+        text="Reveal in Locations Panel"
+        icon={IconSet.TREE_LIST}
+      />
+      <MenuItem
+        onClick={() => shell.showItemInFolder(file.absolutePath)}
+        text="Reveal in File Browser"
+        icon={IconSet.FOLDER_CLOSE}
+      />
+      <MenuItem
+        onClick={uiStore.openMoveFilesToTrash}
+        text={`Delete file${uiStore.fileSelection.size > 1 ? 's' : ''}`}
+        icon={IconSet.DELETE}
+      />
+    </>
+  );
+});
 
 export const FileTagMenuItems = observer(({ file, tag }: { file: ClientFile; tag: ClientTag }) => (
   <>
