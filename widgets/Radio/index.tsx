@@ -40,12 +40,9 @@ const RadioGroup = ({ name, children }: IRadioGroup) => {
   }, [name, children.length]);
 
   return (
-    // CHROME BUG: Cannot set flex on fieldset, instead use the inner div as flex container!
     <fieldset ref={group} role="radiogroup">
-      <div>
-        <legend>{name}</legend>
-        {children}
-      </div>
+      <legend>{name}</legend>
+      {children}
     </fieldset>
   );
 };
