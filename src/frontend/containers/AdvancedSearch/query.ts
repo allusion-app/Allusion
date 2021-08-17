@@ -74,7 +74,8 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Query] {
   } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
     query.value = criteria.value / BYTES_IN_MB;
   } else if (criteria instanceof ClientTagSearchCriteria && criteria.key === 'tags') {
-    query.value = { id: criteria.value[0], label: criteria.label };
+    const id = criteria.value.length > 0 ? criteria.value[0] : undefined;
+    query.value = { id, label: criteria.label };
   } else {
     return [generateId(), query];
   }
