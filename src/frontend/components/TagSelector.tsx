@@ -15,6 +15,7 @@ export interface TagSelectorProps {
   onTagClick?: (item: ClientTag) => void;
   onClear: () => void;
   multiselectable: boolean;
+  labelledby?: string;
   disabled?: boolean;
   extraIconButtons?: ReactElement;
   placeholder?: string;
@@ -32,6 +33,7 @@ const TagSelector = (props: TagSelectorProps) => {
     onTagClick,
     onClear,
     multiselectable,
+    labelledby,
     disabled,
     extraIconButtons,
     placeholder,
@@ -125,6 +127,7 @@ const TagSelector = (props: TagSelectorProps) => {
             <div className="input-wrapper">
               <SelectedTags selection={selection} onDeselect={onDeselect} onTagClick={onTagClick} />
               <input
+                aria-labelledby={labelledby}
                 disabled={disabled}
                 type="text"
                 value={query}

@@ -6,9 +6,7 @@ import {
   BinaryOperators,
   NumberOperators,
   NumberOperatorSymbols,
-  NumberOperatorType,
   StringOperatorLabels,
-  StringOperators,
   StringOperatorType,
   TagOperators,
 } from 'src/entities/SearchCriteria';
@@ -16,37 +14,50 @@ import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
-import { IconButton, IconSet } from 'widgets';
+import { IconSet } from 'widgets';
 import { defaultQuery, Query, QueryKey, QueryOperator, QueryValue, TagValue } from './query';
 
 type FormState = Map<string, Query>;
 type FormDispatch = React.Dispatch<React.SetStateAction<FormState>>;
 
 interface IFieldProps {
+  index: number;
   id: ID;
   query: Query;
   dispatch: FormDispatch;
-  removable: boolean;
 }
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
-export const Field = ({ id, query, dispatch, removable }: IFieldProps) => (
-  <fieldset className="criteria">
-    <KeySelector id={id} keyValue={query.key} dispatch={dispatch} />
-    <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
-    <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
-    <IconButton
-      text="Remove search item"
-      icon={IconSet.DELETE}
-      onClick={() =>
-        dispatch((form) => {
-          form.delete(id);
-          return new Map(form);
-        })
-      }
-      disabled={!removable}
-    />
-  </fieldset>
+export const Field = ({ index, id, query, dispatch }: IFieldProps) => (
+  <tr>
+    <th scope="row" id={id}>
+      {index + 1}
+    </th>
+    <td>
+      <KeySelector id={id} keyValue={query.key} dispatch={dispatch} />
+    </td>
+    <td>
+      <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
+    </td>
+    <td>
+      <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
+    </td>
+    <td>
+      <button
+        aria-labelledby={`col-remove ${id}`}
+        type="button"
+        onClick={() =>
+          dispatch((form) => {
+            form.delete(id);
+            return new Map(form);
+          })
+        }
+      >
+        <span aria-hidden="true">{IconSet.DELETE}</span>
+        <span className="visually-hidden">Remove</span>
+      </button>
+    </td>
+  </tr>
 );
 
 export default Field;
@@ -77,7 +88,7 @@ const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => {
   };
 
   return (
-    <select autoFocus onChange={handleChange} value={keyValue}>
+    <select autoFocus aria-labelledby={`${id} col-key`} onChange={handleChange} value={keyValue}>
       <option key="tags" value="tags">
         Tags
       </option>
@@ -116,7 +127,7 @@ const OperatorSelector = ({ id, keyValue, value, dispatch }: FieldInput<QueryOpe
   };
 
   return (
-    <select onChange={handleChange} defaultValue={value}>
+    <select aria-labelledby={`${id} col-operator`} onChange={handleChange} defaultValue={value}>
       {getOperatorOptions(keyValue)}
     </select>
   );
@@ -142,6 +153,7 @@ type ValueInput<V> = Omit<FieldInput<V>, 'keyValue'>;
 const PathInput = ({ id, value, dispatch }: ValueInput<string>) => {
   return (
     <input
+      aria-labelledby={`${id} col-value`}
       className="input"
       type="text"
       placeholder="Enter some text..."
@@ -169,6 +181,7 @@ const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
 
   return (
     <TagSelector
+      labelledby={`${id} col-value`}
       multiselectable={false}
       selection={selection ? [selection] : []}
       onSelect={handleSelect}
@@ -180,7 +193,11 @@ const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
 };
 
 const ExtensionInput = ({ id, value, dispatch }: ValueInput<string>) => (
-  <select onChange={(e) => dispatch(setValue(id, e.target.value))} defaultValue={value}>
+  <select
+    aria-labelledby={`${id} col-value`}
+    onChange={(e) => dispatch(setValue(id, e.target.value))}
+    defaultValue={value}
+  >
     {IMG_EXTENSIONS.map((ext) => (
       <option key={ext} value={ext}>
         {ext.toUpperCase()}
@@ -192,6 +209,7 @@ const ExtensionInput = ({ id, value, dispatch }: ValueInput<string>) => (
 const SizeInput = ({ value, id, dispatch }: ValueInput<number>) => {
   return (
     <input
+      aria-labelledby={`${id} col-value`}
       className="input"
       type="number"
       placeholder="Enter a file size..."
@@ -204,6 +222,7 @@ const SizeInput = ({ value, id, dispatch }: ValueInput<number>) => {
 const DateAddedInput = ({ value, id, dispatch }: ValueInput<Date>) => {
   return (
     <input
+      aria-labelledby={`${id} col-value`}
       className="input"
       type="date"
       max={new Date().toISOString().substr(0, 10)}
