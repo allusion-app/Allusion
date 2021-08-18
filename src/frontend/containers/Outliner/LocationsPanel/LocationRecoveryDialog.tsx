@@ -277,7 +277,7 @@ const LocationRecoveryDialog = () => {
           retry={() => setMatch(undefined)}
           save={() => {
             if (pickedDir) {
-              handleChangeLocationPath(location, pickedDir!);
+              handleChangeLocationPath(location, pickedDir);
               uiStore.closeLocationRecovery();
             }
           }}
