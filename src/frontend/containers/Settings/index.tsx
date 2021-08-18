@@ -267,8 +267,10 @@ const ImportExport = observer(() => {
             setConfirmingMetadataExport(false);
           }}
         >
-          This will overwrite any existing tags (a.k.a. keywords) in those files with Allusion&#39;s
-          tags. It is recommended to import all tags before writing new tags.
+          <p>
+            This will overwrite any existing tags (a.k.a. keywords) in those files with
+            Allusion&#39;s tags. It is recommended to import all tags before writing new tags.
+          </p>
         </Alert>
       </ButtonGroup>
 
@@ -326,10 +328,11 @@ const ImportExport = observer(() => {
             setConfirmingFileImport(undefined);
           }}
         >
-          This will replace your current tag hierarchy and any tags assigned to images, so it is
-          recommended you create a backup first.
-          <br />
-          {isConfirmingFileImport?.info}
+          <p>
+            This will replace your current tag hierarchy and any tags assigned to images, so it is
+            recommended you create a backup first.
+          </p>
+          <p>{isConfirmingFileImport?.info}</p>
         </Alert>
       </ButtonGroup>
     </>

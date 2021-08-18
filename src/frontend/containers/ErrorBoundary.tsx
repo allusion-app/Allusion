@@ -36,10 +36,11 @@ export const ClearDbButton = () => {
           }
         }}
       >
-        This is intended as a last resort. All imported images and created tags will be permanently
-        removed.
-        <br />
-        This will not delete your images on your system!
+        <p>
+          This is intended as a last resort. All imported images and created tags will be
+          permanently removed.
+        </p>
+        <p>This will not delete your images on your system!</p>
       </Alert>
     </>
   );

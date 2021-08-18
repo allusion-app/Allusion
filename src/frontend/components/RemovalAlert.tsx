@@ -43,7 +43,7 @@ export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) =>
         props.onClose();
       }}
     >
-      Any tags saved on images in that directory will be lost.
+      <p>Any tags saved on images in that directory will be lost.</p>
     </Alert>
   );
 };
@@ -179,7 +179,7 @@ const RemovalAlert = (props: IRemovalAlertProps) => (
       button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
     }
   >
-    {props.information}
+    <p>{props.information}</p>
     {props.body}
   </Alert>
 );
