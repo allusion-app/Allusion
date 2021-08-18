@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 
 import { generateId, ID } from 'src/entities/ID';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { IconSet, RadioGroup, Radio } from 'widgets';
+import { IconSet, RadioGroup, Radio, Button } from 'widgets';
 import Field from './Field';
 import { Query, defaultQuery, fromCriteria, intoCriteria } from './query';
 import { Dialog } from 'widgets/popovers';
@@ -61,10 +61,7 @@ const SearchForm = observer(() => {
       <fieldset>
         <legend>Criteria Builder</legend>
         TODO
-        <button type="button" onClick={add}>
-          <span aria-hidden="true">{IconSet.ADD}</span>
-          Add
-        </button>
+        <Button styling="filled" text="Add" icon={IconSet.ADD} onClick={add} />
       </fieldset>
       <table>
         <caption>Query Editor</caption>
@@ -99,16 +96,10 @@ const SearchForm = observer(() => {
         />
       </RadioGroup>
 
-      <div className="dialog-actions">
-        <button className="btn" type="reset" onClick={reset}>
-          <span aria-hidden="true">{IconSet.CLOSE}</span>
-          Reset
-        </button>
-        <button className="btn" type="submit">
-          <span aria-hidden="true">{IconSet.SEARCH}</span>
-          Search
-        </button>
-      </div>
+      <fieldset className="dialog-actions">
+        <Button styling="outlined" type="reset" text="Reset" icon={IconSet.CLOSE} onClick={reset} />
+        <Button type="submit" styling="filled" text="Search" icon={IconSet.SEARCH} />
+      </fieldset>
     </form>
   );
 });

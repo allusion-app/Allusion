@@ -116,6 +116,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         onClick={() => dispatch(Factory.confirmMerge(tag))}
         text="Merge with..."
         icon={IconSet.TAG_GROUP}
+        disabled={tag.subTags.length > 0}
       />
       <MenuItem
         onClick={() => dispatch(Factory.confirmDeletion(tag))}

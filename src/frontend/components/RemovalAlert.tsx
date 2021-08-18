@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
@@ -7,7 +7,6 @@ import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
-import { TagSelector } from './TagSelector';
 import { shell } from 'electron';
 
 interface IRemovalProps<T> {
@@ -79,50 +78,6 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
         object.isSelected ? uiStore.removeSelectedTags() : props.object.delete();
       }}
     />
-  );
-});
-
-export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
-  const { tagStore } = useStore();
-  const { object: tag } = props;
-
-  const text = `Select the tag you want to merge "${tag.name}" with`;
-
-  const [selectedTag, setSelectedTag] = useState<ClientTag>();
-  const clearSelection = () => setSelectedTag(undefined);
-
-  return (
-    <Alert
-      open
-      title={text}
-      icon={IconSet.WARNING}
-      primaryButtonText="Merge"
-      primaryButtonIntent="warning"
-      defaultButton={DialogButton.PrimaryButton}
-      onClick={(button) => {
-        if (button === DialogButton.CloseButton) {
-          props.onClose();
-        } else if (tag.subTags.length === 0 && selectedTag !== undefined) {
-          tagStore.merge(tag, selectedTag);
-          props.onClose();
-        }
-      }}
-    >
-      {tag.subTags.length > 0
-        ? 'Merging a tag with sub-tags is currently not supported.'
-        : `This will replace all uses of ${tag.name} with ${
-            selectedTag?.name || 'the tag you select'
-          }. Choose the merge option on the other tag to merge the other way around!`}
-      <div>
-        <TagSelector
-          multiselectable={false}
-          selection={selectedTag ? [selectedTag] : []}
-          onSelect={setSelectedTag}
-          onDeselect={clearSelection}
-          onClear={clearSelection}
-        />
-      </div>
-    </Alert>
   );
 });
 

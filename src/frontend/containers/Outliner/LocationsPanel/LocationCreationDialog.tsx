@@ -141,18 +141,18 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
   const [sublocationsLoaded, setSublocationsLoaded] = useState(false);
   // const [importFolderHierarchyAsTags, setImportFolderHierarchyAsTags] = useState(false);
 
-  const handleSubmit = useCallback(() => {
-    locationStore.initLocation(location).catch(console.error);
-    onClose();
-  }, [location, locationStore, onClose]);
+  const handleSubmit = useCallback(
+    () => locationStore.initLocation(location).catch(console.error),
+    [location, locationStore],
+  );
 
-  const handleCancel = useCallback(() => {
+  const handleClose = useCallback(() => {
     location.delete().catch(console.error);
     onClose();
   }, [location, onClose]);
 
   useEffect(() => {
-    autorun(() => {
+    return autorun(() => {
       if (location.subLocations.length === 0 && !location.isInitialized) {
         location.refreshSublocations().then(() => setSublocationsLoaded(true));
       }
@@ -161,12 +161,15 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
 
   return (
     <Dialog
-      open={Boolean(location)}
-      title={`Configure Location "${location.name}"`}
+      open
+      title={`Add Location ${location.name}`}
       icon={IconSet.FOLDER_CLOSE}
-      describedby="dialog-information"
+      describedby="location-add-info"
+      onClose={handleClose}
     >
-      <div id="dialog-information" className="dialog-information">
+      <p id="location-add-info">
+        You can configure the location {location.name} by including only certain subdirectories from
+        the directory.
         {/* TODO: Switch for importing folder structure as tags */}
         {/* <p>Would you like to create tags from the folder structure of this Location?</p>
         <div style={{ marginLeft: '1rem' }}>
@@ -176,21 +179,23 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
             checked={importFolderHierarchyAsTags}
           />
         </div> */}
-
         {/* Show folder, exclude directories */}
-        <p>Optionally, choose any folders to exclude:</p>
-        <div style={{ maxHeight: '400px', overflow: 'auto' }}>
+      </p>
+      <form method="dialog" onSubmit={handleSubmit}>
+        <fieldset>
+          <legend>Included Subdirectories of {location.name}</legend>
           {!sublocationsLoaded ? (
             <i>{IconSet.LOADING} loading...</i>
           ) : (
             <SubLocationInclusionTree location={location} />
           )}
-        </div>
-      </div>
-      <div className="dialog-actions">
-        <Button styling="filled" onClick={handleSubmit} text="Confirm" />
-        <Button styling="outlined" onClick={handleCancel} text="Cancel" />
-      </div>
+        </fieldset>
+
+        <fieldset className="dialog-actions">
+          <Button type="submit" styling="filled" text="Confirm" />
+          <Button styling="outlined" onClick={handleClose} text="Cancel" />
+        </fieldset>
+      </form>
     </Dialog>
   );
 };

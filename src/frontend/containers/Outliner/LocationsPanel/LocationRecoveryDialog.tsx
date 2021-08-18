@@ -91,12 +91,12 @@ const RecoveryInfo = observer(({ location, status, match }: IRecoveryInfoProps) 
   switch (status) {
     case Status.Ok:
       return (
-        <div>The location has been recovered, all files were found in the specified directory!</div>
+        <p>The location has been recovered, all files were found in the specified directory!</p>
       );
 
     case Status.InvalidPath:
       return (
-        <div>
+        <>
           <p>The location {location.name} could not be found on your system.</p>
           <p>
             If it has been moved to a different directory, you can relocate the location by choosing
@@ -104,26 +104,26 @@ const RecoveryInfo = observer(({ location, status, match }: IRecoveryInfoProps) 
           </p>
           <p>Original path:</p>
           <pre>{location.path}</pre>
-        </div>
+        </>
       );
 
     case Status.NoMatches:
       return (
-        <div>
+        <p>
           The location could not be recovered since no images of this location were found in the
           specified directory.
-        </div>
+        </p>
       );
 
     // TODO: Should also warn about new images in the folder that were not in the location before (status.directoryImageCount)
     case Status.PartialRecovery:
       if (match) {
         return (
-          <div>
+          <p>
             Only {match.matchCount} out of {match.locationImageCount} images were found in the
             specified directory. By recovering the location, the missing files would be lost. Do you
             still want to recover the location using this directory?
-          </div>
+          </p>
         );
       }
       return null;
@@ -262,11 +262,12 @@ const LocationRecoveryDialog = () => {
   return (
     <Dialog
       open={Boolean(location)}
-      title={`Location "${location.name}" could not be found`}
+      title={`Recover Location ${location.name}`}
       icon={IconSet.FOLDER_CLOSE}
-      describedby="dialog-information"
+      describedby="location-recovery-info"
+      onClose={uiStore.closeLocationRecovery}
     >
-      <div id="dialog-information" className="dialog-information">
+      <div id="location-recovery-info">
         <RecoveryInfo location={location} status={status} match={match} />
       </div>
       <div className="dialog-actions">

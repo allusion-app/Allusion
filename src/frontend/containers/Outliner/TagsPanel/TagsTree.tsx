@@ -4,7 +4,8 @@ import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } 
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
-import { TagMerge, TagRemoval } from 'src/frontend/components/RemovalAlert';
+import { TagRemoval } from 'src/frontend/components/RemovalAlert';
+import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
@@ -650,7 +651,7 @@ const TagsTree = observer(() => {
       )}
 
       {state.mergableNode && (
-        <TagMerge object={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
+        <TagMerge tag={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
       )}
 
       <ContextMenu

@@ -6,13 +6,10 @@ export interface DialogProps {
   icon: JSX.Element;
   describedby?: string;
   children: React.ReactNode;
-  /** If no event listener is provided for the close event, by default closing
-   *  with the Escape key will be disabled. This is to ensure that no error is
-   * thrown when HTMLDialogElement.showModal() is called.
-   *
-   * The cancel event is not provided because the close event is also called on cancel.
+  /** Provide callback when submitting a form with method dialog, pressing Esc
+   * or the close button.
    */
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 export const Dialog = (props: DialogProps) => {
