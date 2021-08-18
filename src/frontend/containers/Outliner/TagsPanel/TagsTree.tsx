@@ -53,7 +53,6 @@ const Label = (props: ILabelProps) =>
       className="input"
       autoFocus
       type="text"
-      placeholder="Enter a new name"
       defaultValue={props.text}
       onBlur={(e) => {
         const value = e.currentTarget.value.trim();

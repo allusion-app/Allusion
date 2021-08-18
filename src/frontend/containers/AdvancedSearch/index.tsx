@@ -1,34 +1,18 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef, memo, RefObject } from 'react';
 import { autorun } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { generateId, ID } from 'src/entities/ID';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet, RadioGroup, Radio, Button } from 'widgets';
-import Field from './Field';
-import { Query, defaultQuery, fromCriteria, intoCriteria } from './query';
+import { KeySelector, OperatorSelector, ValueInput } from './Field';
+import { Criteria, defaultQuery, fromCriteria, intoCriteria } from './query';
 import { Dialog } from 'widgets/popovers';
 
 export const AdvancedSearchDialog = observer(() => {
-  const { uiStore } = useStore();
-
-  return (
-    <Dialog
-      open={uiStore.isAdvancedSearchOpen}
-      title="Advanced Search"
-      icon={IconSet.SEARCH_EXTENDED}
-      onClose={uiStore.closeAdvancedSearch}
-    >
-      <SearchForm />
-    </Dialog>
-  );
-});
-
-export default AdvancedSearchDialog;
-
-const SearchForm = observer(() => {
   const { uiStore, tagStore } = useStore();
-  const [form, setForm] = useState(new Map<ID, Query>());
+  const [query, setQuery] = useState(new Map<ID, Criteria>());
+  const keySelector = useRef<HTMLSelectElement>(null);
 
   // Initialize form with current queries. When the form is closed, all inputs
   // are unmounted to save memory.
@@ -40,66 +24,196 @@ const SearchForm = observer(() => {
           const [id, query] = fromCriteria(criteria);
           map.set(id, query);
         }
+        requestAnimationFrame(() => requestAnimationFrame(() => keySelector.current?.focus()));
       }
-      setForm(map);
+      setQuery(map);
     });
   }, [uiStore]);
 
-  const add = useRef(() => setForm((form) => new Map(form.set(generateId(), defaultQuery('tags')))))
-    .current;
-
   const search = useCallback(() => {
     uiStore.replaceSearchCriterias(
-      Array.from(form.values(), (vals) => intoCriteria(vals, tagStore)),
+      Array.from(query.values(), (vals) => intoCriteria(vals, tagStore)),
     );
-  }, [form, tagStore, uiStore]);
+  }, [query, tagStore, uiStore]);
 
-  const reset = useRef(() => setForm(new Map())).current;
+  const reset = useRef(() => setQuery(new Map())).current;
 
   return (
-    <form role="search" method="dialog" onSubmit={search}>
-      <fieldset>
-        <legend>Criteria Builder</legend>
-        TODO
-        <Button styling="filled" text="Add" icon={IconSet.ADD} onClick={add} />
-      </fieldset>
-      <table>
-        <caption>Query Editor</caption>
-        <thead className="visually-hidden">
-          <tr>
-            <td></td>
-            <th id="col-key">Key</th>
-            <th id="col-operator">Operator</th>
-            <th id="col-value">Value</th>
-            <th id="col-remove">Remove</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Array.from(form.entries(), ([id, query], index) => (
-            <Field key={id} index={index} id={id} query={query} dispatch={setForm} />
-          ))}
-        </tbody>
-      </table>
+    <Dialog
+      open={uiStore.isAdvancedSearchOpen}
+      title="Advanced Search"
+      icon={IconSet.SEARCH_EXTENDED}
+      onClose={uiStore.closeAdvancedSearch}
+    >
+      <form role="search" method="dialog" onSubmit={search}>
+        <CriteriaBuilder keySelector={keySelector} dispatch={setQuery} />
 
-      <RadioGroup name="Match">
-        <Radio
-          label="Any"
-          value="any"
-          checked={uiStore.searchMatchAny}
-          onChange={uiStore.toggleSearchMatchAny}
-        />
-        <Radio
-          label="All"
-          value="all"
-          checked={!uiStore.searchMatchAny}
-          onChange={uiStore.toggleSearchMatchAny}
-        />
-      </RadioGroup>
+        <QueryEditor query={query} setQuery={setQuery} />
 
-      <fieldset className="dialog-actions">
-        <Button styling="outlined" type="reset" text="Reset" icon={IconSet.CLOSE} onClick={reset} />
-        <Button type="submit" styling="filled" text="Search" icon={IconSet.SEARCH} />
-      </fieldset>
-    </form>
+        <QueryMatch />
+
+        <fieldset className="dialog-actions">
+          <Button
+            styling="outlined"
+            type="reset"
+            text="Reset"
+            icon={IconSet.CLOSE}
+            onClick={reset}
+          />
+          <Button type="submit" styling="filled" text="Search" icon={IconSet.SEARCH} />
+        </fieldset>
+      </form>
+    </Dialog>
+  );
+});
+
+export default AdvancedSearchDialog;
+
+interface QueryBuilderProps {
+  keySelector: RefObject<HTMLSelectElement>;
+  dispatch: QueryDispatch;
+}
+
+const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: QueryBuilderProps) {
+  const [criteria, setCriteria] = useState(defaultQuery('tags'));
+
+  const add = () => {
+    dispatch((query) => new Map(query.set(generateId(), criteria)));
+    setCriteria(defaultQuery('tags'));
+    keySelector.current?.focus();
+  };
+
+  return (
+    <fieldset>
+      <legend>Criteria Builder</legend>
+      <label>
+        Key
+        <KeySelector ref={keySelector} keyValue={criteria.key} dispatch={setCriteria} />
+      </label>
+
+      <label>
+        Operator
+        <OperatorSelector
+          keyValue={criteria.key}
+          value={criteria.operator}
+          dispatch={setCriteria}
+        />
+      </label>
+
+      <label>
+        Value
+        <ValueInput keyValue={criteria.key} value={criteria.value} dispatch={setCriteria} />
+      </label>
+
+      <Button styling="filled" text="Add" icon={IconSet.ADD} onClick={add} />
+    </fieldset>
+  );
+});
+
+type Query = Map<string, Criteria>;
+type QueryDispatch = React.Dispatch<React.SetStateAction<Query>>;
+
+interface QueryEditorProps {
+  query: Query;
+  setQuery: QueryDispatch;
+}
+
+const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorProps) {
+  return (
+    <table>
+      <caption>Query Editor</caption>
+      <thead className="visually-hidden">
+        <tr>
+          <td></td>
+          <th id="col-key">Key</th>
+          <th id="col-operator">Operator</th>
+          <th id="col-value">Value</th>
+          <th id="col-remove">Remove</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from(query.entries(), ([id, query], index) => (
+          <EditableCriteria key={id} index={index} id={id} criteria={query} dispatch={setQuery} />
+        ))}
+      </tbody>
+    </table>
+  );
+});
+
+interface EditableCriteriaProps {
+  index: number;
+  id: ID;
+  criteria: Criteria;
+  dispatch: QueryDispatch;
+}
+
+// The main Criteria component, finds whatever input fields for the key should be rendered
+export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCriteriaProps) => {
+  const setCriteria = (fn: (criteria: Criteria) => Criteria) => {
+    const c = fn(criteria);
+    dispatch((query) => new Map(query.set(id, c)));
+  };
+
+  return (
+    <tr>
+      <th scope="row" id={id}>
+        {index + 1}
+      </th>
+      <td>
+        <KeySelector labelledby={`${id} col-key`} keyValue={criteria.key} dispatch={setCriteria} />
+      </td>
+      <td>
+        <OperatorSelector
+          labelledby={`${id} col-operator`}
+          keyValue={criteria.key}
+          value={criteria.operator}
+          dispatch={setCriteria}
+        />
+      </td>
+      <td>
+        <ValueInput
+          labelledby={`${id} col-value`}
+          keyValue={criteria.key}
+          value={criteria.value}
+          dispatch={setCriteria}
+        />
+      </td>
+      <td>
+        <button
+          aria-labelledby={`col-remove ${id}`}
+          type="button"
+          onClick={() =>
+            dispatch((form) => {
+              form.delete(id);
+              return new Map(form);
+            })
+          }
+        >
+          <span aria-hidden="true">{IconSet.DELETE}</span>
+          <span className="visually-hidden">Remove</span>
+        </button>
+      </td>
+    </tr>
+  );
+};
+
+const QueryMatch = observer(() => {
+  const { uiStore } = useStore();
+
+  return (
+    <RadioGroup name="Match">
+      <Radio
+        label="Any"
+        value="any"
+        checked={uiStore.searchMatchAny}
+        onChange={uiStore.toggleSearchMatchAny}
+      />
+      <Radio
+        label="All"
+        value="all"
+        checked={!uiStore.searchMatchAny}
+        onChange={uiStore.toggleSearchMatchAny}
+      />
+    </RadioGroup>
   );
 });

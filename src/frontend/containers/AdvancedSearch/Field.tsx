@@ -1,7 +1,6 @@
 import { action } from 'mobx';
-import React, { useState } from 'react';
+import React, { ForwardedRef, forwardRef, useState } from 'react';
 import { IMG_EXTENSIONS } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
 import {
   BinaryOperators,
   NumberOperators,
@@ -14,81 +13,35 @@ import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
-import { IconSet } from 'widgets';
-import { defaultQuery, Query, QueryKey, QueryOperator, QueryValue, TagValue } from './query';
+import { defaultQuery, Criteria, Key, Operator, Value, TagValue } from './query';
 
-type FormState = Map<string, Query>;
-type FormDispatch = React.Dispatch<React.SetStateAction<FormState>>;
-
-interface IFieldProps {
-  index: number;
-  id: ID;
-  query: Query;
-  dispatch: FormDispatch;
-}
-
-// The main Criteria component, finds whatever input fields for the key should be rendered
-export const Field = ({ index, id, query, dispatch }: IFieldProps) => (
-  <tr>
-    <th scope="row" id={id}>
-      {index + 1}
-    </th>
-    <td>
-      <KeySelector id={id} keyValue={query.key} dispatch={dispatch} />
-    </td>
-    <td>
-      <OperatorSelector id={id} keyValue={query.key} value={query.operator} dispatch={dispatch} />
-    </td>
-    <td>
-      <ValueInput id={id} keyValue={query.key} value={query.value} dispatch={dispatch} />
-    </td>
-    <td>
-      <button
-        aria-labelledby={`col-remove ${id}`}
-        type="button"
-        onClick={() =>
-          dispatch((form) => {
-            form.delete(id);
-            return new Map(form);
-          })
-        }
-      >
-        <span aria-hidden="true">{IconSet.DELETE}</span>
-        <span className="visually-hidden">Remove</span>
-      </button>
-    </td>
-  </tr>
-);
-
-export default Field;
+type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
 
 interface IKeySelector {
-  id: ID;
-  dispatch: FormDispatch;
-  keyValue: QueryKey;
+  labelledby?: string;
+  dispatch: SetCriteria;
+  keyValue: Key;
 }
 
-const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => {
+export const KeySelector = forwardRef(function KeySelector(
+  { labelledby, keyValue, dispatch }: IKeySelector,
+  ref: ForwardedRef<HTMLSelectElement>,
+) {
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const key = e.target.value as QueryKey;
-    dispatch((form) => {
-      let query = form.get(id);
-      if (query === undefined) {
-        return form;
-      }
+    const key = e.target.value as Key;
+    dispatch((criteria) => {
       // Keep the text value and operator when switching between name and path
-      if ([query.key, key].every((k) => ['name', 'absolutePath'].includes(k))) {
-        query.key = key;
+      if ([criteria.key, key].every((k) => ['name', 'absolutePath'].includes(k))) {
+        criteria.key = key;
+        return { ...criteria };
       } else {
-        query = defaultQuery(key);
+        return defaultQuery(key);
       }
-      form.set(id, query);
-      return new Map(form);
     });
   };
 
   return (
-    <select autoFocus aria-labelledby={`${id} col-key`} onChange={handleChange} value={keyValue}>
+    <select ref={ref} aria-labelledby={labelledby} onChange={handleChange} value={keyValue}>
       <option key="tags" value="tags">
         Tags
       </option>
@@ -109,93 +62,92 @@ const KeySelector = ({ id, keyValue, dispatch }: IKeySelector) => {
       </option>
     </select>
   );
-};
+});
 
 type FieldInput<V> = IKeySelector & { value: V };
 
-const OperatorSelector = ({ id, keyValue, value, dispatch }: FieldInput<QueryOperator>) => {
+export const OperatorSelector = ({
+  labelledby,
+  keyValue,
+  value,
+  dispatch,
+}: FieldInput<Operator>) => {
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const operator = e.target.value as QueryOperator;
-    dispatch((form) => {
-      const query = form.get(id);
-      if (query === undefined) {
-        return form;
-      }
-      query.operator = operator;
-      return new Map(form).set(id, query);
+    const operator = e.target.value as Operator;
+    dispatch((criteria) => {
+      criteria.operator = operator;
+      return { ...criteria };
     });
   };
 
   return (
-    <select aria-labelledby={`${id} col-operator`} onChange={handleChange} defaultValue={value}>
+    <select aria-labelledby={labelledby} onChange={handleChange} defaultValue={value}>
       {getOperatorOptions(keyValue)}
     </select>
   );
 };
 
-const ValueInput = ({ id, keyValue, value, dispatch }: FieldInput<QueryValue>) => {
+export const ValueInput = ({ labelledby, keyValue, value, dispatch }: FieldInput<Value>) => {
   if (keyValue === 'name' || keyValue === 'absolutePath') {
-    return <PathInput id={id} value={value as string} dispatch={dispatch} />;
+    return <PathInput labelledby={labelledby} value={value as string} dispatch={dispatch} />;
   } else if (keyValue === 'tags') {
-    return <TagInput id={id} value={value as TagValue} dispatch={dispatch} />;
+    return <TagInput labelledby={labelledby} value={value as TagValue} dispatch={dispatch} />;
   } else if (keyValue === 'extension') {
-    return <ExtensionInput id={id} value={value as string} dispatch={dispatch} />;
+    return <ExtensionInput labelledby={labelledby} value={value as string} dispatch={dispatch} />;
   } else if (keyValue === 'size') {
-    return <SizeInput id={id} value={value as number} dispatch={dispatch} />;
+    return <SizeInput labelledby={labelledby} value={value as number} dispatch={dispatch} />;
   } else if (keyValue === 'dateAdded') {
-    return <DateAddedInput id={id} value={value as Date} dispatch={dispatch} />;
+    return <DateAddedInput labelledby={labelledby} value={value as Date} dispatch={dispatch} />;
   }
   return <p>This should never happen.</p>;
 };
 
 type ValueInput<V> = Omit<FieldInput<V>, 'keyValue'>;
 
-const PathInput = ({ id, value, dispatch }: ValueInput<string>) => {
+const PathInput = ({ labelledby, value, dispatch }: ValueInput<string>) => {
   return (
     <input
-      aria-labelledby={`${id} col-value`}
+      aria-labelledby={labelledby}
       className="input"
       type="text"
-      placeholder="Enter some text..."
       defaultValue={value}
-      onBlur={(e) => dispatch(setValue(id, e.target.value))}
+      onBlur={(e) => dispatch(setValue(e.target.value))}
     />
   );
 };
 
-const TagInput = ({ id, value, dispatch }: ValueInput<TagValue>) => {
+const TagInput = ({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
   const { tagStore } = useStore();
   const [selection, setSelection] = useState(
     value?.id !== undefined ? tagStore.get(value.id) : undefined,
   );
 
   const handleSelect = action((t: ClientTag) => {
-    dispatch(setValue(id, { id: t.id, label: t.name }));
+    dispatch(setValue({ id: t.id, label: t.name }));
     setSelection(t);
   });
 
   const handleDeselect = () => {
-    dispatch(setValue(id, undefined));
+    dispatch(setValue(undefined));
     setSelection(undefined);
   };
 
   return (
     <TagSelector
-      labelledby={`${id} col-value`}
+      labelledby={labelledby}
       multiselectable={false}
       selection={selection ? [selection] : []}
       onSelect={handleSelect}
       onDeselect={handleDeselect}
       onClear={handleDeselect}
-      placeholder="Untagged"
     />
   );
 };
 
-const ExtensionInput = ({ id, value, dispatch }: ValueInput<string>) => (
+const ExtensionInput = ({ labelledby, value, dispatch }: ValueInput<string>) => (
   <select
-    aria-labelledby={`${id} col-value`}
-    onChange={(e) => dispatch(setValue(id, e.target.value))}
+    aria-labelledby={labelledby}
+    onChange={(e) => dispatch(setValue(e.target.value))}
     defaultValue={value}
   >
     {IMG_EXTENSIONS.map((ext) => (
@@ -206,37 +158,36 @@ const ExtensionInput = ({ id, value, dispatch }: ValueInput<string>) => (
   </select>
 );
 
-const SizeInput = ({ value, id, dispatch }: ValueInput<number>) => {
+const SizeInput = ({ value, labelledby, dispatch }: ValueInput<number>) => {
   return (
     <input
-      aria-labelledby={`${id} col-value`}
+      aria-labelledby={labelledby}
       className="input"
       type="number"
-      placeholder="Enter a file size..."
       defaultValue={value}
-      onChange={(e) => dispatch(setValue(id, e.target.valueAsNumber))}
+      onChange={(e) => dispatch(setValue(e.target.valueAsNumber))}
     />
   );
 };
 
-const DateAddedInput = ({ value, id, dispatch }: ValueInput<Date>) => {
+const DateAddedInput = ({ value, labelledby, dispatch }: ValueInput<Date>) => {
   return (
     <input
-      aria-labelledby={`${id} col-value`}
+      aria-labelledby={labelledby}
       className="input"
       type="date"
       max={new Date().toISOString().substr(0, 10)}
       defaultValue={value.toISOString().substr(0, 10)}
       onChange={(e) => {
         if (e.target.valueAsDate) {
-          dispatch(setValue(id, e.target.valueAsDate));
+          dispatch(setValue(e.target.valueAsDate));
         }
       }}
     />
   );
 };
 
-function getOperatorOptions(key: QueryKey) {
+function getOperatorOptions(key: Key) {
   if (key === 'dateAdded' || key === 'size') {
     return NumberOperators.map((op) => toOperatorOption(op, NumberOperatorSymbols));
   } else if (key === 'extension') {
@@ -265,14 +216,9 @@ const toOperatorOption = <T extends string>(o: T, labels?: Record<T, string>) =>
   </option>
 );
 
-function setValue(id: ID, value: QueryValue): (form: FormState) => FormState {
-  return (form: FormState) => {
-    const query = form.get(id);
-    if (query === undefined) {
-      return form;
-    }
-    query.value = value;
-    form.set(id, query);
-    return new Map(form);
+function setValue(value: Value): (criteria: Criteria) => Criteria {
+  return (criteria: Criteria): Criteria => {
+    criteria.value = value;
+    return { ...criteria };
   };
 }

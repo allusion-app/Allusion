@@ -17,28 +17,28 @@ import {
 } from 'src/entities/SearchCriteria';
 import TagStore from 'src/frontend/stores/TagStore';
 
-export type Query =
-  | IQuery<'name' | 'absolutePath', StringOperatorType, string>
-  | IQuery<'tags', TagOperatorType, TagValue>
-  | IQuery<'extension', BinaryOperatorType, string>
-  | IQuery<'size', NumberOperatorType, number>
-  | IQuery<'dateAdded', NumberOperatorType, Date>;
+export type Criteria =
+  | Field<'name' | 'absolutePath', StringOperatorType, string>
+  | Field<'tags', TagOperatorType, TagValue>
+  | Field<'extension', BinaryOperatorType, string>
+  | Field<'size', NumberOperatorType, number>
+  | Field<'dateAdded', NumberOperatorType, Date>;
 
-interface IQuery<K extends QueryKey, O extends QueryOperator, V extends QueryValue> {
+interface Field<K extends Key, O extends Operator, V extends Value> {
   key: K;
   operator: O;
   value: V;
 }
 
-export type QueryKey = keyof Pick<
+export type Key = keyof Pick<
   IFile,
   'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded'
 >;
-export type QueryOperator = OperatorType;
-export type QueryValue = string | number | Date | TagValue;
+export type Operator = OperatorType;
+export type Value = string | number | Date | TagValue;
 export type TagValue = { id?: ID; label: string } | undefined;
 
-export function defaultQuery(key: QueryKey): Query {
+export function defaultQuery(key: Key): Criteria {
   if (key === 'name' || key === 'absolutePath') {
     return { key, operator: 'contains', value: '' };
   } else if (key === 'tags') {
@@ -62,7 +62,7 @@ export function defaultQuery(key: QueryKey): Query {
 
 const BYTES_IN_MB = 1024 * 1024;
 
-export function fromCriteria(criteria: FileSearchCriteria): [ID, Query] {
+export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
   const query = defaultQuery('tags');
   if (
     criteria instanceof ClientStringSearchCriteria &&
@@ -84,7 +84,7 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Query] {
   return [generateId(), query];
 }
 
-export function intoCriteria(query: Query, tagStore: TagStore): FileSearchCriteria {
+export function intoCriteria(query: Criteria, tagStore: TagStore): FileSearchCriteria {
   if (query.key === 'name' || query.key === 'absolutePath' || query.key === 'extension') {
     return new ClientStringSearchCriteria(query.key, query.value, query.operator, CustomKeyDict);
   } else if (query.key === 'dateAdded') {

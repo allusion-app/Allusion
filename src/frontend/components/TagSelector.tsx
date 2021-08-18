@@ -19,7 +19,6 @@ export interface TagSelectorProps {
   labelledby?: string;
   disabled?: boolean;
   extraIconButtons?: ReactElement;
-  placeholder?: string;
   renderCreateOption?: (
     inputText: string,
     resetTextBox: () => void,
@@ -38,7 +37,6 @@ const TagSelector = (props: TagSelectorProps) => {
     labelledby,
     disabled,
     extraIconButtons,
-    placeholder,
     renderCreateOption,
   } = props;
   const gridId = useRef(generateId()).current;
@@ -141,7 +139,6 @@ const TagSelector = (props: TagSelectorProps) => {
                 aria-activedescendant={activeDescendant}
                 ref={inputRef}
                 onFocus={handleFocus}
-                placeholder={selection.length === 0 ? placeholder : undefined}
               />
             </div>
             {extraIconButtons}
