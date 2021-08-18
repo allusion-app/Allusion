@@ -1,14 +1,15 @@
-.dialog {
+dialog {
   background-color: var(--background-color);
   border: 0.0625rem solid var(--border-color);
   border-radius: 0.25rem;
   box-shadow: 3px 4px 6px 3px rgba(0, 0, 0, 0.2);
   color: var(--text-color);
   margin-top: 10vh;
-  padding: 0;
+  padding: 1rem 1rem 0.5rem;
   top: 0;
   bottom: 0;
-  z-index: 1;
+  min-width: min(45ch, 80vw);
+  max-width: min(80vw, 80ch);
 
   &[open] {
     @keyframes appear {
@@ -25,94 +26,85 @@
   }
 
   &[data-flyout],
-  &[data-tooltip],
   &[data-contextmenu] {
     animation: none;
     margin: 0;
   }
-
-  &[data-tooltip] {
-    opacity: unset;
-    pointer-events: none;
-    background: var(--accent-color-blue);
-    color: white;
-  }
 }
 
-.dialog-content {
-  display: grid;
-  grid-template:
-    'dialog-icon dialog-title dialog-close'
-    'dialog-information dialog-information dialog-information'
-    'dialog-footer dialog-footer dialog-footer';
-  grid-template-columns: min-content 1fr min-content;
-  grid-template-rows: min-content 1fr min-content;
-  max-height: 80vh;
-  padding: 1rem 1rem 0.5rem;
-  row-gap: 0.5rem;
-  width: 85ch;
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
 
-  > .btn-icon {
-    grid-area: dialog-close;
-    min-height: 1.25rem;
-    min-width: 1.25rem;
-
-    .custom-icon {
-      height: 0.75rem;
-      width: 0.75rem;
-    }
-  }
-}
-
-[role='alertdialog'] .btn-filled:not(:hover) {
-  background-color: var(--accent-color-red);
-}
-
-.dialog[role='alertdialog'] {
-  > .dialog-content {
-    grid-template: 'dialog-icon dialog-title' 'dialog-icon dialog-information' 'dialog-footer dialog-footer';
-  }
-
-  .dialog-icon > .custom-icon {
-    margin: 0;
-    margin-right: 0.5rem;
-    height: 2.5rem;
-    width: 2.5rem;
-  }
-}
-
-.dialog-icon {
-  color: var(--accent-color-blue);
-  grid-area: dialog-icon;
-
-  > .custom-icon {
+  > :first-child {
     margin-right: 0.5rem;
   }
 }
 
 .dialog-title {
-  color: var(--accent-color-blue);
   font-size: medium;
   font-weight: 700;
-  grid-area: dialog-title;
-  margin: 0;
+  flex-grow: 1;
 }
 
-.dialog-information {
-  grid-area: dialog-information;
-  overflow: hidden auto;
-}
-
-.dialog-footer {
-  grid-area: dialog-footer;
+.dialog-close {
+  flex-shrink: 0;
+  height: 1.25rem;
+  width: 1.25rem;
+  background-image: url(~resources/icons/close.svg);
+  background-size: 0.75rem;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 .dialog-actions {
-  grid-area: dialog-actions;
+  display: flex;
   justify-content: flex-end;
 
   .btn {
+    margin-inline-start: 0.5rem;
     min-width: 100px;
+
+    &:first-child {
+      margin-inline-start: 0;
+    }
+  }
+}
+
+dialog[role='alertdialog'] {
+  .alert-content {
+    display: grid;
+    grid-template: 'alert-icon dialog-title' 'alert-icon alert-message' 'dialog-actions dialog-actions';
+    grid-template-columns: min-content 1fr;
+    max-height: 80vh;
+    gap: 0.5rem;
+  }
+
+  .alert-icon {
+    grid-area: alert-icon;
+
+    > .custom-icon {
+      width: max(40px, 5rem);
+      height: auto;
+    }
+  }
+
+  .dialog-title {
+    grid-area: dialog-title;
+  }
+
+  .alert-message {
+    grid-area: alert-message;
+    overflow: hidden auto;
+  }
+
+  .dialog-actions {
+    grid-area: dialog-actions;
+  }
+
+  .btn-filled:not(:hover) {
+    background-color: var(--accent-color-red);
   }
 }
 

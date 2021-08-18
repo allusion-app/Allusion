@@ -146,43 +146,57 @@ const RecoveryActions = observer(
     const { uiStore } = useStore();
 
     switch (status) {
-      case Status.Ok:
-        return (
-          <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
-          </div>
-        );
-
       case Status.InvalidPath:
         return (
-          <div className="btn-group dialog-actions">
-            <Button styling="filled" onClick={locate} text="Locate" />
+          <>
+            <Button key="locate" styling="filled" onClick={locate} text="Locate" />
             {/* Re-scan option, e.g. for when you mount a drive */}
-            <Button styling="outlined" onClick={rescan} text="Re-Scan" />
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Cancel" />
-          </div>
+            <Button key="rescan" styling="outlined" onClick={rescan} text="Re-Scan" />
+            <Button
+              key="cancel"
+              styling="outlined"
+              onClick={uiStore.closeLocationRecovery}
+              text="Cancel"
+            />
+          </>
         );
 
       case Status.NoMatches:
         return (
-          <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={retry} text="Retry" />
-          </div>
+          <>
+            <Button key="retry" styling="outlined" onClick={retry} text="Retry" />
+            <Button
+              key="cancel"
+              styling="filled"
+              onClick={uiStore.closeLocationRecovery}
+              text="Cancel"
+            />
+          </>
         );
 
       case Status.PartialRecovery:
         return (
-          <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={retry} text="Retry" />
-            <Button styling="outlined" onClick={save} text="Recover" />
-          </div>
+          <>
+            <Button key="retry" styling="outlined" onClick={retry} text="Retry" />
+            <Button key="recover" styling="outlined" onClick={save} text="Recover" />
+            <Button
+              key="cancel"
+              styling="filled"
+              onClick={uiStore.closeLocationRecovery}
+              text="Cancel"
+            />
+          </>
         );
 
+      case Status.Ok:
       default:
         return (
-          <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
-          </div>
+          <Button
+            key="close"
+            styling="filled"
+            onClick={uiStore.closeLocationRecovery}
+            text="Close"
+          />
         );
     }
   },
@@ -246,23 +260,26 @@ const LocationRecoveryDialog = () => {
   };
 
   return (
-    <Dialog open={Boolean(location)} labelledby="dialog-title" describedby="dialog-information">
-      <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
-      <h2 id="dialog-title" className="dialog-title">
-        Location &quot;{location.name}&quot; could not be found
-      </h2>
+    <Dialog
+      open={Boolean(location)}
+      title={`Location "${location.name}" could not be found`}
+      icon={IconSet.FOLDER_CLOSE}
+      describedby="dialog-information"
+    >
       <div id="dialog-information" className="dialog-information">
         <RecoveryInfo location={location} status={status} match={match} />
       </div>
-      <div className="dialog-footer">
+      <div className="dialog-actions">
         <RecoveryActions
           status={status}
           locate={handleLocate}
           rescan={handleRescan}
           retry={() => setMatch(undefined)}
           save={() => {
-            handleChangeLocationPath(location, pickedDir!);
-            uiStore.closeLocationRecovery();
+            if (pickedDir) {
+              handleChangeLocationPath(location, pickedDir!);
+              uiStore.closeLocationRecovery();
+            }
           }}
         />
       </div>

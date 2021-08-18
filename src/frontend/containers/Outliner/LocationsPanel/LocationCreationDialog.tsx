@@ -160,11 +160,12 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
   }, [location]);
 
   return (
-    <Dialog open={Boolean(location)} labelledby="dialog-title" describedby="dialog-information">
-      <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
-      <h2 id="dialog-title" className="dialog-title">
-        Configure Location &quot;{location.name}&quot;
-      </h2>
+    <Dialog
+      open={Boolean(location)}
+      title={`Configure Location "${location.name}"`}
+      icon={IconSet.FOLDER_CLOSE}
+      describedby="dialog-information"
+    >
       <div id="dialog-information" className="dialog-information">
         {/* TODO: Switch for importing folder structure as tags */}
         {/* <p>Would you like to create tags from the folder structure of this Location?</p>
@@ -186,11 +187,9 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
           )}
         </div>
       </div>
-      <div className="dialog-footer">
-        <div className="btn-group dialog-actions">
-          <Button styling="filled" onClick={handleSubmit} text="Confirm" />
-          <Button styling="outlined" onClick={handleCancel} text="Cancel" />
-        </div>
+      <div className="dialog-actions">
+        <Button styling="filled" onClick={handleSubmit} text="Confirm" />
+        <Button styling="outlined" onClick={handleCancel} text="Cancel" />
       </div>
     </Dialog>
   );

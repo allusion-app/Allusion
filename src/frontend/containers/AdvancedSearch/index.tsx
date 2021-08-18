@@ -7,45 +7,20 @@ import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet, RadioGroup, Radio } from 'widgets';
 import Field from './Field';
 import { Query, defaultQuery, fromCriteria, intoCriteria } from './query';
+import { Dialog } from 'widgets/popovers';
 
 export const AdvancedSearchDialog = observer(() => {
-  const dialog = useRef<HTMLDialogElement>(null);
   const { uiStore } = useStore();
 
-  useEffect(() => {
-    const element = dialog.current;
-    if (element === null) {
-      return;
-    }
-
-    element.addEventListener('cancel', uiStore.closeAdvancedSearch);
-    element.addEventListener('close', uiStore.closeAdvancedSearch);
-
-    const dispose = autorun(() => {
-      if (uiStore.isAdvancedSearchOpen) {
-        element.showModal();
-      } else {
-        element.close();
-      }
-    });
-
-    return () => {
-      element.removeEventListener('cancel', uiStore.closeAdvancedSearch);
-      element.removeEventListener('close', uiStore.closeAdvancedSearch);
-      dispose();
-    };
-  }, [uiStore]);
-
   return (
-    <dialog ref={dialog} open={uiStore.isAdvancedSearchOpen} aria-labelledby="query-builder-label">
-      <span aria-hidden="true">{IconSet.SEARCH_EXTENDED}</span>
-      <span className="dialog-title">Advanced Search</span>
-      <button onClick={uiStore.closeAdvancedSearch} aria-keyshortcuts="Esc">
-        <span aria-hidden>{IconSet.CLOSE}</span>
-        <span className="visually-hidden">Close</span>
-      </button>
+    <Dialog
+      open={uiStore.isAdvancedSearchOpen}
+      title="Advanced Search"
+      icon={IconSet.SEARCH_EXTENDED}
+      onClose={uiStore.closeAdvancedSearch}
+    >
       <SearchForm />
-    </dialog>
+    </Dialog>
   );
 });
 
@@ -87,6 +62,7 @@ const SearchForm = observer(() => {
         <legend>Criteria Builder</legend>
         TODO
         <button type="button" onClick={add}>
+          <span aria-hidden="true">{IconSet.ADD}</span>
           Add
         </button>
       </fieldset>
@@ -123,14 +99,16 @@ const SearchForm = observer(() => {
         />
       </RadioGroup>
 
-      <button type="reset" onClick={reset}>
-        <span aria-hidden="true">{IconSet.CLOSE}</span>
-        Reset
-      </button>
-      <button type="submit">
-        <span aria-hidden="true">{IconSet.SEARCH}</span>
-        Search
-      </button>
+      <div className="dialog-actions">
+        <button className="btn" type="reset" onClick={reset}>
+          <span aria-hidden="true">{IconSet.CLOSE}</span>
+          Reset
+        </button>
+        <button className="btn" type="submit">
+          <span aria-hidden="true">{IconSet.SEARCH}</span>
+          Search
+        </button>
+      </div>
     </form>
   );
 });

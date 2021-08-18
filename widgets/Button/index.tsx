@@ -71,7 +71,7 @@ const IconButton = ({ text, icon, onClick, disabled, className }: IIconButton) =
       <span className="btn-content-icon" aria-hidden="true">
         {icon}
       </span>
-      <span className="btn-content-text hidden">{text}</span>
+      <span className="visually-hidden">{text}</span>
     </button>
   );
 };

@@ -3,40 +3,94 @@ import React, { useEffect, useRef } from 'react';
 import { Button } from 'widgets';
 import { Intent } from 'widgets/Button';
 
-export interface IDialog {
+export interface DialogProps {
   open: boolean;
-  role?: string;
-  label?: string;
-  labelledby?: string;
+  title: string;
+  icon: JSX.Element;
   describedby?: string;
   children: React.ReactNode;
-  onClose?: (event: Event) => void;
-  /** If no event listener is provided for the cancel event, by default closing
+  /** If no event listener is provided for the close event, by default closing
    *  with the Escape key will be disabled. This is to ensure that no error is
-   * thrown when HTMLDialogElement.showModal() is called.  */
-  onCancel?: (event: Event) => void;
+   * thrown when HTMLDialogElement.showModal() is called.
+   *
+   * The cancel event is not provided because the close event is also called on cancel.
+   */
+  onClose?: () => void;
 }
 
-export const Dialog = (props: IDialog) => {
-  const { open, role, label, labelledby, describedby, onClose, onCancel, children } = props;
+export const Dialog = (props: DialogProps) => {
+  const { open, title, icon, describedby, onClose, children } = props;
 
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const element = dialog.current;
-    if (onClose) {
-      element?.addEventListener('close', onClose);
+    if (element === null) {
+      return;
     }
-    const cancel = onCancel ?? ((e: Event) => e.preventDefault());
-    element?.addEventListener('cancel', cancel);
+
+    if (onClose !== undefined) {
+      element.addEventListener('close', onClose);
+    }
+    const cancel = onClose ?? ((e: Event) => e.preventDefault());
+    element.addEventListener('cancel', cancel);
 
     return () => {
-      if (onClose) {
-        element?.removeEventListener('close', onClose);
+      if (onClose !== undefined) {
+        element.removeEventListener('close', onClose);
       }
-      element?.removeEventListener('close', cancel);
+      element.removeEventListener('cancel', cancel);
     };
-  }, [onClose, onCancel]);
+  }, [onClose]);
+
+  useEffect(() => {
+    if (dialog.current) {
+      open ? dialog.current.showModal() : dialog.current.close();
+    }
+  }, [open]);
+
+  return (
+    <dialog ref={dialog} aria-labelledby="dialog-title" aria-describedby={describedby}>
+      <div className="dialog-header">
+        <span aria-hidden="true">{icon}</span>
+        <span id="dialog-title" className="dialog-title">
+          {title}
+        </span>
+        {onClose !== undefined ? (
+          <button aria-keyshortcuts="Esc" className="btn dialog-close" onClick={onClose}>
+            <span className="visually-hidden">Close</span>
+          </button>
+        ) : undefined}
+      </div>
+      {children}
+    </dialog>
+  );
+};
+
+export interface AlertProps extends AlertActionsProps {
+  open: boolean;
+  title: React.ReactChild;
+  icon?: JSX.Element;
+  children: React.ReactNode;
+}
+
+export const Alert = (props: AlertProps) => {
+  const { open, onClick, title, children, icon } = props;
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const element = dialog.current;
+    if (element === null) {
+      return;
+    }
+
+    const cancel = (e: Event) => e.preventDefault();
+    element.addEventListener('cancel', cancel);
+
+    return () => {
+      element.removeEventListener('cancel', cancel);
+    };
+  }, []);
 
   useEffect(() => {
     if (dialog.current) {
@@ -47,45 +101,19 @@ export const Dialog = (props: IDialog) => {
   return (
     <dialog
       ref={dialog}
-      role={role}
-      aria-label={label}
-      aria-labelledby={labelledby}
-      aria-describedby={describedby}
-      className="dialog"
-    >
-      <div className="dialog-content">{children}</div>
-    </dialog>
-  );
-};
-
-export interface IAlert extends IDialogActions {
-  open: boolean;
-  title: React.ReactChild;
-  icon?: JSX.Element;
-  information: string;
-  view?: React.ReactNode;
-}
-
-export const Alert = (props: IAlert) => {
-  const { open, onClick, title, information, view, icon } = props;
-
-  return (
-    <Dialog
-      open={open}
       role="alertdialog"
-      labelledby="dialog-title"
-      describedby="dialog-information"
+      aria-labelledby="alert-title"
+      aria-describedby="alert-message"
     >
-      <span className="dialog-icon">{icon}</span>
-      <h2 id="dialog-title" className="dialog-title">
-        {title}
-      </h2>
-      <div id="dialog-information" className="dialog-information">
-        <p>{information}</p>
-        {view}
-      </div>
-      <div className="dialog-footer">
-        <DialogActions
+      <div className="alert-content">
+        <span className="alert-icon">{icon}</span>
+        <span id="alert-title" className="dialog-title">
+          {title}
+        </span>
+        <div id="alert-message" className="alert-message">
+          {children}
+        </div>
+        <AlertActions
           closeButtonText={props.closeButtonText}
           secondaryButtonText={props.secondaryButtonText}
           primaryButtonText={props.primaryButtonText}
@@ -95,7 +123,7 @@ export const Alert = (props: IAlert) => {
           secondaryButtonIntent={props.secondaryButtonIntent}
         />
       </div>
-    </Dialog>
+    </dialog>
   );
 };
 
@@ -105,9 +133,12 @@ export enum DialogButton {
   SecondaryButton,
 }
 
-export interface IDialogActions {
+export interface AlertActionsProps {
   onClick: (button: DialogButton) => void;
-  closeButtonText: string;
+  /**
+   * @default Cancel
+   */
+  closeButtonText?: string;
   primaryButtonText?: string;
   secondaryButtonText?: string;
   defaultButton?: DialogButton;
@@ -115,30 +146,48 @@ export interface IDialogActions {
   secondaryButtonIntent?: Intent;
 }
 
-export const DialogActions = (props: IDialogActions) => {
-  return (
-    <div className="btn-group dialog-actions">
-      {props.primaryButtonText ? (
-        <Button
-          styling={props.defaultButton === DialogButton.PrimaryButton ? 'filled' : 'outlined'}
-          text={props.primaryButtonText}
-          intent={props.primaryButtonIntent}
-          onClick={() => props.onClick(DialogButton.PrimaryButton)}
-        />
-      ) : undefined}
-      {props.secondaryButtonText ? (
-        <Button
-          styling={props.defaultButton === DialogButton.SecondaryButton ? 'filled' : 'outlined'}
-          text={props.secondaryButtonText}
-          intent={props.secondaryButtonIntent}
-          onClick={() => props.onClick(DialogButton.SecondaryButton)}
-        />
-      ) : undefined}
+const AlertActions = (props: AlertActionsProps) => {
+  const {
+    onClick,
+    closeButtonText = 'Cancel',
+    primaryButtonText,
+    secondaryButtonText,
+    defaultButton,
+    primaryButtonIntent,
+    secondaryButtonIntent,
+  } = props;
+
+  const buttons = [];
+  if (primaryButtonText !== undefined) {
+    buttons.push(
       <Button
-        styling={props.defaultButton === DialogButton.CloseButton ? 'filled' : 'outlined'}
-        text={props.closeButtonText}
-        onClick={() => props.onClick(DialogButton.CloseButton)}
-      />
-    </div>
+        key="primary"
+        styling={defaultButton === DialogButton.PrimaryButton ? 'filled' : 'outlined'}
+        text={primaryButtonText}
+        intent={primaryButtonIntent}
+        onClick={() => onClick(DialogButton.PrimaryButton)}
+      />,
+    );
+  }
+  if (secondaryButtonText !== undefined) {
+    buttons.push(
+      <Button
+        key="secondary"
+        styling={defaultButton === DialogButton.SecondaryButton ? 'filled' : 'outlined'}
+        text={secondaryButtonText}
+        intent={secondaryButtonIntent}
+        onClick={() => onClick(DialogButton.SecondaryButton)}
+      />,
+    );
+  }
+  buttons.push(
+    <Button
+      key="close"
+      styling={defaultButton === DialogButton.CloseButton ? 'filled' : 'outlined'}
+      text={closeButtonText ?? 'Cancel'}
+      onClick={() => onClick(DialogButton.CloseButton)}
+    />,
   );
+
+  return <div className="dialog-actions">{buttons}</div>;
 };
