@@ -8,7 +8,7 @@ dialog {
   padding: 1rem 1rem 0.5rem;
   top: 0;
   bottom: 0;
-  min-width: min(45ch, 80vw);
+  min-width: min(50ch, 80vw);
   max-width: min(80vw, 80ch);
 
   &[open] {
@@ -48,14 +48,19 @@ dialog {
   flex-grow: 1;
 }
 
+.dialog-icon {
+  flex-shrink: 0;
+}
+
 .dialog-close {
   flex-shrink: 0;
-  height: 1.25rem;
-  width: 1.25rem;
-  background-image: url(~resources/icons/close.svg);
-  background-size: 0.75rem;
-  background-position: center center;
-  background-repeat: no-repeat;
+  height: 1.5rem;
+  width: 1.5rem;
+
+  .custom-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
 }
 
 .dialog-actions {
@@ -75,14 +80,14 @@ dialog {
 dialog[role='alertdialog'] {
   .alert-content {
     display: grid;
-    grid-template: 'alert-icon dialog-title' 'alert-icon alert-message' 'dialog-actions dialog-actions';
+    grid-template: 'dialog-icon dialog-title' 'dialog-icon alert-message' 'dialog-actions dialog-actions';
     grid-template-columns: min-content 1fr;
     max-height: 80vh;
     gap: 0.5rem;
   }
 
-  .alert-icon {
-    grid-area: alert-icon;
+  .dialog-icon {
+    grid-area: dialog-icon;
 
     > .custom-icon {
       width: max(40px, 5rem);

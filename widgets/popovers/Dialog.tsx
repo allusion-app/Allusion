@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { IconSet } from 'widgets/Icons';
 
 export interface DialogProps {
   open: boolean;
@@ -23,17 +24,12 @@ export const Dialog = (props: DialogProps) => {
       return;
     }
 
-    if (onClose !== undefined) {
-      element.addEventListener('close', onClose);
-    }
-    const cancel = onClose ?? ((e: Event) => e.preventDefault());
-    element.addEventListener('cancel', cancel);
+    element.addEventListener('close', onClose);
+    element.addEventListener('cancel', onClose);
 
     return () => {
-      if (onClose !== undefined) {
-        element.removeEventListener('close', onClose);
-      }
-      element.removeEventListener('cancel', cancel);
+      element.removeEventListener('close', onClose);
+      element.removeEventListener('cancel', onClose);
     };
   }, [onClose]);
 
@@ -46,15 +42,16 @@ export const Dialog = (props: DialogProps) => {
   return (
     <dialog ref={dialog} aria-labelledby="dialog-title" aria-describedby={describedby}>
       <div className="dialog-header">
-        <span aria-hidden="true">{icon}</span>
+        <span aria-hidden="true" className="dialog-icon">
+          {icon}
+        </span>
         <span id="dialog-title" className="dialog-title">
           {title}
         </span>
-        {onClose !== undefined ? (
-          <button aria-keyshortcuts="Esc" className="btn dialog-close" onClick={onClose}>
-            <span className="visually-hidden">Close</span>
-          </button>
-        ) : undefined}
+        <button aria-keyshortcuts="Esc" className="btn btn-icon dialog-close" onClick={onClose}>
+          <span aria-hidden="true">{IconSet.CLOSE}</span>
+          <span className="visually-hidden">Close</span>
+        </button>
       </div>
       {children}
     </dialog>

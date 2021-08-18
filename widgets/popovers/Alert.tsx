@@ -41,7 +41,7 @@ export const Alert = (props: AlertProps) => {
       aria-describedby="alert-message"
     >
       <div className="alert-content">
-        <span className="alert-icon">{icon}</span>
+        <span className="dialog-icon">{icon}</span>
         <span id="alert-title" className="dialog-title">
           {title}
         </span>
