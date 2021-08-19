@@ -28,9 +28,10 @@ const Radio = (props: IRadio) => {
 interface IRadioGroup {
   name: string;
   children: React.ReactElement<IRadio>[];
+  orientation?: 'horizontal' | 'vertical';
 }
 
-const RadioGroup = ({ name, children }: IRadioGroup) => {
+const RadioGroup = ({ name, orientation = 'vertical', children }: IRadioGroup) => {
   const group = useRef<HTMLFieldSetElement>(null);
   useEffect(() => {
     if (group.current) {
@@ -40,7 +41,7 @@ const RadioGroup = ({ name, children }: IRadioGroup) => {
   }, [name, children.length]);
 
   return (
-    <fieldset ref={group} role="radiogroup">
+    <fieldset ref={group} role="radiogroup" aria-orientation={orientation}>
       <legend>{name}</legend>
       {children}
     </fieldset>

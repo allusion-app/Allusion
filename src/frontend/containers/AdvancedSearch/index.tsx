@@ -46,7 +46,7 @@ export const AdvancedSearchDialog = observer(() => {
       icon={IconSet.SEARCH_EXTENDED}
       onCancel={uiStore.closeAdvancedSearch}
     >
-      <form role="search" method="dialog" onSubmit={(e) => e.preventDefault()}>
+      <form id="search-form" role="search" method="dialog" onSubmit={(e) => e.preventDefault()}>
         <CriteriaBuilder keySelector={keySelector} dispatch={setQuery} />
 
         <QueryEditor query={query} setQuery={setQuery} />
@@ -81,26 +81,35 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
   return (
     <fieldset>
       <legend>Criteria Builder</legend>
-      <label>
-        Key
-        <KeySelector ref={keySelector} keyValue={criteria.key} dispatch={setCriteria} />
-      </label>
+      <div id="criteria-builder">
+        <label id="builder-key">Key</label>
+        <label id="builder-operator">Operator</label>
+        <label id="builder-value">Value</label>
+        <span></span>
 
-      <label>
-        Operator
+        <KeySelector
+          labelledby="builder-key"
+          ref={keySelector}
+          keyValue={criteria.key}
+          dispatch={setCriteria}
+        />
         <OperatorSelector
+          labelledby="builder-operator"
           keyValue={criteria.key}
           value={criteria.operator}
           dispatch={setCriteria}
         />
-      </label>
-
-      <label>
-        Value
-        <ValueInput keyValue={criteria.key} value={criteria.value} dispatch={setCriteria} />
-      </label>
-
-      <Button styling="filled" text="Add" icon={IconSet.ADD} onClick={add} />
+        <ValueInput
+          labelledby="builder-value"
+          keyValue={criteria.key}
+          value={criteria.value}
+          dispatch={setCriteria}
+        />
+        <button className="btn btn-icon" type="button" onClick={add}>
+          <span aria-hidden="true">{IconSet.ADD}</span>
+          <span className="visually-hidden">Add</span>
+        </button>
+      </div>
     </fieldset>
   );
 });
@@ -115,23 +124,25 @@ interface QueryEditorProps {
 
 const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorProps) {
   return (
-    <table>
-      <caption>Query Editor</caption>
-      <thead className="visually-hidden">
-        <tr>
-          <td></td>
-          <th id="col-key">Key</th>
-          <th id="col-operator">Operator</th>
-          <th id="col-value">Value</th>
-          <th id="col-remove">Remove</th>
-        </tr>
-      </thead>
-      <tbody>
-        {Array.from(query.entries(), ([id, query], index) => (
-          <EditableCriteria key={id} index={index} id={id} criteria={query} dispatch={setQuery} />
-        ))}
-      </tbody>
-    </table>
+    <fieldset>
+      <legend>Query Editor</legend>
+      <table id="query-editor">
+        <thead className="visually-hidden">
+          <tr>
+            <td></td>
+            <th id="col-key">Key</th>
+            <th id="col-operator">Operator</th>
+            <th id="col-value">Value</th>
+            <th id="col-remove">Remove</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from(query.entries(), ([id, query], index) => (
+            <EditableCriteria key={id} index={index} id={id} criteria={query} dispatch={setQuery} />
+          ))}
+        </tbody>
+      </table>
+    </fieldset>
   );
 });
 
@@ -175,6 +186,7 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
       </td>
       <td>
         <button
+          className="btn btn-icon"
           aria-labelledby={`col-remove ${id}`}
           type="button"
           onClick={() =>
@@ -196,7 +208,7 @@ const QueryMatch = observer(() => {
   const { uiStore } = useStore();
 
   return (
-    <RadioGroup name="Match">
+    <RadioGroup name="Match" orientation="horizontal">
       <Radio
         label="Any"
         value="any"

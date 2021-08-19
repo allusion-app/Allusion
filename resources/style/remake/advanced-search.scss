@@ -1,0 +1,38 @@
+#search-form {
+  .criteria-input,
+  [role='combobox'] {
+    min-width: 175px;
+  }
+}
+
+#criteria-builder {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr min-content;
+  gap: 0.25rem 0.5rem;
+  align-items: center;
+
+  label {
+    text-transform: uppercase;
+    font-size: smaller;
+  }
+}
+
+#query-editor {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.25rem;
+
+  td,
+  th {
+    padding: 0;
+  }
+
+  td {
+    padding-inline-start: 0.5rem;
+  }
+
+  .criteria-input,
+  [role='combobox'] {
+    width: 100%;
+  }
+}

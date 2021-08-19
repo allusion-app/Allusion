@@ -16,8 +16,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 22px;
-  min-width: 22px;
+  min-height: 24px;
+  min-width: 24px;
   padding: 0;
   margin: 0;
   color: var(--text-color);
@@ -90,6 +90,8 @@
 
 .btn-icon {
   color: currentColor;
+  height: fit-content;
+  width: fit-content;
 }
 
 .btn-content-icon,

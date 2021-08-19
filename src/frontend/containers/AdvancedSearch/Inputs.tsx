@@ -18,7 +18,7 @@ import { defaultQuery, Criteria, Key, Operator, Value, TagValue } from './data';
 type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
 
 interface IKeySelector {
-  labelledby?: string;
+  labelledby: string;
   dispatch: SetCriteria;
   keyValue: Key;
 }
@@ -41,7 +41,13 @@ export const KeySelector = forwardRef(function KeySelector(
   };
 
   return (
-    <select ref={ref} aria-labelledby={labelledby} onChange={handleChange} value={keyValue}>
+    <select
+      className="criteria-input"
+      ref={ref}
+      aria-labelledby={labelledby}
+      onChange={handleChange}
+      value={keyValue}
+    >
       <option key="tags" value="tags">
         Tags
       </option>
@@ -81,7 +87,12 @@ export const OperatorSelector = ({
   };
 
   return (
-    <select aria-labelledby={labelledby} onChange={handleChange} defaultValue={value}>
+    <select
+      className="criteria-input"
+      aria-labelledby={labelledby}
+      onChange={handleChange}
+      defaultValue={value}
+    >
       {getOperatorOptions(keyValue)}
     </select>
   );
@@ -108,7 +119,7 @@ const PathInput = ({ labelledby, value, dispatch }: ValueInput<string>) => {
   return (
     <input
       aria-labelledby={labelledby}
-      className="input"
+      className="input criteria-input"
       type="text"
       defaultValue={value}
       onBlur={(e) => dispatch(setValue(e.target.value))}
@@ -146,6 +157,7 @@ const TagInput = ({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
 
 const ExtensionInput = ({ labelledby, value, dispatch }: ValueInput<string>) => (
   <select
+    className="criteria-input"
     aria-labelledby={labelledby}
     onChange={(e) => dispatch(setValue(e.target.value))}
     defaultValue={value}
@@ -162,7 +174,7 @@ const SizeInput = ({ value, labelledby, dispatch }: ValueInput<number>) => {
   return (
     <input
       aria-labelledby={labelledby}
-      className="input"
+      className="input criteria-input"
       type="number"
       defaultValue={value}
       onChange={(e) => dispatch(setValue(e.target.valueAsNumber))}
@@ -174,7 +186,7 @@ const DateAddedInput = ({ value, labelledby, dispatch }: ValueInput<Date>) => {
   return (
     <input
       aria-labelledby={labelledby}
-      className="input"
+      className="input criteria-input"
       type="date"
       max={new Date().toISOString().substr(0, 10)}
       defaultValue={value.toISOString().substr(0, 10)}
