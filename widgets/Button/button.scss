@@ -21,7 +21,6 @@
   padding: 0;
   margin: 0;
   color: var(--text-color);
-  background: transparent;
   border: none;
   outline: none;
   border-radius: 0.25rem;
@@ -66,6 +65,10 @@
 }
 .btn-danger {
   --intent-color: var(--accent-color-red);
+}
+
+.btn-minimal {
+  background-color: transparent;
 }
 
 .btn-filled {
