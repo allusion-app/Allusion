@@ -1,16 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 import { Button } from 'widgets';
-import { Intent } from 'widgets/Button';
+import { Intent } from 'widgets/utility';
 
 export interface AlertProps extends AlertActionsProps {
   open: boolean;
   title: React.ReactChild;
   icon?: JSX.Element;
+  type?: Intent;
   children: React.ReactNode;
 }
 
 export const Alert = (props: AlertProps) => {
-  const { open, onClick, title, children, icon } = props;
+  const { open, onClick, title, children, icon, type } = props;
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export const Alert = (props: AlertProps) => {
       role="alertdialog"
       aria-labelledby="alert-title"
       aria-describedby="alert-message"
+      data-message-intent={type}
     >
       <div className="alert-content">
         <span className="dialog-icon">{icon}</span>
@@ -54,8 +56,6 @@ export const Alert = (props: AlertProps) => {
           primaryButtonText={props.primaryButtonText}
           defaultButton={props.defaultButton}
           onClick={onClick}
-          primaryButtonIntent={props.primaryButtonIntent}
-          secondaryButtonIntent={props.secondaryButtonIntent}
         />
       </div>
     </dialog>
@@ -77,8 +77,6 @@ export interface AlertActionsProps {
   primaryButtonText?: string;
   secondaryButtonText?: string;
   defaultButton?: DialogButton;
-  primaryButtonIntent?: Intent;
-  secondaryButtonIntent?: Intent;
 }
 
 const AlertActions = (props: AlertActionsProps) => {
@@ -88,8 +86,6 @@ const AlertActions = (props: AlertActionsProps) => {
     primaryButtonText,
     secondaryButtonText,
     defaultButton,
-    primaryButtonIntent,
-    secondaryButtonIntent,
   } = props;
 
   const buttons = [];
@@ -99,7 +95,6 @@ const AlertActions = (props: AlertActionsProps) => {
         key="primary"
         styling={defaultButton === DialogButton.PrimaryButton ? 'filled' : 'outlined'}
         text={primaryButtonText}
-        intent={primaryButtonIntent}
         onClick={() => onClick(DialogButton.PrimaryButton)}
       />,
     );
@@ -110,7 +105,6 @@ const AlertActions = (props: AlertActionsProps) => {
         key="secondary"
         styling={defaultButton === DialogButton.SecondaryButton ? 'filled' : 'outlined'}
         text={secondaryButtonText}
-        intent={secondaryButtonIntent}
         onClick={() => onClick(DialogButton.SecondaryButton)}
       />,
     );

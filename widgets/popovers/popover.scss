@@ -107,10 +107,6 @@ dialog[role='alertdialog'] {
   .dialog-actions {
     grid-area: dialog-actions;
   }
-
-  .btn-filled:not(:hover) {
-    background-color: var(--accent-color-red);
-  }
 }
 
 // DIALOG UNTIL HERE

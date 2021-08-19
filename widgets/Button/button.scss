@@ -1,6 +1,5 @@
 .btn-group {
   display: flex;
-  justify-content: center;
 
   .btn {
     margin-inline-start: 0.5rem;
@@ -21,22 +20,22 @@
   padding: 0;
   margin: 0;
   color: var(--text-color);
+  background: transparent;
   border: none;
   outline: none;
   border-radius: 0.25rem;
 
-  --intent-color: var(--accent-color-blue);
-
-  &:focus {
-    color: var(--text-color-strong);
-  }
   &:hover {
     color: var(--text-color-strong);
-    filter: brightness(90%);
+    background: var(--hover-color);
+  }
+  &:focus {
+    color: var(--text-color-strong);
+    background: var(--hover-color);
   }
   &:active {
     color: var(--text-color-strong);
-    filter: brightness(80%);
+    background: var(--hover-color-alt);
   }
   &[aria-checked='true'] {
     color: var(--text-color-strong);
@@ -52,33 +51,26 @@
   }
 }
 
-.btn-info {
-  --intent-color: var(--accent-color-blue);
-}
-.btn-success {
-  --intent-color: var(--accent-color-green);
-}
-.btn-warning {
-  --intent-color: var(--accent-color-yellow);
-  --text-color: rgb(64, 64, 64); // it's too yellow, needs light theme text color
-  --text-color-strong: rgb(0, 0, 0);
-}
-.btn-danger {
-  --intent-color: var(--accent-color-red);
-}
-
-.btn-minimal {
-  background-color: transparent;
-}
-
 .btn-filled {
-  background-color: var(--intent-color);
-  color: var(--text-color);
+  background: var(--accent-color) !important;
+  --text-color: #f1f1f1;
+  --text-color-strong: white;
 }
 
 .btn-outlined {
-  border: 1px solid currentColor;
-  color: var(--intent-color);
+  border: 1px solid var(--accent-color);
+  --text-color: var(--accent-color);
+  --text-color-strong: var(--accent-color);
+}
+
+.btn-filled,
+.btn-outlined {
+  &:hover {
+    filter: brightness(90%);
+  }
+  &:active {
+    filter: brightness(80%);
+  }
 }
 
 .btn-minimal,

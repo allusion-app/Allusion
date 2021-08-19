@@ -1,7 +1,6 @@
 import './button.scss';
 import React from 'react';
 
-export type Intent = 'info' | 'success' | 'warning' | 'danger';
 interface IButton {
   text: React.ReactText;
   icon?: JSX.Element;
@@ -9,7 +8,6 @@ interface IButton {
   styling?: 'minimal' | 'outlined' | 'filled';
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
-  intent?: Intent;
 }
 
 const Button = ({
@@ -19,15 +17,9 @@ const Button = ({
   styling = 'minimal',
   disabled,
   type = 'button',
-  intent = 'info',
 }: IButton) => {
   return (
-    <button
-      className={`btn btn-${styling} btn-${intent}`}
-      onClick={onClick}
-      disabled={disabled}
-      type={type}
-    >
+    <button className={`btn btn-${styling}`} onClick={onClick} disabled={disabled} type={type}>
       {icon && (
         <span className="btn-content-icon" aria-hidden="true">
           {icon}

@@ -33,8 +33,8 @@ export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) =>
       open
       title={`Are you sure you want to exclude the directory "${props.object.name}"?`}
       icon={IconSet.WARNING}
+      type="warning"
       primaryButtonText="Exclude"
-      primaryButtonIntent="warning"
       defaultButton={DialogButton.PrimaryButton}
       onClick={(button) => {
         if (button !== DialogButton.CloseButton) {
@@ -172,8 +172,8 @@ const RemovalAlert = (props: IRemovalAlertProps) => (
     open={props.open}
     title={props.title}
     icon={IconSet.WARNING}
+    type="danger"
     primaryButtonText="Delete"
-    primaryButtonIntent="danger"
     defaultButton={DialogButton.PrimaryButton}
     onClick={(button) =>
       button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
