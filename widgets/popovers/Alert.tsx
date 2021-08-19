@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { Button } from 'widgets';
 import { Intent } from 'widgets/utility';
 
+import 'widgets/utility/utility.scss';
+
 export interface AlertProps extends AlertActionsProps {
   open: boolean;
   title: React.ReactChild;

@@ -10,8 +10,8 @@ input[type='checkbox'] {
   padding: 0.125rem;
 
   &:checked {
-    background-color: var(--accent-color-blue);
-    border-color: var(--accent-color-blue);
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
 
     &:hover {
       filter: saturate(200%);
@@ -40,7 +40,7 @@ input[type='checkbox'] {
 
   &:focus {
     outline: none;
-    border-color: var(--accent-color-blue);
+    border-color: var(--accent-color);
   }
 }
 
@@ -64,7 +64,7 @@ input[type='checkbox'][data-toggle='true'] {
   }
 
   &:focus::before {
-    background-color: var(--accent-color-blue);
+    background-color: var(--accent-color);
   }
 
   &:checked::before {
