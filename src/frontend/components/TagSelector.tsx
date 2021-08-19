@@ -68,6 +68,7 @@ const TagSelector = (props: TagSelectorProps) => {
           onDeselect(selection[selection.length - 1]);
         }
       } else if (e.key === 'Escape') {
+        e.preventDefault();
         setQuery('');
         setIsOpen(false);
       } else {
