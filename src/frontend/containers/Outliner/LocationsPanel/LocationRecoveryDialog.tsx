@@ -211,7 +211,9 @@ const LocationRecoveryDialog = () => {
 
   const location = isLocationRecoveryOpen ? locationStore.get(isLocationRecoveryOpen) : undefined;
 
-  if (!location) return null;
+  if (!location) {
+    return null;
+  }
 
   const status = statusFromMatch(match);
 
@@ -261,11 +263,11 @@ const LocationRecoveryDialog = () => {
 
   return (
     <Dialog
-      open={Boolean(location)}
+      open
       title={`Recover Location ${location.name}`}
       icon={IconSet.FOLDER_CLOSE}
       describedby="location-recovery-info"
-      onClose={uiStore.closeLocationRecovery}
+      onCancel={uiStore.closeLocationRecovery}
     >
       <div id="location-recovery-info">
         <RecoveryInfo location={location} status={status} match={match} />

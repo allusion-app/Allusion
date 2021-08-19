@@ -29,11 +29,11 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
       open
       title={`Merge Tag ${tag.name} With`}
       icon={IconSet.TAG_GROUP}
-      onClose={onClose}
+      onCancel={onClose}
       describedby="merge-info"
     >
       <p id="merge-info">This will replace all uses of {tag.name} with the tag you select.</p>
-      <form method="dialog" onSubmit={merge}>
+      <form method="dialog" onSubmit={(e) => e.preventDefault()}>
         <fieldset>
           <legend>Merge {tag.name} with</legend>
           <label htmlFor="tag-merge-selection">Selection</label>
@@ -49,15 +49,9 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
 
         <fieldset className="dialog-actions">
           <Button
-            type="submit"
             text="Merge"
             styling="filled"
-            onClick={() => {
-              if (selectedTag !== undefined) {
-                tagStore.merge(tag, selectedTag);
-                onClose();
-              }
-            }}
+            onClick={merge}
             disabled={selectedTag === undefined}
           />
         </fieldset>

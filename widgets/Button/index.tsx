@@ -5,7 +5,7 @@ export type Intent = 'info' | 'success' | 'warning' | 'danger';
 interface IButton {
   text: React.ReactText;
   icon?: JSX.Element;
-  onClick?: (event: React.MouseEvent) => void;
+  onClick: (event: React.MouseEvent) => void;
   styling?: 'minimal' | 'outlined' | 'filled';
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';

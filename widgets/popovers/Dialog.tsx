@@ -7,14 +7,12 @@ export interface DialogProps {
   icon: JSX.Element;
   describedby?: string;
   children: React.ReactNode;
-  /** Provide callback when submitting a form with method dialog, pressing Esc
-   * or the close button.
-   */
-  onClose: () => void;
+  onCancel: () => void;
+  onClose?: () => void;
 }
 
 export const Dialog = (props: DialogProps) => {
-  const { open, title, icon, describedby, onClose, children } = props;
+  const { open, title, icon, describedby, onClose, onCancel, children } = props;
 
   const dialog = useRef<HTMLDialogElement>(null);
 
@@ -24,14 +22,18 @@ export const Dialog = (props: DialogProps) => {
       return;
     }
 
-    element.addEventListener('close', onClose);
-    element.addEventListener('cancel', onClose);
+    if (onClose) {
+      element.addEventListener('close', onClose);
+    }
+    element.addEventListener('cancel', onCancel);
 
     return () => {
-      element.removeEventListener('close', onClose);
-      element.removeEventListener('cancel', onClose);
+      if (onClose) {
+        element.removeEventListener('close', onClose);
+      }
+      element.removeEventListener('cancel', onCancel);
     };
-  }, [onClose]);
+  }, [onClose, onCancel]);
 
   useEffect(() => {
     if (dialog.current) {
@@ -48,7 +50,7 @@ export const Dialog = (props: DialogProps) => {
         <span id="dialog-title" className="dialog-title">
           {title}
         </span>
-        <button aria-keyshortcuts="Esc" className="btn btn-icon dialog-close" onClick={onClose}>
+        <button aria-keyshortcuts="Esc" className="btn btn-icon dialog-close" onClick={onCancel}>
           <span aria-hidden="true">{IconSet.CLOSE}</span>
           <span className="visually-hidden">Close</span>
         </button>

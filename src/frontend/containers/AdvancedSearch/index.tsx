@@ -34,6 +34,7 @@ export const AdvancedSearchDialog = observer(() => {
     uiStore.replaceSearchCriterias(
       Array.from(query.values(), (vals) => intoCriteria(vals, tagStore)),
     );
+    uiStore.closeAdvancedSearch();
   }, [query, tagStore, uiStore]);
 
   const reset = useRef(() => setQuery(new Map())).current;
@@ -43,9 +44,9 @@ export const AdvancedSearchDialog = observer(() => {
       open={uiStore.isAdvancedSearchOpen}
       title="Advanced Search"
       icon={IconSet.SEARCH_EXTENDED}
-      onClose={uiStore.closeAdvancedSearch}
+      onCancel={uiStore.closeAdvancedSearch}
     >
-      <form role="search" method="dialog" onSubmit={search}>
+      <form role="search" method="dialog" onSubmit={(e) => e.preventDefault()}>
         <CriteriaBuilder keySelector={keySelector} dispatch={setQuery} />
 
         <QueryEditor query={query} setQuery={setQuery} />
@@ -53,14 +54,8 @@ export const AdvancedSearchDialog = observer(() => {
         <QueryMatch />
 
         <fieldset className="dialog-actions">
-          <Button
-            styling="outlined"
-            type="reset"
-            text="Reset"
-            icon={IconSet.CLOSE}
-            onClick={reset}
-          />
-          <Button type="submit" styling="filled" text="Search" icon={IconSet.SEARCH} />
+          <Button styling="outlined" text="Reset" icon={IconSet.CLOSE} onClick={reset} />
+          <Button styling="filled" text="Search" icon={IconSet.SEARCH} onClick={search} />
         </fieldset>
       </form>
     </Dialog>

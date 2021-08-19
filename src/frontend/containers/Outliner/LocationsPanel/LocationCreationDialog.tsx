@@ -141,12 +141,12 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
   const [sublocationsLoaded, setSublocationsLoaded] = useState(false);
   // const [importFolderHierarchyAsTags, setImportFolderHierarchyAsTags] = useState(false);
 
-  const handleSubmit = useCallback(
-    () => locationStore.initLocation(location).catch(console.error),
-    [location, locationStore],
-  );
+  const handleSubmit = useCallback(() => {
+    locationStore.initLocation(location).catch(console.error);
+    onClose();
+  }, [location, locationStore, onClose]);
 
-  const handleClose = useCallback(() => {
+  const handleCancel = useCallback(() => {
     location.delete().catch(console.error);
     onClose();
   }, [location, onClose]);
@@ -165,7 +165,7 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
       title={`Add Location ${location.name}`}
       icon={IconSet.FOLDER_CLOSE}
       describedby="location-add-info"
-      onClose={handleClose}
+      onCancel={handleCancel}
     >
       <p id="location-add-info">
         You can configure the location {location.name} by including only certain subdirectories from
@@ -181,7 +181,7 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
         </div> */}
         {/* Show folder, exclude directories */}
       </p>
-      <form method="dialog" onSubmit={handleSubmit}>
+      <form method="dialog" onSubmit={(e) => e.preventDefault()}>
         <fieldset>
           <legend>Included Subdirectories of {location.name}</legend>
           {!sublocationsLoaded ? (
@@ -192,8 +192,8 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
         </fieldset>
 
         <fieldset className="dialog-actions">
-          <Button type="submit" styling="filled" text="Confirm" />
-          <Button styling="outlined" onClick={handleClose} text="Cancel" />
+          <Button styling="filled" text="Confirm" onClick={handleSubmit} />
+          <Button styling="outlined" onClick={handleCancel} text="Cancel" />
         </fieldset>
       </form>
     </Dialog>
