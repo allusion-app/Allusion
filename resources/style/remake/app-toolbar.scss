@@ -1,14 +1,9 @@
 #toolbar {
-  display: flex;
   justify-content: stretch;
-  align-items: center;
 
   .toolbar-button {
-    height: 1.5rem;
-    min-width: 1.5rem;
     padding: 0.25rem;
     margin: 0.25rem;
-    border-radius: 0.25rem;
 
     &[aria-pressed='true'],
     &[aria-checked='true'] {

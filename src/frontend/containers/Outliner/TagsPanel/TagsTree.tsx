@@ -341,7 +341,7 @@ const TagItem = observer((props: ITagItemProps) => {
         tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
       />
       {!isEditing && (
-        <button onClick={handleSelect} className="btn btn-icon">
+        <button onClick={handleSelect} className="btn-icon">
           {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
         </button>
       )}

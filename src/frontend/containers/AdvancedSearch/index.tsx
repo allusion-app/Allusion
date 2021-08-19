@@ -105,7 +105,7 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
           value={criteria.value}
           dispatch={setCriteria}
         />
-        <button className="btn btn-icon" type="button" onClick={add}>
+        <button className="btn-icon" type="button" onClick={add}>
           <span aria-hidden="true">{IconSet.ADD}</span>
           <span className="visually-hidden">Add</span>
         </button>
@@ -186,7 +186,7 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
       </td>
       <td>
         <button
-          className="btn btn-icon"
+          className="btn-icon"
           aria-labelledby={`col-remove ${id}`}
           type="button"
           onClick={() =>

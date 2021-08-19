@@ -87,7 +87,7 @@ const ToolbarButton = (props: IToolbarButton) => {
   return (
     <button
       id={id}
-      className="btn toolbar-button"
+      className="toolbar-button"
       onClick={disabled ? undefined : onClick}
       role={role}
       aria-pressed={pressed}

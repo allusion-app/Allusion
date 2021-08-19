@@ -50,7 +50,7 @@ export const Dialog = (props: DialogProps) => {
         <span id="dialog-title" className="dialog-title">
           {title}
         </span>
-        <button aria-keyshortcuts="Esc" className="btn btn-icon dialog-close" onClick={onCancel}>
+        <button aria-keyshortcuts="Esc" className="btn-icon dialog-close" onClick={onCancel}>
           <span aria-hidden="true">{IconSet.CLOSE}</span>
           <span className="visually-hidden">Close</span>
         </button>

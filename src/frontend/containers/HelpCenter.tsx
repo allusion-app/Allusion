@@ -170,7 +170,7 @@ const PageToolbar = ({ isIndexOpen, toggleIndex, controls }: IPageToolbar) => {
   return (
     <div className="doc-page-toolbar">
       <button
-        className="btn toolbar-button"
+        className="toolbar-button"
         aria-pressed={isIndexOpen}
         aria-controls={controls}
         onClick={() => toggleIndex((value) => !value)}

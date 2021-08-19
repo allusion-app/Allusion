@@ -19,7 +19,7 @@ const Button = ({
   type = 'button',
 }: IButton) => {
   return (
-    <button className={`btn btn-${styling}`} onClick={onClick} disabled={disabled} type={type}>
+    <button className={`btn-${styling}`} onClick={onClick} disabled={disabled} type={type}>
       {icon && (
         <span className="btn-content-icon" aria-hidden="true">
           {icon}
@@ -54,7 +54,7 @@ interface IIconButton {
 const IconButton = ({ text, icon, onClick, disabled, className }: IIconButton) => {
   return (
     <button
-      className={`${className !== undefined ? className : ''} btn btn-icon`}
+      className={`${className !== undefined ? className : ''} btn-icon`}
       onClick={onClick}
       disabled={disabled}
       type="button"

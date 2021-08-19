@@ -42,10 +42,9 @@
   position: relative;
 
   .btn-group {
-    margin: 0;
-    float: right;
+    justify-content: flex-end;
 
-    .btn {
+    button {
       min-width: 100px;
     }
   }

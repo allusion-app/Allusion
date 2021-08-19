@@ -1,7 +1,7 @@
 .btn-group {
   display: flex;
 
-  .btn {
+  button {
     margin-inline-start: 0.5rem;
 
     &:first-child {
@@ -10,7 +10,7 @@
   }
 }
 
-.btn {
+button {
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -23,7 +23,6 @@
   background: transparent;
   border: none;
   outline: none;
-  border-radius: 0.25rem;
 
   &:hover {
     color: var(--text-color-strong);
@@ -76,11 +75,13 @@
 .btn-minimal,
 .btn-filled,
 .btn-outlined {
-  height: 2rem;
+  border-radius: 0.25rem;
+  min-height: 2rem;
   padding: 0 0.75rem;
 }
 
 .btn-icon {
+  border-radius: 0.25rem;
   color: currentColor;
   height: fit-content;
   width: fit-content;
