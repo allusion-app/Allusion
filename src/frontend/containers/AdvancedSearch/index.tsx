@@ -5,8 +5,8 @@ import { observer } from 'mobx-react-lite';
 import { generateId, ID } from 'src/entities/ID';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet, RadioGroup, Radio, Button } from 'widgets';
-import { KeySelector, OperatorSelector, ValueInput } from './Field';
-import { Criteria, defaultQuery, fromCriteria, intoCriteria } from './query';
+import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
+import { Criteria, defaultQuery, fromCriteria, intoCriteria } from './data';
 import { Dialog } from 'widgets/popovers';
 
 export const AdvancedSearchDialog = observer(() => {

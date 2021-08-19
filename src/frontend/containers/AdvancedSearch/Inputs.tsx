@@ -13,7 +13,7 @@ import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
-import { defaultQuery, Criteria, Key, Operator, Value, TagValue } from './query';
+import { defaultQuery, Criteria, Key, Operator, Value, TagValue } from './data';
 
 type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
 
