@@ -6,7 +6,7 @@ import { runInAction } from 'mobx';
 import { useStore } from '../../../contexts/StoreContext';
 
 import { IconSet } from 'widgets';
-import { Toolbar, ToolbarToggleButton } from 'widgets/menus';
+import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import TagsTree from './TagsTree';
 
@@ -21,16 +21,14 @@ export const OutlinerActionBar = observer(() => {
   const { fileStore } = useStore();
   return (
     <Toolbar id="actionbar" label="Action Bar" controls="content-view">
-      <ToolbarToggleButton
-        showLabel="always"
+      <ToolbarButton
         text={fileStore.numTotalFiles}
         icon={IconSet.MEDIA}
         onClick={fileStore.fetchAllFiles}
         pressed={fileStore.showsAllContent}
         tooltip={TooltipInfo.AllImages}
       />
-      <ToolbarToggleButton
-        showLabel="always"
+      <ToolbarButton
         text={fileStore.numUntaggedFiles}
         icon={IconSet.TAG_BLANCO}
         onClick={fileStore.fetchUntaggedFiles}
@@ -38,8 +36,7 @@ export const OutlinerActionBar = observer(() => {
         tooltip={TooltipInfo.Untagged}
       />
       {fileStore.numMissingFiles > 0 && (
-        <ToolbarToggleButton
-          showLabel="always"
+        <ToolbarButton
           text={fileStore.numMissingFiles}
           icon={IconSet.WARNING_FILL}
           onClick={fileStore.fetchMissingFiles}

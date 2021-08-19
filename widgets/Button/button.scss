@@ -77,6 +77,7 @@ button {
 .btn-outlined {
   border-radius: 0.25rem;
   min-height: 2rem;
+  min-width: 2rem;
   padding: 0 0.75rem;
 }
 
@@ -87,17 +88,9 @@ button {
   width: fit-content;
 }
 
-.btn-content-icon,
-.btn-content-text {
+.btn-content-icon {
   display: inline-flex;
 }
 .btn-content-text {
-  margin-left: 0.25rem;
-}
-
-.btn-content-text.hidden {
-  margin: 0;
-  text-indent: -100vw;
-  white-space: nowrap;
-  overflow: hidden;
+  margin-inline-start: 0.25rem;
 }

@@ -591,10 +591,9 @@ const TagsTree = observer(() => {
         onDrop={handleDrop}
       >
         <h2 onClick={() => setIsCollapsed(!isCollapsed)}>Tags</h2>
-        <Toolbar controls="tag-hierarchy">
+        <Toolbar controls="tag-hierarchy" isCompact>
           {uiStore.tagSelection.size > 0 ? (
             <ToolbarButton
-              showLabel="never"
               icon={IconSet.CLOSE}
               text="Clear"
               onClick={uiStore.clearTagSelection}
@@ -602,7 +601,6 @@ const TagsTree = observer(() => {
             />
           ) : (
             <ToolbarButton
-              showLabel="never"
               icon={IconSet.PLUS}
               text="New Tag"
               onClick={handleRootAddTag}

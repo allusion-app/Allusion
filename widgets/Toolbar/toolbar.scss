@@ -1,25 +1,36 @@
 [role='toolbar'] {
   display: flex;
   align-items: center;
+  height: 3rem;
 
-  button {
+  /* Method to visually hide something but still */
+  /* keep it available to screen readers */
+  &[data-compact='true'] {
+    .toolbar-button {
+      padding: 0 0.25rem;
+    }
+
+    .toolbar-button[data-collapsible='true'] {
+      padding: 0;
+
+      .btn-content-text {
+        position: absolute;
+        top: auto;
+        overflow: hidden;
+        clip: rect(1px 1px 1px 1px); /* IE 6/7 */
+        clip: rect(1px, 1px, 1px, 1px);
+        width: 1px;
+        height: 1px;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .toolbar-button {
     min-height: 2rem;
     min-width: 2rem;
     border-radius: 0.25rem;
+    padding: 0 0.75rem;
+    margin: 0.25rem;
   }
-}
-
-.toolbar-button-content {
-  display: flex;
-  align-items: center;
-}
-.toolbar-button-icon svg {
-  display: block;
-}
-.toolbar-button-text {
-  margin-left: 0.125rem;
-}
-
-.toolbar-button-text.never {
-  display: none;
 }

@@ -18,7 +18,6 @@ const enum Tooltip {
 export const SortCommand = () => {
   return (
     <MenuButton
-      showLabel="never"
       icon={IconSet.SORT}
       text="Sort"
       tooltip={Tooltip.Filter}
@@ -33,7 +32,6 @@ export const SortCommand = () => {
 export const ViewCommand = () => {
   return (
     <MenuButton
-      showLabel="never"
       icon={IconSet.THUMB_BG}
       text="View"
       tooltip={Tooltip.View}

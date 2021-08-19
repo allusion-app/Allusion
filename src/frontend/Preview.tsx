@@ -42,16 +42,14 @@ const PreviewApp = observer(() => {
       className={`${uiStore.theme} ${isInitializing ? 'preview-window-initializing' : ''}`}
     >
       <ErrorBoundary>
-        <Toolbar id="toolbar" label="Preview Command Bar" controls="content-view">
+        <Toolbar id="toolbar" label="Preview Command Bar" controls="content-view" isCompact>
           <ToolbarButton
-            showLabel="never"
             icon={IconSet.ARROW_LEFT}
             text="Previous Image"
             onClick={handleLeftButton}
             disabled={uiStore.firstItem === 0}
           />
           <ToolbarButton
-            showLabel="never"
             icon={IconSet.ARROW_RIGHT}
             text="Next Image"
             onClick={handleRightButton}
@@ -67,7 +65,6 @@ const PreviewApp = observer(() => {
           <div className="spacer" />
 
           <ToolbarButton
-            showLabel="never"
             icon={IconSet.INFO}
             onClick={uiStore.toggleInspector}
             checked={uiStore.isInspectorOpen}

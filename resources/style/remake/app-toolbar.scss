@@ -2,9 +2,6 @@
   justify-content: stretch;
 
   .toolbar-button {
-    padding: 0.25rem;
-    margin: 0.25rem;
-
     &[aria-pressed='true'],
     &[aria-checked='true'] {
       color: var(--text-color-strong);

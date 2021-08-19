@@ -3,14 +3,15 @@ import React, { useEffect, useRef } from 'react';
 
 interface IToolbar {
   children: React.ReactNode;
+  controls: string;
   id?: string;
   label?: string;
   labelledby?: string;
-  controls: string;
+  isCompact?: boolean;
 }
 
 const Toolbar: React.FC<IToolbar> = (props: IToolbar) => {
-  const { children, id, label, labelledby, controls } = props;
+  const { children, id, label, labelledby, isCompact = false, controls } = props;
   const toolbar = useRef<HTMLDivElement>(null);
 
   // Either the first item or last focused toolbar item needs to be part of the
@@ -37,6 +38,7 @@ const Toolbar: React.FC<IToolbar> = (props: IToolbar) => {
       ref={toolbar}
       role="toolbar"
       id={id}
+      data-compact={isCompact}
       aria-label={label}
       aria-labelledby={labelledby}
       aria-controls={controls}
@@ -48,24 +50,18 @@ const Toolbar: React.FC<IToolbar> = (props: IToolbar) => {
 
 Toolbar.displayName = 'Toolbar';
 
-interface IBaseButton {
+interface IToolbarButton {
   id?: string;
   text: React.ReactText;
   icon: JSX.Element;
   onClick?: (event: React.MouseEvent) => void;
-  showLabel?: 'always' | 'never';
+  isCollapsible?: boolean;
   tooltip?: string;
   disabled?: boolean;
-}
-
-interface IToolbarButton extends IBaseButton {
-  role?: string;
-  disabled?: boolean;
+  tabIndex?: 0 | -1;
   pressed?: boolean;
   checked?: boolean;
-  expanded?: boolean;
   controls?: string;
-  haspopup?: boolean | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog';
 }
 
 const ToolbarButton = (props: IToolbarButton) => {
@@ -74,71 +70,36 @@ const ToolbarButton = (props: IToolbarButton) => {
     onClick,
     icon,
     text,
-    role,
     pressed,
     checked,
     disabled,
     tooltip,
-    showLabel,
-    expanded,
+    isCollapsible = true,
     controls,
-    haspopup,
+    tabIndex,
   } = props;
   return (
     <button
+      data-collapsible={isCollapsible}
       id={id}
       className="toolbar-button"
       onClick={disabled ? undefined : onClick}
-      role={role}
       aria-pressed={pressed}
       aria-checked={checked}
       aria-disabled={disabled}
       aria-controls={controls}
-      aria-haspopup={haspopup}
-      aria-expanded={expanded}
-      // tabIndex={-1} FIXME: Implement toolbar keyboard navigation.
+      tabIndex={tabIndex} // FIXME: Implement toolbar keyboard navigation.
       data-tooltip={tooltip ?? text}
     >
-      <span className="toolbar-button-content">
-        <span className="toolbar-button-icon" aria-hidden>
-          {icon}
-        </span>
-        <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
+      <span className="btn-content-icon" aria-hidden>
+        {icon}
       </span>
+      <span className="btn-content-text">{text}</span>
     </button>
-  );
-};
-
-interface IToolbarToggleButton extends IBaseButton {
-  controls?: string;
-  pressed: boolean;
-}
-
-const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls, disabled } = props;
-  return (
-    <ToolbarButton
-      id={id}
-      pressed={pressed}
-      onClick={onClick}
-      icon={icon}
-      text={text}
-      showLabel={showLabel}
-      tooltip={tooltip}
-      controls={controls}
-      disabled={disabled}
-    />
   );
 };
 
 import { MenuButton } from './MenuButton';
 import { ToolbarSegment, ToolbarSegmentButton } from './ToolbarSegment';
 
-export {
-  Toolbar,
-  ToolbarButton,
-  MenuButton,
-  ToolbarSegment,
-  ToolbarSegmentButton,
-  ToolbarToggleButton,
-};
+export { Toolbar, ToolbarButton, MenuButton, ToolbarSegment, ToolbarSegmentButton };
