@@ -4,7 +4,6 @@ import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Button, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
-import { TagSelector } from 'src/frontend/components/TagSelector';
 
 interface TagMergeProps {
   tag: ClientTag;
@@ -15,7 +14,11 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
   const { tagStore } = useStore();
 
   const [selectedTag, setSelectedTag] = useState<ClientTag>();
-  const clearSelection = () => setSelectedTag(undefined);
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value;
+    setSelectedTag(tagStore.get(id));
+  };
 
   const merge = () => {
     if (selectedTag !== undefined) {
@@ -36,15 +39,25 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
       <form method="dialog" onSubmit={(e) => e.preventDefault()}>
         <fieldset>
           <legend>Merge {tag.name} with</legend>
-          <label htmlFor="tag-merge-selection">Selection</label>
-          <TagSelector
-            id="tag-merge-selection"
-            multiselectable={false}
-            selection={selectedTag !== undefined ? [selectedTag] : []}
-            onSelect={setSelectedTag}
-            onDeselect={clearSelection}
-            onClear={clearSelection}
-          />
+          <select value={selectedTag?.id} onChange={handleChange} required>
+            <option value="">— Choose a tag —</option>
+            {tagStore.tagList.map((tag) => {
+              const hint =
+                tag.treePath.length < 2
+                  ? ''
+                  : ` (${tag.treePath
+                      .slice(0, -1)
+                      .map((t) => t.name)
+                      .join(' › ')})`;
+
+              return (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name}
+                  {hint}
+                </option>
+              );
+            })}
+          </select>
         </fieldset>
 
         <fieldset className="dialog-actions">

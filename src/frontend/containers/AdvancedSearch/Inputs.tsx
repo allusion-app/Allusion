@@ -9,7 +9,6 @@ import {
   StringOperatorType,
   TagOperators,
 } from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
 import { defaultQuery, Criteria, Key, Operator, Value, TagValue } from './data';
@@ -51,19 +50,19 @@ export const KeySelector = forwardRef(function KeySelector(
         Tags
       </option>
       <option key="name" value="name">
-        File name
+        File Name
       </option>
       <option key="absolutePath" value="absolutePath">
-        File path
+        File Path
       </option>
       <option key="extension" value="extension">
         File Extension
       </option>
       <option key="size" value="size">
-        File size (MB)
+        File Size (MB)
       </option>
       <option key="dateAdded" value="dateAdded">
-        Date added
+        Date Added
       </option>
     </select>
   );
@@ -90,7 +89,7 @@ export const OperatorSelector = ({
       className="criteria-input"
       aria-labelledby={labelledby}
       onChange={handleChange}
-      defaultValue={value}
+      value={value}
     >
       {getOperatorOptions(keyValue)}
     </select>
@@ -142,34 +141,30 @@ const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>
       className="criteria-input"
       aria-labelledby={labelledby}
       onChange={handleChange}
-      defaultValue={value ?? ''}
+      value={value ?? ''}
     >
       <optgroup label="System Tags">
         <option value="">Untagged Images</option>
       </optgroup>
       <optgroup label="My Tags">
-        {tagStore.tagList.map((tag) => (
-          <TagOption key={tag.id} tag={tag} />
-        ))}
+        {tagStore.tagList.map((tag) => {
+          const hint =
+            tag.treePath.length < 2
+              ? ''
+              : ` (${tag.treePath
+                  .slice(0, -1)
+                  .map((t) => t.name)
+                  .join(' › ')})`;
+
+          return (
+            <option key={tag.id} value={tag.id}>
+              {tag.name}
+              {hint}
+            </option>
+          );
+        })}
       </optgroup>
     </select>
-  );
-});
-
-const TagOption = observer(({ tag }: { tag: ClientTag }) => {
-  const hint =
-    tag.treePath.length < 2
-      ? ''
-      : ` (${tag.treePath
-          .slice(0, -1)
-          .map((t) => t.name)
-          .join(' › ')})`;
-
-  return (
-    <option value={tag.id}>
-      {tag.name}
-      {hint}
-    </option>
   );
 });
 
@@ -178,7 +173,7 @@ const ExtensionInput = ({ labelledby, value, dispatch }: ValueInput<string>) => 
     className="criteria-input"
     aria-labelledby={labelledby}
     onChange={(e) => dispatch(setValue(e.target.value))}
-    defaultValue={value}
+    value={value}
   >
     {IMG_EXTENSIONS.map((ext) => (
       <option key={ext} value={ext}>
@@ -195,7 +190,13 @@ const SizeInput = ({ value, labelledby, dispatch }: ValueInput<number>) => {
       className="input criteria-input"
       type="number"
       defaultValue={value}
-      onChange={(e) => dispatch(setValue(e.target.valueAsNumber))}
+      min={0}
+      onChange={(e) => {
+        const value = e.target.valueAsNumber;
+        if (value) {
+          dispatch(setValue(value));
+        }
+      }}
     />
   );
 };
