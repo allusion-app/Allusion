@@ -1,6 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { IconSet } from 'widgets/Icons';
 
+import 'widgets/utility/utility.scss';
+import './popover.scss';
+
 export interface DialogProps {
   open: boolean;
   title: string;

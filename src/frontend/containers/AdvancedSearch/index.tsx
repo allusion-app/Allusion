@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 
 import { generateId, ID } from 'src/entities/ID';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { IconSet, RadioGroup, Radio, Button } from 'widgets';
+import { IconSet, RadioGroup, Radio, Button, IconButton } from 'widgets';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
 import { Criteria, defaultQuery, fromCriteria, intoCriteria } from './data';
 import { Dialog } from 'widgets/popovers';
@@ -105,10 +105,7 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
           value={criteria.value}
           dispatch={setCriteria}
         />
-        <button className="btn-icon" type="button" onClick={add}>
-          <span aria-hidden="true">{IconSet.ADD}</span>
-          <span className="visually-hidden">Add</span>
-        </button>
+        <IconButton text="Add Criteria" icon={IconSet.ADD} onClick={add} />
       </div>
     </fieldset>
   );

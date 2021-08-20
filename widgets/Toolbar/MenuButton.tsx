@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Menu, MenuChildren } from '../menus';
 import { RawPopover } from '../popovers/RawPopover';
 
-export interface IMenuButton {
+export interface MenuButtonProps {
   id: string;
   text: React.ReactText;
   icon: JSX.Element;
@@ -23,7 +23,7 @@ export const MenuButton = ({
   disabled,
   menuID,
   children,
-}: IMenuButton) => {
+}: MenuButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 

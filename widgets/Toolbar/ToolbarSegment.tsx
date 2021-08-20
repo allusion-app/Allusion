@@ -14,7 +14,7 @@ export const ToolbarSegment = ({ id, label, children }: IToolbarSegment) => {
   );
 };
 
-interface IToolbarSegmentButton {
+interface ToolbarSegmentButtonProps {
   id?: string;
   text: React.ReactText;
   icon: JSX.Element;
@@ -24,7 +24,7 @@ interface IToolbarSegmentButton {
   checked: boolean;
 }
 
-export const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
+export const ToolbarSegmentButton = (props: ToolbarSegmentButtonProps) => {
   const { id, checked, onClick, icon, text, tooltip, isCollapsible } = props;
   return (
     <button

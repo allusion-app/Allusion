@@ -1,7 +1,7 @@
 import './radio.scss';
 import React, { useEffect, useRef } from 'react';
 
-interface IRadio {
+interface RadioProps {
   label: string;
   defaultChecked?: boolean;
   checked?: boolean;
@@ -9,7 +9,7 @@ interface IRadio {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const Radio = (props: IRadio) => {
+const Radio = (props: RadioProps) => {
   const { label, value, defaultChecked, checked, onChange } = props;
   return (
     <label>
@@ -25,13 +25,13 @@ const Radio = (props: IRadio) => {
   );
 };
 
-interface IRadioGroup {
+interface RadioGroupProps {
   name: string;
-  children: React.ReactElement<IRadio>[];
+  children: React.ReactElement<RadioProps>[];
   orientation?: 'horizontal' | 'vertical';
 }
 
-const RadioGroup = ({ name, orientation = 'vertical', children }: IRadioGroup) => {
+const RadioGroup = ({ name, orientation = 'vertical', children }: RadioGroupProps) => {
   const group = useRef<HTMLFieldSetElement>(null);
   useEffect(() => {
     if (group.current) {

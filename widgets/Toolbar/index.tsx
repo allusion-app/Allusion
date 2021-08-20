@@ -1,7 +1,7 @@
 import './toolbar.scss';
 import React, { useEffect, useRef } from 'react';
 
-interface IToolbar {
+interface ToolbarProps {
   children: React.ReactNode;
   controls: string;
   id?: string;
@@ -10,7 +10,7 @@ interface IToolbar {
   isCompact?: boolean;
 }
 
-const Toolbar: React.FC<IToolbar> = (props: IToolbar) => {
+const Toolbar: React.FC<ToolbarProps> = (props: ToolbarProps) => {
   const { children, id, label, labelledby, isCompact = false, controls } = props;
   const toolbar = useRef<HTMLDivElement>(null);
 
@@ -50,7 +50,7 @@ const Toolbar: React.FC<IToolbar> = (props: IToolbar) => {
 
 Toolbar.displayName = 'Toolbar';
 
-interface IToolbarButton {
+interface ToolbarButtonProps {
   id?: string;
   text: React.ReactText;
   icon: JSX.Element;
@@ -64,7 +64,7 @@ interface IToolbarButton {
   controls?: string;
 }
 
-const ToolbarButton = (props: IToolbarButton) => {
+const ToolbarButton = (props: ToolbarButtonProps) => {
   const {
     id,
     onClick,

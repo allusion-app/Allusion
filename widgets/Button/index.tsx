@@ -1,7 +1,8 @@
 import './button.scss';
+import 'widgets/utility/utility.scss';
 import React from 'react';
 
-interface IButton {
+interface ButtonProps {
   text: React.ReactText;
   icon?: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
@@ -17,7 +18,7 @@ const Button = ({
   styling = 'minimal',
   disabled,
   type = 'button',
-}: IButton) => {
+}: ButtonProps) => {
   return (
     <button className={`btn-${styling}`} onClick={onClick} disabled={disabled} type={type}>
       {icon && (
@@ -30,12 +31,12 @@ const Button = ({
   );
 };
 
-interface IButtonGroup {
+interface ButtonGroupProps {
   id?: string;
   children: (React.ReactElement | undefined)[] | React.ReactElement;
 }
 
-const ButtonGroup = ({ id, children }: IButtonGroup) => {
+const ButtonGroup = ({ id, children }: ButtonGroupProps) => {
   return (
     <div id={id} className="btn-group">
       {children}
@@ -43,7 +44,7 @@ const ButtonGroup = ({ id, children }: IButtonGroup) => {
   );
 };
 
-interface IIconButton {
+interface IconButtonProps {
   text: string;
   icon: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
@@ -51,7 +52,7 @@ interface IIconButton {
   disabled?: boolean;
 }
 
-const IconButton = ({ text, icon, onClick, disabled, className }: IIconButton) => {
+const IconButton = ({ text, icon, onClick, disabled, className }: IconButtonProps) => {
   return (
     <button
       className={`${className !== undefined ? className : ''} btn-icon`}
