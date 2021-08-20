@@ -1,4 +1,4 @@
-import { generateId, ID } from 'src/entities/ID';
+import { ID } from 'src/entities/ID';
 import { IFile, IMG_EXTENSIONS } from 'src/entities/File';
 import {
   OperatorType,
@@ -16,6 +16,11 @@ import {
   ClientNumberSearchCriteria,
 } from 'src/entities/SearchCriteria';
 import TagStore from 'src/frontend/stores/TagStore';
+import { generateWidgetId } from 'widgets/utility';
+
+export function generateCriteriaId() {
+  return generateWidgetId('__criteria');
+}
 
 export type Criteria =
   | Field<'name' | 'absolutePath', StringOperatorType, string>
@@ -77,11 +82,11 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
     const id = criteria.value.length > 0 ? criteria.value[0] : undefined;
     query.value = { id, label: criteria.label };
   } else {
-    return [generateId(), query];
+    return [generateCriteriaId(), query];
   }
   query.key = criteria.key;
   query.operator = criteria.operator;
-  return [generateId(), query];
+  return [generateCriteriaId(), query];
 }
 
 export function intoCriteria(query: Criteria, tagStore: TagStore): FileSearchCriteria {

@@ -1,11 +1,11 @@
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ForwardedRef, ReactElement, useCallback, useMemo, useRef, useState } from 'react';
-import { generateId } from 'src/entities/ID';
 import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Tag, Grid, Row, GridCell } from 'widgets';
 import { RowProps, useGridFocus } from 'widgets/Combobox/Grid';
 import { Flyout } from 'widgets/popovers';
+import { generateWidgetId } from 'widgets/utility';
 import { useStore } from '../contexts/StoreContext';
 
 export interface TagSelectorProps {
@@ -39,7 +39,7 @@ const TagSelector = (props: TagSelectorProps) => {
     extraIconButtons,
     renderCreateOption,
   } = props;
-  const gridId = useRef(generateId()).current;
+  const gridId = useRef(generateWidgetId('__suggestions')).current;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');

@@ -2,11 +2,11 @@ import React, { useCallback, useState, useEffect, useRef, memo, RefObject } from
 import { autorun } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-import { generateId, ID } from 'src/entities/ID';
+import { ID } from 'src/entities/ID';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet, RadioGroup, Radio, Button, IconButton } from 'widgets';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
-import { Criteria, defaultQuery, fromCriteria, intoCriteria } from './data';
+import { Criteria, defaultQuery, fromCriteria, generateCriteriaId, intoCriteria } from './data';
 import { Dialog } from 'widgets/popovers';
 
 export const AdvancedSearchDialog = observer(() => {
@@ -73,7 +73,7 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
   const [criteria, setCriteria] = useState(defaultQuery('tags'));
 
   const add = () => {
-    dispatch((query) => new Map(query.set(generateId(), criteria)));
+    dispatch((query) => new Map(query.set(generateCriteriaId(), criteria)));
     setCriteria(defaultQuery('tags'));
     keySelector.current?.focus();
   };
