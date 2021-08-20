@@ -3,8 +3,7 @@
   flex-direction: column;
   max-height: calc(80vh - 3rem);
 
-  .criteria-input,
-  [role='combobox'] {
+  .criteria-input {
     min-width: 175px;
   }
 }
@@ -44,8 +43,7 @@
     padding-inline-start: 0.5rem;
   }
 
-  .criteria-input,
-  [role='combobox'] {
+  .criteria-input {
     width: 100%;
   }
 }

@@ -1,5 +1,5 @@
-import { action } from 'mobx';
-import React, { ForwardedRef, forwardRef, useState } from 'react';
+import { observer } from 'mobx-react-lite';
+import React, { ForwardedRef, forwardRef } from 'react';
 import { IMG_EXTENSIONS } from 'src/entities/File';
 import {
   BinaryOperators,
@@ -10,7 +10,6 @@ import {
   TagOperators,
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
 import { defaultQuery, Criteria, Key, Operator, Value, TagValue } from './data';
@@ -127,33 +126,52 @@ const PathInput = ({ labelledby, value, dispatch }: ValueInput<string>) => {
   );
 };
 
-const TagInput = ({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
+const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
   const { tagStore } = useStore();
-  const [selection, setSelection] = useState(
-    value?.id !== undefined ? tagStore.get(value.id) : undefined,
-  );
-
-  const handleSelect = action((t: ClientTag) => {
-    dispatch(setValue({ id: t.id, label: t.name }));
-    setSelection(t);
-  });
-
-  const handleDeselect = () => {
-    dispatch(setValue(undefined));
-    setSelection(undefined);
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    const id = (value === '' ? undefined : value) as TagValue;
+    dispatch((criteria) => {
+      criteria.value = id;
+      return { ...criteria };
+    });
   };
 
   return (
-    <TagSelector
-      labelledby={labelledby}
-      multiselectable={false}
-      selection={selection ? [selection] : []}
-      onSelect={handleSelect}
-      onDeselect={handleDeselect}
-      onClear={handleDeselect}
-    />
+    <select
+      className="criteria-input"
+      aria-labelledby={labelledby}
+      onChange={handleChange}
+      defaultValue={value ?? ''}
+    >
+      <optgroup label="System Tags">
+        <option value="">Untagged Images</option>
+      </optgroup>
+      <optgroup label="My Tags">
+        {tagStore.tagList.map((tag) => (
+          <TagOption key={tag.id} tag={tag} />
+        ))}
+      </optgroup>
+    </select>
   );
-};
+});
+
+const TagOption = observer(({ tag }: { tag: ClientTag }) => {
+  const hint =
+    tag.treePath.length < 2
+      ? ''
+      : ` (${tag.treePath
+          .slice(0, -1)
+          .map((t) => t.name)
+          .join(' › ')})`;
+
+  return (
+    <option value={tag.id}>
+      {tag.name}
+      {hint}
+    </option>
+  );
+});
 
 const ExtensionInput = ({ labelledby, value, dispatch }: ValueInput<string>) => (
   <select

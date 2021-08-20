@@ -55,7 +55,13 @@ export const AdvancedSearchDialog = observer(() => {
 
         <fieldset className="dialog-actions">
           <Button styling="outlined" text="Reset" icon={IconSet.CLOSE} onClick={reset} />
-          <Button styling="filled" text="Search" icon={IconSet.SEARCH} onClick={search} />
+          <Button
+            styling="filled"
+            text="Search"
+            icon={IconSet.SEARCH}
+            onClick={search}
+            disabled={query.size === 0}
+          />
         </fieldset>
       </form>
     </Dialog>

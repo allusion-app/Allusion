@@ -41,7 +41,7 @@ export type Key = keyof Pick<
 >;
 export type Operator = OperatorType;
 export type Value = string | number | Date | TagValue;
-export type TagValue = { id?: ID; label: string } | undefined;
+export type TagValue = ID | undefined;
 
 export function defaultQuery(key: Key): Criteria {
   if (key === 'name' || key === 'absolutePath') {
@@ -80,7 +80,7 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
     query.value = criteria.value / BYTES_IN_MB;
   } else if (criteria instanceof ClientTagSearchCriteria && criteria.key === 'tags') {
     const id = criteria.value.length > 0 ? criteria.value[0] : undefined;
-    query.value = { id, label: criteria.label };
+    query.value = id;
   } else {
     return [generateCriteriaId(), query];
   }
@@ -101,15 +101,20 @@ export function intoCriteria(query: Criteria, tagStore: TagStore): FileSearchCri
       query.operator,
       CustomKeyDict,
     );
-  } else if (query.key === 'tags' && query.value !== undefined) {
-    return new ClientTagSearchCriteria(
-      tagStore,
-      query.key,
-      query.value.id,
-      query.value.label,
-      query.operator,
-      CustomKeyDict,
-    );
+  } else if (query.key === 'tags') {
+    const tag = query.value !== undefined ? tagStore.get(query.value) : undefined;
+    if (tag !== undefined) {
+      return new ClientTagSearchCriteria(
+        tagStore,
+        query.key,
+        tag.id,
+        tag.name,
+        query.operator,
+        CustomKeyDict,
+      );
+    } else {
+      return new ClientTagSearchCriteria(tagStore, 'tags');
+    }
   } else {
     return new ClientTagSearchCriteria(tagStore, 'tags');
   }
