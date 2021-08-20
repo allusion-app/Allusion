@@ -121,7 +121,7 @@ interface QueryEditorProps {
 
 const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorProps) {
   return (
-    <fieldset>
+    <fieldset id="query-editor-container">
       <legend>Query Editor</legend>
       <table id="query-editor">
         <thead className="visually-hidden">
