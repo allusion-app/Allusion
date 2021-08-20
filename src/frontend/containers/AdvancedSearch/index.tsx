@@ -190,6 +190,7 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
       <td>
         <button
           className="btn-icon"
+          data-tooltip={`Remove Criteria ${index + 1}`}
           aria-labelledby={`col-remove ${id}`}
           type="button"
           onClick={() =>
@@ -200,7 +201,7 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
           }
         >
           <span aria-hidden="true">{IconSet.DELETE}</span>
-          <span className="visually-hidden">Remove</span>
+          <span className="visually-hidden">Remove Criteria</span>
         </button>
       </td>
     </tr>
