@@ -14,12 +14,9 @@ export interface TagSelectorProps {
   onDeselect: (item: ClientTag) => void;
   onTagClick?: (item: ClientTag) => void;
   onClear: () => void;
-  multiselectable: boolean;
-  id?: string;
-  labelledby?: string;
   disabled?: boolean;
   extraIconButtons?: ReactElement;
-  renderCreateOption?: (
+  renderCreateOption: (
     inputText: string,
     resetTextBox: () => void,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
@@ -27,14 +24,11 @@ export interface TagSelectorProps {
 
 const TagSelector = (props: TagSelectorProps) => {
   const {
-    id,
     selection,
     onSelect,
     onDeselect,
     onTagClick,
     onClear,
-    multiselectable,
-    labelledby,
     disabled,
     extraIconButtons,
     renderCreateOption,
@@ -128,8 +122,6 @@ const TagSelector = (props: TagSelectorProps) => {
             <div className="input-wrapper">
               <SelectedTags selection={selection} onDeselect={onDeselect} onTagClick={onTagClick} />
               <input
-                id={id}
-                aria-labelledby={labelledby}
                 disabled={disabled}
                 type="text"
                 value={query}
@@ -149,7 +141,6 @@ const TagSelector = (props: TagSelectorProps) => {
       >
         <SuggestedTagsList
           ref={gridRef}
-          multiselectable={multiselectable}
           id={gridId}
           query={query}
           selection={selection}
@@ -194,8 +185,7 @@ interface SuggestedTagsListProps {
   selection: readonly ClientTag[];
   toggleSelection: (isSelected: boolean, tag: ClientTag) => void;
   resetTextBox: () => void;
-  multiselectable: boolean;
-  renderCreateOption?: (
+  renderCreateOption: (
     inputText: string,
     resetTextBox: () => void,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
@@ -203,15 +193,7 @@ interface SuggestedTagsListProps {
 
 const SuggestedTagsList = observer(
   (props: SuggestedTagsListProps, ref: ForwardedRef<HTMLDivElement>) => {
-    const {
-      id,
-      query,
-      selection,
-      toggleSelection,
-      resetTextBox,
-      multiselectable,
-      renderCreateOption,
-    } = props;
+    const { id, query, selection, toggleSelection, resetTextBox, renderCreateOption } = props;
     const { tagStore } = useStore();
 
     const suggestions = useMemo(
@@ -228,7 +210,7 @@ const SuggestedTagsList = observer(
     ).get();
 
     return (
-      <Grid ref={ref} id={id} multiselectable={multiselectable}>
+      <Grid ref={ref} id={id} multiselectable>
         {suggestions.map((tag) => {
           const selected = selection.includes(tag);
           return (
@@ -236,12 +218,12 @@ const SuggestedTagsList = observer(
               id={`${id}${tag.id}`}
               key={tag.id}
               tag={tag}
-              selected={selected ? selected : multiselectable ? selected : undefined}
+              selected={selected}
               toggleSelection={toggleSelection}
             />
           );
         })}
-        {suggestions.length === 0 && renderCreateOption?.(query, resetTextBox)}
+        {suggestions.length === 0 && renderCreateOption(query, resetTextBox)}
       </Grid>
     );
   },

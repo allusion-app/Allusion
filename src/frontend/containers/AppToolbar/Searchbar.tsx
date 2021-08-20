@@ -94,7 +94,6 @@ const QuickSearchList = observer(() => {
 
   return (
     <TagSelector
-      multiselectable
       selection={selection.get()}
       onSelect={handleSelect}
       onDeselect={handleDeselect}
