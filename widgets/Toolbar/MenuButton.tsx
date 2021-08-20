@@ -73,7 +73,7 @@ export const MenuButton = ({
           data-collapsible={isCollapsible ?? true}
           data-tooltip={tooltip ?? text}
           onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
-          aria-expaned={isOpen}
+          aria-expanded={isOpen}
           aria-controls={menuID}
           aria-haspopup="menu"
         >

@@ -126,7 +126,15 @@ const TagSelector = (props: TagSelectorProps) => {
         target={
           <div className="multiautocomplete-input">
             <div className="input-wrapper">
-              <SelectedTags selection={selection} onDeselect={onDeselect} onTagClick={onTagClick} />
+              {selection.map((t, i) => (
+                <Tag
+                  key={`${t.id}-${i}`}
+                  text={t.name}
+                  color={t.viewColor}
+                  onRemove={() => onDeselect(t)}
+                  onClick={onTagClick ? () => onTagClick(t) : undefined}
+                />
+              ))}
               <input
                 id={id}
                 aria-labelledby={labelledby}
@@ -163,30 +171,6 @@ const TagSelector = (props: TagSelectorProps) => {
 };
 
 export { TagSelector };
-
-interface SelectedTagsProps {
-  selection: readonly ClientTag[];
-  onDeselect: (item: ClientTag) => void;
-  onTagClick?: (item: ClientTag) => void;
-}
-
-const SelectedTags = observer((props: SelectedTagsProps) => {
-  const { selection, onDeselect, onTagClick } = props;
-
-  return (
-    <>
-      {selection.map((t, i) => (
-        <Tag
-          key={`${t.id}-${i}`}
-          text={t.name}
-          color={t.viewColor}
-          onRemove={() => onDeselect(t)}
-          onClick={onTagClick ? () => onTagClick(t) : undefined}
-        />
-      ))}
-    </>
-  );
-});
 
 interface SuggestedTagsListProps {
   id: string;
