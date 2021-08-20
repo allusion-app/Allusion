@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { IconSet } from 'widgets/Icons';
+import { generateWidgetId } from 'widgets/utility';
 
 import 'widgets/utility/utility.scss';
 import './popover.scss';
@@ -18,6 +19,7 @@ export const Dialog = (props: DialogProps) => {
   const { open, title, icon, describedby, onClose, onCancel, children } = props;
 
   const dialog = useRef<HTMLDialogElement>(null);
+  const dialogTitle = useRef(generateWidgetId('__dialog-title')).current;
 
   useEffect(() => {
     const element = dialog.current;
@@ -45,12 +47,12 @@ export const Dialog = (props: DialogProps) => {
   }, [open]);
 
   return (
-    <dialog ref={dialog} aria-labelledby="dialog-title" aria-describedby={describedby}>
+    <dialog ref={dialog} aria-labelledby={dialogTitle} aria-describedby={describedby}>
       <div className="dialog-header">
         <span aria-hidden="true" className="dialog-icon">
           {icon}
         </span>
-        <span id="dialog-title" className="dialog-title">
+        <span id={dialogTitle} className="dialog-title">
           {title}
         </span>
         <button aria-keyshortcuts="Esc" className="btn-icon dialog-close" onClick={onCancel}>

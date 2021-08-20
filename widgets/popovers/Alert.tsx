@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Button } from 'widgets';
-import { Intent } from 'widgets/utility';
+import { generateWidgetId, Intent } from 'widgets/utility';
 
 import 'widgets/utility/utility.scss';
 import './popover.scss';
@@ -16,6 +16,10 @@ export interface AlertProps extends AlertActionsProps {
 export const Alert = (props: AlertProps) => {
   const { open, onClick, title, children, icon, type } = props;
   const dialog = useRef<HTMLDialogElement>(null);
+  const [alertTitle, alertMessage] = useRef([
+    generateWidgetId('__alert-title'),
+    generateWidgetId('__alert-message'),
+  ]).current;
 
   useEffect(() => {
     const element = dialog.current;
@@ -41,16 +45,16 @@ export const Alert = (props: AlertProps) => {
     <dialog
       ref={dialog}
       role="alertdialog"
-      aria-labelledby="alert-title"
-      aria-describedby="alert-message"
+      aria-labelledby={alertTitle}
+      aria-describedby={alertMessage}
       data-message-intent={type}
     >
       <div className="alert-content">
         <span className="dialog-icon">{icon}</span>
-        <span id="alert-title" className="dialog-title">
+        <span id={alertTitle} className="dialog-title">
           {title}
         </span>
-        <div id="alert-message" className="alert-message">
+        <div id={alertMessage} className="alert-message">
           {children}
         </div>
         <AlertActions
