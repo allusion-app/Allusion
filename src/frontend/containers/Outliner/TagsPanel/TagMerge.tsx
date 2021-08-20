@@ -39,7 +39,7 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
       <form method="dialog" onSubmit={(e) => e.preventDefault()}>
         <fieldset>
           <legend>Merge {tag.name} with</legend>
-          <select value={selectedTag?.id} onChange={handleChange} required>
+          <select autoFocus value={selectedTag?.id} onChange={handleChange} required>
             <option value="">— Choose a tag —</option>
             {tagStore.tagList.map((tag) => {
               const hint =

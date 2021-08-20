@@ -71,7 +71,6 @@ button {
   &:active {
     filter: brightness(80%);
   }
-
   &[aria-disabled='true'],
   &:disabled {
     filter: grayscale(50%);
