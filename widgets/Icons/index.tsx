@@ -102,7 +102,8 @@ import THUMB_BG from 'resources/icons/thumb-bg.svg';
 import TREE_LIST from 'resources/icons/tree-list.svg';
 import VIEW_GRID from 'resources/icons/view-grid.svg';
 import VIEW_LIST from 'resources/icons/view-list.svg';
-import VIEW_MASONRY from 'resources/icons/view-masonry.svg';
+import VIEW_MASONRY_H from 'resources/icons/view-masonry-h.svg';
+import VIEW_MASONRY_V from 'resources/icons/view-masonry-v.svg';
 // import VIEW_PRESENT from 'resources/icons/view-present.svg';
 import WARNING_FILL from 'resources/icons/warning-fill.svg';
 import WARNING_BROKEN_LINK from 'resources/icons/warning-broken-link.svg';
@@ -201,7 +202,8 @@ const IconSet = {
   TREE_LIST: toSvg(TREE_LIST),
   VIEW_GRID: toSvg(VIEW_GRID),
   VIEW_LIST: toSvg(VIEW_LIST),
-  VIEW_MASONRY: toSvg(VIEW_MASONRY),
+  VIEW_MASONRY_V: toSvg(VIEW_MASONRY_V),
+  VIEW_MASONRY_H: toSvg(VIEW_MASONRY_H),
   // VIEW_PRESENT: toSvg(VIEW_PRESENT),
   WARNING_FILL: toSvg(WARNING_FILL),
   WARNING_BROKEN_LINK: toSvg(WARNING_BROKEN_LINK),
