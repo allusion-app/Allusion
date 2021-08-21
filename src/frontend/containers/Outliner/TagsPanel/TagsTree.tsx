@@ -503,8 +503,6 @@ const TagsTree = observer(() => {
         lastSelectionIndex.current = i;
         uiStore.toggleTagSelection(selectedTag);
         return;
-      } else {
-        initialSelectionIndex.current = lastSelectionIndex.current;
       }
 
       // Mark this index as the last item that was selected
@@ -526,6 +524,7 @@ const TagsTree = observer(() => {
         uiStore.selectTag(selectedTag, true);
         initialSelectionIndex.current = i;
       }
+      console.log({ initial: initialSelectionIndex.current, last: lastSelectionIndex.current });
     },
     [tagStore, uiStore],
   );
