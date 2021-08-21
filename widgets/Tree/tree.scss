@@ -54,11 +54,12 @@
   }
 
   &[aria-selected='true'] > .label {
-    color: var(--text-color-strong);
     background-color: var(--background-color-selected);
+    color: var(--text-color-strong);
 
     &:hover {
-      // background-color: var(--accent-color-blue);
+      // TODO: proper background color change for hover
+      // This also changes text color
       filter: brightness(0.95);
     }
 
@@ -67,12 +68,11 @@
     // }
   }
 
-  &:focus {
+  &:focus  > .label {
     // If focused, show an outline
     // If selected as well: do nothing special: keep the selected background color    
-    > .label {
-      border: 2px solid var(--accent-color-blue);
-    }
+    border: 2px solid var(--accent-color-blue);
+    // TODO: proper background color change for hover
   }
 }
 
