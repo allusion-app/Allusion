@@ -89,7 +89,6 @@ import SETTINGS from 'resources/icons/settings.svg';
 // import SMALL_ARROW_DOWN from 'resources/icons/small-arrow-down.svg';
 // import SMALL_ARROW_RIGHT from 'resources/icons/small-arrow-right.svg';
 import SORT from 'resources/icons/sort.svg';
-// import SPACER from 'resources/icons/spacer.svg';
 import TAG_ADD from 'resources/icons/tag-add.svg';
 // import TAG_ADD_COLLECTION from 'resources/icons/tag-add-collection.svg';
 import TAG_BLANCO from 'resources/icons/tag-blanco.svg';
@@ -103,7 +102,7 @@ import THUMB_BG from 'resources/icons/thumb-bg.svg';
 import TREE_LIST from 'resources/icons/tree-list.svg';
 import VIEW_GRID from 'resources/icons/view-grid.svg';
 import VIEW_LIST from 'resources/icons/view-list.svg';
-import VIEW_MASON from 'resources/icons/view-mason.svg';
+import VIEW_MASONRY from 'resources/icons/view-masonry.svg';
 // import VIEW_PRESENT from 'resources/icons/view-present.svg';
 import WARNING_FILL from 'resources/icons/warning-fill.svg';
 import WARNING_BROKEN_LINK from 'resources/icons/warning-broken-link.svg';
@@ -202,7 +201,7 @@ const IconSet = {
   TREE_LIST: toSvg(TREE_LIST),
   VIEW_GRID: toSvg(VIEW_GRID),
   VIEW_LIST: toSvg(VIEW_LIST),
-  VIEW_MASON: toSvg(VIEW_MASON),
+  VIEW_MASONRY: toSvg(VIEW_MASONRY),
   // VIEW_PRESENT: toSvg(VIEW_PRESENT),
   WARNING_FILL: toSvg(WARNING_FILL),
   WARNING_BROKEN_LINK: toSvg(WARNING_BROKEN_LINK),
