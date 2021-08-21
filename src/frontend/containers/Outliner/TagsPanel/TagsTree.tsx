@@ -521,10 +521,14 @@ const TagsTree = observer(() => {
         uiStore.toggleTagSelection(selectedTag);
         initialSelectionIndex.current = i;
       } else {
-        uiStore.selectTag(selectedTag, true);
+        if (selectedTag.isSelected && uiStore.tagSelection.size === 1) {
+          uiStore.clearTagSelection();
+          (document.activeElement as HTMLElement)?.blur?.();
+        } else {
+          uiStore.selectTag(selectedTag, true);
+        }
         initialSelectionIndex.current = i;
       }
-      console.log({ initial: initialSelectionIndex.current, last: lastSelectionIndex.current });
     },
     [tagStore, uiStore],
   );
@@ -587,8 +591,19 @@ const TagsTree = observer(() => {
     [tagStore, uiStore],
   );
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        uiStore.clearTagSelection();
+        (document.activeElement as HTMLElement)?.blur?.();
+        e.stopPropagation();
+      }
+    },
+    [uiStore],
+  );
+
   return (
-    <>
+    <div onKeyDown={handleKeyDown}>
       <header
         onDragOver={handleDragOverAndLeave}
         onDragLeave={handleDragOverAndLeave}
@@ -666,7 +681,7 @@ const TagsTree = observer(() => {
       >
         {contextState.menu}
       </ContextMenu>
-    </>
+    </div>
   );
 });
 

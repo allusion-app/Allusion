@@ -12,6 +12,7 @@ import React, {
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import { TagOption } from 'src/frontend/components/TagSelector';
+import FocusManager from 'src/frontend/FocusManager';
 import { useAction } from 'src/frontend/hooks/useAction';
 import { debounce } from 'src/frontend/utils';
 import { Grid, Tag } from 'widgets';
@@ -259,6 +260,7 @@ const FloatingPanel = observer(({ children }: { children: ReactNode }) => {
     const button = e.currentTarget.previousElementSibling as HTMLElement;
     if (e.relatedTarget !== button && !e.currentTarget.contains(e.relatedTarget as Node)) {
       uiStore.closeToolbarTagPopover();
+      FocusManager.focusGallery();
     }
   }).current;
 
@@ -266,6 +268,7 @@ const FloatingPanel = observer(({ children }: { children: ReactNode }) => {
     if (e.key === 'Escape') {
       e.stopPropagation();
       uiStore.closeToolbarTagPopover();
+      FocusManager.focusGallery();
     }
   }).current;
 

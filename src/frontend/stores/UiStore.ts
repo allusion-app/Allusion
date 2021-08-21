@@ -362,7 +362,9 @@ class UiStore {
   }
 
   @action.bound openToolbarTagPopover() {
-    this.isToolbarTagPopoverOpen = true;
+    if (this.fileSelection.size > 0) {
+      this.isToolbarTagPopoverOpen = true;
+    }
   }
 
   @action.bound closeToolbarTagPopover() {
