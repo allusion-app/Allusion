@@ -53,12 +53,10 @@
 // All themes
 .dark,
 .light {
-  // 90% Saturation, 55% Lightness
-  --accent-color-blue: #3382f0; /* rgb(51, 153, 255); */
-  --accent-color-red: #f7392d;
-  --accent-color-yellow: #a57d27;
-  --accent-color-green: #2f9726; /*rgb(104, 232, 188);*/
-  --box-shadow: 0.125rem 0.25rem 1rem rgba(0, 0, 0, 0.125);
+  --accent-color-blue: #147df1; /* rgb(51, 153, 255); */
+  --accent-color-red: rgb(250, 52, 37);
+  --accent-color-yellow: rgb(255, 193, 47);
+  --accent-color-green: #7af2a6; /*rgb(104, 232, 188);*/
   --accent-color: var(--accent-color-blue);
   color: var(--text-color);
   background: var(--background-color);

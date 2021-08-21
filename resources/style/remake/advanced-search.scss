@@ -1,10 +1,12 @@
 #search-form {
   display: flex;
   flex-direction: column;
+  min-width: min(80ch, 80vw);
   max-height: calc(80vh - 3rem);
 
   .criteria-input {
     min-width: 175px;
+    min-height: 28px;
   }
 }
 
