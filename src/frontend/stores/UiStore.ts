@@ -632,6 +632,12 @@ class UiStore {
     }
   }
 
+  @action.bound getCriteriaByValue(value: any) {
+    return this.searchCriteriaList.find(
+      (c: any) => c.value === value || c.value?.includes?.(value),
+    );
+  }
+
   @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {
     this.hotkeyMap[action] = combo;
     // can't rely on the observer PersistentPreferenceFields, since it's an object

@@ -326,13 +326,22 @@ const SubLocation = ({
     [nodeData, showContextMenu, treeData.exclude],
   );
 
+  // TODO: get rid of mobx warnings. Tried getting it through uiStore.getCriteriaByValue, runInAction and other ways
+  // but they all don't trigger a rerender
+  const existingSearchCrit = uiStore.searchCriteriaList.find(
+    (c: any) => c.value === pathAsSearchPath(nodeData.path),
+  );
+  const isSearched = Boolean(existingSearchCrit);
+
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-      event.ctrlKey
+      existingSearchCrit // toggle search
+        ? uiStore.removeSearchCriteria(existingSearchCrit)
+        : event.ctrlKey // otherwise add/replace depending on ctrl
         ? uiStore.addSearchCriteria(pathCriteria(nodeData.path))
         : uiStore.replaceSearchCriteria(pathCriteria(nodeData.path));
     },
-    [nodeData.path, uiStore],
+    [existingSearchCrit, nodeData.path, uiStore],
   );
 
   const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
@@ -340,10 +349,6 @@ const SubLocation = ({
     nodeData.path,
     expansion,
     setExpansion,
-  );
-
-  const isSearched = uiStore.searchCriteriaList.some(
-    (val) => (val as ClientStringSearchCriteria<IFile>).value === pathAsSearchPath(nodeData.path),
   );
 
   return (
@@ -390,13 +395,21 @@ const Location = observer(
       [showContextMenu, nodeData, onDelete, treeData.exclude],
     );
 
+    // TODO: idem
+    const existingSearchCrit = uiStore.searchCriteriaList.find(
+      (c: any) => c.value === pathAsSearchPath(nodeData.path),
+    );
+    const isSearched = Boolean(existingSearchCrit);
+
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-        event.ctrlKey
+        existingSearchCrit // toggle search
+          ? uiStore.removeSearchCriteria(existingSearchCrit)
+          : event.ctrlKey
           ? uiStore.addSearchCriteria(pathCriteria(nodeData.path))
           : uiStore.replaceSearchCriteria(pathCriteria(nodeData.path));
       },
-      [nodeData, uiStore],
+      [existingSearchCrit, nodeData.path, uiStore],
     );
 
     const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
@@ -404,10 +417,6 @@ const Location = observer(
       nodeData.path,
       expansion,
       treeData.setExpansion,
-    );
-
-    const isSearched = uiStore.searchCriteriaList.some(
-      (val) => (val as ClientStringSearchCriteria<IFile>).value === pathAsSearchPath(nodeData.path),
     );
 
     return (

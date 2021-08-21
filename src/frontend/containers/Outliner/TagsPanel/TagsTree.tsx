@@ -291,14 +291,25 @@ const TagItem = observer((props: ITagItemProps) => {
   const handleQuickQuery = useCallback(
     (event: React.MouseEvent) => {
       runInAction(() => {
-        const query = new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id, nodeData.name);
         event.stopPropagation();
-        if (event.ctrlKey) {
-          if (!nodeData.isSearched) {
-            uiStore.addSearchCriteria(query);
+        if (nodeData.isSearched) {
+          // if already searched, un-search
+          const crit = uiStore.searchCriteriaList.find(
+            (c) => c instanceof ClientTagSearchCriteria && c.value.includes(nodeData.id),
+          );
+          if (crit) {
+            uiStore.removeSearchCriteria(crit);
           }
         } else {
-          uiStore.replaceSearchCriteria(query);
+          // otherwise, search it
+          const query = new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id, nodeData.name);
+          if (event.ctrlKey) {
+            if (!nodeData.isSearched) {
+              uiStore.addSearchCriteria(query);
+            }
+          } else {
+            uiStore.replaceSearchCriteria(query);
+          }
         }
       });
     },
