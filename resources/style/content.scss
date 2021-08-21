@@ -474,6 +474,7 @@
     .thumbnail-filename {
       display: block;
       background-color: rgba(0, 0, 0, 0.5);
+      color: rgb(200, 200, 200); // can't use --text-color: black text on black background in light theme
       width: 100%;
       height: 1.5em;
       position: absolute;
