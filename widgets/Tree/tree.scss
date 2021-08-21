@@ -55,7 +55,7 @@
 
   &[aria-selected='true'] > .label {
     color: var(--text-color-strong);
-    background-color: var(--accent-color-blue-bg);
+    background-color: var(--background-color-selected);
 
     &:hover {
       // background-color: var(--accent-color-blue);
@@ -68,17 +68,10 @@
   }
 
   &:focus {
-    outline: 1px solid var(--accent-color-blue);
-    
-    // background-color: var(--accent-color-blue);
-
-    // &[aria-selected='true'] > .label {
-    //   background-color: transparent;
-    // }
-
+    // If focused, show an outline
+    // If selected as well: do nothing special: keep the selected background color    
     > .label {
-      // background-color: var(--hover-color);
-      border-color: var(--accent-color-blue);
+      border: 2px solid var(--accent-color-blue);
     }
   }
 }

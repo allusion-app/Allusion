@@ -202,7 +202,7 @@ export async function getMetaData(path: string): Promise<IMetaData> {
     dimensions = await sizeOf(path);
   } catch (e) {
     if (!dimensions) {
-      console.error('Could not find dimensions for ', path);
+      console.error('Could not find dimensions for ', path, e, stats);
     }
     // TODO: Remove image? Probably unsupported file type
   }

@@ -7,6 +7,7 @@
 
   --background-color: rgb(28, 30, 35);
   --background-color-alt: rgb(35, 37, 46);
+  --background-color-selected: #2E5B84;
 
   --shade1: rgb(21, 23, 26);
   --shade2: rgb(18, 18, 24);
@@ -33,6 +34,7 @@
 
   --background-color: rgb(240, 240, 240);
   --background-color-alt: rgb(248, 248, 248);
+  --background-color-selected: #9ec6eb;
 
   --shade1: rgb(232, 232, 232);
   --shade2: rgb(221, 221, 221);
@@ -54,7 +56,6 @@
 .dark,
 .light {
   --accent-color-blue: #147df1; /* rgb(51, 153, 255); */
-  --accent-color-blue-bg: #2E5B84; /* TEMPORARY ADDITION. DO NOT INCLUDE IN MASTER */
   --accent-color-red: rgb(250, 52, 37);
   --accent-color-yellow: rgb(255, 193, 47);
   --accent-color-green: #7af2a6 ; /*rgb(104, 232, 188);*/

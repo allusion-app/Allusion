@@ -60,12 +60,9 @@ export class LocationTreeItemRevealer extends TreeItemRevealer {
       };
 
       const subLocationsToExpand = getSubLocationsToFile(location);
-      if (subLocationsToExpand.length === 0) {
-        console.error('No sublocations found for revealing', absolutePath, location.subLocations);
-      } else {
-        // Location's dataId is its ID, subLocation's dataId's are their paths
-        this.revealTreeItem([location.id, ...subLocationsToExpand.map((l) => l.path)]);
-      }
+
+      // Location's dataId is its ID, subLocation's dataId's are their paths
+      this.revealTreeItem([location.id, ...subLocationsToExpand.map((l) => l.path)]);
     });
   }
 }
